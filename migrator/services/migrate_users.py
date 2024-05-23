@@ -12,7 +12,8 @@ def create_user(user_obj: dict, profile_obj: dict | None) -> User:
         # Let's keep same user id for convenience
         id=user_obj["id"],
         username=user_obj["username"],
-        email=user_obj["email"],
+        # Lowercase email just in case
+        email=user_obj["email"].lower(),
         password=user_obj["password"],
         first_name=user_obj["first_name"],
         last_name=user_obj["last_name"],

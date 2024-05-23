@@ -13,7 +13,12 @@ rest-social-auth = "^8.3.0"
 django-dotenv = "^1.4.2"
 dj-database-url = "^2.1.0"
 psycopg2-binary = "^2.9.9"
+<<<<<<< HEAD
 python-dateutil = "^2.9.0.post0"
+=======
+django-extensions = "^3.2.3"
+
+>>>>>>> d3ce439ef2fafe599b6c0fd8e96e72aed2195acf
 
 [build-system]
 requires = ["poetry-core"]
