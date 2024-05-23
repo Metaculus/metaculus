@@ -15,15 +15,12 @@ class SignupSerializer(serializers.ModelSerializer):
         extra_kwargs = {"email": {"required": True}}
 
     def validate_email(self, value):
-        value = value.lower()
-        # TODO: replace with uniq validator
         if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError("The email already exists")
 
         return value
 
     def validate_username(self, value):
-        value = value.lower()
         if User.objects.filter(username__iexact=value).exists():
             raise serializers.ValidationError("The username is already taken")
 
