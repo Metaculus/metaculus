@@ -16,6 +16,10 @@ def generate_user_activation_link(user: User):
 
 
 def check_and_activate_user(user: User, token: str):
+    """
+    Validates activation token and activates user
+    """
+
     if not default_token_generator.check_token(user, token):
         raise ValidationError("Invalid activation token")
 
