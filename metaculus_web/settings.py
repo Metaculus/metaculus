@@ -44,8 +44,9 @@ INSTALLED_APPS = [
     "social_django",
     "rest_social_auth",
     # first-party:
+    "migrator",
     "users",
-    "questions"
+    "questions",
 ]
 
 MIDDLEWARE = [
@@ -82,7 +83,19 @@ WSGI_APPLICATION = "metaculus_web.wsgi.application"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    "default": dj_database_url.config(conn_max_age=600, default="postgres:///metaculus")
+    "default": dj_database_url.config(
+        conn_max_age=600, default="postgres:///metaculus"
+    ),
+    # Old database for the migrator
+    "old": {
+        **dj_database_url.config(
+            env="OLD_DATABASE_URL",
+            conn_max_age=600,
+            default="postgres:///metaculus_old",
+        ),
+        # Should be readonly connection
+        "OPTIONS": {"options": "-c default_transaction_read_only=on"},
+    },
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
@@ -119,7 +132,6 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {"fields": "id, name, email"}
 # Google
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET")
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/

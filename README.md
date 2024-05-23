@@ -115,3 +115,7 @@ Same as numeric range but values are interpreted as unix timesamps
 **Question groups**
 This is just going to be the schemas above but an array thereof for each question and the graphs will be different
 
+
+### Migration of the old database
+1. Configure old db connection using `OLD_DATABASE_URL` env var 
+2. Run `python manage.py migrate_old_db`
