@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
+
 import os
 from pathlib import Path
 
@@ -83,9 +84,12 @@ WSGI_APPLICATION = "metaculus_web.wsgi.application"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    "default": dj_database_url.config(
-        conn_max_age=600, default="postgres:///metaculus"
-    ),
+    "default": {
+        **dj_database_url.config(conn_max_age=600, default="postgres:///metaculus"),
+        "TEST": {
+            "MIRROR": "default",
+        },
+    },
     # Old database for the migrator
     "old": {
         **dj_database_url.config(
@@ -99,6 +103,9 @@ DATABASES = {
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
+TEST = {
+    "NAME": "potato",
+}
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
