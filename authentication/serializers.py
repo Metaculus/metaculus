@@ -12,9 +12,7 @@ class SignupSerializer(serializers.ModelSerializer):
             "email",
             "password",
         )
-        extra_kwargs = {
-            'email': {"required": True}
-        }
+        extra_kwargs = {"email": {"required": True}}
 
     def validate_email(self, value):
         value = value.lower()
@@ -40,3 +38,9 @@ class SignupSerializer(serializers.ModelSerializer):
 class SignupActivationSerializer(serializers.Serializer):
     user_id = serializers.IntegerField(required=True)
     token = serializers.CharField(required=True)
+
+
+class LoginSerializer(serializers.Serializer):
+    # username or email
+    login = serializers.CharField()
+    password = serializers.CharField()
