@@ -1,0 +1,5 @@
+node_modules/
+.next/
+.lintstagedrc.js
+commitlint.config.js
+next-env.d.ts

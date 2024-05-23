@@ -9,6 +9,10 @@ readme = "README.md"
 python = "3.12.3"
 django = "^5.0.6"
 djangorestframework = "^3.15.1"
+rest-social-auth = "^8.3.0"
+django-dotenv = "^1.4.2"
+dj-database-url = "^2.1.0"
+psycopg2-binary = "^2.9.9"
 
 
 [build-system]
