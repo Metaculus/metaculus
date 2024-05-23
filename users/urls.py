@@ -1,5 +1,7 @@
-from django.urls import include, path
+from django.urls import path
+
+from . import views
 
 urlpatterns = [
-    path("auth/login/", include("rest_social_auth.urls_token")),
+    path("users/me", views.current_user_api_view),
 ]

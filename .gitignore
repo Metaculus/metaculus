@@ -157,3 +157,4 @@ some_data.csv
 *.dump
 
 profile.dump
+poetry.lock
