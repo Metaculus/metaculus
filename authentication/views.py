@@ -1,15 +1,36 @@
+from django.contrib.auth import authenticate
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from authentication.serializers import SignupSerializer, SignupActivationSerializer
+from authentication.serializers import (
+    SignupSerializer,
+    SignupActivationSerializer,
+    LoginSerializer,
+)
 from authentication.services import (
     check_and_activate_user,
     generate_user_activation_link,
 )
 from users.models import User
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def login_api_view(request):
+    serializer = LoginSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    user = authenticate(**serializer.validated_data)
+    if not user:
+        raise ValidationError({"password": ["incorrect login / password"]})
+
+    token, created = Token.objects.get_or_create(user=user)
+
+    return Response({"token": token.key})
 
 
 @api_view(["POST"])
@@ -22,7 +43,9 @@ def signup_api_view(request):
     username = serializer.validated_data["username"]
     password = serializer.validated_data["password"]
 
-    user = User.objects.create_user(username=username, email=email, password=password)
+    user = User.objects.create_user(
+        username=username, email=email, password=password, is_active=False
+    )
 
     # TODO: send email, so printing link for now
     activation_url = generate_user_activation_link(user)
@@ -41,9 +64,9 @@ def signup_activate_api_view(request):
     token = serializer.validated_data["token"]
 
     try:
-        user = User.objects.get(pk=user_id)
+        user = User.objects.get(pk=user_id, is_active=False)
     except User.DoesNotExist:
-        raise ValidationError("User does not exist")
+        raise ValidationError({"token": ["Activation Token is expired or invalid"]})
 
     check_and_activate_user(user, token)
 
