@@ -13,9 +13,11 @@
     "prepare": "cd .. && husky ./front_end/.husky"
   },
   "dependencies": {
+    "date-fns": "^3.6.0",
     "next": "14.2.3",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "victory": "^37.0.2"
   },
   "devDependencies": {
     "@types/node": "^20",
