@@ -3,7 +3,7 @@
 `poetry install`
 
 **Database:**
-Use a postgres database called `metac_rw`
+Use a postgres database called `metaculus`
 
 ## Run instructions
 **Backend:**

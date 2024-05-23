@@ -13,6 +13,7 @@ rest-social-auth = "^8.3.0"
 django-dotenv = "^1.4.2"
 dj-database-url = "^2.1.0"
 psycopg2-binary = "^2.9.9"
+python-dateutil = "^2.9.0.post0"
 
 [build-system]
 requires = ["poetry-core"]
