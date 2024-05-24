@@ -37,16 +37,17 @@ const NumericChart: FC<Props> = ({
   onCursorChange,
   onChartReady,
 }) => {
-  const { line, area, yDomain, xScale, yScale } = useMemo(
-    () => buildChartData(dataset),
-    [dataset]
-  );
   const defaultCursor = dataset.timestamps[dataset.timestamps.length - 1];
 
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>();
+
+  const { line, area, yDomain, xScale, yScale } = useMemo(
+    () => buildChartData(dataset, width),
+    [dataset, width]
+  );
 
   const prevWidth = usePrevious(width);
   useEffect(() => {
@@ -206,7 +207,7 @@ type ChartData = {
   yScale: Scale;
 };
 
-function buildChartData(dataset: NumericChartDataset): ChartData {
+function buildChartData(dataset: NumericChartDataset, width = 0): ChartData {
   const line = dataset.timestamps.map((timestamp, index) => ({
     x: timestamp,
     y: dataset.values_mean[index],
@@ -227,18 +228,19 @@ function buildChartData(dataset: NumericChartDataset): ChartData {
     line,
     area,
     yDomain: [minYValue, maxYValue],
-    xScale: generateXScale([minXValue, maxXValue]),
+    xScale: generateXScale([minXValue, maxXValue], width),
     yScale: generateYScale([minYValue, maxYValue]),
   };
 }
 
-function generateXScale(xDomain: Tuple<number>): Scale {
+function generateXScale(xDomain: Tuple<number>, width: number): Scale {
   const threeMonths = 3 * 30 * 24 * 60 * 60 * 1000;
   const twoYears = 2 * 365 * 24 * 60 * 60 * 1000;
 
   let ticks;
   let format;
   const timeRange = xDomain[1] - xDomain[0];
+  const maxTicks = Math.floor(width / 80);
   if (timeRange < threeMonths) {
     ticks = d3.timeDay.range(new Date(xDomain[0]), new Date(xDomain[1]));
     format = d3.timeFormat("%b %d");
@@ -252,12 +254,12 @@ function generateXScale(xDomain: Tuple<number>): Scale {
 
   return {
     ticks: ticks.map((tick) => tick.getTime()),
-    tickFormat: (x: number, index?: number, ticks?: number[]) => {
+    tickFormat: (x: number, index?: number) => {
       if (!index) {
         return format(new Date(x));
       }
 
-      if (index % 3 !== 0) {
+      if (index % Math.max(1, Math.floor(ticks.length / maxTicks)) !== 0) {
         return "";
       }
 
