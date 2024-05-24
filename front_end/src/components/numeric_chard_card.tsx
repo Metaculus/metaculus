@@ -1,5 +1,6 @@
 "use client";
 import classNames from "classnames";
+import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
 import CursorDetails from "@/components/cursor_details";
@@ -11,6 +12,8 @@ type Props = {
 };
 
 const NumericChartCard: FC<Props> = ({ dataset }) => {
+  const t = useTranslations();
+
   const [isChartReady, setIsChartReady] = useState(false);
 
   const [activeTimestamp, setActiveTimestamp] = useState(
@@ -43,7 +46,7 @@ const NumericChartCard: FC<Props> = ({ dataset }) => {
       <NumericChart
         dataset={dataset}
         onCursorChange={handleCursorChange}
-        yLabel={"Community Prediction"}
+        yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}
       />
       <div className={classNames(isChartReady ? "opacity-100" : "opacity-0")}>
