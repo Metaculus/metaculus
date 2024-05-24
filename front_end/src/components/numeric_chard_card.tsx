@@ -1,48 +1,58 @@
 "use client";
+import classNames from "classnames";
 import { FC, useCallback, useMemo, useState } from "react";
 
+import CursorDetails from "@/components/cursor_details";
 import NumericChart from "@/components/numeric_chart";
-import { generateMockNumericChart } from "@/utils/mock_charts";
+import { NumericChartDataset } from "@/types/charts";
 
-const NUMERIC_DATASET = generateMockNumericChart();
+type Props = {
+  dataset: NumericChartDataset;
+};
 
-const NumericChartCard: FC = () => {
+const NumericChartCard: FC<Props> = ({ dataset }) => {
+  const [isChartReady, setIsChartReady] = useState(false);
+
   const [activeTimestamp, setActiveTimestamp] = useState(
-    NUMERIC_DATASET.timestamps[NUMERIC_DATASET.timestamps.length - 1]
+    dataset.timestamps[dataset.timestamps.length - 1]
   );
   const cursorData = useMemo(() => {
-    const index = NUMERIC_DATASET.timestamps.findIndex(
+    const index = dataset.timestamps.findIndex(
       (timestamp) => timestamp === activeTimestamp
     );
 
     return {
-      min: NUMERIC_DATASET.values_min[index],
-      max: NUMERIC_DATASET.values_max[index],
-      mean: NUMERIC_DATASET.values_mean[index],
-      forecastersNr: NUMERIC_DATASET.nr_forecasters[index],
-      timestamp: NUMERIC_DATASET.timestamps[index],
+      min: dataset.values_min[index].toFixed(1),
+      max: dataset.values_max[index].toFixed(1),
+      mean: dataset.values_mean[index].toFixed(1),
+      forecastersNr: dataset.nr_forecasters[index],
+      timestamp: dataset.timestamps[index],
     };
-  }, [activeTimestamp]);
+  }, [activeTimestamp, dataset]);
 
   const handleCursorChange = useCallback((value: number) => {
     setActiveTimestamp(value);
   }, []);
 
+  const handleChartReady = useCallback(() => {
+    setIsChartReady(true);
+  }, []);
+
   return (
-    <div className="flex flex-col w-full max-w-[760px]">
+    <div className="flex flex-col w-full">
       <NumericChart
-        dataset={NUMERIC_DATASET}
+        dataset={dataset}
         onCursorChange={handleCursorChange}
+        yLabel={"Community Prediction"}
+        onChartReady={handleChartReady}
       />
-      <div className="flex flex-row justify-between">
-        <div className="flex flex-col">
-          <span>Total Forecasters</span>
-          <span>{cursorData.forecastersNr}</span>
-        </div>
-        <div className="flex flex-col">
-          <span>Community Prediction</span>
-          <span>{`${cursorData.mean} (${cursorData.min} - ${cursorData.max})`}</span>
-        </div>
+      <div className={classNames(isChartReady ? "opacity-100" : "opacity-0")}>
+        <CursorDetails
+          forecastersNr={cursorData.forecastersNr}
+          min={cursorData.min}
+          mean={cursorData.mean}
+          max={cursorData.max}
+        />
       </div>
     </div>
   );
