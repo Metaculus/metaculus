@@ -3,37 +3,13 @@ from django.db import models
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
 
-"""
-Merge notes:
-    Tournament:
-        tournament_start_date -> start_date
-        tournament_close_date -> close_date
-    
-    category:
-        id -> slug. Original format: `1/computing-and-math`. Cut `<int>/`.
-            Could be some dupolicates, so just merge it with other
-        short_name -> name
-        long_name -> description!
-        
-    tags:
-        type -- not visible, so deprecated
-        emoji -- also not visible
-        enabled -- just skip disabled tags 
-        
-    topic:
-        `tags` -> could be probably deprecated since almost not used
-        `categories` -> drop it
-        `projects` -> drop it
-        
-        stage -> is_active 
-        rank -> order
-
-"""
-
 
 class Project(TimeStampedModel):
     class ProjectTypes(models.TextChoices):
         TOURNAMENT = "TOURNAMENT", "Tournament"
+        CATEGORY = "CATEGORY", "Category"
+        TAG = "TAG", "Tag"
+        TOPIC = "TOPIC", "Topic"
 
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics", "Hot Topics section"
@@ -48,7 +24,6 @@ class Project(TimeStampedModel):
     name = models.CharField(max_length=200)
     slug = models.CharField(
         max_length=200,
-        unique=True,
         blank=True,
         null=True,
         validators=[validate_alpha_slug],
@@ -105,3 +80,10 @@ class Project(TimeStampedModel):
     created_by = models.ForeignKey(
         User, models.CASCADE, related_name="created_projects", default=None, null=True
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="projects_unique_type_slug", fields=["type", "slug"]
+            ),
+        ]
