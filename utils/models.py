@@ -1,4 +1,7 @@
+from django.core.validators import RegexValidator
 from django.db import models
+
+from django.utils.translation import gettext_lazy as _
 
 
 class TimeStampedModel(models.Model):
@@ -12,3 +15,13 @@ class TimeStampedModel(models.Model):
 
     class Meta:
         abstract = True
+
+
+validate_alpha_slug = RegexValidator(
+    r"^[-a-zA-Z0-9_]*[a-zA-Z][-a-zA-Z0-9_]*\Z",
+    _(
+        "Enter a valid “slug” consisting of letters, numbers, underscores or hyphens. "
+        "Must contain at least one letter."
+    ),
+    "invalid",
+)
