@@ -70,7 +70,9 @@ class Project(TimeStampedModel):
     section = models.CharField(
         max_length=32,
         choices=SectionTypes.choices,
-        default=SectionTypes.HOT_TOPICS,
+        default=None,
+        null=True,
+        blank=True,
         help_text="This groups topics together under the same section in the sidebar. ",
     )
 

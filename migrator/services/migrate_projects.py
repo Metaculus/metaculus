@@ -1,3 +1,5 @@
+import json
+
 from django.db import IntegrityError
 
 from migrator.utils import paginated_query
@@ -5,6 +7,9 @@ from projects.models import Project
 
 
 def create_project(project_obj: dict) -> Project:
+    sign_up_fields = project_obj["sign_up_fields"]
+    sign_up_fields = json.loads(sign_up_fields) if sign_up_fields else []
+
     project = Project(
         type=Project.ProjectTypes.TOURNAMENT,
         name=project_obj["name"],
@@ -17,7 +22,7 @@ def create_project(project_obj: dict) -> Project:
         prize_pool=project_obj["prize_pool"],
         close_date=project_obj["tournament_close_date"],
         start_date=project_obj["tournament_start_date"],
-        sign_up_fields=project_obj["sign_up_fields"],
+        sign_up_fields=sign_up_fields,
         meta_description=project_obj["meta_description"],
         created_at=project_obj["created_at"],
         edited_at=project_obj["edited_at"],
