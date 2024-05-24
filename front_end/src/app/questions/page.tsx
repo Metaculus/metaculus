@@ -1,10 +1,15 @@
 import Link from "next/link";
 
+import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import NumericChartCard from "@/components/numeric_chard_card";
-import { generateMockNumericChart } from "@/utils/mock_charts";
+import {
+  generateMockMultipleChoiceChart,
+  generateMockNumericChart,
+} from "@/utils/mock_charts";
 
 export default function Questions() {
   const numericDataset = generateMockNumericChart();
+  const multipleChoiceDataset = generateMockMultipleChoiceChart();
 
   return (
     <main className="flex min-h-screen flex-col gap-2 p-6">
@@ -16,6 +21,8 @@ export default function Questions() {
       </Link>
       Numeric Chart:
       <NumericChartCard dataset={numericDataset} />
+      Multiple Choice Chart:
+      <MultipleChoiceChart dataset={multipleChoiceDataset} />
     </main>
   );
 }
