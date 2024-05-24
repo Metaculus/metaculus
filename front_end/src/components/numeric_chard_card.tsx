@@ -3,8 +3,8 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
+import NumericChart from "@/components/charts/numeric_chart";
 import CursorDetails from "@/components/cursor_details";
-import NumericChart from "@/components/numeric_chart";
 import { NumericChartDataset } from "@/types/charts";
 
 type Props = {
@@ -44,6 +44,7 @@ const NumericChartCard: FC<Props> = ({ dataset }) => {
   return (
     <div className="flex flex-col w-full">
       <NumericChart
+        height={100}
         dataset={dataset}
         onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}
