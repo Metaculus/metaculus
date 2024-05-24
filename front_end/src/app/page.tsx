@@ -1,13 +1,14 @@
-import NumericChartCard from "@/components/numeric_chard_card";
-import { generateMockNumericChart } from "@/utils/mock_charts";
+import Link from "next/link";
 
 export default function Home() {
-  const numericDataset = generateMockNumericChart();
-
   return (
-    <main className="flex min-h-screen flex-col items-center gap-2 ">
-      Numeric Chart:
-      <NumericChartCard dataset={numericDataset} />
+    <main className="min-h-screen p-24">
+      <Link
+        href={"/questions"}
+        className={"font-bold text-metac-blue-800 hover:opacity-60"}
+      >
+        Go to Questions
+      </Link>
     </main>
   );
 }
