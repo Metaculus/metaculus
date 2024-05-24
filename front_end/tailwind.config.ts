@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import defaultTheme from "tailwindcss/defaultTheme";
 
 const config: Config = {
   content: [
@@ -174,6 +175,18 @@ const config: Config = {
           bell: { DEFAULT: "#b79d00", dark: "#dac024" },
           twitter: { DEFAULT: "#1da1f2" },
         },
+      },
+      fontFamily: {
+        sans: [
+          "var(--font-diatype-variable)",
+          "var(--font-diatype)",
+          ...defaultTheme.fontFamily.sans,
+        ],
+        serif: [
+          "var(--font-source-serif-pro)",
+          ...defaultTheme.fontFamily.serif,
+        ],
+        mono: ['"Ubuntu mono"', ...defaultTheme.fontFamily.mono],
       },
     },
   },
