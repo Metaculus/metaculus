@@ -10,7 +10,7 @@ Use a postgres database called `metaculus`
 `poetry run python manage.py`
 
 **Frontend:**
-TBD
+`cd front_end && npm run dev`
 
 ### Schemas for graphs:
 
