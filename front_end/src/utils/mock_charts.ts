@@ -3,40 +3,35 @@ import { addDays } from "date-fns";
 import { NumericChartDataset } from "@/types/charts";
 
 export function generateMockNumericChart(): NumericChartDataset {
-  const data: NumericChartDataset = {
-    timestamps: [],
-    values_mean: [],
-    values_max: [],
-    values_min: [],
-    nr_forecasters: [],
-  };
+  const startDate = new Date(2023, 2, 1);
+  const numberOfDays = 65;
+  const timestamps: number[] = [];
+  const values_mean: number[] = [];
+  const values_max: number[] = [];
+  const values_min: number[] = [];
+  const nr_forecasters: number[] = [];
 
-  const startDate = new Date();
-  const smoothingFactor = 1.5;
+  let currentMean = 200;
 
-  let prevMin = 100;
-  let prevMax = 100;
-  for (let i = 0; i < 60; i++) {
-    const day = addDays(startDate, i);
-    const minOffset = Math.random() * 2 - 1;
-    const maxOffset = Math.random() * 2 - 1;
+  for (let i = 0; i < numberOfDays; i++) {
+    const currentDate = addDays(startDate, i);
+    timestamps.push(currentDate.getTime());
 
-    const newMin = Math.max(90, prevMin + minOffset * smoothingFactor);
-    const newMax = Math.min(110, prevMax + maxOffset * smoothingFactor);
+    currentMean += (Math.random() - 0.5) * 10;
+    const mean = currentMean;
+    values_mean.push(mean);
 
-    const min = newMin * (1 - smoothingFactor) + prevMin * smoothingFactor;
-    const max = newMax * (1 - smoothingFactor) + prevMax * smoothingFactor;
-    const mean = (max - min) / 2 + min;
+    values_max.push(mean + Math.random() * 10);
+    values_min.push(mean - Math.random() * 10);
 
-    data.timestamps.push(day.getTime()); // Use getTime() for timestamp
-    data.values_mean.push(mean);
-    data.values_max.push(max);
-    data.values_min.push(min);
-    data.nr_forecasters.push(Math.floor(Math.random() * 20 + 1));
-
-    prevMin = min;
-    prevMax = max;
+    nr_forecasters.push(Math.floor(150 + Math.random() * 100));
   }
 
-  return data;
+  return {
+    timestamps,
+    values_mean,
+    values_max,
+    values_min,
+    nr_forecasters,
+  };
 }

@@ -11,23 +11,32 @@ import {
   VictoryAxis,
   VictoryChart,
   VictoryCursorContainer,
+  VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
 } from "victory";
 
 import ChartCursorLabel from "@/components/chart_cursor_label";
+import usePrevious from "@/hooks/use_previous";
 import { NumericChartDataset } from "@/types/charts";
 
 const CHART_PADDING = 10;
-const AXIS_PADDING = 10;
 
 type Props = {
   dataset: NumericChartDataset;
+  yLabel?: string;
   height?: number;
   onCursorChange?: (value: number) => void;
+  onChartReady?: () => void;
 };
 
-const NumericChart: FC<Props> = ({ dataset, height = 150, onCursorChange }) => {
+const NumericChart: FC<Props> = ({
+  dataset,
+  yLabel,
+  height = 150,
+  onCursorChange,
+  onChartReady,
+}) => {
   const { line, area, yDomain, xScale, yScale } = useMemo(
     () => buildChartData(dataset),
     [dataset]
@@ -38,6 +47,14 @@ const NumericChart: FC<Props> = ({ dataset, height = 150, onCursorChange }) => {
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>();
+
+  const prevWidth = usePrevious(width);
+  useEffect(() => {
+    if (!prevWidth && width && onChartReady) {
+      onChartReady();
+    }
+  }, [onChartReady, prevWidth, width]);
+
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
       const width = entries[0].contentRect.width;
@@ -67,19 +84,18 @@ const NumericChart: FC<Props> = ({ dataset, height = 150, onCursorChange }) => {
           padding={{
             top: CHART_PADDING,
             right: CHART_PADDING,
-            bottom: CHART_PADDING + AXIS_PADDING,
-            left: CHART_PADDING + AXIS_PADDING,
+            bottom: CHART_PADDING + 10,
+            left: CHART_PADDING + 40,
           }}
           events={[
             {
               target: "parent",
               eventHandlers: {
-                onMouseOver: () => {
+                onMouseOverCapture: () => {
                   setIsCursorActive(true);
                 },
-                onMouseLeave: () => {
+                onMouseOutCapture: () => {
                   setIsCursorActive(false);
-                  onCursorChange?.(defaultCursor);
                 },
               },
             },
@@ -152,9 +168,12 @@ const NumericChart: FC<Props> = ({ dataset, height = 150, onCursorChange }) => {
                   text === "" ? 3 : 5) as any,
               },
               tickLabels: { fontSize: 10, padding: 2 },
+              axisLabel: { fontSize: 10 },
             }}
             tickValues={yScale.ticks}
             tickFormat={yScale.tickFormat}
+            label={yLabel}
+            axisLabelComponent={<VictoryLabel dy={-10} />}
           />
           <VictoryAxis
             style={{
