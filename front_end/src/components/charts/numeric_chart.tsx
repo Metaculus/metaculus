@@ -1,12 +1,9 @@
 "use client";
-import * as d3 from "d3";
-import React, { FC, useEffect, useMemo, useRef, useState } from "react";
+import React, { FC, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
   DomainTuple,
   LineSegment,
-  Scale,
-  Tuple,
   VictoryArea,
   VictoryAxis,
   VictoryChart,
@@ -17,8 +14,14 @@ import {
 } from "victory";
 
 import ChartCursorLabel from "@/components/chart_cursor_label";
+import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";
-import { NumericChartDataset } from "@/types/charts";
+import { BaseChartData, NumericChartDataset } from "@/types/charts";
+import {
+  generateNumericDomain,
+  generateNumericYScale,
+  generateTimestampXScale,
+} from "@/utils/charts";
 
 const CHART_PADDING = 10;
 
@@ -37,50 +40,30 @@ const NumericChart: FC<Props> = ({
   onCursorChange,
   onChartReady,
 }) => {
-  const defaultCursor = dataset.timestamps[dataset.timestamps.length - 1];
+  const { ref: chartContainerRef, width: chartWidth } =
+    useContainerSize<HTMLDivElement>();
 
+  const defaultCursor = dataset.timestamps[dataset.timestamps.length - 1];
   const [isCursorActive, setIsCursorActive] = useState(false);
 
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState<number>();
-
   const { line, area, yDomain, xScale, yScale } = useMemo(
-    () => buildChartData(dataset, width),
-    [dataset, width]
+    () => buildChartData(dataset, chartWidth),
+    [dataset, chartWidth]
   );
 
-  const prevWidth = usePrevious(width);
+  const prevWidth = usePrevious(chartWidth);
   useEffect(() => {
-    if (!prevWidth && width && onChartReady) {
+    if (!prevWidth && chartWidth && onChartReady) {
       onChartReady();
     }
-  }, [onChartReady, prevWidth, width]);
-
-  useEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      const width = entries[0].contentRect.width;
-      setWidth(width);
-    });
-
-    let container: HTMLDivElement;
-    if (chartContainerRef.current) {
-      resizeObserver.observe(chartContainerRef.current);
-      container = chartContainerRef.current;
-    }
-
-    return () => {
-      if (container) {
-        resizeObserver.unobserve(container);
-      }
-    };
-  }, []);
+  }, [onChartReady, prevWidth, chartWidth]);
 
   return (
     <div ref={chartContainerRef} className="w-full h-full">
-      {!!width && (
+      {!!chartWidth && (
         <VictoryChart
           domain={{ y: yDomain }}
-          width={width}
+          width={chartWidth}
           height={height}
           padding={{
             top: CHART_PADDING,
@@ -194,20 +177,16 @@ const NumericChart: FC<Props> = ({
   );
 };
 
-type TickFormat = (value: number, index?: number, ticks?: number[]) => string;
-type Scale = {
-  ticks: number[];
-  tickFormat: TickFormat;
-};
-type ChartData = {
+type ChartData = BaseChartData & {
   line: Array<{ x: number; y: number }>;
   area: Array<{ x: number; y0: number; y: number }>;
   yDomain: DomainTuple;
-  xScale: Scale;
-  yScale: Scale;
 };
 
-function buildChartData(dataset: NumericChartDataset, width = 0): ChartData {
+function buildChartData(
+  dataset: NumericChartDataset,
+  width: number
+): ChartData {
   const line = dataset.timestamps.map((timestamp, index) => ({
     x: timestamp,
     y: dataset.values_mean[index],
@@ -221,81 +200,15 @@ function buildChartData(dataset: NumericChartDataset, width = 0): ChartData {
   const minYValue = Math.floor(Math.min(...dataset.values_min) * 0.95); // 5% padding
   const maxYValue = Math.ceil(Math.max(...dataset.values_max) * 1.05); // 5% padding
 
-  const minXValue = Math.min(...dataset.timestamps);
-  const maxXValue = Math.max(...dataset.timestamps);
+  const xDomain = generateNumericDomain(dataset.timestamps);
 
   return {
     line,
     area,
     yDomain: [minYValue, maxYValue],
-    xScale: generateXScale([minXValue, maxXValue], width),
-    yScale: generateYScale([minYValue, maxYValue]),
+    xScale: generateTimestampXScale(xDomain, width),
+    yScale: generateNumericYScale([minYValue, maxYValue]),
   };
-}
-
-function generateXScale(xDomain: Tuple<number>, width: number): Scale {
-  const threeMonths = 3 * 30 * 24 * 60 * 60 * 1000;
-  const twoYears = 2 * 365 * 24 * 60 * 60 * 1000;
-
-  let ticks;
-  let format;
-  const timeRange = xDomain[1] - xDomain[0];
-  const maxTicks = Math.floor(width / 80);
-  if (timeRange < threeMonths) {
-    ticks = d3.timeDay.range(new Date(xDomain[0]), new Date(xDomain[1]));
-    format = d3.timeFormat("%b %d");
-  } else if (timeRange < twoYears) {
-    ticks = d3.timeMonth.range(new Date(xDomain[0]), new Date(xDomain[1]));
-    format = d3.timeFormat("%b %Y");
-  } else {
-    ticks = d3.timeYear.range(new Date(xDomain[0]), new Date(xDomain[1]));
-    format = d3.timeFormat("%Y");
-  }
-
-  return {
-    ticks: ticks.map((tick) => tick.getTime()),
-    tickFormat: (x: number, index?: number) => {
-      if (!index) {
-        return format(new Date(x));
-      }
-
-      if (index % Math.max(1, Math.floor(ticks.length / maxTicks)) !== 0) {
-        return "";
-      }
-
-      if (ticks && index >= ticks.length - 2) {
-        return "";
-      }
-
-      return format(new Date(x));
-    },
-  };
-}
-
-function generateYScale(yDomain: [number, number]): Scale {
-  const [min, max] = yDomain;
-  const range = max - min;
-
-  const majorStep = range / 4;
-  const minorStep = majorStep / 5;
-
-  const majorTicks = new Set<number>();
-  for (let i = min; i <= max; i += majorStep) {
-    majorTicks.add(Math.round(i));
-  }
-
-  const minorTicks = new Set<number>();
-  for (let i = min; i <= max; i += minorStep) {
-    if (!majorTicks.has(Math.round(i))) {
-      minorTicks.add(Math.round(i));
-    }
-  }
-
-  const ticks = [...Array.from(majorTicks), ...Array.from(minorTicks)].sort(
-    (a, b) => a - b
-  );
-
-  return { ticks, tickFormat: (y) => (majorTicks.has(y) ? y.toString() : "") };
 }
 
 export default React.memo(NumericChart);
