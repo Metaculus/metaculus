@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
@@ -13,7 +13,7 @@ from authentication.serializers import (
 )
 from authentication.services import (
     check_and_activate_user,
-    generate_user_activation_link,
+    send_activation_email,
 )
 from users.models import User
 
@@ -47,11 +47,24 @@ def signup_api_view(request):
         username=username, email=email, password=password, is_active=False
     )
 
-    # TODO: send email, so printing link for now
-    activation_url = generate_user_activation_link(user)
-    print(activation_url)
+    send_activation_email(user)
 
     return Response(status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def resend_activation_link_api_view(request):
+    email = serializers.EmailField().to_internal_value(request.data.get("email"))
+
+    try:
+        user = User.objects.get(email__iexact=email, is_active=False)
+    except User.DoesNotExist:
+        raise ValidationError({"email": ["User does not exist or already activated"]})
+
+    send_activation_email(user)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["POST"])
