@@ -24,6 +24,9 @@ def question_list(request):
     if ordering:
         questions = questions.order_by(ordering)
 
+    # Prefetching related objects
+    questions = questions.prefetch_projects()
+
     serializer = QuestionSerializer(questions, many=True)
     return Response(serializer.data)
 
