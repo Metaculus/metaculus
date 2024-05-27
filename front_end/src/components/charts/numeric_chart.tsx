@@ -16,7 +16,7 @@ import {
 import ChartCursorLabel from "@/components/chart_cursor_label";
 import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";
-import { BaseChartData, NumericChartDataset } from "@/types/charts";
+import { Area, BaseChartData, Line, NumericChartDataset } from "@/types/charts";
 import {
   generateNumericDomain,
   generateNumericYScale,
@@ -178,8 +178,8 @@ const NumericChart: FC<Props> = ({
 };
 
 type ChartData = BaseChartData & {
-  line: Array<{ x: number; y: number }>;
-  area: Array<{ x: number; y0: number; y: number }>;
+  line: Line;
+  area: Area;
   yDomain: DomainTuple;
 };
 
