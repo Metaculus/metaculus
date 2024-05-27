@@ -6,7 +6,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from questions.models import Question
-from questions.serializers import QuestionSerializer
+from questions.serializers import QuestionSerializer, QuestionWriteSerializer
 
 
 @api_view(["POST"])
@@ -42,11 +42,11 @@ def question_detail(request: Request, pk):
 
 @api_view(["POST"])
 def create_question(request):
-    serializer = QuestionSerializer(data=request.data)
+    serializer = QuestionWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    serializer.save(author=request.user)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    question = serializer.save(author=request.user)
+    return Response(QuestionSerializer(question).data, status=status.HTTP_201_CREATED)
 
 
 @api_view(["PUT"])
