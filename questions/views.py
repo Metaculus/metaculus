@@ -27,6 +27,7 @@ def question_list(request):
 
 @api_view(["GET"])
 def question_detail(request: Request, pk):
+    print(request, pk)
     question = get_object_or_404(Question, pk=pk)
     serializer = QuestionSerializer(question)
     return Response(serializer.data)
