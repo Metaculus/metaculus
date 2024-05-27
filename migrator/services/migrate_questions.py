@@ -6,7 +6,7 @@ from dateutil.parser import parse as date_parse
 from users.models import User
 
 
-def create_user(question: dict) -> Question:
+def create_question(question: dict) -> Question:
     possibilities = json.loads(question["possibilities"])
     # print(f'\n----\n{possibilities}\n----\n')
     if possibilities.get("type", None) == "binary":
@@ -21,7 +21,7 @@ def create_user(question: dict) -> Question:
         return None
     else:
         return None
-    question = Question(
+    new_question = Question(
         id=question["id"],
         title=question["title"],
         description=question["description"],
@@ -42,11 +42,11 @@ def create_user(question: dict) -> Question:
         resolution=question["resolution"],
     )
 
-    return question
+    return new_question
 
 
 def migrate_questions():
-    for question in paginated_query("SELECT * FROM metac_question_question"):
-        question = create_user(question)
+    for old_question in paginated_query("SELECT * FROM metac_question_question"):
+        question = create_question(old_question)
         if question is not None:
             question.save()
