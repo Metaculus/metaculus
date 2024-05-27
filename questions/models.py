@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 from users.models import User
 
@@ -40,4 +41,31 @@ class Question(models.Model):
 
 
 class Forecast(models.Model):
-    pass
+    start_time = models.DateTimeField(
+        help_text="Begining time when this prediction is active", db_index=True
+    )
+    end_time = models.DateTimeField(
+        null=True,
+        help_text="Time at which this prediction is no longer active",
+        db_index=True,
+    )
+    
+    # last 2 elements are represents above upper and, subsequently, below lower bound.
+    continuous_prediction_values = ArrayField(
+        models.FloatField(),
+        null=True,
+        size=202, 
+    )
+
+    probability_yes = models.FloatField(null=True)
+    probability_yes_per_category = ArrayField(models.FloatField(), null=True)
+
+    distribution_components = ArrayField(
+        models.JSONField(null=True),
+        size=5,
+        null=True,
+        help_text="The components for a continuous prediction. Used to generate prediction_values.",
+    )
+
+    author = models.ForeignKey(User, models.CASCADE)
+    question = models.ForeignKey(Question, models.CASCADE)
