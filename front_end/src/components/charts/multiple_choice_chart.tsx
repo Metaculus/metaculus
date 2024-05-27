@@ -8,6 +8,7 @@ import {
   VictoryLine,
 } from "victory";
 
+import chartTheme from "@/contants/chart_theme";
 import { METAC_COLORS } from "@/contants/colors";
 import useContainerSize from "@/hooks/use_container_size";
 import { BaseChartData, Line, MultipleChoiceDataset } from "@/types/charts";
@@ -17,7 +18,6 @@ import {
   generateTimestampXScale,
 } from "@/utils/charts";
 
-const CHART_PADDING = 10;
 const COLOR_SCALE = Object.values(METAC_COLORS["mc-option"]).map(
   (value) => value.DEFAULT
 );
@@ -41,57 +41,21 @@ const MultipleChoiceChart: FC<Props> = ({ dataset, height = 150, yLabel }) => {
 
   return (
     <div ref={chartContainerRef} className="w-full h-full">
-      <VictoryChart
-        width={chartWidth}
-        height={height}
-        padding={{
-          top: CHART_PADDING,
-          right: CHART_PADDING,
-          bottom: CHART_PADDING + 10,
-          left: CHART_PADDING + 40,
-        }}
-      >
+      <VictoryChart width={chartWidth} height={height} theme={chartTheme}>
         <VictoryGroup colorScale={COLOR_SCALE}>
           {lines.map((line, index) => (
-            <VictoryLine
-              key={`multiple-choice-line-${index}`}
-              data={line}
-              style={{
-                data: {
-                  strokeWidth: 1,
-                },
-              }}
-            />
+            <VictoryLine key={`multiple-choice-line-${index}`} data={line} />
           ))}
         </VictoryGroup>
         <VictoryAxis
           dependentAxis
           tickValues={yScale.ticks}
           tickFormat={yScale.tickFormat}
-          style={{
-            ticks: {
-              stroke: "black",
-              size: (({ text }: { text: string }) =>
-                text === "" ? 3 : 5) as any,
-            },
-            tickLabels: { fontSize: 10, padding: 2 },
-            axisLabel: { fontSize: 10 },
-          }}
+          style={{ tickLabels: { padding: 2 } }}
           label={yLabel}
           axisLabelComponent={<VictoryLabel dy={-10} />}
         />
-        <VictoryAxis
-          tickValues={xScale.ticks}
-          tickFormat={xScale.tickFormat}
-          style={{
-            ticks: {
-              stroke: "black",
-              size: (({ text }: { text: string }) =>
-                text === "" ? 3 : 5) as any,
-            },
-            tickLabels: { fontSize: 10, padding: 0 },
-          }}
-        />
+        <VictoryAxis tickValues={xScale.ticks} tickFormat={xScale.tickFormat} />
       </VictoryChart>
     </div>
   );

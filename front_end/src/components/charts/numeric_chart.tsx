@@ -14,6 +14,8 @@ import {
 } from "victory";
 
 import ChartCursorLabel from "@/components/chart_cursor_label";
+import chartTheme from "@/contants/chart_theme";
+import { METAC_COLORS } from "@/contants/colors";
 import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";
 import { Area, BaseChartData, Line, NumericChartDataset } from "@/types/charts";
@@ -65,12 +67,7 @@ const NumericChart: FC<Props> = ({
           domain={{ y: yDomain }}
           width={chartWidth}
           height={height}
-          padding={{
-            top: CHART_PADDING,
-            right: CHART_PADDING,
-            bottom: CHART_PADDING + 10,
-            left: CHART_PADDING + 40,
-          }}
+          theme={chartTheme}
           events={[
             {
               target: "parent",
@@ -102,7 +99,7 @@ const NumericChart: FC<Props> = ({
               cursorComponent={
                 <LineSegment
                   style={{
-                    stroke: "rgb(119, 119, 119)",
+                    stroke: METAC_COLORS.gray["600"].DEFAULT,
                     strokeDasharray: "2,1",
                   }}
                 />
@@ -129,7 +126,7 @@ const NumericChart: FC<Props> = ({
             data={area}
             style={{
               data: {
-                fill: "#9fd19f",
+                fill: METAC_COLORS.olive["500"].DEFAULT,
                 opacity: 0.3,
               },
             }}
@@ -138,21 +135,14 @@ const NumericChart: FC<Props> = ({
             data={line}
             style={{
               data: {
-                stroke: "#748c74",
-                strokeWidth: 1,
+                stroke: METAC_COLORS.olive["700"].DEFAULT,
               },
             }}
           />
           <VictoryAxis
             dependentAxis
             style={{
-              ticks: {
-                stroke: "black",
-                size: (({ text }: { text: string }) =>
-                  text === "" ? 3 : 5) as any,
-              },
-              tickLabels: { fontSize: 10, padding: 2 },
-              axisLabel: { fontSize: 10 },
+              tickLabels: { padding: 2 },
             }}
             tickValues={yScale.ticks}
             tickFormat={yScale.tickFormat}
@@ -160,14 +150,6 @@ const NumericChart: FC<Props> = ({
             axisLabelComponent={<VictoryLabel dy={-10} />}
           />
           <VictoryAxis
-            style={{
-              ticks: {
-                stroke: "black",
-                size: (({ text }: { text: string }) =>
-                  text === "" ? 3 : 5) as any,
-              },
-              tickLabels: { fontSize: 10, padding: 0 },
-            }}
             tickValues={xScale.ticks}
             tickFormat={isCursorActive ? () => "" : xScale.tickFormat}
           />
