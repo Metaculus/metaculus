@@ -1,6 +1,6 @@
 import { addDays } from "date-fns";
 
-import { NumericChartDataset } from "@/types/charts";
+import { MultipleChoiceDataset, NumericChartDataset } from "@/types/charts";
 
 export function generateMockNumericChart(): NumericChartDataset {
   const startDate = new Date(2023, 2, 1);
@@ -33,5 +33,48 @@ export function generateMockNumericChart(): NumericChartDataset {
     values_max,
     values_min,
     nr_forecasters,
+  };
+}
+
+export function generateMockMultipleChoiceChart(): MultipleChoiceDataset {
+  const numberOfDays = 65;
+
+  const timestamps: number[] = [];
+  const nrForecasters: number[] = [];
+  const choiceData: { [key: string]: number[] } = {
+    "Option A": [],
+    "Option B": [],
+    "Option C": [],
+    "Option D": [],
+  };
+  let date = new Date(2023, 2, 1);
+
+  for (let i = 0; i < numberOfDays; i++) {
+    timestamps.push(date.getTime());
+    nrForecasters.push(Math.floor(Math.random() * 100) + 1);
+
+    // Randomly distribute forecasters across choices as percentages (0-1 with minimum value)
+    const total = Math.random(); // random number between 0 and 1 (exclusive)
+    const choiceDistribution = [
+      Math.random(),
+      Math.random(),
+      Math.random(),
+      Math.random(),
+    ];
+    const sum = choiceDistribution.reduce((a, b) => a + b, 0);
+    const normalizedDistribution = choiceDistribution.map((val) => val / sum);
+
+    for (const scores of Object.values(choiceData)) {
+      const proportion = (normalizedDistribution?.shift() ?? 0) * total;
+      scores.push(Math.round(proportion * 100) / 100);
+    }
+
+    date = addDays(date, 1);
+  }
+
+  return {
+    timestamps,
+    nr_forecasters: nrForecasters,
+    ...choiceData,
   };
 }
