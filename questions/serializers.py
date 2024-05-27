@@ -13,3 +13,9 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     def get_projects(self, obj: Question):
         return serialize_projects(obj.projects.all())
+
+
+class QuestionWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Question
+        fields = "__all__"
