@@ -2,9 +2,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status, filters
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from questions.models import Question
 from questions.serializers import QuestionSerializer
+from rest_framework.permissions import AllowAny
 
 
 @api_view(["POST"])
@@ -26,6 +27,7 @@ def question_list(request):
 
 
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def question_detail(request: Request, pk):
     print(request, pk)
     question = get_object_or_404(Question, pk=pk)
