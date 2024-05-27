@@ -110,7 +110,7 @@ class Project(TimeStampedModel):
     questions_count: int = 0
 
     class Meta:
-        ordering = ("order", )
+        ordering = ("order",)
         constraints = [
             models.UniqueConstraint(
                 name="projects_unique_type_slug", fields=["type", "slug"]
