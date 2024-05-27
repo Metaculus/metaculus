@@ -1,3 +1,7 @@
+# Metaculus Rewrite
+
+This is a very hectic work in progress, please do not expect things to make perfect sense until around June the 1st!
+
 ## Install instructions
 
 `poetry install`
@@ -10,7 +14,20 @@ Use a postgres database called `metaculus`
 `poetry run python manage.py`
 
 **Frontend:**
-`cd front_end && npm run dev`
+
+Install packages:
+
+Ensure to add `FONTAWESOME_PACKAGE_TOKEN` to the environment variables.
+
+```bash
+cd front_end && npm install
+```
+
+Run the development server:
+
+```bash
+cd front_end && npm run dev
+```
 
 ### Schemas for graphs:
 

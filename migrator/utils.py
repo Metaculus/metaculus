@@ -22,7 +22,14 @@ def dictfetchall(cursor):
     return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
 
-def paginated_query(query, *args, itersize: int = 2000, **kwargs):
+def paginated_query(
+    query,
+    *args,
+    itersize: int = 2000,
+    only_columns: list = None,
+    flat: bool = False,
+    **kwargs
+):
     """
     Performs chunked SELECT query against the old database
     """
@@ -36,7 +43,17 @@ def paginated_query(query, *args, itersize: int = 2000, **kwargs):
 
             if len(rows) > 0:
                 for row in rows:
-                    yield dict(zip(columns, row))
+                    row = dict(zip(columns, row))
+
+                    # Filter out columns not used
+                    if only_columns:
+                        row = {k: v for k, v in row.items() if k in only_columns}
+
+                    # Return just a value if flat == True
+                    if flat:
+                        yield next(iter(row.values()))
+                    else:
+                        yield row
             else:
                 break
 
