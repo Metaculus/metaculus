@@ -2,8 +2,12 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from projects.models import Project
-from questions.managers import QuestionQuerySet
 from users.models import User
+
+
+class QuestionQuerySet(models.QuerySet):
+    def prefetch_projects(self):
+        return self.prefetch_related("projects")
 
 
 class Question(models.Model):

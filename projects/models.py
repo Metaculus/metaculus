@@ -1,7 +1,22 @@
 from django.db import models
+from django.db.models import Count
 
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
+
+
+class ProjectsQuerySet(models.QuerySet):
+    def filter_topic(self):
+        return self.filter(type=Project.ProjectTypes.TOPIC)
+
+    def filter_category(self):
+        return self.filter(type=Project.ProjectTypes.CATEGORY)
+
+    def filter_active(self):
+        return self.filter(is_active=True)
+
+    def annotate_questions_count(self):
+        return self.annotate(questions_count=Count("questions"))
 
 
 class Project(TimeStampedModel):
@@ -83,7 +98,13 @@ class Project(TimeStampedModel):
         User, models.CASCADE, related_name="created_projects", default=None, null=True
     )
 
+    objects = models.Manager.from_queryset(ProjectsQuerySet)()
+
+    # Annotated fields
+    questions_count: int = 0
+
     class Meta:
+        ordering = ("order", )
         constraints = [
             models.UniqueConstraint(
                 name="projects_unique_type_slug", fields=["type", "slug"]
