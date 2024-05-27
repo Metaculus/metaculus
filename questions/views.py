@@ -44,7 +44,7 @@ def question_detail(request: Request, pk):
         "values_mean": [],
         "values_max": [],
         "values_min": [],
-        "nr_forecasters": []
+        "nr_forecasters": [],
     }
     for forecast_time in forecast_times:
         cp = compute_binary_cp(forecasts, forecast_time)
