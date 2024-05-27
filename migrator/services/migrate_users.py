@@ -35,6 +35,7 @@ def create_user(user_obj: dict, profile_obj: dict | None) -> User:
 
 
 def migrate_users():
+    users = []
     for user_obj in paginated_query("SELECT * FROM metac_account_user"):
         user_id = user_obj["id"]
 
@@ -42,6 +43,6 @@ def migrate_users():
             "SELECT * FROM metac_account_userprofile WHERE user_id = %s", [user_id]
         )
 
-        user = create_user(user_obj, profile_obj)
+        users.append(create_user(user_obj, profile_obj))
         # TODO: bulk? Probably not suitable since users will produce a lot of nested migrations
-        user.save()
+    User.objects.bulk_create(users)
