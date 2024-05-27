@@ -55,7 +55,7 @@ def signup_api_view(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def resend_activation_link_api_view(request):
-    email = serializers.EmailField().to_internal_value(request.data.get("email"))
+    email = serializers.EmailField().run_validation(request.data.get("email"))
 
     try:
         user = User.objects.get(email__iexact=email, is_active=False)

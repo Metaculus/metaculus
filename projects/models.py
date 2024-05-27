@@ -15,6 +15,9 @@ class ProjectsQuerySet(models.QuerySet):
     def filter_tournament(self):
         return self.filter(type=Project.ProjectTypes.TOURNAMENT)
 
+    def filter_tags(self):
+        return self.filter(type=Project.ProjectTypes.TAG)
+
     def filter_active(self):
         return self.filter(is_active=True)
 
