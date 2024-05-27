@@ -5,8 +5,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from questions.models import Question
+from questions.models import Forecast, Question
 from questions.serializers import QuestionSerializer, QuestionWriteSerializer
+from utils.the_math.community_prediction import compute_binary_cp
 
 
 @api_view(["POST"])
@@ -36,8 +37,27 @@ def question_list(request):
 def question_detail(request: Request, pk):
     print(request, pk)
     question = get_object_or_404(Question, pk=pk)
+    forecasts = Forecast.objects.filter(question=question)
+    forecast_times = [x.start_time for x in forecasts]
+    forecasts_data = {
+        "timestamps": [],
+        "values_mean": [],
+        "values_max": [],
+        "values_min": [],
+        "nr_forecasters": []
+    }
+    for forecast_time in forecast_times:
+        cp = compute_binary_cp(forecasts, forecast_time)
+        forecasts_data["timestamps"].append(forecast_time.timestamp())
+        forecasts_data["values_mean"].append(cp["mean"])
+        forecasts_data["values_max"].append(cp["max"])
+        forecasts_data["values_min"].append(cp["min"])
+        forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
+
     serializer = QuestionSerializer(question)
-    return Response(serializer.data)
+    data = serializer.data
+    data["forecasts"] = forecasts_data
+    return Response(data)
 
 
 @api_view(["POST"])
