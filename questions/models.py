@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
+from projects.models import Project
 from users.models import User
 
 
@@ -36,6 +37,8 @@ class Question(models.Model):
 
     # Common fields
     resolution = models.TextField(null=True, blank=True)
+
+    projects = models.ManyToManyField(Project, related_name="questions")
 
     _url_id = models.CharField(max_length=200, blank=True, default="")
 
