@@ -44,7 +44,6 @@ const NumericChartCard: FC<Props> = ({ dataset }) => {
   return (
     <div className="flex flex-col w-full">
       <NumericChart
-        height={100}
         dataset={dataset}
         onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}

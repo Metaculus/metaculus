@@ -1,9 +1,16 @@
 "use client";
-import { FC, useMemo } from "react";
-import { VictoryAxis, VictoryChart } from "victory";
+import React, { FC, useMemo } from "react";
+import {
+  VictoryAxis,
+  VictoryChart,
+  VictoryGroup,
+  VictoryLabel,
+  VictoryLine,
+} from "victory";
 
+import { METAC_COLORS } from "@/contants/colors";
 import useContainerSize from "@/hooks/use_container_size";
-import { BaseChartData, MultipleChoiceDataset } from "@/types/charts";
+import { BaseChartData, Line, MultipleChoiceDataset } from "@/types/charts";
 import {
   generateNumericDomain,
   generatePercentageYScale,
@@ -11,19 +18,23 @@ import {
 } from "@/utils/charts";
 
 const CHART_PADDING = 10;
+const COLOR_SCALE = Object.values(METAC_COLORS["mc-option"]).map(
+  (value) => value.DEFAULT
+);
 
 type Props = {
   dataset: MultipleChoiceDataset;
   height?: number;
+  yLabel?: string;
 };
 
-const MultipleChoiceChart: FC<Props> = ({ dataset, height = 150 }) => {
+const MultipleChoiceChart: FC<Props> = ({ dataset, height = 150, yLabel }) => {
   const {
     ref: chartContainerRef,
     width: chartWidth,
     height: chartHeight,
   } = useContainerSize<HTMLDivElement>();
-  const { xScale, yScale } = useMemo(
+  const { xScale, yScale, lines } = useMemo(
     () => buildChartData(dataset, chartWidth, chartHeight),
     [dataset, chartWidth, chartHeight]
   );
@@ -40,6 +51,19 @@ const MultipleChoiceChart: FC<Props> = ({ dataset, height = 150 }) => {
           left: CHART_PADDING + 40,
         }}
       >
+        <VictoryGroup colorScale={COLOR_SCALE}>
+          {lines.map((line, index) => (
+            <VictoryLine
+              key={`multiple-choice-line-${index}`}
+              data={line}
+              style={{
+                data: {
+                  strokeWidth: 1,
+                },
+              }}
+            />
+          ))}
+        </VictoryGroup>
         <VictoryAxis
           dependentAxis
           tickValues={yScale.ticks}
@@ -53,6 +77,8 @@ const MultipleChoiceChart: FC<Props> = ({ dataset, height = 150 }) => {
             tickLabels: { fontSize: 10, padding: 2 },
             axisLabel: { fontSize: 10 },
           }}
+          label={yLabel}
+          axisLabelComponent={<VictoryLabel dy={-10} />}
         />
         <VictoryAxis
           tickValues={xScale.ticks}
@@ -71,20 +97,33 @@ const MultipleChoiceChart: FC<Props> = ({ dataset, height = 150 }) => {
   );
 };
 
-type ChartData = BaseChartData;
+type ChartData = BaseChartData & {
+  lines: Line[];
+};
 
 function buildChartData(
   dataset: MultipleChoiceDataset,
   width: number,
   height: number
 ): ChartData {
-  const { timestamps } = dataset;
+  const { timestamps, nr_forecasters, ...choices } = dataset;
+
+  const lines: Line[] = [];
+  for (const choiceValues of Object.values(choices)) {
+    lines.push(
+      timestamps.map((timestamp, timestampIndex) => ({
+        x: timestamp,
+        y: choiceValues[timestampIndex],
+      }))
+    );
+  }
 
   const xDomain = generateNumericDomain(timestamps);
 
   return {
     xScale: generateTimestampXScale(xDomain, width),
     yScale: generatePercentageYScale(height),
+    lines,
   };
 }
 

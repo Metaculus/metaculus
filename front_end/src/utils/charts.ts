@@ -79,7 +79,7 @@ export function generateNumericYScale(yDomain: Tuple<number>): Scale {
 }
 
 export function generatePercentageYScale(containerHeight: number): Scale {
-  const desiredMajorTicks = [0, 20, 40, 60, 80, 100];
+  const desiredMajorTicks = [0, 20, 40, 60, 80, 100].map((tick) => tick / 100);
   const minorTicksPerMajor = 9;
   const desiredMajorTickDistance = 20;
 
@@ -88,7 +88,7 @@ export function generatePercentageYScale(containerHeight: number): Scale {
   let majorTicks = desiredMajorTicks;
   if (maxMajorTicks < desiredMajorTicks.length) {
     // adjust major ticks on small height
-    const step = 100 / (maxMajorTicks - 1);
+    const step = 1 / (maxMajorTicks - 1);
     majorTicks = Array.from({ length: maxMajorTicks }, (_, i) => i * step);
   }
 
@@ -105,6 +105,6 @@ export function generatePercentageYScale(containerHeight: number): Scale {
   return {
     ticks,
     tickFormat: (y: number) =>
-      majorTicks.includes(y) ? `${Math.round(y)}%` : "",
+      majorTicks.includes(y) ? `${Math.round(y * 100)}%` : "",
   };
 }
