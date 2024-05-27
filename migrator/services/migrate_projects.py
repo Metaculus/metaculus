@@ -7,6 +7,17 @@ from projects.models import Project
 from questions.models import Question
 
 
+def normalize_slug(slug: str):
+    chunks = slug.split("/")
+
+    if not len(chunks):
+        return ""
+    if len(chunks) == 1:
+        return chunks[0]
+
+    return "/".join(chunks[1:])
+
+
 def create_project(project_obj: dict) -> Project:
     sign_up_fields = project_obj["sign_up_fields"]
     sign_up_fields = json.loads(sign_up_fields) if sign_up_fields else []
@@ -33,21 +44,11 @@ def create_project(project_obj: dict) -> Project:
 
 
 def create_category(cat_obj: dict) -> Project:
-    def change_slug(slug: str):
-        chunks = slug.split("/")
-
-        if not len(chunks):
-            return ""
-        if len(chunks) == 1:
-            return chunks[0]
-
-        return "/".join(chunks[1:])
-
     project = Project(
         type=Project.ProjectTypes.CATEGORY,
         name=cat_obj["short_name"],
         # Category slugs are weird
-        slug=change_slug(cat_obj["id"]),
+        slug=normalize_slug(cat_obj["id"]),
         description=cat_obj["long_name"],
         created_at=cat_obj["created_at"],
         edited_at=cat_obj["edited_at"],
@@ -127,7 +128,8 @@ def migrate_projects():
             # Skip this record, should be merged
             print(f"Skipped Category object migration {cat_obj}")
 
-            continue
+            # Find existing instance of this duplicate, so we could merge these instances into one
+            project = Project.objects.get(slug=project.slug, type=project.type)
 
         #
         # Migrate question relations
