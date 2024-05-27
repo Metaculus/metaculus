@@ -4,7 +4,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from projects.models import Project
-from projects.serializers import TopicSerializer, CategorySerializer
+from projects.serializers import (
+    TopicSerializer,
+    CategorySerializer,
+    TournamentSerializer,
+)
 
 
 @api_view(["GET"])
@@ -32,6 +36,24 @@ def categories_list_api_view(request: Request):
 
     data = [
         {**CategorySerializer(obj).data, "questions_count": obj.questions_count}
+        for obj in qs.all()
+    ]
+
+    return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def tournaments_list_api_view(request: Request):
+    qs = (
+        Project.objects.filter_tournament()
+        .filter_active()
+        .annotate_questions_count()
+        .order_by("-questions_count")
+    )
+
+    data = [
+        {**TournamentSerializer(obj).data, "questions_count": obj.questions_count}
         for obj in qs.all()
     ]
 
