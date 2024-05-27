@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
@@ -8,6 +9,7 @@ from projects.serializers import (
     TopicSerializer,
     CategorySerializer,
     TournamentSerializer,
+    TagSerializer,
 )
 
 
@@ -54,6 +56,30 @@ def tournaments_list_api_view(request: Request):
 
     data = [
         {**TournamentSerializer(obj).data, "questions_count": obj.questions_count}
+        for obj in qs.all()
+    ]
+
+    return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def tags_list_api_view(request: Request):
+    qs = Project.objects.filter_tags().filter_active().annotate_questions_count()
+    search_query = serializers.CharField(allow_null=True, min_length=3).run_validation(
+        request.query_params.get("search")
+    )
+
+    if search_query:
+        qs = qs.filter(name__icontains=search_query)
+    else:
+        qs = qs.order_by("-questions_count")
+
+    # Limit to 50 tags
+    qs = qs[:50]
+
+    data = [
+        {**TagSerializer(obj).data, "questions_count": obj.questions_count}
         for obj in qs.all()
     ]
 
