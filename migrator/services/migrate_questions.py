@@ -46,7 +46,9 @@ def create_question(question: dict) -> Question:
 
 
 def migrate_questions():
+    questions = []
     for old_question in paginated_query("SELECT * FROM metac_question_question"):
         question = create_question(old_question)
         if question is not None:
-            question.save()
+            questions.append(question)
+    Question.objects.bulk_create(questions)
