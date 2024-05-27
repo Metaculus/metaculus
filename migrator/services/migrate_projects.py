@@ -1,3 +1,4 @@
+import itertools
 import json
 
 from django.db import IntegrityError
@@ -192,11 +193,40 @@ def migrate_projects():
         #
         # Migrate question relations
         #
+
+        # Initially, questions were related to the topic through Topic->Category->Question Relation
+        # Merging and deprecating such a thing
+        related_category_ids = tuple(
+            paginated_query(
+                "SELECT * FROM metac_question_questiontopic_categories WHERE questiontopic_id=%s",
+                [topic_obj["id"]],
+                only_columns=["category_id"],
+                flat=True,
+            )
+        )
+
+        print("related_category_ids", related_category_ids)
+
+        # Aggregating all M2M tables which were related to the questions
+        m2m_queries = [
+            # Topic<>Question
+            paginated_query(
+                "SELECT * FROM metac_question_questiontopic_questions WHERE questiontopic_id=%s",
+                [topic_obj["id"]],
+            ),
+        ]
+
+        if related_category_ids:
+            m2m_queries.append(
+                # Topic<>Category<>Question
+                paginated_query(
+                    "SELECT * FROM metac_question_question_categories WHERE category_id in %s",
+                    [related_category_ids],
+                )
+            )
+
         m2m_objects = []
-        for m2m in paginated_query(
-            "SELECT * FROM metac_question_questiontopic_questions WHERE questiontopic_id=%s",
-            [topic_obj["id"]],
-        ):
+        for m2m in itertools.chain(*m2m_queries):
             # Exclude questions we didn't migrate
             if m2m["question_id"] not in question_ids:
                 continue
