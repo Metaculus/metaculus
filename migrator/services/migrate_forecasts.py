@@ -1,4 +1,3 @@
-
 from migrator.utils import paginated_query, one2one_query
 from questions.models import Forecast, Question
 import json
@@ -11,7 +10,7 @@ def create_forecast(prediction: dict) -> Forecast:
     question = Question.objects.filter(id=prediction["question_id"]).first()
     if question is None or prediction["user_id"] is None:
         return None
-    
+
     spv = prediction["stored_prediction_values"]
     continuous_prediction_values = None
     probability_yes = None
@@ -40,7 +39,9 @@ def create_forecast(prediction: dict) -> Forecast:
 
 def migrate_forecasts():
     forecasts = []
-    for old_prediction in paginated_query("SELECT p.*, ps.user_id, ps.question_id, ps.aggregation_method FROM metac_question_prediction p JOIN metac_question_predictionsequence ps ON p.prediction_sequence_id = ps.id AND aggregation_method = 'none' limit 150000"):
+    for old_prediction in paginated_query(
+        "SELECT p.*, ps.user_id, ps.question_id, ps.aggregation_method FROM metac_question_prediction p JOIN metac_question_predictionsequence ps ON p.prediction_sequence_id = ps.id AND aggregation_method = 'none' limit 150000"
+    ):
         forecast = create_forecast(old_prediction)
         if forecast is not None:
             forecasts.append(forecast)
