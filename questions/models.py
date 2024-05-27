@@ -1,7 +1,8 @@
-from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.db import models
 
 from projects.models import Project
+from questions.managers import QuestionQuerySet
 from users.models import User
 
 
@@ -42,6 +43,8 @@ class Question(models.Model):
 
     _url_id = models.CharField(max_length=200, blank=True, default="")
 
+    objects = models.Manager.from_queryset(QuestionQuerySet)()
+
 
 class Forecast(models.Model):
     start_time = models.DateTimeField(
@@ -52,12 +55,12 @@ class Forecast(models.Model):
         help_text="Time at which this prediction is no longer active",
         db_index=True,
     )
-    
+
     # last 2 elements are represents above upper and, subsequently, below lower bound.
     continuous_prediction_values = ArrayField(
         models.FloatField(),
         null=True,
-        size=202, 
+        size=202,
     )
 
     probability_yes = models.FloatField(null=True)
