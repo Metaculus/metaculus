@@ -42,10 +42,10 @@ export function generateMockMultipleChoiceChart(): MultipleChoiceDataset {
   const timestamps: number[] = [];
   const nrForecasters: number[] = [];
   const choiceData: { [key: string]: number[] } = {
-    "1 to 5": [],
-    "6 to 20": [],
-    "21 to 100": [],
-    "More than 1000": [],
+    "Option A": [],
+    "Option B": [],
+    "Option C": [],
+    "Option D": [],
   };
   let date = new Date(2023, 2, 1);
 
