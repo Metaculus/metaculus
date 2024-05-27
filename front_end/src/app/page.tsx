@@ -9,6 +9,12 @@ export default function Home() {
       >
         Go to Questions
       </Link>
+      <Link
+        href={"/questions/120"}
+        className={"font-bold text-metac-blue-800 hover:opacity-60"}
+      >
+        Go to question 120
+      </Link>
     </main>
   );
 }

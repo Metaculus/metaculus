@@ -13,6 +13,7 @@
     "prepare": "cd .. && husky ./front_end/.husky"
   },
   "dependencies": {
+    "axios": "^1.7.2",
     "classnames": "^2.5.1",
     "d3": "^7.9.0",
     "date-fns": "^3.6.0",
