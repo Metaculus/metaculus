@@ -40,7 +40,7 @@ def create_forecast(prediction: dict) -> Forecast:
 
 def migrate_forecasts():
     forecasts = []
-    for old_prediction in paginated_query("SELECT p.*, ps.user_id, ps.question_id FROM metac_question_prediction p JOIN metac_question_predictionsequence ps ON p.prediction_sequence_id = ps.id limit 50000"):
+    for old_prediction in paginated_query("SELECT p.*, ps.user_id, ps.question_id, ps.aggregation_method FROM metac_question_prediction p JOIN metac_question_predictionsequence ps ON p.prediction_sequence_id = ps.id AND aggregation_method = 'none' limit 150000"):
         forecast = create_forecast(old_prediction)
         if forecast is not None:
             forecasts.append(forecast)

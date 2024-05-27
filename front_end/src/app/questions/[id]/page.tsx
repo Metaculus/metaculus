@@ -8,8 +8,8 @@ export default async function IndividualQuestion({
 }: {
   params: { id: number };
 }) {
-  const numericDataset = await getQuestionData(params.id);
-  console.log(numericDataset);
+  const questionData = await getQuestionData(params.id);
+  console.log("Here 2", questionData);
 
   return (
     <main className="flex min-h-screen flex-col gap-2 p-6">
@@ -20,7 +20,7 @@ export default async function IndividualQuestion({
         Home
       </Link>
       Numeric Chart:
-      <NumericChartCard dataset={numericDataset} />
+      <NumericChartCard dataset={questionData.forecasts} />
     </main>
   );
 }
