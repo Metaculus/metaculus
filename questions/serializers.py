@@ -18,4 +18,10 @@ class QuestionSerializer(serializers.ModelSerializer):
 class QuestionWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
-        fields = "__all__"
+        fields = (
+            "title",
+            "description",
+            "type",
+            "possibilities",
+            "resolution",
+        )
