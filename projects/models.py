@@ -6,10 +6,10 @@ from utils.models import validate_alpha_slug, TimeStampedModel
 
 class Project(TimeStampedModel):
     class ProjectTypes(models.TextChoices):
-        TOURNAMENT = "TOURNAMENT", "Tournament"
-        CATEGORY = "CATEGORY", "Category"
-        TAG = "TAG", "Tag"
-        TOPIC = "TOPIC", "Topic"
+        TOURNAMENT = "tournament", "Tournament"
+        CATEGORY = "category", "Category"
+        TAG = "tag", "Tag"
+        TOPIC = "topic", "Topic"
 
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics", "Hot Topics section"

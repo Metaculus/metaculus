@@ -18,6 +18,9 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Current env
+ENV = os.environ.get("METACULUS_ENV", "").strip()
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -93,8 +96,11 @@ DATABASES = {
             "MIRROR": "default",
         },
     },
+}
+
+if ENV != "testing":
     # Old database for the migrator
-    "old": {
+    DATABASES["old"] = {
         **dj_database_url.config(
             env="OLD_DATABASE_URL",
             conn_max_age=600,
@@ -102,8 +108,8 @@ DATABASES = {
         ),
         # Should be readonly connection
         "OPTIONS": {"options": "-c default_transaction_read_only=on"},
-    },
-}
+    }
+
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
 # REST Framework
