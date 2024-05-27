@@ -1,3 +1,4 @@
+import itertools
 import json
 
 from django.db import IntegrityError
@@ -82,6 +83,103 @@ def create_topic(topic_obj: dict) -> Project:
     )
 
     return project
+
+
+def migrate_topics(question_ids: list[int], q_p_m2m_cls):
+    # Migrate Topics
+    for topic_obj in paginated_query("SELECT * FROM metac_question_questiontopic"):
+        project = create_topic(topic_obj)
+        project.save()
+
+        #
+        # Migrate question relations
+        #
+
+        # Initially, questions were related to the topic through Topic->Category->Question Relation
+        # Merging and deprecating such a thing
+        related_category_ids = tuple(
+            paginated_query(
+                "SELECT * FROM metac_question_questiontopic_categories WHERE questiontopic_id=%s",
+                [topic_obj["id"]],
+                only_columns=["category_id"],
+                flat=True,
+            )
+        )
+        related_tag_ids = list(
+            paginated_query(
+                "SELECT * FROM metac_question_questiontopic_tags WHERE questiontopic_id=%s",
+                [topic_obj["id"]],
+                only_columns=["tag_id"],
+                flat=True,
+            )
+        )
+        related_project_ids = list(
+            paginated_query(
+                "SELECT * FROM metac_question_questiontopic_projects WHERE questiontopic_id=%s",
+                [topic_obj["id"]],
+                only_columns=["project_id"],
+                flat=True,
+            )
+        )
+
+        print("related_category_ids", related_category_ids)
+        print("related_tag_ids", related_tag_ids)
+        print("related_project_ids", related_project_ids)
+
+        #
+        # Aggregating all M2M tables which were related to the questions
+        #
+        m2m_queries = [
+            # Topic<>Question
+            paginated_query(
+                "SELECT * FROM metac_question_questiontopic_questions WHERE questiontopic_id=%s",
+                [topic_obj["id"]],
+            ),
+        ]
+
+        if related_category_ids:
+            m2m_queries.append(
+                # Topic<>Category<>Question
+                paginated_query(
+                    "SELECT * FROM metac_question_question_categories WHERE category_id in %s",
+                    [related_category_ids],
+                )
+            )
+        if related_tag_ids:
+            m2m_queries.append(
+                # Topic<>Tag<>Question
+                paginated_query(
+                    "SELECT * FROM metac_question_questiontaglink WHERE tag_id in %s",
+                    [tuple([str(x) for x in related_tag_ids])],
+                )
+            )
+        if related_project_ids:
+            m2m_queries.append(
+                # Topic<>Project<>Question
+                paginated_query(
+                    "SELECT * FROM metac_project_questionprojectpermissions WHERE project_id in %s",
+                    [tuple([str(x) for x in related_project_ids])],
+                )
+            )
+
+        m2m_objects = []
+        for m2m in itertools.chain(*m2m_queries):
+            # Exclude questions we didn't migrate
+            if m2m["question_id"] not in question_ids:
+                continue
+
+            # TODO: I see we also have Topic<>Site<>Question relation, that's why "Top 50" is empty
+            #   do smth with it
+
+            m2m_objects.append(
+                q_p_m2m_cls(
+                    question_id=m2m["question_id"],
+                    project_id=project.id,
+                )
+            )
+
+        # Ignore nonexistent questions
+        q_p_m2m_cls.objects.bulk_create(m2m_objects, ignore_conflicts=True)
 
 
 def migrate_projects():
@@ -184,32 +282,4 @@ def migrate_projects():
         # Ignore nonexistent questions
         q_p_m2m_cls.objects.bulk_create(m2m_objects, ignore_conflicts=True)
 
-    # Migrate Topics
-    for topic_obj in paginated_query("SELECT * FROM metac_question_questiontopic"):
-        project = create_topic(topic_obj)
-        project.save()
-
-        #
-        # Migrate question relations
-        #
-        m2m_objects = []
-        for m2m in paginated_query(
-            "SELECT * FROM metac_question_questiontopic_questions WHERE questiontopic_id=%s",
-            [topic_obj["id"]],
-        ):
-            # Exclude questions we didn't migrate
-            if m2m["question_id"] not in question_ids:
-                continue
-
-            # TODO: here we don't have a lot of direct Topic<>Question relations, so we need to investigate
-            #   probably it originally has more complex relations through categories eg. Topic->Categories->Questions
-
-            m2m_objects.append(
-                q_p_m2m_cls(
-                    question_id=m2m["question_id"],
-                    project_id=project.id,
-                )
-            )
-
-        # Ignore nonexistent questions
-        q_p_m2m_cls.objects.bulk_create(m2m_objects, ignore_conflicts=True)
+    migrate_topics(question_ids, q_p_m2m_cls)
