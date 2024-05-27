@@ -7,6 +7,7 @@ from migrator.services.migrate_questions import migrate_questions
 from migrator.services.migrate_projects import migrate_projects
 from migrator.services.migrate_forecasts import migrate_forecasts
 
+
 class Command(BaseCommand):
     help = """
     Migrates old database data to the new one
@@ -16,8 +17,8 @@ class Command(BaseCommand):
         with connection.cursor() as cursor:
             cursor.execute("DROP SCHEMA public CASCADE;")
             cursor.execute("CREATE SCHEMA public;")
-        call_command('makemigrations')
-        call_command('migrate')
+        call_command("makemigrations")
+        call_command("migrate")
 
         migrate_users()
         print("Migrated users")
