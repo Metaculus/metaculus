@@ -25,8 +25,6 @@ import {
   generateTimestampXScale,
 } from "@/utils/charts";
 
-const CHART_PADDING = 10;
-
 type Props = {
   dataset: NumericChartDataset;
   yLabel?: string;
