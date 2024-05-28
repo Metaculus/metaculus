@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
-import CursorDetails from "@/components/cursor_details";
+import CursorDetailItem from "@/components/numeric_chard_card/numeric_cursor_item";
 import { NumericChartDataset } from "@/types/charts";
 
 type Props = {
@@ -16,12 +16,12 @@ const NumericChartCard: FC<Props> = ({ dataset }) => {
 
   const [isChartReady, setIsChartReady] = useState(false);
 
-  const [activeTimestamp, setActiveTimestamp] = useState(
+  const [cursorTimestamp, setCursorTimestamp] = useState(
     dataset.timestamps[dataset.timestamps.length - 1]
   );
   const cursorData = useMemo(() => {
     const index = dataset.timestamps.findIndex(
-      (timestamp) => timestamp === activeTimestamp
+      (timestamp) => timestamp === cursorTimestamp
     );
 
     return {
@@ -31,10 +31,10 @@ const NumericChartCard: FC<Props> = ({ dataset }) => {
       forecastersNr: dataset.nr_forecasters[index],
       timestamp: dataset.timestamps[index],
     };
-  }, [activeTimestamp, dataset]);
+  }, [cursorTimestamp, dataset]);
 
   const handleCursorChange = useCallback((value: number) => {
-    setActiveTimestamp(value);
+    setCursorTimestamp(value);
   }, []);
 
   const handleChartReady = useCallback(() => {
@@ -54,12 +54,17 @@ const NumericChartCard: FC<Props> = ({ dataset }) => {
         yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}
       />
-      <CursorDetails
-        forecastersNr={cursorData.forecastersNr}
-        min={cursorData.min}
-        mean={cursorData.mean}
-        max={cursorData.max}
-      />
+      <div className="my-3 grid grid-cols-2 gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:gap-x-4 sm:gap-y-0">
+        <CursorDetailItem
+          title={t("totalForecastersLabel")}
+          text={cursorData.forecastersNr.toString()}
+        />
+        <CursorDetailItem
+          title={t("communityPredictionLabel")}
+          text={`${cursorData.mean} (${cursorData.min} - ${cursorData.max})`}
+          variant="prediction"
+        />
+      </div>
     </div>
   );
 };
