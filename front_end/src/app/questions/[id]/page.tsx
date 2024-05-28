@@ -9,7 +9,7 @@ export default async function IndividualQuestion({
   params: { id: number };
 }) {
   const questionData = await getQuestionData(params.id);
-  console.log("Here 2", questionData);
+  console.log("Question data: ", questionData);
 
   return (
     <main className="flex min-h-screen flex-col gap-2 p-6">
