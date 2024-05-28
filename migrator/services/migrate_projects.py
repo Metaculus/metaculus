@@ -162,14 +162,15 @@ def migrate_topics(question_ids: list[int], q_p_m2m_cls):
                 )
             )
 
+        # Some topics contain inline question ids in topic.question_ids column
+        m2m_queries.append([{"question_id": x} for x in topic_obj["question_ids"]])
+        print("inline_question_ids", topic_obj["question_ids"])
+
         m2m_objects = []
         for m2m in itertools.chain(*m2m_queries):
             # Exclude questions we didn't migrate
             if m2m["question_id"] not in question_ids:
                 continue
-
-            # TODO: I see we also have Topic<>Site<>Question relation, that's why "Top 50" is empty
-            #   do smth with it
 
             m2m_objects.append(
                 q_p_m2m_cls(
