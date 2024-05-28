@@ -13,7 +13,7 @@
     "prepare": "cd .. && husky ./front_end/.husky"
   },
   "dependencies": {
-    "axios": "^1.7.2",
+    "@floating-ui/react": "^0.26.16",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-brands-svg-icons": "^6.5.2",
     "@fortawesome/pro-duotone-svg-icons": "^6.5.2",
@@ -22,6 +22,7 @@
     "@fortawesome/pro-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@headlessui/react": "^2.0.4",
+    "axios": "^1.7.2",
     "classnames": "^2.5.1",
     "d3": "^7.9.0",
     "date-fns": "^3.6.0",
