@@ -60,6 +60,6 @@ def serialize_projects(projects: list[Project]) -> defaultdict[Any, list]:
             case _:
                 continue
 
-        data[obj.type] = serializer(obj).data
+        data[obj.type].append(serializer(obj).data)
 
     return data
