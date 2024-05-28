@@ -9,9 +9,9 @@ from .views import (
 )
 
 urlpatterns = [
-    path("list/", QuestionsListApiView.as_view(), name="question-list"),
-    path("<int:pk>/", question_detail, name="question-detail"),
-    path("create/", create_question, name="create-question"),
-    path("<int:pk>/update/", update_question, name="update-question"),
-    path("<int:pk>/delete/", delete_question, name="delete-question"),
+    path("questions/list/", QuestionsListApiView.as_view(), name="question-list"),
+    path("questions/<int:pk>/", question_detail, name="question-detail"),
+    path("questions/create/", create_question, name="create-question"),
+    path("questions/<int:pk>/update/", update_question, name="update-question"),
+    path("questions/<int:pk>/delete/", delete_question, name="delete-question"),
 ]
