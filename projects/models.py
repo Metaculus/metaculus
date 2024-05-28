@@ -48,6 +48,7 @@ class Project(TimeStampedModel):
         blank=True,
         null=True,
         validators=[validate_alpha_slug],
+        db_index=True,
     )
 
     subtitle = models.CharField(max_length=255, blank=True, default="")
