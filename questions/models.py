@@ -1,5 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import Count
 
 from projects.models import Project
 from users.models import User
@@ -8,6 +9,9 @@ from users.models import User
 class QuestionQuerySet(models.QuerySet):
     def prefetch_projects(self):
         return self.prefetch_related("projects")
+
+    def annotate_predictions_count(self):
+        return self.annotate(predictions_count=Count("forecast"))
 
 
 class Question(models.Model):
@@ -48,6 +52,9 @@ class Question(models.Model):
     _url_id = models.CharField(max_length=200, blank=True, default="")
 
     objects = models.Manager.from_queryset(QuestionQuerySet)()
+
+    # Annotated fields
+    predictions_count: int = 0
 
 
 class Forecast(models.Model):
