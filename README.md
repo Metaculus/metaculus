@@ -17,7 +17,7 @@ Use a postgres database called `metaculus`
 
 Install packages:
 
-Ensure to add `FONTAWESOME_PACKAGE_TOKEN` to the environment variables.
+Ensure to add `FONTAWESOME_PACKAGE_TOKEN=245F362C-B32D-4005-A655-4C47836E8068` to the environment variables.
 
 ```bash
 cd front_end && npm install
