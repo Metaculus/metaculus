@@ -2,137 +2,29 @@
 
 This is a very hectic work in progress, please do not expect things to make perfect sense until around June the 1st!
 
-## Install instructions
-
+## Setup Backend
+### Install
 `poetry install`
 
-**Database:**
-Use a postgres database called `metaculus`
+### Migration of the old database
+1. Create a postgres database called `metaculus`
+2. Configure old db connection using `OLD_DATABASE_URL` env var to wherever you have your old metaculus database
+3. Run `poetry run python manage.py migrate_old_db`
 
-## Run instructions
-**Backend:**
+
+### Run
 `poetry run python manage.py`
 
-**Frontend:**
+## Setup Frontend
 
-Install packages:
-
+### Install
 Ensure to add `FONTAWESOME_PACKAGE_TOKEN=245F362C-B32D-4005-A655-4C47836E8068` to the environment variables.
 
 ```bash
 cd front_end && npm install
 ```
 
-Run the development server:
-
+### Run
 ```bash
 cd front_end && npm run dev
 ```
-
-### Schemas for graphs:
-
-**Binary**
-```
-{
-    "timestamps": [
-        13140214,
-        13140514,
-        13143516,
-    ],
-    "values_mean": [
-        0.4,
-        0.5,
-        0.44,
-    ],
-    "values_max": [
-        0.5,
-        0.55,
-        0.5,
-    ],
-    "values_min": [
-        0.4,
-        0.3,
-        0.42,
-    ],
-    "nr_forecasters": [
-        1,
-        5,
-        20
-    ]
-}
-```
-
-**Numeric Ramge**
-```
-{
-    "timestamps": [
-        13140214,
-        13140514,
-        13143516,
-    ],
-    "values_mean": [
-        104,
-        105,
-        104.4,
-    ],
-    "values_max": [
-        120,
-        130,
-        110,
-    ],
-    "values_min": [
-        80,
-        102,
-        105,
-    ],
-    "nr_forecasters": [
-        1,
-        5,
-        20
-    ]
-}
-```
-
-**Multiple Choice**
-
-```
-{
-    "timestamps": [
-        13140214,
-        13140514,
-        13143516,
-    ],
-    "values_choice_1": [
-        0.4,
-        0.5,
-        0.44,
-    ],
-    "values_choice_2": [
-        0.1,
-        0.05,
-        0.5,
-    ],
-    "values_choice_3": [
-        0.5,
-        0.4,
-        0.06,
-    ],
-    "nr_forecasters": [
-        1,
-        5,
-        20
-    ]
-}
-```
-
-**Date Range**
-Same as numeric range but values are interpreted as unix timesamps
-
-
-**Question groups**
-This is just going to be the schemas above but an array thereof for each question and the graphs will be different
-
-
-### Migration of the old database
-1. Configure old db connection using `OLD_DATABASE_URL` env var 
-2. Run `python manage.py migrate_old_db`
