@@ -9,7 +9,7 @@ from projects.models import Project
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ("name", "slug")
+        fields = ("id", "name", "slug")
 
 
 class CategorySerializer(serializers.ModelSerializer):
