@@ -1,10 +1,8 @@
 "use client";
-import React, { FC, useEffect, useMemo, useState } from "react";
+import React, { FC, memo, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
-  DomainTuple,
   LineSegment,
-  VictoryArea,
   VictoryAxis,
   VictoryChart,
   VictoryCursorContainer,
@@ -18,37 +16,48 @@ import chartTheme from "@/contants/chart_theme";
 import { METAC_COLORS } from "@/contants/colors";
 import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";
-import { Area, BaseChartData, Line, NumericChartDataset } from "@/types/charts";
+import { BaseChartData, Line, TickFormat } from "@/types/charts";
+import { ChoiceItem } from "@/types/choices";
 import {
   generateNumericDomain,
-  generateNumericYScale,
+  generatePercentageYScale,
   generateTimestampXScale,
 } from "@/utils/charts";
 
 type Props = {
-  dataset: NumericChartDataset;
-  yLabel?: string;
+  timestamps: number[];
+  choiceItems: ChoiceItem[];
   height?: number;
-  onCursorChange?: (value: number) => void;
+  yLabel?: string;
+  onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
 };
 
-const NumericChart: FC<Props> = ({
-  dataset,
-  yLabel,
+const MultipleChoiceChart: FC<Props> = ({
+  timestamps,
+  choiceItems,
   height = 150,
+  yLabel,
   onCursorChange,
   onChartReady,
 }) => {
-  const { ref: chartContainerRef, width: chartWidth } =
-    useContainerSize<HTMLDivElement>();
+  const {
+    ref: chartContainerRef,
+    width: chartWidth,
+    height: chartHeight,
+  } = useContainerSize<HTMLDivElement>();
 
-  const defaultCursor = dataset.timestamps[dataset.timestamps.length - 1];
+  const defaultCursor = timestamps[timestamps.length - 1];
   const [isCursorActive, setIsCursorActive] = useState(false);
 
-  const { line, area, yDomain, xScale, yScale } = useMemo(
-    () => buildChartData(dataset, chartWidth),
-    [dataset, chartWidth]
+  const { xScale, yScale, lines } = useMemo(
+    () => buildChartData(timestamps, choiceItems, chartWidth, chartHeight),
+    [timestamps, choiceItems, chartWidth, chartHeight]
+  );
+
+  const isHighlightActive = useMemo(
+    () => Object.values(choiceItems).some(({ highlighted }) => highlighted),
+    [choiceItems]
   );
 
   const prevWidth = usePrevious(chartWidth);
@@ -62,7 +71,6 @@ const NumericChart: FC<Props> = ({
     <div ref={chartContainerRef} className="w-full h-full">
       {!!chartWidth && (
         <VictoryChart
-          domain={{ y: yDomain }}
           width={chartWidth}
           height={height}
           theme={chartTheme}
@@ -107,43 +115,41 @@ const NumericChart: FC<Props> = ({
               }
               onCursorChange={(value: CursorCoordinatesPropType) => {
                 if (typeof value === "number" && onCursorChange) {
-                  const closestTimestamp = dataset.timestamps.reduce(
-                    (prev, curr) =>
-                      Math.abs(curr - value) < Math.abs(prev - value)
-                        ? curr
-                        : prev
+                  const closestTimestamp = timestamps.reduce((prev, curr) =>
+                    Math.abs(curr - value) < Math.abs(prev - value)
+                      ? curr
+                      : prev
                   );
 
-                  onCursorChange(closestTimestamp);
+                  onCursorChange(closestTimestamp, xScale.tickFormat);
                 }
               }}
             />
           }
         >
-          <VictoryArea
-            data={area}
-            style={{
-              data: {
-                fill: METAC_COLORS.olive["500"].DEFAULT,
-                opacity: 0.3,
-              },
-            }}
-          />
-          <VictoryLine
-            data={line}
-            style={{
-              data: {
-                stroke: METAC_COLORS.olive["700"].DEFAULT,
-              },
-            }}
-          />
+          {lines.map(({ line, color, active, highlighted }, index) => {
+            return (
+              <VictoryLine
+                key={`multiple-choice-line-${index}`}
+                data={line}
+                style={{
+                  data: {
+                    stroke: active ? color : "transparent",
+                    strokeOpacity: !isHighlightActive
+                      ? 1
+                      : highlighted
+                        ? 1
+                        : 0.2,
+                  },
+                }}
+              />
+            );
+          })}
           <VictoryAxis
             dependentAxis
-            style={{
-              tickLabels: { padding: 2 },
-            }}
             tickValues={yScale.ticks}
             tickFormat={yScale.tickFormat}
+            style={{ tickLabels: { padding: 2 } }}
             label={yLabel}
             axisLabelComponent={<VictoryLabel dy={-10} />}
           />
@@ -157,38 +163,43 @@ const NumericChart: FC<Props> = ({
   );
 };
 
-type ChartData = BaseChartData & {
+export type ChoiceLine = {
   line: Line;
-  area: Area;
-  yDomain: DomainTuple;
+  choice: string;
+  color: string;
+  active: boolean;
+  highlighted: boolean;
+};
+type ChartData = BaseChartData & {
+  lines: ChoiceLine[];
 };
 
 function buildChartData(
-  dataset: NumericChartDataset,
-  width: number
+  timestamps: number[],
+  choiceItems: ChoiceItem[],
+  width: number,
+  height: number
 ): ChartData {
-  const line = dataset.timestamps.map((timestamp, index) => ({
-    x: timestamp,
-    y: dataset.values_mean[index],
-  }));
-  const area = dataset.timestamps.map((timestamp, index) => ({
-    x: timestamp,
-    y0: dataset.values_min[index],
-    y: dataset.values_max[index],
-  }));
+  const lines: ChoiceLine[] = choiceItems.map(
+    ({ choice, values, color, active, highlighted }) => ({
+      choice,
+      color,
+      line: timestamps.map((timestamp, timestampIndex) => ({
+        x: timestamp,
+        y: values[timestampIndex],
+      })),
+      active,
+      highlighted,
+    })
+  );
 
-  const minYValue = Math.floor(Math.min(...dataset.values_min) * 0.95); // 5% padding
-  const maxYValue = Math.ceil(Math.max(...dataset.values_max) * 1.05); // 5% padding
-
-  const xDomain = generateNumericDomain(dataset.timestamps);
+  const xDomain = generateNumericDomain(timestamps);
 
   return {
-    line,
-    area,
-    yDomain: [minYValue, maxYValue],
     xScale: generateTimestampXScale(xDomain, width),
-    yScale: generateNumericYScale([minYValue, maxYValue]),
+    yScale: generatePercentageYScale(height),
+    lines,
   };
 }
 
-export default React.memo(NumericChart);
+export default memo(MultipleChoiceChart);
