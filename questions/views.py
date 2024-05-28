@@ -3,6 +3,8 @@ from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as filters
 from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -62,6 +64,29 @@ class QuestionsListApiView(generics.ListAPIView):
     filter_backends = [filters.DjangoFilterBackend]
     filterset_class = QuestionListFilters
     ordering_fields = ["username", "email"]
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def questions_explicit_endpoint(request):
+    serializer = QuestionSerializer
+    paginator = LimitOffsetPagination()
+    qs = Question.objects.all().prefetch_projects()
+
+    filterset = QuestionListFilters(
+        data=request.query_params, queryset=qs, request=request
+    )
+
+    if not filterset.is_valid():
+        raise ValidationError(filterset.errors)
+
+    qs = filterset.qs
+
+    # Paginating queryset
+    page = paginator.paginate_queryset(qs, request)
+
+    serializer = serializer(page, many=True)
+    return paginator.get_paginated_response(serializer.data)
 
 
 @api_view(["POST"])
