@@ -1,6 +1,6 @@
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
@@ -71,14 +71,27 @@ def questions_list_api_view(request):
     paginator = LimitOffsetPagination()
     qs = Question.objects.all().prefetch_projects()
 
+    # Extra enrich params
+    with_forecasts = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("with_forecasts")
+    )
+
     # Apply filtering
     qs = filter_questions(qs, request)
 
     # Paginating queryset
     qs = paginator.paginate_queryset(qs, request)
 
-    return paginator.get_paginated_response(QuestionSerializer(qs, many=True).data)
+    data = []
+    for question in qs:
+        serialized_question = QuestionSerializer(question).data
 
+        if with_forecasts:
+            serialized_question["forecasts"] = get_forecasts_for_question(question)
+
+        data.append(serialized_question)
+
+    return paginator.get_paginated_response(data)
 
 
 def get_forecasts_for_question(question: Question):
@@ -99,36 +112,10 @@ def get_forecasts_for_question(question: Question):
             forecasts_data["values_max"].append(cp["max"])
             forecasts_data["values_min"].append(cp["min"])
             forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
+
+        return forecasts_data
     except:
         return None
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def question_list(request):
-    questions = Question.objects.all()
-    search_query = request.query_params.get("search", None)
-    ordering = request.query_params.get("ordering", None)
-    with_forecasts = request.query_params.get("with_forecasts", None) == "true"
-
-    if search_query:
-        questions = questions.filter(title__icontains=search_query) | questions.filter(
-            author__username__icontains=search_query
-        )
-
-    questions.order_by(request.query_params["order"])
-
-    if ordering:
-        questions = questions.order_by(ordering)
-
-    questions = questions[0:100]
-
-    question_data = []
-    for q in questions:
-        question_data.append(QuestionSerializer(q).data)
-        if with_forecasts:
-            question_data[-1]["forecasts"] = get_forecasts_for_question(q)
-
-    return Response(question_data)
 
 
 @api_view(["GET"])
