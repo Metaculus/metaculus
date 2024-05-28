@@ -3,15 +3,14 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
-import NumericChart from "@/components/charts/numeric_chart";
-import CursorDetails from "@/components/cursor_details";
-import { NumericChartDataset } from "@/types/charts";
+import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import { MultipleChoiceDataset } from "@/types/charts";
 
 type Props = {
-  dataset: NumericChartDataset;
+  dataset: MultipleChoiceDataset;
 };
 
-const NumericChartCard: FC<Props> = ({ dataset }) => {
+const MultipleChoiceChartCard: FC<Props> = ({ dataset }) => {
   const t = useTranslations();
 
   const [isChartReady, setIsChartReady] = useState(false);
@@ -25,9 +24,6 @@ const NumericChartCard: FC<Props> = ({ dataset }) => {
     );
 
     return {
-      min: dataset.values_min[index].toFixed(1),
-      max: dataset.values_max[index].toFixed(1),
-      mean: dataset.values_mean[index].toFixed(1),
       forecastersNr: dataset.nr_forecasters[index],
       timestamp: dataset.timestamps[index],
     };
@@ -48,20 +44,23 @@ const NumericChartCard: FC<Props> = ({ dataset }) => {
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
-      <NumericChart
+      <div className="flex items-center">
+        <h3 className="m-0 text-base font-normal leading-5">
+          {t("forecastTimelineHeading")}
+        </h3>
+        <div className="ml-auto">
+          {t("totalForecastersLabel")}{" "}
+          <strong>{cursorData.forecastersNr}</strong>
+        </div>
+      </div>
+      <MultipleChoiceChart
         dataset={dataset}
-        onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}
-      />
-      <CursorDetails
-        forecastersNr={cursorData.forecastersNr}
-        min={cursorData.min}
-        mean={cursorData.mean}
-        max={cursorData.max}
+        onCursorChange={handleCursorChange}
       />
     </div>
   );
 };
 
-export default NumericChartCard;
+export default MultipleChoiceChartCard;

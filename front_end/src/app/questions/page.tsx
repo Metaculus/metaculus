@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 
-import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import MultipleChoiceChartCard from "@/components/multiple_choice_chart_card";
 import NumericChartCard from "@/components/numeric_chard_card";
 import {
   generateMockMultipleChoiceChart,
@@ -9,8 +8,6 @@ import {
 } from "@/utils/mock_charts";
 
 export default function Questions() {
-  const t = useTranslations();
-
   const numericDataset = generateMockNumericChart();
   const multipleChoiceDataset = generateMockMultipleChoiceChart();
 
@@ -25,10 +22,7 @@ export default function Questions() {
       Numeric Chart:
       <NumericChartCard dataset={numericDataset} />
       Multiple Choice Chart:
-      <MultipleChoiceChart
-        dataset={multipleChoiceDataset}
-        yLabel={t("communityPredictionLabel")}
-      />
+      <MultipleChoiceChartCard dataset={multipleChoiceDataset} />
     </main>
   );
 }

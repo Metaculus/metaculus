@@ -1,5 +1,12 @@
 "use client";
-import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  FC,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   CursorCoordinatesPropType,
   LineSegment,
@@ -11,8 +18,8 @@ import {
   VictoryLine,
 } from "victory";
 
-import ChartCursorLabel from "@/components/chart_cursor_label";
 import ChoiceCheckbox from "@/components/charts/multiple_choice_chart/choice_checkbox";
+import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
 import chartTheme from "@/contants/chart_theme";
 import { METAC_COLORS } from "@/contants/colors";
 import useContainerSize from "@/hooks/use_container_size";
@@ -256,4 +263,4 @@ function buildChartData(
   };
 }
 
-export default MultipleChoiceChart;
+export default memo(MultipleChoiceChart);

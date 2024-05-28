@@ -13,7 +13,7 @@ import {
   VictoryLine,
 } from "victory";
 
-import ChartCursorLabel from "@/components/chart_cursor_label";
+import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
 import chartTheme from "@/contants/chart_theme";
 import { METAC_COLORS } from "@/contants/colors";
 import useContainerSize from "@/hooks/use_container_size";
