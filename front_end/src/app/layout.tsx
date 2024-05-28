@@ -7,6 +7,8 @@ import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
+import Header from "@/app/header";
+
 const sourceSerifPro = localFont({
   src: [
     {
@@ -96,8 +98,9 @@ export default async function RootLayout({
       lang={locale}
       className={`${diatypeVariable.variable} ${diatype.variable} ${sourceSerifPro.variable} font-sans`}
     >
-      <body>
+      <body className="bg-metac-blue-200 dark:bg-metac-blue-50-dark">
         <NextIntlClientProvider messages={messages}>
+          <Header />
           {children}
         </NextIntlClientProvider>
       </body>
