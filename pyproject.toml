@@ -16,7 +16,6 @@ psycopg2-binary = "^2.9.9"
 python-dateutil = "^2.9.0.post0"
 django-extensions = "^3.2.3"
 numpy = "^1.26.4"
-django-filter = "^24.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"

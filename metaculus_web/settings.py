@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "social_django",
     "rest_social_auth",
-    "django_filters",
     # first-party:
     "migrator",
     "authentication",

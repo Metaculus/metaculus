@@ -1,114 +1,83 @@
-from django.db import models
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from django_filters import rest_framework as filters
-from rest_framework import status, generics
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
 from questions.models import Forecast, Question
-from questions.serializers import QuestionSerializer, QuestionWriteSerializer
+from questions.serializers import (
+    QuestionSerializer,
+    QuestionWriteSerializer,
+    QuestionFilterSerializer,
+)
 from utils.the_math.community_prediction import compute_binary_cp
 
 
-class QuestionListFilters(filters.FilterSet):
-    class MyPredictionType(models.TextChoices):
-        OLDEST = "oldest"
-        NEWEST = "newest"
-        DIVERGENCE = "divergence"
+def filter_questions(qs, request: Request):
+    """
+    Applies filtering on the Questions QuerySet
+    """
 
-    my_predictions = filters.ChoiceFilter(
-        choices=MyPredictionType.choices, method="apply_my_predictions"
-    )
+    user = request.user
+    serializer = QuestionFilterSerializer(data=request.query_params)
+    serializer.is_valid(raise_exception=True)
+
+    # Search
+    if search_query := serializer.validated_data.get("search"):
+        qs = qs.filter(
+            Q(title__icontains=search_query)
+            | Q(author__username__icontains=search_query)
+        )
+
+    # Filters
+    if topic := serializer.validated_data.get("topic"):
+        qs = qs.filter(projects=topic)
+
+    if tags := serializer.validated_data.get("tags"):
+        qs = qs.filter(projects__in=tags)
+
+    if categories := serializer.validated_data.get("categories"):
+        qs = qs.filter(projects__in=categories)
+
+    answered_by_me = serializer.validated_data.get("answered_by_me")
+
+    if answered_by_me is not None and not user.is_anonymous:
+        condition = {"forecast__author": user}
+        qs = qs.filter(**condition) if answered_by_me else qs.exclude(**condition)
 
     # Ordering
-    class OrderType(models.TextChoices):
-        MOST_PREDICTIONS = "most_predictions", "Most Predictions"
+    if order := serializer.validated_data.get("order"):
+        match order:
+            case serializer.Order.MOST_FORECASTERS:
+                qs = qs.annotate_predictions_count__unique().order_by(
+                    "-predictions_count_unique"
+                )
+            case serializer.Order.CLOSED_AT:
+                qs = qs.order_by("-closed_at")
+            case serializer.Order.RESOLVED_AT:
+                qs = qs.order_by("-resolved_at")
+            case serializer.Order.CREATED_AT:
+                qs = qs.order_by("-created_at")
 
-    order = filters.OrderingFilter(
-        choices=OrderType.choices,
-        method="apply_order",
-    )
-
-    def apply_my_predictions(self, queryset, name, value):
-        """
-        Custom implementation of my_predictions filter
-        """
-
-        print("name: ", name)
-        print("value: ", value)
-
-        return queryset
-
-    def apply_order(self, queryset, name, value):
-        """
-        Custom implementation of ordering
-        """
-
-        print("name: ", name)
-        print("value: ", value)
-
-        if any(v == self.OrderType.MOST_PREDICTIONS for v in value):
-            return queryset.annotate_predictions_count().order_by("-predictions_count")
-
-        return queryset
-
-
-class QuestionsListApiView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-    queryset = Question.objects.all().prefetch_projects()
-    serializer_class = QuestionSerializer
-    filter_backends = [filters.DjangoFilterBackend]
-    filterset_class = QuestionListFilters
-    ordering_fields = ["username", "email"]
+    return qs
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def questions_explicit_endpoint(request):
-    serializer = QuestionSerializer
+def questions_list_api_view(request):
     paginator = LimitOffsetPagination()
     qs = Question.objects.all().prefetch_projects()
 
-    filterset = QuestionListFilters(
-        data=request.query_params, queryset=qs, request=request
-    )
-
-    if not filterset.is_valid():
-        raise ValidationError(filterset.errors)
-
-    qs = filterset.qs
+    # Apply filtering
+    qs = filter_questions(qs, request)
 
     # Paginating queryset
-    page = paginator.paginate_queryset(qs, request)
+    qs = paginator.paginate_queryset(qs, request)
 
-    serializer = serializer(page, many=True)
-    return paginator.get_paginated_response(serializer.data)
-
-
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def question_list(request):
-    questions = Question.objects.all()
-    search_query = request.query_params.get("search", None)
-    ordering = request.query_params.get("ordering", None)
-
-    if search_query:
-        questions = questions.filter(title__icontains=search_query) | questions.filter(
-            author__username__icontains=search_query
-        )
-
-    if ordering:
-        questions = questions.order_by(ordering)
-
-    # Prefetching related objects
-    questions = questions.prefetch_projects()
-
-    serializer = QuestionSerializer(questions, many=True)
-    return Response(serializer.data)
+    return paginator.get_paginated_response(QuestionSerializer(qs, many=True).data)
 
 
 @api_view(["GET"])

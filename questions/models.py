@@ -13,6 +13,11 @@ class QuestionQuerySet(models.QuerySet):
     def annotate_predictions_count(self):
         return self.annotate(predictions_count=Count("forecast"))
 
+    def annotate_predictions_count__unique(self):
+        return self.annotate(
+            predictions_count_unique=Count("forecast__author", distinct=True)
+        )
+
 
 class Question(models.Model):
     QUESTION_TYPES = (
@@ -55,6 +60,7 @@ class Question(models.Model):
 
     # Annotated fields
     predictions_count: int = 0
+    predictions_count_unique: int = 0
 
 
 class Forecast(models.Model):
