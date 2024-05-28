@@ -80,28 +80,63 @@ def questions_list_api_view(request):
     return paginator.get_paginated_response(QuestionSerializer(qs, many=True).data)
 
 
+
+def get_forecasts_for_question(question: Question):
+    try:
+        forecasts = Forecast.objects.filter(question=question)
+        forecast_times = [x.start_time for x in forecasts]
+        forecasts_data = {
+            "timestamps": [],
+            "values_mean": [],
+            "values_max": [],
+            "values_min": [],
+            "nr_forecasters": [],
+        }
+        for forecast_time in forecast_times:
+            cp = compute_binary_cp(forecasts, forecast_time)
+            forecasts_data["timestamps"].append(forecast_time.timestamp())
+            forecasts_data["values_mean"].append(cp["mean"])
+            forecasts_data["values_max"].append(cp["max"])
+            forecasts_data["values_min"].append(cp["min"])
+            forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
+    except:
+        return None
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def question_list(request):
+    questions = Question.objects.all()
+    search_query = request.query_params.get("search", None)
+    ordering = request.query_params.get("ordering", None)
+    with_forecasts = request.query_params.get("with_forecasts", None) == "true"
+
+    if search_query:
+        questions = questions.filter(title__icontains=search_query) | questions.filter(
+            author__username__icontains=search_query
+        )
+
+    questions.order_by(request.query_params["order"])
+
+    if ordering:
+        questions = questions.order_by(ordering)
+
+    questions = questions[0:100]
+
+    question_data = []
+    for q in questions:
+        question_data.append(QuestionSerializer(q).data)
+        if with_forecasts:
+            question_data[-1]["forecasts"] = get_forecasts_for_question(q)
+
+    return Response(question_data)
+
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def question_detail(request: Request, pk):
     print(request, pk)
     question = get_object_or_404(Question, pk=pk)
-    forecasts = Forecast.objects.filter(question=question)
-    forecast_times = [x.start_time for x in forecasts]
-    forecasts_data = {
-        "timestamps": [],
-        "values_mean": [],
-        "values_max": [],
-        "values_min": [],
-        "nr_forecasters": [],
-    }
-    for forecast_time in forecast_times:
-        cp = compute_binary_cp(forecasts, forecast_time)
-        forecasts_data["timestamps"].append(forecast_time.timestamp())
-        forecasts_data["values_mean"].append(cp["mean"])
-        forecasts_data["values_max"].append(cp["max"])
-        forecasts_data["values_min"].append(cp["min"])
-        forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
-
+    forecasts_data = get_forecasts_for_question(question)
     serializer = QuestionSerializer(question)
     data = serializer.data
     data["forecasts"] = forecasts_data

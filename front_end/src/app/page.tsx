@@ -14,10 +14,10 @@ export default function Home() {
         </li>
         <li>
           <Link
-            href={"/questions/120"}
+            href={"/questions/13637"}
             className={"font-bold text-metac-blue-800 hover:opacity-60"}
           >
-            Go to question 120
+            Go to question 13637
           </Link>
         </li>
       </ul>
