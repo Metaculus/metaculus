@@ -81,7 +81,7 @@ def enrich_questions_with_votes(
     if user and not user.is_anonymous:
         qs = qs.annotate_user_vote(user)
 
-    def f(question: Question, serialized_question: dict):
+    def enrich(question: Question, serialized_question: dict):
         serialized_question["vote"] = {
             "score": question.vote_score,
             "user_vote": question.user_vote,
@@ -89,7 +89,7 @@ def enrich_questions_with_votes(
 
         return serialized_question
 
-    return qs, f
+    return qs, enrich
 
 
 @api_view(["GET"])
