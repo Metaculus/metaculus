@@ -1,15 +1,14 @@
 import Link from "next/link";
 
 import NumericChartCard from "@/components/numeric_chard_card";
-import { getQuestionData } from "@/services/questions";
+import QuestionsApi from "@/services/questions";
 
 export default async function IndividualQuestion({
   params,
 }: {
   params: { id: number };
 }) {
-  const questionData = await getQuestionData(params.id);
-  console.log("Question data: ", questionData);
+  const questionData = await QuestionsApi.getQuestion(params.id);
 
   return (
     <main className="flex min-h-screen flex-col gap-2 p-6">
@@ -20,7 +19,7 @@ export default async function IndividualQuestion({
         Home
       </Link>
       Numeric Chart:
-      <NumericChartCard dataset={questionData.forecasts} />
+      {questionData && <NumericChartCard dataset={questionData.forecasts} />}
     </main>
   );
 }
