@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "rest_social_auth",
     # first-party:
     "migrator",
+    "utils",
     "authentication",
     "users",
     "questions",
