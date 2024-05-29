@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import DetailsQuestionCardEmptyState from "@/components/detailed_question_card/empty_state";
 import ChoiceCheckbox from "@/components/detailed_question_card/multiple_choice_chart_card/choice_checkbox";
 import ChoicesTooltip from "@/components/detailed_question_card/multiple_choice_chart_card/choices_tooltip";
 import { METAC_COLORS } from "@/contants/colors";
@@ -22,6 +23,11 @@ type Props = {
 
 const MultipleChoiceChartCard: FC<Props> = ({ dataset }) => {
   const t = useTranslations();
+
+  const isChartEmpty = useMemo(
+    () => Object.values(dataset).some((value) => !value || !value.length),
+    [dataset]
+  );
 
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => {
@@ -98,6 +104,10 @@ const MultipleChoiceChartCard: FC<Props> = ({ dataset }) => {
     },
     []
   );
+
+  if (isChartEmpty) {
+    return <DetailsQuestionCardEmptyState />;
+  }
 
   return (
     <div
