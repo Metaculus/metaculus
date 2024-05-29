@@ -68,6 +68,19 @@ def filter_questions(qs, request: Request):
     return qs
 
 
+def enrich_empty(
+    qs: QuerySet, *args, **kwargs
+) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
+    """
+    Enrichment function with returns everything as is
+    """
+
+    def enrich(question: Question, serialized_data: dict):
+        return serialized_data
+
+    return qs, enrich
+
+
 def enrich_questions_with_votes(
     qs: QuerySet, user: User = None
 ) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
@@ -93,18 +106,15 @@ def enrich_questions_with_votes(
 
 
 def enrich_questions_with_forecasts(
-    qs: QuerySet, active: bool = True
+    qs: QuerySet,
 ) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
     """
     Enriches questions with the forecasts object.
     """
 
-    qs = qs.prefetch_forecasts() if active else qs
+    qs = qs.prefetch_forecasts()
 
     def enrich(question: Question, serialized_question: dict):
-        if not active:
-            return serialized_question
-
         forecasts_data = {}
 
         try:
@@ -149,7 +159,9 @@ def questions_list_api_view(request):
 
     # Enrich QS
     qs, enrich_votes = enrich_questions_with_votes(qs, user=request.user)
-    qs, enrich_forecasts = enrich_questions_with_forecasts(qs, active=with_forecasts)
+    qs, enrich_forecasts = (
+        enrich_questions_with_forecasts(qs) if with_forecasts else enrich_empty(qs)
+    )
 
     # Paginating queryset
     qs = paginator.paginate_queryset(qs, request)
@@ -180,6 +192,7 @@ def question_detail(request: Request, pk):
     serializer = QuestionSerializer(question)
     data = serializer.data
 
+    # Enrich serialized object
     data = enrich_votes(question, data)
     data = enrich_forecasts(question, data)
 
