@@ -9,7 +9,6 @@ from .models import Question
 
 class QuestionSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
-    vote_score = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
@@ -17,9 +16,6 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     def get_projects(self, obj: Question):
         return serialize_projects(obj.projects.all())
-
-    def get_vote_score(self, obj: Question):
-        return obj.vote_score
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
