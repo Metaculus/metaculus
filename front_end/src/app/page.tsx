@@ -20,6 +20,14 @@ export default function Home() {
             Go to question 13637
           </Link>
         </li>
+        <li>
+          <Link
+            href={"/charts"}
+            className={"font-bold text-metac-blue-800 hover:opacity-60"}
+          >
+            Go to Mock Charts
+          </Link>
+        </li>
       </ul>
     </main>
   );
