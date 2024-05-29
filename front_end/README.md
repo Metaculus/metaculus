@@ -4,7 +4,7 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 Install packages:
 
-Ensure to add `FONTAWESOME_PACKAGE_TOKEN` to the environment variables.
+Ensure to add environment variables in `.env` file according to `.env.example`.
 
 ```bash
 npm install
