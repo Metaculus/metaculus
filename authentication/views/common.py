@@ -28,7 +28,7 @@ def login_api_view(request):
     if not user:
         raise ValidationError({"password": ["incorrect login / password"]})
 
-    token, created = Token.objects.get_or_create(user=user)
+    token, _ = Token.objects.get_or_create(user=user)
 
     return Response({"token": token.key})
 
@@ -82,5 +82,6 @@ def signup_activate_api_view(request):
         raise ValidationError({"token": ["Activation Token is expired or invalid"]})
 
     check_and_activate_user(user, token)
+    token, _ = Token.objects.get_or_create(user=user)
 
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response({"token": token.key})
