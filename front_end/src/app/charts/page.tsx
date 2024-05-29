@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import MultipleChoiceChartCard from "@/components/multiple_choice_chart_card";
-import NumericChartCard from "@/components/numeric_chard_card";
+import MultipleChoiceChartCard from "@/components/detailed_question_card/multiple_choice_chart_card";
+import NumericChartCard from "@/components/detailed_question_card/numeric_chard_card";
 import {
   generateMockMultipleChoiceChart,
   generateMockNumericChart,
