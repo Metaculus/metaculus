@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import Any
 
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from projects.models import Project
 
@@ -63,3 +64,46 @@ def serialize_projects(projects: list[Project]) -> defaultdict[Any, list]:
         data[obj.type].append(serializer(obj).data)
 
     return data
+
+
+def validate_categories(lookup_field: str, lookup_values: list):
+    categories = (
+        Project.objects.filter_category()
+        .filter_active()
+        .filter(**{f"{lookup_field}__in": lookup_values})
+    )
+    lookup_values_fetched = {getattr(obj, lookup_field) for obj in categories}
+
+    for value in lookup_values:
+        if value not in lookup_values_fetched:
+            raise ValidationError(f"Category {value} does not exist")
+
+    return categories
+
+
+def validate_tournaments(lookup_field: str, lookup_values: list):
+    categories = (
+        Project.objects.filter_tournament()
+        .filter_active()
+        .filter(**{f"{lookup_field}__in": lookup_values})
+    )
+    lookup_values_fetched = {getattr(obj, lookup_field) for obj in categories}
+
+    for value in lookup_values:
+        if value not in lookup_values_fetched:
+            raise ValidationError(f"Tournament {value} does not exist")
+
+    return categories
+
+
+class QuestionProjectWriteSerializer(serializers.Serializer):
+    categories = serializers.ListField(child=serializers.IntegerField(), required=False)
+    tournaments = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
+
+    def validate_categories(self, values: list[int]) -> list[Project]:
+        return validate_categories(lookup_field="id", lookup_values=values)
+
+    def validate_tournaments(self, values: list[int]) -> list[Project]:
+        return validate_tournaments(lookup_field="id", lookup_values=values)

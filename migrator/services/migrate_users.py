@@ -4,7 +4,6 @@ from users.models import User
 
 def create_user(user_obj: dict, profile_obj: dict | None) -> User:
     # TODO: ensure password hash is the same!
-    # TODO: ensure we reset psql PK inc counter
     # TODO: social auth data should be in a separate tables as is, not in the one columns as proposed
     profile_obj = profile_obj or {}
 
