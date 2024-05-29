@@ -68,7 +68,7 @@ const MultipleChoiceChart: FC<Props> = ({
   }, [onChartReady, prevWidth, chartWidth]);
 
   return (
-    <div ref={chartContainerRef} className="w-full h-full">
+    <div ref={chartContainerRef} className="h-full w-full">
       {!!chartWidth && (
         <VictoryChart
           width={chartWidth}

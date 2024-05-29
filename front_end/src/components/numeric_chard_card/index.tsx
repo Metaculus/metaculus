@@ -44,7 +44,7 @@ const NumericChartCard: FC<Props> = ({ dataset }) => {
   return (
     <div
       className={classNames(
-        "flex flex-col w-full",
+        "flex w-full flex-col",
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
