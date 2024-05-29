@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from projects.models import Project
 from questions.models import Question, Vote
 from questions.serializers import (
     QuestionSerializer,
@@ -16,6 +17,7 @@ from questions.serializers import (
     QuestionFilterSerializer,
 )
 from users.models import User
+from utils.dtypes import flatten
 from utils.the_math.community_prediction import compute_binary_cp
 
 
@@ -204,7 +206,15 @@ def create_question(request):
     serializer = QuestionWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    question = serializer.save(author=request.user)
+    data = serializer.validated_data
+    projects_by_category: dict[str, list[Project]] = data.pop("projects", {})
+
+    question = Question.objects.create(author=request.user, **data)
+
+    projects_flat = flatten(projects_by_category.values())
+    question.projects.add(*projects_flat)
+
+    # Attaching projects to the
     return Response(QuestionSerializer(question).data, status=status.HTTP_201_CREATED)
 
 

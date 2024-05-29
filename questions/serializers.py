@@ -3,7 +3,11 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from projects.models import Project
-from projects.serializers import serialize_projects
+from projects.serializers import (
+    serialize_projects,
+    validate_categories,
+    QuestionProjectWriteSerializer,
+)
 from .models import Question
 
 
@@ -19,6 +23,8 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
+    projects = QuestionProjectWriteSerializer(required=False)
+
     class Meta:
         model = Question
         fields = (
@@ -27,6 +33,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "type",
             "possibilities",
             "resolution",
+            "projects",
         )
 
 
@@ -64,13 +71,4 @@ class QuestionFilterSerializer(serializers.Serializer):
         return tags
 
     def validate_categories(self, values: list[str]):
-        categories = (
-            Project.objects.filter_category().filter_active().filter(slug__in=values)
-        )
-        slugs = {obj.slug for obj in categories}
-
-        for value in values:
-            if value not in slugs:
-                raise ValidationError(f"Category {value} does not exist")
-
-        return categories
+        return validate_categories(lookup_field="slug", lookup_values=values)
