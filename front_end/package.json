@@ -16,10 +16,8 @@
     "@floating-ui/react": "^0.26.16",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-brands-svg-icons": "^6.5.2",
-    "@fortawesome/pro-duotone-svg-icons": "^6.5.2",
-    "@fortawesome/pro-light-svg-icons": "^6.5.2",
-    "@fortawesome/pro-regular-svg-icons": "^6.5.2",
-    "@fortawesome/pro-solid-svg-icons": "^6.5.2",
+    "@fortawesome/free-regular-svg-icons": "^6.5.2",
+    "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@headlessui/react": "^2.0.4",
     "@tailwindcss/container-queries": "^0.1.1",
@@ -49,6 +47,7 @@
     "npm-run-all": "^4.1.5",
     "postcss": "^8",
     "prettier": "^3.2.5",
+    "prettier-plugin-tailwindcss": "^0.5.14",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
