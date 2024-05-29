@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import NumericChartCard from "@/components/numeric_chard_card";
+import QuestionForecastsCard from "@/components/question_forecasts_card";
 import QuestionsApi from "@/services/questions";
 
 export default async function IndividualQuestion({
@@ -19,7 +19,7 @@ export default async function IndividualQuestion({
         Home
       </Link>
       Numeric Chart:
-      {questionData && <NumericChartCard dataset={questionData.forecasts} />}
+      {questionData && <QuestionForecastsCard question={questionData} />}
     </main>
   );
 }

@@ -18,7 +18,8 @@ import chartTheme from "@/contants/chart_theme";
 import { METAC_COLORS } from "@/contants/colors";
 import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";
-import { Area, BaseChartData, Line, NumericChartDataset } from "@/types/charts";
+import { Area, BaseChartData, Line } from "@/types/charts";
+import { NumericForecast } from "@/types/question";
 import {
   generateNumericDomain,
   generateNumericYScale,
@@ -26,7 +27,7 @@ import {
 } from "@/utils/charts";
 
 type Props = {
-  dataset: NumericChartDataset;
+  dataset: NumericForecast;
   yLabel?: string;
   height?: number;
   onCursorChange?: (value: number) => void;
@@ -163,10 +164,7 @@ type ChartData = BaseChartData & {
   yDomain: DomainTuple;
 };
 
-function buildChartData(
-  dataset: NumericChartDataset,
-  width: number
-): ChartData {
+function buildChartData(dataset: NumericForecast, width: number): ChartData {
   const line = dataset.timestamps.map((timestamp, index) => ({
     x: timestamp,
     y: dataset.values_mean[index],
