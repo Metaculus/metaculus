@@ -8,22 +8,45 @@ from users.models import User
 
 def create_question(question: dict) -> Question:
     possibilities = json.loads(question["possibilities"])
-    # print(f'\n----\n{possibilities}\n----\n')
+    max = None
+    min = None
+    open_upper_bound = None
+    open_lower_bound = None
+    options = None
+    if None in question["option_labels"] or not question["option_labels"]:
+        question["option_labels"] = None
     if possibilities.get("type", None) == "binary":
         question_type = "binary"
     elif possibilities.get("type", None) == "continuous":
         if possibilities.get("format", None) == "num":
             question_type = "numeric"
+            if isinstance(possibilities["scale"]["max"], list):
+                max = possibilities["scale"]["max"][0]
+            else:
+                max = possibilities["scale"]["max"]
+            if isinstance(possibilities["scale"]["min"], list):
+                min = possibilities["scale"]["min"][0]
+            else:
+                min = possibilities["scale"]["min"]
         else:
             question_type = "date"
-    elif isinstance(possibilities, list) and len(possibilities) > 2:
+            max = date_parse(possibilities["scale"]["max"]).timestamp()
+            min = date_parse(possibilities["scale"]["min"]).timestamp()
+        open_upper_bound = possibilities.get("low", None) == "tail"
+        open_lower_bound = possibilities.get("high", None) == "tail"
+    elif question["option_labels"] is not None:
         question_type = "multiple_choice"
-        return None
+        options = question["option_labels"]
     else:
         return None
     new_question = Question(
         id=question["id"],
         title=question["title"],
+        max=max,
+        min=min,
+        open_upper_bound=open_upper_bound,
+        open_lower_bound=open_lower_bound,
+        options=options,
         description=question["description"],
         author_id=question["author_id"],
         created_at=question["created_time"],
@@ -43,8 +66,18 @@ def create_question(question: dict) -> Question:
 
 def migrate_questions():
     questions = []
-    for old_question in paginated_query("SELECT * FROM metac_question_question"):
+    for old_question in paginated_query("""SELECT
+            q.*,
+            ARRAY_AGG(o.label) AS option_labels
+        FROM
+            metac_question_question q
+        LEFT JOIN
+            metac_question_option o ON q.id = o.question_id
+        GROUP BY
+    q.id;"""):
         question = create_question(old_question)
         if question is not None:
             questions.append(question)
+    print(len([x.id for x in questions]))
+    print(len(set([x.id for x in questions])))
     Question.objects.bulk_create(questions)
