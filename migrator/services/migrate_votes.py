@@ -27,7 +27,7 @@ def migrate_votes():
     vote_instances += [
         create_vote(obj, Vote.VoteDirection.DOWN)
         for obj in paginated_query(
-            "SELECT * FROM metac_question_question_votes_dow",
+            "SELECT * FROM metac_question_question_votes_down",
         )
         if obj["question_id"] in question_ids
     ]
