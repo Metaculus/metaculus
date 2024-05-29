@@ -1,14 +1,14 @@
 import { FC } from "react";
 
-import MultipleChoiceChartCard from "@/components/multiple_choice_chart_card";
-import NumericChartCard from "@/components/numeric_chard_card";
+import MultipleChoiceChartCard from "@/components/detailed_question_card/multiple_choice_chart_card";
+import NumericChartCard from "@/components/detailed_question_card/numeric_chard_card";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 
 type Props = {
   question: QuestionWithForecasts;
 };
 
-const QuestionForecastsCard: FC<Props> = ({ question }) => {
+const DetailedQuestionCard: FC<Props> = ({ question }) => {
   switch (question.type) {
     case QuestionType.Numeric:
     case QuestionType.Date:
@@ -21,4 +21,4 @@ const QuestionForecastsCard: FC<Props> = ({ question }) => {
   }
 };
 
-export default QuestionForecastsCard;
+export default DetailedQuestionCard;
