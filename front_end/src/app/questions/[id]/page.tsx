@@ -14,7 +14,7 @@ export default async function IndividualQuestion({
     <main className="flex min-h-screen flex-col gap-2 p-6">
       <Link
         href={"/"}
-        className={"font-bold text-metac-blue-800 hover:opacity-60 self-start"}
+        className={"self-start font-bold text-metac-blue-800 hover:opacity-60"}
       >
         Home
       </Link>
