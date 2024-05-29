@@ -12,7 +12,7 @@ export default function Questions() {
   const multipleChoiceDataset = generateMockMultipleChoiceChart();
 
   return (
-    <main className="flex min-h-screen flex-col gap-2 p-6">
+    <main className="flex flex-col gap-2 p-6">
       <Link
         href={"/"}
         className={"self-start font-bold text-metac-blue-800 hover:opacity-60"}
