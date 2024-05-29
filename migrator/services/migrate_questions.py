@@ -25,18 +25,14 @@ def create_question(question: dict) -> Question:
         id=question["id"],
         title=question["title"],
         description=question["description"],
-        author=User.objects.get(id=question["author_id"]),
+        author_id=question["author_id"],
         created_at=question["created_time"],
         updated_at=question["edited_time"],
         published_at=question["publish_time"],
         approved_at=question["approved_time"],
         closed_at=question["close_time"],
         resolved_at=question["resolve_time"],
-        approved_by=(
-            None
-            if not question["approved_by_id"]
-            else User.objects.get(id=question["approved_by_id"])
-        ),
+        approved_by_id=question["approved_by_id"],
         type=question_type,
         possibilities=possibilities,
         resolution=question["resolution"],
