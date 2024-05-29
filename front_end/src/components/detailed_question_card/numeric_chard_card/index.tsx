@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
-import CursorDetailItem from "@/components/numeric_chard_card/numeric_cursor_item";
+import CursorDetailItem from "@/components/detailed_question_card/numeric_chard_card/numeric_cursor_item";
 import { NumericForecast } from "@/types/question";
 
 type Props = {
