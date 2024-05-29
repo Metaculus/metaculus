@@ -1,5 +1,17 @@
 import { ErrorResponse, FetchError, FetchOptions } from "@/types/fetch";
 
+export function encodeQueryParams(params: Record<string, any>): string {
+  const encodedParams = Object.entries(params)
+    .filter(([, value]) => value !== undefined)
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+    )
+    .join("&");
+
+  return encodedParams ? `?${encodedParams}` : "";
+}
+
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
     const errorData: ErrorResponse = await response.json();
@@ -14,7 +26,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 };
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api";
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000/api";
 const defaultOptions: FetchOptions = {
   headers: {
     "Content-Type": "application/json",

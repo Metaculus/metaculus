@@ -1,8 +1,8 @@
 import { addDays } from "date-fns";
 
-import { MultipleChoiceDataset, NumericChartDataset } from "@/types/charts";
+import { MultipleChoiceForecast, NumericForecast } from "@/types/question";
 
-export function generateMockNumericChart(): NumericChartDataset {
+export function generateMockNumericChart(): NumericForecast {
   const startDate = new Date(2023, 2, 1);
   const numberOfDays = 65;
   const timestamps: number[] = [];
@@ -36,7 +36,7 @@ export function generateMockNumericChart(): NumericChartDataset {
   };
 }
 
-export function generateMockMultipleChoiceChart(): MultipleChoiceDataset {
+export function generateMockMultipleChoiceChart(): MultipleChoiceForecast {
   const numberOfDays = 65;
 
   const timestamps: number[] = [];
