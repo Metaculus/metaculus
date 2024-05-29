@@ -10,6 +10,9 @@ class QuestionQuerySet(models.QuerySet):
     def prefetch_projects(self):
         return self.prefetch_related("projects")
 
+    def prefetch_forecasts(self):
+        return self.prefetch_related("forecast_set")
+
     def annotate_predictions_count(self):
         return self.annotate(predictions_count=Count("forecast"))
 
