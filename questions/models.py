@@ -1,6 +1,8 @@
+from typing import Optional
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count, Sum, Case, When, IntegerField, Subquery, OuterRef
+from django.contrib.postgres.fields import ArrayField
 
 from projects.models import Project
 from users.models import User
@@ -45,10 +47,10 @@ class QuestionQuerySet(models.QuerySet):
 
 class Question(models.Model):
     QUESTION_TYPES = (
-        ("binary", "Binary"),
-        ("numeric", "Numeric Range"),
-        ("date", "Date Range"),
-        ("multiple_choice", "Multiple Choice"),
+        ("binary", "binary"),
+        ("numeric", "numeric"),
+        ("date", "date"),
+        ("multiple_choice", "multiple_choice"),
     )
 
     title = models.CharField(max_length=200)
@@ -69,8 +71,15 @@ class Question(models.Model):
         null=True,
     )
 
+    max = models.FloatField(null=True)
+    min = models.FloatField(null=True)
+    open_upper_bound = models.BooleanField(null=True)
+    open_lower_bound = models.BooleanField(null=True)
+    options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
+
     type = models.CharField(max_length=20, choices=QUESTION_TYPES)
 
+    # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
     # Common fields
@@ -87,6 +96,15 @@ class Question(models.Model):
     predictions_count_unique: int = 0
     vote_score: int = 0
     user_vote = None
+
+    def get_deriv_ratio(self) -> Optional[float]:
+        if self.type == "numeric":
+            if self.min == 0:
+                return 1
+            return self.max / self.min
+        if self.type == "date":
+            return 1
+        return None
 
 
 class Forecast(models.Model):
