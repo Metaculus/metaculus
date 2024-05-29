@@ -1,4 +1,4 @@
-import { faSquare, faSquareCheck } from "@fortawesome/pro-regular-svg-icons";
+import { faSquare, faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Checkbox as HeadlessCheckbox, Field, Label } from "@headlessui/react";
 import classNames from "classnames";

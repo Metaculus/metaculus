@@ -98,10 +98,10 @@ export default async function RootLayout({
       lang={locale}
       className={`${diatypeVariable.variable} ${diatype.variable} ${sourceSerifPro.variable} font-sans`}
     >
-      <body className="bg-metac-blue-200 dark:bg-metac-blue-50-dark">
+      <body className="min-h-screen w-full bg-metac-blue-200 dark:bg-metac-blue-50-dark">
         <NextIntlClientProvider messages={messages}>
           <Header />
-          {children}
+          <div className="pt-12 ">{children}</div>
         </NextIntlClientProvider>
       </body>
     </html>

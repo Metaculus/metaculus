@@ -1,4 +1,4 @@
-import { faUserGroup } from "@fortawesome/pro-regular-svg-icons";
+import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 
