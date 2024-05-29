@@ -8,15 +8,16 @@ import ChoiceCheckbox from "@/components/multiple_choice_chart_card/choice_check
 import ChoicesTooltip from "@/components/multiple_choice_chart_card/choices_tooltip";
 import { METAC_COLORS } from "@/contants/colors";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
-import { MultipleChoiceDataset, TickFormat } from "@/types/charts";
+import { TickFormat } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
+import { MultipleChoiceForecast } from "@/types/question";
 
 const COLOR_SCALE = Object.values(METAC_COLORS["mc-option"]).map(
   (value) => value.DEFAULT
 );
 
 type Props = {
-  dataset: MultipleChoiceDataset;
+  dataset: MultipleChoiceForecast;
 };
 
 const MultipleChoiceChartCard: FC<Props> = ({ dataset }) => {
@@ -101,7 +102,7 @@ const MultipleChoiceChartCard: FC<Props> = ({ dataset }) => {
   return (
     <div
       className={classNames(
-        "flex flex-col w-full",
+        "flex w-full flex-col",
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >

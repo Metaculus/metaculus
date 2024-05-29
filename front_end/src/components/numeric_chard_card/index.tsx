@@ -5,10 +5,10 @@ import { FC, useCallback, useMemo, useState } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
 import CursorDetailItem from "@/components/numeric_chard_card/numeric_cursor_item";
-import { NumericChartDataset } from "@/types/charts";
+import { NumericForecast } from "@/types/question";
 
 type Props = {
-  dataset: NumericChartDataset;
+  dataset: NumericForecast;
 };
 
 const NumericChartCard: FC<Props> = ({ dataset }) => {
@@ -44,7 +44,7 @@ const NumericChartCard: FC<Props> = ({ dataset }) => {
   return (
     <div
       className={classNames(
-        "flex flex-col w-full",
+        "flex w-full flex-col",
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
