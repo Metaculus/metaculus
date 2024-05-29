@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from questions.models import Forecast, Question, Vote
+from questions.models import Question, Vote
 from questions.serializers import (
     QuestionSerializer,
     QuestionWriteSerializer,
@@ -92,6 +92,47 @@ def enrich_questions_with_votes(
     return qs, enrich
 
 
+def enrich_questions_with_forecasts(
+    qs: QuerySet, active: bool = True
+) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
+    """
+    Enriches questions with the forecasts object.
+    """
+
+    qs = qs.prefetch_forecasts() if active else qs
+
+    def enrich(question: Question, serialized_question: dict):
+        if not active:
+            return serialized_question
+
+        forecasts_data = {}
+
+        try:
+            forecasts = question.forecast_set.all()
+            forecast_times = [x.start_time for x in forecasts]
+            forecasts_data = {
+                "timestamps": [],
+                "values_mean": [],
+                "values_max": [],
+                "values_min": [],
+                "nr_forecasters": [],
+            }
+            for forecast_time in forecast_times:
+                cp = compute_binary_cp(forecasts, forecast_time)
+                forecasts_data["timestamps"].append(forecast_time.timestamp())
+                forecasts_data["values_mean"].append(cp["mean"])
+                forecasts_data["values_max"].append(cp["max"])
+                forecasts_data["values_min"].append(cp["min"])
+                forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
+        except:
+            pass
+
+        serialized_question["forecasts"] = forecasts_data
+        return serialized_question
+
+    return qs, enrich
+
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def questions_list_api_view(request):
@@ -106,8 +147,9 @@ def questions_list_api_view(request):
     # Apply filtering
     qs = filter_questions(qs, request)
 
-    # Enrich with votes
+    # Enrich QS
     qs, enrich_votes = enrich_questions_with_votes(qs, user=request.user)
+    qs, enrich_forecasts = enrich_questions_with_forecasts(qs, active=with_forecasts)
 
     # Paginating queryset
     qs = paginator.paginate_queryset(qs, request)
@@ -116,9 +158,8 @@ def questions_list_api_view(request):
     for question in qs:
         serialized_question = QuestionSerializer(question).data
 
-        if with_forecasts:
-            serialized_question["forecasts"] = get_forecasts_for_question(question)
-
+        # Enrich with extra data
+        serialized_question = enrich_forecasts(question, serialized_question)
         serialized_question = enrich_votes(question, serialized_question)
 
         data.append(serialized_question)
@@ -126,44 +167,21 @@ def questions_list_api_view(request):
     return paginator.get_paginated_response(data)
 
 
-def get_forecasts_for_question(question: Question):
-    try:
-        forecasts = Forecast.objects.filter(question=question)
-        forecast_times = [x.start_time for x in forecasts]
-        forecasts_data = {
-            "timestamps": [],
-            "values_mean": [],
-            "values_max": [],
-            "values_min": [],
-            "nr_forecasters": [],
-        }
-        for forecast_time in forecast_times:
-            cp = compute_binary_cp(forecasts, forecast_time)
-            forecasts_data["timestamps"].append(forecast_time.timestamp())
-            forecasts_data["values_mean"].append(cp["mean"])
-            forecasts_data["values_max"].append(cp["max"])
-            forecasts_data["values_min"].append(cp["min"])
-            forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
-
-        return forecasts_data
-    except:
-        return None
-
-
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def question_detail(request: Request, pk):
     qs = Question.objects.all()
 
-    # Enrich with votes
+    # Enrich QS
     qs, enrich_votes = enrich_questions_with_votes(qs, user=request.user)
+    qs, enrich_forecasts = enrich_questions_with_forecasts(qs)
 
     question = get_object_or_404(qs, pk=pk)
-    forecasts_data = get_forecasts_for_question(question)
     serializer = QuestionSerializer(question)
     data = serializer.data
-    data["forecasts"] = forecasts_data
+
     data = enrich_votes(question, data)
+    data = enrich_forecasts(question, data)
 
     return Response(data)
 
