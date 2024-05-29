@@ -2,6 +2,7 @@ from django.contrib.auth.tokens import default_token_generator
 from rest_framework.exceptions import ValidationError
 
 from users.models import User
+from utils.email import send_email_with_template
 from utils.frontend import build_frontend_account_activation_url
 
 
@@ -16,10 +17,24 @@ def generate_user_activation_link(user: User):
 
 
 def send_activation_email(user: User):
-    link = generate_user_activation_link(user)
+    activation_link = generate_user_activation_link(user)
 
     # TODO: send email, so printing link for now
-    print(link)
+    print(activation_link)
+
+    return
+
+    # TODO: test this
+    send_email_with_template(
+        user.email,
+        "Metaculus Account Creation",
+        "emails/activation_email.html",
+        context={
+            "email": user.email,
+            "username": user.username,
+            "activation_link": activation_link,
+        },
+    )
 
 
 def check_and_activate_user(user: User, token: str):
