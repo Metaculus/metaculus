@@ -36,6 +36,8 @@ def social_providers_api_view(request):
 
 class SocialCodeAuth(SocialTokenOnlyAuthView):
     def post(self, request, provider: str, *args, **kwargs):
+        # TODO: migrate social relations
+
         request.data.setdefault(
             "redirect_uri", build_frontend_social_auth_redirect(provider)
         )
