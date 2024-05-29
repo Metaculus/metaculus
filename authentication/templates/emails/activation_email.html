@@ -1,0 +1,57 @@
+{% extends "emails/base.html" %}
+{% load urls %}
+
+
+{% block content %}
+    <div style="background:rgb(255, 255, 255);background-color:rgb(255, 255, 255);margin:0px auto;max-width:600px;">
+        <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
+               style="background:rgb(255, 255, 255);background-color:rgb(255, 255, 255);width:100%;">
+            <tbody>
+            <tr>
+                <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:10px;text-align:center;">
+                    <!--[if mso | IE]>
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td class="" style="vertical-align:top;width:600px;"><![endif]-->
+                    <div class="mj-column-per-100 mj-outlook-group-fix"
+                         style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                        <table border="0" cellpadding="0" cellspacing="0" role="presentation"
+                               style="vertical-align:top;" width="100%">
+                            <tbody>
+                            <tr>
+                                <td align="left" class="general-text"
+                                    style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                                    <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
+                                        Hello {{ username }},
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="left" class="general-text"
+                                    style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                                    <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
+                                        Thanks for signing up! <p> By completing your registration, you acknowledge and
+                                        agree to Metaculus's <a href="{{ "/terms-of-use/" | build_frontend_url }}"
+                                                                style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">terms
+                                            of use</a> and <a href="{{ "/privacy-policy/" | build_frontend_url }}"
+                                                              style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">privacy
+                                            policy</a>. </p>
+                                        <p> Please <a href="{{ activation_link }}"
+                                                      style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">click
+                                            here</a> to complete your registration and activate your account. </p>
+                                        <p style="font-size: 80%;"> Alternatively, you can copy and paste the following
+                                            link into a browser:<br> {{ activation_link }}
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!--[if mso | IE]></td></tr></table><![endif]-->
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
