@@ -1,3 +1,4 @@
+
 from migrator.utils import paginated_query, one2one_query
 from questions.models import Forecast, Question
 import json
@@ -6,11 +7,11 @@ from dateutil.parser import parse as date_parse
 from users.models import User
 
 
-def create_forecast(prediction: dict) -> Forecast:
-    question = Question.objects.filter(id=prediction["question_id"]).first()
+def create_forecast(prediction: dict, questions_dict: dict, users_dict: dict) -> Forecast:
+    question = questions_dict.get(prediction["question_id"], None)
     if question is None or prediction["user_id"] is None:
         return None
-
+    
     spv = prediction["stored_prediction_values"]
     continuous_prediction_values = None
     probability_yes = None
@@ -30,7 +31,7 @@ def create_forecast(prediction: dict) -> Forecast:
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category,
         distribution_components=prediction["distribution_components"],
-        author=User.objects.get(id=prediction["user_id"]),
+        author=users_dict[prediction["user_id"]],
         question=question,
     )
 
@@ -39,10 +40,19 @@ def create_forecast(prediction: dict) -> Forecast:
 
 def migrate_forecasts():
     forecasts = []
-    for old_prediction in paginated_query(
-        "SELECT p.*, ps.user_id, ps.question_id, ps.aggregation_method FROM metac_question_prediction p JOIN metac_question_predictionsequence ps ON p.prediction_sequence_id = ps.id AND aggregation_method = 'none' limit 150000"
-    ):
-        forecast = create_forecast(old_prediction)
+    questions = Question.objects.all()
+    questions_dict = {x.id: x for x in questions}
+    users = User.objects.all()
+    users_dict = {x.id: x for x in users}
+
+    # Add `limit 300000` to get a sizeable amount but have the migration be faster
+    for i, old_prediction in enumerate(paginated_query("SELECT p.*, ps.user_id, ps.question_id, ps.aggregation_method FROM metac_question_prediction p JOIN metac_question_predictionsequence ps ON p.prediction_sequence_id = ps.id AND aggregation_method = 'none' limit 300000")):
+        if i % 150000 == 0:
+            print(f"Went through {i} predictions and generate {len(forecasts)} forecasts!")
+        forecast = create_forecast(old_prediction, questions_dict, users_dict)
         if forecast is not None:
             forecasts.append(forecast)
-    Forecast.objects.bulk_create(forecasts)
+    print("Bulk inserting forecasts")
+    batches = [forecasts[i:i + 50000] for i in range(0, len(forecasts), 50000)]
+    for batch in batches:
+        Forecast.objects.bulk_create(batch)
