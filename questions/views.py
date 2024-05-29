@@ -1,4 +1,6 @@
-from django.db.models import Q
+from typing import Callable
+
+from django.db.models import Q, QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
@@ -7,12 +9,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from questions.models import Forecast, Question
+from questions.models import Forecast, Question, Vote
 from questions.serializers import (
     QuestionSerializer,
     QuestionWriteSerializer,
     QuestionFilterSerializer,
 )
+from users.models import User
 from utils.the_math.community_prediction import compute_binary_cp
 
 
@@ -65,6 +68,30 @@ def filter_questions(qs, request: Request):
     return qs
 
 
+def enrich_questions_with_votes(
+    qs: QuerySet, user: User = None
+) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
+    """
+    Enriches questions with the votes object.
+    """
+
+    qs = qs.annotate_vote_score()
+
+    # Annotate user's vote
+    if user and not user.is_anonymous:
+        qs = qs.annotate_user_vote(user)
+
+    def f(question: Question, serialized_question: dict):
+        serialized_question["vote"] = {
+            "score": question.vote_score,
+            "user_vote": question.user_vote,
+        }
+
+        return serialized_question
+
+    return qs, f
+
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def questions_list_api_view(request):
@@ -79,6 +106,9 @@ def questions_list_api_view(request):
     # Apply filtering
     qs = filter_questions(qs, request)
 
+    # Enrich with votes
+    qs, enrich_votes = enrich_questions_with_votes(qs, user=request.user)
+
     # Paginating queryset
     qs = paginator.paginate_queryset(qs, request)
 
@@ -88,6 +118,8 @@ def questions_list_api_view(request):
 
         if with_forecasts:
             serialized_question["forecasts"] = get_forecasts_for_question(question)
+
+        serialized_question = enrich_votes(question, serialized_question)
 
         data.append(serialized_question)
 
@@ -121,12 +153,18 @@ def get_forecasts_for_question(question: Question):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def question_detail(request: Request, pk):
-    print(request, pk)
-    question = get_object_or_404(Question, pk=pk)
+    qs = Question.objects.all()
+
+    # Enrich with votes
+    qs, enrich_votes = enrich_questions_with_votes(qs, user=request.user)
+
+    question = get_object_or_404(qs, pk=pk)
     forecasts_data = get_forecasts_for_question(question)
     serializer = QuestionSerializer(question)
     data = serializer.data
     data["forecasts"] = forecasts_data
+    data = enrich_votes(question, data)
+
     return Response(data)
 
 
@@ -158,4 +196,20 @@ def delete_question(request, pk):
     if request.user != question.author:
         return Response(status=status.HTTP_403_FORBIDDEN)
     question.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def question_vote_api_view(request: Request, pk: int):
+    question = get_object_or_404(Question, pk=pk)
+    direction = serializers.ChoiceField(
+        required=False, allow_null=True, choices=Vote.VoteDirection.choices
+    ).run_validation(request.data.get("direction"))
+
+    # Deleting existing vote
+    Vote.objects.filter(user=request.user, question=question).delete()
+
+    if direction:
+        Vote.objects.create(user=request.user, question=question, direction=direction)
+
     return Response(status=status.HTTP_204_NO_CONTENT)

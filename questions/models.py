@@ -1,6 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Sum, Case, When, IntegerField, Subquery, OuterRef
 
 from projects.models import Project
 from users.models import User
@@ -16,6 +16,30 @@ class QuestionQuerySet(models.QuerySet):
     def annotate_predictions_count__unique(self):
         return self.annotate(
             predictions_count_unique=Count("forecast__author", distinct=True)
+        )
+
+    def annotate_vote_score(self):
+        return self.annotate(
+            vote_score=Sum(
+                Case(
+                    When(votes__direction=Vote.VoteDirection.UP, then=1),
+                    When(votes__direction=Vote.VoteDirection.DOWN, then=-1),
+                    output_field=IntegerField(),
+                )
+            )
+        )
+
+    def annotate_user_vote(self, user: User):
+        """
+        Annotates queryset with the user's vote option
+        """
+
+        return self.annotate(
+            user_vote=Subquery(
+                Vote.objects.filter(user=user, question=OuterRef("pk")).values(
+                    "direction"
+                )[:1]
+            ),
         )
 
 
@@ -61,6 +85,8 @@ class Question(models.Model):
     # Annotated fields
     predictions_count: int = 0
     predictions_count_unique: int = 0
+    vote_score: int = 0
+    user_vote = None
 
 
 class Forecast(models.Model):
@@ -92,3 +118,20 @@ class Forecast(models.Model):
 
     author = models.ForeignKey(User, models.CASCADE)
     question = models.ForeignKey(Question, models.CASCADE)
+
+
+class Vote(models.Model):
+    class VoteDirection(models.TextChoices):
+        UP = "up"
+        DOWN = "down"
+
+    user = models.ForeignKey(User, models.CASCADE, related_name="votes")
+    question = models.ForeignKey(Question, models.CASCADE, related_name="votes")
+    direction = models.CharField(max_length=20, choices=VoteDirection.choices)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="votes_unique_user_question", fields=["user_id", "question_id"]
+            ),
+        ]
