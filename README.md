@@ -18,7 +18,6 @@ This is a very hectic work in progress, please do not expect things to make perf
 ## Setup Frontend
 
 ### Install
-Ensure to add `FONTAWESOME_PACKAGE_TOKEN=245F362C-B32D-4005-A655-4C47836E8068` to the environment variables.
 
 ```bash
 cd front_end && npm install

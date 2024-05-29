@@ -6,6 +6,7 @@ from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_questions import migrate_questions
 from migrator.services.migrate_projects import migrate_projects
 from migrator.services.migrate_forecasts import migrate_forecasts
+from migrator.services.migrate_votes import migrate_votes
 
 
 class Command(BaseCommand):
@@ -28,3 +29,5 @@ class Command(BaseCommand):
         print("Migrated forecasts")
         migrate_projects()
         print("Migrated projects")
+        migrate_votes()
+        print("Migrated votes")
