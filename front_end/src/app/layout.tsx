@@ -1,6 +1,5 @@
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
-config.autoAddCss = false;
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
@@ -8,6 +7,10 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
 import Header from "@/app/header";
+import UserProvider from "@/contexts/user_context";
+import ProfileApi from "@/services/profile";
+
+config.autoAddCss = false;
 
 const sourceSerifPro = localFont({
   src: [
@@ -92,6 +95,9 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const messages = await getMessages();
+  const user = await ProfileApi.getMyProfile();
+
+  // this state will be shared with all components
 
   return (
     <html
@@ -100,8 +106,10 @@ export default async function RootLayout({
     >
       <body className="min-h-screen w-full bg-metac-blue-200 dark:bg-metac-blue-50-dark">
         <NextIntlClientProvider messages={messages}>
-          <Header />
-          <div className="pt-12 ">{children}</div>
+          <UserProvider user={user}>
+            <Header />
+            <div className="pt-12 ">{children}</div>
+          </UserProvider>
         </NextIntlClientProvider>
       </body>
     </html>

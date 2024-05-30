@@ -1,6 +1,6 @@
 import AuthApi from "@/services/auth";
 import { SocialProviderType } from "@/types/auth";
-import setServerSession from "@/services/session";
+import { setServerSession } from "@/services/session";
 import { redirect } from "next/navigation";
 
 export async function GET(
@@ -22,7 +22,7 @@ export async function GET(
     console.log("response", response);
 
     if (response?.token) {
-      await setServerSession(response.token);
+      setServerSession(response.token);
     }
   }
 
