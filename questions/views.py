@@ -26,7 +26,6 @@ def filter_questions(qs, request: Request):
     """
     Applies filtering on the Questions QuerySet
     """
-
     user = request.user
     serializer = QuestionFilterSerializer(data=request.query_params)
     serializer.is_valid(raise_exception=True)
@@ -67,7 +66,6 @@ def filter_questions(qs, request: Request):
                 qs = qs.order_by("-resolved_at")
             case serializer.Order.CREATED_AT:
                 qs = qs.order_by("-created_at")
-
     return qs
 
 
@@ -129,20 +127,46 @@ def enrich_questions_with_forecasts(
                     (datetime.now().date() - question.published_at.date()).days + 1
                 )
             ]
-        forecasts_data = {
-            "timestamps": [],
-            "values_mean": [],
-            "values_max": [],
-            "values_min": [],
-            "nr_forecasters": [],
-        }
+
+        if question.type == "multiple_choice":
+            forecasts_data = {
+                "timestamps": [],
+                "nr_forecasters": [],
+            }
+            for option in question.options:
+                forecasts_data[f"value_{option}"] = []
+        else:
+            forecasts_data = {
+                "timestamps": [],
+                "values_mean": [],
+                "values_max": [],
+                "values_min": [],
+                "nr_forecasters": [],
+            }
+
+        # values_choice_1
         for forecast_time in forecast_times:
-            cp = compute_cp(question, forecasts, forecast_time)
-            forecasts_data["timestamps"].append(forecast_time.timestamp())
-            forecasts_data["values_mean"].append(cp["mean"])
-            forecasts_data["values_max"].append(cp["max"])
-            forecasts_data["values_min"].append(cp["min"])
-            forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
+            if question.type == "binary":
+                cp = compute_binary_cp(question, forecasts, forecast_time)
+                forecasts_data["timestamps"].append(forecast_time.timestamp())
+                forecasts_data["values_mean"].append(cp["mean"])
+                forecasts_data["values_max"].append(cp["max"])
+                forecasts_data["values_min"].append(cp["min"])
+                forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
+            if question.type in ["number", "date"]:
+                cp = compute_binary_cp(question, forecasts, forecast_time)
+                forecasts_data["timestamps"].append(forecast_time.timestamp())
+                forecasts_data["values_mean"].append(cp["mean"])
+                forecasts_data["values_max"].append(cp["max"])
+                forecasts_data["values_min"].append(cp["min"])
+                forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
+            if question.type == "multiple_choice":
+                cp = compute_binary_cp(question, forecasts, forecast_time)
+                forecasts_data["timestamps"].append(forecast_time.timestamp())
+                for k in cp:
+                    if k != "nr_forecasters":
+                        forecasts_data[f"value_{k}"].append(cp[k])
+                forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
 
         serialized_question["forecasts"] = forecasts_data
         return serialized_question
