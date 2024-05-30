@@ -37,6 +37,8 @@ def compute_binary_cp(
     forecasts: list[Forecast], at_datetime: Optional[datetime]
 ) -> int:
     forecasts = latest_forecasts_at(forecasts, at_datetime)
+    if len(forecasts) == 0:
+        return None
     probabilities = [x.probability_yes for x in forecasts]
     return {
         "mean": np.quantile(probabilities, 0.5),
@@ -45,10 +47,13 @@ def compute_binary_cp(
         "nr_forecasters": len(forecasts),
     }
 
+
 def compute_multiple_choice_cp(
     question: Question, forecasts: list[Forecast], at_datetime: Optional[datetime]
 ) -> int:
     forecasts = latest_forecasts_at(forecasts, at_datetime)
+    if len(forecasts) == 0:
+        return None
     data = {x: [] for x in question.options}
     for f in forecasts:
         for i, prob in enumerate(f.probability_yes_per_category):
@@ -65,11 +70,15 @@ def compute_multiple_choice_cp(
         del data[k]["nr_forecasters"]
     return data
 
+
 def compute_continuous_cp(
     question: Question, forecasts: list[Forecast], at_datetime: Optional[datetime]
 ) -> int:
-    forecasts_per_bin = [[]] * 202
     forecasts = latest_forecasts_at(forecasts, at_datetime)
+    if len(forecasts) == 0:
+        return None
+
+    forecasts_per_bin = [[]] * 202
     for f in forecasts:
         for i in range(len(f.continuous_prediction_values)):
             forecasts_per_bin[i].append(f.continuous_prediction_values[i])

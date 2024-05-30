@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Callable
 
-from django.db.models import Q, QuerySet
+from django.db.models import Q, QuerySet, Count
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
@@ -19,7 +19,11 @@ from questions.serializers import (
 )
 from users.models import User
 from utils.dtypes import flatten
-from utils.the_math.community_prediction import compute_binary_cp, compute_continuous_cp, compute_multiple_choice_cp
+from utils.the_math.community_prediction import (
+    compute_binary_cp,
+    compute_continuous_cp,
+    compute_multiple_choice_cp,
+)
 
 
 def filter_questions(qs, request: Request):
@@ -120,11 +124,14 @@ def enrich_questions_with_forecasts(
 
         forecasts = question.forecast_set.all()
         forecast_times = []
+        end_date = datetime.now().date()
+        if question.closed_at and question.closed_at.date() < end_date:
+            end_date = question.closed_at.date()
         if question.published_at:
             forecast_times = [
                 question.published_at + timedelta(days=x)
                 for x in range(
-                    (datetime.now().date() - question.published_at.date()).days + 1
+                    (end_date - question.published_at.date()).days + 1
                 )
             ]
 
@@ -146,26 +153,28 @@ def enrich_questions_with_forecasts(
 
         # values_choice_1
         for forecast_time in forecast_times:
-            if question.type == "binary":
-                cp = compute_binary_cp(question, forecasts, forecast_time)
-                forecasts_data["timestamps"].append(forecast_time.timestamp())
-                forecasts_data["values_mean"].append(cp["mean"])
-                forecasts_data["values_max"].append(cp["max"])
-                forecasts_data["values_min"].append(cp["min"])
-                forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
-            if question.type in ["number", "date"]:
-                cp = compute_binary_cp(question, forecasts, forecast_time)
-                forecasts_data["timestamps"].append(forecast_time.timestamp())
-                forecasts_data["values_mean"].append(cp["mean"])
-                forecasts_data["values_max"].append(cp["max"])
-                forecasts_data["values_min"].append(cp["min"])
-                forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
             if question.type == "multiple_choice":
-                cp = compute_binary_cp(question, forecasts, forecast_time)
+                cp = compute_multiple_choice_cp(question, forecasts, forecast_time)
+                if cp is None:
+                    continue
                 forecasts_data["timestamps"].append(forecast_time.timestamp())
                 for k in cp:
                     if k != "nr_forecasters":
                         forecasts_data[f"value_{k}"].append(cp[k])
+                forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
+            else:
+                if question.type == "binary":
+                    cp = compute_binary_cp(forecasts, forecast_time)
+                elif question.type in ["number", "date"]:
+                    cp = compute_continuous_cp(question, forecasts, forecast_time)
+                else:
+                    raise Exception(f"Unknown question type: {question.type}")
+                if cp is None:
+                    continue
+                forecasts_data["timestamps"].append(forecast_time.timestamp())
+                forecasts_data["values_mean"].append(cp["mean"])
+                forecasts_data["values_max"].append(cp["max"])
+                forecasts_data["values_min"].append(cp["min"])
                 forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
 
         serialized_question["forecasts"] = forecasts_data
@@ -178,7 +187,10 @@ def enrich_questions_with_forecasts(
 @permission_classes([AllowAny])
 def questions_list_api_view(request):
     paginator = LimitOffsetPagination()
-    qs = Question.objects.all().prefetch_projects()
+    qs = Question.objects.all().prefetch_projects().prefetch_forecasts()
+    qs = Question.objects.annotate(num_forecasts=Count("forecast")).filter(
+        num_forecasts__gte=10
+    )
 
     # Extra enrich params
     with_forecasts = serializers.BooleanField(allow_null=True).run_validation(
@@ -206,7 +218,6 @@ def questions_list_api_view(request):
         serialized_question = enrich_votes(question, serialized_question)
 
         data.append(serialized_question)
-
     return paginator.get_paginated_response(data)
 
 
