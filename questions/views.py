@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import Callable
 
 from django.db.models import Q, QuerySet
@@ -18,7 +19,7 @@ from questions.serializers import (
 )
 from users.models import User
 from utils.dtypes import flatten
-from utils.the_math.community_prediction import compute_binary_cp
+from utils.the_math.community_prediction import compute_binary_cp, compute_continuous_cp, compute_multiple_choice_cp
 
 
 def filter_questions(qs, request: Request):
@@ -119,25 +120,29 @@ def enrich_questions_with_forecasts(
     def enrich(question: Question, serialized_question: dict):
         forecasts_data = {}
 
-        try:
-            forecasts = question.forecast_set.all()
-            forecast_times = [x.start_time for x in forecasts]
-            forecasts_data = {
-                "timestamps": [],
-                "values_mean": [],
-                "values_max": [],
-                "values_min": [],
-                "nr_forecasters": [],
-            }
-            for forecast_time in forecast_times:
-                cp = compute_binary_cp(forecasts, forecast_time)
-                forecasts_data["timestamps"].append(forecast_time.timestamp())
-                forecasts_data["values_mean"].append(cp["mean"])
-                forecasts_data["values_max"].append(cp["max"])
-                forecasts_data["values_min"].append(cp["min"])
-                forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
-        except:
-            pass
+        forecasts = question.forecast_set.all()
+        forecast_times = []
+        if question.published_at:
+            forecast_times = [
+                question.published_at + timedelta(days=x)
+                for x in range(
+                    (datetime.now().date() - question.published_at.date()).days + 1
+                )
+            ]
+        forecasts_data = {
+            "timestamps": [],
+            "values_mean": [],
+            "values_max": [],
+            "values_min": [],
+            "nr_forecasters": [],
+        }
+        for forecast_time in forecast_times:
+            cp = compute_cp(question, forecasts, forecast_time)
+            forecasts_data["timestamps"].append(forecast_time.timestamp())
+            forecasts_data["values_mean"].append(cp["mean"])
+            forecasts_data["values_max"].append(cp["max"])
+            forecasts_data["values_min"].append(cp["min"])
+            forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
 
         serialized_question["forecasts"] = forecasts_data
         return serialized_question
