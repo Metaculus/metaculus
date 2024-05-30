@@ -12,5 +12,9 @@ export function setServerSession(auth_token: string) {
 export function getServerSession() {
   let cookie = cookies().get("auth_token");
 
-  return cookie?.value || null
+  return cookie?.value || null;
+}
+
+export function deleteServerSession() {
+  cookies().delete("auth_token");
 }

@@ -9,17 +9,15 @@ export type UserContextType = {
 };
 
 //create a context, with createContext api
-export const userContext = createContext<CurrentUser | null>(null);
+export const UserContext = createContext<CurrentUser | null>(null);
 
 const UserProvider: FC<PropsWithChildren<{ user: CurrentUser | null }>> = ({
   user,
   children,
 }) => {
-  return <userContext.Provider value={user}>{children}</userContext.Provider>;
+  return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
 };
 
 export default UserProvider;
 
-export const useUser = () => {
-  return useContext(userContext);
-};
+export const useUser = () => useContext(UserContext);

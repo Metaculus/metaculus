@@ -96,7 +96,6 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   const user = await ProfileApi.getMyProfile();
-
   // this state will be shared with all components
 
   return (
