@@ -1,0 +1,30 @@
+import AuthApi from "@/services/auth";
+import { SocialProviderType } from "@/types/auth";
+import setServerSession from "@/services/session";
+import { redirect } from "next/navigation";
+
+export async function GET(
+  request: Request,
+  { params }: { params: { provider: SocialProviderType } }
+) {
+  const url = new URL(request.url);
+  const search_params = Object.fromEntries(url.searchParams.entries());
+
+  if (search_params.code) {
+    console.log("YEAH", search_params.code);
+
+    const response = await AuthApi.exchangeSocialOauthCode(
+      params.provider,
+      search_params.code,
+      `${url.origin}${url.pathname}`
+    );
+
+    console.log("response", response);
+
+    if (response?.token) {
+      await setServerSession(response.token);
+    }
+  }
+
+  return redirect("/");
+}
