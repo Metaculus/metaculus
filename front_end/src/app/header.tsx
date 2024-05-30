@@ -7,7 +7,6 @@ import AuthButton from "@/components/auth";
 import NavLink from "@/components/nav_link";
 import { UserContext } from "@/contexts/user_context";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { setServerSession } from "@/services/session";
 
 const LINKS = [
   {
@@ -50,10 +49,12 @@ const Header: FC = () => {
           <li className="z-10 lg:flex lg:items-center">
             {user ? (
               <Menu>
-                <MenuButton className="flex h-full items-center p-3 no-underline hover:bg-metac-blue-200-dark">{user.username}</MenuButton>
+                <MenuButton className="flex h-full items-center p-3 no-underline hover:bg-metac-blue-200-dark">
+                  {user.username}
+                </MenuButton>
                 <MenuItems
                   anchor="bottom"
-                  className="z-50 lg:border lg:border-metac-blue-200-dark lg:bg-metac-blue-900 text-white lg:text-sm"
+                  className="z-50 text-white lg:border lg:border-metac-blue-200-dark lg:bg-metac-blue-900 lg:text-sm"
                 >
                   <MenuItem>
                     <a
@@ -72,12 +73,12 @@ const Header: FC = () => {
                     </a>
                   </MenuItem>
                   <MenuItem>
-                    <Link
+                    <a
                       className="flex items-center justify-center whitespace-nowrap px-4 py-1.5 no-underline hover:bg-metac-blue-400-dark lg:items-end lg:justify-end lg:px-6 lg:text-right lg:hover:bg-metac-blue-200-dark"
                       href="/auth/signout"
                     >
                       Log Out
-                    </Link>
+                    </a>
                   </MenuItem>
                 </MenuItems>
               </Menu>
