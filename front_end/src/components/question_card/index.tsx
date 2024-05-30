@@ -1,7 +1,7 @@
 import { FC } from "react";
 
 import BasicQuestionCard from "@/components/question_card/basic_card";
-import QuestionCardChart from "@/components/question_card/card_chart";
+import QuestionChartTile from "@/components/question_card/chart_tile";
 import QuestionCardErrorBoundary from "@/components/question_card/error_boundary";
 import { QuestionWithForecasts } from "@/types/question";
 
@@ -14,7 +14,7 @@ const QuestionCard: FC<Props> = ({ question }) => {
     <QuestionCardErrorBoundary>
       <BasicQuestionCard question={question}>
         <div className="mb-0.5 pt-1.5">
-          <QuestionCardChart question={question} />
+          <QuestionChartTile question={question} />
         </div>
       </BasicQuestionCard>
     </QuestionCardErrorBoundary>
