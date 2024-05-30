@@ -5,6 +5,12 @@ export enum QuestionType {
   MultipleChoice = "multiple_choice",
 }
 
+export enum QuestionStatus {
+  Opens = "opens",
+  Closes = "closes",
+  Resolves = "resolves",
+}
+
 export type Category = {
   id: number;
   name: string;
