@@ -59,6 +59,42 @@ const NumericChart: FC<Props> = ({
     }
   }, [onChartReady, prevWidth, chartWidth]);
 
+  const CursorContainer = (
+    <VictoryCursorContainer
+      cursorDimension={"x"}
+      defaultCursorValue={defaultCursor}
+      cursorLabelOffset={{
+        x: 0,
+        y: 0,
+      }}
+      cursorLabel={({ datum }: VictoryLabelProps) => {
+        if (datum) {
+          return datum.x === defaultCursor
+            ? "now"
+            : `${xScale.tickFormat(datum.x)}`;
+        }
+      }}
+      cursorComponent={
+        <LineSegment
+          style={{
+            stroke: METAC_COLORS.gray["600"].DEFAULT,
+            strokeDasharray: "2,1",
+          }}
+        />
+      }
+      cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
+      onCursorChange={(value: CursorCoordinatesPropType) => {
+        if (typeof value === "number" && onCursorChange) {
+          const closestTimestamp = dataset.timestamps.reduce((prev, curr) =>
+            Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
+          );
+
+          onCursorChange(closestTimestamp);
+        }
+      }}
+    />
+  );
+
   return (
     <div ref={chartContainerRef} className="h-full w-full">
       {!!chartWidth && (
@@ -72,54 +108,17 @@ const NumericChart: FC<Props> = ({
               target: "parent",
               eventHandlers: {
                 onMouseOverCapture: () => {
+                  if (!onCursorChange) return;
                   setIsCursorActive(true);
                 },
                 onMouseOutCapture: () => {
+                  if (!onCursorChange) return;
                   setIsCursorActive(false);
                 },
               },
             },
           ]}
-          containerComponent={
-            <VictoryCursorContainer
-              cursorDimension={"x"}
-              defaultCursorValue={defaultCursor}
-              cursorLabelOffset={{
-                x: 0,
-                y: 0,
-              }}
-              cursorLabel={({ datum }: VictoryLabelProps) => {
-                if (datum) {
-                  return datum.x === defaultCursor
-                    ? "now"
-                    : `${xScale.tickFormat(datum.x)}`;
-                }
-              }}
-              cursorComponent={
-                <LineSegment
-                  style={{
-                    stroke: METAC_COLORS.gray["600"].DEFAULT,
-                    strokeDasharray: "2,1",
-                  }}
-                />
-              }
-              cursorLabelComponent={
-                <ChartCursorLabel positionY={height - 10} />
-              }
-              onCursorChange={(value: CursorCoordinatesPropType) => {
-                if (typeof value === "number" && onCursorChange) {
-                  const closestTimestamp = dataset.timestamps.reduce(
-                    (prev, curr) =>
-                      Math.abs(curr - value) < Math.abs(prev - value)
-                        ? curr
-                        : prev
-                  );
-
-                  onCursorChange(closestTimestamp);
-                }
-              }}
-            />
-          }
+          containerComponent={onCursorChange ? CursorContainer : undefined}
         >
           <VictoryArea
             data={area}
