@@ -56,7 +56,7 @@ export type Question = {
   resolved_at: string;
   type: QuestionType;
   possibilities: string; // TODO: update type
-  resolution: string;
+  resolution: string | null;
   author: number;
   approved_by: number | null;
   tags: string[];

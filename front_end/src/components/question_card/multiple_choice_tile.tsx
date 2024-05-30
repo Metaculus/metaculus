@@ -18,7 +18,7 @@ type Props = {
   forecast: MultipleChoiceForecast;
 };
 
-const MultipleChoiceCardChart: FC<Props> = ({ forecast }) => {
+const MultipleChoiceTile: FC<Props> = ({ forecast }) => {
   const t = useTranslations();
   const { choices, visibleChoices } = useMemo(() => {
     const choices = generateChartChoices(forecast);
@@ -72,4 +72,4 @@ const MultipleChoiceCardChart: FC<Props> = ({ forecast }) => {
   );
 };
 
-export default MultipleChoiceCardChart;
+export default MultipleChoiceTile;
