@@ -27,3 +27,9 @@ cd front_end && npm install
 ```bash
 cd front_end && npm run dev
 ```
+
+## Frontend pre-commit hooks
+
+We use husky to run linter and typescript checks before commiting (see `front_end/.husky`).
+
+If you want to skip this, you can use the `--no-verify` flag when commiting.
