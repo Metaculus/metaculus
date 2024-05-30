@@ -5,6 +5,7 @@ import { encodeQueryParams, get } from "@/utils/fetch";
 type QuestionsParams = {
   topic?: string;
   answered_by_me?: boolean;
+  limit?: number;
   // TODO: properly handle array params
   tags?: string;
   categories?: string;
@@ -25,7 +26,6 @@ class QuestionsApi {
 
   static async getQuestions(params?: QuestionsParams): Promise<Question[]> {
     const queryParams = encodeQueryParams(params ?? {});
-
     try {
       const data = await get<PaginatedPayload<Question>>(
         `/questions${queryParams}`

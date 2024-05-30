@@ -37,6 +37,8 @@ def compute_binary_cp(
     forecasts: list[Forecast], at_datetime: Optional[datetime]
 ) -> int:
     forecasts = latest_forecasts_at(forecasts, at_datetime)
+    if len(forecasts) == 0:
+        return None
     probabilities = [x.probability_yes for x in forecasts]
     return {
         "mean": np.quantile(probabilities, 0.5),
@@ -45,10 +47,13 @@ def compute_binary_cp(
         "nr_forecasters": len(forecasts),
     }
 
+
 def compute_multiple_choice_cp(
     question: Question, forecasts: list[Forecast], at_datetime: Optional[datetime]
 ) -> int:
     forecasts = latest_forecasts_at(forecasts, at_datetime)
+    if len(forecasts) == 0:
+        return None
     data = {x: [] for x in question.options}
     for f in forecasts:
         for i, prob in enumerate(f.probability_yes_per_category):
@@ -59,25 +64,46 @@ def compute_multiple_choice_cp(
             "nr_forecasters": len(data[k]),
         }
     sum_medians = np.sum([x["mean"] for x in data.values()])
-    for k in data:
+    for k in list(data.keys()):
         data[k]["mean"] = data[k]["mean"] / sum_medians
-
+        data["nr_forecasters"] = data[k]["nr_forecasters"]
+        del data[k]["nr_forecasters"]
     return data
+
 
 def compute_continuous_cp(
     question: Question, forecasts: list[Forecast], at_datetime: Optional[datetime]
 ) -> int:
     forecasts = latest_forecasts_at(forecasts, at_datetime)
+    if len(forecasts) == 0:
+        return None
 
-    if question.type == "binary":
-        
-    if question.type == "numeric" or question.type == "date":
-        deriv_ratios = [x.get_deriv_ratio() for x in forecasts]
-        return {
-            "mean": np,
-            "max": np.percentile(deriv_ratios, 75),
-            "min": np.percentile(deriv_ratios, 25),
-            "nr_forecasters": len(forecasts),
-        }
-    if question.type == "multiple_choice":
-        raise NotImplementedError("Multiple choice questions are not supported yet.")
+    forecasts_per_bin = [[]] * 202
+    for f in forecasts:
+        for i in range(len(f.continuous_prediction_values)):
+            forecasts_per_bin[i].append(f.continuous_prediction_values[i])
+    # TODO: Normalize probabilites
+    for i in range(forecasts_per_bin):
+        forecasts_per_bin[i] = np.mean(forecasts_per_bin)
+
+    # TODO: Associate bins with numbers
+    step = (question.max_value - question.min_value) / 200
+    bin_vals = [question.min_value + step * i for i in range(200)]
+
+    cumulative_probability = 0
+    for i in range(200):
+        cumulative_probability += np.mean(forecasts_per_bin[i])
+        if cumulative_probability >= 0.25:
+            min = bin_vals[i]
+        if cumulative_probability >= 0.5:
+            mean = bin_vals[i]
+        if cumulative_probability >= 0.75:
+            max = bin_vals[i]
+            break
+
+    return {
+        "mean": mean,
+        "max": max,
+        "min": min,
+        "nr_forecasters": len(forecasts),
+    }
