@@ -7,7 +7,7 @@ import {
   QuestionStatus as QuestionStatusEnum,
 } from "@/types/question";
 import { formatRelativeDate } from "@/utils/date_formatters";
-import { getQuestionStatus } from "@/utils/questions";
+import { getQuestionStatus } from "@/utils/forecasts";
 
 type Props = {
   question: Question;

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import DetailedQuestionCard from "@/components/detailed_question_card/question_forecasts_card";
+import DetailedQuestionCard from "@/components/detailed_question_card";
 import QuestionsApi from "@/services/questions";
 
 export default async function IndividualQuestion({

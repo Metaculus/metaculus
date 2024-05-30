@@ -1,6 +1,11 @@
 import { isBefore, isWithinInterval } from "date-fns";
 
-import { Question, QuestionStatus } from "@/types/question";
+import {
+  MultipleChoiceForecast,
+  NumericForecast,
+  Question,
+  QuestionStatus,
+} from "@/types/question";
 
 export function getQuestionStatus(question: Question): QuestionStatus | null {
   const publishDate = new Date(question.published_at);
@@ -21,4 +26,17 @@ export function getQuestionStatus(question: Question): QuestionStatus | null {
   }
 
   return null;
+}
+
+export function getForecastChoiceDisplayValue(value: number) {
+  return `${Math.round(value * 100)}%`;
+}
+
+export function getIsForecastEmpty(
+  forecast: MultipleChoiceForecast | NumericForecast | null | undefined
+): forecast is null {
+  return (
+    !forecast ||
+    Object.values(forecast).some((value) => !value || !value.length)
+  );
 }
