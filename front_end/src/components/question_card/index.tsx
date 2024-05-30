@@ -1,6 +1,8 @@
 import { FC } from "react";
 
 import BasicQuestionCard from "@/components/question_card/basic_card";
+import QuestionCardChart from "@/components/question_card/card_chart";
+import QuestionCardErrorBoundary from "@/components/question_card/error_boundary";
 import { QuestionWithForecasts } from "@/types/question";
 
 type Props = {
@@ -9,9 +11,13 @@ type Props = {
 
 const QuestionCard: FC<Props> = ({ question }) => {
   return (
-    <BasicQuestionCard question={question}>
-      TODO: render type-related data
-    </BasicQuestionCard>
+    <QuestionCardErrorBoundary>
+      <BasicQuestionCard question={question}>
+        <div className="mb-0.5 pt-1.5">
+          <QuestionCardChart question={question} />
+        </div>
+      </BasicQuestionCard>
+    </QuestionCardErrorBoundary>
   );
 };
 
