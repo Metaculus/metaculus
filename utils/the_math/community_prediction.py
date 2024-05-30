@@ -10,7 +10,7 @@ Normalise to 1 over all outcomes.
 
 from datetime import datetime
 from typing import Optional
-from questions.models import Forecast
+from questions.models import Forecast, Question
 from collections import defaultdict
 import numpy as np
 
@@ -39,8 +39,45 @@ def compute_binary_cp(
     forecasts = latest_forecasts_at(forecasts, at_datetime)
     probabilities = [x.probability_yes for x in forecasts]
     return {
-        "mean": np.mean(probabilities),
-        "max": np.percentile(probabilities, 80),
-        "min": np.percentile(probabilities, 20),
+        "mean": np.quantile(probabilities, 0.5),
+        "max": np.quantile(probabilities, 0.75),
+        "min": np.quantile(probabilities, 0.25),
         "nr_forecasters": len(forecasts),
     }
+
+def compute_multiple_choice_cp(
+    question: Question, forecasts: list[Forecast], at_datetime: Optional[datetime]
+) -> int:
+    forecasts = latest_forecasts_at(forecasts, at_datetime)
+    data = {x: [] for x in question.options}
+    for f in forecasts:
+        for i, prob in enumerate(f.probability_yes_per_category):
+            data[question.options[i]].append(prob["probability"])
+    for k in data:
+        data[k] = {
+            "mean": np.quantile(data[k], 0.5),
+            "nr_forecasters": len(data[k]),
+        }
+    sum_medians = np.sum([x["mean"] for x in data.values()])
+    for k in data:
+        data[k]["mean"] = data[k]["mean"] / sum_medians
+
+    return data
+
+def compute_continuous_cp(
+    question: Question, forecasts: list[Forecast], at_datetime: Optional[datetime]
+) -> int:
+    forecasts = latest_forecasts_at(forecasts, at_datetime)
+
+    if question.type == "binary":
+        
+    if question.type == "numeric" or question.type == "date":
+        deriv_ratios = [x.get_deriv_ratio() for x in forecasts]
+        return {
+            "mean": np,
+            "max": np.percentile(deriv_ratios, 75),
+            "min": np.percentile(deriv_ratios, 25),
+            "nr_forecasters": len(forecasts),
+        }
+    if question.type == "multiple_choice":
+        raise NotImplementedError("Multiple choice questions are not supported yet.")
