@@ -66,7 +66,8 @@ def create_question(question: dict) -> Question:
 
 def migrate_questions():
     questions = []
-    for old_question in paginated_query("""SELECT
+    for old_question in paginated_query(
+        """SELECT
             q.*,
             ARRAY_AGG(o.label) AS option_labels
         FROM
@@ -74,7 +75,8 @@ def migrate_questions():
         LEFT JOIN
             metac_question_option o ON q.id = o.question_id
         GROUP BY
-    q.id;"""):
+    q.id;"""
+    ):
         question = create_question(old_question)
         if question is not None:
             questions.append(question)
