@@ -2,7 +2,7 @@ import QuestionCard from "@/components/question_card";
 import QuestionsApi from "@/services/questions";
 
 export default async function Questions() {
-  const questions = await QuestionsApi.getQuestionsWithoutForecasts();
+  const questions = await QuestionsApi.getQuestions();
 
   return (
     <main className="mx-auto min-h-min w-full max-w-5xl flex-auto bg-metac-blue-200 p-0 sm:p-2 sm:pt-0 md:p-3 md:pt-0 lg:mt-16 dark:bg-metac-blue-50-dark">

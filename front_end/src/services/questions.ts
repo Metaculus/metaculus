@@ -23,9 +23,9 @@ class QuestionsApi {
     }
   }
 
-  static async getQuestions(params?: QuestionsParams): Promise<Question[]> {
-    const queryParams = encodeQueryParams(params ?? {});
 
+  static async getQuestions(params?: QuestionsParams): Promise<Question[]> {
+    const queryParams = encodeQueryParams({ ...params, limit: 10, with_forecasts: true });
     try {
       const data = await get<PaginatedPayload<Question>>(
         `/questions${queryParams}`
@@ -42,7 +42,7 @@ class QuestionsApi {
   ): Promise<QuestionWithForecasts[]> {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
-      with_forecasts: true,
+      with_forecasts: false,
     });
 
     try {
