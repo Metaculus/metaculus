@@ -2,6 +2,7 @@ import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 
+import ChoiceIcon from "@/components/choice_icon";
 import { ChoiceTooltipItem } from "@/types/choices";
 
 type Props = {
@@ -28,10 +29,7 @@ const ChoicesTooltip: FC<Props> = ({ date, choices }) => {
         {choices.map(({ color, choiceLabel, valueLabel }) => (
           <tr key={`choice-tooltip-row-${choiceLabel}`}>
             <td className="px-1.5 py-1">
-              <div
-                className="size-4 rounded-sm"
-                style={{ background: color }}
-              />
+              <ChoiceIcon color={color} />
             </td>
             <th className="px-1.5 py-1 text-left text-sm font-bold">
               {choiceLabel}

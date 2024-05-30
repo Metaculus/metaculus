@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
-import { abbreviatedNumber } from "@/utils/formatters";
+import { abbreviatedNumber } from "@/utils/number_formatters";
 
 type Props = {
   url: string;

@@ -1,7 +1,10 @@
 import * as d3 from "d3";
 import { Tuple } from "victory";
 
+import { METAC_COLORS } from "@/contants/colors";
 import { Scale } from "@/types/charts";
+import { ChoiceItem } from "@/types/choices";
+import { MultipleChoiceForecast } from "@/types/question";
 
 export function generateNumericDomain(values: number[]): Tuple<number> {
   const min = Math.min(...values);
@@ -107,4 +110,20 @@ export function generatePercentageYScale(containerHeight: number): Scale {
     tickFormat: (y: number) =>
       majorTicks.includes(y) ? `${Math.round(y * 100)}%` : "",
   };
+}
+
+const COLOR_SCALE = Object.values(METAC_COLORS["mc-option"]).map(
+  (value) => value
+);
+export function generateChartChoices(
+  dataset: MultipleChoiceForecast
+): ChoiceItem[] {
+  const { timestamps, nr_forecasters, ...choices } = dataset;
+  return Object.entries(choices).map(([choice, values], index) => ({
+    choice,
+    values,
+    color: COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+    active: true,
+    highlighted: false,
+  }));
 }

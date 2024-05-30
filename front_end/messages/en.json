@@ -405,5 +405,6 @@
   "questions": "Questions",
   "viewMore": "View more...",
   "randomQuestion": "Random Question",
-  "notebooks": "Notebooks"
+  "notebooks": "Notebooks",
+  "otherWithCount": "{count, plural, =1 {# other} other {# others} }"
 }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import CommentStatus from "@/components/question_card/comment_status";
+import QuestionStatus from "@/components/question_status";
 import Voter from "@/components/voter";
 import { Question } from "@/types/question";
 
@@ -36,6 +37,8 @@ const BasicQuestionCard: FC<PropsWithChildren<Props>> = ({
             />
             <CommentStatus newCommentsCount={123000} url={`/questions/${id}`} />
           </div>
+
+          <QuestionStatus question={question} />
         </div>
       </div>
     </div>
