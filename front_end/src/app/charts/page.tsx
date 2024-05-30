@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import MultipleChoiceChartCard from "@/components/detailed_question_card/multiple_choice_chart_card";
-import NumericChartCard from "@/components/detailed_question_card/numeric_chard_card";
+import NumericChartCard from "@/components/detailed_question_card/numeric_chart_card";
 import {
   generateMockMultipleChoiceChart,
   generateMockNumericChart,
@@ -20,9 +20,9 @@ export default function Questions() {
         Home
       </Link>
       Numeric Chart:
-      <NumericChartCard dataset={numericDataset} />
+      <NumericChartCard forecast={numericDataset} />
       Multiple Choice Chart:
-      <MultipleChoiceChartCard dataset={multipleChoiceDataset} />
+      <MultipleChoiceChartCard forecast={multipleChoiceDataset} />
     </main>
   );
 }

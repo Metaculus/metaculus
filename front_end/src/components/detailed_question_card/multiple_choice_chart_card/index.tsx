@@ -4,56 +4,40 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
-import DetailsQuestionCardEmptyState from "@/components/detailed_question_card/empty_state";
 import ChoiceCheckbox from "@/components/detailed_question_card/multiple_choice_chart_card/choice_checkbox";
 import ChoicesTooltip from "@/components/detailed_question_card/multiple_choice_chart_card/choices_tooltip";
-import { METAC_COLORS } from "@/contants/colors";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { MultipleChoiceForecast } from "@/types/question";
-
-const COLOR_SCALE = Object.values(METAC_COLORS["mc-option"]).map(
-  (value) => value.DEFAULT
-);
+import { generateChartChoices } from "@/utils/charts";
+import { getForecastChoiceDisplayValue } from "@/utils/forecasts";
 
 type Props = {
-  dataset: MultipleChoiceForecast;
+  forecast: MultipleChoiceForecast;
 };
 
-const MultipleChoiceChartCard: FC<Props> = ({ dataset }) => {
+const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
   const t = useTranslations();
-
-  const isChartEmpty = useMemo(
-    () => Object.values(dataset).some((value) => !value || !value.length),
-    [dataset]
-  );
 
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => {
     setIsChartReady(true);
   }, []);
 
-  const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(() => {
-    const { timestamps, nr_forecasters, ...choices } = dataset;
-    return Object.entries(choices).map(([choice, values], index) => ({
-      choice,
-      values,
-      color: COLOR_SCALE[index],
-      active: true,
-      highlighted: false,
-    }));
-  });
+  const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
+    generateChartChoices(forecast)
+  );
 
   const [cursorTimestamp, setCursorTimestamp] = useState(
-    dataset.timestamps[dataset.timestamps.length - 1]
+    forecast.timestamps[forecast.timestamps.length - 1]
   );
   const cursorIndex = useMemo(
     () =>
-      dataset.timestamps.findIndex(
+      forecast.timestamps.findIndex(
         (timestamp) => timestamp === cursorTimestamp
       ),
-    [cursorTimestamp, dataset.timestamps]
+    [cursorTimestamp, forecast.timestamps]
   );
 
   const [tooltipDate, setTooltipDate] = useState("");
@@ -64,7 +48,7 @@ const MultipleChoiceChartCard: FC<Props> = ({ dataset }) => {
         .map(({ choice, values, color }) => ({
           choiceLabel: choice,
           color,
-          valueLabel: `${Math.round(values[cursorIndex] * 100)}%`,
+          valueLabel: getForecastChoiceDisplayValue(values[cursorIndex]),
         })),
     [choiceItems, cursorIndex]
   );
@@ -105,10 +89,6 @@ const MultipleChoiceChartCard: FC<Props> = ({ dataset }) => {
     []
   );
 
-  if (isChartEmpty) {
-    return <DetailsQuestionCardEmptyState />;
-  }
-
   return (
     <div
       className={classNames(
@@ -122,12 +102,12 @@ const MultipleChoiceChartCard: FC<Props> = ({ dataset }) => {
         </h3>
         <div className="ml-auto">
           {t("totalForecastersLabel")}{" "}
-          <strong>{dataset.nr_forecasters[cursorIndex]}</strong>
+          <strong>{forecast.nr_forecasters[cursorIndex]}</strong>
         </div>
       </div>
       <div ref={refs.setReference} {...getReferenceProps()}>
         <MultipleChoiceChart
-          timestamps={dataset.timestamps}
+          timestamps={forecast.timestamps}
           choiceItems={choiceItems}
           yLabel={t("communityPredictionLabel")}
           onChartReady={handleChartReady}
@@ -140,7 +120,7 @@ const MultipleChoiceChartCard: FC<Props> = ({ dataset }) => {
           <ChoiceCheckbox
             key={`multiple-choice-legend-${choice}`}
             choice={choice}
-            color={color}
+            color={color.DEFAULT}
             checked={active}
             onChange={(checked) => handleChoiceChange(choice, checked)}
             onHighlight={(highlighted) =>
