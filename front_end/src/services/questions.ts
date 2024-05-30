@@ -14,7 +14,9 @@ type QuestionsParams = {
 class QuestionsApi {
   static async getQuestion(id: number): Promise<QuestionWithForecasts | null> {
     try {
-      return await get<QuestionWithForecasts>(`/questions/${id}`);
+      return await get<QuestionWithForecasts>(
+        `/questions/${id}${encodeQueryParams({ with_forecasts: true })}`
+      );
     } catch (err) {
       console.error("Error getting question:", err);
       return null;
