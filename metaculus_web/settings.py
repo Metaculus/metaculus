@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "social_django",
     "rest_social_auth",
     "corsheaders",
+    "anymail",
     # first-party:
     "migrator",
     "utils",
@@ -173,6 +174,14 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {"fields": "id, name, email"}
 # Google
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET")
+
+# Email configuration
+# https://anymail.dev/
+ANYMAIL = {
+    "MAILGUN_API_KEY": os.environ.get("MAILGUN_API_KEY"),
+}
+EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "accounts@metaculus.com")
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/

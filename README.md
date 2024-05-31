@@ -33,3 +33,12 @@ cd front_end && npm run dev
 We use husky to run linter and typescript checks before commiting (see `front_end/.husky`).
 
 If you want to skip this, you can use the `--no-verify` flag when commiting.
+
+
+## Email
+We use Django Anymail to integrate various email providers through a single library, simplifying our email management
+By default, we use the Mailgun provider.
+
+Env Configuration:
+- `MAILGUN_API_KEY`
+- `EMAIL_HOST_USER`
