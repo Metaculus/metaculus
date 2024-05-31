@@ -8,24 +8,28 @@ import {
   useState,
 } from "react";
 
-export type ModalType = "signin" | "signup";
+export type ModalType = "signin" | "signup" | "signupSuccess";
 
-export type ModalContextType = {
-  modalType: ModalType | null;
-  setModalType: (type: ModalType | null) => void;
+export type CurrentModal = {
+  type: ModalType;
+  data?: any;
 };
 
-//create a context, with createContext api
-export const ModalContext = createContext<ModalContextType>({
-  modalType: null,
-  setModalType: () => {},
+export type CurrentModalContextType = {
+  currentModal: CurrentModal | null;
+  setCurrentModal: (type: CurrentModal | null) => void;
+};
+
+export const ModalContext = createContext<CurrentModalContextType>({
+  currentModal: null,
+  setCurrentModal: () => {},
 });
 
 const ModalProvider: FC<PropsWithChildren> = ({ children }) => {
-  const [modalType, setModalType] = useState<ModalType | null>(null);
+  const [currentModal, setCurrentModal] = useState<CurrentModal | null>(null);
 
   return (
-    <ModalContext.Provider value={{ modalType, setModalType }}>
+    <ModalContext.Provider value={{ currentModal, setCurrentModal }}>
       {children}
     </ModalContext.Provider>
   );

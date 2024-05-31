@@ -7,7 +7,7 @@ import { useModal } from "@/contexts/modal_context";
 import { useUser } from "@/contexts/user_context";
 
 const NavUserButton: FC = () => {
-  const { setModalType } = useModal();
+  const { setCurrentModal } = useModal();
   const { user, setUser } = useUser();
 
   return (
@@ -50,7 +50,7 @@ const NavUserButton: FC = () => {
       ) : (
         <button
           className="w-full px-4 py-1.5 text-center hover:bg-metac-blue-400-dark lg:mx-2 lg:rounded-full lg:bg-metac-blue-200 lg:px-2 lg:py-0 lg:text-metac-blue-900 lg:hover:bg-metac-blue-100"
-          onClick={() => setModalType("signin")}
+          onClick={() => setCurrentModal({ type: "signin" })}
         >
           Log In
         </button>

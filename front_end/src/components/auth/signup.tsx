@@ -7,13 +7,12 @@ import { FC, useEffect } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
-import { signUpAction, State } from "@/app/auth/actions";
+import { signUpAction, SignUpActionState } from "@/app/auth/actions";
 import { SignUpSchema, signUpSchema } from "@/app/auth/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
 import { Input } from "@/components/form_field";
 import { useModal } from "@/contexts/modal_context";
-import { useUser } from "@/contexts/user_context";
 
 type SignInModalType = {
   isOpen?: boolean;
@@ -24,22 +23,22 @@ const SignUpModal: FC<SignInModalType> = ({
   isOpen = false,
   onClose = () => {},
 }: SignInModalType) => {
-  const { setUser } = useUser();
-  const { setModalType } = useModal();
-  const { register, watch, formState } = useForm<SignUpSchema>({
+  const { setCurrentModal } = useModal();
+  const { register, watch } = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
   });
-  const [state, formAction] = useFormState<State, FormData>(signUpAction, null);
+  const [state, formAction] = useFormState<SignUpActionState, FormData>(
+    signUpAction,
+    null
+  );
   useEffect(() => {
-    if (!state) {
-      return;
+    if (!state?.errors) {
+      setCurrentModal({
+        type: "signupSuccess",
+        data: { email: watch("email"), username: watch("username") },
+      });
     }
-
-    if (state.user) {
-      setUser(state.user);
-      setModalType(null);
-    }
-  }, [setModalType, setUser, state]);
+  }, [setCurrentModal, watch, state]);
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose}>
@@ -51,7 +50,7 @@ const SignUpModal: FC<SignInModalType> = ({
           Already have an account?
           <button
             className="inline-flex items-center justify-center gap-2 rounded-full text-base font-medium leading-tight text-metac-blue-800 underline hover:text-metac-blue-900 active:text-metac-blue-700 disabled:text-metac-blue-800 disabled:opacity-30 dark:text-metac-blue-800-dark dark:hover:text-metac-blue-900-dark dark:active:text-metac-blue-700-dark disabled:dark:text-metac-blue-800-dark"
-            onClick={() => setModalType("signin")}
+            onClick={() => setCurrentModal({ type: "signin" })}
           >
             Log in
           </button>
@@ -164,6 +163,36 @@ const SignUpModal: FC<SignInModalType> = ({
             and Privacy Policy
           </a>
           .
+        </div>
+      </div>
+    </BaseModal>
+  );
+};
+
+type SignUpModalSuccessProps = SignInModalType & {
+  username: string;
+  email: string;
+};
+
+export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
+  isOpen = false,
+  username,
+  email,
+}: SignUpModalSuccessProps) => {
+  return (
+    <BaseModal isOpen={isOpen}>
+      <div className="max-w-sm">
+        <h2 className="mb-4	mr-3 mt-0 text-2xl text-metac-blue-900 dark:text-metac-blue-900-dark">
+          Activation Email Sent
+        </h2>
+        <div>
+          <p>
+            Thanks for creating a Metaculus account <b>{username}</b>!
+          </p>
+          <p>
+            An activation email has been sent to <b>{email}</b>. Please follow
+            the link inside to finish creating your account.
+          </p>
         </div>
       </div>
     </BaseModal>

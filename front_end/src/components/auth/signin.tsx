@@ -5,7 +5,7 @@ import { FC, useEffect } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
-import { State } from "@/app/auth/actions";
+import { LoginActionState } from "@/app/auth/actions";
 import loginAction from "@/app/auth/actions";
 import { signInSchema, SignInSchema } from "@/app/auth/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
@@ -24,11 +24,14 @@ const SignInModal: FC<SignInModalType> = ({
   onClose = () => {},
 }: SignInModalType) => {
   const { setUser } = useUser();
-  const { setModalType } = useModal();
+  const { setCurrentModal } = useModal();
   const { register } = useForm<SignInSchema>({
     resolver: zodResolver(signInSchema),
   });
-  const [state, formAction] = useFormState<State, FormData>(loginAction, null);
+  const [state, formAction] = useFormState<LoginActionState, FormData>(
+    loginAction,
+    null
+  );
   useEffect(() => {
     if (!state) {
       return;
@@ -36,9 +39,9 @@ const SignInModal: FC<SignInModalType> = ({
 
     if (state.user) {
       setUser(state.user);
-      setModalType(null);
+      setCurrentModal(null);
     }
-  }, [setModalType, setUser, state]);
+  }, [setCurrentModal, setUser, state]);
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose}>
@@ -50,7 +53,7 @@ const SignInModal: FC<SignInModalType> = ({
           Don&apos;t have an account yet?
           <button
             className="inline-flex items-center justify-center gap-2 rounded-full text-base font-medium leading-tight text-metac-blue-800 underline hover:text-metac-blue-900 active:text-metac-blue-700 disabled:text-metac-blue-800 disabled:opacity-30 dark:text-metac-blue-800-dark dark:hover:text-metac-blue-900-dark dark:active:text-metac-blue-700-dark disabled:dark:text-metac-blue-800-dark"
-            onClick={() => setModalType("signup")}
+            onClick={() => setCurrentModal({ type: "signup" })}
           >
             Sign Up
           </button>

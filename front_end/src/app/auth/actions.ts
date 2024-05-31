@@ -7,15 +7,15 @@ import { AuthResponse } from "@/types/auth";
 import { FetchError } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
 
-export type State = {
+export type LoginActionState = {
   errors?: any;
   user?: CurrentUser;
 } | null;
 
 export default async function loginAction(
-  prevState: State,
+  prevState: LoginActionState,
   formData: FormData
-): Promise<State> {
+): Promise<LoginActionState> {
   const validatedFields = signInSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
@@ -50,10 +50,14 @@ export default async function loginAction(
   };
 }
 
+export type SignUpActionState = {
+  errors?: any;
+} | null;
+
 export async function signUpAction(
-  prevState: State,
+  prevState: SignUpActionState,
   formData: FormData
-): Promise<State> {
+): Promise<SignUpActionState> {
   console.log("MESSAGESSS!!!", formData);
   const validatedFields = signUpSchema.safeParse(
     Object.fromEntries(formData.entries())
@@ -73,6 +77,8 @@ export async function signUpAction(
       validatedFields.data.username,
       validatedFields.data.password
     );
+
+    return {};
   } catch (err) {
     const error = err as FetchError;
 
@@ -80,6 +86,4 @@ export async function signUpAction(
       errors: error.data,
     };
   }
-
-  return {};
 }

@@ -47,10 +47,10 @@ class AuthApi {
   }
 
   static async signUp(email: string, username: string, password: string) {
-    return post<
-      AuthResponse,
-      { email: string; username: string; password: string }
-    >("/auth/signup", { email, username, password });
+    return post<null, { email: string; username: string; password: string }>(
+      "/auth/signup",
+      { email, username, password }
+    );
   }
 }
 

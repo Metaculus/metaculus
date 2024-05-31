@@ -22,7 +22,13 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     error.data = errorData;
     throw error;
   }
-  return response.json();
+
+  const text = await response.text();
+  if (!text) {
+    return null as T;
+  }
+
+  return JSON.parse(text);
 };
 
 const BASE_URL =
