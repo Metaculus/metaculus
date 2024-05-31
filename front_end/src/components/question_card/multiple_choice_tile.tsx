@@ -8,7 +8,7 @@ import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ChoiceIcon from "@/components/choice_icon";
 import { MultipleChoiceForecast } from "@/types/question";
 import { generateChartChoices } from "@/utils/charts";
-import { getForecastChoiceDisplayValue } from "@/utils/forecasts";
+import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
 const NUM_VISIBLE_CHOICES = 3;
 
@@ -43,7 +43,7 @@ const MultipleChoiceTile: FC<Props> = ({ forecast }) => {
                 {choice}
               </div>
               <div className="resize-label py-0.5 pr-1.5 text-right text-sm font-bold leading-4 text-metac-gray-900 dark:text-metac-gray-900-dark">
-                {getForecastChoiceDisplayValue(values[values.length - 1])}
+                {getForecastPctDisplayValue(values[values.length - 1])}
               </div>
             </div>
           ))}

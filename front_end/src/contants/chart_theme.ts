@@ -3,7 +3,7 @@ import { VictoryTheme, VictoryThemeDefinition } from "victory";
 
 const sansSerif = "var(--font-diatype-variable) var(--font-diatype)";
 
-const customChartTheme: VictoryThemeDefinition = {
+const baseChart: VictoryThemeDefinition = {
   chart: {
     padding: {
       top: 10,
@@ -22,7 +22,6 @@ const customChartTheme: VictoryThemeDefinition = {
   axis: {
     style: {
       ticks: {
-        stroke: "black",
         size: (({ text }: { text: string }) => (text === "" ? 3 : 5)) as any,
       },
       tickLabels: { fontFamily: sansSerif, fontSize: 9, padding: 0 },
@@ -31,6 +30,47 @@ const customChartTheme: VictoryThemeDefinition = {
   },
 };
 
-const chartTheme = merge(VictoryTheme.grayscale, customChartTheme);
+const lightChart: VictoryThemeDefinition = {
+  axis: {
+    style: {
+      axis: {
+        stroke: "black",
+      },
+      tickLabels: {
+        fill: "black",
+      },
+      axisLabel: {
+        fill: "black",
+      },
+    },
+  },
+};
 
-export default chartTheme;
+const darkChart: VictoryThemeDefinition = {
+  axis: {
+    style: {
+      axis: {
+        stroke: "white",
+      },
+      tickLabels: {
+        fill: "white",
+      },
+      axisLabel: {
+        fill: "white",
+      },
+    },
+  },
+};
+
+export const lightTheme = merge(
+  {},
+  VictoryTheme.grayscale,
+  baseChart,
+  lightChart
+);
+export const darkTheme = merge(
+  {},
+  VictoryTheme.grayscale,
+  baseChart,
+  darkChart
+);
