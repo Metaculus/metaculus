@@ -13,7 +13,7 @@ const SocialButtons: FC = () => {
   const [socialProviders, setSocialProviders] = useState<SocialProvider[]>();
 
   useEffect(() => {
-    AuthApi.getSocialProviders(`${window.origin}/auth/social`).then(
+    AuthApi.getSocialProviders(`${window.origin}/accounts/social`).then(
       setSocialProviders
     );
   }, []);

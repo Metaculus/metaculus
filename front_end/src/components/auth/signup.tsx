@@ -7,8 +7,8 @@ import { FC, useEffect } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
-import { signUpAction, SignUpActionState } from "@/app/auth/actions";
-import { SignUpSchema, signUpSchema } from "@/app/auth/schemas";
+import { signUpAction, SignUpActionState } from "@/app/accounts/actions";
+import { SignUpSchema, signUpSchema } from "@/app/accounts/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
 import { Input } from "@/components/form_field";
@@ -32,7 +32,7 @@ const SignUpModal: FC<SignInModalType> = ({
     null
   );
   useEffect(() => {
-    if (!state?.errors) {
+    if (state && !state?.errors) {
       setCurrentModal({
         type: "signupSuccess",
         data: { email: watch("email"), username: watch("username") },

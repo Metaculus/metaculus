@@ -40,7 +40,7 @@ const NavUserButton: FC = () => {
             <MenuItem>
               <a
                 className="flex items-center justify-center whitespace-nowrap px-4 py-1.5 no-underline hover:bg-metac-blue-400-dark lg:items-end lg:justify-end lg:px-6 lg:text-right lg:hover:bg-metac-blue-200-dark"
-                href="/auth/signout"
+                href="/accounts/signout"
               >
                 Log Out
               </a>

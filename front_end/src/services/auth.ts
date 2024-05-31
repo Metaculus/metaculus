@@ -52,6 +52,13 @@ class AuthApi {
       { email, username, password }
     );
   }
+
+  static async activateAccount(userId: string, token: string) {
+    return post<AuthResponse, { user_id: string; token: string }>(
+      "/auth/signup/activate",
+      { user_id: userId, token }
+    );
+  }
 }
 
 export default AuthApi;
