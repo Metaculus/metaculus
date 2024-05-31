@@ -26,7 +26,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
         <div className="fixed inset-0 bg-metac-blue-900 bg-opacity-50" />
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center text-center sm:p-4">
-            <Dialog.Panel className="static bottom-0 top-0 flex h-fit w-full max-w-sm transform flex-col justify-between gap-6 overflow-y-scroll rounded bg-metac-gray-0 text-left align-middle text-metac-blue-900 shadow-xl transition-all dark:bg-metac-gray-0-dark dark:text-white">
+            <Dialog.Panel className="static bottom-0 top-0 flex h-fit w-full max-w-fit  transform flex-col justify-between gap-6 overflow-y-scroll rounded bg-metac-gray-0 text-left align-middle text-metac-blue-900 shadow-xl transition-all dark:bg-metac-gray-0-dark dark:text-white">
               <div className="flex flex-col gap-6 p-7">
                 <div className="flex justify-between">
                   {!!label && (
@@ -48,7 +48,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
                     </button>
                   </div>
                 </div>
-                <div>{children}</div>
+                <div className="text-sm">{children}</div>
               </div>
             </Dialog.Panel>
           </div>

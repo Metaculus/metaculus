@@ -1,6 +1,6 @@
 "use server";
 
-import { signInSchema } from "@/app/auth/schemas";
+import { signInSchema, signUpSchema } from "@/app/auth/schemas";
 import AuthApi from "@/services/auth";
 import { setServerSession } from "@/services/session";
 import { AuthResponse } from "@/types/auth";
@@ -16,7 +16,6 @@ export default async function loginAction(
   prevState: State,
   formData: FormData
 ): Promise<State> {
-  console.log("MESSAGE!!!", formData);
   const validatedFields = signInSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
@@ -49,4 +48,38 @@ export default async function loginAction(
   return {
     user: response.user,
   };
+}
+
+export async function signUpAction(
+  prevState: State,
+  formData: FormData
+): Promise<State> {
+  console.log("MESSAGESSS!!!", formData);
+  const validatedFields = signUpSchema.safeParse(
+    Object.fromEntries(formData.entries())
+  );
+
+  console.log(validatedFields.error?.flatten().fieldErrors);
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    const response = await AuthApi.signUp(
+      validatedFields.data.email,
+      validatedFields.data.username,
+      validatedFields.data.password
+    );
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+
+  return {};
 }
