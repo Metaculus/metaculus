@@ -17,6 +17,7 @@ python-dateutil = "^2.9.0.post0"
 django-extensions = "^3.2.3"
 numpy = "^1.26.4"
 django-cors-headers = "^4.3.1"
+django-anymail = {extras = ["mailgun"], version = "^10.3"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"
