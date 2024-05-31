@@ -100,7 +100,7 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
         <h3 className="m-0 text-base font-normal leading-5">
           {t("forecastTimelineHeading")}
         </h3>
-        <div className="ml-auto">
+        <div className="ml-auto text-white">
           {t("totalForecastersLabel")}{" "}
           <strong>{forecast.nr_forecasters[cursorIndex]}</strong>
         </div>
