@@ -10,7 +10,9 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import TopicItem from "@/app/questions/components/topic_item";
+import { TOPIC_FILTER } from "@/app/questions/constants/search";
 import Button from "@/components/ui/button";
+import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
 
 const EXPAND_THRESHOLD = 2;
@@ -27,6 +29,7 @@ type Props = {
 
 const QuestionTopics: FC<Props> = ({ topics }) => {
   const t = useTranslations();
+  const { setParam, deleteParam } = useSearchParams();
 
   const { hotTopics, hotCategories } = useMemo(
     () => ({
@@ -40,7 +43,16 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     hotTopics.length + hotCategories.length > EXPAND_THRESHOLD;
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
-  const switchToHomeFeed = () => {};
+  // TODO: cleanup order_by and status filter
+  const switchToHomeFeed = () => {
+    deleteParam(TOPIC_FILTER);
+  };
+
+  // TODO: cleanup order_by and status filter
+  const selectTopic = (topic: Topic) => {
+    setParam(TOPIC_FILTER, topic.slug);
+    setIsMobileExpanded(false);
+  };
 
   return (
     <div className="sticky top-12 z-40 mt-0 self-start sm:top-16 sm:mt-4 lg:top-20">
@@ -104,6 +116,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                   isActive={false}
                   emoji={topic.emoji}
                   text={topic.name}
+                  onClick={() => selectTopic(topic)}
                 />
               ))}
             </>
@@ -118,6 +131,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                   isActive={false}
                   emoji={category.emoji}
                   text={category.name}
+                  onClick={() => selectTopic(category)}
                 />
               ))}
             </>

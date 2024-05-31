@@ -2,7 +2,7 @@ import { PaginatedPayload } from "@/types/fetch";
 import { Question, QuestionWithForecasts } from "@/types/question";
 import { encodeQueryParams, get } from "@/utils/fetch";
 
-type QuestionsParams = {
+export type QuestionsParams = {
   topic?: string;
   answered_by_me?: boolean;
   limit?: number;
