@@ -22,9 +22,6 @@ def send_activation_email(user: User):
     # TODO: send email, so printing link for now
     print(activation_link)
 
-    return
-
-    # TODO: test this
     send_email_with_template(
         user.email,
         "Metaculus Account Creation",
