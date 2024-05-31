@@ -60,7 +60,7 @@ export function binWeightsFromSliders(
   right: number
 ) {
   const params = logisticDistributionParamsFromSliders(left, center, right);
-  const step = 1 / 22;
+  const step = 1 / 202;
   const xArr = math.range(0 + step, 1 - step, step);
   const binWeights = [
     ...xArr
