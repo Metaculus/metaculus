@@ -406,5 +406,10 @@
   "viewMore": "View more...",
   "randomQuestion": "Random Question",
   "notebooks": "Notebooks",
-  "otherWithCount": "{count, plural, =1 {# other} other {# others} }"
+  "otherWithCount": "{count, plural, =1 {# other} other {# others} }",
+  "feedHome": "Feed Home",
+  "topics": "Topics",
+  "categories": "Categories",
+  "seeAllCategories": "See all categories",
+  "toggleAllTopics": "Toggle all topics"
 }

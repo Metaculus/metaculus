@@ -1,5 +1,6 @@
-import plugin, { Config } from "tailwindcss";
+import { Config } from "tailwindcss";
 import defaultTheme from "tailwindcss/defaultTheme";
+import plugin from "tailwindcss/plugin";
 
 import { METAC_COLORS } from "./src/contants/colors";
 

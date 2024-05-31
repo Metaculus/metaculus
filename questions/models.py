@@ -47,15 +47,6 @@ class QuestionQuerySet(models.QuerySet):
             ),
         )
 
-    def annotate_status(self):
-        if self.resolved_at:
-            return "Resolved"
-        if self.closed_at:
-            return "Closed"
-        if self.published_at:
-            return "Active"
-        return "Active"
-
 
 class Question(models.Model):
     QUESTION_TYPES = (
@@ -108,7 +99,16 @@ class Question(models.Model):
     predictions_count_unique: int = 0
     vote_score: int = 0
     user_vote = None
-    status: str = None
+    
+    @property
+    def status(self):
+        if self.resolved_at:
+            return "resolved"
+        if self.closed_at:
+            return "closed"
+        if self.published_at:
+            return "active"
+        return "ctive"
 
     def get_deriv_ratio(self) -> Optional[float]:
         if self.type == "numeric":
