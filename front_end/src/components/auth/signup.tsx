@@ -4,31 +4,25 @@ import { FC } from "react";
 
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
-import { useModal } from "@/contexts/modal_context";
 
 type SignInModalType = {
   isOpen?: boolean;
   onClose?: (isOpen: boolean) => void;
 };
 
-const SignInModal: FC<SignInModalType> = ({
+const SignUpModal: FC<SignInModalType> = ({
   isOpen = false,
   onClose = () => {},
 }: SignInModalType) => {
-  const { setModalType } = useModal();
-
   return (
     <BaseModal isOpen={isOpen} onClose={onClose}>
       <div>
         <h2 className="mb-4	mr-3 mt-0 text-2xl text-metac-blue-900 dark:text-metac-blue-900-dark">
-          Log In
+          Sign Up
         </h2>
         <p className="mb-6 mt-3 text-base leading-tight">
           Don&apos;t have an account yet?
-          <button
-            className="inline-flex items-center justify-center gap-2 rounded-full text-base font-medium leading-tight text-metac-blue-800 underline hover:text-metac-blue-900 active:text-metac-blue-700 disabled:text-metac-blue-800 disabled:opacity-30 dark:text-metac-blue-800-dark dark:hover:text-metac-blue-900-dark dark:active:text-metac-blue-700-dark disabled:dark:text-metac-blue-800-dark"
-            onClick={() => setModalType("signup")}
-          >
+          <button className="inline-flex items-center justify-center gap-2 rounded-full text-base font-medium leading-tight text-metac-blue-800 underline hover:text-metac-blue-900 active:text-metac-blue-700 disabled:text-metac-blue-800 disabled:opacity-30 dark:text-metac-blue-800-dark dark:hover:text-metac-blue-900-dark dark:active:text-metac-blue-700-dark disabled:dark:text-metac-blue-800-dark">
             Sign Up
           </button>
         </p>
@@ -66,4 +60,4 @@ const SignInModal: FC<SignInModalType> = ({
   );
 };
 
-export default SignInModal;
+export default SignUpModal;

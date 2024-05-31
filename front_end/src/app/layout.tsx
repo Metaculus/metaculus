@@ -7,6 +7,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
 import Header from "@/app/header";
+import GlobalModals from "@/components/global_modals";
+import ModalProvider from "@/contexts/modal_context";
 import UserProvider from "@/contexts/user_context";
 import ProfileApi from "@/services/profile";
 
@@ -106,8 +108,11 @@ export default async function RootLayout({
       <body className="min-h-screen w-full bg-metac-blue-200 dark:bg-metac-blue-50-dark">
         <NextIntlClientProvider messages={messages}>
           <UserProvider user={user}>
-            <Header />
-            <div className="pt-12 ">{children}</div>
+            <ModalProvider>
+              <Header />
+              <div className="pt-12 ">{children}</div>
+              <GlobalModals />
+            </ModalProvider>
           </UserProvider>
         </NextIntlClientProvider>
       </body>
