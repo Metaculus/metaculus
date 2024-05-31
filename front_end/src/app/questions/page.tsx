@@ -1,11 +1,19 @@
 import QuestionTopics from "@/app/questions/components/question_topics";
+import { TOPIC_FILTER } from "@/app/questions/constants/search";
 import QuestionCard from "@/components/question_card";
 import ProjectsApi from "@/services/projects";
-import QuestionsApi from "@/services/questions";
+import QuestionsApi, { QuestionsParams } from "@/services/questions";
 
-export default async function Questions() {
+export default async function Questions({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}) {
+  const filters = processFilters(searchParams);
+
   const [questions, topics] = await Promise.all([
     QuestionsApi.getQuestionsWithoutForecasts({
+      ...filters,
       limit: 10,
     }),
     ProjectsApi.getTopics(),
@@ -25,4 +33,16 @@ export default async function Questions() {
       </div>
     </main>
   );
+}
+
+function processFilters(
+  searchParams: Record<string, string | string[] | undefined>
+): Partial<QuestionsParams> {
+  const filters: QuestionsParams = {};
+
+  if (typeof searchParams[TOPIC_FILTER] === "string") {
+    filters.topic = searchParams[TOPIC_FILTER];
+  }
+
+  return filters;
 }
