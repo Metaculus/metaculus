@@ -15,13 +15,13 @@ import { Input } from "@/components/form_field";
 import { useModal } from "@/contexts/modal_context";
 
 type SignInModalType = {
-  isOpen?: boolean;
-  onClose?: (isOpen: boolean) => void;
+  isOpen: boolean;
+  onClose: (isOpen: boolean) => void;
 };
 
 const SignUpModal: FC<SignInModalType> = ({
-  isOpen = false,
-  onClose = () => {},
+  isOpen,
+  onClose,
 }: SignInModalType) => {
   const { setCurrentModal } = useModal();
   const { register, watch } = useForm<SignUpSchema>({
@@ -32,7 +32,7 @@ const SignUpModal: FC<SignInModalType> = ({
     null
   );
   useEffect(() => {
-    if (state && !state?.errors) {
+    if (state && !("errors" in state)) {
       setCurrentModal({
         type: "signupSuccess",
         data: { email: watch("email"), username: watch("username") },
@@ -175,12 +175,13 @@ type SignUpModalSuccessProps = SignInModalType & {
 };
 
 export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
-  isOpen = false,
+  isOpen,
+  onClose,
   username,
   email,
 }: SignUpModalSuccessProps) => {
   return (
-    <BaseModal isOpen={isOpen}>
+    <BaseModal isOpen={isOpen} onClose={onClose}>
       <div className="max-w-sm">
         <h2 className="mb-4	mr-3 mt-0 text-2xl text-metac-blue-900 dark:text-metac-blue-900-dark">
           Activation Email Sent

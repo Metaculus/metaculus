@@ -23,6 +23,8 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     throw error;
   }
 
+  // Some endpoints might still have successful null response
+  // So need to handle such cases
   const text = await response.text();
   if (!text) {
     return null as T;

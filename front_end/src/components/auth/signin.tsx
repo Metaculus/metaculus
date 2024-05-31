@@ -15,13 +15,13 @@ import { useModal } from "@/contexts/modal_context";
 import { useUser } from "@/contexts/user_context";
 
 type SignInModalType = {
-  isOpen?: boolean;
-  onClose?: (isOpen: boolean) => void;
+  isOpen: boolean;
+  onClose: (isOpen: boolean) => void;
 };
 
 const SignInModal: FC<SignInModalType> = ({
-  isOpen = false,
-  onClose = () => {},
+  isOpen,
+  onClose,
 }: SignInModalType) => {
   const { setUser } = useUser();
   const { setCurrentModal } = useModal();
