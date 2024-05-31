@@ -10,7 +10,7 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import TopicItem from "@/app/questions/components/topic_item";
-import { TOPIC_FILTER } from "@/app/questions/constants/search";
+import { TOPIC_FILTER } from "@/app/questions/constants/query_params";
 import Button from "@/components/ui/button";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
