@@ -20,9 +20,9 @@ const useSearchParams = () => {
       params.delete(name);
 
       if (Array.isArray(val)) {
-        val.map((value) => params.append(name, value));
+        val.map((value) => params.append(name, encodeURIComponent(value)));
       } else {
-        params.append(name, val);
+        params.append(name, encodeURIComponent(val));
       }
 
       router.push(pathname + "?" + params.toString());
