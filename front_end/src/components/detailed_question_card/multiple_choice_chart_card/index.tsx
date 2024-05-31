@@ -11,7 +11,7 @@ import { TickFormat } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { MultipleChoiceForecast } from "@/types/question";
 import { generateChartChoices } from "@/utils/charts";
-import { getForecastChoiceDisplayValue } from "@/utils/forecasts";
+import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
 type Props = {
   forecast: MultipleChoiceForecast;
@@ -48,7 +48,7 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
         .map(({ choice, values, color }) => ({
           choiceLabel: choice,
           color,
-          valueLabel: getForecastChoiceDisplayValue(values[cursorIndex]),
+          valueLabel: getForecastPctDisplayValue(values[cursorIndex]),
         })),
     [choiceItems, cursorIndex]
   );
@@ -100,7 +100,7 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
         <h3 className="m-0 text-base font-normal leading-5">
           {t("forecastTimelineHeading")}
         </h3>
-        <div className="ml-auto text-white">
+        <div className="ml-auto dark:text-white">
           {t("totalForecastersLabel")}{" "}
           <strong>{forecast.nr_forecasters[cursorIndex]}</strong>
         </div>
