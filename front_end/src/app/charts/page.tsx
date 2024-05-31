@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import MultipleChoiceChartCard from "@/components/detailed_question_card/multiple_choice_chart_card";
 import NumericChartCard from "@/components/detailed_question_card/numeric_chart_card";
+import { QuestionType } from "@/types/question";
 import {
   generateMockMultipleChoiceChart,
   generateMockNumericChart,
@@ -20,7 +21,10 @@ export default function Questions() {
         Home
       </Link>
       Numeric Chart:
-      <NumericChartCard forecast={numericDataset} />
+      <NumericChartCard
+        forecast={numericDataset}
+        questionType={QuestionType.Numeric}
+      />
       Multiple Choice Chart:
       <MultipleChoiceChartCard forecast={multipleChoiceDataset} />
     </main>
