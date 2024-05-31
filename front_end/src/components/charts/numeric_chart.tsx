@@ -23,6 +23,7 @@ import { NumericForecast } from "@/types/question";
 import {
   generateNumericDomain,
   generateNumericYScale,
+  generatePercentageYScale,
   generateTimestampXScale,
 } from "@/utils/charts";
 
@@ -32,6 +33,7 @@ type Props = {
   height?: number;
   onCursorChange?: (value: number) => void;
   onChartReady?: () => void;
+  binary: boolean;
 };
 
 const NumericChart: FC<Props> = ({
@@ -40,6 +42,7 @@ const NumericChart: FC<Props> = ({
   height = 150,
   onCursorChange,
   onChartReady,
+  binary,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -48,7 +51,7 @@ const NumericChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const { line, area, yDomain, xScale, yScale } = useMemo(
-    () => buildChartData(dataset, chartWidth),
+    () => buildChartData(dataset, chartWidth, height, binary),
     [dataset, chartWidth]
   );
 
@@ -140,14 +143,21 @@ const NumericChart: FC<Props> = ({
           <VictoryAxis
             dependentAxis
             style={{
-              tickLabels: { padding: 2 },
+              tickLabels: { padding: 2, fill: "white" },
+              axis: { stroke: "white" },
             }}
             tickValues={yScale.ticks}
             tickFormat={yScale.tickFormat}
             label={yLabel}
-            axisLabelComponent={<VictoryLabel dy={-10} />}
+            axisLabelComponent={
+              <VictoryLabel dy={-10} style={{ fill: "white" }} />
+            }
           />
           <VictoryAxis
+            style={{
+              tickLabels: { fill: "white" },
+              axis: { stroke: "white" },
+            }}
             tickValues={xScale.ticks}
             tickFormat={isCursorActive ? () => "" : xScale.tickFormat}
           />
@@ -163,7 +173,12 @@ type ChartData = BaseChartData & {
   yDomain: DomainTuple;
 };
 
-function buildChartData(dataset: NumericForecast, width: number): ChartData {
+function buildChartData(
+  dataset: NumericForecast,
+  width: number,
+  height: number,
+  binary: boolean
+): ChartData {
   const line = dataset.timestamps.map((timestamp, index) => ({
     x: timestamp,
     y: dataset.values_mean[index],
@@ -184,7 +199,9 @@ function buildChartData(dataset: NumericForecast, width: number): ChartData {
     area,
     yDomain: [minYValue, maxYValue],
     xScale: generateTimestampXScale(xDomain, width),
-    yScale: generateNumericYScale([minYValue, maxYValue]),
+    yScale: binary
+      ? generatePercentageYScale(height)
+      : generateNumericYScale([minYValue, maxYValue]),
   };
 }
 

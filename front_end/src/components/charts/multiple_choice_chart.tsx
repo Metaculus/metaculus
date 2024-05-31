@@ -151,11 +151,20 @@ const MultipleChoiceChart: FC<Props> = ({
             dependentAxis
             tickValues={yScale.ticks}
             tickFormat={yScale.tickFormat}
-            style={{ tickLabels: { padding: 2 } }}
+            style={{
+              tickLabels: { padding: 2, fill: "white" },
+              axis: { stroke: "white" },
+            }}
             label={yLabel}
-            axisLabelComponent={<VictoryLabel dy={-10} />}
+            axisLabelComponent={
+              <VictoryLabel dy={-10} style={{ fill: "white" }} />
+            }
           />
           <VictoryAxis
+            style={{
+              tickLabels: { fill: "white" },
+              axis: { stroke: "white" },
+            }}
             tickValues={xScale.ticks}
             tickFormat={isCursorActive ? () => "" : xScale.tickFormat}
           />

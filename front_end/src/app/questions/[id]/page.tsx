@@ -12,13 +12,7 @@ export default async function IndividualQuestion({
 
   return (
     <main className="flex flex-col gap-2 p-6">
-      <Link
-        href={"/"}
-        className={"self-start font-bold text-metac-blue-800 hover:opacity-60"}
-      >
-        Home
-      </Link>
-      Numeric Chart:
+      <h1 className="text-bold text-2xl text-white">{questionData?.title}</h1>
       {questionData && <DetailedQuestionCard question={questionData} />}
     </main>
   );
