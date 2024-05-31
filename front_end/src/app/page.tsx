@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { binWeightsFromSliders } from "@/utils/math";
+
 export default function Home() {
   return (
     <main className="p-12">
