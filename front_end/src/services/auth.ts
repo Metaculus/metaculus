@@ -1,4 +1,5 @@
 import {
+  AuthResponse,
   SocialAuthResponse,
   SocialProvider,
   SocialProviderType,
@@ -36,6 +37,13 @@ class AuthApi {
       console.error("Error getting social providers:", err);
       return null;
     }
+  }
+
+  static async signIn(login: string, password: string) {
+    return post<AuthResponse, { login: string; password: string }>(
+      "/auth/login/token",
+      { login, password }
+    );
   }
 }
 

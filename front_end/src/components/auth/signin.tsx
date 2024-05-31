@@ -1,10 +1,18 @@
 "use client";
 
-import { FC } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { FC, useEffect } from "react";
+import { useFormState } from "react-dom";
+import { useForm } from "react-hook-form";
 
+import { State } from "@/app/auth/actions";
+import loginAction from "@/app/auth/actions";
+import { signInSchema, SignInSchema } from "@/app/auth/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
+import { Input } from "@/components/form_field";
 import { useModal } from "@/contexts/modal_context";
+import { useUser } from "@/contexts/user_context";
 
 type SignInModalType = {
   isOpen?: boolean;
@@ -15,7 +23,22 @@ const SignInModal: FC<SignInModalType> = ({
   isOpen = false,
   onClose = () => {},
 }: SignInModalType) => {
+  const { setUser } = useUser();
   const { setModalType } = useModal();
+  const { register } = useForm<SignInSchema>({
+    resolver: zodResolver(signInSchema),
+  });
+  const [state, formAction] = useFormState<State, FormData>(loginAction, null);
+  useEffect(() => {
+    if (!state) {
+      return;
+    }
+
+    if (state.user) {
+      setUser(state.user);
+      setModalType(null);
+    }
+  }, [setModalType, setUser, state]);
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose}>
@@ -32,21 +55,23 @@ const SignInModal: FC<SignInModalType> = ({
             Sign Up
           </button>
         </p>
-        <form>
-          <input
+        <form action={formAction}>
+          <Input
             autoComplete="username"
             className="block w-full rounded border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
             type="text"
             placeholder="username or email"
-            name="username"
+            {...register("login")}
+            errors={state?.errors}
           />
           <div className="text-xs text-metac-red-500 dark:text-metac-red-500-dark"></div>
-          <input
+          <Input
             autoComplete="current-password"
             className="mt-4 block w-full rounded border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
             type="password"
             placeholder="password"
-            name="password"
+            {...register("password")}
+            errors={state?.errors}
           />
           <div className="text-xs text-metac-red-500 dark:text-metac-red-500-dark"></div>
           <button
