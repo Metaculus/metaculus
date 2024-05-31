@@ -130,9 +130,7 @@ def enrich_questions_with_forecasts(
         if question.published_at:
             forecast_times = [
                 question.published_at + timedelta(days=x)
-                for x in range(
-                    (end_date - question.published_at.date()).days + 1
-                )
+                for x in range((end_date - question.published_at.date()).days + 1)
             ]
 
         if question.type == "multiple_choice":
