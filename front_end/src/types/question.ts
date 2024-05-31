@@ -40,6 +40,13 @@ export type MultipleChoiceForecast = {
   [value_choice_n: string]: number[];
 };
 
+export type UserVote = "up" | "down" | null;
+
+export type QuestionVote = {
+  score: number;
+  userVote: UserVote;
+};
+
 export type Question = {
   id: number;
   projects: {
@@ -62,6 +69,7 @@ export type Question = {
   tags: string[];
   categories: string[];
   topics: string[];
+  vote: QuestionVote;
 };
 
 type QuestionWithNumericForecasts = Question & {
