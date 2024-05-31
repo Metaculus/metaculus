@@ -5,13 +5,18 @@ import React, { FC, useCallback, useMemo, useState } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
 import CursorDetailItem from "@/components/detailed_question_card/numeric_chart_card/numeric_cursor_item";
-import { NumericForecast } from "@/types/question";
+import { NumericForecast, QuestionType } from "@/types/question";
+import {
+  getForecastNumericDisplayValue,
+  getForecastPctDisplayValue,
+} from "@/utils/forecasts";
 
 type Props = {
   forecast: NumericForecast;
+  questionType: QuestionType;
 };
 
-const NumericChartCard: FC<Props> = ({ forecast }) => {
+const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
   const t = useTranslations();
 
   const [isChartReady, setIsChartReady] = useState(false);
@@ -25,9 +30,9 @@ const NumericChartCard: FC<Props> = ({ forecast }) => {
     );
 
     return {
-      min: forecast.values_min[index].toFixed(1),
-      max: forecast.values_max[index].toFixed(1),
-      mean: forecast.values_mean[index].toFixed(1),
+      min: forecast.values_min[index].toFixed(4),
+      max: forecast.values_max[index].toFixed(4),
+      mean: forecast.values_mean[index].toFixed(4),
       forecastersNr: forecast.nr_forecasters[index],
       timestamp: forecast.timestamps[index],
     };
@@ -60,16 +65,17 @@ const NumericChartCard: FC<Props> = ({ forecast }) => {
         onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}
+        binary={questionType == QuestionType.Binary}
       />
 
-      <div className="my-3 grid grid-cols-2 gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:gap-x-4 sm:gap-y-0">
+      <div className="my-3 grid grid-cols-2 gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:gap-x-4 sm:gap-y-0 dark:text-white">
         <CursorDetailItem
           title={t("totalForecastersLabel")}
           text={cursorData.forecastersNr.toString()}
         />
         <CursorDetailItem
           title={t("communityPredictionLabel")}
-          text={`${cursorData.mean} (${cursorData.min} - ${cursorData.max})`}
+          text={`${questionType == QuestionType.Binary ? getForecastPctDisplayValue(cursorData.mean) : getForecastNumericDisplayValue(cursorData.mean)}`}
           variant="prediction"
         />
       </div>
