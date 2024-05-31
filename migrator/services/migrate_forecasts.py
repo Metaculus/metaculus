@@ -1,7 +1,5 @@
-from migrator.utils import paginated_query, one2one_query
+from migrator.utils import paginated_query
 from questions.models import Forecast, Question
-import json
-from dateutil.parser import parse as date_parse
 
 from users.models import User
 
@@ -48,6 +46,7 @@ def migrate_forecasts():
 
     # Add `limit 300000` to get a sizeable amount but have the migration be faster
     for i, old_prediction in enumerate(
+        # flake
         paginated_query(
             "SELECT p.*, ps.user_id, ps.question_id, ps.aggregation_method FROM metac_question_prediction p JOIN metac_question_predictionsequence ps ON p.prediction_sequence_id = ps.id AND aggregation_method = 'none' limit 300000"
         )
