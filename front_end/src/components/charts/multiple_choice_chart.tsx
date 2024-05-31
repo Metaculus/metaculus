@@ -12,9 +12,10 @@ import {
 } from "victory";
 
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
-import chartTheme from "@/contants/chart_theme";
+import { lightTheme, darkTheme } from "@/contants/chart_theme";
 import { METAC_COLORS } from "@/contants/colors";
 import useContainerSize from "@/hooks/use_container_size";
+import useThemeDetector from "@/hooks/use_is_dark_mode";
 import usePrevious from "@/hooks/use_previous";
 import { BaseChartData, Line, TickFormat } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
@@ -46,6 +47,9 @@ const MultipleChoiceChart: FC<Props> = ({
     width: chartWidth,
     height: chartHeight,
   } = useContainerSize<HTMLDivElement>();
+
+  const isDarkTheme = useThemeDetector();
+  const chartTheme = isDarkTheme ? darkTheme : lightTheme;
 
   const defaultCursor = timestamps[timestamps.length - 1];
   const [isCursorActive, setIsCursorActive] = useState(false);
@@ -151,11 +155,20 @@ const MultipleChoiceChart: FC<Props> = ({
             dependentAxis
             tickValues={yScale.ticks}
             tickFormat={yScale.tickFormat}
-            style={{ tickLabels: { padding: 2 } }}
+            style={{
+              tickLabels: { padding: 2, fill: "white" },
+              axis: { stroke: "white" },
+            }}
             label={yLabel}
-            axisLabelComponent={<VictoryLabel dy={-10} />}
+            axisLabelComponent={
+              <VictoryLabel dy={-10} style={{ fill: "white" }} />
+            }
           />
           <VictoryAxis
+            style={{
+              tickLabels: { fill: "white" },
+              axis: { stroke: "white" },
+            }}
             tickValues={xScale.ticks}
             tickFormat={isCursorActive ? () => "" : xScale.tickFormat}
           />

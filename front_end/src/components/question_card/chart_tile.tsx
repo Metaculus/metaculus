@@ -20,7 +20,12 @@ const QuestionChartTile: FC<Props> = ({ question }) => {
     case QuestionType.Numeric:
     case QuestionType.Date:
     case QuestionType.Binary:
-      return <NumericTile forecast={question.forecasts} />;
+      return (
+        <NumericTile
+          questionType={question.type}
+          forecast={question.forecasts}
+        />
+      );
     case QuestionType.MultipleChoice:
       return <MultipleChoiceTile forecast={question.forecasts} />;
     default:
