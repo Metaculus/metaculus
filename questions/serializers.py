@@ -13,7 +13,8 @@ from .models import Question
 
 class QuestionSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
-
+    status = serializers.CharField()
+    
     class Meta:
         model = Question
         fields = "__all__"
