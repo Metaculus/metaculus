@@ -1,7 +1,8 @@
-import AuthApi from "@/services/auth";
-import { SocialProviderType } from "@/types/auth";
-import { setServerSession } from "@/services/session";
 import { redirect } from "next/navigation";
+
+import AuthApi from "@/services/auth";
+import { setServerSession } from "@/services/session";
+import { SocialProviderType } from "@/types/auth";
 
 export async function GET(
   request: Request,

@@ -1,6 +1,7 @@
 "use client";
 
 import { FC } from "react";
+
 import SocialButtons from "@/components/auth/social_buttons";
 
 const SigninComponent: FC = () => {
@@ -10,7 +11,7 @@ const SigninComponent: FC = () => {
         Log In
       </h2>
       <p className="mb-6 mt-3 text-base leading-tight">
-        Don't have an account yet?
+        Don&apos;t have an account yet?
         <button className="inline-flex items-center justify-center gap-2 rounded-full text-base font-medium leading-tight text-metac-blue-800 underline hover:text-metac-blue-900 active:text-metac-blue-700 disabled:text-metac-blue-800 disabled:opacity-30 dark:text-metac-blue-800-dark dark:hover:text-metac-blue-900-dark dark:active:text-metac-blue-700-dark disabled:dark:text-metac-blue-800-dark">
           Sign Up
         </button>

@@ -2,8 +2,8 @@
 
 import { FC, useState } from "react";
 
-import BaseModal from "@/components/base_modal";
 import SigninComponent from "@/components/auth/signin";
+import BaseModal from "@/components/base_modal";
 
 const AuthButton: FC = () => {
   const [modalOpen, setModalOpen] = useState(false);

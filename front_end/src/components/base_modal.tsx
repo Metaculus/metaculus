@@ -21,7 +21,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
   children,
 }) => (
   <Transition appear show={isOpen} as={Fragment}>
-    <Dialog as="div" className="z-50 relative" onClose={onClose}>
+    <Dialog as="div" className="relative z-50" onClose={onClose}>
       <div className="fixed inset-0 bg-metac-blue-900 bg-opacity-50" />
       <div className="fixed inset-0 overflow-y-auto">
         <div className="flex min-h-full items-center justify-center text-center sm:p-4">

@@ -1,12 +1,12 @@
 "use client";
 
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import Link from "next/link";
-import { FC, useContext } from "react";
+import { FC } from "react";
 
 import AuthButton from "@/components/auth";
 import NavLink from "@/components/nav_link";
-import { UserContext } from "@/contexts/user_context";
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
+import { useUser } from "@/contexts/user_context";
 
 const LINKS = [
   {
@@ -20,7 +20,7 @@ const LINKS = [
 ];
 
 const Header: FC = () => {
-  const user = useContext(UserContext);
+  const { user, setUser } = useUser();
 
   return (
     <header className="ng-scope fixed left-0 top-0 z-50 flex w-full flex-wrap items-stretch justify-between border-b border-metac-blue-200-dark bg-metac-blue-900 text-white">
@@ -67,7 +67,7 @@ const Header: FC = () => {
                   <MenuItem>
                     <a
                       className="flex items-center justify-center whitespace-nowrap px-4 py-1.5 no-underline hover:bg-metac-blue-400-dark lg:items-end lg:justify-end lg:px-6 lg:text-right lg:hover:bg-metac-blue-200-dark"
-                      href="/settings"
+                      onClick={() => setUser(null)}
                     >
                       Settings
                     </a>

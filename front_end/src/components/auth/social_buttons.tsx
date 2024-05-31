@@ -1,18 +1,21 @@
 "use client";
 
-import { FC, useEffect, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Button from "@/components/ui/button";
-import { Google } from "@/components/icons/google";
 import { faFacebook } from "@fortawesome/free-brands-svg-icons";
-import { SocialProvider } from "@/types/auth";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FC, useEffect, useState } from "react";
+
+import { Google } from "@/components/icons/google";
+import Button from "@/components/ui/button";
 import AuthApi from "@/services/auth";
+import { SocialProvider } from "@/types/auth";
 
 const SocialButtons: FC = () => {
   const [socialProviders, setSocialProviders] = useState<SocialProvider[]>();
 
   useEffect(() => {
-    AuthApi.getSocialProviders(`${window.origin}/auth/social`).then(setSocialProviders);
+    AuthApi.getSocialProviders(`${window.origin}/auth/social`).then(
+      setSocialProviders
+    );
   }, []);
 
   return (
