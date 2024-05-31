@@ -410,5 +410,6 @@
   "feedHome": "Feed Home",
   "topics": "Topics",
   "categories": "Categories",
-  "seeAllCategories": "See all categories"
+  "seeAllCategories": "See all categories",
+  "toggleAllTopics": "Toggle all topics"
 }
