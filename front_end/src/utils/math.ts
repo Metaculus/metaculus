@@ -11,7 +11,7 @@ export function logisticDistributionParamsFromSliders(
 ) {
   // k == extremisation constant
   const k = 0.15;
-  const mode = 1 + 2 * k;
+  const mode = (1 + 2 * k) * center - k;
   let scale = Number(math.pow(math.atanh(right - left), 2));
   let asymmetry = (right + left - 2 * center) / (right - left);
   if (asymmetry > 0.95) {
@@ -45,12 +45,20 @@ function logisticCDF(
   scale: number,
   asymmetry: number
 ) {
-  const c = x <= mode ? 0 : 1;
-  const k = x <= mode ? 1 : -1;
+  const c = x < mode ? 0 : 1;
+  const k = 1 - 2 * c;
+  console.log(c, k);
   return (
     c +
     k *
-      Fprime(k * math.divide(math.subtract(x, mode), sprime(1 - asymmetry * k)))
+      // Maybe 1 - asymetry not c - asymetry
+      Fprime(
+        k *
+          math.divide(
+            math.subtract(x, mode),
+            sprime(scale) * (c - asymmetry * k)
+          )
+      )
   );
 }
 
@@ -66,9 +74,10 @@ export function binWeightsFromSliders(
     ...xArr
       .map((x) => logisticCDF(x, params.mode, params.scale, params.asymmetry))
       .toArray(),
-    logisticCDF(0, params.mode, params.scale, params.asymmetry),
-    logisticCDF(1, params.mode, params.scale, params.asymmetry),
+    //logisticCDF(0, params.mode, params.scale, params.asymmetry),
+    //logisticCDF(1, params.mode, params.scale, params.asymmetry),
   ];
+  console.log(binWeights);
   const numBinWeights = [];
   for (let i = 0; i < binWeights.length; i++) {
     if (i > 0) {
