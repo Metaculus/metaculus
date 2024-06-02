@@ -15,7 +15,7 @@ const BasicQuestionCard: FC<PropsWithChildren<Props>> = ({
   question,
   children,
 }) => {
-  const { id, title } = question;
+  const { id, title, vote } = question;
 
   return (
     <div className="rounded border border-metac-blue-500 bg-metac-gray-0 dark:border-metac-blue-600 dark:bg-metac-gray-0-dark">
@@ -30,7 +30,7 @@ const BasicQuestionCard: FC<PropsWithChildren<Props>> = ({
           <div className="flex items-center gap-3">
             <Voter
               className="md:min-w-20"
-              votes={144}
+              votes={vote.score}
               userVote={0}
               onVoteUp={() => {}}
               onVoteDown={() => {}}
