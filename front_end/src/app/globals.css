@@ -14,6 +14,9 @@ input[type="search"]::-webkit-search-results-button,
 input[type="search"]::-webkit-search-results-decoration {
   display: none;
 }
+input {
+  @apply text-sm;
+}
 
 table {
   border-collapse: collapse;
