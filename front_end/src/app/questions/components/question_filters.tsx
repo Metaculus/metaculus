@@ -7,18 +7,27 @@ import {
   QUESTION_TYPE_LABEL_MAP,
 } from "@/app/questions/constants/filters";
 import {
+  CATEGORY_FILTER,
   QUESTION_TYPE_FILTER,
   STATUS_FILTER,
   TEXT_SEARCH_FILTER,
 } from "@/app/questions/constants/query_params";
 import PopoverFilter from "@/components/popover_filter";
-import { FilterOptionType } from "@/components/popover_filter/types";
+import {
+  FilterOptionType,
+  FilterSection,
+} from "@/components/popover_filter/types";
 import SearchInput from "@/components/search_input";
 import useDebounce from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
+import { Category } from "@/types/projects";
 import { QuestionStatus, QuestionType } from "@/types/question";
 
-const QuestionFilters: FC = () => {
+type Props = {
+  categories: Category[];
+};
+
+const QuestionFilters: FC<Props> = ({ categories }) => {
   const t = useTranslations();
   const { params, setParam, deleteParam } = useSearchParams();
 
@@ -37,7 +46,7 @@ const QuestionFilters: FC = () => {
     deleteParam(TEXT_SEARCH_FILTER);
   };
 
-  const popoverFilters = useMemo(
+  const popoverFilters: FilterSection[] = useMemo(
     () => [
       {
         id: QUESTION_TYPE_FILTER,
@@ -59,8 +68,19 @@ const QuestionFilters: FC = () => {
           active: params.getAll(STATUS_FILTER).includes(status),
         })),
       },
+      {
+        id: CATEGORY_FILTER,
+        title: "Category",
+        type: FilterOptionType.Combobox,
+        options: categories.map((category) => ({
+          label: category.name,
+          value: category.slug,
+          active: params.getAll(CATEGORY_FILTER).includes(category.slug),
+        })),
+        chipColor: "olive",
+      },
     ],
-    [params]
+    [categories, params]
   );
   const handlePopOverFilterChange = (
     filterId: string,

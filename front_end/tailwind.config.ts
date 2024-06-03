@@ -16,6 +16,9 @@ const config: Config = {
       colors: {
         metac: METAC_COLORS,
       },
+      boxShadow: {
+        dropdown: `2px 3px 10px -3px ${METAC_COLORS.gray[500]}`,
+      },
       keyframes: {
         "loading-slide": {
           from: { transform: "translateX(100%)" },
