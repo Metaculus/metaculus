@@ -1,7 +1,9 @@
+import { ChipColor } from "@/components/ui/chip";
+
 export enum FilterOptionType {
   MultiChip = "multi_chip",
   ToggleChip = "toggle_chip",
-  Select = "select",
+  Combobox = "combobox",
 }
 
 export type FilterOption = {
@@ -10,9 +12,20 @@ export type FilterOption = {
   value: string;
 };
 
-export type FilterSection = {
+type BaseFilterSection = {
   id: string;
   title: string;
   options: FilterOption[];
-  type: FilterOptionType;
 };
+
+type ComboboxFilterSection = BaseFilterSection & {
+  type: FilterOptionType.Combobox;
+  chipColor?: ChipColor;
+  chipFormat?: (value: string) => string;
+};
+
+type OtherFilterSection = BaseFilterSection & {
+  type: FilterOptionType.MultiChip | FilterOptionType.ToggleChip;
+};
+
+export type FilterSection = ComboboxFilterSection | OtherFilterSection;
