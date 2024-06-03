@@ -10,8 +10,8 @@ export type QuestionsParams = {
   forecast_type?: string | string[];
   status?: string | string[];
   categories?: string | string[];
+  tags?: string | string[];
   // TODO: properly handle array params
-  tags?: string;
   projects?: string;
 };
 
