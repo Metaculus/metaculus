@@ -39,7 +39,16 @@ const useSearchParams = () => {
     [params, router, pathname]
   );
 
-  return { params, setParam, deleteParam };
+  const deleteParams = useCallback(
+    (names: string[]) => {
+      names.forEach((name) => params.delete(name));
+
+      router.push(pathname + "?" + params.toString());
+    },
+    [params, router, pathname]
+  );
+
+  return { params, setParam, deleteParam, deleteParams };
 };
 
 export default useSearchParams;
