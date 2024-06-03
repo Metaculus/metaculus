@@ -8,3 +8,18 @@ export type Topic = {
   section: TopicSection;
   questions_count: number;
 };
+
+export type Category = {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  questions_count: number;
+};
+
+export type Tag = {
+  id: number;
+  name: string;
+  slug: string;
+  questions_count: number;
+};
