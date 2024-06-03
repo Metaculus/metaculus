@@ -38,7 +38,8 @@ class Command(BaseCommand):
         # Reset sql sequences
         self._reset_sequence()
 
-    def _reset_sequence(self):
+    @staticmethod
+    def _reset_sequence():
         # Resetting DB auto-incremented sequences of Primary keys
         # Very important since migrate objects keeping their ids
         commands = StringIO()
