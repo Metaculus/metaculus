@@ -7,6 +7,7 @@ export enum FilterOptionType {
 }
 
 export type FilterOption = {
+  id?: string;
   label: string;
   active: boolean;
   value: string;
@@ -25,8 +26,17 @@ type ComboboxFilterSection = BaseFilterSection & {
   shouldEnforceSearch?: boolean;
 };
 
-type OtherFilterSection = BaseFilterSection & {
-  type: FilterOptionType.MultiChip | FilterOptionType.ToggleChip;
+type ToggleChipFilterSection = BaseFilterSection & {
+  type: FilterOptionType.ToggleChip;
 };
 
-export type FilterSection = ComboboxFilterSection | OtherFilterSection;
+type MultiChipFilterSection = BaseFilterSection & {
+  type: FilterOptionType.MultiChip;
+};
+
+export type FilterSection =
+  | ComboboxFilterSection
+  | ToggleChipFilterSection
+  | MultiChipFilterSection;
+
+export type FilterReplaceInfo = { optionId: string; replaceIds: string[] };

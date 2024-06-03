@@ -388,6 +388,7 @@
   "category": "Category",
   "tags": "Tags",
   "tagFilter": "Tag: {tag}",
+  "myParticipation": "My Participation",
   "year": "year",
   "years": "years",
   "error": "Error",
@@ -418,5 +419,13 @@
   "toggleAllTopics": "Toggle all topics",
   "Filter": "Filter",
   "Done": "Done",
-  "Clear": "Clear"
+  "Clear": "Clear",
+  "predicted": "Predicted",
+  "notPredicted": "Not Predicted",
+  "authored": "Authored",
+  "upvoted": "Upvoted",
+  "moderating": "Moderating",
+  "visibility": "Visibility",
+  "public": "Public",
+  "private": "Private"
 }

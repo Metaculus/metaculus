@@ -5,15 +5,20 @@ import { FC } from "react";
 
 import ComboboxFilter from "@/components/popover_filter/combobox_filter";
 import MultiChipFilter from "@/components/popover_filter/multi_chip_filter";
+import ToggleChipFilter from "@/components/popover_filter/toggle_chip_filter";
 import Button from "@/components/ui/button";
 
-import { FilterOptionType, FilterSection } from "./types";
+import { FilterOptionType, FilterReplaceInfo, FilterSection } from "./types";
 
 type Props = {
   filters: FilterSection[];
   buttonLabel?: string;
   panelClassName?: string;
-  onChange: (filterId: string, optionValue: string | string[]) => void;
+  onChange: (
+    filterId: string,
+    optionValue: string | string[] | null,
+    replaceInfo?: FilterReplaceInfo
+  ) => void;
   onClear: () => void;
 };
 
@@ -45,6 +50,14 @@ const PopoverFilter: FC<Props> = ({
             chipColor={filter.chipColor}
             chipFormat={filter.chipFormat}
             shouldEnforceSearch={filter.shouldEnforceSearch}
+          />
+        );
+      case FilterOptionType.ToggleChip:
+        return (
+          <ToggleChipFilter
+            filterId={filter.id}
+            options={filter.options}
+            onChange={onChange}
           />
         );
       default:
