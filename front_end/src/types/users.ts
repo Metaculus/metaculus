@@ -3,8 +3,3 @@ export type CurrentUser = {
   username: string;
   email: string;
 };
-
-export type UserContextType = {
-  user: CurrentUser | null;
-  setUser: (user: CurrentUser | null) => void;
-};

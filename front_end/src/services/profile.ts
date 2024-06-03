@@ -4,8 +4,6 @@ import { get } from "@/utils/fetch";
 
 class ProfileApi {
   static async getMyProfile(): Promise<CurrentUser | null> {
-    console.log(`Token ${JSON.stringify(getServerSession())}`);
-
     const token = getServerSession();
 
     if (!token) {
@@ -13,11 +11,7 @@ class ProfileApi {
     }
 
     try {
-      return await get<CurrentUser>("/users/me", {
-        headers: {
-          Authorization: `Token ${token}`,
-        },
-      });
+      return await get<CurrentUser>("/users/me");
     } catch (err) {
       console.error("Error getting current user:", err);
       return null;

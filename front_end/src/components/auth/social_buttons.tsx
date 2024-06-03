@@ -6,17 +6,12 @@ import { FC, useEffect, useState } from "react";
 
 import { Google } from "@/components/icons/google";
 import Button from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth_context";
 import AuthApi from "@/services/auth";
 import { SocialProvider } from "@/types/auth";
 
 const SocialButtons: FC = () => {
-  const [socialProviders, setSocialProviders] = useState<SocialProvider[]>();
-
-  useEffect(() => {
-    AuthApi.getSocialProviders(`${window.origin}/accounts/social`).then(
-      setSocialProviders
-    );
-  }, []);
+  const { socialProviders } = useAuth();
 
   return (
     <>

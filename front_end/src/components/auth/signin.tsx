@@ -11,8 +11,8 @@ import { signInSchema, SignInSchema } from "@/app/accounts/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
 import { Input } from "@/components/form_field";
+import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
-import { useUser } from "@/contexts/user_context";
 
 type SignInModalType = {
   isOpen: boolean;
@@ -23,7 +23,7 @@ const SignInModal: FC<SignInModalType> = ({
   isOpen,
   onClose,
 }: SignInModalType) => {
-  const { setUser } = useUser();
+  const { setUser } = useAuth();
   const { setCurrentModal } = useModal();
   const { register } = useForm<SignInSchema>({
     resolver: zodResolver(signInSchema),

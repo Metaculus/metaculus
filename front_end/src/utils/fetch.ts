@@ -1,3 +1,4 @@
+import { getServerSession } from "@/services/session";
 import { ErrorResponse, FetchError, FetchOptions } from "@/types/fetch";
 
 export function encodeQueryParams(params: Record<string, any>): string {
@@ -50,6 +51,20 @@ const appFetch = async <T>(
   url: string,
   options: FetchOptions = {}
 ): Promise<T> => {
+  const authToken = getServerSession();
+
+  // Propagate current auth token
+  if (authToken) {
+    defaultOptions.headers = {
+      ...defaultOptions.headers,
+      ...(getServerSession()
+        ? {
+            Authorization: `Token ${getServerSession()}`,
+          }
+        : {}),
+    };
+  }
+
   const finalUrl = `${BASE_URL}${url}`;
   const finalOptions: FetchOptions = {
     ...defaultOptions,

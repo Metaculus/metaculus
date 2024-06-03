@@ -3,12 +3,12 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { FC } from "react";
 
+import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
-import { useUser } from "@/contexts/user_context";
 
 const NavUserButton: FC = () => {
   const { setCurrentModal } = useModal();
-  const { user, setUser } = useUser();
+  const { user, setUser } = useAuth();
 
   return (
     <>
