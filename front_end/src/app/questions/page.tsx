@@ -17,12 +17,14 @@ export default async function Questions({
 }) {
   const filters = processFilters(searchParams);
 
-  const [questions, topics] = await Promise.all([
+  const [questions, topics, categories, tags] = await Promise.all([
     QuestionsApi.getQuestionsWithoutForecasts({
       ...filters,
       limit: 10,
     }),
     ProjectsApi.getTopics(),
+    ProjectsApi.getCategories(),
+    ProjectsApi.getTags(),
   ]);
 
   return (
