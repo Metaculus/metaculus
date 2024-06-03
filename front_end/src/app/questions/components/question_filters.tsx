@@ -3,7 +3,10 @@ import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
 import { QUESTION_TYPE_LABEL_MAP } from "@/app/questions/constants/filters";
-import { TEXT_SEARCH_FILTER } from "@/app/questions/constants/query_params";
+import {
+  QUESTION_TYPE_FILTER,
+  TEXT_SEARCH_FILTER,
+} from "@/app/questions/constants/query_params";
 import PopoverFilter from "@/components/popover_filter";
 import { FilterOptionType } from "@/components/popover_filter/types";
 import SearchInput from "@/components/search_input";
@@ -13,7 +16,7 @@ import { QuestionType } from "@/types/question";
 
 const QuestionFilters: FC = () => {
   const t = useTranslations();
-  const { setParam, deleteParam } = useSearchParams();
+  const { params, setParam, deleteParam } = useSearchParams();
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
@@ -30,26 +33,29 @@ const QuestionFilters: FC = () => {
     deleteParam(TEXT_SEARCH_FILTER);
   };
 
-  // TODO: connect with search params, integrate with BE
   const popoverFilters = useMemo(
     () => [
       {
-        id: "question_type",
+        id: QUESTION_TYPE_FILTER,
         title: "Question Type",
         type: FilterOptionType.MultiChip,
         options: Object.values(QuestionType).map((type) => ({
           label: QUESTION_TYPE_LABEL_MAP[type],
           value: type,
-          active: false,
+          active: params.getAll(QUESTION_TYPE_FILTER).includes(type),
         })),
       },
     ],
-    []
+    [params]
   );
   const handlePopOverFilterChange = (
     filterId: string,
     optionValue: string | string[]
-  ) => {};
+  ) => {
+    if (filterId === QUESTION_TYPE_FILTER) {
+      setParam(QUESTION_TYPE_FILTER, optionValue);
+    }
+  };
 
   return (
     <div>
