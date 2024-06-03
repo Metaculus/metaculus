@@ -7,9 +7,10 @@ import {
   QUESTION_TYPE_LABEL_MAP,
 } from "@/app/questions/constants/filters";
 import {
-  CATEGORY_FILTER,
+  CATEGORIES_FILTER,
   QUESTION_TYPE_FILTER,
   STATUS_FILTER,
+  TAGS_FILTER,
   TEXT_SEARCH_FILTER,
 } from "@/app/questions/constants/query_params";
 import PopoverFilter from "@/components/popover_filter";
@@ -20,14 +21,15 @@ import {
 import SearchInput from "@/components/search_input";
 import useDebounce from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
-import { Category } from "@/types/projects";
+import { Category, Tag } from "@/types/projects";
 import { QuestionStatus, QuestionType } from "@/types/question";
 
 type Props = {
   categories: Category[];
+  tags: Tag[];
 };
 
-const QuestionFilters: FC<Props> = ({ categories }) => {
+const QuestionFilters: FC<Props> = ({ categories, tags }) => {
   const t = useTranslations();
   const { params, setParam, deleteParam } = useSearchParams();
 
@@ -69,18 +71,31 @@ const QuestionFilters: FC<Props> = ({ categories }) => {
         })),
       },
       {
-        id: CATEGORY_FILTER,
+        id: CATEGORIES_FILTER,
         title: "Category",
         type: FilterOptionType.Combobox,
         options: categories.map((category) => ({
           label: category.name,
           value: category.slug,
-          active: params.getAll(CATEGORY_FILTER).includes(category.slug),
+          active: params.getAll(CATEGORIES_FILTER).includes(category.slug),
         })),
         chipColor: "olive",
       },
+      {
+        id: TAGS_FILTER,
+        title: "Tags",
+        type: FilterOptionType.Combobox,
+        options: tags.map((tag) => ({
+          label: tag.name,
+          value: tag.slug,
+          active: params.getAll(TAGS_FILTER).includes(tag.slug),
+        })),
+        chipColor: "blue",
+        chipFormat: (value) => `Tag: ${value.toLowerCase()}`,
+        shouldEnforceSearch: true,
+      },
     ],
-    [categories, params]
+    [categories, params, tags]
   );
   const handlePopOverFilterChange = (
     filterId: string,

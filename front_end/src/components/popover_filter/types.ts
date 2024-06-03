@@ -22,6 +22,7 @@ type ComboboxFilterSection = BaseFilterSection & {
   type: FilterOptionType.Combobox;
   chipColor?: ChipColor;
   chipFormat?: (value: string) => string;
+  shouldEnforceSearch?: boolean;
 };
 
 type OtherFilterSection = BaseFilterSection & {
