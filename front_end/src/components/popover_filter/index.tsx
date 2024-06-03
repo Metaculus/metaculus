@@ -5,15 +5,21 @@ import { FC } from "react";
 
 import ComboboxFilter from "@/components/popover_filter/combobox_filter";
 import MultiChipFilter from "@/components/popover_filter/multi_chip_filter";
+import ToggleChipFilter from "@/components/popover_filter/toggle_chip_filter";
 import Button from "@/components/ui/button";
 
-import { FilterOptionType, FilterSection } from "./types";
+import { FilterOptionType, FilterReplaceInfo, FilterSection } from "./types";
 
 type Props = {
   filters: FilterSection[];
   buttonLabel?: string;
   panelClassName?: string;
-  onChange: (filterId: string, optionValue: string | string[]) => void;
+  onChange: (
+    filterId: string,
+    optionValue: string | string[] | null,
+    replaceInfo?: FilterReplaceInfo
+  ) => void;
+  onClear: () => void;
 };
 
 const PopoverFilter: FC<Props> = ({
@@ -21,6 +27,7 @@ const PopoverFilter: FC<Props> = ({
   buttonLabel,
   panelClassName,
   onChange,
+  onClear,
 }) => {
   const t = useTranslations();
 
@@ -45,6 +52,14 @@ const PopoverFilter: FC<Props> = ({
             shouldEnforceSearch={filter.shouldEnforceSearch}
           />
         );
+      case FilterOptionType.ToggleChip:
+        return (
+          <ToggleChipFilter
+            filterId={filter.id}
+            options={filter.options}
+            onChange={onChange}
+          />
+        );
       default:
         return null;
     }
@@ -52,7 +67,7 @@ const PopoverFilter: FC<Props> = ({
 
   return (
     <Popover className="relative">
-      {({ open }) => (
+      {({ open, close }) => (
         <>
           <PopoverButton
             as={Button}
@@ -77,6 +92,12 @@ const PopoverFilter: FC<Props> = ({
                   {renderFilter(filter)}
                 </div>
               ))}
+            </div>
+            <div className="ml-auto mt-4 flex w-full justify-end gap-3 border-t border-metac-gray-300 pt-4 max-sm:sticky max-sm:bottom-0 max-sm:w-full max-sm:bg-metac-gray-0 max-sm:py-4 dark:border-metac-gray-300-dark max-sm:dark:bg-metac-gray-0-dark">
+              <Button onClick={onClear}>{t("Clear")}</Button>
+              <Button variant="primary" onClick={close}>
+                {t("Done")}
+              </Button>
             </div>
           </PopoverPanel>
         </>

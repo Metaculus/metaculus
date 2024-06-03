@@ -11,6 +11,12 @@ export type QuestionsParams = {
   status?: string | string[];
   categories?: string | string[];
   tags?: string | string[];
+  guessed_by?: string;
+  not_guessed_by?: string;
+  author?: string;
+  upvoted_by?: string;
+  access?: string;
+  commented_by?: string;
   // TODO: properly handle array params
   projects?: string;
 };
