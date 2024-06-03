@@ -1,5 +1,10 @@
 import { getServerSession } from "@/services/session";
-import { ErrorResponse, FetchError, FetchOptions } from "@/types/fetch";
+import {
+  ApiErrorResponse,
+  ErrorResponse,
+  FetchError,
+  FetchOptions,
+} from "@/types/fetch";
 
 export function encodeQueryParams(params: Record<string, any>): string {
   const encodedParams = Object.entries(params)
@@ -18,14 +23,38 @@ export function encodeQueryParams(params: Record<string, any>): string {
   return encodedParams ? `?${encodedParams}` : "";
 }
 
+/**
+ * Util for converting Django errors to the standardized way
+ */
+const normalizeApiErrors = (payload: ApiErrorResponse): ErrorResponse => {
+  if (typeof payload === "string") {
+    return {
+      non_field_errors: [payload],
+      message: payload,
+    };
+  } else if (Array.isArray(payload)) {
+    return {
+      non_field_errors: payload,
+      message: payload[0],
+    };
+  } else {
+    return {
+      ...payload,
+      message: payload.message || Object.values(payload).flat()[0],
+    };
+  }
+};
+
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
-    const errorData: ErrorResponse = await response.json();
-    const error: FetchError = new Error(
-      errorData.message || "An error occurred"
-    );
+    const errorData: ApiErrorResponse = await response.json();
+
+    // Converting Django errors
+    const data: ErrorResponse = normalizeApiErrors(errorData);
+
+    const error: FetchError = new Error("An error occurred");
     error.response = response;
-    error.data = errorData;
+    error.data = data;
     throw error;
   }
 

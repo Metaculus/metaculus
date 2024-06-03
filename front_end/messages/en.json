@@ -427,5 +427,10 @@
   "moderating": "Moderating",
   "visibility": "Visibility",
   "public": "Public",
-  "private": "Private"
+  "private": "Private",
+  "profile": "Profile",
+  "changeUsernameButton": "change",
+  "memberSince": "Member Since",
+  "bio": "Bio",
+  "website": "Website"
 }
