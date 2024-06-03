@@ -12,9 +12,5 @@ def build_frontend_url(path: str = None):
 
 def build_frontend_account_activation_url(user_id: int, token: str):
     return build_frontend_url(
-        f"/account/activation?{urlencode({'user_id': user_id, 'token': token})}"
+        f"/accounts/activate?{urlencode({'user_id': user_id, 'token': token})}"
     )
-
-
-def build_frontend_social_auth_redirect(provider: str):
-    return build_frontend_url(f"/login/social/{provider}")

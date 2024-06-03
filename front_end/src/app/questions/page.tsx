@@ -1,5 +1,11 @@
+import QuestionFilters from "@/app/questions/components/question_filters";
 import QuestionTopics from "@/app/questions/components/question_topics";
-import { TOPIC_FILTER } from "@/app/questions/constants/search";
+import {
+  QUESTION_TYPE_FILTER,
+  STATUS_FILTER,
+  TEXT_SEARCH_FILTER,
+  TOPIC_FILTER,
+} from "@/app/questions/constants/query_params";
 import QuestionCard from "@/components/question_card";
 import ProjectsApi from "@/services/projects";
 import QuestionsApi, { QuestionsParams } from "@/services/questions";
@@ -24,6 +30,7 @@ export default async function Questions({
       <div className="gap-3 p-0 sm:flex sm:flex-row sm:gap-4">
         <QuestionTopics topics={topics} />
         <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
+          <QuestionFilters />
           <div className="flex flex-col gap-3">
             {questions.map((q) => (
               <QuestionCard key={q.id} question={q} />
@@ -42,6 +49,18 @@ function processFilters(
 
   if (typeof searchParams[TOPIC_FILTER] === "string") {
     filters.topic = searchParams[TOPIC_FILTER];
+  }
+
+  if (typeof searchParams[TEXT_SEARCH_FILTER] === "string") {
+    filters.search = searchParams[TEXT_SEARCH_FILTER];
+  }
+
+  if (searchParams[QUESTION_TYPE_FILTER]) {
+    filters.forecast_type = searchParams[QUESTION_TYPE_FILTER];
+  }
+
+  if (searchParams[STATUS_FILTER]) {
+    filters.status = searchParams[STATUS_FILTER];
   }
 
   return filters;

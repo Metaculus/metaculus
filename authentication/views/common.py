@@ -16,6 +16,7 @@ from authentication.services import (
     send_activation_email,
 )
 from users.models import User
+from users.serializers import UserPrivateSerializer
 
 
 @api_view(["POST"])
@@ -30,7 +31,7 @@ def login_api_view(request):
 
     token, _ = Token.objects.get_or_create(user=user)
 
-    return Response({"token": token.key})
+    return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
 
 
 @api_view(["POST"])
@@ -84,4 +85,6 @@ def signup_activate_api_view(request):
     check_and_activate_user(user, token)
     token, _ = Token.objects.get_or_create(user=user)
 
-    return Response({"token": token.key})
+    return Response(
+        {"token": token.key, "user": UserPrivateSerializer(user).data}
+    )

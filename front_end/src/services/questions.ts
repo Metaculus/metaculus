@@ -5,7 +5,10 @@ import { encodeQueryParams, get } from "@/utils/fetch";
 export type QuestionsParams = {
   topic?: string;
   answered_by_me?: boolean;
+  search?: string;
   limit?: number;
+  forecast_type?: string | string[];
+  status?: string | string[];
   // TODO: properly handle array params
   tags?: string;
   categories?: string;
