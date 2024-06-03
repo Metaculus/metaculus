@@ -432,5 +432,7 @@
   "changeUsernameButton": "change",
   "memberSince": "Member Since",
   "bio": "Bio",
-  "website": "Website"
+  "website": "Website",
+  "profileBioPlaceholder": "Tell us a little about yourself.",
+  "username": "username"
 }

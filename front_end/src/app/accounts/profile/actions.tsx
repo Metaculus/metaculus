@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 
-import { changeUsernameSchema } from "@/app/accounts/schemas";
+import {
+  changeUsernameSchema,
+  updateProfileSchema,
+} from "@/app/accounts/schemas";
 import ProfileApi from "@/services/profile";
 import { FetchError } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
@@ -28,6 +31,41 @@ export default async function changeUsernameAction(
 
   try {
     const user = await ProfileApi.changeUsername(validatedFields.data.username);
+    revalidatePath("/");
+
+    return {
+      user,
+    };
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
+export type UpdateProfileState = {
+  errors?: any;
+  user?: CurrentUser;
+} | null;
+
+export async function updateProfileAction(
+  prevState: UpdateProfileState,
+  formData: FormData
+): Promise<UpdateProfileState> {
+  const validatedFields = updateProfileSchema.safeParse(
+    Object.fromEntries(formData.entries())
+  );
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    const user = await ProfileApi.updateProfile(validatedFields.data);
     revalidatePath("/");
 
     return {

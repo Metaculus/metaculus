@@ -1,6 +1,6 @@
 import { getServerSession } from "@/services/session";
-import { CurrentUser, UserProfile } from "@/types/users";
-import { get, post } from "@/utils/fetch";
+import { CurrentUser } from "@/types/users";
+import { get, patch, post } from "@/utils/fetch";
 
 class ProfileApi {
   static async getMyProfile() {
@@ -31,6 +31,10 @@ class ProfileApi {
     return post<CurrentUser, { username: string }>("/users/change-username", {
       username,
     });
+  }
+
+  static async updateProfile(props: { bio?: string; website?: string }) {
+    return patch<CurrentUser, typeof props>("/users/me/update", props);
   }
 }
 

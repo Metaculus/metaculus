@@ -141,9 +141,21 @@ const put = async <T, B>(
   });
 };
 
+const patch = async <T, B>(
+  url: string,
+  body: B,
+  options: FetchOptions = {}
+): Promise<T> => {
+  return appFetch<T>(url, {
+    ...options,
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+};
+
 const del = async <T>(url: string, options: FetchOptions = {}): Promise<T> => {
   return appFetch<T>(url, { ...options, method: "DELETE" });
 };
 
-export { get, post, put, del };
+export { get, post, put, del, patch };
 export default appFetch;

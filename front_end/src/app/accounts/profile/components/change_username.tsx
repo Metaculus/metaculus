@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 import { useFormState } from "react-dom";
@@ -15,7 +14,7 @@ import {
   changeUsernameSchema,
 } from "@/app/accounts/schemas";
 import BaseModal from "@/components/base_modal";
-import { Input, InputError } from "@/components/form_field";
+import { FormError, Input } from "@/components/form_field";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 
@@ -46,7 +45,6 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
   onClose,
 }: SignInModalType) => {
   const t = useTranslations();
-  const router = useRouter();
   const { setUser } = useAuth();
   const { register } = useForm<ChangeUsernameSchema>({
     resolver: zodResolver(changeUsernameSchema),
@@ -76,7 +74,7 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
             placeholder={t("newUsernamePlaceholder")}
             className="border border-metac-gray-600-dark bg-transparent px-[5px] py-[3px] font-sans"
           />
-          <InputError
+          <FormError
             errors={state?.errors}
             className="text-metac-red-500-dark"
             {...register("username")}
@@ -87,13 +85,13 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
             className="border border-metac-gray-600-dark border-t-transparent bg-transparent px-[5px] py-[3px] font-sans"
             {...register("usernameConfirm")}
           />
-          <InputError
+          <FormError
             name="usernameConfirm"
             errors={state?.errors}
             className="text-metac-red-500-dark"
           />
           {/* Global errors container */}
-          <InputError
+          <FormError
             errors={state?.errors}
             name="non_field_errors"
             className="text-metac-red-500-dark"

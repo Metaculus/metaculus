@@ -388,5 +388,7 @@
   "changeUsernameButton": "změnit",
   "memberSince": "Člen od",
   "bio": "O uživateli",
-  "website": "Web"
+  "website": "Web",
+  "profileBioPlaceholder": "Pokud chcete, zde nám o sobě můžete něco málo sdělit (např. jaká témata Vás zajímají).",
+  "username": "uživatelské jméno"
 }

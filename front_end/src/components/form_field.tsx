@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import * as React from "react";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC } from "react";
 
 import { ErrorResponse } from "@/types/fetch";
 
@@ -15,7 +15,12 @@ export interface InputProps
   errors?: ErrorResponse;
 }
 
-export const InputError: FC<ErrorProps> = ({ errors, name, className }) => {
+export interface TextAreaProps
+  extends React.InputHTMLAttributes<HTMLTextAreaElement> {
+  errors?: ErrorResponse;
+}
+
+export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
   return (
     <>
       {errors && name in errors && (
@@ -43,9 +48,16 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           name={name}
           {...props}
         />
-        {name && errors && <InputError name={name} errors={errors} />}
+        {name && errors && <FormError name={name} errors={errors} />}
       </>
     );
   }
 );
 Input.displayName = "Input";
+
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  ({ className, name, children, ...props }, ref) => {
+    return <textarea className={className} name={name} {...props} />;
+  }
+);
+Textarea.displayName = "Textarea";

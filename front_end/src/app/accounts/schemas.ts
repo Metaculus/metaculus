@@ -39,3 +39,10 @@ export const changeUsernameSchema = z
     }
   });
 export type ChangeUsernameSchema = z.infer<typeof changeUsernameSchema>;
+
+export const updateProfileSchema = z.object({
+  bio: z.string(),
+  website: z.string(),
+});
+
+export type UpdateProfileSchema = z.infer<typeof updateProfileSchema>;
