@@ -44,3 +44,5 @@ def change_username_api_view(request: Request):
 
     user.update_username(username)
     user.save()
+
+    return Response(UserPrivateSerializer(user).data)
