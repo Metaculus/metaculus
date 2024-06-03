@@ -1,0 +1,22 @@
+import { redirect } from "next/navigation";
+
+import AuthApi from "@/services/auth";
+import { setServerSession } from "@/services/session";
+import { SocialProviderType } from "@/types/auth";
+
+export async function GET(
+  request: Request,
+  { params }: { params: { provider: SocialProviderType } }
+) {
+  const url = new URL(request.url);
+  const search_params = Object.fromEntries(url.searchParams.entries());
+
+  const { user_id: userId, token } = search_params;
+
+  try {
+    const response = await AuthApi.activateAccount(userId, token);
+    setServerSession(response.token);
+  } catch (err) {}
+
+  return redirect("/");
+}
