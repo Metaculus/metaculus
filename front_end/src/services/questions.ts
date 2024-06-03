@@ -7,6 +7,7 @@ export type QuestionsParams = {
   answered_by_me?: boolean;
   search?: string;
   limit?: number;
+  forecast_type?: string | string[];
   // TODO: properly handle array params
   tags?: string;
   categories?: string;
