@@ -19,6 +19,7 @@ type Props = {
   onChange: (filterId: string, optionValue: string[]) => void;
   chipColor?: ChipColor;
   chipFormat?: (value: string) => string;
+  shouldEnforceSearch?: boolean;
 };
 
 const ComboboxFilter: FC<Props> = ({
@@ -27,6 +28,7 @@ const ComboboxFilter: FC<Props> = ({
   onChange,
   chipColor,
   chipFormat,
+  shouldEnforceSearch = false,
 }) => {
   const [query, setQuery] = useState("");
   const activeOptions = useMemo(
@@ -36,12 +38,12 @@ const ComboboxFilter: FC<Props> = ({
 
   const searchedOptions = useMemo(() => {
     if (query === "") {
-      return options;
+      return shouldEnforceSearch ? [] : options;
     }
     return options.filter((o) =>
       o.label.toLowerCase().includes(query.toLowerCase())
     );
-  }, [options, query]);
+  }, [options, query, shouldEnforceSearch]);
 
   const handleClearChipClick = (option: FilterOption) => {
     onChange(
@@ -65,6 +67,7 @@ const ComboboxFilter: FC<Props> = ({
             options.map((o) => o.value)
           );
         }}
+        onClose={() => setQuery("")}
       >
         <div className="relative w-full">
           <ComboboxInput
@@ -77,7 +80,7 @@ const ComboboxFilter: FC<Props> = ({
           </ComboboxButton>
         </div>
         <div className="relative w-full">
-          <ComboboxOptions className="border-b-1 absolute inset-x-0 -top-2 max-h-[250px] overflow-auto rounded-b rounded-l border border-metac-gray-500 bg-metac-gray-0 text-metac-gray-900 shadow-dropdown empty:hidden">
+          <ComboboxOptions className="border-b-1 absolute inset-x-0 -top-2 z-10 max-h-[250px] overflow-auto rounded-b rounded-l border border-metac-gray-500 bg-metac-gray-0 text-metac-gray-900 shadow-dropdown empty:hidden">
             {searchedOptions.map((o) => (
               <ComboboxOption
                 key={`${filterId}-option-${o.value}`}

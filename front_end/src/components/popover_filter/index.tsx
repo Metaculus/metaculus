@@ -42,6 +42,7 @@ const PopoverFilter: FC<Props> = ({
             onChange={onChange}
             chipColor={filter.chipColor}
             chipFormat={filter.chipFormat}
+            shouldEnforceSearch={filter.shouldEnforceSearch}
           />
         );
       default:
