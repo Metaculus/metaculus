@@ -1,9 +1,10 @@
 import QuestionFilters from "@/app/questions/components/question_filters";
 import QuestionTopics from "@/app/questions/components/question_topics";
 import {
-  CATEGORY_FILTER,
+  CATEGORIES_FILTER,
   QUESTION_TYPE_FILTER,
   STATUS_FILTER,
+  TAGS_FILTER,
   TEXT_SEARCH_FILTER,
   TOPIC_FILTER,
 } from "@/app/questions/constants/query_params";
@@ -33,7 +34,7 @@ export default async function Questions({
       <div className="gap-3 p-0 sm:flex sm:flex-row sm:gap-4">
         <QuestionTopics topics={topics} />
         <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
-          <QuestionFilters categories={categories} />
+          <QuestionFilters categories={categories} tags={tags} />
           <div className="flex flex-col gap-3">
             {questions.map((q) => (
               <QuestionCard key={q.id} question={q} />
@@ -66,8 +67,12 @@ function processFilters(
     filters.status = searchParams[STATUS_FILTER];
   }
 
-  if (searchParams[CATEGORY_FILTER]) {
-    filters.categories = searchParams[CATEGORY_FILTER];
+  if (searchParams[CATEGORIES_FILTER]) {
+    filters.categories = searchParams[CATEGORIES_FILTER];
+  }
+
+  if (searchParams[TAGS_FILTER]) {
+    filters.tags = searchParams[TAGS_FILTER];
   }
 
   return filters;
