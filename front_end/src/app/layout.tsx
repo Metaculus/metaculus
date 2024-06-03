@@ -1,13 +1,20 @@
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
-config.autoAddCss = false;
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
+import { headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
 import Header from "@/app/header";
+import GlobalModals from "@/components/global_modals";
+import AuthProvider from "@/contexts/auth_context";
+import ModalProvider from "@/contexts/modal_context";
+import AuthApi from "@/services/auth";
+import ProfileApi from "@/services/profile";
+
+config.autoAddCss = false;
 
 const sourceSerifPro = localFont({
   src: [
@@ -92,6 +99,11 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const messages = await getMessages();
+  const user = await ProfileApi.getMyProfile();
+  const currentUrl = new URL(headers().get("x-url")!);
+  const socialProviders = await AuthApi.getSocialProviders(
+    `${currentUrl.origin}/accounts/social`
+  );
 
   return (
     <html
@@ -100,8 +112,13 @@ export default async function RootLayout({
     >
       <body className="min-h-screen w-full bg-metac-blue-200 dark:bg-metac-blue-50-dark">
         <NextIntlClientProvider messages={messages}>
-          <Header />
-          <div className="pt-12 ">{children}</div>
+          <AuthProvider user={user} socialProviders={socialProviders}>
+            <ModalProvider>
+              <Header />
+              <div className="pt-12 ">{children}</div>
+              <GlobalModals />
+            </ModalProvider>
+          </AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>
