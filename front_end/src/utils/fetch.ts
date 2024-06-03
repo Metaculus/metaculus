@@ -1,3 +1,4 @@
+import { getServerSession } from "@/services/session";
 import { ErrorResponse, FetchError, FetchOptions } from "@/types/fetch";
 
 export function encodeQueryParams(params: Record<string, any>): string {
@@ -27,7 +28,15 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     error.data = errorData;
     throw error;
   }
-  return response.json();
+
+  // Some endpoints might still have successful null response
+  // So need to handle such cases
+  const text = await response.text();
+  if (!text) {
+    return null as T;
+  }
+
+  return JSON.parse(text);
 };
 
 const BASE_URL =
@@ -42,6 +51,20 @@ const appFetch = async <T>(
   url: string,
   options: FetchOptions = {}
 ): Promise<T> => {
+  const authToken = getServerSession();
+
+  // Propagate current auth token
+  if (authToken) {
+    defaultOptions.headers = {
+      ...defaultOptions.headers,
+      ...(getServerSession()
+        ? {
+            Authorization: `Token ${getServerSession()}`,
+          }
+        : {}),
+    };
+  }
+
   const finalUrl = `${BASE_URL}${url}`;
   const finalOptions: FetchOptions = {
     ...defaultOptions,

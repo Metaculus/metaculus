@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FC } from "react";
 
+import NavUserButton from "@/components/auth";
 import NavLink from "@/components/nav_link";
 
 const LINKS = [
@@ -39,6 +40,9 @@ const Header: FC = () => {
               </NavLink>
             </li>
           ))}
+          <li className="z-10 lg:flex lg:items-center">
+            <NavUserButton />
+          </li>
         </ul>
       </div>
     </header>
