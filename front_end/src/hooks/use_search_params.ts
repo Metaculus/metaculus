@@ -48,7 +48,26 @@ const useSearchParams = () => {
     [params, router, pathname]
   );
 
-  return { params, setParam, deleteParam, deleteParams };
+  const replaceParams = useCallback(
+    (
+      oldParams: string[],
+      newParams: Array<{ name: string; value: string | string[] }>
+    ) => {
+      oldParams.forEach((name) => params.delete(name));
+      newParams.forEach(({ name, value }) => {
+        if (Array.isArray(value)) {
+          value.map((val) => params.append(name, encodeURIComponent(val)));
+        } else {
+          params.append(name, encodeURIComponent(value));
+        }
+      });
+
+      router.push(pathname + "?" + params.toString());
+    },
+    [router, pathname, params]
+  );
+
+  return { params, setParam, deleteParam, deleteParams, replaceParams };
 };
 
 export default useSearchParams;
