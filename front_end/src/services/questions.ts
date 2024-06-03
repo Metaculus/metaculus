@@ -9,9 +9,9 @@ export type QuestionsParams = {
   limit?: number;
   forecast_type?: string | string[];
   status?: string | string[];
+  categories?: string | string[];
   // TODO: properly handle array params
   tags?: string;
-  categories?: string;
   projects?: string;
 };
 
