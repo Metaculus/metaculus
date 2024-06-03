@@ -1,6 +1,6 @@
 import { QuestionStatus, QuestionType } from "@/types/question";
 
-// TODO: translate these
+// TODO: translate
 export const QUESTION_TYPE_LABEL_MAP = {
   [QuestionType.Numeric]: "Numeric",
   [QuestionType.Date]: "Date",
@@ -8,6 +8,7 @@ export const QUESTION_TYPE_LABEL_MAP = {
   [QuestionType.Binary]: "Binary",
 };
 
+// TODO: translate
 export const QUESTION_STATUS_LABEL_MAP = {
   [QuestionStatus.Active]: "Open",
   [QuestionStatus.Resolved]: "Resolved",
