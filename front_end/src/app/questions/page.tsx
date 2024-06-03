@@ -2,6 +2,7 @@ import QuestionFilters from "@/app/questions/components/question_filters";
 import QuestionTopics from "@/app/questions/components/question_topics";
 import {
   QUESTION_TYPE_FILTER,
+  STATUS_FILTER,
   TEXT_SEARCH_FILTER,
   TOPIC_FILTER,
 } from "@/app/questions/constants/query_params";
@@ -56,6 +57,10 @@ function processFilters(
 
   if (searchParams[QUESTION_TYPE_FILTER]) {
     filters.forecast_type = searchParams[QUESTION_TYPE_FILTER];
+  }
+
+  if (searchParams[STATUS_FILTER]) {
+    filters.status = searchParams[STATUS_FILTER];
   }
 
   return filters;
