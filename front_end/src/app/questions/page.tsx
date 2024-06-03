@@ -1,12 +1,18 @@
 import QuestionFilters from "@/app/questions/components/question_filters";
 import QuestionTopics from "@/app/questions/components/question_topics";
 import {
+  ACCESS_FILTER,
+  AUTHOR_FILTER,
   CATEGORIES_FILTER,
+  COMMENTED_BY_FILTER,
+  GUESSED_BY_FILTER,
+  NOT_GUESSED_BY_FILTER,
   QUESTION_TYPE_FILTER,
   STATUS_FILTER,
   TAGS_FILTER,
   TEXT_SEARCH_FILTER,
   TOPIC_FILTER,
+  UPVOTED_BY_FILTER,
 } from "@/app/questions/constants/query_params";
 import QuestionCard from "@/components/question_card";
 import ProjectsApi from "@/services/projects";
@@ -51,12 +57,12 @@ function processFilters(
 ): Partial<QuestionsParams> {
   const filters: QuestionsParams = {};
 
-  if (typeof searchParams[TOPIC_FILTER] === "string") {
-    filters.topic = searchParams[TOPIC_FILTER];
-  }
-
   if (typeof searchParams[TEXT_SEARCH_FILTER] === "string") {
     filters.search = searchParams[TEXT_SEARCH_FILTER];
+  }
+
+  if (typeof searchParams[TOPIC_FILTER] === "string") {
+    filters.topic = searchParams[TOPIC_FILTER];
   }
 
   if (searchParams[QUESTION_TYPE_FILTER]) {
@@ -73,6 +79,26 @@ function processFilters(
 
   if (searchParams[TAGS_FILTER]) {
     filters.tags = searchParams[TAGS_FILTER];
+  }
+
+  if (typeof searchParams[GUESSED_BY_FILTER] === "string") {
+    filters.guessed_by = searchParams[GUESSED_BY_FILTER];
+  }
+  if (typeof searchParams[AUTHOR_FILTER] === "string") {
+    filters.author = searchParams[AUTHOR_FILTER];
+  }
+  if (typeof searchParams[UPVOTED_BY_FILTER] === "string") {
+    filters.upvoted_by = searchParams[UPVOTED_BY_FILTER];
+  }
+  if (typeof searchParams[COMMENTED_BY_FILTER] === "string") {
+    filters.commented_by = searchParams[COMMENTED_BY_FILTER];
+  }
+  if (typeof searchParams[NOT_GUESSED_BY_FILTER] === "string") {
+    filters.not_guessed_by = searchParams[NOT_GUESSED_BY_FILTER];
+  }
+
+  if (typeof searchParams[ACCESS_FILTER] === "string") {
+    filters.access = searchParams[ACCESS_FILTER];
   }
 
   return filters;
