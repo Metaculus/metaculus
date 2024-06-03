@@ -6,9 +6,9 @@ export enum QuestionType {
 }
 
 export enum QuestionStatus {
-  Opens = "opens",
-  Closes = "closes",
-  Resolves = "resolves",
+  Resolved = "resolved",
+  Closed = "closed",
+  Active = "active",
 }
 
 export type Category = {
@@ -70,6 +70,7 @@ export type Question = {
   categories: string[];
   topics: string[];
   vote: QuestionVote;
+  status: QuestionStatus;
 };
 
 type QuestionWithNumericForecasts = Question & {
