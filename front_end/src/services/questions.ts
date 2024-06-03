@@ -8,6 +8,7 @@ export type QuestionsParams = {
   search?: string;
   limit?: number;
   forecast_type?: string | string[];
+  status?: string | string[];
   // TODO: properly handle array params
   tags?: string;
   categories?: string;

@@ -7,7 +7,6 @@ import {
   QuestionStatus as QuestionStatusEnum,
 } from "@/types/question";
 import { formatRelativeDate } from "@/utils/date_formatters";
-import { getQuestionStatus } from "@/utils/forecasts";
 
 type Props = {
   question: Question;
@@ -17,19 +16,19 @@ type Props = {
 const QuestionStatus: FC<Props> = ({ question }) => {
   const t = useTranslations();
   const locale = useLocale();
-  const status = getQuestionStatus(question);
+  const status = question.status;
 
   const statusInfo = useMemo(() => {
-    if (status === QuestionStatusEnum.Opens) {
-      return [
-        t("opens"),
-        formatRelativeDate(locale, new Date(question.published_at), {
-          short: true,
-        }),
-      ];
-    }
+    // if (status === QuestionStatusEnum.Opens) {
+    //   return [
+    //     t("opens"),
+    //     formatRelativeDate(locale, new Date(question.published_at), {
+    //       short: true,
+    //     }),
+    //   ];
+    // }
 
-    if (status === QuestionStatusEnum.Closes) {
+    if (status === QuestionStatusEnum.Active) {
       return [
         t("closes"),
         formatRelativeDate(locale, new Date(question.closed_at), {
@@ -38,29 +37,22 @@ const QuestionStatus: FC<Props> = ({ question }) => {
       ];
     }
 
-    if (status === QuestionStatusEnum.Resolves) {
-      return [
-        t("resolves"),
-        formatRelativeDate(locale, new Date(question.resolved_at), {
-          short: true,
-        }),
-      ];
-    }
+    // if (status === QuestionStatusEnum.Resolved) {
+    //   return [
+    //     t("resolves"),
+    //     formatRelativeDate(locale, new Date(question.resolved_at), {
+    //       short: true,
+    //     }),
+    //   ];
+    // }
 
     return [];
-  }, [
-    locale,
-    question.closed_at,
-    question.published_at,
-    question.resolved_at,
-    status,
-    t,
-  ]);
+  }, [locale, question.closed_at, status, t]);
 
   return (
     <div className="flex flex-row items-center gap-1.5 truncate text-metac-gray-900 dark:text-metac-gray-900-dark">
       <QuestionStatusIcon
-        status={status}
+        status={question.status}
         published_at={question.published_at}
         closed_at={question.closed_at}
       />

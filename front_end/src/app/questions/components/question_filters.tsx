@@ -2,9 +2,13 @@
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
-import { QUESTION_TYPE_LABEL_MAP } from "@/app/questions/constants/filters";
+import {
+  QUESTION_STATUS_LABEL_MAP,
+  QUESTION_TYPE_LABEL_MAP,
+} from "@/app/questions/constants/filters";
 import {
   QUESTION_TYPE_FILTER,
+  STATUS_FILTER,
   TEXT_SEARCH_FILTER,
 } from "@/app/questions/constants/query_params";
 import PopoverFilter from "@/components/popover_filter";
@@ -12,7 +16,7 @@ import { FilterOptionType } from "@/components/popover_filter/types";
 import SearchInput from "@/components/search_input";
 import useDebounce from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
-import { QuestionType } from "@/types/question";
+import { QuestionStatus, QuestionType } from "@/types/question";
 
 const QuestionFilters: FC = () => {
   const t = useTranslations();
@@ -45,6 +49,16 @@ const QuestionFilters: FC = () => {
           active: params.getAll(QUESTION_TYPE_FILTER).includes(type),
         })),
       },
+      {
+        id: STATUS_FILTER,
+        title: "Question Status",
+        type: FilterOptionType.MultiChip,
+        options: Object.values(QuestionStatus).map((status) => ({
+          label: QUESTION_STATUS_LABEL_MAP[status],
+          value: status,
+          active: params.getAll(STATUS_FILTER).includes(status),
+        })),
+      },
     ],
     [params]
   );
@@ -52,9 +66,7 @@ const QuestionFilters: FC = () => {
     filterId: string,
     optionValue: string | string[]
   ) => {
-    if (filterId === QUESTION_TYPE_FILTER) {
-      setParam(QUESTION_TYPE_FILTER, optionValue);
-    }
+    setParam(filterId, optionValue);
   };
 
   return (
