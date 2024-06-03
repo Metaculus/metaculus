@@ -6,7 +6,7 @@ import { QuestionStatus } from "@/types/question";
 const CLOCK_RADIUS = 10;
 
 type Props = {
-  status: QuestionStatus | null;
+  status: QuestionStatus;
   published_at: string;
   closed_at: string;
 };
@@ -15,7 +15,7 @@ const QuestionStatusIcon: FC<Props> = ({ status, closed_at, published_at }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   const showClock =
-    status === QuestionStatus.Closes || status === QuestionStatus.Resolves;
+    status === QuestionStatus.Closed || status === QuestionStatus.Resolved;
 
   useEffect(() => {
     if (!svgRef.current || !showClock) return;
@@ -51,9 +51,10 @@ const QuestionStatusIcon: FC<Props> = ({ status, closed_at, published_at }) => {
   }, [closed_at, published_at, showClock]);
 
   const renderIcon = () => {
-    if (status === QuestionStatus.Opens) {
-      return <circle r="10" className="stroke-metac-blue-700 stroke-1" />;
-    }
+    // TODO: BE need to support this status
+    // if (status === QuestionStatus.Closes) {
+    //   return <circle r="10" className="stroke-metac-blue-700 stroke-1" />;
+    // }
 
     if (showClock) {
       return (
