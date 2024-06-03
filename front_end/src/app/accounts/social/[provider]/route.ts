@@ -12,15 +12,11 @@ export async function GET(
   const search_params = Object.fromEntries(url.searchParams.entries());
 
   if (search_params.code) {
-    console.log("YEAH", search_params.code);
-
     const response = await AuthApi.exchangeSocialOauthCode(
       params.provider,
       search_params.code,
       `${url.origin}${url.pathname}`
     );
-
-    console.log("response", response);
 
     if (response?.token) {
       setServerSession(response.token);

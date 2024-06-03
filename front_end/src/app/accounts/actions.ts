@@ -43,8 +43,6 @@ export default async function loginAction(
 
   setServerSession(response.token);
 
-  console.log(response);
-
   return {
     user: response.user,
   };
@@ -58,12 +56,9 @@ export async function signUpAction(
   prevState: SignUpActionState,
   formData: FormData
 ): Promise<SignUpActionState> {
-  console.log("MESSAGESSS!!!", formData);
   const validatedFields = signUpSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
-
-  console.log(validatedFields.error?.flatten().fieldErrors);
 
   if (!validatedFields.success) {
     return {

@@ -11,6 +11,7 @@ import { signInSchema, SignInSchema } from "@/app/accounts/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
 import { Input } from "@/components/form_field";
+import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 
@@ -51,12 +52,13 @@ const SignInModal: FC<SignInModalType> = ({
         </h2>
         <p className="mb-6 mt-3 text-base leading-tight">
           Don&apos;t have an account yet?
-          <button
-            className="inline-flex items-center justify-center gap-2 rounded-full text-base font-medium leading-tight text-metac-blue-800 underline hover:text-metac-blue-900 active:text-metac-blue-700 disabled:text-metac-blue-800 disabled:opacity-30 dark:text-metac-blue-800-dark dark:hover:text-metac-blue-900-dark dark:active:text-metac-blue-700-dark disabled:dark:text-metac-blue-800-dark"
+          <Button
+            variant="link"
+            size="md"
             onClick={() => setCurrentModal({ type: "signup" })}
           >
             Sign Up
-          </button>
+          </Button>
         </p>
         <form action={formAction}>
           <Input
