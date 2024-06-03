@@ -62,7 +62,6 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
 
     setUser(state.user);
     onClose(true);
-    router.refresh();
   }, [state?.user]);
 
   return (

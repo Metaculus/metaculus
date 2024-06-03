@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import { changeUsernameSchema } from "@/app/accounts/schemas";
 import ProfileApi from "@/services/profile";
 import { FetchError } from "@/types/fetch";
@@ -26,6 +28,7 @@ export default async function changeUsernameAction(
 
   try {
     const user = await ProfileApi.changeUsername(validatedFields.data.username);
+    revalidatePath("/");
 
     return {
       user,
