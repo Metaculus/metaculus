@@ -3,6 +3,8 @@
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FC, useEffect } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
@@ -24,6 +26,7 @@ const SignUpModal: FC<SignInModalType> = ({
   isOpen,
   onClose,
 }: SignInModalType) => {
+  const t = useTranslations();
   const { setCurrentModal } = useModal();
   const { register, watch } = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
@@ -45,16 +48,16 @@ const SignUpModal: FC<SignInModalType> = ({
     <BaseModal isOpen={isOpen} onClose={onClose}>
       <div>
         <h2 className="mb-4	mr-3 mt-0 text-2xl text-metac-blue-900 dark:text-metac-blue-900-dark">
-          Create a Metaculus Account
+          {t("registrationHeadingSite")}
         </h2>
         <p className="mb-6 mt-3 text-base leading-tight">
-          Already have an account?
+          {t("registrationSignInHeading")}
           <Button
             variant="link"
             size="md"
             onClick={() => setCurrentModal({ type: "signin" })}
           >
-            Log in
+            {t("signInButton")}
           </Button>
         </p>
         <div className="flex flex-col text-metac-gray-900 sm:flex-row dark:text-metac-gray-900-dark">
@@ -65,7 +68,7 @@ const SignUpModal: FC<SignInModalType> = ({
             <Input
               autoComplete="username"
               className="block w-full rounded border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
-              placeholder="choose a username"
+              placeholder={t("registrationUsernamePlaceholder")}
               type="text"
               errors={state?.errors}
               {...register("username")}
@@ -74,7 +77,7 @@ const SignUpModal: FC<SignInModalType> = ({
               <Input
                 autoComplete="new-password"
                 className="block w-full rounded-t border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
-                placeholder="password"
+                placeholder={t("passwordPlaceholder")}
                 type="password"
                 errors={state?.errors}
                 {...register("password")}
@@ -82,7 +85,7 @@ const SignUpModal: FC<SignInModalType> = ({
               <Input
                 autoComplete="new-password"
                 className="block w-full rounded-b border-x border-b border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
-                placeholder="verify password"
+                placeholder={t("registrationVerifyPasswordPlaceholder")}
                 type="password"
                 errors={state?.errors}
                 {...register("passwordAgain")}
@@ -90,14 +93,14 @@ const SignUpModal: FC<SignInModalType> = ({
             </div>
             <Input
               className="block w-full rounded border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
-              placeholder="email"
+              placeholder={t("registrationEmailPlaceholder")}
               type="email"
               errors={state?.errors}
               {...register("email")}
             />
             <div className="text-xs text-metac-red-500 dark:text-metac-red-500-dark"></div>
             <Button variant="primary" className="w-full" type="submit">
-              Sign Up
+              {t("createAnAccount")}
             </Button>
           </form>
           <div className="sm:w-80 sm:pl-4">
@@ -107,61 +110,54 @@ const SignUpModal: FC<SignInModalType> = ({
                   icon={faCheck}
                   className="text-metac-olive-700 dark:text-metac-olive-700-dark"
                 />
-                <span className="ml-4">
-                  Keep track of your predictions and build a track record
-                </span>
+                <span className="ml-4">{t("registrationInfoAbility1")}</span>
               </li>
               <li className="mb-3 flex">
                 <FontAwesomeIcon
                   icon={faCheck}
                   className="text-metac-olive-700 dark:text-metac-olive-700-dark"
                 />
-                <span className="ml-4">
-                  Get notified when predictions that you care about change
-                </span>
+                <span className="ml-4">{t("registrationInfoAbility2")}</span>
               </li>
               <li className="mb-3 flex">
                 <FontAwesomeIcon
                   icon={faCheck}
                   className="text-metac-olive-700 dark:text-metac-olive-700-dark"
                 />
-                <span className="ml-4">
-                  Join the discussion with other forecasters
-                </span>
+                <span className="ml-4">{t("registrationInfoAbility3")}</span>
               </li>
               <li className="mb-3 flex">
                 <FontAwesomeIcon
                   icon={faCheck}
                   className="text-metac-olive-700 dark:text-metac-olive-700-dark"
                 />
-                <span className="ml-4">
-                  Create private questions to track personal predictions, and
-                  optionally share them with your friends
-                </span>
+                <span className="ml-4">{t("registrationInfoAbility4")}</span>
               </li>
               <li className="mb-3 flex">
                 <FontAwesomeIcon
                   icon={faCheck}
                   className="text-metac-olive-700 dark:text-metac-olive-700-dark"
                 />
-                <span className="ml-4">
-                  Write new public questions that you want to see answered
-                </span>
+                <span className="ml-4">{t("registrationInfoAbility5")}</span>
               </li>
             </ul>
             <hr className="my-6 border-metac-gray-300 sm:hidden dark:border-metac-gray-300-dark" />
-            <SocialButtons />
+            <SocialButtons type="signup" />
           </div>
         </div>
         <div className="mt-6 text-center text-metac-gray-700 dark:text-metac-gray-700-dark">
-          By registering, you acknowledge and agree to Metaculus&apos;s{" "}
-          <a target="_blank" href="/terms-of-use/">
-            Terms of Use
-          </a>
-          <a target="_blank" href="/privacy-policy/">
-            and Privacy Policy
-          </a>
-          .
+          {t.rich("registrationTerms", {
+            terms: (chunks) => (
+              <Link target="_blank" href={"/terms-of-use/"}>
+                {chunks}
+              </Link>
+            ),
+            privacy: (chunks) => (
+              <Link target="_blank" href={"/privacy-policy/"}>
+                {chunks}
+              </Link>
+            ),
+          })}
         </div>
       </div>
     </BaseModal>
@@ -179,19 +175,24 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
   username,
   email,
 }: SignUpModalSuccessProps) => {
+  const t = useTranslations();
+
   return (
     <BaseModal isOpen={isOpen} onClose={onClose}>
       <div className="max-w-sm">
         <h2 className="mb-4	mr-3 mt-0 text-2xl text-metac-blue-900 dark:text-metac-blue-900-dark">
-          Activation Email Sent
+          {t("registrationSuccessHeading")}
         </h2>
         <div>
           <p>
-            Thanks for creating a Metaculus account <b>{username}</b>!
+            {t.rich("registrationSuccess1", {
+              username: () => <b>{username}</b>,
+            })}
           </p>
           <p>
-            An activation email has been sent to <b>{email}</b>. Please follow
-            the link inside to finish creating your account.
+            {t.rich("registrationSuccess2", {
+              email: () => <b>{email}</b>,
+            })}
           </p>
         </div>
       </div>
