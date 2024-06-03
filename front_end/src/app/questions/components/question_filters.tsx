@@ -68,15 +68,20 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
     optionValue: string | string[] | null,
     replaceInfo?: FilterReplaceInfo
   ) => {
-    if (!optionValue) {
-      deleteParam(filterId);
-      return;
-    }
-
     if (replaceInfo) {
       const { optionId, replaceIds } = replaceInfo;
 
+      if (!optionValue) {
+        deleteParam(optionId);
+        return;
+      }
+
       replaceParams(replaceIds, [{ name: optionId, value: optionValue }]);
+      return;
+    }
+
+    if (!optionValue) {
+      deleteParam(filterId);
       return;
     }
 
