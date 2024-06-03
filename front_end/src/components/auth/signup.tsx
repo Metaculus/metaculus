@@ -96,12 +96,9 @@ const SignUpModal: FC<SignInModalType> = ({
               {...register("email")}
             />
             <div className="text-xs text-metac-red-500 dark:text-metac-red-500-dark"></div>
-            <button
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-metac-blue-900 bg-metac-blue-900 px-3 py-2 text-sm font-medium leading-none text-metac-gray-200 no-underline hover:border-metac-blue-800 hover:bg-metac-blue-800 active:border-metac-gray-800 active:bg-metac-gray-800 disabled:border-metac-blue-900 disabled:bg-metac-blue-900 disabled:opacity-30 dark:border-metac-blue-900-dark dark:bg-metac-blue-900-dark dark:text-metac-gray-200-dark dark:hover:border-metac-blue-800-dark dark:hover:bg-metac-blue-800-dark dark:active:border-metac-gray-800-dark dark:active:bg-metac-gray-800-dark disabled:dark:border-metac-blue-900-dark disabled:dark:bg-metac-blue-900-dark"
-              type="submit"
-            >
+            <Button variant="primary" className="w-full" type="submit">
               Sign Up
-            </button>
+            </Button>
           </form>
           <div className="sm:w-80 sm:pl-4">
             <ul className="hidden leading-tight sm:block">
