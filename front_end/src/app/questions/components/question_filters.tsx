@@ -31,7 +31,7 @@ type Props = {
 
 const QuestionFilters: FC<Props> = ({ categories, tags }) => {
   const t = useTranslations();
-  const { params, setParam, deleteParam } = useSearchParams();
+  const { params, setParam, deleteParam, deleteParams } = useSearchParams();
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
@@ -52,7 +52,7 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
     () => [
       {
         id: QUESTION_TYPE_FILTER,
-        title: "Question Type",
+        title: t("questionType"),
         type: FilterOptionType.MultiChip,
         options: Object.values(QuestionType).map((type) => ({
           label: QUESTION_TYPE_LABEL_MAP[type],
@@ -62,7 +62,7 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
       },
       {
         id: STATUS_FILTER,
-        title: "Question Status",
+        title: t("questionStatus"),
         type: FilterOptionType.MultiChip,
         options: Object.values(QuestionStatus).map((status) => ({
           label: QUESTION_STATUS_LABEL_MAP[status],
@@ -72,7 +72,7 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
       },
       {
         id: CATEGORIES_FILTER,
-        title: "Category",
+        title: t("category"),
         type: FilterOptionType.Combobox,
         options: categories.map((category) => ({
           label: category.name,
@@ -83,7 +83,7 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
       },
       {
         id: TAGS_FILTER,
-        title: "Tags",
+        title: t("tags"),
         type: FilterOptionType.Combobox,
         options: tags.map((tag) => ({
           label: tag.name,
@@ -91,17 +91,20 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
           active: params.getAll(TAGS_FILTER).includes(tag.slug),
         })),
         chipColor: "blue",
-        chipFormat: (value) => `Tag: ${value.toLowerCase()}`,
+        chipFormat: (value) => t("tagFilter", { tag: value.toLowerCase() }),
         shouldEnforceSearch: true,
       },
     ],
-    [categories, params, tags]
+    [categories, params, t, tags]
   );
   const handlePopOverFilterChange = (
     filterId: string,
     optionValue: string | string[]
   ) => {
     setParam(filterId, optionValue);
+  };
+  const handlePopOverClearFilters = () => {
+    deleteParams(popoverFilters.map((filter) => filter.id));
   };
 
   return (
@@ -118,6 +121,7 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
             filters={popoverFilters}
             onChange={handlePopOverFilterChange}
             panelClassName="w-[500px]"
+            onClear={handlePopOverClearFilters}
           />
         </div>
       </div>

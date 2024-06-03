@@ -384,6 +384,10 @@
   "forecasters": "Forecasters",
   "comment": "Comment",
   "questionType": "Question Type",
+  "questionStatus": "Question Status",
+  "category": "Category",
+  "tags": "Tags",
+  "tagFilter": "Tag: {tag}",
   "year": "year",
   "years": "years",
   "error": "Error",
@@ -412,5 +416,7 @@
   "categories": "Categories",
   "seeAllCategories": "See all categories",
   "toggleAllTopics": "Toggle all topics",
-  "Filter": "Filter"
+  "Filter": "Filter",
+  "Done": "Done",
+  "Clear": "Clear"
 }
