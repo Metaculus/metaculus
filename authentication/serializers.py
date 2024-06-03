@@ -2,6 +2,7 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
 from users.models import User
+from users.serializers import validate_username
 
 
 class SignupSerializer(serializers.ModelSerializer):
@@ -21,10 +22,7 @@ class SignupSerializer(serializers.ModelSerializer):
         return value
 
     def validate_username(self, value):
-        if User.objects.filter(username__iexact=value).exists():
-            raise serializers.ValidationError("The username is already taken")
-
-        return value
+        return validate_username(value)
 
     def validate_password(self, value):
         validate_password(password=value)
