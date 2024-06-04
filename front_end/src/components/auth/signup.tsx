@@ -13,8 +13,8 @@ import { signUpAction, SignUpActionState } from "@/app/accounts/actions";
 import { SignUpSchema, signUpSchema } from "@/app/accounts/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
-import { Input } from "@/components/form_field";
 import Button from "@/components/ui/button";
+import { Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
 
 type SignInModalType = {
