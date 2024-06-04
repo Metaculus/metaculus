@@ -1,14 +1,58 @@
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, PropsWithChildren, useEffect } from "react";
 
 import ComboboxFilter from "@/components/popover_filter/combobox_filter";
 import MultiChipFilter from "@/components/popover_filter/multi_chip_filter";
 import ToggleChipFilter from "@/components/popover_filter/toggle_chip_filter";
 import Button from "@/components/ui/button";
+import { useBreakpoint } from "@/hooks/tailwind";
 
 import { FilterOptionType, FilterReplaceInfo, FilterSection } from "./types";
+
+type PanelProps = {
+  open: boolean;
+  fullScreenEnabled?: boolean;
+  className?: string;
+};
+
+const Panel: FC<PropsWithChildren<PanelProps>> = ({
+  open,
+  fullScreenEnabled,
+  className,
+  children,
+}) => {
+  const isLargeScreen = useBreakpoint("sm");
+
+  // prevent outer scroll when panel is opened in full screen mode
+  useEffect(() => {
+    if (!fullScreenEnabled || isLargeScreen) return;
+
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [fullScreenEnabled, isLargeScreen, open]);
+
+  return (
+    <PopoverPanel
+      className={classNames(
+        "absolute right-0 top-10 z-10 box-border flex flex-col items-start overflow-hidden overflow-y-auto rounded border border-metac-gray-300 bg-metac-gray-0 p-5 shadow-lg shadow-[#0003] dark:border-metac-gray-300-dark dark:bg-metac-gray-0-dark",
+        {
+          "max-sm:fixed max-sm:top-0 max-sm:z-[1300] max-sm:h-dvh max-sm:w-screen max-sm:overflow-y-auto max-sm:px-5 max-sm:pb-0 max-sm:pt-5":
+            fullScreenEnabled,
+        },
+        className
+      )}
+    >
+      {children}
+    </PopoverPanel>
+  );
+};
 
 type Props = {
   filters: FilterSection[];
@@ -20,6 +64,7 @@ type Props = {
     replaceInfo?: FilterReplaceInfo
   ) => void;
   onClear: () => void;
+  fullScreenEnabled?: boolean;
 };
 
 const PopoverFilter: FC<Props> = ({
@@ -28,6 +73,7 @@ const PopoverFilter: FC<Props> = ({
   panelClassName,
   onChange,
   onClear,
+  fullScreenEnabled,
 }) => {
   const t = useTranslations();
 
@@ -77,12 +123,22 @@ const PopoverFilter: FC<Props> = ({
           >
             {buttonLabel || t("Filter")}
           </PopoverButton>
-          <PopoverPanel
-            className={classNames(
-              "absolute right-0 top-10 z-10 box-border flex min-h-96 flex-col items-start overflow-hidden overflow-y-auto rounded border border-metac-gray-300 bg-metac-gray-0 p-5 shadow-lg shadow-[#0003] dark:border-metac-gray-300-dark dark:bg-metac-gray-0-dark",
-              panelClassName
-            )}
+          <Panel
+            open={open}
+            fullScreenEnabled={fullScreenEnabled}
+            className={panelClassName}
           >
+            <div className="mb-6 flex w-full items-center border-b border-metac-gray-300 sm:hidden">
+              <h3 className="m-0 grow">Filter by</h3>
+              <Button
+                variant="text"
+                size="md"
+                aria-label="Close filter"
+                onClick={close}
+              >
+                <FontAwesomeIcon icon={faXmark} />
+              </Button>
+            </div>
             <div className="flex w-full flex-col gap-4">
               {filters.map((filter) => (
                 <div key={`filter-${filter.id}`}>
@@ -99,7 +155,7 @@ const PopoverFilter: FC<Props> = ({
                 {t("Done")}
               </Button>
             </div>
-          </PopoverPanel>
+          </Panel>
         </>
       )}
     </Popover>
