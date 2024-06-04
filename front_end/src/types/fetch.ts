@@ -5,19 +5,17 @@ export type FetchOptions = RequestInit & {
 /**
  * Raw error response from BE
  */
-export type ApiErrorResponse =
-  | (Record<string, string[]> & { non_field_errors?: string[] } & {
-      message?: string;
-    })
-  | string[]
-  | string;
+export type ApiErrorResponse = Record<string, string[]> & {
+  non_field_errors?: string[];
+  detail?: string;
+};
 
 /**
  * Normalized Error response
  */
 export type ErrorResponse = {
   // Summary message
-  message: string;
+  message?: string;
   [key: string]: any;
   non_field_errors?: string[];
 };

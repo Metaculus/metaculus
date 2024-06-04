@@ -16,8 +16,8 @@ import {
   UpdateProfileSchema,
   updateProfileSchema,
 } from "@/app/accounts/schemas";
-import { FormError, Input, Textarea } from "@/components/form_field";
 import Button from "@/components/ui/button";
+import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import Hr from "@/components/ui/hr";
 import { useAuth } from "@/contexts/auth_context";
 import { UserProfile } from "@/types/users";
