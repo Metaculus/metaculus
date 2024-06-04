@@ -2,12 +2,6 @@
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
-const DEFAULT_ORDER = QuestionOrder.ActivityDesc;
-const OPEN_STATUS_FILTERS = [
-  QuestionOrder.PublishTimeDesc,
-  QuestionOrder.WeeklyMovementDesc,
-];
-
 import {
   QUESTION_STATUS_LABEL_MAP,
   QUESTION_TYPE_LABEL_MAP,
@@ -41,6 +35,20 @@ import { Category, Tag } from "@/types/projects";
 import { QuestionOrder, QuestionStatus, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
 
+const DEFAULT_ORDER = QuestionOrder.ActivityDesc;
+const OPEN_STATUS_FILTERS = [
+  QuestionOrder.PublishTimeDesc,
+  QuestionOrder.WeeklyMovementDesc,
+  QuestionOrder.LastPredictionTimeDesc,
+  QuestionOrder.LastPredictionTimeDesc,
+  QuestionOrder.DivergenceDesc,
+];
+const GUESSED_BY_FILTERS = [
+  QuestionOrder.LastPredictionTimeAsc,
+  QuestionOrder.LastPredictionTimeDesc,
+  QuestionOrder.DivergenceDesc,
+];
+
 type Props = {
   categories: Category[];
   tags: Tag[];
@@ -73,23 +81,30 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
     deleteParam(TEXT_SEARCH_FILTER);
   };
 
-  const order = params.get(ORDER_PARAM) as QuestionOrder | null;
+  const order = (params.get(ORDER_PARAM) ?? DEFAULT_ORDER) as QuestionOrder;
   const mainOrderOptions = useMemo(() => getMainOrderOptions(t), [t]);
+  const userPredictionSortOptions = useMemo(() => getUserSortOptions(t), [t]);
   const popoverFilters = useMemo(
     () => getFilters({ tags, user, t, params, categories }),
     [categories, params, t, tags, user]
   );
   const handleOrderChange = (order: QuestionOrder) => {
-    clearPopupFilters(false);
+    const withNavigation = false;
+
+    clearPopupFilters(withNavigation);
 
     if (order === DEFAULT_ORDER) {
-      deleteParam(ORDER_PARAM, false);
+      deleteParam(ORDER_PARAM, withNavigation);
     } else {
-      setParam(ORDER_PARAM, order, false);
+      setParam(ORDER_PARAM, order, withNavigation);
     }
 
     if (OPEN_STATUS_FILTERS.includes(order)) {
-      setParam(STATUS_FILTER, "open", false);
+      setParam(STATUS_FILTER, "open", withNavigation);
+    }
+
+    if (!!user && GUESSED_BY_FILTERS.includes(order)) {
+      setParam(GUESSED_BY_FILTER, user.id.toString(), withNavigation);
     }
 
     navigateToSearchParams();
@@ -135,12 +150,24 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
           onErase={eraseSearch}
           placeholder={t("questionSearchPlaceholder")}
         />
-        <div className="mx-0 my-3 flex flex-wrap justify-between gap-2">
+        <div className="mx-0 my-3 flex flex-wrap items-center justify-between gap-2">
           <ButtonGroup
-            value={order ?? DEFAULT_ORDER}
+            value={order}
             buttons={mainOrderOptions}
             onChange={handleOrderChange}
+            variant="tertiary"
           />
+          {!!user && (
+            <div className="hidden flex-row items-center text-metac-gray-900 lg:flex dark:text-metac-gray-900-dark">
+              <span className="px-2 text-sm">{t("mePredictions")}: </span>
+              <ButtonGroup
+                value={order}
+                buttons={userPredictionSortOptions}
+                onChange={handleOrderChange}
+                variant="tertiary"
+              />
+            </div>
+          )}
           <PopoverFilter
             filters={popoverFilters}
             onChange={handlePopOverFilterChange}
@@ -291,6 +318,25 @@ function getMainOrderOptions(
     {
       id: QuestionOrder.PublishTimeDesc,
       label: t("new"),
+    },
+  ];
+}
+
+function getUserSortOptions(
+  t: ReturnType<typeof useTranslations>
+): GroupButton<QuestionOrder>[] {
+  return [
+    {
+      label: t("oldest"),
+      id: QuestionOrder.LastPredictionTimeAsc,
+    },
+    {
+      label: t("newest"),
+      id: QuestionOrder.LastPredictionTimeDesc,
+    },
+    {
+      label: t("divergence"),
+      id: QuestionOrder.DivergenceDesc,
     },
   ];
 }

@@ -15,6 +15,9 @@ export enum QuestionOrder {
   ActivityDesc = "-activity",
   WeeklyMovementDesc = "-weekly_movement",
   PublishTimeDesc = "-publish_time",
+  LastPredictionTimeAsc = "last_prediction_time",
+  LastPredictionTimeDesc = "-last_prediction_time",
+  DivergenceDesc = "-divergence",
 }
 
 export type Category = {
