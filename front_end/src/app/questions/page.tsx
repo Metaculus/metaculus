@@ -1,5 +1,8 @@
+import { Suspense } from "react";
+
 import QuestionFilters from "@/app/questions/components/question_filters";
 import QuestionTopics from "@/app/questions/components/question_topics";
+import QuestionsFeed from "@/app/questions/components/questions_feed";
 import {
   ACCESS_FILTER,
   AUTHOR_FILTER,
@@ -7,6 +10,7 @@ import {
   COMMENTED_BY_FILTER,
   GUESSED_BY_FILTER,
   NOT_GUESSED_BY_FILTER,
+  ORDER_BY_FILTER,
   QUESTION_TYPE_FILTER,
   STATUS_FILTER,
   TAGS_FILTER,
@@ -14,47 +18,46 @@ import {
   TOPIC_FILTER,
   UPVOTED_BY_FILTER,
 } from "@/app/questions/constants/query_params";
-import QuestionCard from "@/components/question_card";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProjectsApi from "@/services/projects";
-import QuestionsApi, { QuestionsParams } from "@/services/questions";
+import { QuestionsParams } from "@/services/questions";
 
 export default async function Questions({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
-  const filters = processFilters(searchParams);
+  const filters = generateFilters(searchParams);
 
-  const [questions, topics, categories, tags] = await Promise.all([
-    QuestionsApi.getQuestionsWithoutForecasts({
-      ...filters,
-      limit: 10,
-    }),
+  const [topics, categories, tags] = await Promise.all([
     ProjectsApi.getTopics(),
     ProjectsApi.getCategories(),
     ProjectsApi.getTags(),
   ]);
 
   return (
-    <main className="mx-auto min-h-min w-full max-w-5xl flex-auto bg-metac-blue-200 p-0 sm:p-2 sm:pt-0 md:p-3 md:pt-0 lg:mt-16 dark:bg-metac-blue-50-dark">
+    <main className="mx-auto mt-4 min-h-min w-full max-w-5xl flex-auto bg-metac-blue-200 px-0 sm:px-2 md:px-3 dark:bg-metac-blue-50-dark">
       <div className="gap-3 p-0 sm:flex sm:flex-row sm:gap-4">
         <QuestionTopics topics={topics} />
         <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
           <QuestionFilters categories={categories} tags={tags} />
-          <div className="flex flex-col gap-3">
-            {questions.map((q) => (
-              <QuestionCard key={q.id} question={q} />
-            ))}
-          </div>
+          <Suspense
+            key={JSON.stringify(searchParams)}
+            fallback={
+              <LoadingIndicator className="mx-auto h-8 w-24 text-metac-gray-600 dark:text-metac-gray-600-dark" />
+            }
+          >
+            <QuestionsFeed filters={filters} />
+          </Suspense>
         </div>
       </div>
     </main>
   );
 }
 
-function processFilters(
+function generateFilters(
   searchParams: Record<string, string | string[] | undefined>
-): Partial<QuestionsParams> {
+): QuestionsParams {
   const filters: QuestionsParams = {};
 
   if (typeof searchParams[TEXT_SEARCH_FILTER] === "string") {
@@ -99,6 +102,10 @@ function processFilters(
 
   if (typeof searchParams[ACCESS_FILTER] === "string") {
     filters.access = searchParams[ACCESS_FILTER];
+  }
+
+  if (typeof searchParams[ORDER_BY_FILTER] === "string") {
+    filters.order_by = searchParams[ORDER_BY_FILTER];
   }
 
   return filters;
