@@ -14,6 +14,7 @@ from users.serializers import (
     UserPrivateSerializer,
     UserPublicSerializer,
     validate_username,
+    UserUpdateProfileSerializer,
 )
 
 
@@ -44,3 +45,22 @@ def change_username_api_view(request: Request):
 
     user.update_username(username)
     user.save()
+
+    return Response(UserPrivateSerializer(user).data)
+
+
+@api_view(["PATCH"])
+def update_profile_api_view(request: Request):
+    user = request.user
+    serializer = UserUpdateProfileSerializer(data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+
+    if "bio" in serializer.validated_data:
+        user.bio = serializer.validated_data["bio"]
+
+    if "website" in serializer.validated_data:
+        user.website = serializer.validated_data["website"]
+
+    user.save()
+
+    return Response(UserPrivateSerializer(user).data)

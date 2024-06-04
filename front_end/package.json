@@ -21,6 +21,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@headlessui/react": "^2.0.4",
     "@hookform/resolvers": "^3.4.2",
+    "@kodingdotninja/use-tailwind-breakpoint": "^1.0.0",
     "@tailwindcss/container-queries": "^0.1.1",
     "axios": "^1.7.2",
     "classnames": "^2.5.1",

@@ -26,6 +26,14 @@ class UserPrivateSerializer(serializers.ModelSerializer):
         fields = UserPublicSerializer.Meta.fields + ("first_name", "last_name", "email")
 
 
+class UserUpdateProfileSerializer(serializers.ModelSerializer):
+    website = serializers.URLField(allow_blank=True)
+
+    class Meta:
+        model = User
+        fields = ("bio", "website")
+
+
 def validate_username(value: str):
     if value.lower() in forbidden_usernames:
         raise serializers.ValidationError({"username": "this username is not allowed"})
