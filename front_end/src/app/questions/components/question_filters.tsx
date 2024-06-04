@@ -6,7 +6,7 @@ import { FC, useEffect, useMemo, useState } from "react";
 
 import {
   GUESSED_BY_FILTER,
-  ORDER_PARAM,
+  ORDER_BY_FILTER,
   STATUS_FILTER,
   TEXT_SEARCH_FILTER,
 } from "@/app/questions/constants/query_params";
@@ -81,7 +81,7 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
     deleteParam(TEXT_SEARCH_FILTER);
   };
 
-  const order = (params.get(ORDER_PARAM) ?? DEFAULT_ORDER) as QuestionOrder;
+  const order = (params.get(ORDER_BY_FILTER) ?? DEFAULT_ORDER) as QuestionOrder;
   const mainSortOptions = useMemo(() => getMainOrderOptions(t), [t]);
   const userPredictionSortOptions = useMemo(() => getUserSortOptions(t), [t]);
   const dropdownSortOptions = useMemo(
@@ -108,9 +108,9 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
     clearPopupFilters(withNavigation);
 
     if (order === DEFAULT_ORDER) {
-      deleteParam(ORDER_PARAM, withNavigation);
+      deleteParam(ORDER_BY_FILTER, withNavigation);
     } else {
-      setParam(ORDER_PARAM, order, withNavigation);
+      setParam(ORDER_BY_FILTER, order, withNavigation);
     }
 
     if (OPEN_STATUS_FILTERS.includes(order)) {
