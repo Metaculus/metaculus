@@ -7,6 +7,7 @@ import {
   COMMENTED_BY_FILTER,
   GUESSED_BY_FILTER,
   NOT_GUESSED_BY_FILTER,
+  ORDER_PARAM,
   QUESTION_TYPE_FILTER,
   STATUS_FILTER,
   TAGS_FILTER,
@@ -99,6 +100,10 @@ function processFilters(
 
   if (typeof searchParams[ACCESS_FILTER] === "string") {
     filters.access = searchParams[ACCESS_FILTER];
+  }
+
+  if (typeof searchParams[ORDER_PARAM] === "string") {
+    filters.order_by = searchParams[ORDER_PARAM];
   }
 
   return filters;
