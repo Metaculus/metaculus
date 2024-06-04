@@ -450,5 +450,6 @@
   "bio": "Bio",
   "website": "Website",
   "profileBioPlaceholder": "Tell us a little about yourself.",
-  "username": "username"
+  "username": "username",
+  "noResults": "No results found"
 }
