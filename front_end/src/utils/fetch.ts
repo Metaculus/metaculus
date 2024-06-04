@@ -26,23 +26,14 @@ export function encodeQueryParams(params: Record<string, any>): string {
 /**
  * Util for converting Django errors to the standardized way
  */
-const normalizeApiErrors = (payload: ApiErrorResponse): ErrorResponse => {
-  if (typeof payload === "string") {
-    return {
-      non_field_errors: [payload],
-      message: payload,
-    };
-  } else if (Array.isArray(payload)) {
-    return {
-      non_field_errors: payload,
-      message: payload[0],
-    };
-  } else {
-    return {
-      ...payload,
-      message: payload.message || Object.values(payload).flat()[0],
-    };
-  }
+const normalizeApiErrors = ({
+  detail,
+  ...props
+}: ApiErrorResponse): ErrorResponse => {
+  return {
+    ...props,
+    message: detail,
+  };
 };
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
@@ -82,18 +73,6 @@ const appFetch = async <T>(
 ): Promise<T> => {
   const authToken = getServerSession();
 
-  // Propagate current auth token
-  if (authToken) {
-    defaultOptions.headers = {
-      ...defaultOptions.headers,
-      ...(getServerSession()
-        ? {
-            Authorization: `Token ${getServerSession()}`,
-          }
-        : {}),
-    };
-  }
-
   const finalUrl = `${BASE_URL}${url}`;
   const finalOptions: FetchOptions = {
     ...defaultOptions,
@@ -101,6 +80,12 @@ const appFetch = async <T>(
     headers: {
       ...defaultOptions.headers,
       ...options.headers,
+      // Propagate current auth token
+      ...(authToken
+        ? {
+            Authorization: `Token ${authToken}`,
+          }
+        : {}),
     },
   };
 
