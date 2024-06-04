@@ -86,3 +86,9 @@ def signup_activate_api_view(request):
     token, _ = Token.objects.get_or_create(user=user)
 
     return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def verify_token_api_view(request):
+    return Response(status=status.HTTP_204_NO_CONTENT)
