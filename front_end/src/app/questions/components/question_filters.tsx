@@ -202,6 +202,7 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
               onChange={handlePopOverFilterChange}
               panelClassName="w-[500px]"
               onClear={clearPopupFilters}
+              fullScreenEnabled
             />
           </div>
         </div>
