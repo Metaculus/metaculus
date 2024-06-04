@@ -15,8 +15,12 @@ const useSearchParams = () => {
     [searchParams]
   );
 
+  const navigateToSearchParams = useCallback(() => {
+    router.push(pathname + "?" + params.toString());
+  }, [params, pathname, router]);
+
   const setParam = useCallback(
-    (name: string, val: string | string[]) => {
+    (name: string, val: string | string[], withNavigation = true) => {
       params.delete(name);
 
       if (Array.isArray(val)) {
@@ -25,33 +29,43 @@ const useSearchParams = () => {
         params.append(name, encodeURIComponent(val));
       }
 
-      router.push(pathname + "?" + params.toString());
+      if (!withNavigation) {
+        return;
+      }
+      navigateToSearchParams();
     },
-    [params, pathname, router]
+    [navigateToSearchParams, params]
   );
 
   const deleteParam = useCallback(
-    (name: string) => {
+    (name: string, withNavigation = true) => {
       params.delete(name);
 
-      router.push(pathname + "?" + params.toString());
+      if (!withNavigation) {
+        return;
+      }
+      navigateToSearchParams();
     },
-    [params, router, pathname]
+    [params, navigateToSearchParams]
   );
 
   const deleteParams = useCallback(
-    (names: string[]) => {
+    (names: string[], withNavigation = true) => {
       names.forEach((name) => params.delete(name));
 
-      router.push(pathname + "?" + params.toString());
+      if (!withNavigation) {
+        return;
+      }
+      navigateToSearchParams();
     },
-    [params, router, pathname]
+    [navigateToSearchParams, params]
   );
 
   const replaceParams = useCallback(
     (
       oldParams: string[],
-      newParams: Array<{ name: string; value: string | string[] }>
+      newParams: Array<{ name: string; value: string | string[] }>,
+      withNavigation = true
     ) => {
       oldParams.forEach((name) => params.delete(name));
       newParams.forEach(({ name, value }) => {
@@ -62,12 +76,22 @@ const useSearchParams = () => {
         }
       });
 
-      router.push(pathname + "?" + params.toString());
+      if (!withNavigation) {
+        return;
+      }
+      navigateToSearchParams();
     },
-    [router, pathname, params]
+    [navigateToSearchParams, params]
   );
 
-  return { params, setParam, deleteParam, deleteParams, replaceParams };
+  return {
+    params,
+    setParam,
+    deleteParam,
+    deleteParams,
+    replaceParams,
+    navigateToSearchParams,
+  };
 };
 
 export default useSearchParams;

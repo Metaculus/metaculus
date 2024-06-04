@@ -11,6 +11,12 @@ export enum QuestionStatus {
   Active = "active",
 }
 
+export enum QuestionOrder {
+  ActivityDesc = "-activity",
+  WeeklyMovementDesc = "-weekly_movement",
+  PublishTimeDesc = "-publish_time",
+}
+
 export type Category = {
   id: number;
   name: string;
