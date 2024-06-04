@@ -14,8 +14,8 @@ import {
   changeUsernameSchema,
 } from "@/app/accounts/schemas";
 import BaseModal from "@/components/base_modal";
-import { FormError, Input } from "@/components/form_field";
 import Button from "@/components/ui/button";
+import { FormError, Input } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 
 type SignInModalType = {
