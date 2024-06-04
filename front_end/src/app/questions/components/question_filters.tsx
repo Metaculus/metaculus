@@ -1,4 +1,5 @@
 "use client";
+import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
@@ -28,6 +29,7 @@ import {
 } from "@/components/popover_filter/types";
 import SearchInput from "@/components/search_input";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
+import Select, { SelectOption } from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth_context";
 import useDebounce from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
@@ -82,8 +84,12 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
   };
 
   const order = (params.get(ORDER_PARAM) ?? DEFAULT_ORDER) as QuestionOrder;
-  const mainOrderOptions = useMemo(() => getMainOrderOptions(t), [t]);
+  const mainSortOptions = useMemo(() => getMainOrderOptions(t), [t]);
   const userPredictionSortOptions = useMemo(() => getUserSortOptions(t), [t]);
+  const dropdownSortOptions = useMemo(
+    () => getDropdownSortOptions(t, !!user),
+    [t, user]
+  );
   const popoverFilters = useMemo(
     () => getFilters({ tags, user, t, params, categories }),
     [categories, params, t, tags, user]
@@ -105,6 +111,10 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
 
     if (!!user && GUESSED_BY_FILTERS.includes(order)) {
       setParam(GUESSED_BY_FILTER, user.id.toString(), withNavigation);
+    }
+
+    if (order === QuestionOrder.ResolveTimeAsc) {
+      setParam(STATUS_FILTER, "open", withNavigation);
     }
 
     navigateToSearchParams();
@@ -153,13 +163,13 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
         <div className="mx-0 my-3 flex flex-wrap items-center justify-between gap-2">
           <ButtonGroup
             value={order}
-            buttons={mainOrderOptions}
+            buttons={mainSortOptions}
             onChange={handleOrderChange}
             variant="tertiary"
           />
           {!!user && (
             <div className="hidden flex-row items-center text-metac-gray-900 lg:flex dark:text-metac-gray-900-dark">
-              <span className="px-2 text-sm">{t("mePredictions")}: </span>
+              <span className="px-2 text-sm">{t("myPredictions")}: </span>
               <ButtonGroup
                 value={order}
                 buttons={userPredictionSortOptions}
@@ -168,12 +178,21 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
               />
             </div>
           )}
-          <PopoverFilter
-            filters={popoverFilters}
-            onChange={handlePopOverFilterChange}
-            panelClassName="w-[500px]"
-            onClear={clearPopupFilters}
-          />
+          <div className="flex grow justify-end gap-3">
+            <Select
+              className="rounded-full"
+              onChange={handleOrderChange}
+              options={dropdownSortOptions}
+              value={order || DEFAULT_ORDER}
+              label="More"
+            />
+            <PopoverFilter
+              filters={popoverFilters}
+              onChange={handlePopOverFilterChange}
+              panelClassName="w-[500px]"
+              onClear={clearPopupFilters}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -338,6 +357,45 @@ function getUserSortOptions(
       label: t("divergence"),
       id: QuestionOrder.DivergenceDesc,
     },
+  ];
+}
+
+function getDropdownSortOptions(
+  t: ReturnType<typeof useTranslations>,
+  isAuthenticated: boolean
+): SelectOption<QuestionOrder>[] {
+  return [
+    { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
+    { value: QuestionOrder.CommentCountDesc, label: t("mostComments") },
+    {
+      value: QuestionOrder.PredictionCountDesc,
+      label: t("mostPredictions"),
+    },
+    { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
+    { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
+    ...(isAuthenticated
+      ? [
+          {
+            value: QuestionOrder.UnreadCommentCountDesc,
+            label: t("unreadComments"),
+          },
+          {
+            value: QuestionOrder.LastPredictionTimeAsc,
+            label: t("oldestPredictions"),
+            className: classNames("block lg:hidden"),
+          },
+          {
+            value: QuestionOrder.LastPredictionTimeDesc,
+            label: t("newestPredictions"),
+            className: classNames("block lg:hidden"),
+          },
+          {
+            value: QuestionOrder.DivergenceDesc,
+            label: t("myDivergence"),
+            className: classNames("block lg:hidden"),
+          },
+        ]
+      : []),
   ];
 }
 
