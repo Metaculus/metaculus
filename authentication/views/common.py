@@ -85,6 +85,4 @@ def signup_activate_api_view(request):
     check_and_activate_user(user, token)
     token, _ = Token.objects.get_or_create(user=user)
 
-    return Response(
-        {"token": token.key, "user": UserPrivateSerializer(user).data}
-    )
+    return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
