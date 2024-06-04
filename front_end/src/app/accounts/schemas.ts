@@ -4,6 +4,8 @@ export const signInSchema = z.object({
   login: z.string().min(1, { message: "Email/Username is required" }),
   password: z.string().min(1, { message: "Password is required" }),
 });
+export type SignInSchema = z.infer<typeof signInSchema>;
+
 export const signUpSchema = z
   .object({
     username: z.string().min(1, { message: "Username is required" }),
@@ -20,5 +22,27 @@ export const signUpSchema = z
       });
     }
   });
-export type SignInSchema = z.infer<typeof signInSchema>;
 export type SignUpSchema = z.infer<typeof signUpSchema>;
+
+export const changeUsernameSchema = z
+  .object({
+    username: z.string().min(1, { message: "Username is required" }),
+    usernameConfirm: z.string().min(1, { message: "Username is required" }),
+  })
+  .superRefine(({ username, usernameConfirm }, ctx) => {
+    if (usernameConfirm !== username) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Usernames do not match",
+        path: ["usernameConfirm"],
+      });
+    }
+  });
+export type ChangeUsernameSchema = z.infer<typeof changeUsernameSchema>;
+
+export const updateProfileSchema = z.object({
+  bio: z.string(),
+  website: z.string(),
+});
+
+export type UpdateProfileSchema = z.infer<typeof updateProfileSchema>;
