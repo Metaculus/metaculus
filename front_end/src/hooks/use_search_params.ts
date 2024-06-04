@@ -38,8 +38,8 @@ const useSearchParams = () => {
   );
 
   const deleteParam = useCallback(
-    (name: string, withNavigation = true) => {
-      params.delete(name);
+    (name: string, withNavigation = true, value?: string) => {
+      params.delete(name, value);
 
       if (!withNavigation) {
         return;
