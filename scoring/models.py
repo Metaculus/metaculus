@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 
-class UserWeights(models.Model):
+class UserWeight(models.Model):
     user = models.ForeignKey('users.User', on_delete=models.CASCADE)
     calculated_on = models.DateTimeField(auto_now_add=True)
     weight = models.FloatField()
