@@ -59,7 +59,7 @@ export type UserVote = "up" | "down" | null;
 
 export type QuestionVote = {
   score: number;
-  userVote: UserVote;
+  user_vote: UserVote;
 };
 
 export type Question = {
