@@ -99,7 +99,7 @@ class Question(models.Model):
     predictions_count_unique: int = 0
     vote_score: int = 0
     user_vote = None
-    
+
     @property
     def status(self):
         if self.resolved_at:
