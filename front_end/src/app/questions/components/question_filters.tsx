@@ -153,10 +153,25 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
     setParam(filterId, optionValue);
   };
   const clearPopupFilters = (withNavigation = true) => {
-    deleteParams(
-      popoverFilters.map((filter) => filter.id),
-      withNavigation
+    const filtersToDelete = popoverFilters.reduce<string[]>(
+      (filterIds, filter) => {
+        const optionIds = filter.options.reduce<string[]>(
+          (optionIds, option) => {
+            if (option.id) {
+              optionIds.push(option.id);
+            }
+            return optionIds;
+          },
+          []
+        );
+
+        filterIds.push(filter.id, ...optionIds);
+
+        return filterIds;
+      },
+      []
     );
+    deleteParams(filtersToDelete, withNavigation);
   };
   const removeFilter = (filterId: string, filterValue: string) => {
     deleteParam(filterId, true, filterValue);
