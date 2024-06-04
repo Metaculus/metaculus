@@ -383,5 +383,12 @@
   "binaryScoringInfo3": "Průměrné relativní log skóre pro binární otázky je -0.15, jelikož je komunita jako celek přesnější, než jednotlivci.",
   "continuousScoringInfo": "Východiskem pro relativní log skóre je komunitní predikce. Skóre jsou průměrována za celou dobu trvání otázky.",
   "continuousScoringInfo2": "Když je otázka vyřešena, porovnáme Vaší hustotu pravděpodobnosti pro správnou odpověď s výchozí hustotou pravděpodobnosti ve stejném bodě.",
-  "continuousScoringInfo3": "Průměrné relativní log skóre pro spojité otázky je -0.5, jelikož je komunita jako celek přesnější, než jednotlivci."
+  "continuousScoringInfo3": "Průměrné relativní log skóre pro spojité otázky je -0.5, jelikož je komunita jako celek přesnější, než jednotlivci.",
+  "profile": "Profil",
+  "changeUsernameButton": "změnit",
+  "memberSince": "Člen od",
+  "bio": "O uživateli",
+  "website": "Web",
+  "profileBioPlaceholder": "Pokud chcete, zde nám o sobě můžete něco málo sdělit (např. jaká témata Vás zajímají).",
+  "username": "uživatelské jméno"
 }

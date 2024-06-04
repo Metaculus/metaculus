@@ -47,8 +47,8 @@ const SignInModal: FC<SignInModalType> = ({
   }, [setCurrentModal, setUser, state]);
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose}>
-      <div>
+    <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
+      <div className="mt-6">
         <h2 className="mb-4	mr-3 mt-0 text-2xl text-metac-blue-900 dark:text-metac-blue-900-dark">
           {t("signInButton")}
         </h2>
