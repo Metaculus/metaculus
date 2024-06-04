@@ -4,7 +4,12 @@ import Link from "next/link";
 import { AnchorHTMLAttributes, ButtonHTMLAttributes, FC } from "react";
 
 type ButtonSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
-type ButtonVariant = "primary" | "secondary" | "tertiary" | "text" | "link";
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "tertiary"
+  | "text"
+  | "link";
 type PresentationType = "default" | "icon";
 
 type Props = {

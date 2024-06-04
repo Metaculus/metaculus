@@ -2,6 +2,12 @@
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
+const DEFAULT_ORDER = QuestionOrder.ActivityDesc;
+const OPEN_STATUS_FILTERS = [
+  QuestionOrder.PublishTimeDesc,
+  QuestionOrder.WeeklyMovementDesc,
+];
+
 import {
   QUESTION_STATUS_LABEL_MAP,
   QUESTION_TYPE_LABEL_MAP,
@@ -13,6 +19,7 @@ import {
   COMMENTED_BY_FILTER,
   GUESSED_BY_FILTER,
   NOT_GUESSED_BY_FILTER,
+  ORDER_PARAM,
   QUESTION_TYPE_FILTER,
   STATUS_FILTER,
   TAGS_FILTER,
@@ -26,11 +33,12 @@ import {
   FilterSection,
 } from "@/components/popover_filter/types";
 import SearchInput from "@/components/search_input";
+import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import { useAuth } from "@/contexts/auth_context";
 import useDebounce from "@/hooks/use_debounce";
 import useSearchParams from "@/hooks/use_search_params";
 import { Category, Tag } from "@/types/projects";
-import { QuestionStatus, QuestionType } from "@/types/question";
+import { QuestionOrder, QuestionStatus, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
 
 type Props = {
@@ -40,8 +48,14 @@ type Props = {
 
 const QuestionFilters: FC<Props> = ({ categories, tags }) => {
   const t = useTranslations();
-  const { params, setParam, deleteParam, deleteParams, replaceParams } =
-    useSearchParams();
+  const {
+    params,
+    setParam,
+    deleteParam,
+    deleteParams,
+    replaceParams,
+    navigateToSearchParams,
+  } = useSearchParams();
   const { user } = useAuth();
 
   const [search, setSearch] = useState("");
@@ -59,10 +73,28 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
     deleteParam(TEXT_SEARCH_FILTER);
   };
 
+  const order = params.get(ORDER_PARAM) as QuestionOrder | null;
+  const mainOrderOptions = useMemo(() => getMainOrderOptions(t), [t]);
   const popoverFilters = useMemo(
     () => getFilters({ tags, user, t, params, categories }),
     [categories, params, t, tags, user]
   );
+  const handleOrderChange = (order: QuestionOrder) => {
+    clearPopupFilters(false);
+
+    if (order === DEFAULT_ORDER) {
+      deleteParam(ORDER_PARAM, false);
+    } else {
+      setParam(ORDER_PARAM, order, false);
+    }
+
+    if (OPEN_STATUS_FILTERS.includes(order)) {
+      setParam(STATUS_FILTER, "open", false);
+    }
+
+    navigateToSearchParams();
+  };
+
   const handlePopOverFilterChange = (
     filterId: string,
     optionValue: string | string[] | null,
@@ -87,8 +119,11 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
 
     setParam(filterId, optionValue);
   };
-  const handlePopOverClearFilters = () => {
-    deleteParams(popoverFilters.map((filter) => filter.id));
+  const clearPopupFilters = (withNavigation = true) => {
+    deleteParams(
+      popoverFilters.map((filter) => filter.id),
+      withNavigation
+    );
   };
 
   return (
@@ -100,12 +135,17 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
           onErase={eraseSearch}
           placeholder={t("questionSearchPlaceholder")}
         />
-        <div className="mx-0 my-3 flex flex-wrap justify-end gap-2">
+        <div className="mx-0 my-3 flex flex-wrap justify-between gap-2">
+          <ButtonGroup
+            value={order ?? DEFAULT_ORDER}
+            buttons={mainOrderOptions}
+            onChange={handleOrderChange}
+          />
           <PopoverFilter
             filters={popoverFilters}
             onChange={handlePopOverFilterChange}
             panelClassName="w-[500px]"
-            onClear={handlePopOverClearFilters}
+            onClear={clearPopupFilters}
           />
         </div>
       </div>
@@ -182,31 +222,31 @@ function getFilters({
         {
           id: GUESSED_BY_FILTER,
           label: t("predicted"),
-          value: user.id,
+          value: user.id.toString(),
           active: !!params.get(GUESSED_BY_FILTER),
         },
         {
           id: NOT_GUESSED_BY_FILTER,
           label: t("notPredicted"),
-          value: user.id,
+          value: user.id.toString(),
           active: !!params.get(NOT_GUESSED_BY_FILTER),
         },
         {
           id: AUTHOR_FILTER,
           label: t("authored"),
-          value: user.id,
+          value: user.id.toString(),
           active: !!params.get(AUTHOR_FILTER),
         },
         {
           id: UPVOTED_BY_FILTER,
           label: t("upvoted"),
-          value: user.id,
+          value: user.id.toString(),
           active: !!params.get(UPVOTED_BY_FILTER),
         },
         {
           id: COMMENTED_BY_FILTER,
           label: t("moderating"),
-          value: user.id,
+          value: user.id.toString(),
           active: !!params.get(COMMENTED_BY_FILTER),
         },
       ],
@@ -234,6 +274,25 @@ function getFilters({
   });
 
   return filters;
+}
+
+function getMainOrderOptions(
+  t: ReturnType<typeof useTranslations>
+): GroupButton<QuestionOrder>[] {
+  return [
+    {
+      id: QuestionOrder.ActivityDesc,
+      label: t("hot"),
+    },
+    {
+      id: QuestionOrder.WeeklyMovementDesc,
+      label: t("movers"),
+    },
+    {
+      id: QuestionOrder.PublishTimeDesc,
+      label: t("new"),
+    },
+  ];
 }
 
 export default QuestionFilters;
