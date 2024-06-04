@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import * as React from "react";
-import { FC } from "react";
+import { FC, useEffect } from "react";
 
 import { ErrorResponse } from "@/types/fetch";
 
@@ -21,16 +21,37 @@ export interface TextAreaProps
 }
 
 export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
+  /**
+   * If null => display only if no other things
+   * */
+  const [errorText, setErrorText] = React.useState<string | undefined>();
+
+  useEffect(() => {
+    if (errors) {
+      if (
+        name === null &&
+        Object.keys(errors).every((k) => k in ["message", "non_field_errors"])
+      ) {
+        setErrorText(errors?.non_field_errors?.[0] || errors?.message);
+      } else if (name in errors) {
+        setErrorText(errors[name]?.[0]);
+      } else {
+        setErrorText(undefined);
+      }
+    } else {
+    }
+  }, [errors, name]);
+
   return (
     <>
-      {errors && name in errors && (
+      {errorText && (
         <span
           className={classNames(
             "text-xs text-metac-red-500 dark:text-metac-red-500-dark",
             className
           )}
         >
-          {errors[name][0]}
+          {errorText}
         </span>
       )}
     </>

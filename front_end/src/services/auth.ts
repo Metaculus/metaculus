@@ -20,6 +20,10 @@ class AuthApi {
     }
   }
 
+  static async verifyToken() {
+    return get("/auth/verify_token");
+  }
+
   static async exchangeSocialOauthCode(
     provider: SocialProviderType,
     code: string,
