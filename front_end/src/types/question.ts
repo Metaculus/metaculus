@@ -11,6 +11,21 @@ export enum QuestionStatus {
   Active = "active",
 }
 
+export enum QuestionOrder {
+  ActivityDesc = "-activity",
+  WeeklyMovementDesc = "-weekly_movement",
+  PublishTimeDesc = "-publish_time",
+  LastPredictionTimeAsc = "last_prediction_time",
+  LastPredictionTimeDesc = "-last_prediction_time",
+  DivergenceDesc = "-divergence",
+  VotesDesc = "-votes",
+  CommentCountDesc = "-comment_count",
+  UnreadCommentCountDesc = "-unread_comment_count",
+  PredictionCountDesc = "-prediction_count",
+  CloseTimeAsc = "close_time",
+  ResolveTimeAsc = "resolve_time",
+}
+
 export type Category = {
   id: number;
   name: string;

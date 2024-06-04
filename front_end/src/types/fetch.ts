@@ -2,9 +2,24 @@ export type FetchOptions = RequestInit & {
   headers?: HeadersInit;
 };
 
+/**
+ * Raw error response from BE
+ */
+export type ApiErrorResponse =
+  | (Record<string, string[]> & { non_field_errors?: string[] } & {
+      message?: string;
+    })
+  | string[]
+  | string;
+
+/**
+ * Normalized Error response
+ */
 export type ErrorResponse = {
+  // Summary message
   message: string;
   [key: string]: any;
+  non_field_errors?: string[];
 };
 
 export type FetchError = Error & {

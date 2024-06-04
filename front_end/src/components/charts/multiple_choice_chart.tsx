@@ -108,7 +108,7 @@ const MultipleChoiceChart: FC<Props> = ({
   );
 
   return (
-    <div ref={chartContainerRef} className="h-full w-full">
+    <div ref={chartContainerRef} className="w-full" style={{ height }}>
       {!!chartWidth && (
         <VictoryChart
           width={chartWidth}

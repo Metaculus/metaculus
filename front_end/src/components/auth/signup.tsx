@@ -45,8 +45,8 @@ const SignUpModal: FC<SignInModalType> = ({
   }, [setCurrentModal, watch, state]);
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose}>
-      <div>
+    <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
+      <div className="mt-6">
         <h2 className="mb-4	mr-3 mt-0 text-2xl text-metac-blue-900 dark:text-metac-blue-900-dark">
           {t("registrationHeadingSite")}
         </h2>
@@ -178,7 +178,7 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
   const t = useTranslations();
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose}>
+    <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
       <div className="max-w-sm">
         <h2 className="mb-4	mr-3 mt-0 text-2xl text-metac-blue-900 dark:text-metac-blue-900-dark">
           {t("registrationSuccessHeading")}
