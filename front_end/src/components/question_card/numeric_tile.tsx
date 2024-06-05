@@ -20,6 +20,7 @@ const NumericTile: FC<Props> = ({ question }) => {
         <PredictionChip
           prediction={prediction}
           resolution={question.resolution}
+          nr_forecasters={question.nr_forecasters}
           status={question.status}
           questionType={question.type}
         />

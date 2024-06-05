@@ -81,28 +81,19 @@ def compute_continuous_cp(
     if len(forecasts) == 0:
         return None
 
-    forecasts_per_bin = [[]] * 202
-    for f in forecasts:
-        for i in range(len(f.continuous_prediction_values)):
-            forecasts_per_bin[i].append(f.continuous_prediction_values[i])
-    # TODO: Normalize probabilites
-    for i in range(forecasts_per_bin):
-        forecasts_per_bin[i] = np.mean(forecasts_per_bin)
+    predictions = np.array([f.continuous_prediction_values for f in forecasts])
+    forecasts_per_bin = np.mean(predictions, axis=0)
 
     # TODO: Associate bins with numbers
-    step = (question.max_value - question.min_value) / 200
-    bin_vals = [question.min_value + step * i for i in range(200)]
+    step = (question.max - question.min) / 200
+    bin_vals = [question.min + step * i for i in range(200)]
 
-    cumulative_probability = 0
-    for i in range(200):
-        cumulative_probability += np.mean(forecasts_per_bin[i])
-        if cumulative_probability >= 0.25:
-            min = bin_vals[i]
-        if cumulative_probability >= 0.5:
-            mean = bin_vals[i]
-        if cumulative_probability >= 0.75:
-            max = bin_vals[i]
-            break
+    cumulative_probability = np.cumsum(forecasts_per_bin)
+
+    # Find the indices where the cumulative probability crosses the thresholds
+    min = bin_vals[np.searchsorted(cumulative_probability, 0.25, side="right")]
+    mean = bin_vals[np.searchsorted(cumulative_probability, 0.5, side="right")]
+    max = bin_vals[np.searchsorted(cumulative_probability, 0.75, side="right")]
 
     return {
         "mean": mean,

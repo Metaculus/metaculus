@@ -15,6 +15,7 @@ type Size = "compact" | "large";
 type Props = {
   questionType: QuestionType;
   status: QuestionStatus;
+  nr_forecasters: number;
   prediction: number | undefined;
   resolution: string | null;
   size?: Size;
@@ -24,6 +25,7 @@ type Props = {
 const PredictionChip: FC<Props> = ({
   questionType,
   status,
+  nr_forecasters,
   prediction,
   resolution,
   chipClassName,
@@ -47,34 +49,47 @@ const PredictionChip: FC<Props> = ({
           >
             {resolution}
           </Chip>
+          <p>
+            {nr_forecasters} {t("forecasters")}
+          </p>
         </span>
       );
     case QuestionStatus.Closed:
       return (
-        <Chip
-          size={size}
-          className={classNames(
-            "bg-metac-olive-700 dark:bg-metac-olive-700-dark",
-            chipClassName
-          )}
-        >
-          <FontAwesomeIcon icon={faUserGroup} size="xs" />
-          {t("Closed")}
-        </Chip>
+        <span className="inline-flex flex-col">
+          <Chip
+            size={size}
+            className={classNames(
+              "bg-metac-olive-700 dark:bg-metac-olive-700-dark",
+              chipClassName
+            )}
+          >
+            <FontAwesomeIcon icon={faUserGroup} size="xs" />
+            {t("Closed")}
+          </Chip>
+          <p>
+            {nr_forecasters} {t("forecasters")}
+          </p>
+        </span>
       );
     case QuestionStatus.Active:
     default:
       return (
-        <Chip
-          size={size}
-          className={classNames(
-            "bg-metac-olive-700 dark:bg-metac-olive-700-dark",
-            chipClassName
-          )}
-        >
-          <FontAwesomeIcon icon={faUserGroup} size="xs" />
-          {prediction ? formatPrediction(prediction, questionType) : ""}
-        </Chip>
+        <span className="inline-flex flex-col">
+          <Chip
+            size={size}
+            className={classNames(
+              "bg-metac-olive-700 dark:bg-metac-olive-700-dark",
+              chipClassName
+            )}
+          >
+            <FontAwesomeIcon icon={faUserGroup} size="xs" />
+            {prediction ? formatPrediction(prediction, questionType) : ""}
+          </Chip>
+          <p>
+            {nr_forecasters} {t("forecasters")}
+          </p>
+        </span>
       );
   }
 };
