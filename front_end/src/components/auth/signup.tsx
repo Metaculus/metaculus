@@ -60,10 +60,10 @@ const SignUpModal: FC<SignInModalType> = ({
             {t("signInButton")}
           </Button>
         </p>
-        <div className="flex flex-col text-metac-gray-900 sm:flex-row dark:text-metac-gray-900-dark">
+        <div className="flex flex-col text-metac-gray-900 dark:text-metac-gray-900-dark sm:flex-row">
           <form
             action={formAction}
-            className="flex flex-col gap-4 border-metac-gray-300 sm:w-80 sm:border-r sm:pr-4 dark:border-metac-gray-700-dark"
+            className="flex flex-col gap-4 border-metac-gray-300 dark:border-metac-gray-700-dark sm:w-80 sm:border-r sm:pr-4"
           >
             <Input
               autoComplete="username"
@@ -141,7 +141,7 @@ const SignUpModal: FC<SignInModalType> = ({
                 <span className="ml-4">{t("registrationInfoAbility5")}</span>
               </li>
             </ul>
-            <hr className="my-6 border-metac-gray-300 sm:hidden dark:border-metac-gray-300-dark" />
+            <hr className="my-6 border-metac-gray-300 dark:border-metac-gray-300-dark sm:hidden" />
             <SocialButtons type="signup" />
           </div>
         </div>
