@@ -5,7 +5,7 @@ from utils.the_math.measures import weighted_percentile_2d
 
 
 @pytest.mark.parametrize(
-    "predictions, weights, percentile, expected_result",
+    "values, weights, percentile, expected_result",
     [
         ([[0.5, 0.5], [0.6, 0.4]], None, 50.0, [0.55, 0.45]),
         ([[0.5, 0.5], [0.6, 0.4]], None, 40.0, [0.5, 0.4]),
