@@ -1,6 +1,7 @@
 import { PaginatedPayload } from "@/types/fetch";
 import { Question, QuestionWithForecasts } from "@/types/question";
-import { encodeQueryParams, get } from "@/utils/fetch";
+import { get } from "@/utils/fetch";
+import { encodeQueryParams } from "@/utils/query_params";
 
 export type QuestionsParams = {
   topic?: string;
