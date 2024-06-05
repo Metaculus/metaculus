@@ -1,4 +1,7 @@
+import logging
+
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import status, serializers
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
@@ -6,17 +9,22 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from authentication.backends import AuthLoginBackend
 from authentication.serializers import (
     SignupSerializer,
-    SignupActivationSerializer,
+    ConfirmationTokenSerializer,
     LoginSerializer,
 )
 from authentication.services import (
     check_and_activate_user,
     send_activation_email,
+    send_password_reset_email,
+    check_password_reset,
 )
 from users.models import User
 from users.serializers import UserPrivateSerializer
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(["POST"])
@@ -71,18 +79,13 @@ def resend_activation_link_api_view(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def signup_activate_api_view(request):
-    serializer = SignupActivationSerializer(data=request.data)
+    serializer = ConfirmationTokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     user_id = serializer.validated_data["user_id"]
     token = serializer.validated_data["token"]
 
-    try:
-        user = User.objects.get(pk=user_id, is_active=False)
-    except User.DoesNotExist:
-        raise ValidationError({"token": ["Activation Token is expired or invalid"]})
-
-    check_and_activate_user(user, token)
+    user = check_and_activate_user(user_id, token)
     token, _ = Token.objects.get_or_create(user=user)
 
     return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
@@ -91,4 +94,39 @@ def signup_activate_api_view(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def verify_token_api_view(request):
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def password_reset_api_view(request):
+    login = serializers.CharField().run_validation(request.data.get("login"))
+    user = AuthLoginBackend.find_user(login)
+
+    if user:
+        send_password_reset_email(user)
+    else:
+        logger.debug(f"Cannot find user with login {login}")
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+def password_reset_confirm_api_view(request):
+    serializer = ConfirmationTokenSerializer(data=request.query_params)
+    serializer.is_valid(raise_exception=True)
+
+    user_id = serializer.validated_data["user_id"]
+    token = serializer.validated_data["token"]
+
+    user = check_password_reset(user_id, token)
+
+    if request.method == "POST":
+        password = serializers.CharField().run_validation(request.data.get("password"))
+        validate_password(password=password)
+
+        user.set_password(password)
+        user.save()
+
     return Response(status=status.HTTP_204_NO_CONTENT)
