@@ -86,6 +86,7 @@ export type Question = {
   topics: string[];
   vote: QuestionVote;
   status: QuestionStatus;
+  nr_forecasters: number;
 };
 
 export type QuestionWithNumericForecasts = Question & {
