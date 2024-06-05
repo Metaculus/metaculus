@@ -15,7 +15,6 @@ from questions.models import Forecast, Question
 from collections import defaultdict
 import numpy as np
 from utils.the_math.measures import weighted_percentile_2d
-import pytz
 
 
 def latest_forecasts_at(
