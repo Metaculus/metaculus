@@ -8,6 +8,7 @@ export type QuestionsParams = {
   answered_by_me?: boolean;
   search?: string;
   limit?: number;
+  offset?: number;
   forecast_type?: string | string[];
   status?: string | string[];
   categories?: string | string[];
@@ -50,20 +51,19 @@ class QuestionsApi {
 
   static async getQuestionsWithoutForecasts(
     params?: QuestionsParams
-  ): Promise<QuestionWithForecasts[]> {
+  ): Promise<PaginatedPayload<QuestionWithForecasts>> {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
       with_forecasts: true,
     });
 
     try {
-      const data = await get<PaginatedPayload<QuestionWithForecasts>>(
+      return await get<PaginatedPayload<QuestionWithForecasts>>(
         `/questions${queryParams}`
       );
-      return data.results;
     } catch (err) {
       console.error("Error getting questions:", err);
-      return [];
+      return { count: 0, results: [], next: null, previous: null };
     }
   }
 }
