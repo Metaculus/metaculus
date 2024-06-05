@@ -23,8 +23,13 @@ def create_project(project_obj: dict) -> Project:
     sign_up_fields = project_obj["sign_up_fields"]
     sign_up_fields = json.loads(sign_up_fields) if sign_up_fields else []
 
+    project_type = {
+        "TO": Project.ProjectTypes.TOURNAMENT,
+        "QS": Project.ProjectTypes.QUESTION_SERIES,
+    }.get(project_obj["type"])
+
     project = Project(
-        type=Project.ProjectTypes.TOURNAMENT,
+        type=project_type,
         name=project_obj["name"],
         slug=project_obj["slug"],
         subtitle=project_obj["subtitle"],
@@ -190,7 +195,7 @@ def migrate_projects():
 
     # Migrating only Tournament projects for now
     for project_obj in paginated_query(
-        "SELECT * FROM metac_project_project WHERE type='TO'"
+        "SELECT * FROM metac_project_project WHERE type in ('TO', 'QS')"
     ):
         project = create_project(project_obj)
         project.save()

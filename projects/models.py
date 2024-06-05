@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Count
+from django.utils import timezone
 
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
@@ -13,7 +14,12 @@ class ProjectsQuerySet(models.QuerySet):
         return self.filter(type=Project.ProjectTypes.CATEGORY)
 
     def filter_tournament(self):
-        return self.filter(type=Project.ProjectTypes.TOURNAMENT)
+        return self.filter(
+            type__in=(
+                Project.ProjectTypes.TOURNAMENT,
+                Project.ProjectTypes.QUESTION_SERIES,
+            )
+        )
 
     def filter_tags(self):
         return self.filter(type=Project.ProjectTypes.TAG)
@@ -27,10 +33,11 @@ class ProjectsQuerySet(models.QuerySet):
 
 class Project(TimeStampedModel):
     class ProjectTypes(models.TextChoices):
-        TOURNAMENT = "tournament", "Tournament"
-        CATEGORY = "category", "Category"
-        TAG = "tag", "Tag"
-        TOPIC = "topic", "Topic"
+        TOURNAMENT = "tournament"
+        QUESTION_SERIES = "question_series"
+        CATEGORY = "category"
+        TAG = "tag"
+        TOPIC = "topic"
 
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics", "Hot Topics section"
@@ -117,3 +124,11 @@ class Project(TimeStampedModel):
                 name="projects_unique_type_slug", fields=["type", "slug"]
             ),
         ]
+
+    @property
+    def is_ongoing(self):
+        if self.type in (
+            self.ProjectTypes.TOURNAMENT,
+            self.ProjectTypes.QUESTION_SERIES,
+        ):
+            return self.close_date > timezone.now() if self.close_date else True
