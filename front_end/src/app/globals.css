@@ -22,3 +22,44 @@ table {
   border-collapse: collapse;
   border-spacing: 0;
 }
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply mb-2 ml-0 mr-0 mt-4 text-metac-gray-800 dark:text-metac-gray-800-dark;
+}
+
+h1 {
+  @apply text-3xl font-bold leading-8;
+}
+
+h2 {
+  @apply text-2xl font-bold leading-7;
+}
+
+h3 {
+  @apply text-xl font-bold leading-6;
+}
+
+h4 {
+  @apply text-base font-semibold leading-5;
+}
+
+h5 {
+  @apply text-sm font-semibold leading-4;
+}
+
+h6 {
+  @apply text-xs font-bold;
+}
+
+hr {
+  @apply my-5 border-t border-gray-500;
+}
+
+p {
+  margin: 0.92em 0;
+}
