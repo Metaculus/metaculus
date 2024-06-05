@@ -36,7 +36,7 @@ export default async function Questions({
   ]);
 
   return (
-    <main className="mx-auto mt-4 min-h-min w-full max-w-5xl flex-auto bg-metac-blue-200 px-0 sm:px-2 md:px-3 dark:bg-metac-blue-50-dark">
+    <main className="mx-auto mt-4 min-h-min w-full max-w-5xl flex-auto px-0 sm:px-2 md:px-3">
       <div className="gap-3 p-0 sm:flex sm:flex-row sm:gap-4">
         <QuestionTopics topics={topics} />
         <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
