@@ -3,6 +3,7 @@ import { FC } from "react";
 
 import NavUserButton from "@/components/auth";
 import NavLink from "@/components/nav_link";
+import ThemeToggle from "@/components/theme_toggle";
 
 const LINKS = [
   {
@@ -42,6 +43,11 @@ const Header: FC = () => {
           ))}
           <li className="z-10 lg:flex lg:items-center">
             <NavUserButton />
+          </li>
+          <li className="mt-2 flex items-center justify-between bg-metac-blue-900 px-4 py-3 lg:m-0 lg:p-3">
+            <span className="mx-1 flex items-center">
+              <ThemeToggle />
+            </span>
           </li>
         </ul>
       </div>
