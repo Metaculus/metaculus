@@ -47,7 +47,7 @@ const SignUpModal: FC<SignInModalType> = ({
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
       <div className="mt-6">
-        <h2 className="mb-4	mr-3 mt-0 text-2xl text-metac-blue-900 dark:text-metac-blue-900-dark">
+        <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
           {t("registrationHeadingSite")}
         </h2>
         <p className="mb-6 mt-3 text-base leading-tight">
@@ -60,14 +60,14 @@ const SignUpModal: FC<SignInModalType> = ({
             {t("signInButton")}
           </Button>
         </p>
-        <div className="flex flex-col text-metac-gray-900 dark:text-metac-gray-900-dark sm:flex-row">
+        <div className="flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">
           <form
             action={formAction}
-            className="flex flex-col gap-4 border-metac-gray-300 dark:border-metac-gray-700-dark sm:w-80 sm:border-r sm:pr-4"
+            className="flex flex-col gap-4 border-gray-300 dark:border-gray-700-dark sm:w-80 sm:border-r sm:pr-4"
           >
             <Input
               autoComplete="username"
-              className="block w-full rounded border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
               placeholder={t("registrationUsernamePlaceholder")}
               type="text"
               errors={state?.errors}
@@ -76,7 +76,7 @@ const SignUpModal: FC<SignInModalType> = ({
             <div>
               <Input
                 autoComplete="new-password"
-                className="block w-full rounded-t border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
+                className="block w-full rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
                 placeholder={t("passwordPlaceholder")}
                 type="password"
                 errors={state?.errors}
@@ -84,7 +84,7 @@ const SignUpModal: FC<SignInModalType> = ({
               />
               <Input
                 autoComplete="new-password"
-                className="block w-full rounded-b border-x border-b border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
+                className="block w-full rounded-b border-x border-b border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
                 placeholder={t("registrationVerifyPasswordPlaceholder")}
                 type="password"
                 errors={state?.errors}
@@ -92,13 +92,13 @@ const SignUpModal: FC<SignInModalType> = ({
               />
             </div>
             <Input
-              className="block w-full rounded border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
               placeholder={t("registrationEmailPlaceholder")}
               type="email"
               errors={state?.errors}
               {...register("email")}
             />
-            <div className="text-xs text-metac-red-500 dark:text-metac-red-500-dark"></div>
+            <div className="text-xs text-red-500 dark:text-red-500-dark"></div>
             <Button variant="primary" className="w-full" type="submit">
               {t("createAnAccount")}
             </Button>
@@ -108,44 +108,44 @@ const SignUpModal: FC<SignInModalType> = ({
               <li className="mb-3 flex">
                 <FontAwesomeIcon
                   icon={faCheck}
-                  className="text-metac-olive-700 dark:text-metac-olive-700-dark"
+                  className="text-olive-700 dark:text-olive-700-dark"
                 />
                 <span className="ml-4">{t("registrationInfoAbility1")}</span>
               </li>
               <li className="mb-3 flex">
                 <FontAwesomeIcon
                   icon={faCheck}
-                  className="text-metac-olive-700 dark:text-metac-olive-700-dark"
+                  className="text-olive-700 dark:text-olive-700-dark"
                 />
                 <span className="ml-4">{t("registrationInfoAbility2")}</span>
               </li>
               <li className="mb-3 flex">
                 <FontAwesomeIcon
                   icon={faCheck}
-                  className="text-metac-olive-700 dark:text-metac-olive-700-dark"
+                  className="text-olive-700 dark:text-olive-700-dark"
                 />
                 <span className="ml-4">{t("registrationInfoAbility3")}</span>
               </li>
               <li className="mb-3 flex">
                 <FontAwesomeIcon
                   icon={faCheck}
-                  className="text-metac-olive-700 dark:text-metac-olive-700-dark"
+                  className="text-olive-700 dark:text-olive-700-dark"
                 />
                 <span className="ml-4">{t("registrationInfoAbility4")}</span>
               </li>
               <li className="mb-3 flex">
                 <FontAwesomeIcon
                   icon={faCheck}
-                  className="text-metac-olive-700 dark:text-metac-olive-700-dark"
+                  className="text-olive-700 dark:text-olive-700-dark"
                 />
                 <span className="ml-4">{t("registrationInfoAbility5")}</span>
               </li>
             </ul>
-            <hr className="my-6 border-metac-gray-300 dark:border-metac-gray-300-dark sm:hidden" />
+            <hr className="my-6 border-gray-300 dark:border-gray-300-dark sm:hidden" />
             <SocialButtons type="signup" />
           </div>
         </div>
-        <div className="mt-6 text-center text-metac-gray-700 dark:text-metac-gray-700-dark">
+        <div className="mt-6 text-center text-gray-700 dark:text-gray-700-dark">
           {t.rich("registrationTerms", {
             terms: (chunks) => (
               <Link target="_blank" href={"/terms-of-use/"}>
@@ -180,7 +180,7 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
       <div className="max-w-sm">
-        <h2 className="mb-4	mr-3 mt-0 text-2xl text-metac-blue-900 dark:text-metac-blue-900-dark">
+        <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
           {t("registrationSuccessHeading")}
         </h2>
         <div>

@@ -18,7 +18,7 @@ const LINKS = [
 
 const Header: FC = () => {
   return (
-    <header className="ng-scope fixed left-0 top-0 z-50 flex w-full flex-wrap items-stretch justify-between border-b border-metac-blue-200-dark bg-metac-blue-900 text-white">
+    <header className="ng-scope fixed left-0 top-0 z-50 flex w-full flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-white">
       <div className="ml-0.5 flex min-h-12 flex-auto">
         <Link
           href="/"
@@ -34,8 +34,8 @@ const Header: FC = () => {
             <li key={link.href} className="z-10">
               <NavLink
                 href={link.href}
-                className="flex h-full items-center p-3 no-underline hover:bg-metac-blue-200-dark"
-                activeClassName="bg-metac-blue-300-dark"
+                className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
+                activeClassName="bg-blue-300-dark"
               >
                 {link.label}
               </NavLink>
@@ -44,7 +44,7 @@ const Header: FC = () => {
           <li className="z-10 lg:flex lg:items-center">
             <NavUserButton />
           </li>
-          <li className="mt-2 flex items-center justify-between bg-metac-blue-900 px-4 py-3 lg:m-0 lg:p-3">
+          <li className="mt-2 flex items-center justify-between bg-blue-900 px-4 py-3 lg:m-0 lg:p-3">
             <span className="mx-1 flex items-center">
               <ThemeToggle />
             </span>

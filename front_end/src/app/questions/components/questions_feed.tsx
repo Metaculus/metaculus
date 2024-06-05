@@ -58,7 +58,7 @@ const QuestionsFeed: FC<Props> = ({
     <>
       <div className="flex min-h-[calc(100vh-300px)] flex-col gap-3">
         {!paginatedQuestions.length && (
-          <span className="mt-3 text-center text-sm text-metac-gray-900 dark:text-metac-gray-900-dark">
+          <span className="mt-3 text-center text-sm text-gray-900 dark:text-gray-900-dark">
             {t("noResults") + "."}
           </span>
         )}
@@ -70,7 +70,7 @@ const QuestionsFeed: FC<Props> = ({
       {hasMoreData ? (
         <div className="flex py-5">
           {isLoading ? (
-            <LoadingIndicator className="mx-auto h-8 w-24 text-metac-gray-600 dark:text-metac-gray-600-dark" />
+            <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
           ) : (
             <Button className="mx-auto" onClick={loadMoreQuestions}>
               Load more
