@@ -48,6 +48,7 @@ class QuestionFilterSerializer(serializers.Serializer):
     topic = serializers.CharField(required=False)
     tags = serializers.ListField(child=serializers.CharField(), required=False)
     categories = serializers.ListField(child=serializers.CharField(), required=False)
+    forecast_type = serializers.ListField(child=serializers.CharField(), required=False)
     answered_by_me = serializers.BooleanField(required=False, allow_null=True)
     order = serializers.ChoiceField(
         choices=Order.choices, required=False, allow_null=True
