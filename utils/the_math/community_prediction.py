@@ -1,7 +1,8 @@
 """
 Ftr, the general shape of the aggregation is:
 Everytime a new prediction is made, take the latest prediction of each user.
-For each of those user-predictions, compute a reputation weight and a recency weight, then combine them to get a weight for the user-prediction.
+For each of those users, compute a reputation weight and a recency weight, 
+then combine them to get a weight for the user's prediction.
 Transform the predictions to logodds.
 For each possible outcome, take the weighted average of all user-prediction logodds.
 Transform back to probabilities.
@@ -9,10 +10,12 @@ Normalise to 1 over all outcomes.
 """
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Callable
 from questions.models import Forecast, Question
 from collections import defaultdict
 import numpy as np
+from utils.the_math.measures import weighted_percentile_2d
+import pytz
 
 
 def latest_forecasts_at(
@@ -107,3 +110,97 @@ def compute_continuous_cp(
         "min": min,
         "nr_forecasters": len(forecasts),
     }
+
+
+def aggregate_pmfs_median(pmfs: list[list[float]], weights: list[float]) -> list[float]:
+    pmf = weighted_percentile_2d(pmfs, weights=weights, percentile=50.0)
+    return (pmf / np.sum(pmf)).tolist()
+
+
+def aggregate_pmfs_mean(pmfs: list[list[float]], weights: list[float]) -> list[float]:
+    return np.average(pmfs, axis=0, weights=weights).tolist()
+
+
+def generate_recency_weights(number_of_forecasts: int) -> np.ndarray | None:
+    if number_of_forecasts <= 2:
+        return None
+    return np.exp(
+        np.sqrt(np.arange(number_of_forecasts) + 1) - np.sqrt(number_of_forecasts)
+    )
+
+
+def compute_pmf_at_time(
+    forecasts: list[Forecast],
+    time: datetime,
+    aggregation_method: Callable,
+    weighting_method: Callable = lambda x: None,
+) -> list[float] | None:
+    active_forecasts: list[Forecast] = []
+    for forecast in forecasts:
+        if forecast.start_time <= time and (
+            forecast.end_time is None or forecast.end_time > time
+        ):
+            active_forecasts.append(forecast)
+    if len(active_forecasts) == 0:
+        return None
+    weights = weighting_method(len(active_forecasts))
+    pmfs = [f.get_pmf() for f in active_forecasts]
+    return aggregation_method(pmfs, weights)
+
+
+def compute_history(
+    forecasts: list[Forecast],
+    aggregation_method: Callable,
+    weighting_method: Callable = lambda x: None,
+) -> list[tuple[float, datetime]]:
+
+    if len(forecasts) == 0:
+        # no forecasts to aggregate
+        return []
+
+    timesteps: set[datetime] = set()
+    for forecast in forecasts:
+        timesteps.add(forecast.start_time)
+        if forecast.end_time:
+            timesteps.add(forecast.end_time)
+
+    ordered_timesteps = sorted(timesteps)
+    forecast_history = []
+    for timestep in ordered_timesteps:
+        aggregated_pmf = compute_pmf_at_time(
+            forecasts, timestep, aggregation_method, weighting_method
+        )
+        forecast_history.append((aggregated_pmf, timestep))
+
+
+# suggestion: this all below should move to the Question app
+
+
+def compute_binary_aggregation_history(
+    forecasts: list[Forecast],
+) -> list[tuple[float, datetime]]:
+    return compute_history(forecasts, aggregate_pmfs_median, generate_recency_weights)
+
+
+def compute_multiple_choice_aggregation_history(
+    forecasts: list[Forecast],
+) -> list[tuple[float, datetime]]:
+    return compute_history(forecasts, aggregate_pmfs_median, generate_recency_weights)
+
+
+def compute_continuous_aggregation_history(
+    forecasts: list[Forecast],
+) -> list[tuple[float, datetime]]:
+    return compute_history(forecasts, aggregate_pmfs_mean, generate_recency_weights)
+
+
+def compute_aggregation_history(question: Question):
+    forecasts = Forecast.objects.filter(question=question)
+    if question.type == "binary":
+        return compute_binary_aggregation_history(forecasts)
+    elif question.type == "multiple_choice":
+        return compute_multiple_choice_aggregation_history(forecasts)
+    elif question.type == "continuous":
+        return compute_continuous_aggregation_history(forecasts)
+    else:
+        raise ValueError(f"Unknown question type: {question.type}")
