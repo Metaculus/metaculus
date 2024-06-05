@@ -16,7 +16,7 @@ const NumericTile: FC<Props> = ({ question }) => {
 
   return (
     <div className="flex justify-between">
-      <div className="mr-3 inline-flex flex-col justify-center gap-0.5 text-xs font-semibold text-metac-gray-600 dark:text-metac-gray-600-dark xs:max-w-[650px]">
+      <div className="mr-3 inline-flex flex-col justify-center gap-0.5 text-xs font-semibold text-gray-600 dark:text-gray-600-dark xs:max-w-[650px]">
         <PredictionChip
           prediction={prediction}
           resolution={question.resolution}

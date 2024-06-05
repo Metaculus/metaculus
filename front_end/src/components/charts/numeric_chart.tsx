@@ -14,8 +14,8 @@ import {
 } from "victory";
 
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
-import { darkTheme, lightTheme } from "@/contants/chart_theme";
-import { METAC_COLORS } from "@/contants/colors";
+import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";

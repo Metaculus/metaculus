@@ -97,7 +97,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
             <>
               <Textarea
                 style={{ height: "150px" }}
-                className="w-full rounded border border-metac-gray-700 px-3 py-2 text-sm placeholder:italic"
+                className="w-full rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic"
                 placeholder={t("profileBioPlaceholder")}
                 defaultValue={profile.bio}
                 {...register("bio")}
@@ -119,7 +119,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
           {isEdit ? (
             <>
               <Input
-                className="w-6/12 rounded border border-metac-gray-700 px-3 py-2 text-sm placeholder:italic	"
+                className="w-6/12 rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic	"
                 placeholder="http://www.example.com"
                 defaultValue={profile.website}
                 {...register("website")}

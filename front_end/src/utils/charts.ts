@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { Tuple } from "victory";
 
-import { METAC_COLORS } from "@/contants/colors";
+import { METAC_COLORS } from "@/constants/colors";
 import { Scale } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { MultipleChoiceForecast } from "@/types/question";
