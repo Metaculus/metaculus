@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "rest_social_auth",
     "corsheaders",
     "anymail",
+    "django_dramatiq",
     # first-party:
     "migrator",
     "utils",
@@ -205,3 +206,23 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Frontend configuration
 FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000")
+
+# Redis endpoint
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
+
+# django-dramatiq
+# https://github.com/Bogdanp/django_dramatiq
+DRAMATIQ_BROKER = {
+    "BROKER": "dramatiq.brokers.redis.RedisBroker",
+    "OPTIONS": {
+        # Setting redis db to 1 for the MQ storage
+        "url": f"{REDIS_URL}/1",
+    },
+    "MIDDLEWARE": [
+        "dramatiq.middleware.AgeLimit",
+        "dramatiq.middleware.TimeLimit",
+        "dramatiq.middleware.Callbacks",
+        "django_dramatiq.middleware.DbConnectionsMiddleware",
+        "django_dramatiq.middleware.AdminMiddleware",
+    ],
+}
