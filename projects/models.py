@@ -22,7 +22,7 @@ class ProjectsQuerySet(models.QuerySet):
         return self.filter(is_active=True)
 
     def annotate_questions_count(self):
-        return self.annotate(questions_count=Count("questions"))
+        return self.annotate(questions_count=Count("questions", distinct=True))
 
 
 class Project(TimeStampedModel):

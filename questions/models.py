@@ -1,8 +1,9 @@
 from typing import Optional
+
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import Count, Sum, Case, When, IntegerField, Subquery, OuterRef
-from django.contrib.postgres.fields import ArrayField
+from django.db.models import Count, Subquery, OuterRef, Sum
+from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
 from users.models import User
@@ -16,7 +17,7 @@ class QuestionQuerySet(models.QuerySet):
         return self.prefetch_related("forecast_set")
 
     def annotate_predictions_count(self):
-        return self.annotate(predictions_count=Count("forecast"))
+        return self.annotate(predictions_count=Count("forecast", distinct=True))
 
     def annotate_predictions_count__unique(self):
         return self.annotate(
@@ -25,13 +26,7 @@ class QuestionQuerySet(models.QuerySet):
 
     def annotate_vote_score(self):
         return self.annotate(
-            vote_score=Sum(
-                Case(
-                    When(votes__direction=Vote.VoteDirection.UP, then=1),
-                    When(votes__direction=Vote.VoteDirection.DOWN, then=-1),
-                    output_field=IntegerField(),
-                )
-            )
+            vote_score=SubqueryAggregate("votes__direction", aggregate=Sum)
         )
 
     def annotate_user_vote(self, user: User):
@@ -152,13 +147,13 @@ class Forecast(models.Model):
 
 
 class Vote(models.Model):
-    class VoteDirection(models.TextChoices):
-        UP = "up"
-        DOWN = "down"
+    class VoteDirection(models.IntegerChoices):
+        UP = 1
+        DOWN = -1
 
     user = models.ForeignKey(User, models.CASCADE, related_name="votes")
     question = models.ForeignKey(Question, models.CASCADE, related_name="votes")
-    direction = models.CharField(max_length=20, choices=VoteDirection.choices)
+    direction = models.SmallIntegerField(choices=VoteDirection.choices)
 
     class Meta:
         constraints = [
