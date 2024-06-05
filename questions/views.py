@@ -24,6 +24,7 @@ from utils.the_math.community_prediction import (
     compute_continuous_cp,
     compute_multiple_choice_cp,
 )
+import numpy as np
 
 
 def filter_questions(qs, request: Request):
@@ -43,6 +44,7 @@ def filter_questions(qs, request: Request):
 
     # Filters
     if topic := serializer.validated_data.get("topic"):
+        print(topic)
         qs = qs.filter(projects=topic)
 
     if tags := serializer.validated_data.get("tags"):
@@ -50,6 +52,9 @@ def filter_questions(qs, request: Request):
 
     if categories := serializer.validated_data.get("categories"):
         qs = qs.filter(projects__in=categories)
+
+    if forecast_type := serializer.validated_data.get("forecast_type"):
+        qs = qs.filter(type__in=forecast_type)
 
     answered_by_me = serializer.validated_data.get("answered_by_me")
 
@@ -110,6 +115,56 @@ def enrich_questions_with_votes(
     return qs, enrich
 
 
+def enrich_questions_with_nr_forecasts(
+    qs: QuerySet, user: User = None
+) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
+    """
+    Enriches questions with the votes object.
+    """
+
+    qs = qs.prefetch_forecasts()
+
+    # Annotate user's vote
+    if user and not user.is_anonymous:
+        qs = qs.annotate_user_vote(user)
+
+    def enrich(question: Question, serialized_question: dict):
+        nr_forecasters = question.forecast_set.values("author").distinct().count()
+
+        serialized_question["nr_forecasters"] = nr_forecasters
+
+        return serialized_question
+
+    return qs, enrich
+
+
+def enrich_question_with_resolution(
+    qs: QuerySet,
+) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
+
+    def enrich(question: Question, serialized_question: dict):
+        if question.type == "binary":
+            if np.isclose(float(serialized_question["resolution"]), 0):
+                serialized_question["resolution"] = "Yes"
+            elif np.isclose(float(serialized_question["resolution"]), -1):
+                serialized_question["resolution"] = "No"
+
+        elif question.type == "number":
+            pass
+
+        elif question.type == "date":
+            pass
+
+        elif question.type == "multiple_choice":
+            pass
+        else:
+            pass
+
+        return serialized_question
+
+    return qs, enrich
+
+
 def enrich_questions_with_forecasts(
     qs: QuerySet,
 ) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
@@ -163,7 +218,7 @@ def enrich_questions_with_forecasts(
             else:
                 if question.type == "binary":
                     cp = compute_binary_cp(forecasts, forecast_time)
-                elif question.type in ["number", "date"]:
+                elif question.type in ["numeric", "date"]:
                     cp = compute_continuous_cp(question, forecasts, forecast_time)
                 else:
                     raise Exception(f"Unknown question type: {question.type}")
@@ -185,9 +240,8 @@ def enrich_questions_with_forecasts(
 @permission_classes([AllowAny])
 def questions_list_api_view(request):
     paginator = LimitOffsetPagination()
-    qs = Question.objects.annotate_predictions_count().filter(
-        forecast__gte=10
-    )
+    qs = Question.objects.annotate_predictions_count().filter(forecast__gte=10)
+    print("\n", request.query_params, "\n")
 
     # Extra enrich params
     with_forecasts = serializers.BooleanField(allow_null=True).run_validation(
@@ -199,6 +253,8 @@ def questions_list_api_view(request):
 
     # Enrich QS
     qs, enrich_votes = enrich_questions_with_votes(qs, user=request.user)
+    qs, enrich_resolution = enrich_question_with_resolution(qs)
+    qs, enrich_nr_forecasts = enrich_questions_with_nr_forecasts(qs, user=request.user)
     qs, enrich_forecasts = (
         enrich_questions_with_forecasts(qs) if with_forecasts else enrich_empty(qs)
     )
@@ -213,8 +269,11 @@ def questions_list_api_view(request):
         # Enrich with extra data
         serialized_question = enrich_forecasts(question, serialized_question)
         serialized_question = enrich_votes(question, serialized_question)
+        serialized_question = enrich_nr_forecasts(question, serialized_question)
+        serialized_question = enrich_resolution(question, serialized_question)
 
         data.append(serialized_question)
+
     return paginator.get_paginated_response(data)
 
 
