@@ -6,7 +6,7 @@ import { FC, useMemo } from "react";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ChoiceIcon from "@/components/choice_icon";
-import { MultipleChoiceForecast } from "@/types/question";
+import { QuestionWithMultipleChoiceForecasts } from "@/types/question";
 import { generateChartChoices } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
@@ -15,16 +15,19 @@ const NUM_VISIBLE_CHOICES = 3;
 const HEIGHT = 100;
 
 type Props = {
-  forecast: MultipleChoiceForecast;
+  question: QuestionWithMultipleChoiceForecasts;
 };
 
-const MultipleChoiceTile: FC<Props> = ({ forecast }) => {
+const MultipleChoiceTile: FC<Props> = ({ question }) => {
   const t = useTranslations();
+
+  const { forecasts } = question;
+
   const { choices, visibleChoices } = useMemo(() => {
-    const choices = generateChartChoices(forecast);
+    const choices = generateChartChoices(forecasts);
 
     return { choices, visibleChoices: choices.slice(0, NUM_VISIBLE_CHOICES) };
-  }, [forecast]);
+  }, [forecasts]);
   const otherItemsCount = choices.length - visibleChoices.length;
 
   return (
@@ -64,7 +67,7 @@ const MultipleChoiceTile: FC<Props> = ({ forecast }) => {
         </div>
       </div>
       <MultipleChoiceChart
-        timestamps={forecast.timestamps}
+        timestamps={forecasts.timestamps}
         choiceItems={choices}
         height={HEIGHT}
       />
