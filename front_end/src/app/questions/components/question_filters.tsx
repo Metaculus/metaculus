@@ -194,7 +194,7 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
             variant="tertiary"
           />
           {!!user && (
-            <div className="hidden flex-row items-center text-metac-gray-900 lg:flex dark:text-metac-gray-900-dark">
+            <div className="hidden flex-row items-center text-metac-gray-900 dark:text-metac-gray-900-dark lg:flex">
               <span className="px-2 text-sm">{t("myPredictions")}: </span>
               <ButtonGroup
                 value={order}

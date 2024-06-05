@@ -19,14 +19,9 @@ const QuestionStatus: FC<Props> = ({ question }) => {
   const status = question.status;
 
   const statusInfo = useMemo(() => {
-    // if (status === QuestionStatusEnum.Opens) {
-    //   return [
-    //     t("opens"),
-    //     formatRelativeDate(locale, new Date(question.published_at), {
-    //       short: true,
-    //     }),
-    //   ];
-    // }
+    if (status === QuestionStatusEnum.Closed) {
+      return [t("resolutionPending")];
+    }
 
     if (status === QuestionStatusEnum.Active) {
       return [
@@ -37,17 +32,17 @@ const QuestionStatus: FC<Props> = ({ question }) => {
       ];
     }
 
-    // if (status === QuestionStatusEnum.Resolved) {
-    //   return [
-    //     t("resolves"),
-    //     formatRelativeDate(locale, new Date(question.resolved_at), {
-    //       short: true,
-    //     }),
-    //   ];
-    // }
+    if (status === QuestionStatusEnum.Resolved) {
+      return [
+        t("resolved"),
+        formatRelativeDate(locale, new Date(question.resolved_at), {
+          short: true,
+        }),
+      ];
+    }
 
     return [];
-  }, [locale, question.closed_at, status, t]);
+  }, [locale, question.closed_at, question.resolved_at, status, t]);
 
   return (
     <div className="flex flex-row items-center gap-1.5 truncate text-metac-gray-900 dark:text-metac-gray-900-dark">
