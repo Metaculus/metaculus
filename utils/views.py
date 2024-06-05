@@ -1,4 +1,5 @@
-from rest_framework.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.views import exception_handler
 
 
@@ -8,7 +9,12 @@ def custom_exception_handler(exc, context):
     We want to ensure it never returns list of errors, but structured dict object
     """
 
-    if isinstance(exc, ValidationError):
+    # Adapter for legacy django validation errors
+    if isinstance(exc, DjangoValidationError):
+        if exc.messages:
+            exc = DRFValidationError(exc.messages)
+
+    if isinstance(exc, DRFValidationError):
         if isinstance(exc.detail, list):
             exc.detail = {"non_field_errors": exc.detail}
 

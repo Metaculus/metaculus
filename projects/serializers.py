@@ -30,6 +30,7 @@ class TournamentSerializer(serializers.ModelSerializer):
         model = Project
         fields = (
             "id",
+            "type",
             "name",
             "slug",
             "subtitle",
@@ -40,6 +41,7 @@ class TournamentSerializer(serializers.ModelSerializer):
             "start_date",
             "close_date",
             "meta_description",
+            "is_ongoing",
             "created_at",
             "edited_at",
         )
@@ -57,6 +59,8 @@ def serialize_projects(projects: list[Project]) -> defaultdict[Any, list]:
             case obj.ProjectTypes.CATEGORY:
                 serializer = CategorySerializer
             case obj.ProjectTypes.TOURNAMENT:
+                serializer = TournamentSerializer
+            case obj.ProjectTypes.QUESTION_SERIES:
                 serializer = TournamentSerializer
             case _:
                 continue
