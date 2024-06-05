@@ -1,11 +1,11 @@
 "use client";
 import React, { FC } from "react";
-import { VictoryArea, VictoryChart, VictoryLine, VictoryAxis } from "victory";
+import { VictoryArea, VictoryAxis, VictoryChart, VictoryLine } from "victory";
 
 import { darkTheme, lightTheme } from "@/contants/chart_theme";
 import { METAC_COLORS } from "@/contants/colors";
+import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
-import useThemeDetector from "@/hooks/use_is_dark_mode";
 import { binWeightsFromSliders } from "@/utils/math";
 
 type Props = {
@@ -21,8 +21,8 @@ const NumericPickerChart: FC<Props> = ({ min, max, left, center, right }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
-  const isDarkTheme = useThemeDetector();
-  const chartTheme = isDarkTheme ? darkTheme : lightTheme;
+  const { theme } = useAppTheme();
+  const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
   const chartData = dataset.map((value, index) => ({
     x: (index * (max - min)) / dataset.length,

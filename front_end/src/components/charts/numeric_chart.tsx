@@ -16,8 +16,8 @@ import {
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
 import { darkTheme, lightTheme } from "@/contants/chart_theme";
 import { METAC_COLORS } from "@/contants/colors";
+import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
-import useThemeDetector from "@/hooks/use_is_dark_mode";
 import usePrevious from "@/hooks/use_previous";
 import { Area, BaseChartData, Line } from "@/types/charts";
 import { NumericForecast } from "@/types/question";
@@ -48,8 +48,8 @@ const NumericChart: FC<Props> = ({
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
-  const isDarkTheme = useThemeDetector();
-  const chartTheme = isDarkTheme ? darkTheme : lightTheme;
+  const { theme } = useAppTheme();
+  const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
   const defaultCursor = dataset.timestamps[dataset.timestamps.length - 1];
   const [isCursorActive, setIsCursorActive] = useState(false);

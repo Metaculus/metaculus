@@ -2,8 +2,7 @@
 import React, { FC, useState } from "react";
 import { VictoryScatter } from "victory";
 
-import { METAC_COLORS } from "@/contants/colors";
-import useThemeDetector from "@/hooks/use_is_dark_mode";
+import useAppTheme from "@/hooks/use_app_theme";
 
 type InternalProps = {
   left: number;
@@ -18,8 +17,8 @@ const NumericPickerSliderInternal: FC<InternalProps> = ({
   right,
   handleSliderChange,
 }) => {
-  const isDarkTheme = useThemeDetector();
-  let strokeColor = isDarkTheme ? "white" : "black";
+  const { theme } = useAppTheme();
+  let strokeColor = theme === "light" ? "white" : "black";
 
   return (
     <VictoryScatter

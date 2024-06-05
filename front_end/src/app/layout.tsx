@@ -6,6 +6,7 @@ import localFont from "next/font/local";
 import { headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { ThemeProvider } from "next-themes";
 
 import Header from "@/app/header";
 import GlobalModals from "@/components/global_modals";
@@ -109,17 +110,22 @@ export default async function RootLayout({
     <html
       lang={locale}
       className={`${diatypeVariable.variable} ${diatype.variable} ${sourceSerifPro.variable} font-sans`}
+      // required by next-themes
+      // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
+      suppressHydrationWarning
     >
       <body className="min-h-screen w-full bg-metac-blue-200 dark:bg-metac-blue-50-dark">
-        <NextIntlClientProvider messages={messages}>
-          <AuthProvider user={user} socialProviders={socialProviders}>
-            <ModalProvider>
-              <Header />
-              <div className="pt-12 ">{children}</div>
-              <GlobalModals />
-            </ModalProvider>
-          </AuthProvider>
-        </NextIntlClientProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <NextIntlClientProvider messages={messages}>
+            <AuthProvider user={user} socialProviders={socialProviders}>
+              <ModalProvider>
+                <Header />
+                <div className="pt-12 ">{children}</div>
+                <GlobalModals />
+              </ModalProvider>
+            </AuthProvider>
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

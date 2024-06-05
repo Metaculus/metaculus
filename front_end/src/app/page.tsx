@@ -50,58 +50,60 @@ export default async function Home() {
   const hotTopics = topics.filter((t) => t.section === "hot_topics");
 
   return (
-    <main className="mx-auto mb-24 mt-16 flex w-full max-w-7xl flex-1 flex-col items-stretch px-4 text-metac-blue-700 sm:mt-28 sm:px-8 md:px-12 lg:px-16 dark:text-metac-blue-700-dark">
-      <div className="mb-6 md:mb-12 lg:mb-14">
-        <div className="flex flex-col items-center">
-          <h1 className="mb-5 mt-0 text-balance text-center text-4xl text-metac-blue-800 sm:text-5xl sm:tracking-tight md:text-6xl dark:text-metac-blue-800-dark">
-            {t.rich("homeTitle", {
+    <main className="bg-gradient-to-b from-metac-blue-100 from-20% to-metac-blue-200 to-50% pt-16 dark:from-metac-blue-100-dark dark:to-metac-blue-200-dark sm:pt-28">
+      <div className="mx-auto mb-24 flex w-full max-w-7xl flex-1 flex-col items-stretch px-4 text-metac-blue-700 dark:text-metac-blue-700-dark sm:px-8 md:px-12 lg:px-16">
+        <div className="mb-6 md:mb-12 lg:mb-14">
+          <div className="flex flex-col items-center">
+            <h1 className="mb-5 mt-0 text-balance text-center text-4xl text-metac-blue-800 dark:text-metac-blue-800-dark sm:text-5xl sm:tracking-tight md:text-6xl">
+              {t.rich("homeTitle", {
+                highlight: (chunks) => (
+                  <span className="text-metac-blue-600 dark:text-metac-blue-600-dark">
+                    {chunks}
+                  </span>
+                ),
+              })}
+            </h1>
+            <p className="m-0 max-w-2xl text-balance text-center text-xl text-metac-blue-700 dark:text-metac-blue-700-dark md:text-2xl">
+              {t("homeDescription")}
+            </p>
+            <div className="mb-4 mt-8 inline-flex w-full flex-col items-center justify-center gap-4 md:mt-12">
+              <HomeSearch />
+              <div className="line-clamp-3 max-w-2xl text-center md:line-clamp-2">
+                <TopicLink
+                  text="2024 US Election Hub"
+                  emoji="🇺🇸"
+                  href="/experiments/elections"
+                />
+                {hotTopics.map((topic) => (
+                  <TopicLink
+                    key={topic.id}
+                    text={topic.name}
+                    emoji={topic.emoji}
+                    href={`/questions${encodeQueryParams({ [TOPIC_FILTER]: topic.slug })}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="my-6 md:my-12 lg:my-16">
+          <h2 className="mb-5 mt-0 w-full text-center text-4xl font-bold text-metac-blue-800 dark:text-metac-blue-800-dark md:text-5xl">
+            {t.rich("focusAreasTitle", {
               highlight: (chunks) => (
                 <span className="text-metac-blue-600 dark:text-metac-blue-600-dark">
                   {chunks}
                 </span>
               ),
             })}
-          </h1>
-          <p className="m-0 max-w-2xl text-balance text-center text-xl text-metac-blue-700 md:text-2xl dark:text-metac-blue-700-dark">
-            {t("homeDescription")}
+          </h2>
+          <p className="mb-9 mt-0 flex-1 text-center text-xl text-metac-blue-700 dark:text-metac-blue-700-dark">
+            {t("focusAreasDescription")}
           </p>
-          <div className="mb-4 mt-8 inline-flex w-full flex-col items-center justify-center gap-4 md:mt-12">
-            <HomeSearch />
-            <div className="line-clamp-3 max-w-2xl text-center md:line-clamp-2">
-              <TopicLink
-                text="2024 US Election Hub"
-                emoji="🇺🇸"
-                href="/experiments/elections"
-              />
-              {hotTopics.map((topic) => (
-                <TopicLink
-                  key={topic.id}
-                  text={topic.name}
-                  emoji={topic.emoji}
-                  href={`/questions${encodeQueryParams({ [TOPIC_FILTER]: topic.slug })}`}
-                />
-              ))}
-            </div>
+          <div className="mt-16 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+            {FOCUS_AREAS.map((focusArea) => (
+              <FocusAreaLink key={focusArea.id} {...focusArea} />
+            ))}
           </div>
-        </div>
-      </div>
-      <div className="my-6 md:my-12 lg:my-16">
-        <h2 className="mb-5 mt-0 w-full text-center text-4xl font-bold text-metac-blue-800 md:text-5xl dark:text-metac-blue-800-dark">
-          {t.rich("focusAreasTitle", {
-            highlight: (chunks) => (
-              <span className="text-metac-blue-600 dark:text-metac-blue-600-dark">
-                {chunks}
-              </span>
-            ),
-          })}
-        </h2>
-        <p className="mb-9 mt-0 flex-1 text-center text-xl text-metac-blue-700 dark:text-metac-blue-700-dark">
-          {t("focusAreasDescription")}
-        </p>
-        <div className="mt-16 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
-          {FOCUS_AREAS.map((focusArea) => (
-            <FocusAreaLink key={focusArea.id} {...focusArea} />
-          ))}
         </div>
       </div>
     </main>
