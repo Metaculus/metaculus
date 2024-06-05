@@ -2,7 +2,7 @@ import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Field, Input } from "@headlessui/react";
 import classNames from "classnames";
-import { ChangeEventHandler, FC } from "react";
+import { ChangeEventHandler, FC, FormEvent } from "react";
 
 import Button from "@/components/ui/button";
 
@@ -12,24 +12,34 @@ type Props = {
   value: string;
   onChange: ChangeEventHandler<HTMLInputElement>;
   onErase: () => void;
+  onSubmit?: (value: string) => void;
   size?: Size;
   placeholder?: string;
+  className?: string;
 };
 
 const SearchInput: FC<Props> = ({
   value,
   onChange,
   onErase,
+  onSubmit,
   size = "base",
   placeholder,
+  className,
 }) => {
   return (
     <Field
+      as={onSubmit ? "form" : "div"}
       className={classNames(
         "relative flex w-full rounded-full text-sm text-metac-gray-900 dark:text-metac-gray-900-dark",
         { "h-8": size === "base" },
-        { "h-12": size === "lg" }
+        { "h-12": size === "lg" },
+        className
       )}
+      onSubmit={(e: FormEvent) => {
+        e.preventDefault();
+        onSubmit?.(value);
+      }}
     >
       <Input
         name="search"

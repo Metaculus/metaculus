@@ -451,5 +451,8 @@
   "website": "Website",
   "profileBioPlaceholder": "Tell us a little about yourself.",
   "username": "username",
-  "noResults": "No results found"
+  "noResults": "No results found",
+  "homeTitle": "Forecasting for a <details>complex world</details>",
+  "homeDescription": "Metaculus offers trustworthy forecasting and modeling infrastructure\nfor forecasters, decision makers, and the public.",
+  "forecastsSearchPlaceholder": "Search Metaculus"
 }
