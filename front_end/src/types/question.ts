@@ -88,11 +88,11 @@ export type Question = {
   status: QuestionStatus;
 };
 
-type QuestionWithNumericForecasts = Question & {
+export type QuestionWithNumericForecasts = Question & {
   type: QuestionType.Numeric | QuestionType.Date | QuestionType.Binary;
   forecasts: NumericForecast;
 };
-type QuestionWithMultipleChoiceForecasts = Question & {
+export type QuestionWithMultipleChoiceForecasts = Question & {
   type: QuestionType.MultipleChoice;
   forecasts: MultipleChoiceForecast;
 };
