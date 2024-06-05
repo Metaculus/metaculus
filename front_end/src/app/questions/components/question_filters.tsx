@@ -66,7 +66,7 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
   } = useSearchParams();
   const { user } = useAuth();
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(params.get(TEXT_SEARCH_FILTER) ?? "");
   const debouncedSearch = useDebounce(search, 500);
   useEffect(() => {
     if (debouncedSearch) {

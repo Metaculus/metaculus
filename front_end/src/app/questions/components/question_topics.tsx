@@ -127,7 +127,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               {hotTopics.map((topic) => (
                 <TopicItem
                   key={topic.id}
-                  isActive={false}
+                  isActive={selectedTopic === topic.slug}
                   emoji={topic.emoji}
                   text={topic.name}
                   onClick={() => selectTopic(topic)}
@@ -142,7 +142,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               {hotCategories.map((category) => (
                 <TopicItem
                   key={category.id}
-                  isActive={false}
+                  isActive={selectedTopic === category.slug}
                   emoji={category.emoji}
                   text={category.name}
                   onClick={() => selectTopic(category)}
