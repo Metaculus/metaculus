@@ -72,36 +72,36 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
             type="text"
             name="username"
             placeholder={t("newUsernamePlaceholder")}
-            className="border border-metac-gray-600-dark bg-transparent px-[5px] py-[3px] font-sans"
+            className="border border-gray-600-dark bg-transparent px-[5px] py-[3px] font-sans"
           />
           <FormError
             errors={state?.errors}
-            className="text-metac-red-500-dark"
+            className="text-red-500-dark"
             {...register("username")}
           />
           <Input
             type="text"
             placeholder={t("confirmUsernamePlaceholder")}
-            className="border border-metac-gray-600-dark border-t-transparent bg-transparent px-[5px] py-[3px] font-sans"
+            className="border border-gray-600-dark border-t-transparent bg-transparent px-[5px] py-[3px] font-sans"
             {...register("usernameConfirm")}
           />
           <FormError
             name="usernameConfirm"
             errors={state?.errors}
-            className="text-metac-red-500-dark"
+            className="text-red-500-dark"
           />
           {/* Global errors container */}
           <FormError
             errors={state?.errors}
             name="non_field_errors"
-            className="text-metac-red-500-dark"
+            className="text-red-500-dark"
           />
           <div className="mt-4">
             <Button
               variant="secondary"
               type="submit"
               value="Submit"
-              className="w-full bg-metac-blue-900-dark font-sans uppercase tracking-[0.08em]"
+              className="w-full bg-blue-900-dark font-sans uppercase tracking-[0.08em]"
             >
               {t("submitButton")}
             </Button>

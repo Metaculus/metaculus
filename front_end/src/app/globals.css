@@ -29,7 +29,7 @@ h3,
 h4,
 h5,
 h6 {
-  @apply mb-2 ml-0 mr-0 mt-4 text-metac-gray-800 dark:text-metac-gray-800-dark;
+  @apply mb-2 ml-0 mr-0 mt-4 text-gray-800 dark:text-gray-800-dark;
 }
 
 h1 {

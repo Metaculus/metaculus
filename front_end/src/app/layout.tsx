@@ -114,7 +114,7 @@ export default async function RootLayout({
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       suppressHydrationWarning
     >
-      <body className="min-h-screen w-full bg-metac-blue-200 dark:bg-metac-blue-50-dark">
+      <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <NextIntlClientProvider messages={messages}>
             <AuthProvider user={user} socialProviders={socialProviders}>

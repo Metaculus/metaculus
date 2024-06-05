@@ -31,7 +31,7 @@ const SearchInput: FC<Props> = ({
     <Field
       as={onSubmit ? "form" : "div"}
       className={classNames(
-        "relative flex w-full rounded-full text-sm text-metac-gray-900 dark:text-metac-gray-900-dark",
+        "relative flex w-full rounded-full text-sm text-gray-900 dark:text-gray-900-dark",
         { "h-8": size === "base" },
         { "h-12": size === "lg" },
         className
@@ -46,7 +46,7 @@ const SearchInput: FC<Props> = ({
         type="search"
         value={value}
         onChange={onChange}
-        className="mx-auto block size-full rounded-full border border-metac-blue-500 bg-metac-gray-0 pl-3 pr-16 font-medium placeholder:text-metac-gray-700 dark:border-metac-blue-500 dark:bg-metac-gray-0-dark placeholder:dark:text-metac-gray-700-dark"
+        className="mx-auto block size-full rounded-full border border-blue-500 bg-gray-0 pl-3 pr-16 font-medium placeholder:text-gray-700 dark:border-blue-500 dark:bg-gray-0-dark placeholder:dark:text-gray-700-dark"
         placeholder={placeholder}
       />
       <span className="absolute inset-y-0 right-0 inline-flex h-full justify-center">
