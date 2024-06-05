@@ -47,7 +47,7 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
       {errorText && (
         <span
           className={classNames(
-            "text-xs text-metac-red-500 dark:text-metac-red-500-dark",
+            "text-xs text-red-500 dark:text-red-500-dark",
             className
           )}
         >
