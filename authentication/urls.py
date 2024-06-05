@@ -11,4 +11,7 @@ urlpatterns = [
     # Social auth
     path("auth/social", social.social_providers_api_view),
     path("auth/social/<str:provider>/", social.SocialCodeAuth.as_view()),
+    # Password Reset
+    path("auth/password-reset", common.password_reset_api_view),
+    path("auth/password-reset/change", common.password_reset_confirm_api_view),
 ]

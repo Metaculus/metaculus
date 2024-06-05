@@ -42,3 +42,13 @@ By default, we use the Mailgun provider.
 Env Configuration:
 - `MAILGUN_API_KEY`
 - `EMAIL_HOST_USER`
+
+
+## Cache & Async Tasks
+Start dramatiq worker:
+```
+python manage.py rundramatiq
+``` 
+
+Env Configuration:
+- `REDIS_URL`
