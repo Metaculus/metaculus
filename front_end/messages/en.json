@@ -452,7 +452,10 @@
   "profileBioPlaceholder": "Tell us a little about yourself.",
   "username": "username",
   "noResults": "No results found",
-  "homeTitle": "Forecasting for a <details>complex world</details>",
-  "homeDescription": "Metaculus offers trustworthy forecasting and modeling infrastructure\nfor forecasters, decision makers, and the public.",
-  "forecastsSearchPlaceholder": "Search Metaculus"
+  "homeTitle": "Forecasting for a <highlight>complex world</highlight>",
+  "homeDescription": "Metaculus offers trustworthy forecasting and modeling infrastructure for forecasters, decision makers, and the public.",
+  "forecastsSearchPlaceholder": "Search Metaculus",
+  "focusAreasTitle": "Focus <highlight>Areas</highlight>",
+  "focusAreasDescription": "We create forecasts and advance research, decision making, and policy in four main topic areas.",
+  "seeForecasts": "See Forecasts"
 }
