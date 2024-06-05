@@ -145,6 +145,13 @@ class Forecast(models.Model):
     author = models.ForeignKey(User, models.CASCADE)
     question = models.ForeignKey(Question, models.CASCADE)
 
+    def get_pmf(self) -> list[float]:
+        if self.probability_yes:
+            return [1 - self.probability_yes, self.probability_yes]
+        if self.probability_yes_per_category:
+            return self.probability_yes_per_category
+        return self.continuous_prediction_values
+
 
 class Vote(models.Model):
     class VoteDirection(models.IntegerChoices):
