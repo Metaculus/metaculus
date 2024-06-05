@@ -10,6 +10,7 @@ from migrator.services.migrate_projects import migrate_projects
 from migrator.services.migrate_questions import migrate_questions
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
+from migrator.services.migrate_comments import migrate_comments
 
 
 class Command(BaseCommand):
@@ -21,6 +22,7 @@ class Command(BaseCommand):
         with connection.cursor() as cursor:
             cursor.execute("DROP SCHEMA public CASCADE;")
             cursor.execute("CREATE SCHEMA public;")
+
         call_command("makemigrations")
         call_command("migrate")
 
@@ -34,6 +36,8 @@ class Command(BaseCommand):
         print("Migrated projects")
         migrate_votes()
         print("Migrated votes")
+        migrate_comments()
+        print("Migrated comments")
 
         # Reset sql sequences
         self._reset_sequence()

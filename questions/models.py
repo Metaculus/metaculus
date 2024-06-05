@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 from typing import Optional
 
+=======
+from typing import Optional, TYPE_CHECKING
+>>>>>>> f4ed670 ([skip ci])
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count, Subquery, OuterRef, Sum
@@ -7,6 +11,8 @@ from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
 from users.models import User
+if TYPE_CHECKING:
+    from comments.models import Comment
 
 
 class QuestionQuerySet(models.QuerySet):
@@ -146,6 +152,7 @@ class Forecast(models.Model):
     question = models.ForeignKey(Question, models.CASCADE)
 
 
+# you can vote on questions and comments, so we should move this elsewhere; user?
 class Vote(models.Model):
     class VoteDirection(models.IntegerChoices):
         UP = 1
@@ -154,10 +161,18 @@ class Vote(models.Model):
     user = models.ForeignKey(User, models.CASCADE, related_name="votes")
     question = models.ForeignKey(Question, models.CASCADE, related_name="votes")
     direction = models.SmallIntegerField(choices=VoteDirection.choices)
+    #comment = models.ForeignKey("Comment", models.CASCADE, related_name="votes")
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 name="votes_unique_user_question", fields=["user_id", "question_id"]
             ),
+            #models.CheckConstraint(
+            #    name='has_question_xor_comment',
+            #    check=(
+            #        models.Q(question__isnull=True, comment__isnull=False) |
+            #        models.Q(question__isnull=False, comment__isnull=True)
+            #    )
+            #)
         ]
