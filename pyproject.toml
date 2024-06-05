@@ -18,6 +18,7 @@ django-extensions = "^3.2.3"
 numpy = "^1.26.4"
 django-cors-headers = "^4.3.1"
 django-anymail = {extras = ["mailgun"], version = "^10.3"}
+django-sql-utils = "^0.7.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"

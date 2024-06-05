@@ -361,6 +361,21 @@ files = [
 Django = ">=3.2"
 
 [[package]]
+name = "django-sql-utils"
+version = "0.7.0"
+description = "Improved API for aggregating using Subquery"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "django_sql_utils-0.7.0-py3-none-any.whl", hash = "sha256:fefc40c826896b60fcf33e35b6e30b523fc958955a16006438cd3ba6d795a532"},
+    {file = "django_sql_utils-0.7.0.tar.gz", hash = "sha256:9371ff28eaf326836a7c52887259123cdd3fbffb7b738e42ae1a21258be0feb6"},
+]
+
+[package.dependencies]
+django = ">=3.2"
+sqlparse = "*"
+
+[[package]]
 name = "djangorestframework"
 version = "3.15.1"
 description = "Web APIs for Django, made easy."
@@ -875,4 +890,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "3.12.3"
-content-hash = "0c3367dc844c02c0314015a3724c34ee87b8c656d9a33e81f5871c13fad86828"
+content-hash = "693445a4d8a0ee9cd4bee55091db54d86a48e5fb4f03ae115e7c65b7b4b9cab0"
