@@ -30,7 +30,11 @@ class SignupSerializer(serializers.ModelSerializer):
         return value
 
 
-class SignupActivationSerializer(serializers.Serializer):
+class ConfirmationTokenSerializer(serializers.Serializer):
+    """
+    Serializer for token confirmation of Signup/PasswordReset
+    """
+
     user_id = serializers.IntegerField(required=True)
     token = serializers.CharField(required=True)
 

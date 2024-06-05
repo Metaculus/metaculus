@@ -14,3 +14,9 @@ def build_frontend_account_activation_url(user_id: int, token: str):
     return build_frontend_url(
         f"/accounts/activate?{urlencode({'user_id': user_id, 'token': token})}"
     )
+
+
+def build_frontend_password_reset_url(user_id: int, token: str):
+    return build_frontend_url(
+        f"/accounts/reset?{urlencode({'user_id': user_id, 'token': token})}"
+    )
