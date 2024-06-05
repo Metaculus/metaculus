@@ -185,9 +185,8 @@ def enrich_questions_with_forecasts(
 @permission_classes([AllowAny])
 def questions_list_api_view(request):
     paginator = LimitOffsetPagination()
-    qs = Question.objects.all().prefetch_projects().prefetch_forecasts()
-    qs = Question.objects.annotate(num_forecasts=Count("forecast")).filter(
-        num_forecasts__gte=10
+    qs = Question.objects.annotate_predictions_count().filter(
+        forecast__gte=10
     )
 
     # Extra enrich params
@@ -291,4 +290,6 @@ def question_vote_api_view(request: Request, pk: int):
     if direction:
         Vote.objects.create(user=request.user, question=question, direction=direction)
 
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response(
+        {"score": Question.objects.annotate_vote_score().get(pk=question.pk).vote_score}
+    )
