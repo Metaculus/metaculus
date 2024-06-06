@@ -70,9 +70,7 @@ export async function passwordResetConfirmAction(
       validatedFields.data.password
     );
 
-    console.log("BEFORE setServerSession");
     setServerSession(response.token);
-    console.log("AFTER setServerSession");
 
     return {
       data: response,

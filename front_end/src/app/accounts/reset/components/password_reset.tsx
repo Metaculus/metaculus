@@ -79,14 +79,14 @@ const PasswordReset: FC<PasswordResetProps> = ({ user_id, token }) => {
             </div>
             <div className="ml-[45%] w-full">
               <FormError errors={state?.errors} name="passwordAgain" />
+              {/* Global errors container */}
+              <FormError
+                errors={state?.errors}
+                name="non_field_errors"
+                className="text-metac-red-500-dark"
+              />
             </div>
           </div>
-          {/* Global errors container */}
-          <FormError
-            errors={state?.errors}
-            name="non_field_errors"
-            className="text-metac-red-500-dark"
-          />
           <div className="mt-4">
             <Button
               variant="secondary"
@@ -99,7 +99,6 @@ const PasswordReset: FC<PasswordResetProps> = ({ user_id, token }) => {
           </div>
         </form>
       </div>
-      <FormError errors={state?.errors} name={"non_field_errors"} />
     </>
   );
 };

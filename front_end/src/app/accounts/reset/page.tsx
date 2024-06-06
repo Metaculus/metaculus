@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import PasswordReset from "@/app/accounts/reset/components/password_reset";
 import AuthApi from "@/services/auth";
-import { getServerSession } from "@/services/session";
+import { getServerSession, setServerSession } from "@/services/session";
 
 export default async function ResetPassword({
   searchParams: { user_id, token },
@@ -11,7 +11,6 @@ export default async function ResetPassword({
   searchParams: { user_id: number; token: string };
 }) {
   if (getServerSession()) {
-    revalidatePath("/");
     return redirect("/");
   }
 
