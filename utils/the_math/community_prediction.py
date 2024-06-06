@@ -46,17 +46,26 @@ class ForecastHistoryEntry:
 
 def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
     history = []
-    forecasts = Forecast.objects.filter(question=question)
+    forecasts = Forecast.objects.filter(question=question).all()
     timesteps: set[datetime] = set()
     for forecast in forecasts:
         timesteps.add(forecast.start_time)
         if forecast.end_time:
             timesteps.add(forecast.end_time)
     for timestep in sorted(timesteps):
-        forecasts = [f for f in forecasts if f.start_time <= timestep and (f.end_time is None or f.end_time >= timestep)]
-        if len(forecasts) < 1:
+        active_forecasts = [
+            f
+            for f in forecasts
+            if f.start_time <= timestep
+            and (f.end_time is None or f.end_time >= timestep)
+        ]
+        if len(active_forecasts) < 1:
             continue
-        history.append(ForecastHistoryEntry([forecast.get_pmf() for forecast in forecasts], timestep))
+        history.append(
+            ForecastHistoryEntry(
+                [forecast.get_pmf() for forecast in active_forecasts], timestep
+            )
+        )
     return history
 
 
