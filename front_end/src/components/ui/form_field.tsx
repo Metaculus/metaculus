@@ -6,7 +6,7 @@ import { ErrorResponse } from "@/types/fetch";
 
 export type ErrorProps = {
   errors?: ErrorResponse;
-  name: keyof ErrorResponse;
+  name?: keyof ErrorResponse;
   className?: string;
 };
 
@@ -33,7 +33,7 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
         Object.keys(errors).every((k) => k in ["message", "non_field_errors"])
       ) {
         setErrorText(errors?.non_field_errors?.[0] || errors?.message);
-      } else if (name in errors) {
+      } else if (name && name in errors) {
         setErrorText(errors[name]?.[0]);
       } else {
         setErrorText(undefined);
