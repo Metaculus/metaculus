@@ -6,7 +6,8 @@ from projects.models import Project
 from projects.serializers import (
     serialize_projects,
     validate_categories,
-    QuestionProjectWriteSerializer, validate_tournaments,
+    QuestionProjectWriteSerializer,
+    validate_tournaments,
 )
 from .models import Question
 

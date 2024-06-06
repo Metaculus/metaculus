@@ -9,6 +9,7 @@ Transform back to probabilities.
 Normalise to 1 over all outcomes.
 """
 
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Callable
 from questions.models import Forecast, Question
@@ -17,101 +18,67 @@ import numpy as np
 from utils.the_math.measures import weighted_percentile_2d
 
 
-def latest_forecasts_at(
-    forecasts: list[Forecast], at_datetime: Optional[datetime]
-) -> int:
-    if at_datetime:
-        forecasts = [f for f in forecasts if f.start_time <= at_datetime]
+@dataclass
+class CommunityPrediction:
+    pmf: list[float]
+    lower: float
+    upper: float
+    middle: float
 
-    user_latest_forecasts = defaultdict(lambda: None)
+
+def compute_cp_pmf(
+    question_type: str,
+    pmfs: list[list[float]],
+    weights: Optional[list[float]],
+    percentile: Optional[float] = 50.0,
+) -> list[float]:
+    if question_type in ["binary", "multiple_choice"]:
+        return weighted_percentile_2d(pmfs, weights=weights, percentile=percentile)
+    else:
+        return np.average(pmfs, axis=0, weights=weights).tolist()
+
+
+@dataclass
+class ForecastHistoryEntry:
+    pmfs: list[list[float]]
+    at_datetime: datetime
+
+
+def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
+    history = []
+    forecasts = Forecast.objects.filter(question=question).all()
+    timesteps: set[datetime] = set()
     for forecast in forecasts:
-        if (
-            user_latest_forecasts[forecast.author_id] is None
-            or forecast.start_time
-            > user_latest_forecasts[forecast.author_id].start_time
-        ):
-            user_latest_forecasts[forecast.author_id] = forecast
-
-    return list(user_latest_forecasts.values())
-
-
-def compute_binary_cp(
-    forecasts: list[Forecast], at_datetime: Optional[datetime]
-) -> int:
-    forecasts = latest_forecasts_at(forecasts, at_datetime)
-    if len(forecasts) == 0:
-        return None
-    probabilities = [x.probability_yes for x in forecasts]
-    return {
-        "mean": np.quantile(probabilities, 0.5),
-        "max": np.quantile(probabilities, 0.75),
-        "min": np.quantile(probabilities, 0.25),
-        "nr_forecasters": len(forecasts),
-    }
+        timesteps.add(forecast.start_time)
+        if forecast.end_time:
+            timesteps.add(forecast.end_time)
+    for timestep in sorted(timesteps):
+        active_forecasts = [
+            f
+            for f in forecasts
+            if f.start_time <= timestep
+            and (f.end_time is None or f.end_time >= timestep)
+        ]
+        if len(active_forecasts) < 1:
+            continue
+        history.append(
+            ForecastHistoryEntry(
+                [forecast.get_pmf() for forecast in active_forecasts], timestep
+            )
+        )
+    return history
 
 
-def compute_multiple_choice_cp(
-    question: Question, forecasts: list[Forecast], at_datetime: Optional[datetime]
-) -> int:
-    forecasts = latest_forecasts_at(forecasts, at_datetime)
-    if len(forecasts) == 0:
-        return None
-    data = {x: [] for x in question.options}
-    for f in forecasts:
-        for i, prob in enumerate(f.probability_yes_per_category):
-            data[question.options[i]].append(prob["probability"])
-    for k in data:
-        data[k] = {
-            "mean": np.quantile(data[k], 0.5),
-            "nr_forecasters": len(data[k]),
-        }
-    sum_medians = np.sum([x["mean"] for x in data.values()])
-    for k in list(data.keys()):
-        data[k]["mean"] = data[k]["mean"] / sum_medians
-        data["nr_forecasters"] = data[k]["nr_forecasters"]
-        del data[k]["nr_forecasters"]
-    return data
+@dataclass
+class GraphCP:
+    middle: float
+    lower: float
+    upper: float
+    nr_forecasters: int
+    at_datetime: datetime
 
 
-def compute_continuous_cp(
-    question: Question, forecasts: list[Forecast], at_datetime: Optional[datetime]
-) -> int:
-    forecasts = latest_forecasts_at(forecasts, at_datetime)
-    if len(forecasts) == 0:
-        return None
-
-    predictions = np.array([f.continuous_prediction_values for f in forecasts])
-    forecasts_per_bin = np.mean(predictions, axis=0)
-
-    # TODO: Associate bins with numbers
-    step = (question.max - question.min) / 200
-    bin_vals = [question.min + step * i for i in range(200)]
-
-    cumulative_probability = np.cumsum(forecasts_per_bin)
-
-    # Find the indices where the cumulative probability crosses the thresholds
-    min = bin_vals[np.searchsorted(cumulative_probability, 0.25, side="right")]
-    mean = bin_vals[np.searchsorted(cumulative_probability, 0.5, side="right")]
-    max = bin_vals[np.searchsorted(cumulative_probability, 0.75, side="right")]
-
-    return {
-        "mean": mean,
-        "max": max,
-        "min": min,
-        "nr_forecasters": len(forecasts),
-    }
-
-
-def aggregate_pmfs_median(pmfs: list[list[float]], weights: list[float]) -> list[float]:
-    pmf = weighted_percentile_2d(pmfs, weights=weights, percentile=50.0)
-    return (pmf / np.sum(pmf)).tolist()
-
-
-def aggregate_pmfs_mean(pmfs: list[list[float]], weights: list[float]) -> list[float]:
-    return np.average(pmfs, axis=0, weights=weights).tolist()
-
-
-def generate_recency_weights(number_of_forecasts: int) -> np.ndarray | None:
+def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
     if number_of_forecasts <= 2:
         return None
     return np.exp(
@@ -119,78 +86,73 @@ def generate_recency_weights(number_of_forecasts: int) -> np.ndarray | None:
     )
 
 
-def compute_pmf_at_time(
-    forecasts: list[Forecast],
-    time: datetime,
-    aggregation_method: Callable,
-    weighting_method: Callable = lambda x: None,
-) -> list[float] | None:
-    active_forecasts: list[Forecast] = []
-    for forecast in forecasts:
-        if forecast.start_time <= time and (
-            forecast.end_time is None or forecast.end_time > time
-        ):
-            active_forecasts.append(forecast)
-    if len(active_forecasts) == 0:
-        return None
-    weights = weighting_method(len(active_forecasts))
-    pmfs = [f.get_pmf() for f in active_forecasts]
-    return aggregation_method(pmfs, weights)
-
-
-def compute_history(
-    forecasts: list[Forecast],
-    aggregation_method: Callable,
-    weighting_method: Callable = lambda x: None,
-) -> list[tuple[float, datetime]]:
-
-    if len(forecasts) == 0:
-        # no forecasts to aggregate
-        return []
-
-    timesteps: set[datetime] = set()
-    for forecast in forecasts:
-        timesteps.add(forecast.start_time)
-        if forecast.end_time:
-            timesteps.add(forecast.end_time)
-
-    ordered_timesteps = sorted(timesteps)
-    forecast_history = []
-    for timestep in ordered_timesteps:
-        aggregated_pmf = compute_pmf_at_time(
-            forecasts, timestep, aggregation_method, weighting_method
+def compute_binary_plotable_cp(question: Question) -> list[GraphCP]:
+    forecast_history = get_forecast_history(question)
+    cps = []
+    for entry in forecast_history:
+        print(entry)
+        weights = generate_recency_weights(len(entry.pmfs))
+        cps.append(
+            GraphCP(
+                middle=compute_cp_pmf(question.type, entry.pmfs, weights, 50.0)[0],
+                upper=compute_cp_pmf(question.type, entry.pmfs, weights, 75.0)[0],
+                lower=compute_cp_pmf(question.type, entry.pmfs, weights, 25.0)[0],
+                nr_forecasters=len(entry.pmfs),
+                at_datetime=entry.at_datetime,
+            )
         )
-        forecast_history.append((aggregated_pmf, timestep))
+    return cps
 
 
-# suggestion: this all below should move to the Question app
+def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[str, GraphCP]]:
+    forecast_history = get_forecast_history(question)
+    cps = []
+    for entry in forecast_history:
+        weights = generate_recency_weights(len(entry.pmfs))
+        middles = compute_cp_pmf(question.type, entry.pmfs, weights, 50.0)
+        uppers = compute_cp_pmf(question.type, entry.pmfs, weights, 75.0)
+        downers = compute_cp_pmf(question.type, entry.pmfs, weights, 25.0)
+        cps.append(
+            {
+                v: GraphCP(
+                    middle=middles[i],
+                    upper=uppers[i],
+                    lower=downers[i],
+                    nr_forecasters=len(entry.pmfs),
+                    at_datetime=entry.at_datetime,
+                )
+                for i, v in enumerate(question.options)
+            }
+        )
+    return cps
 
 
-def compute_binary_aggregation_history(
-    forecasts: list[Forecast],
-) -> list[tuple[float, datetime]]:
-    return compute_history(forecasts, aggregate_pmfs_median, generate_recency_weights)
+def compute_continuous_plotable_cp(question: Question) -> int:
+    forecast_history = get_forecast_history(question)
+    cps = []
+    for entry in forecast_history:
+        weights = generate_recency_weights(len(entry.pmfs))
+        averages = compute_cp_pmf(question.type, entry.pmfs, weights)
 
+        # TODO @Luke compute the bins using the zero_point
+        step = (question.max - question.min) / 200
+        bin_vals = [question.min + step * i for i in range(200)]
 
-def compute_multiple_choice_aggregation_history(
-    forecasts: list[Forecast],
-) -> list[tuple[float, datetime]]:
-    return compute_history(forecasts, aggregate_pmfs_median, generate_recency_weights)
+        cumulative_probability = np.cumsum(averages)
 
-
-def compute_continuous_aggregation_history(
-    forecasts: list[Forecast],
-) -> list[tuple[float, datetime]]:
-    return compute_history(forecasts, aggregate_pmfs_mean, generate_recency_weights)
-
-
-def compute_aggregation_history(question: Question):
-    forecasts = Forecast.objects.filter(question=question)
-    if question.type == "binary":
-        return compute_binary_aggregation_history(forecasts)
-    elif question.type == "multiple_choice":
-        return compute_multiple_choice_aggregation_history(forecasts)
-    elif question.type == "continuous":
-        return compute_continuous_aggregation_history(forecasts)
-    else:
-        raise ValueError(f"Unknown question type: {question.type}")
+        cps.append(
+            GraphCP(
+                middle=bin_vals[
+                    np.searchsorted(cumulative_probability, 0.5, side="right")
+                ],
+                upper=bin_vals[
+                    np.searchsorted(cumulative_probability, 0.75, side="right")
+                ],
+                lower=bin_vals[
+                    np.searchsorted(cumulative_probability, 0.25, side="right")
+                ],
+                nr_forecasters=len(entry.pmfs),
+                at_datetime=entry.at_datetime,
+            )
+        )
+    return cps
