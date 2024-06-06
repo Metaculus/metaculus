@@ -12,39 +12,39 @@ Normalise to 1 over all outcomes.
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Callable
-from questions.models import Forecast, Question
+from questions.models import Forecast, Question, get_actual_location
 from collections import defaultdict
 import numpy as np
-from utils.the_math.measures import weighted_percentile_2d
+from utils.the_math.measures import weighted_percentile_2d, percent_point_function
 
 
 class CommunityPrediction:
-    pmf: list[float]
+    forecast_values: list[float]
     lower: float
     upper: float
     middle: float
 
 
-def compute_cp_pmf(
+def compute_cp(
     question_type: str,
-    pmfs: list[list[float]],
+    forecast_values: list[list[float]],
     weights: Optional[list[float]],
     percentile: Optional[float] = 50.0,
 ) -> list[float]:
     if question_type in ["binary", "multiple_choice"]:
         return weighted_percentile_2d(
-            pmfs, weights=weights, percentile=percentile
+            forecast_values, weights=weights, percentile=percentile
         ).tolist()
     # TODO: this needs to be normalized for MC, but special care needs to be taken
     # if the percentile isn't 50 (namely it needs to be normalized based off the values
     # at the median)
     else:
-        return np.average(pmfs, axis=0, weights=weights)
+        return np.average(forecast_values, axis=0, weights=weights)
 
 
 @dataclass
 class ForecastHistoryEntry:
-    pmfs: list[list[float]]
+    forecast_values: list[list[float]]
     at_datetime: datetime
 
 
@@ -67,7 +67,8 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
             continue
         history.append(
             ForecastHistoryEntry(
-                [forecast.get_pmf() for forecast in active_forecasts], timestep
+                [forecast.get_forecast_values() for forecast in active_forecasts],
+                timestep,
             )
         )
     return history
@@ -95,13 +96,19 @@ def compute_binary_plotable_cp(question: Question) -> list[GraphCP]:
     cps = []
     for entry in forecast_history:
         print(entry)
-        weights = generate_recency_weights(len(entry.pmfs))
+        weights = generate_recency_weights(len(entry.forecast_values))
         cps.append(
             GraphCP(
-                middle=compute_cp_pmf(question.type, entry.pmfs, weights, 50.0)[0],
-                upper=compute_cp_pmf(question.type, entry.pmfs, weights, 75.0)[0],
-                lower=compute_cp_pmf(question.type, entry.pmfs, weights, 25.0)[0],
-                nr_forecasters=len(entry.pmfs),
+                middle=compute_cp(question.type, entry.forecast_values, weights, 50.0)[
+                    0
+                ],
+                upper=compute_cp(question.type, entry.forecast_values, weights, 75.0)[
+                    0
+                ],
+                lower=compute_cp(question.type, entry.forecast_values, weights, 25.0)[
+                    0
+                ],
+                nr_forecasters=len(entry.forecast_values),
                 at_datetime=entry.at_datetime,
             )
         )
@@ -112,17 +119,17 @@ def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[str, Gr
     forecast_history = get_forecast_history(question)
     cps = []
     for entry in forecast_history:
-        weights = generate_recency_weights(len(entry.pmfs))
-        middles = compute_cp_pmf(question.type, entry.pmfs, weights, 50.0)
-        uppers = compute_cp_pmf(question.type, entry.pmfs, weights, 75.0)
-        downers = compute_cp_pmf(question.type, entry.pmfs, weights, 25.0)
+        weights = generate_recency_weights(len(entry.forecast_values))
+        middles = compute_cp(question.type, entry.forecast_values, weights, 50.0)
+        uppers = compute_cp(question.type, entry.forecast_values, weights, 75.0)
+        downers = compute_cp(question.type, entry.forecast_values, weights, 25.0)
         cps.append(
             {
                 v: GraphCP(
                     middle=middles[i],
                     upper=uppers[i],
                     lower=downers[i],
-                    nr_forecasters=len(entry.pmfs),
+                    nr_forecasters=len(entry.forecast_values),
                     at_datetime=entry.at_datetime,
                 )
                 for i, v in enumerate(question.options)
@@ -135,31 +142,15 @@ def compute_continuous_plotable_cp(question: Question) -> int:
     forecast_history = get_forecast_history(question)
     cps = []
     for entry in forecast_history:
-        weights = generate_recency_weights(len(entry.pmfs))
-        averages = compute_cp_pmf(question.type, entry.pmfs, weights)
-
-        if question.zero_point:
-            internal_cdf_locations = np.linspace(0.0, 1.0, 201)
-            actual_cdf_locations = (
-                question.min + (question.max - question.min) * internal_cdf_locations
-            )
-        else:
-            actual_cdf_locations = np.linspace(question.min, question.max, 201)
-
-        cumulative_probability = np.cumsum(averages)
+        weights = generate_recency_weights(len(entry.forecast_values))
+        cdf = compute_cp(question.type, entry.forecast_values, weights)
 
         cps.append(
             GraphCP(
-                middle=bin_vals[
-                    np.searchsorted(cumulative_probability, 0.5, side="right")
-                ],
-                upper=bin_vals[
-                    np.searchsorted(cumulative_probability, 0.75, side="right")
-                ],
-                lower=bin_vals[
-                    np.searchsorted(cumulative_probability, 0.25, side="right")
-                ],
-                nr_forecasters=len(entry.pmfs),
+                lower=get_actual_location(question, percent_point_function(cdf, 0.25)),
+                middle=get_actual_location(question, percent_point_function(cdf, 0.5)),
+                upper=get_actual_location(question, percent_point_function(cdf, 0.75)),
+                nr_forecasters=len(entry.forecast_values),
                 at_datetime=entry.at_datetime,
             )
         )
