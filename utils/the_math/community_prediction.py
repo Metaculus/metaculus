@@ -98,13 +98,16 @@ def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[GraphCP
         uppers = compute_cp_pmf(question.type, entry.pmfs, weights, 75.0)
         downers = compute_cp_pmf(question.type, entry.pmfs, weights, 25.0)
         cps.append(
-            {v: GraphCP(
-                middle=middles[i],
-                upper=uppers[i],
-                lower=downers[i],
-                nr_forecasters=len(entry.pmfs),
-                at_datetime=entry.at_datetime,
-            ) for i, v in enumerate(question.options)}
+            {
+                v: GraphCP(
+                    middle=middles[i],
+                    upper=uppers[i],
+                    lower=downers[i],
+                    nr_forecasters=len(entry.pmfs),
+                    at_datetime=entry.at_datetime,
+                )
+                for i, v in enumerate(question.options)
+            }
         )
     return cps
 
@@ -127,9 +130,7 @@ def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[GraphCP
     return data
 
 
-def compute_continuous_plotable_cp(
-    question: Question
-) -> int:
+def compute_continuous_plotable_cp(question: Question) -> int:
     forecast_history = get_forecast_history(question)
     cps = []
     for entry in forecast_history:
@@ -142,11 +143,19 @@ def compute_continuous_plotable_cp(
 
         cumulative_probability = np.cumsum(averages)
 
-        cps.append(GraphCP(
-                middle=bin_vals[np.searchsorted(cumulative_probability, 0.5, side="right")],
-                upper=bin_vals[np.searchsorted(cumulative_probability, 0.75, side="right")],
-                lower=bin_vals[np.searchsorted(cumulative_probability, 0.25, side="right")],
+        cps.append(
+            GraphCP(
+                middle=bin_vals[
+                    np.searchsorted(cumulative_probability, 0.5, side="right")
+                ],
+                upper=bin_vals[
+                    np.searchsorted(cumulative_probability, 0.75, side="right")
+                ],
+                lower=bin_vals[
+                    np.searchsorted(cumulative_probability, 0.25, side="right")
+                ],
                 nr_forecasters=len(entry.pmfs),
                 at_datetime=entry.at_datetime,
-            ))
+            )
+        )
     return cps
