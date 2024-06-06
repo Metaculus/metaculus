@@ -179,7 +179,7 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
-      <div className="max-w-sm">
+      <div className="max-w-xs">
         <h2 className="mb-4	mr-3 mt-0 text-2xl text-metac-blue-900 dark:text-metac-blue-900-dark">
           {t("registrationSuccessHeading")}
         </h2>
