@@ -6,7 +6,7 @@ from projects.models import Project
 from projects.serializers import (
     serialize_projects,
     validate_categories,
-    QuestionProjectWriteSerializer,
+    QuestionProjectWriteSerializer, validate_tournaments,
 )
 from .models import Question
 
@@ -48,6 +48,7 @@ class QuestionFilterSerializer(serializers.Serializer):
     topic = serializers.CharField(required=False)
     tags = serializers.ListField(child=serializers.CharField(), required=False)
     categories = serializers.ListField(child=serializers.CharField(), required=False)
+    tournaments = serializers.ListField(child=serializers.CharField(), required=False)
     forecast_type = serializers.ListField(child=serializers.CharField(), required=False)
     answered_by_me = serializers.BooleanField(required=False, allow_null=True)
     order = serializers.ChoiceField(
@@ -74,3 +75,6 @@ class QuestionFilterSerializer(serializers.Serializer):
 
     def validate_categories(self, values: list[str]):
         return validate_categories(lookup_field="slug", lookup_values=values)
+
+    def validate_tournaments(self, values: list[str]):
+        return validate_tournaments(lookup_field="slug", lookup_values=values)
