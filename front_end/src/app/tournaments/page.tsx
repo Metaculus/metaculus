@@ -41,15 +41,22 @@ export default async function Tournaments() {
       <TournamentsList
         title={t("ActiveTournaments")}
         items={activeTournaments}
+        cardsPerPage={12}
       />
 
       <TournamentsList
         title={t("QuestionSeries")}
         items={questionSeries}
         withDate={false}
+        cardsPerPage={12}
       />
 
-      <TournamentsList title={t("Archive")} items={archivedTournaments} />
+      <TournamentsList
+        title={t("Archive")}
+        items={archivedTournaments}
+        cardsPerPage={12}
+        initialCardsCount={4}
+      />
     </main>
   );
 }
