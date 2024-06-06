@@ -462,5 +462,12 @@
   "tournamentsHero1": "Help the global community model, understand, and navigate the world’s most important and complex challenges.",
   "tournamentsHero2": "Prove your forecasting abilities, support effective policy and decision-making, and win cash prizes.",
   "tournamentsHero3": "<scores>Learn</scores> how tournaments are scored.",
-  "tournamentsHero4": "<email>Reach out</email> to discuss launching a tournament on what’s important to you."
+  "tournamentsHero4": "<email>Reach out</email> to discuss launching a tournament on what’s important to you.",
+  "ActiveTournaments": "Active Tournaments",
+  "QuestionSeries": "Question Series",
+  "Archive": "Archive",
+  "prizePool": "prize pool",
+  "questionCount": "{count, plural, =1 {# Question} other {# Questions} }",
+  "closesOn": "Closes <strong></strong>",
+  "closedOn": "Closed <strong></strong>"
 }

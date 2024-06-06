@@ -2,6 +2,7 @@ import { isAfter, isBefore } from "date-fns";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
+import TournamentsList from "@/app/tournaments/components/tournaments_list";
 import ProjectsApi from "@/services/projects";
 import { Tournament, TournamentType } from "@/types/projects";
 
@@ -35,6 +36,20 @@ export default async function Tournaments() {
           })}
         </p>
       </div>
+      <hr className="hidden border-metac-gray-300 dark:border-metac-gray-300-dark md:block" />
+
+      <TournamentsList
+        title={t("ActiveTournaments")}
+        items={activeTournaments}
+      />
+
+      <TournamentsList
+        title={t("QuestionSeries")}
+        items={questionSeries}
+        withDate={false}
+      />
+
+      <TournamentsList title={t("Archive")} items={archivedTournaments} />
     </main>
   );
 }
@@ -47,6 +62,10 @@ function extractTournamentLists(tournaments: Tournament[]) {
   const questionSeries: Tournament[] = [];
 
   for (const tournament of tournaments) {
+    if (!tournament.questions_count) {
+      continue;
+    }
+
     const closeDate = new Date(tournament.close_date);
 
     if (

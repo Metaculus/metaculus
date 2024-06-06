@@ -149,7 +149,7 @@ const PopoverFilter: FC<Props> = ({
                 </div>
               ))}
             </div>
-            <div className="ml-auto mt-4 flex w-full justify-end gap-3 border-t border-metac-gray-300 pt-4 max-sm:sticky max-sm:bottom-0 max-sm:w-full max-sm:bg-metac-gray-0 max-sm:py-4 dark:border-metac-gray-300-dark max-sm:dark:bg-metac-gray-0-dark">
+            <div className="ml-auto mt-4 flex w-full justify-end gap-3 border-t border-metac-gray-300 pt-4 dark:border-metac-gray-300-dark max-sm:sticky max-sm:bottom-0 max-sm:w-full max-sm:bg-metac-gray-0 max-sm:py-4 max-sm:dark:bg-metac-gray-0-dark">
               <Button onClick={onClear}>{t("Clear")}</Button>
               <Button variant="primary" onClick={close}>
                 {t("Done")}
