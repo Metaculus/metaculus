@@ -29,6 +29,12 @@ export enum TournamentType {
   Tournament = "tournament",
 }
 
+export enum TournamentsSortBy {
+  PrizePoolDesc = "-prize_pool",
+  CloseDateAsc = "close_date",
+  StartDateDesc = "-start_date",
+}
+
 export type Tournament = {
   id: number;
   type: TournamentType;

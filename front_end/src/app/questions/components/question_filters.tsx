@@ -16,7 +16,7 @@ import {
   getMainOrderOptions,
   getQuestionsFilters,
   getUserSortOptions,
-} from "@/app/questions/utils/filters";
+} from "@/app/questions/helpers/filters";
 import PopoverFilter from "@/components/popover_filter";
 import { FilterReplaceInfo } from "@/components/popover_filter/types";
 import SearchInput from "@/components/search_input";
@@ -66,7 +66,10 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
   } = useSearchParams();
   const { user } = useAuth();
 
-  const [search, setSearch] = useState(params.get(TEXT_SEARCH_FILTER) ?? "");
+  const [search, setSearch] = useState(() => {
+    const search = params.get(TEXT_SEARCH_FILTER);
+    return search ? decodeURIComponent(search) : "";
+  });
   const debouncedSearch = useDebounce(search, 500);
   useEffect(() => {
     if (debouncedSearch) {
