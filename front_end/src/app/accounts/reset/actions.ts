@@ -55,8 +55,6 @@ export async function passwordResetConfirmAction(
     Object.fromEntries(formData.entries())
   );
 
-  console.log(Object.fromEntries(formData.entries()));
-
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
