@@ -10,11 +10,15 @@ def create_forecast(
     prediction: dict, questions_dict: dict, users_dict: dict
 ) -> Forecast:
     question = questions_dict.get(prediction["question_id"], None)
-    if question is None or prediction["user_id"] is None:
+    if (
+        question is None
+        or prediction["user_id"] is None
+        or prediction["user_id"] not in users_dict
+    ):
         return None
 
     spv = prediction["stored_prediction_values"]
-    continuous_prediction_values = None
+    continuous_cdf = None
     probability_yes = None
     probability_yes_per_category = None
     if question.type == "binary":
@@ -22,7 +26,7 @@ def create_forecast(
     elif question.type == "numeric" or question.type == "date":
         continuous_pdf = spv
         vals = np.roll(continuous_pdf, 1)
-        cdf = np.cumsum(vals)[..., -1]
+        cdf = np.cumsum(vals)[..., :-1]
         continuous_cdf = cdf.tolist()
     elif question.type == "multiple_choice":
         probability_yes_per_category = spv
