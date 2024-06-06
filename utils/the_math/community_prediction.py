@@ -18,7 +18,6 @@ import numpy as np
 from utils.the_math.measures import weighted_percentile_2d
 
 
-@dataclass
 class CommunityPrediction:
     pmf: list[float]
     lower: float
@@ -33,9 +32,14 @@ def compute_cp_pmf(
     percentile: Optional[float] = 50.0,
 ) -> list[float]:
     if question_type in ["binary", "multiple_choice"]:
-        return weighted_percentile_2d(pmfs, weights=weights, percentile=percentile)
+        return weighted_percentile_2d(
+            pmfs, weights=weights, percentile=percentile
+        ).tolist()
+    # TODO: this needs to be normalized for MC, but special care needs to be taken
+    # if the percentile isn't 50 (namely it needs to be normalized based off the values
+    # at the median)
     else:
-        return np.average(pmfs, axis=0, weights=weights).tolist()
+        return np.average(pmfs, axis=0, weights=weights)
 
 
 @dataclass
@@ -46,7 +50,7 @@ class ForecastHistoryEntry:
 
 def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
     history = []
-    forecasts = Forecast.objects.filter(question=question).all()
+    forecasts = question.forecast_set.all()
     timesteps: set[datetime] = set()
     for forecast in forecasts:
         timesteps.add(forecast.start_time)
@@ -134,9 +138,13 @@ def compute_continuous_plotable_cp(question: Question) -> int:
         weights = generate_recency_weights(len(entry.pmfs))
         averages = compute_cp_pmf(question.type, entry.pmfs, weights)
 
-        # TODO @Luke compute the bins using the zero_point
-        step = (question.max - question.min) / 200
-        bin_vals = [question.min + step * i for i in range(200)]
+        if question.zero_point:
+            internal_cdf_locations = np.linspace(0.0, 1.0, 201)
+            actual_cdf_locations = (
+                question.min + (question.max - question.min) * internal_cdf_locations
+            )
+        else:
+            actual_cdf_locations = np.linspace(question.min, question.max, 201)
 
         cumulative_probability = np.cumsum(averages)
 
