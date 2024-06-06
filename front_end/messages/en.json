@@ -469,5 +469,7 @@
   "prizePool": "prize pool",
   "questionCount": "{count, plural, =1 {# Question} other {# Questions} }",
   "closesOn": "Closes <strong></strong>",
-  "closedOn": "Closed <strong></strong>"
+  "closedOn": "Closed <strong></strong>",
+  "highestPrizePool": "Highest Prize Pool",
+  "endingSoon": "Ending Soon"
 }
