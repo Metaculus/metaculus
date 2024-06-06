@@ -1,3 +1,5 @@
+import numpy as np
+
 from migrator.utils import paginated_query
 from questions.models import Forecast, Question
 
@@ -18,7 +20,10 @@ def create_forecast(
     if question.type == "binary":
         probability_yes = spv[1]
     elif question.type == "numeric" or question.type == "date":
-        continuous_prediction_values = spv
+        continuous_pdf = spv
+        vals = np.roll(continuous_pdf, 1)
+        cdf = np.cumsum(vals)[..., -1]
+        continuous_cdf = cdf.tolist()
     elif question.type == "multiple_choice":
         probability_yes_per_category = spv
 
@@ -26,7 +31,7 @@ def create_forecast(
         id=prediction["id"],
         start_time=prediction["start_time"],
         end_time=prediction["end_time"],
-        continuous_prediction_values=continuous_prediction_values,
+        continuous_cdf=continuous_cdf,
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category,
         distribution_components=prediction["distribution_components"],
