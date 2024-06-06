@@ -72,7 +72,7 @@ def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
     )
 
 
-def compute_binary_plotable_cp(question: Question) -> dict:
+def compute_binary_plotable_cp(question: Question) -> list[GraphCP]:
     forecast_history = get_forecast_history(question)
     cps = []
     for entry in forecast_history:
@@ -89,10 +89,25 @@ def compute_binary_plotable_cp(question: Question) -> dict:
     return cps
 
 
-def compute_multiple_choice_cp(
-    question: Question, forecasts: list[Forecast], at_datetime: Optional[datetime]
-) -> int:
-    forecasts = latest_forecasts_at(forecasts, at_datetime)
+def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[GraphCP]]:
+    forecast_history = get_forecast_history(question)
+    cps = []
+    for entry in forecast_history:
+        weights = generate_recency_weights(len(entry.pmfs))
+        middles = compute_cp_pmf(question.type, entry.pmfs, weights, 50.0)
+        uppers = compute_cp_pmf(question.type, entry.pmfs, weights, 75.0)
+        downers = compute_cp_pmf(question.type, entry.pmfs, weights, 25.0)
+        cps.append(
+            {v: GraphCP(
+                middle=middles[i],
+                upper=uppers[i],
+                lower=downers[i],
+                nr_forecasters=len(entry.pmfs),
+                at_datetime=entry.at_datetime,
+            ) for i, v in enumerate(question.options)}
+        )
+    return cps
+
     if len(forecasts) == 0:
         return None
     data = {x: [] for x in question.options}
@@ -119,29 +134,19 @@ def compute_continuous_plotable_cp(
     cps = []
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.pmfs))
+        averages = compute_cp_pmf(question.type, entry.pmfs, weights)
 
+        # TODO @Luke compute the bins using the zero_point
+        step = (question.max - question.min) / 200
+        bin_vals = [question.min + step * i for i in range(200)]
 
-    forecasts = latest_forecasts_at(forecasts, at_datetime)
-    if len(forecasts) == 0:
-        return None
+        cumulative_probability = np.cumsum(averages)
 
-    predictions = np.array([f.continuous_prediction_values for f in forecasts])
-    forecasts_per_bin = np.mean(predictions, axis=0)
-
-    # TODO @Luke compute the bins using the zero_point
-    step = (question.max - question.min) / 200
-    bin_vals = [question.min + step * i for i in range(200)]
-
-    cumulative_probability = np.cumsum(forecasts_per_bin)
-
-    # Find the indices where the cumulative probability crosses the thresholds
-    min = bin_vals[np.searchsorted(cumulative_probability, 0.25, side="right")]
-    mean = bin_vals[np.searchsorted(cumulative_probability, 0.5, side="right")]
-    max = bin_vals[np.searchsorted(cumulative_probability, 0.75, side="right")]
-
-    return {
-        "mean": mean,
-        "max": max,
-        "min": min,
-        "nr_forecasters": len(forecasts),
-    }
+        cps.append(GraphCP(
+                middle=bin_vals[np.searchsorted(cumulative_probability, 0.5, side="right")],
+                upper=bin_vals[np.searchsorted(cumulative_probability, 0.75, side="right")],
+                lower=bin_vals[np.searchsorted(cumulative_probability, 0.25, side="right")],
+                nr_forecasters=len(entry.pmfs),
+                at_datetime=entry.at_datetime,
+            ))
+    return cps
