@@ -12,6 +12,7 @@ Normalise to 1 over all outcomes.
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Callable
+from django.db.models import QuerySet
 from questions.models import Forecast, Question, get_actual_location
 from collections import defaultdict
 import numpy as np
@@ -35,9 +36,9 @@ def compute_cp(
         return weighted_percentile_2d(
             forecast_values, weights=weights, percentile=percentile
         ).tolist()
-    # TODO: this needs to be normalized for MC, but special care needs to be taken
-    # if the percentile isn't 50 (namely it needs to be normalized based off the values
-    # at the median)
+        # TODO: this needs to be normalized for MC, but special care needs to be taken
+        # if the percentile isn't 50 (namely it needs to be normalized based off the values
+        # at the median)
     else:
         return np.average(forecast_values, axis=0, weights=weights)
 
@@ -50,7 +51,7 @@ class ForecastHistoryEntry:
 
 def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
     history = []
-    forecasts = question.forecast_set.all()
+    forecasts: QuerySet[Forecast] = question.forecast_set.all()
     timesteps: set[datetime] = set()
     for forecast in forecasts:
         timesteps.add(forecast.start_time)
@@ -95,19 +96,27 @@ def compute_binary_plotable_cp(question: Question) -> list[GraphCP]:
     forecast_history = get_forecast_history(question)
     cps = []
     for entry in forecast_history:
-        print(entry)
         weights = generate_recency_weights(len(entry.forecast_values))
         cps.append(
             GraphCP(
-                middle=compute_cp(question.type, entry.forecast_values, weights, 50.0)[
-                    0
-                ],
-                upper=compute_cp(question.type, entry.forecast_values, weights, 75.0)[
-                    0
-                ],
-                lower=compute_cp(question.type, entry.forecast_values, weights, 25.0)[
-                    0
-                ],
+                middle=compute_cp(
+                    question.type,
+                    entry.forecast_values,
+                    weights,
+                    50.0,
+                )[0],
+                upper=compute_cp(
+                    question.type,
+                    entry.forecast_values,
+                    weights,
+                    75.0,
+                )[0],
+                lower=compute_cp(
+                    question.type,
+                    entry.forecast_values,
+                    weights,
+                    25.0,
+                )[0],
                 nr_forecasters=len(entry.forecast_values),
                 at_datetime=entry.at_datetime,
             )
