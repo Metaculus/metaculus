@@ -23,3 +23,27 @@ export type Tag = {
   slug: string;
   questions_count: number;
 };
+
+export enum TournamentType {
+  QuestionSeries = "question_series",
+  Tournament = "tournament",
+}
+
+export type Tournament = {
+  id: number;
+  type: TournamentType;
+  name: string;
+  slug: string | null;
+  subtitle: string;
+  description: string;
+  header_image: string;
+  header_logo: string;
+  prize_pool: string;
+  start_date: string;
+  close_date: string;
+  meta_description: string;
+  is_ongoing: boolean;
+  created_at: string;
+  edited_at: string;
+  questions_count: number;
+};
