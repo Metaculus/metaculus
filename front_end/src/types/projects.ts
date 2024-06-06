@@ -38,7 +38,7 @@ export type Tournament = {
   description: string;
   header_image: string;
   header_logo: string;
-  prize_pool: string;
+  prize_pool: string | null;
   start_date: string;
   close_date: string;
   meta_description: string;
