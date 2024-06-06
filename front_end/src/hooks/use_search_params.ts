@@ -19,6 +19,11 @@ const useSearchParams = () => {
     router.push(pathname + "?" + params.toString());
   }, [params, pathname, router]);
 
+  // allows pushing search params to the url without page reload
+  const shallowNavigateToSearchParams = useCallback(() => {
+    window.history.pushState(null, "", `?${params.toString()}`);
+  }, [params]);
+
   const setParam = useCallback(
     (name: string, val: string | string[], withNavigation = true) => {
       params.delete(name);
@@ -91,6 +96,7 @@ const useSearchParams = () => {
     deleteParams,
     replaceParams,
     navigateToSearchParams,
+    shallowNavigateToSearchParams,
   };
 };
 
