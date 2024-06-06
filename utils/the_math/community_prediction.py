@@ -54,6 +54,8 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
             timesteps.add(forecast.end_time)
     for timestep in sorted(timesteps):
         forecasts = [f for f in forecasts if f.start_time <= timestep and (f.end_time is None or f.end_time >= timestep)]
+        if len(forecasts) < 1:
+            continue
         history.append(ForecastHistoryEntry([forecast.get_pmf() for forecast in forecasts], timestep))
     return history
 
