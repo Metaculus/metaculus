@@ -44,7 +44,6 @@ def filter_questions(qs, request: Request):
 
     # Filters
     if topic := serializer.validated_data.get("topic"):
-        print(topic)
         qs = qs.filter(projects=topic)
 
     if tags := serializer.validated_data.get("tags"):
@@ -52,6 +51,11 @@ def filter_questions(qs, request: Request):
 
     if categories := serializer.validated_data.get("categories"):
         qs = qs.filter(projects__in=categories)
+
+    # TODO: ensure projects filtering logic is correct
+    #   I assume it might not work exactly as before
+    if tournaments := serializer.validated_data.get("tournaments"):
+        qs = qs.filter(projects__in=tournaments)
 
     if forecast_type := serializer.validated_data.get("forecast_type"):
         qs = qs.filter(type__in=forecast_type)
@@ -144,10 +148,15 @@ def enrich_question_with_resolution(
 
     def enrich(question: Question, serialized_question: dict):
         if question.type == "binary":
-            if np.isclose(float(serialized_question["resolution"]), 0):
-                serialized_question["resolution"] = "Yes"
-            elif np.isclose(float(serialized_question["resolution"]), -1):
-                serialized_question["resolution"] = "No"
+            # TODO: @george, some questions might have None resolution, so this leads to error
+            #   added tmp condition to prevent such cases
+            resolution = serialized_question["resolution"]
+
+            if resolution is not None:
+                if np.isclose(float(serialized_question["resolution"]), 0):
+                    serialized_question["resolution"] = "Yes"
+                elif np.isclose(float(serialized_question["resolution"]), -1):
+                    serialized_question["resolution"] = "No"
 
         elif question.type == "number":
             pass
