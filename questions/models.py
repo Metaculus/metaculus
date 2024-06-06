@@ -152,8 +152,10 @@ class Forecast(models.Model):
         # returns 202 values
         return np.diff(self.continuous_cdf, prepend=0.0, append=1.0).tolist()
 
-    def get_cdf(self) -> list[float] | None:
-        return self.continuous_cdf
+    def get_forecast_values(self) -> list[float]:
+        if self.continuous_cdf:
+            return self.continuous_cdf
+        return self.get_pmf()
 
 
 class Vote(models.Model):
