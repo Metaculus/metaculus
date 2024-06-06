@@ -240,7 +240,7 @@ def enrich_questions_with_forecasts(
                 forecasts_data["values_mean"].append(cp.middle)
                 forecasts_data["values_max"].append(cp.upper)
                 forecasts_data["values_min"].append(cp.lower)
-                forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
+                forecasts_data["nr_forecasters"].append(cp.nr_forecasters)
 
         serialized_question["forecasts"] = forecasts_data
         return serialized_question
