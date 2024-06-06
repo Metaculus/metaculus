@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 import { useFormState } from "react-dom";
@@ -10,7 +9,7 @@ import { useForm } from "react-hook-form";
 import {
   passwordResetConfirmAction,
   PasswordResetConfirmActionState,
-} from "@/app/accounts/actions";
+} from "@/app/accounts/reset/actions";
 import {
   PasswordResetConfirmSchema,
   passwordResetConfirmSchema,

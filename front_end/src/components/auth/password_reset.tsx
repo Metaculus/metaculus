@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import {
   passwordResetRequestAction,
   PasswordResetRequestActionState,
-} from "@/app/accounts/actions";
+} from "@/app/accounts/reset/actions";
 import {
   PasswordResetRequestSchema,
   passwordResetRequestSchema,
