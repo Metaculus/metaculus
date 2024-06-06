@@ -20,6 +20,7 @@ from questions.serializers import (
 from users.models import User
 from utils.dtypes import flatten
 from utils.the_math.community_prediction import (
+    compute_aggregation_history,
     compute_binary_cp,
     compute_continuous_cp,
     compute_multiple_choice_cp,
@@ -215,6 +216,7 @@ def enrich_questions_with_forecasts(
 
         # values_choice_1
         for forecast_time in forecast_times:
+            cps = compute_aggregation_history(question, recency_weighted=True)
             if question.type == "multiple_choice":
                 cp = compute_multiple_choice_cp(question, forecasts, forecast_time)
                 if cp is None:
