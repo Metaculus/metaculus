@@ -34,6 +34,8 @@ const AuthProvider: FC<
     SocialProvider[] | null
   >(initialSocialProviders);
 
+  console.log("CURRENT_USER: ", user);
+
   return (
     <AuthContext.Provider
       value={{ user, setUser, socialProviders, setSocialProviders }}

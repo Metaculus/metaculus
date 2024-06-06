@@ -471,5 +471,6 @@
   "closesOn": "Closes <strong></strong>",
   "closedOn": "Closed <strong></strong>",
   "highestPrizePool": "Highest Prize Pool",
-  "endingSoon": "Ending Soon"
+  "endingSoon": "Ending Soon",
+  "changePasswordButton": "Change Password"
 }

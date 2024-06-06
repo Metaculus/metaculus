@@ -106,6 +106,8 @@ export default async function RootLayout({
     `${currentUrl.origin}/accounts/social`
   );
 
+  console.log("CURRENT_USER: ", user);
+
   return (
     <html
       lang={locale}
