@@ -58,6 +58,7 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
     return history
 
 
+@dataclass
 class GraphCP:
     middle: float
     lower: float
