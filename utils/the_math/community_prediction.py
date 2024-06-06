@@ -102,95 +102,54 @@ def compute_continuous_cp(
     }
 
 
-def aggregate_pmfs_median(pmfs: list[list[float]], weights: list[float]) -> list[float]:
-    pmf = weighted_percentile_2d(pmfs, weights=weights, percentile=50.0)
-    return (pmf / np.sum(pmf)).tolist()
+# ---
+class CommunityPrediction:
+    single_prediction: float
+    nr_forecasters: int
+    lower_quartile: float
+    upper_quartile: float
+    pmf: list[float]
 
 
-def aggregate_pmfs_mean(pmfs: list[list[float]], weights: list[float]) -> list[float]:
-    return np.average(pmfs, axis=0, weights=weights).tolist()
-
-
-def generate_recency_weights(number_of_forecasts: int) -> np.ndarray | None:
-    if number_of_forecasts <= 2:
-        return None
-    return np.exp(
-        np.sqrt(np.arange(number_of_forecasts) + 1) - np.sqrt(number_of_forecasts)
-    )
-
-
-def compute_pmf_at_time(
+def compute_cp_pmf(
+    question_type: str,
     forecasts: list[Forecast],
-    time: datetime,
-    aggregation_method: Callable,
-    weighting_method: Callable = lambda x: None,
-) -> list[float] | None:
-    active_forecasts: list[Forecast] = []
-    for forecast in forecasts:
-        if forecast.start_time <= time and (
-            forecast.end_time is None or forecast.end_time > time
-        ):
-            active_forecasts.append(forecast)
-    if len(active_forecasts) == 0:
-        return None
-    weights = weighting_method(len(active_forecasts))
-    pmfs = [f.get_pmf() for f in active_forecasts]
-    return aggregation_method(pmfs, weights)
+    at_datetime: Optional[datetime],
+    recency_weighted: bool = True,
+) -> CommunityPrediction:
+    if at_datetime:
+        forecasts = [
+            f
+            for f in forecasts
+            if f.start_time <= at_datetime
+            and (f.end_time is None or f.end_time > at_datetime)
+        ]
+
+    weights = None
+    if recency_weighted:
+        weights = np.exp(
+            np.sqrt(np.arange(len(forecasts)) + 1) - np.sqrt(len(forecasts))
+        )
+
+    nr_forecasters = len(set([x.author_id for x in forecasts]))
+    pmfs = [f.get_pmf() for f in forecasts]
+    if question_type in ["binary", "multiple_choice"]:
+        pmf = weighted_percentile_2d(pmfs, weights=weights, percentile=50.0)
+        pmf = (pmf / np.sum(pmf)).tolist()
+    else:
+        pmf = np.average(pmfs, axis=0, weights=weights).tolist()
 
 
-def compute_history(
-    forecasts: list[Forecast],
-    aggregation_method: Callable,
-    weighting_method: Callable = lambda x: None,
-) -> list[tuple[float, datetime]]:
-
-    if len(forecasts) == 0:
-        # no forecasts to aggregate
-        return []
-
+def compute_aggregation_history(
+    question: Question, recency_weighted: bool = True
+) -> list[float]:
+    forecasts = Forecast.objects.filter(question=question)
     timesteps: set[datetime] = set()
     for forecast in forecasts:
         timesteps.add(forecast.start_time)
         if forecast.end_time:
             timesteps.add(forecast.end_time)
-
-    ordered_timesteps = sorted(timesteps)
-    forecast_history = []
-    for timestep in ordered_timesteps:
-        aggregated_pmf = compute_pmf_at_time(
-            forecasts, timestep, aggregation_method, weighting_method
-        )
-        forecast_history.append((aggregated_pmf, timestep))
-
-
-# suggestion: this all below should move to the Question app
-
-
-def compute_binary_aggregation_history(
-    forecasts: list[Forecast],
-) -> list[tuple[float, datetime]]:
-    return compute_history(forecasts, aggregate_pmfs_median, generate_recency_weights)
-
-
-def compute_multiple_choice_aggregation_history(
-    forecasts: list[Forecast],
-) -> list[tuple[float, datetime]]:
-    return compute_history(forecasts, aggregate_pmfs_median, generate_recency_weights)
-
-
-def compute_continuous_aggregation_history(
-    forecasts: list[Forecast],
-) -> list[tuple[float, datetime]]:
-    return compute_history(forecasts, aggregate_pmfs_mean, generate_recency_weights)
-
-
-def compute_aggregation_history(question: Question):
-    forecasts = Forecast.objects.filter(question=question)
-    if question.type == "binary":
-        return compute_binary_aggregation_history(forecasts)
-    elif question.type == "multiple_choice":
-        return compute_multiple_choice_aggregation_history(forecasts)
-    elif question.type == "continuous":
-        return compute_continuous_aggregation_history(forecasts)
-    else:
-        raise ValueError(f"Unknown question type: {question.type}")
+    return [
+        compute_cp_pmf(question.type, forecasts, timestep, recency_weighted)
+        for timestep in sorted(timesteps)
+    ]
