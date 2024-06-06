@@ -51,12 +51,12 @@ function logisticCDF(
   return (
     c +
     k *
-      // Maybe 1 - asymetry not c - asymetry
+      (1 - asymmetry * k) *
       Fprime(
         k *
           math.divide(
             math.subtract(x, mode),
-            sprime(scale) * (c - asymmetry * k)
+            sprime(scale) * (1 - asymmetry * k)
           )
       )
   );
@@ -68,23 +68,19 @@ export function binWeightsFromSliders(
   right: number
 ) {
   const params = logisticDistributionParamsFromSliders(left, center, right);
-  const step = 1 / 202;
-  const xArr = math.range(0 + step, 1 - step, step);
-  const binWeights = [
+  const step = 1 / 200;
+  const xArr = math.range(0, 1, step, true);
+  const cdf = [
     ...xArr
       .map((x) => logisticCDF(x, params.mode, params.scale, params.asymmetry))
       .toArray(),
-    //logisticCDF(0, params.mode, params.scale, params.asymmetry),
-    //logisticCDF(1, params.mode, params.scale, params.asymmetry),
   ];
-  console.log(binWeights);
-  const numBinWeights = [];
-  for (let i = 0; i < binWeights.length; i++) {
+  console.log(cdf);
+  const pmf = [];
+  for (let i = 0; i < cdf.length; i++) {
     if (i > 0) {
-      numBinWeights.push(
-        Number(math.subtract(binWeights[i], binWeights[i - 1]))
-      );
+      pmf.push(Number(math.subtract(cdf[i], cdf[i - 1])));
     }
   }
-  return numBinWeights;
+  return pmf;
 }
