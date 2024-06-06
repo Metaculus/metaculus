@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import AwaitedQuestions from "@/app/questions/components/awaited_questions";
 import QuestionFilters from "@/app/questions/components/question_filters";
 import QuestionTopics from "@/app/questions/components/question_topics";
-import { generateFiltersFromSearchParams } from "@/app/questions/utils/filters";
+import { generateFiltersFromSearchParams } from "@/app/questions/helpers/filters";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProjectsApi from "@/services/projects";
 
