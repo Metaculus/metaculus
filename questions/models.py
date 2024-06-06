@@ -1,3 +1,4 @@
+import numpy as np
 from typing import Optional
 
 from django.contrib.postgres.fields import ArrayField
@@ -118,11 +119,12 @@ class Forecast(models.Model):
         db_index=True,
     )
 
-    # last 2 elements are represents above upper and, subsequently, below lower bound.
-    continuous_prediction_values = ArrayField(
+    # CDF of prediction evaluated at locations
+    #   [0.0, 0.005, 0.01, ..., 0.995, 1.0] (internal representation)
+    continuous_cdf = ArrayField(
         models.FloatField(),
         null=True,
-        size=202,
+        size=201,
     )
 
     probability_yes = models.FloatField(null=True)
@@ -143,7 +145,15 @@ class Forecast(models.Model):
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
             return self.probability_yes_per_category
-        return self.continuous_prediction_values
+        # PMF is calculated from the CDF
+        # the first value is the probability mass below lower bound
+        # the last value is the probability mass above the upper bound
+        # the rest of the values are the differences between consecutive CDF values
+        # returns 202 values
+        return np.diff(self.continuous_cdf, prepend=0.0, append=1.0).tolist()
+
+    def get_cdf(self) -> list[float] | None:
+        return self.continuous_cdf
 
 
 class Vote(models.Model):
