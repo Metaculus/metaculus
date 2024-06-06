@@ -71,7 +71,7 @@ def filter_questions(qs, request: Request):
         match order:
             case serializer.Order.MOST_FORECASTERS:
                 qs = qs.annotate_predictions_count__unique().order_by(
-                    "-predictions_count_unique"
+                    "-nr_forecasters"
                 )
             case serializer.Order.CLOSED_AT:
                 qs = qs.order_by("-closed_at")
@@ -126,16 +126,14 @@ def enrich_questions_with_nr_forecasts(
     Enriches questions with the votes object.
     """
 
-    qs = qs.prefetch_forecasts()
+    qs = qs.annotate_nr_forecasters()
 
     # Annotate user's vote
     if user and not user.is_anonymous:
         qs = qs.annotate_user_vote(user)
 
     def enrich(question: Question, serialized_question: dict):
-        nr_forecasters = question.forecast_set.values("author").distinct().count()
-
-        serialized_question["nr_forecasters"] = nr_forecasters
+        serialized_question["nr_forecasters"] = question.nr_forecasters
 
         return serialized_question
 

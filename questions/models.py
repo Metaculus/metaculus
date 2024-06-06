@@ -19,9 +19,9 @@ class QuestionQuerySet(models.QuerySet):
     def annotate_predictions_count(self):
         return self.annotate(predictions_count=Count("forecast", distinct=True))
 
-    def annotate_predictions_count__unique(self):
+    def annotate_nr_forecasters(self):
         return self.annotate(
-            predictions_count_unique=Count("forecast__author", distinct=True)
+            nr_forecasters=Count("forecast__author", distinct=True)
         )
 
     def annotate_vote_score(self):
@@ -93,7 +93,7 @@ class Question(models.Model):
 
     # Annotated fields
     predictions_count: int = 0
-    predictions_count_unique: int = 0
+    nr_forecasters: int = 0
     vote_score: int = 0
     user_vote = None
 
