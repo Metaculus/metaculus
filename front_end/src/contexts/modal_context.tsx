@@ -8,7 +8,12 @@ import {
   useState,
 } from "react";
 
-export type ModalType = "signin" | "signup" | "signupSuccess";
+export type ModalType =
+  | "signin"
+  | "signup"
+  | "signupSuccess"
+  | "resetPassword"
+  | "resetPasswordConfirm";
 
 export type CurrentModal = {
   type: ModalType;
