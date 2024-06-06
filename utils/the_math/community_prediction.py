@@ -52,7 +52,9 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
         timesteps.add(forecast.start_time)
         if forecast.end_time:
             timesteps.add(forecast.end_time)
-        history.append(ForecastHistoryEntry(forecast.get_pmf(), forecast.start_time))
+    for timestep in sorted(timesteps):
+        forecasts = [f for f in forecasts if f.start_time <= timestep and (f.end_time is None or f.end_time >= timestep)]
+        history.append(ForecastHistoryEntry([forecast.get_pmf() for forecast in forecasts], timestep))
     return history
 
 
@@ -76,6 +78,7 @@ def compute_binary_plotable_cp(question: Question) -> list[GraphCP]:
     forecast_history = get_forecast_history(question)
     cps = []
     for entry in forecast_history:
+        print(entry)
         weights = generate_recency_weights(len(entry.pmfs))
         cps.append(
             GraphCP(
@@ -89,7 +92,7 @@ def compute_binary_plotable_cp(question: Question) -> list[GraphCP]:
     return cps
 
 
-def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[GraphCP]]:
+def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[str, GraphCP]]:
     forecast_history = get_forecast_history(question)
     cps = []
     for entry in forecast_history:
@@ -110,24 +113,6 @@ def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[GraphCP
             }
         )
     return cps
-
-    if len(forecasts) == 0:
-        return None
-    data = {x: [] for x in question.options}
-    for f in forecasts:
-        for i, prob in enumerate(f.probability_yes_per_category):
-            data[question.options[i]].append(prob["probability"])
-    for k in data:
-        data[k] = {
-            "mean": np.quantile(data[k], 0.5),
-            "nr_forecasters": len(data[k]),
-        }
-    sum_medians = np.sum([x["mean"] for x in data.values()])
-    for k in list(data.keys()):
-        data[k]["mean"] = data[k]["mean"] / sum_medians
-        data["nr_forecasters"] = data[k]["nr_forecasters"]
-        del data[k]["nr_forecasters"]
-    return data
 
 
 def compute_continuous_plotable_cp(question: Question) -> int:
