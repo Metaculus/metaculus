@@ -171,3 +171,15 @@ class Vote(models.Model):
                 name="votes_unique_user_question", fields=["user_id", "question_id"]
             ),
         ]
+
+
+# TODO: find a better place for this
+def get_actual_location(question: Question, internal_location: float) -> float:
+    if question.zero_point:
+        deriv_ratio = (question.max - question.zero_point) / (
+            question.min - question.zero_point
+        )
+        return question.min + (question.max - question.min) * (
+            deriv_ratio**internal_location - 1
+        ) / (deriv_ratio - 1)
+    return question.min + (question.max - question.min) * internal_location
