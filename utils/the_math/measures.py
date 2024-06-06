@@ -49,3 +49,4 @@ def percent_point_function(cdf: list[float], percent: float) -> float:
         if left < percent < right:
             # linear interpolation
             return (i + (percent - left) / (right - left)) / (length - 1)
+    return 1.0
