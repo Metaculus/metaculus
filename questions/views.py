@@ -236,7 +236,7 @@ def enrich_questions_with_forecasts(
                 return serialized_question
             
             for cp in cps:
-                forecasts_data["timestamps"].append(forecast_time.timestamp())
+                forecasts_data["timestamps"].append(cp.at_datetime.timestamp())
                 forecasts_data["values_mean"].append(cp.middle)
                 forecasts_data["values_max"].append(cp.upper)
                 forecasts_data["values_min"].append(cp.lower)
