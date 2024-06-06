@@ -1,7 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import QuestionsApi, { QuestionsParams } from "@/services/questions";
 import { FetchError } from "@/types/fetch";
 import { VoteDirection } from "@/types/votes";
@@ -24,10 +22,7 @@ export async function voteQuestion(
   direction: VoteDirection
 ) {
   try {
-    const response = await QuestionsApi.voteQuestion(questionId, direction);
-    revalidatePath("/");
-
-    return response;
+    return await QuestionsApi.voteQuestion(questionId, direction);
   } catch (err) {
     const error = err as FetchError;
 

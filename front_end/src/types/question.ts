@@ -1,3 +1,5 @@
+import { VoteDirection } from "@/types/votes";
+
 export enum QuestionType {
   Numeric = "numeric",
   Date = "date",
@@ -55,11 +57,9 @@ export type MultipleChoiceForecast = {
   [value_choice_n: string]: number[];
 };
 
-export type UserVote = "up" | "down" | null;
-
 export type QuestionVote = {
   score: number;
-  user_vote: UserVote;
+  user_vote: VoteDirection;
 };
 
 export type Question = {

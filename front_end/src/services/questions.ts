@@ -1,6 +1,6 @@
 import { PaginatedPayload } from "@/types/fetch";
 import { Question, QuestionWithForecasts } from "@/types/question";
-import { VoteDirection } from "@/types/votes";
+import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/query_params";
 
@@ -71,8 +71,8 @@ class QuestionsApi {
   static async voteQuestion(
     id: number,
     direction: VoteDirection
-  ): Promise<void> {
-    return await post(`/questions/${id}/vote`, { direction });
+  ): Promise<VoteResponse> {
+    return await post<VoteResponse>(`/questions/${id}/vote`, { direction });
   }
 }
 

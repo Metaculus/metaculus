@@ -40,7 +40,7 @@ const Voter: FC<Props> = ({
         disabled={disabled}
         presentationType="icon"
       >
-        {userVote === "up" ? (
+        {userVote === 1 ? (
           <FontAwesomeIcon
             icon={faChevronUp}
             className="rounded-full bg-gradient-to-b from-metac-olive-400 to-metac-blue-100 p-1 text-metac-olive-700 group-hover:from-metac-olive-500 group-hover:to-metac-blue-100 dark:from-metac-olive-300-dark dark:to-metac-blue-100-dark dark:text-metac-olive-700-dark dark:group-hover:from-metac-olive-500-dark dark:group-hover:to-metac-blue-100-dark"
@@ -74,7 +74,7 @@ const Voter: FC<Props> = ({
           disabled={disabled}
           presentationType="icon"
         >
-          {userVote === "down" ? (
+          {userVote === -1 ? (
             <FontAwesomeIcon
               icon={faChevronDown}
               className="rounded-full bg-gradient-to-b from-metac-salmon-400/50 to-metac-blue-100 p-1 text-metac-salmon-500 group-hover:from-metac-salmon-400/75 group-hover:to-metac-blue-100 dark:from-metac-salmon-400-dark/50 dark:to-metac-blue-100-dark dark:text-metac-salmon-500-dark dark:group-hover:from-metac-salmon-400-dark/75 dark:group-hover:to-metac-blue-100-dark"
