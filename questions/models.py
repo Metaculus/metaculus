@@ -107,6 +107,7 @@ class Question(models.Model):
             return "active"
         return "active"
 
+
 class Forecast(models.Model):
     start_time = models.DateTimeField(
         help_text="Begining time when this prediction is active", db_index=True
