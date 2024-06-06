@@ -129,4 +129,8 @@ def password_reset_confirm_api_view(request):
         user.set_password(password)
         user.save()
 
+        token, _ = Token.objects.get_or_create(user=user)
+
+        return Response({"token": token.key, "user": UserPrivateSerializer(user).data})
+
     return Response(status=status.HTTP_204_NO_CONTENT)
