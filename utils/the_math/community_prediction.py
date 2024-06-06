@@ -45,7 +45,7 @@ def compute_cp(
 
 @dataclass
 class ForecastHistoryEntry:
-    forecast_values: list[list[float]]
+    predictions: list[list[float]]
     at_datetime: datetime
 
 
@@ -68,7 +68,7 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
             continue
         history.append(
             ForecastHistoryEntry(
-                [forecast.get_forecast_values() for forecast in active_forecasts],
+                [forecast.get_prediction_values() for forecast in active_forecasts],
                 timestep,
             )
         )
@@ -96,28 +96,13 @@ def compute_binary_plotable_cp(question: Question) -> list[GraphCP]:
     forecast_history = get_forecast_history(question)
     cps = []
     for entry in forecast_history:
-        weights = generate_recency_weights(len(entry.forecast_values))
+        weights = generate_recency_weights(len(entry.predictions))
         cps.append(
             GraphCP(
-                middle=compute_cp(
-                    question.type,
-                    entry.forecast_values,
-                    weights,
-                    50.0,
-                )[0],
-                upper=compute_cp(
-                    question.type,
-                    entry.forecast_values,
-                    weights,
-                    75.0,
-                )[0],
-                lower=compute_cp(
-                    question.type,
-                    entry.forecast_values,
-                    weights,
-                    25.0,
-                )[0],
-                nr_forecasters=len(entry.forecast_values),
+                middle=compute_cp(question.type, entry.predictions, weights, 50.0)[1],
+                upper=compute_cp(question.type, entry.predictions, weights, 75.0)[1],
+                lower=compute_cp(question.type, entry.predictions, weights, 25.0)[1],
+                nr_forecasters=len(entry.predictions),
                 at_datetime=entry.at_datetime,
             )
         )
@@ -128,17 +113,17 @@ def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[str, Gr
     forecast_history = get_forecast_history(question)
     cps = []
     for entry in forecast_history:
-        weights = generate_recency_weights(len(entry.forecast_values))
-        middles = compute_cp(question.type, entry.forecast_values, weights, 50.0)
-        uppers = compute_cp(question.type, entry.forecast_values, weights, 75.0)
-        downers = compute_cp(question.type, entry.forecast_values, weights, 25.0)
+        weights = generate_recency_weights(len(entry.predictions))
+        middles = compute_cp(question.type, entry.predictions, weights, 50.0)
+        uppers = compute_cp(question.type, entry.predictions, weights, 75.0)
+        downers = compute_cp(question.type, entry.predictions, weights, 25.0)
         cps.append(
             {
                 v: GraphCP(
                     middle=middles[i],
                     upper=uppers[i],
                     lower=downers[i],
-                    nr_forecasters=len(entry.forecast_values),
+                    nr_forecasters=len(entry.predictions),
                     at_datetime=entry.at_datetime,
                 )
                 for i, v in enumerate(question.options)
@@ -151,15 +136,15 @@ def compute_continuous_plotable_cp(question: Question) -> int:
     forecast_history = get_forecast_history(question)
     cps = []
     for entry in forecast_history:
-        weights = generate_recency_weights(len(entry.forecast_values))
-        cdf = compute_cp(question.type, entry.forecast_values, weights)
+        weights = generate_recency_weights(len(entry.predictions))
+        cdf = compute_cp(question.type, entry.predictions, weights)
 
         cps.append(
             GraphCP(
                 lower=get_actual_location(question, percent_point_function(cdf, 0.25)),
                 middle=get_actual_location(question, percent_point_function(cdf, 0.5)),
                 upper=get_actual_location(question, percent_point_function(cdf, 0.75)),
-                nr_forecasters=len(entry.forecast_values),
+                nr_forecasters=len(entry.predictions),
                 at_datetime=entry.at_datetime,
             )
         )
