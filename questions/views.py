@@ -20,10 +20,9 @@ from questions.serializers import (
 from users.models import User
 from utils.dtypes import flatten
 from utils.the_math.community_prediction import (
-    compute_aggregation_history,
-    compute_binary_cp,
-    compute_continuous_cp,
-    compute_multiple_choice_cp,
+    compute_binary_plotable_cp,
+    compute_continuous_plotable_cp,
+    compute_multiple_choice_plotable_cp
 )
 import numpy as np
 
@@ -205,6 +204,8 @@ def enrich_questions_with_forecasts(
             }
             for option in question.options:
                 forecasts_data[f"value_{option}"] = []
+                forecasts_data[f"value_upper_{option}"] = []
+                forecasts_data[f"value_lower_{option}"] = []
         else:
             forecasts_data = {
                 "timestamps": [],
@@ -215,30 +216,30 @@ def enrich_questions_with_forecasts(
             }
 
         # values_choice_1
-        for forecast_time in forecast_times:
-            cps = compute_aggregation_history(question, recency_weighted=True)
-            if question.type == "multiple_choice":
-                cp = compute_multiple_choice_cp(question, forecasts, forecast_time)
-                if cp is None:
-                    continue
-                forecasts_data["timestamps"].append(forecast_time.timestamp())
-                for k in cp:
-                    if k != "nr_forecasters":
-                        forecasts_data[f"value_{k}"].append(cp[k])
-                forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
+        if question.type == "multiple_choice":
+            cps = compute_multiple_choice_plotable_cp(question)
+            for cp_dict in cps:
+                for option, cp in cp_dict.items():
+                    forecasts_data[f"value_{option}"].append(cp.middle)
+                    forecasts_data[f"value_upper_{option}"].append(cp.upper)
+                    forecasts_data[f"value_lower_{option}"].append(cp.lower)
+                forecasts_data["timestamps"].append(cp_dict.values()[0].at_datetime.timestamp())
+                forecasts_data["nr_forecasters"].append(cp_dict.values()[0].nr_forecasters)
+        else:
+            if question.type == "binary":
+                cps = compute_binary_plotable_cp(question)
+            elif question.type in ["numeric", "date"]:
+                cps = compute_continuous_plotable_cp(question)
             else:
-                if question.type == "binary":
-                    cp = compute_binary_cp(forecasts, forecast_time)
-                elif question.type in ["numeric", "date"]:
-                    cp = compute_continuous_cp(question, forecasts, forecast_time)
-                else:
-                    raise Exception(f"Unknown question type: {question.type}")
-                if cp is None:
-                    continue
+                raise Exception(f"Unknown question type: {question.type}")
+            if cps is None or len(cps) == 0:
+                return serialized_question
+            
+            for cp in cps:
                 forecasts_data["timestamps"].append(forecast_time.timestamp())
-                forecasts_data["values_mean"].append(cp["mean"])
-                forecasts_data["values_max"].append(cp["max"])
-                forecasts_data["values_min"].append(cp["min"])
+                forecasts_data["values_mean"].append(cp.middle)
+                forecasts_data["values_max"].append(cp.upper)
+                forecasts_data["values_min"].append(cp.lower)
                 forecasts_data["nr_forecasters"].append(cp["nr_forecasters"])
 
         serialized_question["forecasts"] = forecasts_data
