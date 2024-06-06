@@ -20,42 +20,42 @@ config.autoAddCss = false;
 const sourceSerifPro = localFont({
   src: [
     {
-      path: "./fonts/SourceSerifPro-Regular.woff2",
+      path: "./assets/fonts/SourceSerifPro-Regular.woff2",
       weight: "400",
       style: "normal",
     },
     {
-      path: "./fonts/SourceSerifPro-Regular.woff",
+      path: "./assets/fonts/SourceSerifPro-Regular.woff",
       weight: "400",
       style: "normal",
     },
     {
-      path: "./fonts/SourceSerifPro-Italic.woff2",
-      weight: "400",
-      style: "italic",
-    },
-    {
-      path: "./fonts/SourceSerifPro-Italic.woff",
+      path: "./assets/fonts/SourceSerifPro-Italic.woff2",
       weight: "400",
       style: "italic",
     },
     {
-      path: "./fonts/SourceSerifPro-Bold.woff2",
+      path: "./assets/fonts/SourceSerifPro-Italic.woff",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "./assets/fonts/SourceSerifPro-Bold.woff2",
       weight: "700",
       style: "normal",
     },
     {
-      path: "./fonts/SourceSerifPro-Bold.woff",
+      path: "./assets/fonts/SourceSerifPro-Bold.woff",
       weight: "700",
       style: "normal",
     },
     {
-      path: "./fonts/SourceSerifPro-BoldItalic.woff2",
+      path: "./assets/fonts/SourceSerifPro-BoldItalic.woff2",
       weight: "700",
       style: "italic",
     },
     {
-      path: "./fonts/SourceSerifPro-BoldItalic.woff",
+      path: "./assets/fonts/SourceSerifPro-BoldItalic.woff",
       weight: "700",
       style: "italic",
     },
@@ -65,12 +65,12 @@ const sourceSerifPro = localFont({
 const diatype = localFont({
   src: [
     {
-      path: "./fonts/ABCDiatype-Regular.woff2",
+      path: "./assets/fonts/ABCDiatype-Regular.woff2",
       weight: "400",
       style: "normal",
     },
     {
-      path: "./fonts/ABCDiatype-RegularItalic.woff2",
+      path: "./assets/fonts/ABCDiatype-RegularItalic.woff2",
       weight: "400",
       style: "italic",
     },
@@ -80,7 +80,7 @@ const diatype = localFont({
 const diatypeVariable = localFont({
   src: [
     {
-      path: "./fonts/ABCDiatypeVariable.woff2",
+      path: "./assets/fonts/ABCDiatypeVariable.woff2",
       weight: "100 700",
       style: "normal",
     },
