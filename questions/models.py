@@ -140,22 +140,12 @@ class Forecast(models.Model):
     author = models.ForeignKey(User, models.CASCADE)
     question = models.ForeignKey(Question, models.CASCADE)
 
-    def get_pmf(self) -> list[float]:
+    def get_prediction_values(self) -> list[float]:
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
         if self.probability_yes_per_category:
             return self.probability_yes_per_category
-        # PMF is calculated from the CDF
-        # the first value is the probability mass below lower bound
-        # the last value is the probability mass above the upper bound
-        # the rest of the values are the differences between consecutive CDF values
-        # returns 202 values
-        return np.diff(self.continuous_cdf, prepend=0.0, append=1.0).tolist()
-
-    def get_forecast_values(self) -> list[float]:
-        if self.continuous_cdf:
-            return self.continuous_cdf
-        return self.get_pmf()
+        return self.continuous_cdf
 
 
 class Vote(models.Model):
