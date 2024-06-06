@@ -85,7 +85,7 @@ const get = async <T>(url: string, options: FetchOptions = {}): Promise<T> => {
   return appFetch<T>(url, { ...options, method: "GET" });
 };
 
-const post = async <T, B>(
+const post = async <T, B = Record<string, any>>(
   url: string,
   body: B,
   options: FetchOptions = {}
