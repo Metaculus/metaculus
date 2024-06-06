@@ -71,6 +71,8 @@ class Question(models.Model):
 
     max = models.FloatField(null=True)
     min = models.FloatField(null=True)
+    zero_point = models.FloatField(null=True)
+
     open_upper_bound = models.BooleanField(null=True)
     open_lower_bound = models.BooleanField(null=True)
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
@@ -103,17 +105,7 @@ class Question(models.Model):
             return "closed"
         if self.published_at:
             return "active"
-        return "ctive"
-
-    def get_deriv_ratio(self) -> Optional[float]:
-        if self.type == "numeric":
-            if self.min == 0:
-                return 1
-            return self.max / self.min
-        if self.type == "date":
-            return 1
-        return None
-
+        return "active"
 
 class Forecast(models.Model):
     start_time = models.DateTimeField(
