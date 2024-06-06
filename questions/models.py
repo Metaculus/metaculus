@@ -119,8 +119,8 @@ class Forecast(models.Model):
         db_index=True,
     )
 
-    # CDF of prediction evaluated at locations
-    #   [0.0, 0.005, 0.01, ..., 0.995, 1.0] (internal representation)
+    # CDF of a continuous forecast
+    # evaluated at [0.0, 0.005, 0.010, ..., 0.995, 1.0] (internal representation)
     continuous_cdf = ArrayField(
         models.FloatField(),
         null=True,
