@@ -5,12 +5,13 @@ import classNames from "classnames";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
+import { VoteDirection } from "@/types/votes";
 
 type Props = {
   className?: string;
   disabled?: boolean;
   votes?: number;
-  userVote: number;
+  userVote: VoteDirection;
   onVoteUp: () => void;
   onVoteDown?: () => void;
 };
@@ -56,7 +57,7 @@ const Voter: FC<Props> = ({
           className={classNames(
             "text-metac-gray-900 dark:text-metac-gray-900-dark",
             {
-              "font-bold": userVote,
+              "font-bold": !!userVote,
             }
           )}
         >
