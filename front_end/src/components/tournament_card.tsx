@@ -63,7 +63,7 @@ const TournamentCard: FC<Props> = ({
               transform={{ size: 18 }}
             />
             <span className="align-middle">
-              <strong>${Number(prizePool)}</strong>
+              <strong>${Number(prizePool).toLocaleString()}</strong>
               <span className="whitespace-nowrap"> {t("prizePool")}</span>
             </span>
           </div>
