@@ -18,11 +18,6 @@ class User(TimeStampedModel, AbstractUser):
 
     objects = UserManager()
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(Lower("email"), name="users_unique_email"),
-        ]
-
     def get_old_usernames(self) -> list[tuple[str, datetime]]:
         return [
             (name, dateutil.parser.parse(date)) for name, date in self.old_usernames
