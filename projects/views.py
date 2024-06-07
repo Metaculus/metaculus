@@ -1,3 +1,6 @@
+from typing import Callable
+
+from django.db.models import QuerySet
 from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -45,22 +48,21 @@ def categories_list_api_view(request: Request):
     return Response(data)
 
 
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def tournaments_list_api_view(request: Request):
-    qs = (
-        Project.objects.filter_tournament()
-        .filter_active()
-        .annotate_questions_count()
-        .order_by("-questions_count")
-    )
+def enrich_tournaments_with_questions_count(
+    qs: QuerySet,
+) -> tuple[QuerySet, Callable[[Project, dict], dict]]:
+    """
+    Enriches questions with the votes object.
+    """
 
-    data = [
-        {**TournamentSerializer(obj).data, "questions_count": obj.questions_count}
-        for obj in qs.all()
-    ]
+    qs = qs.annotate_questions_count()
 
-    return Response(data)
+    def enrich(question: Project, serialized_question: dict):
+        serialized_question["questions_count"] = question.questions_count
+
+        return serialized_question
+
+    return qs, enrich
 
 
 @api_view(["GET"])
@@ -89,10 +91,37 @@ def tags_list_api_view(request: Request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+def tournaments_list_api_view(request: Request):
+    qs = (
+        Project.objects.filter_tournament()
+        .filter_active()
+        .annotate_questions_count()
+        .order_by("-questions_count")
+    )
+
+    qs, enrich_questions_count = enrich_tournaments_with_questions_count(qs)
+
+    data = []
+
+    for obj in qs.all():
+        serialized_tournament = TournamentSerializer(obj).data
+
+        serialized_tournament = enrich_questions_count(obj, serialized_tournament)
+
+        data.append(serialized_tournament)
+
+    return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def tournament_by_slug_api_view(request: Request, slug: str):
     qs = Project.objects.filter_tournament()
+    qs, enrich_questions_count = enrich_tournaments_with_questions_count(qs)
+
     obj = get_object_or_404(qs, slug=slug)
 
     data = TournamentSerializer(obj).data
+    data = enrich_questions_count(obj, data)
 
     return Response(data)
