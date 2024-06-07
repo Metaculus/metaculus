@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 
+import { TOPIC_FILTER } from "@/app/(main)/questions/constants/query_params";
 import FocusAreaLink, { FocusAreaItem } from "@/app/components/focus_area_link";
 import HomeSearch from "@/app/components/home_search";
 import FocusAreaAiIcon from "@/app/components/icons/focus_area_ai";
@@ -7,7 +8,6 @@ import FocusAreaBiosecurityIcon from "@/app/components/icons/focus_area_biosecur
 import FocusAreaClimateIcon from "@/app/components/icons/focus_area_climate";
 import FocusAreaNuclearIcon from "@/app/components/icons/focus_area_nuclear";
 import TopicLink from "@/app/components/topic_link";
-import { TOPIC_FILTER } from "@/app/questions/constants/query_params";
 import ProjectsApi from "@/services/projects";
 import { encodeQueryParams } from "@/utils/query_params";
 

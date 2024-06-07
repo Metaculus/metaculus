@@ -2,8 +2,8 @@ import { isAfter, isBefore } from "date-fns";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import TournamentFilters from "@/app/tournaments/components/tournament_filters";
-import TournamentsList from "@/app/tournaments/components/tournaments_list";
+import TournamentFilters from "@/app/(main)/tournaments/components/tournament_filters";
+import TournamentsList from "@/app/(main)/tournaments/components/tournaments_list";
 import ProjectsApi from "@/services/projects";
 import { Tournament, TournamentType } from "@/types/projects";
 

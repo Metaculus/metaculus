@@ -6,7 +6,7 @@ import { FC, useEffect, useMemo, useState } from "react";
 import {
   TOURNAMENTS_SEARCH,
   TOURNAMENTS_SORT,
-} from "@/app/tournaments/constants/query_params";
+} from "@/app/(main)/tournaments/constants/query_params";
 import TournamentCard from "@/components/tournament_card";
 import Button from "@/components/ui/button";
 import useSearchParams from "@/hooks/use_search_params";

@@ -5,7 +5,7 @@ import { ChangeEvent, FC, useEffect, useState } from "react";
 import {
   TOURNAMENTS_SEARCH,
   TOURNAMENTS_SORT,
-} from "@/app/tournaments/constants/query_params";
+} from "@/app/(main)/tournaments/constants/query_params";
 import SearchInput from "@/components/search_input";
 import Select, { SelectOption } from "@/components/ui/select";
 import useDebounce from "@/hooks/use_debounce";

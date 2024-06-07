@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import {
   changeUsernameSchema,
   updateProfileSchema,
-} from "@/app/accounts/schemas";
+} from "@/app/(main)/accounts/schemas";
 import ProfileApi from "@/services/profile";
 import { FetchError } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";

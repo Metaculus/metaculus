@@ -9,8 +9,8 @@ import { FC, useEffect } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
-import { signUpAction, SignUpActionState } from "@/app/accounts/actions";
-import { SignUpSchema, signUpSchema } from "@/app/accounts/schemas";
+import { signUpAction, SignUpActionState } from "@/app/(main)/accounts/actions";
+import { SignUpSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
