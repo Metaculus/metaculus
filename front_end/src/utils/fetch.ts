@@ -1,4 +1,4 @@
-import { getServerSession } from "@/services/session";
+import { getAlphaTokenSession, getServerSession } from "@/services/session";
 import {
   ApiErrorResponse,
   ErrorResponse,
@@ -55,6 +55,7 @@ const appFetch = async <T>(
   options: FetchOptions = {}
 ): Promise<T> => {
   const authToken = getServerSession();
+  const alphaToken = getAlphaTokenSession();
 
   const finalUrl = `${BASE_URL}${url}`;
   const finalOptions: FetchOptions = {
@@ -67,6 +68,12 @@ const appFetch = async <T>(
       ...(authToken
         ? {
             Authorization: `Token ${authToken}`,
+          }
+        : {}),
+      // Propagate dev auth token
+      ...(alphaToken
+        ? {
+            "x-alpha-auth-token": alphaToken,
           }
         : {}),
     },

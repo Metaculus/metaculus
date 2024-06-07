@@ -3,7 +3,7 @@ from questions.models import Question, Vote
 from users.models import User
 
 
-def create_vote(vote_obj, direction: Vote.VoteDirection):
+def create_vote(vote_obj, direction: int):
     return Vote(
         user_id=vote_obj["user_id"],
         question_id=vote_obj["question_id"],
@@ -19,7 +19,7 @@ def migrate_votes():
 
     # Migrating Upvotes
     vote_instances += [
-        create_vote(obj, Vote.VoteDirection.UP)
+        create_vote(obj, 1)
         for obj in paginated_query(
             "SELECT * FROM metac_question_question_votes_up",
         )
@@ -28,7 +28,7 @@ def migrate_votes():
 
     # Migrating Downvotes
     vote_instances += [
-        create_vote(obj, Vote.VoteDirection.DOWN)
+        create_vote(obj, -1)
         for obj in paginated_query(
             "SELECT * FROM metac_question_question_votes_down",
         )
