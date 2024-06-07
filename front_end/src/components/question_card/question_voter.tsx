@@ -29,7 +29,6 @@ const QuestionVoter: FC<Props> = ({ className, question }) => {
       setVote({ user_vote: newDirection, score: response.score });
     }
   };
-
   return (
     <Voter
       className={className}
