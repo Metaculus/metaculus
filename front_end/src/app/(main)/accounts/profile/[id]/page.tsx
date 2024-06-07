@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import UserInfo from "@/app/accounts/profile/components/user_info";
+import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
 import ProfileApi from "@/services/profile";
 
 export default async function Profile({

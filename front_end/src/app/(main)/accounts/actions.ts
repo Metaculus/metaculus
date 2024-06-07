@@ -1,6 +1,6 @@
 "use server";
 
-import { signInSchema, signUpSchema } from "@/app/accounts/schemas";
+import { signInSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
 import AuthApi from "@/services/auth";
 import { setServerSession } from "@/services/session";
 import { AuthResponse } from "@/types/auth";

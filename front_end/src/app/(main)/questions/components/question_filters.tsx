@@ -9,14 +9,14 @@ import {
   ORDER_BY_FILTER,
   STATUS_FILTER,
   TEXT_SEARCH_FILTER,
-} from "@/app/questions/constants/query_params";
+} from "@/app/(main)/questions/constants/query_params";
 import {
   getDropdownSortOptions,
   getFilterChipColor,
   getMainOrderOptions,
   getQuestionsFilters,
   getUserSortOptions,
-} from "@/app/questions/helpers/filters";
+} from "@/app/(main)/questions/helpers/filters";
 import PopoverFilter from "@/components/popover_filter";
 import { FilterReplaceInfo } from "@/components/popover_filter/types";
 import SearchInput from "@/components/search_input";

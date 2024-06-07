@@ -1,9 +1,8 @@
-import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 
-import PasswordReset from "@/app/accounts/reset/components/password_reset";
+import PasswordReset from "@/app/(main)/accounts/reset/components/password_reset";
 import AuthApi from "@/services/auth";
-import { getServerSession, setServerSession } from "@/services/session";
+import { getServerSession } from "@/services/session";
 
 export default async function ResetPassword({
   searchParams: { user_id, token },

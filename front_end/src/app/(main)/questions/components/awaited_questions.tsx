@@ -1,7 +1,7 @@
 import { FC } from "react";
 
-import QuestionsFeed from "@/app/questions/components/questions_feed";
-import { QUESTIONS_PER_PAGE } from "@/app/questions/constants/pagination";
+import QuestionsFeed from "@/app/(main)/questions/components/questions_feed";
+import { QUESTIONS_PER_PAGE } from "@/app/(main)/questions/constants/pagination";
 import QuestionsApi, { QuestionsParams } from "@/services/questions";
 
 type Props = {

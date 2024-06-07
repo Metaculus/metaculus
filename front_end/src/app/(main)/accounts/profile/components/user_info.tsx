@@ -10,12 +10,12 @@ import { useForm } from "react-hook-form";
 import {
   updateProfileAction,
   UpdateProfileState,
-} from "@/app/accounts/profile/actions";
-import ChangeUsername from "@/app/accounts/profile/components/change_username";
+} from "@/app/(main)/accounts/profile/actions";
+import ChangeUsername from "@/app/(main)/accounts/profile/components/change_username";
 import {
   UpdateProfileSchema,
   updateProfileSchema,
-} from "@/app/accounts/schemas";
+} from "@/app/(main)/accounts/schemas";
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import Hr from "@/components/ui/hr";

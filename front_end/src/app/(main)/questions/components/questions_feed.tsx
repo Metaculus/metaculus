@@ -2,8 +2,8 @@
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import { fetchMoreQuestions } from "@/app/questions/actions";
-import { QUESTIONS_PER_PAGE } from "@/app/questions/constants/pagination";
+import { fetchMoreQuestions } from "@/app/(main)/questions/actions";
+import { QUESTIONS_PER_PAGE } from "@/app/(main)/questions/constants/pagination";
 import QuestionCard from "@/components/question_card";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
