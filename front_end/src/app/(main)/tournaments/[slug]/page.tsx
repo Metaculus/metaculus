@@ -2,21 +2,39 @@ import classNames from "classnames";
 import Image from "next/image";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { FC } from "react";
+import { FC, Suspense } from "react";
 import invariant from "ts-invariant";
 
+import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import HtmlContent from "@/components/html_content";
+import QuestionFilters from "@/components/question_filters";
+import AwaitedQuestionsFeed from "@/components/questions_feed";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProjectsApi from "@/services/projects";
+import { QuestionsParams } from "@/services/questions";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 
 export default async function TournamentSlug({
   params,
+  searchParams,
 }: {
   params: { slug: string };
+  searchParams: Record<string, string | string[] | undefined>;
 }) {
   const tournament = await ProjectsApi.getSlugTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
+
+  const questionFilters = generateFiltersFromSearchParams(searchParams);
+  const pageFilters: QuestionsParams = {
+    ...questionFilters,
+    tournaments: params.slug,
+  };
+
+  const [categories, tags] = await Promise.all([
+    ProjectsApi.getCategories(),
+    ProjectsApi.getTags(),
+  ]);
 
   const t = await getTranslations();
   const locale = await getLocale();
@@ -79,6 +97,18 @@ export default async function TournamentSlug({
         </div>
         <HtmlContent content={tournament.description} />
       </div>
+      <section className="mx-2 border-t px-1 pt-4">
+        <h2 className="mb-5">{t("questions")}</h2>
+        <QuestionFilters categories={categories} tags={tags} />
+        <Suspense
+          key={JSON.stringify(searchParams)}
+          fallback={
+            <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
+          }
+        >
+          <AwaitedQuestionsFeed filters={pageFilters} />
+        </Suspense>
+      </section>
     </main>
   );
 }
