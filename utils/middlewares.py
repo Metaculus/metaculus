@@ -1,9 +1,8 @@
 from django.conf import settings
 from django.http import JsonResponse
-from rest_framework.response import Response
 
 
-def middleware_dev_restricted_access(get_response):
+def middleware_alpha_access_check(get_response):
     # One-time configuration and initialization.
 
     def middleware(request):
@@ -11,10 +10,12 @@ def middleware_dev_restricted_access(get_response):
         # the view (and later middleware) are called.
 
         if (
-            settings.DEV_ACCESS_TOKEN
-            and settings.DEV_ACCESS_TOKEN != request.headers.get("x-dev-auth-token")
+            settings.ALPHA_ACCESS_TOKEN
+            and settings.ALPHA_ACCESS_TOKEN != request.headers.get("x-alpha-auth-token")
         ):
-            return JsonResponse({"detail": "Not authorized to use Dev server"}, status=401)
+            return JsonResponse(
+                {"detail": "Not authorized to use Alpha environment"}, status=401
+            )
 
         response = get_response(request)
 
