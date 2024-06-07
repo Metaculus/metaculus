@@ -3,7 +3,7 @@
 import {
   passwordResetConfirmSchema,
   passwordResetRequestSchema,
-} from "@/app/accounts/schemas";
+} from "@/app/(main)/accounts/schemas";
 import AuthApi from "@/services/auth";
 import { setServerSession } from "@/services/session";
 import { AuthResponse } from "@/types/auth";

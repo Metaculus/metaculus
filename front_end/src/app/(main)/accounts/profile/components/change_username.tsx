@@ -8,11 +8,11 @@ import { useForm } from "react-hook-form";
 
 import changeUsernameAction, {
   ChangeUsernameState,
-} from "@/app/accounts/profile/actions";
+} from "@/app/(main)/accounts/profile/actions";
 import {
   ChangeUsernameSchema,
   changeUsernameSchema,
-} from "@/app/accounts/schemas";
+} from "@/app/(main)/accounts/schemas";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { FormError, Input } from "@/components/ui/form_field";

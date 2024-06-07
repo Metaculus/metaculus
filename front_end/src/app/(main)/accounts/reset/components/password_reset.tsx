@@ -9,11 +9,11 @@ import { useForm } from "react-hook-form";
 import {
   passwordResetConfirmAction,
   PasswordResetConfirmActionState,
-} from "@/app/accounts/reset/actions";
+} from "@/app/(main)/accounts/reset/actions";
 import {
   PasswordResetConfirmSchema,
   passwordResetConfirmSchema,
-} from "@/app/accounts/schemas";
+} from "@/app/(main)/accounts/schemas";
 import Button from "@/components/ui/button";
 import { FormError, Input } from "@/components/ui/form_field";
 import Hr from "@/components/ui/hr";
