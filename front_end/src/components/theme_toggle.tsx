@@ -26,12 +26,12 @@ const ThemeToggle: FC = () => {
 
   return (
     <button
-      className="group/theme relative inline-block h-4 w-8 min-w-[2rem] rounded-full border border-white focus:outline-none"
+      className="group/theme border-white relative inline-block h-4 w-8 min-w-[2rem] rounded-full border focus:outline-none"
       onClick={switchTheme}
     >
       <span
         className={classNames(
-          "absolute right-[-1px] top-[-1px] flex h-4 w-5 items-center justify-center rounded-full border border-white outline-1 transition duration-200 group-focus-visible/theme:outline group-focus-visible/theme:outline-1 group-focus-visible/theme:outline-white",
+          "border-white group-focus-visible/theme:outline-white absolute right-[-1px] top-[-1px] flex h-4 w-5 items-center justify-center rounded-full border outline-1 transition duration-200 group-focus-visible/theme:outline group-focus-visible/theme:outline-1",
           {
             "-translate-x-3": theme === "dark",
           }
