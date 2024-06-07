@@ -8,7 +8,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { ThemeProvider } from "next-themes";
 
-import Header from "@/app/header";
+import Header from "@/app/(main)/header";
 import GlobalModals from "@/components/global_modals";
 import AuthProvider from "@/contexts/auth_context";
 import ModalProvider from "@/contexts/modal_context";
@@ -114,13 +114,12 @@ export default async function RootLayout({
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       suppressHydrationWarning
     >
-      <body className="min-h-screen w-full bg-metac-blue-200 dark:bg-metac-blue-50-dark">
+      <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <NextIntlClientProvider messages={messages}>
             <AuthProvider user={user} socialProviders={socialProviders}>
               <ModalProvider>
-                <Header />
-                <div className="pt-12 ">{children}</div>
+                {children}
                 <GlobalModals />
               </ModalProvider>
             </AuthProvider>
