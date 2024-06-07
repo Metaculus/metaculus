@@ -10,7 +10,7 @@ export default async function IndividualQuestion({
 
   return (
     <main className="flex flex-col gap-2 p-6">
-      <h1 className="text-bold dark:text-white text-2xl">
+      <h1 className="text-bold text-2xl dark:text-white">
         {questionData?.title}
       </h1>
       {questionData && <DetailedQuestionCard question={questionData} />}

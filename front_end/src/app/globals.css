@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  *,
+  ::before,
+  ::after {
+    box-sizing: border-box;
+    border: 0 solid #e5e7eb;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

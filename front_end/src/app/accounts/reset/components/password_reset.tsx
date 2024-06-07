@@ -55,7 +55,7 @@ const PasswordReset: FC<PasswordResetProps> = ({ user_id, token }) => {
               <div className="w-full max-w-44 justify-start">
                 <Input
                   type="password"
-                  className="border-metac-gray-600-dark bg-metac-blue-100 w-full border px-[5px] py-[3px]"
+                  className="w-full border border-gray-600-dark bg-blue-100 px-[5px] py-[3px]"
                   {...register("password")}
                 />
               </div>
@@ -72,7 +72,7 @@ const PasswordReset: FC<PasswordResetProps> = ({ user_id, token }) => {
               <div className="w-full max-w-44 justify-start">
                 <Input
                   type="password"
-                  className="border-metac-gray-600-dark bg-metac-blue-100 w-full border border-t-0 px-[5px] py-[3px]"
+                  className="w-full border border-t-0 border-gray-600-dark bg-blue-100 px-[5px] py-[3px]"
                   {...register("passwordAgain")}
                 />
               </div>
@@ -83,7 +83,7 @@ const PasswordReset: FC<PasswordResetProps> = ({ user_id, token }) => {
               <FormError
                 errors={state?.errors}
                 name="non_field_errors"
-                className="text-metac-red-500-dark"
+                className="text-red-500-dark"
               />
             </div>
           </div>

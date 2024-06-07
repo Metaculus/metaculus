@@ -17,7 +17,7 @@ const TopicItem: FC<Props> = ({ isActive, onClick, text, emoji, href }) => {
       as={href ? Link : undefined}
       href={href!}
       className={classNames(
-        "w-auto cursor-pointer snap-start rounded-full p-1.5 px-2 text-sm leading-4 sm:w-full sm:p-2 sm:px-2.5 sm:text-base sm:leading-5",
+        "w-auto cursor-pointer snap-start rounded-full p-1.5 px-2 text-sm leading-4 no-underline sm:w-full sm:p-2 sm:px-2.5 sm:text-base sm:leading-5",
         isActive
           ? "bg-blue-800 text-gray-0 hover:bg-blue-800  dark:bg-blue-800-dark dark:text-gray-200-dark dark:hover:bg-blue-800-dark"
           : "text-blue-800 hover:bg-blue-400 dark:text-blue-200 dark:hover:bg-blue-600"

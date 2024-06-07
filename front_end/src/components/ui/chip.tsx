@@ -56,7 +56,7 @@ const Chip: FC<PropsWithChildren<Props>> = ({
         href={href!}
         onClick={onClick}
         className={classNames(
-          "border-inherit inline-flex items-center justify-center rounded-l rounded-r font-medium no-underline",
+          "inline-flex items-center justify-center rounded-l rounded-r border-inherit font-medium no-underline",
           {
             "gap-1 p-1 text-xs leading-3": size === "xs",
             "gap-1 p-1.5 text-sm leading-4": size === "sm",
