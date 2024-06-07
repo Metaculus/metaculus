@@ -47,7 +47,6 @@ function logisticCDF(
 ) {
   const c = x < mode ? 0 : 1;
   const k = 1 - 2 * c;
-  console.log(c, k);
   return (
     c +
     k *
@@ -69,18 +68,22 @@ export function binWeightsFromSliders(
 ) {
   const params = logisticDistributionParamsFromSliders(left, center, right);
   const step = 1 / 200;
-  const xArr = math.range(0, 1, step, true);
+  const xArr = Array.from({ length: Math.floor(1 / step) }, (_, i) => i * step);
   const cdf = [
-    ...xArr
-      .map((x) => logisticCDF(x, params.mode, params.scale, params.asymmetry))
-      .toArray(),
+    ...xArr.map((x) =>
+      logisticCDF(x, params.mode, params.scale, params.asymmetry)
+    ),
   ];
-  console.log(cdf);
+  console.log("CDF", cdf);
   const pmf = [];
   for (let i = 0; i < cdf.length; i++) {
-    if (i > 0) {
+    if (i == 0) {
+      pmf.push(cdf[0]);
+    } else {
       pmf.push(Number(math.subtract(cdf[i], cdf[i - 1])));
     }
   }
+  pmf.push(1 - cdf[cdf.length - 1]);
+  console.log("PMF", pmf);
   return pmf;
 }
