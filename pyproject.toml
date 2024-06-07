@@ -21,6 +21,7 @@ django-anymail = {extras = ["mailgun"], version = "^10.3"}
 django-sql-utils = "^0.7.0"
 django-dramatiq = "^0.11.6"
 django-redis = "^5.4.0"
+ipython = "^8.25.0"  # for easier debugging in shell
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"
