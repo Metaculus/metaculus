@@ -141,7 +141,7 @@ def compute_continuous_plotable_cp(question: Question) -> int:
         upper = np.searchsorted(cumulative_probability, 0.75, side="right")
         if upper > 199:
             upper = 199
-        bin_vals.extend([0,0,0])
+        bin_vals.extend([0, 0, 0])
         cps.append(
             GraphCP(
                 middle=bin_vals[
