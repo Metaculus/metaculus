@@ -1,13 +1,15 @@
 import { getTranslations } from "next-intl/server";
 
+import FocusAreaLink, {
+  FocusAreaItem,
+} from "@/app/(main)/components/focus_area_link";
+import HomeSearch from "@/app/(main)/components/home_search";
+import FocusAreaAiIcon from "@/app/(main)/components/icons/focus_area_ai";
+import FocusAreaBiosecurityIcon from "@/app/(main)/components/icons/focus_area_biosecurity";
+import FocusAreaClimateIcon from "@/app/(main)/components/icons/focus_area_climate";
+import FocusAreaNuclearIcon from "@/app/(main)/components/icons/focus_area_nuclear";
+import TopicLink from "@/app/(main)/components/topic_link";
 import { TOPIC_FILTER } from "@/app/(main)/questions/constants/query_params";
-import FocusAreaLink, { FocusAreaItem } from "@/app/components/focus_area_link";
-import HomeSearch from "@/app/components/home_search";
-import FocusAreaAiIcon from "@/app/components/icons/focus_area_ai";
-import FocusAreaBiosecurityIcon from "@/app/components/icons/focus_area_biosecurity";
-import FocusAreaClimateIcon from "@/app/components/icons/focus_area_climate";
-import FocusAreaNuclearIcon from "@/app/components/icons/focus_area_nuclear";
-import TopicLink from "@/app/components/topic_link";
 import ProjectsApi from "@/services/projects";
 import { encodeQueryParams } from "@/utils/query_params";
 
