@@ -52,7 +52,6 @@ export default async function Tournaments() {
       <TournamentsList
         title={t("QuestionSeries")}
         items={questionSeries}
-        withDate={false}
         cardsPerPage={12}
       />
 
