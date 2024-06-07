@@ -19,7 +19,7 @@ class AuthLoginBackend(ModelBackend):
         if not login:
             return None
 
-        user = self.find_user()
+        user = self.find_user(login=login)
 
         if user and user.check_password(password) and self.user_can_authenticate(user):
             return user

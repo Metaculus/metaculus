@@ -13,6 +13,8 @@ def create_question(question: dict) -> Question:
     open_upper_bound = None
     open_lower_bound = None
     options = None
+    # TODO @Luke do the transformation to get zero_point point from deriv_ratio
+    zero_point = None
     if None in question["option_labels"] or not question["option_labels"]:
         question["option_labels"] = None
     if possibilities.get("type", None) == "binary":
@@ -59,6 +61,7 @@ def create_question(question: dict) -> Question:
         type=question_type,
         possibilities=possibilities,
         resolution=question["resolution"],
+        zero_point=zero_point,
     )
 
     return new_question
