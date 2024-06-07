@@ -22,6 +22,6 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
 
     - name: Run deployment script on dev server
-      run: ssh -o StrictHostKeyChecking=no ubuntu@54.175.13.98 'source ~/.bash_profile && chmod +x /home/ubuntu/rewrite/deploy.sh" && /home/ubuntu/rewrite/deploy.sh > /home/ubuntu/deploy.log 2>&1'
+      run: ssh -o StrictHostKeyChecking=no ubuntu@54.175.13.98 'source ~/.bash_profile && chmod +x /home/ubuntu/rewrite/deploy.sh && /home/ubuntu/rewrite/deploy.sh > /home/ubuntu/deploy.log 2>&1'
       env:
         DEV_SERVER_SSH_KEY: ${{ secrets.DEV_SERVER_SSH_KEY }}
