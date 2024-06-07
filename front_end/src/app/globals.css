@@ -76,3 +76,106 @@ p {
 a {
   @apply text-inherit underline;
 }
+
+.content {
+  @apply break-words;
+}
+
+.content p,
+.content ul,
+.content ol {
+  @apply block;
+}
+
+.content ul,
+.content ol {
+  @apply mt-3.5 list-outside pl-10;
+}
+
+.content ol li ol {
+  @apply list-lower-alpha;
+}
+
+.content ol li ol li ol {
+  @apply list-lower-roman;
+}
+
+.content ol li ol li ol li ol {
+  @apply list-decimal;
+}
+
+.content ol li ol li ol li ol li ol {
+  @apply list-lower-alpha;
+}
+
+.content ol li ol li ol li ol li ol li ol {
+  @apply list-lower-roman;
+}
+
+.content aside {
+  max-width: calc(720px - 2.5em);
+}
+
+.content ul {
+  @apply list-disc;
+}
+
+.content b,
+.content strong {
+  @apply font-bold;
+}
+
+.content a {
+  @apply text-gray-900 dark:text-gray-900-dark;
+}
+
+.content table {
+  @apply w-full;
+}
+
+.content table th {
+  @apply text-sm font-medium leading-4;
+}
+
+.content table td {
+  @apply text-xs font-normal leading-[14px];
+}
+
+.content table th,
+.content table td {
+  @apply border-0 p-0 align-top;
+}
+
+.content table .sticky-column {
+  @apply sticky left-0 bg-gray-50;
+}
+
+.content table tbody > tr > td {
+  @apply px-3 py-2;
+}
+
+.content table thead td,
+.content table thead th {
+  @apply border-b border-gray-300 pr-2 text-gray-900;
+}
+
+.content table tbody tr:last-child td,
+.content table tbody tr:last-child th {
+  @apply border-b-0;
+}
+
+.content table.bw-table td {
+  @apply text-xs font-normal leading-[14px];
+}
+
+.content table.bw-table tbody > tr > td {
+  @apply px-6 py-2;
+}
+
+.content table.bw-table thead th {
+  @apply pr-6;
+}
+
+.content img {
+  @apply mx-auto block max-h-[500px];
+}
