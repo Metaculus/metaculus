@@ -13,8 +13,8 @@ const config: Config = {
   ],
   theme: {
     screens: Object.assign({ xs: "480px" }, defaultTheme.screens),
-    colors: METAC_COLORS,
     extend: {
+      colors: METAC_COLORS,
       boxShadow: {
         dropdown: `2px 3px 10px -3px ${METAC_COLORS.gray[500]}`,
       },
