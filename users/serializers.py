@@ -35,7 +35,12 @@ class UserPublicSerializer(serializers.ModelSerializer):
 class UserPrivateSerializer(UserPublicSerializer):
     class Meta:
         model = User
-        fields = UserPublicSerializer.Meta.fields + ("first_name", "last_name", "email", "formerly_known_as")
+        fields = UserPublicSerializer.Meta.fields + (
+            "first_name",
+            "last_name",
+            "email",
+            "formerly_known_as",
+        )
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
