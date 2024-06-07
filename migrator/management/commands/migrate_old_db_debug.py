@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.db import connection
 
 from .migrate_old_db import Command as MigrateCommand
+from migrator.services.migrate_comments import migrate_comments
 
 
 class Command(BaseCommand):
@@ -15,7 +16,7 @@ class Command(BaseCommand):
             cursor.execute("DELETE FROM comments_comment")
 
         # Function
-        # migrate_comments()
+        migrate_comments()
 
         # Reset sql sequences
         MigrateCommand._reset_sequence()
