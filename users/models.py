@@ -3,6 +3,7 @@ from datetime import timedelta, datetime
 import dateutil.parser
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
+from django.db.models.functions import Lower
 from django.utils import timezone
 
 from utils.models import TimeStampedModel
@@ -16,6 +17,11 @@ class User(TimeStampedModel, AbstractUser):
     old_usernames = models.JSONField(default=list, null=False)
 
     objects = UserManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(Lower("email"), name="users_unique_email"),
+        ]
 
     def get_old_usernames(self) -> list[tuple[str, datetime]]:
         return [
