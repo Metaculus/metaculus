@@ -25,7 +25,6 @@ const MultipleChoiceTile: FC<Props> = ({ question }) => {
 
   const { choices, visibleChoices } = useMemo(() => {
     const choices = generateChartChoices(forecasts);
-
     return { choices, visibleChoices: choices.slice(0, NUM_VISIBLE_CHOICES) };
   }, [forecasts]);
   const otherItemsCount = choices.length - visibleChoices.length;

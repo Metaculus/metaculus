@@ -54,7 +54,7 @@ export type NumericForecast = {
 export type MultipleChoiceForecast = {
   timestamps: number[];
   nr_forecasters: number[];
-  [value_choice_n: string]: number[];
+  [value_choice_n: string]: any;
 };
 
 export type QuestionVote = {

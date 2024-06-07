@@ -11,7 +11,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from projects.models import Project
-from questions.models import Question, Vote
+from questions.models import Forecast, Question, Vote
 from questions.serializers import (
     QuestionSerializer,
     QuestionWriteSerializer,
@@ -146,6 +146,22 @@ def enrich_question_with_resolution(
     qs: QuerySet,
 ) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
 
+    '''
+    resolution of -2 means "annulled"
+    resolution of -1 means "ambiguous"
+    For Binary
+    resolution of 0 means "didn't happen"
+    resolution of 1 means "did happen"
+    For MC
+    resolution of N means "N'th choice occurred"
+    resolved_option is a mapping to the Option that was resolved to
+    For Continuous
+    resolution of 0 means "at lower bound"
+    resolution of 1 means "at upper bound"
+    resolution in [0, 1] means "resolved at some specified location within bounds"
+    resolution of 2 means "not greater than lower bound"
+    resolution of 3 means "not less than upper bound"
+    '''
     def enrich(question: Question, serialized_question: dict):
         if question.type == "binary":
             # TODO: @george, some questions might have None resolution, so this leads to error
@@ -166,8 +182,10 @@ def enrich_question_with_resolution(
             pass
 
         elif question.type == "multiple_choice":
-            # return question.options
-            pass
+            try:
+                return question.options[int(question.resolution)]
+            except Exception as e:
+                return f"Error for resolution: {question.resolution}"
         else:
             pass
 
@@ -261,7 +279,6 @@ def enrich_questions_with_forecasts(
 def questions_list_api_view(request):
     paginator = LimitOffsetPagination()
     qs = Question.objects.annotate_predictions_count().filter(forecast__gte=10)
-    print("\n", request.query_params, "\n")
 
     # Extra enrich params
     with_forecasts = serializers.BooleanField(allow_null=True).run_validation(
@@ -372,3 +389,32 @@ def question_vote_api_view(request: Request, pk: int):
     return Response(
         {"score": Question.objects.annotate_vote_score().get(pk=question.pk).vote_score}
     )
+
+
+
+@api_view(["POST"])
+def create_forecast(request):
+    data = request.data
+    question = Question.objects.get(pk=data["question_id"])
+    now = datetime.now()
+    prev_forecasts = Forecast.objects.filter(question=question, user=request.user).order_by("start_time").last()
+    if prev_forecasts:
+        prev_forecasts.end_time = now
+    
+    
+    Forecast.objects.create(question=question, user=request.user, start_time=now, end_time=None)
+
+    serializer = QuestionWriteSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    data = serializer.validated_data
+    projects_by_category: dict[str, list[Project]] = data.pop("projects", {})
+
+    question = Question.objects.create(author=request.user, **data)
+
+    projects_flat = flatten(projects_by_category.values())
+    question.projects.add(*projects_flat)
+
+    # Attaching projects to the
+    return Response(QuestionSerializer(question).data, status=status.HTTP_201_CREATED)
+
