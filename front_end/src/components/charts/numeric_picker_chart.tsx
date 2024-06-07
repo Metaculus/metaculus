@@ -24,10 +24,13 @@ const NumericPickerChart: FC<Props> = ({ min, max, left, center, right }) => {
   const { theme } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
-  const chartData = dataset.map((value, index) => ({
-    x: (index * (max - min)) / dataset.length,
-    y: value,
-  }));
+  const chartData: { x: number; y: number }[] = [];
+  dataset.forEach((value, index) => {
+    if (index === 0 || index === dataset.length - 1) {
+      return;
+    }
+    chartData.push({ x: (index * (max - min)) / dataset.length, y: value });
+  });
 
   const xTickValues = [
     min,
