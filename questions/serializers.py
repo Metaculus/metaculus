@@ -41,10 +41,10 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
 
 class QuestionFilterSerializer(serializers.Serializer):
     class Order(models.TextChoices):
-        MOST_FORECASTERS = "most_forecasters", "Most Forecasters"
-        CLOSED_AT = "closed_at", "Closed At"
-        RESOLVED_AT = "resolved_at", "Resolved At"
-        CREATED_AT = "created_at", "Created At"
+        MOST_FORECASTERS = "most_forecasters"
+        CLOSED_AT = "closed_at"
+        RESOLVED_AT = "resolved_at"
+        CREATED_AT = "created_at"
 
     topic = serializers.CharField(required=False)
     tags = serializers.ListField(child=serializers.CharField(), required=False)

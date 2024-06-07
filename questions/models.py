@@ -1,6 +1,4 @@
 import numpy as np
-from typing import Optional
-
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count, Subquery, OuterRef, Sum
@@ -43,12 +41,11 @@ class QuestionQuerySet(models.QuerySet):
 
 
 class Question(models.Model):
-    QUESTION_TYPES = (
-        ("binary", "binary"),
-        ("numeric", "numeric"),
-        ("date", "date"),
-        ("multiple_choice", "multiple_choice"),
-    )
+    class QuestionType(models.TextChoices):
+        BINARY = "binary"
+        NUMERIC = "numeric"
+        DATE = "date"
+        MULTIPLE_CHOICE = "multiple_choice"
 
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -76,7 +73,7 @@ class Question(models.Model):
     open_lower_bound = models.BooleanField(null=True)
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
 
-    type = models.CharField(max_length=20, choices=QUESTION_TYPES)
+    type = models.CharField(max_length=20, choices=QuestionType.choices)
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
@@ -155,13 +152,9 @@ class Forecast(models.Model):
 
 
 class Vote(models.Model):
-    class VoteDirection(models.IntegerChoices):
-        UP = 1
-        DOWN = -1
-
     user = models.ForeignKey(User, models.CASCADE, related_name="votes")
     question = models.ForeignKey(Question, models.CASCADE, related_name="votes")
-    direction = models.SmallIntegerField(choices=VoteDirection.choices)
+    direction = models.SmallIntegerField(choices=[-1, 1])
 
     class Meta:
         constraints = [
