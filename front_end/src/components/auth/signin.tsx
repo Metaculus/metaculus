@@ -48,7 +48,7 @@ const SignInModal: FC<SignInModalType> = ({
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
-      <div className="mt-6">
+      <div>
         <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
           {t("signInButton")}
         </h2>
@@ -85,9 +85,13 @@ const SignInModal: FC<SignInModalType> = ({
             {t("signInButton")}
           </Button>
         </form>
-        <button className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border border-transparent px-3 py-2 text-sm font-medium leading-none text-blue-800 no-underline hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 disabled:opacity-30 dark:text-blue-800-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark disabled:dark:text-blue-800-dark">
+        <Button
+          variant="text"
+          className="mt-2 w-full px-3 py-2"
+          onClick={() => setCurrentModal({ type: "resetPassword" })}
+        >
           {t("forgotPasswordLink")}
-        </button>
+        </Button>
         <hr className="my-3 border-gray-300 dark:border-gray-300-dark" />
         <SocialButtons type="sigin" />
       </div>

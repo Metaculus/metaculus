@@ -5,6 +5,7 @@ import {
   FC,
   PropsWithChildren,
   useContext,
+  useEffect,
   useState,
 } from "react";
 
@@ -33,6 +34,10 @@ const AuthProvider: FC<
   const [socialProviders, setSocialProviders] = useState<
     SocialProvider[] | null
   >(initialSocialProviders);
+
+  useEffect(() => {
+    setUser(initialUser);
+  }, [initialUser]);
 
   return (
     <AuthContext.Provider
