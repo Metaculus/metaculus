@@ -19,7 +19,7 @@ export default function Questions() {
     <main className="flex flex-col gap-2 p-6">
       <Link
         href={"/"}
-        className={"self-start font-bold text-metac-blue-800 hover:opacity-60"}
+        className={"self-start font-bold text-blue-800 hover:opacity-60"}
       >
         Home
       </Link>

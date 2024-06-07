@@ -132,7 +132,7 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
 
       {isTooltipActive && !!tooltipChoices.length && (
         <div
-          className="pointer-events-none z-20 rounded bg-metac-gray-0 p-2 leading-4 shadow-lg dark:bg-metac-gray-0-dark"
+          className="pointer-events-none z-20 rounded bg-gray-0 p-2 leading-4 shadow-lg dark:bg-gray-0-dark"
           ref={refs.setFloating}
           style={floatingStyles}
           {...getFloatingProps()}
