@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.utils.timezone import now as tz_now
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
@@ -38,10 +38,11 @@ def change_username_api_view(request: Request):
     username = serializers.CharField().run_validation(request.data.get("username"))
     username = validate_username(username)
 
-    if user.username_change_date and (
-        (tz_now() - user.username_change_date) < timedelta(days=180)
-    ):
-        raise ValidationError("can only change username once every 180 days")
+    if old_usernames := user.get_old_usernames():
+        _, change_date = old_usernames[0]
+
+        if (timezone.now() - change_date) < timedelta(days=180):
+            raise ValidationError("can only change username once every 180 days")
 
     user.update_username(username)
     user.save()

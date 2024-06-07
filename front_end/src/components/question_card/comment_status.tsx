@@ -19,20 +19,20 @@ const CommentStatus: FC<Props> = ({ newCommentsCount, url }) => {
   return (
     <Button
       variant="text"
-      className="bg-gradient-to-b hover:from-metac-blue-300 hover:to-metac-blue-100 dark:hover:from-metac-blue-300-dark dark:hover:to-metac-blue-100-dark"
+      className="bg-gradient-to-b hover:from-blue-300 hover:to-blue-100 dark:hover:from-blue-300-dark dark:hover:to-blue-100-dark"
       href={url + "#comments"}
     >
       {newCommentsCount > 0 ? (
         <FontAwesomeIcon
           icon={faSolidComment}
           size="lg"
-          className="text-metac-blue-500 dark:text-metac-blue-500-dark"
+          className="text-blue-500 dark:text-blue-500-dark"
         />
       ) : (
         <FontAwesomeIcon
           icon={faRegularComment}
           size="lg"
-          className="text-metac-gray-400"
+          className="text-gray-400"
         />
       )}
       {/* Large screens version */}

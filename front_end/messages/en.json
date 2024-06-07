@@ -464,6 +464,7 @@
   "tournamentsHero3": "<scores>Learn</scores> how tournaments are scored.",
   "tournamentsHero4": "<email>Reach out</email> to discuss launching a tournament on what’s important to you.",
   "ActiveTournaments": "Active Tournaments",
+  "Tournament": "Tournament",
   "QuestionSeries": "Question Series",
   "Archive": "Archive",
   "prizePool": "prize pool",
@@ -472,5 +473,9 @@
   "closedOn": "Closed <strong></strong>",
   "highestPrizePool": "Highest Prize Pool",
   "endingSoon": "Ending Soon",
-  "changePasswordButton": "Change Password"
+  "changePasswordButton": "Change Password",
+  "formerlyKnownAs": "Formerly Known As",
+  "StartDate": "Start Date",
+  "EndDate": "End Date",
+  "SeriesContents": "Series Contents"
 }
