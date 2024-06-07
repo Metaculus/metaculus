@@ -53,7 +53,7 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
 
 def validate_username(value: str):
     if value.lower() in forbidden_usernames:
-        raise serializers.ValidationError({"username": "this username is not allowed"})
+        raise serializers.ValidationError("this username is not allowed")
 
     if User.objects.filter(username__iexact=value).exists():
         raise serializers.ValidationError("The username is already taken")
