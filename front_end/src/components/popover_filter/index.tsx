@@ -41,7 +41,7 @@ const Panel: FC<PropsWithChildren<PanelProps>> = ({
   return (
     <PopoverPanel
       className={classNames(
-        "absolute right-0 top-10 z-10 box-border flex flex-col items-start overflow-hidden overflow-y-auto rounded border border-metac-gray-300 bg-metac-gray-0 p-5 shadow-lg shadow-[#0003] dark:border-metac-gray-300-dark dark:bg-metac-gray-0-dark",
+        "absolute right-0 top-10 z-10 box-border flex flex-col items-start overflow-hidden overflow-y-auto rounded border border-gray-300 bg-gray-0 p-5 shadow-lg shadow-[#0003] dark:border-gray-300-dark dark:bg-gray-0-dark",
         {
           "max-sm:fixed max-sm:top-0 max-sm:z-[1300] max-sm:h-dvh max-sm:w-screen max-sm:overflow-y-auto max-sm:px-5 max-sm:pb-0 max-sm:pt-5":
             fullScreenEnabled,
@@ -118,7 +118,7 @@ const PopoverFilter: FC<Props> = ({
           <PopoverButton
             as={Button}
             className={classNames({
-              "bg-metac-gray-300 dark:bg-metac-gray-300-dark": open,
+              "bg-gray-300 dark:bg-gray-300-dark": open,
             })}
           >
             {buttonLabel || t("Filter")}
@@ -128,7 +128,7 @@ const PopoverFilter: FC<Props> = ({
             fullScreenEnabled={fullScreenEnabled}
             className={panelClassName}
           >
-            <div className="mb-6 flex w-full items-center border-b border-metac-gray-300 sm:hidden">
+            <div className="mb-6 flex w-full items-center border-b border-gray-300 sm:hidden">
               <h3 className="m-0 grow">Filter by</h3>
               <Button
                 variant="text"
@@ -142,14 +142,14 @@ const PopoverFilter: FC<Props> = ({
             <div className="flex w-full flex-col gap-4">
               {filters.map((filter) => (
                 <div key={`filter-${filter.id}`}>
-                  <h3 className="mb-2 mt-0 w-full text-xs font-bold uppercase leading-3 text-metac-gray-700 dark:text-metac-gray-700-dark">
+                  <h3 className="mb-2 mt-0 w-full text-xs font-bold uppercase leading-3 text-gray-700 dark:text-gray-700-dark">
                     {filter.title}
                   </h3>
                   {renderFilter(filter)}
                 </div>
               ))}
             </div>
-            <div className="ml-auto mt-4 flex w-full justify-end gap-3 border-t border-metac-gray-300 pt-4 dark:border-metac-gray-300-dark max-sm:sticky max-sm:bottom-0 max-sm:w-full max-sm:bg-metac-gray-0 max-sm:py-4 max-sm:dark:bg-metac-gray-0-dark">
+            <div className="ml-auto mt-4 flex w-full justify-end gap-3 border-t border-gray-300 pt-4 dark:border-gray-300-dark max-sm:sticky max-sm:bottom-0 max-sm:w-full max-sm:bg-gray-0 max-sm:py-4 max-sm:dark:bg-gray-0-dark">
               <Button onClick={onClear}>{t("Clear")}</Button>
               <Button variant="primary" onClick={close}>
                 {t("Done")}

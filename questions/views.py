@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 from typing import Callable
 
-from django.db.models import Q, QuerySet, Count
+import numpy as np
+from django.db.models import Q, QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
@@ -11,7 +12,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from projects.models import Project
-from questions.models import Question, Vote
+from questions.models import Forecast, Question, Vote
 from questions.serializers import (
     QuestionSerializer,
     QuestionWriteSerializer,
@@ -24,7 +25,6 @@ from utils.the_math.community_prediction import (
     compute_continuous_plotable_cp,
     compute_multiple_choice_plotable_cp,
 )
-import numpy as np
 
 
 def filter_questions(qs, request: Request):
@@ -70,9 +70,7 @@ def filter_questions(qs, request: Request):
     if order := serializer.validated_data.get("order"):
         match order:
             case serializer.Order.MOST_FORECASTERS:
-                qs = qs.annotate_predictions_count__unique().order_by(
-                    "-nr_forecasters"
-                )
+                qs = qs.annotate_predictions_count__unique().order_by("-nr_forecasters")
             case serializer.Order.CLOSED_AT:
                 qs = qs.order_by("-closed_at")
             case serializer.Order.RESOLVED_AT:
@@ -143,6 +141,22 @@ def enrich_questions_with_nr_forecasts(
 def enrich_question_with_resolution(
     qs: QuerySet,
 ) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
+    """
+    resolution of -2 means "annulled"
+    resolution of -1 means "ambiguous"
+    For Binary
+    resolution of 0 means "didn't happen"
+    resolution of 1 means "did happen"
+    For MC
+    resolution of N means "N'th choice occurred"
+    resolved_option is a mapping to the Option that was resolved to
+    For Continuous
+    resolution of 0 means "at lower bound"
+    resolution of 1 means "at upper bound"
+    resolution in [0, 1] means "resolved at some specified location within bounds"
+    resolution of 2 means "not greater than lower bound"
+    resolution of 3 means "not less than upper bound"
+    """
 
     def enrich(question: Question, serialized_question: dict):
         if question.type == "binary":
@@ -164,8 +178,14 @@ def enrich_question_with_resolution(
             pass
 
         elif question.type == "multiple_choice":
-            # return question.options
-            pass
+            try:
+                serialized_question["resolution"] = question.options[
+                    int(question.resolution)
+                ]
+            except Exception:
+                serialized_question["resolution"] = (
+                    f"Error for resolution: {question.resolution}"
+                )
         else:
             pass
 
@@ -259,7 +279,6 @@ def enrich_questions_with_forecasts(
 def questions_list_api_view(request):
     paginator = LimitOffsetPagination()
     qs = Question.objects.annotate_predictions_count().filter(forecast__gte=10)
-    print("\n", request.query_params, "\n")
 
     # Extra enrich params
     with_forecasts = serializers.BooleanField(allow_null=True).run_validation(
@@ -370,3 +389,33 @@ def question_vote_api_view(request: Request, pk: int):
     return Response(
         {"score": Question.objects.annotate_vote_score().get(pk=question.pk).vote_score}
     )
+
+
+@api_view(["POST"])
+def create_forecast(request):
+    data = request.data
+    question = Question.objects.get(pk=data["question_id"])
+    now = datetime.now()
+    prev_forecasts = (
+        Forecast.objects.filter(question=question, user=request.user)
+        .order_by("start_time")
+        .last()
+    )
+    if prev_forecasts:
+        prev_forecasts.end_time = now
+        prev_forecasts.save()
+
+    forecast = Forecast.objects.create(
+        question=question,
+        author=request.user,
+        start_time=now,
+        end_time=None,
+        continuous_cdf=data.get("continuous_cdf", None),
+        probability_yes=data.get("probability_yes", None),
+        probability_yes_per_category=data.get("probability_yes_per_category", None),
+        distribution_components=None,
+    )
+    forecast.save()
+
+    # Attaching projects to the
+    return Response({"id": prev_forecasts.id}, status=status.HTTP_201_CREATED)

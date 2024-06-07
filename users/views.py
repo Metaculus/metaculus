@@ -39,7 +39,7 @@ def change_username_api_view(request: Request):
     username = validate_username(username)
 
     if old_usernames := user.get_old_usernames():
-        _, change_date = old_usernames
+        _, change_date = old_usernames[0]
 
         if (timezone.now() - change_date) < timedelta(days=180):
             raise ValidationError("can only change username once every 180 days")

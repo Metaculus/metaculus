@@ -1,5 +1,7 @@
 from django.urls import path
 
+from migrator.services.migrate_forecasts import create_forecast
+
 from .views import (
     question_detail,
     create_question,
@@ -16,4 +18,5 @@ urlpatterns = [
     path("questions/create/", create_question, name="create-question"),
     path("questions/<int:pk>/update/", update_question, name="update-question"),
     path("questions/<int:pk>/delete/", delete_question, name="delete-question"),
+    path("forecasts/create/", create_forecast, name="create-forecast"),
 ]

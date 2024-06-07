@@ -14,7 +14,7 @@ const ChoicesTooltip: FC<Props> = ({ date, choices }) => {
   return (
     <table>
       <tbody>
-        <tr className="border-b border-metac-gray-300 dark:border-metac-gray-300-dark">
+        <tr className="border-b border-gray-300 dark:border-gray-300-dark">
           <th className="px-1.5 py-1 text-left text-sm font-bold" colSpan={2}>
             {date}
           </th>
@@ -22,7 +22,7 @@ const ChoicesTooltip: FC<Props> = ({ date, choices }) => {
             <FontAwesomeIcon
               icon={faUserGroup}
               size="sm"
-              className="align-middle text-metac-olive-700 dark:text-metac-olive-700-dark"
+              className="align-middle text-olive-700 dark:text-olive-700-dark"
             />
           </td>
         </tr>

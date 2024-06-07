@@ -27,8 +27,8 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
       <Dialog as="div" className="relative z-50" onClose={onClose}>
         <div
           className={classNames("fixed inset-0", {
-            "bg-metac-blue-900 bg-opacity-50": variant === "light",
-            "bg-metac-blue-100-dark/75": variant === "dark",
+            "bg-blue-900 bg-opacity-50": variant === "light",
+            "bg-blue-100-dark/75": variant === "dark",
           })}
         />
         <div className="fixed inset-0 overflow-y-auto">
@@ -37,9 +37,8 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
               className={classNames(
                 "static bottom-0 top-0 flex h-fit w-full max-w-fit  transform flex-col justify-between gap-6 overflow-y-scroll text-left align-middle shadow-xl transition-all",
                 {
-                  "rounded bg-metac-gray-0 text-metac-blue-900":
-                    variant === "light",
-                  "border bg-metac-blue-100-dark font-serif	text-metac-gray-900-dark":
+                  "rounded bg-gray-0 text-blue-900": variant === "light",
+                  "border bg-blue-100-dark font-serif	text-gray-900-dark":
                     variant === "dark",
                 }
               )}
@@ -66,11 +65,11 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
                       <button
                         onClick={() => onClose(false)}
                         className={classNames(
-                          "border text-2xl text-metac-blue-800 no-underline",
+                          "border text-2xl text-blue-800 no-underline",
                           {
-                            "h-[20px] w-[20px] border text-metac-gray-600-dark":
+                            "h-[20px] w-[20px] border text-gray-600-dark":
                               variant === "dark",
-                            "border-transparent hover:text-metac-blue-900 active:text-metac-blue-700 disabled:text-metac-blue-800 disabled:opacity-30":
+                            "border-transparent hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 disabled:opacity-30":
                               variant === "light",
                           }
                         )}
