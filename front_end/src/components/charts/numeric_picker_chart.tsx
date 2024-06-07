@@ -24,10 +24,17 @@ const NumericPickerChart: FC<Props> = ({ min, max, left, center, right }) => {
   const { theme } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
-  const chartData = dataset.map((value, index) => ({
-    x: (index * (max - min)) / dataset.length,
-    y: value,
-  }));
+  const chartData: { x: number; y: number }[] = [];
+  dataset.forEach((value, index) => {
+    if (index === 0 || index === dataset.length - 1) {
+      // first and last bins are probabilty mass out of bounds
+      return;
+    }
+    chartData.push({ x: (index * (max - min)) / dataset.length, y: value });
+  });
+  // TODO: find a nice way to display the out of bounds weights as numbers
+  const massBelowBounds = dataset[0];
+  const massAboveBounds = dataset[dataset.length - 1];
 
   const xTickValues = [
     min,
@@ -42,7 +49,7 @@ const NumericPickerChart: FC<Props> = ({ min, max, left, center, right }) => {
       {!!chartWidth && (
         <VictoryChart
           width={chartWidth}
-          height={200}
+          height={500}
           theme={chartTheme}
           domain={{
             x: [min, max],
