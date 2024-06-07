@@ -179,9 +179,9 @@ def enrich_question_with_resolution(
 
         elif question.type == "multiple_choice":
             try:
-                return question.options[int(question.resolution)]
-            except Exception as e:
-                return f"Error for resolution: {question.resolution}"
+                serialized_question["resolution"] = question.options[int(question.resolution)]
+            except Exception:
+                serialized_question["resolution"] = f"Error for resolution: {question.resolution}"
         else:
             pass
 
