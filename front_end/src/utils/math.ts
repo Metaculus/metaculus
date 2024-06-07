@@ -74,7 +74,6 @@ export function binWeightsFromSliders(
       logisticCDF(x, params.mode, params.scale, params.asymmetry)
     ),
   ];
-  console.log("CDF", cdf);
   const pmf = [];
   for (let i = 0; i < cdf.length; i++) {
     if (i == 0) {
@@ -84,6 +83,5 @@ export function binWeightsFromSliders(
     }
   }
   pmf.push(1 - cdf[cdf.length - 1]);
-  console.log("PMF", pmf);
   return pmf;
 }
