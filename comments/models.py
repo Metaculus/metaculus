@@ -20,21 +20,21 @@ class CommentQuerySet(models.QuerySet):
         )
 
     def annotate_children(self):
-        return self.annotate(
-            children=Comment.objects.filter(parent=self)
-        )
+        return self.annotate(children=Comment.objects.filter(parent=self))
 
 
 class Comment(models.Model):
-    author = models.ForeignKey(User, models.CASCADE) 
+    author = models.ForeignKey(User, models.CASCADE)
     parent = models.ForeignKey("self", on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     edited_at = models.DateTimeField(auto_now_add=True)
     is_soft_deleted = models.BooleanField(null=True)
     text = models.TextField()
-    on_question = models.ForeignKey(Question, models.CASCADE)
-    #on_project = models.ForeignKey(Project, null=True) 
-    included_forecast = models.ForeignKey(Forecast, on_delete=models.SET_NULL, null=True)
+    on_question = models.ForeignKey(Question, models.CASCADE, null=True)
+    on_project = models.ForeignKey(Project, models.CASCADE, null=True)
+    included_forecast = models.ForeignKey(
+        Forecast, on_delete=models.SET_NULL, null=True
+    )
     type = models.CharField(max_length=20, choices=CommentType.choices)
 
     # annotated fields
