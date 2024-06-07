@@ -1,5 +1,7 @@
 from django.db import models
+
 from utils.models import TimeStampedModel
+
 
 # Create your models here.
 
@@ -11,17 +13,16 @@ class UserWeight(TimeStampedModel):
 
 
 class LeaderboardEntry(TimeStampedModel):
-    LEADERBOARD_TYPE = (
-        ("metaculus_points", "metaculus_points"),
-        ("peer_accuracy", "peer_accuracy"),
-        ("baseline_accuracy", "baseline_accuracy"),
-        ("peer_spot_forecast", "peer_spot_forecast"),
-        ("baseline_spot_forecast", "baseline_spot_forecast"),
-    )
+    class LeaderboardType(models.TextChoices):
+        METACULUS_POINTS = "metaculus_points"
+        PEER_ACCURACY = "peer_accuracy"
+        BASELINE_ACCURACY = "baseline_accuracy"
+        PEER_SPOT_FORECAST = "peer_spot_forecast"
+        BASELINE_SPOT_FORECAST = "baseline_spot_forecast"
 
     user = models.ForeignKey("users.User", on_delete=models.CASCADE)
     for_project = models.ForeignKey("projects.Project", on_delete=models.CASCADE)
-    leaderboard_type = models.CharField(max_length=200, choices=LEADERBOARD_TYPE)
+    leaderboard_type = models.CharField(max_length=200, choices=LeaderboardType.choices)
     score = models.FloatField()
     medal = models.CharField(max_length=200, null=True)
     calculated_on = models.DateTimeField(auto_now_add=True)
@@ -30,15 +31,9 @@ class LeaderboardEntry(TimeStampedModel):
 
 
 class Score(TimeStampedModel):
-    SCORE_TYPE = (
-        ("metaculus_points", "metaculus_points"),
-        ("peer_accuracy", "peer_accuracy"),
-        ("baseline_accuracy", "baseline_accuracy"),
-        ("peer_spot_forecast", "peer_spot_forecast"),
-        ("baseline_spot_forecast", "baseline_spot_forecast"),
-    )
-
     user = models.ForeignKey("users.User", on_delete=models.CASCADE)
     for_question = models.ForeignKey("questions.Question", on_delete=models.CASCADE)
     score = models.FloatField()
-    score_type = models.CharField(max_length=200, choices=SCORE_TYPE)
+    score_type = models.CharField(
+        max_length=200, choices=LeaderboardEntry.LeaderboardType.choices
+    )
