@@ -53,15 +53,15 @@ const QuestionStatusIcon: FC<Props> = ({ status, closed_at, published_at }) => {
   const renderIcon = () => {
     // TODO: BE need to support this status
     // if (status === QuestionStatus.Closes) {
-    //   return <circle r="10" className="stroke-metac-blue-700 stroke-1" />;
+    //   return <circle r="10" className="stroke-blue-700 stroke-1" />;
     // }
 
     if (showClock) {
       return (
         <>
-          <path d="" className="fill-metac-mint-500" />
-          <circle className="stroke-metac-blue-700 stroke-1" />
-          <line x1="0" y1="0" className="stroke-metac-blue-700 stroke-1" />
+          <path d="" className="fill-mint-500" />
+          <circle className="stroke-blue-700 stroke-1" />
+          <line x1="0" y1="0" className="stroke-blue-700 stroke-1" />
         </>
       );
     }

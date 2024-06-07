@@ -21,8 +21,7 @@ export type QuestionsParams = {
   access?: string;
   commented_by?: string;
   order_by?: string;
-  // TODO: properly handle array params
-  projects?: string;
+  tournaments?: string | string[];
 };
 
 class QuestionsApi {

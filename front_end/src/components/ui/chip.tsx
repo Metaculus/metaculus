@@ -39,22 +39,14 @@ const Chip: FC<PropsWithChildren<Props>> = ({
         "inline-flex cursor-pointer select-none items-stretch justify-center rounded",
         {
           border: variant === "outlined",
-          "border-metac-orange-500 dark:border-metac-orange-500-dark":
-            color === "orange",
-          "border-metac-purple-500 dark:border-metac-purple-500-dark":
-            color === "purple",
-          "border-metac-gray-500 dark:border-metac-gray-500-dark":
-            color === "gray",
-          "border-metac-gray-700 dark:border-metac-gray-700-dark":
-            color === "grayBold",
-          "border-metac-blue-500 dark:border-metac-blue-500-dark":
-            color === "blue",
-          "border-metac-blue-700 dark:border-metac-blue-700-dark":
-            color === "blueBold",
-          "border-metac-olive-500 dark:border-metac-olive-500-dark":
-            color === "olive",
-          "border-metac-olive-900 dark:border-metac-olive-900-dark":
-            color === "oliveBold",
+          "border-orange-500 dark:border-orange-500-dark": color === "orange",
+          "border-purple-500 dark:border-purple-500-dark": color === "purple",
+          "border-gray-500 dark:border-gray-500-dark": color === "gray",
+          "border-gray-700 dark:border-gray-700-dark": color === "grayBold",
+          "border-blue-500 dark:border-blue-500-dark": color === "blue",
+          "border-blue-700 dark:border-blue-700-dark": color === "blueBold",
+          "border-olive-500 dark:border-olive-500-dark": color === "olive",
+          "border-olive-900 dark:border-olive-900-dark": color === "oliveBold",
         },
         className
       )}
@@ -70,66 +62,61 @@ const Chip: FC<PropsWithChildren<Props>> = ({
             "gap-1 p-1.5 text-sm leading-4": size === "sm",
             "gap-1.5 p-1.5 text-base leading-5": size === "md",
 
-            "text-metac-orange-900 dark:text-metac-orange-900-dark":
-              color === "orange",
-            "hover:text-metac-orange-700 hover:dark:text-metac-orange-700-dark":
+            "text-orange-900 dark:text-orange-900-dark": color === "orange",
+            "hover:text-orange-700 hover:dark:text-orange-700-dark":
               color === "orange" && variant === "outlined",
-            "bg-metac-orange-200 hover:bg-metac-orange-300 dark:bg-metac-orange-200-dark dark:hover:bg-metac-orange-300-dark":
+            "bg-orange-200 hover:bg-orange-300 dark:bg-orange-200-dark dark:hover:bg-orange-300-dark":
               color === "orange" && variant === "filled",
-            "bg-metac-orange-100 hover:bg-metac-orange-200 dark:bg-metac-orange-100-dark hover:dark:bg-metac-orange-200-dark":
+            "bg-orange-100 hover:bg-orange-200 dark:bg-orange-100-dark hover:dark:bg-orange-200-dark":
               color === "orange" && variant === "subtle",
 
-            "text-metac-purple-900 dark:text-metac-purple-900-dark":
-              color === "purple",
-            "hover:text-metac-purple-700 hover:dark:text-metac-purple-700-dark":
+            "text-purple-900 dark:text-purple-900-dark": color === "purple",
+            "hover:text-purple-700 hover:dark:text-purple-700-dark":
               color === "purple" && variant === "outlined",
-            "bg-metac-purple-200 hover:bg-metac-purple-300 dark:bg-metac-purple-200-dark dark:hover:bg-metac-purple-300-dark":
+            "bg-purple-200 hover:bg-purple-300 dark:bg-purple-200-dark dark:hover:bg-purple-300-dark":
               color === "purple" && variant === "filled",
-            "bg-metac-purple-100 hover:bg-metac-purple-200 dark:bg-metac-purple-100-dark hover:dark:bg-metac-purple-200-dark":
+            "bg-purple-100 hover:bg-purple-200 dark:bg-purple-100-dark hover:dark:bg-purple-200-dark":
               color === "purple" && variant === "subtle",
 
-            "text-metac-gray-900 dark:text-metac-gray-900-dark":
-              color === "gray",
-            "hover:text-metac-gray-700 hover:dark:text-metac-gray-700-dark":
+            "text-gray-900 dark:text-gray-900-dark": color === "gray",
+            "hover:text-gray-700 hover:dark:text-gray-700-dark":
               color === "gray" && variant === "outlined",
-            "bg-metac-gray-300 hover:bg-metac-gray-400 dark:bg-metac-gray-300-dark dark:hover:bg-metac-gray-400-dark":
+            "bg-gray-300 hover:bg-gray-400 dark:bg-gray-300-dark dark:hover:bg-gray-400-dark":
               color === "gray" && variant === "filled",
-            "bg-metac-gray-200 hover:bg-metac-gray-300 dark:bg-metac-gray-200-dark hover:dark:bg-metac-gray-300-dark":
+            "bg-gray-200 hover:bg-gray-300 dark:bg-gray-200-dark hover:dark:bg-gray-300-dark":
               color === "gray" && variant === "subtle",
 
-            "text-metac-gray-900 hover:text-metac-gray-700 dark:text-metac-gray-900-dark hover:dark:text-metac-gray-700-dark":
+            "text-gray-900 hover:text-gray-700 dark:text-gray-900-dark hover:dark:text-gray-700-dark":
               color === "grayBold" &&
               (variant === "subtle" || variant === "outlined"),
-            "bg-metac-gray-700 text-metac-gray-0 hover:bg-metac-gray-600 dark:bg-metac-gray-800-dark dark:text-metac-gray-0-dark dark:hover:bg-metac-gray-700-dark":
+            "bg-gray-700 text-gray-0 hover:bg-gray-600 dark:bg-gray-800-dark dark:text-gray-0-dark dark:hover:bg-gray-700-dark":
               color === "grayBold" && variant === "filled",
 
-            "text-metac-blue-900 dark:text-metac-blue-900-dark":
-              color === "blue",
-            "hover:text-metac-blue-700 hover:dark:text-metac-blue-700-dark":
+            "text-blue-900 dark:text-blue-900-dark": color === "blue",
+            "hover:text-blue-700 hover:dark:text-blue-700-dark":
               color === "blue" && variant === "outlined",
-            "bg-metac-blue-300 hover:bg-metac-blue-400 dark:bg-metac-blue-300-dark dark:hover:bg-metac-blue-400-dark":
+            "bg-blue-300 hover:bg-blue-400 dark:bg-blue-300-dark dark:hover:bg-blue-400-dark":
               color === "blue" && variant === "filled",
-            "bg-metac-blue-200 hover:bg-metac-blue-300 dark:bg-metac-blue-200-dark hover:dark:bg-metac-blue-300-dark":
+            "bg-blue-200 hover:bg-blue-300 dark:bg-blue-200-dark hover:dark:bg-blue-300-dark":
               color === "blue" && variant === "subtle",
 
-            "text-metac-blue-900 hover:text-metac-blue-700 dark:text-metac-blue-900-dark hover:dark:text-metac-blue-700-dark":
+            "text-blue-900 hover:text-blue-700 dark:text-blue-900-dark hover:dark:text-blue-700-dark":
               color === "blueBold" &&
               (variant === "subtle" || variant === "outlined"),
-            "bg-metac-blue-700 text-metac-gray-0 hover:bg-metac-blue-600 dark:bg-metac-blue-700-dark dark:text-metac-gray-0-dark dark:hover:bg-metac-blue-600-dark":
+            "bg-blue-700 text-gray-0 hover:bg-blue-600 dark:bg-blue-700-dark dark:text-gray-0-dark dark:hover:bg-blue-600-dark":
               color === "blueBold" && variant === "filled",
 
-            "text-metac-olive-900 dark:text-metac-olive-900-dark":
-              color === "olive",
-            "hover:text-metac-olive-700 hover:dark:text-metac-olive-700-dark":
+            "text-olive-900 dark:text-olive-900-dark": color === "olive",
+            "hover:text-olive-700 hover:dark:text-olive-700-dark":
               color === "olive" && variant === "outlined",
-            "bg-metac-olive-300 hover:bg-metac-olive-400 dark:bg-metac-olive-300-dark dark:hover:bg-metac-olive-400-dark":
+            "bg-olive-300 hover:bg-olive-400 dark:bg-olive-300-dark dark:hover:bg-olive-400-dark":
               color === "olive" &&
               (variant === "subtle" || variant === "filled"),
 
-            "text-metac-olive-900 hover:text-metac-olive-700 dark:text-metac-olive-900-dark hover:dark:text-metac-olive-700-dark":
+            "text-olive-900 hover:text-olive-700 dark:text-olive-900-dark hover:dark:text-olive-700-dark":
               color === "oliveBold" &&
               (variant === "subtle" || variant === "outlined"),
-            "bg-metac-olive-700 text-metac-gray-0 hover:bg-metac-olive-600 dark:bg-metac-olive-700-dark dark:text-metac-gray-0-dark dark:hover:bg-metac-olive-600-dark":
+            "bg-olive-700 text-gray-0 hover:bg-olive-600 dark:bg-olive-700-dark dark:text-gray-0-dark dark:hover:bg-olive-600-dark":
               color === "oliveBold" && variant === "filled",
           }
         )}

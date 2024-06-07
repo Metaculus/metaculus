@@ -19,14 +19,14 @@ const BasicQuestionCard: FC<PropsWithChildren<Props>> = ({
   const { id, title, vote } = question;
 
   return (
-    <div className="rounded border border-metac-blue-500 bg-metac-gray-0 dark:border-metac-blue-600 dark:bg-metac-gray-0-dark">
+    <div className="rounded border border-blue-500 bg-gray-0 dark:border-blue-600 dark:bg-gray-0-dark">
       <Link href={`/questions/${id}`} className="block p-4 no-underline">
-        <h4 className="relative mt-0 line-clamp-2 text-base font-semibold text-metac-gray-900 dark:text-metac-gray-900-dark">
+        <h4 className="relative mt-0 line-clamp-2 text-base font-semibold text-gray-900 dark:text-gray-900-dark">
           {title}
         </h4>
         {children}
       </Link>
-      <div className="flex items-center justify-between gap-3 rounded-ee border-t border-metac-blue-400 bg-metac-blue-100 px-2 py-0.5 font-medium dark:border-metac-blue-400-dark dark:bg-metac-blue-100-dark">
+      <div className="flex items-center justify-between gap-3 rounded-ee border-t border-blue-400 bg-blue-100 px-2 py-0.5 font-medium dark:border-blue-400-dark dark:bg-blue-100-dark">
         <div className="flex items-center gap-3 max-lg:flex-1 max-lg:justify-between">
           <div className="flex items-center gap-3">
             <QuestionVoter className="md:min-w-20" question={question} />

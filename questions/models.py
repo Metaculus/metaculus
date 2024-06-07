@@ -1,6 +1,6 @@
-import numpy as np
-from typing import Optional
+from typing import TYPE_CHECKING
 
+import numpy as np
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count, Subquery, OuterRef, Sum
@@ -8,6 +8,9 @@ from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
 from users.models import User
+
+if TYPE_CHECKING:
+    from comments.models import Comment
 
 
 class QuestionQuerySet(models.QuerySet):
@@ -20,10 +23,8 @@ class QuestionQuerySet(models.QuerySet):
     def annotate_predictions_count(self):
         return self.annotate(predictions_count=Count("forecast", distinct=True))
 
-    def annotate_predictions_count__unique(self):
-        return self.annotate(
-            predictions_count_unique=Count("forecast__author", distinct=True)
-        )
+    def annotate_nr_forecasters(self):
+        return self.annotate(nr_forecasters=Count("forecast__author", distinct=True))
 
     def annotate_vote_score(self):
         return self.annotate(
@@ -45,12 +46,11 @@ class QuestionQuerySet(models.QuerySet):
 
 
 class Question(models.Model):
-    QUESTION_TYPES = (
-        ("binary", "binary"),
-        ("numeric", "numeric"),
-        ("date", "date"),
-        ("multiple_choice", "multiple_choice"),
-    )
+    class QuestionType(models.TextChoices):
+        BINARY = "binary"
+        NUMERIC = "numeric"
+        DATE = "date"
+        MULTIPLE_CHOICE = "multiple_choice"
 
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -78,7 +78,7 @@ class Question(models.Model):
     open_lower_bound = models.BooleanField(null=True)
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
 
-    type = models.CharField(max_length=20, choices=QUESTION_TYPES)
+    type = models.CharField(max_length=20, choices=QuestionType.choices)
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
@@ -94,7 +94,7 @@ class Question(models.Model):
 
     # Annotated fields
     predictions_count: int = 0
-    predictions_count_unique: int = 0
+    nr_forecasters: int = 0
     vote_score: int = 0
     user_vote = None
 
@@ -148,6 +148,7 @@ class Forecast(models.Model):
         return self.continuous_cdf
 
 
+# if we can vote on questions and comments, maybe move this elsewhere; user?
 class Vote(models.Model):
     class VoteDirection(models.IntegerChoices):
         UP = 1
@@ -157,11 +158,20 @@ class Vote(models.Model):
     question = models.ForeignKey(Question, models.CASCADE, related_name="votes")
     direction = models.SmallIntegerField(choices=VoteDirection.choices)
 
+    # comment = models.ForeignKey("Comment", models.CASCADE, related_name="votes")
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 name="votes_unique_user_question", fields=["user_id", "question_id"]
             ),
+            # models.CheckConstraint(
+            #    name='has_question_xor_comment',
+            #    check=(
+            #        models.Q(question__isnull=True, comment__isnull=False) |
+            #        models.Q(question__isnull=False, comment__isnull=True)
+            #    )
+            # )
         ]
 
 
