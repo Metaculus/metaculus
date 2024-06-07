@@ -37,6 +37,15 @@ class ProjectsApi {
       return [];
     }
   }
+
+  static async getSlugTournament(slug: string): Promise<Tournament | null> {
+    try {
+      return await get<Tournament>(`/projects/tournaments/${slug}`);
+    } catch (err) {
+      console.error("Error getting tournament:", err);
+      return null;
+    }
+  }
 }
 
 export default ProjectsApi;

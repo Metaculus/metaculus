@@ -138,15 +138,16 @@ def compute_continuous_plotable_cp(question: Question) -> int:
         bin_vals = [question.min + step * i for i in range(200)]
 
         cumulative_probability = np.cumsum(averages)
-
+        upper = np.searchsorted(cumulative_probability, 0.75, side="right")
+        if upper > 199:
+            upper = 199
+        bin_vals.extend([0, 0, 0])
         cps.append(
             GraphCP(
                 middle=bin_vals[
                     np.searchsorted(cumulative_probability, 0.5, side="right")
                 ],
-                upper=bin_vals[
-                    np.searchsorted(cumulative_probability, 0.75, side="right")
-                ],
+                upper=bin_vals[upper],
                 lower=bin_vals[
                     np.searchsorted(cumulative_probability, 0.25, side="right")
                 ],
