@@ -1,8 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
@@ -17,16 +16,10 @@ const DevLogin: FC = () => {
   const { register } = useForm<DevLoginSchema>({
     resolver: zodResolver(devLoginSchema),
   });
-  const router = useRouter();
   const [state, formAction] = useFormState<AlphaLoginActionState, FormData>(
     alphaLoginAction,
     null
   );
-  useEffect(() => {
-    if (!state?.errors) {
-      router.push("/");
-    }
-  }, [router, state]);
 
   return (
     <main className="mx-auto mt-10 flex w-96 flex-col">

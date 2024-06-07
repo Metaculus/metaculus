@@ -1,5 +1,7 @@
 "use server";
 
+import { redirect } from "next/navigation";
+
 import { devLoginSchema } from "@/app/alpha-auth/schemas";
 import { setAlphaTokenSession } from "@/services/session";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
@@ -34,5 +36,5 @@ export default async function alphaLoginAction(
 
   setAlphaTokenSession(validatedFields.data.token);
 
-  return null;
+  return redirect("/");
 }
