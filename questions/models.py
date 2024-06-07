@@ -1,6 +1,6 @@
-import numpy as np
 from typing import TYPE_CHECKING
 
+import numpy as np
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count, Subquery, OuterRef, Sum
@@ -158,6 +158,10 @@ class Forecast(models.Model):
 
 # if we can vote on questions and comments, maybe move this elsewhere; user?
 class Vote(models.Model):
+    class VoteDirection(models.IntegerChoices):
+        UP = 1
+        DOWN = -1
+
     user = models.ForeignKey(User, models.CASCADE, related_name="votes")
     question = models.ForeignKey(Question, models.CASCADE, related_name="votes")
     direction = models.SmallIntegerField()
