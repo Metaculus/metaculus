@@ -8,6 +8,7 @@ from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
 from users.models import User
+
 if TYPE_CHECKING:
     from comments.models import Comment
 
@@ -159,19 +160,19 @@ class Forecast(models.Model):
 class Vote(models.Model):
     user = models.ForeignKey(User, models.CASCADE, related_name="votes")
     question = models.ForeignKey(Question, models.CASCADE, related_name="votes")
-    direction = models.SmallIntegerField(choices=[-1, 1])
-    #comment = models.ForeignKey("Comment", models.CASCADE, related_name="votes")
+    direction = models.SmallIntegerField()
+    # comment = models.ForeignKey("Comment", models.CASCADE, related_name="votes")
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 name="votes_unique_user_question", fields=["user_id", "question_id"]
             ),
-            #models.CheckConstraint(
+            # models.CheckConstraint(
             #    name='has_question_xor_comment',
             #    check=(
             #        models.Q(question__isnull=True, comment__isnull=False) |
             #        models.Q(question__isnull=False, comment__isnull=True)
             #    )
-            #)
+            # )
         ]
