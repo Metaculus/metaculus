@@ -4,7 +4,7 @@ import { ErrorBoundary, FallbackProps } from "react-error-boundary";
 
 const Fallback: FC<FallbackProps> = ({ error }) => {
   return (
-    <div className="text-center text-metac-red-500 dark:text-metac-red-500-dark">
+    <div className="text-center text-red-500 dark:text-red-500-dark">
       <p>An error has occurred when rendering the feed card.</p>
       <pre> {error.message}</pre>
     </div>

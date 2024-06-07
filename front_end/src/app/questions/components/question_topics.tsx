@@ -22,7 +22,7 @@ import { QuestionOrder } from "@/types/question";
 const EXPAND_THRESHOLD = 2;
 
 const Title: FC<{ title: string }> = ({ title }) => (
-  <div className="mt-1 hidden pl-2 text-sm font-bold uppercase tracking-wide text-metac-gray-500 dark:text-metac-gray-500-dark sm:block">
+  <div className="mt-1 hidden pl-2 text-sm font-bold uppercase tracking-wide text-gray-500 dark:text-gray-500-dark sm:block">
     {title}
   </div>
 );
@@ -70,12 +70,12 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
 
   return (
     <div className="sticky top-12 z-40 mt-0 self-start sm:top-16 sm:mt-4 lg:top-20">
-      <div className="relative w-full border-y border-metac-blue-400 bg-metac-gray-0/75 p-3 backdrop-blur-md no-scrollbar dark:border-metac-blue-700 dark:bg-metac-blue-800/75 sm:max-h-[calc(100vh-76px)] sm:overflow-y-auto sm:border-none sm:bg-metac-blue-200/0 sm:p-2 sm:pt-0 sm:dark:bg-metac-blue-800/0">
+      <div className="relative w-full border-y border-blue-400 bg-gray-0/75 p-3 backdrop-blur-md no-scrollbar dark:border-blue-700 dark:bg-blue-800/75 sm:max-h-[calc(100vh-76px)] sm:overflow-y-auto sm:border-none sm:bg-blue-200/0 sm:p-2 sm:pt-0 sm:dark:bg-blue-800/0">
         {isMobileExpandable && (
           <>
             <div
               className={classNames(
-                "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-metac-blue-100 dark:to-metac-blue-800 sm:hidden",
+                "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-blue-100 dark:to-blue-800 sm:hidden",
                 isMobileExpanded && "hidden"
               )}
             />
