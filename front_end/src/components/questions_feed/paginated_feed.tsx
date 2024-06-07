@@ -56,7 +56,7 @@ const PaginatedQuestionsFeed: FC<Props> = ({
 
   return (
     <>
-      <div className="flex min-h-[calc(100vh-300px)] flex-col gap-3">
+      <div className="flex flex-col gap-3">
         {!paginatedQuestions.length && (
           <span className="mt-3 text-center text-sm text-gray-900 dark:text-gray-900-dark">
             {t("noResults") + "."}

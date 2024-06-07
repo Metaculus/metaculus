@@ -42,9 +42,13 @@ export default async function TournamentSlug({
     tournament.type === TournamentType.QuestionSeries
       ? t("QuestionSeries")
       : t("Tournament");
+  const questionsTitle =
+    tournament.type === TournamentType.QuestionSeries
+      ? t("SeriesContents")
+      : t("questions");
 
   return (
-    <main className="mx-auto mt-4 min-h-min w-full max-w-[780px] flex-auto bg-gray-0 px-0">
+    <main className="mx-auto mb-16 mt-4 min-h-min w-full max-w-[780px] flex-auto bg-gray-0 px-0 dark:bg-gray-0-dark">
       <div
         className={classNames(
           " flex flex-wrap items-center gap-2.5 rounded-t px-3 py-1.5 text-[20px] uppercase text-gray-100 dark:text-gray-100-dark",
@@ -68,10 +72,11 @@ export default async function TournamentSlug({
             fill
             priority
             sizes="(max-width: 1200px) 100vw, 780px"
+            className="size-full object-cover object-center"
           />
         </div>
       )}
-      <div className="bg-gray-0 px-3 dark:bg-gray-0-dark">
+      <div className="bg-gray-0 px-3 pb-4 dark:bg-gray-0-dark">
         <div className="pb-2">
           <h1>{tournament.name}</h1>
         </div>
@@ -97,8 +102,8 @@ export default async function TournamentSlug({
         </div>
         <HtmlContent content={tournament.description} />
       </div>
-      <section className="mx-2 border-t px-1 pt-4">
-        <h2 className="mb-5">{t("questions")}</h2>
+      <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
+        <h2 className="mb-5">{questionsTitle}</h2>
         <QuestionFilters categories={categories} tags={tags} />
         <Suspense
           key={JSON.stringify(searchParams)}
