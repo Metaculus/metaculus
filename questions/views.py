@@ -414,8 +414,4 @@ def create_forecast(request):
     forecast.save()
 
     # Attaching projects to the
-<<<<<<< HEAD
     return Response({"id": prev_forecasts.id}, status=status.HTTP_201_CREATED)
-=======
-    return Response(QuestionSerializer(question).data, status=status.HTTP_201_CREATED)
->>>>>>> db6c3ea37db025e6ac380a223b6c3672315ab1d3
