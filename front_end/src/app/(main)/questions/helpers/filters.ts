@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import {
   QUESTION_STATUS_LABEL_MAP,
   QUESTION_TYPE_LABEL_MAP,
-} from "@/app/questions/constants/filters";
+} from "@/app/(main)/questions/constants/filters";
 import {
   ACCESS_FILTER,
   AUTHOR_FILTER,
@@ -19,7 +19,7 @@ import {
   TEXT_SEARCH_FILTER,
   TOPIC_FILTER,
   UPVOTED_BY_FILTER,
-} from "@/app/questions/constants/query_params";
+} from "@/app/(main)/questions/constants/query_params";
 import {
   FilterOptionType,
   FilterSection,

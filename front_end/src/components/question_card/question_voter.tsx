@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 
-import { voteQuestion } from "@/app/questions/actions";
+import { voteQuestion } from "@/app/(main)/questions/actions";
 import Voter from "@/components/voter";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";

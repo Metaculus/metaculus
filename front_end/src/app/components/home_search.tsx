@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import { TEXT_SEARCH_FILTER } from "@/app/questions/constants/query_params";
+import { TEXT_SEARCH_FILTER } from "@/app/(main)/questions/constants/query_params";
 import SearchInput from "@/components/search_input";
 import { encodeQueryParams } from "@/utils/query_params";
 

@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 
-import AwaitedQuestions from "@/app/questions/components/awaited_questions";
-import QuestionFilters from "@/app/questions/components/question_filters";
-import QuestionTopics from "@/app/questions/components/question_topics";
-import { generateFiltersFromSearchParams } from "@/app/questions/helpers/filters";
+import AwaitedQuestions from "@/app/(main)/questions/components/awaited_questions";
+import QuestionFilters from "@/app/(main)/questions/components/question_filters";
+import QuestionTopics from "@/app/(main)/questions/components/question_topics";
+import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProjectsApi from "@/services/projects";
 
