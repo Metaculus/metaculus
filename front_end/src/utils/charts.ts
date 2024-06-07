@@ -121,7 +121,7 @@ export function generateChartChoices(
   const { timestamps, nr_forecasters, ...choices } = dataset;
   return Object.entries(choices).map(([choice, values], index) => ({
     choice,
-    values,
+    values: values.map((x: { value_mean: number }) => x.value_mean),
     color: COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
     active: true,
     highlighted: false,

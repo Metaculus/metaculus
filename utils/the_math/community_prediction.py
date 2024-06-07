@@ -90,7 +90,6 @@ def compute_binary_plotable_cp(question: Question) -> list[GraphCP]:
     forecast_history = get_forecast_history(question)
     cps = []
     for entry in forecast_history:
-        print(entry)
         weights = generate_recency_weights(len(entry.pmfs))
         cps.append(
             GraphCP(
