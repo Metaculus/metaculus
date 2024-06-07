@@ -166,7 +166,9 @@ class Vote(models.Model):
 
 
 # TODO: find a better place for this
-def get_actual_location(question: Question, internal_location: float) -> float:
+def scale_continous_forecast_location(
+    question: Question, internal_location: float
+) -> float:
     if question.zero_point:
         deriv_ratio = (question.max - question.zero_point) / (
             question.min - question.zero_point
