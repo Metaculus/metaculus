@@ -1,13 +1,14 @@
 from migrator.utils import paginated_query
 from comments.models import Comment, CommentType
-from questions.models import Question 
+from questions.models import Question
+
 
 def create_comment(comment_obj: dict) -> Comment:
-    if comment_obj["submit_type"] == 'Q':
+    if comment_obj["submit_type"] == "Q":
         comment_type = CommentType.FEEDBACK
-    elif comment_obj["submit_type"] == 'Z':
+    elif comment_obj["submit_type"] == "Z":
         comment_type = CommentType.RESOLUTION
-    elif comment_obj["submit_type"] == 'N':
+    elif comment_obj["submit_type"] == "N":
         comment_type = CommentType.PRIVATE
     else:
         comment_type = CommentType.GENERAL
@@ -19,9 +20,8 @@ def create_comment(comment_obj: dict) -> Comment:
         created_at=comment_obj["created_time"],
         is_soft_deleted=comment_obj["deleted"],
         text=comment_obj["comment_text"],
-        question_id=comment_obj["question_id"],
-        type=comment_type
-
+        on_question_id=comment_obj["question_id"],
+        type=comment_type,
         # migrating forecast data is going to be... hard
         # but can be skipped at the moment?
     )
@@ -38,7 +38,8 @@ def migrate_comments():
         where c.author_id is not null
         and c.id is not null
         order by c.id
-        ;"""):
+        ;"""
+    ):
         # probably would be faster in sql but ran into issues
         if Question.objects.filter(id=comment["question_id"]).exists():
             comments.append(create_comment(comment))
