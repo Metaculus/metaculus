@@ -41,16 +41,16 @@ const MultipleChoiceTile: FC<Props> = ({ question }) => {
               <div className="py-0.5 pr-1.5">
                 <ChoiceIcon color={color} className="resize-icon" />
               </div>
-              <div className="resize-label line-clamp-2 w-full px-1.5 py-0.5 text-left text-sm font-medium leading-4 text-metac-gray-900 dark:text-metac-gray-900-dark">
+              <div className="resize-label line-clamp-2 w-full px-1.5 py-0.5 text-left text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
                 {choice}
               </div>
-              <div className="resize-label py-0.5 pr-1.5 text-right text-sm font-bold leading-4 text-metac-gray-900 dark:text-metac-gray-900-dark">
+              <div className="resize-label py-0.5 pr-1.5 text-right text-sm font-bold leading-4 text-gray-900 dark:text-gray-900-dark">
                 {getForecastPctDisplayValue(values[values.length - 1])}
               </div>
             </div>
           ))}
           {otherItemsCount > 0 && (
-            <div className="flex flex-row text-metac-gray-600 dark:text-metac-gray-600-dark">
+            <div className="flex flex-row text-gray-600 dark:text-gray-600-dark">
               <div className="self-center py-0 pr-1.5 text-center">
                 <FontAwesomeIcon
                   icon={faEllipsis}
