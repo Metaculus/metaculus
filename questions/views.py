@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 from typing import Callable
 
-from django.db.models import Q, QuerySet, Count
+import numpy as np
+from django.db.models import Q, QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
@@ -24,7 +25,6 @@ from utils.the_math.community_prediction import (
     compute_continuous_plotable_cp,
     compute_multiple_choice_plotable_cp,
 )
-import numpy as np
 
 
 def filter_questions(qs, request: Request):
@@ -414,4 +414,8 @@ def create_forecast(request):
     forecast.save()
 
     # Attaching projects to the
+<<<<<<< HEAD
     return Response({"id": prev_forecasts.id}, status=status.HTTP_201_CREATED)
+=======
+    return Response(QuestionSerializer(question).data, status=status.HTTP_201_CREATED)
+>>>>>>> db6c3ea37db025e6ac380a223b6c3672315ab1d3

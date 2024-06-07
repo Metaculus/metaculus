@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import AuthApi from "@/services/auth";
-import { COOKIE_NAME_TOKEN, getServerSession } from "@/services/session";
+import {
+  COOKIE_NAME_TOKEN,
+  getDevTokenSession,
+  getServerSession,
+} from "@/services/session";
 import { ErrorResponse } from "@/types/fetch";
+import { getDevAccessToken } from "@/utils/dev_token";
 
 export async function middleware(request: NextRequest) {
   let deleteCookieToken = false;
@@ -27,6 +32,17 @@ export async function middleware(request: NextRequest) {
           deleteCookieToken = true;
         }
       }
+    }
+
+    // Check restricted access token
+    const restrictedAccessToken = await getDevAccessToken();
+
+    if (
+      restrictedAccessToken &&
+      getDevTokenSession() !== restrictedAccessToken &&
+      !request.nextUrl.pathname.startsWith("/dev-auth")
+    ) {
+      return NextResponse.redirect(new URL("/dev-auth", request.url));
     }
   }
 

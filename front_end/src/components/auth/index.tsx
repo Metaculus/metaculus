@@ -20,7 +20,7 @@ const NavUserButton: FC = () => {
           </MenuButton>
           <MenuItems
             anchor="bottom"
-            className="text-white z-50 lg:border lg:border-blue-200-dark lg:bg-blue-900 lg:text-sm"
+            className="z-50 text-white lg:border lg:border-blue-200-dark lg:bg-blue-900 lg:text-sm"
           >
             <MenuItem>
               <Link

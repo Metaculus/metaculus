@@ -3,13 +3,11 @@
 import { faFacebook } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 
 import { Google } from "@/components/icons/google";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
-import AuthApi from "@/services/auth";
-import { SocialProvider } from "@/types/auth";
 
 type SocialButtonsType = {
   type: "sigin" | "signup";

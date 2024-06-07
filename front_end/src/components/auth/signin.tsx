@@ -6,9 +6,9 @@ import { FC, useEffect } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
-import { LoginActionState } from "@/app/accounts/actions";
-import loginAction from "@/app/accounts/actions";
-import { signInSchema, SignInSchema } from "@/app/accounts/schemas";
+import { LoginActionState } from "@/app/(main)/accounts/actions";
+import loginAction from "@/app/(main)/accounts/actions";
+import { signInSchema, SignInSchema } from "@/app/(main)/accounts/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
@@ -65,7 +65,7 @@ const SignInModal: FC<SignInModalType> = ({
         <form action={formAction}>
           <Input
             autoComplete="username"
-            className="bg-inherit block w-full rounded border border-gray-700 px-3 py-2 dark:border-gray-700-dark"
+            className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
             type="text"
             placeholder={t("loginUsernamePlaceholder")}
             {...register("login")}
@@ -74,7 +74,7 @@ const SignInModal: FC<SignInModalType> = ({
           <div className="text-xs text-red-500 dark:text-red-500-dark"></div>
           <Input
             autoComplete="current-password"
-            className="bg-inherit mt-4 block w-full rounded border border-gray-700 px-3 py-2 dark:border-gray-700-dark"
+            className="mt-4 block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
             type="password"
             placeholder="password"
             {...register("password")}
