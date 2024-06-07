@@ -10,11 +10,11 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import TopicItem from "@/app/(main)/questions/components/topic_item";
-import {
-  ORDER_BY_FILTER,
-  TOPIC_FILTER,
-} from "@/app/(main)/questions/constants/query_params";
 import Button from "@/components/ui/button";
+import {
+  QUESTION_ORDER_BY_FILTER,
+  QUESTION_TOPIC_FILTER,
+} from "@/constants/questions_feed";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
@@ -35,8 +35,8 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   const t = useTranslations();
   const { params, setParam, deleteParam } = useSearchParams();
 
-  const selectedTopic = params.get(TOPIC_FILTER);
-  const orderBy = params.get(ORDER_BY_FILTER);
+  const selectedTopic = params.get(QUESTION_TOPIC_FILTER);
+  const orderBy = params.get(QUESTION_ORDER_BY_FILTER);
 
   const { hotTopics, hotCategories } = useMemo(
     () => ({
@@ -53,18 +53,18 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   // TODO: cleanup status when BE supports pending status
   const clearInReview = () => {
     if (orderBy === QuestionOrder.VotesDesc) {
-      deleteParam(ORDER_BY_FILTER, false);
+      deleteParam(QUESTION_ORDER_BY_FILTER, false);
     }
   };
 
   const switchToHomeFeed = () => {
     clearInReview();
-    deleteParam(TOPIC_FILTER);
+    deleteParam(QUESTION_TOPIC_FILTER);
   };
 
   const selectTopic = (topic: Topic) => {
     clearInReview();
-    setParam(TOPIC_FILTER, topic.slug);
+    setParam(QUESTION_TOPIC_FILTER, topic.slug);
     setIsMobileExpanded(false);
   };
 

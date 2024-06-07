@@ -10,7 +10,11 @@ import {
 import TournamentCard from "@/components/tournament_card";
 import Button from "@/components/ui/button";
 import useSearchParams from "@/hooks/use_search_params";
-import { Tournament, TournamentsSortBy } from "@/types/projects";
+import {
+  Tournament,
+  TournamentsSortBy,
+  TournamentType,
+} from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 
 type Props = {
@@ -18,14 +22,12 @@ type Props = {
   title: string;
   cardsPerPage: number;
   initialCardsCount?: number;
-  withDate?: boolean;
   withEmptyState?: boolean;
 };
 
 const TournamentsList: FC<Props> = ({
   items,
   title,
-  withDate = true,
   cardsPerPage,
   initialCardsCount,
   withEmptyState,
@@ -90,7 +92,11 @@ const TournamentsList: FC<Props> = ({
               questionsCount={item.questions_count}
               prizePool={item.prize_pool}
               closeDate={item.close_date}
-              closeDateFormatter={withDate ? closeDateFormatter : undefined}
+              closeDateFormatter={
+                item.type !== TournamentType.QuestionSeries
+                  ? closeDateFormatter
+                  : undefined
+              }
             />
           ))}
         </div>
