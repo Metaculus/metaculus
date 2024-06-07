@@ -37,13 +37,13 @@ const PredictionChip: FC<Props> = ({
     case QuestionStatus.Resolved:
       return (
         <span className="inline-flex flex-col">
-          <Label className="text-metac-purple-900 dark:text-metac-purple-900-dark">
+          <Label className="text-purple-900 dark:text-purple-900-dark">
             {t("resolved")} :
           </Label>
           <Chip
             size={size}
             className={classNames(
-              "bg-metac-purple-800 dark:bg-metac-purple-800-dark",
+              "bg-purple-800 dark:bg-purple-800-dark",
               chipClassName
             )}
           >
@@ -60,7 +60,7 @@ const PredictionChip: FC<Props> = ({
           <Chip
             size={size}
             className={classNames(
-              "bg-metac-olive-700 dark:bg-metac-olive-700-dark",
+              "bg-olive-700 dark:bg-olive-700-dark",
               chipClassName
             )}
           >
@@ -79,7 +79,7 @@ const PredictionChip: FC<Props> = ({
           <Chip
             size={size}
             className={classNames(
-              "bg-metac-olive-700 dark:bg-metac-olive-700-dark",
+              "bg-olive-700 dark:bg-olive-700-dark",
               chipClassName
             )}
           >
@@ -106,7 +106,7 @@ const Chip: FC<PropsWithChildren<ChipProps>> = ({
 }) => (
   <span
     className={classNames(
-      "inline-flex w-max items-center gap-2 whitespace-nowrap rounded-full px-2 py-0.5 font-semibold text-metac-gray-0 dark:text-metac-gray-0-dark",
+      "inline-flex w-max items-center gap-2 whitespace-nowrap rounded-full px-2 py-0.5 font-semibold text-gray-0 dark:text-gray-0-dark",
       {
         "h-5 text-xs": size === "compact",
         "h-9 text-xl": size === "large",

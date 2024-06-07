@@ -2,8 +2,8 @@
 import React, { FC } from "react";
 import { VictoryArea, VictoryAxis, VictoryChart, VictoryLine } from "victory";
 
-import { darkTheme, lightTheme } from "@/contants/chart_theme";
-import { METAC_COLORS } from "@/contants/colors";
+import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { binWeightsFromSliders } from "@/utils/math";
