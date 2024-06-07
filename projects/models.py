@@ -40,8 +40,8 @@ class Project(TimeStampedModel):
         TOPIC = "topic"
 
     class SectionTypes(models.TextChoices):
-        HOT_TOPICS = "hot_topics", "Hot Topics section"
-        HOT_CATEGORIES = "hot_categories", "Hot Categories section"
+        HOT_TOPICS = "hot_topics"
+        HOT_CATEGORIES = "hot_categories"
 
     type = models.CharField(
         max_length=32,
