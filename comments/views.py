@@ -3,7 +3,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from comments.models import Comment 
+from comments.models import Comment
 from projects.serializers import CommentSerializer
 
 
@@ -12,8 +12,6 @@ from projects.serializers import CommentSerializer
 def comments_list_api_view(request: Request):
     comments = Comment.objects
 
-    data = [ {**CommentSerializer(obj).data} for obj in comments.all() ]
+    data = [{**CommentSerializer(obj).data} for obj in comments.all()]
 
     return Response(data)
-
-
