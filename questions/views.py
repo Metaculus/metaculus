@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
 from typing import Callable
 
-from django.db.models import Q, QuerySet, Count
+import numpy as np
+from django.db.models import Q, QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
@@ -24,7 +25,6 @@ from utils.the_math.community_prediction import (
     compute_continuous_plotable_cp,
     compute_multiple_choice_plotable_cp,
 )
-import numpy as np
 
 
 def filter_questions(qs, request: Request):
@@ -70,9 +70,7 @@ def filter_questions(qs, request: Request):
     if order := serializer.validated_data.get("order"):
         match order:
             case serializer.Order.MOST_FORECASTERS:
-                qs = qs.annotate_predictions_count__unique().order_by(
-                    "-nr_forecasters"
-                )
+                qs = qs.annotate_predictions_count__unique().order_by("-nr_forecasters")
             case serializer.Order.CLOSED_AT:
                 qs = qs.order_by("-closed_at")
             case serializer.Order.RESOLVED_AT:
@@ -143,8 +141,7 @@ def enrich_questions_with_nr_forecasts(
 def enrich_question_with_resolution(
     qs: QuerySet,
 ) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
-
-    '''
+    """
     resolution of -2 means "annulled"
     resolution of -1 means "ambiguous"
     For Binary
@@ -159,7 +156,8 @@ def enrich_question_with_resolution(
     resolution in [0, 1] means "resolved at some specified location within bounds"
     resolution of 2 means "not greater than lower bound"
     resolution of 3 means "not less than upper bound"
-    '''
+    """
+
     def enrich(question: Question, serialized_question: dict):
         if question.type == "binary":
             # TODO: @george, some questions might have None resolution, so this leads to error
@@ -389,18 +387,22 @@ def question_vote_api_view(request: Request, pk: int):
     )
 
 
-
 @api_view(["POST"])
 def create_forecast(request):
     data = request.data
     question = Question.objects.get(pk=data["question_id"])
     now = datetime.now()
-    prev_forecasts = Forecast.objects.filter(question=question, user=request.user).order_by("start_time").last()
+    prev_forecasts = (
+        Forecast.objects.filter(question=question, user=request.user)
+        .order_by("start_time")
+        .last()
+    )
     if prev_forecasts:
         prev_forecasts.end_time = now
-    
-    
-    Forecast.objects.create(question=question, user=request.user, start_time=now, end_time=None)
+
+    Forecast.objects.create(
+        question=question, user=request.user, start_time=now, end_time=None
+    )
 
     serializer = QuestionWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -415,4 +417,3 @@ def create_forecast(request):
 
     # Attaching projects to the
     return Response(QuestionSerializer(question).data, status=status.HTTP_201_CREATED)
-
