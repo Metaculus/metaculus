@@ -19,8 +19,8 @@ def create_user(user_obj: dict, profile_obj: dict | None) -> User:
         first_name=user_obj["first_name"],
         last_name=user_obj["last_name"],
         # Profile Data
-        bio=profile_obj.get("bio_text"),
-        website=profile_obj.get("website"),
+        bio=profile_obj.get("bio_text", ""),
+        website=profile_obj.get("website", ""),
         # Meta info
         last_login=user_obj["last_login"],
         date_joined=user_obj["date_joined"],
