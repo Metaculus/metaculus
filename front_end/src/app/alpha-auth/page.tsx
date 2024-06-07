@@ -23,13 +23,13 @@ const DevLogin: FC = () => {
 
   return (
     <main className="mx-auto mt-10 flex w-96 flex-col">
-      <h1>Dev Sign In</h1>
+      <h1>Alpha Sign In</h1>
       <form action={formAction}>
         <Input
           autoComplete="username"
           className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
           type="text"
-          placeholder="Dev token"
+          placeholder="Access token"
           {...register("token")}
           errors={state?.errors}
         />
