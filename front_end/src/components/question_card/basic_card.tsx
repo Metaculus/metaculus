@@ -3,6 +3,7 @@ import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
 import CommentStatus from "@/components/question_card/comment_status";
+import QuestionVoter from "@/components/question_card/question_voter";
 import QuestionStatus from "@/components/question_status";
 import Voter from "@/components/voter";
 import { Question } from "@/types/question";
@@ -28,13 +29,7 @@ const BasicQuestionCard: FC<PropsWithChildren<Props>> = ({
       <div className="flex items-center justify-between gap-3 rounded-ee border-t border-blue-400 bg-blue-100 px-2 py-0.5 font-medium dark:border-blue-400-dark dark:bg-blue-100-dark">
         <div className="flex items-center gap-3 max-lg:flex-1 max-lg:justify-between">
           <div className="flex items-center gap-3">
-            <Voter
-              className="md:min-w-20"
-              votes={vote.score}
-              userVote={0}
-              onVoteUp={() => {}}
-              onVoteDown={() => {}}
-            />
+            <QuestionVoter className="md:min-w-20" question={question} />
             <CommentStatus newCommentsCount={123000} url={`/questions/${id}`} />
           </div>
 

@@ -1,4 +1,4 @@
-import { Category, Tag, Topic } from "@/types/projects";
+import { Category, Tag, Topic, Tournament } from "@/types/projects";
 import { get } from "@/utils/fetch";
 
 class ProjectsApi {
@@ -25,6 +25,15 @@ class ProjectsApi {
       return await get<Tag[]>("/projects/tags");
     } catch (err) {
       console.error("Error getting tags:", err);
+      return [];
+    }
+  }
+
+  static async getTournaments(): Promise<Tournament[]> {
+    try {
+      return await get<Tournament[]>("/projects/tournaments");
+    } catch (err) {
+      console.error("Error getting tournaments:", err);
       return [];
     }
   }

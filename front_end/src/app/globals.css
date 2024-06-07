@@ -63,3 +63,7 @@ hr {
 p {
   margin: 0.92em 0;
 }
+
+a {
+  @apply text-inherit underline;
+}
