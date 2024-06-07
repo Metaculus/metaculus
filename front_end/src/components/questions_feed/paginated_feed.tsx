@@ -3,10 +3,10 @@ import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import { fetchMoreQuestions } from "@/app/(main)/questions/actions";
-import { QUESTIONS_PER_PAGE } from "@/app/(main)/questions/constants/pagination";
 import QuestionCard from "@/components/question_card";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { QUESTIONS_PER_PAGE } from "@/constants/questions_feed";
 import { QuestionsParams } from "@/services/questions";
 import { QuestionWithForecasts } from "@/types/question";
 
@@ -16,7 +16,7 @@ type Props = {
   filters: QuestionsParams;
 };
 
-const QuestionsFeed: FC<Props> = ({
+const PaginatedQuestionsFeed: FC<Props> = ({
   initialQuestions,
   totalCount,
   filters,
@@ -56,7 +56,7 @@ const QuestionsFeed: FC<Props> = ({
 
   return (
     <>
-      <div className="flex min-h-[calc(100vh-300px)] flex-col gap-3">
+      <div className="flex flex-col gap-3">
         {!paginatedQuestions.length && (
           <span className="mt-3 text-center text-sm text-gray-900 dark:text-gray-900-dark">
             {t("noResults") + "."}
@@ -82,4 +82,4 @@ const QuestionsFeed: FC<Props> = ({
   );
 };
 
-export default QuestionsFeed;
+export default PaginatedQuestionsFeed;
