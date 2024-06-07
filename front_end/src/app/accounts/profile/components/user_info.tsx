@@ -49,7 +49,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
 
   return (
     <form action={formAction}>
-      <Hr />
+      <Hr className="m-0" />
       <div className="flex items-center justify-between">
         <h2 className="my-4 text-2xl font-bold">{t("profile")}</h2>
         {isCurrentUser && (
@@ -68,20 +68,32 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
         )}
       </div>
       <div>
-        <div className="mb-4 bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
+        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
           {t("username")}
         </div>
-        <div className="flex content-center justify-between px-1">
-          <div className="flex items-center text-sm	">{profile.username}</div>
+        <div className="flex content-center justify-between px-1 py-4">
+          <div className="flex items-center text-sm">{profile.username}</div>
           {isCurrentUser && <ChangeUsername />}
         </div>
       </div>
+      {profile.formerly_known_as && (
+        <div>
+          <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
+            {t("formerlyKnownAs")}
+          </div>
+          <div className="flex content-center justify-between px-1 py-4">
+            <div className="flex items-center text-sm">
+              {profile.formerly_known_as}
+            </div>
+          </div>
+        </div>
+      )}
       <div>
-        <div className="my-4 bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
+        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
           {t("memberSince")}
         </div>
-        <div className="flex content-center justify-between px-1">
-          <div className="flex items-center text-sm	">
+        <div className="flex content-center justify-between px-1 py-4">
+          <div className="flex items-center text-sm">
             <time dateTime={profile.date_joined}>
               {format(parseISO(profile.date_joined), "LLLL d, yyyy")}
             </time>
@@ -89,15 +101,15 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
         </div>
       </div>
       <div>
-        <div className="my-4 bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
+        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
           {t("bio")}
         </div>
-        <div className="flex content-center justify-between px-1">
+        <div className="flex content-center justify-between px-1 py-4">
           {isEdit ? (
             <>
               <Textarea
                 style={{ height: "150px" }}
-                className="w-full rounded border border-metac-gray-700 px-3 py-2 text-sm placeholder:italic"
+                className="w-full rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic"
                 placeholder={t("profileBioPlaceholder")}
                 defaultValue={profile.bio}
                 {...register("bio")}
@@ -112,14 +124,14 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
         </div>
       </div>
       <div>
-        <div className="my-4 bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
+        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
           {t("website")}
         </div>
-        <div className="flex flex-col content-center justify-between px-1">
+        <div className="flex flex-col content-center justify-between px-1 py-4">
           {isEdit ? (
             <>
               <Input
-                className="w-6/12 rounded border border-metac-gray-700 px-3 py-2 text-sm placeholder:italic	"
+                className="w-6/12 rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic	"
                 placeholder="http://www.example.com"
                 defaultValue={profile.website}
                 {...register("website")}

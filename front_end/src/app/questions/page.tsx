@@ -29,7 +29,7 @@ export default async function Questions({
           <Suspense
             key={JSON.stringify(searchParams)}
             fallback={
-              <LoadingIndicator className="mx-auto h-8 w-24 text-metac-gray-600 dark:text-metac-gray-600-dark" />
+              <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
             }
           >
             <AwaitedQuestions filters={filters} />

@@ -2,7 +2,7 @@ import { Config } from "tailwindcss";
 import defaultTheme from "tailwindcss/defaultTheme";
 import plugin from "tailwindcss/plugin";
 
-import { METAC_COLORS } from "./src/contants/colors";
+import { METAC_COLORS } from "./src/constants/colors";
 
 const config: Config = {
   darkMode: "class",
@@ -13,10 +13,8 @@ const config: Config = {
   ],
   theme: {
     screens: Object.assign({ xs: "480px" }, defaultTheme.screens),
+    colors: METAC_COLORS,
     extend: {
-      colors: {
-        metac: METAC_COLORS,
-      },
       boxShadow: {
         dropdown: `2px 3px 10px -3px ${METAC_COLORS.gray[500]}`,
       },

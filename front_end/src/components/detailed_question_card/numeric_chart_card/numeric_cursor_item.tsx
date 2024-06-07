@@ -15,8 +15,7 @@ const CursorDetailItem: FC<Props> = ({ title, text, variant = "default" }) => {
       <span className="text-xs">{title}</span>
       <span
         className={classNames("font-bold", {
-          "text-metac-olive-700 dark:text-metac-olive-700-dark":
-            variant === "prediction",
+          "text-olive-700 dark:text-olive-700-dark": variant === "prediction",
         })}
       >
         {text}

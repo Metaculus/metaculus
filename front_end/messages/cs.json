@@ -390,5 +390,6 @@
   "bio": "O uživateli",
   "website": "Web",
   "profileBioPlaceholder": "Pokud chcete, zde nám o sobě můžete něco málo sdělit (např. jaká témata Vás zajímají).",
-  "username": "uživatelské jméno"
+  "username": "uživatelské jméno",
+  "formerlyKnownAs": "Dříve vystupovali pod"
 }
