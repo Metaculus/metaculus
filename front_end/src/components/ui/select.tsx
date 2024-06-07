@@ -44,13 +44,13 @@ const Select = <T extends string>({
       as={"div"}
       value={value}
       onChange={onChange}
-      className="relative text-metac-gray-900 dark:text-metac-gray-900-dark"
+      className="relative text-gray-900 dark:text-gray-900-dark"
     >
       <ListboxButton as={Button} variant={buttonVariant} className={className}>
         <FontAwesomeIcon icon={faChevronDown} />
         <span className="align-middle">{label ?? activeOptionLabel}</span>
       </ListboxButton>
-      <ListboxOptions className="absolute right-0 top-10 z-50 divide-y divide-metac-gray-300 rounded border border-metac-gray-300 bg-metac-gray-0 shadow-lg outline-none dark:divide-metac-gray-300-dark dark:border-metac-gray-300-dark dark:bg-metac-gray-0-dark">
+      <ListboxOptions className="absolute right-0 top-10 z-50 divide-y divide-gray-300 rounded border border-gray-300 bg-gray-0 shadow-lg outline-none dark:divide-gray-300-dark dark:border-gray-300-dark dark:bg-gray-0-dark">
         {options.map((option) => (
           <ListboxOption as={Fragment} key={option.value} value={option.value}>
             {({ focus, selected }) => (
@@ -58,7 +58,7 @@ const Select = <T extends string>({
                 className={classNames(
                   "h-10 w-full whitespace-nowrap px-3 text-right text-sm",
                   {
-                    "bg-metac-gray-200 dark:bg-metac-gray-200-dark": focus,
+                    "bg-gray-200 dark:bg-gray-200-dark": focus,
                     "font-bold": selected,
                   },
                   option.className
