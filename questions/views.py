@@ -70,9 +70,7 @@ def filter_questions(qs, request: Request):
     if order := serializer.validated_data.get("order"):
         match order:
             case serializer.Order.MOST_FORECASTERS:
-                qs = qs.annotate_predictions_count__unique().order_by(
-                    "-nr_forecasters"
-                )
+                qs = qs.annotate_predictions_count__unique().order_by("-nr_forecasters")
             case serializer.Order.CLOSED_AT:
                 qs = qs.order_by("-closed_at")
             case serializer.Order.RESOLVED_AT:
@@ -143,8 +141,7 @@ def enrich_questions_with_nr_forecasts(
 def enrich_question_with_resolution(
     qs: QuerySet,
 ) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
-
-    '''
+    """
     resolution of -2 means "annulled"
     resolution of -1 means "ambiguous"
     For Binary
@@ -159,7 +156,8 @@ def enrich_question_with_resolution(
     resolution in [0, 1] means "resolved at some specified location within bounds"
     resolution of 2 means "not greater than lower bound"
     resolution of 3 means "not less than upper bound"
-    '''
+    """
+
     def enrich(question: Question, serialized_question: dict):
         if question.type == "binary":
             # TODO: @george, some questions might have None resolution, so this leads to error
@@ -389,30 +387,31 @@ def question_vote_api_view(request: Request, pk: int):
     )
 
 
-
 @api_view(["POST"])
 def create_forecast(request):
     data = request.data
     question = Question.objects.get(pk=data["question_id"])
     now = datetime.now()
-    prev_forecasts = Forecast.objects.filter(question=question, user=request.user).order_by("start_time").last()
+    prev_forecasts = (
+        Forecast.objects.filter(question=question, user=request.user)
+        .order_by("start_time")
+        .last()
+    )
     if prev_forecasts:
         prev_forecasts.end_time = now
-    
-    
-    Forecast.objects.create(question=question, user=request.user, start_time=now, end_time=None)
+        prev_forecasts.save()
 
-    serializer = QuestionWriteSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-
-    data = serializer.validated_data
-    projects_by_category: dict[str, list[Project]] = data.pop("projects", {})
-
-    question = Question.objects.create(author=request.user, **data)
-
-    projects_flat = flatten(projects_by_category.values())
-    question.projects.add(*projects_flat)
+    forecast = Forecast.objects.create(
+        question=question,
+        author=request.user,
+        start_time=now,
+        end_time=None,
+        continuous_cdf=data.get("continuous_cdf", None),
+        probability_yes=data.get("probability_yes", None),
+        probability_yes_per_category=data.get("probability_yes_per_category", None),
+        distribution_components=None,
+    )
+    forecast.save()
 
     # Attaching projects to the
-    return Response(QuestionSerializer(question).data, status=status.HTTP_201_CREATED)
-
+    return Response({"id": prev_forecasts.id}, status=status.HTTP_201_CREATED)
