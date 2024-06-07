@@ -377,7 +377,7 @@ def delete_question(request, pk):
 def question_vote_api_view(request: Request, pk: int):
     question = get_object_or_404(Question, pk=pk)
     direction = serializers.ChoiceField(
-        required=False, allow_null=True, choices=[-1, 1]
+        required=False, allow_null=True, choices=Vote.VoteDirection.choices
     ).run_validation(request.data.get("direction"))
 
     # Deleting existing vote
