@@ -63,6 +63,12 @@ const config: Config = {
         ".fill-opacity-50": {
           "fill-opacity": "0.5",
         },
+        ".list-lower-alpha": {
+          "list-style-type": "lower-alpha",
+        },
+        ".list-lower-roman": {
+          "list-style-type": "lower-roman",
+        },
       });
     }),
   ],

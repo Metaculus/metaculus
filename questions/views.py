@@ -179,9 +179,13 @@ def enrich_question_with_resolution(
 
         elif question.type == "multiple_choice":
             try:
-                return question.options[int(question.resolution)]
-            except Exception as e:
-                return f"Error for resolution: {question.resolution}"
+                serialized_question["resolution"] = question.options[
+                    int(question.resolution)
+                ]
+            except Exception:
+                serialized_question["resolution"] = (
+                    f"Error for resolution: {question.resolution}"
+                )
         else:
             pass
 
@@ -399,21 +403,19 @@ def create_forecast(request):
     )
     if prev_forecasts:
         prev_forecasts.end_time = now
+        prev_forecasts.save()
 
-    Forecast.objects.create(
-        question=question, user=request.user, start_time=now, end_time=None
+    forecast = Forecast.objects.create(
+        question=question,
+        author=request.user,
+        start_time=now,
+        end_time=None,
+        continuous_cdf=data.get("continuous_cdf", None),
+        probability_yes=data.get("probability_yes", None),
+        probability_yes_per_category=data.get("probability_yes_per_category", None),
+        distribution_components=None,
     )
-
-    serializer = QuestionWriteSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-
-    data = serializer.validated_data
-    projects_by_category: dict[str, list[Project]] = data.pop("projects", {})
-
-    question = Question.objects.create(author=request.user, **data)
-
-    projects_flat = flatten(projects_by_category.values())
-    question.projects.add(*projects_flat)
+    forecast.save()
 
     # Attaching projects to the
-    return Response(QuestionSerializer(question).data, status=status.HTTP_201_CREATED)
+    return Response({"id": prev_forecasts.id}, status=status.HTTP_201_CREATED)

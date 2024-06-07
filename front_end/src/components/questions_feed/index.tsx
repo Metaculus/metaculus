@@ -1,14 +1,14 @@
 import { FC } from "react";
 
-import QuestionsFeed from "@/app/(main)/questions/components/questions_feed";
-import { QUESTIONS_PER_PAGE } from "@/app/(main)/questions/constants/pagination";
+import PaginatedQuestionsFeed from "@/components/questions_feed/paginated_feed";
+import { QUESTIONS_PER_PAGE } from "@/constants/questions_feed";
 import QuestionsApi, { QuestionsParams } from "@/services/questions";
 
 type Props = {
   filters: QuestionsParams;
 };
 
-const AwaitedQuestions: FC<Props> = async ({ filters }) => {
+const AwaitedQuestionsFeed: FC<Props> = async ({ filters }) => {
   const { results: questions, count } =
     await QuestionsApi.getQuestionsWithoutForecasts({
       ...filters,
@@ -16,7 +16,7 @@ const AwaitedQuestions: FC<Props> = async ({ filters }) => {
     });
 
   return (
-    <QuestionsFeed
+    <PaginatedQuestionsFeed
       filters={filters}
       initialQuestions={questions}
       totalCount={count}
@@ -24,4 +24,4 @@ const AwaitedQuestions: FC<Props> = async ({ filters }) => {
   );
 };
 
-export default AwaitedQuestions;
+export default AwaitedQuestionsFeed;

@@ -2,87 +2,98 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 
 import {
-  QUESTION_STATUS_LABEL_MAP,
-  QUESTION_TYPE_LABEL_MAP,
-} from "@/app/(main)/questions/constants/filters";
-import {
-  ACCESS_FILTER,
-  AUTHOR_FILTER,
-  CATEGORIES_FILTER,
-  COMMENTED_BY_FILTER,
-  GUESSED_BY_FILTER,
-  NOT_GUESSED_BY_FILTER,
-  ORDER_BY_FILTER,
-  QUESTION_TYPE_FILTER,
-  STATUS_FILTER,
-  TAGS_FILTER,
-  TEXT_SEARCH_FILTER,
-  TOPIC_FILTER,
-  UPVOTED_BY_FILTER,
-} from "@/app/(main)/questions/constants/query_params";
-import {
   FilterOptionType,
   FilterSection,
 } from "@/components/popover_filter/types";
 import { GroupButton } from "@/components/ui/button_group";
 import { ChipColor } from "@/components/ui/chip";
 import { SelectOption } from "@/components/ui/select";
+import {
+  QUESTION_ACCESS_FILTER,
+  QUESTION_AUTHOR_FILTER,
+  QUESTION_CATEGORIES_FILTER,
+  QUESTION_COMMENTED_BY_FILTER,
+  QUESTION_GUESSED_BY_FILTER,
+  QUESTION_NOT_GUESSED_BY_FILTER,
+  QUESTION_ORDER_BY_FILTER,
+  QUESTION_TYPE_FILTER,
+  QUESTION_STATUS_FILTER,
+  QUESTION_TAGS_FILTER,
+  QUESTION_TEXT_SEARCH_FILTER,
+  QUESTION_TOPIC_FILTER,
+  QUESTION_UPVOTED_BY_FILTER,
+} from "@/constants/questions_feed";
 import { QuestionsParams } from "@/services/questions";
 import { Category, Tag } from "@/types/projects";
 import { QuestionOrder, QuestionStatus, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
+
+// TODO: translate
+const QUESTION_TYPE_LABEL_MAP = {
+  [QuestionType.Numeric]: "Numeric",
+  [QuestionType.Date]: "Date",
+  [QuestionType.MultipleChoice]: "Multiple Choice",
+  [QuestionType.Binary]: "Binary",
+};
+
+// TODO: translate
+const QUESTION_STATUS_LABEL_MAP = {
+  [QuestionStatus.Active]: "Open",
+  [QuestionStatus.Resolved]: "Resolved",
+  [QuestionStatus.Closed]: "Closed",
+};
 
 export function generateFiltersFromSearchParams(
   searchParams: Record<string, string | string[] | undefined>
 ): QuestionsParams {
   const filters: QuestionsParams = {};
 
-  if (typeof searchParams[TEXT_SEARCH_FILTER] === "string") {
-    filters.search = searchParams[TEXT_SEARCH_FILTER];
+  if (typeof searchParams[QUESTION_TEXT_SEARCH_FILTER] === "string") {
+    filters.search = searchParams[QUESTION_TEXT_SEARCH_FILTER];
   }
 
-  if (typeof searchParams[TOPIC_FILTER] === "string") {
-    filters.topic = searchParams[TOPIC_FILTER];
+  if (typeof searchParams[QUESTION_TOPIC_FILTER] === "string") {
+    filters.topic = searchParams[QUESTION_TOPIC_FILTER];
   }
 
   if (searchParams[QUESTION_TYPE_FILTER]) {
     filters.forecast_type = searchParams[QUESTION_TYPE_FILTER];
   }
 
-  if (searchParams[STATUS_FILTER]) {
-    filters.status = searchParams[STATUS_FILTER];
+  if (searchParams[QUESTION_STATUS_FILTER]) {
+    filters.status = searchParams[QUESTION_STATUS_FILTER];
   }
 
-  if (searchParams[CATEGORIES_FILTER]) {
-    filters.categories = searchParams[CATEGORIES_FILTER];
+  if (searchParams[QUESTION_CATEGORIES_FILTER]) {
+    filters.categories = searchParams[QUESTION_CATEGORIES_FILTER];
   }
 
-  if (searchParams[TAGS_FILTER]) {
-    filters.tags = searchParams[TAGS_FILTER];
+  if (searchParams[QUESTION_TAGS_FILTER]) {
+    filters.tags = searchParams[QUESTION_TAGS_FILTER];
   }
 
-  if (typeof searchParams[GUESSED_BY_FILTER] === "string") {
-    filters.guessed_by = searchParams[GUESSED_BY_FILTER];
+  if (typeof searchParams[QUESTION_GUESSED_BY_FILTER] === "string") {
+    filters.guessed_by = searchParams[QUESTION_GUESSED_BY_FILTER];
   }
-  if (typeof searchParams[AUTHOR_FILTER] === "string") {
-    filters.author = searchParams[AUTHOR_FILTER];
+  if (typeof searchParams[QUESTION_AUTHOR_FILTER] === "string") {
+    filters.author = searchParams[QUESTION_AUTHOR_FILTER];
   }
-  if (typeof searchParams[UPVOTED_BY_FILTER] === "string") {
-    filters.upvoted_by = searchParams[UPVOTED_BY_FILTER];
+  if (typeof searchParams[QUESTION_UPVOTED_BY_FILTER] === "string") {
+    filters.upvoted_by = searchParams[QUESTION_UPVOTED_BY_FILTER];
   }
-  if (typeof searchParams[COMMENTED_BY_FILTER] === "string") {
-    filters.commented_by = searchParams[COMMENTED_BY_FILTER];
+  if (typeof searchParams[QUESTION_COMMENTED_BY_FILTER] === "string") {
+    filters.commented_by = searchParams[QUESTION_COMMENTED_BY_FILTER];
   }
-  if (typeof searchParams[NOT_GUESSED_BY_FILTER] === "string") {
-    filters.not_guessed_by = searchParams[NOT_GUESSED_BY_FILTER];
-  }
-
-  if (typeof searchParams[ACCESS_FILTER] === "string") {
-    filters.access = searchParams[ACCESS_FILTER];
+  if (typeof searchParams[QUESTION_NOT_GUESSED_BY_FILTER] === "string") {
+    filters.not_guessed_by = searchParams[QUESTION_NOT_GUESSED_BY_FILTER];
   }
 
-  if (typeof searchParams[ORDER_BY_FILTER] === "string") {
-    filters.order_by = searchParams[ORDER_BY_FILTER];
+  if (typeof searchParams[QUESTION_ACCESS_FILTER] === "string") {
+    filters.access = searchParams[QUESTION_ACCESS_FILTER];
+  }
+
+  if (typeof searchParams[QUESTION_ORDER_BY_FILTER] === "string") {
+    filters.order_by = searchParams[QUESTION_ORDER_BY_FILTER];
   }
 
   return filters;
@@ -113,36 +124,38 @@ export function getQuestionsFilters({
       })),
     },
     {
-      id: STATUS_FILTER,
+      id: QUESTION_STATUS_FILTER,
       title: t("questionStatus"),
       type: FilterOptionType.MultiChip,
       options: Object.values(QuestionStatus).map((status) => ({
         label: QUESTION_STATUS_LABEL_MAP[status],
         value: status,
-        active: params.getAll(STATUS_FILTER).includes(status),
+        active: params.getAll(QUESTION_STATUS_FILTER).includes(status),
       })),
     },
     {
-      id: CATEGORIES_FILTER,
+      id: QUESTION_CATEGORIES_FILTER,
       title: t("category"),
       type: FilterOptionType.Combobox,
       options: categories.map((category) => ({
         label: category.name,
         value: category.slug,
-        active: params.getAll(CATEGORIES_FILTER).includes(category.slug),
+        active: params
+          .getAll(QUESTION_CATEGORIES_FILTER)
+          .includes(category.slug),
       })),
-      chipColor: getFilterChipColor(CATEGORIES_FILTER),
+      chipColor: getFilterChipColor(QUESTION_CATEGORIES_FILTER),
     },
     {
-      id: TAGS_FILTER,
+      id: QUESTION_TAGS_FILTER,
       title: t("tags"),
       type: FilterOptionType.Combobox,
       options: tags.map((tag) => ({
         label: tag.name,
         value: tag.slug,
-        active: params.getAll(TAGS_FILTER).includes(tag.slug),
+        active: params.getAll(QUESTION_TAGS_FILTER).includes(tag.slug),
       })),
-      chipColor: getFilterChipColor(TAGS_FILTER),
+      chipColor: getFilterChipColor(QUESTION_TAGS_FILTER),
       chipFormat: (value) => t("tagFilter", { tag: value.toLowerCase() }),
       shouldEnforceSearch: true,
     },
@@ -155,55 +168,55 @@ export function getQuestionsFilters({
       type: FilterOptionType.ToggleChip,
       options: [
         {
-          id: GUESSED_BY_FILTER,
+          id: QUESTION_GUESSED_BY_FILTER,
           label: t("predicted"),
           value: user.id.toString(),
-          active: !!params.get(GUESSED_BY_FILTER),
+          active: !!params.get(QUESTION_GUESSED_BY_FILTER),
         },
         {
-          id: NOT_GUESSED_BY_FILTER,
+          id: QUESTION_NOT_GUESSED_BY_FILTER,
           label: t("notPredicted"),
           value: user.id.toString(),
-          active: !!params.get(NOT_GUESSED_BY_FILTER),
+          active: !!params.get(QUESTION_NOT_GUESSED_BY_FILTER),
         },
         {
-          id: AUTHOR_FILTER,
+          id: QUESTION_AUTHOR_FILTER,
           label: t("authored"),
           value: user.id.toString(),
-          active: !!params.get(AUTHOR_FILTER),
+          active: !!params.get(QUESTION_AUTHOR_FILTER),
         },
         {
-          id: UPVOTED_BY_FILTER,
+          id: QUESTION_UPVOTED_BY_FILTER,
           label: t("upvoted"),
           value: user.id.toString(),
-          active: !!params.get(UPVOTED_BY_FILTER),
+          active: !!params.get(QUESTION_UPVOTED_BY_FILTER),
         },
         {
-          id: COMMENTED_BY_FILTER,
+          id: QUESTION_COMMENTED_BY_FILTER,
           label: t("moderating"),
           value: user.id.toString(),
-          active: !!params.get(COMMENTED_BY_FILTER),
+          active: !!params.get(QUESTION_COMMENTED_BY_FILTER),
         },
       ],
     });
   }
 
   filters.push({
-    id: ACCESS_FILTER,
+    id: QUESTION_ACCESS_FILTER,
     title: t("visibility"),
     type: FilterOptionType.ToggleChip,
     options: [
       {
-        id: ACCESS_FILTER,
+        id: QUESTION_ACCESS_FILTER,
         label: t("public"),
         value: "public",
-        active: params.get(ACCESS_FILTER) === "public",
+        active: params.get(QUESTION_ACCESS_FILTER) === "public",
       },
       {
-        id: ACCESS_FILTER,
+        id: QUESTION_ACCESS_FILTER,
         label: t("private"),
         value: "private",
-        active: params.get(ACCESS_FILTER) === "private",
+        active: params.get(QUESTION_ACCESS_FILTER) === "private",
       },
     ],
   });
@@ -289,7 +302,7 @@ export function getDropdownSortOptions(
 }
 
 export function getFilterChipColor(id: string): ChipColor {
-  if (id === CATEGORIES_FILTER) {
+  if (id === QUESTION_CATEGORIES_FILTER) {
     return "olive";
   }
 
