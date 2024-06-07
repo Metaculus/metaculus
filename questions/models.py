@@ -21,9 +21,7 @@ class QuestionQuerySet(models.QuerySet):
         return self.annotate(predictions_count=Count("forecast", distinct=True))
 
     def annotate_nr_forecasters(self):
-        return self.annotate(
-            nr_forecasters=Count("forecast__author", distinct=True)
-        )
+        return self.annotate(nr_forecasters=Count("forecast__author", distinct=True))
 
     def annotate_vote_score(self):
         return self.annotate(
