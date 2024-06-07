@@ -1,14 +1,19 @@
 import { cookies } from "next/headers";
 
 export const COOKIE_NAME_TOKEN = "auth_token";
+export const COOKIE_NAME_DEV_TOKEN = "dev_token";
 
-export function setServerSession(auth_token: string) {
-  cookies().set(COOKIE_NAME_TOKEN, auth_token, {
+export function setServerCookie(name: string, value: string) {
+  cookies().set(name, value, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     maxAge: 60 * 60 * 24 * 7, // One week
     path: "/",
   });
+}
+
+export function setServerSession(auth_token: string) {
+  return setServerCookie(COOKIE_NAME_TOKEN, auth_token);
 }
 
 export function getServerSession() {
@@ -19,4 +24,14 @@ export function getServerSession() {
 
 export function deleteServerSession() {
   cookies().delete(COOKIE_NAME_TOKEN);
+}
+
+export function getDevTokenSession() {
+  const cookie = cookies().get(COOKIE_NAME_DEV_TOKEN);
+
+  return cookie?.value || null;
+}
+
+export function settDevTokenSession(token: string) {
+  return setServerCookie(COOKIE_NAME_DEV_TOKEN, token);
 }
