@@ -15,15 +15,27 @@ forbidden_usernames = [
 
 
 class UserPublicSerializer(serializers.ModelSerializer):
+    formerly_known_as = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ("id", "username", "date_joined", "bio", "website")
+        fields = (
+            "id",
+            "username",
+            "date_joined",
+            "bio",
+            "website",
+            "formerly_known_as",
+        )
+
+    def get_formerly_known_as(self, obj: User):
+        return obj.get_formerly_known_as()
 
 
-class UserPrivateSerializer(serializers.ModelSerializer):
+class UserPrivateSerializer(UserPublicSerializer):
     class Meta:
         model = User
-        fields = UserPublicSerializer.Meta.fields + ("first_name", "last_name", "email")
+        fields = UserPublicSerializer.Meta.fields + ("first_name", "last_name", "email", "formerly_known_as")
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):

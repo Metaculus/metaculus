@@ -64,8 +64,10 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} variant="dark">
-      <div className="flex max-w-lg	 flex-col items-center text-center">
-        <h3 className="mb-4 text-lg">{t("changeUsernameHeading")}</h3>
+      <div className="flex max-w-lg flex-col items-center text-center">
+        <h3 className="mb-4 text-lg text-white">
+          {t("changeUsernameHeading")}
+        </h3>
         <p className="mb-3">{t("changeUsernameDescription")}</p>
         <form className="flex w-full max-w-44 flex-col" action={formAction}>
           <Input

@@ -63,6 +63,31 @@ class AuthApi {
       { user_id: userId, token }
     );
   }
+
+  static async passwordResetRequest(login: string) {
+    return post<null, { login: string }>("/auth/password-reset", {
+      login,
+    });
+  }
+
+  static async passwordResetVerifyToken(user_id: number, token: string) {
+    return get<null>(
+      `/auth/password-reset/change?user_id=${user_id}&token=${token}`
+    );
+  }
+
+  static async passwordResetConfirm(
+    user_id: number,
+    token: string,
+    password: string
+  ): Promise<AuthResponse> {
+    return post<AuthResponse>(
+      `/auth/password-reset/change?user_id=${user_id}&token=${token}`,
+      {
+        password,
+      }
+    );
+  }
 }
 
 export default AuthApi;

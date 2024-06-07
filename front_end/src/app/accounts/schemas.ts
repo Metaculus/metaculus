@@ -46,3 +46,31 @@ export const updateProfileSchema = z.object({
 });
 
 export type UpdateProfileSchema = z.infer<typeof updateProfileSchema>;
+
+export const passwordResetRequestSchema = z.object({
+  login: z.string().min(1, { message: "Login is required" }),
+});
+
+export type PasswordResetRequestSchema = z.infer<
+  typeof passwordResetRequestSchema
+>;
+
+export const passwordResetConfirmSchema = z
+  .object({
+    user_id: z.any(),
+    token: z.string(),
+    password: z.string().min(1, { message: "Password is required" }),
+    passwordAgain: z.string().min(1, { message: "Password is required" }),
+  })
+  .superRefine(({ passwordAgain, password }, ctx) => {
+    if (passwordAgain !== password) {
+      ctx.addIssue({
+        code: "custom",
+        message: "The passwords did not match",
+        path: ["passwordAgain"],
+      });
+    }
+  });
+export type PasswordResetConfirmSchema = z.infer<
+  typeof passwordResetConfirmSchema
+>;

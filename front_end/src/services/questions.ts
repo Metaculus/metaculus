@@ -1,6 +1,7 @@
 import { PaginatedPayload } from "@/types/fetch";
 import { Question, QuestionWithForecasts } from "@/types/question";
-import { get } from "@/utils/fetch";
+import { VoteDirection, VoteResponse } from "@/types/votes";
+import { get, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/query_params";
 
 export type QuestionsParams = {
@@ -65,6 +66,13 @@ class QuestionsApi {
       console.error("Error getting questions:", err);
       return { count: 0, results: [], next: null, previous: null };
     }
+  }
+
+  static async voteQuestion(
+    id: number,
+    direction: VoteDirection
+  ): Promise<VoteResponse> {
+    return await post<VoteResponse>(`/questions/${id}/vote`, { direction });
   }
 }
 
