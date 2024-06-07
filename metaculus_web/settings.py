@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "questions",
     "projects",
     "scoring",
+    "comments",
 ]
 
 MIDDLEWARE = [
