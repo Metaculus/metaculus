@@ -6,8 +6,10 @@ import { FC, useEffect } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
-import devLoginAction, { DevLoginActionState } from "@/app/dev-auth/actions";
-import { DevLoginSchema, devLoginSchema } from "@/app/dev-auth/schemas";
+import alphaLoginAction, {
+  AlphaLoginActionState,
+} from "@/app/alpha-auth/actions";
+import { DevLoginSchema, devLoginSchema } from "@/app/alpha-auth/schemas";
 import Button from "@/components/ui/button";
 import { FormError, Input } from "@/components/ui/form_field";
 
@@ -16,8 +18,8 @@ const DevLogin: FC = () => {
     resolver: zodResolver(devLoginSchema),
   });
   const router = useRouter();
-  const [state, formAction] = useFormState<DevLoginActionState, FormData>(
-    devLoginAction,
+  const [state, formAction] = useFormState<AlphaLoginActionState, FormData>(
+    alphaLoginAction,
     null
   );
   useEffect(() => {

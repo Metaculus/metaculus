@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 
 export const COOKIE_NAME_TOKEN = "auth_token";
-export const COOKIE_NAME_DEV_TOKEN = "dev_token";
+export const COOKIE_NAME_DEV_TOKEN = "alpha_token";
 
 export function setServerCookie(name: string, value: string) {
   cookies().set(name, value, {
@@ -26,12 +26,12 @@ export function deleteServerSession() {
   cookies().delete(COOKIE_NAME_TOKEN);
 }
 
-export function getDevTokenSession() {
+export function getAlphaTokenSession() {
   const cookie = cookies().get(COOKIE_NAME_DEV_TOKEN);
 
   return cookie?.value || null;
 }
 
-export function settDevTokenSession(token: string) {
+export function setAlphaTokenSession(token: string) {
   return setServerCookie(COOKIE_NAME_DEV_TOKEN, token);
 }
