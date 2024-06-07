@@ -75,7 +75,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
           <>
             <div
               className={classNames(
-                "pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r from-transparent to-blue-100 dark:to-blue-800 sm:hidden",
+                "from-transparent pointer-events-none absolute right-0 top-0 z-20 h-full w-32 bg-gradient-to-r to-blue-100 dark:to-blue-800 sm:hidden",
                 isMobileExpanded && "hidden"
               )}
             />

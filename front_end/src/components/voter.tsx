@@ -54,12 +54,9 @@ const Voter: FC<Props> = ({
       </Button>
       {!!votes && (
         <span
-          className={classNames(
-            "text-gray-900 dark:text-gray-900-dark",
-            {
-              "font-bold": !!userVote,
-            }
-          )}
+          className={classNames("text-gray-900 dark:text-gray-900-dark", {
+            "font-bold": !!userVote,
+          })}
         >
           {votes}
         </span>

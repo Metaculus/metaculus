@@ -68,7 +68,7 @@ const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
         binary={questionType == QuestionType.Binary}
       />
 
-      <div className="my-3 grid grid-cols-2 gap-x-4 gap-y-2 dark:text-white xs:gap-x-8 sm:mx-8 sm:gap-x-4 sm:gap-y-0">
+      <div className="dark:text-white my-3 grid grid-cols-2 gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:gap-x-4 sm:gap-y-0">
         <CursorDetailItem
           title={t("totalForecastersLabel")}
           text={cursorData.forecastersNr.toString()}
