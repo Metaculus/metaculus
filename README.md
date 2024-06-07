@@ -55,4 +55,4 @@ Env Configuration:
 
 ## Restricted dev access
 To enable restricted Dev access, you need to add `ALPHA_ACCESS_TOKEN=<token>` to the bot BE & FE env variables.
-Then, be will validate all requests using `x-dev-auth-token` from request headers
+Then, be will validate all requests using `x-alpha-auth-token` from request headers
