@@ -70,6 +70,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "utils.middlewares.middleware_alpha_access_check",
 ]
 
 # Cors configuration
@@ -226,3 +227,7 @@ DRAMATIQ_BROKER = {
         "django_dramatiq.middleware.AdminMiddleware",
     ],
 }
+
+# Restricted DEV access
+# If none -> not restricted
+ALPHA_ACCESS_TOKEN = os.environ.get("ALPHA_ACCESS_TOKEN")

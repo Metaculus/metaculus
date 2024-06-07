@@ -45,7 +45,7 @@ const QuestionStatus: FC<Props> = ({ question }) => {
   }, [locale, question.closed_at, question.resolved_at, status, t]);
 
   return (
-    <div className="flex flex-row items-center gap-1.5 truncate text-metac-gray-900 dark:text-metac-gray-900-dark">
+    <div className="flex flex-row items-center gap-1.5 truncate text-gray-900 dark:text-gray-900-dark">
       <QuestionStatusIcon
         status={question.status}
         published_at={question.published_at}
