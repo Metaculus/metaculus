@@ -12,10 +12,10 @@ cd /home/ubuntu/rewrite || exit
 # 3. Pull the latest from main with overwrite
 git fetch origin
 git reset --hard origin/main
+poetry install
 
 # 4. Install new poetry dependencies and new node dependencies in 'front_end' and run `npm run build`
 cd front_end || exit
-poetry install
 npm install
 npm run build
 cd ..
