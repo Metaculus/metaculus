@@ -11,11 +11,13 @@ Normalise to 1 over all outcomes.
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, Callable
-from django.db.models import QuerySet
-from questions.models import Forecast, Question, scale_continous_forecast_location
-from collections import defaultdict
+from typing import Optional
+
 import numpy as np
+
+from django.db.models import QuerySet
+from questions.models import Forecast, Question
+from utils.the_math.formulas import scale_continous_forecast_location
 from utils.the_math.measures import weighted_percentile_2d, percent_point_function
 
 
