@@ -70,7 +70,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "utils.middlewares.middleware_dev_restricted_access",
+    "utils.middlewares.middleware_alpha_access_check",
 ]
 
 # Cors configuration
@@ -136,7 +136,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    "EXCEPTION_HANDLER": "utils.views.middleware_alpha_access_check",
+    "EXCEPTION_HANDLER": "utils.views.custom_exception_handler",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 100,
 }
@@ -230,4 +230,4 @@ DRAMATIQ_BROKER = {
 
 # Restricted DEV access
 # If none -> not restricted
-DEV_ACCESS_TOKEN = os.environ.get("DEV_ACCESS_TOKEN")
+ALPHA_ACCESS_TOKEN = os.environ.get("ALPHA_ACCESS_TOKEN")
