@@ -65,7 +65,7 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} variant="dark">
       <div className="flex max-w-lg flex-col items-center text-center">
-        <h3 className="text-white mb-4 text-lg">
+        <h3 className="mb-4 text-lg text-white">
           {t("changeUsernameHeading")}
         </h3>
         <p className="mb-3">{t("changeUsernameDescription")}</p>
@@ -74,7 +74,7 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
             type="text"
             name="username"
             placeholder={t("newUsernamePlaceholder")}
-            className="bg-transparent border border-gray-600-dark px-[5px] py-[3px] font-sans"
+            className="border border-gray-600-dark bg-transparent px-[5px] py-[3px] font-sans"
           />
           <FormError
             errors={state?.errors}
@@ -84,7 +84,7 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
           <Input
             type="text"
             placeholder={t("confirmUsernamePlaceholder")}
-            className="border-t-transparent bg-transparent border border-gray-600-dark px-[5px] py-[3px] font-sans"
+            className="border border-gray-600-dark border-t-transparent bg-transparent px-[5px] py-[3px] font-sans"
             {...register("usernameConfirm")}
           />
           <FormError

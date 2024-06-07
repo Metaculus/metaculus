@@ -46,7 +46,7 @@ const ResetPasswordModal: FC<SignInModalType> = ({
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
       <div className="max-w-xs">
-        <h2 className="text-metac-blue-900	dark:text-metac-blue-900-dark mb-4 mr-3 mt-0 text-2xl">
+        <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
           {t("passwordResetHeading")}
         </h2>
         <p className="mb-6 mt-3 text-center text-base leading-tight">
@@ -54,14 +54,14 @@ const ResetPasswordModal: FC<SignInModalType> = ({
         </p>
         <form action={formAction}>
           <Input
-            className="border-metac-gray-700 bg-inherit dark:border-metac-gray-700-dark block w-full rounded border px-3 py-2"
+            className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
             type="text"
             placeholder={t("loginUsernamePlaceholder")}
             {...register("login")}
             errors={state?.errors}
           />
           <FormError errors={state?.errors}></FormError>
-          <div className="text-metac-red-500 dark:text-metac-red-500-dark text-xs"></div>
+          <div className="text-xs text-red-500 dark:text-red-500-dark"></div>
           <Button variant="primary" className="mt-4 w-full" type="submit">
             {t("resetPasswordButton")}
           </Button>
@@ -80,7 +80,7 @@ export const ResetPasswordConfirmModal: FC<SignInModalType> = ({
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
       <div className="max-w-sm">
-        <h2 className="text-metac-blue-900	dark:text-metac-blue-900-dark mb-4 mr-3 mt-0 text-2xl">
+        <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
           {t("resetPasswordEmailSentHeading")}
         </h2>
         <p className="mb-2 text-sm leading-tight">
