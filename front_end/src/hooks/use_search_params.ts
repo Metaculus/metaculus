@@ -16,7 +16,7 @@ const useSearchParams = () => {
   );
 
   const navigateToSearchParams = useCallback(() => {
-    router.push(pathname + "?" + params.toString());
+    router.push(pathname + "?" + params.toString(), { scroll: false });
   }, [params, pathname, router]);
 
   // allows pushing search params to the url without page reload
