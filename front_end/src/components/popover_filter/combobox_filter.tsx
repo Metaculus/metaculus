@@ -55,7 +55,7 @@ const ComboboxFilter: FC<Props> = ({
   };
 
   return (
-    <div className="relative flex w-full flex-wrap gap-2 text-metac-gray-900 dark:text-metac-gray-900-dark">
+    <div className="relative flex w-full flex-wrap gap-2 text-gray-900 dark:text-gray-900-dark">
       <Combobox
         value={activeOptions}
         multiple
@@ -71,7 +71,7 @@ const ComboboxFilter: FC<Props> = ({
       >
         <div className="relative w-full">
           <ComboboxInput
-            className="h-8 w-full rounded border border-metac-gray-700 bg-metac-gray-0 px-2 py-1 dark:border-metac-gray-700-dark dark:bg-metac-gray-0-dark"
+            className="h-8 w-full rounded border border-gray-700 bg-gray-0 px-2 py-1 dark:border-gray-700-dark dark:bg-gray-0-dark"
             placeholder="Search..."
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -80,12 +80,12 @@ const ComboboxFilter: FC<Props> = ({
           </ComboboxButton>
         </div>
         <div className="relative w-full">
-          <ComboboxOptions className="border-b-1 absolute inset-x-0 -top-2 z-10 max-h-[250px] overflow-auto rounded-b rounded-l border border-metac-gray-500 bg-metac-gray-0 text-metac-gray-900 shadow-dropdown empty:hidden dark:border-metac-gray-500-dark dark:bg-metac-gray-0-dark">
+          <ComboboxOptions className="border-b-1 absolute inset-x-0 -top-2 z-10 max-h-[250px] overflow-auto rounded-b rounded-l border border-gray-500 bg-gray-0 text-gray-900 shadow-dropdown empty:hidden dark:border-gray-500-dark dark:bg-gray-0-dark">
             {searchedOptions.map((o) => (
               <ComboboxOption
                 key={`${filterId}-option-${o.value}`}
                 value={o}
-                className="m-0 cursor-pointer px-2 py-1 text-sm leading-4 text-metac-gray-900 hover:bg-metac-gray-200 dark:text-metac-gray-900-dark dark:hover:bg-metac-gray-200-dark"
+                className="m-0 cursor-pointer px-2 py-1 text-sm leading-4 text-gray-900 hover:bg-gray-200 dark:text-gray-900-dark dark:hover:bg-gray-200-dark"
               >
                 {o.label}
               </ComboboxOption>

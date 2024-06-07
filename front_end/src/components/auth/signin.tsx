@@ -49,7 +49,7 @@ const SignInModal: FC<SignInModalType> = ({
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
       <div>
-        <h2 className="mb-4	mr-3 mt-0 text-2xl text-metac-blue-900 dark:text-metac-blue-900-dark">
+        <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
           {t("signInButton")}
         </h2>
         <p className="mb-6 mt-3 text-base leading-tight">
@@ -65,22 +65,22 @@ const SignInModal: FC<SignInModalType> = ({
         <form action={formAction}>
           <Input
             autoComplete="username"
-            className="block w-full rounded border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
+            className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
             type="text"
             placeholder={t("loginUsernamePlaceholder")}
             {...register("login")}
             errors={state?.errors}
           />
-          <div className="text-xs text-metac-red-500 dark:text-metac-red-500-dark"></div>
+          <div className="text-xs text-red-500 dark:text-red-500-dark"></div>
           <Input
             autoComplete="current-password"
-            className="mt-4 block w-full rounded border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
+            className="mt-4 block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
             type="password"
             placeholder="password"
             {...register("password")}
             errors={state?.errors}
           />
-          <div className="mb-4 text-xs text-metac-red-500 dark:text-metac-red-500-dark"></div>
+          <div className="mb-4 text-xs text-red-500 dark:text-red-500-dark"></div>
           <Button variant="primary" className="w-full" type="submit">
             {t("signInButton")}
           </Button>
@@ -92,7 +92,7 @@ const SignInModal: FC<SignInModalType> = ({
         >
           {t("forgotPasswordLink")}
         </Button>
-        <hr className="my-3 border-metac-gray-300 dark:border-metac-gray-300-dark" />
+        <hr className="my-3 border-gray-300 dark:border-gray-300-dark" />
         <SocialButtons type="sigin" />
       </div>
     </BaseModal>
