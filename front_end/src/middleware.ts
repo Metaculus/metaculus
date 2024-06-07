@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 import AuthApi from "@/services/auth";
 import {
   COOKIE_NAME_TOKEN,
-  getDevTokenSession,
+  getAlphaTokenSession,
   getServerSession,
 } from "@/services/session";
 import { ErrorResponse } from "@/types/fetch";
-import { getDevAccessToken } from "@/utils/dev_token";
+import { getAlphaAccessToken } from "@/utils/alpha_access";
 
 export async function middleware(request: NextRequest) {
   let deleteCookieToken = false;
@@ -35,14 +35,15 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check restricted access token
-    const restrictedAccessToken = await getDevAccessToken();
+    const alphaAccessToken = await getAlphaAccessToken();
+    const alphaAuthUrl = "/alpha-auth";
 
     if (
-      restrictedAccessToken &&
-      getDevTokenSession() !== restrictedAccessToken &&
-      !request.nextUrl.pathname.startsWith("/dev-auth")
+      alphaAccessToken &&
+      getAlphaTokenSession() !== alphaAccessToken &&
+      !request.nextUrl.pathname.startsWith(alphaAuthUrl)
     ) {
-      return NextResponse.redirect(new URL("/dev-auth", request.url));
+      return NextResponse.redirect(new URL(alphaAuthUrl, request.url));
     }
   }
 
