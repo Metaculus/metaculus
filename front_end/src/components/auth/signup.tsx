@@ -67,7 +67,7 @@ const SignUpModal: FC<SignInModalType> = ({
           >
             <Input
               autoComplete="username"
-              className="bg-inherit block w-full rounded border border-gray-700 px-3 py-2 dark:border-gray-700-dark"
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
               placeholder={t("registrationUsernamePlaceholder")}
               type="text"
               errors={state?.errors}
@@ -76,7 +76,7 @@ const SignUpModal: FC<SignInModalType> = ({
             <div>
               <Input
                 autoComplete="new-password"
-                className="bg-inherit block w-full rounded-t border border-gray-700 px-3 py-2 dark:border-gray-700-dark"
+                className="block w-full rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
                 placeholder={t("passwordPlaceholder")}
                 type="password"
                 errors={state?.errors}
@@ -84,7 +84,7 @@ const SignUpModal: FC<SignInModalType> = ({
               />
               <Input
                 autoComplete="new-password"
-                className="bg-inherit block w-full rounded-b border-x border-b border-gray-700 px-3 py-2 dark:border-gray-700-dark"
+                className="block w-full rounded-b border-x border-b border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
                 placeholder={t("registrationVerifyPasswordPlaceholder")}
                 type="password"
                 errors={state?.errors}
@@ -92,7 +92,7 @@ const SignUpModal: FC<SignInModalType> = ({
               />
             </div>
             <Input
-              className="bg-inherit block w-full rounded border border-gray-700 px-3 py-2 dark:border-gray-700-dark"
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
               placeholder={t("registrationEmailPlaceholder")}
               type="email"
               errors={state?.errors}

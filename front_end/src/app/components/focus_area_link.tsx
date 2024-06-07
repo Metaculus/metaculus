@@ -31,7 +31,7 @@ const FocusAreaLink: FC<FocusAreaItem> = ({ title, text, Icon, href, id }) => {
     >
       <div
         className={classNames(
-          "text-black my-2 flex size-16 items-center justify-center rounded-full",
+          "my-2 flex size-16 items-center justify-center rounded-full text-black",
           {
             "bg-[#47ac9a80] dark:bg-[#51b3a6]": id === "bio",
             "bg-[#6b1f534d] dark:bg-[#d0a0c1]": id === "ai",
