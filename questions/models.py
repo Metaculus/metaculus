@@ -164,7 +164,8 @@ class Vote(models.Model):
 
     user = models.ForeignKey(User, models.CASCADE, related_name="votes")
     question = models.ForeignKey(Question, models.CASCADE, related_name="votes")
-    direction = models.SmallIntegerField()
+    direction = models.SmallIntegerField(choices=VoteDirection.choices)
+
     # comment = models.ForeignKey("Comment", models.CASCADE, related_name="votes")
 
     class Meta:
