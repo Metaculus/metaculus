@@ -14,8 +14,6 @@ def create_vote(vote_obj, direction: int):
 def migrate_votes():
     question_ids = Question.objects.values_list("id", flat=True)
     vote_instances = []
-    users = User.objects.all()
-    users_dict = {x.id: x for x in users}
 
     # Migrating Upvotes
     vote_instances += [
@@ -23,7 +21,7 @@ def migrate_votes():
         for obj in paginated_query(
             "SELECT * FROM metac_question_question_votes_up",
         )
-        if (obj["question_id"] in question_ids) and (obj["user_id"] in users_dict)
+        if obj["question_id"] in question_ids
     ]
 
     # Migrating Downvotes
@@ -32,7 +30,7 @@ def migrate_votes():
         for obj in paginated_query(
             "SELECT * FROM metac_question_question_votes_down",
         )
-        if (obj["question_id"] in question_ids) and (obj["user_id"] in users_dict)
+        if obj["question_id"] in question_ids
     ]
 
     Vote.objects.bulk_create(vote_instances, ignore_conflicts=True)
