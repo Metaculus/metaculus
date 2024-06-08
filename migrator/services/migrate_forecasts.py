@@ -9,11 +9,7 @@ def create_forecast(
     prediction: dict, questions_dict: dict, users_dict: dict
 ) -> Forecast:
     question = questions_dict.get(prediction["question_id"], None)
-    if (
-        question is None
-        or prediction["user_id"] is None
-        or prediction["user_id"] not in users_dict
-    ):
+    if question is None or prediction["user_id"] is None:
         return None
 
     spv = prediction["stored_prediction_values"]
@@ -59,9 +55,9 @@ def migrate_forecasts():
             "SELECT p.*, ps.user_id, ps.question_id, ps.aggregation_method FROM metac_question_prediction p JOIN metac_question_predictionsequence ps ON p.prediction_sequence_id = ps.id AND aggregation_method = 'none' limit 300000"
         )
     ):
-        if i % 150000 == 0:
+        if (i + 1) % 150000 == 0:
             print(
-                f"Went through {i} predictions and generate {len(forecasts)} forecasts!"
+                f"Went through {(i + 1)} predictions and generate {len(forecasts) + 1} forecasts!"
             )
         forecast = create_forecast(old_prediction, questions_dict, users_dict)
         if forecast is not None:
