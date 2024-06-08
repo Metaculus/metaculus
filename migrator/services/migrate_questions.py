@@ -83,6 +83,4 @@ def migrate_questions():
         question = create_question(old_question)
         if question is not None:
             questions.append(question)
-    print(len([x.id for x in questions]))
-    print(len(set([x.id for x in questions])))
     Question.objects.bulk_create(questions)
