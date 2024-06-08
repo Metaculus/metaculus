@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import numpy as np
 from scipy.stats.mstats import gmean
 from datetime import datetime
@@ -7,7 +8,16 @@ from scoring.models import Score, LeaderboardEntry
 from utils.the_math.community_prediction import ForecastHistoryEntry
 
 
-def get_geometric_means(forecasts: list[Forecast]) -> list[tuple[np.ndarray, datetime]]:
+@dataclass
+class GeoMean:
+    pmf: np.ndarray
+    num_forecasters: int
+    timestamp: float
+
+
+def get_geometric_means(
+    forecasts: list[Forecast],
+) -> list[GeoMean]:
     geometric_means = []
     timesteps: set[datetime] = set()
     for forecast in forecasts:
@@ -24,7 +34,9 @@ def get_geometric_means(forecasts: list[Forecast]) -> list[tuple[np.ndarray, dat
         if not prediction_values:
             continue  # TODO: doesn't account for going from 1 active forecast to 0
         geometric_mean = gmean(prediction_values, axis=0)
-        geometric_means.append((geometric_mean, timestep))
+        geometric_means.append(
+            GeoMean(geometric_mean, len(prediction_values), timestep)
+        )
     return geometric_means
 
 
@@ -118,9 +130,13 @@ def evaluate_forecasts_peer_accuracy(
 
         pmf = forecast.get_pmf()
         interval_scores = []
-        for g, t in geometric_means:
-            if forecast_start <= t < forecast_end:
-                score = 100 * np.log(pmf[resolution_bucket] * g[resolution_bucket])
+        for gm in geometric_means:
+            if forecast_start <= gm.timestamp < forecast_end:
+                score = (
+                    100
+                    * (gm.num_forecasters / (gm.num_forecasters - 1))
+                    * np.log(pmf[resolution_bucket] / gm.pmf[resolution_bucket])
+                )
                 if question_type in ["binary", "multiple_choice"]:
                     score /= np.log(len(pmf))
                 else:
@@ -130,7 +146,7 @@ def evaluate_forecasts_peer_accuracy(
                 interval_scores.append(0)
 
         forecast_score = 0
-        times = [t for _, t in geometric_means]
+        times = [gm.timestamp for gm in geometric_means]
         for i in range(len(times) - 1):
             interval_duration = times[i + 1] - times[i]
             forecast_score += interval_scores[i] * interval_duration / total_duration
@@ -147,9 +163,9 @@ def evaluate_forecasts_peer_spot_forecast(
 ) -> list[float]:
     geometric_mean_forecasts = get_geometric_means(forecasts)
     g = None
-    for gm, t in geometric_mean_forecasts[::-1]:
-        if t < spot_forecast_timestamp:
-            g = gm
+    for gm in geometric_mean_forecasts[::-1]:
+        if gm.timestamp < spot_forecast_timestamp:
+            g = gm.pmf
             break
     if g is None:
         return [0] * len(forecasts)
@@ -162,7 +178,7 @@ def evaluate_forecasts_peer_spot_forecast(
         )
         if start <= spot_forecast_timestamp < end:
             pmf = forecast.get_pmf()
-            forecast_score = 100 * np.log(pmf[resolution_bucket] * g[resolution_bucket])
+            forecast_score = 100 * np.log(pmf[resolution_bucket] / g[resolution_bucket])
             if question_type in ["binary", "multiple_choice"]:
                 forecast_score /= np.log(len(pmf))
             else:
