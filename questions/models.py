@@ -92,6 +92,9 @@ class Question(models.Model):
 
     objects = models.Manager.from_queryset(QuestionQuerySet)()
 
+    # typing
+    forecast_set: models.QuerySet["Forecast"]
+
     # Annotated fields
     predictions_count: int = 0
     nr_forecasters: int = 0
@@ -146,6 +149,18 @@ class Forecast(models.Model):
         if self.probability_yes_per_category:
             return self.probability_yes_per_category
         return self.continuous_cdf
+
+    def get_pmf(self) -> list[float]:
+        if self.probability_yes:
+            return [1 - self.probability_yes, self.probability_yes]
+        if self.probability_yes_per_category:
+            return self.probability_yes_per_category
+        cdf = self.continuous_cdf
+        pmf = [cdf[0]]
+        for i in range(1, len(cdf)):
+            pmf.append(cdf[i] - cdf[i - 1])
+        pmf.append(1 - cdf[-1])
+        return pmf
 
 
 # if we can vote on questions and comments, maybe move this elsewhere; user?
