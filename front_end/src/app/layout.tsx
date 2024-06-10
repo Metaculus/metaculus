@@ -8,7 +8,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { ThemeProvider } from "next-themes";
 
-import Header from "@/app/(main)/header";
+import Header from "@/app/(main)/components/header";
 import GlobalModals from "@/components/global_modals";
 import AuthProvider from "@/contexts/auth_context";
 import ModalProvider from "@/contexts/modal_context";
