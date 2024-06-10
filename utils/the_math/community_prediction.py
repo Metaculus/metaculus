@@ -17,7 +17,7 @@ import numpy as np
 
 from django.db.models import QuerySet
 from questions.models import Forecast, Question
-from utils.the_math.formulas import scale_continous_forecast_location
+from utils.the_math.formulas import internal_location_to_actual_location
 from utils.the_math.measures import weighted_percentile_2d, percent_point_function
 
 
@@ -143,13 +143,13 @@ def compute_continuous_plotable_cp(question: Question) -> int:
 
         cps.append(
             GraphCP(
-                lower=scale_continous_forecast_location(
+                lower=internal_location_to_actual_location(
                     question, percent_point_function(cdf, 0.25)
                 ),
-                middle=scale_continous_forecast_location(
+                middle=internal_location_to_actual_location(
                     question, percent_point_function(cdf, 0.5)
                 ),
-                upper=scale_continous_forecast_location(
+                upper=internal_location_to_actual_location(
                     question, percent_point_function(cdf, 0.75)
                 ),
                 nr_forecasters=len(entry.predictions),
