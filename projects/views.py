@@ -20,10 +20,10 @@ from projects.serializers import (
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def topics_list_api_view(request: Request):
-    qs = Project.objects.filter_topic().filter_active().annotate_questions_count()
+    qs = Project.objects.filter_topic().filter_active().annotate_posts_count()
 
     data = [
-        {**TopicSerializer(obj).data, "questions_count": obj.questions_count}
+        {**TopicSerializer(obj).data, "posts_count": obj.posts_count}
         for obj in qs.all()
     ]
 
@@ -36,31 +36,31 @@ def categories_list_api_view(request: Request):
     qs = (
         Project.objects.filter_category()
         .filter_active()
-        .annotate_questions_count()
-        .order_by("-questions_count")
+        .annotate_posts_count()
+        .order_by("-posts_count")
     )
 
     data = [
-        {**CategorySerializer(obj).data, "questions_count": obj.questions_count}
+        {**CategorySerializer(obj).data, "posts_count": obj.posts_count}
         for obj in qs.all()
     ]
 
     return Response(data)
 
 
-def enrich_tournaments_with_questions_count(
+def enrich_tournaments_with_posts_count(
     qs: QuerySet,
 ) -> tuple[QuerySet, Callable[[Project, dict], dict]]:
     """
-    Enriches questions with the votes object.
+    Enriches tournament with posts count.
     """
 
-    qs = qs.annotate_questions_count()
+    qs = qs.annotate_posts_count()
 
-    def enrich(question: Project, serialized_question: dict):
-        serialized_question["questions_count"] = question.questions_count
+    def enrich(obj: Project, serialized_obj: dict):
+        serialized_obj["posts_count"] = obj.posts_count
 
-        return serialized_question
+        return serialized_obj
 
     return qs, enrich
 
@@ -68,7 +68,7 @@ def enrich_tournaments_with_questions_count(
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def tags_list_api_view(request: Request):
-    qs = Project.objects.filter_tags().filter_active().annotate_questions_count()
+    qs = Project.objects.filter_tags().filter_active().annotate_posts_count()
     search_query = serializers.CharField(allow_null=True, min_length=3).run_validation(
         request.query_params.get("search")
     )
@@ -76,14 +76,13 @@ def tags_list_api_view(request: Request):
     if search_query:
         qs = qs.filter(name__icontains=search_query)
     else:
-        qs = qs.order_by("-questions_count")
+        qs = qs.order_by("-posts_count")
 
     # Limit to 50 tags
     qs = qs[:50]
 
     data = [
-        {**TagSerializer(obj).data, "questions_count": obj.questions_count}
-        for obj in qs.all()
+        {**TagSerializer(obj).data, "posts_count": obj.posts_count} for obj in qs.all()
     ]
 
     return Response(data)
@@ -95,18 +94,18 @@ def tournaments_list_api_view(request: Request):
     qs = (
         Project.objects.filter_tournament()
         .filter_active()
-        .annotate_questions_count()
-        .order_by("-questions_count")
+        .annotate_posts_count()
+        .order_by("-posts_count")
     )
 
-    qs, enrich_questions_count = enrich_tournaments_with_questions_count(qs)
+    qs, enrich_posts_count = enrich_tournaments_with_posts_count(qs)
 
     data = []
 
     for obj in qs.all():
         serialized_tournament = TournamentSerializer(obj).data
 
-        serialized_tournament = enrich_questions_count(obj, serialized_tournament)
+        serialized_tournament = enrich_posts_count(obj, serialized_tournament)
 
         data.append(serialized_tournament)
 
@@ -117,11 +116,11 @@ def tournaments_list_api_view(request: Request):
 @permission_classes([AllowAny])
 def tournament_by_slug_api_view(request: Request, slug: str):
     qs = Project.objects.filter_tournament()
-    qs, enrich_questions_count = enrich_tournaments_with_questions_count(qs)
+    qs, enrich_posts_count = enrich_tournaments_with_posts_count(qs)
 
     obj = get_object_or_404(qs, slug=slug)
 
     data = TournamentSerializer(obj).data
-    data = enrich_questions_count(obj, data)
+    data = enrich_posts_count(obj, data)
 
     return Response(data)

@@ -83,5 +83,26 @@ export function binWeightsFromSliders(
     }
   }
   pmf.push(1 - cdf[cdf.length - 1]);
-  return pmf;
+  return { pmf: pmf, cdf: cdf };
+}
+
+export function computeQuartilesFromCDF(cdf: number[]) {
+  function findQuantile(cdf: number[], quantile: number) {
+    for (let i = 0; i < cdf.length; i++) {
+      if (cdf[i] >= quantile) {
+        return i / (cdf.length - 1);
+      }
+    }
+    return 1;
+  }
+
+  const median = findQuantile(cdf, 0.5);
+  const lower25 = findQuantile(cdf, 0.25);
+  const upper75 = findQuantile(cdf, 0.75);
+
+  return {
+    median: median,
+    lower25: lower25,
+    upper75: upper75,
+  };
 }

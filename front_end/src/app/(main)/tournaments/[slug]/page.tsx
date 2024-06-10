@@ -7,11 +7,12 @@ import invariant from "ts-invariant";
 
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import HtmlContent from "@/components/html_content";
+import AwaitedPostsFeed from "@/components/posts_feed";
 import QuestionFilters from "@/components/question_filters";
-import AwaitedQuestionsFeed from "@/components/questions_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { PostsParams } from "@/services/posts";
 import ProjectsApi from "@/services/projects";
-import { QuestionsParams } from "@/services/questions";
+import { SearchParams } from "@/types/navigation";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 
@@ -20,13 +21,13 @@ export default async function TournamentSlug({
   searchParams,
 }: {
   params: { slug: string };
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: SearchParams;
 }) {
   const tournament = await ProjectsApi.getSlugTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
 
   const questionFilters = generateFiltersFromSearchParams(searchParams);
-  const pageFilters: QuestionsParams = {
+  const pageFilters: PostsParams = {
     ...questionFilters,
     tournaments: params.slug,
   };
@@ -97,7 +98,7 @@ export default async function TournamentSlug({
           />
           <TournamentStat
             title={t("questions")}
-            text={tournament.questions_count.toString()}
+            text={tournament.posts_count.toString()}
           />
         </div>
         <HtmlContent content={tournament.description} />
@@ -111,7 +112,7 @@ export default async function TournamentSlug({
             <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
           }
         >
-          <AwaitedQuestionsFeed filters={pageFilters} />
+          <AwaitedPostsFeed filters={pageFilters} />
         </Suspense>
       </section>
     </main>

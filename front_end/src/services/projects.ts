@@ -1,5 +1,10 @@
 import { Category, Tag, Topic, Tournament } from "@/types/projects";
 import { get } from "@/utils/fetch";
+import { encodeQueryParams } from "@/utils/query_params";
+
+export type TagsParams = {
+  search?: string;
+};
 
 class ProjectsApi {
   static async getTopics(): Promise<Topic[]> {
@@ -20,9 +25,11 @@ class ProjectsApi {
     }
   }
 
-  static async getTags(): Promise<Tag[]> {
+  static async getTags(params?: TagsParams): Promise<Tag[]> {
+    const queryParams = encodeQueryParams(params ?? {});
+
     try {
-      return await get<Tag[]>("/projects/tags");
+      return await get<Tag[]>(`/projects/tags${queryParams}`);
     } catch (err) {
       console.error("Error getting tags:", err);
       return [];

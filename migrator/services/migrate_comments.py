@@ -1,6 +1,6 @@
-from migrator.utils import paginated_query
 from comments.models import Comment, CommentType
-from questions.models import Question
+from migrator.utils import paginated_query
+from posts.models import Post
 
 
 def create_comment(comment_obj: dict) -> Comment:
@@ -20,7 +20,7 @@ def create_comment(comment_obj: dict) -> Comment:
         created_at=comment_obj["created_time"],
         is_soft_deleted=comment_obj["deleted"],
         text=comment_obj["comment_text"],
-        on_question_id=comment_obj["question_id"],
+        on_post_id=comment_obj["question_id"],
         type=comment_type,
         # migrating forecast data is going to be... hard
         # but can be skipped at the moment?
@@ -41,7 +41,7 @@ def migrate_comments():
         ;"""
     ):
         # probably would be faster in sql but ran into issues
-        if Question.objects.filter(id=comment["question_id"]).exists():
+        if Post.objects.filter(id=comment["question_id"]).exists():
             comments.append(create_comment(comment))
 
     Comment.objects.bulk_create(comments)
