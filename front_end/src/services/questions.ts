@@ -1,4 +1,4 @@
-import { PaginatedPayload } from "@/types/fetch";
+import { PaginatedPayload, PaginationParams } from "@/types/fetch";
 import {
   ForecastData,
   Question,
@@ -8,12 +8,10 @@ import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/query_params";
 
-export type QuestionsParams = {
+export type QuestionsParams = PaginationParams & {
   topic?: string;
   answered_by_me?: boolean;
   search?: string;
-  limit?: number;
-  offset?: number;
   forecast_type?: string | string[];
   status?: string | string[];
   categories?: string | string[];

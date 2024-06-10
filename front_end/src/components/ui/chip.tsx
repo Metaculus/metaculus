@@ -22,6 +22,7 @@ type Props = {
   className?: string;
   onClick?: () => void;
   href?: string;
+  label?: string;
 };
 
 const Chip: FC<PropsWithChildren<Props>> = ({
@@ -31,6 +32,7 @@ const Chip: FC<PropsWithChildren<Props>> = ({
   href,
   onClick,
   className,
+  label,
   children,
 }) => {
   return (
@@ -122,6 +124,29 @@ const Chip: FC<PropsWithChildren<Props>> = ({
         )}
       >
         {children}
+        {label && (
+          <div
+            className={classNames(
+              "flex items-center justify-center rounded-sm px-1 pb-0.5 pt-1",
+              {
+                "bg-orange-600 text-gray-0 dark:bg-orange-600-dark dark:text-gray-0-dark":
+                  color === "orange",
+                "bg-purple-600 text-gray-0 dark:bg-purple-600-dark dark:text-gray-0-dark":
+                  color === "purple",
+                "bg-gray-600 text-gray-0 dark:bg-gray-600-dark dark:text-gray-0-dark":
+                  color === "gray" || color == "grayBold",
+                "bg-blue-600 text-gray-0 dark:bg-blue-600-dark dark:text-gray-0-dark":
+                  color === "blue" || color === "blueBold",
+                "bg-olive-700 text-gray-0 dark:bg-olive-700-dark dark:text-gray-0-dark":
+                  color === "olive",
+                "bg-olive-900 text-gray-0 dark:bg-olive-900-dark dark:text-gray-0-dark":
+                  color === "oliveBold",
+              }
+            )}
+          >
+            {label}
+          </div>
+        )}
       </Button>
     </div>
   );

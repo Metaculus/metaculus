@@ -2,7 +2,7 @@
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useMemo } from "react";
 
 import {
   getDropdownSortOptions,
@@ -24,7 +24,7 @@ import {
   QUESTION_TEXT_SEARCH_FILTER,
 } from "@/constants/questions_feed";
 import { useAuth } from "@/contexts/auth_context";
-import useDebounce from "@/hooks/use_debounce";
+import useSearchInputState from "@/hooks/use_search_input_state";
 import useSearchParams from "@/hooks/use_search_params";
 import { Category, Tag } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
@@ -66,22 +66,9 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
   } = useSearchParams();
   const { user } = useAuth();
 
-  const [search, setSearch] = useState(() => {
-    const search = params.get(QUESTION_TEXT_SEARCH_FILTER);
-    return search ? decodeURIComponent(search) : "";
-  });
-  const debouncedSearch = useDebounce(search, 500);
-  useEffect(() => {
-    if (debouncedSearch) {
-      setParam(QUESTION_TEXT_SEARCH_FILTER, debouncedSearch);
-    } else {
-      deleteParam(QUESTION_TEXT_SEARCH_FILTER);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch]);
+  const [search, setSearch] = useSearchInputState(QUESTION_TEXT_SEARCH_FILTER);
   const eraseSearch = () => {
     setSearch("");
-    deleteParam(QUESTION_TEXT_SEARCH_FILTER);
   };
 
   const order = (params.get(QUESTION_ORDER_BY_FILTER) ??
