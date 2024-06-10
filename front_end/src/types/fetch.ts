@@ -25,6 +25,11 @@ export type FetchError = Error & {
   data?: ErrorResponse;
 };
 
+export type PaginationParams = {
+  limit?: number;
+  offset?: number;
+};
+
 export type PaginatedPayload<T> = {
   count: number;
   next: string | null;

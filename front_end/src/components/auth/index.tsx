@@ -9,14 +9,15 @@ import { useModal } from "@/contexts/modal_context";
 
 const NavUserButton: FC = () => {
   const { setCurrentModal } = useModal();
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
 
   return (
     <>
       {user ? (
         <Menu>
-          <MenuButton className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark">
+          <MenuButton className="flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-200-dark">
             {user.username}
+            <DropdownIcon />
           </MenuButton>
           <MenuItems
             anchor="bottom"
@@ -50,7 +51,7 @@ const NavUserButton: FC = () => {
         </Menu>
       ) : (
         <button
-          className="w-full px-4 py-1.5 text-center hover:bg-blue-400-dark lg:mx-2 lg:rounded-full lg:bg-blue-200 lg:px-2 lg:py-0 lg:text-blue-900 lg:hover:bg-blue-100"
+          className="w-full rounded-full bg-blue-200 px-2 text-center text-blue-900 hover:bg-blue-100"
           onClick={() => setCurrentModal({ type: "signin" })}
         >
           Log In
@@ -59,5 +60,19 @@ const NavUserButton: FC = () => {
     </>
   );
 };
+
+const DropdownIcon: FC = () => (
+  <svg
+    width="10"
+    height="6"
+    viewBox="0 0 10 6"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      className="fill-white"
+      d="M5.00008 6.00002L0.75708 1.75702L2.17208 0.343018L5.00008 3.17202L7.82808 0.343018L9.24308 1.75702L5.00008 6.00002Z"
+    />
+  </svg>
+);
 
 export default NavUserButton;

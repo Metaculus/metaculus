@@ -9,27 +9,28 @@ import { GroupButton } from "@/components/ui/button_group";
 import { ChipColor } from "@/components/ui/chip";
 import { SelectOption } from "@/components/ui/select";
 import {
-  QUESTION_ACCESS_FILTER,
-  QUESTION_AUTHOR_FILTER,
-  QUESTION_CATEGORIES_FILTER,
-  QUESTION_COMMENTED_BY_FILTER,
-  QUESTION_GUESSED_BY_FILTER,
-  QUESTION_NOT_GUESSED_BY_FILTER,
-  QUESTION_ORDER_BY_FILTER,
-  QUESTION_TYPE_FILTER,
-  QUESTION_STATUS_FILTER,
-  QUESTION_TAGS_FILTER,
-  QUESTION_TEXT_SEARCH_FILTER,
-  QUESTION_TOPIC_FILTER,
-  QUESTION_UPVOTED_BY_FILTER,
-} from "@/constants/questions_feed";
-import { QuestionsParams } from "@/services/questions";
+  POST_ACCESS_FILTER,
+  POST_AUTHOR_FILTER,
+  POST_CATEGORIES_FILTER,
+  POST_COMMENTED_BY_FILTER,
+  POST_GUESSED_BY_FILTER,
+  POST_NOT_GUESSED_BY_FILTER,
+  POST_ORDER_BY_FILTER,
+  POST_TYPE_FILTER,
+  POST_STATUS_FILTER,
+  POST_TAGS_FILTER,
+  POST_TEXT_SEARCH_FILTER,
+  POST_TOPIC_FILTER,
+  POST_UPVOTED_BY_FILTER,
+} from "@/constants/posts_feed";
+import { PostsParams } from "@/services/posts";
+import { SearchParams } from "@/types/navigation";
 import { Category, Tag } from "@/types/projects";
 import { QuestionOrder, QuestionStatus, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
 
 // TODO: translate
-const QUESTION_TYPE_LABEL_MAP = {
+const POST_TYPE_LABEL_MAP = {
   [QuestionType.Numeric]: "Numeric",
   [QuestionType.Date]: "Date",
   [QuestionType.MultipleChoice]: "Multiple Choice",
@@ -37,63 +38,63 @@ const QUESTION_TYPE_LABEL_MAP = {
 };
 
 // TODO: translate
-const QUESTION_STATUS_LABEL_MAP = {
+const POST_STATUS_LABEL_MAP = {
   [QuestionStatus.Active]: "Open",
   [QuestionStatus.Resolved]: "Resolved",
   [QuestionStatus.Closed]: "Closed",
 };
 
 export function generateFiltersFromSearchParams(
-  searchParams: Record<string, string | string[] | undefined>
-): QuestionsParams {
-  const filters: QuestionsParams = {};
+  searchParams: SearchParams
+): PostsParams {
+  const filters: PostsParams = {};
 
-  if (typeof searchParams[QUESTION_TEXT_SEARCH_FILTER] === "string") {
-    filters.search = searchParams[QUESTION_TEXT_SEARCH_FILTER];
-  }
-
-  if (typeof searchParams[QUESTION_TOPIC_FILTER] === "string") {
-    filters.topic = searchParams[QUESTION_TOPIC_FILTER];
+  if (typeof searchParams[POST_TEXT_SEARCH_FILTER] === "string") {
+    filters.search = searchParams[POST_TEXT_SEARCH_FILTER];
   }
 
-  if (searchParams[QUESTION_TYPE_FILTER]) {
-    filters.forecast_type = searchParams[QUESTION_TYPE_FILTER];
+  if (typeof searchParams[POST_TOPIC_FILTER] === "string") {
+    filters.topic = searchParams[POST_TOPIC_FILTER];
   }
 
-  if (searchParams[QUESTION_STATUS_FILTER]) {
-    filters.status = searchParams[QUESTION_STATUS_FILTER];
+  if (searchParams[POST_TYPE_FILTER]) {
+    filters.forecast_type = searchParams[POST_TYPE_FILTER];
   }
 
-  if (searchParams[QUESTION_CATEGORIES_FILTER]) {
-    filters.categories = searchParams[QUESTION_CATEGORIES_FILTER];
+  if (searchParams[POST_STATUS_FILTER]) {
+    filters.status = searchParams[POST_STATUS_FILTER];
   }
 
-  if (searchParams[QUESTION_TAGS_FILTER]) {
-    filters.tags = searchParams[QUESTION_TAGS_FILTER];
+  if (searchParams[POST_CATEGORIES_FILTER]) {
+    filters.categories = searchParams[POST_CATEGORIES_FILTER];
   }
 
-  if (typeof searchParams[QUESTION_GUESSED_BY_FILTER] === "string") {
-    filters.guessed_by = searchParams[QUESTION_GUESSED_BY_FILTER];
-  }
-  if (typeof searchParams[QUESTION_AUTHOR_FILTER] === "string") {
-    filters.author = searchParams[QUESTION_AUTHOR_FILTER];
-  }
-  if (typeof searchParams[QUESTION_UPVOTED_BY_FILTER] === "string") {
-    filters.upvoted_by = searchParams[QUESTION_UPVOTED_BY_FILTER];
-  }
-  if (typeof searchParams[QUESTION_COMMENTED_BY_FILTER] === "string") {
-    filters.commented_by = searchParams[QUESTION_COMMENTED_BY_FILTER];
-  }
-  if (typeof searchParams[QUESTION_NOT_GUESSED_BY_FILTER] === "string") {
-    filters.not_guessed_by = searchParams[QUESTION_NOT_GUESSED_BY_FILTER];
+  if (searchParams[POST_TAGS_FILTER]) {
+    filters.tags = searchParams[POST_TAGS_FILTER];
   }
 
-  if (typeof searchParams[QUESTION_ACCESS_FILTER] === "string") {
-    filters.access = searchParams[QUESTION_ACCESS_FILTER];
+  if (typeof searchParams[POST_GUESSED_BY_FILTER] === "string") {
+    filters.guessed_by = searchParams[POST_GUESSED_BY_FILTER];
+  }
+  if (typeof searchParams[POST_AUTHOR_FILTER] === "string") {
+    filters.author = searchParams[POST_AUTHOR_FILTER];
+  }
+  if (typeof searchParams[POST_UPVOTED_BY_FILTER] === "string") {
+    filters.upvoted_by = searchParams[POST_UPVOTED_BY_FILTER];
+  }
+  if (typeof searchParams[POST_COMMENTED_BY_FILTER] === "string") {
+    filters.commented_by = searchParams[POST_COMMENTED_BY_FILTER];
+  }
+  if (typeof searchParams[POST_NOT_GUESSED_BY_FILTER] === "string") {
+    filters.not_guessed_by = searchParams[POST_NOT_GUESSED_BY_FILTER];
   }
 
-  if (typeof searchParams[QUESTION_ORDER_BY_FILTER] === "string") {
-    filters.order_by = searchParams[QUESTION_ORDER_BY_FILTER];
+  if (typeof searchParams[POST_ACCESS_FILTER] === "string") {
+    filters.access = searchParams[POST_ACCESS_FILTER];
+  }
+
+  if (typeof searchParams[POST_ORDER_BY_FILTER] === "string") {
+    filters.order_by = searchParams[POST_ORDER_BY_FILTER];
   }
 
   return filters;
@@ -114,48 +115,46 @@ export function getQuestionsFilters({
 }): FilterSection[] {
   const filters: FilterSection[] = [
     {
-      id: QUESTION_TYPE_FILTER,
+      id: POST_TYPE_FILTER,
       title: t("questionType"),
       type: FilterOptionType.MultiChip,
       options: Object.values(QuestionType).map((type) => ({
-        label: QUESTION_TYPE_LABEL_MAP[type],
+        label: POST_TYPE_LABEL_MAP[type],
         value: type,
-        active: params.getAll(QUESTION_TYPE_FILTER).includes(type),
+        active: params.getAll(POST_TYPE_FILTER).includes(type),
       })),
     },
     {
-      id: QUESTION_STATUS_FILTER,
+      id: POST_STATUS_FILTER,
       title: t("questionStatus"),
       type: FilterOptionType.MultiChip,
       options: Object.values(QuestionStatus).map((status) => ({
-        label: QUESTION_STATUS_LABEL_MAP[status],
+        label: POST_STATUS_LABEL_MAP[status],
         value: status,
-        active: params.getAll(QUESTION_STATUS_FILTER).includes(status),
+        active: params.getAll(POST_STATUS_FILTER).includes(status),
       })),
     },
     {
-      id: QUESTION_CATEGORIES_FILTER,
+      id: POST_CATEGORIES_FILTER,
       title: t("category"),
       type: FilterOptionType.Combobox,
       options: categories.map((category) => ({
         label: category.name,
         value: category.slug,
-        active: params
-          .getAll(QUESTION_CATEGORIES_FILTER)
-          .includes(category.slug),
+        active: params.getAll(POST_CATEGORIES_FILTER).includes(category.slug),
       })),
-      chipColor: getFilterChipColor(QUESTION_CATEGORIES_FILTER),
+      chipColor: getFilterChipColor(POST_CATEGORIES_FILTER),
     },
     {
-      id: QUESTION_TAGS_FILTER,
+      id: POST_TAGS_FILTER,
       title: t("tags"),
       type: FilterOptionType.Combobox,
       options: tags.map((tag) => ({
         label: tag.name,
         value: tag.slug,
-        active: params.getAll(QUESTION_TAGS_FILTER).includes(tag.slug),
+        active: params.getAll(POST_TAGS_FILTER).includes(tag.slug),
       })),
-      chipColor: getFilterChipColor(QUESTION_TAGS_FILTER),
+      chipColor: getFilterChipColor(POST_TAGS_FILTER),
       chipFormat: (value) => t("tagFilter", { tag: value.toLowerCase() }),
       shouldEnforceSearch: true,
     },
@@ -168,55 +167,55 @@ export function getQuestionsFilters({
       type: FilterOptionType.ToggleChip,
       options: [
         {
-          id: QUESTION_GUESSED_BY_FILTER,
+          id: POST_GUESSED_BY_FILTER,
           label: t("predicted"),
           value: user.id.toString(),
-          active: !!params.get(QUESTION_GUESSED_BY_FILTER),
+          active: !!params.get(POST_GUESSED_BY_FILTER),
         },
         {
-          id: QUESTION_NOT_GUESSED_BY_FILTER,
+          id: POST_NOT_GUESSED_BY_FILTER,
           label: t("notPredicted"),
           value: user.id.toString(),
-          active: !!params.get(QUESTION_NOT_GUESSED_BY_FILTER),
+          active: !!params.get(POST_NOT_GUESSED_BY_FILTER),
         },
         {
-          id: QUESTION_AUTHOR_FILTER,
+          id: POST_AUTHOR_FILTER,
           label: t("authored"),
           value: user.id.toString(),
-          active: !!params.get(QUESTION_AUTHOR_FILTER),
+          active: !!params.get(POST_AUTHOR_FILTER),
         },
         {
-          id: QUESTION_UPVOTED_BY_FILTER,
+          id: POST_UPVOTED_BY_FILTER,
           label: t("upvoted"),
           value: user.id.toString(),
-          active: !!params.get(QUESTION_UPVOTED_BY_FILTER),
+          active: !!params.get(POST_UPVOTED_BY_FILTER),
         },
         {
-          id: QUESTION_COMMENTED_BY_FILTER,
+          id: POST_COMMENTED_BY_FILTER,
           label: t("moderating"),
           value: user.id.toString(),
-          active: !!params.get(QUESTION_COMMENTED_BY_FILTER),
+          active: !!params.get(POST_COMMENTED_BY_FILTER),
         },
       ],
     });
   }
 
   filters.push({
-    id: QUESTION_ACCESS_FILTER,
+    id: POST_ACCESS_FILTER,
     title: t("visibility"),
     type: FilterOptionType.ToggleChip,
     options: [
       {
-        id: QUESTION_ACCESS_FILTER,
+        id: POST_ACCESS_FILTER,
         label: t("public"),
         value: "public",
-        active: params.get(QUESTION_ACCESS_FILTER) === "public",
+        active: params.get(POST_ACCESS_FILTER) === "public",
       },
       {
-        id: QUESTION_ACCESS_FILTER,
+        id: POST_ACCESS_FILTER,
         label: t("private"),
         value: "private",
-        active: params.get(QUESTION_ACCESS_FILTER) === "private",
+        active: params.get(POST_ACCESS_FILTER) === "private",
       },
     ],
   });
@@ -302,7 +301,7 @@ export function getDropdownSortOptions(
 }
 
 export function getFilterChipColor(id: string): ChipColor {
-  if (id === QUESTION_CATEGORIES_FILTER) {
+  if (id === POST_CATEGORIES_FILTER) {
     return "olive";
   }
 

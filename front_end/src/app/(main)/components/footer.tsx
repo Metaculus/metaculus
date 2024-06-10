@@ -1,5 +1,6 @@
 import { faTwitter } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Image from "next/image";
 import { FC } from "react";
 
 const Footer: FC = () => {
@@ -119,60 +120,78 @@ const Footer: FC = () => {
       </div>
 
       <div className="mt-3 flex w-full items-center justify-around bg-gray-600-dark py-0.5 sm:py-1">
-        <div>
-          <a href="https://www.forbes.com/sites/erikbirkeneder/2020/06/01/do-crowdsourced-predictions-show-the-wisdom-of-humans/">
-            <img
-              className="h-5 object-contain px-2 invert"
-              src="https://d3s0w6fek99l5b.cloudfront.net/static/media/Forbes.d977fa9e9196.png"
-              alt="Forbes"
-            ></img>
-          </a>
-        </div>
-        <div>
-          <a href="https://blogs.scientificamerican.com/observations/prediction-tools-can-save-lives-in-the-covid-19-crisis/">
-            <img
-              className="h-5 object-contain px-2 invert"
-              src="https://d3s0w6fek99l5b.cloudfront.net/static/media/Scientific_American.7b92ecaf540e.png"
-              alt="Scientific American"
-            ></img>
-          </a>
-        </div>
-        <div>
-          <a href="https://time.com/5848271/superforecasters-covid-19/">
-            <img
-              className="h-5 object-contain px-2 invert"
-              src="https://d3s0w6fek99l5b.cloudfront.net/static/media/time.51a0d6644179.png"
-              alt="Time"
-            ></img>
-          </a>
-        </div>
-        <div>
-          <a href="https://www.vox.com/future-perfect/2020/4/8/21210193/coronavirus-forecasting-models-predictions">
-            <img
-              className="h-5 object-contain px-2 invert"
-              src="https://d3s0w6fek99l5b.cloudfront.net/static/media/vox.e0f55c55ae3c.png"
-              alt="Vox"
-            ></img>
-          </a>
-        </div>
-        <div>
-          <a href="https://news.yale.edu/2016/11/02/metaculus-prediction-website-eye-science-and-technology">
-            <img
-              className="h-5 object-contain px-2 invert"
-              src="https://d3s0w6fek99l5b.cloudfront.net/static/media/yale.ce7e6c2b0f04.png"
-              alt="Yale News"
-            ></img>
-          </a>
-        </div>
-        <div>
-          <a href="https://www.nature.com/news/the-power-of-prediction-markets-1.20820">
-            <img
-              className="h-5 object-contain px-2 invert"
-              src="https://d3s0w6fek99l5b.cloudfront.net/static/media/nature.b83b2c778bce.png"
-              alt="Nature"
-            ></img>
-          </a>
-        </div>
+        <a
+          className="relative flex h-5 w-[92px]"
+          href="https://www.forbes.com/sites/erikbirkeneder/2020/06/01/do-crowdsourced-predictions-show-the-wisdom-of-humans/"
+        >
+          <Image
+            className="object-contain px-2 invert"
+            src="https://d3s0w6fek99l5b.cloudfront.net/static/media/Forbes.d977fa9e9196.png"
+            alt="Forbes"
+            fill
+            sizes="(max-width: 768px) 92px, 20vw"
+          />
+        </a>
+        <a
+          className="relative flex h-5 w-[85px]"
+          href="https://blogs.scientificamerican.com/observations/prediction-tools-can-save-lives-in-the-covid-19-crisis/"
+        >
+          <Image
+            className="object-contain px-2 invert"
+            src="https://d3s0w6fek99l5b.cloudfront.net/static/media/Scientific_American.7b92ecaf540e.png"
+            alt="Scientific American"
+            fill
+            sizes="(max-width: 768px) 85px, 20vw"
+          />
+        </a>
+        <a
+          className="relative flex h-5 w-[80px]"
+          href="https://time.com/5848271/superforecasters-covid-19/"
+        >
+          <Image
+            className="w-auto max-w-[80px] object-contain px-2 invert"
+            src="https://d3s0w6fek99l5b.cloudfront.net/static/media/time.51a0d6644179.png"
+            alt="Time"
+            fill
+            sizes="(max-width: 768px) 80px, 20vw"
+          />
+        </a>
+        <a
+          className="relative flex h-5 w-[60px]"
+          href="https://www.vox.com/future-perfect/2020/4/8/21210193/coronavirus-forecasting-models-predictions"
+        >
+          <Image
+            className="w-auto max-w-[60px] object-contain px-2 invert"
+            src="https://d3s0w6fek99l5b.cloudfront.net/static/media/vox.e0f55c55ae3c.png"
+            alt="Vox"
+            fill
+            sizes="(max-width: 768px) 60px, 20vw"
+          />
+        </a>
+        <a
+          className="relative flex h-5 w-[125px]"
+          href="https://news.yale.edu/2016/11/02/metaculus-prediction-website-eye-science-and-technology"
+        >
+          <Image
+            className="w-auto max-w-[125px] object-contain px-2 invert"
+            src="https://d3s0w6fek99l5b.cloudfront.net/static/media/yale.ce7e6c2b0f04.png"
+            alt="Yale News"
+            fill
+            sizes="(max-width: 768px) 125px, 20vw"
+          />
+        </a>
+        <a
+          className="relative flex h-5 w-[96px]"
+          href="https://www.nature.com/news/the-power-of-prediction-markets-1.20820"
+        >
+          <Image
+            className="w-auto max-w-[96px] object-contain px-2 invert"
+            src="https://d3s0w6fek99l5b.cloudfront.net/static/media/nature.b83b2c778bce.png"
+            alt="Nature"
+            fill
+            sizes="(max-width: 768px) 96px, 20vw"
+          />
+        </a>
       </div>
     </footer>
   );
