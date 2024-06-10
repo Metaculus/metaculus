@@ -106,7 +106,13 @@ export type QuestionWithForecasts =
   | QuestionWithMultipleChoiceForecasts;
 
 export type ForecastData = {
-  continuousCdf: number[];
-  probabilityYes: number;
-  probabilityYesPerCategory: number[];
+  continuousCdf: number[] | null;
+  probabilityYes: number | null;
+  probabilityYesPerCategory: number[] | null;
+  sliders: {
+    center: number;
+    left: number;
+    right: number;
+    weight: number;
+  }[];
 };
