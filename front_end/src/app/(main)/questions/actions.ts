@@ -2,6 +2,7 @@
 
 import QuestionsApi, { QuestionsParams } from "@/services/questions";
 import { FetchError } from "@/types/fetch";
+import { ForecastData } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
 export async function fetchMoreQuestions(
@@ -23,6 +24,21 @@ export async function voteQuestion(
 ) {
   try {
     return await QuestionsApi.voteQuestion(questionId, direction);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
+export async function createForecast(
+  questionId: number,
+  forecastData: ForecastData
+) {
+  try {
+    return await QuestionsApi.createForecast(questionId, forecastData);
   } catch (err) {
     const error = err as FetchError;
 
