@@ -12,6 +12,7 @@ import AwaitedQuestionsFeed from "@/components/questions_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProjectsApi from "@/services/projects";
 import { QuestionsParams } from "@/services/questions";
+import { SearchParams } from "@/types/navigation";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 
@@ -20,7 +21,7 @@ export default async function TournamentSlug({
   searchParams,
 }: {
   params: { slug: string };
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: SearchParams;
 }) {
   const tournament = await ProjectsApi.getSlugTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
