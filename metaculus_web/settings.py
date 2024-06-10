@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "utils",
     "authentication",
     "users",
+    "posts",
     "questions",
     "projects",
     "scoring",
