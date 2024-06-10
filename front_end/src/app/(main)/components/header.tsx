@@ -25,7 +25,7 @@ const Header: FC = () => {
           href="/"
           className="inline-flex max-w-60 flex-shrink-0 flex-grow-0 basis-auto flex-col justify-center text-center no-underline"
         >
-          <h1 className="mx-3 my-0 pt-1 font-['alternate-gothic-no-1-d'] text-[30px] font-light tracking-[.08em] text-white antialiased">
+          <h1 className="mx-3 my-0 pt-1 font-alternate-gothic text-[30px] font-light tracking-[.08em] !text-white antialiased">
             M<span className="hidden xs:inline">etaculus</span>
           </h1>
         </Link>
