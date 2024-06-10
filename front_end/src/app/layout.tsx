@@ -88,6 +88,11 @@ const diatypeVariable = localFont({
   variable: "--font-diatype-variable",
 });
 
+const alternateGothic = localFont({
+  src: "./assets/fonts/alternategothicno1.otf",
+  variable: "--font-alternate-gothic-no-1-d",
+});
+
 export const metadata: Metadata = {
   title: "Metaculus",
   description: "Metaculus rewrite",
@@ -109,7 +114,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${diatypeVariable.variable} ${diatype.variable} ${sourceSerifPro.variable} font-sans`}
+      className={`${diatypeVariable.variable} ${diatype.variable} ${sourceSerifPro.variable} ${alternateGothic.variable} font-sans`}
       // required by next-themes
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       suppressHydrationWarning
