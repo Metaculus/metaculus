@@ -15,6 +15,7 @@ from .models import Question
 class QuestionSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
     status = serializers.CharField()
+    author_username = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
@@ -22,6 +23,9 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     def get_projects(self, obj: Question):
         return serialize_projects(obj.projects.all())
+
+    def get_author_username(self, obj: Question):
+        return obj.author.username
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
