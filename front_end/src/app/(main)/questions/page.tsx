@@ -6,11 +6,12 @@ import QuestionFilters from "@/components/question_filters";
 import AwaitedQuestionsFeed from "@/components/questions_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProjectsApi from "@/services/projects";
+import { SearchParams } from "@/types/navigation";
 
 export default async function Questions({
   searchParams,
 }: {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: SearchParams;
 }) {
   const filters = generateFiltersFromSearchParams(searchParams);
 
