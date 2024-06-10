@@ -77,6 +77,12 @@ def enrich_question_with_forecasts_f(
     end_date = timezone.now().date()
     if question.closed_at and question.closed_at.date() < end_date:
         end_date = question.closed_at.date()
+    # TODO: Were this should live: post or object itself?
+    if question.published_at:
+        forecast_times = [
+            question.published_at + timedelta(days=x)
+            for x in range((end_date - question.published_at.date()).days + 1)
+        ]
 
     if question.type == "multiple_choice":
         forecasts_data = {

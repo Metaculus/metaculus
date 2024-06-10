@@ -2,8 +2,8 @@ import { Suspense } from "react";
 
 import QuestionTopics from "@/app/(main)/questions/components/question_topics";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
+import AwaitedPostsFeed from "@/components/posts_feed";
 import QuestionFilters from "@/components/question_filters";
-import AwaitedQuestionsFeed from "@/components/questions_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
@@ -33,7 +33,7 @@ export default async function Questions({
               <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
             }
           >
-            <AwaitedQuestionsFeed filters={filters} />
+            <AwaitedPostsFeed filters={filters} />
           </Suspense>
         </div>
       </div>

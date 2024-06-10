@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Chip from "@/components/ui/chip";
-import { QUESTION_CATEGORIES_FILTER } from "@/constants/questions_feed";
+import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
 import { Category } from "@/types/projects";
 
 import DiscoverySection from "./section";
@@ -24,7 +24,7 @@ const CategoriesDiscovery: FC<Props> = ({ categories }) => {
         {categoriesToDisplay.map((category) => (
           <Chip
             key={category.id}
-            href={`/questions/?${QUESTION_CATEGORIES_FILTER}=${category.slug}`}
+            href={`/questions/?${POST_CATEGORIES_FILTER}=${category.slug}`}
             color="olive"
             size="sm"
           >
