@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { ChangeEvent, FC, useEffect, useState } from "react";
+import { ChangeEvent, FC } from "react";
 
 import {
   TOURNAMENTS_SEARCH,
@@ -8,35 +8,25 @@ import {
 } from "@/app/(main)/tournaments/constants/query_params";
 import SearchInput from "@/components/search_input";
 import Select, { SelectOption } from "@/components/ui/select";
-import useDebounce from "@/hooks/use_debounce";
+import useSearchInputState from "@/hooks/use_search_input_state";
 import useSearchParams from "@/hooks/use_search_params";
 import { TournamentsSortBy } from "@/types/projects";
 
 const TournamentFilters: FC = () => {
   const t = useTranslations();
-  const { params, setParam, deleteParam, shallowNavigateToSearchParams } =
-    useSearchParams();
+  const { params, setParam, shallowNavigateToSearchParams } = useSearchParams();
 
-  const [searchQuery, setSearchQuery] = useState(() => {
-    const search = params.get(TOURNAMENTS_SEARCH);
-    return search ? decodeURIComponent(search) : "";
-  });
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const [searchQuery, setSearchQuery] = useSearchInputState(
+    TOURNAMENTS_SEARCH,
+    { mode: "client", debounceTime: 300 }
+  );
+
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
   };
   const handleSearchErase = () => {
     setSearchQuery("");
   };
-  useEffect(() => {
-    if (debouncedSearchQuery) {
-      setParam(TOURNAMENTS_SEARCH, debouncedSearchQuery, false);
-    } else {
-      deleteParam(TOURNAMENTS_SEARCH, false);
-    }
-    shallowNavigateToSearchParams();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearchQuery]);
 
   const sortBy =
     (params.get(TOURNAMENTS_SORT) as TournamentsSortBy) ??
