@@ -1,0 +1,13 @@
+.rc-slider {
+  @apply relative flex h-9 w-full touch-none items-center;
+}
+.rc-slider-rail {
+  @apply absolute h-[1px] w-full bg-gray-900 dark:bg-gray-900-dark;
+}
+.rc-slider-track,
+.rc-slider-tracks {
+  @apply absolute h-[1px] bg-gray-900 dark:bg-gray-900-dark;
+}
+.rc-slider-handle {
+  @apply absolute cursor-pointer border border-gray-900 bg-blue-100 focus:outline-none dark:border-gray-900-dark dark:bg-blue-100-dark;
+}
