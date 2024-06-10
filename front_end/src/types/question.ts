@@ -69,6 +69,8 @@ export type Question = {
     topic: Topic[];
   };
   title: string;
+  min: number;
+  max: number;
   description: string;
   created_at: string;
   updated_at: string;

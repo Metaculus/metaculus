@@ -6,18 +6,24 @@ import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
-import { binWeightsFromSliders } from "@/utils/math";
 
 type Props = {
+  dataset: number[];
   min: number;
   max: number;
-  left: number;
-  center: number;
-  right: number;
+  lower25: number;
+  median: number;
+  upper75: number;
 };
 
-const NumericPickerChart: FC<Props> = ({ min, max, left, center, right }) => {
-  const dataset = binWeightsFromSliders(left, center, right);
+const NumericPickerChart: FC<Props> = ({
+  min,
+  max,
+  dataset,
+  lower25,
+  median,
+  upper75,
+}) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
@@ -44,23 +50,36 @@ const NumericPickerChart: FC<Props> = ({ min, max, left, center, right }) => {
     .map((x) => Number(x.toFixed(0)))
     .slice(1, -1);
 
+  const verticalLines = [
+    {
+      x: lower25 * 10,
+      y: chartData[Math.min(198, Math.round(lower25 * 200))].y,
+    },
+    { x: median * 10, y: chartData[Math.min(198, Math.round(median * 200))].y },
+    {
+      x: upper75 * 10,
+      y: chartData[Math.min(198, Math.round(upper75 * 200))].y,
+    },
+  ];
+
+  console.log(verticalLines);
+
   return (
     <div ref={chartContainerRef} className="h-full w-full">
       {!!chartWidth && (
         <VictoryChart
           width={chartWidth}
-          height={500}
           theme={chartTheme}
           domain={{
             x: [min, max],
-            y: [0, 2 * Math.min(0.01, Math.max(...dataset))],
+            y: [0, 1.2 * Math.max(...dataset)],
           }}
         >
           <VictoryArea
             data={chartData}
             style={{
               data: {
-                fill: METAC_COLORS.olive["500"].DEFAULT,
+                fill: METAC_COLORS.orange["300"].DEFAULT,
                 opacity: 0.3,
               },
             }}
@@ -69,10 +88,26 @@ const NumericPickerChart: FC<Props> = ({ min, max, left, center, right }) => {
             data={chartData}
             style={{
               data: {
-                stroke: METAC_COLORS.olive["700"].DEFAULT,
+                stroke: METAC_COLORS.orange["500"].DEFAULT,
+                strokeDasharray: "2,2",
               },
             }}
           />
+          {verticalLines.map((line, index) => (
+            <VictoryLine
+              key={index}
+              data={[
+                { x: line.x, y: 0 },
+                { x: line.x, y: line.y },
+              ]}
+              style={{
+                data: {
+                  stroke: METAC_COLORS.orange["500"].DEFAULT,
+                  strokeDasharray: "2,2",
+                },
+              }}
+            />
+          ))}
           <VictoryAxis tickValues={xTickValues} />
         </VictoryChart>
       )}
