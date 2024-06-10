@@ -44,6 +44,7 @@ def create_question(question: dict) -> Question:
         return None
     new_question = Question(
         id=question["id"],
+        title=question["title"],
         max=max,
         min=min,
         open_upper_bound=open_upper_bound,
@@ -83,15 +84,15 @@ def migrate_questions():
     posts = []
 
     for old_question in paginated_query(
-        """SELECT
-            q.*,
-            ARRAY_AGG(o.label) AS option_labels
-        FROM
-            metac_question_question q
-        LEFT JOIN
-            metac_question_option o ON q.id = o.question_id
-        GROUP BY
-    q.id;"""
+            """SELECT
+                q.*,
+                ARRAY_AGG(o.label) AS option_labels
+            FROM
+                metac_question_question q
+            LEFT JOIN
+                metac_question_option o ON q.id = o.question_id
+            GROUP BY
+        q.id;"""
     ):
         # TODO: skipping groups/conditional for now
         #   So it should be implemented in the future

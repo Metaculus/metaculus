@@ -234,12 +234,12 @@ def post_create_api_view(request):
     serializer = PostWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    data = serializer.validated_data
-    projects_by_category: dict[str, list[Project]] = data.pop("projects", {})
-    question_data = data.pop("question")
+    post_data = serializer.validated_data
+    projects_by_category: dict[str, list[Project]] = post_data.pop("projects", {})
+    question_data = post_data.pop("question")
 
-    question = Question.objects.create(**question_data)
-    post = Post.objects.create(author=request.user, question=question, **data)
+    question = Question.objects.create(title=post_data["title"], **question_data)
+    post = Post.objects.create(author=request.user, question=question, **post_data)
 
     projects_flat = flatten(projects_by_category.values())
     post.projects.add(*projects_flat)
