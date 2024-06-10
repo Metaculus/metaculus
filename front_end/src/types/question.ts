@@ -87,6 +87,7 @@ export type Question = {
   vote: QuestionVote;
   status: QuestionStatus;
   nr_forecasters: number;
+  author_username: string;
 };
 
 export type QuestionWithNumericForecasts = Question & {
@@ -97,6 +98,13 @@ export type QuestionWithMultipleChoiceForecasts = Question & {
   type: QuestionType.MultipleChoice;
   forecasts: MultipleChoiceForecast;
 };
+
 export type QuestionWithForecasts =
   | QuestionWithNumericForecasts
   | QuestionWithMultipleChoiceForecasts;
+
+export type ForecastData = {
+  continuousCdf: number[];
+  probabilityYes: number;
+  probabilityYesPerCategory: number[];
+};

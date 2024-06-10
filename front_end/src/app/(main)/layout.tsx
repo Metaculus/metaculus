@@ -18,10 +18,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <div className="pt-12 ">{children}</div>
+      <div className="flex-grow pt-12">{children}</div>
       <Footer />
-    </>
+    </div>
   );
 }
