@@ -14,6 +14,8 @@ export default async function Tournaments() {
   const { activeTournaments, archivedTournaments, questionSeries } =
     extractTournamentLists(tournaments);
 
+  console.log("activeTournaments", activeTournaments.length);
+
   return (
     <main className="mx-auto mb-24 mt-16 w-full max-w-7xl flex-1 px-4 text-blue-700 dark:text-blue-700-dark sm:mt-28 sm:px-8 md:px-12 lg:px-16">
       <div>
@@ -73,26 +75,17 @@ function extractTournamentLists(tournaments: Tournament[]) {
   const questionSeries: Tournament[] = [];
 
   for (const tournament of tournaments) {
-    if (!tournament.questions_count) {
+    if (!tournament.posts_count) {
       continue;
     }
 
-    const closeDate = new Date(tournament.close_date);
-
-    if (
-      tournament.type === TournamentType.QuestionSeries &&
-      isBefore(now, closeDate)
-    ) {
-      questionSeries.push(tournament);
-      continue;
-    }
-
-    if (tournament.is_ongoing && isBefore(now, closeDate)) {
-      activeTournaments.push(tournament);
-      continue;
-    }
-
-    if (!tournament.is_ongoing && isAfter(now, closeDate)) {
+    if (tournament.is_ongoing) {
+      if (tournament.type === TournamentType.QuestionSeries) {
+        questionSeries.push(tournament);
+      } else {
+        activeTournaments.push(tournament);
+      }
+    } else {
       archivedTournaments.push(tournament);
     }
   }
