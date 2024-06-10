@@ -86,6 +86,7 @@ def enrich_questions_with_forecasts(
         end_date = datetime.now().date()
         if question.closed_at and question.closed_at.date() < end_date:
             end_date = question.closed_at.date()
+        # TODO: Were this should live: post or object itself?
         if question.published_at:
             forecast_times = [
                 question.published_at + timedelta(days=x)
