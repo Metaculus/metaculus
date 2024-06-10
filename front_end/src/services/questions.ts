@@ -1,5 +1,9 @@
 import { PaginatedPayload } from "@/types/fetch";
-import { Question, QuestionWithForecasts } from "@/types/question";
+import {
+  ForecastData,
+  Question,
+  QuestionWithForecasts,
+} from "@/types/question";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/query_params";
@@ -72,6 +76,17 @@ class QuestionsApi {
     direction: VoteDirection
   ): Promise<VoteResponse> {
     return await post<VoteResponse>(`/questions/${id}/vote`, { direction });
+  }
+
+  static async createForecast(
+    questionId: number,
+    forecastData: ForecastData
+  ): Promise<VoteResponse> {
+    return await post<VoteResponse>(`/forecast/create/`, {
+      continuous_cdf: forecastData.continuousCdf,
+      probability_yes: forecastData.probabilityYes,
+      probability_yes_per_category: forecastData.probabilityYesPerCategory,
+    });
   }
 }
 
