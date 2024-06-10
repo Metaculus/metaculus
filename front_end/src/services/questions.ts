@@ -76,11 +76,8 @@ class QuestionsApi {
     return await post<VoteResponse>(`/questions/${id}/vote`, { direction });
   }
 
-  static async createForecast(
-    questionId: number,
-    forecastData: ForecastData
-  ): Promise<VoteResponse> {
-    return await post<VoteResponse>(`/forecast/create/`, {
+  static async createForecast(questionId: number, forecastData: ForecastData) {
+    return await post(`/forecasts/create/`, {
       continuous_cdf: forecastData.continuousCdf,
       probability_yes: forecastData.probabilityYes,
       probability_yes_per_category: forecastData.probabilityYesPerCategory,

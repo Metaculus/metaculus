@@ -2,6 +2,7 @@
 
 import { FC, useState } from "react";
 
+import { createForecast } from "@/app/(main)/questions/actions";
 import NumericPickerChart from "@/components/charts/numeric_picker_chart";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getIsForecastEmpty } from "@/utils/forecasts";
@@ -21,6 +22,7 @@ const ForecastMakerNumeric: FC<Props> = ({ question, prevSlider }) => {
     left: prevSlider ? prevSlider.left : 0.4,
     center: prevSlider ? prevSlider.center : 0.5,
     right: prevSlider ? prevSlider.right : 0.6,
+    weight: 1,
   });
 
   const dataset = binWeightsFromSliders(
@@ -54,6 +56,7 @@ const ForecastMakerNumeric: FC<Props> = ({ question, prevSlider }) => {
                 left: 0.4,
                 right: 0.6,
                 center: 0.5,
+                weight: 1,
               }
         }
         step={0.00001}
@@ -64,7 +67,17 @@ const ForecastMakerNumeric: FC<Props> = ({ question, prevSlider }) => {
           <button className="mr-2 rounded-lg bg-gray-600 px-4 py-2 text-white">
             Add Component
           </button>
-          <button className="rounded-lg bg-blue-300 px-4 py-2 text-gray-800">
+          <button
+            className="rounded-lg bg-blue-300 px-4 py-2 text-gray-800"
+            onClick={async () => {
+              await createForecast(question.id, {
+                continuousCdf: dataset.cdf,
+                probabilityYes: null,
+                probabilityYesPerCategory: null,
+                sliders: [forecast],
+              });
+            }}
+          >
             Predict
           </button>
         </div>

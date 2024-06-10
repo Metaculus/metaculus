@@ -25,6 +25,7 @@ export default function Questions() {
     left: 116,
     center: 203,
     right: 232,
+    weight: 1,
   });
   const [sliderValue, setSliderValue] = useState(50);
 
