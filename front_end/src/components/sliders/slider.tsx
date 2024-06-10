@@ -11,15 +11,17 @@ type Props = {
   max: number;
   value: number;
   onChange: (value: number) => void;
+  step: number;
 };
 
-const Slider: FC<Props> = ({ value, min, max, onChange }) => {
+const Slider: FC<Props> = ({ value, min, max, onChange, step }) => {
   return (
     <RcSlider
       className="h-9 w-full"
       defaultValue={value}
       min={min}
       max={max}
+      step={step}
       onChange={(_value) => {
         const value = _value as number;
         onChange(value);

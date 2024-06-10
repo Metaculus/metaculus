@@ -21,7 +21,7 @@ export default async function IndividualQuestion({
 
   return (
     <main className="flex flex-row justify-center gap-2 p-6">
-      <div className="max-w-[540px] bg-white  p-4 dark:bg-blue-800">
+      <div className="w-[700px] bg-white  p-4 dark:bg-blue-900">
         <span className="m-2 bg-blue-400 p-1 text-xl font-extrabold text-blue-700">
           Question
         </span>
@@ -29,9 +29,11 @@ export default async function IndividualQuestion({
           {questionData?.title}
         </h1>
         {questionData && <DetailedQuestionCard question={questionData} />}
-        {questionData && (
-          <ForecastMakerNumeric question={questionData} prevSlider={null} />
-        )}
+        <div className="p-6 dark:bg-blue-800">
+          {questionData && (
+            <ForecastMakerNumeric question={questionData} prevSlider={null} />
+          )}
+        </div>
         {commentsData && <CommentFeed comments={commentsData} />}
       </div>
       <div className="flex max-w-[240px] flex-col bg-white p-4 dark:bg-blue-800">

@@ -11,6 +11,7 @@ import MultiSlider, {
 } from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
 import { QuestionType } from "@/types/question";
+import { binWeightsFromSliders, computeQuartilesFromCDF } from "@/utils/math";
 import {
   generateMockMultipleChoiceChart,
   generateMockNumericChart,
@@ -27,6 +28,9 @@ export default function Questions() {
   });
   const [sliderValue, setSliderValue] = useState(50);
 
+  const dataset = binWeightsFromSliders(0.4, 0.7, 0.8);
+  const quantiles = computeQuartilesFromCDF(dataset.cdf);
+
   return (
     <main className="flex flex-col gap-2 p-6">
       <Link
@@ -39,19 +43,27 @@ export default function Questions() {
       <NumericPickerChart
         min={10}
         max={300}
-        left={0.4}
-        center={0.7}
-        right={0.8}
+        dataset={dataset.pmf}
+        lower25={1}
+        median={2}
+        upper75={3}
       />
       Multi slider:
       <MultiSlider
         min={10}
         max={300}
         value={multiSliderValue}
+        step={0.1}
         onChange={setMultiSliderValue}
       />
       Slider:
-      <Slider min={0} max={100} value={sliderValue} onChange={setSliderValue} />
+      <Slider
+        min={0}
+        max={100}
+        step={0.1}
+        value={sliderValue}
+        onChange={setSliderValue}
+      />
       {/*<NumericPickerSlider onSliderChange={() => {}} />*/}
       {/*Numeric Chart:*/}
       {/*<NumericChartCard*/}

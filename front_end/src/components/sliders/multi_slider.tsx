@@ -18,10 +18,11 @@ type Props = {
   value: MultiSliderValue;
   min: number;
   max: number;
+  step: number;
   onChange: (value: MultiSliderValue) => void;
 };
 
-const MultiSlider: FC<Props> = ({ value, min, max, onChange }) => {
+const MultiSlider: FC<Props> = ({ value, min, max, step, onChange }) => {
   const [controlledValue, setControlledValue] = useState<ControlledValue>([
     value.left,
     value.center,
@@ -38,6 +39,7 @@ const MultiSlider: FC<Props> = ({ value, min, max, onChange }) => {
     <Slider
       min={min}
       max={max}
+      step={step}
       value={controlledValue}
       range
       onChange={(_value) => {
