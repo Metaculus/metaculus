@@ -27,8 +27,8 @@ class ProjectsQuerySet(models.QuerySet):
     def filter_active(self):
         return self.filter(is_active=True)
 
-    def annotate_questions_count(self):
-        return self.annotate(questions_count=Count("questions", distinct=True))
+    def annotate_posts_count(self):
+        return self.annotate(posts_count=Count("posts", distinct=True))
 
 
 class Project(TimeStampedModel):
@@ -115,7 +115,7 @@ class Project(TimeStampedModel):
     objects = models.Manager.from_queryset(ProjectsQuerySet)()
 
     # Annotated fields
-    questions_count: int = 0
+    posts_count: int = 0
 
     class Meta:
         ordering = ("order",)
