@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questions', '0006_alter_question_type_alter_vote_direction'),
+        ("questions", "0006_alter_question_type_alter_vote_direction"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='vote',
-            name='direction',
-            field=models.SmallIntegerField(choices=[(1, 'Up'), (-1, 'Down')]),
+            model_name="vote",
+            name="direction",
+            field=models.SmallIntegerField(choices=[(1, "Up"), (-1, "Down")]),
         ),
     ]
