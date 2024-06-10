@@ -1,8 +1,9 @@
 from django.db import models
-from django.db.models import Sum, Case, When, IntegerField
+from django.db.models import Sum
 
+from posts.models import Post
 from projects.models import Project
-from questions.models import Question, Forecast, Vote
+from questions.models import Question, Forecast
 from users.models import User
 
 
@@ -30,7 +31,7 @@ class Comment(models.Model):
     edited_at = models.DateTimeField(auto_now_add=True)
     is_soft_deleted = models.BooleanField(null=True)
     text = models.TextField()
-    on_question = models.ForeignKey(Question, models.CASCADE, null=True)
+    on_post = models.ForeignKey(Post, models.CASCADE, null=True)
     on_project = models.ForeignKey(Project, models.CASCADE, null=True)
     included_forecast = models.ForeignKey(
         Forecast, on_delete=models.SET_NULL, null=True
