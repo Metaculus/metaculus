@@ -2,15 +2,16 @@ from datetime import datetime
 
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
 from questions.models import Forecast, Question
 
 
 @api_view(["POST"])
-def create_forecast(request):
+def create_forecast_api_view(request, pk: int):
+    question = get_object_or_404(Question.objects.all(), pk=pk)
     data = request.data
-    question = Question.objects.get(pk=data["question_id"])
     now = datetime.now()
     prev_forecasts = (
         Forecast.objects.filter(question=question, user=request.user)
