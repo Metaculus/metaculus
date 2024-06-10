@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import SearchInput from "@/components/search_input";
-import { QUESTION_TEXT_SEARCH_FILTER } from "@/constants/questions_feed";
+import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
 import { encodeQueryParams } from "@/utils/query_params";
 
 type Props = {};
@@ -18,7 +18,7 @@ const HomeSearch: FC<Props> = () => {
   const handleSearchSubmit = (searchQuery: string) => {
     router.push(
       `/questions` +
-        encodeQueryParams({ [QUESTION_TEXT_SEARCH_FILTER]: searchQuery })
+        encodeQueryParams({ [POST_TEXT_SEARCH_FILTER]: searchQuery })
     );
   };
 

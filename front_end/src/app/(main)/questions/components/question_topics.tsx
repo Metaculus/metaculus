@@ -12,9 +12,9 @@ import { FC, useMemo, useState } from "react";
 import TopicItem from "@/app/(main)/questions/components/topic_item";
 import Button from "@/components/ui/button";
 import {
-  QUESTION_ORDER_BY_FILTER,
-  QUESTION_TOPIC_FILTER,
-} from "@/constants/questions_feed";
+  POST_ORDER_BY_FILTER,
+  POST_TOPIC_FILTER,
+} from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
@@ -35,8 +35,8 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   const t = useTranslations();
   const { params, setParam, deleteParam } = useSearchParams();
 
-  const selectedTopic = params.get(QUESTION_TOPIC_FILTER);
-  const orderBy = params.get(QUESTION_ORDER_BY_FILTER);
+  const selectedTopic = params.get(POST_TOPIC_FILTER);
+  const orderBy = params.get(POST_ORDER_BY_FILTER);
 
   const { hotTopics, hotCategories } = useMemo(
     () => ({
@@ -53,18 +53,18 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   // TODO: cleanup status when BE supports pending status
   const clearInReview = () => {
     if (orderBy === QuestionOrder.VotesDesc) {
-      deleteParam(QUESTION_ORDER_BY_FILTER, false);
+      deleteParam(POST_ORDER_BY_FILTER, false);
     }
   };
 
   const switchToHomeFeed = () => {
     clearInReview();
-    deleteParam(QUESTION_TOPIC_FILTER);
+    deleteParam(POST_TOPIC_FILTER);
   };
 
   const selectTopic = (topic: Topic) => {
     clearInReview();
-    setParam(QUESTION_TOPIC_FILTER, topic.slug);
+    setParam(POST_TOPIC_FILTER, topic.slug);
     setIsMobileExpanded(false);
   };
 

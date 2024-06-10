@@ -7,7 +7,7 @@ import TagFilters from "@/app/(main)/questions/discovery/components/tag_filters"
 import { TAGS_TEXT_SEARCH_FILTER } from "@/app/(main)/questions/discovery/constants/tags_feed";
 import Chip from "@/components/ui/chip";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { QUESTION_TAGS_FILTER } from "@/constants/questions_feed";
+import { POST_TAGS_FILTER } from "@/constants/posts_feed";
 import ProjectsApi, { TagsParams } from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 
@@ -51,7 +51,7 @@ const AwaitedTags: FC<TagsProps> = async ({ filters }) => {
       {tags.map((tag) => (
         <Chip
           key={tag.slug}
-          href={`/questions/?${QUESTION_TAGS_FILTER}=${tag.slug}`}
+          href={`/questions/?${POST_TAGS_FILTER}=${tag.slug}`}
           color="blue"
           size="sm"
           label={tag.questions_count.toString()}

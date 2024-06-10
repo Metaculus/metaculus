@@ -51,5 +51,5 @@ export type Tournament = {
   is_ongoing: boolean;
   created_at: string;
   edited_at: string;
-  questions_count: number;
+  posts_count: number;
 };

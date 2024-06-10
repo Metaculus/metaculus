@@ -22,12 +22,9 @@ class PostSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
-            "author_id",
             "author_username",
             "projects",
             "question",
-            "published_at",
-            "approved_at",
             "created_at",
             "edited_at",
         )
