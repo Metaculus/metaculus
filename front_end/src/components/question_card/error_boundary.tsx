@@ -11,8 +11,8 @@ const Fallback: FC<FallbackProps> = ({ error }) => {
   );
 };
 
-const QuestionCardErrorBoundary: FC<PropsWithChildren> = ({ children }) => {
+const PostCardErrorBoundary: FC<PropsWithChildren> = ({ children }) => {
   return <ErrorBoundary FallbackComponent={Fallback}>{children}</ErrorBoundary>;
 };
 
-export default QuestionCardErrorBoundary;
+export default PostCardErrorBoundary;

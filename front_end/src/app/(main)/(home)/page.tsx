@@ -9,7 +9,7 @@ import FocusAreaBiosecurityIcon from "@/app/(main)/(home)/components/icons/focus
 import FocusAreaClimateIcon from "@/app/(main)/(home)/components/icons/focus_area_climate";
 import FocusAreaNuclearIcon from "@/app/(main)/(home)/components/icons/focus_area_nuclear";
 import TopicLink from "@/app/(main)/(home)/components/topic_link";
-import { QUESTION_TOPIC_FILTER } from "@/constants/questions_feed";
+import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import ProjectsApi from "@/services/projects";
 import { encodeQueryParams } from "@/utils/query_params";
 
@@ -81,7 +81,7 @@ export default async function Home() {
                     key={topic.id}
                     text={topic.name}
                     emoji={topic.emoji}
-                    href={`/questions${encodeQueryParams({ [QUESTION_TOPIC_FILTER]: topic.slug })}`}
+                    href={`/questions${encodeQueryParams({ [POST_TOPIC_FILTER]: topic.slug })}`}
                   />
                 ))}
               </div>

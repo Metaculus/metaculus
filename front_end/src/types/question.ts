@@ -28,21 +28,6 @@ export enum QuestionOrder {
   ResolveTimeAsc = "resolve_time",
 }
 
-export type Category = {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-};
-
-export type Topic = {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-  emoji: string;
-};
-
 export type NumericForecast = {
   timestamps: number[];
   values_mean: number[];
@@ -57,36 +42,19 @@ export type MultipleChoiceForecast = {
   [value_choice_n: string]: any;
 };
 
-export type QuestionVote = {
-  score: number;
-  user_vote: VoteDirection;
-};
-
 export type Question = {
   id: number;
-  projects: {
-    category: Category[];
-    topic: Topic[];
-  };
   title: string;
   min: number;
   max: number;
   description: string;
   created_at: string;
   updated_at: string;
-  published_at: string;
-  approved_at: string | null;
   closed_at: string;
   resolved_at: string;
   type: QuestionType;
   possibilities: string; // TODO: update type
   resolution: string | null;
-  author: number;
-  approved_by: number | null;
-  tags: string[];
-  categories: string[];
-  topics: string[];
-  vote: QuestionVote;
   status: QuestionStatus;
   nr_forecasters: number;
   author_username: string;
