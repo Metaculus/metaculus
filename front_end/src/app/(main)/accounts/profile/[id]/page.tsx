@@ -20,7 +20,7 @@ export default async function Profile({
   }
 
   return (
-    <main className="mx-auto min-h-min w-full max-w-3xl flex-auto rounded bg-white p-0 sm:p-2 sm:pt-0 md:p-3 lg:mt-4">
+    <main className="mx-auto min-h-min w-full max-w-3xl flex-auto rounded bg-gray-0 p-0 dark:bg-gray-0-dark sm:p-2 sm:pt-0 md:p-3 lg:mt-4">
       <UserInfo profile={profile} isCurrentUser={isCurrentUser} />
     </main>
   );
