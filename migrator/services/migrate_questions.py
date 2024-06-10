@@ -1,9 +1,10 @@
-from migrator.utils import paginated_query, one2one_query
-from questions.models import Question
 import json
+
 from dateutil.parser import parse as date_parse
 
-from users.models import User
+from migrator.utils import paginated_query
+from posts.models import Post
+from questions.models import Question
 
 
 def create_question(question: dict) -> Question:
@@ -50,14 +51,10 @@ def create_question(question: dict) -> Question:
         open_lower_bound=open_lower_bound,
         options=options,
         description=question["description"],
-        author_id=question["author_id"],
         created_at=question["created_time"],
-        updated_at=question["edited_time"],
-        published_at=question["publish_time"],
-        approved_at=question["approved_time"],
+        edited_at=question["edited_time"],
         closed_at=question["close_time"],
         resolved_at=question["resolve_time"],
-        approved_by_id=question["approved_by_id"],
         type=question_type,
         possibilities=possibilities,
         resolution=question["resolution"],
@@ -67,20 +64,44 @@ def create_question(question: dict) -> Question:
     return new_question
 
 
+def create_post(question: dict) -> Post:
+    return Post(
+        # Keeping the same ID as the old question
+        id=question["id"],
+        title=question["title"],
+        author_id=question["author_id"],
+        approved_by_id=question["approved_by_id"],
+        published_at=question["publish_time"],
+        created_at=question["created_time"],
+        edited_at=question["edited_time"],
+        approved_at=question["approved_time"],
+        question_id=question["id"],
+    )
+
+
 def migrate_questions():
     questions = []
+    posts = []
+
     for old_question in paginated_query(
-        """SELECT
-            q.*,
-            ARRAY_AGG(o.label) AS option_labels
-        FROM
-            metac_question_question q
-        LEFT JOIN
-            metac_question_option o ON q.id = o.question_id
-        GROUP BY
-    q.id;"""
+            """SELECT
+                q.*,
+                ARRAY_AGG(o.label) AS option_labels
+            FROM
+                metac_question_question q
+            LEFT JOIN
+                metac_question_option o ON q.id = o.question_id
+            GROUP BY
+        q.id;"""
     ):
+        # TODO: skipping groups/conditional for now
+        #   So it should be implemented in the future
+        if old_question["type"] == "conditional_group" or old_question["group_id"]:
+            continue
+
         question = create_question(old_question)
         if question is not None:
             questions.append(question)
+            posts.append(create_post(old_question))
     Question.objects.bulk_create(questions)
+    Post.objects.bulk_create(posts)

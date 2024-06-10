@@ -1,24 +1,24 @@
 import { FC } from "react";
 
-import BasicQuestionCard from "@/components/question_card/basic_card";
+import BasicPostCard from "@/components/question_card/basic_card";
 import QuestionChartTile from "@/components/question_card/chart_tile";
-import QuestionCardErrorBoundary from "@/components/question_card/error_boundary";
-import { QuestionWithForecasts } from "@/types/question";
+import PostCardErrorBoundary from "@/components/question_card/error_boundary";
+import { PostWithForecasts } from "@/types/post";
 
 type Props = {
-  question: QuestionWithForecasts;
+  post: PostWithForecasts;
 };
 
-const QuestionCard: FC<Props> = ({ question }) => {
+const PostCard: FC<Props> = ({ post }) => {
   return (
-    <QuestionCardErrorBoundary>
-      <BasicQuestionCard question={question}>
+    <PostCardErrorBoundary>
+      <BasicPostCard post={post}>
         <div className="mb-0.5 pt-1.5">
-          <QuestionChartTile question={question} />
+          <QuestionChartTile question={post?.question} />
         </div>
-      </BasicQuestionCard>
-    </QuestionCardErrorBoundary>
+      </BasicPostCard>
+    </PostCardErrorBoundary>
   );
 };
 
-export default QuestionCard;
+export default PostCard;

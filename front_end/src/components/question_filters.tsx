@@ -2,7 +2,7 @@
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useMemo } from "react";
 
 import {
   getDropdownSortOptions,
@@ -18,13 +18,13 @@ import ButtonGroup from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
 import Select from "@/components/ui/select";
 import {
-  QUESTION_GUESSED_BY_FILTER,
-  QUESTION_ORDER_BY_FILTER,
-  QUESTION_STATUS_FILTER,
-  QUESTION_TEXT_SEARCH_FILTER,
-} from "@/constants/questions_feed";
+  POST_GUESSED_BY_FILTER,
+  POST_ORDER_BY_FILTER,
+  POST_STATUS_FILTER,
+  POST_TEXT_SEARCH_FILTER,
+} from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
-import useDebounce from "@/hooks/use_debounce";
+import useSearchInputState from "@/hooks/use_search_input_state";
 import useSearchParams from "@/hooks/use_search_params";
 import { Category, Tag } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
@@ -66,25 +66,12 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
   } = useSearchParams();
   const { user } = useAuth();
 
-  const [search, setSearch] = useState(() => {
-    const search = params.get(QUESTION_TEXT_SEARCH_FILTER);
-    return search ? decodeURIComponent(search) : "";
-  });
-  const debouncedSearch = useDebounce(search, 500);
-  useEffect(() => {
-    if (debouncedSearch) {
-      setParam(QUESTION_TEXT_SEARCH_FILTER, debouncedSearch);
-    } else {
-      deleteParam(QUESTION_TEXT_SEARCH_FILTER);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch]);
+  const [search, setSearch] = useSearchInputState(POST_TEXT_SEARCH_FILTER);
   const eraseSearch = () => {
     setSearch("");
-    deleteParam(QUESTION_TEXT_SEARCH_FILTER);
   };
 
-  const order = (params.get(QUESTION_ORDER_BY_FILTER) ??
+  const order = (params.get(POST_ORDER_BY_FILTER) ??
     DEFAULT_ORDER) as QuestionOrder;
   const mainSortOptions = useMemo(() => getMainOrderOptions(t), [t]);
   const userPredictionSortOptions = useMemo(() => getUserSortOptions(t), [t]);
@@ -112,21 +99,21 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
     clearPopupFilters(withNavigation);
 
     if (order === DEFAULT_ORDER) {
-      deleteParam(QUESTION_ORDER_BY_FILTER, withNavigation);
+      deleteParam(POST_ORDER_BY_FILTER, withNavigation);
     } else {
-      setParam(QUESTION_ORDER_BY_FILTER, order, withNavigation);
+      setParam(POST_ORDER_BY_FILTER, order, withNavigation);
     }
 
     if (OPEN_STATUS_FILTERS.includes(order)) {
-      setParam(QUESTION_STATUS_FILTER, "open", withNavigation);
+      setParam(POST_STATUS_FILTER, "open", withNavigation);
     }
 
     if (!!user && GUESSED_BY_FILTERS.includes(order)) {
-      setParam(QUESTION_GUESSED_BY_FILTER, user.id.toString(), withNavigation);
+      setParam(POST_GUESSED_BY_FILTER, user.id.toString(), withNavigation);
     }
 
     if (order === QuestionOrder.ResolveTimeAsc) {
-      setParam(QUESTION_STATUS_FILTER, "open", withNavigation);
+      setParam(POST_STATUS_FILTER, "open", withNavigation);
     }
 
     navigateToSearchParams();
