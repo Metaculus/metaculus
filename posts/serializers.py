@@ -25,6 +25,7 @@ class PostSerializer(serializers.ModelSerializer):
             "author_username",
             "projects",
             "question",
+            "published_at",
             "created_at",
             "edited_at",
         )
