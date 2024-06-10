@@ -4,6 +4,7 @@ import json
 from django.db import IntegrityError
 
 from migrator.utils import paginated_query
+from posts.models import Post
 from projects.models import Project
 from questions.models import Question
 
@@ -179,7 +180,7 @@ def migrate_topics(question_ids: list[int], q_p_m2m_cls):
 
             m2m_objects.append(
                 q_p_m2m_cls(
-                    question_id=m2m["question_id"],
+                    post_id=m2m["question_id"],
                     project_id=project.id,
                 )
             )
@@ -189,9 +190,10 @@ def migrate_topics(question_ids: list[int], q_p_m2m_cls):
 
 
 def migrate_projects():
-    # Extracting all question IDs to filter out those we didn't migrate
-    question_ids = Question.objects.values_list("id", flat=True)
-    q_p_m2m_cls = Question.projects.through
+    # Extracting all post IDs to filter out those we didn't migrate
+    # Please note: post ids are the same as question ids!
+    post_ids = Post.objects.values_list("id", flat=True)
+    q_p_m2m_cls = Post.projects.through
 
     # Migrating only Tournament projects for now
     for project_obj in paginated_query(
@@ -209,12 +211,12 @@ def migrate_projects():
             [project_obj["id"]],
         ):
             # Exclude questions we didn't migrate
-            if m2m["question_id"] not in question_ids:
+            if m2m["question_id"] not in post_ids:
                 continue
 
             m2m_objects.append(
                 q_p_m2m_cls(
-                    question_id=m2m["question_id"],
+                    post_id=m2m["question_id"],
                     project_id=project.id,
                 )
             )
@@ -244,12 +246,12 @@ def migrate_projects():
             [cat_obj["id"]],
         ):
             # Exclude questions we didn't migrate
-            if m2m["question_id"] not in question_ids:
+            if m2m["question_id"] not in post_ids:
                 continue
 
             m2m_objects.append(
                 q_p_m2m_cls(
-                    question_id=m2m["question_id"],
+                    post_id=m2m["question_id"],
                     project_id=project.id,
                 )
             )
@@ -275,12 +277,12 @@ def migrate_projects():
                 continue
 
             # Exclude questions we didn't migrate
-            if m2m["question_id"] not in question_ids:
+            if m2m["question_id"] not in post_ids:
                 continue
 
             m2m_objects.append(
                 q_p_m2m_cls(
-                    question_id=m2m["question_id"],
+                    post_id=m2m["question_id"],
                     project_id=project.id,
                 )
             )
@@ -288,4 +290,4 @@ def migrate_projects():
         # Ignore nonexistent questions
         q_p_m2m_cls.objects.bulk_create(m2m_objects, ignore_conflicts=True)
 
-    migrate_topics(question_ids, q_p_m2m_cls)
+    migrate_topics(post_ids, q_p_m2m_cls)
