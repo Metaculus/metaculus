@@ -2,8 +2,8 @@ import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
 
-import Footer from "@/app/(main)/footer";
-import Header from "@/app/(main)/header";
+import Footer from "@/app/(main)/components/footer";
+import Header from "@/app/(main)/components/header";
 
 config.autoAddCss = false;
 
