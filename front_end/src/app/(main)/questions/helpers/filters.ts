@@ -24,6 +24,7 @@ import {
   QUESTION_UPVOTED_BY_FILTER,
 } from "@/constants/questions_feed";
 import { QuestionsParams } from "@/services/questions";
+import { SearchParams } from "@/types/navigation";
 import { Category, Tag } from "@/types/projects";
 import { QuestionOrder, QuestionStatus, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
@@ -44,7 +45,7 @@ const QUESTION_STATUS_LABEL_MAP = {
 };
 
 export function generateFiltersFromSearchParams(
-  searchParams: Record<string, string | string[] | undefined>
+  searchParams: SearchParams
 ): QuestionsParams {
   const filters: QuestionsParams = {};
 
