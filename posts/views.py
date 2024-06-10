@@ -13,9 +13,9 @@ from posts.models import Post, Vote
 from posts.serializers import PostFilterSerializer, PostSerializer, PostWriteSerializer
 from projects.models import Project
 from questions.models import Question
-from questions.views import (
-    enrich_question_with_resolution,
-    enrich_questions_with_forecasts,
+from questions.services import (
+    enrich_question_with_resolution_f,
+    enrich_question_with_forecasts_f,
 )
 from users.models import User
 from utils.dtypes import flatten
@@ -141,9 +141,7 @@ def enrich_post_question_with_resolution(
     """
 
     def enrich(post: Post, serialized_post: dict):
-        _, question_enrich_f = enrich_question_with_resolution(qs)
-
-        serialized_post["question"] = question_enrich_f(
+        serialized_post["question"] = enrich_question_with_resolution_f(
             post.question, serialized_post["question"]
         )
 
@@ -162,9 +160,7 @@ def enrich_posts_with_forecasts(
     qs = qs.prefetch_forecasts()
 
     def enrich(post: Post, serialized_post: dict):
-        _, question_enrich_f = enrich_questions_with_forecasts(qs)
-
-        serialized_post["question"] = question_enrich_f(
+        serialized_post["question"] = enrich_question_with_forecasts_f(
             post.question, serialized_post["question"]
         )
 
