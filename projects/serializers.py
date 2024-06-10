@@ -100,7 +100,7 @@ def validate_tournaments(lookup_field: str, lookup_values: list):
     return categories
 
 
-class QuestionProjectWriteSerializer(serializers.Serializer):
+class PostProjectWriteSerializer(serializers.Serializer):
     categories = serializers.ListField(child=serializers.IntegerField(), required=False)
     tournaments = serializers.ListField(
         child=serializers.IntegerField(), required=False
