@@ -2,140 +2,17 @@ from datetime import datetime, timedelta
 from typing import Callable
 
 import numpy as np
-from django.db.models import Q, QuerySet
-from django.shortcuts import get_object_or_404
-from rest_framework import status, serializers
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny
-from rest_framework.request import Request
+from django.db.models import QuerySet
+from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from projects.models import Project
-from questions.models import Forecast, Question, Vote
-from questions.serializers import (
-    QuestionSerializer,
-    QuestionWriteSerializer,
-    QuestionFilterSerializer,
-)
-from users.models import User
-from utils.dtypes import flatten
+from questions.models import Forecast, Question
 from utils.the_math.community_prediction import (
     compute_binary_plotable_cp,
     compute_continuous_plotable_cp,
     compute_multiple_choice_plotable_cp,
 )
-
-
-def filter_questions(qs, request: Request):
-    """
-    Applies filtering on the Questions QuerySet
-    """
-    user = request.user
-    serializer = QuestionFilterSerializer(data=request.query_params)
-    serializer.is_valid(raise_exception=True)
-
-    # Search
-    if search_query := serializer.validated_data.get("search"):
-        qs = qs.filter(
-            Q(title__icontains=search_query)
-            | Q(author__username__icontains=search_query)
-        )
-
-    # Filters
-    if topic := serializer.validated_data.get("topic"):
-        qs = qs.filter(projects=topic)
-
-    if tags := serializer.validated_data.get("tags"):
-        qs = qs.filter(projects__in=tags)
-
-    if categories := serializer.validated_data.get("categories"):
-        qs = qs.filter(projects__in=categories)
-
-    # TODO: ensure projects filtering logic is correct
-    #   I assume it might not work exactly as before
-    if tournaments := serializer.validated_data.get("tournaments"):
-        qs = qs.filter(projects__in=tournaments)
-
-    if forecast_type := serializer.validated_data.get("forecast_type"):
-        qs = qs.filter(type__in=forecast_type)
-
-    answered_by_me = serializer.validated_data.get("answered_by_me")
-
-    if answered_by_me is not None and not user.is_anonymous:
-        condition = {"forecast__author": user}
-        qs = qs.filter(**condition) if answered_by_me else qs.exclude(**condition)
-
-    # Ordering
-    if order := serializer.validated_data.get("order"):
-        match order:
-            case serializer.Order.MOST_FORECASTERS:
-                qs = qs.annotate_predictions_count__unique().order_by("-nr_forecasters")
-            case serializer.Order.CLOSED_AT:
-                qs = qs.order_by("-closed_at")
-            case serializer.Order.RESOLVED_AT:
-                qs = qs.order_by("-resolved_at")
-            case serializer.Order.CREATED_AT:
-                qs = qs.order_by("-created_at")
-    return qs
-
-
-def enrich_empty(
-    qs: QuerySet, *args, **kwargs
-) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
-    """
-    Enrichment function with returns everything as is
-    """
-
-    def enrich(question: Question, serialized_data: dict):
-        return serialized_data
-
-    return qs, enrich
-
-
-def enrich_questions_with_votes(
-    qs: QuerySet, user: User = None
-) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
-    """
-    Enriches questions with the votes object.
-    """
-
-    qs = qs.annotate_vote_score()
-
-    # Annotate user's vote
-    if user and not user.is_anonymous:
-        qs = qs.annotate_user_vote(user)
-
-    def enrich(question: Question, serialized_question: dict):
-        serialized_question["vote"] = {
-            "score": question.vote_score,
-            "user_vote": question.user_vote,
-        }
-
-        return serialized_question
-
-    return qs, enrich
-
-
-def enrich_questions_with_nr_forecasts(
-    qs: QuerySet, user: User = None
-) -> tuple[QuerySet, Callable[[Question, dict], dict]]:
-    """
-    Enriches questions with the votes object.
-    """
-
-    qs = qs.annotate_nr_forecasters()
-
-    # Annotate user's vote
-    if user and not user.is_anonymous:
-        qs = qs.annotate_user_vote(user)
-
-    def enrich(question: Question, serialized_question: dict):
-        serialized_question["nr_forecasters"] = question.nr_forecasters
-
-        return serialized_question
-
-    return qs, enrich
 
 
 def enrich_question_with_resolution(
@@ -200,8 +77,6 @@ def enrich_questions_with_forecasts(
     """
     Enriches questions with the forecasts object.
     """
-
-    qs = qs.prefetch_forecasts()
 
     def enrich(question: Question, serialized_question: dict):
         forecasts_data = {}
@@ -272,123 +147,6 @@ def enrich_questions_with_forecasts(
         return serialized_question
 
     return qs, enrich
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def questions_list_api_view(request):
-    paginator = LimitOffsetPagination()
-    qs = Question.objects.annotate_predictions_count().filter(forecast__gte=10)
-
-    # Extra enrich params
-    with_forecasts = serializers.BooleanField(allow_null=True).run_validation(
-        request.query_params.get("with_forecasts")
-    )
-
-    # Apply filtering
-    qs = filter_questions(qs, request)
-
-    # Enrich QS
-    qs, enrich_votes = enrich_questions_with_votes(qs, user=request.user)
-    qs, enrich_resolution = enrich_question_with_resolution(qs)
-    qs, enrich_nr_forecasts = enrich_questions_with_nr_forecasts(qs, user=request.user)
-    qs, enrich_forecasts = (
-        enrich_questions_with_forecasts(qs) if with_forecasts else enrich_empty(qs)
-    )
-
-    # Paginating queryset
-    qs = paginator.paginate_queryset(qs, request)
-
-    data = []
-    for question in qs:
-        serialized_question = QuestionSerializer(question).data
-
-        # Enrich with extra data
-        serialized_question = enrich_forecasts(question, serialized_question)
-        serialized_question = enrich_votes(question, serialized_question)
-        serialized_question = enrich_nr_forecasts(question, serialized_question)
-        serialized_question = enrich_resolution(question, serialized_question)
-
-        data.append(serialized_question)
-
-    return paginator.get_paginated_response(data)
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def question_detail(request: Request, pk):
-    qs = Question.objects.all()
-
-    # Enrich QS
-    qs, enrich_votes = enrich_questions_with_votes(qs, user=request.user)
-    qs, enrich_forecasts = enrich_questions_with_forecasts(qs)
-
-    question = get_object_or_404(qs, pk=pk)
-    serializer = QuestionSerializer(question)
-    data = serializer.data
-
-    # Enrich serialized object
-    data = enrich_votes(question, data)
-    data = enrich_forecasts(question, data)
-
-    return Response(data)
-
-
-@api_view(["POST"])
-def create_question(request):
-    serializer = QuestionWriteSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-
-    data = serializer.validated_data
-    projects_by_category: dict[str, list[Project]] = data.pop("projects", {})
-
-    question = Question.objects.create(author=request.user, **data)
-
-    projects_flat = flatten(projects_by_category.values())
-    question.projects.add(*projects_flat)
-
-    # Attaching projects to the
-    return Response(QuestionSerializer(question).data, status=status.HTTP_201_CREATED)
-
-
-@api_view(["PUT"])
-def update_question(request, pk):
-    question = get_object_or_404(Question, pk=pk)
-    if request.user != question.author:
-        return Response(status=status.HTTP_403_FORBIDDEN)
-
-    serializer = QuestionSerializer(question, data=request.data)
-    serializer.is_valid(raise_exception=True)
-    serializer.save()
-
-    return Response(serializer.data)
-
-
-@api_view(["DELETE"])
-def delete_question(request, pk):
-    question = get_object_or_404(Question, pk=pk)
-    if request.user != question.author:
-        return Response(status=status.HTTP_403_FORBIDDEN)
-    question.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-@api_view(["POST"])
-def question_vote_api_view(request: Request, pk: int):
-    question = get_object_or_404(Question, pk=pk)
-    direction = serializers.ChoiceField(
-        required=False, allow_null=True, choices=Vote.VoteDirection.choices
-    ).run_validation(request.data.get("direction"))
-
-    # Deleting existing vote
-    Vote.objects.filter(user=request.user, question=question).delete()
-
-    if direction:
-        Vote.objects.create(user=request.user, question=question, direction=direction)
-
-    return Response(
-        {"score": Question.objects.annotate_vote_score().get(pk=question.pk).vote_score}
-    )
 
 
 @api_view(["POST"])
