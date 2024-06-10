@@ -1,16 +1,17 @@
 "use server";
 
-import QuestionsApi, { QuestionsParams } from "@/services/questions";
+import PostsApi, { PostsParams } from "@/services/posts";
+import QuestionsApi from "@/services/questions";
 import { FetchError } from "@/types/fetch";
 import { ForecastData } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
-export async function fetchMoreQuestions(
-  filters: QuestionsParams,
+export async function fetchMorePosts(
+  filters: PostsParams,
   offset: number,
   limit: number
 ) {
-  const response = await QuestionsApi.getQuestionsWithoutForecasts({
+  const response = await PostsApi.getPostWithoutForecasts({
     ...filters,
     offset,
     limit,
@@ -18,12 +19,9 @@ export async function fetchMoreQuestions(
   return response.results;
 }
 
-export async function voteQuestion(
-  questionId: number,
-  direction: VoteDirection
-) {
+export async function votePost(postId: number, direction: VoteDirection) {
   try {
-    return await QuestionsApi.voteQuestion(questionId, direction);
+    return await PostsApi.votePost(postId, direction);
   } catch (err) {
     const error = err as FetchError;
 

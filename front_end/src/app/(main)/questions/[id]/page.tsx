@@ -1,22 +1,24 @@
-import {
-  faEllipsis,
-  faShare,
-  faShareNodes,
-} from "@fortawesome/free-solid-svg-icons";
+import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { notFound } from "next/navigation";
 
 import CommentFeed from "@/components/comment_feed";
 import DetailedQuestionCard from "@/components/detailed_question_card";
 import ForecastMakerNumeric from "@/components/forecast_maker_numeric";
 import CommentsApi from "@/services/comments";
-import QuestionsApi from "@/services/questions";
+import PostsApi from "@/services/posts";
 
 export default async function IndividualQuestion({
   params,
 }: {
   params: { id: number };
 }) {
-  const questionData = await QuestionsApi.getQuestion(params.id);
+  const postData = await PostsApi.getPost(params.id);
+
+  if (!postData) {
+    return notFound();
+  }
+
   const commentsData = await CommentsApi.getComments({ question: params.id });
 
   return (
@@ -26,12 +28,17 @@ export default async function IndividualQuestion({
           Question
         </span>
         <h1 className="text-bold text-2xl dark:text-white">
-          {questionData?.title}
+          {postData?.title}
         </h1>
-        {questionData && <DetailedQuestionCard question={questionData} />}
+        {postData.question && (
+          <DetailedQuestionCard question={postData.question} />
+        )}
         <div className="p-6 dark:bg-blue-800">
-          {questionData && (
-            <ForecastMakerNumeric question={questionData} prevSlider={null} />
+          {postData.question && (
+            <ForecastMakerNumeric
+              question={postData.question}
+              prevSlider={null}
+            />
           )}
         </div>
         {commentsData && <CommentFeed comments={commentsData} />}
@@ -51,21 +58,21 @@ export default async function IndividualQuestion({
         <div className="mt-2 flex flex-col border-b pb-4 pt-4">
           <div className="flex flex-row justify-between">
             <span>Author:</span>
-            <a href={`/accounts/profile/${questionData?.author}`}>
-              {questionData?.author_username}
+            <a href={`/accounts/profile/${postData.author_id}`}>
+              {postData.author_username}
             </a>
           </div>
           <div className="flex flex-row justify-between">
             <span>Opened:</span>
-            <span>{questionData?.created_at.slice(0, 7)}</span>
+            <span>{postData.created_at.slice(0, 7)}</span>
           </div>
           <div className="flex flex-row justify-between">
             <span>Closed:</span>
-            <span>{questionData?.closed_at.slice(0, 7)}</span>
+            <span>{postData.question?.closed_at.slice(0, 7)}</span>
           </div>
           <div className="flex flex-row justify-between">
             <span>Resolved:</span>
-            <span>{questionData?.resolved_at.slice(0, 7)}</span>
+            <span>{postData.question?.resolved_at.slice(0, 7)}</span>
           </div>
         </div>
       </div>
