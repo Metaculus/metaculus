@@ -98,7 +98,7 @@ export default async function TournamentSlug({
           />
           <TournamentStat
             title={t("questions")}
-            text={tournament.questions_count.toString()}
+            text={tournament.posts_count.toString()}
           />
         </div>
         <HtmlContent content={tournament.description} />
