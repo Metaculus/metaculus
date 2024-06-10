@@ -10,6 +10,7 @@ export type MultiSliderValue = {
   left: number;
   center: number;
   right: number;
+  weight: number;
 };
 
 type ControlledValue = [number, number, number];
@@ -72,6 +73,7 @@ const MultiSlider: FC<Props> = ({ value, min, max, step, onChange }) => {
           left: newValue[0],
           center: newValue[1],
           right: newValue[2],
+          weight: 1,
         });
       }}
       onChangeComplete={() => {
