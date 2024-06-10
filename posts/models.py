@@ -45,14 +45,8 @@ class PostQuerySet(models.QuerySet):
 
 
 class Post(TimeStampedModel):
-    class PostType(models.TextChoices):
-        FORECAST = "forecast"
-        DISCUSSION = "discussion"
-
     title = models.CharField(max_length=200)
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
-
-    type = models.CharField(choices=PostType.choices)
 
     approved_at = models.DateTimeField(null=True)
     approved_by = models.ForeignKey(

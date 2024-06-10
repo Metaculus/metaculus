@@ -22,7 +22,6 @@ class PostSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
-            "type",
             "author_username",
             "projects",
             "question",
@@ -45,7 +44,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
         model = Post
         fields = (
             "title",
-            "type",
             "projects",
             "question"
         )

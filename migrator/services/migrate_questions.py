@@ -75,7 +75,6 @@ def create_post(question: dict) -> Post:
         edited_at=question["edited_time"],
         approved_at=question["approved_time"],
         question_id=question["id"],
-        type=Post.PostType.FORECAST
     )
 
 
