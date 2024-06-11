@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 import django
@@ -70,6 +69,22 @@ class Question(TimeStampedModel):
         print(self.__dict__)
         print(f"!!\n\nWrong status for question: {self.id}\n\n!!")
         return "active"
+
+
+class Conditional(TimeStampedModel):
+    condition = models.ForeignKey(
+        Question, related_name="conditional_parents", on_delete=models.PROTECT
+    )
+    condition_child = models.ForeignKey(
+        Question, related_name="conditional_children", on_delete=models.PROTECT
+    )
+
+    question_yes = models.ForeignKey(
+        Question, related_name="conditional_yes", on_delete=models.PROTECT
+    )
+    question_no = models.ForeignKey(
+        Question, related_name="conditional_no", on_delete=models.PROTECT
+    )
 
 
 class Forecast(models.Model):
