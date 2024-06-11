@@ -1,0 +1,107 @@
+{% extends "admin/base.html" %}
+
+{% block extrahead %}
+<style>
+  :root {
+    --header-bg: #2f4155;
+    --header-text: #d7e7f7;
+    --body-bg: #ffffff;
+    --body-text: #161c22;
+    --primary-button-bg: #4f6882;
+    --primary-button-text: #ffffff;
+    --olive-accent: #384f38;
+  }
+ 
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --header-bg: #283441;
+      --header-text: #ebf5fe;
+      --body-bg: #22262b;
+      --body-text: #fffdfb;
+      --primary-button-bg: #bfd4ec;
+      --primary-button-text: #283441;
+      --olive-accent: #607560;
+    }
+  }
+
+  /* Header */
+  #header {
+    background-color: var(--header-bg);
+    display: flex;
+    align-items: left;
+    text-align: left;
+  }
+
+  #header h1 {
+    color: var(--header-text);
+    font-size: 28px;
+    margin: 0;
+    padding: 10px 20px;
+    width: 100vw;
+    text-align: left;
+    font-weight: 100;
+    padding: 8px;
+    padding-left: 16px;
+    box-sizing: border-box;
+  }
+
+  #header #user-tools {
+    padding: 8px;
+    padding-left: 16px;
+    width: 100vw;
+    box-sizing: border-box;
+  }
+
+  #header h1 a,
+  #header a:link,
+  #header a:visited {
+    color: var(--header-text);
+  }
+
+  /* Body */
+  body {
+    background-color: var(--body-bg);
+    color: var(--body-text);
+  }
+
+  /* Buttons */
+  .button.default,
+  input[type="submit"].default,
+  .submit-row input.default {
+    background-color: var(--primary-button-bg);
+    color: var(--primary-button-text);
+  }
+
+  /* Olive Accents */
+  .module h2,
+  .module caption,
+  .inline-group h2 {
+    background-color: var(--olive-accent);
+    color: var(--body-bg);
+  }
+
+  /* Links */
+  a:link,
+  a:visited {
+    color: var(--olive-accent);
+  }
+
+  /* Tables */
+  table thead th {
+    background-color: var(--olive-accent);
+    color: var(--body-bg);
+  }
+
+  /* Breadcrumbs */
+  div.breadcrumbs {
+    background-color: var(--olive-accent);
+    color: var(--body-bg);
+  }
+  
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">Metaculus Admin</a></h1>
+{% endblock %}
