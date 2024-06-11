@@ -49,6 +49,7 @@ def compute_cp(
         avg = np.average(forecast_values, axis=0, weights=weights)
         return avg
 
+
 @dataclass
 class ForecastHistoryEntry:
     predictions: list[list[float]]

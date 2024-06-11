@@ -10,6 +10,7 @@ export type MultiSliderValue = {
   left: number;
   center: number;
   right: number;
+  weight?: number;
 };
 
 type ControlledValue = [number, number, number];
