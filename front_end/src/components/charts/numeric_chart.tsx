@@ -4,6 +4,7 @@ import {
   CursorCoordinatesPropType,
   DomainTuple,
   LineSegment,
+  Tuple,
   VictoryArea,
   VictoryAxis,
   VictoryChart,
@@ -19,9 +20,16 @@ import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";
-import { Area, BaseChartData, Line } from "@/types/charts";
+import {
+  Area,
+  BaseChartData,
+  Line,
+  NumericChartType,
+  Scale,
+} from "@/types/charts";
 import { NumericForecast } from "@/types/question";
 import {
+  generateDateYScale,
   generateNumericDomain,
   generateNumericYScale,
   generatePercentageYScale,
@@ -34,7 +42,7 @@ type Props = {
   height?: number;
   onCursorChange?: (value: number) => void;
   onChartReady?: () => void;
-  binary: boolean;
+  type?: NumericChartType;
 };
 
 const NumericChart: FC<Props> = ({
@@ -43,7 +51,7 @@ const NumericChart: FC<Props> = ({
   height = 150,
   onCursorChange,
   onChartReady,
-  binary,
+  type = "numeric",
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -55,8 +63,8 @@ const NumericChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const { line, area, yDomain, xScale, yScale } = useMemo(
-    () => buildChartData(dataset, chartWidth, height, binary),
-    [dataset, chartWidth, height, binary]
+    () => buildChartData(dataset, chartWidth, height, type),
+    [dataset, chartWidth, height, type]
   );
 
   const prevWidth = usePrevious(chartWidth);
@@ -102,9 +110,12 @@ const NumericChart: FC<Props> = ({
     />
   );
 
+  const shouldDisplayChart =
+    !!chartWidth && !!xScale.ticks.length && yScale.ticks.length;
+
   return (
     <div ref={chartContainerRef} className="w-full" style={{ height }}>
-      {!!chartWidth && (
+      {shouldDisplayChart && (
         <VictoryChart
           domain={{ y: yDomain }}
           width={chartWidth}
@@ -174,7 +185,7 @@ function buildChartData(
   dataset: NumericForecast,
   width: number,
   height: number,
-  binary: boolean
+  type: NumericChartType
 ): ChartData {
   const line = dataset.timestamps.map((timestamp, index) => ({
     x: timestamp,
@@ -186,19 +197,37 @@ function buildChartData(
     y: dataset.values_max[index],
   }));
 
-  const minYValue = Math.floor(Math.min(...dataset.values_min) * 0.95); // 5% padding
-  const maxYValue = Math.ceil(Math.max(...dataset.values_max) * 1.05); // 5% padding
-
   const xDomain = generateNumericDomain(dataset.timestamps);
+  const xScale = generateTimestampXScale(xDomain, width);
+
+  let yDomain: Tuple<number>;
+  let yScale: Scale;
+  switch (type) {
+    case "binary": {
+      yDomain = [0, 1];
+      yScale = generatePercentageYScale(height);
+      break;
+    }
+    case "date": {
+      const minYValue = Math.min(...dataset.values_min);
+      const maxYValue = Math.max(...dataset.values_max);
+      yDomain = [minYValue, maxYValue];
+      yScale = generateDateYScale(yDomain);
+      break;
+    }
+    default:
+      const minYValue = Math.floor(Math.min(...dataset.values_min) * 0.95); // 5% padding
+      const maxYValue = Math.ceil(Math.max(...dataset.values_max) * 1.05); // 5% padding
+      yDomain = [minYValue, maxYValue];
+      yScale = generateNumericYScale(yDomain);
+  }
 
   return {
     line,
     area,
-    yDomain: [minYValue, maxYValue],
-    xScale: generateTimestampXScale(xDomain, width),
-    yScale: binary
-      ? generatePercentageYScale(height)
-      : generateNumericYScale([minYValue, maxYValue]),
+    yDomain,
+    xScale,
+    yScale,
   };
 }
 

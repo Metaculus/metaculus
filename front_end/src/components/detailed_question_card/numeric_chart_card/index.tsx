@@ -6,6 +6,7 @@ import React, { FC, useCallback, useMemo, useState } from "react";
 import NumericChart from "@/components/charts/numeric_chart";
 import CursorDetailItem from "@/components/detailed_question_card/numeric_chart_card/numeric_cursor_item";
 import { NumericForecast, QuestionType } from "@/types/question";
+import { getNumericChartTypeFromQuestion } from "@/utils/charts";
 import {
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
@@ -65,7 +66,7 @@ const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
         onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}
-        binary={questionType == QuestionType.Binary}
+        type={getNumericChartTypeFromQuestion(questionType)}
       />
 
       <div className="my-3 grid grid-cols-2 gap-x-4 gap-y-2 dark:text-white xs:gap-x-8 sm:mx-8 sm:gap-x-4 sm:gap-y-0">

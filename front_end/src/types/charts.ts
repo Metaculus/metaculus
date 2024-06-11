@@ -16,3 +16,5 @@ export type BaseChartData = {
 
 export type Line = Array<{ x: number; y: number }>;
 export type Area = Array<{ x: number; y: number; y0?: number }>;
+
+export type NumericChartType = "date" | "numeric" | "binary";
