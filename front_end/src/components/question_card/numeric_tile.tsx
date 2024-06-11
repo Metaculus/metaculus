@@ -2,7 +2,8 @@ import { FC } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
 import PredictionChip from "@/components/prediction_chip";
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
+import { getNumericChartTypeFromQuestion } from "@/utils/charts";
 
 const HEIGHT = 100;
 
@@ -29,7 +30,7 @@ const NumericTile: FC<Props> = ({ question }) => {
         <NumericChart
           dataset={question.forecasts}
           height={HEIGHT}
-          binary={question.type === QuestionType.Binary}
+          type={getNumericChartTypeFromQuestion(question.type)}
         />
       </div>
     </div>
