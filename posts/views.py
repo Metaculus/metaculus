@@ -54,9 +54,8 @@ def filter_posts(qs, request: Request):
         qs = qs.filter(projects__in=tournaments)
 
     if forecast_type := serializer.validated_data.get("forecast_type"):
-        qs = qs.filter(type__in=forecast_type)
+        qs = qs.filter(question__type__in=forecast_type)
 
-    # print(len(qs))
     if status := serializer.validated_data.get("status"):
         if "resolved" in status:
             qs = qs.filter(question__resolved_at__isnull=False).filter(
