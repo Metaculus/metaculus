@@ -54,7 +54,20 @@ def filter_posts(qs, request: Request):
         qs = qs.filter(projects__in=tournaments)
 
     if forecast_type := serializer.validated_data.get("forecast_type"):
-        qs = qs.filter(question__type__in=forecast_type)
+        forecast_type_q = Q()
+
+        if "conditional" in forecast_type:
+            forecast_type.pop(forecast_type.index("conditional"))
+            forecast_type_q |= Q(conditional__isnull=False)
+
+        if "group_of_questions" in forecast_type:
+            forecast_type.pop(forecast_type.index("group_of_questions"))
+            forecast_type_q |= Q(group_of_questions__isnull=False)
+
+        if forecast_type:
+            forecast_type_q |= Q(question__type__in=forecast_type)
+
+        qs = qs.filter(forecast_type_q)
 
     if status := serializer.validated_data.get("status"):
         if "resolved" in status:
