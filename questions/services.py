@@ -100,7 +100,7 @@ def enrich_question_with_forecasts_f(
         }
 
     # values_choice_1
-    if user is not None:
+    if not user.is_anonymous:
         forecasts_data["my_forecasts"] = {
             "values_mean": [],
             "timestamps": [],
