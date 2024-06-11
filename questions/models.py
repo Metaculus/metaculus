@@ -88,10 +88,10 @@ class Conditional(TimeStampedModel):
         Question, related_name="conditional_children", on_delete=models.PROTECT
     )
 
-    question_yes = models.ForeignKey(
+    question_yes = models.OneToOneField(
         Question, related_name="conditional_yes", on_delete=models.PROTECT
     )
-    question_no = models.ForeignKey(
+    question_no = models.OneToOneField(
         Question, related_name="conditional_no", on_delete=models.PROTECT
     )
 
