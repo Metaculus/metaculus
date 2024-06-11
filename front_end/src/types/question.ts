@@ -29,9 +29,12 @@ export enum QuestionOrder {
 export type BaseForecast = {
   timestamps: number[];
   nr_forecasters: number[];
-  my_forecasts: number[][] | null;
   latest_pmf: number[] | null;
   latest_cdf: number[] | null;
+  my_forecasts: {
+    timestamps: number[];
+    values_mean: number[];
+  } | null;
 };
 
 export type NumericForecast = BaseForecast & {
