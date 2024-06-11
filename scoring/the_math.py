@@ -41,6 +41,36 @@ def get_geometric_means(
     return geometric_means
 
 
+@dataclass
+class MedianCP:
+    pmf: np.ndarray
+    timestamp: float
+
+
+def get_geometric_means(
+    forecasts: list[Forecast],
+) -> list[MedianCP]:
+    medians = []
+    timesteps: set[datetime] = set()
+    for forecast in forecasts:
+        timesteps.add(forecast.start_time.timestamp())
+        if forecast.end_time:
+            timesteps.add(forecast.end_time.timestamp())
+    for timestep in sorted(timesteps):
+        prediction_values = [
+            f.get_prediction_values()
+            for f in forecasts
+            if f.start_time.timestamp() <= timestep
+            and (f.end_time is None or f.end_time.timestamp() >= timestep)
+        ]
+        if not prediction_values:
+            continue  # TODO: doesn't account for going from 1 active forecast to 0
+        median = np.median(prediction_values, axis=0)
+        predictors = len(prediction_values)
+        medians.append(MedianCP(median, predictors if predictors > 1 else 0, timestep))
+    return medians
+
+
 def evaluate_forecasts_baseline_accuracy(
     forecasts: list[Forecast],
     resolution_bucket: int,
@@ -192,9 +222,56 @@ def evaluate_forecasts_peer_spot_forecast(
     return forecast_scores
 
 
+def evaluate_forecasts_legacy_relative(
+    forecasts: list[Forecast],
+    resolution_bucket: int,
+    window_start: float,
+    window_end: float,
+    question_type: str,
+) -> list[float]:
+    means = get_medians(forecasts)
+    total_duration = window_end - window_start
+    forecast_scores: list[float] = []
+    for forecast in forecasts:
+        forecast_start = max(forecast.start_time.timestamp(), window_start)
+        if forecast.end_time:
+            forecast_end = min(forecast.end_time.timestamp(), window_end)
+        else:
+            forecast_end = window_end
+        if (forecast_end - forecast_start) <= 0:
+            forecast_scores.append(0)
+            continue
+
+        pmf = forecast.get_pmf()
+        interval_scores = []
+        for gm in means:
+            if forecast_start <= gm.timestamp < forecast_end:
+                score = (
+                    100
+                    * (gm.num_forecasters / (gm.num_forecasters - 1))
+                    * np.log(pmf[resolution_bucket] / gm.pmf[resolution_bucket])
+                )
+                if question_type in ["numeric", "date"]:
+                    score /= 2
+                interval_scores.append(score)
+            else:
+                interval_scores.append(0)
+
+        forecast_score = 0
+        times = [
+            gm.timestamp for gm in geometric_means if gm.timestamp < window_end
+        ] + [window_end]
+        for i in range(len(times) - 1):
+            interval_duration = times[i + 1] - times[i]
+            forecast_score += interval_scores[i] * interval_duration / total_duration
+        forecast_scores.append(forecast_score)
+
+    return forecast_scores
+
+
 def evaluate_question(
     question: Question,
-    resolution_bucket: int,  # TODO: make this a nominal resolution and interpret it
+    resolution_bucket: int,
     score_type: str,
     spot_forecast_timestamp: float | None = None,
 ) -> list[Score]:
@@ -243,8 +320,8 @@ def evaluate_question(
                 spot_forecast_timestamp,
                 question.type,
             )
-        # case score_types.METACULUS_POINTS:
-        #     scores = evaluate_forecasts_metaculus_points(forecasts)
+        case score_types.LEGACY_RELATIVE:
+            scores = evaluate_forecasts_legacy_relative(forecasts)
         case other:
             raise NotImplementedError(f"Score type {other} not implemented")
 
