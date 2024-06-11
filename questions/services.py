@@ -9,6 +9,7 @@ from utils.the_math.community_prediction import (
     compute_binary_plotable_cp,
     compute_continuous_plotable_cp,
 )
+from utils.the_math.formulas import scale_continous_forecast_location
 
 
 def enrich_question_with_resolution_f(
@@ -31,6 +32,9 @@ def enrich_question_with_resolution_f(
     resolution of 3 means "not less than upper bound"
     """
 
+    if question.resolution is None:
+        return serialized_question
+    
     if question.type == "binary":
         # TODO: @george, some questions might have None resolution, so this leads to error
         #   added tmp condition to prevent such cases
@@ -43,11 +47,10 @@ def enrich_question_with_resolution_f(
                 serialized_question["resolution"] = "No"
 
     # TODO @Luke this and the date have to be normalized
-    elif question.type == "number":
-        pass
-
+    elif question.type == "numeric":
+        serialized_question["resolution"] = scale_continous_forecast_location(question, int(float(question.resolution) * 200))
     elif question.type == "date":
-        pass
+        serialized_question["resolution"] = scale_continous_forecast_location(question, int(float(question.resolution) * 200))
 
     elif question.type == "multiple_choice":
         try:
