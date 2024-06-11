@@ -9,6 +9,7 @@ from utils.the_math.community_prediction import (
     compute_binary_plotable_cp,
     compute_continuous_plotable_cp,
 )
+from utils.the_math.formulas import scale_continous_forecast_location
 
 
 def enrich_question_with_resolution_f(
@@ -31,6 +32,9 @@ def enrich_question_with_resolution_f(
     resolution of 3 means "not less than upper bound"
     """
 
+    if question.resolution is None:
+        return serialized_question
+    
     if question.type == "binary":
         # TODO: @george, some questions might have None resolution, so this leads to error
         #   added tmp condition to prevent such cases
@@ -43,11 +47,10 @@ def enrich_question_with_resolution_f(
                 serialized_question["resolution"] = "No"
 
     # TODO @Luke this and the date have to be normalized
-    elif question.type == "number":
-        pass
-
+    elif question.type == "numeric":
+        serialized_question["resolution"] = scale_continous_forecast_location(question, int(float(question.resolution) * 200))
     elif question.type == "date":
-        pass
+        serialized_question["resolution"] = scale_continous_forecast_location(question, int(float(question.resolution) * 200))
 
     elif question.type == "multiple_choice":
         try:
@@ -70,20 +73,6 @@ def enrich_question_with_forecasts_f(
     """
     Enriches questions with the forecasts object.
     """
-    forecasts_data = {}
-
-    forecasts = question.forecast_set.all()
-    forecast_times = []
-    end_date = timezone.now().date()
-    if question.closed_at and question.closed_at.date() < end_date:
-        end_date = question.closed_at.date()
-    # TODO: Were this should live: post or object itself?
-    if question.published_at:
-        forecast_times = [
-            question.published_at + timedelta(days=x)
-            for x in range((end_date - question.published_at.date()).days + 1)
-        ]
-
     if question.type == "multiple_choice":
         forecasts_data = {
             "timestamps": [],
