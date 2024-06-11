@@ -68,7 +68,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
         )}
       </div>
       <div>
-        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
+        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900 dark:bg-gray-100-dark dark:text-gray-900-dark">
           {t("username")}
         </div>
         <div className="flex content-center justify-between px-1 py-4">
@@ -78,7 +78,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
       </div>
       {profile.formerly_known_as && (
         <div>
-          <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
+          <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900 dark:bg-gray-100-dark dark:text-gray-900-dark">
             {t("formerlyKnownAs")}
           </div>
           <div className="flex content-center justify-between px-1 py-4">
@@ -89,7 +89,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
         </div>
       )}
       <div>
-        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
+        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900 dark:bg-gray-100-dark dark:text-gray-900-dark">
           {t("memberSince")}
         </div>
         <div className="flex content-center justify-between px-1 py-4">
@@ -101,7 +101,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
         </div>
       </div>
       <div>
-        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
+        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900 dark:bg-gray-100-dark dark:text-gray-900-dark">
           {t("bio")}
         </div>
         <div className="flex content-center justify-between px-1 py-4">
@@ -109,7 +109,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
             <>
               <Textarea
                 style={{ height: "150px" }}
-                className="w-full rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic"
+                className="w-full rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic dark:border-gray-700-dark"
                 placeholder={t("profileBioPlaceholder")}
                 defaultValue={profile.bio}
                 {...register("bio")}
@@ -124,14 +124,14 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
         </div>
       </div>
       <div>
-        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900">
+        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900 dark:bg-gray-100-dark dark:text-gray-900-dark">
           {t("website")}
         </div>
         <div className="flex flex-col content-center justify-between px-1 py-4">
           {isEdit ? (
             <>
               <Input
-                className="w-6/12 rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic	"
+                className="w-6/12 rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic dark:border-gray-700-dark	"
                 placeholder="http://www.example.com"
                 defaultValue={profile.website}
                 {...register("website")}

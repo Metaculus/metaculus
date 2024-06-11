@@ -1,5 +1,6 @@
 import { FC } from "react";
 
+// import ConditionalTile from "@/components/question_card/conditional_tile";
 import MultipleChoiceTile from "@/components/question_card/multiple_choice_tile";
 import NumericTile from "@/components/question_card/numeric_tile";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
@@ -23,6 +24,8 @@ const QuestionChartTile: FC<Props> = ({ question }) => {
       return <NumericTile question={question} />;
     case QuestionType.MultipleChoice:
       return <MultipleChoiceTile question={question} />;
+    // case "conditional":
+    //   return <ConditionalTile />;
     default:
       return null;
   }

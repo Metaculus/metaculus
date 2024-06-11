@@ -47,6 +47,14 @@ const NavUserButton: FC = () => {
                 Log Out
               </a>
             </MenuItem>
+            <MenuItem>
+              <a
+                className="flex items-center justify-center whitespace-nowrap px-4 py-1.5 no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:px-6 lg:text-right lg:hover:bg-blue-200-dark"
+                href="http://localhost:8000/admin/"
+              >
+                Admin
+              </a>
+            </MenuItem>
           </MenuItems>
         </Menu>
       ) : (
