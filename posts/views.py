@@ -179,7 +179,7 @@ def enrich_post_question_with_resolution(
 
 
 def enrich_posts_with_forecasts(
-    qs: Post.objects,
+    qs: Post.objects, user: User
 ) -> tuple[QuerySet, Callable[[Post, dict], dict]]:
     """
     Enriches questions with the forecasts object.
@@ -189,7 +189,7 @@ def enrich_posts_with_forecasts(
 
     def enrich(post: Post, serialized_post: dict):
         serialized_post["question"] = enrich_question_with_forecasts_f(
-            post.question, serialized_post["question"]
+            post.question, serialized_post["question"], user
         )
 
         return serialized_post
@@ -221,7 +221,7 @@ def posts_list_api_view(request):
     qs, enrich_resolution = enrich_post_question_with_resolution(qs)
     qs, enrich_nr_forecasts = enrich_posts_with_nr_forecasts(qs, user=request.user)
     qs, enrich_forecasts = (
-        enrich_posts_with_forecasts(qs) if with_forecasts else enrich_empty(qs)
+        enrich_posts_with_forecasts(qs, user=request.user) if with_forecasts else enrich_empty(qs)
     )
 
     # Paginating queryset
@@ -249,7 +249,7 @@ def post_detail(request: Request, pk):
 
     # Enrich QS
     qs, enrich_votes = enrich_posts_with_votes(qs, user=request.user)
-    qs, enrich_forecasts = enrich_posts_with_forecasts(qs)
+    qs, enrich_forecasts = enrich_posts_with_forecasts(qs, user=request.user)
 
     question = get_object_or_404(qs, pk=pk)
     serializer = PostSerializer(question)

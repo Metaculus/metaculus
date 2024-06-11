@@ -2,6 +2,7 @@
 
 import { FC, useState } from "react";
 
+import { createForecast } from "@/app/(main)/questions/actions";
 import NumericPickerChart from "@/components/charts/numeric_picker_chart";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getIsForecastEmpty } from "@/utils/forecasts";
@@ -64,7 +65,16 @@ const ForecastMakerNumeric: FC<Props> = ({ question, prevSlider }) => {
           <button className="mr-2 rounded-lg bg-gray-600 px-4 py-2 text-white">
             Add Component
           </button>
-          <button className="rounded-lg bg-blue-300 px-4 py-2 text-gray-800">
+          <button
+            className="rounded-lg bg-blue-300 px-4 py-2 text-gray-800"
+            onClick={async () => {
+              await createForecast(question.id, {
+                continuousCdf: dataset.cdf,
+                probabilityYes: null,
+                probabilityYesPerCategory: null,
+              });
+            }}
+          >
             Predict
           </button>
         </div>
@@ -91,9 +101,15 @@ const ForecastMakerNumeric: FC<Props> = ({ question, prevSlider }) => {
             </div>
           </div>
           <div className="w-full text-center">
-            <div className="text-gray-300">2.10</div>
-            <div className="text-gray-300">2.88</div>
-            <div className="text-gray-300">3.90</div>
+            <div className="text-gray-300">
+              {question.forecasts.values_min.slice(-1)[0]}
+            </div>
+            <div className="text-gray-300">
+              {question.forecasts.values_mean.slice(-1)[0]}
+            </div>
+            <div className="text-gray-300">
+              {question.forecasts.values_max.slice(-1)[0]}
+            </div>
           </div>
         </div>
         <button className="rounded-lg bg-gray-600 px-4 py-2 text-white">
