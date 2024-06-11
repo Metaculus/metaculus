@@ -1,9 +1,11 @@
 from datetime import timedelta
+from typing import Optional
 
 import numpy as np
 from django.utils import timezone
 
 from questions.models import Question
+from users.models import User
 from utils.the_math.community_prediction import (
     compute_multiple_choice_plotable_cp,
     compute_binary_plotable_cp,
@@ -68,7 +70,7 @@ def enrich_question_with_resolution_f(
 
 
 def enrich_question_with_forecasts_f(
-    question: Question, serialized_question: dict
+    question: Question, serialized_question: dict, user: Optional[User]
 ) -> dict:
     """
     Enriches questions with the forecasts object.
@@ -87,9 +89,15 @@ def enrich_question_with_forecasts_f(
             "values_max": [],
             "values_min": [],
             "nr_forecasters": [],
+            "my_forecasts": [],
+            "latest_pmf": None,
+            "latest_cdf": None,
         }
 
     # values_choice_1
+    if user is not None:
+        forecasts_data["my_forecasts"] = [x.get_prediction_values() for x in question.forecast_set.filter(author=user).order_by("start_time").all()]
+
     if question.type == "multiple_choice":
         cps = compute_multiple_choice_plotable_cp(question)
         for cp_dict in cps:
@@ -111,7 +119,9 @@ def enrich_question_with_forecasts_f(
         if question.type == "binary":
             cps = compute_binary_plotable_cp(question)
         elif question.type in ["numeric", "date"]:
-            cps = compute_continuous_plotable_cp(question)
+            cps, cdf = compute_continuous_plotable_cp(question)
+            forecasts_data["latest_pmf"] = cdf
+            forecasts_data["latest_pmf"] = np.diff(cdf, prepend=0)
         else:
             raise Exception(f"Unknown question type: {question.type}")
         if cps is None or len(cps) == 0:

@@ -137,6 +137,7 @@ def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[str, Gr
 def compute_continuous_plotable_cp(question: Question) -> int:
     forecast_history = get_forecast_history(question)
     cps = []
+    cdf = None
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
         cdf = compute_cp(question.type, entry.predictions, weights)
@@ -156,4 +157,4 @@ def compute_continuous_plotable_cp(question: Question) -> int:
                 at_datetime=entry.at_datetime,
             )
         )
-    return cps
+    return cps, cdf
