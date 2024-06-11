@@ -9,12 +9,19 @@ from projects.serializers import (
     serialize_projects,
     PostProjectWriteSerializer,
 )
-from questions.serializers import QuestionSerializer, QuestionWriteSerializer
+from questions.serializers import (
+    QuestionSerializer,
+    QuestionWriteSerializer,
+    ConditionalSerializer,
+    GroupOfQuestionsSerializer,
+)
 from .models import Post
 
 
 class PostSerializer(serializers.ModelSerializer):
     question = QuestionSerializer()
+    conditional = ConditionalSerializer()
+    group_of_questions = GroupOfQuestionsSerializer()
     projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
 
@@ -26,6 +33,8 @@ class PostSerializer(serializers.ModelSerializer):
             "author_username",
             "projects",
             "question",
+            "conditional",
+            "group_of_questions",
             "created_at",
             "edited_at",
         )

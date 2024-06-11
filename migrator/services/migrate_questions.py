@@ -4,10 +4,10 @@ from dateutil.parser import parse as date_parse
 
 from migrator.utils import paginated_query
 from posts.models import Post
-from questions.models import Question
+from questions.models import Question, Conditional, GroupOfQuestions
 
 
-def create_question(question: dict) -> Question:
+def create_question(question: dict, **kwargs) -> Question:
     possibilities = json.loads(question["possibilities"])
     max = None
     min = None
@@ -59,12 +59,13 @@ def create_question(question: dict) -> Question:
         possibilities=possibilities,
         resolution=question["resolution"],
         zero_point=zero_point,
+        **kwargs
     )
 
     return new_question
 
 
-def create_post(question: dict) -> Post:
+def create_post(question: dict, **kwargs) -> Post:
     return Post(
         # Keeping the same ID as the old question
         id=question["id"],
@@ -75,11 +76,16 @@ def create_post(question: dict) -> Post:
         created_at=question["created_time"],
         edited_at=question["edited_time"],
         approved_at=question["approved_time"],
-        question_id=question["id"],
+        **kwargs
     )
 
 
 def migrate_questions():
+    migrate_questions__simple()
+    migrate_questions__composite()
+
+
+def migrate_questions__simple():
     questions = []
     posts = []
 
@@ -91,17 +97,158 @@ def migrate_questions():
                 metac_question_question q
             LEFT JOIN
                 metac_question_option o ON q.id = o.question_id
+            WHERE type not in ('conditional_group', 'group') and group_id is null
             GROUP BY
         q.id;"""
     ):
-        # TODO: skipping groups/conditional for now
-        #   So it should be implemented in the future
-        if old_question["type"] == "conditional_group" or old_question["group_id"]:
-            continue
-
         question = create_question(old_question)
         if question is not None:
             questions.append(question)
-            posts.append(create_post(old_question))
+            posts.append(create_post(old_question, question_id=old_question["id"]))
     Question.objects.bulk_create(questions)
+    Post.objects.bulk_create(posts)
+
+
+#
+# Migrating question which have parents
+#
+
+
+def migrate_questions__composite():
+    old_groups = {}
+
+    for old_question in paginated_query(
+        """SELECT 
+                        q.*, 
+                        qc.parent_id as condition_id, 
+                        qc.unconditional_question_id as condition_child_id, 
+                        qc.resolution as qc_resolution FROM (
+                                SELECT
+                                    q.*,
+                                    ARRAY_AGG(o.label) AS option_labels
+                                FROM
+                                    metac_question_question q
+                                LEFT JOIN
+                                    metac_question_option o ON q.id = o.question_id
+                                WHERE  type in ('conditional_group', 'group') or group_id is not null
+                                
+                                GROUP BY q.id
+                            ) q
+                    LEFT JOIN 
+                        metac_question_conditional qc ON qc.child_id = q.id
+                    -- Ensure parents go first
+                    ORDER BY group_id DESC;
+                                                            """,
+        itersize=10000,
+    ):
+        group_id = old_question["group_id"]
+
+        # If root
+        if not group_id:
+            old_groups[old_question["id"]] = {**old_question, "children": []}
+        else:
+            old_groups[group_id]["children"].append(old_question)
+
+    print("Migrating groups")
+    migrate_questions__groups(list(old_groups.values()))
+
+    print("Migrating conditional pairs")
+    migrate_questions__conditional(list(old_groups.values()))
+
+
+def migrate_questions__groups(root_questions: list[dict]):
+    """
+    Migrates Conditional Questions
+    """
+
+    questions = []
+    groups = []
+    posts = []
+
+    for root_question in root_questions:
+        if root_question["type"] == "group":
+            # Conditionals without children
+            if not root_question["children"]:
+                continue
+
+            # Please note: to simplify the process, our GroupOfQuestions will have the same id
+            groups.append(GroupOfQuestions(id=root_question["id"]))
+
+            for child in root_question["children"]:
+                questions.append(create_question(child, group_id=root_question["id"]))
+
+            # Create post from the root question, but don't create a root question
+            posts.append(create_post(root_question, group_of_questions_id=root_question["id"]))
+
+    GroupOfQuestions.objects.bulk_create(groups)
+    Question.objects.bulk_create(questions)
+    Post.objects.bulk_create(posts)
+
+
+def migrate_questions__conditional(root_questions: list[dict]):
+    """
+    Migrates Conditional Questions
+    """
+
+    questions = []
+    conditionals = []
+    posts = []
+    existing_question_ids = Question.objects.values_list("id", flat=True)
+
+    for root_question in root_questions:
+        if root_question["type"] == "conditional_group":
+            # Conditionals without children
+            if not root_question["children"]:
+                continue
+
+            def get_children_relation_id_by_attr(id_attr: str):
+                attrs = [c[id_attr] for c in root_question["children"]]
+
+                assert len(set(attrs)) == 1
+
+                _id = attrs[0]
+
+                # Check related questions already exist in our db
+                if _id not in existing_question_ids:
+                    print(
+                        f"Related question to the conditional pair with the attr {id_attr} does not exist. Q_ID: {_id}"
+                    )
+
+                    return
+
+                return _id
+
+            old_question_yes = next(
+                q for q in root_question["children"] if q["qc_resolution"] == 1
+            )
+            old_question_no = next(
+                q for q in root_question["children"] if q["qc_resolution"] == 0
+            )
+
+            condition_id = get_children_relation_id_by_attr("condition_id")
+            condition_child_id = get_children_relation_id_by_attr("condition_child_id")
+
+            if not condition_id or not condition_child_id:
+                continue
+
+            # Please note: to simplify the process, our Conditional Question will have the same id
+            # as our old Root Conditional Question!
+            conditionals.append(
+                Conditional(
+                    id=root_question["id"],
+                    condition_id=condition_id,
+                    condition_child_id=condition_child_id,
+                    question_yes_id=old_question_yes["id"],
+                    question_no_id=old_question_no["id"],
+                )
+            )
+
+            questions.append(create_question(old_question_yes))
+            questions.append(create_question(old_question_no))
+
+            # Create post from the root question, but don't create a root question
+            posts.append(create_post(root_question, conditional_id=root_question["id"]))
+
+    Question.objects.bulk_create(questions)
+    Conditional.objects.bulk_create(conditionals)
     Post.objects.bulk_create(posts)
