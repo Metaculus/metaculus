@@ -48,6 +48,15 @@ class Question(TimeStampedModel):
 
     objects = models.Manager.from_queryset(QuestionQuerySet)()
 
+    # Group
+    group = models.ForeignKey(
+        "GroupOfQuestions",
+        null=True,
+        blank=True,
+        related_name="questions",
+        on_delete=models.CASCADE,
+    )
+
     # Annotated fields
     predictions_count: int = 0
     nr_forecasters: int = 0
@@ -85,6 +94,10 @@ class Conditional(TimeStampedModel):
     question_no = models.ForeignKey(
         Question, related_name="conditional_no", on_delete=models.PROTECT
     )
+
+
+class GroupOfQuestions(TimeStampedModel):
+    pass
 
 
 class Forecast(models.Model):

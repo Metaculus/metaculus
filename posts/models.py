@@ -3,7 +3,7 @@ from django.db.models import Sum, Subquery, OuterRef, Count
 from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
-from questions.models import Question, Conditional
+from questions.models import Question, Conditional, GroupOfQuestions
 from users.models import User
 from utils.models import TimeStampedModel
 
@@ -23,6 +23,7 @@ class PostQuerySet(models.QuerySet):
                 + Count("conditional__question_yes__forecast", distinct=True)
                 + Count("conditional__question_no__forecast", distinct=True)
                 # Question groups
+                + Count("group_of_questions__questions__forecast", distinct=True)
             )
         )
 
@@ -34,6 +35,8 @@ class PostQuerySet(models.QuerySet):
                 # Conditional questions
                 + Count("conditional__question_yes__forecast__author", distinct=True)
                 + Count("conditional__question_no__forecast__author", distinct=True)
+                # Question groups
+                + Count("group_of_questions__questions__author", distinct=True)
             )
         )
 
@@ -76,6 +79,9 @@ class Post(TimeStampedModel):
     )
     conditional = models.OneToOneField(
         Conditional, models.CASCADE, related_name="post", null=True
+    )
+    group_of_questions = models.OneToOneField(
+        GroupOfQuestions, models.CASCADE, related_name="post", null=True
     )
 
     projects = models.ManyToManyField(Project, related_name="posts")

@@ -4,10 +4,10 @@ from dateutil.parser import parse as date_parse
 
 from migrator.utils import paginated_query
 from posts.models import Post
-from questions.models import Question, Conditional
+from questions.models import Question, Conditional, GroupOfQuestions
 
 
-def create_question(question: dict) -> Question:
+def create_question(question: dict, **kwargs) -> Question:
     possibilities = json.loads(question["possibilities"])
     max = None
     min = None
@@ -59,6 +59,7 @@ def create_question(question: dict) -> Question:
         possibilities=possibilities,
         resolution=question["resolution"],
         zero_point=zero_point,
+        **kwargs
     )
 
     return new_question
@@ -75,12 +76,13 @@ def create_post(question: dict, **kwargs) -> Post:
         created_at=question["created_time"],
         edited_at=question["edited_time"],
         approved_at=question["approved_time"],
+        **kwargs
     )
 
 
 def migrate_questions():
     migrate_questions__simple()
-    migrate_questions__complex()
+    migrate_questions__composite()
 
 
 def migrate_questions__simple():
@@ -89,15 +91,15 @@ def migrate_questions__simple():
 
     for old_question in paginated_query(
         """SELECT
-                                                        q.*,
-                                                        ARRAY_AGG(o.label) AS option_labels
-                                                    FROM
-                                                        metac_question_question q
-                                                    LEFT JOIN
-                                                        metac_question_option o ON q.id = o.question_id
-                                                    WHERE type not in ('conditional_group', 'group') and group_id is null
-                                                    GROUP BY
-                                                q.id;"""
+                q.*,
+                ARRAY_AGG(o.label) AS option_labels
+            FROM
+                metac_question_question q
+            LEFT JOIN
+                metac_question_option o ON q.id = o.question_id
+            WHERE type not in ('conditional_group', 'group') and group_id is null
+            GROUP BY
+        q.id;"""
     ):
         question = create_question(old_question)
         if question is not None:
@@ -112,7 +114,7 @@ def migrate_questions__simple():
 #
 
 
-def migrate_questions__complex():
+def migrate_questions__composite():
     old_groups = {}
 
     for old_question in paginated_query(
@@ -136,7 +138,7 @@ def migrate_questions__complex():
                         metac_question_conditional qc ON qc.child_id = q.id
                     -- Ensure parents go first
                     ORDER BY group_id DESC;
-                                                    """,
+                                                            """,
         itersize=10000,
     ):
         group_id = old_question["group_id"]
@@ -147,8 +149,40 @@ def migrate_questions__complex():
         else:
             old_groups[group_id]["children"].append(old_question)
 
+    print("Migrating groups")
+    migrate_questions__groups(list(old_groups.values()))
+
     print("Migrating conditional pairs")
     migrate_questions__conditional(list(old_groups.values()))
+
+
+def migrate_questions__groups(root_questions: list[dict]):
+    """
+    Migrates Conditional Questions
+    """
+
+    questions = []
+    groups = []
+    posts = []
+
+    for root_question in root_questions:
+        if root_question["type"] == "group":
+            # Conditionals without children
+            if not root_question["children"]:
+                continue
+
+            # Please note: to simplify the process, our GroupOfQuestions will have the same id
+            groups.append(GroupOfQuestions(id=root_question["id"]))
+
+            for child in root_question["children"]:
+                questions.append(create_question(child, group_id=root_question["id"]))
+
+            # Create post from the root question, but don't create a root question
+            posts.append(create_post(root_question, group_of_questions_id=root_question["id"]))
+
+    GroupOfQuestions.objects.bulk_create(groups)
+    Question.objects.bulk_create(questions)
+    Post.objects.bulk_create(posts)
 
 
 def migrate_questions__conditional(root_questions: list[dict]):

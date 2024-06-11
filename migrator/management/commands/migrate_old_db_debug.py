@@ -19,7 +19,10 @@ class Command(BaseCommand):
             cursor.execute("DELETE FROM comments_comment")
             cursor.execute("DELETE FROM posts_post")
             cursor.execute("DELETE FROM questions_conditional")
+            cursor.execute("DELETE FROM questions_groupofquestions")
             cursor.execute("DELETE FROM questions_question")
+
+        print("Starting migration script")
 
         # Function
         migrate_questions()
