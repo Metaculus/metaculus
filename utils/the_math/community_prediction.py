@@ -42,6 +42,10 @@ def compute_cp(
         # if the percentile isn't 50 (namely it needs to be normalized based off the values
         # at the median)
     else:
+        max_len = max([len(x) for x in forecast_values])
+        for i in range(len(forecast_values)):
+            if len(forecast_values[i]) < max_len:
+                forecast_values[i].extend([0] * int(max_len - len(forecast_values[i])))
         avg = np.average(forecast_values, axis=0, weights=weights)
         return avg
 
