@@ -203,7 +203,7 @@ def posts_list_api_view(request):
     paginator = LimitOffsetPagination()
     qs = (
         Post.objects.annotate_predictions_count()
-        .filter(question__forecast__gte=2)
+        .filter(predictions_count__gte=2)
         .filter(published_at__isnull=False)
         .filter(published_at__lte=django.utils.timezone.now())
     )
