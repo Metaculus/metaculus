@@ -10,11 +10,12 @@ from questions.models import Forecast, Question
 
 @api_view(["POST"])
 def create_forecast_api_view(request, pk: int):
+    print(pk)
     question = get_object_or_404(Question.objects.all(), pk=pk)
     data = request.data
     now = datetime.now()
     prev_forecasts = (
-        Forecast.objects.filter(question=question, user=request.user)
+        Forecast.objects.filter(question=question, author=request.user)
         .order_by("start_time")
         .last()
     )
@@ -34,5 +35,4 @@ def create_forecast_api_view(request, pk: int):
     )
     forecast.save()
 
-    # Attaching projects to the
-    return Response({"id": prev_forecasts.id}, status=status.HTTP_201_CREATED)
+    return Response({}, status=status.HTTP_201_CREATED)
