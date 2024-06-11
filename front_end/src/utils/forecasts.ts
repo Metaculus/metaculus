@@ -11,8 +11,5 @@ export function getForecastNumericDisplayValue(value: number | string) {
 export function getIsForecastEmpty(
   forecast: MultipleChoiceForecast | NumericForecast | null | undefined
 ): forecast is null {
-  return (
-    !forecast ||
-    Object.values(forecast).some((value) => !value || !value.length)
-  );
+  return !forecast || !forecast.timestamps || forecast.timestamps.length === 0;
 }

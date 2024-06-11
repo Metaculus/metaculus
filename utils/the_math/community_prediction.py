@@ -42,8 +42,8 @@ def compute_cp(
         # if the percentile isn't 50 (namely it needs to be normalized based off the values
         # at the median)
     else:
-        return np.average(forecast_values, axis=0, weights=weights)
-
+        avg = np.average(forecast_values, axis=0, weights=weights)
+        return avg
 
 @dataclass
 class ForecastHistoryEntry:
