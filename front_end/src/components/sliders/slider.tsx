@@ -12,9 +12,17 @@ type Props = {
   value: number;
   onChange: (value: number) => void;
   step: number;
+  round?: boolean;
 };
 
-const Slider: FC<Props> = ({ value, min, max, onChange, step }) => {
+const Slider: FC<Props> = ({
+  value,
+  min,
+  max,
+  onChange,
+  step,
+  round = false,
+}) => {
   return (
     <RcSlider
       className="h-9 w-full"
@@ -26,7 +34,9 @@ const Slider: FC<Props> = ({ value, min, max, onChange, step }) => {
         const value = _value as number;
         onChange(value);
       }}
-      handleRender={(origin) => <SliderThumb {...origin.props} active />}
+      handleRender={(origin) => (
+        <SliderThumb {...origin.props} active={!round} />
+      )}
     />
   );
 };

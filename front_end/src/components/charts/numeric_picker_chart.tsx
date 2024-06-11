@@ -6,41 +6,42 @@ import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
+import { computeQuartilesFromCDF } from "@/utils/math";
 
 type Props = {
-  dataset: number[];
   min: number;
   max: number;
-  lower25: number;
-  median: number;
-  upper75: number;
+  data: {
+    pmf: number[];
+    cdf: number[];
+    color: string;
+  }[];
 };
 
-const NumericPickerChart: FC<Props> = ({
-  min,
-  max,
-  dataset,
-  lower25,
-  median,
-  upper75,
-}) => {
+const NumericPickerChart: FC<Props> = ({ min, max, data }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
   const { theme } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
-  const chartData: { x: number; y: number }[] = [];
-  dataset.forEach((value, index) => {
-    if (index === 0 || index === dataset.length - 1) {
-      // first and last bins are probabilty mass out of bounds
-      return;
-    }
-    chartData.push({ x: (index * (max - min)) / dataset.length, y: value });
+  const chartDataArr: { x: number; y: number }[][] = [];
+  data.forEach((x) => {
+    const chartData: { x: number; y: number }[] = [];
+    const pmf = x.pmf;
+    pmf.forEach((value, index) => {
+      if (index === 0 || index === pmf.length - 1) {
+        // first and last bins are probabilty mass out of bounds
+        return;
+      }
+      chartData.push({ x: (index * (max - min)) / pmf.length, y: value });
+    });
+    chartDataArr.push(chartData);
   });
+
   // TODO: find a nice way to display the out of bounds weights as numbers
-  const massBelowBounds = dataset[0];
-  const massAboveBounds = dataset[dataset.length - 1];
+  // const massBelowBounds = dataset[0];
+  // const massAboveBounds = dataset[dataset.length - 1];
 
   const xTickValues = [
     min,
@@ -50,19 +51,26 @@ const NumericPickerChart: FC<Props> = ({
     .map((x) => Number(x.toFixed(0)))
     .slice(1, -1);
 
-  const verticalLines = [
-    {
-      x: lower25 * 10,
-      y: chartData[Math.min(198, Math.round(lower25 * 200))].y,
-    },
-    { x: median * 10, y: chartData[Math.min(198, Math.round(median * 200))].y },
-    {
-      x: upper75 * 10,
-      y: chartData[Math.min(198, Math.round(upper75 * 200))].y,
-    },
-  ];
-
-  console.log(verticalLines);
+  const verticalLinesArr: { x: number; y: number }[][] = [];
+  data.forEach((x, i) => {
+    const quantiles = computeQuartilesFromCDF(x.cdf);
+    verticalLinesArr.push([
+      {
+        x: quantiles.lower25 * 10,
+        y: chartDataArr[i][Math.min(198, Math.round(quantiles.lower25 * 200))]
+          .y,
+      },
+      {
+        x: quantiles.median * 10,
+        y: chartDataArr[i][Math.min(198, Math.round(quantiles.median * 200))].y,
+      },
+      {
+        x: quantiles.upper75 * 10,
+        y: chartDataArr[i][Math.min(198, Math.round(quantiles.upper75 * 200))]
+          .y,
+      },
+    ]);
+  });
 
   return (
     <div ref={chartContainerRef} className="h-full w-full">
@@ -72,43 +80,62 @@ const NumericPickerChart: FC<Props> = ({
           theme={chartTheme}
           domain={{
             x: [min, max],
-            y: [0, 1.2 * Math.max(...dataset)],
+            y: [0, 1.2 * Math.max(...data.map((x) => x.pmf).flat())],
           }}
         >
-          <VictoryArea
-            data={chartData}
-            style={{
-              data: {
-                fill: METAC_COLORS.orange["300"].DEFAULT,
-                opacity: 0.3,
-              },
-            }}
-          />
-          <VictoryLine
-            data={chartData}
-            style={{
-              data: {
-                stroke: METAC_COLORS.orange["500"].DEFAULT,
-                strokeDasharray: "2,2",
-              },
-            }}
-          />
-          {verticalLines.map((line, index) => (
-            <VictoryLine
-              key={index}
-              data={[
-                { x: line.x, y: 0 },
-                { x: line.x, y: line.y },
-              ]}
+          {chartDataArr.map((chartData, index) => (
+            <VictoryArea
+              key={`area-${index}`}
+              data={chartData}
               style={{
                 data: {
-                  stroke: METAC_COLORS.orange["500"].DEFAULT,
+                  fill:
+                    data[index].color === "orange"
+                      ? METAC_COLORS.orange["300"].DEFAULT
+                      : METAC_COLORS.green["200"].DEFAULT,
+                  opacity: 0.3,
+                },
+              }}
+            />
+          ))}
+          {chartDataArr.map((chartData, index) => (
+            <VictoryLine
+              key={`line-${index}`}
+              data={chartData}
+              style={{
+                data: {
+                  stroke:
+                    data[index].color === "orange"
+                      ? METAC_COLORS.orange["500"].DEFAULT
+                      : METAC_COLORS.green["500"].DEFAULT,
                   strokeDasharray: "2,2",
                 },
               }}
             />
           ))}
           <VictoryAxis tickValues={xTickValues} />
+          {verticalLinesArr.map((verticalLines, k) => {
+            return verticalLines.map((line, index) => {
+              return (
+                <VictoryLine
+                  key={`${k}-${index}`}
+                  data={[
+                    { x: line.x, y: 0 },
+                    { x: line.x, y: line.y },
+                  ]}
+                  style={{
+                    data: {
+                      stroke:
+                        data[k].color === "orange"
+                          ? METAC_COLORS.orange["500"].DEFAULT
+                          : METAC_COLORS.green["500"].DEFAULT,
+                      strokeDasharray: "2,2",
+                    },
+                  }}
+                />
+              );
+            });
+          })}
         </VictoryChart>
       )}
     </div>
