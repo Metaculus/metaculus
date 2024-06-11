@@ -1,5 +1,6 @@
 from typing import Callable
 
+import django
 from django.db.models import Q, QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
@@ -54,6 +55,34 @@ def filter_posts(qs, request: Request):
 
     if forecast_type := serializer.validated_data.get("forecast_type"):
         qs = qs.filter(type__in=forecast_type)
+
+    # print(len(qs))
+    if status := serializer.validated_data.get("status"):
+        if "resolved" in status:
+            qs = qs.filter(question__resolved_at__isnull=False).filter(
+                question__resolved_at__lte=django.utils.timezone.now()
+            )
+        if "active" in status:
+            qs = (
+                qs.filter(question__resolved_at__isnull=False)
+                .filter(published_at__lte=django.utils.timezone.now())
+                .filter(
+                    Q(
+                        Q(question__closed_at__gte=django.utils.timezone.now())
+                        | Q(question__closed_at__isnull=True)
+                    )
+                )
+                .filter(
+                    Q(
+                        Q(question__resolved_at__gte=django.utils.timezone.now())
+                        | Q(question__resolved_at__isnull=True)
+                    )
+                )
+            )
+        if "closed" in status:
+            qs = qs.filter(question__closed_at__isnull=False).filter(
+                question__closed_at__lte=django.utils.timezone.now()
+            )
 
     answered_by_me = serializer.validated_data.get("answered_by_me")
 
@@ -173,7 +202,12 @@ def enrich_posts_with_forecasts(
 @permission_classes([AllowAny])
 def posts_list_api_view(request):
     paginator = LimitOffsetPagination()
-    qs = Post.objects.annotate_predictions_count().filter(question__forecast__gte=10)
+    qs = (
+        Post.objects.annotate_predictions_count()
+        .filter(question__forecast__gte=2)
+        .filter(published_at__isnull=False)
+        .filter(published_at__lte=django.utils.timezone.now())
+    )
 
     # Extra enrich params
     with_forecasts = serializers.BooleanField(allow_null=True).run_validation(
