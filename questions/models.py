@@ -63,6 +63,21 @@ class Question(TimeStampedModel):
     vote_score: int = 0
     user_vote = None
 
+    def get_post(self):
+        # Back-rel of One2One relations does not populate None values,
+        # So we always need to check whether attr exists
+        if hasattr(self, "post"):
+            return self.post
+
+        if hasattr(self, "conditional_no"):
+            return self.conditional_no.post
+
+        if hasattr(self, "conditional_yes"):
+            return self.conditional_yes.post
+
+        if self.group:
+            return self.group.post
+
     @property
     def status(self):
         if (
@@ -73,7 +88,7 @@ class Question(TimeStampedModel):
             return "resolved"
         if self.closed_at and self.closed_at < django.utils.timezone.now():
             return "closed"
-        if self.post.published_at:
+        if self.get_post().published_at:
             return "active"
         print(self.__dict__)
         print(f"!!\n\nWrong status for question: {self.id}\n\n!!")
