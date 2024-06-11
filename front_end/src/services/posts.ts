@@ -26,7 +26,7 @@ class PostsApi {
   static async getPost(id: number): Promise<PostWithForecasts | null> {
     try {
       return await get<PostWithForecasts>(
-        `/posts/${id}/${encodeQueryParams({ with_forecasts: true })}`
+        `/posts/${id}${encodeQueryParams({ with_forecasts: true })}`
       );
     } catch (err) {
       console.error("Error getting post:", err);
@@ -55,7 +55,7 @@ class PostsApi {
 
     try {
       return await get<PaginatedPayload<PostWithForecasts>>(
-        `/posts/${queryParams}`
+        `/posts${queryParams}`
       );
     } catch (err) {
       console.error("Error getting posts:", err);
@@ -67,7 +67,7 @@ class PostsApi {
     id: number,
     direction: VoteDirection
   ): Promise<VoteResponse> {
-    return await post<VoteResponse>(`/posts/${id}/vote/`, { direction });
+    return await post<VoteResponse>(`/posts/${id}/vote`, { direction });
   }
 }
 
