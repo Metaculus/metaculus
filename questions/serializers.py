@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Question
+from .models import Question, Conditional, GroupOfQuestions
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -23,3 +23,27 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "possibilities",
             "resolution",
         )
+
+
+class ConditionalSerializer(serializers.ModelSerializer):
+    condition = QuestionSerializer()
+    condition_child = QuestionSerializer()
+    question_yes = QuestionSerializer()
+    question_no = QuestionSerializer()
+
+    class Meta:
+        model = Conditional
+        fields = (
+            "condition",
+            "condition_child",
+            "question_yes",
+            "question_no",
+        )
+
+
+class GroupOfQuestionsSerializer(serializers.ModelSerializer):
+    questions = QuestionSerializer(many=True)
+
+    class Meta:
+        model = GroupOfQuestions
+        fields = ("questions",)
