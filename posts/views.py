@@ -221,7 +221,9 @@ def posts_list_api_view(request):
     qs, enrich_resolution = enrich_post_question_with_resolution(qs)
     qs, enrich_nr_forecasts = enrich_posts_with_nr_forecasts(qs, user=request.user)
     qs, enrich_forecasts = (
-        enrich_posts_with_forecasts(qs, user=request.user) if with_forecasts else enrich_empty(qs)
+        enrich_posts_with_forecasts(qs, user=request.user)
+        if with_forecasts
+        else enrich_empty(qs)
     )
 
     # Paginating queryset
