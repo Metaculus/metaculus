@@ -1,15 +1,18 @@
 from datetime import timedelta
+from typing import Optional
 
 import numpy as np
 from django.utils import timezone
 
 from questions.models import Question
+from users.models import User
 from utils.the_math.community_prediction import (
     compute_multiple_choice_plotable_cp,
     compute_binary_plotable_cp,
     compute_continuous_plotable_cp,
 )
 from utils.the_math.formulas import scale_continous_forecast_location
+from utils.the_math.measures import percent_point_function
 
 
 def enrich_question_with_resolution_f(
@@ -34,7 +37,7 @@ def enrich_question_with_resolution_f(
 
     if question.resolution is None:
         return serialized_question
-    
+
     if question.type == "binary":
         # TODO: @george, some questions might have None resolution, so this leads to error
         #   added tmp condition to prevent such cases
@@ -48,9 +51,13 @@ def enrich_question_with_resolution_f(
 
     # TODO @Luke this and the date have to be normalized
     elif question.type == "numeric":
-        serialized_question["resolution"] = scale_continous_forecast_location(question, int(float(question.resolution) * 200))
+        serialized_question["resolution"] = scale_continous_forecast_location(
+            question, int(float(question.resolution) * 200)
+        )
     elif question.type == "date":
-        serialized_question["resolution"] = scale_continous_forecast_location(question, int(float(question.resolution) * 200))
+        serialized_question["resolution"] = scale_continous_forecast_location(
+            question, int(float(question.resolution) * 200)
+        )
 
     elif question.type == "multiple_choice":
         try:
@@ -68,7 +75,7 @@ def enrich_question_with_resolution_f(
 
 
 def enrich_question_with_forecasts_f(
-    question: Question, serialized_question: dict
+    question: Question, serialized_question: dict, user: Optional[User]
 ) -> dict:
     """
     Enriches questions with the forecasts object.
@@ -87,9 +94,33 @@ def enrich_question_with_forecasts_f(
             "values_max": [],
             "values_min": [],
             "nr_forecasters": [],
+            "my_forecasts": None,
+            "latest_pmf": None,
+            "latest_cdf": None,
         }
 
     # values_choice_1
+    if user is not None:
+        forecasts_data["my_forecasts"] = {
+            "values_mean": [],
+            "timestamps": [],
+        }
+        for x in question.forecast_set.filter(author=user).order_by("start_time").all():
+            forecasts_data["my_forecasts"]["timestamps"].append(
+                x.start_time.timestamp()
+            )
+            if question.type == "multiple_choice":
+                forecasts_data["my_forecasts"]["values_mean"].append(0)
+            elif question.type == "binary":
+                forecasts_data["my_forecasts"]["values_mean"].append(x.probability_yes)
+            elif question.type in ["numeric", "date"]:
+                cps, cdf = compute_continuous_plotable_cp(question)
+                forecasts_data["my_forecasts"]["values_mean"].append(
+                    scale_continous_forecast_location(
+                        question, percent_point_function(x.continuous_cdf, 0.5)
+                    )
+                )
+
     if question.type == "multiple_choice":
         cps = compute_multiple_choice_plotable_cp(question)
         for cp_dict in cps:
@@ -111,7 +142,9 @@ def enrich_question_with_forecasts_f(
         if question.type == "binary":
             cps = compute_binary_plotable_cp(question)
         elif question.type in ["numeric", "date"]:
-            cps = compute_continuous_plotable_cp(question)
+            cps, cdf = compute_continuous_plotable_cp(question)
+            forecasts_data["latest_cdf"] = cdf
+            forecasts_data["latest_pmf"] = np.diff(cdf, prepend=0)
         else:
             raise Exception(f"Unknown question type: {question.type}")
         if cps is None or len(cps) == 0:
