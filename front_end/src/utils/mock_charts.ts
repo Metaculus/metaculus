@@ -33,6 +33,9 @@ export function generateMockNumericChart(): NumericForecast {
     values_max,
     values_min,
     nr_forecasters,
+    my_forecasts: null,
+    latest_cdf: null,
+    latest_pmf: null,
   };
 }
 
@@ -76,5 +79,8 @@ export function generateMockMultipleChoiceChart(): MultipleChoiceForecast {
     timestamps,
     nr_forecasters: nrForecasters,
     ...choiceData,
+    my_forecasts: null,
+    latest_cdf: null,
+    latest_pmf: null,
   };
 }

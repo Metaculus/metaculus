@@ -12,6 +12,7 @@ import {
   VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
+  VictoryScatter,
 } from "victory";
 
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
@@ -62,7 +63,7 @@ const NumericChart: FC<Props> = ({
   const defaultCursor = dataset.timestamps[dataset.timestamps.length - 1];
   const [isCursorActive, setIsCursorActive] = useState(false);
 
-  const { line, area, yDomain, xScale, yScale } = useMemo(
+  const { line, area, yDomain, xScale, yScale, points } = useMemo(
     () => buildChartData(dataset, chartWidth, height, type),
     [dataset, chartWidth, height, type]
   );
@@ -155,6 +156,16 @@ const NumericChart: FC<Props> = ({
               },
             }}
           />
+          <VictoryScatter
+            data={points.map((x) => ({ ...x, symbol: "diamond" }))}
+            style={{
+              data: {
+                stroke: METAC_COLORS.orange["700"].DEFAULT,
+                fill: "none",
+                strokeWidth: 2,
+              },
+            }}
+          />
           <VictoryAxis
             dependentAxis
             style={{
@@ -178,6 +189,7 @@ const NumericChart: FC<Props> = ({
 type ChartData = BaseChartData & {
   line: Line;
   area: Area;
+  points: Line;
   yDomain: DomainTuple;
 };
 
@@ -196,6 +208,14 @@ function buildChartData(
     y0: dataset.values_min[index],
     y: dataset.values_max[index],
   }));
+  let points: Line =
+    dataset.my_forecasts === null
+      ? []
+      : dataset.my_forecasts.timestamps.map((timestamp, index) => ({
+          x: timestamp,
+          // @ts-ignore
+          y: dataset.my_forecasts.values_mean[index],
+        }));
 
   const xDomain = generateNumericDomain(dataset.timestamps);
   const xScale = generateTimestampXScale(xDomain, width);
@@ -228,6 +248,7 @@ function buildChartData(
     yDomain,
     xScale,
     yScale,
+    points,
   };
 }
 
