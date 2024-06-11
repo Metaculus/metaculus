@@ -33,6 +33,9 @@ const baseChart: VictoryThemeDefinition = {
 const lightChart: VictoryThemeDefinition = {
   axis: {
     style: {
+      ticks: {
+        stroke: "black",
+      },
       axis: {
         stroke: "black",
       },
@@ -49,6 +52,9 @@ const lightChart: VictoryThemeDefinition = {
 const darkChart: VictoryThemeDefinition = {
   axis: {
     style: {
+      ticks: {
+        stroke: "white",
+      },
       axis: {
         stroke: "white",
       },

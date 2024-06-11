@@ -37,9 +37,9 @@ class PostQuerySet(models.QuerySet):
 
         return self.annotate(
             user_vote=Subquery(
-                Vote.objects.filter(user=user, post=OuterRef("pk")).values(
-                    "direction"
-                )[:1]
+                Vote.objects.filter(user=user, post=OuterRef("pk")).values("direction")[
+                    :1
+                ]
             ),
         )
 
