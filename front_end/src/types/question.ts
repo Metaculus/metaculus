@@ -1,5 +1,3 @@
-import { VoteDirection } from "@/types/votes";
-
 export enum QuestionType {
   Numeric = "numeric",
   Date = "date",
