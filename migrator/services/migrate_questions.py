@@ -84,7 +84,7 @@ def migrate_questions():
     posts = []
 
     for old_question in paginated_query(
-            """SELECT
+        """SELECT
                 q.*,
                 ARRAY_AGG(o.label) AS option_labels
             FROM
