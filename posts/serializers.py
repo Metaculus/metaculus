@@ -6,7 +6,8 @@ from projects.models import Project
 from projects.serializers import (
     validate_categories,
     validate_tournaments,
-    serialize_projects, PostProjectWriteSerializer,
+    serialize_projects,
+    PostProjectWriteSerializer,
 )
 from questions.serializers import QuestionSerializer, QuestionWriteSerializer
 from .models import Post
@@ -42,11 +43,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = (
-            "title",
-            "projects",
-            "question"
-        )
+        fields = ("title", "projects", "question")
 
 
 class PostFilterSerializer(serializers.Serializer):
@@ -61,6 +58,7 @@ class PostFilterSerializer(serializers.Serializer):
     categories = serializers.ListField(child=serializers.CharField(), required=False)
     tournaments = serializers.ListField(child=serializers.CharField(), required=False)
     forecast_type = serializers.ListField(child=serializers.CharField(), required=False)
+    status = serializers.ListField(child=serializers.CharField(), required=False)
     answered_by_me = serializers.BooleanField(required=False, allow_null=True)
     order = serializers.ChoiceField(
         choices=Order.choices, required=False, allow_null=True

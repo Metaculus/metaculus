@@ -1,5 +1,7 @@
+from datetime import datetime
 from typing import TYPE_CHECKING
 
+import django
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -55,9 +57,13 @@ class Question(TimeStampedModel):
 
     @property
     def status(self):
-        if self.resolved_at:
+        if (
+            self.resolution
+            and self.resolved_at
+            and self.resolved_at < django.utils.timezone.now()
+        ):
             return "resolved"
-        if self.closed_at:
+        if self.closed_at and self.closed_at < django.utils.timezone.now():
             return "closed"
         if self.post.published_at:
             return "active"
