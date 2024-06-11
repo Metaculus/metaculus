@@ -14,7 +14,7 @@ class UserWeight(TimeStampedModel):
 
 class LeaderboardEntry(TimeStampedModel):
     class LeaderboardType(models.TextChoices):
-        METACULUS_POINTS = "metaculus_points"
+        LEGACY_RELATIVE = "legacy_relative"
         PEER_ACCURACY = "peer_accuracy"
         BASELINE_ACCURACY = "baseline_accuracy"
         PEER_SPOT_FORECAST = "peer_spot_forecast"
