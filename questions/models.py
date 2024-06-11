@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 import django
@@ -49,6 +48,15 @@ class Question(TimeStampedModel):
 
     objects = models.Manager.from_queryset(QuestionQuerySet)()
 
+    # Group
+    group = models.ForeignKey(
+        "GroupOfQuestions",
+        null=True,
+        blank=True,
+        related_name="questions",
+        on_delete=models.CASCADE,
+    )
+
     # Annotated fields
     predictions_count: int = 0
     nr_forecasters: int = 0
@@ -70,6 +78,26 @@ class Question(TimeStampedModel):
         print(self.__dict__)
         print(f"!!\n\nWrong status for question: {self.id}\n\n!!")
         return "active"
+
+
+class Conditional(TimeStampedModel):
+    condition = models.ForeignKey(
+        Question, related_name="conditional_parents", on_delete=models.PROTECT
+    )
+    condition_child = models.ForeignKey(
+        Question, related_name="conditional_children", on_delete=models.PROTECT
+    )
+
+    question_yes = models.ForeignKey(
+        Question, related_name="conditional_yes", on_delete=models.PROTECT
+    )
+    question_no = models.ForeignKey(
+        Question, related_name="conditional_no", on_delete=models.PROTECT
+    )
+
+
+class GroupOfQuestions(TimeStampedModel):
+    pass
 
 
 class Forecast(models.Model):
