@@ -3,7 +3,7 @@ from django.db.models import Sum, Subquery, OuterRef, Count
 from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
-from questions.models import Question
+from questions.models import Question, Conditional, GroupOfQuestions
 from users.models import User
 from utils.models import TimeStampedModel
 
@@ -17,12 +17,27 @@ class PostQuerySet(models.QuerySet):
 
     def annotate_predictions_count(self):
         return self.annotate(
-            predictions_count=Count("question__forecast", distinct=True)
+            predictions_count=(
+                Count("question__forecast", distinct=True)
+                # Conditional questions
+                + Count("conditional__question_yes__forecast", distinct=True)
+                + Count("conditional__question_no__forecast", distinct=True)
+                # Question groups
+                + Count("group_of_questions__questions__forecast", distinct=True)
+            )
         )
 
     def annotate_nr_forecasters(self):
         return self.annotate(
-            nr_forecasters=Count("question__forecast__author", distinct=True)
+            nr_forecasters=(
+                # Single question
+                Count("question__forecast__author", distinct=True)
+                # Conditional questions
+                + Count("conditional__question_yes__forecast__author", distinct=True)
+                + Count("conditional__question_no__forecast__author", distinct=True)
+                # Question groups
+                + Count("group_of_questions__questions__forecast__author", distinct=True)
+            )
         )
 
     def annotate_vote_score(self):
@@ -58,7 +73,16 @@ class Post(TimeStampedModel):
     published_at = models.DateTimeField(db_index=True, null=True)
 
     # Relations
-    question = models.OneToOneField(Question, models.CASCADE, related_name="post")
+    # TODO: add db constraint to have only one not-null value of these fields
+    question = models.OneToOneField(
+        Question, models.CASCADE, related_name="post", null=True
+    )
+    conditional = models.OneToOneField(
+        Conditional, models.CASCADE, related_name="post", null=True
+    )
+    group_of_questions = models.OneToOneField(
+        GroupOfQuestions, models.CASCADE, related_name="post", null=True
+    )
 
     projects = models.ManyToManyField(Project, related_name="posts")
 
