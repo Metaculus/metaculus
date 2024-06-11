@@ -59,8 +59,10 @@ class Question(TimeStampedModel):
             return "resolved"
         if self.closed_at:
             return "closed"
-        if self.published_at:
+        if self.post.published_at:
             return "active"
+        print(self.__dict__)
+        print(f"!!\n\nWrong status for question: {self.id}\n\n!!")
         return "active"
 
 
