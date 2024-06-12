@@ -29,6 +29,7 @@ def create_comment(comment_obj: dict) -> Comment:
         id=comment_obj["id"],
         author_id=comment_obj["author_id"],
         parent_id=comment_obj["parent_id"],
+        # created_at is failing, all comments are being given the time the migration is ran
         created_at=comment_obj["created_time"],
         is_soft_deleted=comment_obj["deleted"],
         text=comment_obj["comment_text"],

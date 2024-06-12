@@ -15,10 +15,15 @@ def comments_list_api_view(request: Request):
     # complex to do with multiple nesting levels
     comments = Comment.objects
 
+    post_param = serializers.CharField(allow_null=True).run_validation(
+        request.query_params.get("post")
+    )
+    if post_param:
+        comments = comments.filter(on_post=post_param)
+
     author_param = serializers.CharField(allow_null=True).run_validation(
         request.query_params.get("author")
     )
-
     if author_param:
         comments = comments.filter(author_id=author_param)
 
