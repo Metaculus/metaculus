@@ -20,8 +20,8 @@ class CommentQuerySet(models.QuerySet):
             vote_score=SubqueryAggregate("votes__direction", aggregate=Sum)
         )
 
-    def annotate_children(self):
-        return self.annotate(children=Comment.objects.filter(parent=self))
+    #def annotate_children(self):
+    #    return self.annotate(children=Comment.objects.filter(parent=self))
 
 
 class Comment(models.Model):

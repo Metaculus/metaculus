@@ -117,7 +117,7 @@ class Post(TimeStampedModel):
     user_vote = None
 
 
-# TODO: if we can vote on questions and comments, maybe move this elsewhere; user?
+# TODO: create votes app
 class Vote(models.Model):
     class VoteDirection(models.IntegerChoices):
         UP = 1
@@ -125,6 +125,7 @@ class Vote(models.Model):
 
     user = models.ForeignKey(User, models.CASCADE, related_name="votes")
     post = models.ForeignKey(Post, models.CASCADE, related_name="votes")
+    #comment = models.ForeignKey(Comment, models.CASCADE, related_name="votes")
     direction = models.SmallIntegerField(choices=VoteDirection.choices)
 
     class Meta:
@@ -132,11 +133,11 @@ class Vote(models.Model):
             models.UniqueConstraint(
                 name="votes_unique_user_question", fields=["user_id", "post_id"]
             ),
-            # models.CheckConstraint(
+            #models.CheckConstraint(
             #    name='has_question_xor_comment',
             #    check=(
-            #        models.Q(question__isnull=True, comment__isnull=False) |
-            #        models.Q(question__isnull=False, comment__isnull=True)
+            #        models.Q(post__isnull=True, comment__isnull=False) |
+            #        models.Q(post__isnull=False, comment__isnull=True)
             #    )
-            # )
+            #)
         ]
