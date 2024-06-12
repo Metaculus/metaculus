@@ -42,11 +42,11 @@ def string_location_to_bucket_index(question: Question, string_location: str) ->
         scaled_location = datetime.fromisoformat(string_location).timestamp()
     else:
         scaled_location = float(string_location)
-    scaled_location = unscale_location(question, scaled_location)
-    if scaled_location < 0:
+    unscaled_location = unscale_location(question, scaled_location)
+    if unscaled_location < 0:
         return 0
-    if scaled_location > 1:
+    if unscaled_location > 1:
         return 201
-    if scaled_location == 1:
+    if unscaled_location == 1:
         return 200
-    return int(scaled_location * 200 + 1 + 1e-7)
+    return int(unscaled_location * 200 + 1 + 1e-7)
