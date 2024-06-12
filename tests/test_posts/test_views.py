@@ -1,8 +1,10 @@
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from posts.models import Post
 from questions.models import Question
 from tests.fixtures import *  # noqa
+from tests.test_posts.factories import create_post
 from tests.test_questions.factories import create_question
 
 
@@ -112,3 +114,29 @@ class TestPostCreate:
             == "Starship Reaches Orbit in 2024? (No) → Starship Booster Tower Catch Attempt in 2024?"
         )
         assert response.data["conditional"]["question_no"]["type"] == "numeric"
+
+
+def test_posts_list(anon_client):
+    response = anon_client.get("/api/posts")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data
+
+
+def test_question_detail(anon_client, user1):
+    post = create_post(author=user1)
+
+    url = f"/api/posts/{post.pk}/"
+    response = anon_client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data
+
+
+def test_delete_post(user1_client, user1):
+    post = create_post(author=user1)
+    url = f"/api/posts/{post.pk}/delete/"
+    response = user1_client.delete(url)
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert not Post.objects.filter(pk=post.pk).exists()

@@ -17,7 +17,7 @@ def question_numeric():
 @pytest.fixture()
 def conditional_1(question_binary, question_numeric):
     return create_conditional(
-        condition_parent=question_binary,
+        condition=question_binary,
         condition_child=question_numeric,
         question_yes=create_question(
             question_type=Question.QuestionType.NUMERIC, title="If Yes"
