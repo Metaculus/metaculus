@@ -17,7 +17,6 @@ const Comment: FC<Props> = ({ comment }) => {
 
   return (
     <div
-      className="mb-4 scroll-mt-12 border-t border-gray-400 pt-1 first-of-type:mt-2 dark:border-gray-400-dark"
       id={`comment-${comment.id}`}
     >
       <div className="my-2.5 flex flex-col items-start gap-1">
