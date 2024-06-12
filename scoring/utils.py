@@ -13,7 +13,9 @@ def score_question(
     resolution_time: float,
     spot_forecast_time: datetime | None = None,
 ):
-    resolution_bucket = string_location_to_bucket_index(question, resolution)
+    resolution_bucket = string_location_to_bucket_index(
+        question.type, resolution, question.options
+    )
     question.resolved_at = resolution_time
     # for score_type in LeaderboardEntry.LeaderboardType.choices:
     for score_type in ["baseline_accuracy"]:
