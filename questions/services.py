@@ -31,6 +31,7 @@ def build_question_resolution(question: Question):
     resolution of 3 means "not less than upper bound"
     """
 
+    # @TODO Luke -- fix the resolution code once your migrations are done
     if question.resolution is None:
         return
 
@@ -43,7 +44,7 @@ def build_question_resolution(question: Question):
             elif np.isclose(float(question.resolution), -1):
                 return "No"
 
-    # TODO @Luke this and the date have to be normalized
+    # @TODO Luke -- fix the resolution code once your migrations are done
     elif question.type == "numeric":
         return scale_continous_forecast_location(
             question, int(float(question.resolution) * 200)
