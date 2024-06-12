@@ -67,7 +67,7 @@ const ArrowButton: FC<ArrowButtonProps> = ({
   onClickIn,
   onClickOut,
 }) => (
-  <div className="invisible flex h-5 items-center bg-white px-1.5 group-hover:visible">
+  <div className="invisible flex h-5 items-center bg-blue-200 px-1.5 group-hover:visible dark:bg-blue-200-dark">
     <button
       className="flex items-center text-gray-300 hover:text-gray-600 active:text-gray-900 dark:text-gray-300-dark dark:hover:text-gray-600-dark dark:active:text-gray-900-dark"
       onMouseDown={onClickIn}

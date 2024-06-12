@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import PostsApi, { PostsParams } from "@/services/posts";
 import QuestionsApi from "@/services/questions";
 import { FetchError } from "@/types/fetch";
@@ -36,7 +38,13 @@ export async function createForecast(
   forecastData: ForecastData
 ) {
   try {
-    return await QuestionsApi.createForecast(questionId, forecastData);
+    const response = await QuestionsApi.createForecast(
+      questionId,
+      forecastData
+    );
+    revalidatePath(`/questions/${questionId}`);
+
+    return response;
   } catch (err) {
     const error = err as FetchError;
 
