@@ -18,9 +18,12 @@ class TestPostCreate:
                 "question": {
                     "title": "Question Post",
                     "description": "Question description",
-                    "type": "binary",
+                    "type": "numeric",
                     "possibilities": {"type": "binary"},
                     "resolution": "1.0",
+                    "min": 1,
+                    "max": 100,
+                    "open_upper_bound": True,
                 },
             },
             format="json",
@@ -31,7 +34,10 @@ class TestPostCreate:
         assert response.data["title"] == "Question Post"
         assert response.data["author_id"] == user1.id
         assert response.data["question"]["title"] == "Question Post"
-        assert response.data["question"]["type"] == "binary"
+        assert response.data["question"]["type"] == "numeric"
+        assert response.data["question"]["min"] == 1
+        assert response.data["question"]["max"] == 100
+        assert response.data["question"]["open_upper_bound"]
 
     def test_create__group(self, user1, user1_client):
         response = user1_client.post(

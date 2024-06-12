@@ -26,6 +26,11 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "type",
             "possibilities",
             "resolution",
+            "max",
+            "min",
+            "zero_point",
+            "open_upper_bound",
+            "open_lower_bound",
         )
 
 
