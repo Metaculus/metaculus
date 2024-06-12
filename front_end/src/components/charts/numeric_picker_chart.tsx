@@ -36,20 +36,20 @@ const NumericPickerChart: FC<Props> = ({ min, max, data }) => {
       }
       chartData.push({ x: (index * (max - min)) / pmf.length, y: value });
     });
-    chartDataArr.push(chartData);
+    chartDataArr.push(chartData.slice(1, chartData.length - 1));
   });
 
   // TODO: find a nice way to display the out of bounds weights as numbers
   // const massBelowBounds = dataset[0];
   // const massAboveBounds = dataset[dataset.length - 1];
 
+  // @TODO Luke can you fix the ticks
   const xTickValues = [
     min,
     ...Array.from({ length: 7 }, (_, i) => min + ((i + 1) * (max - min)) / 8),
     max,
-  ]
-    .map((x) => Number(x.toFixed(0)))
-    .slice(1, -1);
+  ].map((x) => Number(x.toFixed(0)));
+  //.slice(1, -1);
 
   const verticalLinesArr: { x: number; y: number }[][] = [];
   data.forEach((x, i) => {

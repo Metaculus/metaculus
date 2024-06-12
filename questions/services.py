@@ -35,6 +35,7 @@ def enrich_question_with_resolution_f(
     resolution of 3 means "not less than upper bound"
     """
 
+    # @TODO Luke -- fix the resolution code once your migrations are done
     if question.resolution is None:
         return serialized_question
 
@@ -49,7 +50,7 @@ def enrich_question_with_resolution_f(
             elif np.isclose(float(serialized_question["resolution"]), -1):
                 serialized_question["resolution"] = "No"
 
-    # TODO @Luke this and the date have to be normalized
+    # @TODO Luke -- fix the resolution code once your migrations are done
     elif question.type == "numeric":
         serialized_question["resolution"] = scale_continous_forecast_location(
             question, int(float(question.resolution) * 200)
