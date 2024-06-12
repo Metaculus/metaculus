@@ -73,22 +73,6 @@ class Question(TimeStampedModel):
     vote_score: int = 0
     user_vote = None
 
-    # @property
-    # def status(self):
-    #     if (
-    #         self.resolution
-    #         and self.resolved_at
-    #         and self.resolved_at < django.utils.timezone.now()
-    #     ):
-    #         return "resolved"
-    #     if self.closed_at and self.closed_at < django.utils.timezone.now():
-    #         return "closed"
-    #     if self.post.published_at:
-    #         return "active"
-    #     print(self.__dict__)
-    #     print(f"!!\n\nWrong status for question: {self.id}\n\n!!")
-    #     return "active"
-
 
 class Forecast(models.Model):
     start_time = models.DateTimeField(

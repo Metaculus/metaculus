@@ -15,59 +15,7 @@ from utils.the_math.formulas import string_location_to_bucket_index
 def enrich_question_with_resolution_f(
     question: Question, serialized_question: dict
 ) -> dict:
-    """
-    resolution of -2 means "annulled"
-    resolution of -1 means "ambiguous"
-    For Binary
-    resolution of 0 means "didn't happen"
-    resolution of 1 means "did happen"
-    For MC
-    resolution of N means "N'th choice occurred"
-    resolved_option is a mapping to the Option that was resolved to
-    For Continuous
-    resolution of 0 means "at lower bound"
-    resolution of 1 means "at upper bound"
-    resolution in [0, 1] means "resolved at some specified location within bounds"
-    resolution of 2 means "not greater than lower bound"
-    resolution of 3 means "not less than upper bound"
-    """
-
-    if question.resolution is None:
-        return serialized_question
-
-    if question.type == "binary":
-        # TODO: @george, some questions might have None resolution, so this leads to error
-        #   added tmp condition to prevent such cases
-        resolution = serialized_question["resolution"]
-
-        if resolution is not None:
-            if np.isclose(float(serialized_question["resolution"]), 0):
-                serialized_question["resolution"] = "Yes"
-            elif np.isclose(float(serialized_question["resolution"]), -1):
-                serialized_question["resolution"] = "No"
-
-    # TODO @Luke this and the date have to be normalized
-    elif question.type == "numeric":
-        serialized_question["resolution"] = string_location_to_bucket_index(
-            question, int(float(question.resolution) * 200)
-        )
-    elif question.type == "date":
-        serialized_question["resolution"] = string_location_to_bucket_index(
-            question, int(float(question.resolution) * 200)
-        )
-
-    elif question.type == "multiple_choice":
-        try:
-            serialized_question["resolution"] = question.options[
-                int(question.resolution)
-            ]
-        except Exception:
-            serialized_question["resolution"] = (
-                f"Error for resolution: {question.resolution}"
-            )
-    else:
-        pass
-
+    serialized_question["resolution"] = question.resolution
     return serialized_question
 
 
