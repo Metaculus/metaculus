@@ -4,10 +4,9 @@ import { notFound } from "next/navigation";
 
 import CommentFeed from "@/components/comment_feed";
 import DetailedQuestionCard from "@/components/detailed_question_card";
-import ForecastMakerNumeric from "@/components/forecast_maker_numeric";
+import ForecastMaker from "@/components/forecast_maker";
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
-import { QuestionType } from "@/types/question";
 
 export default async function IndividualQuestion({
   params,
@@ -35,14 +34,9 @@ export default async function IndividualQuestion({
           <DetailedQuestionCard question={postData.question} />
         )}
         <div className="p-6 dark:bg-blue-800">
-          {postData.question &&
-            (postData.question.type === QuestionType.Numeric ||
-              postData.question.type === QuestionType.Date) && (
-              <ForecastMakerNumeric
-                question={postData.question}
-                prevSlider={null}
-              />
-            )}
+          {!!postData.question && (
+            <ForecastMaker question={postData.question} />
+          )}
         </div>
         {commentsData && <CommentFeed comments={commentsData} />}
       </div>

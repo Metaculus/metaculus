@@ -6,12 +6,12 @@ import { FC, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
 import NumericPickerChart from "@/components/charts/numeric_picker_chart";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { QuestionWithForecasts } from "@/types/question";
 import { getIsForecastEmpty } from "@/utils/forecasts";
 import { binWeightsFromSliders, computeQuartilesFromCDF } from "@/utils/math";
 
-import MultiSlider, { MultiSliderValue } from "./sliders/multi_slider";
-import Slider from "./sliders/slider";
+import MultiSlider, { MultiSliderValue } from "../sliders/multi_slider";
+import Slider from "../sliders/slider";
 
 type Props = {
   question: QuestionWithForecasts;
@@ -82,11 +82,7 @@ const ForecastMakerNumeric: FC<Props> = ({ question, prevSlider }) => {
 
   return (
     <div>
-      <NumericPickerChart
-        min={question.min}
-        max={question.max}
-        data={data}
-      ></NumericPickerChart>
+      <NumericPickerChart min={question.min} max={question.max} data={data} />
       {forecast.map((x, index) => {
         return (
           <div key={index}>
@@ -125,7 +121,7 @@ const ForecastMakerNumeric: FC<Props> = ({ question, prevSlider }) => {
                     min={0}
                     max={1}
                     step={0.00001}
-                    value={0.5}
+                    defaultValue={0.5}
                     round={true}
                     onChange={(value) =>
                       setWeights(
