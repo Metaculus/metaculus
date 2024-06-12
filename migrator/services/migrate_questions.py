@@ -34,7 +34,6 @@ def create_question(question: dict) -> Question:
     open_upper_bound = None
     open_lower_bound = None
     options = None
-    # TODO @Luke do the transformation to get zero_point point from deriv_ratio
     zero_point = None
     if None in question["option_labels"] or not question["option_labels"]:
         question["option_labels"] = None
@@ -55,6 +54,9 @@ def create_question(question: dict) -> Question:
             question_type = "date"
             max = date_parse(possibilities["scale"]["max"]).timestamp()
             min = date_parse(possibilities["scale"]["min"]).timestamp()
+        deriv_ratio = possibilities["scale"].get("deriv_ratio", 1)
+        if deriv_ratio != 1:
+            zero_point = (deriv_ratio * min - max) / (deriv_ratio - 1)
         open_upper_bound = possibilities.get("low", None) == "tail"
         open_lower_bound = possibilities.get("high", None) == "tail"
     elif question["option_labels"] is not None:
