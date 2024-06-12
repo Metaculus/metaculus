@@ -16,20 +16,18 @@ const Comment: FC<Props> = ({ comment }) => {
   console.log("comment data:", comment);
 
   return (
-    <div
-      id={`comment-${comment.id}`}
-    >
+    <div id={`comment-${comment.id}`}>
       <div className="my-2.5 flex flex-col items-start gap-1">
         <span className="inline-flex items-center">
           <a
             className="no-underline"
-            href={`/accounts/profile/${comment.author}/`}
+            href={`/accounts/profile/${comment.author.id}/`}
           >
             <h4 className="my-0">
               {/*comment.is_deactivated
                 ? "[DEACTIVATED USER]"
                 : .author_name*/}
-              USERNAME
+              {comment.author.username}
               {/*
               {comment.author_forecaster_type === "BOT" && (
                 <span className="ml-1">🤖</span>
