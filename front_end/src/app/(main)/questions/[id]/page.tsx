@@ -19,7 +19,7 @@ export default async function IndividualQuestion({
     return notFound();
   }
 
-  const commentsData = await CommentsApi.getComments({ question: params.id });
+  const commentsData = await CommentsApi.getComments({ post: params.id });
 
   return (
     <main className="flex flex-row justify-center gap-2 p-6">
