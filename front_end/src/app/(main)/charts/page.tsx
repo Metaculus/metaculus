@@ -7,15 +7,8 @@ import MultiSlider, {
 } from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
 import { binWeightsFromSliders, computeQuartilesFromCDF } from "@/utils/math";
-import {
-  generateMockMultipleChoiceChart,
-  generateMockNumericChart,
-} from "@/utils/mock_charts";
 
 export default function Questions() {
-  const numericDataset = generateMockNumericChart();
-  const multipleChoiceDataset = generateMockMultipleChoiceChart();
-
   const [multiSliderValue, setMultiSliderValue] = useState<MultiSliderValue>({
     left: 116,
     center: 203,

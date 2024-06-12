@@ -9,7 +9,7 @@ import Slider from "@/components/sliders/slider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { ErrorResponse } from "@/types/fetch";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 
 const DEFAULT_SLIDER_VALUE = 50;
 const BINARY_PREDICTION_PRECISION = 3;
@@ -17,7 +17,7 @@ const MIN_VALUE = 10 ** -BINARY_PREDICTION_PRECISION * 100;
 const MAX_VALUE = 100 - MIN_VALUE;
 
 type Props = {
-  question: QuestionWithForecasts;
+  question: QuestionWithNumericForecasts;
 };
 
 const ForecastMakerBinary: FC<Props> = ({ question }) => {
