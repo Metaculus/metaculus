@@ -20,7 +20,7 @@ class CommentQuerySet(models.QuerySet):
             vote_score=SubqueryAggregate("votes__direction", aggregate=Sum)
         )
 
-    def annotate_author_username(self):
+    def annotate_author_object(self):
         return self.prefetch_related("author")
 
     #def annotate_children(self):

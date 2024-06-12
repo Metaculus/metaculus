@@ -32,6 +32,18 @@ class UserPublicSerializer(serializers.ModelSerializer):
         return obj.get_formerly_known_as()
 
 
+class UserCommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            #"admin"
+            #"moderator"
+            # maybe something for medals
+        )
+
+
 class UserPrivateSerializer(UserPublicSerializer):
     class Meta:
         model = User
