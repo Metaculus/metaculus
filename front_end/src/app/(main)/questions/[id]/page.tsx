@@ -61,7 +61,7 @@ export default async function IndividualQuestion({
           </div>
           <div className="flex flex-row justify-between">
             <span>Opened:</span>
-            <span>{postData.created_at.slice(0, 7)}</span>
+            <span>{postData.published_at.slice(0, 7)}</span>
           </div>
           <div className="flex flex-row justify-between">
             <span>Closed:</span>

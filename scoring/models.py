@@ -14,11 +14,12 @@ class UserWeight(TimeStampedModel):
 
 class LeaderboardEntry(TimeStampedModel):
     class LeaderboardType(models.TextChoices):
-        METACULUS_POINTS = "metaculus_points"
+        LEGACY_RELATIVE = "legacy_relative"
         PEER_ACCURACY = "peer_accuracy"
         BASELINE_ACCURACY = "baseline_accuracy"
         PEER_SPOT_FORECAST = "peer_spot_forecast"
         BASELINE_SPOT_FORECAST = "baseline_spot_forecast"
+        # TODO: add comment and question writing leaderboard types
 
     user = models.ForeignKey("users.User", on_delete=models.CASCADE)
     for_project = models.ForeignKey("projects.Project", on_delete=models.CASCADE)

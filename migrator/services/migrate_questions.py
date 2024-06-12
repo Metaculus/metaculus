@@ -1,10 +1,30 @@
 import json
+from datetime import datetime
 
 from dateutil.parser import parse as date_parse
 
+from utils.the_math.formulas import scale_location
 from migrator.utils import paginated_query
 from posts.models import Post
 from questions.models import Question, Conditional, GroupOfQuestions
+
+
+def unscaled_location_to_string_location(
+    question: Question, unscaled_location: float
+) -> str:
+    if question.type == "binary":
+        return "yes" if unscaled_location == 1.0 else "no"
+    if question.type == "multiple_choice":
+        return question.options[int(unscaled_location)]
+    # continuous
+    if unscaled_location == 2:
+        return "below_lower_bound"
+    if unscaled_location == 3:
+        return "above_upper_bound"
+    actual_location = scale_location(question, unscaled_location)
+    if question.type == "date":
+        return datetime.fromtimestamp(actual_location).isoformat()
+    return str(actual_location)
 
 
 def create_question(question: dict, **kwargs) -> Question:
@@ -14,7 +34,6 @@ def create_question(question: dict, **kwargs) -> Question:
     open_upper_bound = None
     open_lower_bound = None
     options = None
-    # TODO @Luke do the transformation to get zero_point point from deriv_ratio
     zero_point = None
     if None in question["option_labels"] or not question["option_labels"]:
         question["option_labels"] = None
@@ -35,6 +54,9 @@ def create_question(question: dict, **kwargs) -> Question:
             question_type = "date"
             max = date_parse(possibilities["scale"]["max"]).timestamp()
             min = date_parse(possibilities["scale"]["min"]).timestamp()
+        deriv_ratio = possibilities["scale"].get("deriv_ratio", 1)
+        if deriv_ratio != 1:
+            zero_point = (deriv_ratio * min - max) / (deriv_ratio - 1)
         open_upper_bound = possibilities.get("low", None) == "tail"
         open_lower_bound = possibilities.get("high", None) == "tail"
     elif question["option_labels"] is not None:
@@ -42,6 +64,7 @@ def create_question(question: dict, **kwargs) -> Question:
         options = question["option_labels"]
     else:
         return None
+
     new_question = Question(
         id=question["id"],
         title=question["title"],
@@ -57,10 +80,17 @@ def create_question(question: dict, **kwargs) -> Question:
         resolved_at=question["resolve_time"],
         type=question_type,
         possibilities=possibilities,
-        resolution=question["resolution"],
         zero_point=zero_point,
         **kwargs,
     )
+
+    resolution: str | None = None
+    resolution_float = question["resolution"]
+    if (resolution_float is not None) and (resolution_float >= 0):
+        resolution = unscaled_location_to_string_location(
+            new_question, resolution_float
+        )
+    new_question.resolution = resolution
 
     return new_question
 

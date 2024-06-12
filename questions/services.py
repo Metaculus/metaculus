@@ -9,56 +9,8 @@ from utils.the_math.community_prediction import (
     compute_binary_plotable_cp,
     compute_continuous_plotable_cp,
 )
-from utils.the_math.formulas import scale_continous_forecast_location
+from utils.the_math.formulas import scale_location
 from utils.the_math.measures import percent_point_function
-
-
-def build_question_resolution(question: Question):
-    """
-    resolution of -2 means "annulled"
-    resolution of -1 means "ambiguous"
-    For Binary
-    resolution of 0 means "didn't happen"
-    resolution of 1 means "did happen"
-    For MC
-    resolution of N means "N'th choice occurred"
-    resolved_option is a mapping to the Option that was resolved to
-    For Continuous
-    resolution of 0 means "at lower bound"
-    resolution of 1 means "at upper bound"
-    resolution in [0, 1] means "resolved at some specified location within bounds"
-    resolution of 2 means "not greater than lower bound"
-    resolution of 3 means "not less than upper bound"
-    """
-
-    # @TODO Luke -- fix the resolution code once your migrations are done
-    if question.resolution is None:
-        return
-
-    if question.type == "binary":
-        # TODO: @george, some questions might have None resolution, so this leads to error
-        #   added tmp condition to prevent such cases
-        if question.resolution is not None:
-            if np.isclose(float(question.resolution), 0):
-                return "Yes"
-            elif np.isclose(float(question.resolution), -1):
-                return "No"
-
-    # @TODO Luke -- fix the resolution code once your migrations are done
-    elif question.type == "numeric":
-        return scale_continous_forecast_location(
-            question, int(float(question.resolution) * 200)
-        )
-    elif question.type == "date":
-        return scale_continous_forecast_location(
-            question, int(float(question.resolution) * 200)
-        )
-
-    elif question.type == "multiple_choice":
-        try:
-            return question.options[int(question.resolution)]
-        except Exception:
-            return f"Error for resolution: {question.resolution}"
 
 
 def build_question_forecasts(
@@ -104,7 +56,7 @@ def build_question_forecasts(
             elif question.type in ["numeric", "date"]:
                 cps, cdf = compute_continuous_plotable_cp(question)
                 forecasts_data["my_forecasts"]["values_mean"].append(
-                    scale_continous_forecast_location(
+                    scale_location(
                         question, percent_point_function(x.continuous_cdf, 0.5)
                     )
                 )

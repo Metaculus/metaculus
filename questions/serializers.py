@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from users.models import User
 from .models import Question, Conditional, GroupOfQuestions
-from .services import build_question_forecasts, build_question_resolution
+from .services import build_question_forecasts
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -100,7 +100,7 @@ def serialize_question(
     if with_forecasts:
         serialized_data["forecasts"] = build_question_forecasts(question, current_user)
 
-    serialized_data["resolution"] = build_question_resolution(question)
+    serialized_data["resolution"] = question.resolution
 
     return serialized_data
 
