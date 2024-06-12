@@ -53,11 +53,15 @@ const ForecastMakerBinary: FC<Props> = ({ question }) => {
     const forecastValue = round(forecast / 100, BINARY_PREDICTION_PRECISION);
 
     setIsSubmitting(true);
-    const response = await createForecast(question.id, {
-      continuousCdf: null,
-      probabilityYes: forecastValue,
-      probabilityYesPerCategory: null,
-    });
+    const response = await createForecast(
+      question.id,
+      {
+        continuousCdf: null,
+        probabilityYes: forecastValue,
+        probabilityYesPerCategory: null,
+      },
+      {}
+    );
     if ("errors" in response) {
       setSubmitError(response.errors);
     }
