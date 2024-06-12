@@ -1,15 +1,18 @@
 import { faReply } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useLocale } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { CommentType } from "@/types/comment";
+import { formatDate } from "@/utils/date_formatters";
 
 type Props = {
   comment: CommentType;
 };
 
 const Comment: FC<Props> = ({ comment }) => {
+  const locale = useLocale();
   console.log("comment data:", comment);
 
   return (
@@ -41,6 +44,8 @@ const Comment: FC<Props> = ({ comment }) => {
           )}
           {comment.is_admin && <Admin className="ml-2 text-lg" />}
 */}
+          <span className="mx-1">·</span>
+          {formatDate(locale, new Date(comment.created_at))}
         </span>
         {/*
         <span className="text-gray-600 dark:text-gray-600-dark block text-xs leading-3">
