@@ -1,10 +1,10 @@
 import { FC } from "react";
 
 import ForecastMakerBinary from "@/components/forecast_maker/forecast_maker_binary";
+import ForecastMakerMultipleChoice from "@/components/forecast_maker/forecast_maker_multiple_choice";
 import ForecastMakerNumeric from "@/components/forecast_maker/forecast_maker_numeric";
+import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-
-import { MultiSliderValue } from "../sliders/multi_slider";
 
 type Props = {
   question: QuestionWithForecasts;
@@ -33,6 +33,8 @@ const ForecastMaker: FC<Props> = ({ question }) => {
           prevForecast={question.forecasts.my_forecasts?.slider_values}
         />
       );
+    case QuestionType.MultipleChoice:
+      return <ForecastMakerMultipleChoice question={question} />;
     default:
       return null;
   }

@@ -2,6 +2,7 @@
   "newsletterFormHeading": "Join Our Newsletter",
   "newsletterFormDescription": "Sign up for Metaculus news, special forecasting reports, and event invitations.",
   "predictButton": "Predict",
+  "saveButton": "Save Change",
   "updatePredictionButton": "Update Prediction",
   "reaffirmPredictionButton_one": "Reaffirm prediction",
   "reaffirmPredictionButton_other": "Reaffirm predictions",
@@ -480,5 +481,6 @@
   "StartDate": "Start Date",
   "EndDate": "End Date",
   "SeriesContents": "Series Contents",
-  "MakePrediction": "Make a Prediction"
+  "MakePrediction": "Make a Prediction",
+  "Candidates": "Candidates"
 }

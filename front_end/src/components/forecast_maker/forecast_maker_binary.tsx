@@ -10,12 +10,13 @@ import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import useSliderForecast from "@/hooks/use_slider_forecast";
 import { ErrorResponse } from "@/types/fetch";
 import { QuestionWithNumericForecasts } from "@/types/question";
 
 const DEFAULT_SLIDER_VALUE = 50;
-const BINARY_PREDICTION_PRECISION = 3;
-const MIN_VALUE = 10 ** -BINARY_PREDICTION_PRECISION * 100;
+const PREDICTION_PRECISION = 3;
+const MIN_VALUE = 10 ** -PREDICTION_PRECISION * 100;
 const MAX_VALUE = 100 - MIN_VALUE;
 
 type Props = {
@@ -28,44 +29,29 @@ const ForecastMakerBinary: FC<Props> = ({ question, prevForecast }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
-  const prevForecastValue =
-    typeof prevForecast === "number" ? prevForecast * 100 : null;
-  const [forecast, setForecast] = useState<number | null>(prevForecastValue);
-  const [isForecastDirty, setIsForecastDirty] = useState(
-    prevForecastValue !== null
-  );
-
-  const [inputValue, setInputValue] = useState(
-    prevForecastValue ? `${prevForecastValue}%` : "—"
-  );
+  const {
+    forecast,
+    inputValue,
+    isForecastDirty,
+    handleInputForecastChange,
+    handleSliderForecastChange,
+    handleInputChange,
+  } = useSliderForecast({ prevForecast });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
-
-  const handleSliderForecastChange = (value: number) => {
-    setForecast(value);
-    setInputValue(value.toString() + "%");
-    setIsForecastDirty(true);
-  };
-  const handleInputChange = (value: string) => {
-    setInputValue(value);
-    setIsForecastDirty(true);
-  };
-  const handleInputForecastChange = (value: number) => {
-    setForecast(value);
-    setIsForecastDirty(true);
-  };
 
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
 
     if (!user) {
       setCurrentModal({ type: "signup" });
+      return;
     }
 
     if (forecast === null) return;
 
-    const forecastValue = round(forecast / 100, BINARY_PREDICTION_PRECISION);
+    const forecastValue = round(forecast / 100, PREDICTION_PRECISION);
 
     setIsSubmitting(true);
     const response = await createForecast(
