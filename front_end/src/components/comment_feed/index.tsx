@@ -3,6 +3,7 @@ import { FC } from "react";
 
 import Comment from "@/components/comment_feed/comment";
 import { CommentType } from "@/types/comment";
+import Hr from "@/components/ui/hr";
 
 type Props = {
   //totalCount: number;
@@ -24,7 +25,10 @@ const CommentFeed: FC<Props> = ({ comments }) => {
   return (
     <section>
       {comments.map((comment: CommentType) => (
-        <Comment key={comment.id} comment={comment} />
+        <div key={comment.id}>
+          <Hr className="my-4" />
+          <Comment comment={comment} />
+        </div>
       ))}
     </section>
   );
