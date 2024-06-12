@@ -36,6 +36,10 @@ def string_location_to_bucket_index(question: Question, string_location: str) ->
     if question.type == "multiple_choice":
         return question.options.index(string_location)
     # continuous
+    if string_location == "below_lower_bound":
+        return 0
+    if string_location == "above_upper_bound":
+        return 201
     if question.type == "date":
         float_location = datetime.fromisoformat(string_location).timestamp()
     else:
