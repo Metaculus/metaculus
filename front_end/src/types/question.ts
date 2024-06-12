@@ -29,8 +29,6 @@ export enum QuestionOrder {
 export type BaseForecast = {
   timestamps: number[];
   nr_forecasters: number[];
-  latest_pmf: number[] | null;
-  latest_cdf: number[] | null;
   my_forecasts: {
     timestamps: number[];
     values_mean: number[];
@@ -41,10 +39,16 @@ export type NumericForecast = BaseForecast & {
   values_mean: number[];
   values_max: number[];
   values_min: number[];
+  latest_pmf: number[] | null;
+  latest_cdf: number[] | null;
 };
 
 export type MultipleChoiceForecast = BaseForecast & {
-  [value_choice_n: string]: any;
+  [value_choice_n: string]: Array<{
+    value_mean: number;
+    value_max: number;
+    value_min: number;
+  }>;
 };
 
 export type Question = {

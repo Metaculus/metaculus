@@ -6,7 +6,7 @@ import { FC, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
 import NumericPickerChart from "@/components/charts/numeric_picker_chart";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { getIsForecastEmpty } from "@/utils/forecasts";
 import { binWeightsFromSliders, computeQuartilesFromCDF } from "@/utils/math";
 
@@ -14,7 +14,7 @@ import MultiSlider, { MultiSliderValue } from "../sliders/multi_slider";
 import Slider from "../sliders/slider";
 
 type Props = {
-  question: QuestionWithForecasts;
+  question: QuestionWithNumericForecasts;
   prevSlider: MultiSliderValue | null;
 };
 
