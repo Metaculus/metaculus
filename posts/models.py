@@ -13,7 +13,26 @@ class PostQuerySet(models.QuerySet):
         return self.prefetch_related("projects")
 
     def prefetch_forecasts(self):
-        return self.prefetch_related("question__forecast_set")
+        return self.prefetch_related(
+            "question__forecast_set",
+            # Conditional
+            "conditional__question_yes__forecast_set",
+            "conditional__question_no__forecast_set",
+            # Group Of Questions
+            "group_of_questions__questions__forecast_set",
+        )
+
+    def prefetch_questions(self):
+        return self.prefetch_related(
+            "question",
+            # Conditional
+            "conditional__condition",
+            "conditional__condition_child",
+            "conditional__question_yes",
+            "conditional__question_no",
+            # Group Of Questions
+            "group_of_questions__questions",
+        )
 
     def annotate_predictions_count(self):
         return self.annotate(
