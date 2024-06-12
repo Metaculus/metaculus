@@ -27,7 +27,12 @@ const ForecastMaker: FC<Props> = ({ question }) => {
         />
       );
     case QuestionType.Binary:
-      return <ForecastMakerBinary question={question} />;
+      return (
+        <ForecastMakerBinary
+          question={question}
+          prevForecast={question.forecasts.my_forecasts?.slider_values}
+        />
+      );
     default:
       return null;
   }
