@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from users.models import User
 from .models import Question, Conditional, GroupOfQuestions
@@ -20,6 +21,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = (
+            "title",
             "description",
             "type",
             "possibilities",
@@ -37,10 +39,46 @@ class ConditionalSerializer(serializers.ModelSerializer):
         fields = ("id",)
 
 
+class ConditionalWriteSerializer(serializers.ModelSerializer):
+    condition_id = serializers.IntegerField()
+    condition_child_id = serializers.IntegerField()
+
+    class Meta:
+        model = Conditional
+        fields = ("condition_id", "condition_child_id")
+
+    def validate_condition_id(self, value):
+        question = Question.objects.filter(pk=value).first()
+
+        if not question:
+            raise ValidationError("Condition does not exist")
+
+        if question.type != Question.QuestionType.BINARY:
+            raise ValidationError("Condition can only be binary question")
+
+        return value
+
+    def validate_condition_child_id(self, value):
+        question = Question.objects.filter(pk=value).first()
+
+        if not question:
+            raise ValidationError("Condition Child does not exist")
+
+        return value
+
+
 class GroupOfQuestionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = GroupOfQuestions
         fields = ("id",)
+
+
+class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
+    questions = QuestionWriteSerializer(many=True, required=True)
+
+    class Meta:
+        model = GroupOfQuestions
+        fields = ("questions",)
 
 
 def serialize_question(
