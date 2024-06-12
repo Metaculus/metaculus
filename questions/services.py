@@ -185,6 +185,12 @@ def create_conditional(
             type=question.type,
             possibilities=question.possibilities,
             resolution=question.resolution,
+            max=question.max,
+            min=question.min,
+            zero_point=question.zero_point,
+            open_upper_bound=question.open_upper_bound,
+            open_lower_bound=question.open_lower_bound,
+            options=question.options,
         )
 
     condition = Question.objects.get(pk=condition_id)
