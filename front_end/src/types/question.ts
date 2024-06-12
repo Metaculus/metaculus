@@ -32,6 +32,7 @@ export type BaseForecast = {
   my_forecasts: {
     timestamps: number[];
     values_mean: number[];
+    slider_values: any | null;
   } | null;
 };
 
