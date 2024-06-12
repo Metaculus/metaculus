@@ -1,6 +1,6 @@
 export type CommentType = {
   id: number;
-  author: number;
+  author: any; //create author type
   parent?: number;
   created_at: Date;
   edited_at?: Date;
