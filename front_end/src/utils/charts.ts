@@ -192,7 +192,7 @@ const COLOR_SCALE = Object.values(METAC_COLORS["mc-option"]).map(
 export function generateChartChoices(
   dataset: MultipleChoiceForecast
 ): ChoiceItem[] {
-  const { timestamps, nr_forecasters, ...choices } = dataset;
+  const { timestamps, nr_forecasters, my_forecasts, ...choices } = dataset;
   return Object.entries(choices).map(([choice, values], index) => ({
     choice,
     values: values.map((x: { value_mean: number }) => x.value_mean),

@@ -68,7 +68,10 @@ export function binWeightsFromSliders(
 ) {
   const params = logisticDistributionParamsFromSliders(left, center, right);
   const step = 1 / 200;
-  const xArr = Array.from({ length: Math.floor(1 / step) }, (_, i) => i * step);
+  const xArr = Array.from(
+    { length: Math.floor(1 / step) + 1 },
+    (_, i) => i * step
+  );
   const cdf = [
     ...xArr.map((x) =>
       logisticCDF(x, params.mode, params.scale, params.asymmetry)
