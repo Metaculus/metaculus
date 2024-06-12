@@ -22,6 +22,7 @@ django-sql-utils = "^0.7.0"
 django-dramatiq = "^0.11.6"
 django-redis = "^5.4.0"
 ipython = "^8.25.0"  # for easier debugging in shell
+scipy = "^1.13.1"
 django-dynamic-fixture = "^4.0.1"
 
 [tool.poetry.group.dev.dependencies]
