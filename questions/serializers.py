@@ -98,7 +98,7 @@ def serialize_group(
     serialized_data = GroupOfQuestionsSerializer(group).data
     serialized_data["questions"] = []
 
-    for question in group.questions:
+    for question in group.questions.all():
         serialized_data["questions"].append(
             serialize_question(
                 question, with_forecasts=with_forecasts, current_user=current_user

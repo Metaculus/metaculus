@@ -137,9 +137,18 @@ def serialize_post_many(
 ) -> list[dict]:
     qs = Post.objects.filter(pk__in=[p.pk for p in data])
 
-    qs = qs.annotate_predictions_count().annotate_vote_score().annotate_nr_forecasters()
+    qs = (
+        qs.annotate_predictions_count()
+        .annotate_vote_score()
+        .annotate_nr_forecasters()
+        .prefetch_projects()
+        .prefetch_questions()
+    )
     if current_user and not current_user.is_anonymous:
         qs = qs.annotate_user_vote(current_user)
+
+    if with_forecasts:
+        qs = qs.prefetch_forecasts()
 
     return [
         serialize_post(post, with_forecasts=with_forecasts, current_user=current_user)
