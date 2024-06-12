@@ -148,25 +148,8 @@ def build_question_forecasts(
     return forecasts_data
 
 
-def create_question(
-    *,
-    title: str = None,
-    description: str = None,
-    type: Question.QuestionType | str = None,
-    possibilities: dict = None,
-    resolution: str = None,
-    group_id: int = None,
-) -> Question:
-    # TODO: add title from post
-
-    obj = Question(
-        title=title,
-        description=description,
-        type=type,
-        possibilities=possibilities,
-        resolution=resolution,
-        group_id=group_id,
-    )
+def create_question(*, title: str = None, **kwargs) -> Question:
+    obj = Question(title=title, **kwargs)
 
     obj.full_clean()
     obj.save()
@@ -174,9 +157,7 @@ def create_question(
     return obj
 
 
-def create_group_of_questions(
-    *, questions: list[dict]
-) -> GroupOfQuestions:
+def create_group_of_questions(*, questions: list[dict]) -> GroupOfQuestions:
     obj = GroupOfQuestions()
 
     obj.full_clean()

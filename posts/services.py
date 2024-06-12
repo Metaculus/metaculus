@@ -127,11 +127,6 @@ def create_post(
 ) -> Post:
     obj = Post(title=title, author=author)
 
-    # Adding projects
-    if projects:
-        projects_flat = flatten(projects.values())
-        obj.projects.add(*projects_flat)
-
     # Adding questions
     if question:
         obj.question = create_question(**question)
@@ -142,5 +137,10 @@ def create_post(
 
     obj.full_clean()
     obj.save()
+
+    # Adding projects
+    if projects:
+        projects_flat = flatten(projects.values())
+        obj.projects.add(*projects_flat)
 
     return obj
