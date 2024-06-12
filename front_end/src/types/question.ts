@@ -26,18 +26,30 @@ export enum QuestionOrder {
   ResolveTimeAsc = "resolve_time",
 }
 
-export type NumericForecast = {
+export type BaseForecast = {
   timestamps: number[];
+  nr_forecasters: number[];
+  my_forecasts: {
+    timestamps: number[];
+    values_mean: number[];
+    slider_values: any | null;
+  } | null;
+};
+
+export type NumericForecast = BaseForecast & {
   values_mean: number[];
   values_max: number[];
   values_min: number[];
-  nr_forecasters: number[];
+  latest_pmf: number[];
+  latest_cdf: number[];
 };
 
-export type MultipleChoiceForecast = {
-  timestamps: number[];
-  nr_forecasters: number[];
-  [value_choice_n: string]: any;
+export type MultipleChoiceForecast = BaseForecast & {
+  [value_choice_n: string]: Array<{
+    value_mean: number;
+    value_max: number;
+    value_min: number;
+  }>;
 };
 
 export type Question = {
@@ -56,6 +68,7 @@ export type Question = {
   status: QuestionStatus;
   nr_forecasters: number;
   author_username: string;
+  zero_point: number;
 };
 
 export type QuestionWithNumericForecasts = Question & {
@@ -72,7 +85,7 @@ export type QuestionWithForecasts =
   | QuestionWithMultipleChoiceForecasts;
 
 export type ForecastData = {
-  continuousCdf: number[];
-  probabilityYes: number;
-  probabilityYesPerCategory: number[];
+  continuousCdf: number[] | null;
+  probabilityYes: number | null;
+  probabilityYesPerCategory: number[] | null;
 };

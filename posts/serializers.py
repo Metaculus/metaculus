@@ -1,3 +1,5 @@
+from typing import Union
+
 from django.db import models
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -9,12 +11,19 @@ from projects.serializers import (
     serialize_projects,
     PostProjectWriteSerializer,
 )
-from questions.serializers import QuestionSerializer, QuestionWriteSerializer
+from questions.serializers import (
+    QuestionWriteSerializer,
+    serialize_question,
+    serialize_conditional,
+    serialize_group,
+    ConditionalWriteSerializer,
+    GroupOfQuestionsWriteSerializer,
+)
+from users.models import User
 from .models import Post
 
 
 class PostSerializer(serializers.ModelSerializer):
-    question = QuestionSerializer()
     projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
 
@@ -23,9 +32,9 @@ class PostSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
+            "author_id",
             "author_username",
             "projects",
-            "question",
             "created_at",
             "published_at",
             "edited_at",
@@ -40,11 +49,13 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostWriteSerializer(serializers.ModelSerializer):
     projects = PostProjectWriteSerializer(required=False)
-    question = QuestionWriteSerializer(required=True)
+    question = QuestionWriteSerializer(required=False)
+    conditional = ConditionalWriteSerializer(required=False)
+    group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
 
     class Meta:
         model = Post
-        fields = ("title", "projects", "question")
+        fields = ("title", "projects", "question", "conditional", "group_of_questions")
 
 
 class PostFilterSerializer(serializers.Serializer):
@@ -88,3 +99,64 @@ class PostFilterSerializer(serializers.Serializer):
 
     def validate_tournaments(self, values: list[str]):
         return validate_tournaments(lookup_field="slug", lookup_values=values)
+
+
+def serialize_post(
+    post: Post,
+    with_forecasts: bool = False,
+    current_user: User = None,
+) -> dict:
+    serialized_data = PostSerializer(post).data
+
+    if post.question:
+        serialized_data["question"] = serialize_question(
+            post.question, with_forecasts=with_forecasts, current_user=current_user
+        )
+
+    if post.conditional:
+        serialized_data["conditional"] = serialize_conditional(
+            post.conditional, with_forecasts=with_forecasts, current_user=current_user
+        )
+
+    if post.group_of_questions:
+        serialized_data["group_of_questions"] = serialize_group(
+            post.group_of_questions,
+            with_forecasts=with_forecasts,
+            current_user=current_user,
+        )
+
+    # Annotate user's vote
+    serialized_data["vote"] = {
+        "score": post.vote_score,
+        "user_vote": post.user_vote,
+    }
+    # Forecasters
+    serialized_data["nr_forecasters"] = post.nr_forecasters
+
+    return serialized_data
+
+
+def serialize_post_many(
+    data: Union[Post.objects, list[Post]],
+    with_forecasts: bool = False,
+    current_user: User = None,
+) -> list[dict]:
+    qs = Post.objects.filter(pk__in=[p.pk for p in data])
+
+    qs = (
+        qs.annotate_predictions_count()
+        .annotate_vote_score()
+        .annotate_nr_forecasters()
+        .prefetch_projects()
+        .prefetch_questions()
+    )
+    if current_user and not current_user.is_anonymous:
+        qs = qs.annotate_user_vote(current_user)
+
+    if with_forecasts:
+        qs = qs.prefetch_forecasts()
+
+    return [
+        serialize_post(post, with_forecasts=with_forecasts, current_user=current_user)
+        for post in qs.all()
+    ]

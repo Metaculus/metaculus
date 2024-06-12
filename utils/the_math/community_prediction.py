@@ -17,7 +17,7 @@ import numpy as np
 
 from django.db.models import QuerySet
 from questions.models import Forecast, Question
-from utils.the_math.formulas import internal_location_to_actual_location
+from utils.the_math.formulas import scale_location
 from utils.the_math.measures import weighted_percentile_2d, percent_point_function
 
 
@@ -42,7 +42,12 @@ def compute_cp(
         # if the percentile isn't 50 (namely it needs to be normalized based off the values
         # at the median)
     else:
-        return np.average(forecast_values, axis=0, weights=weights)
+        max_len = max([len(x) for x in forecast_values])
+        for i in range(len(forecast_values)):
+            if len(forecast_values[i]) < max_len:
+                forecast_values[i].extend([0] * int(max_len - len(forecast_values[i])))
+        avg = np.average(forecast_values, axis=0, weights=weights)
+        return avg
 
 
 @dataclass
@@ -137,23 +142,18 @@ def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[str, Gr
 def compute_continuous_plotable_cp(question: Question) -> int:
     forecast_history = get_forecast_history(question)
     cps = []
+    cdf = None
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
         cdf = compute_cp(question.type, entry.predictions, weights)
 
         cps.append(
             GraphCP(
-                lower=internal_location_to_actual_location(
-                    question, percent_point_function(cdf, 0.25)
-                ),
-                middle=internal_location_to_actual_location(
-                    question, percent_point_function(cdf, 0.5)
-                ),
-                upper=internal_location_to_actual_location(
-                    question, percent_point_function(cdf, 0.75)
-                ),
+                lower=scale_location(question, percent_point_function(cdf, 0.25)),
+                middle=scale_location(question, percent_point_function(cdf, 0.5)),
+                upper=scale_location(question, percent_point_function(cdf, 0.75)),
                 nr_forecasters=len(entry.predictions),
                 at_datetime=entry.at_datetime,
             )
         )
-    return cps
+    return cps, cdf

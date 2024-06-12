@@ -23,8 +23,7 @@ cd ..;
 # 5. Run django migrations with poetry
 poetry run python3 manage.py migrate;
 
-# 6. Export the `ALPHA_ACCESS_TOKEN` env variable and set its value to "6 months to a year"
-export ALPHA_ACCESS_TOKEN="6 months to a year";
+export ALPHA_ACCESS_TOKEN="the open source rewrite";
 
 # 7. Start a `web_backend` tmux session and run the Django server
 tmux new-session -d -s web_backend;
