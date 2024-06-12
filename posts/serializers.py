@@ -120,7 +120,7 @@ def serialize_post(
         )
 
     # Annotate user's vote
-    serialized_data["with_votes"] = {
+    serialized_data["vote"] = {
         "score": post.vote_score,
         "user_vote": post.user_vote,
     }
