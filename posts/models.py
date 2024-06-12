@@ -84,25 +84,26 @@ class Post(TimeStampedModel):
     title = models.CharField(max_length=200)
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
 
-    approved_at = models.DateTimeField(null=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
     approved_by = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
         related_name="approved_questions",
         null=True,
+        blank=True,
     )
-    published_at = models.DateTimeField(db_index=True, null=True)
+    published_at = models.DateTimeField(db_index=True, null=True, blank=True)
 
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
     question = models.OneToOneField(
-        Question, models.CASCADE, related_name="post", null=True
+        Question, models.CASCADE, related_name="post", null=True, blank=True
     )
     conditional = models.OneToOneField(
-        Conditional, models.CASCADE, related_name="post", null=True
+        Conditional, models.CASCADE, related_name="post", null=True, blank=True
     )
     group_of_questions = models.OneToOneField(
-        GroupOfQuestions, models.CASCADE, related_name="post", null=True
+        GroupOfQuestions, models.CASCADE, related_name="post", null=True, blank=True
     )
 
     projects = models.ManyToManyField(Project, related_name="posts")

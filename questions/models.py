@@ -29,15 +29,15 @@ class Question(TimeStampedModel):
     description = models.TextField(blank=True)
 
     # TODO: Should it be post or question level?
-    closed_at = models.DateTimeField(db_index=True, null=True)
-    resolved_at = models.DateTimeField(null=True)
+    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
 
-    max = models.FloatField(null=True)
-    min = models.FloatField(null=True)
-    zero_point = models.FloatField(null=True)
+    max = models.FloatField(null=True, blank=True)
+    min = models.FloatField(null=True, blank=True)
+    zero_point = models.FloatField(null=True, blank=True)
 
-    open_upper_bound = models.BooleanField(null=True)
-    open_lower_bound = models.BooleanField(null=True)
+    open_upper_bound = models.BooleanField(null=True, blank=True)
+    open_lower_bound = models.BooleanField(null=True, blank=True)
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
 
     # Legacy field that will be removed
@@ -80,6 +80,8 @@ class Question(TimeStampedModel):
 
     @property
     def status(self):
+        post = self.get_post()
+
         if (
             self.resolution
             and self.resolved_at
@@ -88,7 +90,7 @@ class Question(TimeStampedModel):
             return "resolved"
         if self.closed_at and self.closed_at < django.utils.timezone.now():
             return "closed"
-        if self.get_post().published_at:
+        if post and post.published_at:
             return "active"
         print(self.__dict__)
         print(f"!!\n\nWrong status for question: {self.id}\n\n!!")
