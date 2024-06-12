@@ -61,7 +61,7 @@ def posts_list_api_view(request):
 @permission_classes([AllowAny])
 def post_detail(request: Request, pk):
     qs = Post.objects.filter(pk=pk)
-    posts = serialize_post_many(qs, current_user=request.user)
+    posts = serialize_post_many(qs, current_user=request.user, with_forecasts=True)
 
     if not posts:
         raise NotFound("Post not found")
