@@ -9,7 +9,7 @@ from utils.the_math.community_prediction import (
     compute_binary_plotable_cp,
     compute_continuous_plotable_cp,
 )
-from utils.the_math.formulas import scale_continous_forecast_location
+from utils.the_math.formulas import string_location_to_bucket_index
 
 
 def enrich_question_with_resolution_f(
@@ -34,7 +34,7 @@ def enrich_question_with_resolution_f(
 
     if question.resolution is None:
         return serialized_question
-    
+
     if question.type == "binary":
         # TODO: @george, some questions might have None resolution, so this leads to error
         #   added tmp condition to prevent such cases
@@ -48,9 +48,13 @@ def enrich_question_with_resolution_f(
 
     # TODO @Luke this and the date have to be normalized
     elif question.type == "numeric":
-        serialized_question["resolution"] = scale_continous_forecast_location(question, int(float(question.resolution) * 200))
+        serialized_question["resolution"] = string_location_to_bucket_index(
+            question, int(float(question.resolution) * 200)
+        )
     elif question.type == "date":
-        serialized_question["resolution"] = scale_continous_forecast_location(question, int(float(question.resolution) * 200))
+        serialized_question["resolution"] = string_location_to_bucket_index(
+            question, int(float(question.resolution) * 200)
+        )
 
     elif question.type == "multiple_choice":
         try:

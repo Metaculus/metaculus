@@ -24,8 +24,8 @@ class Question(TimeStampedModel):
         DATE = "date"
         MULTIPLE_CHOICE = "multiple_choice"
 
-    title = models.CharField(max_length=200)
     type = models.CharField(max_length=20, choices=QuestionType.choices)
+    title = models.CharField(max_length=200)
 
     description = models.TextField(blank=True)
 
@@ -45,6 +45,21 @@ class Question(TimeStampedModel):
     possibilities = models.JSONField(null=True, blank=True)
 
     # Common fields
+    class Status(models.TextChoices):
+        DRAFT = "draft"
+        IN_REVIEW = "in_review"
+        UPCOMING = "upcoming"
+        ACTIVE = "active"
+        RESOLVED = "resolved"
+        AMBIGUOUS = "ambiguous"
+        ANNULLED = "annulled"
+        DELETED = "deleted"
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.DRAFT,
+    )
     resolution = models.TextField(null=True, blank=True)
 
     objects = models.Manager.from_queryset(QuestionQuerySet)()
@@ -58,21 +73,21 @@ class Question(TimeStampedModel):
     vote_score: int = 0
     user_vote = None
 
-    @property
-    def status(self):
-        if (
-            self.resolution
-            and self.resolved_at
-            and self.resolved_at < django.utils.timezone.now()
-        ):
-            return "resolved"
-        if self.closed_at and self.closed_at < django.utils.timezone.now():
-            return "closed"
-        if self.post.published_at:
-            return "active"
-        print(self.__dict__)
-        print(f"!!\n\nWrong status for question: {self.id}\n\n!!")
-        return "active"
+    # @property
+    # def status(self):
+    #     if (
+    #         self.resolution
+    #         and self.resolved_at
+    #         and self.resolved_at < django.utils.timezone.now()
+    #     ):
+    #         return "resolved"
+    #     if self.closed_at and self.closed_at < django.utils.timezone.now():
+    #         return "closed"
+    #     if self.post.published_at:
+    #         return "active"
+    #     print(self.__dict__)
+    #     print(f"!!\n\nWrong status for question: {self.id}\n\n!!")
+    #     return "active"
 
 
 class Forecast(models.Model):
