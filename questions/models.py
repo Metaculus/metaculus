@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 import django
@@ -30,40 +29,33 @@ class Question(TimeStampedModel):
     description = models.TextField(blank=True)
 
     # TODO: Should it be post or question level?
-    closed_at = models.DateTimeField(db_index=True, null=True)
-    resolved_at = models.DateTimeField(null=True)
+    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
 
-    max = models.FloatField(null=True)
-    min = models.FloatField(null=True)
-    zero_point = models.FloatField(null=True)
+    max = models.FloatField(null=True, blank=True)
+    min = models.FloatField(null=True, blank=True)
+    zero_point = models.FloatField(null=True, blank=True)
 
-    open_upper_bound = models.BooleanField(null=True)
-    open_lower_bound = models.BooleanField(null=True)
+    open_upper_bound = models.BooleanField(null=True, blank=True)
+    open_lower_bound = models.BooleanField(null=True, blank=True)
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
     # Common fields
-    class Status(models.TextChoices):
-        DRAFT = "draft"
-        IN_REVIEW = "in_review"
-        UPCOMING = "upcoming"
-        ACTIVE = "active"
-        RESOLVED = "resolved"
-        AMBIGUOUS = "ambiguous"
-        ANNULLED = "annulled"
-        DELETED = "deleted"
-
-    status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.DRAFT,
-    )
     resolution = models.TextField(null=True, blank=True)
 
     objects = models.Manager.from_queryset(QuestionQuerySet)()
 
+    # Group
+    group = models.ForeignKey(
+        "GroupOfQuestions",
+        null=True,
+        blank=True,
+        related_name="questions",
+        on_delete=models.CASCADE,
+    )
     # typing
     forecast_set: models.QuerySet["Forecast"]
 
@@ -72,6 +64,59 @@ class Question(TimeStampedModel):
     nr_forecasters: int = 0
     vote_score: int = 0
     user_vote = None
+
+    def get_post(self):
+        # Back-rel of One2One relations does not populate None values,
+        # So we always need to check whether attr exists
+        if hasattr(self, "post"):
+            return self.post
+
+        if hasattr(self, "conditional_no"):
+            return self.conditional_no.post
+
+        if hasattr(self, "conditional_yes"):
+            return self.conditional_yes.post
+
+        if self.group:
+            return self.group.post
+
+    @property
+    def status(self):
+        post = self.get_post()
+
+        if (
+            self.resolution
+            and self.resolved_at
+            and self.resolved_at < django.utils.timezone.now()
+        ):
+            return "resolved"
+        if self.closed_at and self.closed_at < django.utils.timezone.now():
+            return "closed"
+        if post and post.published_at:
+            return "active"
+        print(self.__dict__)
+        print(f"!!\n\nWrong status for question: {self.id}\n\n!!")
+        return "active"
+
+
+class Conditional(TimeStampedModel):
+    condition = models.ForeignKey(
+        Question, related_name="conditional_parents", on_delete=models.PROTECT
+    )
+    condition_child = models.ForeignKey(
+        Question, related_name="conditional_children", on_delete=models.PROTECT
+    )
+
+    question_yes = models.OneToOneField(
+        Question, related_name="conditional_yes", on_delete=models.PROTECT
+    )
+    question_no = models.OneToOneField(
+        Question, related_name="conditional_no", on_delete=models.PROTECT
+    )
+
+
+class GroupOfQuestions(TimeStampedModel):
+    pass
 
 
 class Forecast(models.Model):
@@ -104,6 +149,8 @@ class Forecast(models.Model):
 
     author = models.ForeignKey(User, models.CASCADE)
     question = models.ForeignKey(Question, models.CASCADE)
+
+    slider_values = models.JSONField(null=True)
 
     def get_prediction_values(self) -> list[float]:
         if self.probability_yes:

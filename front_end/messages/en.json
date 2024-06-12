@@ -479,5 +479,6 @@
   "formerlyKnownAs": "Formerly Known As",
   "StartDate": "Start Date",
   "EndDate": "End Date",
-  "SeriesContents": "Series Contents"
+  "SeriesContents": "Series Contents",
+  "MakePrediction": "Make a Prediction"
 }
