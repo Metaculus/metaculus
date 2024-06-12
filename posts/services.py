@@ -3,10 +3,30 @@ from django.utils import timezone
 
 from posts.models import Post
 from posts.serializers import PostFilterSerializer
+from projects.models import Project
+from questions.services import (
+    create_question,
+    create_conditional,
+    create_group_of_questions,
+)
 from users.models import User
+from utils.dtypes import flatten
 
 
-def get_posts_feed(*, qs: Post.objects = None, user: User = None, filters: dict = None) -> Post.objects:
+def get_posts_feed(
+    *,
+    qs: Post.objects = None,
+    user: User = None,
+    search: str = None,
+    topic: Project = None,
+    tags: list[Project] = None,
+    categories: list[Project] = None,
+    tournaments: list[Project] = None,
+    forecast_type: list[str] = None,
+    status: str = None,
+    answered_by_me: bool = None,
+    order: str = None,
+) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
     """
@@ -14,28 +34,27 @@ def get_posts_feed(*, qs: Post.objects = None, user: User = None, filters: dict 
     qs = qs or Post.objects.all()
 
     # Search
-    if search_query := filters.get("search"):
+    if search:
         qs = qs.filter(
-            Q(title__icontains=search_query)
-            | Q(author__username__icontains=search_query)
+            Q(title__icontains=search) | Q(author__username__icontains=search)
         )
 
     # Filters
-    if topic := filters.get("topic"):
+    if topic:
         qs = qs.filter(projects=topic)
 
-    if tags := filters.get("tags"):
+    if tags:
         qs = qs.filter(projects__in=tags)
 
-    if categories := filters.get("categories"):
+    if categories:
         qs = qs.filter(projects__in=categories)
 
     # TODO: ensure projects filtering logic is correct
     #   I assume it might not work exactly as before
-    if tournaments := filters.get("tournaments"):
+    if tournaments:
         qs = qs.filter(projects__in=tournaments)
 
-    if forecast_type := filters.get("forecast_type"):
+    if forecast_type:
         forecast_type_q = Q()
 
         if "conditional" in forecast_type:
@@ -51,7 +70,7 @@ def get_posts_feed(*, qs: Post.objects = None, user: User = None, filters: dict 
 
         qs = qs.filter(forecast_type_q)
 
-    if status := filters.get("status"):
+    if status:
         if "resolved" in status:
             qs = qs.filter(question__resolved_at__isnull=False).filter(
                 question__resolved_at__lte=timezone.now()
@@ -78,14 +97,12 @@ def get_posts_feed(*, qs: Post.objects = None, user: User = None, filters: dict 
                 question__closed_at__lte=timezone.now()
             )
 
-    answered_by_me = filters.get("answered_by_me")
-
     if answered_by_me is not None and not user.is_anonymous:
         condition = {"question__forecast__author": user}
         qs = qs.filter(**condition) if answered_by_me else qs.exclude(**condition)
 
     # Ordering
-    if order := filters.get("order"):
+    if order:
         match order:
             case PostFilterSerializer.Order.MOST_FORECASTERS:
                 qs = qs.annotate_predictions_count__unique().order_by("-nr_forecasters")
@@ -97,3 +114,33 @@ def get_posts_feed(*, qs: Post.objects = None, user: User = None, filters: dict 
                 qs = qs.order_by("-created_at")
 
     return qs
+
+
+def create_post(
+    *,
+    title: str = None,
+    projects: dict[str, list[Project]] = None,
+    question: dict = None,
+    conditional: dict = None,
+    group_of_questions: dict = None,
+    author: User = None,
+) -> Post:
+    obj = Post(title=title, author=author)
+
+    # Adding projects
+    if projects:
+        projects_flat = flatten(projects.values())
+        obj.projects.add(*projects_flat)
+
+    # Adding questions
+    if question:
+        obj.question = create_question(**question)
+    elif conditional:
+        obj.conditional = create_conditional(**conditional)
+    elif group_of_questions:
+        obj.group_of_questions = create_group_of_questions(**group_of_questions)
+
+    obj.full_clean()
+    obj.save()
+
+    return obj

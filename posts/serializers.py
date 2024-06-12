@@ -16,6 +16,8 @@ from questions.serializers import (
     serialize_question,
     serialize_conditional,
     serialize_group,
+    ConditionalWriteSerializer,
+    GroupOfQuestionsWriteSerializer,
 )
 from users.models import User
 from .models import Post
@@ -30,6 +32,7 @@ class PostSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
+            "author_id",
             "author_username",
             "projects",
             "created_at",
@@ -45,11 +48,13 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostWriteSerializer(serializers.ModelSerializer):
     projects = PostProjectWriteSerializer(required=False)
-    question = QuestionWriteSerializer(required=True)
+    question = QuestionWriteSerializer(required=False)
+    conditional = ConditionalWriteSerializer(required=False)
+    group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
 
     class Meta:
         model = Post
-        fields = ("title", "projects", "question")
+        fields = ("title", "projects", "question", "conditional", "group_of_questions")
 
 
 class PostFilterSerializer(serializers.Serializer):
