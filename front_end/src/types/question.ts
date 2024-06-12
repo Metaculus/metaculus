@@ -32,6 +32,7 @@ export type BaseForecast = {
   my_forecasts: {
     timestamps: number[];
     values_mean: number[];
+    slider_values: any | null;
   } | null;
 };
 
@@ -39,8 +40,8 @@ export type NumericForecast = BaseForecast & {
   values_mean: number[];
   values_max: number[];
   values_min: number[];
-  latest_pmf: number[] | null;
-  latest_cdf: number[] | null;
+  latest_pmf: number[];
+  latest_cdf: number[];
 };
 
 export type MultipleChoiceForecast = BaseForecast & {

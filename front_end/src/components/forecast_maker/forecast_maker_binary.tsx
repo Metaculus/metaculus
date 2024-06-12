@@ -8,6 +8,8 @@ import ForecastInput from "@/components/forecast_maker/forecast_input";
 import Slider from "@/components/sliders/slider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
+import { useAuth } from "@/contexts/auth_context";
+import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import { QuestionWithNumericForecasts } from "@/types/question";
 
@@ -18,15 +20,24 @@ const MAX_VALUE = 100 - MIN_VALUE;
 
 type Props = {
   question: QuestionWithNumericForecasts;
+  prevForecast?: any;
 };
 
-const ForecastMakerBinary: FC<Props> = ({ question }) => {
+const ForecastMakerBinary: FC<Props> = ({ question, prevForecast }) => {
   const t = useTranslations();
+  const { user } = useAuth();
+  const { setCurrentModal } = useModal();
 
-  const [forecast, setForecast] = useState<number | null>(null);
-  const [isForecastDirty, setIsForecastDirty] = useState(false);
+  const prevForecastValue =
+    typeof prevForecast === "number" ? prevForecast * 100 : null;
+  const [forecast, setForecast] = useState<number | null>(prevForecastValue);
+  const [isForecastDirty, setIsForecastDirty] = useState(
+    prevForecastValue !== null
+  );
 
-  const [inputValue, setInputValue] = useState("—");
+  const [inputValue, setInputValue] = useState(
+    prevForecastValue ? `${prevForecastValue}%` : "—"
+  );
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
@@ -48,16 +59,24 @@ const ForecastMakerBinary: FC<Props> = ({ question }) => {
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
 
+    if (!user) {
+      setCurrentModal({ type: "signup" });
+    }
+
     if (forecast === null) return;
 
     const forecastValue = round(forecast / 100, BINARY_PREDICTION_PRECISION);
 
     setIsSubmitting(true);
-    const response = await createForecast(question.id, {
-      continuousCdf: null,
-      probabilityYes: forecastValue,
-      probabilityYesPerCategory: null,
-    });
+    const response = await createForecast(
+      question.id,
+      {
+        continuousCdf: null,
+        probabilityYes: forecastValue,
+        probabilityYesPerCategory: null,
+      },
+      forecastValue
+    );
     if ("errors" in response) {
       setSubmitError(response.errors);
     }
@@ -93,10 +112,10 @@ const ForecastMakerBinary: FC<Props> = ({ question }) => {
       <div className="flex items-center justify-center">
         <Button
           variant="primary"
-          disabled={!isForecastDirty || isSubmitting}
+          disabled={!!user && (!isForecastDirty || isSubmitting)}
           onClick={handlePredictSubmit}
         >
-          {t("predictButton")}
+          {user ? t("predictButton") : t("signUpButton")}
         </Button>
         <FormError errors={submitError} />
       </div>

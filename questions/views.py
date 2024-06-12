@@ -32,6 +32,7 @@ def create_forecast_api_view(request, pk: int):
         probability_yes=data.get("probability_yes", None),
         probability_yes_per_category=data.get("probability_yes_per_category", None),
         distribution_components=None,
+        slider_values=data.get("slider_values", None),
     )
     forecast.save()
 

@@ -100,6 +100,7 @@ def build_question_forecasts(
             "timestamps": [],
         }
         for x in question.forecast_set.filter(author=user).order_by("start_time").all():
+            forecasts_data["my_forecasts"]["slider_values"] = x.slider_values
             forecasts_data["my_forecasts"]["timestamps"].append(
                 x.start_time.timestamp()
             )

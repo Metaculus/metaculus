@@ -59,7 +59,7 @@ def create_question(question: dict, **kwargs) -> Question:
         possibilities=possibilities,
         resolution=question["resolution"],
         zero_point=zero_point,
-        **kwargs
+        **kwargs,
     )
 
     return new_question
@@ -76,7 +76,7 @@ def create_post(question: dict, **kwargs) -> Post:
         created_at=question["created_time"],
         edited_at=question["edited_time"],
         approved_at=question["approved_time"],
-        **kwargs
+        **kwargs,
     )
 
 
@@ -178,7 +178,9 @@ def migrate_questions__groups(root_questions: list[dict]):
                 questions.append(create_question(child, group_id=root_question["id"]))
 
             # Create post from the root question, but don't create a root question
-            posts.append(create_post(root_question, group_of_questions_id=root_question["id"]))
+            posts.append(
+                create_post(root_question, group_of_questions_id=root_question["id"])
+            )
 
     GroupOfQuestions.objects.bulk_create(groups)
     Question.objects.bulk_create(questions)

@@ -35,12 +35,14 @@ export async function votePost(postId: number, direction: VoteDirection) {
 
 export async function createForecast(
   questionId: number,
-  forecastData: ForecastData
+  forecastData: ForecastData,
+  sliderValues: any
 ) {
   try {
     const response = await QuestionsApi.createForecast(
       questionId,
-      forecastData
+      forecastData,
+      sliderValues
     );
     revalidatePath(`/questions/${questionId}`);
 
