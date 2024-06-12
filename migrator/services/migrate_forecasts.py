@@ -36,6 +36,7 @@ def create_forecast(
         distribution_components=prediction["distribution_components"],
         author=users_dict[prediction["user_id"]],
         question=question,
+        slider_values=None,
     )
 
     return new_forecast

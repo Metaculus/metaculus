@@ -15,24 +15,34 @@ import Slider from "../sliders/slider";
 
 type Props = {
   question: QuestionWithNumericForecasts;
-  prevSlider: MultiSliderValue | null;
+  prevForecast: MultiSliderValue[] | null;
+  prevWeights: number[] | null;
 };
 
 function normWeights(weights: number[]) {
   return weights.map((x) => x / weights.reduce((a, b) => a + b));
 }
 
-const ForecastMakerNumeric: FC<Props> = ({ question, prevSlider }) => {
+const ForecastMakerNumeric: FC<Props> = ({
+  question,
+  prevForecast,
+  prevWeights,
+}) => {
   const isForecastEmpty = getIsForecastEmpty(question.forecasts);
-
-  const [forecast, setForecast] = useState<MultiSliderValue[]>([
-    {
-      left: prevSlider ? prevSlider.left : 0.4,
-      center: prevSlider ? prevSlider.center : 0.5,
-      right: prevSlider ? prevSlider.right : 0.6,
-    },
-  ]);
-  const [weights, setWeights] = useState<number[]>([1]);
+  const [forecast, setForecast] = useState<MultiSliderValue[]>(
+    prevForecast
+      ? prevForecast
+      : [
+          {
+            left: 0.4,
+            center: 0.5,
+            right: 0.6,
+          },
+        ]
+  );
+  const [weights, setWeights] = useState<number[]>(
+    prevWeights ? prevWeights : [1]
+  );
 
   // @ts-ignore
   const dataset: { cdf: number[]; pmf: number[] } = forecast
@@ -90,15 +100,7 @@ const ForecastMakerNumeric: FC<Props> = ({ question, prevSlider }) => {
               key={`multi-slider-${index}`}
               min={0}
               max={1}
-              value={
-                prevSlider
-                  ? prevSlider
-                  : {
-                      left: 0.4,
-                      right: 0.6,
-                      center: 0.5,
-                    }
-              }
+              value={forecast[index]}
               step={0.00001}
               onChange={(value) =>
                 setForecast([
@@ -121,7 +123,7 @@ const ForecastMakerNumeric: FC<Props> = ({ question, prevSlider }) => {
                     min={0}
                     max={1}
                     step={0.00001}
-                    defaultValue={0.5}
+                    defaultValue={weights[index]}
                     round={true}
                     onChange={(value) =>
                       setWeights(
@@ -177,11 +179,18 @@ const ForecastMakerNumeric: FC<Props> = ({ question, prevSlider }) => {
           <button
             className="rounded-lg bg-blue-300 px-4 py-2 text-gray-800"
             onClick={async () => {
-              await createForecast(question.id, {
-                continuousCdf: dataset.cdf,
-                probabilityYes: null,
-                probabilityYesPerCategory: null,
-              });
+              await createForecast(
+                question.id,
+                {
+                  continuousCdf: dataset.cdf,
+                  probabilityYes: null,
+                  probabilityYesPerCategory: null,
+                },
+                {
+                  forecast: forecast,
+                  weights: weights,
+                }
+              );
             }}
           >
             Predict
