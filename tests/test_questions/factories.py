@@ -15,7 +15,7 @@ def create_question(*, question_type: Question.QuestionType, **kwargs) -> Questi
 
 def create_conditional(
     *,
-    condition_parent: Question = None,
+    condition: Question = None,
     condition_child: Question = None,
     question_yes: Question = None,
     question_no: Question = None,
@@ -25,7 +25,7 @@ def create_conditional(
         Conditional,
         **setdefaults_not_null(
             kwargs,
-            condition_parent=condition_parent,
+            condition=condition,
             condition_child=condition_child,
             question_yes=question_yes,
             question_no=question_no,
