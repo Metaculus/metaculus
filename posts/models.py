@@ -36,7 +36,9 @@ class PostQuerySet(models.QuerySet):
                 + Count("conditional__question_yes__forecast__author", distinct=True)
                 + Count("conditional__question_no__forecast__author", distinct=True)
                 # Question groups
-                + Count("group_of_questions__questions__forecast__author", distinct=True)
+                + Count(
+                    "group_of_questions__questions__forecast__author", distinct=True
+                )
             )
         )
 

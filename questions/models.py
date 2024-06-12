@@ -146,6 +146,8 @@ class Forecast(models.Model):
     author = models.ForeignKey(User, models.CASCADE)
     question = models.ForeignKey(Question, models.CASCADE)
 
+    slider_values = models.JSONField(null=True)
+
     def get_prediction_values(self) -> list[float]:
         if self.probability_yes:
             return [1 - self.probability_yes, self.probability_yes]
