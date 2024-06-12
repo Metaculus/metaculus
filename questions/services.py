@@ -95,8 +95,8 @@ def enrich_question_with_forecasts_f(
             "values_min": [],
             "nr_forecasters": [],
             "my_forecasts": None,
-            "latest_pmf": None,
-            "latest_cdf": None,
+            "latest_pmf": [],
+            "latest_cdf": [],
         }
 
     # values_choice_1
