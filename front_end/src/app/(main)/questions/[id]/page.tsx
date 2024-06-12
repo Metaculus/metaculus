@@ -38,7 +38,7 @@ export default async function IndividualQuestion({
             <ForecastMaker question={postData.question} />
           )}
         </div>
-        {commentsData && <CommentFeed comments={commentsData} />}
+        {commentsData && <CommentFeed initialComments={commentsData} />}
       </div>
       <div className="flex max-w-[240px] flex-col bg-white p-4 dark:bg-blue-800">
         <div className="flex w-[200px] flex-row justify-between border-b pb-4 pt-4">

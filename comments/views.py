@@ -28,7 +28,7 @@ def comments_list_api_view(request: Request):
         comments = comments.filter(author_id=author_param)
 
     # for testing, show a max of 20 comments
-    comments = comments.all()[:20]
+    # comments = comments.all()[:20]
 
     data = [{**CommentSerializer(obj).data} for obj in comments.all()]
 
