@@ -1,7 +1,7 @@
 "use client";
 import { clamp } from "lodash";
 import RcSlider from "rc-slider";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import "./slider.css";
 
@@ -15,6 +15,7 @@ type Props = {
   step: number;
   arrowStep?: number;
   round?: boolean;
+  shouldSyncWithDefault?: boolean;
 };
 
 const Slider: FC<Props> = ({
@@ -25,9 +26,16 @@ const Slider: FC<Props> = ({
   step,
   arrowStep,
   round = false,
+  shouldSyncWithDefault,
 }) => {
   const [controlledValue, setControlledValue] = useState(defaultValue);
   const [controlledStep, setControlledStep] = useState(step);
+
+  useEffect(() => {
+    if (shouldSyncWithDefault) {
+      setControlledValue(defaultValue);
+    }
+  }, [defaultValue, shouldSyncWithDefault]);
 
   return (
     <RcSlider
@@ -38,7 +46,7 @@ const Slider: FC<Props> = ({
       step={controlledStep}
       onChange={(_value) => {
         const value = _value as number;
-        const roundedValue = Math.round(value * 100) / 100;
+        const roundedValue = dynamicRound(value, step, min, max);
         setControlledValue(roundedValue);
         onChange(roundedValue);
       }}
@@ -58,7 +66,12 @@ const Slider: FC<Props> = ({
               min,
               max
             );
-            const roundedValue = Math.round(newValue * 100) / 100;
+            const roundedValue = dynamicRound(
+              newValue,
+              arrowStep ?? step,
+              min,
+              max
+            );
             setControlledValue(roundedValue);
             onChange(roundedValue);
           }}
@@ -67,5 +80,16 @@ const Slider: FC<Props> = ({
     />
   );
 };
+
+function dynamicRound(num: number, step: number, min: number, max: number) {
+  const stepString = step.toString();
+  const split = stepString.split(".");
+  let decimalPlaces = 0;
+  if (split.length > 1) {
+    decimalPlaces = split[1].length;
+  }
+  const multiplier = Math.pow(10, decimalPlaces);
+  return clamp(Math.round(num * multiplier) / multiplier, min, max);
+}
 
 export default Slider;
