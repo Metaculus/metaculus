@@ -14,11 +14,9 @@ from posts.serializers import (
     PostSerializer,
     PostWriteSerializer,
     serialize_post_many,
+    serialize_post,
 )
-from posts.services import get_posts_feed
-from projects.models import Project
-from questions.models import Question
-from utils.dtypes import flatten
+from posts.services import get_posts_feed, create_post
 
 
 @api_view(["GET"])
@@ -41,9 +39,7 @@ def posts_list_api_view(request):
     filters_serializer = PostFilterSerializer(data=request.query_params)
     filters_serializer.is_valid(raise_exception=True)
 
-    qs = get_posts_feed(
-        qs=qs, filters=filters_serializer.validated_data, user=request.user
-    )
+    qs = get_posts_feed(qs=qs, user=request.user, **filters_serializer.validated_data)
 
     # Paginating queryset
     posts = paginator.paginate_queryset(qs, request)
@@ -74,18 +70,12 @@ def post_create_api_view(request):
     serializer = PostWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    post_data = serializer.validated_data
-    projects_by_category: dict[str, list[Project]] = post_data.pop("projects", {})
-    question_data = post_data.pop("question")
+    post = create_post(**serializer.validated_data, author=request.user)
 
-    question = Question.objects.create(title=post_data["title"], **question_data)
-    post = Post.objects.create(author=request.user, question=question, **post_data)
-
-    projects_flat = flatten(projects_by_category.values())
-    post.projects.add(*projects_flat)
-
-    # Attaching projects to the
-    return Response(PostSerializer(post).data, status=status.HTTP_201_CREATED)
+    return Response(
+        serialize_post(post, with_forecasts=False, current_user=request.user),
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @api_view(["PUT"])

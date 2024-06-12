@@ -1,10 +1,8 @@
-from datetime import timedelta
 from typing import Optional
 
 import numpy as np
-from django.utils import timezone
 
-from questions.models import Question
+from questions.models import Question, GroupOfQuestions, Conditional
 from users.models import User
 from utils.the_math.community_prediction import (
     compute_multiple_choice_plotable_cp,
@@ -15,9 +13,7 @@ from utils.the_math.formulas import scale_continous_forecast_location
 from utils.the_math.measures import percent_point_function
 
 
-def build_question_resolution(
-    question: Question
-):
+def build_question_resolution(question: Question):
     """
     resolution of -2 means "annulled"
     resolution of -1 means "ambiguous"
@@ -59,13 +55,9 @@ def build_question_resolution(
 
     elif question.type == "multiple_choice":
         try:
-            return question.options[
-                int(question.resolution)
-            ]
+            return question.options[int(question.resolution)]
         except Exception:
-            return (
-                f"Error for resolution: {question.resolution}"
-            )
+            return f"Error for resolution: {question.resolution}"
 
 
 def build_question_forecasts(
@@ -153,3 +145,82 @@ def build_question_forecasts(
             forecasts_data["nr_forecasters"].append(cp.nr_forecasters)
 
     return forecasts_data
+
+
+def create_question(
+    *,
+    title: str = None,
+    description: str = None,
+    type: Question.QuestionType | str = None,
+    possibilities: dict = None,
+    resolution: str = None,
+    group_id: int = None,
+) -> Question:
+    # TODO: add title from post
+
+    obj = Question(
+        title=title,
+        description=description,
+        type=type,
+        possibilities=possibilities,
+        resolution=resolution,
+        group_id=group_id,
+    )
+
+    obj.full_clean()
+    obj.save()
+
+    return obj
+
+
+def create_group_of_questions(
+    *, questions: list[dict]
+) -> GroupOfQuestions:
+    obj = GroupOfQuestions()
+
+    obj.full_clean()
+    obj.save()
+
+    # Adding questions
+    for question_data in questions:
+        create_question(group_id=obj.id, **question_data)
+
+    return obj
+
+
+def create_conditional(
+    *, condition_id: int = None, condition_child_id: int = None
+) -> Conditional:
+    # Auto-generating yes/no questions
+    def clone_question(question: Question, title: str = None):
+        """
+        Avoid auto-cloning to prevent unexpected side effects
+        """
+
+        return create_question(
+            title=title,
+            description=question.description,
+            type=question.type,
+            possibilities=question.possibilities,
+            resolution=question.resolution,
+        )
+
+    condition = Question.objects.get(pk=condition_id)
+    condition_child = Question.objects.get(pk=condition_child_id)
+
+    obj = Conditional(
+        condition_id=condition_id,
+        condition_child_id=condition_id,
+        # Autogen questions
+        question_yes=clone_question(
+            condition_child, title=f"{condition.title} (Yes) → {condition_child.title}"
+        ),
+        question_no=clone_question(
+            condition_child, title=f"{condition.title} (No) → {condition_child.title}"
+        ),
+    )
+
+    obj.full_clean()
+    obj.save()
+
+    return obj
