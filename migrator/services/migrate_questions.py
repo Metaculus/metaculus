@@ -87,15 +87,9 @@ def create_question(question: dict, **kwargs) -> Question:
     resolution: str | None = None
     resolution_float = question["resolution"]
     if (resolution_float is not None) and (resolution_float >= 0):
-        if question_type == "binary":
-            assert resolution_float in [0.0, 1.0]
-            resolution = "yes" if resolution_float == 1 else "no"
-        if question_type == "multiple_choice":
-            resolution = options[int(resolution_float)]
-        else:
-            resolution = unscaled_location_to_string_location(
-                new_question, resolution_float
-            )
+        resolution = unscaled_location_to_string_location(
+            new_question, resolution_float
+        )
     new_question.resolution = resolution
 
     return new_question
