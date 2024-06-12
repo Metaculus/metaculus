@@ -15,9 +15,9 @@ from utils.the_math.formulas import scale_continous_forecast_location
 from utils.the_math.measures import percent_point_function
 
 
-def enrich_question_with_resolution_f(
-    question: Question, serialized_question: dict
-) -> dict:
+def build_question_resolution(
+    question: Question
+):
     """
     resolution of -2 means "annulled"
     resolution of -1 means "ambiguous"
@@ -36,47 +36,41 @@ def enrich_question_with_resolution_f(
     """
 
     if question.resolution is None:
-        return serialized_question
+        return
 
     if question.type == "binary":
         # TODO: @george, some questions might have None resolution, so this leads to error
         #   added tmp condition to prevent such cases
-        resolution = serialized_question["resolution"]
-
-        if resolution is not None:
-            if np.isclose(float(serialized_question["resolution"]), 0):
-                serialized_question["resolution"] = "Yes"
-            elif np.isclose(float(serialized_question["resolution"]), -1):
-                serialized_question["resolution"] = "No"
+        if question.resolution is not None:
+            if np.isclose(float(question.resolution), 0):
+                return "Yes"
+            elif np.isclose(float(question.resolution), -1):
+                return "No"
 
     # TODO @Luke this and the date have to be normalized
     elif question.type == "numeric":
-        serialized_question["resolution"] = scale_continous_forecast_location(
+        return scale_continous_forecast_location(
             question, int(float(question.resolution) * 200)
         )
     elif question.type == "date":
-        serialized_question["resolution"] = scale_continous_forecast_location(
+        return scale_continous_forecast_location(
             question, int(float(question.resolution) * 200)
         )
 
     elif question.type == "multiple_choice":
         try:
-            serialized_question["resolution"] = question.options[
+            return question.options[
                 int(question.resolution)
             ]
         except Exception:
-            serialized_question["resolution"] = (
+            return (
                 f"Error for resolution: {question.resolution}"
             )
-    else:
-        pass
-
-    return serialized_question
 
 
-def enrich_question_with_forecasts_f(
-    question: Question, serialized_question: dict, user: Optional[User]
-) -> dict:
+def build_question_forecasts(
+    question: Question, user: Optional[User] = None
+) -> dict | None:
     """
     Enriches questions with the forecasts object.
     """
@@ -100,7 +94,7 @@ def enrich_question_with_forecasts_f(
         }
 
     # values_choice_1
-    if not user.is_anonymous:
+    if user and not user.is_anonymous:
         forecasts_data["my_forecasts"] = {
             "values_mean": [],
             "timestamps": [],
@@ -149,7 +143,7 @@ def enrich_question_with_forecasts_f(
         else:
             raise Exception(f"Unknown question type: {question.type}")
         if cps is None or len(cps) == 0:
-            return serialized_question
+            return
 
         for cp in cps:
             forecasts_data["timestamps"].append(cp.at_datetime.timestamp())
@@ -158,5 +152,4 @@ def enrich_question_with_forecasts_f(
             forecasts_data["values_min"].append(cp.lower)
             forecasts_data["nr_forecasters"].append(cp.nr_forecasters)
 
-    serialized_question["forecasts"] = forecasts_data
-    return serialized_question
+    return forecasts_data
