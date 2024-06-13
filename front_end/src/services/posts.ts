@@ -63,6 +63,15 @@ class PostsApi {
     }
   }
 
+  static async createQuestionPost(body: any): Promise<Response | null> {
+    try {
+      return await post<Response>(`/posts/create/`, body);
+    } catch (err) {
+      console.error("Error getting posts:", err);
+      return null;
+    }
+  }
+
   static async votePost(
     id: number,
     direction: VoteDirection
