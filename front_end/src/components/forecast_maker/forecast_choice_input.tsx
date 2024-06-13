@@ -1,10 +1,12 @@
 "use client";
 
+import classNames from "classnames";
 import { FC, useCallback, useEffect, useState } from "react";
 
 import ChoiceIcon from "@/components/choice_icon";
 import ForecastInput from "@/components/forecast_maker/forecast_input";
 import Slider from "@/components/sliders/slider";
+import useAppTheme from "@/hooks/use_app_theme";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
 type Props = {
@@ -72,6 +74,13 @@ const ForecastChoiceInput: FC<Props> = ({
         arrowStep={0.1}
         shouldSyncWithDefault
         arrowClassName="bg-gray-0 text-orange-700 hover:text-orange-800 active:text-orange-900 dark:bg-gray-0-dark dark:text-orange-700-dark dark:hover:text-orange-800-dark dark:active:text-orange-900-dark"
+        marks={
+          communityForecast
+            ? {
+                [communityForecast * 100]: <MarkArrow color={choiceColor} />,
+              }
+            : undefined
+        }
       />
     </div>
   );
@@ -115,6 +124,30 @@ const ForecastChoiceInput: FC<Props> = ({
         </td>
       </tr>
     </>
+  );
+};
+
+const MarkArrow: FC<{
+  color: {
+    DEFAULT: string;
+    dark: string;
+  };
+}> = ({ color }) => {
+  const { theme } = useAppTheme();
+
+  return (
+    <svg
+      className={classNames("absolute top-0.5 -translate-x-1/2")}
+      width="12"
+      height="8"
+      viewBox="0 0 12 8"
+      fill="none"
+    >
+      <path
+        d="M5.99984 8L11.9998 0H-0.000158574L5.99984 8Z"
+        fill={theme === "light" ? color.DEFAULT : color.dark}
+      />
+    </svg>
   );
 };
 

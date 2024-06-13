@@ -28,6 +28,8 @@ const ForecastMakerBinary: FC<Props> = ({ question, prevForecast }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
+  const communityForecast = question.forecasts.values_mean.at(-1);
+
   const prevForecastValue =
     typeof prevForecast === "number" ? prevForecast * 100 : null;
 
@@ -100,6 +102,15 @@ const ForecastMakerBinary: FC<Props> = ({ question, prevForecast }) => {
           step={1}
           arrowStep={0.1}
           shouldSyncWithDefault
+          marks={
+            communityForecast
+              ? {
+                  [communityForecast * 100]: (
+                    <MarkArrow value={communityForecast} />
+                  ),
+                }
+              : undefined
+          }
         />
       </div>
       <div className="mb-3 block text-center">
@@ -123,6 +134,23 @@ const ForecastMakerBinary: FC<Props> = ({ question, prevForecast }) => {
         <FormError errors={submitError} />
       </div>
     </section>
+  );
+};
+
+const MarkArrow: FC<{ value: number }> = ({ value }) => {
+  const t = useTranslations();
+  return (
+    <div className="absolute flex -translate-x-1/2 translate-y-[-30px] flex-col items-center gap-1 whitespace-nowrap text-sm font-bold text-gray-700 dark:text-gray-700-dark">
+      <span>
+        {t("community")}: {`${Math.round(1000 * value) / 10}%`}
+      </span>
+      <svg width="16" height="20">
+        <path
+          d="M 1 1 L 7 16 L 13 1 Z"
+          className="fill-blue-100 stroke-gray-600 stroke-1 dark:fill-blue-100-dark dark:stroke-gray-600-dark"
+        />
+      </svg>
+    </div>
   );
 };
 
