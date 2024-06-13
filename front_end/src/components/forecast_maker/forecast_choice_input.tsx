@@ -145,7 +145,7 @@ const MarkArrow: FC<{
     >
       <path
         d="M5.99984 8L11.9998 0H-0.000158574L5.99984 8Z"
-        fill={theme === "light" ? color.DEFAULT : color.dark}
+        fill={theme === "dark" ? color.dark : color.DEFAULT}
       />
     </svg>
   );
