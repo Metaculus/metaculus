@@ -12,6 +12,8 @@ type Props = {
   maxValue: number;
   isDirty?: boolean;
   className?: string;
+  onFocus?: () => void;
+  onBlur?: () => void;
 };
 
 const ForecastInput: FC<Props> = ({
@@ -22,11 +24,14 @@ const ForecastInput: FC<Props> = ({
   isDirty,
   onChange,
   className,
+  onFocus,
+  onBlur,
 }) => {
   const handleBlur = () => {
     if (!Number.isNaN(parseFloat(value)) && !value.endsWith("%")) {
       onChange(value + "%");
     }
+    onBlur?.();
   };
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -60,7 +65,10 @@ const ForecastInput: FC<Props> = ({
       onBlur={handleBlur}
       onClick={(event) => event.stopPropagation()}
       onChange={handleChange}
-      onFocus={(event) => event.target.select()}
+      onFocus={(event) => {
+        event.target.select();
+        onFocus?.();
+      }}
     />
   );
 };

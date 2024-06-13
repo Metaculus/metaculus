@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { Tuple } from "victory";
 
-import { METAC_COLORS } from "@/constants/colors";
+import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { NumericChartType, Scale } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { MultipleChoiceForecast, QuestionType } from "@/types/question";
@@ -186,9 +186,6 @@ export function generatePercentageYScale(containerHeight: number): Scale {
   };
 }
 
-const COLOR_SCALE = Object.values(METAC_COLORS["mc-option"]).map(
-  (value) => value
-);
 export function generateChartChoices(
   dataset: MultipleChoiceForecast
 ): ChoiceItem[] {
@@ -196,7 +193,7 @@ export function generateChartChoices(
   return Object.entries(choices).map(([choice, values], index) => ({
     choice,
     values: values.map((x: { value_mean: number }) => x.value_mean),
-    color: COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+    color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
     active: true,
     highlighted: false,
   }));

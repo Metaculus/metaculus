@@ -201,7 +201,7 @@ function buildChartData(
       color: color.DEFAULT,
       line: timestamps.map((timestamp, timestampIndex) => ({
         x: timestamp,
-        y: values[timestampIndex],
+        y: values[timestampIndex] ?? 0,
       })),
       active,
       highlighted,

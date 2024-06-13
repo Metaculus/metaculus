@@ -163,3 +163,7 @@ export const METAC_COLORS = {
   bell: { DEFAULT: "#b79d00", dark: "#dac024" },
   twitter: { DEFAULT: "#1da1f2" },
 } as const;
+
+export const MULTIPLE_CHOICE_COLOR_SCALE = Object.values(
+  METAC_COLORS["mc-option"]
+).map((value) => value);
