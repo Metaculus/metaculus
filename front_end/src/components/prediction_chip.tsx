@@ -4,7 +4,8 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
-import { QuestionStatus, QuestionType } from "@/types/question";
+import { PostStatus } from "@/types/post";
+import { QuestionType } from "@/types/question";
 import {
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
@@ -14,7 +15,7 @@ type Size = "compact" | "large";
 
 type Props = {
   questionType: QuestionType;
-  status: QuestionStatus;
+  status: PostStatus;
   nr_forecasters: number;
   prediction: number | undefined;
   resolution: string | null;
@@ -34,9 +35,9 @@ const PredictionChip: FC<Props> = ({
   const t = useTranslations();
 
   switch (status) {
-    case QuestionStatus.InReview:
+    case PostStatus.InReview:
       return <span className="inline-flex flex-col"></span>;
-    case QuestionStatus.Resolved:
+    case PostStatus.Resolved:
       return (
         <span className="inline-flex flex-col">
           <Label className="text-purple-900 dark:text-purple-900-dark">
@@ -56,7 +57,7 @@ const PredictionChip: FC<Props> = ({
           </p>
         </span>
       );
-    case QuestionStatus.Closed:
+    case PostStatus.Closed:
       return (
         <span className="inline-flex flex-col">
           <Chip
@@ -74,7 +75,7 @@ const PredictionChip: FC<Props> = ({
           </p>
         </span>
       );
-    case QuestionStatus.Active:
+    case PostStatus.Active:
     default:
       return (
         <span className="inline-flex flex-col">
