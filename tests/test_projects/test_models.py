@@ -3,14 +3,7 @@ from tests.fixtures import *  # noqa
 from tests.test_projects.factories import factory_project
 
 
-# TODO: OR owner case!!!
-# TODO: user private question!!!
-# TODO: add default Public project
-
-
 def test_annotate_user_permission(user1, user2, user_admin):
-    # TODO: anon user
-
     def get_perm(prj, usr):
         return (
             Project.objects.annotate_user_permission(user=usr)

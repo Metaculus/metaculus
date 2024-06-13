@@ -193,7 +193,6 @@ class Post(TimeStampedModel):
     nr_forecasters: int = 0
     vote_score: int = 0
     user_vote = None
-    # TODO: Or probably make it a property which generates automatically from projects loop
     user_permission: ProjectPermission = None
 
 
