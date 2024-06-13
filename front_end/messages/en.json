@@ -6,6 +6,7 @@
   "updatePredictionButton": "Update Prediction",
   "reaffirmPredictionButton_one": "Reaffirm prediction",
   "reaffirmPredictionButton_other": "Reaffirm predictions",
+  "rescalePredictionButton": "Auto-sum to 100%",
   "signUpButton": "Sign Up to Predict",
   "signInButton": "Log in",
   "tweetPrediction": "Tweet Prediction!",

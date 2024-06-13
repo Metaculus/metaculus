@@ -3,6 +3,7 @@ import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
+import percentRound from "percent-round";
 import { FC, useCallback, useMemo, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
@@ -97,6 +98,21 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question }) => {
     },
     [initialForecast]
   );
+
+  const rescaleForecasts = () => {
+    if (!forecastHasValues || !forecastsSum === null) return;
+
+    const newForecasts = percentRound(
+      choicesForecasts.map((choice) => choice.forecast!)
+    );
+
+    setChoicesForecasts((prev) =>
+      prev.map((choice, index) => ({
+        ...choice,
+        forecast: newForecasts[index] ?? choice.forecast,
+      }))
+    );
+  };
 
   const submitIsAllowed = !isSubmitting && isDirty && isForecastValid;
   const handlePredictSubmit = async () => {
@@ -194,13 +210,24 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question }) => {
           </span>
         </div>
         <div className="flex flex-wrap justify-center gap-2">
+          <div className="w-full text-center sm:w-auto">
+            <Button
+              className="h-8"
+              variant="link"
+              type="button"
+              onClick={rescaleForecasts}
+              disabled={!forecastHasValues || isForecastValid}
+            >
+              {t("rescalePredictionButton")}
+            </Button>
+          </div>
           <Button
             variant="secondary"
             type="reset"
             onClick={resetForecasts}
             disabled={!isDirty}
           >
-            Discard Changes
+            {t("discardChangesButton")}
           </Button>
           <Button
             variant="primary"
