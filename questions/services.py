@@ -84,7 +84,10 @@ def build_question_forecasts(
         elif question.type in ["numeric", "date"]:
             cps, cdf = compute_continuous_plotable_cp(question)
             forecasts_data["latest_cdf"] = cdf
-            forecasts_data["latest_pmf"] = np.diff(cdf, prepend=0)
+            if len(cdf) >= 2:
+                forecasts_data["latest_pmf"] = np.diff(cdf, prepend=0)
+            else:
+                forecasts_data["latest_pmf"] = []
         else:
             raise Exception(f"Unknown question type: {question.type}")
         if cps is None or len(cps) == 0:

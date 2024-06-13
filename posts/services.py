@@ -96,6 +96,10 @@ def get_posts_feed(
             qs = qs.filter(question__closed_at__isnull=False).filter(
                 question__closed_at__lte=timezone.now()
             )
+        
+        if "in_review" in status:
+            qs = qs.filter(published_at__isnull=True).filter(Q(Q(question__closed_at__gte=timezone.now())
+                        | Q(question__closed_at__isnull=True)))
 
     if answered_by_me is not None and not user.is_anonymous:
         condition = {"question__forecast__author": user}
