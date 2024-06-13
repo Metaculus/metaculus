@@ -22,7 +22,6 @@ import {
 const PREDICTION_PRECISION = 3;
 const MIN_VALUE = 10 ** -PREDICTION_PRECISION * 100;
 const MAX_VALUE = 100 - MIN_VALUE;
-const MIN_PREDICTION = 10 ** -PREDICTION_PRECISION;
 
 type ChoiceOption = {
   name: string;
@@ -47,40 +46,49 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question }) => {
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(question.forecasts)
   );
-  const forecastsSum = useMemo(
-    () => sumForecasts(choicesForecasts),
+
+  const initialForecast = useMemo(
+    () => round(100 / choicesForecasts.length, 1),
+    [choicesForecasts.length]
+  );
+  const forecastHasValues = useMemo(
+    () => choicesForecasts.every((el) => el.forecast !== null),
     [choicesForecasts]
   );
+  const forecastsSum = useMemo(
+    () => (forecastHasValues ? sumForecasts(choicesForecasts) : null),
+    [choicesForecasts, forecastHasValues]
+  );
+  const remainingSum = forecastsSum ? 100 - forecastsSum : null;
+  const isForecastValid = forecastHasValues && forecastsSum === 100;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
 
-  const initialForecast = useMemo(
-    () => roundForecast(100 / choicesForecasts.length),
-    [choicesForecasts.length]
-  );
-
   const resetForecasts = useCallback(() => {
+    setIsDirty(false);
     setChoicesForecasts((prev) =>
       prev.map((prevChoice) => ({
         ...prevChoice,
-        forecast: initialForecast,
+        forecast: null,
       }))
     );
-  }, [initialForecast]);
+  }, []);
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
       setIsDirty(true);
       setChoicesForecasts((prev) =>
         prev.map((prevChoice) => {
+          if (prevChoice.name === choice) {
+            return { ...prevChoice, forecast: value };
+          }
+
           const isInitialChange = prev.some((el) => el.forecast === null);
 
           if (isInitialChange) {
+            // User is predicting for the first time. Show default non-null values
+            // for remaining options after first interaction with the inputs.
             return { ...prevChoice, forecast: initialForecast };
-          }
-
-          if (prevChoice.name === choice) {
-            return { ...prevChoice, forecast: value };
           }
 
           return prevChoice;
@@ -90,13 +98,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question }) => {
     [initialForecast]
   );
 
-  const areForecastsValid = useMemo(
-    () =>
-      choicesForecasts.every((el) => el.forecast !== null) &&
-      forecastsSum === 100,
-    [choicesForecasts, forecastsSum]
-  );
-  const submitIsAllowed = !isSubmitting && isDirty && areForecastsValid;
+  const submitIsAllowed = !isSubmitting && isDirty && isForecastValid;
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
 
@@ -105,7 +107,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question }) => {
       return;
     }
 
-    if (!areForecastsValid) return;
+    if (!isForecastValid) return;
 
     const forecastValue = choicesForecasts.map((el) =>
       round(el.forecast! / 100, PREDICTION_PRECISION)
@@ -173,6 +175,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question }) => {
                 min={MIN_VALUE}
                 max={MAX_VALUE}
                 onChange={handleForecastChange}
+                isDirty={isDirty}
               />
             </tr>
           ))}
@@ -180,6 +183,16 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question }) => {
       </table>
 
       <div className="my-5 flex flex-wrap items-center justify-center gap-4 border-b border-b-blue-400 pb-5 dark:border-b-blue-400-dark">
+        <div className="mx-auto text-center sm:ml-0 sm:text-left">
+          <div>
+            <span className="text-2xl font-bold">
+              Total: {getForecastPctString(forecastsSum)}
+            </span>
+          </div>
+          <span className="mt-1 text-sm">
+            ({getForecastPctString(remainingSum)} remaining)
+          </span>
+        </div>
         <div className="flex flex-wrap justify-center gap-2">
           <Button
             variant="secondary"
@@ -216,12 +229,14 @@ function generateChoiceOptions(
   }));
 }
 
-function sumForecasts(predictions: ChoiceOption[]) {
-  return predictions.reduce((acc, { forecast }) => acc + Number(forecast), 0);
+function sumForecasts(choiceOptions: ChoiceOption[]) {
+  return choiceOptions.reduce((acc, { forecast }) => acc + Number(forecast), 0);
 }
 
-function roundForecast(value: number) {
-  return round(value, MIN_PREDICTION);
+function getForecastPctString(number: number | null) {
+  if (number === null) return "?";
+
+  return `${round(number, 1)}%`;
 }
 
 export default ForecastMakerMultipleChoice;

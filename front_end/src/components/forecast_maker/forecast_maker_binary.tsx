@@ -1,7 +1,7 @@
 "use client";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useCallback, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
 import ForecastInput from "@/components/forecast_maker/forecast_input";
@@ -10,7 +10,6 @@ import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
-import useSliderForecast from "@/hooks/use_slider_forecast";
 import { ErrorResponse } from "@/types/fetch";
 import { QuestionWithNumericForecasts } from "@/types/question";
 
@@ -29,14 +28,32 @@ const ForecastMakerBinary: FC<Props> = ({ question, prevForecast }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
-  const {
-    forecast,
-    inputValue,
-    isForecastDirty,
-    handleInputForecastChange,
-    handleSliderForecastChange,
-    handleInputChange,
-  } = useSliderForecast({ prevForecast });
+  const prevForecastValue =
+    typeof prevForecast === "number" ? prevForecast * 100 : null;
+
+  const [sliderForecast, setSliderForecast] = useState<number | null>(
+    prevForecastValue
+  );
+  const [isForecastDirty, setIsForecastDirty] = useState(
+    prevForecastValue !== null
+  );
+  const [inputValue, setInputValue] = useState(
+    prevForecastValue ? `${prevForecastValue}%` : "—"
+  );
+
+  const handleSliderForecastChange = useCallback((value: number) => {
+    setSliderForecast(value);
+    setInputValue(value.toString() + "%");
+    setIsForecastDirty(true);
+  }, []);
+  const handleInputChange = useCallback((value: string) => {
+    setInputValue(value);
+    setIsForecastDirty(true);
+  }, []);
+  const handleInputForecastChange = useCallback((value: number) => {
+    setSliderForecast(value);
+    setIsForecastDirty(true);
+  }, []);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
@@ -49,9 +66,9 @@ const ForecastMakerBinary: FC<Props> = ({ question, prevForecast }) => {
       return;
     }
 
-    if (forecast === null) return;
+    if (sliderForecast === null) return;
 
-    const forecastValue = round(forecast / 100, PREDICTION_PRECISION);
+    const forecastValue = round(sliderForecast / 100, PREDICTION_PRECISION);
 
     setIsSubmitting(true);
     const response = await createForecast(
@@ -78,7 +95,7 @@ const ForecastMakerBinary: FC<Props> = ({ question, prevForecast }) => {
         <Slider
           min={MIN_VALUE}
           max={MAX_VALUE}
-          defaultValue={forecast ?? DEFAULT_SLIDER_VALUE}
+          defaultValue={sliderForecast ?? DEFAULT_SLIDER_VALUE}
           onChange={handleSliderForecastChange}
           step={1}
           arrowStep={0.1}
