@@ -34,7 +34,9 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
 
   useEffect(() => {
     if (errors) {
-      if (
+      if (errors.message) {
+        setErrorText(errors.message);
+      } else if (
         name === null &&
         Object.keys(errors).every((k) => k in ["message", "non_field_errors"])
       ) {
@@ -47,7 +49,6 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
     } else {
     }
   }, [errors, name]);
-
   return (
     <div>
       {errorText && (

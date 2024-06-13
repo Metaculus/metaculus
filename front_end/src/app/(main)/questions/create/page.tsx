@@ -45,7 +45,6 @@ const QuestionForm: React.FC = () => {
   const type = control.watch("type", "binary");
 
   const submitQUestion = async (data: QuestionFormData) => {
-    console.log("Submitting data: ", data);
     let post_data: {
       title: string;
       question?: QuestionFormData;
@@ -81,9 +80,7 @@ const QuestionForm: React.FC = () => {
   return (
     <div className="flex flex-row justify-center">
       <form
-        onSubmit={control.handleSubmit(submitQUestion, async (e) => {
-          console.log("Error: ", e);
-        })}
+        onSubmit={control.handleSubmit(submitQUestion)}
         className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-8"
       >
         <span>Question Type</span>
