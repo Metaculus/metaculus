@@ -31,7 +31,16 @@ const MobileMenu: FC = () => {
         leaveFrom="opacity-100"
         leaveTo="opacity-0"
       >
-        <MenuItems className="absolute inset-x-0 top-12 max-h-[calc(100dvh-48px)] list-none flex-col items-stretch justify-end overflow-y-auto bg-blue-200-dark text-base no-underline lg:hidden">
+        <MenuItems className="absolute inset-x-0 top-12 max-h-[calc(100dvh-48px)] list-none flex-col items-stretch justify-end space-y-0.5 overflow-y-auto bg-blue-200-dark text-base no-underline lg:hidden">
+          <MenuLink href={`/leaderboard/`}>Leaderboards</MenuLink>
+          <MenuLink href={`/news/`}>News</MenuLink>
+          <SectionTitle>More</SectionTitle>
+          <MenuLink href={`/about/`}>About Metaculus</MenuLink>
+          <MenuLink href={`/press/`}>For Journalists</MenuLink>
+          <MenuLink href={`/faq/`}>FAQ</MenuLink>
+          <MenuLink href={`/questions/track-record/`}>Track Record</MenuLink>
+          <MenuLink href={`/project/journal/`}>About Metaculus</MenuLink>
+          <MenuLink href={`/questions/create/`}>+ Write a Question</MenuLink>
           <SectionTitle>Account</SectionTitle>
           {user ? (
             <>
