@@ -102,7 +102,6 @@ def build_question_forecasts(
 
 def create_question(*, title: str = None, **kwargs) -> Question:
     obj = Question(title=title, **kwargs)
-
     obj.full_clean()
     obj.save()
 
