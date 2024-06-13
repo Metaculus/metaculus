@@ -36,19 +36,26 @@ type ChoiceOption = {
 
 type Props = {
   question: QuestionWithMultipleChoiceForecasts;
+  prevForecast?: any;
 };
 
-const ForecastMakerMultipleChoice: FC<Props> = ({ question }) => {
+const ForecastMakerMultipleChoice: FC<Props> = ({ question, prevForecast }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
+  const prevForecastValue =
+    Array.isArray(prevForecast) &&
+    prevForecast.every((el) => typeof el === "number")
+      ? (prevForecast as number[])
+      : undefined;
+
   const [isDirty, setIsDirty] = useState(false);
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
-    generateChoiceOptions(question.forecasts)
+    generateChoiceOptions(question.forecasts, prevForecastValue)
   );
 
-  const initialForecast = useMemo(
+  const equalizedForecast = useMemo(
     () => round(100 / choicesForecasts.length, 1),
     [choicesForecasts.length]
   );
@@ -69,12 +76,12 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question }) => {
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
-      prev.map((prevChoice) => ({
+      prev.map((prevChoice, index) => ({
         ...prevChoice,
-        forecast: null,
+        forecast: getDefaultForecast(index, prevForecastValue),
       }))
     );
-  }, []);
+  }, [prevForecastValue]);
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
       setIsDirty(true);
@@ -89,14 +96,14 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question }) => {
           if (isInitialChange) {
             // User is predicting for the first time. Show default non-null values
             // for remaining options after first interaction with the inputs.
-            return { ...prevChoice, forecast: initialForecast };
+            return { ...prevChoice, forecast: equalizedForecast };
           }
 
           return prevChoice;
         })
       );
     },
-    [initialForecast]
+    [equalizedForecast]
   );
 
   const rescaleForecasts = () => {
@@ -185,7 +192,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question }) => {
               </th>
               <ForecastChoiceInput
                 forecastValue={choice.forecast}
-                defaultSliderValue={initialForecast}
+                defaultSliderValue={equalizedForecast}
                 choiceName={choice.name}
                 communityForecast={choice.communityForecast}
                 min={MIN_VALUE}
@@ -245,15 +252,21 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question }) => {
 };
 
 function generateChoiceOptions(
-  dataset: MultipleChoiceForecast
+  dataset: MultipleChoiceForecast,
+  defaultForecasts?: number[]
 ): ChoiceOption[] {
   const { timestamps, nr_forecasters, my_forecasts, ...choices } = dataset;
   return Object.entries(choices).map(([choice, values], index) => ({
     name: choice,
     color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
     communityForecast: values.at(-1)?.value_mean ?? null,
-    forecast: null,
+    forecast: getDefaultForecast(index, defaultForecasts),
   }));
+}
+
+function getDefaultForecast(index: number, defaultForecasts?: number[]) {
+  const defaultForecast = defaultForecasts?.[index];
+  return defaultForecast ? round(defaultForecast * 100, 1) : null;
 }
 
 function sumForecasts(choiceOptions: ChoiceOption[]) {

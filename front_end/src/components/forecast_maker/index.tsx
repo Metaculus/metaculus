@@ -34,7 +34,12 @@ const ForecastMaker: FC<Props> = ({ question }) => {
         />
       );
     case QuestionType.MultipleChoice:
-      return <ForecastMakerMultipleChoice question={question} />;
+      return (
+        <ForecastMakerMultipleChoice
+          question={question}
+          prevForecast={question.forecasts.my_forecasts?.slider_values}
+        />
+      );
     default:
       return null;
   }
