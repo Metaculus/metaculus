@@ -1,4 +1,5 @@
-from projects.models import Project, ProjectPermission
+from projects.models import Project
+from projects.permissions import ObjectPermission
 from users.models import User
 
 
@@ -20,7 +21,7 @@ def get_global_public_project():
         defaults={
             "name": "Global Project",
             "type": Project.ProjectTypes.CATEGORY,
-            "default_permission": ProjectPermission.FORECASTER,
+            "default_permission": ObjectPermission.FORECASTER,
         },
     )
 

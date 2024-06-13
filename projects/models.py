@@ -2,67 +2,10 @@ from django.db import models
 from django.db.models import Count
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from rest_framework.exceptions import PermissionDenied
 
+from projects.permissions import ObjectPermission
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
-
-
-class ProjectPermission(models.TextChoices):
-    VIEWER = "viewer"
-    FORECASTER = "forecaster"
-    CURATOR = "curator"
-    ADMIN = "admin"
-
-    @classmethod
-    def get_numeric_representation(cls):
-        return {cls.VIEWER: 1, cls.FORECASTER: 2, cls.CURATOR: 3, cls.ADMIN: 4}
-
-    @classmethod
-    def can_view(cls, permission: "ProjectPermission", raise_exception=False):
-        can = bool(permission)
-
-        if raise_exception and not can:
-            raise PermissionDenied("You do not have permission to view this project")
-
-        return can
-
-    @classmethod
-    def can_forecast(cls, permission: "ProjectPermission", raise_exception=False):
-        can = permission in (
-            ProjectPermission.FORECASTER,
-            ProjectPermission.CURATOR,
-            ProjectPermission.ADMIN,
-        )
-
-        if raise_exception and not can:
-            raise PermissionDenied("You do not have permission to make a forecast")
-
-        return can
-
-    @classmethod
-    def can_edit(cls, permission: "ProjectPermission", raise_exception=False):
-        can = permission in (
-            ProjectPermission.CURATOR,
-            ProjectPermission.ADMIN,
-        )
-
-        if raise_exception and not can:
-            raise PermissionDenied("You do not have permission to edit this project")
-
-        return can
-
-    @classmethod
-    def can_delete(cls, permission: "ProjectPermission", raise_exception=False):
-        can = permission in (
-            ProjectPermission.CURATOR,
-            ProjectPermission.ADMIN,
-        )
-
-        if raise_exception and not can:
-            raise PermissionDenied("You do not have permission to delete this project")
-
-        return can
 
 
 class ProjectsQuerySet(models.QuerySet):
@@ -102,7 +45,7 @@ class ProjectsQuerySet(models.QuerySet):
 
         # Annotate the queryset
         if user and user.is_superuser:
-            qs = self.annotate(user_permission=models.Value(ProjectPermission.ADMIN))
+            qs = self.annotate(user_permission=models.Value(ObjectPermission.ADMIN))
         else:
             qs = self.annotate(
                 user_permission=Coalesce(
@@ -120,7 +63,7 @@ class ProjectsQuerySet(models.QuerySet):
                     models.When(
                         user_permission=enum_value, then=models.Value(numeric_value)
                     )
-                    for enum_value, numeric_value in ProjectPermission.get_numeric_representation().items()
+                    for enum_value, numeric_value in ObjectPermission.get_numeric_representation().items()
                 ],
                 default=models.Value(None),
                 output_field=models.IntegerField(null=True),
@@ -224,10 +167,10 @@ class Project(TimeStampedModel):
     # Permissions
     # null -> private
     default_permission = models.CharField(
-        choices=ProjectPermission.choices,
+        choices=ObjectPermission.choices,
         null=True,
         blank=True,
-        default=ProjectPermission.FORECASTER,
+        default=ObjectPermission.FORECASTER,
         db_index=True,
     )
     override_permissions = models.ManyToManyField(User, through="ProjectUserPermission")
@@ -236,8 +179,8 @@ class Project(TimeStampedModel):
 
     # Annotated fields
     posts_count: int = 0
-    user_permission: ProjectPermission = None
-    user_permission__numeric: ProjectPermission = None
+    user_permission: ObjectPermission = None
+    user_permission__numeric: ObjectPermission = None
 
     class Meta:
         ordering = ("order",)
@@ -263,7 +206,7 @@ class ProjectUserPermission(TimeStampedModel):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    permission = models.CharField(choices=ProjectPermission.choices)
+    permission = models.CharField(choices=ObjectPermission.choices)
 
     class Meta:
         constraints = [
