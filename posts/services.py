@@ -4,6 +4,7 @@ from django.utils import timezone
 from posts.models import Post
 from posts.serializers import PostFilterSerializer
 from projects.models import Project
+from projects.services import get_global_public_project, get_private_user_project
 from questions.services import (
     create_question,
     create_conditional,
@@ -14,7 +15,6 @@ from utils.dtypes import flatten
 
 
 def get_posts_feed(
-    *,
     qs: Post.objects = None,
     user: User = None,
     search: str = None,
@@ -30,8 +30,6 @@ def get_posts_feed(
     """
     Applies filtering on the Questions QuerySet
     """
-
-    qs = qs or Post.objects.all()
 
     # Search
     if search:
@@ -96,10 +94,14 @@ def get_posts_feed(
             qs = qs.filter(question__closed_at__isnull=False).filter(
                 question__closed_at__lte=timezone.now()
             )
-        
+
         if "in_review" in status:
-            qs = qs.filter(published_at__isnull=True).filter(Q(Q(question__closed_at__gte=timezone.now())
-                        | Q(question__closed_at__isnull=True)))
+            qs = qs.filter(published_at__isnull=True).filter(
+                Q(
+                    Q(question__closed_at__gte=timezone.now())
+                    | Q(question__closed_at__isnull=True)
+                )
+            )
 
     if answered_by_me is not None and not user.is_anonymous:
         condition = {"question__forecast__author": user}
@@ -128,6 +130,7 @@ def create_post(
     conditional: dict = None,
     group_of_questions: dict = None,
     author: User = None,
+    is_public: bool = True,
 ) -> Post:
     obj = Post(title=title, author=author)
 
@@ -142,9 +145,21 @@ def create_post(
     obj.full_clean()
     obj.save()
 
+    # Projects appending
+    projects = flatten(projects.values()) if projects else []
+
+    # If no projects were provided,
+    # We need to append default ones
+    if not projects:
+        projects = [
+            (
+                get_global_public_project()
+                if is_public
+                else get_private_user_project(author)
+            )
+        ]
+
     # Adding projects
-    if projects:
-        projects_flat = flatten(projects.values())
-        obj.projects.add(*projects_flat)
+    obj.projects.add(*projects)
 
     return obj
