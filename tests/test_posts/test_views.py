@@ -196,9 +196,14 @@ def test_question_detail(anon_client, user1):
     assert response.data
 
 
-def test_delete_post(user1_client, user1):
+def test_delete_post(user1_client, user1, user2_client):
     post = factory_post(author=user1)
     url = f"/api/posts/{post.pk}/delete/"
+
+    # Try to delete by user who does not have access
+    response = user2_client.delete(url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
     response = user1_client.delete(url)
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
