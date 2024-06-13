@@ -89,6 +89,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
       <>
         <textarea
           className={`block rounded-s border border-white p-1 ${className}`}
+          ref={ref}
           name={name}
           {...props}
         />
