@@ -6,6 +6,8 @@ import NavUserButton, { DropdownIcon } from "@/components/auth";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 
+import MobileMenu from "./mobile_menu";
+
 const LINKS = [
   {
     label: "Questions",
@@ -118,6 +120,7 @@ const Header: FC = () => {
             <ThemeToggle />
           </li>
         </ul>
+        <MobileMenu />
       </div>
     </header>
   );
