@@ -1,12 +1,13 @@
 "use client";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useMemo, useState } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ChoiceCheckbox from "@/components/detailed_question_card/multiple_choice_chart_card/choice_checkbox";
 import ChoicesTooltip from "@/components/detailed_question_card/multiple_choice_chart_card/choices_tooltip";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
+import usePrevious from "@/hooks/use_previous";
 import { TickFormat } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { MultipleChoiceForecast } from "@/types/question";
@@ -28,6 +29,15 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateChartChoices(forecast)
   );
+
+  const timestampsCount = forecast.timestamps.length;
+  const prevTimestampsCount = usePrevious(timestampsCount);
+  // sync BE driven data with local state
+  useEffect(() => {
+    if (prevTimestampsCount && prevTimestampsCount !== timestampsCount) {
+      setChoiceItems(generateChartChoices(forecast));
+    }
+  }, [forecast, prevTimestampsCount, timestampsCount]);
 
   const [cursorTimestamp, setCursorTimestamp] = useState(
     forecast.timestamps[forecast.timestamps.length - 1]
