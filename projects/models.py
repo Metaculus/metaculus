@@ -34,6 +34,7 @@ class ProjectsQuerySet(models.QuerySet):
 class Project(TimeStampedModel):
     class ProjectTypes(models.TextChoices):
         TOURNAMENT = "tournament"
+        GLOBAL_LEADERBOARD = "global_leaderboard"
         QUESTION_SERIES = "question_series"
         CATEGORY = "category"
         TAG = "tag"
@@ -47,6 +48,19 @@ class Project(TimeStampedModel):
         max_length=32,
         choices=ProjectTypes.choices,
         db_index=True,
+    )
+
+    class LeaderboardTypes(models.TextChoices):
+        RELATIVE_LEGACY = "relative_legacy"
+        PEER = "peer"
+        BASELINE = "baseline"
+        SPOT_PEER = "spot_peer"
+        SPOT_BASELINE = "spot_baseline"
+        COMMENT_INSIGHT = "comment_insight"
+        QUESTION_WRITING = "question_writing"
+
+    leaderboard_type = models.CharField(
+        max_length=200, choices=LeaderboardTypes.choices, null=True
     )
 
     name = models.CharField(max_length=200)
@@ -129,6 +143,7 @@ class Project(TimeStampedModel):
     def is_ongoing(self):
         if self.type in (
             self.ProjectTypes.TOURNAMENT,
+            self.ProjectTypes.GLOBAL_LEADERBOARD,
             self.ProjectTypes.QUESTION_SERIES,
         ):
             return self.close_date > timezone.now() if self.close_date else True
