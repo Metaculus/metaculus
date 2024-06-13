@@ -25,9 +25,9 @@ def posts_list_api_view(request):
     paginator = LimitOffsetPagination()
     qs = (
         Post.objects.annotate_predictions_count()
-        .filter(predictions_count__gte=2)
-        .filter(published_at__isnull=False)
-        .filter(published_at__lte=timezone.now())
+        #.filter(predictions_count__gte=2)
+        #.filter(published_at__isnull=False)
+        #.filter(published_at__lte=timezone.now())
     )
 
     # Extra params
