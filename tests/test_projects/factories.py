@@ -1,11 +1,14 @@
 from django_dynamic_fixture import G
 
-from projects.models import Project, ProjectPermission
+from projects.models import Project
+from projects.permissions import ObjectPermission
 from utils.dtypes import setdefaults_not_null
 
 
 def factory_project(
-    *, default_permission: ProjectPermission | None = ProjectPermission.FORECASTER, **kwargs
+    *,
+    default_permission: ObjectPermission | None = ObjectPermission.FORECASTER,
+    **kwargs
 ) -> Project:
     kwargs["default_permission"] = default_permission
 

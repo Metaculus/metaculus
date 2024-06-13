@@ -3,7 +3,8 @@ from django.db.models import Sum, Subquery, OuterRef, Count
 from django.db.models.functions import Coalesce
 from sql_util.aggregates import SubqueryAggregate
 
-from projects.models import Project, ProjectPermission
+from projects.models import Project
+from projects.permissions import ObjectPermission
 from questions.models import Question, Conditional, GroupOfQuestions
 from users.models import User
 from utils.models import TimeStampedModel
@@ -140,7 +141,7 @@ class PostQuerySet(models.QuerySet):
                 # If user is the question author
                 models.When(
                     author_id=user.id if user else None,
-                    then=models.Value(ProjectPermission.ADMIN),
+                    then=models.Value(ObjectPermission.ADMIN),
                 ),
                 # Otherwise, check permissions
                 default=Subquery(project_permissions_subquery),
@@ -193,7 +194,7 @@ class Post(TimeStampedModel):
     nr_forecasters: int = 0
     vote_score: int = 0
     user_vote = None
-    user_permission: ProjectPermission = None
+    user_permission: ObjectPermission = None
 
 
 # TODO: create votes app
