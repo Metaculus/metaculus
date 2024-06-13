@@ -1,15 +1,22 @@
 import { FC, PropsWithChildren } from "react";
 
-const ConditionalTile: FC = () => {
+import { PostConditional } from "@/types/post";
+import { QuestionWithForecasts } from "@/types/question";
+
+type Props = {
+  conditional: PostConditional<QuestionWithForecasts>;
+};
+
+const ConditionalTile: FC<Props> = ({ conditional }) => {
   return (
     <div className="grid grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
       <div className="flex flex-col justify-center">
-        <Card label="Condition" title="Mock condition" />
+        <Card label="Condition" title={conditional.condition.title} />
       </div>
       <div />
       <div className="flex flex-col gap-3">
-        <Card title="Question 1">TODO: chart</Card>
-        <Card title="Question 2">TODO: chart</Card>
+        <Card title={conditional.question_yes.title}>TODO: chart</Card>
+        <Card title={conditional.question_no.title}>TODO: chart</Card>
       </div>
     </div>
   );
