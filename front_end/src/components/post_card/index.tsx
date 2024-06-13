@@ -2,7 +2,7 @@ import { FC } from "react";
 
 import BasicPostCard from "@/components/post_card/common/basic_card";
 import PostCardErrorBoundary from "@/components/post_card/common/error_boundary";
-import ConditionalTile from "@/components/post_card/question/conditional_tile";
+import ConditionalTile from "@/components/post_card/conditional/conditional_tile";
 import QuestionChartTile from "@/components/post_card/question/question_chart_tile";
 import { PostWithForecasts } from "@/types/post";
 
@@ -13,7 +13,7 @@ type Props = {
 const PostCard: FC<Props> = ({ post }) => {
   return (
     <PostCardErrorBoundary>
-      <BasicPostCard post={post}>
+      <BasicPostCard post={post} hideTitle={!!post.conditional}>
         <div className="mb-0.5 pt-1.5">
           {!!post?.question && (
             <QuestionChartTile
