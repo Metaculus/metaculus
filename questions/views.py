@@ -6,7 +6,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
 from posts.services import get_post_permission_for_user
-from projects.models import ProjectPermission
+from projects.permissions import ObjectPermission
 from questions.models import Forecast, Question
 
 
@@ -16,7 +16,7 @@ def create_forecast_api_view(request, pk: int):
 
     # Check permissions
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
-    ProjectPermission.can_forecast(permission, raise_exception=True)
+    ObjectPermission.can_forecast(permission, raise_exception=True)
 
     data = request.data
     now = datetime.now()

@@ -1,5 +1,5 @@
 from posts.models import Post
-from projects.models import ProjectPermission
+from projects.permissions import ObjectPermission
 from tests.fixtures import *  # noqa
 from tests.test_posts.factories import factory_post
 from tests.test_projects.factories import factory_project
@@ -65,23 +65,23 @@ class TestPostPermissions:
             author=user2,
             question=question_binary,
             projects=[
-                factory_project(default_permission=ProjectPermission.VIEWER),
-                factory_project(default_permission=ProjectPermission.CURATOR),
+                factory_project(default_permission=ObjectPermission.VIEWER),
+                factory_project(default_permission=ObjectPermission.CURATOR),
             ],
         )
 
         data = Post.objects.annotate_user_permission(user=user1).first()
-        assert data.user_permission == ProjectPermission.CURATOR
+        assert data.user_permission == ObjectPermission.CURATOR
 
     def test_annotate_user_permission__owner(self, question_binary, user1):
         factory_post(
             author=user1,
             question=question_binary,
             projects=[
-                factory_project(default_permission=ProjectPermission.VIEWER),
-                factory_project(default_permission=ProjectPermission.CURATOR),
+                factory_project(default_permission=ObjectPermission.VIEWER),
+                factory_project(default_permission=ObjectPermission.CURATOR),
             ],
         )
 
         data = Post.objects.annotate_user_permission(user=user1).first()
-        assert data.user_permission == ProjectPermission.ADMIN
+        assert data.user_permission == ObjectPermission.ADMIN
