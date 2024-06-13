@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from posts.models import Post
 from questions.models import Question
 from tests.fixtures import *  # noqa
-from tests.test_posts.factories import create_post
+from tests.test_posts.factories import factory_post
 from tests.test_questions.factories import create_question
 
 
@@ -124,7 +124,7 @@ def test_posts_list(anon_client):
 
 
 def test_question_detail(anon_client, user1):
-    post = create_post(author=user1)
+    post = factory_post(author=user1)
 
     url = f"/api/posts/{post.pk}/"
     response = anon_client.get(url)
@@ -134,7 +134,7 @@ def test_question_detail(anon_client, user1):
 
 
 def test_delete_post(user1_client, user1):
-    post = create_post(author=user1)
+    post = factory_post(author=user1)
     url = f"/api/posts/{post.pk}/delete/"
     response = user1_client.delete(url)
 

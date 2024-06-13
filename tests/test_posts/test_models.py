@@ -1,13 +1,15 @@
 from posts.models import Post
+from projects.models import ProjectPermission
 from tests.fixtures import *  # noqa
-from tests.test_posts.factories import create_post
+from tests.test_posts.factories import factory_post
+from tests.test_projects.factories import factory_project
 from tests.test_questions.factories import create_forecast
 from tests.test_questions.fixtures import *  # noqa
 
 
 class TestPostQuerySetAnnotatePredictionsCount:
     def test_question(self, question_binary, user1):
-        post = create_post(author=user1, question=question_binary)
+        post = factory_post(author=user1, question=question_binary)
 
         create_forecast(question=question_binary, author=user1)
         create_forecast(question=question_binary, author=user1)
@@ -21,7 +23,7 @@ class TestPostQuerySetAnnotatePredictionsCount:
         )
 
     def test_conditional_questions(self, conditional_1, user1):
-        post = create_post(author=user1, conditional=conditional_1)
+        post = factory_post(author=user1, conditional=conditional_1)
 
         create_forecast(question=conditional_1.question_yes, author=user1)
         create_forecast(question=conditional_1.question_no, author=user1)
@@ -41,8 +43,8 @@ class TestPostQuerySetAnnotatePredictionsCount:
         https://docs.djangoproject.com/en/5.0/topics/db/aggregation/#combining-multiple-aggregations
         """
 
-        post1 = create_post(author=user1, conditional=conditional_1)
-        post2 = create_post(author=user1, question=question_binary)
+        post1 = factory_post(author=user1, conditional=conditional_1)
+        post2 = factory_post(author=user1, question=question_binary)
 
         create_forecast(question=conditional_1.question_yes, author=user1)
         create_forecast(question=conditional_1.question_no, author=user1)
@@ -55,3 +57,31 @@ class TestPostQuerySetAnnotatePredictionsCount:
 
         assert next(x for x in qs if x.id == post1.id).predictions_count == 3
         assert next(x for x in qs if x.id == post2.id).predictions_count == 2
+
+
+class TestPostPermissions:
+    def test_annotate_user_permission(self, question_binary, user1, user2):
+        factory_post(
+            author=user2,
+            question=question_binary,
+            projects=[
+                factory_project(default_permission=ProjectPermission.VIEWER),
+                factory_project(default_permission=ProjectPermission.CURATOR),
+            ],
+        )
+
+        data = Post.objects.annotate_user_permission(user=user1).first()
+        assert data.user_permission == ProjectPermission.CURATOR
+
+    def test_annotate_user_permission__owner(self, question_binary, user1):
+        factory_post(
+            author=user1,
+            question=question_binary,
+            projects=[
+                factory_project(default_permission=ProjectPermission.VIEWER),
+                factory_project(default_permission=ProjectPermission.CURATOR),
+            ],
+        )
+
+        data = Post.objects.annotate_user_permission(user=user1).first()
+        assert data.user_permission == ProjectPermission.ADMIN

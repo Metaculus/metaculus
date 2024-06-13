@@ -125,6 +125,9 @@ def serialize_post(
             current_user=current_user,
         )
 
+    # Permissions
+    serialized_data["user_permission"] = post.user_permission
+
     # Annotate user's vote
     serialized_data["vote"] = {
         "score": post.vote_score,
@@ -132,6 +135,10 @@ def serialize_post(
     }
     # Forecasters
     serialized_data["nr_forecasters"] = post.nr_forecasters
+
+
+    # TODO:
+    serialized_data["predictions_count"] = post.predictions_count
 
     return serialized_data
 
@@ -145,6 +152,7 @@ def serialize_post_many(
 
     qs = (
         qs.annotate_predictions_count()
+        .annotate_user_permission(user=current_user)
         .annotate_vote_score()
         .annotate_nr_forecasters()
         .prefetch_projects()

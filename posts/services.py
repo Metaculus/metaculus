@@ -14,7 +14,6 @@ from utils.dtypes import flatten
 
 
 def get_posts_feed(
-    *,
     qs: Post.objects = None,
     user: User = None,
     search: str = None,
@@ -30,8 +29,6 @@ def get_posts_feed(
     """
     Applies filtering on the Questions QuerySet
     """
-
-    qs = qs or Post.objects.all()
 
     # Search
     if search:
