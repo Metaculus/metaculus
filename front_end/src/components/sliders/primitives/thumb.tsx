@@ -15,6 +15,7 @@ type Props = DetailedHTMLProps<
   onArrowClickIn?: () => void;
   onArrowClickOut?: (direction: -1 | 1) => void;
   className?: string;
+  arrowClassName?: string;
 };
 
 const SliderThumb: FC<Props> = ({
@@ -23,6 +24,7 @@ const SliderThumb: FC<Props> = ({
   onClickIn,
   onArrowClickIn,
   onArrowClickOut,
+  arrowClassName,
   ...props
 }) => (
   <div
@@ -37,6 +39,7 @@ const SliderThumb: FC<Props> = ({
         direction="left"
         onClickIn={onArrowClickIn}
         onClickOut={() => onArrowClickOut(-1)}
+        className={arrowClassName}
       />
     )}
     <div
@@ -52,6 +55,7 @@ const SliderThumb: FC<Props> = ({
         direction="right"
         onClickIn={onArrowClickIn}
         onClickOut={() => onArrowClickOut(1)}
+        className={arrowClassName}
       />
     )}
   </div>
@@ -61,26 +65,29 @@ type ArrowButtonProps = {
   direction: "left" | "right";
   onClickIn: () => void;
   onClickOut: () => void;
+  className?: string;
 };
 const ArrowButton: FC<ArrowButtonProps> = ({
   direction,
   onClickIn,
   onClickOut,
+  className,
 }) => (
-  <div className="invisible flex h-5 items-center bg-blue-200 px-1.5 group-hover:visible dark:bg-blue-200-dark">
-    <button
-      className="flex items-center text-gray-300 hover:text-gray-600 active:text-gray-900 dark:text-gray-300-dark dark:hover:text-gray-600-dark dark:active:text-gray-900-dark"
-      onMouseDown={onClickIn}
-      onMouseUp={onClickOut}
-      onTouchStart={onClickIn}
-      onTouchEnd={onClickOut}
-    >
-      <FontAwesomeIcon
-        icon={direction === "right" ? faChevronRight : faChevronLeft}
-        size="lg"
-      />
-    </button>
-  </div>
+  <button
+    className={classNames(
+      "invisible flex h-5 items-center bg-blue-200 px-1.5 text-gray-300 hover:text-gray-600 active:text-gray-900 group-hover:visible dark:bg-blue-200-dark dark:text-gray-300-dark dark:hover:text-gray-600-dark dark:active:text-gray-900-dark",
+      className
+    )}
+    onMouseDown={onClickIn}
+    onMouseUp={onClickOut}
+    onTouchStart={onClickIn}
+    onTouchEnd={onClickOut}
+  >
+    <FontAwesomeIcon
+      icon={direction === "right" ? faChevronRight : faChevronLeft}
+      size="lg"
+    />
+  </button>
 );
 
 export default SliderThumb;
