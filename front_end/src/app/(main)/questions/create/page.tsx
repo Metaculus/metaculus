@@ -6,7 +6,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import Button from "@/components/ui/button";
-import { Input, Select, Textarea } from "@/components/ui/form_field";
+import { FormError, Input, Textarea } from "@/components/ui/form_field";
+import Select, { SelectOption } from "@/components/ui/select";
 
 import { createQuestionPost } from "../actions";
 
@@ -71,11 +72,11 @@ const QuestionForm: React.FC = () => {
         })}
         className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-8"
       >
+        <span>Question Type</span>
         <Select
-          label="Question Type"
           {...register("type")}
-          errors={errors.type}
-          defaultValue={questionType}
+          value="binary"
+          label="Binary"
           options={[
             { value: "binary", label: "Binary" },
             { value: "numeric", label: "Numeric" },
@@ -83,13 +84,19 @@ const QuestionForm: React.FC = () => {
             { value: "multiple_choice", label: "Multiple Choice" },
             { value: "conditional", label: "Conditional" },
           ]}
-          onChange={(e) => setQuestionType(e.target.value)}
+          onChange={(val) => setQuestionType(val)}
+        />
+        <FormError
+          errors={errors}
+          className="text-red-500-dark"
+          {...register("type")}
         />
 
-        <Input label="Title" {...register("title")} errors={errors.title} />
+        <span>Title</span>
+        <Input {...register("title")} errors={errors.title} />
 
+        <span>Description</span>
         <Textarea
-          label="Description"
           {...register("description")}
           errors={errors.description}
           className="h-[120px] w-[400px]"
@@ -98,15 +105,15 @@ const QuestionForm: React.FC = () => {
 
         {advanced && (
           <>
+            <span>Closing Date</span>
             <Input
-              label="Closing Date"
               type="date"
               {...register("closed_at")}
               errors={errors.closed_at}
             />
 
+            <span>Resolving Date</span>
             <Input
-              label="Resolving Date"
               type="date"
               {...register("resolved_at")}
               errors={errors.resolved_at}
@@ -116,29 +123,19 @@ const QuestionForm: React.FC = () => {
 
         {(questionType == "numeric" || questionType == "date") && (
           <>
+            <span>Max</span>
+            <Input type="number" {...register("max")} errors={errors.max} />
+            <span>Min</span>
+            <Input type="number" {...register("min")} errors={errors.min} />
+            <span>Open Upper Bound</span>
             <Input
-              label="Max"
-              type="number"
-              {...register("max")}
-              errors={errors.max}
-            />
-
-            <Input
-              label="Min"
-              type="number"
-              {...register("min")}
-              errors={errors.min}
-            />
-
-            <Input
-              label="Open Upper Bound"
               type="checkbox"
               {...register("open_upper_bound")}
               errors={errors.open_upper_bound}
             />
 
+            <span>Open Lower Bound</span>
             <Input
-              label="Open Lower Bound"
               type="checkbox"
               {...register("open_lower_bound")}
               errors={errors.open_lower_bound}
@@ -147,21 +144,25 @@ const QuestionForm: React.FC = () => {
         )}
 
         {advanced && (questionType == "numeric" || questionType == "date") && (
-          <Input
-            label="Zero Point"
-            type="number"
-            {...register("zero_point")}
-            errors={errors.zero_point}
-          />
+          <>
+            <span>Zero Point</span>
+            <Input
+              type="number"
+              {...register("zero_point")}
+              errors={errors.zero_point}
+            />
+          </>
         )}
 
         {advanced && (
-          <Textarea
-            label="Resolution"
-            {...register("resolution")}
-            errors={errors.resolution}
-            className="h-[120px] w-[400px]"
-          />
+          <>
+            <span>Resolution</span>
+            <Textarea
+              {...register("resolution")}
+              errors={errors.resolution}
+              className="h-[120px] w-[400px]"
+            />
+          </>
         )}
 
         <div className=""></div>
