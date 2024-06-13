@@ -1,7 +1,7 @@
 "use client";
 import { clamp } from "lodash";
 import RcSlider from "rc-slider";
-import { FC, useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 
 import "./slider.css";
 
@@ -16,6 +16,8 @@ type Props = {
   arrowStep?: number;
   round?: boolean;
   shouldSyncWithDefault?: boolean;
+  arrowClassName?: string;
+  marks?: Record<number, ReactNode>;
 };
 
 const Slider: FC<Props> = ({
@@ -27,6 +29,8 @@ const Slider: FC<Props> = ({
   arrowStep,
   round = false,
   shouldSyncWithDefault,
+  arrowClassName,
+  marks,
 }) => {
   const [controlledValue, setControlledValue] = useState(defaultValue);
   const [controlledStep, setControlledStep] = useState(step);
@@ -44,6 +48,7 @@ const Slider: FC<Props> = ({
       min={min}
       max={max}
       step={controlledStep}
+      marks={marks}
       onChange={(_value) => {
         const value = _value as number;
         const roundedValue = dynamicRound(value, step, min, max);
@@ -75,6 +80,7 @@ const Slider: FC<Props> = ({
             setControlledValue(roundedValue);
             onChange(roundedValue);
           }}
+          arrowClassName={arrowClassName}
         />
       )}
     />
