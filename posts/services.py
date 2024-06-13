@@ -1,9 +1,10 @@
 from django.db.models import Q
 from django.utils import timezone
+from rest_framework.exceptions import PermissionDenied
 
 from posts.models import Post
 from posts.serializers import PostFilterSerializer
-from projects.models import Project
+from projects.models import Project, ProjectPermission
 from projects.services import get_global_public_project, get_private_user_project
 from questions.services import (
     create_question,
@@ -163,3 +164,17 @@ def create_post(
     obj.projects.add(*projects)
 
     return obj
+
+
+def get_post_permission_for_user(
+    post: Post, user: User = None
+) -> ProjectPermission | None:
+    """
+    A small wrapper to get the permission of post
+    """
+
+    return (
+        Post.objects.annotate_user_permission(user=user)
+        .values_list("user_permission", flat=True)
+        .get(id=post.id)
+    )

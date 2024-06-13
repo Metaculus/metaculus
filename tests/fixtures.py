@@ -44,3 +44,8 @@ def anon_client(create_client_for_user):
 @pytest.fixture
 def user1_client(create_client_for_user, user1):
     return create_client_for_user(user=user1)
+
+
+@pytest.fixture
+def user2_client(create_client_for_user, user2):
+    return create_client_for_user(user=user2)

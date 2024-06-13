@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Count
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+from rest_framework.exceptions import PermissionDenied
 
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
@@ -16,6 +17,52 @@ class ProjectPermission(models.TextChoices):
     @classmethod
     def get_numeric_representation(cls):
         return {cls.VIEWER: 1, cls.FORECASTER: 2, cls.CURATOR: 3, cls.ADMIN: 4}
+
+    @classmethod
+    def can_view(cls, permission: "ProjectPermission", raise_exception=False):
+        can = bool(permission)
+
+        if raise_exception and not can:
+            raise PermissionDenied("You do not have permission to view this project")
+
+        return can
+
+    @classmethod
+    def can_forecast(cls, permission: "ProjectPermission", raise_exception=False):
+        can = permission in (
+            ProjectPermission.FORECASTER,
+            ProjectPermission.CURATOR,
+            ProjectPermission.ADMIN,
+        )
+
+        if raise_exception and not can:
+            raise PermissionDenied("You do not have permission to make a forecast")
+
+        return can
+
+    @classmethod
+    def can_edit(cls, permission: "ProjectPermission", raise_exception=False):
+        can = permission in (
+            ProjectPermission.CURATOR,
+            ProjectPermission.ADMIN,
+        )
+
+        if raise_exception and not can:
+            raise PermissionDenied("You do not have permission to edit this project")
+
+        return can
+
+    @classmethod
+    def can_delete(cls, permission: "ProjectPermission", raise_exception=False):
+        can = permission in (
+            ProjectPermission.CURATOR,
+            ProjectPermission.ADMIN,
+        )
+
+        if raise_exception and not can:
+            raise PermissionDenied("You do not have permission to delete this project")
+
+        return can
 
 
 class ProjectsQuerySet(models.QuerySet):

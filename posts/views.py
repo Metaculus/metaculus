@@ -15,7 +15,8 @@ from posts.serializers import (
     serialize_post_many,
     serialize_post,
 )
-from posts.services import get_posts_feed, create_post
+from posts.services import get_posts_feed, create_post, get_post_permission_for_user
+from projects.models import ProjectPermission
 
 
 @api_view(["GET"])
@@ -94,6 +95,11 @@ def post_update_api_view(request, pk):
 @api_view(["DELETE"])
 def post_delete_api_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=request.user)
+    ProjectPermission.can_delete(permission, raise_exception=True)
+
     if request.user != post.author:
         return Response(status=status.HTTP_403_FORBIDDEN)
     post.delete()
