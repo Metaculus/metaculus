@@ -1,10 +1,10 @@
 "use client";
 import Link from "next/link";
-import { FC, PropsWithChildren } from "react";
+import { FC, PropsWithChildren, useMemo } from "react";
 
-import CommentStatus from "@/components/question_card/comment_status";
-import PostVoter from "@/components/question_card/question_voter";
-import QuestionStatus from "@/components/question_status";
+import CommentStatus from "@/components/post_card/common/comment_status";
+import PostVoter from "@/components/post_card/common/post_voter";
+import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
 
 type Props = {
@@ -13,6 +13,26 @@ type Props = {
 
 const BasicPostCard: FC<PropsWithChildren<Props>> = ({ post, children }) => {
   const { id, title } = post;
+
+  const statusData = useMemo(() => {
+    if (post.question) {
+      return {
+        status: post.question.status,
+        closedAt: post.question.closed_at,
+        resolvedAt: post.question.resolved_at,
+      };
+    }
+
+    if (post.conditional) {
+      return {
+        status: post.conditional.condition.status,
+        closedAt: post.conditional.condition.closed_at,
+        resolvedAt: post.conditional.condition.resolved_at,
+      };
+    }
+
+    return null;
+  }, [post.conditional, post.question]);
 
   return (
     <div className="rounded border border-blue-500 bg-gray-0 dark:border-blue-600 dark:bg-gray-0-dark">
@@ -29,7 +49,15 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({ post, children }) => {
             <CommentStatus newCommentsCount={123000} url={`/questions/${id}`} />
           </div>
 
-          <QuestionStatus question={post?.question} post={post} />
+          {!!statusData && (
+            <PostStatus
+              id={post.id}
+              status={statusData.status}
+              closedAt={statusData.closedAt}
+              resolvedAt={statusData.resolvedAt}
+              post={post}
+            />
+          )}
         </div>
       </div>
     </div>
