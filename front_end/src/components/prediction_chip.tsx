@@ -34,6 +34,8 @@ const PredictionChip: FC<Props> = ({
   const t = useTranslations();
 
   switch (status) {
+    case QuestionStatus.InReview:
+      return <span className="inline-flex flex-col"></span>;
     case QuestionStatus.Resolved:
       return (
         <span className="inline-flex flex-col">

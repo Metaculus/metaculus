@@ -94,7 +94,8 @@ class Question(TimeStampedModel):
             return "closed"
         if post and post.published_at:
             return "active"
-        print(self.__dict__)
+        if post and post.published_at is None:
+            return "in_review"
         print(f"!!\n\nWrong status for question: {self.id}\n\n!!")
         return "active"
 
