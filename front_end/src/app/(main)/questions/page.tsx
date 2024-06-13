@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import QuestionTopics from "@/app/(main)/questions/components/question_topics";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import AwaitedPostsFeed from "@/components/posts_feed";
-import QuestionFilters from "@/components/question_filters";
+import PostsFilters from "@/components/posts_filters";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
@@ -26,7 +26,7 @@ export default async function Questions({
       <div className="gap-3 p-0 sm:flex sm:flex-row sm:gap-4">
         <QuestionTopics topics={topics} />
         <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
-          <QuestionFilters categories={categories} tags={tags} />
+          <PostsFilters categories={categories} tags={tags} />
           <Suspense
             key={JSON.stringify(searchParams)}
             fallback={

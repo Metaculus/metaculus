@@ -8,7 +8,7 @@ import {
   getDropdownSortOptions,
   getFilterChipColor,
   getMainOrderOptions,
-  getQuestionsFilters,
+  getPostsFilters,
   getUserSortOptions,
 } from "@/app/(main)/questions/helpers/filters";
 import PopoverFilter from "@/components/popover_filter";
@@ -54,7 +54,7 @@ type Props = {
   tags: Tag[];
 };
 
-const QuestionFilters: FC<Props> = ({ categories, tags }) => {
+const PostsFilters: FC<Props> = ({ categories, tags }) => {
   const t = useTranslations();
   const {
     params,
@@ -80,7 +80,7 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
     [t, user]
   );
   const [popoverFilters, activeFilters] = useMemo(() => {
-    const filters = getQuestionsFilters({ tags, user, t, params, categories });
+    const filters = getPostsFilters({ tags, user, t, params, categories });
     const activeFilters: ActiveFilter[] = filters.flatMap((filterSection) =>
       filterSection.options
         .filter((o) => o.active)
@@ -232,4 +232,4 @@ const QuestionFilters: FC<Props> = ({ categories, tags }) => {
   );
 };
 
-export default QuestionFilters;
+export default PostsFilters;
