@@ -1,21 +1,21 @@
 import { differenceInMilliseconds } from "date-fns";
 import { FC, useEffect, useRef } from "react";
 
-import { QuestionStatus } from "@/types/question";
+import { PostStatus } from "@/types/post";
 
 const CLOCK_RADIUS = 10;
 
 type Props = {
-  status: QuestionStatus;
+  status: PostStatus;
   published_at: string;
   closed_at: string;
 };
 
-const QuestionStatusIcon: FC<Props> = ({ status, closed_at, published_at }) => {
+const PostStatusIcon: FC<Props> = ({ status, closed_at, published_at }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   const showClock =
-    status === QuestionStatus.Closed || status === QuestionStatus.Resolved;
+    status === PostStatus.Closed || status === PostStatus.Resolved;
 
   useEffect(() => {
     if (!svgRef.current || !showClock) return;
@@ -96,4 +96,4 @@ const buildClockPath = (x: number, y: number, timeElapsed: number) => {
   return `M 0 0 L ${x} ${y} A ${CLOCK_RADIUS} ${CLOCK_RADIUS} 0 ${largeArcFlag} 0 0 ${-CLOCK_RADIUS} z`;
 };
 
-export default QuestionStatusIcon;
+export default PostStatusIcon;
