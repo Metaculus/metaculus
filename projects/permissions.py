@@ -1,3 +1,5 @@
+from typing import Self
+
 from django.db import models
 from rest_framework.exceptions import PermissionDenied
 
@@ -17,7 +19,7 @@ class ObjectPermission(models.TextChoices):
         return {cls.VIEWER: 1, cls.FORECASTER: 2, cls.CURATOR: 3, cls.ADMIN: 4}
 
     @classmethod
-    def can_view(cls, permission: "ObjectPermission", raise_exception=False):
+    def can_view(cls, permission: Self, raise_exception=False):
         can = bool(permission)
 
         if raise_exception and not can:
@@ -26,7 +28,7 @@ class ObjectPermission(models.TextChoices):
         return can
 
     @classmethod
-    def can_forecast(cls, permission: "ObjectPermission", raise_exception=False):
+    def can_forecast(cls, permission: Self, raise_exception=False):
         can = permission in (
             cls.FORECASTER,
             cls.CURATOR,
@@ -39,7 +41,7 @@ class ObjectPermission(models.TextChoices):
         return can
 
     @classmethod
-    def can_edit(cls, permission: "ObjectPermission", raise_exception=False):
+    def can_edit(cls, permission: Self, raise_exception=False):
         can = permission in (
             cls.CURATOR,
             cls.ADMIN,
@@ -51,7 +53,7 @@ class ObjectPermission(models.TextChoices):
         return can
 
     @classmethod
-    def can_delete(cls, permission: "ObjectPermission", raise_exception=False):
+    def can_delete(cls, permission: Self, raise_exception=False):
         can = permission in (
             cls.CURATOR,
             cls.ADMIN,
