@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
 
 import Button from "@/components/ui/button";
@@ -12,9 +12,18 @@ import Select, { SelectOption } from "@/components/ui/select";
 import { createQuestionPost } from "../actions";
 
 const questionSchema = z.object({
-  type: z.string().optional(), // Should be required but select doesn't register properly
+  type: z
+    .enum([
+      "binary",
+      "multiple_choice",
+      "date",
+      "numeric",
+      "conditional",
+      "group",
+    ])
+    .default("binary"),
   title: z.string().min(4).max(200),
-  description: z.string().optional(), // Should be required but textareas don't register properly
+  description: z.string().optional(), // Should be required but textareas don't control.register properly
   resolution: z.string().optional(),
   closed_at: z.date().optional(),
   resolved_at: z.date().optional(),
@@ -29,16 +38,14 @@ const questionSchema = z.object({
 type QuestionFormData = z.infer<typeof questionSchema>;
 
 const QuestionForm: React.FC = () => {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<QuestionFormData>({
+  const control = useForm<QuestionFormData>({
     resolver: zodResolver(questionSchema),
   });
 
+  const type = control.watch("type", "binary");
+
   const submitQUestion = async (data: QuestionFormData) => {
-    data["type"] = questionType;
+    console.log("Submitting data: ", data);
     let post_data: {
       title: string;
       question?: QuestionFormData;
@@ -64,41 +71,49 @@ const QuestionForm: React.FC = () => {
   const [advanced, setAdvanced] = useState(false);
   const [questionType, setQuestionType] = useState("binary");
 
+  const questionTypeSelect = {
+    binary: "Binary",
+    numeric: "Numeric",
+    date: "Date",
+    multiple_choice: "Multiple Choice",
+    conditional: "Conditional",
+  };
   return (
     <div className="flex flex-row justify-center">
       <form
-        onSubmit={handleSubmit(submitQUestion, async (e) => {
+        onSubmit={control.handleSubmit(submitQUestion, async (e) => {
           console.log("Error: ", e);
         })}
         className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-8"
       >
         <span>Question Type</span>
         <Select
-          {...register("type")}
-          value="binary"
-          label="Binary"
-          options={[
-            { value: "binary", label: "Binary" },
-            { value: "numeric", label: "Numeric" },
-            { value: "date", label: "Date" },
-            { value: "multiple_choice", label: "Multiple Choice" },
-            { value: "conditional", label: "Conditional" },
-          ]}
+          {...control.register("type")}
+          value={questionType}
+          // @ts-ignore
+          label={questionTypeSelect[questionType]}
+          options={Object.keys(questionTypeSelect).map((key) => ({
+            value: key,
+            // @ts-ignore
+            label: questionTypeSelect[key],
+          }))}
           onChange={(val) => setQuestionType(val)}
         />
         <FormError
-          errors={errors}
+          errors={control.formState.errors}
           className="text-red-500-dark"
-          {...register("type")}
+          {...control.register("type")}
         />
 
         <span>Title</span>
-        <Input {...register("title")} errors={errors.title} />
-
+        <Input
+          {...control.register("title")}
+          errors={control.formState.errors.title}
+        />
         <span>Description</span>
         <Textarea
-          {...register("description")}
-          errors={errors.description}
+          {...control.register("description")}
+          errors={control.formState.errors.description}
           className="h-[120px] w-[400px]"
           type="text"
         />
@@ -108,15 +123,15 @@ const QuestionForm: React.FC = () => {
             <span>Closing Date</span>
             <Input
               type="date"
-              {...register("closed_at")}
-              errors={errors.closed_at}
+              {...control.register("closed_at")}
+              errors={control.formState.errors.closed_at}
             />
 
             <span>Resolving Date</span>
             <Input
               type="date"
-              {...register("resolved_at")}
-              errors={errors.resolved_at}
+              {...control.register("resolved_at")}
+              errors={control.formState.errors.resolved_at}
             />
           </>
         )}
@@ -124,21 +139,29 @@ const QuestionForm: React.FC = () => {
         {(questionType == "numeric" || questionType == "date") && (
           <>
             <span>Max</span>
-            <Input type="number" {...register("max")} errors={errors.max} />
+            <Input
+              type="number"
+              {...control.register("max")}
+              errors={control.formState.errors.max}
+            />
             <span>Min</span>
-            <Input type="number" {...register("min")} errors={errors.min} />
+            <Input
+              type="number"
+              {...control.register("min")}
+              errors={control.formState.errors.min}
+            />
             <span>Open Upper Bound</span>
             <Input
               type="checkbox"
-              {...register("open_upper_bound")}
-              errors={errors.open_upper_bound}
+              {...control.register("open_upper_bound")}
+              errors={control.formState.errors.open_upper_bound}
             />
 
             <span>Open Lower Bound</span>
             <Input
               type="checkbox"
-              {...register("open_lower_bound")}
-              errors={errors.open_lower_bound}
+              {...control.register("open_lower_bound")}
+              errors={control.formState.errors.open_lower_bound}
             />
           </>
         )}
@@ -148,8 +171,8 @@ const QuestionForm: React.FC = () => {
             <span>Zero Point</span>
             <Input
               type="number"
-              {...register("zero_point")}
-              errors={errors.zero_point}
+              {...control.register("zero_point")}
+              errors={control.formState.errors.zero_point}
             />
           </>
         )}
@@ -158,8 +181,8 @@ const QuestionForm: React.FC = () => {
           <>
             <span>Resolution</span>
             <Textarea
-              {...register("resolution")}
-              errors={errors.resolution}
+              {...control.register("resolution")}
+              errors={control.formState.errors.resolution}
               className="h-[120px] w-[400px]"
             />
           </>
