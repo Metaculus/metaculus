@@ -33,6 +33,18 @@ export async function votePost(postId: number, direction: VoteDirection) {
   }
 }
 
+export async function createQuestionPost(body: any) {
+  try {
+    return await PostsApi.createQuestionPost(body);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
 export async function createForecast(
   questionId: number,
   forecastData: ForecastData,

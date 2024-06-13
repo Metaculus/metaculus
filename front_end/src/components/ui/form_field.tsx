@@ -12,11 +12,20 @@ export type ErrorProps = {
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string;
   errors?: ErrorResponse;
 }
 
 export interface TextAreaProps
   extends React.InputHTMLAttributes<HTMLTextAreaElement> {
+  label?: string;
+  errors?: ErrorResponse;
+}
+
+export interface SelectProps
+  extends React.InputHTMLAttributes<HTMLSelectElement> {
+  options: { value: string; label: string }[];
+  label?: string;
   errors?: ErrorResponse;
 }
 
@@ -43,7 +52,7 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
   }, [errors, name]);
 
   return (
-    <>
+    <div>
       {errorText && (
         <span
           className={classNames(
@@ -54,31 +63,63 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
           {errorText}
         </span>
       )}
-    </>
+    </div>
   );
 };
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, name, errors, ...props }, ref) => {
+  ({ className, type, name, label, errors, ...props }, ref) => {
     return (
-      <>
+      <div className="flex w-full flex-row justify-between">
+        {label ? <span className="mr-2 min-w-[160px]">{label}:</span> : <></>}
         <input
           type={type}
-          className={className}
+          className={`w-full rounded-s border border-white p-1 ${className}`}
           ref={ref}
           name={name}
           {...props}
         />
-        {name && errors && <FormError name={name} errors={errors} />}
-      </>
+        {errors && <FormError name={name ? name : label} errors={errors} />}
+      </div>
     );
   }
 );
 Input.displayName = "Input";
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
-  ({ className, name, children, ...props }, ref) => {
-    return <textarea className={className} name={name} {...props} />;
+  ({ className, name, children, label, ...props }, ref) => {
+    return (
+      <div className="w-full">
+        {label ? <span className="block">{label}</span> : <></>}
+        <textarea
+          className={`block w-full rounded-s border border-white p-1 ${className}`}
+          name={name}
+          {...props}
+        />
+      </div>
+    );
   }
 );
 Textarea.displayName = "Textarea";
+
+export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
+  ({ className, name, children, label, options, ...props }, ref) => {
+    return (
+      <div className="flex w-full flex-row justify-between">
+        {label ? <span className="mr-2 min-w-[120px]">{label}</span> : <></>}
+        <select
+          className={`w-full rounded-s border border-white p-1 ${className}`}
+          name={name}
+          {...props}
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+);
+Select.displayName = "Select";

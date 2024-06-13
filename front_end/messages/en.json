@@ -480,5 +480,8 @@
   "StartDate": "Start Date",
   "EndDate": "End Date",
   "SeriesContents": "Series Contents",
-  "MakePrediction": "Make a Prediction"
+  "MakePrediction": "Make a Prediction",
+  "Title": "Title",
+  "Access": "Access",
+  "Save": "Save"
 }

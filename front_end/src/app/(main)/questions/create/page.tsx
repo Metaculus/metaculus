@@ -1,149 +1,177 @@
-/*"use client";
-import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 import Button from "@/components/ui/button";
-import { Input, Textarea } from "@/components/ui/form_field";
-import Select from "@/components/ui/select";
-import { QuestionType } from "@/types/question";
+import { Input, Select, Textarea } from "@/components/ui/form_field";
 
-const ACCESS_OPTIONS = [
-  { value: "public", label: "Public" },
-  { value: "private", label: "Private" },
-];
+import { createQuestionPost } from "../actions";
 
-const QUESTION_TYPE_OPTIONS = [
-  { value: QuestionType.Binary, label: "Binary" },
-  { value: QuestionType.MultipleChoice, label: "Multiple Choice" },
-];
+const questionSchema = z.object({
+  type: z.string().optional(), // Should be required but select doesn't register properly
+  title: z.string().min(4).max(200),
+  description: z.string().optional(), // Should be required but textareas don't register properly
+  resolution: z.string().optional(),
+  closed_at: z.date().optional(),
+  resolved_at: z.date().optional(),
+  max: z.number().optional(),
+  min: z.number().optional(),
+  zero_point: z.number().default(0),
+  open_upper_bound: z.boolean().default(true),
+  open_lower_bound: z.boolean().default(true),
+  options: z.array(z.string()).default([]),
+});
 
-const QuestionForm: FC = () => {
-  const t = useTranslations();
-  const [formData, setFormData] = useState({
-    access: "public",
-    questionType: QuestionType.Binary,
-    question: "",
-    title: "",
-    backgroundInformation: "",
-    resolutionCriteria: "",
-    finePrint: "",
-    closingDate: "",
-    resolveDate: "",
+type QuestionFormData = z.infer<typeof questionSchema>;
+
+const QuestionForm: React.FC = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<QuestionFormData>({
+    resolver: zodResolver(questionSchema),
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const submitQUestion = async (data: QuestionFormData) => {
+    data["type"] = questionType;
+    let post_data: {
+      title: string;
+      question?: QuestionFormData;
+      conditional?: QuestionFormData;
+      group?: QuestionFormData;
+    } = {
+      title: data["title"],
+    };
+    if (
+      ["binary", "multiple_choice", "date", "numeric"].includes(data["type"])
+    ) {
+      post_data["question"] = data;
+    } else if ("conditional" == data["type"]) {
+      // Step 1: Create the branched questions
+      // Step 2: Create the conditional
+    } else if ("group" == data["type"]) {
+      // Step 1: Create all the questions in the groups
+      // Step 2: Create the group itself
+    }
+    await createQuestionPost(post_data);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log(formData);
-    // Process the data here or send it to an API
-  };
+  const [advanced, setAdvanced] = useState(false);
+  const [questionType, setQuestionType] = useState("binary");
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label
-          htmlFor="access"
-          className="block text-sm font-medium text-gray-700"
-        >
-          {t("access")}
-        </label>
+    <div className="flex flex-row justify-center">
+      <form
+        onSubmit={handleSubmit(submitQUestion, async (e) => {
+          console.log("Error: ", e);
+        })}
+        className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-8"
+      >
         <Select
-          id="access"
-          name="access"
-          value={formData.access}
-          onChange={handleChange}
-          options={ACCESS_OPTIONS}
+          label="Question Type"
+          {...register("type")}
+          errors={errors.type}
+          defaultValue={questionType}
+          options={[
+            { value: "binary", label: "Binary" },
+            { value: "numeric", label: "Numeric" },
+            { value: "date", label: "Date" },
+            { value: "multiple_choice", label: "Multiple Choice" },
+            { value: "conditional", label: "Conditional" },
+          ]}
+          onChange={(e) => setQuestionType(e.target.value)}
         />
-      </div>
-      <div>
-        <label
-          htmlFor="questionType"
-          className="block text-sm font-medium text-gray-700"
-        >
-          {t("questionType")}
-        </label>
-        <Select
-          id="questionType"
-          name="questionType"
-          value={formData.questionType}
-          onChange={handleChange}
-          options={QUESTION_TYPE_OPTIONS}
-        />
-      </div>
-      <div>
-        <Input
-          label={t("question")}
+
+        <Input label="Title" {...register("title")} errors={errors.title} />
+
+        <Textarea
+          label="Description"
+          {...register("description")}
+          errors={errors.description}
+          className="h-[120px] w-[400px]"
           type="text"
-          name="question"
-          value={formData.question}
-          onChange={handleChange}
         />
-      </div>
-      <div>
-        <Input
-          label={t("title")}
-          type="text"
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <Textarea
-          label={t("backgroundInformation")}
-          name="backgroundInformation"
-          value={formData.backgroundInformation}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <Textarea
-          label={t("resolutionCriteria")}
-          name="resolutionCriteria"
-          value={formData.resolutionCriteria}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <Textarea
-          label={t("finePrint")}
-          name="finePrint"
-          value={formData.finePrint}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <Input
-          label={t("closingDate")}
-          type="datetime-local"
-          name="closingDate"
-          value={formData.closingDate}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <Input
-          label={t("resolveDate")}
-          type="datetime-local"
-          name="resolveDate"
-          value={formData.resolveDate}
-          onChange={handleChange}
-        />
-      </div>
-      <Button type="submit" variant="primary">
-        {t("save")}
-      </Button>
-    </form>
+
+        {advanced && (
+          <>
+            <Input
+              label="Closing Date"
+              type="date"
+              {...register("closed_at")}
+              errors={errors.closed_at}
+            />
+
+            <Input
+              label="Resolving Date"
+              type="date"
+              {...register("resolved_at")}
+              errors={errors.resolved_at}
+            />
+          </>
+        )}
+
+        {(questionType == "numeric" || questionType == "date") && (
+          <>
+            <Input
+              label="Max"
+              type="number"
+              {...register("max")}
+              errors={errors.max}
+            />
+
+            <Input
+              label="Min"
+              type="number"
+              {...register("min")}
+              errors={errors.min}
+            />
+
+            <Input
+              label="Open Upper Bound"
+              type="checkbox"
+              {...register("open_upper_bound")}
+              errors={errors.open_upper_bound}
+            />
+
+            <Input
+              label="Open Lower Bound"
+              type="checkbox"
+              {...register("open_lower_bound")}
+              errors={errors.open_lower_bound}
+            />
+          </>
+        )}
+
+        {advanced && (questionType == "numeric" || questionType == "date") && (
+          <Input
+            label="Zero Point"
+            type="number"
+            {...register("zero_point")}
+            errors={errors.zero_point}
+          />
+        )}
+
+        {advanced && (
+          <Textarea
+            label="Resolution"
+            {...register("resolution")}
+            errors={errors.resolution}
+            className="h-[120px] w-[400px]"
+          />
+        )}
+
+        <div className=""></div>
+        <Button type="submit">Create Question</Button>
+        <Button onClick={() => setAdvanced(!advanced)}>
+          {advanced ? "Change to Simple Mode" : "Change to Advanced Mode"}
+        </Button>
+      </form>
+    </div>
   );
 };
 
 export default QuestionForm;
-*/
