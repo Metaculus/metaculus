@@ -42,6 +42,7 @@ const POST_STATUS_LABEL_MAP = {
   [QuestionStatus.Active]: "Open",
   [QuestionStatus.Resolved]: "Resolved",
   [QuestionStatus.Closed]: "Closed",
+  [QuestionStatus.InReview]: "In Review",
 };
 
 export function generateFiltersFromSearchParams(

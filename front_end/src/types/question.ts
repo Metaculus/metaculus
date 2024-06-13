@@ -9,6 +9,7 @@ export enum QuestionStatus {
   Resolved = "resolved",
   Closed = "closed",
   Active = "active",
+  InReview = "in_review",
 }
 
 export enum QuestionOrder {

@@ -14,7 +14,10 @@ const PostCard: FC<Props> = ({ post }) => {
     <PostCardErrorBoundary>
       <BasicPostCard post={post}>
         <div className="mb-0.5 pt-1.5">
-          <QuestionChartTile question={post?.question} />
+          <QuestionChartTile
+            question={post.question}
+            author_username={post.author_username}
+          />
         </div>
       </BasicPostCard>
     </PostCardErrorBoundary>
