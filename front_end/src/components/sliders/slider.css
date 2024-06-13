@@ -8,3 +8,17 @@
 .rc-slider-tracks {
   @apply absolute h-[1px] bg-gray-900 dark:bg-gray-900-dark;
 }
+
+.rc-slider-mark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.rc-slider-mark-text {
+  position: absolute;
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+}
