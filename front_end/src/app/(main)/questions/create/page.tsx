@@ -23,7 +23,7 @@ const questionSchema = z.object({
     ])
     .default("binary"),
   title: z.string().min(4).max(200),
-  description: z.string().optional(), // Should be required but textareas don't control.register properly
+  description: z.string().min(10),
   resolution: z.string().optional(),
   closed_at: z.date().optional(),
   resolved_at: z.date().optional(),
@@ -53,6 +53,7 @@ const QuestionForm: React.FC = () => {
     } = {
       title: data["title"],
     };
+    console.log("Data: ", data);
     if (
       ["binary", "multiple_choice", "date", "numeric"].includes(data["type"])
     ) {
@@ -80,7 +81,9 @@ const QuestionForm: React.FC = () => {
   return (
     <div className="flex flex-row justify-center">
       <form
-        onSubmit={control.handleSubmit(submitQUestion)}
+        onSubmit={control.handleSubmit(submitQUestion, async (e) => {
+          console.log("Error: ", e);
+        })}
         className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-8"
       >
         <span>Question Type</span>
