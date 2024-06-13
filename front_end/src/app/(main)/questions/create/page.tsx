@@ -115,7 +115,6 @@ const QuestionForm: React.FC = () => {
           {...control.register("description")}
           errors={control.formState.errors.description}
           className="h-[120px] w-[400px]"
-          type="text"
         />
 
         {advanced && (
