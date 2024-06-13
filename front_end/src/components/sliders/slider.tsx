@@ -16,6 +16,7 @@ type Props = {
   arrowStep?: number;
   round?: boolean;
   shouldSyncWithDefault?: boolean;
+  arrowClassName?: string;
 };
 
 const Slider: FC<Props> = ({
@@ -27,6 +28,7 @@ const Slider: FC<Props> = ({
   arrowStep,
   round = false,
   shouldSyncWithDefault,
+  arrowClassName,
 }) => {
   const [controlledValue, setControlledValue] = useState(defaultValue);
   const [controlledStep, setControlledStep] = useState(step);
@@ -75,6 +77,7 @@ const Slider: FC<Props> = ({
             setControlledValue(roundedValue);
             onChange(roundedValue);
           }}
+          arrowClassName={arrowClassName}
         />
       )}
     />

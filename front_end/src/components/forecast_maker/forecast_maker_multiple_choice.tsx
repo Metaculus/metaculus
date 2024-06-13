@@ -183,24 +183,18 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question, prevForecast }) => {
         </thead>
         <tbody>
           {choicesForecasts.map((choice) => (
-            <tr key={choice.name}>
-              <th className="w-full border-t border-gray-300 p-2 text-left text-sm font-bold leading-6 dark:border-gray-300-dark sm:w-auto sm:min-w-[10rem] sm:text-base">
-                <div className="flex gap-2">
-                  <ChoiceIcon className="mt-1 shrink-0" color={choice.color} />
-                  {choice.name}
-                </div>
-              </th>
-              <ForecastChoiceInput
-                forecastValue={choice.forecast}
-                defaultSliderValue={equalizedForecast}
-                choiceName={choice.name}
-                communityForecast={choice.communityForecast}
-                min={MIN_VALUE}
-                max={MAX_VALUE}
-                onChange={handleForecastChange}
-                isDirty={isDirty}
-              />
-            </tr>
+            <ForecastChoiceInput
+              key={choice.name}
+              forecastValue={choice.forecast}
+              defaultSliderValue={equalizedForecast}
+              choiceName={choice.name}
+              choiceColor={choice.color}
+              communityForecast={choice.communityForecast}
+              min={MIN_VALUE}
+              max={MAX_VALUE}
+              onChange={handleForecastChange}
+              isDirty={isDirty}
+            />
           ))}
         </tbody>
       </table>
