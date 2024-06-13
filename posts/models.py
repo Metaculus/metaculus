@@ -41,12 +41,19 @@ class PostQuerySet(models.QuerySet):
                 Coalesce(
                     SubqueryAggregate("question__forecast", aggregate=Count),
                     # Conditional questions
-                    SubqueryAggregate(
-                        "conditional__question_yes__forecast",
-                        aggregate=Count,
-                    ),
-                    SubqueryAggregate(
-                        "conditional__question_no__forecast", aggregate=Count
+                    Coalesce(
+                        SubqueryAggregate(
+                            "conditional__question_yes__forecast",
+                            aggregate=Count,
+                        ),
+                        0,
+                    )
+                    + Coalesce(
+                        SubqueryAggregate(
+                            "conditional__question_no__forecast",
+                            aggregate=Count,
+                        ),
+                        0,
                     ),
                     # Question groups
                     SubqueryAggregate(
@@ -64,15 +71,21 @@ class PostQuerySet(models.QuerySet):
                     "question__forecast__author", aggregate=Count, distinct=True
                 ),
                 # Conditional questions
-                SubqueryAggregate(
-                    "conditional__question_yes__forecast__author",
-                    aggregate=Count,
-                    distinct=True,
-                ),
-                SubqueryAggregate(
-                    "conditional__question_no__forecast__author",
-                    aggregate=Count,
-                    distinct=True,
+                Coalesce(
+                    SubqueryAggregate(
+                        "conditional__question_yes__forecast__author",
+                        aggregate=Count,
+                        distinct=True,
+                    ),
+                    0,
+                )
+                + Coalesce(
+                    SubqueryAggregate(
+                        "conditional__question_no__forecast__author",
+                        aggregate=Count,
+                        distinct=True,
+                    ),
+                    0,
                 ),
                 # Question groups
                 SubqueryAggregate(

@@ -52,10 +52,18 @@ class PostWriteSerializer(serializers.ModelSerializer):
     question = QuestionWriteSerializer(required=False)
     conditional = ConditionalWriteSerializer(required=False)
     group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
+    is_public = serializers.BooleanField(default=True)
 
     class Meta:
         model = Post
-        fields = ("title", "projects", "question", "conditional", "group_of_questions")
+        fields = (
+            "title",
+            "projects",
+            "question",
+            "conditional",
+            "group_of_questions",
+            "is_public",
+        )
 
 
 class PostFilterSerializer(serializers.Serializer):
@@ -135,10 +143,6 @@ def serialize_post(
     }
     # Forecasters
     serialized_data["nr_forecasters"] = post.nr_forecasters
-
-
-    # TODO:
-    serialized_data["predictions_count"] = post.predictions_count
 
     return serialized_data
 

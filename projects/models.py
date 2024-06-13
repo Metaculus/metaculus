@@ -99,6 +99,7 @@ class Project(TimeStampedModel):
         CATEGORY = "category"
         TAG = "tag"
         TOPIC = "topic"
+        PERSONAL_LIST = "personal_list"
 
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics"
