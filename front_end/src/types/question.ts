@@ -1,4 +1,4 @@
-import { PostStatus } from "@/types/post";
+import { PostStatus, Resolution } from "@/types/post";
 
 export enum QuestionType {
   Numeric = "numeric",
@@ -60,7 +60,7 @@ export type Question = {
   resolved_at: string;
   type: QuestionType;
   possibilities: string; // TODO: update type
-  resolution: string | null;
+  resolution: Resolution | null;
   status: PostStatus;
   nr_forecasters: number;
   author_username: string;

@@ -5,6 +5,8 @@ import {
 } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
+export type Resolution = "yes" | "no";
+
 export enum PostForecastType {
   Conditional = "conditional",
   Group = "group_of_questions",
@@ -46,6 +48,7 @@ export type PostCondition = {
   closed_at: string;
   resolved_at: string;
   status: PostStatus;
+  resolution: Resolution | null;
 };
 
 export type PostConditional<QT> = {
