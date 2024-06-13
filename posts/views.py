@@ -1,5 +1,4 @@
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import NotFound
@@ -24,7 +23,7 @@ from posts.services import get_posts_feed, create_post
 def posts_list_api_view(request):
     paginator = LimitOffsetPagination()
     qs = (
-        Post.objects.annotate_predictions_count()
+        Post.objects.annotate_predictions_count().filter_allowed()
         # .filter(predictions_count__gte=2)
         # .filter(published_at__isnull=False)
         # .filter(published_at__lte=timezone.now())
@@ -39,7 +38,7 @@ def posts_list_api_view(request):
     filters_serializer = PostFilterSerializer(data=request.query_params)
     filters_serializer.is_valid(raise_exception=True)
 
-    qs = get_posts_feed(qs=qs, user=request.user, **filters_serializer.validated_data)
+    qs = get_posts_feed(qs, user=request.user, **filters_serializer.validated_data)
 
     # Paginating queryset
     posts = paginator.paginate_queryset(qs, request)

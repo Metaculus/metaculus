@@ -15,12 +15,13 @@ from projects.serializers import (
     TournamentSerializer,
     TagSerializer,
 )
+from projects.services import get_projects_qs
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def topics_list_api_view(request: Request):
-    qs = Project.objects.filter_topic().filter_active().annotate_posts_count()
+    qs = get_projects_qs(user=request.user).filter_topic().annotate_posts_count()
 
     data = [
         {**TopicSerializer(obj).data, "posts_count": obj.posts_count}
@@ -34,8 +35,8 @@ def topics_list_api_view(request: Request):
 @permission_classes([AllowAny])
 def categories_list_api_view(request: Request):
     qs = (
-        Project.objects.filter_category()
-        .filter_active()
+        get_projects_qs(user=request.user)
+        .filter_category()
         .annotate_posts_count()
         .order_by("-posts_count")
     )
@@ -68,7 +69,7 @@ def enrich_tournaments_with_posts_count(
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def tags_list_api_view(request: Request):
-    qs = Project.objects.filter_tags().filter_active().annotate_posts_count()
+    qs = get_projects_qs(user=request.user).filter_tags().annotate_posts_count()
     search_query = serializers.CharField(allow_null=True, min_length=3).run_validation(
         request.query_params.get("search")
     )
@@ -92,8 +93,8 @@ def tags_list_api_view(request: Request):
 @permission_classes([AllowAny])
 def tournaments_list_api_view(request: Request):
     qs = (
-        Project.objects.filter_tournament()
-        .filter_active()
+        get_projects_qs(user=request.user)
+        .filter_tournament()
         .annotate_posts_count()
         .order_by("-posts_count")
     )
@@ -115,7 +116,7 @@ def tournaments_list_api_view(request: Request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def tournament_by_slug_api_view(request: Request, slug: str):
-    qs = Project.objects.filter_tournament()
+    qs = get_projects_qs(user=request.user).filter_tournament()
     qs, enrich_posts_count = enrich_tournaments_with_posts_count(qs)
 
     obj = get_object_or_404(qs, slug=slug)
