@@ -1,8 +1,8 @@
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import Link from "next/link";
 import { FC } from "react";
 
-import MobileMenu from "@/app/(main)/components/mobile_menu";
-import NavUserButton from "@/components/auth";
+import NavUserButton, { DropdownIcon } from "@/components/auth";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 
@@ -16,6 +16,40 @@ const LINKS = [
     href: "/tournaments",
   },
 ];
+
+const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
+  return (
+    <MenuItem>
+      <Link
+        className="flex items-center justify-center whitespace-nowrap px-4 py-1.5 no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:px-6 lg:text-right lg:hover:bg-blue-200-dark"
+        href={href}
+      >
+        {label}
+      </Link>
+    </MenuItem>
+  );
+};
+
+const NavMoreButton: FC = () => {
+  return (
+    <Menu>
+      <MenuButton className="flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-200-dark">
+        More
+        <DropdownIcon />
+      </MenuButton>
+      <MenuItems
+        anchor="bottom"
+        className="z-50 text-white lg:border lg:border-blue-200-dark lg:bg-blue-900 lg:text-sm"
+      >
+        <LinkMenuItem href="/about/" label="About Metaculus" />
+        <LinkMenuItem href="/press/" label="For Journalists" />
+        <LinkMenuItem href="/faq/" label="FAQ" />
+        <LinkMenuItem href="/questions/track-record/" label="Track Record" />
+        <LinkMenuItem href="/project/journal/" label="About Metaculus" />
+      </MenuItems>
+    </Menu>
+  );
+};
 
 const Header: FC = () => {
   return (
@@ -46,6 +80,37 @@ const Header: FC = () => {
         </ul>
         {/*Desktop items*/}
         <ul className="relative hidden list-none items-center justify-end text-sm font-medium lg:flex">
+          <li>
+            <NavLink
+              href={`/leaderboard/`}
+              className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
+              activeClassName="bg-blue-300-dark"
+            >
+              Leaderboards
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              href={`/news/`}
+              className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
+              activeClassName="bg-blue-300-dark"
+            >
+              News
+            </NavLink>
+          </li>
+          <li>
+            <NavMoreButton />
+          </li>
+          <li>
+            {" "}
+            <NavLink
+              href={`/questions/create/`}
+              className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
+              activeClassName="bg-blue-300-dark"
+            >
+              + Write a Question
+            </NavLink>
+          </li>
           <li className="z-10 flex h-full items-center justify-center">
             <NavUserButton />
           </li>
@@ -53,7 +118,6 @@ const Header: FC = () => {
             <ThemeToggle />
           </li>
         </ul>
-        <MobileMenu />
       </div>
     </header>
   );
