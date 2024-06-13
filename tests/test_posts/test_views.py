@@ -4,7 +4,7 @@ from rest_framework.reverse import reverse
 from posts.models import Post
 from questions.models import Question
 from tests.fixtures import *  # noqa
-from tests.test_posts.factories import create_post
+from tests.test_posts.factories import factory_post
 from tests.test_questions.factories import create_question
 
 
@@ -115,6 +115,69 @@ class TestPostCreate:
         )
         assert response.data["conditional"]["question_no"]["type"] == "numeric"
 
+    def test_create__is_public__true(self, user1, user2, user1_client):
+        response = user1_client.post(
+            self.url,
+            {
+                "title": "Question Post",
+                "projects": {},
+                "is_public": True,
+                "question": {
+                    "title": "Question Post",
+                    "description": "Question description",
+                    "type": "numeric",
+                    "possibilities": {"type": "binary"},
+                    "resolution": "1.0",
+                    "min": 1,
+                    "max": 100,
+                    "open_upper_bound": True,
+                },
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        post_id = response.data["id"]
+
+        # Check is available for all users
+        assert Post.objects.filter(id=post_id).filter_allowed().exists()
+        assert Post.objects.filter(id=post_id).filter_allowed(user=user2).exists()
+        assert Post.objects.filter(id=post_id).filter_allowed(user=user1).exists()
+
+    def test_create__is_public__false(self, user1, user2, user1_client):
+        response = user1_client.post(
+            self.url,
+            {
+                "title": "Question Post",
+                "projects": {},
+                "is_public": False,
+                "question": {
+                    "title": "Question Post",
+                    "description": "Question description",
+                    "type": "numeric",
+                    "possibilities": {"type": "binary"},
+                    "resolution": "1.0",
+                    "min": 1,
+                    "max": 100,
+                    "open_upper_bound": True,
+                },
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        post_id = response.data["id"]
+
+        # Check is really private
+        # Anon user
+        assert not Post.objects.filter(id=post_id).filter_allowed().exists()
+        # Second user
+        assert not Post.objects.filter(id=post_id).filter_allowed(user=user2).exists()
+        # But visible for owner
+        assert Post.objects.filter(id=post_id).filter_allowed(user=user1).exists()
+
 
 def test_posts_list(anon_client):
     response = anon_client.get("/api/posts")
@@ -124,7 +187,7 @@ def test_posts_list(anon_client):
 
 
 def test_question_detail(anon_client, user1):
-    post = create_post(author=user1)
+    post = factory_post(author=user1)
 
     url = f"/api/posts/{post.pk}/"
     response = anon_client.get(url)
@@ -134,7 +197,7 @@ def test_question_detail(anon_client, user1):
 
 
 def test_delete_post(user1_client, user1):
-    post = create_post(author=user1)
+    post = factory_post(author=user1)
     url = f"/api/posts/{post.pk}/delete/"
     response = user1_client.delete(url)
 
