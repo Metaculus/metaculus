@@ -69,7 +69,7 @@ const NavUserButton: FC = () => {
   );
 };
 
-const DropdownIcon: FC = () => (
+export const DropdownIcon: FC = () => (
   <svg
     width="10"
     height="6"
