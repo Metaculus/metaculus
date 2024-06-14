@@ -84,7 +84,7 @@ def build_question_forecasts(
         elif question.type in ["numeric", "date"]:
             cps, cdf = compute_continuous_plotable_cp(question)
             forecasts_data["latest_cdf"] = cdf
-            if cdf is None or len(cdf) >= 2:
+            if cdf is not None and len(cdf) >= 2:
                 forecasts_data["latest_pmf"] = np.diff(cdf, prepend=0)
             else:
                 forecasts_data["latest_pmf"] = []
