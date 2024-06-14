@@ -18,11 +18,12 @@ import {
   QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
 
-import ForecastChoiceOption from "./forecast_choice_option";
-
-const PREDICTION_PRECISION = 3;
-const MIN_VALUE = 10 ** -PREDICTION_PRECISION * 100;
-const MAX_VALUE = 100 - MIN_VALUE;
+import {
+  BINARY_FORECAST_PRECISION,
+  BINARY_MAX_VALUE,
+  BINARY_MIN_VALUE,
+} from "../binary_slider";
+import ForecastChoiceOption from "../forecast_choice_option";
 
 type ChoiceOption = {
   name: string;
@@ -133,7 +134,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question, prevForecast }) => {
     if (!isForecastValid) return;
 
     const forecastValue = choicesForecasts.map((el) =>
-      round(el.forecast! / 100, PREDICTION_PRECISION)
+      round(el.forecast! / 100, BINARY_FORECAST_PRECISION)
     );
 
     setIsSubmitting(true);
@@ -190,8 +191,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question, prevForecast }) => {
               choiceName={choice.name}
               choiceColor={choice.color}
               communityForecast={choice.communityForecast}
-              min={MIN_VALUE}
-              max={MAX_VALUE}
+              min={BINARY_MIN_VALUE}
+              max={BINARY_MAX_VALUE}
               onChange={handleForecastChange}
               isDirty={isDirty}
             />
