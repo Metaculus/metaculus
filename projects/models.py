@@ -209,7 +209,7 @@ class ProjectUserPermission(TimeStampedModel):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    permission = models.CharField(choices=ObjectPermission.choices)
+    permission = models.CharField(choices=ObjectPermission.choices, db_index=True)
 
     class Meta:
         constraints = [

@@ -5,7 +5,7 @@ from posts.models import Post
 from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services import get_global_public_project, get_private_user_project
+from projects.services import get_global_public_project, create_private_user_project
 from questions.services import (
     create_question,
     create_conditional,
@@ -131,7 +131,6 @@ def create_post(
     conditional: dict = None,
     group_of_questions: dict = None,
     author: User = None,
-    is_public: bool = True,
 ) -> Post:
     obj = Post(title=title, author=author)
 
@@ -152,13 +151,7 @@ def create_post(
     # If no projects were provided,
     # We need to append default ones
     if not projects:
-        projects = [
-            (
-                get_global_public_project()
-                if is_public
-                else get_private_user_project(author)
-            )
-        ]
+        projects = [get_global_public_project()]
 
     # Adding projects
     obj.projects.add(*projects)

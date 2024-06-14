@@ -52,7 +52,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
     question = QuestionWriteSerializer(required=False)
     conditional = ConditionalWriteSerializer(required=False)
     group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
-    is_public = serializers.BooleanField(default=True)
 
     class Meta:
         model = Post
@@ -62,7 +61,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "question",
             "conditional",
             "group_of_questions",
-            "is_public",
         )
 
 
