@@ -1,15 +1,9 @@
-from typing import TYPE_CHECKING
-
 import django
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from projects.models import Project
 from users.models import User
 from utils.models import TimeStampedModel
-
-if TYPE_CHECKING:
-    from comments.models import Comment
 
 
 class QuestionQuerySet(models.QuerySet):

@@ -11,7 +11,7 @@ import Select, { SelectOption } from "@/components/ui/select";
 
 import { createQuestionPost } from "../actions";
 
-const questionSchema = z.object({
+const baseQuestionSchema = z.object({
   type: z
     .enum([
       "binary",
@@ -27,29 +27,60 @@ const questionSchema = z.object({
   resolution: z.string().optional(),
   closed_at: z.date().optional(),
   resolved_at: z.date().optional(),
-  max: z.number().optional(),
-  min: z.number().optional(),
-  zero_point: z.number().default(0),
-  open_upper_bound: z.boolean().default(true),
-  open_lower_bound: z.boolean().default(true),
-  options: z.array(z.string()).default([]),
 });
 
-type QuestionFormData = z.infer<typeof questionSchema>;
+const binaryQuestionSchema = baseQuestionSchema;
+
+const continuousQuestionSchema = baseQuestionSchema.merge(
+  z.object({
+    zero_point: z.number().default(0),
+    open_upper_bound: z.boolean().default(true),
+    open_lower_bound: z.boolean().default(true),
+  })
+);
+
+const numericQuestionSchema = continuousQuestionSchema.merge(
+  z.object({
+    max: z.number().optional(),
+    min: z.number().optional(),
+  })
+);
+
+const dateQuestionSchema = continuousQuestionSchema.merge(
+  z.object({
+    max: z.date().optional(),
+    min: z.date().optional(),
+  })
+);
+
+const multipleChoiceQuestionSchema = baseQuestionSchema.merge(
+  z.object({
+    options: z.array(z.string()).min(1),
+  })
+);
+
+const conditionalQuestionSchema = baseQuestionSchema.merge(
+  z.object({
+    condition: z.number(),
+    condition_child: z.number(),
+  })
+);
+
+type BinaryQuestionSchema = z.infer<typeof binaryQuestionSchema>;
+type NumericQuestionSchema = z.infer<typeof numericQuestionSchema>;
+type MultipleChoiceQuestionSchema = z.infer<
+  typeof multipleChoiceQuestionSchema
+>;
+type ConditionalQuestionSchema = z.infer<typeof conditionalQuestionSchema>;
+type DateQuestionSchema = z.infer<typeof dateQuestionSchema>;
 
 const QuestionForm: React.FC = () => {
-  const control = useForm<QuestionFormData>({
-    resolver: zodResolver(questionSchema),
-  });
-
-  const type = control.watch("type", "binary");
-
-  const submitQUestion = async (data: QuestionFormData) => {
+  const submitQUestion = async (data: any) => {
     let post_data: {
       title: string;
-      question?: QuestionFormData;
-      conditional?: QuestionFormData;
-      group?: QuestionFormData;
+      question?: any;
+      conditional?: any;
+      group?: any;
     } = {
       title: data["title"],
     };
@@ -59,17 +90,37 @@ const QuestionForm: React.FC = () => {
     ) {
       post_data["question"] = data;
     } else if ("conditional" == data["type"]) {
-      // Step 1: Create the branched questions
-      // Step 2: Create the conditional
+      post_data["conditional"] = data;
     } else if ("group" == data["type"]) {
-      // Step 1: Create all the questions in the groups
-      // Step 2: Create the group itself
+      post_data["group"] = data;
     }
     await createQuestionPost(post_data);
   };
 
   const [advanced, setAdvanced] = useState(false);
   const [questionType, setQuestionType] = useState("binary");
+
+  const getFormSchema = (type: string) => {
+    switch (type) {
+      case "binary":
+        return binaryQuestionSchema;
+      case "numeric":
+        return numericQuestionSchema;
+      case "date":
+        return dateQuestionSchema;
+      case "multiple_choice":
+        return multipleChoiceQuestionSchema;
+      case "conditional":
+        return conditionalQuestionSchema;
+      default:
+        return binaryQuestionSchema;
+    }
+  };
+
+  const control = useForm({
+    // @ts-ignore
+    resolver: zodResolver(getFormSchema(questionType)),
+  });
 
   const questionTypeSelect = {
     binary: "Binary",
@@ -92,12 +143,17 @@ const QuestionForm: React.FC = () => {
           value={questionType}
           // @ts-ignore
           label={questionTypeSelect[questionType]}
-          options={Object.keys(questionTypeSelect).map((key) => ({
-            value: key,
-            // @ts-ignore
-            label: questionTypeSelect[key],
-          }))}
-          onChange={(val) => setQuestionType(val)}
+          options={Object.keys(questionTypeSelect).map((key) => {
+            return {
+              value: key,
+              // @ts-ignore
+              label: questionTypeSelect[key],
+            };
+          })}
+          onChange={(val) => {
+            control.setValue("type", questionType);
+            setQuestionType(val);
+          }}
         />
         <FormError
           errors={control.formState.errors}
@@ -135,20 +191,44 @@ const QuestionForm: React.FC = () => {
           </>
         )}
 
-        {(questionType == "numeric" || questionType == "date") && (
+        {questionType == "numeric" && (
           <>
             <span>Max</span>
             <Input
               type="number"
-              {...control.register("max")}
+              {...control.register("max", {
+                setValueAs: (value: string) => Number(value),
+              })}
               errors={control.formState.errors.max}
             />
             <span>Min</span>
             <Input
               type="number"
+              {...control.register("min", {
+                setValueAs: (value: string) => Number(value),
+              })}
+              errors={control.formState.errors.min}
+            />
+          </>
+        )}
+        {questionType == "date" && (
+          <>
+            <span>Max</span>
+            <Input
+              type="date"
+              {...control.register("max")}
+              errors={control.formState.errors.max}
+            />
+            <span>Min</span>
+            <Input
+              type="date"
               {...control.register("min")}
               errors={control.formState.errors.min}
             />
+          </>
+        )}
+        {(questionType == "numeric" || questionType == "date") && (
+          <>
             <span>Open Upper Bound</span>
             <Input
               type="checkbox"
@@ -161,6 +241,59 @@ const QuestionForm: React.FC = () => {
               type="checkbox"
               {...control.register("open_lower_bound")}
               errors={control.formState.errors.open_lower_bound}
+            />
+          </>
+        )}
+
+        {questionType == "multiple_choice" && (
+          <>
+            <span>Multiple Choice (separate by ,)</span>
+            <Input
+              type="text"
+              onChange={(event) => {
+                const options = String(event.target.value)
+                  .split(",")
+                  .map((option) => option.trim());
+                control.setValue("options", options);
+              }}
+              errors={control.formState.errors.options}
+            />
+          </>
+        )}
+
+        {questionType == "conditional" && (
+          <>
+            <span>Condition (must be an id)</span>
+            <Input
+              type="number"
+              {...control.register("max", {
+                setValueAs: (value: string) => Number(value),
+              })}
+              errors={control.formState.errors.max}
+            />
+            <span>Condition Child (must be an id)</span>
+            <Input
+              type="number"
+              {...control.register("min", {
+                setValueAs: (value: string) => Number(value),
+              })}
+              errors={control.formState.errors.min}
+            />
+          </>
+        )}
+
+        {questionType == "group" && (
+          <>
+            <span>Questions in group (list of ids)</span>
+            <Input
+              type="text"
+              onChange={(event) => {
+                const options = String(event.target.value)
+                  .split(",")
+                  .map((option) => option.trim());
+                control.setValue("options", options);
+              }}
+              errors={control.formState.errors.options}
             />
           </>
         )}
