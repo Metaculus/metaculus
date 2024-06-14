@@ -2,11 +2,11 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import ConditionalCard from "@/components/post_card/conditional/conditional_card";
-import ConditionalChart from "@/components/post_card/conditional/conditional_chart";
 import { PostConditional } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 
+import ConditionalCard from "./conditional_card";
+import ConditionalChart from "./conditional_chart";
 import Arrow from "./icons/Arrow";
 import DisabledArrow from "./icons/DisabledArrow";
 

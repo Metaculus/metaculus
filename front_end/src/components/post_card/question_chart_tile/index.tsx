@@ -1,10 +1,11 @@
 import { FC } from "react";
 
-import MultipleChoiceTile from "@/components/post_card/question/multiple_choice_tile";
-import NumericTile from "@/components/post_card/question/numeric_tile";
 import { PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getIsForecastEmpty } from "@/utils/forecasts";
+
+import MultipleChoiceTile from "./multiple_choice_tile";
+import NumericTile from "./numeric_tile";
 
 type Props = {
   question: QuestionWithForecasts;
