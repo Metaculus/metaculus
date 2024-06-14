@@ -1,7 +1,18 @@
 from django.contrib import admin
-from django.apps import apps
 
-# Register your models here.
-app_models = apps.get_app_config("scoring").get_models()
-for model in app_models:
-    admin.site.register(model)
+from scoring.models import UserWeight, LeaderboardEntry, Score
+
+
+@admin.register(UserWeight)
+class UserWeightAdmin(admin.ModelAdmin):
+    search_fields = ["user"]
+
+
+@admin.register(LeaderboardEntry)
+class LeaderboardEntryAdmin(admin.ModelAdmin):
+    search_fields = ["user", "for_project"]
+
+
+@admin.register(Score)
+class ScoreAdmin(admin.ModelAdmin):
+    search_fields = ["user", "for_question"]
