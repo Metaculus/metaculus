@@ -3,10 +3,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { notFound } from "next/navigation";
 
 import CommentFeed from "@/components/comment_feed";
-import DetailedQuestionCard from "@/components/detailed_question_card";
+import ConditionalTile from "@/components/conditional_tile";
 import ForecastMaker from "@/components/forecast_maker";
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
+
+import DetailedQuestionCard from "./components/detailed_question_card";
 
 export default async function IndividualQuestion({
   params,
@@ -27,9 +29,15 @@ export default async function IndividualQuestion({
         <span className="m-2 bg-blue-400 p-1 text-xl font-extrabold text-blue-700">
           Question
         </span>
-        <h1 className="text-bold text-2xl dark:text-white">
-          {postData?.title}
-        </h1>
+        {!postData.conditional && (
+          <h1 className="text-bold text-2xl dark:text-white">
+            {postData?.title}
+          </h1>
+        )}
+
+        {postData.conditional && (
+          <ConditionalTile conditional={postData.conditional} />
+        )}
         {postData.question && (
           <DetailedQuestionCard question={postData.question} />
         )}

@@ -4,13 +4,14 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
-import CursorDetailItem from "@/components/detailed_question_card/numeric_chart_card/numeric_cursor_item";
 import { NumericForecast, QuestionType } from "@/types/question";
 import { getNumericChartTypeFromQuestion } from "@/utils/charts";
 import {
   getForecastNumericDisplayValue,
   getForecastPctDisplayValue,
 } from "@/utils/forecasts";
+
+import CursorDetailItem from "./numeric_cursor_item";
 
 type Props = {
   forecast: NumericForecast;

@@ -9,7 +9,6 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
-import TopicItem from "@/app/(main)/questions/components/topic_item";
 import Button from "@/components/ui/button";
 import {
   POST_ORDER_BY_FILTER,
@@ -18,6 +17,8 @@ import {
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
+
+import TopicItem from "./topic_item";
 
 const EXPAND_THRESHOLD = 2;
 
