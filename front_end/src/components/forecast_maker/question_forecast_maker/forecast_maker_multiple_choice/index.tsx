@@ -7,8 +7,6 @@ import percentRound from "percent-round";
 import { FC, useCallback, useMemo, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
-import ChoiceIcon from "@/components/choice_icon";
-import ForecastChoiceInput from "@/components/forecast_maker/forecast_choice_input";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
@@ -19,6 +17,8 @@ import {
   MultipleChoiceForecast,
   QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
+
+import ForecastChoiceOption from "./forecast_choice_option";
 
 const PREDICTION_PRECISION = 3;
 const MIN_VALUE = 10 ** -PREDICTION_PRECISION * 100;
@@ -183,7 +183,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question, prevForecast }) => {
         </thead>
         <tbody>
           {choicesForecasts.map((choice) => (
-            <ForecastChoiceInput
+            <ForecastChoiceOption
               key={choice.name}
               forecastValue={choice.forecast}
               defaultSliderValue={equalizedForecast}
