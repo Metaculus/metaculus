@@ -8,7 +8,7 @@ import Slider from "@/components/sliders/slider";
 import useAppTheme from "@/hooks/use_app_theme";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
-import ForecastTextInput from "../../forecast_text_input";
+import ForecastTextInput from "./forecast_text_input";
 
 type Props = {
   choiceColor: {
