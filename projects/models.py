@@ -190,6 +190,9 @@ class Project(TimeStampedModel):
             ),
         ]
 
+    def __str__(self):
+        return f"{self.type.capitalize()}: {self.name}"
+
     @property
     def is_ongoing(self):
         if self.type in (

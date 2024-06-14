@@ -1,7 +1,14 @@
 from django.contrib import admin
-from django.apps import apps
 
-# Register your models here.
-app_models = apps.get_app_config("projects").get_models()
-for model in app_models:
-    admin.site.register(model)
+from projects.models import Project, ProjectUserPermission
+
+
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
+    search_fields = ["type", "name"]
+    autocomplete_fields = ["created_by"]
+
+
+@admin.register(ProjectUserPermission)
+class ProjectUserPermissionAdmin(admin.ModelAdmin):
+    autocomplete_fields = ["user"]
