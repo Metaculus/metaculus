@@ -112,7 +112,7 @@ def get_posts_feed(
     if order:
         match order:
             case PostFilterSerializer.Order.MOST_FORECASTERS:
-                qs = qs.annotate_predictions_count__unique().order_by("-nr_forecasters")
+                qs = qs.annotate_nr_forecasters().order_by("-nr_forecasters")
             case PostFilterSerializer.Order.CLOSED_AT:
                 qs = qs.order_by("-closed_at")
             case PostFilterSerializer.Order.RESOLVED_AT:
