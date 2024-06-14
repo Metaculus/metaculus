@@ -70,15 +70,23 @@ export default async function IndividualQuestion({
           </div>
           <div className="flex flex-row justify-between">
             <span>Opened:</span>
-            <span>{postData.published_at.slice(0, 7)}</span>
+            <span>
+              {postData.published_at && postData.published_at.slice(0, 7)}
+            </span>
           </div>
           <div className="flex flex-row justify-between">
             <span>Closed:</span>
-            <span>{postData.question?.closed_at.slice(0, 7)}</span>
+            <span>
+              {postData.question?.closed_at &&
+                postData.question?.closed_at.slice(0, 7)}
+            </span>
           </div>
           <div className="flex flex-row justify-between">
             <span>Resolved:</span>
-            <span>{postData.question?.resolved_at.slice(0, 7)}</span>
+            <span>
+              {postData.question?.resolved_at &&
+                postData.question?.resolved_at.slice(0, 7)}
+            </span>
           </div>
         </div>
       </div>
