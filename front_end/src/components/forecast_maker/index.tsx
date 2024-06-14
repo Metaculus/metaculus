@@ -1,48 +1,26 @@
 import { FC } from "react";
 
-import ForecastMakerBinary from "@/components/forecast_maker/forecast_maker_binary";
-import ForecastMakerMultipleChoice from "@/components/forecast_maker/forecast_maker_multiple_choice";
-import ForecastMakerNumeric from "@/components/forecast_maker/forecast_maker_numeric";
-import { MultiSliderValue } from "@/components/sliders/multi_slider";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { PostConditional } from "@/types/post";
+import { QuestionWithForecasts } from "@/types/question";
+
+import ConditionalForecastMaker from "./conditional_forecast_maker";
+import QuestionForecastMaker from "./question_forecast_maker";
 
 type Props = {
-  question: QuestionWithForecasts;
+  conditional?: PostConditional<QuestionWithForecasts>;
+  question?: QuestionWithForecasts;
 };
 
-const ForecastMaker: FC<Props> = ({ question }) => {
-  switch (question.type) {
-    case QuestionType.Numeric:
-    case QuestionType.Date:
-      return (
-        <ForecastMakerNumeric
-          question={question}
-          prevForecast={
-            question.forecasts.my_forecasts?.slider_values
-              ?.forecast as MultiSliderValue[]
-          }
-          prevWeights={
-            question.forecasts.my_forecasts?.slider_values?.weights as number[]
-          }
-        />
-      );
-    case QuestionType.Binary:
-      return (
-        <ForecastMakerBinary
-          question={question}
-          prevForecast={question.forecasts.my_forecasts?.slider_values}
-        />
-      );
-    case QuestionType.MultipleChoice:
-      return (
-        <ForecastMakerMultipleChoice
-          question={question}
-          prevForecast={question.forecasts.my_forecasts?.slider_values}
-        />
-      );
-    default:
-      return null;
+const ForecastMaker: FC<Props> = ({ conditional, question }) => {
+  if (conditional) {
+    return <ConditionalForecastMaker conditional={conditional} />;
   }
+
+  if (question) {
+    return <QuestionForecastMaker question={question} />;
+  }
+
+  return null;
 };
 
 export default ForecastMaker;
