@@ -77,8 +77,14 @@ class ProjectsQuerySet(models.QuerySet):
         Returns only allowed projects for the user
         """
 
-        return self.annotate_user_permission(user=user).filter(
-            user_permission__isnull=False
+        return self.filter(
+            # If any project has permissions (null value indicates private project)
+            models.Q(default_permission__isnull=False)
+            | (
+                # Or user was given permissions to access the private project
+                models.Q(projectuserpermission__user_id=user.id if user else None)
+                & models.Q(projectuserpermission__permission__isnull=False)
+            )
         )
 
 

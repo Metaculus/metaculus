@@ -120,7 +120,7 @@ class PostQuerySet(models.QuerySet):
     #
     def annotate_user_permission(self, user: User = None):
         """
-        Annotates user permission for each Post based on the related Projects
+        Annotates user permission for each Post based on the related Projects.
         """
 
         project_permissions_subquery = (
@@ -154,10 +154,18 @@ class PostQuerySet(models.QuerySet):
         Returns only allowed projects for the user
         """
 
-        # TODO: optimize this!
+        user_id = user.id if user else None
 
-        return self.annotate_user_permission(user=user).filter(
-            user_permission__isnull=False
+        return self.filter(
+            # If any project has permissions (null value indicates private project)
+            models.Q(projects__default_permission__isnull=False)
+            | (
+                # Or user was given permissions to access the private project
+                models.Q(projects__projectuserpermission__user_id=user_id)
+                & models.Q(projects__projectuserpermission__permission__isnull=False)
+            )
+            # Or user is a creator
+            | models.Q(author_id=user_id)
         )
 
 
