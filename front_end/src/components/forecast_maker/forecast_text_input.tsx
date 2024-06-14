@@ -16,7 +16,7 @@ type Props = {
   onBlur?: () => void;
 };
 
-const ForecastInput: FC<Props> = ({
+const ForecastTextInput: FC<Props> = ({
   value,
   onForecastChange,
   minValue,
@@ -73,4 +73,4 @@ const ForecastInput: FC<Props> = ({
   );
 };
 
-export default ForecastInput;
+export default ForecastTextInput;
