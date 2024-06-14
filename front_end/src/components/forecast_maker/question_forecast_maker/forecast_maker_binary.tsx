@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
-import ForecastInput from "@/components/forecast_maker/forecast_input";
 import Slider from "@/components/sliders/slider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
@@ -12,6 +11,8 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import { QuestionWithNumericForecasts } from "@/types/question";
+
+import ForecastTextInput from "./../forecast_text_input";
 
 const DEFAULT_SLIDER_VALUE = 50;
 const PREDICTION_PRECISION = 3;
@@ -114,7 +115,7 @@ const ForecastMakerBinary: FC<Props> = ({ question, prevForecast }) => {
         />
       </div>
       <div className="mb-3 block text-center">
-        <ForecastInput
+        <ForecastTextInput
           value={inputValue}
           minValue={MIN_VALUE}
           maxValue={MAX_VALUE}
