@@ -154,6 +154,8 @@ class PostQuerySet(models.QuerySet):
         Returns only allowed projects for the user
         """
 
+        # TODO: optimize this!
+
         return self.annotate_user_permission(user=user).filter(
             user_permission__isnull=False
         )
