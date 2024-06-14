@@ -3,8 +3,8 @@ import { FC } from "react";
 import { PostConditional } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 
-import ConditionalForecastMaker from "./conditional_forecast_maker";
-import QuestionForecastMaker from "./question_forecast_maker";
+import ForecastMakerConditional from "./forecast_maker_conditional";
+import QuestionForecastMaker from "./forecast_maker_question";
 
 type Props = {
   conditional?: PostConditional<QuestionWithForecasts>;
@@ -13,7 +13,7 @@ type Props = {
 
 const ForecastMaker: FC<Props> = ({ conditional, question }) => {
   if (conditional) {
-    return <ConditionalForecastMaker conditional={conditional} />;
+    return <ForecastMakerConditional conditional={conditional} />;
   }
 
   if (question) {
