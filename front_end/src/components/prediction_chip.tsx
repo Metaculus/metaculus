@@ -39,7 +39,12 @@ const PredictionChip: FC<Props> = ({
       return <span className="inline-flex flex-col"></span>;
     case PostStatus.Resolved:
       return (
-        <span className="inline-flex flex-col">
+        <span
+          className={classNames("inline-flex", {
+            "flex-col": size === "large",
+            "flex-row items-center gap-1": size === "compact",
+          })}
+        >
           <Label className="text-purple-900 dark:text-purple-900-dark">
             {t("resolved")} :
           </Label>
@@ -52,9 +57,11 @@ const PredictionChip: FC<Props> = ({
           >
             {resolution}
           </Chip>
-          <p>
-            {nr_forecasters} {t("forecasters")}
-          </p>
+          {size !== "compact" && (
+            <p>
+              {nr_forecasters} {t("forecasters")}
+            </p>
+          )}
         </span>
       );
     case PostStatus.Closed:

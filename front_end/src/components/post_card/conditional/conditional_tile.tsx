@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import ConditionalCard from "@/components/post_card/conditional/conditional_card";
+import ConditionalChart from "@/components/post_card/conditional/conditional_chart";
 import { PostConditional } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 
@@ -59,10 +60,18 @@ const ConditionalTile: FC<Props> = ({ conditional }) => {
       </div>
       <div className="row-span-2 flex flex-col gap-3 md:row-auto">
         <ConditionalCard title={question_yes.title}>
-          TODO: chart {question_yes.type}
+          <ConditionalChart
+            parentResolved={parentSuccessfullyResolved}
+            question={question_yes}
+            disabled={yesDisabled}
+          />
         </ConditionalCard>
         <ConditionalCard title={question_no.title}>
-          TODO: chart {question_no.type}
+          <ConditionalChart
+            parentResolved={parentSuccessfullyResolved}
+            question={question_no}
+            disabled={noDisabled}
+          />
         </ConditionalCard>
       </div>
     </div>
