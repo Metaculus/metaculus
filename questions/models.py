@@ -65,6 +65,9 @@ class Question(TimeStampedModel):
     vote_score: int = 0
     user_vote = None
 
+    def __str__(self):
+        return f"{self.type} {self.title}"
+
     def get_post(self):
         # Back-rel of One2One relations does not populate None values,
         # So we always need to check whether attr exists
