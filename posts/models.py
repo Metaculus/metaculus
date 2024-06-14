@@ -196,6 +196,9 @@ class Post(TimeStampedModel):
     user_vote = None
     user_permission: ObjectPermission = None
 
+    def __str__(self):
+        return self.title
+
 
 # TODO: create votes app
 class Vote(models.Model):
