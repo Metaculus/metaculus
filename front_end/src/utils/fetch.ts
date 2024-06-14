@@ -42,8 +42,8 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return JSON.parse(text);
 };
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://127.0.0.1:8000/api";
+// Default values are configured in the next.config.mjs
+const BASE_URL_API = `${process.env.API_BASE_URL}/api`;
 const defaultOptions: FetchOptions = {
   headers: {
     "Content-Type": "application/json",
@@ -57,7 +57,7 @@ const appFetch = async <T>(
   const authToken = getServerSession();
   const alphaToken = getAlphaTokenSession();
 
-  const finalUrl = `${BASE_URL}${url}`;
+  const finalUrl = `${BASE_URL_API}${url}`;
   const finalOptions: FetchOptions = {
     ...defaultOptions,
     ...options,
