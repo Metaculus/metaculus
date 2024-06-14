@@ -19,42 +19,45 @@ const ConditionalTile: FC<Props> = ({ conditional }) => {
   const { condition, question_yes, question_no } = conditional;
 
   const parentSuccessfullyResolved =
-    condition.resolution != null && condition.resolution === "yes";
+    condition.resolution !== null && condition.resolution === "yes";
   const yesHappened =
-    condition.resolution != null &&
-    condition.resolution == question_yes.resolution;
+    condition.resolution !== null &&
+    condition.resolution === question_yes.resolution;
   const yesDisabled =
-    condition.resolution != null &&
+    condition.resolution !== null &&
     condition.resolution !== question_yes.resolution;
   const noHappened =
-    condition.resolution != null &&
-    condition.resolution == question_no.resolution;
+    condition.resolution !== null &&
+    condition.resolution === question_no.resolution;
   const noDisabled =
-    condition.resolution != null &&
+    condition.resolution !== null &&
     condition.resolution !== question_no.resolution;
 
   return (
-    <div className="grid grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
-      <div className="flex flex-col justify-center">
+    <div className="grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
+      <div className="col-span-2 row-span-1 flex flex-col justify-center md:col-span-1 md:row-auto">
         <ConditionalCard
           label="Condition"
           title={condition.title}
           resolved={parentSuccessfullyResolved}
         />
       </div>
-      <div className="flex flex-col xs:justify-center xs:gap-12">
+      <div className="relative row-span-2 ml-3 flex flex-col justify-start gap-0 md:row-auto md:ml-0 md:justify-center md:gap-12">
         <ConditionalArrow
           label={t("arrowIfNo")}
           didHappen={yesHappened}
           disabled={yesDisabled}
+          className="flex-1 md:flex-none"
         />
         <ConditionalArrow
           label={t("arrowIfYes")}
           didHappen={noHappened}
           disabled={noDisabled}
+          className="flex-1 md:flex-none"
         />
+        <div className="absolute left-0 top-0 h-3/4 w-[1px] bg-blue-700 dark:bg-blue-700-dark md:hidden" />
       </div>
-      <div className="flex flex-col gap-3">
+      <div className="row-span-2 flex flex-col gap-3 md:row-auto">
         <ConditionalCard title={question_yes.title}>
           TODO: chart {question_yes.type}
         </ConditionalCard>
@@ -70,10 +73,16 @@ const ConditionalArrow: FC<{
   label: string;
   didHappen: boolean;
   disabled: boolean;
-}> = ({ label, disabled, didHappen }) => {
+  className?: string;
+}> = ({ label, disabled, didHappen, className }) => {
   return (
-    <div className="relative flex items-center justify-center">
-      <div className={classNames("absolute w-full", { "px-1": !disabled })}>
+    <div
+      className={classNames(
+        "relative flex items-center justify-center",
+        className
+      )}
+    >
+      <div className={classNames("absolute w-full", { "md:px-1": !disabled })}>
         {disabled ? <DisabledArrow /> : <Arrow />}
       </div>
 
@@ -81,8 +90,8 @@ const ConditionalArrow: FC<{
         className={classNames(
           "z-10 bg-gray-0 px-1 text-xs font-semibold uppercase dark:bg-gray-0-dark",
           didHappen
-            ? "text-blue-700 dark:text-blue-700-dark"
-            : "text-blue-900 dark:text-blue-900-dark"
+            ? "text-blue-900 dark:text-blue-900-dark"
+            : "text-blue-700 dark:text-blue-700-dark"
         )}
       >
         {label}
