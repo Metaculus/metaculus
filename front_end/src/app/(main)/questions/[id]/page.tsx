@@ -42,9 +42,10 @@ export default async function IndividualQuestion({
           <DetailedQuestionCard question={postData.question} />
         )}
         <div className="p-6 dark:bg-blue-800">
-          {!!postData.question && (
-            <ForecastMaker question={postData.question} />
-          )}
+          <ForecastMaker
+            question={postData.question}
+            conditional={postData.conditional}
+          />
         </div>
         {commentsData && <CommentFeed initialComments={commentsData} />}
       </div>
