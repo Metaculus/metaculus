@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "anymail",
     "django_dramatiq",
+    "admin_auto_filters",
     # first-party:
     "migrator",
     "utils",
