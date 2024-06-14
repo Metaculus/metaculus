@@ -11,4 +11,4 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(ProjectUserPermission)
 class ProjectUserPermissionAdmin(admin.ModelAdmin):
-    autocomplete_fields = ["user"]
+    autocomplete_fields = ["user", "project"]
