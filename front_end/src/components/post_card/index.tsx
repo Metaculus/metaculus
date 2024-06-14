@@ -1,10 +1,11 @@
 import { FC } from "react";
 
-import BasicPostCard from "@/components/post_card/common/basic_card";
-import PostCardErrorBoundary from "@/components/post_card/common/error_boundary";
-import ConditionalTile from "@/components/post_card/conditional/conditional_tile";
-import QuestionChartTile from "@/components/post_card/question/question_chart_tile";
+import ConditionalTile from "@/components/conditional_tile";
 import { PostWithForecasts } from "@/types/post";
+
+import BasicPostCard from "./basic_post_card";
+import PostCardErrorBoundary from "./error_boundary";
+import QuestionChartTile from "./question_chart_tile";
 
 type Props = {
   post: PostWithForecasts;

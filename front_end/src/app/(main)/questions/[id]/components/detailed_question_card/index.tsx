@@ -1,11 +1,12 @@
 import React, { FC } from "react";
 
-import DetailsQuestionCardEmptyState from "@/components/detailed_question_card/empty_state";
-import DetailsQuestionCardErrorBoundary from "@/components/detailed_question_card/error_boundary";
-import MultipleChoiceChartCard from "@/components/detailed_question_card/multiple_choice_chart_card";
-import NumericChartCard from "@/components/detailed_question_card/numeric_chart_card";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getIsForecastEmpty } from "@/utils/forecasts";
+
+import DetailedQuestionCardEmptyState from "./empty_state";
+import DetailsQuestionCardErrorBoundary from "./error_boundary";
+import MultipleChoiceChartCard from "./multiple_choice_chart_card";
+import NumericChartCard from "./numeric_chart_card";
 
 type Props = {
   question: QuestionWithForecasts;
@@ -15,7 +16,7 @@ const DetailedQuestionCard: FC<Props> = ({ question }) => {
   const isForecastEmpty = getIsForecastEmpty(question.forecasts);
 
   if (isForecastEmpty) {
-    return <DetailsQuestionCardEmptyState />;
+    return <DetailedQuestionCardEmptyState />;
   }
 
   switch (question.type) {
