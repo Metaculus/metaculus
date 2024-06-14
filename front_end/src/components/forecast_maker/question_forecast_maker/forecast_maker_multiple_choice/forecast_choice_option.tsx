@@ -4,10 +4,11 @@ import classNames from "classnames";
 import { FC, useCallback, useEffect, useState } from "react";
 
 import ChoiceIcon from "@/components/choice_icon";
-import ForecastInput from "@/components/forecast_maker/forecast_input";
 import Slider from "@/components/sliders/slider";
 import useAppTheme from "@/hooks/use_app_theme";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
+
+import ForecastTextInput from "../../forecast_text_input";
 
 type Props = {
   choiceColor: {
@@ -24,7 +25,7 @@ type Props = {
   isDirty: boolean;
 };
 
-const ForecastChoiceInput: FC<Props> = ({
+const ForecastChoiceOption: FC<Props> = ({
   communityForecast,
   min,
   max,
@@ -100,7 +101,7 @@ const ForecastChoiceInput: FC<Props> = ({
             : "-"}
         </td>
         <td className="border-t border-gray-300 p-2 text-center dark:border-gray-300-dark">
-          <ForecastInput
+          <ForecastTextInput
             onChange={handleInputChange}
             onForecastChange={handleInputForecastChange}
             isDirty={isDirty}
@@ -151,4 +152,4 @@ const MarkArrow: FC<{
   );
 };
 
-export default ForecastChoiceInput;
+export default ForecastChoiceOption;
