@@ -1,11 +1,11 @@
-import { isAfter, isBefore } from "date-fns";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
-import TournamentFilters from "@/app/(main)/tournaments/components/tournament_filters";
-import TournamentsList from "@/app/(main)/tournaments/components/tournaments_list";
 import ProjectsApi from "@/services/projects";
 import { Tournament, TournamentType } from "@/types/projects";
+
+import TournamentFilters from "./components/tournament_filters";
+import TournamentsList from "./components/tournaments_list";
 
 export default async function Tournaments() {
   const t = await getTranslations();

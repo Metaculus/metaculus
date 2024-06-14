@@ -2,10 +2,11 @@
 import Link from "next/link";
 import { FC, PropsWithChildren, useMemo } from "react";
 
-import CommentStatus from "@/components/post_card/common/comment_status";
-import PostVoter from "@/components/post_card/common/post_voter";
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
+
+import CommentStatus from "./comment_status";
+import PostVoter from "./post_voter";
 
 type Props = {
   post: Post;

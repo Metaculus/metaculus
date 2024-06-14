@@ -1,17 +1,16 @@
 import { getTranslations } from "next-intl/server";
 
-import FocusAreaLink, {
-  FocusAreaItem,
-} from "@/app/(main)/(home)/components/focus_area_link";
-import HomeSearch from "@/app/(main)/(home)/components/home_search";
-import FocusAreaAiIcon from "@/app/(main)/(home)/components/icons/focus_area_ai";
-import FocusAreaBiosecurityIcon from "@/app/(main)/(home)/components/icons/focus_area_biosecurity";
-import FocusAreaClimateIcon from "@/app/(main)/(home)/components/icons/focus_area_climate";
-import FocusAreaNuclearIcon from "@/app/(main)/(home)/components/icons/focus_area_nuclear";
-import TopicLink from "@/app/(main)/(home)/components/topic_link";
 import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import ProjectsApi from "@/services/projects";
 import { encodeQueryParams } from "@/utils/query_params";
+
+import FocusAreaLink, { FocusAreaItem } from "./components/focus_area_link";
+import HomeSearch from "./components/home_search";
+import FocusAreaAiIcon from "./components/icons/focus_area_ai";
+import FocusAreaBiosecurityIcon from "./components/icons/focus_area_biosecurity";
+import FocusAreaClimateIcon from "./components/icons/focus_area_climate";
+import FocusAreaNuclearIcon from "./components/icons/focus_area_nuclear";
+import TopicLink from "./components/topic_link";
 
 // TODO: probable makes sense to receive this info from the BE
 const FOCUS_AREAS: FocusAreaItem[] = [

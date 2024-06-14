@@ -41,7 +41,7 @@ const PredictionChip: FC<Props> = ({
       return (
         <span
           className={classNames("inline-flex", {
-            "flex-col": size === "large",
+            "flex-col": size === "large" || !size,
             "flex-row items-center gap-1": size === "compact",
           })}
         >
