@@ -7,14 +7,9 @@ from .services import build_question_forecasts
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-    status = serializers.SerializerMethodField()
-
     class Meta:
         model = Question
         fields = "__all__"
-
-    def get_status(self, obj):
-        return obj.status
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):

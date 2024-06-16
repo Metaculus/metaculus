@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { PostConditional } from "@/types/post";
+import { Post, PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 
 import ConditionalCard from "./conditional_card";
@@ -12,9 +12,10 @@ import DisabledArrow from "./icons/DisabledArrow";
 
 type Props = {
   conditional: PostConditional<QuestionWithForecasts>;
+  curationStatus: PostStatus;
 };
 
-const ConditionalTile: FC<Props> = ({ conditional }) => {
+const ConditionalTile: FC<Props> = ({ conditional, curationStatus }) => {
   const t = useTranslations();
 
   const { condition, question_yes, question_no } = conditional;
@@ -64,6 +65,7 @@ const ConditionalTile: FC<Props> = ({ conditional }) => {
             parentResolved={parentSuccessfullyResolved}
             question={question_yes}
             disabled={yesDisabled}
+            parentStatus={curationStatus}
           />
         </ConditionalCard>
         <ConditionalCard title={question_no.title}>
@@ -71,6 +73,7 @@ const ConditionalTile: FC<Props> = ({ conditional }) => {
             parentResolved={parentSuccessfullyResolved}
             question={question_no}
             disabled={noDisabled}
+            parentStatus={curationStatus}
           />
         </ConditionalCard>
       </div>

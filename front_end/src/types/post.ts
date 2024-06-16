@@ -35,10 +35,13 @@ export type PostVote = {
 };
 
 export enum PostStatus {
-  Resolved = "resolved",
-  Closed = "closed",
-  Active = "active",
-  InReview = "in_review",
+  DRAFT = "draft",
+  PENDING = "pending",
+  REJECTED = "rejected",
+  PUBLISHED = "published",
+  CLOSED = "closed",
+  RESOLVED = "resolved",
+  DELETED = "deleted",
 }
 
 export type PostCondition = {
@@ -47,7 +50,7 @@ export type PostCondition = {
   description: string;
   closed_at: string;
   resolved_at: string;
-  status: PostStatus;
+  curation_status: PostStatus;
   resolution: Resolution | null;
 };
 
@@ -75,6 +78,7 @@ export type Post<QT = Question> = {
   author_id: number;
   question?: QT;
   conditional?: PostConditional<QT>;
+  curation_status: PostStatus;
 };
 
 export type PostWithForecasts = Post<QuestionWithForecasts>;

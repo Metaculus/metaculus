@@ -4,17 +4,20 @@ import { FC } from "react";
 
 import PredictionChip from "@/components/prediction_chip";
 import ProgressBar from "@/components/ui/progress_bar";
+import { PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 
 type Props = {
   parentResolved: boolean;
   question: QuestionWithForecasts;
+  parentStatus: PostStatus;
   disabled: boolean;
 };
 
 const ConditionalChart: FC<Props> = ({
   question,
   parentResolved,
+  parentStatus,
   disabled,
 }) => {
   const resolved = parentResolved && question.resolution !== null;
@@ -48,7 +51,7 @@ const ConditionalChart: FC<Props> = ({
           {resolved && (
             <PredictionChip
               questionType={question.type}
-              status={question.status}
+              status={parentStatus}
               nr_forecasters={question.nr_forecasters}
               prediction={pctCandidate}
               resolution={question.resolution}

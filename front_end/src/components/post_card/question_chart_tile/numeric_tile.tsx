@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
 import PredictionChip from "@/components/prediction_chip";
+import { PostStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getNumericChartTypeFromQuestion } from "@/utils/charts";
 
@@ -9,9 +10,10 @@ const HEIGHT = 100;
 
 type Props = {
   question: QuestionWithNumericForecasts;
+  curationStatus: PostStatus;
 };
 
-const NumericTile: FC<Props> = ({ question }) => {
+const NumericTile: FC<Props> = ({ question, curationStatus }) => {
   const prediction =
     question.forecasts.values_mean[question.forecasts.values_mean.length - 1];
 
@@ -22,7 +24,7 @@ const NumericTile: FC<Props> = ({ question }) => {
           prediction={prediction}
           resolution={question.resolution}
           nr_forecasters={question.nr_forecasters}
-          status={question.status}
+          status={curationStatus}
           questionType={question.type}
         />
       </div>

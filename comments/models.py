@@ -23,7 +23,7 @@ class CommentQuerySet(models.QuerySet):
     def annotate_author_object(self):
         return self.prefetch_related("author")
 
-    #def annotate_children(self):
+    # def annotate_children(self):
     #    return self.annotate(children=Comment.objects.filter(parent=self))
 
 
