@@ -100,12 +100,17 @@ def create_post(question: dict, **kwargs) -> Post:
     curation_status = Post.CurationStatus.DRAFT
     if question["approved_by_id"]:
         curation_status = Post.CurationStatus.PUBLISHED
-    if question["close_time"] < django.utils.timezone.now() and question["approved_by_id"]:
+    if (
+        question["close_time"] < django.utils.timezone.now()
+        and question["approved_by_id"]
+    ):
         curation_status = Post.CurationStatus.CLOSED
-    if question["mod_status"] == 'PENDING':
+    if question["mod_status"] == "PENDING":
         curation_status = Post.CurationStatus.PENDING
     if question["mod_status"] == "REJECTED":
         curation_status = Post.CurationStatus.REJECTED
+    if question["mod_reason"] == "DELETED":
+        curation_status = Post.CurationStatus.DELETED
 
     return Post(
         # Keeping the same ID as the old question
