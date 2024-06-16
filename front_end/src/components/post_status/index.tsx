@@ -2,11 +2,7 @@ import { useLocale, useTranslations } from "next-intl";
 import React, { FC, useMemo } from "react";
 
 import PostStatusIcon from "@/components/post_status/status_icon";
-import {
-  Post,
-  PostStatus as PostStatusEnum,
-  PostStatus as QuestionStatusEnum,
-} from "@/types/post";
+import { Post, PostStatus as PostStatusEnum } from "@/types/post";
 import { formatRelativeDate } from "@/utils/date_formatters";
 
 type Props = {
@@ -23,11 +19,11 @@ const PostStatus: FC<Props> = ({ id, status, closedAt, resolvedAt, post }) => {
   const locale = useLocale();
 
   const statusInfo = useMemo(() => {
-    if (status === QuestionStatusEnum.Closed) {
+    if (status === PostStatusEnum.CLOSED) {
       return [t("resolutionPending")];
     }
 
-    if (status === QuestionStatusEnum.Active) {
+    if (status === PostStatusEnum.PUBLISHED) {
       return [
         t("closes"),
         formatRelativeDate(locale, new Date(closedAt), {
@@ -36,7 +32,7 @@ const PostStatus: FC<Props> = ({ id, status, closedAt, resolvedAt, post }) => {
       ];
     }
 
-    if (status === QuestionStatusEnum.Resolved) {
+    if (status === PostStatusEnum.RESOLVED) {
       return [
         t("resolved"),
         formatRelativeDate(locale, new Date(resolvedAt), {

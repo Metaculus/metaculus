@@ -42,10 +42,13 @@ const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
 
 // TODO: translate
 const POST_STATUS_LABEL_MAP = {
-  [PostStatus.Active]: "Open",
-  [PostStatus.Resolved]: "Resolved",
-  [PostStatus.Closed]: "Closed",
-  [PostStatus.InReview]: "In Review",
+  [PostStatus.PUBLISHED]: "Open",
+  [PostStatus.RESOLVED]: "Resolved",
+  [PostStatus.CLOSED]: "Closed",
+  [PostStatus.PENDING]: "In Review",
+  [PostStatus.DRAFT]: "My Drafts",
+  [PostStatus.DELETED]: "My Removed Posts",
+  [PostStatus.REJECTED]: "My Rejected Posts",
 };
 
 export function generateFiltersFromSearchParams(

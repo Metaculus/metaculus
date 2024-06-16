@@ -15,7 +15,7 @@ const PostStatusIcon: FC<Props> = ({ status, closed_at, published_at }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   const showClock =
-    status === PostStatus.Closed || status === PostStatus.Resolved;
+    status === PostStatus.CLOSED || status === PostStatus.RESOLVED;
 
   useEffect(() => {
     if (!svgRef.current || !showClock) return;

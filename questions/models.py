@@ -1,4 +1,3 @@
-import django
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -76,25 +75,6 @@ class Question(TimeStampedModel):
 
         if self.group:
             return self.group.post
-
-    @property
-    def status(self):
-        post = self.get_post()
-
-        if (
-            self.resolution
-            and self.resolved_at
-            and self.resolved_at < django.utils.timezone.now()
-        ):
-            return "resolved"
-        if self.closed_at and self.closed_at < django.utils.timezone.now():
-            return "closed"
-        if post and post.published_at:
-            return "active"
-        if post and post.published_at is None:
-            return "in_review"
-        print(f"!!\n\nWrong status for question: {self.id}\n\n!!")
-        return "active"
 
 
 class Conditional(TimeStampedModel):
