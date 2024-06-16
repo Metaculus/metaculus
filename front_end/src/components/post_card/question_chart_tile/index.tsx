@@ -9,13 +9,18 @@ import NumericTile from "./numeric_tile";
 
 type Props = {
   question: QuestionWithForecasts;
-  author_username: string;
+  authorUsername: string;
+  curationStatus: PostStatus;
 };
 
-const QuestionChartTile: FC<Props> = ({ question, author_username }) => {
-  if (question.status === PostStatus.InReview) {
+const QuestionChartTile: FC<Props> = ({
+  question,
+  authorUsername,
+  curationStatus,
+}) => {
+  if (curationStatus === PostStatus.PENDING) {
     return (
-      <div>{`Created by ${author_username} on ${question.created_at.slice(0, 7)}`}</div>
+      <div>{`Created by ${authorUsername} on ${question.created_at.slice(0, 7)}`}</div>
     );
   }
   const isForecastEmpty = getIsForecastEmpty(question.forecasts);
@@ -28,7 +33,9 @@ const QuestionChartTile: FC<Props> = ({ question, author_username }) => {
     case QuestionType.Numeric:
     case QuestionType.Date:
     case QuestionType.Binary:
-      return <NumericTile question={question} />;
+      return (
+        <NumericTile question={question} curationStatus={curationStatus} />
+      );
     case QuestionType.MultipleChoice:
       return <MultipleChoiceTile question={question} />;
     default:

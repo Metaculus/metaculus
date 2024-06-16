@@ -36,7 +36,10 @@ export default async function IndividualQuestion({
         )}
 
         {postData.conditional && (
-          <ConditionalTile conditional={postData.conditional} />
+          <ConditionalTile
+            conditional={postData.conditional}
+            curationStatus={postData.curation_status}
+          />
         )}
         {postData.question && (
           <DetailedQuestionCard question={postData.question} />

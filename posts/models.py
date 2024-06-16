@@ -158,6 +158,7 @@ class PostQuerySet(models.QuerySet):
             user_permission__isnull=False
         )
 
+
 class Post(TimeStampedModel):
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -170,8 +171,12 @@ class Post(TimeStampedModel):
         PUBLISHED = "published"
         # CLOSED, all viewers can see it, no forecasts or other interactions can happen
         CLOSED = "closed"
+        # DELETED, all viewers can see it, no forecasts or other interactions can happen
+        DELETED = "deleted"
 
-    curation_status = models.CharField(max_length=20, choices=CurationStatus.choices, default=CurationStatus.DRAFT)
+    curation_status = models.CharField(
+        max_length=20, choices=CurationStatus.choices, default=CurationStatus.DRAFT
+    )
     title = models.CharField(max_length=200)
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
 

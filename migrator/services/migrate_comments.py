@@ -16,14 +16,16 @@ def create_comment(comment_obj: dict) -> Comment:
 
     forecast_id = None
 
-    if comment_obj["prediction_value"] is not None or comment_obj["latest_prediction"] is not None:
+    if (
+        comment_obj["prediction_value"] is not None
+        or comment_obj["latest_prediction"] is not None
+    ):
         forecasts = Forecast.objects.filter(
-            author_id=comment_obj['author_id'], 
-            question_id=comment_obj['question_id'], 
-            start_time__lte=comment_obj['created_time']
-            ).order_by('-start_time')
+            author_id=comment_obj["author_id"],
+            question_id=comment_obj["question_id"],
+            start_time__lte=comment_obj["created_time"],
+        ).order_by("-start_time")
         forecast_id = forecasts.first()
-
 
     comment = Comment(
         id=comment_obj["id"],

@@ -61,7 +61,6 @@ export type Question = {
   type: QuestionType;
   possibilities: string; // TODO: update type
   resolution: Resolution | null;
-  status: PostStatus;
   nr_forecasters: number;
   author_username: string;
   zero_point: number;

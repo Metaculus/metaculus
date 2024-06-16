@@ -23,7 +23,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   const statusData = useMemo(() => {
     if (post.question) {
       return {
-        status: post.question.status,
+        status: post.curation_status,
         closedAt: post.question.closed_at,
         resolvedAt: post.question.resolved_at,
       };
@@ -31,7 +31,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
 
     if (post.conditional) {
       return {
-        status: post.conditional.condition.status,
+        status: post.conditional.condition.curation_status,
         closedAt: post.conditional.condition.closed_at,
         resolvedAt: post.conditional.condition.resolved_at,
       };
