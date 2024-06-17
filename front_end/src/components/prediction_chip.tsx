@@ -6,10 +6,7 @@ import { FC, PropsWithChildren } from "react";
 
 import { PostStatus } from "@/types/post";
 import { QuestionType } from "@/types/question";
-import {
-  getForecastNumericDisplayValue,
-  getForecastPctDisplayValue,
-} from "@/utils/forecasts";
+import { formatPrediction } from "@/utils/forecasts";
 
 type Size = "compact" | "large";
 
@@ -151,16 +148,5 @@ const Label: FC<PropsWithChildren<LabelProps>> = ({
     {...props}
   />
 );
-
-function formatPrediction(prediction: number, questionType: QuestionType) {
-  switch (questionType) {
-    case QuestionType.Numeric:
-      return getForecastNumericDisplayValue(prediction);
-    case QuestionType.Binary:
-      return getForecastPctDisplayValue(prediction);
-    default:
-      return prediction;
-  }
-}
 
 export default PredictionChip;

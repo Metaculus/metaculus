@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { Post, PostConditional, PostStatus } from "@/types/post";
+import { PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 
 import ConditionalCard from "./conditional_card";
@@ -21,7 +21,9 @@ const ConditionalTile: FC<Props> = ({ conditional, curationStatus }) => {
   const { condition, question_yes, question_no } = conditional;
 
   const parentSuccessfullyResolved =
-    condition.resolution !== null && condition.resolution === "yes";
+    curationStatus === PostStatus.RESOLVED &&
+    condition.resolution !== null &&
+    condition.resolution === "yes";
   const yesHappened =
     condition.resolution !== null &&
     condition.resolution === question_yes.resolution;
@@ -100,7 +102,7 @@ const ConditionalArrow: FC<{
 
       <span
         className={classNames(
-          "z-10 bg-gray-0 px-1 text-xs font-semibold uppercase dark:bg-gray-0-dark",
+          "z-[2] bg-gray-0 px-1 text-xs font-semibold uppercase dark:bg-gray-0-dark",
           didHappen
             ? "text-blue-900 dark:text-blue-900-dark"
             : "text-blue-700 dark:text-blue-700-dark"
