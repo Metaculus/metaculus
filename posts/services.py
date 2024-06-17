@@ -5,7 +5,7 @@ from posts.models import Post
 from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services import get_global_public_project, create_private_user_project
+from projects.services import get_global_public_project
 from questions.services import (
     create_question,
     create_conditional,
@@ -27,6 +27,7 @@ def get_posts_feed(
     status: str = None,
     answered_by_me: bool = None,
     order: str = None,
+    permission: str = ObjectPermission.VIEWER,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
@@ -84,6 +85,9 @@ def get_posts_feed(
     if answered_by_me is not None and not user.is_anonymous:
         condition = {"question__forecast__author": user}
         qs = qs.filter(**condition) if answered_by_me else qs.exclude(**condition)
+
+    # Filter by permission level
+    qs = qs.filter_permission(user=user, permission=permission)
 
     # Ordering
     if order:

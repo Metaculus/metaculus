@@ -149,22 +149,39 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
-    def filter_permission(self, user: User = None):
+    def filter_permission(
+        self, user: User = None, permission: ObjectPermission = ObjectPermission.VIEWER
+    ):
         """
         Returns only allowed projects for the user
         """
 
         user_id = user.id if user else None
 
+        if permission == ObjectPermission.CREATOR:
+            return self.filter(author_id=user_id)
+
+        # Permissions of the highest order automatically includes
+        # All previous permissions. E.g. CURATOR already includes VIEWER and FORECASTER
+        # This block generates such a permissions list based on the permission order
+        numeric_permissions = ObjectPermission.get_numeric_representation()
+        involved_permissions = [
+            name
+            for name, value in numeric_permissions.items()
+            if value >= numeric_permissions[permission]
+        ]
+
         return self.filter(
             # If any project has permissions (null value indicates private project)
-            models.Q(projects__default_permission__isnull=False)
+            models.Q(projects__default_permission__in=involved_permissions)
             | (
                 # Or user was given permissions to access the private project
                 models.Q(projects__projectuserpermission__user_id=user_id)
-                & models.Q(projects__projectuserpermission__permission__isnull=False)
+                & models.Q(
+                    projects__projectuserpermission__permission__in=involved_permissions
+                )
             )
-            # Or user is a creator
+            # Or user is a creator, so it encapsulates all permissions
             | models.Q(author_id=user_id)
         )
 
