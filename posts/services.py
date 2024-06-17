@@ -78,8 +78,23 @@ def get_posts_feed(
             qs = qs.filter(curation_status=Post.CurationStatus.PUBLISHED)
         if "closed" in status:
             qs = qs.filter(curation_status=Post.CurationStatus.CLOSED)
-        if "in_review" in status:
+        if "pending" in status:
             qs = qs.filter(curation_status=Post.CurationStatus.PENDING)
+        if "deleted" in status:
+            qs = qs.filter(curation_status=Post.CurationStatus.DELETED)
+        if "rejected" in status:
+            qs = qs.filter(curation_status=Post.CurationStatus.REJECTED)
+        if "resolved" in status:
+            qs = qs.filter(
+                Q(question__resolved_at__lte=timezone.now())
+                | Q(
+                    Q(conditional__condition_child__resolved_at__lte=timezone.now())
+                    & Q(conditional__condition__resolved_at__lte=timezone.now())
+                )
+                | Q(
+                    group_of_questions__questions__resolved_at__lte=timezone.now()
+                )
+            )
 
     if answered_by_me is not None and not user.is_anonymous:
         condition = {"question__forecast__author": user}
