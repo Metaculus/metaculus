@@ -47,8 +47,8 @@ const POST_STATUS_LABEL_MAP = {
   [PostStatus.CLOSED]: "Closed",
   [PostStatus.PENDING]: "In Review",
   [PostStatus.DRAFT]: "My Drafts",
-  [PostStatus.DELETED]: "My Removed Posts",
-  [PostStatus.REJECTED]: "My Rejected Posts",
+  [PostStatus.DELETED]: "Removed Posts",
+  [PostStatus.REJECTED]: "Rejected Posts",
 };
 
 export function generateFiltersFromSearchParams(
