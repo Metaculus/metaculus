@@ -8,7 +8,7 @@ def get_projects_qs(user: User = None):
     Returns available projects for the user
     """
 
-    return Project.objects.filter_active().filter_allowed(user=user)
+    return Project.objects.filter_active().filter_permission(user=user)
 
 
 def get_global_public_project():
@@ -28,7 +28,7 @@ def get_global_public_project():
     return obj
 
 
-def get_private_user_project(user: User):
+def create_private_user_project(user: User):
     """
     All private user projects are created under the "Personal List" project type
     """
@@ -36,15 +36,11 @@ def get_private_user_project(user: User):
     if not user:
         raise ValueError("User is required")
 
-    obj, _ = Project.objects.get_or_create(
+    obj, _ = Project.objects.create(
         type=Project.ProjectTypes.PERSONAL_LIST,
         created_by=user,
-        defaults={
-            "name": f"{user.username}'s Personal List",
-            "type": Project.ProjectTypes.PERSONAL_LIST,
-            # Only question owner has permissions to modify it
-            "default_permission": None,
-        },
+        name=f"{user.username}'s Personal List",
+        default_permission=None,
     )
 
     return obj

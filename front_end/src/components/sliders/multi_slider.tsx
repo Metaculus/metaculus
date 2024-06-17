@@ -1,6 +1,6 @@
 "use client";
 import Slider from "rc-slider";
-import { FC, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 
 import "./slider.css";
 
@@ -10,7 +10,6 @@ export type MultiSliderValue = {
   left: number;
   center: number;
   right: number;
-  weight?: number;
 };
 
 type ControlledValue = [number, number, number];
@@ -21,9 +20,17 @@ type Props = {
   max: number;
   step: number;
   onChange: (value: MultiSliderValue) => void;
+  shouldSyncWithDefault?: boolean;
 };
 
-const MultiSlider: FC<Props> = ({ value, min, max, step, onChange }) => {
+const MultiSlider: FC<Props> = ({
+  value,
+  min,
+  max,
+  step,
+  onChange,
+  shouldSyncWithDefault,
+}) => {
   const [controlledValue, setControlledValue] = useState<ControlledValue>([
     value.left,
     value.center,
@@ -35,6 +42,12 @@ const MultiSlider: FC<Props> = ({ value, min, max, step, onChange }) => {
       persistedPositionOrigin.current = controlledValue;
     }
   };
+
+  useEffect(() => {
+    if (shouldSyncWithDefault) {
+      setControlledValue([value.left, value.center, value.right]);
+    }
+  }, [value, shouldSyncWithDefault]);
 
   return (
     <Slider

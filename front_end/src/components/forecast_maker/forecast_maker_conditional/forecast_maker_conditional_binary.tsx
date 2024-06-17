@@ -45,19 +45,23 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const questionNoId = question_no.id;
 
   const [questionOptions, setQuestionOptions] = useState<
-    ConditionalTableOption[]
+    Array<
+      ConditionalTableOption & {
+        communitiesForecast?: number | null;
+      }
+    >
   >([
     {
       id: questionYesId,
       name: t("yes"),
-      forecastValue: prevYesForecastValue,
+      value: prevYesForecastValue,
       isDirty: false,
       communitiesForecast: question_yes.forecasts.values_mean.at(-1),
     },
     {
       id: questionNoId,
       name: t("no"),
-      forecastValue: prevNoForecastValue,
+      value: prevNoForecastValue,
       isDirty: false,
       communitiesForecast: question_no.forecasts.values_mean.at(-1),
     },
@@ -75,7 +79,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const forecastsToSubmit = useMemo(
     () =>
       questionOptions.filter(
-        (option) => option.isDirty && option.forecastValue !== null
+        (option) => option.isDirty && option.value !== null
       ),
     [questionOptions]
   );
@@ -88,7 +92,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       (option) => option.id !== activeTableOption
     );
 
-    if (!inactiveOption || inactiveOption.forecastValue === null) {
+    if (!inactiveOption || inactiveOption.value === null) {
       return null;
     }
 
@@ -106,11 +110,11 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
           if (prevChoice.id === toQuestionId) {
             const fromChoiceValue = prev.find(
               (prevChoice) => prevChoice.id === fromQuestionId
-            )?.forecastValue;
+            )?.value;
 
             return {
               ...prevChoice,
-              forecastValue: fromChoiceValue ?? prevChoice.forecastValue,
+              value: fromChoiceValue ?? prevChoice.value,
               isDirty: true,
             };
           }
@@ -128,13 +132,13 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
         if (prevChoice.id === questionYesId) {
           return {
             ...prevChoice,
-            forecastValue: prevYesForecastValue,
+            value: prevYesForecastValue,
             isDirty: false,
           };
         } else if (prevChoice.id === questionNoId) {
           return {
             ...prevChoice,
-            forecastValue: prevNoForecastValue,
+            value: prevNoForecastValue,
             isDirty: false,
           };
         } else {
@@ -151,7 +155,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
           if (option.id === questionId) {
             return {
               ...option,
-              forecastValue: forecast,
+              value: forecast,
             };
           }
 
@@ -185,7 +189,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
 
     const promises = forecastsToSubmit.map((forecast) => {
       const forecastValue = round(
-        forecast.forecastValue! / 100,
+        forecast.value! / 100,
         BINARY_FORECAST_PRECISION
       );
       return createForecast(
@@ -232,7 +236,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
           )}
         >
           <BinarySlider
-            forecast={option.forecastValue}
+            forecast={option.value}
             onChange={(forecast) => handleForecastChange(option.id, forecast)}
             isDirty={option.isDirty}
             onBecomeDirty={() => handleBecomeDirty(option.id)}

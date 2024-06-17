@@ -1,166 +1,54 @@
 "use client";
-import { faClose } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import * as math from "mathjs";
-import { FC, useState } from "react";
+import { FC, useMemo, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
-import NumericPickerChart from "@/components/charts/numeric_area_chart";
-import MultiSlider, {
-  MultiSliderValue,
-} from "@/components/sliders/multi_slider";
-import Slider from "@/components/sliders/slider";
+import NumericSlider from "@/components/forecast_maker/numeric_slider";
+import NumericForecastTable from "@/components/forecast_maker/numeric_table";
+import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import { QuestionWithNumericForecasts } from "@/types/question";
-import { getIsForecastEmpty } from "@/utils/forecasts";
-import { binWeightsFromSliders, computeQuartilesFromCDF } from "@/utils/math";
+import {
+  extractPrevNumericForecastValue,
+  getNumericForecastDataset,
+} from "@/utils/forecasts";
 
 type Props = {
   question: QuestionWithNumericForecasts;
-  prevForecast: MultiSliderValue[] | null;
-  prevWeights: number[] | null;
+  prevForecast?: any;
 };
 
-function normWeights(weights: number[]) {
-  return weights.map((x) => x / weights.reduce((a, b) => a + b));
-}
+const ForecastMakerNumeric: FC<Props> = ({ question, prevForecast }) => {
+  const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
 
-const ForecastMakerNumeric: FC<Props> = ({
-  question,
-  prevForecast,
-  prevWeights,
-}) => {
-  const isForecastEmpty = getIsForecastEmpty(question.forecasts);
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
-    prevForecast
-      ? prevForecast
-      : [
-          {
-            left: 0.4,
-            center: 0.5,
-            right: 0.6,
-          },
-        ]
+    prevForecastValue?.forecast ?? [
+      {
+        left: 0.4,
+        center: 0.5,
+        right: 0.6,
+      },
+    ]
   );
   const [weights, setWeights] = useState<number[]>(
-    prevWeights ? prevWeights : [1]
+    prevForecastValue?.weights ?? [1]
   );
 
-  // @ts-ignore
-  const dataset: { cdf: number[]; pmf: number[] } = forecast
-    .map((x) => binWeightsFromSliders(x.left, x.center, x.right))
-    .map((x, index) => {
-      return {
-        // @ts-ignore
-        pmf: math.multiply(x.pmf, weights[index]),
-        // @ts-ignore
-        cdf: math.multiply(x.cdf, weights[index]),
-      };
-    })
-    .reduce((acc, curr) => {
-      return {
-        pmf: math.add(acc.pmf, curr.pmf),
-        cdf: math.add(acc.cdf, curr.cdf),
-      };
-    });
-
-  dataset.pmf = dataset.pmf.map((x) => Number(x));
-  dataset.cdf = dataset.cdf.map((x) => Number(x));
-
-  const quantiles = computeQuartilesFromCDF(dataset.cdf);
-  question.forecasts.latest_pmf = question.forecasts.latest_pmf
-    ? question.forecasts.latest_pmf
-    : [];
-  question.forecasts.latest_cdf = question.forecasts.latest_cdf
-    ? question.forecasts.latest_cdf
-    : [];
-  const cp_quantiles = computeQuartilesFromCDF(question.forecasts.latest_cdf);
-  if (isForecastEmpty) {
-    return <div></div>;
-  }
+  const dataset = useMemo(
+    () => getNumericForecastDataset(forecast, weights),
+    [forecast, weights]
+  );
 
   return (
-    <div>
-      <NumericPickerChart
-        height={300}
-        min={question.min}
-        max={question.max}
-        data={[
-          {
-            pmf: question.forecasts.latest_pmf,
-            cdf: question.forecasts.latest_cdf,
-            color: "green",
-          },
-          {
-            pmf: dataset.pmf,
-            cdf: dataset.cdf,
-            color: "orange",
-          },
-        ]}
+    <>
+      <NumericSlider
+        forecast={forecast}
+        weights={weights}
+        dataset={dataset}
+        onChange={(forecast, weight) => {
+          setForecast(forecast);
+          setWeights(weight);
+        }}
+        question={question}
       />
-      {forecast.map((x, index) => {
-        return (
-          <div key={index}>
-            <MultiSlider
-              key={`multi-slider-${index}`}
-              min={0}
-              max={1}
-              value={forecast[index]}
-              step={0.00001}
-              onChange={(value) =>
-                setForecast([
-                  ...forecast.slice(0, index),
-                  {
-                    left: value.left,
-                    center: value.center,
-                    right: value.right,
-                  },
-                  ...forecast.slice(index + 1, forecast.length),
-                ])
-              }
-            />
-            {forecast.length > 1 ? (
-              <div className="flex flex-row justify-between">
-                <span className="inline pr-2 pt-2">weight:</span>
-                <div className="inline w-3/4">
-                  <Slider
-                    key={`slider-${index}`}
-                    min={0}
-                    max={1}
-                    step={0.00001}
-                    defaultValue={weights[index]}
-                    round={true}
-                    onChange={(value) =>
-                      setWeights(
-                        normWeights([
-                          ...weights.slice(0, index),
-                          value,
-                          ...weights.slice(index + 1, forecast.length),
-                        ])
-                      )
-                    }
-                  />
-                </div>
-                <FontAwesomeIcon
-                  className="inline cursor-pointer pl-2 pt-2"
-                  icon={faClose}
-                  onClick={() => {
-                    setForecast([
-                      ...forecast.slice(0, index),
-                      ...forecast.slice(index + 1, forecast.length),
-                    ]);
-                    setWeights(
-                      normWeights([
-                        ...weights.slice(0, index),
-                        ...weights.slice(index + 1, forecast.length),
-                      ])
-                    );
-                  }}
-                ></FontAwesomeIcon>
-              </div>
-            ) : null}
-          </div>
-        );
-      })}
 
       <div className="p-6 text-center">
         <div className="mb-4">
@@ -175,7 +63,7 @@ const ForecastMakerNumeric: FC<Props> = ({
                   center: 0.5,
                 },
               ]);
-              setWeights(normWeights([...weights, 1]));
+              setWeights(normalizeWeights([...weights, 1]));
             }}
           >
             Add Component
@@ -200,46 +88,17 @@ const ForecastMakerNumeric: FC<Props> = ({
             Predict
           </button>
         </div>
-        <div className="mb-4 flex justify-between text-center">
-          <div className="w-full"></div>
-          <div className="text-m w-full text-orange-300">My Prediction</div>
-          <a className="text-m w-full text-green-200">Community</a>
-        </div>
-        <div className="mb-4 flex justify-between">
-          <div className="w-full text-center">
-            <div className="w-full text-gray-300">lower 25%</div>
-            <div className="w-full  text-gray-300">median</div>
-            <div className="w-full  text-gray-300">upper 75%</div>
-          </div>
-          <div className="w-full text-center">
-            <div className="text-gray-300">
-              {Math.round(quantiles.lower25 * 1000) / 100}
-            </div>
-            <div className="text-gray-300">
-              {Math.round(quantiles.median * 1000) / 100}
-            </div>
-            <div className="text-gray-300">
-              {Math.round(quantiles.upper75 * 1000) / 100}
-            </div>
-          </div>
-          <div className="w-full text-center">
-            <div className="text-gray-300">
-              {Math.round(cp_quantiles.lower25 * 1000) / 100}
-            </div>
-            <div className="text-gray-300">
-              {Math.round(cp_quantiles.median * 1000) / 100}
-            </div>
-            <div className="text-gray-300">
-              {Math.round(cp_quantiles.upper75 * 1000) / 100}
-            </div>
-          </div>
-        </div>
-        <button className="rounded-lg bg-gray-600 px-4 py-2 text-white">
-          RESOLVE
-        </button>
+        <NumericForecastTable
+          cdf={dataset.cdf}
+          latestCdf={question.forecasts.latest_cdf}
+        />
       </div>
-    </div>
+    </>
   );
 };
+
+function normalizeWeights(weights: number[]) {
+  return weights.map((x) => x / weights.reduce((a, b) => a + b));
+}
 
 export default ForecastMakerNumeric;
