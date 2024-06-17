@@ -158,6 +158,9 @@ class PostQuerySet(models.QuerySet):
 
         user_id = user.id if user else None
 
+        if user and user.is_superuser:
+            return self
+
         if permission == ObjectPermission.CREATOR:
             return self.filter(author_id=user_id)
 
@@ -183,7 +186,7 @@ class PostQuerySet(models.QuerySet):
             )
             # Or user is a creator, so it encapsulates all permissions
             | models.Q(author_id=user_id)
-        )
+        ).distinct("id")
 
 
 class Post(TimeStampedModel):

@@ -154,16 +154,19 @@ def migrate_personal_projects():
         # Add users to the author's personal project.
         # This allows them to potentially view all the author's private questions,
         # even if they previously did not have access, but it's fine
-        for user_obj in involved_users:
-            if user_obj["user_id"] != author_id:
-                bulk_project_to_user.append(
-                    Project.override_permissions.through(
-                        user_id=user_obj["user_id"],
-                        project=private_project,
-                        # Ignoring original permissions and setting to Forecaster for now
-                        permission=ObjectPermission.FORECASTER,
-                    )
-                )
+        #  17/06. UPD: After discussion with @george we decided not migrate permissions of the Private questions
+        #         but allow users manually re-invite former members to their global private project
+        #
+        # for user_obj in involved_users:
+        #     if user_obj["user_id"] != author_id:
+        #         bulk_project_to_user.append(
+        #             Project.override_permissions.through(
+        #                 user_id=user_obj["user_id"],
+        #                 project=private_project,
+        #                 # Ignoring original permissions and setting to Forecaster for now
+        #                 permission=ObjectPermission.FORECASTER,
+        #             )
+        #         )
 
     # Bulk creation
     Project.objects.bulk_create(list(user_private_projects.values()))
@@ -179,4 +182,5 @@ def migrate_personal_projects():
 
 
 def migrate_permissions():
+    print("Migrating private questions")
     migrate_personal_projects()
