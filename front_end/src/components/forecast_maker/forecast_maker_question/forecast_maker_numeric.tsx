@@ -5,7 +5,7 @@ import * as math from "mathjs";
 import { FC, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
-import NumericPickerChart from "@/components/charts/numeric_picker_chart";
+import NumericPickerChart from "@/components/charts/numeric_area_chart";
 import MultiSlider, {
   MultiSliderValue,
 } from "@/components/sliders/multi_slider";
@@ -78,22 +78,25 @@ const ForecastMakerNumeric: FC<Props> = ({
     return <div></div>;
   }
 
-  const data = [
-    {
-      pmf: question.forecasts.latest_pmf,
-      cdf: question.forecasts.latest_cdf,
-      color: "green",
-    },
-    {
-      pmf: dataset.pmf,
-      cdf: dataset.cdf,
-      color: "orange",
-    },
-  ];
-
   return (
     <div>
-      <NumericPickerChart min={question.min} max={question.max} data={data} />
+      <NumericPickerChart
+        height={300}
+        min={question.min}
+        max={question.max}
+        data={[
+          {
+            pmf: question.forecasts.latest_pmf,
+            cdf: question.forecasts.latest_cdf,
+            color: "green",
+          },
+          {
+            pmf: dataset.pmf,
+            cdf: dataset.cdf,
+            color: "orange",
+          },
+        ]}
+      />
       {forecast.map((x, index) => {
         return (
           <div key={index}>
