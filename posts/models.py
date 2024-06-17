@@ -141,7 +141,7 @@ class PostQuerySet(models.QuerySet):
                 # If user is the question author
                 models.When(
                     author_id=user.id if user else None,
-                    then=models.Value(ObjectPermission.ADMIN),
+                    then=models.Value(ObjectPermission.CREATOR),
                 ),
                 # Otherwise, check permissions
                 default=Subquery(project_permissions_subquery),
@@ -170,9 +170,28 @@ class PostQuerySet(models.QuerySet):
 
 
 class Post(TimeStampedModel):
+    class CurationStatus(models.TextChoices):
+        # Draft, only the creator can see it
+        DRAFT = "draft"
+        # Pending, only creator and curators can see it, pending a review to be published or rejected
+        PENDING = "pending"
+        # Rejected, only the creator and curators on the project[s] can see it
+        REJECTED = "rejected"
+        # PUBLISHED, all viewers can see it
+        PUBLISHED = "published"
+        # CLOSED, all viewers can see it, no forecasts or other interactions can happen
+        CLOSED = "closed"
+        # DELETED, all viewers can see it, no forecasts or other interactions can happen
+        DELETED = "deleted"
+
+    curation_status = models.CharField(
+        max_length=20, choices=CurationStatus.choices, default=CurationStatus.DRAFT
+    )
     title = models.CharField(max_length=200)
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
 
+    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    rejected_at = models.DateTimeField(null=True, blank=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     approved_by = models.ForeignKey(
         User,
@@ -182,6 +201,7 @@ class Post(TimeStampedModel):
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
 
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields

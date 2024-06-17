@@ -19,11 +19,15 @@ const PostCard: FC<Props> = ({ post }) => {
           {!!post?.question && (
             <QuestionChartTile
               question={post?.question}
-              author_username={post.author_username}
+              authorUsername={post.author_username}
+              curationStatus={post.curation_status}
             />
           )}
           {!!post.conditional && (
-            <ConditionalTile conditional={post.conditional} />
+            <ConditionalTile
+              conditional={post.conditional}
+              curationStatus={post.curation_status}
+            />
           )}
         </div>
       </BasicPostCard>

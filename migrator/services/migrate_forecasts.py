@@ -55,7 +55,7 @@ def migrate_forecasts():
         paginated_query(
             "SELECT p.*, ps.user_id, ps.question_id, ps.aggregation_method FROM metac_question_prediction p JOIN metac_question_predictionsequence ps ON p.prediction_sequence_id = ps.id AND aggregation_method = 'none' "
         )
-    ): #limit 300000
+    ):  # limit 300000
         if (i + 1) % 150000 == 0:
             print(
                 f"Went through {(i + 1)} predictions and generate {len(forecasts) + 1} forecasts!"

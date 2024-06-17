@@ -91,7 +91,7 @@ def build_question_forecasts(
         else:
             raise Exception(f"Unknown question type: {question.type}")
         if cps is None or len(cps) == 0:
-            return
+            return forecasts_data
 
         for cp in cps:
             forecasts_data["timestamps"].append(cp.at_datetime.timestamp())

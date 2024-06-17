@@ -6,10 +6,7 @@ import { FC, PropsWithChildren } from "react";
 
 import { PostStatus } from "@/types/post";
 import { QuestionType } from "@/types/question";
-import {
-  getForecastNumericDisplayValue,
-  getForecastPctDisplayValue,
-} from "@/utils/forecasts";
+import { formatPrediction } from "@/utils/forecasts";
 
 type Size = "compact" | "large";
 
@@ -35,9 +32,9 @@ const PredictionChip: FC<Props> = ({
   const t = useTranslations();
 
   switch (status) {
-    case PostStatus.InReview:
+    case PostStatus.PENDING:
       return <span className="inline-flex flex-col"></span>;
-    case PostStatus.Resolved:
+    case PostStatus.RESOLVED:
       return (
         <span
           className={classNames("inline-flex", {
@@ -64,7 +61,7 @@ const PredictionChip: FC<Props> = ({
           )}
         </span>
       );
-    case PostStatus.Closed:
+    case PostStatus.CLOSED:
       return (
         <span className="inline-flex flex-col">
           <Chip
@@ -82,7 +79,7 @@ const PredictionChip: FC<Props> = ({
           </p>
         </span>
       );
-    case PostStatus.Active:
+    case PostStatus.PUBLISHED:
     default:
       return (
         <span className="inline-flex flex-col">
@@ -151,16 +148,5 @@ const Label: FC<PropsWithChildren<LabelProps>> = ({
     {...props}
   />
 );
-
-function formatPrediction(prediction: number, questionType: QuestionType) {
-  switch (questionType) {
-    case QuestionType.Numeric:
-      return getForecastNumericDisplayValue(prediction);
-    case QuestionType.Binary:
-      return getForecastPctDisplayValue(prediction);
-    default:
-      return prediction;
-  }
-}
 
 export default PredictionChip;
