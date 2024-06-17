@@ -5,7 +5,7 @@ from posts.models import Post
 from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services import get_global_public_project, get_private_user_project
+from projects.services import get_global_public_project
 from questions.services import (
     create_question,
     create_conditional,
@@ -27,6 +27,7 @@ def get_posts_feed(
     status: str = None,
     answered_by_me: bool = None,
     order: str = None,
+    permission: str = ObjectPermission.VIEWER,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
@@ -85,11 +86,14 @@ def get_posts_feed(
         condition = {"question__forecast__author": user}
         qs = qs.filter(**condition) if answered_by_me else qs.exclude(**condition)
 
+    # Filter by permission level
+    qs = qs.filter_permission(user=user, permission=permission)
+
     # Ordering
     if order:
         match order:
             case PostFilterSerializer.Order.MOST_FORECASTERS:
-                qs = qs.annotate_predictions_count__unique().order_by("-nr_forecasters")
+                qs = qs.annotate_nr_forecasters().order_by("-nr_forecasters")
             case PostFilterSerializer.Order.CLOSED_AT:
                 qs = qs.order_by("-closed_at")
             case PostFilterSerializer.Order.RESOLVED_AT:
@@ -108,7 +112,6 @@ def create_post(
     conditional: dict = None,
     group_of_questions: dict = None,
     author: User = None,
-    is_public: bool = True,
 ) -> Post:
     obj = Post(title=title, author=author)
 
@@ -129,13 +132,7 @@ def create_post(
     # If no projects were provided,
     # We need to append default ones
     if not projects:
-        projects = [
-            (
-                get_global_public_project()
-                if is_public
-                else get_private_user_project(author)
-            )
-        ]
+        projects = [get_global_public_project()]
 
     # Adding projects
     obj.projects.add(*projects)
