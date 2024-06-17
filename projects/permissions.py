@@ -1,14 +1,27 @@
 from typing import Self
 
 from django.db import models
+from django.db.models.enums import ChoicesType as _ChoicesType
 from rest_framework.exceptions import PermissionDenied
 
 
-class ObjectPermission(models.TextChoices):
+class ChoicesType(_ChoicesType):
+    @property
+    def choices(self):
+        """
+        Excludes CREATOR from available choices
+        """
+
+        return [c for c in super().choices if c[0] != self.CREATOR.value]
+
+
+class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
     VIEWER = "viewer"
     FORECASTER = "forecaster"
     CURATOR = "curator"
     ADMIN = "admin"
+    # Dynamically generated permission
+    CREATOR = "creator"
 
     @classmethod
     def get_numeric_representation(cls):
@@ -33,6 +46,7 @@ class ObjectPermission(models.TextChoices):
             cls.FORECASTER,
             cls.CURATOR,
             cls.ADMIN,
+            cls.CREATOR,
         )
 
         if raise_exception and not can:
@@ -42,10 +56,7 @@ class ObjectPermission(models.TextChoices):
 
     @classmethod
     def can_edit(cls, permission: Self, raise_exception=False):
-        can = permission in (
-            cls.CURATOR,
-            cls.ADMIN,
-        )
+        can = permission in (cls.CURATOR, cls.ADMIN, cls.CREATOR)
 
         if raise_exception and not can:
             raise PermissionDenied("You do not have permission to edit this project")
@@ -57,6 +68,7 @@ class ObjectPermission(models.TextChoices):
         can = permission in (
             cls.CURATOR,
             cls.ADMIN,
+            cls.CREATOR,
         )
 
         if raise_exception and not can:

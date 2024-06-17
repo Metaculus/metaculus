@@ -141,7 +141,7 @@ class PostQuerySet(models.QuerySet):
                 # If user is the question author
                 models.When(
                     author_id=user.id if user else None,
-                    then=models.Value(ObjectPermission.ADMIN),
+                    then=models.Value(ObjectPermission.CREATOR),
                 ),
                 # Otherwise, check permissions
                 default=Subquery(project_permissions_subquery),

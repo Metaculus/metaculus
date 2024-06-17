@@ -73,7 +73,7 @@ class TestPostPermissions:
         data = Post.objects.annotate_user_permission(user=user1).first()
         assert data.user_permission == ObjectPermission.CURATOR
 
-    def test_annotate_user_permission__owner(self, question_binary, user1):
+    def test_annotate_user_permission__creator(self, question_binary, user1):
         factory_post(
             author=user1,
             question=question_binary,
@@ -84,4 +84,4 @@ class TestPostPermissions:
         )
 
         data = Post.objects.annotate_user_permission(user=user1).first()
-        assert data.user_permission == ObjectPermission.ADMIN
+        assert data.user_permission == ObjectPermission.CREATOR
