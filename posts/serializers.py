@@ -5,6 +5,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from projects.models import Project
+from projects.permissions import ObjectPermission
 from projects.serializers import (
     validate_categories,
     validate_tournaments,
@@ -52,7 +53,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
     question = QuestionWriteSerializer(required=False)
     conditional = ConditionalWriteSerializer(required=False)
     group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
-    is_public = serializers.BooleanField(default=True)
 
     class Meta:
         model = Post
@@ -62,7 +62,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "question",
             "conditional",
             "group_of_questions",
-            "is_public",
         )
 
 
@@ -80,6 +79,10 @@ class PostFilterSerializer(serializers.Serializer):
     forecast_type = serializers.ListField(child=serializers.CharField(), required=False)
     status = serializers.ListField(child=serializers.CharField(), required=False)
     answered_by_me = serializers.BooleanField(required=False, allow_null=True)
+    permission = serializers.ChoiceField(
+        required=False,
+        choices=ObjectPermission.choices + [ObjectPermission.CREATOR],
+    )
     order = serializers.ChoiceField(
         choices=Order.choices, required=False, allow_null=True
     )

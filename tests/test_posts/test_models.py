@@ -5,6 +5,7 @@ from tests.test_posts.factories import factory_post
 from tests.test_projects.factories import factory_project
 from tests.test_questions.factories import create_forecast
 from tests.test_questions.fixtures import *  # noqa
+from tests.test_users.factories import factory_user
 
 
 class TestPostQuerySetAnnotatePredictionsCount:
@@ -85,3 +86,97 @@ class TestPostPermissions:
 
         data = Post.objects.annotate_user_permission(user=user1).first()
         assert data.user_permission == ObjectPermission.CREATOR
+
+    def test_filter_permission(self, user1, user2):
+        user3 = factory_user()
+
+        # Invisible project
+        factory_post(author=factory_user())
+
+        # User2 & User3
+        p1 = factory_post(
+            author=factory_user(),
+            projects=[
+                # Private Projects
+                factory_project(
+                    default_permission=None,
+                    override_permissions={
+                        user2.id: ObjectPermission.FORECASTER,
+                        user3.id: ObjectPermission.ADMIN,
+                    },
+                ),
+                factory_project(
+                    default_permission=None,
+                ),
+            ],
+        )
+
+        # User1 & User3
+        p2 = factory_post(
+            author=user3,
+            projects=[
+                # Private Project
+                factory_project(
+                    default_permission=None,
+                    override_permissions={
+                        user1.id: ObjectPermission.FORECASTER,
+                    },
+                ),
+            ],
+        )
+
+        # Public
+        p3 = factory_post(
+            author=factory_user(),
+            projects=[
+                # Private Project
+                factory_project(default_permission=ObjectPermission.VIEWER),
+            ],
+        )
+
+        # Anon user
+        assert set(Post.objects.filter_permission().values_list("id", flat=True)) == {
+            p3.id
+        }
+        # User 1
+        assert set(
+            Post.objects.filter_permission(user=user1).values_list("id", flat=True)
+        ) == {p2.id, p3.id}
+        # User 2
+        assert set(
+            Post.objects.filter_permission(user=user2).values_list("id", flat=True)
+        ) == {p1.id, p3.id}
+        # User 3
+        assert set(
+            Post.objects.filter_permission(user=user3).values_list("id", flat=True)
+        ) == {p1.id, p2.id, p3.id}
+
+        #
+        # Test allowed by permission level
+        #
+        assert set(
+            Post.objects.filter_permission(
+                user=user3, permission=ObjectPermission.FORECASTER
+            ).values_list("id", flat=True)
+        ) == {p1.id, p2.id}
+        assert set(
+            Post.objects.filter_permission(
+                user=user3, permission=ObjectPermission.CURATOR
+            ).values_list("id", flat=True)
+        ) == {p1.id, p2.id}
+        assert set(
+            Post.objects.filter_permission(
+                user=user3, permission=ObjectPermission.ADMIN
+            ).values_list("id", flat=True)
+        ) == {p1.id, p2.id}
+
+        assert set(
+            Post.objects.filter_permission(
+                user=user1, permission=ObjectPermission.FORECASTER
+            ).values_list("id", flat=True)
+        ) == {p2.id}
+        assert not set(
+            Post.objects.filter_permission(
+                user=user1, permission=ObjectPermission.ADMIN
+            ).values_list("id", flat=True)
+        )
