@@ -72,13 +72,19 @@ class ProjectsQuerySet(models.QuerySet):
 
         return qs
 
-    def filter_allowed(self, user: User = None):
+    def filter_permission(self, user: User = None):
         """
         Returns only allowed projects for the user
         """
 
-        return self.annotate_user_permission(user=user).filter(
-            user_permission__isnull=False
+        return self.filter(
+            # If any project has permissions (null value indicates private project)
+            models.Q(default_permission__isnull=False)
+            | (
+                # Or user was given permissions to access the private project
+                models.Q(projectuserpermission__user_id=user.id if user else None)
+                & models.Q(projectuserpermission__permission__isnull=False)
+            )
         )
 
 
@@ -209,7 +215,7 @@ class ProjectUserPermission(TimeStampedModel):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    permission = models.CharField(choices=ObjectPermission.choices)
+    permission = models.CharField(choices=ObjectPermission.choices, db_index=True)
 
     class Meta:
         constraints = [

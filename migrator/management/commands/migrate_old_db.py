@@ -7,6 +7,7 @@ from django.db import connection
 
 from migrator.services.migrate_comments import migrate_comments
 from migrator.services.migrate_forecasts import migrate_forecasts
+from migrator.services.migrate_permissions import migrate_permissions
 from migrator.services.migrate_projects import migrate_projects
 from migrator.services.migrate_questions import migrate_questions
 from migrator.services.migrate_users import migrate_users
@@ -37,6 +38,8 @@ class Command(BaseCommand):
         print("Migrated votes")
         migrate_comments()
         print("Migrated comments")
+        migrate_permissions()
+        print("Migrated permissions")
 
         # Reset sql sequences
         self._reset_sequence()

@@ -1,10 +1,13 @@
 import { round } from "lodash";
+import * as math from "mathjs";
 
+import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import {
   MultipleChoiceForecast,
   NumericForecast,
   QuestionType,
 } from "@/types/question";
+import { binWeightsFromSliders } from "@/utils/math";
 
 export function getForecastPctDisplayValue(value: number | string) {
   return `${Math.round(Number(value) * 100)}%`;
@@ -38,4 +41,46 @@ export function extractPrevBinaryForecastValue(
   prevForecast: any
 ): number | null {
   return typeof prevForecast === "number" ? round(prevForecast * 100, 1) : null;
+}
+
+export function extractPrevNumericForecastValue(prevForecast: any) {
+  if (typeof prevForecast !== "object") {
+    return null;
+  }
+
+  const result: { forecast?: MultiSliderValue[]; weights?: number[] } = {};
+  if ("forecast" in prevForecast) {
+    result.forecast = prevForecast.forecast;
+  }
+
+  if ("weights" in prevForecast) {
+    result.weights = prevForecast.weights;
+  }
+
+  return result;
+}
+
+export function getNumericForecastDataset(
+  forecast: MultiSliderValue[],
+  weights: number[]
+) {
+  const result: { cdf: number[]; pmf: number[] } = forecast
+    .map((x) => binWeightsFromSliders(x.left, x.center, x.right))
+    .map((x, index) => {
+      return {
+        pmf: math.multiply(x.pmf, weights[index]) as number[],
+        cdf: math.multiply(x.cdf, weights[index]) as number[],
+      };
+    })
+    .reduce((acc, curr) => {
+      return {
+        pmf: math.add(acc.pmf, curr.pmf),
+        cdf: math.add(acc.cdf, curr.cdf),
+      };
+    });
+
+  result.pmf = result.pmf.map((x) => Number(x));
+  result.cdf = result.cdf.map((x) => Number(x));
+
+  return result;
 }

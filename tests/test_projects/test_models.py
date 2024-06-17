@@ -32,7 +32,7 @@ def test_annotate_user_permission(user1, user2, user_admin):
     assert get_perm(project2, user_admin)
 
 
-def test_filter_allowed(user1, user2):
+def test_filter_permission(user1, user2):
     factory_project(default_permission=None)
     project_2 = factory_project(default_permission=None)
     project_2.override_permissions.through.objects.create(
@@ -41,8 +41,8 @@ def test_filter_allowed(user1, user2):
     project_3 = factory_project(default_permission=ObjectPermission.VIEWER)
 
     assert set(
-        Project.objects.filter_allowed(user=user1).values_list("id", flat=True)
+        Project.objects.filter_permission(user=user1).values_list("id", flat=True)
     ) == {project_2.pk, project_3.pk}
     assert set(
-        Project.objects.filter_allowed(user=user2).values_list("id", flat=True)
+        Project.objects.filter_permission(user=user2).values_list("id", flat=True)
     ) == {project_3.pk}

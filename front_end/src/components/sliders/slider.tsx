@@ -62,24 +62,32 @@ const Slider: FC<Props> = ({
             setControlledStep(step);
           }}
           active={!round}
-          onArrowClickIn={() => {
-            setControlledStep(arrowStep ?? step);
-          }}
-          onArrowClickOut={(direction) => {
-            const newValue = clamp(
-              controlledValue + (arrowStep ?? step) * direction,
-              min,
-              max
-            );
-            const roundedValue = dynamicRound(
-              newValue,
-              arrowStep ?? step,
-              min,
-              max
-            );
-            setControlledValue(roundedValue);
-            onChange(roundedValue);
-          }}
+          onArrowClickIn={
+            arrowStep
+              ? () => {
+                  setControlledStep(arrowStep ?? step);
+                }
+              : undefined
+          }
+          onArrowClickOut={
+            arrowStep
+              ? (direction) => {
+                  const newValue = clamp(
+                    controlledValue + (arrowStep ?? step) * direction,
+                    min,
+                    max
+                  );
+                  const roundedValue = dynamicRound(
+                    newValue,
+                    arrowStep ?? step,
+                    min,
+                    max
+                  );
+                  setControlledValue(roundedValue);
+                  onChange(roundedValue);
+                }
+              : undefined
+          }
           arrowClassName={arrowClassName}
         />
       )}
