@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import ForecastMakerConditionalNumeric from "@/components/forecast_maker/forecast_maker_conditional/forecast_maker_conditional_numeric";
 import { PostConditional } from "@/types/post";
 import {
   QuestionType,
@@ -36,7 +37,15 @@ const ForecastMakerConditional: FC<Props> = ({ conditional }) => {
         );
       case QuestionType.Date:
       case QuestionType.Numeric:
-        return <>TODO: numeric picker</>;
+        return (
+          <ForecastMakerConditionalNumeric
+            conditional={
+              conditional as PostConditional<QuestionWithNumericForecasts>
+            }
+            prevYesForecast={question_yes.forecasts.my_forecasts?.slider_values}
+            prevNoForecast={question_no.forecasts.my_forecasts?.slider_values}
+          />
+        );
       default:
         return null;
     }
