@@ -15,7 +15,7 @@ const CategoriesDiscovery: FC<Props> = ({ categories }) => {
   const t = useTranslations();
 
   const categoriesToDisplay = categories
-    .filter((c) => !!c.questions_count)
+    .filter((c) => !!c.posts_count)
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (

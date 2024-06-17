@@ -55,7 +55,7 @@ const AwaitedTags: FC<TagsProps> = async ({ filters }) => {
           href={`/questions/?${POST_TAGS_FILTER}=${tag.slug}`}
           color="blue"
           size="sm"
-          label={tag.questions_count.toString()}
+          label={tag.posts_count.toString()}
         >
           {tag.name}
         </Chip>
