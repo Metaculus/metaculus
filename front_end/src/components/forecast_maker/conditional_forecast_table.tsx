@@ -12,9 +12,8 @@ import { Question } from "@/types/question";
 export type ConditionalTableOption = {
   id: number;
   name: string;
-  forecastValue: number | null;
+  value: number | null;
   isDirty: boolean;
-  communitiesForecast?: number | null;
 };
 
 type Props = {
@@ -84,8 +83,8 @@ const ConditionalForecastTable: FC<Props> = ({
                   <strong>
                     <span className="text-orange-800 dark:text-orange-800-dark">
                       {formatForecastValue
-                        ? formatForecastValue(option.forecastValue)
-                        : option.forecastValue}
+                        ? formatForecastValue(option.value)
+                        : option.value}
                     </span>
                   </strong>
                 </td>
