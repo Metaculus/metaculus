@@ -8,7 +8,7 @@ def get_projects_qs(user: User = None):
     Returns available projects for the user
     """
 
-    return Project.objects.filter_active().filter_allowed(user=user)
+    return Project.objects.filter_active().filter_permission(user=user)
 
 
 def get_global_public_project():
