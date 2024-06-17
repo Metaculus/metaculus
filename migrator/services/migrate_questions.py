@@ -109,7 +109,7 @@ def create_post(question: dict, **kwargs) -> Post:
         curation_status = Post.CurationStatus.PENDING
     if question["mod_status"] == "REJECTED":
         curation_status = Post.CurationStatus.REJECTED
-    if question["mod_reason"] == "DELETED":
+    if question["mod_status"] == "DELETED":
         curation_status = Post.CurationStatus.DELETED
 
     return Post(
