@@ -3,6 +3,9 @@ import {
   faHome,
   faEllipsis,
   faArrowUp,
+  faLockOpen,
+  faSearch,
+  faFileClipboard,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
@@ -156,6 +159,13 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             href="/questions/discovery"
             text={t("seeAllCategories")}
             emoji={<FontAwesomeIcon icon={faEllipsis} />}
+            isActive={false}
+          />
+          <hr className="mb-0 mt-0"></hr>
+          <TopicItem
+            href="/questions?status=pending"
+            text="In Review"
+            emoji={<FontAwesomeIcon icon={faFileClipboard} />}
             isActive={false}
           />
         </div>
