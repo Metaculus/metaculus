@@ -72,7 +72,7 @@ class ProjectsQuerySet(models.QuerySet):
 
         return qs
 
-    def filter_allowed(self, user: User = None):
+    def filter_permission(self, user: User = None):
         """
         Returns only allowed projects for the user
         """

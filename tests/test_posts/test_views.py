@@ -141,9 +141,9 @@ class TestPostCreate:
         post_id = response.data["id"]
 
         # Check is available for all users
-        assert Post.objects.filter(id=post_id).filter_allowed().exists()
-        assert Post.objects.filter(id=post_id).filter_allowed(user=user2).exists()
-        assert Post.objects.filter(id=post_id).filter_allowed(user=user1).exists()
+        assert Post.objects.filter(id=post_id).filter_permission().exists()
+        assert Post.objects.filter(id=post_id).filter_permission(user=user2).exists()
+        assert Post.objects.filter(id=post_id).filter_permission(user=user1).exists()
 
     def test_create__is_public__false(self, user1, user2, user1_client):
         response = user1_client.post(
@@ -172,11 +172,11 @@ class TestPostCreate:
 
         # Check is really private
         # Anon user
-        assert not Post.objects.filter(id=post_id).filter_allowed().exists()
+        assert not Post.objects.filter(id=post_id).filter_permission().exists()
         # Second user
-        assert not Post.objects.filter(id=post_id).filter_allowed(user=user2).exists()
+        assert not Post.objects.filter(id=post_id).filter_permission(user=user2).exists()
         # But visible for owner
-        assert Post.objects.filter(id=post_id).filter_allowed(user=user1).exists()
+        assert Post.objects.filter(id=post_id).filter_permission(user=user1).exists()
 
 
 def test_posts_list(anon_client):
