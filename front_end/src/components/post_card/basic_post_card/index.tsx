@@ -38,7 +38,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
     }
 
     return null;
-  }, [post.conditional, post.question]);
+  }, [post.conditional, post.curation_status, post.question]);
 
   return (
     <div className="rounded border border-blue-500 bg-gray-0 dark:border-blue-600 dark:bg-gray-0-dark">
