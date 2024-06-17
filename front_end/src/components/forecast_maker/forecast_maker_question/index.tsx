@@ -18,13 +18,7 @@ const QuestionForecastMaker: FC<Props> = ({ question }) => {
       return (
         <ForecastMakerNumeric
           question={question}
-          prevForecast={
-            question.forecasts.my_forecasts?.slider_values
-              ?.forecast as MultiSliderValue[]
-          }
-          prevWeights={
-            question.forecasts.my_forecasts?.slider_values?.weights as number[]
-          }
+          prevForecast={question.forecasts.my_forecasts?.slider_values}
         />
       );
     case QuestionType.Binary:
