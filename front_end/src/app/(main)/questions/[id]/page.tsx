@@ -66,6 +66,10 @@ export default async function IndividualQuestion({
         </div>
         <div className="mt-2 flex flex-col border-b pb-4 pt-4">
           <div className="flex flex-row justify-between">
+            <span>Satus:</span>
+            <span>{postData.curation_status}</span>
+          </div>
+          <div className="flex flex-row justify-between">
             <span>Author:</span>
             <a href={`/accounts/profile/${postData.author_id}`}>
               {postData.author_username}
