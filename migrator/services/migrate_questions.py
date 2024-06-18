@@ -101,7 +101,7 @@ def create_post(question: dict, **kwargs) -> Post:
     if question["approved_by_id"] or (
         question["approved_time"]
         and question["approved_time"] < django.utils.timezone.now()
-    ):
+    ) or (question["publish_time"] and question["publish_time"] < django.utils.timezone.now()):
         curation_status = Post.CurationStatus.PUBLISHED
     if question["close_time"] < django.utils.timezone.now() and (
         (
