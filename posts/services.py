@@ -75,6 +75,8 @@ def get_posts_feed(
             qs = qs.filter(question__resolved_at__isnull=False).filter(
                 question__resolved_at__lte=timezone.now()
             )
+        if "draft" in status:
+            qs = qs.filter(curation_status=Post.CurationStatus.DRAFT)
         if "active" in status:
             qs = qs.filter(curation_status=Post.CurationStatus.PUBLISHED)
         if "closed" in status:
@@ -100,7 +102,6 @@ def get_posts_feed(
     if answered_by_me is not None and not user.is_anonymous:
         condition = {"question__forecast__author": user}
         qs = qs.filter(**condition) if answered_by_me else qs.exclude(**condition)
-
     # Filter by permission level
     qs = qs.filter_permission(user=user, permission=permission)
 
@@ -128,7 +129,7 @@ def create_post(
     group_of_questions: dict = None,
     author: User = None,
 ) -> Post:
-    obj = Post(title=title, author=author)
+    obj = Post(title=title, author=author, curation_status=Post.CurationStatus.DRAFT)
 
     # Adding questions
     if question:
@@ -140,7 +141,6 @@ def create_post(
 
     obj.full_clean()
     obj.save()
-
     # Projects appending
     projects = flatten(projects.values()) if projects else []
 
