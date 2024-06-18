@@ -78,7 +78,7 @@ def get_posts_feed(
         if "draft" in status:
             qs = qs.filter(curation_status=Post.CurationStatus.DRAFT)
         if "active" in status:
-            qs = qs.filter(curation_status=Post.CurationStatus.PUBLISHED)
+            qs = qs.filter(curation_status=Post.CurationStatus.APPROVED)
         if "closed" in status:
             qs = qs.filter(curation_status=Post.CurationStatus.CLOSED)
         if "pending" in status:

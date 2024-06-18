@@ -102,7 +102,7 @@ def create_post(question: dict, **kwargs) -> Post:
         question["approved_time"]
         and question["approved_time"] < django.utils.timezone.now()
     ) or (question["publish_time"] and question["publish_time"] < django.utils.timezone.now()):
-        curation_status = Post.CurationStatus.PUBLISHED
+        curation_status = Post.CurationStatus.APPROVED
     if question["close_time"] < django.utils.timezone.now() and (
         (
             question["approved_time"]
@@ -111,6 +111,14 @@ def create_post(question: dict, **kwargs) -> Post:
         or question["approved_by_id"]
     ):
         curation_status = Post.CurationStatus.CLOSED
+    if question["resolve_time"] < django.utils.timezone.now() and (
+        (
+            question["approved_time"]
+            and question["approved_time"] < django.utils.timezone.now()
+        )
+        or question["approved_by_id"]
+    ):
+        curation_status = Post.CurationStatus.RESOLVED
     if question["mod_status"] == "PENDING":
         curation_status = Post.CurationStatus.PENDING
     if question["mod_status"] == "REJECTED":

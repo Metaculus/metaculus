@@ -23,7 +23,7 @@ const PostStatus: FC<Props> = ({ id, status, closedAt, resolvedAt, post }) => {
       return [t("resolutionPending")];
     }
 
-    if (status === PostStatusEnum.PUBLISHED) {
+    if (status === PostStatusEnum.APPROVED) {
       return [
         t("closes"),
         formatRelativeDate(locale, new Date(closedAt), {
