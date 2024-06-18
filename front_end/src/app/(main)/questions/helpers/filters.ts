@@ -42,7 +42,7 @@ const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
 
 // TODO: translate
 const POST_STATUS_LABEL_MAP = {
-  [PostStatus.PUBLISHED]: "Open",
+  [PostStatus.APPROVED]: "Open",
   [PostStatus.RESOLVED]: "Resolved",
   [PostStatus.CLOSED]: "Closed",
   [PostStatus.PENDING]: "In Review",

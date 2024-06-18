@@ -197,12 +197,14 @@ class Post(TimeStampedModel):
         PENDING = "pending"
         # Rejected, only the creator and curators on the project[s] can see it
         REJECTED = "rejected"
-        # PUBLISHED, all viewers can see it
-        PUBLISHED = "published"
+        # APPROVED, all viewers can see it
+        APPROVED = "approved"
         # CLOSED, all viewers can see it, no forecasts or other interactions can happen
         CLOSED = "closed"
         # DELETED, all viewers can see it, no forecasts or other interactions can happen
         DELETED = "deleted"
+        # RESOLVED (This is kinda fuzzy)
+        RESOLVED = "resolved"
 
     curation_status = models.CharField(
         max_length=20, choices=CurationStatus.choices, default=CurationStatus.DRAFT
