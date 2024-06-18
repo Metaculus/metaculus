@@ -27,6 +27,7 @@ const PostCard: FC<Props> = ({ post }) => {
           {!!post.group_of_questions && (
             <GroupOfQuestionsTile
               questions={post.group_of_questions.questions}
+              curationStatus={post.curation_status}
             />
           )}
           {!!post.conditional && (

@@ -1,3 +1,5 @@
+import { Quartiles } from "@/types/question";
+
 export type TickFormat = (
   value: number,
   index?: number,
@@ -14,7 +16,13 @@ export type BaseChartData = {
   yScale: Scale;
 };
 
-export type Line = Array<{ x: number; y: number }>;
-export type Area = Array<{ x: number; y: number; y0?: number }>;
+export type Line<X = number, Y = number> = Array<{ x: X; y: Y }>;
+export type Area<X = number, Y = number> = Array<{ x: X; y: Y; y0?: Y }>;
 
 export type NumericChartType = "date" | "numeric" | "binary";
+
+export type FanOption = {
+  name: string;
+  quartiles: Quartiles;
+  resolved: boolean;
+};

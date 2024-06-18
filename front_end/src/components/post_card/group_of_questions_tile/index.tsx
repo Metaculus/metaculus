@@ -1,6 +1,7 @@
 import { FC } from "react";
 
-import MultipleChoiceTile from "@/components/post_card/question_chart_tile/multiple_choice_tile";
+import GroupNumericTile from "@/components/post_card/group_of_questions_tile/group_numeric_tile";
+import { PostStatus } from "@/types/post";
 import {
   QuestionType,
   QuestionWithForecasts,
@@ -11,11 +12,14 @@ import {
   getGroupQuestionsTimestamps,
 } from "@/utils/charts";
 
+import MultipleChoiceTile from "../multiple_choice_tile";
+
 type Props = {
   questions: QuestionWithForecasts[];
+  curationStatus: PostStatus;
 };
 
-const GroupOfQuestionsTile: FC<Props> = ({ questions }) => {
+const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
   const tileType = questions.at(0)?.type;
 
   if (!tileType) {
@@ -33,7 +37,13 @@ const GroupOfQuestionsTile: FC<Props> = ({ questions }) => {
       return <MultipleChoiceTile choices={choices} timestamps={timestamps} />;
     }
     case QuestionType.Numeric:
-      return <>TODO: numeric</>;
+    case QuestionType.Date:
+      return (
+        <GroupNumericTile
+          questions={questions as QuestionWithNumericForecasts[]}
+          curationStatus={curationStatus}
+        />
+      );
     default:
       return null;
   }

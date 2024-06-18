@@ -54,7 +54,7 @@ const PredictionChip: FC<Props> = ({
           >
             {resolution}
           </Chip>
-          {size !== "compact" && (
+          {size !== "compact" && !!nr_forecasters && (
             <p>
               {nr_forecasters} {t("forecasters")}
             </p>
@@ -74,9 +74,11 @@ const PredictionChip: FC<Props> = ({
             <FontAwesomeIcon icon={faUserGroup} size="xs" />
             {t("Closed")}
           </Chip>
-          <p>
-            {nr_forecasters} {t("forecasters")}
-          </p>
+          {!!nr_forecasters && (
+            <p>
+              {nr_forecasters} {t("forecasters")}
+            </p>
+          )}
         </span>
       );
     case PostStatus.PUBLISHED:
@@ -93,9 +95,11 @@ const PredictionChip: FC<Props> = ({
             <FontAwesomeIcon icon={faUserGroup} size="xs" />
             {prediction ? formatPrediction(prediction, questionType) : ""}
           </Chip>
-          <p>
-            {nr_forecasters} {t("forecasters")}
-          </p>
+          {!!nr_forecasters && (
+            <p>
+              {nr_forecasters} {t("forecasters")}
+            </p>
+          )}
         </span>
       );
   }

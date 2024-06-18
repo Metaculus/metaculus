@@ -4,13 +4,14 @@ import { uniq } from "lodash";
 import { Tuple } from "victory";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
-import { NumericChartType, Scale } from "@/types/charts";
+import { FanOption, NumericChartType, Scale } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import {
   MultipleChoiceForecast,
   QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { computeQuartilesFromCDF } from "@/utils/math";
 
 export function getNumericChartTypeFromQuestion(
   type: QuestionType
@@ -226,6 +227,36 @@ export function generateChoiceItemsFromBinaryGroup(
       highlighted: false,
     };
   });
+}
+
+// TODO: BE should probably return a field, that can be used as chart title
+// and a separate field for sorting the options
+export function getFanName(title: string) {
+  const match = title.match(/\((.*?)\)/);
+  return match ? match[1] : title;
+}
+
+export function getFanOptionsFromNumericGroup(
+  questions: QuestionWithNumericForecasts[]
+): FanOption[] {
+  return questions
+    .map((q, index) => {
+      const name = getFanName(q.title);
+      const dateValue = Date.parse(name);
+      const sortValue = isNaN(dateValue) ? index : dateValue;
+      return {
+        name,
+        cdf: q.forecasts.latest_cdf,
+        sortValue,
+        resolved: q.resolution !== null,
+      };
+    })
+    .sort((a, b) => a.sortValue - b.sortValue)
+    .map(({ name, cdf, resolved }) => ({
+      name,
+      quartiles: computeQuartilesFromCDF(cdf),
+      resolved,
+    }));
 }
 
 export function getGroupQuestionsTimestamps(

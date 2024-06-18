@@ -5,8 +5,8 @@ import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
 import { getIsForecastEmpty } from "@/utils/forecasts";
 
-import MultipleChoiceTile from "./multiple_choice_tile";
-import NumericTile from "./numeric_tile";
+import QuestionNumericTile from "./question_numeric_tile";
+import MultipleChoiceTile from "../multiple_choice_tile";
 
 type Props = {
   question: QuestionWithForecasts;
@@ -35,7 +35,10 @@ const QuestionChartTile: FC<Props> = ({
     case QuestionType.Date:
     case QuestionType.Binary:
       return (
-        <NumericTile question={question} curationStatus={curationStatus} />
+        <QuestionNumericTile
+          question={question}
+          curationStatus={curationStatus}
+        />
       );
     case QuestionType.MultipleChoice: {
       const choices = generateChoiceItemsFromMultipleChoiceForecast(
