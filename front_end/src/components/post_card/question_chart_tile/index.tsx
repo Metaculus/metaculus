@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import { PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
 import { getIsForecastEmpty } from "@/utils/forecasts";
 
 import MultipleChoiceTile from "./multiple_choice_tile";
@@ -36,8 +37,17 @@ const QuestionChartTile: FC<Props> = ({
       return (
         <NumericTile question={question} curationStatus={curationStatus} />
       );
-    case QuestionType.MultipleChoice:
-      return <MultipleChoiceTile question={question} />;
+    case QuestionType.MultipleChoice: {
+      const choices = generateChoiceItemsFromMultipleChoiceForecast(
+        question.forecasts
+      );
+      return (
+        <MultipleChoiceTile
+          timestamps={question.forecasts.timestamps}
+          choices={choices}
+        />
+      );
+    }
     default:
       return null;
   }

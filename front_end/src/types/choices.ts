@@ -1,5 +1,6 @@
 export type ChoiceItem = {
   choice: string;
+  timestamps?: number[];
   values: number[];
   color: {
     DEFAULT: string;

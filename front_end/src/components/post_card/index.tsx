@@ -1,6 +1,7 @@
 import { FC } from "react";
 
 import ConditionalTile from "@/components/conditional_tile";
+import GroupOfQuestionsTile from "@/components/post_card/group_of_questions_tile";
 import { PostWithForecasts } from "@/types/post";
 
 import BasicPostCard from "./basic_post_card";
@@ -21,6 +22,11 @@ const PostCard: FC<Props> = ({ post }) => {
               question={post?.question}
               authorUsername={post.author_username}
               curationStatus={post.curation_status}
+            />
+          )}
+          {!!post.group_of_questions && (
+            <GroupOfQuestionsTile
+              questions={post.group_of_questions.questions}
             />
           )}
           {!!post.conditional && (

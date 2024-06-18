@@ -1,0 +1,42 @@
+import { FC } from "react";
+
+import MultipleChoiceTile from "@/components/post_card/question_chart_tile/multiple_choice_tile";
+import {
+  QuestionType,
+  QuestionWithForecasts,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
+import {
+  generateChoiceItemsFromBinaryGroup,
+  getGroupQuestionsTimestamps,
+} from "@/utils/charts";
+
+type Props = {
+  questions: QuestionWithForecasts[];
+};
+
+const GroupOfQuestionsTile: FC<Props> = ({ questions }) => {
+  const tileType = questions.at(0)?.type;
+
+  if (!tileType) {
+    return <div>Forecasts data is empty</div>;
+  }
+
+  switch (tileType) {
+    case QuestionType.Binary: {
+      const timestamps = getGroupQuestionsTimestamps(
+        questions as QuestionWithNumericForecasts[]
+      );
+      const choices = generateChoiceItemsFromBinaryGroup(
+        questions as QuestionWithNumericForecasts[]
+      );
+      return <MultipleChoiceTile choices={choices} timestamps={timestamps} />;
+    }
+    case QuestionType.Numeric:
+      return <>TODO: numeric</>;
+    default:
+      return null;
+  }
+};
+
+export default GroupOfQuestionsTile;

@@ -1,10 +1,16 @@
 import * as d3 from "d3";
+import { differenceInMilliseconds, fromUnixTime, getUnixTime } from "date-fns";
+import { uniq } from "lodash";
 import { Tuple } from "victory";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { NumericChartType, Scale } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
-import { MultipleChoiceForecast, QuestionType } from "@/types/question";
+import {
+  MultipleChoiceForecast,
+  QuestionType,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 
 export function getNumericChartTypeFromQuestion(
   type: QuestionType
@@ -36,43 +42,46 @@ export function generateTimestampXScale(
   const oneHour = 60 * oneMinute;
   const oneDay = 24 * oneHour;
   const oneWeek = 7 * oneDay;
+  const threeWeeks = oneWeek * 3;
   const oneMonth = 30 * oneDay;
   const oneYear = 365 * oneDay;
 
   let ticks;
   let format;
-  const timeRange = xDomain[1] - xDomain[0];
+  const start = fromUnixTime(xDomain[0]);
+  const end = fromUnixTime(xDomain[1]);
+  const timeRange = differenceInMilliseconds(end, start);
   const maxTicks = Math.floor(width / 80);
   if (timeRange < oneHour) {
-    ticks = d3.timeMinute.range(new Date(xDomain[0]), new Date(xDomain[1]));
+    ticks = d3.timeMinute.range(start, end);
     format = d3.timeFormat("%H:%M");
   } else if (timeRange < oneDay) {
     const every30Minutes = d3.timeMinute.every(30);
     if (every30Minutes) {
-      ticks = every30Minutes.range(new Date(xDomain[0]), new Date(xDomain[1]));
+      ticks = every30Minutes.range(start, end);
     } else {
-      ticks = d3.timeHour.range(new Date(xDomain[0]), new Date(xDomain[1]));
+      ticks = d3.timeHour.range(start, end);
     }
     format = d3.timeFormat("%H:%M");
-  } else if (timeRange < oneWeek) {
-    ticks = d3.timeDay.range(new Date(xDomain[0]), new Date(xDomain[1]));
+  } else if (timeRange < threeWeeks) {
+    ticks = d3.timeDay.range(start, end);
     format = d3.timeFormat("%b %d");
   } else if (timeRange < oneMonth) {
-    ticks = d3.timeWeek.range(new Date(xDomain[0]), new Date(xDomain[1]));
+    ticks = d3.timeWeek.range(start, end);
     format = d3.timeFormat("%b %d");
   } else if (timeRange < oneYear) {
-    ticks = d3.timeMonth.range(new Date(xDomain[0]), new Date(xDomain[1]));
+    ticks = d3.timeMonth.range(start, end);
     format = d3.timeFormat("%b %Y");
   } else {
-    ticks = d3.timeYear.range(new Date(xDomain[0]), new Date(xDomain[1]));
+    ticks = d3.timeYear.range(start, end);
     format = d3.timeFormat("%Y");
   }
 
   return {
-    ticks: ticks.map((tick) => tick.getTime()),
+    ticks: ticks.map((tick) => getUnixTime(tick)),
     tickFormat: (x: number, index?: number) => {
       if (!index) {
-        return format(new Date(x));
+        return format(fromUnixTime(x));
       }
 
       if (index % Math.max(1, Math.floor(ticks.length / maxTicks)) !== 0) {
@@ -83,7 +92,7 @@ export function generateTimestampXScale(
         return "";
       }
 
-      return format(new Date(x));
+      return format(fromUnixTime(x));
     },
   };
 }
@@ -120,34 +129,39 @@ export function generateDateYScale(yDomain: Tuple<number>): Scale {
 
   const oneHour = 60 * 60 * 1000;
   const oneDay = 24 * oneHour;
+  const oneYear = 365 * oneDay;
 
-  const range = yDomain[1] - yDomain[0];
+  const start = fromUnixTime(yDomain[0]);
+  const end = fromUnixTime(yDomain[1]);
+  const range = differenceInMilliseconds(end, start);
 
   let format;
   if (range < oneDay) {
     format = d3.timeFormat("%H:%M");
-  } else {
+  } else if (range < oneYear) {
     format = d3.timeFormat("%b %d");
+  } else {
+    format = d3.timeFormat("%Y");
   }
 
-  const timeScale = d3.scaleTime().domain(yDomain).nice(totalTicks);
+  const timeScale = d3.scaleTime().domain([start, end]).nice(totalTicks);
   const ticks = timeScale.ticks(totalTicks);
 
   const majorTicks = new Set<number>();
   const minorTicks = new Set<number>();
   ticks.forEach((tick, index) => {
     if (index % majorTickStep === 0) {
-      majorTicks.add(tick.getTime());
+      majorTicks.add(getUnixTime(tick));
     } else {
-      minorTicks.add(tick.getTime());
+      minorTicks.add(getUnixTime(tick));
     }
   });
 
   return {
-    ticks: ticks.map((tick) => tick.getTime()),
+    ticks: ticks.map((tick) => getUnixTime(tick)),
     tickFormat: (y: number) => {
       if (majorTicks.has(y)) {
-        return format(new Date(y));
+        return format(fromUnixTime(y));
       } else {
         return "";
       }
@@ -186,7 +200,7 @@ export function generatePercentageYScale(containerHeight: number): Scale {
   };
 }
 
-export function generateChartChoices(
+export function generateChoiceItemsFromMultipleChoiceForecast(
   dataset: MultipleChoiceForecast
 ): ChoiceItem[] {
   const { timestamps, nr_forecasters, my_forecasts, ...choices } = dataset;
@@ -197,4 +211,39 @@ export function generateChartChoices(
     active: true,
     highlighted: false,
   }));
+}
+
+export function generateChoiceItemsFromBinaryGroup(
+  questions: QuestionWithNumericForecasts[]
+): ChoiceItem[] {
+  return questions.map((q, index) => {
+    return {
+      choice: q.title,
+      values: q.forecasts.values_mean,
+      timestamps: q.forecasts.timestamps,
+      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      active: true,
+      highlighted: false,
+    };
+  });
+}
+
+export function getGroupQuestionsTimestamps(
+  questions: QuestionWithNumericForecasts[]
+): number[] {
+  return uniq(
+    questions.reduce<number[]>(
+      (acc, question) => [...acc, ...question.forecasts.timestamps],
+      []
+    )
+  ).sort((a, b) => a - b);
+}
+
+export function findClosestTimestamp(
+  timestamps: number[],
+  timestamp: number
+): number {
+  return timestamps.reduce((prev, curr) =>
+    Math.abs(curr - timestamp) < Math.abs(prev - timestamp) ? curr : prev
+  );
 }
