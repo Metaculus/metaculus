@@ -13,7 +13,7 @@ type Props = {
   curationStatus: PostStatus;
 };
 
-const NumericTile: FC<Props> = ({ question, curationStatus }) => {
+const QuestionNumericTile: FC<Props> = ({ question, curationStatus }) => {
   const prediction =
     question.forecasts.values_mean[question.forecasts.values_mean.length - 1];
 
@@ -39,4 +39,4 @@ const NumericTile: FC<Props> = ({ question, curationStatus }) => {
   );
 };
 
-export default NumericTile;
+export default QuestionNumericTile;

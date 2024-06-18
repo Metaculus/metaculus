@@ -1,5 +1,6 @@
 import { FC } from "react";
 
+import NumericGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/numeric_group_chart";
 import {
   QuestionType,
   QuestionWithForecasts,
@@ -33,6 +34,13 @@ const DetailedGroupCard: FC<Props> = ({ questions }) => {
         />
       );
     }
+    case QuestionType.Numeric:
+    case QuestionType.Date:
+      return (
+        <NumericGroupChart
+          questions={questions as QuestionWithNumericForecasts[]}
+        />
+      );
   }
 };
 

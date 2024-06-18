@@ -48,6 +48,12 @@ export type MultipleChoiceForecast = BaseForecast & {
   }>;
 };
 
+export type Quartiles = {
+  median: number;
+  lower25: number;
+  upper75: number;
+};
+
 export type Question = {
   id: number;
   title: string;
