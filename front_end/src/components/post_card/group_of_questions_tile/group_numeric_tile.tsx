@@ -5,7 +5,8 @@ import FanChart from "@/components/charts/fan_chart";
 import PredictionChip from "@/components/prediction_chip";
 import { PostStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
-import { getFanName, getFanOptionsFromNumericGroup } from "@/utils/charts";
+import { getFanOptionsFromNumericGroup } from "@/utils/charts";
+import { extractQuestionGroupName } from "@/utils/questions";
 
 const CHART_HEIGHT = 100;
 
@@ -47,7 +48,7 @@ function getPredictionQuestion(
     .map((q) => ({
       ...q,
       resolvedAt: new Date(q.resolved_at),
-      fanName: getFanName(q.title),
+      fanName: extractQuestionGroupName(q.title),
     }))
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));
 

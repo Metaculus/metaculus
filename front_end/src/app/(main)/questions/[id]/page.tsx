@@ -52,8 +52,10 @@ export default async function IndividualQuestion({
         )}
         <div className="p-6 dark:bg-blue-800">
           <ForecastMaker
+            postId={postData.id}
             question={postData.question}
             conditional={postData.conditional}
+            groupOfQuestions={postData.group_of_questions}
           />
         </div>
         {commentsData && <CommentFeed initialComments={commentsData} />}

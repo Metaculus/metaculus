@@ -56,6 +56,7 @@ const ForecastMakerBinary: FC<Props> = ({ question, prevForecast }) => {
       },
       forecastValue
     );
+    setIsForecastDirty(false);
     if ("errors" in response) {
       setSubmitError(response.errors);
     }
