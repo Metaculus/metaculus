@@ -71,6 +71,32 @@ export async function createForecast(
   }
 }
 
+export async function createForecasts(
+  postId: number,
+  forecasts: Array<{
+    questionId: number;
+    forecastData: ForecastData;
+    sliderValues: any;
+  }>
+) {
+  try {
+    const promises = forecasts.map(
+      ({ questionId, forecastData, sliderValues }) =>
+        createForecast(questionId, forecastData, sliderValues)
+    );
+
+    const responses = await Promise.all(promises);
+
+    revalidatePath(`/questions/${postId}`);
+
+    return responses;
+  } catch (err) {
+    const error = err as FetchError;
+
+    return [error];
+  }
+}
+
 export async function getPost(postId: number) {
   const response = await PostsApi.getPost(postId);
   return response;
