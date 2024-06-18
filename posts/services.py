@@ -94,9 +94,7 @@ def get_posts_feed(
                     Q(conditional__condition_child__resolved_at__lte=timezone.now())
                     & Q(conditional__condition__resolved_at__lte=timezone.now())
                 )
-                | Q(
-                    group_of_questions__questions__resolved_at__lte=timezone.now()
-                )
+                | Q(group_of_questions__questions__resolved_at__lte=timezone.now())
             )
 
     if answered_by_me is not None and not user.is_anonymous:
