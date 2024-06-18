@@ -63,9 +63,11 @@ class PostsApi {
     }
   }
 
-  static async createQuestionPost(body: any): Promise<Response | null> {
+  static async createQuestionPost(
+    body: any
+  ): Promise<PostWithForecasts | null> {
     try {
-      return await post<Response>(`/posts/create/`, body);
+      return await post<PostWithForecasts>(`/posts/create/`, body);
     } catch (err) {
       console.error("Error getting posts:", err);
       return null;
