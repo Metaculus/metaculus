@@ -78,6 +78,10 @@ export type Post<QT = Question> = {
   author_id: number;
   question?: QT;
   conditional?: PostConditional<QT>;
+  group_of_questions: {
+    id: number;
+    questions: QT[];
+  };
   curation_status: PostStatus;
 };
 
