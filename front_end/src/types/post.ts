@@ -38,7 +38,7 @@ export enum PostStatus {
   DRAFT = "draft",
   PENDING = "pending",
   REJECTED = "rejected",
-  PUBLISHED = "published",
+  APPROVED = "approved",
   CLOSED = "closed",
   RESOLVED = "resolved",
   DELETED = "deleted",
