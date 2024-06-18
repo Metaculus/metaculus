@@ -3,23 +3,26 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
+import ChoiceCheckbox from "@/app/(main)/questions/[id]/components/choice_checkbox";
+import ChoicesTooltip from "@/app/(main)/questions/[id]/components/choices_tooltip";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import usePrevious from "@/hooks/use_previous";
-import { TickFormat } from "@/types/charts";
+import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
-import { MultipleChoiceForecast } from "@/types/question";
-import { generateChartChoices } from "@/utils/charts";
+import { QuestionWithNumericForecasts } from "@/types/question";
+import {
+  findClosestTimestamp,
+  generateChoiceItemsFromBinaryGroup,
+} from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
-import ChoiceCheckbox from "./choice_checkbox";
-import ChoicesTooltip from "./choices_tooltip";
-
 type Props = {
-  forecast: MultipleChoiceForecast;
+  questions: QuestionWithNumericForecasts[];
+  timestamps: number[];
 };
 
-const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
+const BinaryGroupChart: FC<Props> = ({ questions, timestamps }) => {
   const t = useTranslations();
 
   const [isChartReady, setIsChartReady] = useState(false);
@@ -28,48 +31,37 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
   }, []);
 
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
-    generateChartChoices(forecast)
+    generateChoiceItemsFromBinaryGroup(questions)
   );
 
-  const timestampsCount = forecast.timestamps.length;
+  const timestampsCount = timestamps.length;
   const prevTimestampsCount = usePrevious(timestampsCount);
   // sync BE driven data with local state
   useEffect(() => {
     if (prevTimestampsCount && prevTimestampsCount !== timestampsCount) {
-      setChoiceItems(generateChartChoices(forecast));
+      setChoiceItems(generateChoiceItemsFromBinaryGroup(questions));
     }
-  }, [forecast, prevTimestampsCount, timestampsCount]);
+  }, [questions, prevTimestampsCount, timestampsCount]);
 
-  const [cursorTimestamp, setCursorTimestamp] = useState(
-    forecast.timestamps[forecast.timestamps.length - 1]
-  );
-  const cursorIndex = useMemo(
-    () =>
-      forecast.timestamps.findIndex(
-        (timestamp) => timestamp === cursorTimestamp
-      ),
-    [cursorTimestamp, forecast.timestamps]
-  );
+  const [cursorTimestamp, tooltipDate, handleCursorChange] =
+    useTimestampCursor(timestamps);
 
-  const [tooltipDate, setTooltipDate] = useState("");
   const tooltipChoices = useMemo<ChoiceTooltipItem[]>(
     () =>
       choiceItems
         .filter(({ active }) => active)
-        .map(({ choice, values, color }) => ({
-          choiceLabel: choice,
-          color,
-          valueLabel: getForecastPctDisplayValue(values[cursorIndex]),
-        })),
-    [choiceItems, cursorIndex]
-  );
-
-  const handleCursorChange = useCallback(
-    (value: number, format: TickFormat) => {
-      setCursorTimestamp(value);
-      setTooltipDate(format(value));
-    },
-    []
+        .map(({ choice, values, color, timestamps: optionTimestamps }) => {
+          return {
+            choiceLabel: choice,
+            color,
+            valueLabel: getQuestionTooltipLabel(
+              optionTimestamps ?? timestamps,
+              values,
+              cursorTimestamp
+            ),
+          };
+        }),
+    [choiceItems, cursorTimestamp, timestamps]
   );
 
   const {
@@ -111,14 +103,10 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
         <h3 className="m-0 text-base font-normal leading-5">
           {t("forecastTimelineHeading")}
         </h3>
-        <div className="ml-auto dark:text-white">
-          {t("totalForecastersLabel")}{" "}
-          <strong>{forecast.nr_forecasters[cursorIndex]}</strong>
-        </div>
       </div>
       <div ref={refs.setReference} {...getReferenceProps()}>
         <MultipleChoiceChart
-          timestamps={forecast.timestamps}
+          timestamps={timestamps}
           choiceItems={choiceItems}
           yLabel={t("communityPredictionLabel")}
           onChartReady={handleChartReady}
@@ -155,4 +143,22 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
   );
 };
 
-export default MultipleChoiceChartCard;
+function getQuestionTooltipLabel(
+  timestamps: number[],
+  values: number[],
+  cursorTimestamp: number
+) {
+  const hasValue = cursorTimestamp < Math.max(...timestamps);
+  if (!hasValue) {
+    return getForecastPctDisplayValue(null);
+  }
+
+  const closestTimestamp = findClosestTimestamp(timestamps, cursorTimestamp);
+  const cursorIndex = timestamps.findIndex(
+    (timestamp) => timestamp === closestTimestamp
+  );
+
+  return getForecastPctDisplayValue(values[cursorIndex]);
+}
+
+export default BinaryGroupChart;
