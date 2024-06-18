@@ -1,4 +1,4 @@
-import { round } from "lodash";
+import { isNil, round } from "lodash";
 import * as math from "mathjs";
 
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
@@ -9,7 +9,13 @@ import {
 } from "@/types/question";
 import { binWeightsFromSliders } from "@/utils/math";
 
-export function getForecastPctDisplayValue(value: number | string) {
+export function getForecastPctDisplayValue(
+  value: number | string | null | undefined
+) {
+  if (isNil(value)) {
+    return "?";
+  }
+
   return `${Math.round(Number(value) * 100)}%`;
 }
 

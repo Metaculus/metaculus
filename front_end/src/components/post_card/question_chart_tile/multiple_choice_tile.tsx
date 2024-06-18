@@ -2,12 +2,11 @@
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC, useMemo } from "react";
+import { FC } from "react";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ChoiceIcon from "@/components/choice_icon";
-import { QuestionWithMultipleChoiceForecasts } from "@/types/question";
-import { generateChartChoices } from "@/utils/charts";
+import { ChoiceItem } from "@/types/choices";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
 const NUM_VISIBLE_CHOICES = 3;
@@ -15,18 +14,14 @@ const NUM_VISIBLE_CHOICES = 3;
 const HEIGHT = 100;
 
 type Props = {
-  question: QuestionWithMultipleChoiceForecasts;
+  timestamps: number[];
+  choices: ChoiceItem[];
 };
 
-const MultipleChoiceTile: FC<Props> = ({ question }) => {
+const MultipleChoiceTile: FC<Props> = ({ timestamps, choices }) => {
   const t = useTranslations();
 
-  const { forecasts } = question;
-
-  const { choices, visibleChoices } = useMemo(() => {
-    const choices = generateChartChoices(forecasts);
-    return { choices, visibleChoices: choices.slice(0, NUM_VISIBLE_CHOICES) };
-  }, [forecasts]);
+  const visibleChoices = choices.slice(0, NUM_VISIBLE_CHOICES);
   const otherItemsCount = choices.length - visibleChoices.length;
 
   return (
@@ -66,7 +61,7 @@ const MultipleChoiceTile: FC<Props> = ({ question }) => {
         </div>
       </div>
       <MultipleChoiceChart
-        timestamps={forecasts.timestamps}
+        timestamps={timestamps}
         choiceItems={choices}
         height={HEIGHT}
       />

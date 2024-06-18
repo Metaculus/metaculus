@@ -8,6 +8,7 @@ import ForecastMaker from "@/components/forecast_maker";
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
 
+import DetailedGroupCard from "./components/detailed_group_card";
 import DetailedQuestionCard from "./components/detailed_question_card";
 
 export default async function IndividualQuestion({
@@ -35,13 +36,18 @@ export default async function IndividualQuestion({
           </h1>
         )}
 
-        {postData.conditional && (
+        {!!postData.conditional && (
           <ConditionalTile
             conditional={postData.conditional}
             curationStatus={postData.curation_status}
           />
         )}
-        {postData.question && (
+        {!!postData.group_of_questions && (
+          <DetailedGroupCard
+            questions={postData.group_of_questions.questions}
+          />
+        )}
+        {!!postData.question && (
           <DetailedQuestionCard question={postData.question} />
         )}
         <div className="p-6 dark:bg-blue-800">
