@@ -26,6 +26,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "zero_point",
             "open_upper_bound",
             "open_lower_bound",
+            "options",
         )
 
 
