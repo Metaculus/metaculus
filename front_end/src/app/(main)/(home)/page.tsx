@@ -10,6 +10,7 @@ import FocusAreaAiIcon from "./components/icons/focus_area_ai";
 import FocusAreaBiosecurityIcon from "./components/icons/focus_area_biosecurity";
 import FocusAreaClimateIcon from "./components/icons/focus_area_climate";
 import FocusAreaNuclearIcon from "./components/icons/focus_area_nuclear";
+import QuestionCarousel from "./components/question_carousel";
 import TopicLink from "./components/topic_link";
 
 // TODO: probable makes sense to receive this info from the BE
@@ -87,6 +88,12 @@ export default async function Home() {
             </div>
           </div>
         </div>
+        <QuestionCarousel
+          postIds={[
+            3479, 5320, 353, 17280, 15462, 384, 13858, 12910, 12923, 11437,
+            8466,
+          ]}
+        />
         <div className="my-6 md:my-12 lg:my-16">
           <h2 className="mb-5 mt-0 w-full text-center text-4xl font-bold text-blue-800 dark:text-blue-800-dark md:text-5xl">
             {t.rich("focusAreasTitle", {

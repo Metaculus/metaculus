@@ -25,9 +25,6 @@ def posts_list_api_view(request):
     paginator = LimitOffsetPagination()
     qs = (
         Post.objects.annotate_predictions_count()
-        # .filter(predictions_count__gte=2)
-        # .filter(published_at__isnull=False)
-        # .filter(published_at__lte=timezone.now())
     )
 
     # Extra params
@@ -40,7 +37,6 @@ def posts_list_api_view(request):
     filters_serializer.is_valid(raise_exception=True)
 
     qs = get_posts_feed(qs, user=request.user, **filters_serializer.validated_data)
-
     # Paginating queryset
     posts = paginator.paginate_queryset(qs, request)
 
@@ -49,6 +45,7 @@ def posts_list_api_view(request):
         with_forecasts=with_forecasts,
         current_user=request.user,
     )
+    print(len(data))
 
     return paginator.get_paginated_response(data)
 
