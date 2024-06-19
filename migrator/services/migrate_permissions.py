@@ -101,7 +101,7 @@ def migrate_permissions():
         FROM metac_project_userprojectpermissions upp
         JOIN metac_project_project p 
         ON upp.project_id = p.id
-                                    """
+    """
     ):
         # New app merges Project & Categories & Tags etc.
         # Tournaments & QS & PP were migrated to Project model with the same Ids as the old ones.
