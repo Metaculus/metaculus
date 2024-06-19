@@ -48,12 +48,12 @@ const NavUserButton: FC = () => {
               </a>
             </MenuItem>
             <MenuItem>
-              <a
+              <Link
                 className="flex items-center justify-center whitespace-nowrap px-4 py-1.5 no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:px-6 lg:text-right lg:hover:bg-blue-200-dark"
-                href="http://localhost:8000/admin/"
+                href={"/admin/"}
               >
                 Admin
-              </a>
+              </Link>
             </MenuItem>
           </MenuItems>
         </Menu>
@@ -69,7 +69,7 @@ const NavUserButton: FC = () => {
   );
 };
 
-const DropdownIcon: FC = () => (
+export const DropdownIcon: FC = () => (
   <svg
     width="10"
     height="6"

@@ -5,12 +5,13 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
 
+from migrator.services.migrate_comments import migrate_comments
 from migrator.services.migrate_forecasts import migrate_forecasts
+from migrator.services.migrate_permissions import migrate_permissions
 from migrator.services.migrate_projects import migrate_projects
 from migrator.services.migrate_questions import migrate_questions
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
-from migrator.services.migrate_comments import migrate_comments
 
 from migrator.services.scoring import score_questions
 from migrator.services.leaderboards import (
@@ -41,10 +42,12 @@ class Command(BaseCommand):
         print("Migrated forecasts")
         migrate_projects()
         print("Migrated projects")
-        # migrate_votes()
-        # print("Migrated votes")
-        # migrate_comments()
-        # print("Migrated comments")
+        migrate_votes()
+        print("Migrated votes")
+        migrate_comments()
+        print("Migrated comments")
+        migrate_permissions()
+        print("Migrated permissions")
 
         # scoring
         # score_questions(qty=1000)  # only evaluate 1000 questions
@@ -69,7 +72,9 @@ class Command(BaseCommand):
         for app in apps.get_app_configs():
             label = app.label
             commands = StringIO()
-            call_command("sqlsequencereset", label, stdout=commands)
+            call_command(
+                "sqlsequencereset", label, stdout=commands, no_color=True, verbosity=0
+            )
 
             if sql_query := commands.getvalue():
                 cursor.execute(sql_query)

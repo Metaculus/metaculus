@@ -5,13 +5,19 @@ from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
+from posts.services import get_post_permission_for_user
+from projects.permissions import ObjectPermission
 from questions.models import Forecast, Question
 
 
 @api_view(["POST"])
 def create_forecast_api_view(request, pk: int):
-    print(pk)
     question = get_object_or_404(Question.objects.all(), pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(question.get_post(), user=request.user)
+    ObjectPermission.can_forecast(permission, raise_exception=True)
+
     data = request.data
     now = datetime.now()
     prev_forecasts = (

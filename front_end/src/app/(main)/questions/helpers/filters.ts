@@ -25,23 +25,30 @@ import {
 } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
+import { ForecastType, PostForecastType, PostStatus } from "@/types/post";
 import { Category, Tag } from "@/types/projects";
-import { QuestionOrder, QuestionStatus, QuestionType } from "@/types/question";
+import { QuestionOrder, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
 
 // TODO: translate
-const POST_TYPE_LABEL_MAP = {
+const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
   [QuestionType.Numeric]: "Numeric",
   [QuestionType.Date]: "Date",
   [QuestionType.MultipleChoice]: "Multiple Choice",
   [QuestionType.Binary]: "Binary",
+  [PostForecastType.Conditional]: "Conditional",
+  [PostForecastType.Group]: "Group",
 };
 
 // TODO: translate
 const POST_STATUS_LABEL_MAP = {
-  [QuestionStatus.Active]: "Open",
-  [QuestionStatus.Resolved]: "Resolved",
-  [QuestionStatus.Closed]: "Closed",
+  [PostStatus.APPROVED]: "Open",
+  [PostStatus.RESOLVED]: "Resolved",
+  [PostStatus.CLOSED]: "Closed",
+  [PostStatus.PENDING]: "In Review",
+  [PostStatus.DRAFT]: "My Drafts",
+  [PostStatus.DELETED]: "Removed Posts",
+  [PostStatus.REJECTED]: "Rejected Posts",
 };
 
 export function generateFiltersFromSearchParams(
@@ -100,7 +107,16 @@ export function generateFiltersFromSearchParams(
   return filters;
 }
 
-export function getQuestionsFilters({
+const mapForecastTypeOptions = (
+  types: ForecastType[],
+  params: URLSearchParams
+) =>
+  types.map((type) => ({
+    label: POST_TYPE_LABEL_MAP[type],
+    value: type,
+    active: params.getAll(POST_TYPE_FILTER).includes(type),
+  }));
+export function getPostsFilters({
   tags,
   user,
   t,
@@ -118,17 +134,16 @@ export function getQuestionsFilters({
       id: POST_TYPE_FILTER,
       title: t("questionType"),
       type: FilterOptionType.MultiChip,
-      options: Object.values(QuestionType).map((type) => ({
-        label: POST_TYPE_LABEL_MAP[type],
-        value: type,
-        active: params.getAll(POST_TYPE_FILTER).includes(type),
-      })),
+      options: [
+        ...mapForecastTypeOptions(Object.values(QuestionType), params),
+        ...mapForecastTypeOptions(Object.values(PostForecastType), params),
+      ],
     },
     {
       id: POST_STATUS_FILTER,
       title: t("questionStatus"),
       type: FilterOptionType.MultiChip,
-      options: Object.values(QuestionStatus).map((status) => ({
+      options: Object.values(PostStatus).map((status) => ({
         label: POST_STATUS_LABEL_MAP[status],
         value: status,
         active: params.getAll(POST_STATUS_FILTER).includes(status),

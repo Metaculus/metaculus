@@ -1,9 +1,13 @@
 from rest_framework import serializers
 
 from comments.models import Comment
+from users.serializers import UserCommentSerializer
 
 
 class CommentSerializer(serializers.ModelSerializer):
+
+    author = UserCommentSerializer()
+
     class Meta:
         model = Comment
         fields = (
@@ -14,8 +18,8 @@ class CommentSerializer(serializers.ModelSerializer):
             "edited_at",
             "is_soft_deleted",
             "text",
-            "question",
-            "forecast",
+            "on_post",
+            "included_forecast",
             "type",
             "vote_score",
             "children",

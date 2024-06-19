@@ -32,6 +32,18 @@ class UserPublicSerializer(serializers.ModelSerializer):
         return obj.get_formerly_known_as()
 
 
+class UserCommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            # "admin"
+            # "moderator"
+            # maybe something for medals
+        )
+
+
 class UserPrivateSerializer(UserPublicSerializer):
     class Meta:
         model = User
@@ -52,6 +64,8 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
 
 
 def validate_username(value: str):
+    value = serializers.RegexField(r"^\w([\w.@+-]*\w)?$").run_validation(value)
+
     if value.lower() in forbidden_usernames:
         raise serializers.ValidationError("this username is not allowed")
 

@@ -7,14 +7,9 @@ from .services import build_question_forecasts
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-    status = serializers.SerializerMethodField()
-
     class Meta:
         model = Question
         fields = "__all__"
-
-    def get_status(self, obj):
-        return obj.status
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
@@ -31,6 +26,8 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "zero_point",
             "open_upper_bound",
             "open_lower_bound",
+            "options",
+            "resolved_at",
         )
 
 

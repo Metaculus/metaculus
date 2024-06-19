@@ -1,7 +1,9 @@
 from django.db import models
 from django.db.models import Count
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
+from projects.permissions import ObjectPermission
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
 
@@ -30,6 +32,61 @@ class ProjectsQuerySet(models.QuerySet):
     def annotate_posts_count(self):
         return self.annotate(posts_count=Count("posts", distinct=True))
 
+    # Permissions
+    def annotate_user_permission(self, user: User = None):
+        """
+        Annotates user permission for the project
+        """
+
+        # Step #1: find custom permission overrides
+        user_permission_subquery = ProjectUserPermission.objects.filter(
+            project_id=models.OuterRef("pk"), user_id=user.id if user else None
+        ).values("permission")[:1]
+
+        # Annotate the queryset
+        if user and user.is_superuser:
+            qs = self.annotate(user_permission=models.Value(ObjectPermission.ADMIN))
+        else:
+            qs = self.annotate(
+                user_permission=Coalesce(
+                    models.Subquery(user_permission_subquery),
+                    "default_permission",
+                    output_field=models.CharField(),
+                )
+            )
+
+        # Generating Numeric representation of Permission types
+        # To be able just to sort to get the permission with the highest influence rate
+        qs = qs.annotate(
+            user_permission__numeric=models.Case(
+                *[
+                    models.When(
+                        user_permission=enum_value, then=models.Value(numeric_value)
+                    )
+                    for enum_value, numeric_value in ObjectPermission.get_numeric_representation().items()
+                ],
+                default=models.Value(None),
+                output_field=models.IntegerField(null=True),
+            )
+        )
+
+        return qs
+
+    def filter_permission(self, user: User = None):
+        """
+        Returns only allowed projects for the user
+        """
+
+        return self.filter(
+            # If any project has permissions (null value indicates private project)
+            models.Q(default_permission__isnull=False)
+            | (
+                # Or user was given permissions to access the private project
+                models.Q(projectuserpermission__user_id=user.id if user else None)
+                & models.Q(projectuserpermission__permission__isnull=False)
+            )
+        )
+
 
 class Project(TimeStampedModel):
     class ProjectTypes(models.TextChoices):
@@ -39,6 +96,7 @@ class Project(TimeStampedModel):
         CATEGORY = "category"
         TAG = "tag"
         TOPIC = "topic"
+        PERSONAL_LIST = "personal_list"
 
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics"
@@ -126,10 +184,23 @@ class Project(TimeStampedModel):
         User, models.CASCADE, related_name="created_projects", default=None, null=True
     )
 
+    # Permissions
+    # null -> private
+    default_permission = models.CharField(
+        choices=ObjectPermission.choices,
+        null=True,
+        blank=True,
+        default=ObjectPermission.FORECASTER,
+        db_index=True,
+    )
+    override_permissions = models.ManyToManyField(User, through="ProjectUserPermission")
+
     objects = models.Manager.from_queryset(ProjectsQuerySet)()
 
     # Annotated fields
     posts_count: int = 0
+    user_permission: ObjectPermission = None
+    user_permission__numeric: ObjectPermission = None
 
     class Meta:
         ordering = ("order",)
@@ -139,6 +210,9 @@ class Project(TimeStampedModel):
             ),
         ]
 
+    def __str__(self):
+        return f"{self.type.capitalize()}: {self.name}"
+
     @property
     def is_ongoing(self):
         if self.type in (
@@ -147,3 +221,21 @@ class Project(TimeStampedModel):
             self.ProjectTypes.QUESTION_SERIES,
         ):
             return self.close_date > timezone.now() if self.close_date else True
+
+
+class ProjectUserPermission(TimeStampedModel):
+    """
+    Table to override permissions for specific users
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    permission = models.CharField(choices=ObjectPermission.choices, db_index=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="projectuserpermission_unique_user_id_project_id",
+                fields=["user_id", "project_id"],
+            ),
+        ]

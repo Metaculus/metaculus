@@ -1,14 +1,10 @@
+import { PostStatus, Resolution } from "@/types/post";
+
 export enum QuestionType {
   Numeric = "numeric",
   Date = "date",
   Binary = "binary",
   MultipleChoice = "multiple_choice",
-}
-
-export enum QuestionStatus {
-  Resolved = "resolved",
-  Closed = "closed",
-  Active = "active",
 }
 
 export enum QuestionOrder {
@@ -52,6 +48,12 @@ export type MultipleChoiceForecast = BaseForecast & {
   }>;
 };
 
+export type Quartiles = {
+  median: number;
+  lower25: number;
+  upper75: number;
+};
+
 export type Question = {
   id: number;
   title: string;
@@ -64,8 +66,7 @@ export type Question = {
   resolved_at: string;
   type: QuestionType;
   possibilities: string; // TODO: update type
-  resolution: string | null;
-  status: QuestionStatus;
+  resolution: Resolution | null;
   nr_forecasters: number;
   author_username: string;
   zero_point: number;

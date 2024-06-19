@@ -4,6 +4,8 @@ from django.utils import timezone
 from posts.models import Post
 from posts.serializers import PostFilterSerializer
 from projects.models import Project
+from projects.permissions import ObjectPermission
+from projects.services import get_global_public_project
 from questions.services import (
     create_question,
     create_conditional,
@@ -14,7 +16,6 @@ from utils.dtypes import flatten
 
 
 def get_posts_feed(
-    *,
     qs: Post.objects = None,
     user: User = None,
     search: str = None,
@@ -26,12 +27,11 @@ def get_posts_feed(
     status: str = None,
     answered_by_me: bool = None,
     order: str = None,
+    permission: str = ObjectPermission.VIEWER,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
     """
-
-    qs = qs or Post.objects.all()
 
     # Search
     if search:
@@ -75,37 +75,33 @@ def get_posts_feed(
             qs = qs.filter(question__resolved_at__isnull=False).filter(
                 question__resolved_at__lte=timezone.now()
             )
+        if "draft" in status:
+            qs = qs.filter(curation_status=Post.CurationStatus.DRAFT)
         if "active" in status:
-            qs = (
-                qs.filter(question__resolved_at__isnull=False)
-                .filter(published_at__lte=timezone.now())
-                .filter(
-                    Q(
-                        Q(question__closed_at__gte=timezone.now())
-                        | Q(question__closed_at__isnull=True)
-                    )
-                )
-                .filter(
-                    Q(
-                        Q(question__resolved_at__gte=timezone.now())
-                        | Q(question__resolved_at__isnull=True)
-                    )
-                )
-            )
+            qs = qs.filter(curation_status=Post.CurationStatus.APPROVED)
         if "closed" in status:
-            qs = qs.filter(question__closed_at__isnull=False).filter(
-                question__closed_at__lte=timezone.now()
-            )
+            qs = qs.filter(curation_status=Post.CurationStatus.CLOSED)
+        if "pending" in status:
+            qs = qs.filter(curation_status=Post.CurationStatus.PENDING)
+        if "deleted" in status:
+            qs = qs.filter(curation_status=Post.CurationStatus.DELETED)
+        if "rejected" in status:
+            qs = qs.filter(curation_status=Post.CurationStatus.REJECTED)
+        if "resolved" in status:
+            qs = qs.filter(curation_status=Post.CurationStatus.RESOLVED)
 
     if answered_by_me is not None and not user.is_anonymous:
         condition = {"question__forecast__author": user}
         qs = qs.filter(**condition) if answered_by_me else qs.exclude(**condition)
 
+    # Filter by permission level
+    qs = qs.filter_permission(user=user, permission=permission)
+
     # Ordering
     if order:
         match order:
             case PostFilterSerializer.Order.MOST_FORECASTERS:
-                qs = qs.annotate_predictions_count__unique().order_by("-nr_forecasters")
+                qs = qs.annotate_nr_forecasters().order_by("-nr_forecasters")
             case PostFilterSerializer.Order.CLOSED_AT:
                 qs = qs.order_by("-closed_at")
             case PostFilterSerializer.Order.RESOLVED_AT:
@@ -125,7 +121,7 @@ def create_post(
     group_of_questions: dict = None,
     author: User = None,
 ) -> Post:
-    obj = Post(title=title, author=author)
+    obj = Post(title=title, author=author, curation_status=Post.CurationStatus.DRAFT)
 
     # Adding questions
     if question:
@@ -137,10 +133,29 @@ def create_post(
 
     obj.full_clean()
     obj.save()
+    # Projects appending
+    projects = flatten(projects.values()) if projects else []
+
+    # If no projects were provided,
+    # We need to append default ones
+    if not projects:
+        projects = [get_global_public_project()]
 
     # Adding projects
-    if projects:
-        projects_flat = flatten(projects.values())
-        obj.projects.add(*projects_flat)
+    obj.projects.add(*projects)
 
     return obj
+
+
+def get_post_permission_for_user(
+    post: Post, user: User = None
+) -> ObjectPermission | None:
+    """
+    A small wrapper to get the permission of post
+    """
+
+    return (
+        Post.objects.annotate_user_permission(user=user)
+        .values_list("user_permission", flat=True)
+        .get(id=post.id)
+    )

@@ -1,17 +1,17 @@
 import { getTranslations } from "next-intl/server";
 
-import FocusAreaLink, {
-  FocusAreaItem,
-} from "@/app/(main)/(home)/components/focus_area_link";
-import HomeSearch from "@/app/(main)/(home)/components/home_search";
-import FocusAreaAiIcon from "@/app/(main)/(home)/components/icons/focus_area_ai";
-import FocusAreaBiosecurityIcon from "@/app/(main)/(home)/components/icons/focus_area_biosecurity";
-import FocusAreaClimateIcon from "@/app/(main)/(home)/components/icons/focus_area_climate";
-import FocusAreaNuclearIcon from "@/app/(main)/(home)/components/icons/focus_area_nuclear";
-import TopicLink from "@/app/(main)/(home)/components/topic_link";
 import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import ProjectsApi from "@/services/projects";
 import { encodeQueryParams } from "@/utils/query_params";
+
+import FocusAreaLink, { FocusAreaItem } from "./components/focus_area_link";
+import HomeSearch from "./components/home_search";
+import FocusAreaAiIcon from "./components/icons/focus_area_ai";
+import FocusAreaBiosecurityIcon from "./components/icons/focus_area_biosecurity";
+import FocusAreaClimateIcon from "./components/icons/focus_area_climate";
+import FocusAreaNuclearIcon from "./components/icons/focus_area_nuclear";
+import QuestionCarousel from "./components/questions_carousel";
+import TopicLink from "./components/topic_link";
 
 // TODO: probable makes sense to receive this info from the BE
 const FOCUS_AREAS: FocusAreaItem[] = [
@@ -88,6 +88,12 @@ export default async function Home() {
             </div>
           </div>
         </div>
+        <QuestionCarousel
+          postIds={[
+            3479, 5320, 353, 17280, 15462, 384, 13858, 12910, 12923, 11437,
+            8466,
+          ]}
+        />
         <div className="my-6 md:my-12 lg:my-16">
           <h2 className="mb-5 mt-0 w-full text-center text-4xl font-bold text-blue-800 dark:text-blue-800-dark md:text-5xl">
             {t.rich("focusAreasTitle", {

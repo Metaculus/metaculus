@@ -84,11 +84,14 @@ def build_question_forecasts(
         elif question.type in ["numeric", "date"]:
             cps, cdf = compute_continuous_plotable_cp(question)
             forecasts_data["latest_cdf"] = cdf
-            forecasts_data["latest_pmf"] = np.diff(cdf, prepend=0)
+            if cdf is not None and len(cdf) >= 2:
+                forecasts_data["latest_pmf"] = np.diff(cdf, prepend=0)
+            else:
+                forecasts_data["latest_pmf"] = []
         else:
             raise Exception(f"Unknown question type: {question.type}")
         if cps is None or len(cps) == 0:
-            return
+            return forecasts_data
 
         for cp in cps:
             forecasts_data["timestamps"].append(cp.at_datetime.timestamp())
@@ -102,7 +105,6 @@ def build_question_forecasts(
 
 def create_question(*, title: str = None, **kwargs) -> Question:
     obj = Question(title=title, **kwargs)
-
     obj.full_clean()
     obj.save()
 

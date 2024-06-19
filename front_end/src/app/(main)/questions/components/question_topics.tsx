@@ -3,13 +3,15 @@ import {
   faHome,
   faEllipsis,
   faArrowUp,
+  faLockOpen,
+  faSearch,
+  faFileClipboard,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
-import TopicItem from "@/app/(main)/questions/components/topic_item";
 import Button from "@/components/ui/button";
 import {
   POST_ORDER_BY_FILTER,
@@ -18,6 +20,8 @@ import {
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
+
+import TopicItem from "./topic_item";
 
 const EXPAND_THRESHOLD = 2;
 
@@ -155,6 +159,13 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             href="/questions/discovery"
             text={t("seeAllCategories")}
             emoji={<FontAwesomeIcon icon={faEllipsis} />}
+            isActive={false}
+          />
+          <hr className="mb-0 mt-0"></hr>
+          <TopicItem
+            href="/questions?status=pending"
+            text="In Review"
+            emoji={<FontAwesomeIcon icon={faFileClipboard} />}
             isActive={false}
           />
         </div>

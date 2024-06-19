@@ -1,5 +1,7 @@
 import * as math from "mathjs";
 
+import { Quartiles } from "@/types/question";
+
 export function almostEqual(a: number, b: number, eps = 1e-12) {
   return b == 0 ? a == 0 : Math.abs((a - b) / b) < eps;
 }
@@ -89,7 +91,7 @@ export function binWeightsFromSliders(
   return { pmf: pmf, cdf: cdf };
 }
 
-export function computeQuartilesFromCDF(cdf: number[]) {
+export function computeQuartilesFromCDF(cdf: number[]): Quartiles {
   function findQuantile(cdf: number[], quantile: number) {
     for (let i = 0; i < cdf.length; i++) {
       if (cdf[i] >= quantile) {

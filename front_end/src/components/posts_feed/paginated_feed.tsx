@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import { fetchMorePosts } from "@/app/(main)/questions/actions";
-import PostCard from "@/components/question_card";
+import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";

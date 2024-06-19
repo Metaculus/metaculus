@@ -2,9 +2,11 @@
   "newsletterFormHeading": "Join Our Newsletter",
   "newsletterFormDescription": "Sign up for Metaculus news, special forecasting reports, and event invitations.",
   "predictButton": "Predict",
+  "saveButton": "Save Change",
   "updatePredictionButton": "Update Prediction",
   "reaffirmPredictionButton_one": "Reaffirm prediction",
   "reaffirmPredictionButton_other": "Reaffirm predictions",
+  "rescalePredictionButton": "Auto-sum to 100%",
   "signUpButton": "Sign Up to Predict",
   "signInButton": "Log in",
   "tweetPrediction": "Tweet Prediction!",
@@ -172,6 +174,8 @@
   "meanPredictionLabel": "Mean",
   "scoreIfNo": "Score if No",
   "scoreIfYes": "Score if Yes",
+  "arrowIfNo": "if no",
+  "arrowIfYes": "if yes",
   "absoluteLogScore": "Absolute Log Score",
   "brierScore": "Brier Score",
   "yes": "yes",
@@ -480,5 +484,9 @@
   "StartDate": "Start Date",
   "EndDate": "End Date",
   "SeriesContents": "Series Contents",
-  "MakePrediction": "Make a Prediction"
+  "MakePrediction": "Make a Prediction",
+  "Title": "Title",
+  "Access": "Access",
+  "Save": "Save",
+  "Candidates": "Candidates"
 }

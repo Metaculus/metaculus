@@ -20,6 +20,12 @@ export interface TextAreaProps
   errors?: ErrorResponse;
 }
 
+export interface SelectProps
+  extends React.InputHTMLAttributes<HTMLSelectElement> {
+  options: { value: string; label: string }[];
+  errors?: ErrorResponse;
+}
+
 export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
   /**
    * If null => display only if no other things
@@ -28,7 +34,9 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
 
   useEffect(() => {
     if (errors) {
-      if (
+      if (errors.message) {
+        setErrorText(errors.message);
+      } else if (
         name === null &&
         Object.keys(errors).every((k) => k in ["message", "non_field_errors"])
       ) {
@@ -41,9 +49,8 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
     } else {
     }
   }, [errors, name]);
-
   return (
-    <>
+    <div>
       {errorText && (
         <span
           className={classNames(
@@ -54,7 +61,7 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
           {errorText}
         </span>
       )}
-    </>
+    </div>
   );
 };
 
@@ -64,12 +71,12 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <>
         <input
           type={type}
-          className={className}
+          className={`rounded-s border border-white p-1 ${className}`}
           ref={ref}
           name={name}
           {...props}
         />
-        {name && errors && <FormError name={name} errors={errors} />}
+        {errors && <FormError name={name} errors={errors} />}
       </>
     );
   }
@@ -77,8 +84,18 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = "Input";
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
-  ({ className, name, children, ...props }, ref) => {
-    return <textarea className={className} name={name} {...props} />;
+  ({ className, name, children, errors, ...props }, ref) => {
+    return (
+      <>
+        <textarea
+          className={`block rounded-s border border-white p-1 ${className}`}
+          ref={ref}
+          name={name}
+          {...props}
+        />
+        {errors && <FormError name={name} errors={errors} />}
+      </>
+    );
   }
 );
 Textarea.displayName = "Textarea";

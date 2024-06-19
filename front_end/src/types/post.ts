@@ -1,5 +1,18 @@
-import { Question, QuestionWithForecasts } from "@/types/question";
+import {
+  Question,
+  QuestionType,
+  QuestionWithForecasts,
+} from "@/types/question";
 import { VoteDirection } from "@/types/votes";
+
+export type Resolution = "yes" | "no";
+
+export enum PostForecastType {
+  Conditional = "conditional",
+  Group = "group_of_questions",
+}
+
+export type ForecastType = PostForecastType | QuestionType;
 
 export type Category = {
   id: number;
@@ -21,6 +34,33 @@ export type PostVote = {
   user_vote: VoteDirection;
 };
 
+export enum PostStatus {
+  DRAFT = "draft",
+  PENDING = "pending",
+  REJECTED = "rejected",
+  APPROVED = "approved",
+  CLOSED = "closed",
+  RESOLVED = "resolved",
+  DELETED = "deleted",
+}
+
+export type PostCondition = {
+  id: number;
+  title: string;
+  description: string;
+  closed_at: string;
+  resolved_at: string;
+  curation_status: PostStatus;
+  resolution: Resolution | null;
+};
+
+export type PostConditional<QT> = {
+  id: number;
+  condition: PostCondition;
+  question_yes: QT;
+  question_no: QT;
+};
+
 export type Post<QT = Question> = {
   id: number;
   projects: {
@@ -36,7 +76,13 @@ export type Post<QT = Question> = {
   nr_forecasters: number;
   author_username: string;
   author_id: number;
-  question: QT;
+  question?: QT;
+  conditional?: PostConditional<QT>;
+  group_of_questions: {
+    id: number;
+    questions: QT[];
+  };
+  curation_status: PostStatus;
 };
 
 export type PostWithForecasts = Post<QuestionWithForecasts>;

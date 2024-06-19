@@ -6,43 +6,43 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questions', '0010_forecast_slider_values'),
+        ("questions", "0010_forecast_slider_values"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='question',
-            name='closed_at',
+            model_name="question",
+            name="closed_at",
             field=models.DateTimeField(blank=True, db_index=True, null=True),
         ),
         migrations.AlterField(
-            model_name='question',
-            name='max',
+            model_name="question",
+            name="max",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='question',
-            name='min',
+            model_name="question",
+            name="min",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='question',
-            name='open_lower_bound',
+            model_name="question",
+            name="open_lower_bound",
             field=models.BooleanField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='question',
-            name='open_upper_bound',
+            model_name="question",
+            name="open_upper_bound",
             field=models.BooleanField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='question',
-            name='resolved_at',
+            model_name="question",
+            name="resolved_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='question',
-            name='zero_point',
+            model_name="question",
+            name="zero_point",
             field=models.FloatField(blank=True, null=True),
         ),
     ]

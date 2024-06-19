@@ -5,6 +5,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from projects.models import Project
+from projects.permissions import ObjectPermission
 from projects.serializers import (
     validate_categories,
     validate_tournaments,
@@ -38,6 +39,7 @@ class PostSerializer(serializers.ModelSerializer):
             "created_at",
             "published_at",
             "edited_at",
+            "curation_status",
         )
 
     def get_projects(self, obj: Post):
@@ -55,7 +57,13 @@ class PostWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ("title", "projects", "question", "conditional", "group_of_questions")
+        fields = (
+            "title",
+            "projects",
+            "question",
+            "conditional",
+            "group_of_questions",
+        )
 
 
 class PostFilterSerializer(serializers.Serializer):
@@ -72,6 +80,10 @@ class PostFilterSerializer(serializers.Serializer):
     forecast_type = serializers.ListField(child=serializers.CharField(), required=False)
     status = serializers.ListField(child=serializers.CharField(), required=False)
     answered_by_me = serializers.BooleanField(required=False, allow_null=True)
+    permission = serializers.ChoiceField(
+        required=False,
+        choices=ObjectPermission.choices + [ObjectPermission.CREATOR],
+    )
     order = serializers.ChoiceField(
         choices=Order.choices, required=False, allow_null=True
     )
@@ -125,6 +137,9 @@ def serialize_post(
             current_user=current_user,
         )
 
+    # Permissions
+    serialized_data["user_permission"] = post.user_permission
+
     # Annotate user's vote
     serialized_data["vote"] = {
         "score": post.vote_score,
@@ -145,6 +160,7 @@ def serialize_post_many(
 
     qs = (
         qs.annotate_predictions_count()
+        .annotate_user_permission(user=current_user)
         .annotate_vote_score()
         .annotate_nr_forecasters()
         .prefetch_projects()

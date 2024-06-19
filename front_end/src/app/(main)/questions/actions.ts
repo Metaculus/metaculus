@@ -33,6 +33,21 @@ export async function votePost(postId: number, direction: VoteDirection) {
   }
 }
 
+export async function createQuestionPost(body: any) {
+  try {
+    const post = await PostsApi.createQuestionPost(body);
+    return {
+      post: post,
+    };
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
 export async function createForecast(
   questionId: number,
   forecastData: ForecastData,
@@ -54,4 +69,35 @@ export async function createForecast(
       errors: error.data,
     };
   }
+}
+
+export async function createForecasts(
+  postId: number,
+  forecasts: Array<{
+    questionId: number;
+    forecastData: ForecastData;
+    sliderValues: any;
+  }>
+) {
+  try {
+    const promises = forecasts.map(
+      ({ questionId, forecastData, sliderValues }) =>
+        createForecast(questionId, forecastData, sliderValues)
+    );
+
+    const responses = await Promise.all(promises);
+
+    revalidatePath(`/questions/${postId}`);
+
+    return responses;
+  } catch (err) {
+    const error = err as FetchError;
+
+    return [error];
+  }
+}
+
+export async function getPost(postId: number) {
+  const response = await PostsApi.getPost(postId);
+  return response;
 }

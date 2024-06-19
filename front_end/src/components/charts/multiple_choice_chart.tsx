@@ -1,4 +1,5 @@
 "use client";
+import { fromUnixTime } from "date-fns";
 import React, { FC, memo, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
@@ -20,6 +21,7 @@ import usePrevious from "@/hooks/use_previous";
 import { BaseChartData, Line, TickFormat } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import {
+  findClosestTimestamp,
   generateNumericDomain,
   generatePercentageYScale,
   generateTimestampXScale,
@@ -97,9 +99,7 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
-          const closestTimestamp = timestamps.reduce((prev, curr) =>
-            Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
-          );
+          const closestTimestamp = findClosestTimestamp(timestamps, value);
 
           onCursorChange(closestTimestamp, xScale.tickFormat);
         }
@@ -156,8 +156,7 @@ const MultipleChoiceChart: FC<Props> = ({
             tickValues={yScale.ticks}
             tickFormat={yScale.tickFormat}
             style={{
-              tickLabels: { padding: 2, fill: "white" },
-              axis: { stroke: "white" },
+              tickLabels: { padding: 2 },
             }}
             label={yLabel}
             axisLabelComponent={
@@ -165,10 +164,6 @@ const MultipleChoiceChart: FC<Props> = ({
             }
           />
           <VictoryAxis
-            style={{
-              tickLabels: { fill: "white" },
-              axis: { stroke: "white" },
-            }}
             tickValues={xScale.ticks}
             tickFormat={isCursorActive ? () => "" : xScale.tickFormat}
           />
@@ -196,13 +191,22 @@ function buildChartData(
   height: number
 ): ChartData {
   const lines: ChoiceLine[] = choiceItems.map(
-    ({ choice, values, color, active, highlighted }) => ({
+    ({
+      choice,
+      values,
+      color,
+      active,
+      highlighted,
+      timestamps: choiceTimestamps,
+    }) => ({
       choice,
       color: color.DEFAULT,
-      line: timestamps.map((timestamp, timestampIndex) => ({
-        x: timestamp,
-        y: values[timestampIndex],
-      })),
+      line: (choiceTimestamps ?? timestamps).map(
+        (timestamp, timestampIndex) => ({
+          x: timestamp,
+          y: values[timestampIndex] ?? 0,
+        })
+      ),
       active,
       highlighted,
     })

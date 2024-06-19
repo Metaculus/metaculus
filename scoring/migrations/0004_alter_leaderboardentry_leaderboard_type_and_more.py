@@ -6,18 +6,36 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scoring', '0003_alter_leaderboardentry_leaderboard_type_and_more'),
+        ("scoring", "0003_alter_leaderboardentry_leaderboard_type_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='leaderboardentry',
-            name='leaderboard_type',
-            field=models.CharField(choices=[('legacy_relative', 'Legacy Relative'), ('peer_accuracy', 'Peer Accuracy'), ('baseline_accuracy', 'Baseline Accuracy'), ('peer_spot_forecast', 'Peer Spot Forecast'), ('baseline_spot_forecast', 'Baseline Spot Forecast')], max_length=200),
+            model_name="leaderboardentry",
+            name="leaderboard_type",
+            field=models.CharField(
+                choices=[
+                    ("legacy_relative", "Legacy Relative"),
+                    ("peer_accuracy", "Peer Accuracy"),
+                    ("baseline_accuracy", "Baseline Accuracy"),
+                    ("peer_spot_forecast", "Peer Spot Forecast"),
+                    ("baseline_spot_forecast", "Baseline Spot Forecast"),
+                ],
+                max_length=200,
+            ),
         ),
         migrations.AlterField(
-            model_name='score',
-            name='score_type',
-            field=models.CharField(choices=[('legacy_relative', 'Legacy Relative'), ('peer_accuracy', 'Peer Accuracy'), ('baseline_accuracy', 'Baseline Accuracy'), ('peer_spot_forecast', 'Peer Spot Forecast'), ('baseline_spot_forecast', 'Baseline Spot Forecast')], max_length=200),
+            model_name="score",
+            name="score_type",
+            field=models.CharField(
+                choices=[
+                    ("legacy_relative", "Legacy Relative"),
+                    ("peer_accuracy", "Peer Accuracy"),
+                    ("baseline_accuracy", "Baseline Accuracy"),
+                    ("peer_spot_forecast", "Peer Spot Forecast"),
+                    ("baseline_spot_forecast", "Baseline Spot Forecast"),
+                ],
+                max_length=200,
+            ),
         ),
     ]

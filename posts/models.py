@@ -1,8 +1,10 @@
 from django.db import models
 from django.db.models import Sum, Subquery, OuterRef, Count
+from django.db.models.functions import Coalesce
 from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
+from projects.permissions import ObjectPermission
 from questions.models import Question, Conditional, GroupOfQuestions
 from users.models import User
 from utils.models import TimeStampedModel
@@ -37,27 +39,61 @@ class PostQuerySet(models.QuerySet):
     def annotate_predictions_count(self):
         return self.annotate(
             predictions_count=(
-                Count("question__forecast", distinct=True)
-                # Conditional questions
-                + Count("conditional__question_yes__forecast", distinct=True)
-                + Count("conditional__question_no__forecast", distinct=True)
-                # Question groups
-                + Count("group_of_questions__questions__forecast", distinct=True)
+                Coalesce(
+                    SubqueryAggregate("question__forecast", aggregate=Count),
+                    # Conditional questions
+                    Coalesce(
+                        SubqueryAggregate(
+                            "conditional__question_yes__forecast",
+                            aggregate=Count,
+                        ),
+                        0,
+                    )
+                    + Coalesce(
+                        SubqueryAggregate(
+                            "conditional__question_no__forecast",
+                            aggregate=Count,
+                        ),
+                        0,
+                    ),
+                    # Question groups
+                    SubqueryAggregate(
+                        "group_of_questions__questions__forecast",
+                        aggregate=Count,
+                    ),
+                )
             )
         )
 
     def annotate_nr_forecasters(self):
         return self.annotate(
-            nr_forecasters=(
-                # Single question
-                Count("question__forecast__author", distinct=True)
+            nr_forecasters=Coalesce(
+                SubqueryAggregate(
+                    "question__forecast__author", aggregate=Count, distinct=True
+                ),
                 # Conditional questions
-                + Count("conditional__question_yes__forecast__author", distinct=True)
-                + Count("conditional__question_no__forecast__author", distinct=True)
-                # Question groups
-                + Count(
-                    "group_of_questions__questions__forecast__author", distinct=True
+                Coalesce(
+                    SubqueryAggregate(
+                        "conditional__question_yes__forecast__author",
+                        aggregate=Count,
+                        distinct=True,
+                    ),
+                    0,
                 )
+                + Coalesce(
+                    SubqueryAggregate(
+                        "conditional__question_no__forecast__author",
+                        aggregate=Count,
+                        distinct=True,
+                    ),
+                    0,
+                ),
+                # Question groups
+                SubqueryAggregate(
+                    "group_of_questions__questions__forecast__author",
+                    aggregate=Count,
+                    distinct=True,
+                ),
             )
         )
 
@@ -79,11 +115,105 @@ class PostQuerySet(models.QuerySet):
             ),
         )
 
+    #
+    # Permissions
+    #
+    def annotate_user_permission(self, user: User = None):
+        """
+        Annotates user permission for each Post based on the related Projects.
+        """
+
+        project_permissions_subquery = (
+            Project.objects.annotate_user_permission(user=user)
+            .filter(posts=models.OuterRef("pk"))
+            .values("user_permission")
+            .order_by(
+                # Return the max permission level user might have;
+                models.F("user_permission__numeric").desc(
+                    # Ensure Nullable permissions won't affect the ordering
+                    nulls_last=True
+                )
+            )[:1]
+        )
+
+        return self.annotate(
+            user_permission=models.Case(
+                # If user is the question author
+                models.When(
+                    author_id=user.id if user else None,
+                    then=models.Value(ObjectPermission.CREATOR),
+                ),
+                # Otherwise, check permissions
+                default=Subquery(project_permissions_subquery),
+                output_field=models.CharField(),
+            )
+        )
+
+    def filter_permission(
+        self, user: User = None, permission: ObjectPermission = ObjectPermission.VIEWER
+    ):
+        """
+        Returns only allowed projects for the user
+        """
+
+        user_id = user.id if user else None
+
+        if user and user.is_superuser:
+            return self
+
+        if permission == ObjectPermission.CREATOR:
+            return self.filter(author_id=user_id)
+
+        # Permissions of the highest order automatically includes
+        # All previous permissions. E.g. CURATOR already includes VIEWER and FORECASTER
+        # This block generates such a permissions list based on the permission order
+        numeric_permissions = ObjectPermission.get_numeric_representation()
+        involved_permissions = [
+            name
+            for name, value in numeric_permissions.items()
+            if value >= numeric_permissions[permission]
+        ]
+
+        return self.filter(
+            # If any project has permissions (null value indicates private project)
+            models.Q(projects__default_permission__in=involved_permissions)
+            | (
+                # Or user was given permissions to access the private project
+                models.Q(projects__projectuserpermission__user_id=user_id)
+                & models.Q(
+                    projects__projectuserpermission__permission__in=involved_permissions
+                )
+            )
+            # Or user is a creator, so it encapsulates all permissions
+            | models.Q(author_id=user_id)
+        ).distinct("id")
+
 
 class Post(TimeStampedModel):
+    class CurationStatus(models.TextChoices):
+        # Draft, only the creator can see it
+        DRAFT = "draft"
+        # Pending, only creator and curators can see it, pending a review to be published or rejected
+        PENDING = "pending"
+        # Rejected, only the creator and curators on the project[s] can see it
+        REJECTED = "rejected"
+        # APPROVED, all viewers can see it
+        APPROVED = "approved"
+        # CLOSED, all viewers can see it, no forecasts or other interactions can happen
+        CLOSED = "closed"
+        # DELETED, all viewers can see it, no forecasts or other interactions can happen
+        DELETED = "deleted"
+        # RESOLVED (This is kinda fuzzy)
+        RESOLVED = "resolved"
+
+    curation_status = models.CharField(
+        max_length=20, choices=CurationStatus.choices, default=CurationStatus.DRAFT
+    )
     title = models.CharField(max_length=200)
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
 
+    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    rejected_at = models.DateTimeField(null=True, blank=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     approved_by = models.ForeignKey(
         User,
@@ -93,6 +223,7 @@ class Post(TimeStampedModel):
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
 
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
@@ -115,9 +246,13 @@ class Post(TimeStampedModel):
     nr_forecasters: int = 0
     vote_score: int = 0
     user_vote = None
+    user_permission: ObjectPermission = None
+
+    def __str__(self):
+        return self.title
 
 
-# TODO: if we can vote on questions and comments, maybe move this elsewhere; user?
+# TODO: create votes app
 class Vote(models.Model):
     class VoteDirection(models.IntegerChoices):
         UP = 1
@@ -125,6 +260,7 @@ class Vote(models.Model):
 
     user = models.ForeignKey(User, models.CASCADE, related_name="votes")
     post = models.ForeignKey(Post, models.CASCADE, related_name="votes")
+    # comment = models.ForeignKey(Comment, models.CASCADE, related_name="votes")
     direction = models.SmallIntegerField(choices=VoteDirection.choices)
 
     class Meta:
@@ -135,8 +271,8 @@ class Vote(models.Model):
             # models.CheckConstraint(
             #    name='has_question_xor_comment',
             #    check=(
-            #        models.Q(question__isnull=True, comment__isnull=False) |
-            #        models.Q(question__isnull=False, comment__isnull=True)
+            #        models.Q(post__isnull=True, comment__isnull=False) |
+            #        models.Q(post__isnull=False, comment__isnull=True)
             #    )
             # )
         ]

@@ -6,7 +6,7 @@ export type Topic = {
   slug: string;
   emoji: string;
   section: TopicSection;
-  questions_count: number;
+  posts_count: number;
 };
 
 export type Category = {
@@ -14,14 +14,14 @@ export type Category = {
   name: string;
   slug: string;
   description: string;
-  questions_count: number;
+  posts_count: number;
 };
 
 export type Tag = {
   id: number;
   name: string;
   slug: string;
-  questions_count: number;
+  posts_count: number;
 };
 
 export enum TournamentType {

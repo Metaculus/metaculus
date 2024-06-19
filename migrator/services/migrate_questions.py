@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 
 from dateutil.parser import parse as date_parse
+import django
 
 from utils.the_math.formulas import scale_location
 from migrator.utils import paginated_query
@@ -73,10 +74,10 @@ def create_question(question: dict, **kwargs) -> Question:
         open_upper_bound=open_upper_bound,
         open_lower_bound=open_lower_bound,
         options=options,
+        closed_at=question["close_time"],
         description=question["description"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
-        closed_at=question["close_time"],
         resolved_at=question["resolve_time"],
         type=question_type,
         possibilities=possibilities,
@@ -96,12 +97,44 @@ def create_question(question: dict, **kwargs) -> Question:
 
 
 def create_post(question: dict, **kwargs) -> Post:
+    curation_status = Post.CurationStatus.DRAFT
+    if question["approved_by_id"] or (
+        question["approved_time"]
+        and question["approved_time"] < django.utils.timezone.now()
+    ) or (question["publish_time"] and question["publish_time"] < django.utils.timezone.now()):
+        curation_status = Post.CurationStatus.APPROVED
+    if question["close_time"] < django.utils.timezone.now() and (
+        (
+            question["approved_time"]
+            and question["approved_time"] < django.utils.timezone.now()
+        )
+        or question["approved_by_id"]
+    ):
+        curation_status = Post.CurationStatus.CLOSED
+    '''if question["resolve_time"] < django.utils.timezone.now() and (
+        (
+            question["approved_time"]
+            and question["approved_time"] < django.utils.timezone.now()
+        )
+        or question["approved_by_id"]
+    ):'''
+    if question["resolution"] is not None:
+        curation_status = Post.CurationStatus.RESOLVED
+    if question["mod_status"] == "PENDING":
+        curation_status = Post.CurationStatus.PENDING
+    if question["mod_status"] == "REJECTED":
+        curation_status = Post.CurationStatus.REJECTED
+    if question["mod_status"] == "DELETED":
+        curation_status = Post.CurationStatus.DELETED
+
     return Post(
         # Keeping the same ID as the old question
         id=question["id"],
         title=question["title"],
         author_id=question["author_id"],
         approved_by_id=question["approved_by_id"],
+        closed_at=question["close_time"],
+        curation_status=curation_status,
         published_at=question["publish_time"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],

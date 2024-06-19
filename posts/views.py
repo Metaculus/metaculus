@@ -1,5 +1,4 @@
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import NotFound
@@ -16,19 +15,15 @@ from posts.serializers import (
     serialize_post_many,
     serialize_post,
 )
-from posts.services import get_posts_feed, create_post
+from posts.services import get_posts_feed, create_post, get_post_permission_for_user
+from projects.permissions import ObjectPermission
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def posts_list_api_view(request):
     paginator = LimitOffsetPagination()
-    qs = (
-        Post.objects.annotate_predictions_count()
-        .filter(predictions_count__gte=2)
-        .filter(published_at__isnull=False)
-        .filter(published_at__lte=timezone.now())
-    )
+    qs = Post.objects.annotate_predictions_count()
 
     # Extra params
     with_forecasts = serializers.BooleanField(allow_null=True).run_validation(
@@ -39,8 +34,7 @@ def posts_list_api_view(request):
     filters_serializer = PostFilterSerializer(data=request.query_params)
     filters_serializer.is_valid(raise_exception=True)
 
-    qs = get_posts_feed(qs=qs, user=request.user, **filters_serializer.validated_data)
-
+    qs = get_posts_feed(qs, user=request.user, **filters_serializer.validated_data)
     # Paginating queryset
     posts = paginator.paginate_queryset(qs, request)
 
@@ -49,6 +43,7 @@ def posts_list_api_view(request):
         with_forecasts=with_forecasts,
         current_user=request.user,
     )
+    print(len(data))
 
     return paginator.get_paginated_response(data)
 
@@ -67,6 +62,7 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
+    print(request.data)
     serializer = PostWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
@@ -94,6 +90,11 @@ def post_update_api_view(request, pk):
 @api_view(["DELETE"])
 def post_delete_api_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_delete(permission, raise_exception=True)
+
     if request.user != post.author:
         return Response(status=status.HTTP_403_FORBIDDEN)
     post.delete()
