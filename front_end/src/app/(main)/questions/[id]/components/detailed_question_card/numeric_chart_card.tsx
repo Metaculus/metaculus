@@ -6,10 +6,7 @@ import React, { FC, useCallback, useMemo, useState } from "react";
 import NumericChart from "@/components/charts/numeric_chart";
 import { NumericForecast, QuestionType } from "@/types/question";
 import { getNumericChartTypeFromQuestion } from "@/utils/charts";
-import {
-  getForecastNumericDisplayValue,
-  getForecastPctDisplayValue,
-} from "@/utils/forecasts";
+import { formatPrediction } from "@/utils/forecasts";
 
 import CursorDetailItem from "./numeric_cursor_item";
 
@@ -32,9 +29,9 @@ const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
     );
 
     return {
-      min: forecast.values_min[index].toFixed(4),
-      max: forecast.values_max[index].toFixed(4),
-      mean: forecast.values_mean[index].toFixed(4),
+      min: forecast.values_min[index],
+      max: forecast.values_max[index],
+      mean: forecast.values_mean[index],
       forecastersNr: forecast.nr_forecasters[index],
       timestamp: forecast.timestamps[index],
     };
@@ -77,7 +74,7 @@ const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
         />
         <CursorDetailItem
           title={t("communityPredictionLabel")}
-          text={`${questionType == QuestionType.Binary ? getForecastPctDisplayValue(cursorData.mean) : getForecastNumericDisplayValue(cursorData.mean)}`}
+          text={formatPrediction(cursorData.mean, questionType)}
           variant="prediction"
         />
       </div>

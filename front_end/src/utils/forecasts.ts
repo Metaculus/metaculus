@@ -1,3 +1,4 @@
+import { format, fromUnixTime } from "date-fns";
 import { isNil, round } from "lodash";
 import * as math from "mathjs";
 
@@ -22,6 +23,10 @@ export function getForecastNumericDisplayValue(value: number | string) {
   return Number(value).toFixed(1);
 }
 
+export function getForecastDateDisplayValue(value: number) {
+  return format(fromUnixTime(value), "MMM d, yyyy");
+}
+
 export function formatPrediction(
   prediction: number,
   questionType: QuestionType
@@ -31,8 +36,10 @@ export function formatPrediction(
       return getForecastNumericDisplayValue(prediction);
     case QuestionType.Binary:
       return getForecastPctDisplayValue(prediction);
+    case QuestionType.Date:
+      return getForecastDateDisplayValue(prediction);
     default:
-      return prediction;
+      return prediction.toString();
   }
 }
 
