@@ -88,18 +88,12 @@ def get_posts_feed(
         if "rejected" in status:
             qs = qs.filter(curation_status=Post.CurationStatus.REJECTED)
         if "resolved" in status:
-            qs = qs.filter(
-                Q(question__resolved_at__lte=timezone.now())
-                | Q(
-                    Q(conditional__condition_child__resolved_at__lte=timezone.now())
-                    & Q(conditional__condition__resolved_at__lte=timezone.now())
-                )
-                | Q(group_of_questions__questions__resolved_at__lte=timezone.now())
-            )
+            qs = qs.filter(curation_status=Post.CurationStatus.RESOLVED)
 
     if answered_by_me is not None and not user.is_anonymous:
         condition = {"question__forecast__author": user}
         qs = qs.filter(**condition) if answered_by_me else qs.exclude(**condition)
+
     # Filter by permission level
     qs = qs.filter_permission(user=user, permission=permission)
 
