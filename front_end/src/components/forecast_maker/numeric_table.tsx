@@ -1,23 +1,29 @@
 import React, { FC } from "react";
 
-import { computeQuartilesFromCDF } from "@/utils/math";
+import { Quartiles } from "@/types/question";
 
 type Props = {
-  cdf: number[];
-  latestCdf: number[];
+  userQuartiles?: Quartiles;
+  communityQuartiles: Quartiles;
+  withUserQuartiles?: boolean;
 };
 
-const NumericForecastTable: FC<Props> = ({ cdf, latestCdf }) => {
-  const quantiles = computeQuartilesFromCDF(cdf);
-  const cp_quantiles = computeQuartilesFromCDF(latestCdf);
-
+const NumericForecastTable: FC<Props> = ({
+  userQuartiles,
+  communityQuartiles,
+  withUserQuartiles = true,
+}) => {
   return (
     <>
       <div className="mb-4 flex justify-between text-center">
         <div className="w-full" />
-        <div className="w-full text-orange-800 dark:text-orange-800-dark">
-          My Prediction
-        </div>
+        {withUserQuartiles && (
+          <>
+            <div className="w-full text-orange-800 dark:text-orange-800-dark">
+              My Prediction
+            </div>
+          </>
+        )}
         <a className="w-full text-olive-700 dark:text-olive-700-dark">
           Community
         </a>
@@ -28,19 +34,30 @@ const NumericForecastTable: FC<Props> = ({ cdf, latestCdf }) => {
           <div className="w-full">median</div>
           <div className="w-full">upper 75%</div>
         </div>
+        {withUserQuartiles && (
+          <div className="w-full text-center">
+            <div>{getDisplayValue(userQuartiles?.lower25)}</div>
+            <div>{getDisplayValue(userQuartiles?.median)}</div>
+            <div>{getDisplayValue(userQuartiles?.upper75)}</div>
+          </div>
+        )}
+
         <div className="w-full text-center">
-          <div>{Math.round(quantiles.lower25 * 1000) / 100}</div>
-          <div>{Math.round(quantiles.median * 1000) / 100}</div>
-          <div>{Math.round(quantiles.upper75 * 1000) / 100}</div>
-        </div>
-        <div className="w-full text-center">
-          <div>{Math.round(cp_quantiles.lower25 * 1000) / 100}</div>
-          <div>{Math.round(cp_quantiles.median * 1000) / 100}</div>
-          <div>{Math.round(cp_quantiles.upper75 * 1000) / 100}</div>
+          <div>{getDisplayValue(communityQuartiles.lower25)}</div>
+          <div>{getDisplayValue(communityQuartiles.median)}</div>
+          <div>{getDisplayValue(communityQuartiles.upper75)}</div>
         </div>
       </div>
     </>
   );
 };
+
+function getDisplayValue(value: number | undefined) {
+  if (value === undefined) {
+    return "...";
+  }
+
+  return `${Math.round(value * 1000) / 100}`;
+}
 
 export default NumericForecastTable;
