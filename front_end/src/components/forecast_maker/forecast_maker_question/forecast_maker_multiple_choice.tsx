@@ -147,6 +147,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question, prevForecast }) => {
       },
       forecastValue
     );
+    setIsDirty(false);
     if ("errors" in response) {
       setSubmitError(response.errors);
     }
@@ -186,6 +187,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question, prevForecast }) => {
           {choicesForecasts.map((choice) => (
             <ForecastChoiceOption
               key={choice.name}
+              id={choice.name}
               forecastValue={choice.forecast}
               defaultSliderValue={equalizedForecast}
               choiceName={choice.name}

@@ -3,7 +3,7 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
-import { createForecast } from "@/app/(main)/questions/actions";
+import { createForecasts } from "@/app/(main)/questions/actions";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "@/components/forecast_maker/conditional_forecast_table";
@@ -24,12 +24,14 @@ import {
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 type Props = {
+  postId: number;
   conditional: PostConditional<QuestionWithNumericForecasts>;
   prevYesForecast?: any;
   prevNoForecast?: any;
 };
 
 const ForecastMakerConditionalNumeric: FC<Props> = ({
+  postId,
   conditional,
   prevYesForecast,
   prevNoForecast,
@@ -93,14 +95,14 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
     () => questionOptions.some((option) => option.isDirty),
     [questionOptions]
   );
-  const forecastsToSubmit = useMemo(
+  const questionsToSubmit = useMemo(
     () =>
       questionOptions.filter(
         (option) => option.isDirty && option.value !== null
       ),
     [questionOptions]
   );
-  const submitIsAllowed = !isSubmitting && !!forecastsToSubmit.length;
+  const submitIsAllowed = !isSubmitting && !!questionsToSubmit.length;
 
   const copyForecastButton = useMemo(() => {
     if (!activeTableOption) return null;
@@ -229,26 +231,29 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
   const handlePredictSubmit = async () => {
     setSubmitErrors([]);
 
-    if (!forecastsToSubmit.length) {
+    if (!questionsToSubmit.length) {
       return;
     }
 
-    const promises = forecastsToSubmit.map(({ id, sliderForecast, weights }) =>
-      createForecast(
-        id,
-        {
+    setIsSubmitting(true);
+    const responses = await createForecasts(
+      postId,
+      questionsToSubmit.map(({ id, sliderForecast, weights }) => ({
+        questionId: id,
+        forecastData: {
           continuousCdf: getNumericForecastDataset(sliderForecast, weights).cdf,
           probabilityYesPerCategory: null,
           probabilityYes: null,
         },
-        {
+        sliderValues: {
           forecast: sliderForecast,
           weights,
-        }
-      )
+        },
+      }))
     );
-    setIsSubmitting(true);
-    const responses = await Promise.all(promises);
+    setQuestionOptions((prev) =>
+      prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
+    );
     setIsSubmitting(false);
 
     const errors: ErrorResponse[] = [];
