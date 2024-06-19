@@ -27,7 +27,6 @@ def create_project(project_obj: dict) -> Project:
     project_type = {
         "TO": Project.ProjectTypes.TOURNAMENT,
         "QS": Project.ProjectTypes.QUESTION_SERIES,
-        "PP": Project.ProjectTypes.PERSONAL_PROJECT,
     }.get(project_obj["type"])
 
     project = Project(
@@ -204,7 +203,7 @@ def migrate_projects():
 
     # Migrating only Tournament projects for now
     for project_obj in paginated_query(
-        "SELECT * FROM metac_project_project WHERE type in ('TO', 'QS', 'PP')"
+        "SELECT * FROM metac_project_project WHERE type in ('TO', 'QS')"
     ):
         project = create_project(project_obj)
         project.save()

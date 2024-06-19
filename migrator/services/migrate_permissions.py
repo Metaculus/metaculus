@@ -22,7 +22,6 @@ from projects.permissions import ObjectPermission
 OLD_PROJECT_TYPES = [
     Project.ProjectTypes.TOURNAMENT,
     Project.ProjectTypes.QUESTION_SERIES,
-    Project.ProjectTypes.PERSONAL_PROJECT,
 ]
 
 
@@ -101,6 +100,7 @@ def migrate_permissions():
         FROM metac_project_userprojectpermissions upp
         JOIN metac_project_project p 
         ON upp.project_id = p.id
+        WHERE p.type != 'PP'
     """
     ):
         # New app merges Project & Categories & Tags etc.
