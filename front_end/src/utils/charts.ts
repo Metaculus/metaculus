@@ -12,6 +12,7 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
+import { extractQuestionGroupName } from "@/utils/questions";
 
 export function getNumericChartTypeFromQuestion(
   type: QuestionType
@@ -219,7 +220,7 @@ export function generateChoiceItemsFromBinaryGroup(
 ): ChoiceItem[] {
   return questions.map((q, index) => {
     return {
-      choice: q.title,
+      choice: extractQuestionGroupName(q.title),
       values: q.forecasts.values_mean,
       timestamps: q.forecasts.timestamps,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
@@ -229,29 +230,17 @@ export function generateChoiceItemsFromBinaryGroup(
   });
 }
 
-// TODO: BE should probably return a field, that can be used as chart title
-// and a separate field for sorting the options
-export function getFanName(title: string) {
-  const match = title.match(/\((.*?)\)/);
-  return match ? match[1] : title;
-}
-
 export function getFanOptionsFromNumericGroup(
   questions: QuestionWithNumericForecasts[]
 ): FanOption[] {
   return questions
-    .map((q, index) => {
-      const name = getFanName(q.title);
-      const dateValue = Date.parse(name);
-      const sortValue = isNaN(dateValue) ? index : dateValue;
-      return {
-        name,
-        cdf: q.forecasts.latest_cdf,
-        sortValue,
-        resolved: q.resolution !== null,
-      };
-    })
-    .sort((a, b) => a.sortValue - b.sortValue)
+    .map((q) => ({
+      name: extractQuestionGroupName(q.title),
+      cdf: q.forecasts.latest_cdf,
+      resolvedAt: new Date(q.resolved_at),
+      resolved: q.resolution !== null,
+    }))
+    .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt))
     .map(({ name, cdf, resolved }) => ({
       name,
       quartiles: computeQuartilesFromCDF(cdf),

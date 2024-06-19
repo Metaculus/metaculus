@@ -1,10 +1,12 @@
+import { differenceInMilliseconds } from "date-fns";
 import { FC } from "react";
 
 import FanChart from "@/components/charts/fan_chart";
 import PredictionChip from "@/components/prediction_chip";
 import { PostStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
-import { getFanName, getFanOptionsFromNumericGroup } from "@/utils/charts";
+import { getFanOptionsFromNumericGroup } from "@/utils/charts";
+import { extractQuestionGroupName } from "@/utils/questions";
 
 const CHART_HEIGHT = 100;
 
@@ -43,13 +45,12 @@ function getPredictionQuestion(
   curationStatus: PostStatus
 ) {
   const sortedQuestions = questions
-    .map((q, index) => {
-      const fanName = getFanName(q.title);
-      const dateValue = Date.parse(fanName);
-      const sortValue = isNaN(dateValue) ? index : dateValue;
-      return { ...q, sortValue, fanName };
-    })
-    .sort((a, b) => a.sortValue - b.sortValue);
+    .map((q) => ({
+      ...q,
+      resolvedAt: new Date(q.resolved_at),
+      fanName: extractQuestionGroupName(q.title),
+    }))
+    .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));
 
   if (curationStatus === PostStatus.RESOLVED) {
     return sortedQuestions[sortedQuestions.length - 1];
