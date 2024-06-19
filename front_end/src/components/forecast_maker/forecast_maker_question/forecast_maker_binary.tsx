@@ -85,8 +85,8 @@ const ForecastMakerBinary: FC<Props> = ({ question, prevForecast }) => {
         >
           {user ? t("predictButton") : t("signUpButton")}
         </Button>
-        <FormError errors={submitError} />
       </div>
+      <FormError errors={submitError} />
     </section>
   );
 };
