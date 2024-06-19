@@ -14,7 +14,7 @@ def unscaled_location_to_string_location(
     question: Question, unscaled_location: float
 ) -> str:
     if question.type == "binary":
-        return "yes" if unscaled_location == 1.0 else "no"
+        return "Yes" if unscaled_location == 1.0 else "No"
     if question.type == "multiple_choice":
         return question.options[int(unscaled_location)]
     # continuous
@@ -111,13 +111,14 @@ def create_post(question: dict, **kwargs) -> Post:
         or question["approved_by_id"]
     ):
         curation_status = Post.CurationStatus.CLOSED
-    if question["resolve_time"] < django.utils.timezone.now() and (
+    '''if question["resolve_time"] < django.utils.timezone.now() and (
         (
             question["approved_time"]
             and question["approved_time"] < django.utils.timezone.now()
         )
         or question["approved_by_id"]
-    ):
+    ):'''
+    if question["resolution"] is not None:
         curation_status = Post.CurationStatus.RESOLVED
     if question["mod_status"] == "PENDING":
         curation_status = Post.CurationStatus.PENDING

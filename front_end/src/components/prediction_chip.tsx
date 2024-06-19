@@ -8,6 +8,38 @@ import { PostStatus } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { formatPrediction } from "@/utils/forecasts";
 
+function fmt_for_chip(
+  resolution: number | string | null | undefined,
+  questionType: QuestionType
+) {
+  let fmted_resolution = null;
+  resolution = String(resolution);
+  if (resolution === "null" || resolution === "undefined") {
+    fmted_resolution = "Annulled";
+  } else if (["yes", "no"].includes(resolution)) {
+    fmted_resolution = resolution.charAt(0).toUpperCase() + resolution.slice(1);
+  } else if (questionType === QuestionType.Date) {
+    if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
+      fmted_resolution = String(new Date(Number(resolution) * 1000)).split(
+        "T"
+      )[0];
+    } else {
+      fmted_resolution = resolution.split("T")[0];
+    }
+  } else if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
+    fmted_resolution = parseFloat(Number(resolution).toPrecision(3));
+    if (fmted_resolution > 1000) {
+      fmted_resolution = (fmted_resolution / 1000).toFixed(2) + "k";
+    } else if (fmted_resolution > 100) {
+      fmted_resolution = fmted_resolution.toFixed(0);
+    } else {
+      fmted_resolution = fmted_resolution.toFixed(2);
+    }
+    fmted_resolution = String(fmted_resolution);
+  }
+  return fmted_resolution;
+}
+
 type Size = "compact" | "large";
 
 type Props = {
@@ -31,6 +63,9 @@ const PredictionChip: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
+  const fmted_resolution = fmt_for_chip(resolution, questionType);
+  const fmted_prediction = fmt_for_chip(prediction, questionType);
+
   switch (status) {
     case PostStatus.PENDING:
       return <span className="inline-flex flex-col"></span>;
@@ -52,7 +87,7 @@ const PredictionChip: FC<Props> = ({
               chipClassName
             )}
           >
-            {resolution}
+            {fmted_resolution}
           </Chip>
           {size !== "compact" && !!nr_forecasters && (
             <p>

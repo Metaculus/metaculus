@@ -1,7 +1,7 @@
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
 import { Post, PostWithForecasts } from "@/types/post";
 import { VoteDirection, VoteResponse } from "@/types/votes";
-import { get, post } from "@/utils/fetch";
+import { get, post, put } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/query_params";
 
 export type PostsParams = PaginationParams & {
@@ -68,6 +68,18 @@ class PostsApi {
   ): Promise<PostWithForecasts | null> {
     try {
       return await post<PostWithForecasts>(`/posts/create/`, body);
+    } catch (err) {
+      console.error("Error getting posts:", err);
+      return null;
+    }
+  }
+
+  static async updatePost(
+    id: number,
+    body: any
+  ): Promise<PostWithForecasts | null> {
+    try {
+      return await put<any, PostWithForecasts>(`posts/${id}/update/`, body);
     } catch (err) {
       console.error("Error getting posts:", err);
       return null;

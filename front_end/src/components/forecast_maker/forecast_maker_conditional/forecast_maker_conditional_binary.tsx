@@ -53,14 +53,14 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   >([
     {
       id: questionYesId,
-      name: t("yes"),
+      name: t("Yes"),
       value: prevYesForecastValue,
       isDirty: false,
       communitiesForecast: question_yes.forecasts.values_mean.at(-1),
     },
     {
       id: questionNoId,
-      name: t("no"),
+      name: t("No"),
       value: prevNoForecastValue,
       isDirty: false,
       communitiesForecast: question_no.forecasts.values_mean.at(-1),

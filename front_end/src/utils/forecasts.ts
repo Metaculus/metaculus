@@ -15,7 +15,6 @@ export function getForecastPctDisplayValue(
   if (isNil(value)) {
     return "?";
   }
-
   return `${Math.round(Number(value) * 100)}%`;
 }
 
