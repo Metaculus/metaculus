@@ -13,7 +13,6 @@ type Props = {
 
 const Comment: FC<Props> = ({ comment }) => {
   const locale = useLocale();
-  console.log("comment data:", comment);
 
   return (
     <div id={`comment-${comment.id}`}>
@@ -59,7 +58,7 @@ const Comment: FC<Props> = ({ comment }) => {
           <a href={`#comment-${comment.parent}`}>➞ in reply to: USERNAME</a>
         </div>
       )}
-      <div>{comment.text}</div>
+      <div className="break-anywhere">{comment.text}</div>
       {/*
       {isEditing && (
         <div className="mx-auto my-3" ref={editRef}>
@@ -230,7 +229,7 @@ const Comment: FC<Props> = ({ comment }) => {
         </p>
       ))*/}
 
-      {/* 
+      {/*
       {comment.children?.length > 0 && (
         <div className="relative ml-4 mt-3 pl-4" ref={childrenRef}>
           <Button
