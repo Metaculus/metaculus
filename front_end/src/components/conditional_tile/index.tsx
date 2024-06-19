@@ -23,7 +23,7 @@ const ConditionalTile: FC<Props> = ({ conditional, curationStatus }) => {
   const parentSuccessfullyResolved =
     curationStatus === PostStatus.RESOLVED &&
     condition.resolution !== null &&
-    condition.resolution === "Yes";
+    condition.resolution === "yes";
   const yesHappened =
     condition.resolution !== null &&
     condition.resolution === question_yes.resolution;
