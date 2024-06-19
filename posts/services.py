@@ -52,7 +52,7 @@ def get_posts_feed(
     # TODO: ensure projects filtering logic is correct
     #   I assume it might not work exactly as before
     if tournaments:
-        qs = qs.filter(projects__in=tournaments)
+        qs = qs.filter(Q(projects__in=tournaments) | Q(default_project__in=tournaments))
 
     if forecast_type:
         forecast_type_q = Q()

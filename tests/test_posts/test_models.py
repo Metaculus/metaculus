@@ -96,15 +96,16 @@ class TestPostPermissions:
         # User2 & User3
         p1 = factory_post(
             author=factory_user(),
+            default_project=factory_project(
+                # Private Projects
+                default_permission=None,
+                override_permissions={
+                    user2.id: ObjectPermission.FORECASTER,
+                    user3.id: ObjectPermission.ADMIN,
+                },
+            ),
             projects=[
                 # Private Projects
-                factory_project(
-                    default_permission=None,
-                    override_permissions={
-                        user2.id: ObjectPermission.FORECASTER,
-                        user3.id: ObjectPermission.ADMIN,
-                    },
-                ),
                 factory_project(
                     default_permission=None,
                 ),
@@ -114,24 +115,19 @@ class TestPostPermissions:
         # User1 & User3
         p2 = factory_post(
             author=user3,
-            projects=[
-                # Private Project
-                factory_project(
-                    default_permission=None,
-                    override_permissions={
-                        user1.id: ObjectPermission.FORECASTER,
-                    },
-                ),
-            ],
+            # Private Project
+            default_project=factory_project(
+                default_permission=None,
+                override_permissions={
+                    user1.id: ObjectPermission.FORECASTER,
+                },
+            ),
         )
 
         # Public
         p3 = factory_post(
             author=factory_user(),
-            projects=[
-                # Private Project
-                factory_project(default_permission=ObjectPermission.VIEWER),
-            ],
+            default_project=factory_project(default_permission=ObjectPermission.VIEWER),
         )
 
         # Anon user
