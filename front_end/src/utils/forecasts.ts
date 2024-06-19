@@ -9,6 +9,7 @@ import {
   QuestionType,
 } from "@/types/question";
 import { binWeightsFromSliders } from "@/utils/math";
+import { abbreviatedNumber } from "@/utils/number_formatters";
 
 export function getForecastPctDisplayValue(
   value: number | string | null | undefined
@@ -20,7 +21,7 @@ export function getForecastPctDisplayValue(
 }
 
 export function getForecastNumericDisplayValue(value: number | string) {
-  return Number(value).toFixed(1);
+  return abbreviatedNumber(value);
 }
 
 export function getForecastDateDisplayValue(value: number) {
