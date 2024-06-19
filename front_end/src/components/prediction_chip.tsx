@@ -45,7 +45,7 @@ type Size = "compact" | "large";
 type Props = {
   questionType: QuestionType;
   status: PostStatus;
-  nr_forecasters: number;
+  nr_forecasters?: number;
   prediction: number | undefined;
   resolution: string | null;
   size?: Size;

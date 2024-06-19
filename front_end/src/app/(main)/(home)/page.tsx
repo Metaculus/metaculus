@@ -10,7 +10,7 @@ import FocusAreaAiIcon from "./components/icons/focus_area_ai";
 import FocusAreaBiosecurityIcon from "./components/icons/focus_area_biosecurity";
 import FocusAreaClimateIcon from "./components/icons/focus_area_climate";
 import FocusAreaNuclearIcon from "./components/icons/focus_area_nuclear";
-import QuestionCarousel from "./components/question_carousel";
+import QuestionCarousel from "./components/questions_carousel";
 import TopicLink from "./components/topic_link";
 
 // TODO: probable makes sense to receive this info from the BE
