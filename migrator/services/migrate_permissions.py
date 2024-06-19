@@ -11,6 +11,7 @@ from projects.permissions import ObjectPermission
 # TODO: check tags/categories permissions and ensure private posts with public tags do not exist!!!
 # TODO: UserProjectPermission: diff Project permission VS Question permission and ensure they are all about the same level +-
 # TODO: adjust Post.default_project permissions
+# TODO: coauthors: for private questions we are doing 1 proj per post!!!
 
 
 # TEST CASES:
