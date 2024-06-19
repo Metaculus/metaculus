@@ -1,9 +1,10 @@
 import React from "react";
 import { FC } from "react";
 
-import PostCard from "@/components/post_card";
 import PostsApi from "@/services/posts";
 import { PostWithForecasts } from "@/types/post";
+
+import QuestionCarouselItem from "./carousel_item";
 
 type Props = {
   postIds: number[];
@@ -18,11 +19,9 @@ const QuestionCarousel: FC<Props> = async ({ postIds }) => {
   ) as PostWithForecasts[];
 
   return (
-    <div className="flex flex-row overflow-x-scroll p-4">
-      {posts.map((p, idx) => (
-        <div key={idx} className="ml-4 h-[320px] w-[500px]">
-          <PostCard post={p} />
-        </div>
+    <div className="flex flex-row gap-8 overflow-x-scroll p-4">
+      {posts.map((p) => (
+        <QuestionCarouselItem key={p.id} post={p} />
       ))}
     </div>
   );
