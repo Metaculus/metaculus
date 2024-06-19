@@ -12,11 +12,12 @@ import {
 import ResolutionIcon from "@/components/icons/resolution";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import RadioButton from "@/components/ui/radio_button";
-import { Quartiles } from "@/types/question";
+import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
 
 export type ConditionalTableOption = {
   id: number;
   name: string;
+  question: QuestionWithNumericForecasts;
   userForecast: MultiSliderValue[];
   userWeights: number[];
   userQuartiles: Quartiles | null;
@@ -67,7 +68,7 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
           >
             {({ checked, disabled }) => (
               <>
-                <Td className="border-b border-r">
+                <Td className="border-b border-r px-5">
                   <RadioButton
                     checked={checked}
                     disabled={disabled}
@@ -120,7 +121,7 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
             {({ checked, disabled }) => (
               <>
                 <Td
-                  className={classNames("border-r", {
+                  className={classNames("border-r px-5", {
                     "border-b": optionIdx !== pendingOptions.length - 1,
                   })}
                 >
@@ -140,6 +141,7 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
                   <PredictionCell
                     communityValue={option.communityQuartiles.lower25}
                     userValue={option.userQuartiles?.lower25}
+                    isDirty={option.isDirty}
                   />
                 </Td>
                 <Td
@@ -150,6 +152,7 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
                   <PredictionCell
                     communityValue={option.communityQuartiles.median}
                     userValue={option.userQuartiles?.median}
+                    isDirty={option.isDirty}
                   />
                 </Td>
                 <Td
@@ -160,6 +163,7 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
                   <PredictionCell
                     communityValue={option.communityQuartiles.upper75}
                     userValue={option.userQuartiles?.upper75}
+                    isDirty={option.isDirty}
                   />
                 </Td>
               </>
@@ -171,15 +175,23 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
   );
 };
 
-const PredictionCell: FC<{ communityValue: number; userValue?: number }> = ({
-  communityValue,
-  userValue,
-}) => (
-  <div className="flex flex-col items-center justify-center">
-    <div className="whitespace-nowrap text-olive-700 dark:text-olive-700-dark">
+const PredictionCell: FC<{
+  communityValue: number;
+  isDirty: boolean;
+  userValue?: number;
+}> = ({ communityValue, isDirty, userValue }) => (
+  <div className="grid grid-rows-2">
+    <div className="flex justify-center whitespace-nowrap text-olive-700 dark:text-olive-700-dark">
       {communityValue}
     </div>
-    <div className="text-orange-800 dark:text-orange-800-dark">
+    <div
+      className={classNames(
+        "flex justify-center text-orange-800 dark:text-orange-800-dark",
+        {
+          "bg-orange-100 font-semibold dark:bg-orange-100-dark": isDirty,
+        }
+      )}
+    >
       {userValue ?? "—"}
     </div>
   </div>
@@ -214,7 +226,7 @@ const Td: FC<
 > = ({ className, children, ...props }) => (
   <td
     className={classNames(
-      "border-gray-400 px-5 text-left text-xs dark:border-gray-400-dark",
+      "border-gray-400 p-0 text-left text-xs dark:border-gray-400-dark",
       className
     )}
     {...props}
