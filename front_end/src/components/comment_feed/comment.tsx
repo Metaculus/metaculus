@@ -1,18 +1,62 @@
+"use client";
 import { faReply } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocale } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
+import DropdownMenu from "@/components/ui/dropdown_menu";
 import { CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
 
 type Props = {
   comment: CommentType;
+  url: string;
 };
 
-const Comment: FC<Props> = ({ comment }) => {
+const copyToClipboard = async (text: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (err) {
+    console.error("Failed to copy text: ", err);
+  }
+};
+
+const Comment: FC<Props> = ({ comment, url }) => {
   const locale = useLocale();
+
+  const menuItems = [
+    {
+      //show: canEdit && !(isEditing || isReplying),
+      id: "edit",
+      name: "Edit [TODO]",
+      onClick: () => {}, //openEditing,
+    },
+    {
+      //show: true,
+      id: "copyLink",
+      name: "Copy Link",
+      onClick: () => {
+        copyToClipboard(`${url}#comment-${comment.id}`);
+      },
+    },
+    {
+      //show: user.isAuthenticated,
+      id: "report",
+      name: "Report [TODO]",
+      onClick: () => {
+        return null; //setReportModalOpen(true)
+      },
+    },
+    {
+      //show: canDelete,
+      id: "delete",
+      name: "Delete [TODO]",
+      onClick: () => {
+        return null; // setDeleteModalOpen(true),
+      },
+    },
+  ];
 
   return (
     <div id={`comment-${comment.id}`}>
@@ -122,53 +166,7 @@ const Comment: FC<Props> = ({ comment }) => {
               </Button>
             </div>
 
-            {/*!comment.is_soft_deleted && (
-              <Menu
-                as="div"
-                className="relative inline-block text-left leading-[0]"
-              >
-                {({ open }) => (
-                  <>
-                    <Menu.Button
-                      as={IconButton}
-                      variant="text"
-                      size="md"
-                      aria-label="Open Menu"
-                      className={clsx({
-                        "bg-gray-300 dark:bg-gray-300-dark": open,
-                      })}
-                    >
-                      <FontAwesomeIcon
-                        icon={icon({ name: "ellipsis", style: "solid" })}
-                        size="lg"
-                      />
-                    </Menu.Button>
-                    <Menu.Items className="border-gray-500 bg-gray-0 dark:border-gray-500-dark dark:bg-gray-0-dark absolute -right-px z-50 flex w-max origin-top-right flex-col overflow-hidden rounded rounded-tr-none border leading-tight shadow-lg focus:outline-none ">
-                      {menuItems
-                        .filter(({ show }) => show)
-                        .map(({ text, onClick }) => (
-                          <Menu.Item key={text}>
-                            {({ active }) => (
-                              <button
-                                className={clsx(
-                                  "hover:bg-gray-200 active:bg-gray-200 hover:dark:bg-gray-200-dark active:dark:bg-gray-200-dark whitespace-nowrap p-2 text-right",
-                                  {
-                                    "bg-gray-200 dark:bg-gray-200-dark":
-                                      active,
-                                  }
-                                )}
-                                onClick={onClick}
-                              >
-                                {text}
-                              </button>
-                            )}
-                          </Menu.Item>
-                        ))}
-                    </Menu.Items>
-                  </>
-                )}
-              </Menu>
-            )*/}
+            {!comment.is_soft_deleted && <DropdownMenu items={menuItems} />}
           </div>
         </div>
       )}
