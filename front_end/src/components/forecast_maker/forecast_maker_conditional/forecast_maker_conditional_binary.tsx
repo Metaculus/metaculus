@@ -249,7 +249,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
           />
         </div>
       ))}
-      <div className="my-5 flex items-center justify-center gap-3 px-4">
+      <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
         {user ? (
           <>
             <Button
