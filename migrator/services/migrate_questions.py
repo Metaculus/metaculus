@@ -14,7 +14,7 @@ def unscaled_location_to_string_location(
     question: Question, unscaled_location: float
 ) -> str:
     if question.type == "binary":
-        return "Yes" if unscaled_location == 1.0 else "No"
+        return "yes" if unscaled_location == 1.0 else "no"
     if question.type == "multiple_choice":
         return question.options[int(unscaled_location)]
     # continuous
