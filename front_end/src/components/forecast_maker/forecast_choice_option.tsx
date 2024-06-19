@@ -10,32 +10,36 @@ import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
 import ForecastTextInput from "./forecast_text_input";
 
-type Props = {
+type Props<T> = {
   choiceColor: {
     DEFAULT: string;
     dark: string;
   };
+  id: T;
   choiceName: string;
   min: number;
   max: number;
   defaultSliderValue: number;
   forecastValue: number | null;
   communityForecast: number | null;
-  onChange: (choice: string, forecast: number) => void;
+  onChange: (id: T, forecast: number) => void;
   isDirty: boolean;
+  isRowDirty?: boolean;
 };
 
-const ForecastChoiceOption: FC<Props> = ({
+const ForecastChoiceOption = <T = string,>({
   communityForecast,
   min,
   max,
+  id,
   choiceName,
   choiceColor,
   onChange,
   defaultSliderValue,
   forecastValue,
   isDirty,
-}) => {
+  isRowDirty,
+}: Props<T>) => {
   const inputDisplayValue = forecastValue
     ? forecastValue?.toString() + "%"
     : "—";
@@ -50,18 +54,18 @@ const ForecastChoiceOption: FC<Props> = ({
 
   const handleSliderForecastChange = useCallback(
     (value: number) => {
-      onChange(choiceName, value);
+      onChange(id, value);
     },
-    [choiceName, onChange]
+    [id, onChange]
   );
   const handleInputChange = useCallback((value: string) => {
     setInputValue(value);
   }, []);
   const handleInputForecastChange = useCallback(
     (value: number) => {
-      onChange(choiceName, value);
+      onChange(id, value);
     },
-    [choiceName, onChange]
+    [id, onChange]
   );
 
   const SliderElement = (
@@ -74,7 +78,12 @@ const ForecastChoiceOption: FC<Props> = ({
         step={1}
         arrowStep={0.1}
         shouldSyncWithDefault
-        arrowClassName="bg-gray-0 text-orange-700 hover:text-orange-800 active:text-orange-900 dark:bg-gray-0-dark dark:text-orange-700-dark dark:hover:text-orange-800-dark dark:active:text-orange-900-dark"
+        arrowClassName={classNames(
+          "text-orange-700 hover:text-orange-800 active:text-orange-900 dark:text-orange-700-dark dark:hover:text-orange-800-dark dark:active:text-orange-900-dark",
+          isRowDirty
+            ? "bg-orange-200 dark:bg-orange-200-dark"
+            : "bg-gray-0 dark:bg-gray-0-dark"
+        )}
         marks={
           communityForecast
             ? {
@@ -88,7 +97,11 @@ const ForecastChoiceOption: FC<Props> = ({
 
   return (
     <>
-      <tr>
+      <tr
+        className={classNames({
+          "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
+        })}
+      >
         <th className="w-full border-t border-gray-300 p-2 text-left text-sm font-bold leading-6 dark:border-gray-300-dark sm:w-auto sm:min-w-[10rem] sm:text-base">
           <div className="flex gap-2">
             <ChoiceIcon className="mt-1 shrink-0" color={choiceColor} />
@@ -116,7 +129,11 @@ const ForecastChoiceOption: FC<Props> = ({
           {SliderElement}
         </td>
       </tr>
-      <tr className="sm:hidden">
+      <tr
+        className={classNames("sm:hidden", {
+          "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
+        })}
+      >
         <td
           className="w-full border-t border-none border-gray-300 p-2 px-6 pt-0 dark:border-gray-300-dark"
           colSpan={4}

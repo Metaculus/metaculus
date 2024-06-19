@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 import React from "react";
 
-import { createForecast } from "@/app/(main)/questions/actions";
+import { createForecasts } from "@/app/(main)/questions/actions";
 import BinarySlider, {
   BINARY_FORECAST_PRECISION,
 } from "@/components/forecast_maker/binary_slider";
@@ -23,12 +23,14 @@ import ConditionalForecastTable, {
 } from "../conditional_forecast_table";
 
 type Props = {
+  postId: number;
   conditional: PostConditional<QuestionWithNumericForecasts>;
   prevYesForecast?: any;
   prevNoForecast?: any;
 };
 
 const ForecastMakerConditionalBinary: FC<Props> = ({
+  postId,
   conditional,
   prevYesForecast,
   prevNoForecast,
@@ -76,14 +78,14 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     () => questionOptions.some((option) => option.isDirty),
     [questionOptions]
   );
-  const forecastsToSubmit = useMemo(
+  const questionsToSubmit = useMemo(
     () =>
       questionOptions.filter(
         (option) => option.isDirty && option.value !== null
       ),
     [questionOptions]
   );
-  const submitIsAllowed = !isSubmitting && !!forecastsToSubmit.length;
+  const submitIsAllowed = !isSubmitting && !!questionsToSubmit.length;
 
   const copyForecastButton = useMemo(() => {
     if (!activeTableOption) return null;
@@ -183,27 +185,30 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const handlePredictSubmit = async () => {
     setSubmitErrors([]);
 
-    if (!forecastsToSubmit.length) {
+    if (!questionsToSubmit.length) {
       return;
     }
 
-    const promises = forecastsToSubmit.map((forecast) => {
-      const forecastValue = round(
-        forecast.value! / 100,
-        BINARY_FORECAST_PRECISION
-      );
-      return createForecast(
-        forecast.id,
-        {
-          continuousCdf: null,
-          probabilityYesPerCategory: null,
-          probabilityYes: forecastValue,
-        },
-        forecastValue
-      );
-    });
     setIsSubmitting(true);
-    const responses = await Promise.all(promises);
+    const responses = await createForecasts(
+      postId,
+      questionsToSubmit.map((q) => {
+        const forecastValue = round(q.value! / 100, BINARY_FORECAST_PRECISION);
+
+        return {
+          questionId: q.id,
+          forecastData: {
+            continuousCdf: null,
+            probabilityYesPerCategory: null,
+            probabilityYes: forecastValue,
+          },
+          sliderValues: forecastValue,
+        };
+      })
+    );
+    setQuestionOptions((prev) =>
+      prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
+    );
     setIsSubmitting(false);
 
     const errors: ErrorResponse[] = [];

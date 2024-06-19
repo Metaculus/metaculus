@@ -12,10 +12,11 @@ import {
 import ForecastMakerConditionalBinary from "./forecast_maker_conditional_binary";
 
 type Props = {
+  postId: number;
   conditional: PostConditional<QuestionWithForecasts>;
 };
 
-const ForecastMakerConditional: FC<Props> = ({ conditional }) => {
+const ForecastMakerConditional: FC<Props> = ({ postId, conditional }) => {
   const t = useTranslations();
 
   const { question_yes, question_no } = conditional;
@@ -28,6 +29,7 @@ const ForecastMakerConditional: FC<Props> = ({ conditional }) => {
       case QuestionType.Binary:
         return (
           <ForecastMakerConditionalBinary
+            postId={postId}
             conditional={
               conditional as PostConditional<QuestionWithNumericForecasts>
             }
@@ -39,6 +41,7 @@ const ForecastMakerConditional: FC<Props> = ({ conditional }) => {
       case QuestionType.Numeric:
         return (
           <ForecastMakerConditionalNumeric
+            postId={postId}
             conditional={
               conditional as PostConditional<QuestionWithNumericForecasts>
             }
