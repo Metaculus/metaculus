@@ -39,6 +39,7 @@
     "react-dom": "^18",
     "react-error-boundary": "^4.0.13",
     "react-hook-form": "^7.51.5",
+    "react-responsive-carousel": "^3.2.23",
     "react-slider": "^2.0.6",
     "ts-invariant": "^0.10.3",
     "victory": "^37.0.2",
