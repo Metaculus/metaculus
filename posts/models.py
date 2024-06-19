@@ -237,6 +237,9 @@ class Post(TimeStampedModel):
         GroupOfQuestions, models.CASCADE, related_name="post", null=True, blank=True
     )
 
+    default_project = models.ForeignKey(
+        Project, related_name="default_project", on_delete=models.PROTECT
+    )
     projects = models.ManyToManyField(Project, related_name="posts")
 
     objects = models.Manager.from_queryset(PostQuerySet)()

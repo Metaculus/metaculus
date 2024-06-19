@@ -138,10 +138,12 @@ def create_post(
 
     # If no projects were provided,
     # We need to append default ones
+    # TODO: fix that. Tag could be provided, but we need project!
     if not projects:
         projects = [get_global_public_project()]
 
     # Adding projects
+    # TODO: assign default project
     obj.projects.add(*projects)
 
     return obj

@@ -37,7 +37,7 @@ def create_private_user_project(user: User):
         raise ValueError("User is required")
 
     obj, _ = Project.objects.create(
-        type=Project.ProjectTypes.PERSONAL_LIST,
+        type=Project.ProjectTypes.PERSONAL_PROJECT,
         created_by=user,
         name=f"{user.username}'s Personal List",
         default_permission=None,

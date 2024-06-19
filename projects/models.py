@@ -95,7 +95,7 @@ class Project(TimeStampedModel):
         CATEGORY = "category"
         TAG = "tag"
         TOPIC = "topic"
-        PERSONAL_LIST = "personal_list"
+        PERSONAL_PROJECT = "personal_project"
 
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics"
@@ -128,15 +128,6 @@ class Project(TimeStampedModel):
         default=0,
     )
 
-    # Access
-    is_public = models.BooleanField(
-        default=True,
-        help_text=(
-            "Public projects are accessible to all users even if they're "
-            "not project members."
-        ),
-        db_index=True,
-    )
     is_active = models.BooleanField(
         default=True,
         help_text="Inactive projects are not accessible to all users",
