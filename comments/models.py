@@ -7,13 +7,6 @@ from questions.models import Question, Forecast
 from users.models import User
 
 
-class CommentType(models.TextChoices):
-    GENERAL = "general"
-    FEEDBACK = "feedback"
-    RESOLUTION = "resolution"
-    PRIVATE = "private"
-
-
 class CommentQuerySet(models.QuerySet):
     def annotate_vote_score(self):
         return self.annotate(
@@ -39,7 +32,7 @@ class Comment(models.Model):
     included_forecast = models.ForeignKey(
         Forecast, on_delete=models.SET_NULL, null=True
     )
-    type = models.CharField(max_length=20, choices=CommentType.choices)
+    is_private = models.BooleanField(default=False)
 
     # annotated fields
     vote_score: int = 0
