@@ -1,12 +1,14 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import ForecastMakerGroupBinary from "@/components/forecast_maker/forecast_maker_group/forecast_maker_group_binary";
 import {
   QuestionType,
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+
+import ForecastMakerGroupBinary from "./forecast_maker_group_binary";
+import ForecastMakerGroupNumeric from "./forecast_maker_group_numeric";
 
 type Props = {
   postId: number;
@@ -27,6 +29,14 @@ const ForecastMakerGroup: FC<Props> = ({ postId, questions }) => {
       case QuestionType.Binary:
         return (
           <ForecastMakerGroupBinary
+            postId={postId}
+            questions={questions as QuestionWithNumericForecasts[]}
+          />
+        );
+      case QuestionType.Numeric:
+      case QuestionType.Date:
+        return (
+          <ForecastMakerGroupNumeric
             postId={postId}
             questions={questions as QuestionWithNumericForecasts[]}
           />
