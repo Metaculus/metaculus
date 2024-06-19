@@ -1,18 +1,14 @@
-from comments.models import Comment, CommentType
+from comments.models import Comment
 from questions.models import Forecast
 from migrator.utils import paginated_query
 from posts.models import Post
 
 
 def create_comment(comment_obj: dict) -> Comment:
-    if comment_obj["submit_type"] == "Q":
-        comment_type = CommentType.FEEDBACK
-    elif comment_obj["submit_type"] == "Z":
-        comment_type = CommentType.RESOLUTION
-    elif comment_obj["submit_type"] == "N":
-        comment_type = CommentType.PRIVATE
-    else:
-        comment_type = CommentType.GENERAL
+
+    is_private = False
+    if comment_obj["submit_type"] == "N":
+        is_private = True
 
     forecast_id = None
 
@@ -37,7 +33,7 @@ def create_comment(comment_obj: dict) -> Comment:
         text=comment_obj["comment_text"],
         on_post_id=comment_obj["question_id"],
         included_forecast=forecast_id,
-        type=comment_type,
+        is_private=is_private,
     )
 
     return comment
