@@ -380,8 +380,8 @@ function getTableValue(forecast?: MultiSliderValue[], weight?: number[]) {
   }
 
   const dataset = getNumericForecastDataset(forecast, weight);
-  const quantiles = computeQuartilesFromCDF(dataset.cdf);
-  return quantiles.median;
+  const quartiles = computeQuartilesFromCDF(dataset.cdf);
+  return quartiles.median;
 }
 
 function getSliderValue(forecast?: MultiSliderValue[]) {
