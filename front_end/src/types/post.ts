@@ -5,7 +5,7 @@ import {
 } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
-export type Resolution = "yes" | "no";
+export type Resolution = "Yes" | "No";
 
 export enum PostForecastType {
   Conditional = "conditional",

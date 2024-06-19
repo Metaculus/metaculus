@@ -5,8 +5,10 @@ import { notFound } from "next/navigation";
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
 import ForecastMaker from "@/components/forecast_maker";
+import PredictionChip from "@/components/prediction_chip";
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
+import { PostStatus } from "@/types/post";
 
 import DetailedGroupCard from "./components/detailed_group_card";
 import DetailedQuestionCard from "./components/detailed_question_card";
