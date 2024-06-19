@@ -16,10 +16,11 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import { PostConditional } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
+  normalizeWeights,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
@@ -361,27 +362,40 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
       ))}
       {!!activeOptionData && (
         <NumericForecastTable
-          cdf={
-            getNumericForecastDataset(
+          userQuartiles={
+            getUserQuartiles(
               activeOptionData.sliderForecast,
               activeOptionData.weights
-            ).cdf
+            ) ?? undefined
           }
-          latestCdf={activeOptionData.question.forecasts.latest_cdf}
+          communityQuartiles={getCommunityQuartiles(
+            activeOptionData.question.forecasts.latest_cdf
+          )}
         />
       )}
     </>
   );
 };
 
-function getTableValue(forecast?: MultiSliderValue[], weight?: number[]) {
-  if (!forecast || !weight) {
+function getUserQuartiles(
+  forecast?: MultiSliderValue[],
+  weights?: number[]
+): Quartiles | null {
+  if (!forecast || !weights) {
     return null;
   }
 
-  const dataset = getNumericForecastDataset(forecast, weight);
-  const quartiles = computeQuartilesFromCDF(dataset.cdf);
-  return quartiles.median;
+  const dataset = getNumericForecastDataset(forecast, weights);
+  return computeQuartilesFromCDF(dataset.cdf);
+}
+
+function getCommunityQuartiles(cdf: number[]): Quartiles {
+  return computeQuartilesFromCDF(cdf);
+}
+
+function getTableValue(forecast?: MultiSliderValue[], weight?: number[]) {
+  const quartiles = getUserQuartiles(forecast, weight);
+  return quartiles?.median ?? null;
 }
 
 function getSliderValue(forecast?: MultiSliderValue[]) {
@@ -398,10 +412,6 @@ function getSliderValue(forecast?: MultiSliderValue[]) {
 
 function getWeightsValue(weights?: number[]) {
   return weights ?? [1];
-}
-
-function normalizeWeights(weights: number[]) {
-  return weights.map((x) => x / weights.reduce((a, b) => a + b));
 }
 
 export default ForecastMakerConditionalNumeric;

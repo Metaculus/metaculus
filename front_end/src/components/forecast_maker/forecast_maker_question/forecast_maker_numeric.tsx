@@ -9,7 +9,9 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
+  normalizeWeights,
 } from "@/utils/forecasts";
+import { computeQuartilesFromCDF } from "@/utils/math";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -89,16 +91,14 @@ const ForecastMakerNumeric: FC<Props> = ({ question, prevForecast }) => {
           </button>
         </div>
         <NumericForecastTable
-          cdf={dataset.cdf}
-          latestCdf={question.forecasts.latest_cdf}
+          userQuartiles={computeQuartilesFromCDF(dataset.cdf)}
+          communityQuartiles={computeQuartilesFromCDF(
+            question.forecasts.latest_cdf
+          )}
         />
       </div>
     </>
   );
 };
-
-function normalizeWeights(weights: number[]) {
-  return weights.map((x) => x / weights.reduce((a, b) => a + b));
-}
 
 export default ForecastMakerNumeric;

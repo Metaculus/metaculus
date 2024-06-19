@@ -48,9 +48,12 @@ export function extractPrevBinaryForecastValue(
   return typeof prevForecast === "number" ? round(prevForecast * 100, 1) : null;
 }
 
-export function extractPrevNumericForecastValue(prevForecast: any) {
+export function extractPrevNumericForecastValue(prevForecast: any): {
+  forecast?: MultiSliderValue[];
+  weights?: number[];
+} {
   if (typeof prevForecast !== "object") {
-    return null;
+    return {};
   }
 
   const result: { forecast?: MultiSliderValue[]; weights?: number[] } = {};
@@ -63,6 +66,10 @@ export function extractPrevNumericForecastValue(prevForecast: any) {
   }
 
   return result;
+}
+
+export function normalizeWeights(weights: number[]) {
+  return weights.map((x) => x / weights.reduce((a, b) => a + b));
 }
 
 export function getNumericForecastDataset(
