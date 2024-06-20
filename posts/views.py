@@ -80,7 +80,7 @@ def post_update_api_view(request, pk):
     if request.user != post.author:
         return Response(status=status.HTTP_403_FORBIDDEN)
 
-    serializer = PostSerializer(post, data=request.data)
+    serializer = PostSerializer(post, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
     serializer.save()
 
