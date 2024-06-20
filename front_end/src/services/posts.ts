@@ -79,7 +79,7 @@ class PostsApi {
     body: any
   ): Promise<PostWithForecasts | null> {
     try {
-      return await put<any, PostWithForecasts>(`posts/${id}/update/`, body);
+      return await put<any, PostWithForecasts>(`/posts/${id}/update/`, body);
     } catch (err) {
       console.error("Error getting posts:", err);
       return null;
