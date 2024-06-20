@@ -1,6 +1,3 @@
-from io import StringIO
-
-from django.apps import apps
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
@@ -12,6 +9,7 @@ from migrator.services.migrate_projects import migrate_projects
 from migrator.services.migrate_questions import migrate_questions
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
+from migrator.utils import reset_sequence
 
 
 class Command(BaseCommand):
@@ -42,20 +40,4 @@ class Command(BaseCommand):
         print("Migrated permissions")
 
         # Reset sql sequences
-        self._reset_sequence()
-
-    @staticmethod
-    def _reset_sequence():
-        # Resetting DB auto-incremented sequences of Primary keys
-        # Very important since migrate objects keeping their ids
-        cursor = connection.cursor()
-
-        for app in apps.get_app_configs():
-            label = app.label
-            commands = StringIO()
-            call_command(
-                "sqlsequencereset", label, stdout=commands, no_color=True, verbosity=0
-            )
-
-            if sql_query := commands.getvalue():
-                cursor.execute(sql_query)
+        reset_sequence()

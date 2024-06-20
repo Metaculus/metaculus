@@ -13,6 +13,7 @@ def factory_project(
     **kwargs
 ) -> Project:
     kwargs["default_permission"] = default_permission
+    kwargs["type"] = kwargs.get("type", Project.ProjectTypes.CATEGORY)
     override_permissions = override_permissions or {}
 
     project = G(
