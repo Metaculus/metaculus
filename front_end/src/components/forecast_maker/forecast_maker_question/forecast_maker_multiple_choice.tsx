@@ -17,6 +17,7 @@ import {
   MultipleChoiceForecast,
   QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
 
 import {
   BINARY_FORECAST_PRECISION,
@@ -29,10 +30,7 @@ type ChoiceOption = {
   name: string;
   communityForecast: number | null;
   forecast: number | null;
-  color: {
-    DEFAULT: string;
-    dark: string;
-  };
+  color: ThemeColor;
 };
 
 type Props = {

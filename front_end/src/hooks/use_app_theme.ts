@@ -1,13 +1,13 @@
 import { useTheme } from "next-themes";
 import { Dispatch, SetStateAction, useCallback } from "react";
 
-export type AppTheme = "light" | "dark";
+import { AppTheme, ThemeColor } from "@/types/theme";
 
 const useAppTheme = () => {
   const { resolvedTheme, setTheme } = useTheme();
 
   const getThemeColor = useCallback(
-    (color: { DEFAULT: string; dark: string }) => {
+    (color: ThemeColor) => {
       if (resolvedTheme === "dark") {
         return color.dark;
       }

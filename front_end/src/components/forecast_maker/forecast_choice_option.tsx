@@ -6,15 +6,13 @@ import { FC, useCallback, useEffect, useState } from "react";
 import ChoiceIcon from "@/components/choice_icon";
 import Slider from "@/components/sliders/slider";
 import useAppTheme from "@/hooks/use_app_theme";
+import { ThemeColor } from "@/types/theme";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
 import ForecastTextInput from "./forecast_text_input";
 
 type Props<T> = {
-  choiceColor: {
-    DEFAULT: string;
-    dark: string;
-  };
+  choiceColor: ThemeColor;
   id: T;
   choiceName: string;
   min: number;
@@ -146,10 +144,7 @@ const ForecastChoiceOption = <T = string,>({
 };
 
 const MarkArrow: FC<{
-  color: {
-    DEFAULT: string;
-    dark: string;
-  };
+  color: ThemeColor;
 }> = ({ color }) => {
   const { theme } = useAppTheme();
 

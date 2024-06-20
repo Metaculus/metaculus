@@ -216,12 +216,19 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
 }
 
 export function generateChoiceItemsFromBinaryGroup(
-  questions: QuestionWithNumericForecasts[]
+  questions: QuestionWithNumericForecasts[],
+  withMinMax = false
 ): ChoiceItem[] {
   return questions.map((q, index) => {
     return {
       choice: extractQuestionGroupName(q.title),
       values: q.forecasts.values_mean,
+      ...(withMinMax
+        ? {
+            minValues: q.forecasts.values_min,
+            maxValues: q.forecasts.values_max,
+          }
+        : {}),
       timestamps: q.forecasts.timestamps,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       active: true,
