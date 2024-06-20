@@ -87,17 +87,15 @@ const QuestionCarouselItem: FC<Props> = ({ post }) => {
   };
 
   return (
-    <div className="flex flex-[1_0_100%] snap-start xs:flex-[1_0_470px]">
-      <div className="flex w-full min-w-0 flex-col gap-3 bg-gray-0 p-5 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark xs:ml-8 xs:mr-0 xs:rounded-md">
-        <div className="flex items-start justify-between max-[288px]:flex-col">
-          <h2 className="mb-0.5 mt-0 text-lg font-medium leading-snug tracking-normal max-[288px]:mb-0 sm:mb-2 md:mb-5">
-            {post.title}
-          </h2>
-          {renderPrediction()}
-        </div>
-        <div className="flex size-full min-h-[120px] min-w-0 items-start">
-          {renderChart()}
-        </div>
+    <div className="flex w-full min-w-0 flex-col gap-3 bg-gray-0 p-5 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark xs:rounded-md">
+      <div className="flex items-start justify-between max-[288px]:flex-col">
+        <h2 className="mb-0.5 mt-0 line-clamp-2 text-lg font-medium leading-snug tracking-normal max-[288px]:mb-0 sm:mb-2 md:mb-5">
+          {post.title}
+        </h2>
+        {renderPrediction()}
+      </div>
+      <div className="flex size-full min-h-[120px] min-w-0 items-start">
+        {renderChart()}
       </div>
     </div>
   );
