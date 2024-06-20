@@ -12,6 +12,14 @@ export enum PostForecastType {
   Group = "group_of_questions",
 }
 
+export enum ProjectPermissions {
+  VIEWER = "viewer",
+  FORECASTER = "forecaster",
+  CURATOR = "curator",
+  ADMIN = "admin",
+  CREATOR = "creator",
+}
+
 export type ForecastType = PostForecastType | QuestionType;
 
 export type Category = {
@@ -83,6 +91,7 @@ export type Post<QT = Question> = {
     questions: QT[];
   };
   curation_status: PostStatus;
+  user_permission: ProjectPermissions;
 };
 
 export type PostWithForecasts = Post<QuestionWithForecasts>;
