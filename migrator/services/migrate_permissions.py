@@ -6,21 +6,9 @@ from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
 from utils.dtypes import flatten
 
-# TODO: add post default project
-# TODO: add smooth deprecation of QuestionProjectPermission
-# TODO: deprecate data from other organizations
-# TODO: check tags/categories permissions and ensure private posts with public tags do not exist!!!
-# TODO: UserProjectPermission: diff Project permission VS Question permission and ensure they are all about the same level +-
-# TODO: adjust Post.default_project permissions
-# TODO: coauthors: for private questions we are doing 1 proj per post!!!
-# TODO: what to do with MP/Site Main project type? Do we want to keep it as separate type or merge with categories/topics?
-# TODO: Some questions no longer exist in the new metac (e.g Conditional/Groups), instead, parents were moved to own Posts. Check this!
+# TODO: what to do with MP/Site Main project type? Do we want
+#  to keep it as separate type or merge with categories/topics?
 
-
-# TEST CASES:
-# http://localhost:8000/questions/23016/hr-professionals-ai-literacy-levels/
-#   Should not be visible
-#
 
 # These types were merged with project during metaculus refactoring
 # So we need to exclude them since we kept same ids for old Projects table rows,
@@ -33,8 +21,6 @@ NON_PROJECT_TYPES = [
 
 
 def convert_question_permissions(code: int):
-    # TODO: ignore permissions if post creator
-
     return {
         524287: ObjectPermission.ADMIN,
         294941: ObjectPermission.FORECASTER,
@@ -108,13 +94,13 @@ def migrate_common_permissions():
     # Migrating User<>Project ad-hoc permissions
     for user_project_perm_obj in paginated_query(
         """
-            SELECT 
-               upp.*, p.default_question_permissions, p.default_project_permissions, p.public, p.type
-            FROM metac_project_userprojectpermissions upp
-            JOIN metac_project_project p 
-            ON upp.project_id = p.id
-            WHERE p.type != 'PP'
-            """
+                        SELECT 
+                           upp.*, p.default_question_permissions, p.default_project_permissions, p.type
+                        FROM metac_project_userprojectpermissions upp
+                        JOIN metac_project_project p 
+                        ON upp.project_id = p.id
+                        WHERE p.type != 'PP'
+                        """
     ):
         # New app merges Project & Categories & Tags etc.
         # Tournaments & QS & PP were migrated to Project model with the same Ids as the old ones.
@@ -127,7 +113,6 @@ def migrate_common_permissions():
 
             continue
 
-        # TODO: add smooth deprecation of QuestionProjectPermission
         default_question_permissions = user_project_perm_obj[
             "default_question_permissions"
         ]
@@ -151,30 +136,21 @@ def migrate_common_permissions():
                 if bitcheck != question_permission_code and bitcheck != (
                     question_permission_code | default_question_permissions
                 ):
-                    # private_project_perms probably should not be altered
-                    # TODO: don't make authors as admins, there should be AUTHOR permission, otherwise -> COAUTHOR
-                    if question_permission_code == 65535:
-                        continue
-
-                    if len(all_permission) == 1:
-                        continue
-
-                    # TODO: handle other cases
-
-                    break
+                    print(
+                        f"QuestionProjectPermission.permission affected "
+                        f"project: {user_project_perm_obj['project_id']}"
+                    )
 
         question_permission = convert_question_permissions(question_permission_code)
 
-        if not question_permission:
-            continue
-
-        user_project_perms.append(
-            ProjectUserPermission(
-                user_id=user_project_perm_obj["user_id"],
-                project_id=user_project_perm_obj["project_id"],
-                permission=question_permission,
+        if question_permission:
+            user_project_perms.append(
+                ProjectUserPermission(
+                    user_id=user_project_perm_obj["user_id"],
+                    project_id=user_project_perm_obj["project_id"],
+                    permission=question_permission,
+                )
             )
-        )
 
     ProjectUserPermission.objects.bulk_create(
         user_project_perms, batch_size=50_000, ignore_conflicts=True
@@ -206,8 +182,7 @@ def migrate_personal_projects():
         "JOIN metac_project_questionprojectpermissions qpp "
         "ON qpp.project_id = p.id "
         "JOIN metac_question_question q ON q.id = qpp.question_id "
-        # TODO: handle cases when PP are public
-        "WHERE p.type = 'PP' AND p.public=false"
+        "WHERE p.type = 'PP'"
     ):
         project_id = row["id"]
         question_id = row["question_id"]
@@ -286,7 +261,10 @@ def migrate_personal_projects():
     print("Mapped Private Project Permissions!")
 
     if questions_404:
-        print(f"Couldn't find {questions_404}/{len(questions_map)} questions")
+        print(
+            f"Couldn't find {questions_404}/{len(questions_map)} questions, "
+            f"probably their types have not been migrated yet"
+        )
 
 
 def migrate_post_default_project():
