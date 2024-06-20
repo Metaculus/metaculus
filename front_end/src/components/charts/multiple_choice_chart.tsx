@@ -1,5 +1,4 @@
 "use client";
-import { fromUnixTime } from "date-fns";
 import React, { FC, memo, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
@@ -50,7 +49,7 @@ const MultipleChoiceChart: FC<Props> = ({
     height: chartHeight,
   } = useContainerSize<HTMLDivElement>();
 
-  const { theme } = useAppTheme();
+  const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
   const defaultCursor = timestamps[timestamps.length - 1];
@@ -91,7 +90,7 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorComponent={
         <LineSegment
           style={{
-            stroke: METAC_COLORS.gray["600"].DEFAULT,
+            stroke: getThemeColor(METAC_COLORS.gray["600"]),
             strokeDasharray: "2,1",
           }}
         />
