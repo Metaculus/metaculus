@@ -2,6 +2,7 @@ from django_dynamic_fixture import G
 
 from posts.models import Post
 from projects.models import Project
+from projects.services import get_site_main_project
 from questions.models import Question, Conditional
 from users.models import User
 from utils.dtypes import setdefaults_not_null
@@ -13,9 +14,11 @@ def factory_post(
     question: Question = None,
     conditional: Conditional = None,
     projects: list[Project] = None,
+    default_project: Project = None,
     **kwargs
 ):
     projects = projects or []
+    default_project = default_project or get_site_main_project()
 
     post = G(
         Post,
@@ -24,6 +27,7 @@ def factory_post(
             author=author,
             question=question,
             conditional=conditional,
+            default_project=default_project,
         )
     )
     post.projects.add(*projects)
