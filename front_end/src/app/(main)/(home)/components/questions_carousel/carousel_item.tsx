@@ -37,7 +37,11 @@ const QuestionCarouselItem: FC<Props> = ({ post }) => {
             questions as QuestionWithNumericForecasts[]
           );
           return (
-            <FanChart options={predictionQuestion} height={CHART_HEIGHT} />
+            <FanChart
+              options={predictionQuestion}
+              height={CHART_HEIGHT}
+              withTooltip
+            />
           );
         }
         default:
