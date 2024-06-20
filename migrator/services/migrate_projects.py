@@ -3,10 +3,10 @@ import json
 
 from django.db import IntegrityError
 
-from migrator.utils import paginated_query
+from migrator.utils import paginated_query, reset_sequence
 from posts.models import Post
 from projects.models import Project
-from questions.models import Question
+from projects.permissions import ObjectPermission
 
 
 def normalize_slug(slug: str):
@@ -27,9 +27,12 @@ def create_project(project_obj: dict) -> Project:
     project_type = {
         "TO": Project.ProjectTypes.TOURNAMENT,
         "QS": Project.ProjectTypes.QUESTION_SERIES,
+        "MP": Project.ProjectTypes.SITE_MAIN,
     }.get(project_obj["type"])
 
     project = Project(
+        # We keep original IDS for old projects
+        id=project_obj["id"],
         type=project_type,
         name=project_obj["name"],
         slug=project_obj["slug"],
@@ -37,7 +40,6 @@ def create_project(project_obj: dict) -> Project:
         description=project_obj["description"],
         header_image=project_obj["header_image"],
         header_logo=project_obj["header_logo"],
-        is_public=project_obj["public"],
         prize_pool=project_obj["prize_pool"],
         close_date=project_obj["tournament_close_date"],
         start_date=project_obj["tournament_start_date"],
@@ -45,6 +47,11 @@ def create_project(project_obj: dict) -> Project:
         meta_description=project_obj["meta_description"],
         created_at=project_obj["created_at"],
         edited_at=project_obj["edited_at"],
+        # Old project.default_question_permissions was not working
+        # And project visibility was determined by `is_public` attr
+        default_permission=(
+            ObjectPermission.FORECASTER if project_obj["public"] else None
+        ),
     )
 
     return project
@@ -197,7 +204,7 @@ def migrate_projects():
 
     # Migrating only Tournament projects for now
     for project_obj in paginated_query(
-        "SELECT * FROM metac_project_project WHERE type in ('TO', 'QS')"
+        "SELECT * FROM metac_project_project WHERE type in ('TO', 'QS') OR (type = 'MP' and site_id = 1)"
     ):
         project = create_project(project_obj)
         project.save()
@@ -223,6 +230,9 @@ def migrate_projects():
 
         # Ignore nonexistent questions
         q_p_m2m_cls.objects.bulk_create(m2m_objects, ignore_conflicts=True)
+
+    # Normalize id sequences
+    reset_sequence()
 
     # Migrate Categories
     for cat_obj in paginated_query("SELECT * FROM metac_question_category"):

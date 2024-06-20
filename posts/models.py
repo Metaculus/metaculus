@@ -176,17 +176,31 @@ class PostQuerySet(models.QuerySet):
 
         return self.filter(
             # If any project has permissions (null value indicates private project)
-            models.Q(projects__default_permission__in=involved_permissions)
+            models.Q(default_project__default_permission__in=involved_permissions)
             | (
                 # Or user was given permissions to access the private project
-                models.Q(projects__projectuserpermission__user_id=user_id)
+                models.Q(default_project__projectuserpermission__user_id=user_id)
                 & models.Q(
-                    projects__projectuserpermission__permission__in=involved_permissions
+                    default_project__projectuserpermission__permission__in=involved_permissions
                 )
             )
             # Or user is a creator, so it encapsulates all permissions
             | models.Q(author_id=user_id)
         ).distinct("id")
+
+    def filter_public(self):
+        """
+        Filter public posts
+        """
+
+        return self.filter(default_project__default_permission__isnull=False)
+
+    def filter_private(self):
+        """
+        Filter private posts
+        """
+
+        return self.filter(default_project__default_permission__isnull=True)
 
 
 class Post(TimeStampedModel):
@@ -237,6 +251,9 @@ class Post(TimeStampedModel):
         GroupOfQuestions, models.CASCADE, related_name="post", null=True, blank=True
     )
 
+    default_project = models.ForeignKey(
+        Project, related_name="default_project", on_delete=models.PROTECT, null=True
+    )
     projects = models.ManyToManyField(Project, related_name="posts")
 
     objects = models.Manager.from_queryset(PostQuerySet)()

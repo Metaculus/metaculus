@@ -51,7 +51,7 @@ def posts_list_api_view(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def post_detail(request: Request, pk):
-    qs = Post.objects.filter(pk=pk)
+    qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
     posts = serialize_post_many(qs, current_user=request.user, with_forecasts=True)
 
     if not posts:
