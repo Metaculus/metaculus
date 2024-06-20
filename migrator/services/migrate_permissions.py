@@ -95,18 +95,19 @@ def migrate_common_permissions():
     ):
         project_question_permissions_map[obj["project_id"]].append(obj)
 
-    total_missed_projects = 0
+    total_missed_project_ids = set()
+    total_missed_project_types = set()
 
     # Migrating User<>Project ad-hoc permissions
     for user_project_perm_obj in paginated_query(
         """
-        SELECT 
-           upp.*, p.default_question_permissions, p.default_project_permissions, p.public
-        FROM metac_project_userprojectpermissions upp
-        JOIN metac_project_project p 
-        ON upp.project_id = p.id
-        WHERE p.type != 'PP'
-    """
+                SELECT 
+                   upp.*, p.default_question_permissions, p.default_project_permissions, p.public, p.type
+                FROM metac_project_userprojectpermissions upp
+                JOIN metac_project_project p 
+                ON upp.project_id = p.id
+                WHERE p.type != 'PP'
+            """
     ):
         # New app merges Project & Categories & Tags etc.
         # Tournaments & QS & PP were migrated to Project model with the same Ids as the old ones.
@@ -114,7 +115,8 @@ def migrate_common_permissions():
         # So we need to ensure we don't link permissions to newly generated entities
         # that are not related to the old Project table
         if user_project_perm_obj["project_id"] not in project_ids:
-            total_missed_projects += 1
+            total_missed_project_ids.add(user_project_perm_obj["project_id"])
+            total_missed_project_types.add(user_project_perm_obj["type"])
 
             continue
 
@@ -170,7 +172,10 @@ def migrate_common_permissions():
     ProjectUserPermission.objects.bulk_create(
         user_project_perms, batch_size=50_000, ignore_conflicts=True
     )
-    print(f"Missed projects: {total_missed_projects}")
+    print(
+        f"Missed projects: {len(total_missed_project_ids)} "
+        f"of the following OLD types: {total_missed_project_types}"
+    )
 
 
 def migrate_personal_projects():
