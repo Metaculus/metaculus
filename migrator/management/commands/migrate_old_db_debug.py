@@ -18,7 +18,7 @@ class Command(BaseCommand):
             cursor.execute("DELETE FROM projects_projectuserpermission")
             cursor.execute(
                 "DELETE FROM posts_post_projects USING projects_project "
-                "WHERE posts_post_projects.project_id = projects_project.id AND projects_project.type in ('personal_project', 'personal_list');"
+                "WHERE posts_post_projects.project_id = projects_project.id AND projects_project.type = 'personal_list';"
             )
             cursor.execute("DELETE FROM projects_project WHERE type = 'personal_list'")
 

@@ -4,6 +4,7 @@ from migrator.utils import paginated_query
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
+from utils.dtypes import flatten
 
 # TODO: add post default project
 # TODO: add smooth deprecation of QuestionProjectPermission
@@ -77,7 +78,11 @@ def convert_project_permissions(code):
     }.get(code)
 
 
-def migrate_permissions():
+def migrate_common_permissions():
+    """
+    Migrates permissions from regular projects
+    """
+
     # Extracting ids of entities that was the only Project types in the old Metac
     project_ids = Project.objects.filter(type__in=OLD_PROJECT_TYPES).values_list(
         "id", flat=True
@@ -167,6 +172,112 @@ def migrate_permissions():
     )
     print(f"Missed projects: {total_missed_projects}")
 
+
+def migrate_personal_projects():
+    """
+    Migrating personal projects of users
+    """
+
+    # Seems like old metac was creating a new Personal Project for each Private Question
+    post_ids = Post.objects.values_list("id", flat=True)
+    questions_map = {}
+    project_user_mapping = defaultdict(list)
+
+    for perm_obj in paginated_query(
+        "SELECT * FROM metac_project_userprojectpermissions"
+    ):
+        project_user_mapping[perm_obj["project_id"]].append(perm_obj)
+
+    for row in paginated_query(
+        "SELECT p.id, p.default_question_permissions, qpp.question_id, qpp.permissions, q.author_id "
+        "FROM metac_project_project p "
+        "JOIN metac_project_questionprojectpermissions qpp "
+        "ON qpp.project_id = p.id "
+        "JOIN metac_question_question q ON q.id = qpp.question_id "
+        # TODO: handle cases when PP are public
+        "WHERE p.type = 'PP' AND p.public=false"
+    ):
+        project_id = row["id"]
+        question_id = row["question_id"]
+
+        if question_id not in questions_map:
+            questions_map[question_id] = {
+                "id": question_id,
+                "author_id": row["author_id"],
+                "projects": [],
+            }
+
+        questions_map[question_id]["projects"].append(
+            {
+                "id": project_id,
+                "permissions": row["permissions"],
+                "default_question_permissions": row["default_question_permissions"],
+                "users": project_user_mapping[project_id],
+            }
+        )
+
+    # user_id -> Project()
+    questions_404 = 0
+    projects_to_create = []
+    project_user_permissions_to_create = []
+    post_projects_to_create = []
+
+    # Extract Project<>User permissions
+    for question_id, question_obj in questions_map.items():
+        if question_id not in post_ids:
+            questions_404 += 1
+            continue
+
+        # Creating a private project
+        private_project = Project(
+            name="Personal List",
+            type=Project.ProjectTypes.PERSONAL_PROJECT,
+            created_by_id=question_obj["author_id"],
+            default_permission=None,
+        )
+        projects_to_create.append(private_project)
+
+        # Add Post<>Project relations
+        post_projects_to_create.append(
+            Post.projects.through(project=private_project, post_id=question_id)
+        )
+
+        users_have_access = flatten([p["users"] for p in question_obj["projects"]])
+
+        # Sharing with co-authors
+        for user in users_have_access:
+            # If user is not author means this Private Question was just shared with them
+            # All such users have `65535 (private_project_perms OR coauthor
+            # (results after combination of this ProjectQuestion.permission AND UserProject.question_permission attrs))`
+            # permissions for the question.
+            # Setting non-authors to `AUTHOR` to keep ability to edit materials
+            #
+            # Skipping authors since they have access to their posts by default
+            if user["user_id"] != question_obj["author_id"]:
+                project_user_permissions_to_create.append(
+                    ProjectUserPermission(
+                        project=private_project,
+                        user_id=user["user_id"],
+                        # Should be discussed separately
+                        permission=ObjectPermission.CREATOR,
+                    )
+                )
+
+    Project.objects.bulk_create(projects_to_create, batch_size=20_000)
+    ProjectUserPermission.objects.bulk_create(
+        project_user_permissions_to_create, batch_size=20_000
+    )
+    Post.projects.through.objects.bulk_create(
+        post_projects_to_create, batch_size=20_000
+    )
+
+    print("Mapped Private Project Permissions!")
+
+    if questions_404:
+        print(f"Couldn't find {questions_404}/{len(questions_map)} questions")
+
+
+def migrate_post_default_project():
     # Assign default_project to the Posts
     # Based on the most Public Project they have
     total_posts_without_projects = 0
@@ -198,3 +309,9 @@ def migrate_permissions():
 
     print(f"Posts without Projects: {total_posts_without_projects}")
     print(f"Migrated default_project for {len(posts_to_update)} posts")
+
+
+def migrate_permissions():
+    migrate_personal_projects()
+    migrate_common_permissions()
+    migrate_post_default_project()
