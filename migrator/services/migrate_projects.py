@@ -49,7 +49,7 @@ def create_project(project_obj: dict) -> Project:
         # Old project.default_question_permissions was not working
         # And project visibility was determined by `is_public` attr
         default_permission=(
-            ObjectPermission.FORECASTER if project_obj["is_public"] else None
+            ObjectPermission.FORECASTER if project_obj["public"] else None
         ),
     )
 
