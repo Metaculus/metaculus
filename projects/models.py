@@ -90,12 +90,22 @@ class ProjectsQuerySet(models.QuerySet):
 
 class Project(TimeStampedModel):
     class ProjectTypes(models.TextChoices):
+        SITE_MAIN = "site_main"
         TOURNAMENT = "tournament"
         QUESTION_SERIES = "question_series"
+        PERSONAL_PROJECT = "personal_project"
+
         CATEGORY = "category"
         TAG = "tag"
         TOPIC = "topic"
-        PERSONAL_PROJECT = "personal_project"
+
+        @classmethod
+        def can_have_permissions(cls, tp: "ProjectTypes"):
+            """
+            Detects whether this project type can have permission configuration
+            """
+
+            return tp not in [cls.CATEGORY, cls.TAG, cls.TOPIC]
 
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics"

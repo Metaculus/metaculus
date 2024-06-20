@@ -91,7 +91,10 @@ class TestPostPermissions:
         user3 = factory_user()
 
         # Invisible project
-        factory_post(author=factory_user())
+        factory_post(
+            author=factory_user(),
+            default_project=factory_project(default_permission=None),
+        )
 
         # User2 & User3
         p1 = factory_post(

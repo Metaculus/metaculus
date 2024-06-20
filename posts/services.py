@@ -5,7 +5,7 @@ from posts.models import Post
 from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services import get_global_public_project
+from projects.services import get_site_main_project
 from questions.services import (
     create_question,
     create_conditional,
@@ -143,20 +143,31 @@ def create_post(
     elif group_of_questions:
         obj.group_of_questions = create_group_of_questions(**group_of_questions)
 
-    obj.full_clean()
-    obj.save()
     # Projects appending
-    projects = flatten(projects.values()) if projects else []
+    # Tags, categories and topics
+    meta_projects = []
+    # Tournaments, Question Series etc.
+    main_projects = []
+
+    for project in flatten(projects.values()) if projects else []:
+        if Project.ProjectTypes.can_have_permissions(project.type):
+            main_projects.append(project)
+        else:
+            meta_projects.append(project)
 
     # If no projects were provided,
     # We need to append default ones
-    # TODO: fix that. Tag could be provided, but we need project!
-    if not projects:
-        projects = [get_global_public_project()]
+    if not main_projects:
+        main_projects = [get_site_main_project()]
+
+    obj.default_project = main_projects[0]
+
+    # Save project and validate
+    obj.full_clean()
+    obj.save()
 
     # Adding projects
-    # TODO: assign default project
-    obj.projects.add(*projects)
+    obj.projects.add(*(meta_projects + main_projects))
 
     return obj
 

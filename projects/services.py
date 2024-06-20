@@ -11,16 +11,12 @@ def get_projects_qs(user: User = None):
     return Project.objects.filter_active().filter_permission(user=user)
 
 
-def get_global_public_project():
-    """
-    Getting a Global project which is automatically assigned to all public posts
-    """
-
+def get_site_main_project():
     obj, _ = Project.objects.get_or_create(
-        id=0,
+        type=Project.ProjectTypes.SITE_MAIN,
         defaults={
-            "name": "Global Project",
-            "type": Project.ProjectTypes.CATEGORY,
+            "name": "Metaculus Community",
+            "type": Project.ProjectTypes.SITE_MAIN,
             "default_permission": ObjectPermission.FORECASTER,
         },
     )
