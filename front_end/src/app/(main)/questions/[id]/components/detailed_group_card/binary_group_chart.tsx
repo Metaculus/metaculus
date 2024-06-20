@@ -31,7 +31,7 @@ const BinaryGroupChart: FC<Props> = ({ questions, timestamps }) => {
   }, []);
 
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
-    generateChoiceItemsFromBinaryGroup(questions)
+    generateChoiceItemsFromBinaryGroup(questions, true)
   );
 
   const timestampsCount = timestamps.length;
@@ -39,7 +39,7 @@ const BinaryGroupChart: FC<Props> = ({ questions, timestamps }) => {
   // sync BE driven data with local state
   useEffect(() => {
     if (prevTimestampsCount && prevTimestampsCount !== timestampsCount) {
-      setChoiceItems(generateChoiceItemsFromBinaryGroup(questions));
+      setChoiceItems(generateChoiceItemsFromBinaryGroup(questions, true));
     }
   }, [questions, prevTimestampsCount, timestampsCount]);
 

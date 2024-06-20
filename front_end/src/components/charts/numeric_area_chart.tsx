@@ -26,7 +26,7 @@ const NumericAreaChart: FC<Props> = ({ height = 150, min, max, data }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
-  const { theme } = useAppTheme();
+  const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
   const charts = useMemo(
@@ -74,8 +74,8 @@ const NumericAreaChart: FC<Props> = ({ height = 150, min, max, data }) => {
                 data: {
                   fill:
                     data[index].color === "orange"
-                      ? METAC_COLORS.orange["300"].DEFAULT
-                      : METAC_COLORS.green["200"].DEFAULT,
+                      ? getThemeColor(METAC_COLORS.orange["300"])
+                      : getThemeColor(METAC_COLORS.green["200"]),
                   opacity: 0.3,
                 },
               }}
@@ -89,8 +89,8 @@ const NumericAreaChart: FC<Props> = ({ height = 150, min, max, data }) => {
                 data: {
                   stroke:
                     data[index].color === "orange"
-                      ? METAC_COLORS.orange["500"].DEFAULT
-                      : METAC_COLORS.green["500"].DEFAULT,
+                      ? getThemeColor(METAC_COLORS.orange["500"])
+                      : getThemeColor(METAC_COLORS.green["500"]),
                   strokeDasharray:
                     data[index].color === "orange" ? "2,2" : undefined,
                 },
@@ -110,8 +110,8 @@ const NumericAreaChart: FC<Props> = ({ height = 150, min, max, data }) => {
                   data: {
                     stroke:
                       data[k].color === "orange"
-                        ? METAC_COLORS.orange["500"].DEFAULT
-                        : METAC_COLORS.green["500"].DEFAULT,
+                        ? getThemeColor(METAC_COLORS.orange["500"])
+                        : getThemeColor(METAC_COLORS.green["500"]),
                     strokeDasharray: "2,2",
                   },
                 }}

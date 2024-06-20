@@ -57,7 +57,7 @@ const NumericChart: FC<Props> = ({
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
-  const { theme } = useAppTheme();
+  const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
   const defaultCursor = dataset.timestamps[dataset.timestamps.length - 1];
@@ -93,7 +93,7 @@ const NumericChart: FC<Props> = ({
       cursorComponent={
         <LineSegment
           style={{
-            stroke: METAC_COLORS.gray["600"].DEFAULT,
+            stroke: getThemeColor(METAC_COLORS.gray["600"]),
             strokeDasharray: "2,1",
           }}
         />
@@ -143,7 +143,7 @@ const NumericChart: FC<Props> = ({
             data={area}
             style={{
               data: {
-                fill: METAC_COLORS.olive["500"].DEFAULT,
+                fill: getThemeColor(METAC_COLORS.olive["500"]),
                 opacity: 0.3,
               },
             }}
@@ -152,7 +152,7 @@ const NumericChart: FC<Props> = ({
             data={line}
             style={{
               data: {
-                stroke: METAC_COLORS.olive["700"].DEFAULT,
+                stroke: getThemeColor(METAC_COLORS.olive["700"]),
               },
             }}
           />
@@ -160,7 +160,7 @@ const NumericChart: FC<Props> = ({
             data={points.map((x) => ({ ...x, symbol: "diamond" }))}
             style={{
               data: {
-                stroke: METAC_COLORS.orange["700"].DEFAULT,
+                stroke: getThemeColor(METAC_COLORS.orange["700"]),
                 fill: "none",
                 strokeWidth: 2,
               },

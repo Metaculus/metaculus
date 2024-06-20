@@ -1,20 +1,18 @@
+import { ThemeColor } from "@/types/theme";
+
 export type ChoiceItem = {
   choice: string;
   timestamps?: number[];
   values: number[];
-  color: {
-    DEFAULT: string;
-    dark: string;
-  };
+  minValues?: number[];
+  maxValues?: number[];
+  color: ThemeColor;
   active: boolean;
   highlighted: boolean;
 };
 
 export type ChoiceTooltipItem = {
-  color: {
-    DEFAULT: string;
-    dark: string;
-  };
+  color: ThemeColor;
   choiceLabel: string;
   valueLabel: string;
 };
