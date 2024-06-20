@@ -25,7 +25,9 @@ ENV = os.environ.get("METACULUS_ENV", "").strip()
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-47@xwq5$pn*^d(2233!+41#=-)53&@iz)*t@foixp(ov2e7r)t"
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY", "django-insecure-47@xwq5$pn*^d(2233!+41#=-)53&@iz)*t@foixp(ov2e7r)t"
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
