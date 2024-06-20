@@ -101,6 +101,11 @@ def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
 
 def compute_binary_plotable_cp(question: Question) -> list[GraphCP]:
     forecast_history = get_forecast_history(question)
+    lfh = len(forecast_history)
+    if lfh > 200:
+        forecast_history = [
+            x for i, x in enumerate(forecast_history[:-5]) if i % int(lfh / 200) == 0
+        ] + forecast_history[-5:]
     cps = []
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
