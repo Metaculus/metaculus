@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 import { extractQuestionGroupName } from "@/utils/questions";
 
@@ -29,10 +30,7 @@ type QuestionOption = {
   communityForecast: number | null;
   forecast: number | null;
   isDirty: boolean;
-  color: {
-    DEFAULT: string;
-    dark: string;
-  };
+  color: ThemeColor;
 };
 
 type Props = {
