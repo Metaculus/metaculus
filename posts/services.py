@@ -27,11 +27,17 @@ def get_posts_feed(
     status: str = None,
     answered_by_me: bool = None,
     order: str = None,
+    access: PostFilterSerializer.Access = None,
     permission: str = ObjectPermission.VIEWER,
+    ids: list[int] = None,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
     """
+
+    # If ids provided
+    if ids:
+        qs = qs.filter(id__in=ids)
 
     # Search
     if search:
@@ -93,6 +99,12 @@ def get_posts_feed(
     if answered_by_me is not None and not user.is_anonymous:
         condition = {"question__forecast__author": user}
         qs = qs.filter(**condition) if answered_by_me else qs.exclude(**condition)
+
+    # Filter by access
+    if access == PostFilterSerializer.Access.PRIVATE:
+        qs = qs.filter_private()
+    if access == PostFilterSerializer.Access.PUBLIC:
+        qs = qs.filter_public()
 
     # Filter by permission level
     qs = qs.filter_permission(user=user, permission=permission)

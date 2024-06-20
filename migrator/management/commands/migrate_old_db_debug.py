@@ -18,9 +18,20 @@ class Command(BaseCommand):
             cursor.execute("DELETE FROM projects_projectuserpermission")
             cursor.execute(
                 "DELETE FROM posts_post_projects USING projects_project "
-                "WHERE posts_post_projects.project_id = projects_project.id AND projects_project.type = 'personal_list';"
+                "WHERE posts_post_projects.project_id = projects_project.id AND projects_project.type = 'personal_project';"
             )
-            cursor.execute("DELETE FROM projects_project WHERE type = 'personal_list'")
+            cursor.execute(
+                """
+                UPDATE posts_post
+                SET default_project_id = NULL
+                WHERE default_project_id IN (
+                    SELECT id
+                    FROM projects_project
+                    WHERE type = 'personal_project'
+                );
+                """
+            )
+            cursor.execute("DELETE FROM projects_project WHERE type = 'personal_project'")
 
         print("Starting migration script")
 

@@ -73,6 +73,12 @@ class PostFilterSerializer(serializers.Serializer):
         RESOLVED_AT = "resolved_at"
         CREATED_AT = "created_at"
 
+    class Access(models.TextChoices):
+        PRIVATE = "private"
+        PUBLIC = "public"
+
+    ids = serializers.ListField(child=serializers.IntegerField(), required=False)
+    access = serializers.ChoiceField(required=False, choices=Access.choices)
     topic = serializers.CharField(required=False)
     tags = serializers.ListField(child=serializers.CharField(), required=False)
     categories = serializers.ListField(child=serializers.CharField(), required=False)

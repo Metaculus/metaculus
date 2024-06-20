@@ -14,6 +14,7 @@ from utils.dtypes import flatten
 # TODO: adjust Post.default_project permissions
 # TODO: coauthors: for private questions we are doing 1 proj per post!!!
 # TODO: what to do with MP/Site Main project type? Do we want to keep it as separate type or merge with categories/topics?
+# TODO: Some questions no longer exist in the new metac (e.g Conditional/Groups), instead, parents were moved to own Posts. Check this!
 
 
 # TEST CASES:
@@ -28,7 +29,6 @@ NON_PROJECT_TYPES = [
     Project.ProjectTypes.CATEGORY,
     Project.ProjectTypes.TAG,
     Project.ProjectTypes.TOPIC,
-    Project.ProjectTypes.PERSONAL_PROJECT,
 ]
 
 
@@ -90,9 +90,10 @@ def migrate_common_permissions():
     """
 
     # Extracting ids of entities that was the only Project types in the old Metac
-    project_ids = Project.objects.exclude(type__in=NON_PROJECT_TYPES).values_list(
-        "id", flat=True
-    )
+    # And exclude PersonalProjects since they will be migrated in a separate function
+    project_ids = Project.objects.exclude(
+        type__in=NON_PROJECT_TYPES + [Project.ProjectTypes.PERSONAL_PROJECT]
+    ).values_list("id", flat=True)
     user_project_perms = []
     project_question_permissions_map = defaultdict(list)
 
@@ -107,13 +108,13 @@ def migrate_common_permissions():
     # Migrating User<>Project ad-hoc permissions
     for user_project_perm_obj in paginated_query(
         """
-                        SELECT 
-                           upp.*, p.default_question_permissions, p.default_project_permissions, p.public, p.type
-                        FROM metac_project_userprojectpermissions upp
-                        JOIN metac_project_project p 
-                        ON upp.project_id = p.id
-                        WHERE p.type != 'PP'
-                    """
+            SELECT 
+               upp.*, p.default_question_permissions, p.default_project_permissions, p.public, p.type
+            FROM metac_project_userprojectpermissions upp
+            JOIN metac_project_project p 
+            ON upp.project_id = p.id
+            WHERE p.type != 'PP'
+            """
     ):
         # New app merges Project & Categories & Tags etc.
         # Tournaments & QS & PP were migrated to Project model with the same Ids as the old ones.
@@ -294,6 +295,18 @@ def migrate_post_default_project():
     total_posts_without_projects = 0
     posts_to_update = []
 
+    def prioritize_projects_for_default(prj: Project):
+        permission_code = (
+            ObjectPermission.get_numeric_representation().get(prj.default_permission)
+            or 0
+        )
+
+        if prj.type == Project.ProjectTypes.PERSONAL_PROJECT:
+            # Deprioritize personal projects VS other projects with the same permissions level
+            permission_code -= 0.01
+
+        return permission_code
+
     for post in Post.objects.prefetch_related("projects").iterator(chunk_size=10_000):
         sorted_projects = sorted(
             [
@@ -301,10 +314,7 @@ def migrate_post_default_project():
                 for project in post.projects.all()
                 if project.type not in NON_PROJECT_TYPES
             ],
-            key=lambda x: ObjectPermission.get_numeric_representation().get(
-                x.default_permission
-            )
-            or 0,
+            key=prioritize_projects_for_default,
         )
 
         if sorted_projects:

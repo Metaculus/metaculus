@@ -188,6 +188,20 @@ class PostQuerySet(models.QuerySet):
             | models.Q(author_id=user_id)
         ).distinct("id")
 
+    def filter_public(self):
+        """
+        Filter public posts
+        """
+
+        return self.filter(default_project__default_permission__isnull=False)
+
+    def filter_private(self):
+        """
+        Filter private posts
+        """
+
+        return self.filter(default_project__default_permission__isnull=True)
+
 
 class Post(TimeStampedModel):
     class CurationStatus(models.TextChoices):
