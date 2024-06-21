@@ -42,6 +42,7 @@ class TournamentSerializer(serializers.ModelSerializer):
             "close_date",
             "meta_description",
             "is_ongoing",
+            "user_permission",
             "created_at",
             "edited_at",
         )
