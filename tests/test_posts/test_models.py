@@ -65,9 +65,12 @@ class TestPostPermissions:
         factory_post(
             author=user2,
             question=question_binary,
+            default_project=factory_project(
+                default_permission=ObjectPermission.VIEWER,
+                override_permissions={user1.id: ObjectPermission.CURATOR},
+            ),
             projects=[
                 factory_project(default_permission=ObjectPermission.VIEWER),
-                factory_project(default_permission=ObjectPermission.CURATOR),
             ],
         )
 
