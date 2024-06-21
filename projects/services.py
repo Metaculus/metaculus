@@ -86,6 +86,9 @@ def invite_users_to_project(
     Invites users to the project
     """
 
+    if not user_identifiers:
+        return
+
     queries = Q()
     for identifier in user_identifiers:
         queries |= Q(username__iexact=identifier) | Q(email__iexact=identifier)
