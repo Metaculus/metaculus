@@ -23,7 +23,7 @@ from projects.permissions import ObjectPermission
 @permission_classes([AllowAny])
 def posts_list_api_view(request):
     paginator = LimitOffsetPagination()
-    qs = Post.objects.annotate_predictions_count()
+    qs = Post.objects.annotate_forecasts_count()
 
     # Extra params
     with_forecasts = serializers.BooleanField(allow_null=True).run_validation(

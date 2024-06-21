@@ -17,9 +17,9 @@ class TestPostQuerySetAnnotatePredictionsCount:
 
         assert (
             Post.objects.filter(pk=post.id)
-            .annotate_predictions_count()
+            .annotate_forecasts_count()
             .first()
-            .predictions_count
+            .forecasts_count
             == 2
         )
 
@@ -32,9 +32,9 @@ class TestPostQuerySetAnnotatePredictionsCount:
 
         assert (
             Post.objects.filter(pk=post.id)
-            .annotate_predictions_count()
+            .annotate_forecasts_count()
             .first()
-            .predictions_count
+            .forecasts_count
             == 3
         )
 
@@ -54,10 +54,10 @@ class TestPostQuerySetAnnotatePredictionsCount:
         create_forecast(question=question_binary, author=user1)
         create_forecast(question=question_binary, author=user1)
 
-        qs = Post.objects.annotate_predictions_count().annotate_nr_forecasters().all()
+        qs = Post.objects.annotate_forecasts_count().annotate_nr_forecasters().all()
 
-        assert next(x for x in qs if x.id == post1.id).predictions_count == 3
-        assert next(x for x in qs if x.id == post2.id).predictions_count == 2
+        assert next(x for x in qs if x.id == post1.id).forecasts_count == 3
+        assert next(x for x in qs if x.id == post2.id).forecasts_count == 2
 
 
 class TestPostPermissions:
