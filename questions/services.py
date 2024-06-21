@@ -1,5 +1,3 @@
-from typing import Optional
-
 import numpy as np
 
 from questions.models import Question, GroupOfQuestions, Conditional
@@ -13,9 +11,7 @@ from utils.the_math.formulas import scale_location
 from utils.the_math.measures import percent_point_function
 
 
-def build_question_forecasts(
-    question: Question, user: Optional[User] = None
-) -> dict | None:
+def build_question_forecasts(question: Question) -> dict | None:
     """
     Enriches questions with the forecasts object.
     """
@@ -37,29 +33,6 @@ def build_question_forecasts(
             "latest_pmf": [],
             "latest_cdf": [],
         }
-
-    # values_choice_1
-    if user and not user.is_anonymous:
-        forecasts_data["my_forecasts"] = {
-            "values_mean": [],
-            "timestamps": [],
-        }
-        for x in question.forecast_set.filter(author=user).order_by("start_time").all():
-            forecasts_data["my_forecasts"]["slider_values"] = x.slider_values
-            forecasts_data["my_forecasts"]["timestamps"].append(
-                x.start_time.timestamp()
-            )
-            if question.type == "multiple_choice":
-                forecasts_data["my_forecasts"]["values_mean"].append(0)
-            elif question.type == "binary":
-                forecasts_data["my_forecasts"]["values_mean"].append(x.probability_yes)
-            elif question.type in ["numeric", "date"]:
-                cps, cdf = compute_continuous_plotable_cp(question)
-                forecasts_data["my_forecasts"]["values_mean"].append(
-                    scale_location(
-                        question, percent_point_function(x.continuous_cdf, 0.5)
-                    )
-                )
 
     if question.type == "multiple_choice":
         cps = compute_multiple_choice_plotable_cp(question)
@@ -99,6 +72,35 @@ def build_question_forecasts(
             forecasts_data["values_max"].append(cp.upper)
             forecasts_data["values_min"].append(cp.lower)
             forecasts_data["nr_forecasters"].append(cp.nr_forecasters)
+
+    return forecasts_data
+
+
+def build_question_forecasts_for_user(question: Question, user: User) -> dict:
+    """
+    Builds forecasts of a specific user
+    """
+
+    forecasts_data = {
+        "values_mean": [],
+        "timestamps": [],
+        "slider_values": None,
+    }
+
+    # values_choice_1
+    # TODO: fix N+1
+    for x in question.forecast_set.filter(author=user).order_by("start_time").all():
+        forecasts_data["slider_values"] = x.slider_values
+        forecasts_data["timestamps"].append(x.start_time.timestamp())
+        if question.type == "multiple_choice":
+            forecasts_data["values_mean"].append(0)
+        elif question.type == "binary":
+            forecasts_data["values_mean"].append(x.probability_yes)
+        elif question.type in ["numeric", "date"]:
+            cps, cdf = compute_continuous_plotable_cp(question)
+            forecasts_data["values_mean"].append(
+                scale_location(question, percent_point_function(x.continuous_cdf, 0.5))
+            )
 
     return forecasts_data
 
