@@ -62,7 +62,7 @@ class ProjectsQuerySet(models.QuerySet):
         Returns only allowed projects for the user
         """
 
-        return self.annotate_user_permission().filter(user_permission__isnull=False)
+        return self.annotate_user_permission(user=user).filter(user_permission__isnull=False)
 
 
 class Project(TimeStampedModel):
