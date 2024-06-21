@@ -94,13 +94,13 @@ def migrate_common_permissions():
     # Migrating User<>Project ad-hoc permissions
     for user_project_perm_obj in paginated_query(
         """
-                        SELECT 
-                           upp.*, p.default_question_permissions, p.default_project_permissions, p.type
-                        FROM metac_project_userprojectpermissions upp
-                        JOIN metac_project_project p 
-                        ON upp.project_id = p.id
-                        WHERE p.type != 'PP'
-                        """
+        SELECT 
+           upp.*, p.default_question_permissions, p.default_project_permissions, p.type
+        FROM metac_project_userprojectpermissions upp
+        JOIN metac_project_project p 
+        ON upp.project_id = p.id
+        WHERE p.type != 'PP'
+        """
     ):
         # New app merges Project & Categories & Tags etc.
         # Tournaments & QS & PP were migrated to Project model with the same Ids as the old ones.
@@ -275,7 +275,7 @@ def migrate_post_default_project():
 
     def prioritize_projects_for_default(prj: Project):
         permission_code = (
-            ObjectPermission.get_numeric_representation().get(prj.default_permission)
+            ObjectPermission.get_permissions_rank().get(prj.default_permission)
             or 0
         )
 
