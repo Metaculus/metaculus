@@ -36,9 +36,9 @@ class PostQuerySet(models.QuerySet):
             "group_of_questions__questions",
         )
 
-    def annotate_predictions_count(self):
+    def annotate_forecasts_count(self):
         return self.annotate(
-            predictions_count=(
+            forecasts_count=(
                 Coalesce(
                     SubqueryAggregate("question__forecast", aggregate=Count),
                     # Conditional questions
@@ -237,7 +237,7 @@ class Post(TimeStampedModel):
     objects = models.Manager.from_queryset(PostQuerySet)()
 
     # Annotated fields
-    predictions_count: int = 0
+    forecasts_count: int = 0
     nr_forecasters: int = 0
     vote_score: int = 0
     user_vote = None

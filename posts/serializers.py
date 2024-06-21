@@ -165,7 +165,7 @@ def serialize_post_many(
     qs = Post.objects.filter(pk__in=[p.pk for p in data])
 
     qs = (
-        qs.annotate_predictions_count()
+        qs.annotate_forecasts_count()
         .annotate_user_permission(user=current_user)
         .annotate_vote_score()
         .annotate_nr_forecasters()

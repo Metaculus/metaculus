@@ -53,7 +53,7 @@ class Question(TimeStampedModel):
     forecast_set: models.QuerySet["Forecast"]
 
     # Annotated fields
-    predictions_count: int = 0
+    forecasts_count: int = 0
     nr_forecasters: int = 0
     vote_score: int = 0
     user_vote = None
