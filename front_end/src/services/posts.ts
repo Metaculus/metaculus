@@ -20,6 +20,7 @@ export type PostsParams = PaginationParams & {
   commented_by?: string;
   order_by?: string;
   tournaments?: string | string[];
+  ids?: number[];
 };
 
 class PostsApi {
