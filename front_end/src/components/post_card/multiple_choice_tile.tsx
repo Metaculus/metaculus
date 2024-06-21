@@ -9,19 +9,22 @@ import ChoiceIcon from "@/components/choice_icon";
 import { ChoiceItem } from "@/types/choices";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
-const NUM_VISIBLE_CHOICES = 3;
-
 const HEIGHT = 100;
 
 type Props = {
   timestamps: number[];
   choices: ChoiceItem[];
+  visibleChoicesCount: number;
 };
 
-const MultipleChoiceTile: FC<Props> = ({ timestamps, choices }) => {
+const MultipleChoiceTile: FC<Props> = ({
+  timestamps,
+  choices,
+  visibleChoicesCount,
+}) => {
   const t = useTranslations();
 
-  const visibleChoices = choices.slice(0, NUM_VISIBLE_CHOICES);
+  const visibleChoices = choices.slice(0, visibleChoicesCount);
   const otherItemsCount = choices.length - visibleChoices.length;
 
   return (
