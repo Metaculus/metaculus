@@ -157,8 +157,12 @@ class PostQuerySet(models.QuerySet):
         if permission == ObjectPermission.CREATOR:
             return self.filter(author_id=user_id)
 
+        permissions_lookup = ObjectPermission.get_included_permissions(permission) + [
+            ObjectPermission.CREATOR
+        ]
+
         return self.annotate_user_permission(user=user).filter(
-            user_permission__in=ObjectPermission.get_included_permissions(permission)
+            user_permission__in=permissions_lookup
         )
 
     def filter_public(self):
