@@ -90,3 +90,15 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
             raise PermissionDenied("You do not have permission to delete this project")
 
         return can
+
+    @classmethod
+    def can_invite_project_users(cls, permission: Self, raise_exception=False):
+        can = permission in (
+            cls.CURATOR,
+            cls.ADMIN,
+        )
+
+        if raise_exception and not can:
+            raise PermissionDenied("You do not have permission to invite users to this project")
+
+        return can

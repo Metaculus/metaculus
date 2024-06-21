@@ -1,7 +1,7 @@
 from typing import Callable
 
 from django.db.models import QuerySet
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
@@ -9,13 +9,18 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from projects.models import Project
+from projects.permissions import ObjectPermission
 from projects.serializers import (
     TopicSerializer,
     CategorySerializer,
     TournamentSerializer,
     TagSerializer,
 )
-from projects.services import get_projects_qs
+from projects.services import (
+    get_projects_qs,
+    get_project_permission_for_user,
+    invite_users_to_project,
+)
 
 
 @api_view(["GET"])
@@ -125,3 +130,21 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     data = enrich_posts_count(obj, data)
 
     return Response(data)
+
+
+@api_view(["POST"])
+def project_invite_api_view(request: Request, project_id: int):
+    qs = get_projects_qs(user=request.user)
+    obj = get_object_or_404(qs, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_invite_project_users(permission, raise_exception=True)
+
+    user_identifiers = serializers.ListField(
+        child=serializers.CharField()
+    ).run_validation(request.data.get("user_identifiers"))
+
+    invite_users_to_project(obj, user_identifiers)
+
+    return Response(status=status.HTTP_201_CREATED)
