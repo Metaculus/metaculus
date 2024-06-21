@@ -8,6 +8,7 @@ type Props = {
   checked: boolean;
   onChange: (checked: boolean) => void;
   onHighlight: (highlighted: boolean) => void;
+  className?: string;
 };
 
 const ChoiceCheckbox: FC<Props> = ({
@@ -16,6 +17,7 @@ const ChoiceCheckbox: FC<Props> = ({
   onChange,
   onHighlight,
   color,
+  className,
 }) => {
   const handleHighlightStart = checked ? () => onHighlight(true) : undefined;
   const handleHighlightEnd = checked ? () => onHighlight(false) : undefined;
@@ -30,6 +32,7 @@ const ChoiceCheckbox: FC<Props> = ({
       onTouchMove={handleHighlightEnd}
       label={choice}
       color={color}
+      className={className}
     />
   );
 };

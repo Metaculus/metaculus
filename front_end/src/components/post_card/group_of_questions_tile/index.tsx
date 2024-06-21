@@ -28,13 +28,21 @@ const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
 
   switch (tileType) {
     case QuestionType.Binary: {
+      const visibleChoicesCount = 3;
       const timestamps = getGroupQuestionsTimestamps(
         questions as QuestionWithNumericForecasts[]
       );
       const choices = generateChoiceItemsFromBinaryGroup(
-        questions as QuestionWithNumericForecasts[]
+        questions as QuestionWithNumericForecasts[],
+        { activeCount: visibleChoicesCount }
       );
-      return <MultipleChoiceTile choices={choices} timestamps={timestamps} />;
+      return (
+        <MultipleChoiceTile
+          choices={choices}
+          timestamps={timestamps}
+          visibleChoicesCount={visibleChoicesCount}
+        />
+      );
     }
     case QuestionType.Numeric:
     case QuestionType.Date:
