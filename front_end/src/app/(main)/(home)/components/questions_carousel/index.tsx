@@ -1,13 +1,12 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import React from "react";
-import { FC } from "react";
+import React, { FC } from "react";
 
 import Carousel, { CarouselItem } from "@/components/carousel";
 import { POST_STATUS_FILTER } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
-import { PostStatus, PostWithForecasts } from "@/types/post";
+import { PostStatus } from "@/types/post";
 
 import QuestionCarouselItem from "./carousel_item";
 
@@ -16,12 +15,9 @@ type Props = {
 };
 
 const QuestionCarousel: FC<Props> = async ({ postIds }) => {
-  const postsResponse = await Promise.all(
-    postIds.map((postId) => PostsApi.getPost(postId))
-  );
-  const posts = postsResponse.filter(
-    (post) => post !== null
-  ) as PostWithForecasts[];
+  const postsResponse = await PostsApi.getPostWithoutForecasts({
+    ids: postIds,
+  });
 
   return (
     <Carousel
@@ -38,7 +34,7 @@ const QuestionCarousel: FC<Props> = async ({ postIds }) => {
         </div>
       }
     >
-      {posts.map((p) => (
+      {postsResponse.results.map((p) => (
         <CarouselItem key={p.id}>
           <QuestionCarouselItem post={p} />
         </CarouselItem>
