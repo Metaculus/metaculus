@@ -125,15 +125,8 @@ class PostQuerySet(models.QuerySet):
 
         project_permissions_subquery = (
             Project.objects.annotate_user_permission(user=user)
-            .filter(posts=models.OuterRef("pk"))
-            .values("user_permission")
-            .order_by(
-                # Return the max permission level user might have;
-                models.F("user_permission__numeric").desc(
-                    # Ensure Nullable permissions won't affect the ordering
-                    nulls_last=True
-                )
-            )[:1]
+            .filter(default_posts=models.OuterRef("pk"))
+            .values("user_permission")[:1]
         )
 
         return self.annotate(
@@ -164,29 +157,9 @@ class PostQuerySet(models.QuerySet):
         if permission == ObjectPermission.CREATOR:
             return self.filter(author_id=user_id)
 
-        # Permissions of the highest order automatically includes
-        # All previous permissions. E.g. CURATOR already includes VIEWER and FORECASTER
-        # This block generates such a permissions list based on the permission order
-        numeric_permissions = ObjectPermission.get_numeric_representation()
-        involved_permissions = [
-            name
-            for name, value in numeric_permissions.items()
-            if value >= numeric_permissions[permission]
-        ]
-
-        return self.filter(
-            # If any project has permissions (null value indicates private project)
-            models.Q(default_project__default_permission__in=involved_permissions)
-            | (
-                # Or user was given permissions to access the private project
-                models.Q(default_project__projectuserpermission__user_id=user_id)
-                & models.Q(
-                    default_project__projectuserpermission__permission__in=involved_permissions
-                )
-            )
-            # Or user is a creator, so it encapsulates all permissions
-            | models.Q(author_id=user_id)
-        ).distinct("id")
+        return self.annotate_user_permission(user=user).filter(
+            user_permission__in=ObjectPermission.get_included_permissions(permission)
+        )
 
     def filter_public(self):
         """
@@ -251,8 +224,9 @@ class Post(TimeStampedModel):
         GroupOfQuestions, models.CASCADE, related_name="post", null=True, blank=True
     )
 
+    # TODO: make required in the future
     default_project = models.ForeignKey(
-        Project, related_name="default_project", on_delete=models.PROTECT, null=True
+        Project, related_name="default_posts", on_delete=models.PROTECT, null=True
     )
     projects = models.ManyToManyField(Project, related_name="posts")
 

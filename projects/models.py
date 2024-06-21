@@ -55,21 +55,6 @@ class ProjectsQuerySet(models.QuerySet):
                 )
             )
 
-        # Generating Numeric representation of Permission types
-        # To be able just to sort to get the permission with the highest influence rate
-        qs = qs.annotate(
-            user_permission__numeric=models.Case(
-                *[
-                    models.When(
-                        user_permission=enum_value, then=models.Value(numeric_value)
-                    )
-                    for enum_value, numeric_value in ObjectPermission.get_numeric_representation().items()
-                ],
-                default=models.Value(None),
-                output_field=models.IntegerField(null=True),
-            )
-        )
-
         return qs
 
     def filter_permission(self, user: User = None):
@@ -187,7 +172,6 @@ class Project(TimeStampedModel):
     # Annotated fields
     posts_count: int = 0
     user_permission: ObjectPermission = None
-    user_permission__numeric: ObjectPermission = None
 
     class Meta:
         ordering = ("order",)
