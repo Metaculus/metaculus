@@ -23,7 +23,7 @@ from projects.permissions import ObjectPermission
 @permission_classes([AllowAny])
 def posts_list_api_view(request):
     paginator = LimitOffsetPagination()
-    qs = Post.objects.annotate_predictions_count()
+    qs = Post.objects.annotate_forecasts_count()
 
     # Extra params
     with_forecasts = serializers.BooleanField(allow_null=True).run_validation(
@@ -51,7 +51,7 @@ def posts_list_api_view(request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def post_detail(request: Request, pk):
-    qs = Post.objects.filter(pk=pk)
+    qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
     posts = serialize_post_many(qs, current_user=request.user, with_forecasts=True)
 
     if not posts:
@@ -80,7 +80,7 @@ def post_update_api_view(request, pk):
     if request.user != post.author:
         return Response(status=status.HTTP_403_FORBIDDEN)
 
-    serializer = PostSerializer(post, data=request.data)
+    serializer = PostSerializer(post, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
     serializer.save()
 

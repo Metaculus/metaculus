@@ -9,6 +9,7 @@ type Props = {
   onChange: (checked: boolean) => void;
   label: string;
   inputClassName?: string;
+  className?: string;
   color?: string;
   onMouseEnter?: MouseEventHandler<HTMLDivElement>;
   onMouseLeave?: MouseEventHandler<HTMLDivElement>;
@@ -21,6 +22,7 @@ const Checkbox: FC<Props> = ({
   onChange,
   label,
   inputClassName,
+  className,
   color,
   onMouseEnter,
   onMouseLeave,
@@ -29,7 +31,7 @@ const Checkbox: FC<Props> = ({
 }) => {
   return (
     <Field
-      className="hover:cursor-pointer"
+      className={classNames("hover:cursor-pointer", className)}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onTouchStart={onTouchStart}

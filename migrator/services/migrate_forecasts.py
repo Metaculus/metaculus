@@ -68,22 +68,11 @@ def migrate_forecasts(qty: int | None = None):
         forecast = create_forecast(old_prediction, questions_dict, users_dict)
         if forecast is not None:
             print("Migrating forecast", i + 1, end="                           \r")
-            forecast.save()
-        #     forecasts.append(forecast)
-        # if len(forecasts) >= 1000:
-        #     print("Migrating forecast", i + 1, "Bulk inserting forecasts...", end="\r")
-        #     Forecast.objects.bulk_create(forecasts)
-        #     forecasts = []
+            forecasts.append(forecast)
+        if len(forecasts) >= 10_000:
+            print("Migrating forecast", i + 1, "Bulk inserting forecasts...", end="\r")
+            Forecast.objects.bulk_create(forecasts)
+            forecasts = []
+    print("Migrating forecast", i + 1, "Bulk inserting forecasts...", end="\r")
+    Forecast.objects.bulk_create(forecasts)
     print()
-    # forecasts.append(forecast)
-    # print("Bulk inserting forecasts")
-    # batches = [forecasts[i : i + 1e3] for i in range(0, len(forecasts), 1e3)]
-    # for i, batch in enumerate(batches):
-    #     Forecast.objects.bulk_create(batch)
-    #     print(
-    #         f"Inserted forecasts #",
-    #         i * len(batch),
-    #         "to #",
-    #         (i + 1) * len(batch),
-    #         end="\r",
-    #     )

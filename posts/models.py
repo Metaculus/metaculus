@@ -36,9 +36,9 @@ class PostQuerySet(models.QuerySet):
             "group_of_questions__questions",
         )
 
-    def annotate_predictions_count(self):
+    def annotate_forecasts_count(self):
         return self.annotate(
-            predictions_count=(
+            forecasts_count=(
                 Coalesce(
                     SubqueryAggregate("question__forecast", aggregate=Count),
                     # Conditional questions
@@ -125,15 +125,8 @@ class PostQuerySet(models.QuerySet):
 
         project_permissions_subquery = (
             Project.objects.annotate_user_permission(user=user)
-            .filter(posts=models.OuterRef("pk"))
-            .values("user_permission")
-            .order_by(
-                # Return the max permission level user might have;
-                models.F("user_permission__numeric").desc(
-                    # Ensure Nullable permissions won't affect the ordering
-                    nulls_last=True
-                )
-            )[:1]
+            .filter(default_posts=models.OuterRef("pk"))
+            .values("user_permission")[:1]
         )
 
         return self.annotate(
@@ -164,29 +157,27 @@ class PostQuerySet(models.QuerySet):
         if permission == ObjectPermission.CREATOR:
             return self.filter(author_id=user_id)
 
-        # Permissions of the highest order automatically includes
-        # All previous permissions. E.g. CURATOR already includes VIEWER and FORECASTER
-        # This block generates such a permissions list based on the permission order
-        numeric_permissions = ObjectPermission.get_numeric_representation()
-        involved_permissions = [
-            name
-            for name, value in numeric_permissions.items()
-            if value >= numeric_permissions[permission]
+        permissions_lookup = ObjectPermission.get_included_permissions(permission) + [
+            ObjectPermission.CREATOR
         ]
 
-        return self.filter(
-            # If any project has permissions (null value indicates private project)
-            models.Q(projects__default_permission__in=involved_permissions)
-            | (
-                # Or user was given permissions to access the private project
-                models.Q(projects__projectuserpermission__user_id=user_id)
-                & models.Q(
-                    projects__projectuserpermission__permission__in=involved_permissions
-                )
-            )
-            # Or user is a creator, so it encapsulates all permissions
-            | models.Q(author_id=user_id)
-        ).distinct("id")
+        return self.annotate_user_permission(user=user).filter(
+            user_permission__in=permissions_lookup
+        )
+
+    def filter_public(self):
+        """
+        Filter public posts
+        """
+
+        return self.filter(default_project__default_permission__isnull=False)
+
+    def filter_private(self):
+        """
+        Filter private posts
+        """
+
+        return self.filter(default_project__default_permission__isnull=True)
 
 
 class Post(TimeStampedModel):
@@ -237,12 +228,16 @@ class Post(TimeStampedModel):
         GroupOfQuestions, models.CASCADE, related_name="post", null=True, blank=True
     )
 
+    # TODO: make required in the future
+    default_project = models.ForeignKey(
+        Project, related_name="default_posts", on_delete=models.PROTECT, null=True
+    )
     projects = models.ManyToManyField(Project, related_name="posts")
 
     objects = models.Manager.from_queryset(PostQuerySet)()
 
     # Annotated fields
-    predictions_count: int = 0
+    forecasts_count: int = 0
     nr_forecasters: int = 0
     vote_score: int = 0
     user_vote = None

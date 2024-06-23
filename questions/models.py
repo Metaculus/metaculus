@@ -1,12 +1,17 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import Count
+from sql_util.aggregates import SubqueryAggregate
 
 from users.models import User
 from utils.models import TimeStampedModel
 
 
 class QuestionQuerySet(models.QuerySet):
-    pass
+    def annotate_forecasts_count(self):
+        return self.annotate(
+            forecasts_count=SubqueryAggregate("forecast", aggregate=Count)
+        )
 
 
 class Question(TimeStampedModel):
@@ -53,10 +58,7 @@ class Question(TimeStampedModel):
     forecast_set: models.QuerySet["Forecast"]
 
     # Annotated fields
-    predictions_count: int = 0
-    nr_forecasters: int = 0
-    vote_score: int = 0
-    user_vote = None
+    forecasts_count: int = 0
 
     def __str__(self):
         return f"{self.type} {self.title}"

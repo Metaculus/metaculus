@@ -9,9 +9,11 @@ import ForecastMaker from "@/components/forecast_maker";
 import Button from "@/components/ui/button";
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
+import { ProjectPermissions } from "@/types/post";
 
 import DetailedGroupCard from "./components/detailed_group_card";
 import DetailedQuestionCard from "./components/detailed_question_card";
+import Modbox from "./components/modbox";
 
 export default async function IndividualQuestion({
   params,
@@ -33,6 +35,9 @@ export default async function IndividualQuestion({
         <span className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
           {t("question")}
         </span>
+        <span className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
+          Edit
+        </span>
         <div className="ml-auto flex h-9 flex-row text-gray-700 dark:text-gray-700-dark lg:hidden">
           <Button
             variant="secondary"
@@ -52,6 +57,12 @@ export default async function IndividualQuestion({
       </div>
       <div className="flex w-full items-start gap-4">
         <div className="w-[48rem] max-w-full border-transparent bg-gray-0 px-3 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
+          {postData.user_permission === ProjectPermissions.ADMIN ||
+          postData.user_permission === ProjectPermissions.CURATOR ? (
+            <Modbox post={postData} />
+          ) : (
+            <></>
+          )}
           <div className="my-0 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2 lg:mt-4">
             {!postData.conditional && (
               <h1 className="ng-binding m-0 text-xl leading-tight sm:text-3xl">
