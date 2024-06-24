@@ -1,5 +1,4 @@
 from django.db import IntegrityError
-from django.db.models import Q
 
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
@@ -75,28 +74,3 @@ def invite_user_to_project(
     except IntegrityError:
         # User was already invited
         return
-
-
-def invite_users_to_project(
-    project: Project,
-    user_identifiers: list[str],
-    permission: ObjectPermission = ObjectPermission.FORECASTER,
-):
-    """
-    Invites users to the project
-    """
-
-    if not user_identifiers:
-        return
-
-    queries = Q()
-    for identifier in user_identifiers:
-        queries |= Q(username__iexact=identifier) | Q(email__iexact=identifier)
-
-    # Fetch the users based on the combined query
-    users = User.objects.filter(queries).distinct()
-
-    print()
-
-    for user in users:
-        invite_user_to_project(project, user, permission=permission)
