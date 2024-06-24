@@ -11,7 +11,7 @@ from tests.test_users.factories import factory_user
 class TestInviteUsersToPrivateProject:
     def test_happy_path(self, user1, user1_client):
         user2 = factory_user(username="user2")
-        user3 = factory_user(username="user3", email="user3@metaculus.com")
+        user3 = factory_user(username="user3")
 
         project = factory_project(
             default_permission=None,
@@ -22,11 +22,23 @@ class TestInviteUsersToPrivateProject:
         response = user1_client.post(
             url,
             {
-                "user_identifiers": [
+                "usernames": [
                     "user3",
-                    "user3@metaculus.com",
                     "user2",
-                    "404@metaculus.com",
+                    # Invalid username
+                    "user-404",
+                ]
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+        response = user1_client.post(
+            url,
+            {
+                "usernames": [
+                    "user3",
+                    "user2",
                 ]
             },
             format="json",
@@ -47,8 +59,6 @@ class TestInviteUsersToPrivateProject:
         )
 
     def test_no_access(self, user1, user1_client):
-        user2 = factory_user(username="user2")
-
         project = factory_project(
             default_permission=None,
             override_permissions={user1.id: ObjectPermission.FORECASTER},
@@ -58,7 +68,7 @@ class TestInviteUsersToPrivateProject:
         response = user1_client.post(
             url,
             {
-                "user_identifiers": [
+                "usernames": [
                     "user2",
                 ]
             },

@@ -9,14 +9,16 @@ import {
   useLexicalNodeRemove,
   usePublisher,
 } from "@mdxeditor/editor";
+import Link from "next/link";
 import { FC, useEffect, useState } from "react";
 
 import { getPost } from "@/app/(main)/questions/actions";
 import createEditorComponent from "@/components/markdown_editor/createJsxComponent";
-import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostWithForecasts } from "@/types/post";
+
+import EmbeddedQuestionCard from "./embedded_question_card";
 
 type Props = {
   id: number;
@@ -24,10 +26,10 @@ type Props = {
 
 const EmbeddedQuestion: FC<Props> = ({ id }) => {
   const [postData, setPostData] = useState<PostWithForecasts | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const deleteQuestion = useLexicalNodeRemove();
-  const isEditorReadonly = useCellValue(readOnly$);
+  const isReadOnly = useCellValue(readOnly$);
 
   useEffect(() => {
     const loadPost = async () => {
@@ -41,11 +43,12 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
   }, [id]);
 
   return (
-    <div className="mx-auto mt-2 max-w-xl">
-      {isLoading && <LoadingIndicator />}
-      {!!postData && (
+    <div className="mx-auto mt-2 w-[400px]">
+      {isLoading ? (
+        <LoadingIndicator />
+      ) : postData ? (
         <div className="flex flex-col">
-          {!isEditorReadonly && (
+          {!isReadOnly && (
             <Button
               onClick={deleteQuestion}
               className="self-end"
@@ -56,8 +59,12 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
             </Button>
           )}
 
-          <PostCard post={postData} />
+          <Link href={`/questions/${postData.id}`} className="no-underline">
+            <EmbeddedQuestionCard postData={postData} />
+          </Link>
         </div>
+      ) : (
+        <div>Question {id} not found</div>
       )}
     </div>
   );
@@ -82,7 +89,7 @@ export const EmbedQuestionAction: FC = () => {
         }
       }}
     >
-      + question
+      Add Question
     </Button>
   );
 };
