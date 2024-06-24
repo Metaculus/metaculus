@@ -11,12 +11,13 @@ import {
   listsPlugin,
   markdownShortcutPlugin,
   MDXEditor,
+  MDXEditorMethods,
   quotePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
   UndoRedo,
 } from "@mdxeditor/editor";
-import React, { FC } from "react";
+import React, { FC, useRef } from "react";
 
 import "@mdxeditor/editor/style.css";
 
@@ -32,14 +33,35 @@ const jsxComponentDescriptors: JsxComponentDescriptor[] = [
 type Props = {
   markdown: string;
   readOnly?: boolean;
+  inlineJsxEmbeds?: boolean;
 };
 
-const MarkdownEditor: FC<Props> = ({ markdown, readOnly = false }) => {
+const MarkdownEditor: FC<Props> = ({
+  markdown,
+  readOnly = false,
+  inlineJsxEmbeds = false,
+}) => {
+  const editorRef = useRef<MDXEditorMethods>(null);
+
+  const handleInlineJsxEmbeds = (markdown: string) => {
+    const { cleanedMarkdown, wasUpdated } = removeBackslashFromJSX(markdown);
+    if (wasUpdated && editorRef.current) {
+      editorRef.current.setMarkdown(cleanedMarkdown);
+    }
+  };
+
   return (
     <MDXEditor
+      ref={editorRef}
       className="content"
       markdown={markdown}
-      onChange={console.log}
+      onChange={(markdown) => {
+        if (inlineJsxEmbeds) {
+          handleInlineJsxEmbeds(markdown);
+        }
+
+        console.log("markdown", markdown);
+      }}
       readOnly={readOnly}
       plugins={[
         headingsPlugin(),
@@ -69,5 +91,17 @@ const MarkdownEditor: FC<Props> = ({ markdown, readOnly = false }) => {
     />
   );
 };
+
+function removeBackslashFromJSX(markdown: string): {
+  cleanedMarkdown: string;
+  wasUpdated: boolean;
+} {
+  const regex = /\\(<[a-zA-Z][^>]*>)/g;
+
+  const wasUpdated = regex.test(markdown);
+  const cleanedMarkdown = markdown.replace(regex, "$1");
+
+  return { cleanedMarkdown, wasUpdated };
+}
 
 export default MarkdownEditor;
