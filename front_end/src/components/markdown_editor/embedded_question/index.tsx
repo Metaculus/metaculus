@@ -29,7 +29,7 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const deleteQuestion = useLexicalNodeRemove();
-  const isEditorReadonly = useCellValue(readOnly$);
+  const isReadOnly = useCellValue(readOnly$);
 
   useEffect(() => {
     const loadPost = async () => {
@@ -48,7 +48,7 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
         <LoadingIndicator />
       ) : postData ? (
         <div className="flex flex-col">
-          {!isEditorReadonly && (
+          {!isReadOnly && (
             <Button
               onClick={deleteQuestion}
               className="self-end"
