@@ -4,7 +4,8 @@ from typing import Any
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from projects.models import Project
+from projects.models import Project, ProjectUserPermission
+from users.serializers import UserPublicSerializer
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -112,3 +113,14 @@ class PostProjectWriteSerializer(serializers.Serializer):
 
     def validate_tournaments(self, values: list[int]) -> list[Project]:
         return validate_tournaments(lookup_field="id", lookup_values=values)
+
+
+class ProjectUserSerializer(serializers.ModelSerializer):
+    user = UserPublicSerializer()
+
+    class Meta:
+        model = ProjectUserPermission
+        fields = (
+            "user",
+            "permission",
+        )
