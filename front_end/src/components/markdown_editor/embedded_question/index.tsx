@@ -13,12 +13,12 @@ import Link from "next/link";
 import { FC, useEffect, useState } from "react";
 
 import { getPost } from "@/app/(main)/questions/actions";
-import createEditorComponent from "@/components/markdown_editor/createJsxComponent";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostWithForecasts } from "@/types/post";
 
 import EmbeddedQuestionCard from "./embedded_question_card";
+import createEditorComponent from "../createJsxComponent";
 
 type Props = {
   id: number;
