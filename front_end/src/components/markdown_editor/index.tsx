@@ -8,6 +8,7 @@ import {
   headingsPlugin,
   imagePlugin,
   InsertImage,
+  InsertThematicBreak,
   JsxComponentDescriptor,
   jsxPlugin,
   linkDialogPlugin,
@@ -17,6 +18,7 @@ import {
   MDXEditor,
   MDXEditorMethods,
   quotePlugin,
+  Separator,
   thematicBreakPlugin,
   toolbarPlugin,
   UndoRedo,
@@ -65,10 +67,14 @@ const MarkdownEditor: FC<Props> = ({ markdown, mode = "default" }) => {
     const Controls = (
       <>
         <UndoRedo />
+        <Separator />
         <BlockTypeSelect />
         <BoldItalicUnderlineToggles />
+        <Separator />
         <CreateLink />
         <InsertImage />
+        <InsertThematicBreak />
+        <Separator />
         <EmbedQuestionAction />
       </>
     );
