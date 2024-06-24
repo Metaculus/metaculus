@@ -3,6 +3,8 @@ import {
   BlockTypeSelect,
   BoldItalicUnderlineToggles,
   CreateLink,
+  diffSourcePlugin,
+  DiffSourceToggleWrapper,
   headingsPlugin,
   JsxComponentDescriptor,
   jsxPlugin,
@@ -17,14 +19,20 @@ import {
   toolbarPlugin,
   UndoRedo,
 } from "@mdxeditor/editor";
-import React, { FC, useRef } from "react";
+import classNames from "classnames";
+import React, { FC, useMemo, useRef } from "react";
 
 import "@mdxeditor/editor/style.css";
+import "./editor.css";
+
+import useAppTheme from "@/hooks/use_app_theme";
 
 import {
   embeddedQuestionDescriptor,
   EmbedQuestionAction,
 } from "./embedded_question";
+
+type EditorMode = "default" | "extended" | "readOnly";
 
 const jsxComponentDescriptors: JsxComponentDescriptor[] = [
   embeddedQuestionDescriptor,
@@ -32,37 +40,62 @@ const jsxComponentDescriptors: JsxComponentDescriptor[] = [
 
 type Props = {
   markdown: string;
-  readOnly?: boolean;
-  inlineJsxEmbeds?: boolean;
+  mode?: EditorMode;
 };
 
-const MarkdownEditor: FC<Props> = ({
-  markdown,
-  readOnly = false,
-  inlineJsxEmbeds = false,
-}) => {
+const MarkdownEditor: FC<Props> = ({ markdown, mode = "default" }) => {
+  const { theme } = useAppTheme();
+
   const editorRef = useRef<MDXEditorMethods>(null);
 
-  const handleInlineJsxEmbeds = (markdown: string) => {
-    const { cleanedMarkdown, wasUpdated } = removeBackslashFromJSX(markdown);
-    if (wasUpdated && editorRef.current) {
-      editorRef.current.setMarkdown(cleanedMarkdown);
+  const editorDiffSourcePlugin = useMemo(() => {
+    if (mode === "extended") {
+      return diffSourcePlugin({
+        viewMode: "source",
+      });
     }
-  };
+
+    return null;
+  }, [mode]);
+
+  const editorToolbarPlugin = useMemo(() => {
+    const Controls = (
+      <>
+        <UndoRedo />
+        <BlockTypeSelect />
+        <BoldItalicUnderlineToggles />
+        <CreateLink />
+        <EmbedQuestionAction />
+      </>
+    );
+
+    switch (mode) {
+      case "readOnly":
+        return null;
+      case "extended":
+        return toolbarPlugin({
+          toolbarContents: () => (
+            <DiffSourceToggleWrapper options={["rich-text", "source"]}>
+              {Controls}
+            </DiffSourceToggleWrapper>
+          ),
+        });
+      default:
+        return toolbarPlugin({
+          toolbarContents: () => <>{Controls}</>,
+        });
+    }
+  }, [mode]);
 
   return (
     <MDXEditor
       ref={editorRef}
-      className="content"
+      className={classNames("content markdown-editor", {
+        "dark-theme": theme === "dark",
+      })}
       markdown={markdown}
-      onChange={(markdown) => {
-        if (inlineJsxEmbeds) {
-          handleInlineJsxEmbeds(markdown);
-        }
-
-        console.log("markdown", markdown);
-      }}
-      readOnly={readOnly}
+      onChange={console.log}
+      readOnly={mode === "readOnly"}
       plugins={[
         headingsPlugin(),
         listsPlugin(),
@@ -72,36 +105,11 @@ const MarkdownEditor: FC<Props> = ({
         thematicBreakPlugin(),
         linkDialogPlugin(),
         jsxPlugin({ jsxComponentDescriptors }),
-        ...(readOnly
-          ? []
-          : [
-              toolbarPlugin({
-                toolbarContents: () => (
-                  <>
-                    <UndoRedo />
-                    <BlockTypeSelect />
-                    <BoldItalicUnderlineToggles />
-                    <CreateLink />
-                    <EmbedQuestionAction />
-                  </>
-                ),
-              }),
-            ]),
+        ...(editorDiffSourcePlugin ? [editorDiffSourcePlugin] : []),
+        ...(editorToolbarPlugin ? [editorToolbarPlugin] : []),
       ]}
     />
   );
 };
-
-function removeBackslashFromJSX(markdown: string): {
-  cleanedMarkdown: string;
-  wasUpdated: boolean;
-} {
-  const regex = /\\(<[a-zA-Z][^>]*>)/g;
-
-  const wasUpdated = regex.test(markdown);
-  const cleanedMarkdown = markdown.replace(regex, "$1");
-
-  return { cleanedMarkdown, wasUpdated };
-}
 
 export default MarkdownEditor;
