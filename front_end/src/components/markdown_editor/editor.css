@@ -4,6 +4,7 @@
   --basePageBg: theme("colors.gray.0.DEFAULT");
   --baseBgHover: theme("colors.gray.0.DEFAULT");
   --baseBgActive: theme("colors.gray.0.DEFAULT");
+  --baseBorder: theme("colors.gray.500.DEFAULT");
 }
 
 .markdown-editor.dark-theme {
