@@ -17,8 +17,6 @@ def custom_exception_handler(exc, context):
         elif exc.messages:
             exc = DRFValidationError(exc.messages)
 
-    print()
-
     if isinstance(exc, DRFValidationError):
         if isinstance(exc.detail, list) or (
             # If anon ListField serializer raised an error
