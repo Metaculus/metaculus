@@ -1,5 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import React, { FC, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -19,11 +20,13 @@ const projectUserInviteSchema = z.object({
 type FormData = z.infer<typeof projectUserInviteSchema>;
 
 const InviteUsers: FC<Props> = ({ projectId }) => {
+  const router = useRouter();
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     handleSubmit,
     register,
+    reset,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(projectUserInviteSchema),
@@ -40,9 +43,12 @@ const InviteUsers: FC<Props> = ({ projectId }) => {
 
       if (responses && "errors" in responses && !!responses.errors) {
         setSubmitErrors(responses.errors);
+      } else {
+        reset();
+        router.refresh();
       }
     },
-    [projectId]
+    [reset, router, projectId]
   );
 
   return (

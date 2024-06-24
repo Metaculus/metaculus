@@ -43,9 +43,11 @@ const UsersManage: FC<Props> = ({ members, projectId }) => {
 
       if (responses && "errors" in responses && !!responses.errors) {
         setSubmitErrors(responses.errors);
+      } else {
+        router.refresh();
       }
     },
-    [projectId]
+    [router, projectId]
   );
 
   const onUpdate = useCallback(
@@ -61,9 +63,10 @@ const UsersManage: FC<Props> = ({ members, projectId }) => {
         setSubmitErrors(responses.errors);
       } else {
         setEditingMember(undefined);
+        router.refresh();
       }
     },
-    [projectId]
+    [router, projectId]
   );
 
   return (
