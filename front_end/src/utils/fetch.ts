@@ -42,8 +42,6 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return JSON.parse(text);
 };
 
-// Default values are configured in the next.config.mjs
-const BASE_URL_API = `${process.env.API_BASE_URL}/api`;
 const defaultOptions: FetchOptions = {
   headers: {
     "Content-Type": "application/json",
@@ -57,7 +55,8 @@ const appFetch = async <T>(
   const authToken = getServerSession();
   const alphaToken = getAlphaTokenSession();
 
-  const finalUrl = `${BASE_URL_API}${url}`;
+  // Default values are configured in the next.config.mjs
+  const finalUrl = `${process.env.API_BASE_URL}/api${url}`;
   const finalOptions: FetchOptions = {
     ...defaultOptions,
     ...options,
