@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 from django.db.models import Count
 from django.db.models.functions import Coalesce
@@ -62,7 +64,9 @@ class ProjectsQuerySet(models.QuerySet):
         Returns only allowed projects for the user
         """
 
-        return self.annotate_user_permission(user=user).filter(user_permission__isnull=False)
+        return self.annotate_user_permission(user=user).filter(
+            user_permission__isnull=False
+        )
 
 
 class Project(TimeStampedModel):
@@ -216,3 +220,50 @@ class ProjectUserPermission(TimeStampedModel):
                 fields=["user_id", "project_id"],
             ),
         ]
+
+
+def get_global_leaderboard_dates() -> list[tuple[datetime, datetime]]:
+    return [
+        # one year intervals
+        (datetime(2016, 1, 1), datetime(2017, 1, 1)),
+        (datetime(2017, 1, 1), datetime(2018, 1, 1)),
+        (datetime(2018, 1, 1), datetime(2019, 1, 1)),
+        (datetime(2019, 1, 1), datetime(2020, 1, 1)),
+        (datetime(2020, 1, 1), datetime(2021, 1, 1)),
+        (datetime(2021, 1, 1), datetime(2022, 1, 1)),
+        (datetime(2022, 1, 1), datetime(2023, 1, 1)),
+        (datetime(2023, 1, 1), datetime(2024, 1, 1)),
+        (datetime(2024, 1, 1), datetime(2025, 1, 1)),
+        (datetime(2025, 1, 1), datetime(2026, 1, 1)),
+        # two year intervals
+        (datetime(2016, 1, 1), datetime(2018, 1, 1)),
+        (datetime(2018, 1, 1), datetime(2020, 1, 1)),
+        (datetime(2020, 1, 1), datetime(2022, 1, 1)),
+        (datetime(2022, 1, 1), datetime(2024, 1, 1)),
+        (datetime(2024, 1, 1), datetime(2026, 1, 1)),
+        # five year intervals
+        (datetime(2016, 1, 1), datetime(2021, 1, 1)),
+        (datetime(2021, 1, 1), datetime(2026, 1, 1)),
+        # ten year intervals
+        (datetime(2016, 1, 1), datetime(2026, 1, 1)),
+    ]
+
+
+def get_global_leaderboard_dates_and_score_types() -> (
+    list[tuple[datetime, datetime, str]]
+):
+    dates = get_global_leaderboard_dates()
+    global_leaderboards = []
+    for start, end in dates:
+        global_leaderboards.append((start, end, Project.LeaderboardTypes.PEER))
+        global_leaderboards.append((start, end, Project.LeaderboardTypes.SPOT_PEER))
+        global_leaderboards.append((start, end, Project.LeaderboardTypes.BASELINE))
+        global_leaderboards.append((start, end, Project.LeaderboardTypes.SPOT_BASELINE))
+        if end.year - start.year == 1:
+            global_leaderboards.append(
+                (start, end, Project.LeaderboardTypes.COMMENT_INSIGHT)
+            )
+            global_leaderboards.append(
+                (start, end, Project.LeaderboardTypes.QUESTION_WRITING)
+            )
+    return global_leaderboards

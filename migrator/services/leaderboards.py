@@ -1,105 +1,45 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from collections import defaultdict
 
 from posts.models import Post
-from projects.models import Project
+from projects.models import Project, get_global_leaderboard_dates_and_score_types
 from scoring.models import LeaderboardEntry
 from scoring.utils import create_leaderboard_entries
 
 
 def create_global_leaderboards():
-    # Public leaderboard details
-    leaderboard_details = [
-        # one year peer
-        [2016, 1, Project.LeaderboardTypes.PEER],
-        [2017, 1, Project.LeaderboardTypes.PEER],
-        [2018, 1, Project.LeaderboardTypes.PEER],
-        [2019, 1, Project.LeaderboardTypes.PEER],
-        [2020, 1, Project.LeaderboardTypes.PEER],
-        [2021, 1, Project.LeaderboardTypes.PEER],
-        [2022, 1, Project.LeaderboardTypes.PEER],
-        [2023, 1, Project.LeaderboardTypes.PEER],
-        [2024, 1, Project.LeaderboardTypes.PEER],
-        [2025, 1, Project.LeaderboardTypes.PEER],
-        # one year baseline
-        [2016, 1, Project.LeaderboardTypes.BASELINE],
-        [2017, 1, Project.LeaderboardTypes.BASELINE],
-        [2018, 1, Project.LeaderboardTypes.BASELINE],
-        [2019, 1, Project.LeaderboardTypes.BASELINE],
-        [2020, 1, Project.LeaderboardTypes.BASELINE],
-        [2021, 1, Project.LeaderboardTypes.BASELINE],
-        [2022, 1, Project.LeaderboardTypes.BASELINE],
-        [2023, 1, Project.LeaderboardTypes.BASELINE],
-        [2024, 1, Project.LeaderboardTypes.BASELINE],
-        [2025, 1, Project.LeaderboardTypes.BASELINE],
-        # # one year COMMENT_INSIGHT
-        # [2016, 1, Project.LeaderboardTypes.COMMENT_INSIGHT],
-        # [2017, 1, Project.LeaderboardTypes.COMMENT_INSIGHT],
-        # [2018, 1, Project.LeaderboardTypes.COMMENT_INSIGHT],
-        # [2019, 1, Project.LeaderboardTypes.COMMENT_INSIGHT],
-        # [2020, 1, Project.LeaderboardTypes.COMMENT_INSIGHT],
-        # [2021, 1, Project.LeaderboardTypes.COMMENT_INSIGHT],
-        # [2022, 1, Project.LeaderboardTypes.COMMENT_INSIGHT],
-        # [2023, 1, Project.LeaderboardTypes.COMMENT_INSIGHT],
-        # [2024, 1, Project.LeaderboardTypes.COMMENT_INSIGHT],
-        # [2025, 1, Project.LeaderboardTypes.COMMENT_INSIGHT],
-        # # one year QUESTION_WRITING
-        # [2016, 1, Project.LeaderboardTypes.QUESTION_WRITING],
-        # [2017, 1, Project.LeaderboardTypes.QUESTION_WRITING],
-        # [2018, 1, Project.LeaderboardTypes.QUESTION_WRITING],
-        # [2019, 1, Project.LeaderboardTypes.QUESTION_WRITING],
-        # [2020, 1, Project.LeaderboardTypes.QUESTION_WRITING],
-        # [2021, 1, Project.LeaderboardTypes.QUESTION_WRITING],
-        # [2022, 1, Project.LeaderboardTypes.QUESTION_WRITING],
-        # [2023, 1, Project.LeaderboardTypes.QUESTION_WRITING],
-        # [2024, 1, Project.LeaderboardTypes.QUESTION_WRITING],
-        # [2025, 1, Project.LeaderboardTypes.QUESTION_WRITING],
-        # two year peer
-        [2016, 2, Project.LeaderboardTypes.PEER],
-        [2018, 2, Project.LeaderboardTypes.PEER],
-        [2020, 2, Project.LeaderboardTypes.PEER],
-        [2022, 2, Project.LeaderboardTypes.PEER],
-        [2024, 2, Project.LeaderboardTypes.PEER],
-        # two year baseline
-        [2016, 2, Project.LeaderboardTypes.BASELINE],
-        [2018, 2, Project.LeaderboardTypes.BASELINE],
-        [2020, 2, Project.LeaderboardTypes.BASELINE],
-        [2022, 2, Project.LeaderboardTypes.BASELINE],
-        [2024, 2, Project.LeaderboardTypes.BASELINE],
-        # five year peer
-        [2016, 5, Project.LeaderboardTypes.PEER],
-        [2021, 5, Project.LeaderboardTypes.PEER],
-        # five year baseline
-        [2016, 5, Project.LeaderboardTypes.BASELINE],
-        [2021, 5, Project.LeaderboardTypes.BASELINE],
-        # ten year peer
-        [2016, 10, Project.LeaderboardTypes.PEER],
-        # ten year baseline
-        [2016, 10, Project.LeaderboardTypes.BASELINE],
-    ]
+    leaderboard_details = get_global_leaderboard_dates_and_score_types()
+
+    # get all the posts and the leaderboard dates they are associated with
+    scored_posts = Post.objects.filter(
+        question__isnull=False,
+        curation_status=Post.CurationStatus.RESOLVED,
+    )
+    gl_dates_posts = defaultdict(list)
+    for post in scored_posts:
+        gl_dates_posts[post.question.get_global_leaderboard_dates()].append(post)
+
     i = 0
     c = len(leaderboard_details)
-    for start_year, duration, category in leaderboard_details:
+    for start, end, leaderboard_type in leaderboard_details:
         i += 1
         # Site stuff?
         project = Project.objects.get_or_create(
-            name=f"{start_year}: {duration} year {category}",
-            start_date=datetime(start_year, 1, 1),
-            close_date=datetime(start_year + duration, 1, 1),
+            start_date=start,
+            close_date=end,
             type=Project.ProjectTypes.GLOBAL_LEADERBOARD,
-            leaderboard_type=category,
+            leaderboard_type=leaderboard_type,
         )[0]
+        project.name = f"{start.year}: {end.year - start.year} year {leaderboard_type}"
+        project.save()
+        if leaderboard_type in [
+            Project.LeaderboardTypes.COMMENT_INSIGHT,
+            Project.LeaderboardTypes.QUESTION_WRITING,
+        ]:
+            # there are no posts for these leaderboards
+            continue
         print("setting up global leaderboard", i, "/", c, project.name, end="\r")
-        # TODO: This filter is not at all correct, but it approximates the result
-        project_posts = Post.objects.filter(
-            question__isnull=False,
-            published_at__gte=project.start_date,
-            published_at__lt=project.start_date + timedelta(days=365),
-            question__closed_at__lt=project.close_date,
-            question__closed_at__gte=project.close_date - timedelta(days=365),
-        )
-        for post in project_posts:
-            post.projects.add(project)
-            post.save()
+        project.posts.set(gl_dates_posts[(start, end)])
     print()
 
 

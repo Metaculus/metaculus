@@ -291,7 +291,14 @@ def evaluate_question(
                 question.type,
             )
         case score_types.RELATIVE_LEGACY:
-            scores = evaluate_forecasts_legacy_relative(forecasts)
+            # TODO: fill this out
+            scores = evaluate_forecasts_legacy_relative(
+                forecasts,
+                resolution_bucket,
+                0,
+                0,
+                question.type,
+            )
         case other:
             raise NotImplementedError(f"Score type {other} not implemented")
 
