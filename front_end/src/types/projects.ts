@@ -1,3 +1,6 @@
+import { ProjectPermissions } from "@/types/post";
+import { UserProfile } from "@/types/users";
+
 type TopicSection = "hot_categories" | "hot_topics";
 
 export type Topic = {
@@ -35,6 +38,11 @@ export enum TournamentsSortBy {
   StartDateDesc = "-start_date",
 }
 
+export type TournamentMember = {
+  user: UserProfile;
+  permission: ProjectPermissions;
+};
+
 export type Tournament = {
   id: number;
   type: TournamentType;
@@ -52,4 +60,5 @@ export type Tournament = {
   created_at: string;
   edited_at: string;
   posts_count: number;
+  user_permission: ProjectPermissions;
 };
