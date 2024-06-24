@@ -22,7 +22,6 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit. Alias deserunt dicta e
 
 <EmbeddedQuestion id="2" />
 
-<UnsupportedComponent />
 `;
 
 export default function TestNewsEditor() {
