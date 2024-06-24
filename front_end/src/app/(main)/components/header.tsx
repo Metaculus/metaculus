@@ -110,7 +110,7 @@ const Header: FC = () => {
               className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
               activeClassName="bg-blue-300-dark"
             >
-              + Write a Question
+              + Write
             </NavLink>
           </li>
           <li className="z-10 flex h-full items-center justify-center">
