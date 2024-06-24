@@ -89,7 +89,7 @@ export const EmbedQuestionAction: FC = () => {
         }
       }}
     >
-      + question
+      Add Question
     </Button>
   );
 };
