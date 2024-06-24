@@ -99,6 +99,21 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         )
 
         if raise_exception and not can:
-            raise PermissionDenied("You do not have permission to manage members of this project")
+            raise PermissionDenied(
+                "You do not have permission to manage members of this project"
+            )
+
+        return can
+
+    @classmethod
+    def can_edit_project_member_permission(
+        cls, permission: Self, raise_exception=False
+    ):
+        can = permission in (cls.ADMIN,)
+
+        if raise_exception and not can:
+            raise PermissionDenied(
+                "You do not have permission to edit member permissions of this project"
+            )
 
         return can
