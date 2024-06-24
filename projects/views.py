@@ -130,9 +130,6 @@ def tournament_by_slug_api_view(request: Request, slug: str):
 
     data = TournamentSerializer(obj).data
     data = enrich_posts_count(obj, data)
-    data["members"] = ProjectUserSerializer(
-        obj.projectuserpermission_set.all(), many=True
-    ).data
 
     return Response(data)
 
@@ -185,6 +182,9 @@ def project_members_manage_api_view(request: Request, project_id: int, user_id: 
     if request.method == "DELETE":
         member.delete()
     elif request.method == "PATCH":
+        # Check permissions
+        ObjectPermission.can_edit_project_member_permission(permission, raise_exception=True)
+
         permission = serializers.ChoiceField(
             choices=ObjectPermission.choices
         ).run_validation(request.data.get("permission"))
