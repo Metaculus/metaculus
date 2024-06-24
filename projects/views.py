@@ -137,6 +137,20 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     return Response(data)
 
 
+@api_view(["GET"])
+def project_members_api_view(request: Request, project_id: int):
+    qs = get_projects_qs(user=request.user)
+    obj = get_object_or_404(qs, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_manage_project_members(permission, raise_exception=True)
+
+    return Response(
+        ProjectUserSerializer(obj.projectuserpermission_set.all(), many=True).data
+    )
+
+
 @api_view(["POST"])
 def project_members_invite_api_view(request: Request, project_id: int):
     qs = get_projects_qs(user=request.user)
