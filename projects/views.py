@@ -19,8 +19,9 @@ from projects.serializers import (
 from projects.services import (
     get_projects_qs,
     get_project_permission_for_user,
-    invite_users_to_project,
+    invite_user_to_project,
 )
+from users.services import get_users_by_usernames
 
 
 @api_view(["GET"])
@@ -141,10 +142,11 @@ def project_invite_api_view(request: Request, project_id: int):
     permission = get_project_permission_for_user(obj, user=request.user)
     ObjectPermission.can_invite_project_users(permission, raise_exception=True)
 
-    user_identifiers = serializers.ListField(
-        child=serializers.CharField()
-    ).run_validation(request.data.get("user_identifiers"))
+    usernames = serializers.ListField(child=serializers.CharField()).run_validation(
+        request.data.get("usernames")
+    )
 
-    invite_users_to_project(obj, user_identifiers)
+    for user in get_users_by_usernames(usernames):
+        invite_user_to_project(obj, user)
 
     return Response(status=status.HTTP_201_CREATED)
