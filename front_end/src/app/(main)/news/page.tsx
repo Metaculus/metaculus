@@ -24,7 +24,7 @@ export default function TestNewsEditor() {
     <main className="p-4">
       <h1>Edit mode:</h1>
       <div className="h-50vh overflow-auto">
-        <MarkdownEditor markdown={markdown} />
+        <MarkdownEditor markdown={markdown} inlineJsxEmbeds />
       </div>
       <hr />
       <h1>Reader mode:</h1>
