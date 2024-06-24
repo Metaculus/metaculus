@@ -19,9 +19,13 @@ import {
   toolbarPlugin,
   UndoRedo,
 } from "@mdxeditor/editor";
+import classNames from "classnames";
 import React, { FC, useMemo, useRef } from "react";
 
 import "@mdxeditor/editor/style.css";
+import "./editor.css";
+
+import useAppTheme from "@/hooks/use_app_theme";
 
 import {
   embeddedQuestionDescriptor,
@@ -40,6 +44,8 @@ type Props = {
 };
 
 const MarkdownEditor: FC<Props> = ({ markdown, mode = "default" }) => {
+  const { theme } = useAppTheme();
+
   const editorRef = useRef<MDXEditorMethods>(null);
 
   const editorDiffSourcePlugin = useMemo(() => {
@@ -84,7 +90,9 @@ const MarkdownEditor: FC<Props> = ({ markdown, mode = "default" }) => {
   return (
     <MDXEditor
       ref={editorRef}
-      className="content"
+      className={classNames("content markdown-editor", {
+        "dark-theme": theme === "dark",
+      })}
       markdown={markdown}
       onChange={console.log}
       readOnly={mode === "readOnly"}
