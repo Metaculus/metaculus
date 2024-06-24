@@ -6,6 +6,8 @@ import { FC, Suspense } from "react";
 import invariant from "ts-invariant";
 
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
+import InviteUsers from "@/app/(main)/tournaments/components/users_invite";
+import UsersManage from "@/app/(main)/tournaments/components/users_manage";
 import HtmlContent from "@/components/html_content";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import PostsFilters from "@/components/posts_filters";
@@ -13,6 +15,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostsParams } from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
+import { ProjectPermissions } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 
@@ -49,72 +52,83 @@ export default async function TournamentSlug({
       : t("questions");
 
   return (
-    <main className="mx-auto mb-16 mt-4 min-h-min w-full max-w-[780px] flex-auto bg-gray-0 px-0 dark:bg-gray-0-dark">
-      <div
-        className={classNames(
-          " flex flex-wrap items-center gap-2.5 rounded-t px-3 py-1.5 text-[20px] uppercase text-gray-100 dark:text-gray-100-dark",
-          tournament.type === TournamentType.QuestionSeries
-            ? "bg-gray-500 dark:bg-gray-500-dark"
-            : "bg-blue-600 dark:bg-blue-600-dark"
-        )}
-      >
-        <Link
-          href={"/tournaments"}
-          className="no-underline hover:text-gray-400 dark:hover:text-gray-400-dark"
-        >
-          {title}
-        </Link>
-      </div>
-      {!!tournament.header_image && (
-        <div className="relative h-[130px] w-full">
-          <Image
-            src={`https://metaculus-media.s3.amazonaws.com/${tournament.header_image}`}
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 1200px) 100vw, 780px"
-            className="size-full object-cover object-center"
-          />
-        </div>
-      )}
-      <div className="bg-gray-0 px-3 pb-4 dark:bg-gray-0-dark">
-        <div className="pb-2">
-          <h1>{tournament.name}</h1>
-        </div>
-        <div className="flex flex-wrap gap-9 py-4">
-          {tournament.prize_pool !== null && (
-            <TournamentStat
-              title={t("prizePool")}
-              text={"$" + Number(tournament.prize_pool).toLocaleString()}
-            />
+    <main className="mx-auto mb-16 mt-4 min-h-min w-full max-w-[780px] flex-auto px-0">
+      <div className="hidden bg-gray-0 dark:bg-gray-0-dark">
+        <div
+          className={classNames(
+            " flex flex-wrap items-center gap-2.5 rounded-t px-3 py-1.5 text-[20px] uppercase text-gray-100 dark:text-gray-100-dark",
+            tournament.type === TournamentType.QuestionSeries
+              ? "bg-gray-500 dark:bg-gray-500-dark"
+              : "bg-blue-600 dark:bg-blue-600-dark"
           )}
-          <TournamentStat
-            title={t("StartDate")}
-            text={formatDate(locale, new Date(tournament.start_date))}
-          />
-          <TournamentStat
-            title={t("EndDate")}
-            text={formatDate(locale, new Date(tournament.close_date))}
-          />
-          <TournamentStat
-            title={t("questions")}
-            text={tournament.posts_count.toString()}
-          />
-        </div>
-        <HtmlContent content={tournament.description} />
-      </div>
-      <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
-        <h2 className="mb-5">{questionsTitle}</h2>
-        <PostsFilters categories={categories} tags={tags} />
-        <Suspense
-          key={JSON.stringify(searchParams)}
-          fallback={
-            <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
-          }
         >
-          <AwaitedPostsFeed filters={pageFilters} />
-        </Suspense>
-      </section>
+          <Link
+            href={"/tournaments"}
+            className="no-underline hover:text-gray-400 dark:hover:text-gray-400-dark"
+          >
+            {title}
+          </Link>
+        </div>
+        {!!tournament.header_image && (
+          <div className="relative h-[130px] w-full">
+            <Image
+              src={`https://metaculus-media.s3.amazonaws.com/${tournament.header_image}`}
+              alt=""
+              fill
+              priority
+              sizes="(max-width: 1200px) 100vw, 780px"
+              className="size-full object-cover object-center"
+            />
+          </div>
+        )}
+        <div className="bg-gray-0 px-3 pb-4 dark:bg-gray-0-dark">
+          <div className="pb-2">
+            <h1>{tournament.name}</h1>
+          </div>
+          <div className="flex flex-wrap gap-9 py-4">
+            {tournament.prize_pool !== null && (
+              <TournamentStat
+                title={t("prizePool")}
+                text={"$" + Number(tournament.prize_pool).toLocaleString()}
+              />
+            )}
+            <TournamentStat
+              title={t("StartDate")}
+              text={formatDate(locale, new Date(tournament.start_date))}
+            />
+            <TournamentStat
+              title={t("EndDate")}
+              text={formatDate(locale, new Date(tournament.close_date))}
+            />
+            <TournamentStat
+              title={t("questions")}
+              text={tournament.posts_count.toString()}
+            />
+          </div>
+          <HtmlContent content={tournament.description} />
+        </div>
+        <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
+          <h2 className="mb-5">{questionsTitle}</h2>
+          <PostsFilters categories={categories} tags={tags} />
+          <Suspense
+            key={JSON.stringify(searchParams)}
+            fallback={
+              <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
+            }
+          >
+            <AwaitedPostsFeed filters={pageFilters} />
+          </Suspense>
+        </section>
+      </div>
+      {tournament.user_permission === ProjectPermissions.ADMIN && (
+        <>
+          <InviteUsers projectId={tournament.id} />
+          <UsersManage
+            projectId={tournament.id}
+            members={tournament.members || []}
+          />
+        </>
+      )}
     </main>
   );
 }

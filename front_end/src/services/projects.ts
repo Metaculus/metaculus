@@ -1,5 +1,6 @@
+import { ProjectPermissions } from "@/types/post";
 import { Category, Tag, Topic, Tournament } from "@/types/projects";
-import { get } from "@/utils/fetch";
+import { del, get, patch, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/query_params";
 
 export type TagsParams = {
@@ -52,6 +53,36 @@ class ProjectsApi {
       console.error("Error getting tournament:", err);
       return null;
     }
+  }
+
+  static async inviteUsers(
+    projectId: number,
+    usernames: string[]
+  ): Promise<null> {
+    return post<null, { usernames: string[] }>(
+      `/projects/${projectId}/members/invite`,
+      {
+        usernames,
+      }
+    );
+  }
+
+  static async deleteMember(
+    projectId: number,
+    userId: number
+  ): Promise<Tournament | null> {
+    return del<null>(`/projects/${projectId}/members/${userId}`);
+  }
+
+  static async updateMember(
+    projectId: number,
+    userId: number,
+    payload: { permission: ProjectPermissions }
+  ): Promise<Tournament | null> {
+    return patch<null, { permission: ProjectPermissions }>(
+      `/projects/${projectId}/members/${userId}`,
+      payload
+    );
   }
 }
 

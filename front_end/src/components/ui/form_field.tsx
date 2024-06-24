@@ -26,27 +26,44 @@ export interface SelectProps
   errors?: ErrorResponse;
 }
 
+const extractError = (field_error: any): string | undefined => {
+  console.log("extractError", field_error);
+
+  if (typeof field_error === "string") return field_error;
+
+  if (typeof field_error === "object" && field_error !== null) {
+    for (const key in field_error) {
+      if (field_error.hasOwnProperty(key)) {
+        const result = extractError(field_error[key]);
+        if (result !== undefined) {
+          return result;
+        }
+      }
+    }
+  }
+};
+
 export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
   /**
    * If null => display only if no other things
    * */
   const [errorText, setErrorText] = React.useState<string | undefined>();
-
   useEffect(() => {
     if (errors) {
       if (errors.message) {
-        setErrorText(errors.message);
+        setErrorText(extractError(errors.message));
       } else if (
-        name === null &&
-        Object.keys(errors).every((k) => k in ["message", "non_field_errors"])
+        !name &&
+        Object.keys(errors).every((k) =>
+          ["message", "non_field_errors"].includes(k)
+        )
       ) {
-        setErrorText(errors?.non_field_errors?.[0] || errors?.message);
+        setErrorText(extractError(errors?.non_field_errors || errors?.message));
       } else if (name && name in errors) {
-        setErrorText(errors[name]?.[0]);
+        setErrorText(extractError(errors[name]));
       } else {
         setErrorText(undefined);
       }
-    } else {
     }
   }, [errors, name]);
   return (
@@ -88,7 +105,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
     return (
       <>
         <textarea
-          className={`block rounded-s border border-white p-1 ${className}`}
+          className={classNames("block rounded-s border p-1", className)}
           ref={ref}
           name={name}
           {...props}
