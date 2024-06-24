@@ -17,7 +17,7 @@ poetry install;
 # 4. Install new poetry dependencies and new node dependencies in 'front_end' and run `npm run build`
 cd front_end;
 npm i;
-npm run build;
+npm run dev;
 cd ..;
 
 # 5. Run django migrations with poetry
