@@ -6,6 +6,10 @@ import ProjectsApi from "@/services/projects";
 import { FetchError } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
 
+export async function getProjectMembers(projectId: number) {
+  return ProjectsApi.getMembers(projectId);
+}
+
 export async function inviteProjectUsers(
   projectId: number,
   usernames: string[]

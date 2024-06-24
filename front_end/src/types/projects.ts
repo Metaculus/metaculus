@@ -61,5 +61,4 @@ export type Tournament = {
   edited_at: string;
   posts_count: number;
   user_permission: ProjectPermissions;
-  members?: TournamentMember[];
 };

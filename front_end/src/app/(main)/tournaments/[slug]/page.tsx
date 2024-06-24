@@ -6,8 +6,9 @@ import { FC, Suspense } from "react";
 import invariant from "ts-invariant";
 
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
-import InviteUsers from "@/app/(main)/tournaments/components/users_invite";
-import UsersManage from "@/app/(main)/tournaments/components/users_manage";
+import ProjectMembers from "@/app/(main)/tournaments/components/members";
+import InviteUsers from "@/app/(main)/tournaments/components/members_invite";
+import UsersManage from "@/app/(main)/tournaments/components/members_manage";
 import HtmlContent from "@/components/html_content";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import PostsFilters from "@/components/posts_filters";
@@ -121,13 +122,7 @@ export default async function TournamentSlug({
         </section>
       </div>
       {tournament.user_permission === ProjectPermissions.ADMIN && (
-        <>
-          <InviteUsers projectId={tournament.id} />
-          <UsersManage
-            projectId={tournament.id}
-            members={tournament.members || []}
-          />
-        </>
+        <ProjectMembers project={tournament} />
       )}
     </main>
   );

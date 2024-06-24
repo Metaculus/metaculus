@@ -1,6 +1,5 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import React, { FC, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -12,6 +11,7 @@ import { ErrorResponse } from "@/types/fetch";
 
 type Props = {
   projectId: number;
+  refreshMembers: () => Promise<void>;
 };
 
 const projectUserInviteSchema = z.object({
@@ -19,8 +19,7 @@ const projectUserInviteSchema = z.object({
 });
 type FormData = z.infer<typeof projectUserInviteSchema>;
 
-const InviteUsers: FC<Props> = ({ projectId }) => {
-  const router = useRouter();
+const MembersInvite: FC<Props> = ({ projectId, refreshMembers }) => {
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
@@ -39,16 +38,16 @@ const InviteUsers: FC<Props> = ({ projectId }) => {
       setIsSubmitting(true);
       const responses = await inviteProjectUsers(projectId, usernames);
 
-      setIsSubmitting(false);
-
       if (responses && "errors" in responses && !!responses.errors) {
         setSubmitErrors(responses.errors);
       } else {
+        await refreshMembers();
         reset();
-        router.refresh();
       }
+
+      setIsSubmitting(false);
     },
-    [reset, router, projectId]
+    [refreshMembers, reset, projectId]
   );
 
   return (
@@ -82,4 +81,4 @@ const InviteUsers: FC<Props> = ({ projectId }) => {
   );
 };
 
-export default InviteUsers;
+export default MembersInvite;

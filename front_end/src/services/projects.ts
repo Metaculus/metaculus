@@ -1,5 +1,11 @@
 import { ProjectPermissions } from "@/types/post";
-import { Category, Tag, Topic, Tournament } from "@/types/projects";
+import {
+  Category,
+  Tag,
+  Topic,
+  Tournament,
+  TournamentMember,
+} from "@/types/projects";
 import { del, get, patch, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/query_params";
 
@@ -65,6 +71,10 @@ class ProjectsApi {
         usernames,
       }
     );
+  }
+
+  static async getMembers(projectId: number): Promise<TournamentMember[]> {
+    return get(`/projects/${projectId}/members`);
   }
 
   static async deleteMember(

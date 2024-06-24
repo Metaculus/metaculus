@@ -14,11 +14,18 @@ import { ProjectPermissions } from "@/types/post";
 import { TournamentMember } from "@/types/projects";
 
 type Props = {
+  user_permission: ProjectPermissions;
   projectId: number;
   members: TournamentMember[];
+  refreshMembers: () => Promise<void>;
 };
 
-const UsersManage: FC<Props> = ({ members, projectId }) => {
+const UsersManage: FC<Props> = ({
+  members,
+  projectId,
+  refreshMembers,
+  user_permission,
+}) => {
   const memberEditRef = useRef<null | HTMLDivElement>(null);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,15 +46,15 @@ const UsersManage: FC<Props> = ({ members, projectId }) => {
       setIsSubmitting(true);
       const responses = await deleteProjectMember(projectId, userId);
 
-      setIsSubmitting(false);
-
       if (responses && "errors" in responses && !!responses.errors) {
         setSubmitErrors(responses.errors);
       } else {
-        router.refresh();
+        await refreshMembers();
       }
+
+      setIsSubmitting(false);
     },
-    [router, projectId]
+    [refreshMembers, projectId]
   );
 
   const onUpdate = useCallback(
@@ -57,16 +64,16 @@ const UsersManage: FC<Props> = ({ members, projectId }) => {
       setIsSubmitting(true);
       const responses = await updateMember(projectId, userId, permission);
 
-      setIsSubmitting(false);
-
       if (responses && "errors" in responses && !!responses.errors) {
         setSubmitErrors(responses.errors);
       } else {
         setEditingMember(undefined);
-        router.refresh();
+        await refreshMembers();
       }
+
+      setIsSubmitting(false);
     },
-    [router, projectId]
+    [refreshMembers, projectId]
   );
 
   return (
@@ -79,7 +86,7 @@ const UsersManage: FC<Props> = ({ members, projectId }) => {
             <th>Username</th>
             <th>Role</th>
             <th>Remove</th>
-            <th>Edit</th>
+            {user_permission === ProjectPermissions.ADMIN && <th>Edit</th>}
           </tr>
         </thead>
         <tbody>
@@ -96,18 +103,20 @@ const UsersManage: FC<Props> = ({ members, projectId }) => {
                   Remove
                 </Button>
               </td>
-              <td className="py-2">
-                <Button
-                  variant="secondary"
-                  disabled={isSubmitting}
-                  onClick={() => {
-                    setEditingMember(member);
-                    memberEditRef.current?.scrollIntoView();
-                  }}
-                >
-                  Edit Permissions
-                </Button>
-              </td>
+              {user_permission === ProjectPermissions.ADMIN && (
+                <td className="py-2">
+                  <Button
+                    variant="secondary"
+                    disabled={isSubmitting}
+                    onClick={() => {
+                      setEditingMember(member);
+                      memberEditRef.current?.scrollIntoView();
+                    }}
+                  >
+                    Edit Permissions
+                  </Button>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
