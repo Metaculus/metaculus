@@ -54,7 +54,7 @@ export default async function TournamentSlug({
 
   return (
     <main className="mx-auto mb-16 mt-4 min-h-min w-full max-w-[780px] flex-auto px-0">
-      <div className="hidden bg-gray-0 dark:bg-gray-0-dark">
+      <div className="bg-gray-0 dark:bg-gray-0-dark">
         <div
           className={classNames(
             " flex flex-wrap items-center gap-2.5 rounded-t px-3 py-1.5 text-[20px] uppercase text-gray-100 dark:text-gray-100-dark",
@@ -121,9 +121,9 @@ export default async function TournamentSlug({
           </Suspense>
         </section>
       </div>
-      {tournament.user_permission === ProjectPermissions.ADMIN && (
-        <ProjectMembers project={tournament} />
-      )}
+      {[ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
+        tournament.user_permission
+      ) && <ProjectMembers project={tournament} />}
     </main>
   );
 }
