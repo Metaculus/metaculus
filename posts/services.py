@@ -5,7 +5,7 @@ from posts.models import Post
 from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services import get_global_public_project
+from projects.services import get_site_main_project
 from questions.services import (
     create_question,
     create_conditional,
@@ -27,11 +27,17 @@ def get_posts_feed(
     status: str = None,
     answered_by_me: bool = None,
     order: str = None,
+    access: PostFilterSerializer.Access = None,
     permission: str = ObjectPermission.VIEWER,
+    ids: list[int] = None,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
     """
+
+    # If ids provided
+    if ids:
+        qs = qs.filter(id__in=ids)
 
     # Search
     if search:
@@ -52,10 +58,14 @@ def get_posts_feed(
     # TODO: ensure projects filtering logic is correct
     #   I assume it might not work exactly as before
     if tournaments:
-        qs = qs.filter(projects__in=tournaments)
+        qs = qs.filter(Q(projects__in=tournaments) | Q(default_project__in=tournaments))
 
     if forecast_type:
         forecast_type_q = Q()
+
+        if "notebook" in forecast_type:
+            forecast_type.pop(forecast_type.index("notebook"))
+            forecast_type_q |= Q(notebook__isnull=False)
 
         if "conditional" in forecast_type:
             forecast_type.pop(forecast_type.index("conditional"))
@@ -68,7 +78,9 @@ def get_posts_feed(
         if forecast_type:
             forecast_type_q |= Q(question__type__in=forecast_type)
 
+        print(len(qs))
         qs = qs.filter(forecast_type_q)
+        print(len(qs))
 
     if status:
         if "resolved" in status:
@@ -94,6 +106,12 @@ def get_posts_feed(
         condition = {"question__forecast__author": user}
         qs = qs.filter(**condition) if answered_by_me else qs.exclude(**condition)
 
+    # Filter by access
+    if access == PostFilterSerializer.Access.PRIVATE:
+        qs = qs.filter_private()
+    if access == PostFilterSerializer.Access.PUBLIC:
+        qs = qs.filter_public()
+
     # Filter by permission level
     qs = qs.filter_permission(user=user, permission=permission)
 
@@ -109,7 +127,7 @@ def get_posts_feed(
             case PostFilterSerializer.Order.CREATED_AT:
                 qs = qs.order_by("-created_at")
 
-    return qs
+    return qs.distinct("id")
 
 
 def create_post(
@@ -131,18 +149,31 @@ def create_post(
     elif group_of_questions:
         obj.group_of_questions = create_group_of_questions(**group_of_questions)
 
-    obj.full_clean()
-    obj.save()
     # Projects appending
-    projects = flatten(projects.values()) if projects else []
+    # Tags, categories and topics
+    meta_projects = []
+    # Tournaments, Question Series etc.
+    main_projects = []
+
+    for project in flatten(projects.values()) if projects else []:
+        if Project.ProjectTypes.can_have_permissions(project.type):
+            main_projects.append(project)
+        else:
+            meta_projects.append(project)
 
     # If no projects were provided,
     # We need to append default ones
-    if not projects:
-        projects = [get_global_public_project()]
+    if not main_projects:
+        main_projects = [get_site_main_project()]
+
+    obj.default_project = main_projects[0]
+
+    # Save project and validate
+    obj.full_clean()
+    obj.save()
 
     # Adding projects
-    obj.projects.add(*projects)
+    obj.projects.add(*(meta_projects + main_projects))
 
     return obj
 

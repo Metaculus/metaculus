@@ -1,0 +1,27 @@
+.markdown-editor {
+  @apply font-sans;
+  --baseBg: theme("colors.gray.100.DEFAULT");
+  --basePageBg: theme("colors.gray.0.DEFAULT");
+  --baseBgHover: theme("colors.gray.0.DEFAULT");
+  --baseBgActive: theme("colors.gray.0.DEFAULT");
+  --baseBorder: theme("colors.gray.500.DEFAULT");
+}
+
+.markdown-editor.dark-theme {
+  --baseBg: theme("colors.blue.100.dark");
+  --basePageBg: theme("colors.gray.0.dark");
+  --baseBgHover: theme("colors.gray.0.dark");
+  --baseBgActive: theme("colors.gray.0.dark");
+}
+
+[data-editor-block-type="image"] {
+  @apply w-full;
+}
+
+[data-editor-block-type="image"] img {
+  @apply max-h-[300px];
+}
+
+[data-editor-block-type="image"] > :last-child {
+  @apply hidden;
+}

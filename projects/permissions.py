@@ -24,12 +24,27 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
     CREATOR = "creator"
 
     @classmethod
-    def get_numeric_representation(cls):
+    def get_permissions_rank(cls):
         """
-        Used in the db to detect the priority of the given char permission
+        Rank permissions by the numeric scale of permissiveness
         """
 
         return {cls.VIEWER: 1, cls.FORECASTER: 2, cls.CURATOR: 3, cls.ADMIN: 4}
+
+    @classmethod
+    def get_included_permissions(cls, permission: Self) -> list[Self]:
+        """
+        Permissions of the highest order automatically includes all previous permissions.
+        E.g. CURATOR already includes permissions of VIEWER and FORECASTER
+
+        This method generates list of included permissions for the given permission role
+        """
+
+        return [
+            name
+            for name, value in cls.get_permissions_rank().items()
+            if value >= cls.get_permissions_rank()[permission]
+        ]
 
     @classmethod
     def can_view(cls, permission: Self, raise_exception=False):
@@ -73,5 +88,32 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
 
         if raise_exception and not can:
             raise PermissionDenied("You do not have permission to delete this project")
+
+        return can
+
+    @classmethod
+    def can_manage_project_members(cls, permission: Self, raise_exception=False):
+        can = permission in (
+            cls.CURATOR,
+            cls.ADMIN,
+        )
+
+        if raise_exception and not can:
+            raise PermissionDenied(
+                "You do not have permission to manage members of this project"
+            )
+
+        return can
+
+    @classmethod
+    def can_edit_project_member_permission(
+        cls, permission: Self, raise_exception=False
+    ):
+        can = permission in (cls.ADMIN,)
+
+        if raise_exception and not can:
+            raise PermissionDenied(
+                "You do not have permission to edit member permissions of this project"
+            )
 
         return can

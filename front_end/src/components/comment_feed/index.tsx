@@ -29,7 +29,7 @@ const CommentFeed: FC<Props> = ({ initialComments, postId, profileId }) => {
 
   if (comments.length == 0) return null;
   return (
-    <section>
+    <section className="max-w-[580px] p-6">
       {comments.map((comment: CommentType) => (
         <div key={comment.id}>
           <Hr className="my-4" />
