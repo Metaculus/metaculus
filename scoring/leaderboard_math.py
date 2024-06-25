@@ -42,17 +42,22 @@ def evaluate_score_based_leaderboard(
     return sorted(user_entries.values(), key=lambda entry: entry.score, reverse=True)
 
 
-def get_gobal_leaderboard_entries(project: Project) -> list[LeaderboardEntry]:
-    if project.leaderboard_type == Project.LeaderboardTypes.QUESTION_WRITING:
+def get_gobal_leaderboard_entries(
+    project: Project, leaderboard_type: str
+) -> list[LeaderboardEntry]:
+    leaderboard_type = leaderboard_type or project.leaderboard_type
+    if leaderboard_type == Project.LeaderboardTypes.QUESTION_WRITING:
         return []
-    if project.leaderboard_type == Project.LeaderboardTypes.COMMENT_INSIGHT:
+    if leaderboard_type == Project.LeaderboardTypes.COMMENT_INSIGHT:
         return []
-    return evaluate_score_based_leaderboard(project)
+    return evaluate_score_based_leaderboard(project, leaderboard_type)
 
 
-def evaluate_project_leaderboard(project: Project) -> list[LeaderboardEntry]:
+def evaluate_project_leaderboard(
+    project: Project, leaderboard_type: str
+) -> list[LeaderboardEntry]:
     if project.type == Project.ProjectTypes.GLOBAL_LEADERBOARD:
-        return get_gobal_leaderboard_entries(project)
+        return get_gobal_leaderboard_entries(project, leaderboard_type)
     elif project.type == Project.ProjectTypes.TOURNAMENT:
         return []
     elif project.type == Project.ProjectTypes.QUESTION_SERIES:

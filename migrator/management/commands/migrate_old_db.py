@@ -25,38 +25,38 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
-        with connection.cursor() as cursor:
-            cursor.execute("DROP SCHEMA public CASCADE;")
-            cursor.execute("CREATE SCHEMA public;")
-        call_command("makemigrations")
-        call_command("migrate")
+        # with connection.cursor() as cursor:
+        #     cursor.execute("DROP SCHEMA public CASCADE;")
+        #     cursor.execute("CREATE SCHEMA public;")
+        # call_command("makemigrations")
+        # call_command("migrate")
 
-        migrate_users()
-        print("Migrated users")
-        migrate_questions()
-        print("Migrated questions")
-        # migrate_forecasts(3e5) # only migrate 300k forecasts
-        migrate_forecasts()
-        print("Migrated forecasts")
-        migrate_projects()
-        print("Migrated projects")
-        migrate_votes()
-        print("Migrated votes")
-        migrate_comments()
-        print("Migrated comments")
-        migrate_permissions()
-        print("Migrated permissions")
+        # migrate_users()
+        # print("Migrated users")
+        # migrate_questions()
+        # print("Migrated questions")
+        # # migrate_forecasts(3e5) # only migrate 300k forecasts
+        # migrate_forecasts()
+        # print("Migrated forecasts")
+        # migrate_projects()
+        # print("Migrated projects")
+        # migrate_votes()
+        # print("Migrated votes")
+        # migrate_comments()
+        # print("Migrated comments")
+        # migrate_permissions()
+        # print("Migrated permissions")
 
         # scoring
         # score_questions(qty=1000)  # only evaluate 1000 questions
-        score_questions()
-        print("Scored questions")
-        create_global_leaderboards()
-        print("Created global leaderboards")
+        # score_questions()
+        # print("Scored questions")
+        # create_global_leaderboards()
+        # print("Created global leaderboards")
         populate_global_leaderboards()
         print("Populated global leaderboards")
-        populate_project_leaderboards()
-        print("Populated project leaderboards")
+        # populate_project_leaderboards()
+        # print("Populated project leaderboards")
 
         # Reset sql sequences
         reset_sequence()

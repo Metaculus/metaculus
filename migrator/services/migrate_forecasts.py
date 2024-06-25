@@ -69,10 +69,9 @@ def migrate_forecasts(qty: int | None = None):
         if forecast is not None:
             print("Migrating forecast", i + 1, end="                           \r")
             forecasts.append(forecast)
-        if len(forecasts) >= 50_000:
+        if len(forecasts) >= 10_000:
             print("Migrating forecast", i + 1, "Bulk inserting forecasts...", end="\r")
             Forecast.objects.bulk_create(forecasts)
             forecasts = []
-    print("Migrating forecast", i + 1, "Bulk inserting forecasts...", end="\r")
+    print("Migrating forecast", i + 1, "Bulk inserting forecasts...")
     Forecast.objects.bulk_create(forecasts)
-    print()

@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Callable
 
 from django.db.models import QuerySet
@@ -11,11 +12,12 @@ from rest_framework.response import Response
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers import (
-    TopicSerializer,
     CategorySerializer,
-    TournamentSerializer,
-    TagSerializer,
+    GlobalLeaderboardSerializer,
     ProjectUserSerializer,
+    TagSerializer,
+    TopicSerializer,
+    TournamentSerializer,
 )
 from projects.services import (
     get_projects_qs,
@@ -132,6 +134,19 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     data = enrich_posts_count(obj, data)
 
     return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def global_leaderboard_api_view(request: Request):
+    print("WE ARE HERE")
+    leaderboard_window = request.data.get("leaderboard_window", (2016, 2017))
+    leaderboards = Project.objects.filter(
+        start_date=datetime(leaderboard_window[0], 1, 1, tzinfo=timezone.utc),
+        end_date=datetime(leaderboard_window[1], 1, 1, tzinfo=timezone.utc),
+        type=Project.ProjectTypes.GLOBAL_LEADERBOARD,
+    )
+    return Response(GlobalLeaderboardSerializer(leaderboards, many=True).data)
 
 
 @api_view(["GET"])

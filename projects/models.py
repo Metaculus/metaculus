@@ -1,9 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from django.db import models
 from django.db.models import Count
 from django.db.models.functions import Coalesce
-from django.utils import timezone
 
 from projects.permissions import ObjectPermission
 from users.models import User
@@ -223,29 +222,30 @@ class ProjectUserPermission(TimeStampedModel):
 
 
 def get_global_leaderboard_dates() -> list[tuple[datetime, datetime]]:
+    utc = timezone.utc
     return [
         # one year intervals
-        (datetime(2016, 1, 1), datetime(2017, 1, 1)),
-        (datetime(2017, 1, 1), datetime(2018, 1, 1)),
-        (datetime(2018, 1, 1), datetime(2019, 1, 1)),
-        (datetime(2019, 1, 1), datetime(2020, 1, 1)),
-        (datetime(2020, 1, 1), datetime(2021, 1, 1)),
-        (datetime(2021, 1, 1), datetime(2022, 1, 1)),
-        (datetime(2022, 1, 1), datetime(2023, 1, 1)),
-        (datetime(2023, 1, 1), datetime(2024, 1, 1)),
-        (datetime(2024, 1, 1), datetime(2025, 1, 1)),
-        (datetime(2025, 1, 1), datetime(2026, 1, 1)),
+        (datetime(2016, 1, 1, tzinfo=utc), datetime(2017, 1, 1, tzinfo=utc)),
+        (datetime(2017, 1, 1, tzinfo=utc), datetime(2018, 1, 1, tzinfo=utc)),
+        (datetime(2018, 1, 1, tzinfo=utc), datetime(2019, 1, 1, tzinfo=utc)),
+        (datetime(2019, 1, 1, tzinfo=utc), datetime(2020, 1, 1, tzinfo=utc)),
+        (datetime(2020, 1, 1, tzinfo=utc), datetime(2021, 1, 1, tzinfo=utc)),
+        (datetime(2021, 1, 1, tzinfo=utc), datetime(2022, 1, 1, tzinfo=utc)),
+        (datetime(2022, 1, 1, tzinfo=utc), datetime(2023, 1, 1, tzinfo=utc)),
+        (datetime(2023, 1, 1, tzinfo=utc), datetime(2024, 1, 1, tzinfo=utc)),
+        (datetime(2024, 1, 1, tzinfo=utc), datetime(2025, 1, 1, tzinfo=utc)),
+        (datetime(2025, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
         # two year intervals
-        (datetime(2016, 1, 1), datetime(2018, 1, 1)),
-        (datetime(2018, 1, 1), datetime(2020, 1, 1)),
-        (datetime(2020, 1, 1), datetime(2022, 1, 1)),
-        (datetime(2022, 1, 1), datetime(2024, 1, 1)),
-        (datetime(2024, 1, 1), datetime(2026, 1, 1)),
+        (datetime(2016, 1, 1, tzinfo=utc), datetime(2018, 1, 1, tzinfo=utc)),
+        (datetime(2018, 1, 1, tzinfo=utc), datetime(2020, 1, 1, tzinfo=utc)),
+        (datetime(2020, 1, 1, tzinfo=utc), datetime(2022, 1, 1, tzinfo=utc)),
+        (datetime(2022, 1, 1, tzinfo=utc), datetime(2024, 1, 1, tzinfo=utc)),
+        (datetime(2024, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
         # five year intervals
-        (datetime(2016, 1, 1), datetime(2021, 1, 1)),
-        (datetime(2021, 1, 1), datetime(2026, 1, 1)),
+        (datetime(2016, 1, 1, tzinfo=utc), datetime(2021, 1, 1, tzinfo=utc)),
+        (datetime(2021, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
         # ten year intervals
-        (datetime(2016, 1, 1), datetime(2026, 1, 1)),
+        (datetime(2016, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
     ]
 
 

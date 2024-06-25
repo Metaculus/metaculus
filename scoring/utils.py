@@ -38,9 +38,10 @@ def score_question(
                 new_score.save()
 
 
-def create_leaderboard_entries(project: Project):
+def create_leaderboard_entries(project: Project, leaderboard_type: str | None = None):
     previous_entries = list(project.leaderboard_entries.all())
-    new_entries = evaluate_project_leaderboard(project)
+    leaderboard_type = leaderboard_type or project.leaderboard_type
+    new_entries = evaluate_project_leaderboard(project, leaderboard_type)
     for new_entry in new_entries:
         is_new = True
         for previous_entry in previous_entries:
