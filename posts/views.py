@@ -1,8 +1,10 @@
+from django.core.files.storage import default_storage
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.exceptions import NotFound
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -24,6 +26,7 @@ from questions.serializers import (
     GroupOfQuestionsSerializer,
     QuestionSerializer,
 )
+from utils.files import UserUploadedImage, generate_filename
 
 
 @api_view(["GET"])
@@ -158,3 +161,20 @@ def post_vote_api_view(request: Request, pk: int):
     return Response(
         {"score": Post.objects.annotate_vote_score().get(pk=post.pk).vote_score}
     )
+
+
+@api_view(["POST"])
+@parser_classes([MultiPartParser])
+def upload_image_api_view(request):
+    image = request.data["image"]
+
+    image_generator = UserUploadedImage(source=image)
+    result = image_generator.generate()
+
+    filename = generate_filename(default_storage, image.name, upload_to="user_uploaded")
+
+    # Save the processed image using the default storage system
+    filename = default_storage.save(filename, result, max_length=100)
+    file_url = default_storage.url(filename)
+
+    return Response({"url": file_url})
