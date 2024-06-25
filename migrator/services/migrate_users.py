@@ -4,11 +4,9 @@ from migrator.utils import paginated_query, one2one_query
 from users.models import User
 
 
-def create_user(user_obj: dict, profile_obj: dict | None) -> User:
+def create_user(user_obj: dict) -> User:
     # TODO: ensure password hash is the same!
     # TODO: social auth data should be in a separate tables as is, not in the one columns as proposed
-    profile_obj = profile_obj or {}
-
     user = User(
         # Let's keep same user id for convenience
         id=user_obj["id"],
@@ -19,8 +17,8 @@ def create_user(user_obj: dict, profile_obj: dict | None) -> User:
         first_name=user_obj["first_name"],
         last_name=user_obj["last_name"],
         # Profile Data
-        bio=profile_obj.get("bio_text", ""),
-        website=profile_obj.get("website", ""),
+        bio=user_obj.get("bio_text", ""),
+        website=user_obj.get("website", ""),
         # Meta info
         last_login=user_obj["last_login"],
         date_joined=user_obj["date_joined"],
@@ -51,16 +49,14 @@ def migrate_social_auth():
 
 def migrate_users():
     users = []
-    for user_obj in paginated_query("SELECT * FROM metac_account_user"):
-        user_id = user_obj["id"]
+    for user_obj in paginated_query(
+        "SELECT u.*, p.bio_text, p.website "
+        "FROM metac_account_user u "
+        "LEFT JOIN metac_account_userprofile p ON p.user_id = u.id"
+    ):
+        users.append(create_user(user_obj))
 
-        profile_obj = one2one_query(
-            "SELECT * FROM metac_account_userprofile WHERE user_id = %s", [user_id]
-        )
-
-        users.append(create_user(user_obj, profile_obj))
-        # TODO: bulk? Probably not suitable since users will produce a lot of nested migrations
-    User.objects.bulk_create(users)
+    User.objects.bulk_create(users, batch_size=10_000)
 
     # Social migrations
     migrate_social_auth()

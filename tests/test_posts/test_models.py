@@ -17,9 +17,9 @@ class TestPostQuerySetAnnotatePredictionsCount:
 
         assert (
             Post.objects.filter(pk=post.id)
-            .annotate_predictions_count()
+            .annotate_forecasts_count()
             .first()
-            .predictions_count
+            .forecasts_count
             == 2
         )
 
@@ -32,9 +32,9 @@ class TestPostQuerySetAnnotatePredictionsCount:
 
         assert (
             Post.objects.filter(pk=post.id)
-            .annotate_predictions_count()
+            .annotate_forecasts_count()
             .first()
-            .predictions_count
+            .forecasts_count
             == 3
         )
 
@@ -54,10 +54,10 @@ class TestPostQuerySetAnnotatePredictionsCount:
         create_forecast(question=question_binary, author=user1)
         create_forecast(question=question_binary, author=user1)
 
-        qs = Post.objects.annotate_predictions_count().annotate_nr_forecasters().all()
+        qs = Post.objects.annotate_forecasts_count().annotate_nr_forecasters().all()
 
-        assert next(x for x in qs if x.id == post1.id).predictions_count == 3
-        assert next(x for x in qs if x.id == post2.id).predictions_count == 2
+        assert next(x for x in qs if x.id == post1.id).forecasts_count == 3
+        assert next(x for x in qs if x.id == post2.id).forecasts_count == 2
 
 
 class TestPostPermissions:
@@ -65,9 +65,12 @@ class TestPostPermissions:
         factory_post(
             author=user2,
             question=question_binary,
+            default_project=factory_project(
+                default_permission=ObjectPermission.VIEWER,
+                override_permissions={user1.id: ObjectPermission.CURATOR},
+            ),
             projects=[
                 factory_project(default_permission=ObjectPermission.VIEWER),
-                factory_project(default_permission=ObjectPermission.CURATOR),
             ],
         )
 
@@ -91,20 +94,24 @@ class TestPostPermissions:
         user3 = factory_user()
 
         # Invisible project
-        factory_post(author=factory_user())
+        factory_post(
+            author=factory_user(),
+            default_project=factory_project(default_permission=None),
+        )
 
         # User2 & User3
         p1 = factory_post(
             author=factory_user(),
+            default_project=factory_project(
+                # Private Projects
+                default_permission=None,
+                override_permissions={
+                    user2.id: ObjectPermission.FORECASTER,
+                    user3.id: ObjectPermission.ADMIN,
+                },
+            ),
             projects=[
                 # Private Projects
-                factory_project(
-                    default_permission=None,
-                    override_permissions={
-                        user2.id: ObjectPermission.FORECASTER,
-                        user3.id: ObjectPermission.ADMIN,
-                    },
-                ),
                 factory_project(
                     default_permission=None,
                 ),
@@ -114,24 +121,19 @@ class TestPostPermissions:
         # User1 & User3
         p2 = factory_post(
             author=user3,
-            projects=[
-                # Private Project
-                factory_project(
-                    default_permission=None,
-                    override_permissions={
-                        user1.id: ObjectPermission.FORECASTER,
-                    },
-                ),
-            ],
+            # Private Project
+            default_project=factory_project(
+                default_permission=None,
+                override_permissions={
+                    user1.id: ObjectPermission.FORECASTER,
+                },
+            ),
         )
 
         # Public
         p3 = factory_post(
             author=factory_user(),
-            projects=[
-                # Private Project
-                factory_project(default_permission=ObjectPermission.VIEWER),
-            ],
+            default_project=factory_project(default_permission=ObjectPermission.VIEWER),
         )
 
         # Anon user

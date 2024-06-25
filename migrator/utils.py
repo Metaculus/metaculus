@@ -1,6 +1,9 @@
 import contextlib
+from io import StringIO
 
-from django.db import connections
+from django.apps import apps
+from django.core.management import call_command
+from django.db import connections, connection
 
 
 @contextlib.contextmanager
@@ -28,7 +31,7 @@ def paginated_query(
     itersize: int = 2000,
     only_columns: list = None,
     flat: bool = False,
-    **kwargs
+    **kwargs,
 ):
     """
     Performs chunked SELECT query against the old database
@@ -73,3 +76,19 @@ def one2one_query(query, *args, **kwargs):
             raise ValueError("More than one record found")
 
         return data[0]
+
+
+def reset_sequence():
+    # Resetting DB auto-incremented sequences of Primary keys
+    # Very important since migrate objects keeping their ids
+    cursor = connection.cursor()
+
+    for app in apps.get_app_configs():
+        label = app.label
+        commands = StringIO()
+        call_command(
+            "sqlsequencereset", label, stdout=commands, no_color=True, verbosity=0
+        )
+
+        if sql_query := commands.getvalue():
+            cursor.execute(sql_query)

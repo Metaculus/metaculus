@@ -53,7 +53,9 @@ def migrate_forecasts():
     for i, old_prediction in enumerate(
         # flake
         paginated_query(
-            "SELECT p.*, ps.user_id, ps.question_id, ps.aggregation_method FROM metac_question_prediction p JOIN metac_question_predictionsequence ps ON p.prediction_sequence_id = ps.id AND aggregation_method = 'none' "
+            "SELECT p.*, ps.user_id, ps.question_id, ps.aggregation_method FROM metac_question_prediction p "
+            "JOIN metac_question_predictionsequence ps "
+            "ON p.prediction_sequence_id = ps.id AND aggregation_method = 'none'"
         )
     ):  # limit 300000
         if (i + 1) % 150000 == 0:
@@ -64,6 +66,4 @@ def migrate_forecasts():
         if forecast is not None:
             forecasts.append(forecast)
     print("Bulk inserting forecasts")
-    batches = [forecasts[i : i + 50000] for i in range(0, len(forecasts), 50000)]
-    for batch in batches:
-        Forecast.objects.bulk_create(batch)
+    Forecast.objects.bulk_create(forecasts, batch_size=50_000)

@@ -1,13 +1,18 @@
-"use client";
+"user client";
+
 import { faReply } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocale } from "next-intl";
-import { FC } from "react";
+import { FC, useState } from "react";
 
 import Button from "@/components/ui/button";
 import DropdownMenu from "@/components/ui/dropdown_menu";
+import { useAuth } from "@/contexts/auth_context";
+import ProfileApi from "@/services/profile";
 import { CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
+
+import MarkdownEditor from "../markdown_editor";
 
 type Props = {
   comment: CommentType;
@@ -24,13 +29,21 @@ const copyToClipboard = async (text: string) => {
 
 const Comment: FC<Props> = ({ comment, url }) => {
   const locale = useLocale();
+  const [commentMode, setCommentMode] = useState<"readOnly" | "default">(
+    "readOnly"
+  );
+  const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
+
+  const { user } = useAuth();
 
   const menuItems = [
     {
       //show: canEdit && !(isEditing || isReplying),
       id: "edit",
-      name: "Edit [TODO]",
-      onClick: () => {}, //openEditing,
+      name: "Edit",
+      onClick: () => {
+        setCommentMode("default");
+      },
     },
     {
       //show: true,
@@ -66,17 +79,7 @@ const Comment: FC<Props> = ({ comment, url }) => {
             className="no-underline"
             href={`/accounts/profile/${comment.author.id}/`}
           >
-            <h4 className="my-0">
-              {/*comment.is_deactivated
-                ? "[DEACTIVATED USER]"
-                : .author_name*/}
-              {comment.author.username}
-              {/*
-              {comment.author_forecaster_type === "BOT" && (
-                <span className="ml-1">🤖</span>
-              )}
-              */}
-            </h4>
+            <h4 className="my-0">{comment.author.username}</h4>
           </a>
           {/*
           {comment.is_moderator && !comment.is_admin && (
@@ -102,7 +105,26 @@ const Comment: FC<Props> = ({ comment, url }) => {
           <a href={`#comment-${comment.parent}`}>➞ in reply to: USERNAME</a>
         </div>
       )}
-      <div className="break-anywhere">{comment.text}</div>
+      <div className="break-anywhere">
+        <MarkdownEditor
+          markdown={commentMarkdown}
+          mode={commentMode}
+          onChange={(text) => {
+            setCommentMarkdown(commentMarkdown);
+          }}
+        />
+      </div>
+      {commentMode == "default" && (
+        <Button
+          onClick={() => {
+            setCommentMode("readOnly");
+            // Upload new `commentMarkdown` here
+            // updateComment(comment.id, {text: commentMarkdown})
+          }}
+        >
+          Save
+        </Button>
+      )}
       {/*
       {isEditing && (
         <div className="mx-auto my-3" ref={editRef}>

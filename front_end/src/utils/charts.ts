@@ -203,28 +203,45 @@ export function generatePercentageYScale(containerHeight: number): Scale {
 }
 
 export function generateChoiceItemsFromMultipleChoiceForecast(
-  dataset: MultipleChoiceForecast
+  dataset: MultipleChoiceForecast,
+  config?: {
+    activeCount?: number;
+  }
 ): ChoiceItem[] {
+  const { activeCount } = config ?? {};
+
   const { timestamps, nr_forecasters, my_forecasts, ...choices } = dataset;
   return Object.entries(choices).map(([choice, values], index) => ({
     choice,
     values: values.map((x: { value_mean: number }) => x.value_mean),
     color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-    active: true,
+    active: !!activeCount ? index <= activeCount - 1 : true,
     highlighted: false,
   }));
 }
 
 export function generateChoiceItemsFromBinaryGroup(
-  questions: QuestionWithNumericForecasts[]
+  questions: QuestionWithNumericForecasts[],
+  config?: {
+    withMinMax?: boolean;
+    activeCount?: number;
+  }
 ): ChoiceItem[] {
+  const { withMinMax, activeCount } = config ?? {};
+
   return questions.map((q, index) => {
     return {
       choice: extractQuestionGroupName(q.title),
       values: q.forecasts.values_mean,
+      ...(withMinMax
+        ? {
+            minValues: q.forecasts.values_min,
+            maxValues: q.forecasts.values_max,
+          }
+        : {}),
       timestamps: q.forecasts.timestamps,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      active: true,
+      active: !!activeCount ? index <= activeCount - 1 : true,
       highlighted: false,
     };
   });
