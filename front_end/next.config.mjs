@@ -18,6 +18,12 @@ const nextConfig = {
         hostname: "metaculus-media.s3.amazonaws.com",
         pathname: "/**",
       },
+      // TODO: move this to ENV
+      {
+        protocol: "https",
+        hostname: "dev-rewrite-metaculus-media.s3.amazonaws.com",
+        pathname: "/**",
+      },
       {
         protocol: "https",
         hostname: "d3s0w6fek99l5b.cloudfront.net",

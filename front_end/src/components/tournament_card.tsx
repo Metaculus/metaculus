@@ -45,7 +45,7 @@ const TournamentCard: FC<Props> = ({
         />
         {!!headerImageSrc && (
           <Image
-            src={`https://metaculus-media.s3.amazonaws.com/${headerImageSrc}`}
+            src={headerImageSrc}
             alt=""
             fill
             className="size-full object-cover object-center"
