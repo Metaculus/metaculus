@@ -73,7 +73,7 @@ export default async function TournamentSlug({
         {!!tournament.header_image && (
           <div className="relative h-[130px] w-full">
             <Image
-              src={`https://metaculus-media.s3.amazonaws.com/${tournament.header_image}`}
+              src={tournament.header_image}
               alt=""
               fill
               priority
