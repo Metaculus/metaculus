@@ -107,10 +107,9 @@ class Project(TimeStampedModel):
 
     subtitle = models.CharField(max_length=255, blank=True, default="")
     description = models.TextField(blank=True, default="")
-    # TODO: migrate to S3/ImageField in the future
-    header_image = models.CharField(null=True, blank=True)
-    header_logo = models.CharField(null=True, blank=True)
-    emoji = models.CharField(max_length=10, default="")
+    header_image = models.ImageField(null=True, blank=True)
+    header_logo = models.ImageField(null=True, blank=True)
+    emoji = models.CharField(max_length=10, default="", blank=True)
 
     order = models.IntegerField(
         help_text="Will be displayed ordered by this field inside each section",
@@ -125,7 +124,7 @@ class Project(TimeStampedModel):
 
     # Tournament-specific fields
     prize_pool = models.DecimalField(
-        default=None, decimal_places=2, max_digits=15, null=True
+        default=None, decimal_places=2, max_digits=15, null=True, blank=True
     )
     start_date = models.DateTimeField(null=True, blank=True)
     close_date = models.DateTimeField(null=True, blank=True)
