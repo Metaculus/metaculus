@@ -88,7 +88,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <>
         <input
           type={type}
-          className={`rounded-s border border-white p-1 ${className}`}
+          className={`rounded-s border p-1 ${className}`}
           ref={ref}
           name={name}
           {...props}
