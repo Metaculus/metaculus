@@ -6,10 +6,10 @@ import { useLocale } from "next-intl";
 import { FC, useState } from "react";
 
 import Button from "@/components/ui/button";
-import DropdownMenu from "@/components/ui/dropdown_menu";
+import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
 import ProfileApi from "@/services/profile";
-import { CommentType } from "@/types/comment";
+import { CommentPermissions, CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
 
 import MarkdownEditor from "../markdown_editor";
@@ -17,6 +17,7 @@ import MarkdownEditor from "../markdown_editor";
 type Props = {
   comment: CommentType;
   url: string;
+  permissions: CommentPermissions;
 };
 
 const copyToClipboard = async (text: string) => {
@@ -27,7 +28,7 @@ const copyToClipboard = async (text: string) => {
   }
 };
 
-const Comment: FC<Props> = ({ comment, url }) => {
+const Comment: FC<Props> = ({ comment, url, permissions }) => {
   const locale = useLocale();
   const [commentMode, setCommentMode] = useState<"readOnly" | "default">(
     "readOnly"
@@ -35,10 +36,15 @@ const Comment: FC<Props> = ({ comment, url }) => {
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
 
   const { user } = useAuth();
+  if (user?.id == comment.author.id) {
+    permissions = CommentPermissions.CREATOR;
+  }
 
-  const menuItems = [
+  const menuItems: MenuItemProps[] = [
     {
-      //show: canEdit && !(isEditing || isReplying),
+      show:
+        permissions == CommentPermissions.CREATOR ||
+        permissions == CommentPermissions.CURATOR,
       id: "edit",
       name: "Edit",
       onClick: () => {
@@ -46,7 +52,7 @@ const Comment: FC<Props> = ({ comment, url }) => {
       },
     },
     {
-      //show: true,
+      show: true,
       id: "copyLink",
       name: "Copy Link",
       onClick: () => {
@@ -54,17 +60,17 @@ const Comment: FC<Props> = ({ comment, url }) => {
       },
     },
     {
-      //show: user.isAuthenticated,
+      show: user?.id ? true : false,
       id: "report",
-      name: "Report [TODO]",
+      name: "Report",
       onClick: () => {
         return null; //setReportModalOpen(true)
       },
     },
     {
-      //show: canDelete,
+      show: permissions == CommentPermissions.CURATOR,
       id: "delete",
-      name: "Delete [TODO]",
+      name: "Delete",
       onClick: () => {
         return null; // setDeleteModalOpen(true),
       },

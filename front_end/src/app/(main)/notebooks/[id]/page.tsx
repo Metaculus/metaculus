@@ -27,7 +27,9 @@ export default async function IndividualNotebook({
         <NotebookEditor postData={postData} />
       </div>
       <div>
-        {commentsData && <CommentFeed initialComments={commentsData} />}
+        {commentsData && (
+          <CommentFeed initialComments={commentsData} post={postData} />
+        )}
       </div>
     </div>
   );
