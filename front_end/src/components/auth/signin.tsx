@@ -53,7 +53,7 @@ const SignInModal: FC<SignInModalType> = ({
           {t("signInButton")}
         </h2>
         <p className="mb-6 mt-3 text-base leading-tight">
-          {t("loginSignUpHeading")}
+          {t("loginSignUpHeading")}&nbsp;
           <Button
             variant="link"
             size="md"
