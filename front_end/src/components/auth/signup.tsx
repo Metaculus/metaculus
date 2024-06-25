@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useEffect } from "react";
+import { FC, useEffect, useTransition } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
@@ -27,6 +27,7 @@ const SignUpModal: FC<SignInModalType> = ({
   onClose,
 }: SignInModalType) => {
   const t = useTranslations();
+  const [isPending, startTransition] = useTransition();
   const { setCurrentModal } = useModal();
   const { register, watch } = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
@@ -62,7 +63,11 @@ const SignUpModal: FC<SignInModalType> = ({
         </p>
         <div className="flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">
           <form
-            action={formAction}
+            action={(data) => {
+              startTransition(() => {
+                formAction(data);
+              });
+            }}
             className="flex flex-col gap-4 border-gray-300 dark:border-gray-700-dark sm:w-80 sm:border-r sm:pr-4"
           >
             <Input
@@ -99,7 +104,12 @@ const SignUpModal: FC<SignInModalType> = ({
               {...register("email")}
             />
             <div className="text-xs text-red-500 dark:text-red-500-dark"></div>
-            <Button variant="primary" className="w-full" type="submit">
+            <Button
+              variant="primary"
+              className="w-full"
+              type="submit"
+              disabled={isPending}
+            >
               {t("createAnAccount")}
             </Button>
           </form>
