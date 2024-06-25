@@ -60,48 +60,58 @@ const MarkdownEditor: FC<Props> = ({
 
   const editorRef = useRef<MDXEditorMethods>(null);
 
-  const editorDiffSourcePlugin = useMemo(() => {
-    if (mode === "extended") {
-      return diffSourcePlugin({
-        viewMode: "source",
-      });
-    }
+  const baseFormattingPlugins = [
+    headingsPlugin(),
+    listsPlugin(),
+    linkPlugin(),
+    quotePlugin(),
+    markdownShortcutPlugin(),
+    thematicBreakPlugin(),
+  ];
+  const extendedFormattingPlugins = [
+    linkDialogPlugin(),
+    imagePlugin({
+      disableImageSettingsButton: true,
+      disableImageResize: true,
+      imageUploadHandler,
+    }),
+  ];
 
-    return null;
+  const editorDiffSourcePlugin = useMemo(() => {
+    if (mode === "readOnly") return null;
+
+    return diffSourcePlugin({
+      viewMode: "rich-text",
+    });
   }, [mode]);
 
   const editorToolbarPlugin = useMemo(() => {
-    const Controls = (
-      <>
-        <UndoRedo />
-        <Separator />
-        <BlockTypeSelect />
-        <BoldItalicUnderlineToggles />
-        <Separator />
-        <CreateLink />
-        <InsertImage />
-        <InsertThematicBreak />
-        <Separator />
-        <EmbedQuestionAction />
-      </>
-    );
+    if (mode === "readOnly") return null;
 
-    switch (mode) {
-      case "readOnly":
-        return null;
-      case "extended":
-        return toolbarPlugin({
-          toolbarContents: () => (
-            <DiffSourceToggleWrapper options={["rich-text", "source"]}>
-              {Controls}
-            </DiffSourceToggleWrapper>
-          ),
-        });
-      default:
-        return toolbarPlugin({
-          toolbarContents: () => <>{Controls}</>,
-        });
-    }
+    return toolbarPlugin({
+      toolbarContents: () => (
+        <DiffSourceToggleWrapper options={["rich-text", "source"]}>
+          {mode === "extended" && (
+            <>
+              <UndoRedo />
+              <Separator />
+              <BlockTypeSelect />
+            </>
+          )}
+          <BoldItalicUnderlineToggles />
+          <Separator />
+          {mode === "extended" && (
+            <>
+              <CreateLink />
+              <InsertImage />
+            </>
+          )}
+          <InsertThematicBreak />
+          <Separator />
+          <EmbedQuestionAction />
+        </DiffSourceToggleWrapper>
+      ),
+    });
   }, [mode]);
 
   async function imageUploadHandler(image: File) {
@@ -132,18 +142,10 @@ const MarkdownEditor: FC<Props> = ({
       onChange={onChange}
       readOnly={mode === "readOnly"}
       plugins={[
-        headingsPlugin(),
-        listsPlugin(),
-        linkPlugin(),
-        quotePlugin(),
-        markdownShortcutPlugin(),
-        thematicBreakPlugin(),
-        linkDialogPlugin(),
-        imagePlugin({
-          disableImageSettingsButton: true,
-          disableImageResize: true,
-          imageUploadHandler,
-        }),
+        ...baseFormattingPlugins,
+        ...(mode === "extended" || mode === "readOnly"
+          ? extendedFormattingPlugins
+          : []),
         jsxPlugin({ jsxComponentDescriptors }),
         ...(editorDiffSourcePlugin ? [editorDiffSourcePlugin] : []),
         ...(editorToolbarPlugin ? [editorToolbarPlugin] : []),
