@@ -37,7 +37,7 @@ import {
 
 import "./editor.css";
 
-type EditorMode = "default" | "extended" | "readOnly";
+type EditorMode = "write" | "read";
 
 const jsxComponentDescriptors: JsxComponentDescriptor[] = [
   embeddedQuestionDescriptor,
@@ -52,7 +52,7 @@ type Props = {
 
 const MarkdownEditor: FC<Props> = ({
   markdown,
-  mode = "default",
+  mode = "read",
   onChange = console.log,
   contentEditableClassName,
 }) => {
@@ -78,7 +78,7 @@ const MarkdownEditor: FC<Props> = ({
   ];
 
   const editorDiffSourcePlugin = useMemo(() => {
-    if (mode === "readOnly") return null;
+    if (mode === "read") return null;
 
     return diffSourcePlugin({
       viewMode: "rich-text",
@@ -86,26 +86,22 @@ const MarkdownEditor: FC<Props> = ({
   }, [mode]);
 
   const editorToolbarPlugin = useMemo(() => {
-    if (mode === "readOnly") return null;
+    if (mode === "read") return null;
 
     return toolbarPlugin({
       toolbarContents: () => (
         <DiffSourceToggleWrapper options={["rich-text", "source"]}>
-          {mode === "extended" && (
-            <>
-              <UndoRedo />
-              <Separator />
-              <BlockTypeSelect />
-            </>
-          )}
+          <>
+            <UndoRedo />
+            <Separator />
+            <BlockTypeSelect />
+          </>
           <BoldItalicUnderlineToggles />
           <Separator />
-          {mode === "extended" && (
-            <>
-              <CreateLink />
-              <InsertImage />
-            </>
-          )}
+          <>
+            <CreateLink />
+            <InsertImage />
+          </>
           <InsertThematicBreak />
           <Separator />
           <EmbedQuestionAction />
@@ -135,17 +131,15 @@ const MarkdownEditor: FC<Props> = ({
         "dark-theme": theme === "dark",
       })}
       contentEditableClassName={classNames(
-        { "!p-0": mode === "readOnly" },
+        { "!p-0": mode === "read" },
         contentEditableClassName
       )}
       markdown={markdown}
       onChange={onChange}
-      readOnly={mode === "readOnly"}
+      readOnly={mode === "read"}
       plugins={[
         ...baseFormattingPlugins,
-        ...(mode === "extended" || mode === "readOnly"
-          ? extendedFormattingPlugins
-          : []),
+        ...extendedFormattingPlugins,
         jsxPlugin({ jsxComponentDescriptors }),
         ...(editorDiffSourcePlugin ? [editorDiffSourcePlugin] : []),
         ...(editorToolbarPlugin ? [editorToolbarPlugin] : []),

@@ -44,12 +44,12 @@ export default function TestNewsEditor() {
       <hr />
       <h1>Edit mode (extended):</h1>
       <div className="h-50vh mx-auto max-w-3xl overflow-auto rounded-lg bg-gray-0 dark:bg-gray-100-dark">
-        <MarkdownEditor markdown={extendedMarkdown} mode="extended" />
+        <MarkdownEditor markdown={extendedMarkdown} mode="write" />
       </div>
       <hr />
       <h1>Reader mode:</h1>
       <div className="h-50vh mx-auto max-w-6xl overflow-auto bg-gray-0 dark:bg-gray-100-dark">
-        <MarkdownEditor markdown={extendedMarkdown} mode="readOnly" />
+        <MarkdownEditor markdown={extendedMarkdown} mode="read" />
       </div>
     </main>
   );
