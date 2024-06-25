@@ -120,6 +120,10 @@ a {
   @apply list-disc;
 }
 
+.content ol {
+  @apply list-decimal;
+}
+
 .content b,
 .content strong {
   @apply font-bold;
