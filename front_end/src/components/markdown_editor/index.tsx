@@ -46,9 +46,14 @@ const jsxComponentDescriptors: JsxComponentDescriptor[] = [
 type Props = {
   markdown: string;
   mode?: EditorMode;
+  onChange?: (markdown: string) => void;
 };
 
-const MarkdownEditor: FC<Props> = ({ markdown, mode = "default" }) => {
+const MarkdownEditor: FC<Props> = ({
+  markdown,
+  mode = "default",
+  onChange = console.log,
+}) => {
   const { theme } = useAppTheme();
 
   const editorRef = useRef<MDXEditorMethods>(null);
@@ -118,7 +123,7 @@ const MarkdownEditor: FC<Props> = ({ markdown, mode = "default" }) => {
         "dark-theme": theme === "dark",
       })}
       markdown={markdown}
-      onChange={console.log}
+      onChange={onChange}
       readOnly={mode === "readOnly"}
       plugins={[
         headingsPlugin(),

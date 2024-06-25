@@ -21,7 +21,13 @@ from questions.serializers import (
     GroupOfQuestionsWriteSerializer,
 )
 from users.models import User
-from .models import Post
+from .models import Notebook, Post
+
+
+class NotebookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notebook
+        fields = "__all__"
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -49,11 +55,18 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.author.username
 
 
+class NotebookWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notebook
+        fields = "markdown"
+
+
 class PostWriteSerializer(serializers.ModelSerializer):
     projects = PostProjectWriteSerializer(required=False)
     question = QuestionWriteSerializer(required=False)
     conditional = ConditionalWriteSerializer(required=False)
     group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
+    notebook = NotebookWriteSerializer(required=False)
 
     class Meta:
         model = Post
@@ -63,6 +76,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "question",
             "conditional",
             "group_of_questions",
+            "notebook",
         )
 
 
@@ -142,6 +156,9 @@ def serialize_post(
             with_forecasts=with_forecasts,
             current_user=current_user,
         )
+
+    if post.notebook:
+        serialized_data["notebook"] = NotebookSerializer(post.notebook).data
 
     # Permissions
     serialized_data["user_permission"] = post.user_permission

@@ -31,7 +31,9 @@ class Command(BaseCommand):
                 );
                 """
             )
-            cursor.execute("DELETE FROM projects_project WHERE type = 'personal_project'")
+            cursor.execute(
+                "DELETE FROM projects_project WHERE type = 'personal_project'"
+            )
 
         print("Starting migration script")
 

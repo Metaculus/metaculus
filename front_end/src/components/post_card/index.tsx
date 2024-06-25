@@ -7,6 +7,7 @@ import BasicPostCard from "./basic_post_card";
 import PostCardErrorBoundary from "./error_boundary";
 import GroupOfQuestionsTile from "./group_of_questions_tile";
 import QuestionChartTile from "./question_chart_tile";
+import MarkdownEditor from "../markdown_editor";
 
 type Props = {
   post: PostWithForecasts;
@@ -35,6 +36,17 @@ const PostCard: FC<Props> = ({ post }) => {
               conditional={post.conditional}
               curationStatus={post.curation_status}
             />
+          )}
+          {!!post.notebook && (
+            <div>
+              <MarkdownEditor
+                mode="readOnly"
+                markdown={post.notebook.markdown
+                  .split("\n")
+                  .slice(0, 3)
+                  .join("\n")}
+              />
+            </div>
           )}
         </div>
       </BasicPostCard>
