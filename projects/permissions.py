@@ -22,6 +22,7 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
     ADMIN = "admin"
     # Dynamically generated permission
     CREATOR = "creator"
+    NONE = "none"
 
     @classmethod
     def get_permissions_rank(cls):
@@ -29,7 +30,13 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         Rank permissions by the numeric scale of permissiveness
         """
 
-        return {cls.VIEWER: 1, cls.FORECASTER: 2, cls.CURATOR: 3, cls.ADMIN: 4}
+        return {
+            cls.NONE: 0,
+            cls.VIEWER: 1,
+            cls.FORECASTER: 2,
+            cls.CURATOR: 3,
+            cls.ADMIN: 4,
+        }
 
     @classmethod
     def get_included_permissions(cls, permission: Self) -> list[Self]:
