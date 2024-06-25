@@ -5,7 +5,7 @@ from projects.permissions import ObjectPermission
 from users.models import User
 
 
-def get_comment_permission_for_comment(
+def get_comment_permission_for_user(
     comment: Comment, user: User = None
 ) -> ObjectPermission:
     """
