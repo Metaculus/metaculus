@@ -1,4 +1,6 @@
 #!/bin/bash
+set -x;
+source .bashrc;
 
 tmux kill-session -t web_backend;
 tmux kill-session -t web_frontend;
