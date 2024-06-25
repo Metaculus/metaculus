@@ -111,7 +111,7 @@ export default async function IndividualNotebook({
             </div>
           </div>
 
-          <CommentFeed initialComments={commentsData} />
+          <CommentFeed initialComments={commentsData} post={postData} />
         </div>
       </div>
     </main>
