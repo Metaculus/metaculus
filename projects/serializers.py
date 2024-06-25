@@ -50,25 +50,6 @@ class TournamentSerializer(serializers.ModelSerializer):
         )
 
 
-class GlobalLeaderboardSerializer(serializers.ModelSerializer):
-    leaderboard_entries = LeaderboardEntrySerializer(many=True)
-
-    class Meta:
-        model = Project
-        fields = (
-            "id",
-            "type",
-            "leaderboard_type",
-            "name",
-            "start_date",
-            "close_date",
-            "is_ongoing",
-            "created_at",
-            "edited_at",
-            "leaderboard_entries",
-        )
-
-
 def serialize_projects(projects: list[Project]) -> defaultdict[Any, list]:
     data = defaultdict(list)
 
@@ -84,8 +65,6 @@ def serialize_projects(projects: list[Project]) -> defaultdict[Any, list]:
                 serializer = TournamentSerializer
             case obj.ProjectTypes.QUESTION_SERIES:
                 serializer = TournamentSerializer
-            case obj.ProjectTypes.GLOBAL_LEADERBOARD:
-                serializer = GlobalLeaderboardSerializer
             case _:
                 continue
 

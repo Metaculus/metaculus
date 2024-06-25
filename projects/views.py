@@ -13,7 +13,6 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers import (
     CategorySerializer,
-    GlobalLeaderboardSerializer,
     ProjectUserSerializer,
     TagSerializer,
     TopicSerializer,
@@ -24,6 +23,7 @@ from projects.services import (
     get_project_permission_for_user,
     invite_user_to_project,
 )
+from scoring.serializers import LeaderboardEntrySerializer
 from users.services import get_users_by_usernames
 
 
@@ -138,15 +138,21 @@ def tournament_by_slug_api_view(request: Request, slug: str):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def global_leaderboard_api_view(request: Request):
-    print("WE ARE HERE")
-    leaderboard_window = request.data.get("leaderboard_window", (2016, 2017))
-    leaderboards = Project.objects.filter(
-        start_date=datetime(leaderboard_window[0], 1, 1, tzinfo=timezone.utc),
-        end_date=datetime(leaderboard_window[1], 1, 1, tzinfo=timezone.utc),
-        type=Project.ProjectTypes.GLOBAL_LEADERBOARD,
-    )
-    return Response(GlobalLeaderboardSerializer(leaderboards, many=True).data)
+def project_leaderboard(
+    request: Request, project_id: int, leaderboard_type: str | None = None
+):
+    qs = get_projects_qs(user=request.user)
+    obj = get_object_or_404(qs, pk=project_id)
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    leaderboard_type = leaderboard_type or obj.leaderboard_type
+    leaderboard_entries = obj.leaderboard_entries.filter(
+        leaderboard_type=leaderboard_type
+    ).order_by("-score")
+    return Response(LeaderboardEntrySerializer(leaderboard_entries, many=True).data)
 
 
 @api_view(["GET"])
