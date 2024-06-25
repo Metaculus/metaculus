@@ -97,19 +97,21 @@ export default async function IndividualNotebook({
         <div className="w-full md:mt-3 md:min-w-56 md:max-w-56">TODO</div>
         <div className="w-full">
           <NotebookEditor postData={postData as PostWithNotebook} />
-          <div>
-            <div>{t("categories") + ":"}</div>
+          {!!postData.projects.category?.length && (
             <div>
-              {postData.projects.category.map((category) => (
-                <Link
-                  key={category.id}
-                  href={`/questions?${POST_CATEGORIES_FILTER}=${category.slug}`}
-                >
-                  {category.name}
-                </Link>
-              ))}
+              <div>{t("categories") + ":"}</div>
+              <div>
+                {postData.projects.category?.map((category) => (
+                  <Link
+                    key={category.id}
+                    href={`/questions?${POST_CATEGORIES_FILTER}=${category.slug}`}
+                  >
+                    {category.name}
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <CommentFeed initialComments={commentsData} post={postData} />
         </div>
