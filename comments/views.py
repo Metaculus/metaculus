@@ -6,7 +6,7 @@ from rest_framework import serializers
 
 from comments.models import Comment
 from comments.serializers import CommentSerializer
-from comments.services import get_comment_permission_for_comment
+from comments.services import get_comment_permission_for_user
 from projects.permissions import ObjectPermission
 
 
@@ -36,7 +36,7 @@ def comments_list_api_view(request: Request):
         c
         for c in comments.all()
         if ObjectPermission.can_view(
-            get_comment_permission_for_comment(c, request.user)
+            get_comment_permission_for_user(c, request.user)
         )
     ]
 
