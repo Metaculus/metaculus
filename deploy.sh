@@ -1,4 +1,3 @@
-exit;
 #!/bin/bash
 
 tmux kill-session -t web_backend;
