@@ -124,7 +124,10 @@ const MarkdownEditor: FC<Props> = ({
       className={classNames("content markdown-editor", {
         "dark-theme": theme === "dark",
       })}
-      contentEditableClassName={contentEditableClassName}
+      contentEditableClassName={classNames(
+        { "!p-0": mode === "readOnly" },
+        contentEditableClassName
+      )}
       markdown={markdown}
       onChange={onChange}
       readOnly={mode === "readOnly"}
