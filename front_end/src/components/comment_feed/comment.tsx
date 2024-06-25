@@ -2,17 +2,19 @@
 
 import { faReply } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import dynamic from "next/dynamic";
 import { useLocale } from "next-intl";
 import { FC, useState } from "react";
 
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
-import ProfileApi from "@/services/profile";
 import { CommentPermissions, CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
 
-import MarkdownEditor from "../markdown_editor";
+const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
+  ssr: false,
+});
 
 type Props = {
   comment: CommentType;
