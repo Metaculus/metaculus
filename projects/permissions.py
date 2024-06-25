@@ -99,6 +99,8 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         )
 
         if raise_exception and not can:
-            raise PermissionDenied("You do not have permission to invite users to this project")
+            raise PermissionDenied(
+                "You do not have permission to invite users to this project"
+            )
 
         return can
