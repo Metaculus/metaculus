@@ -183,7 +183,9 @@ def project_members_manage_api_view(request: Request, project_id: int, user_id: 
         member.delete()
     elif request.method == "PATCH":
         # Check permissions
-        ObjectPermission.can_edit_project_member_permission(permission, raise_exception=True)
+        ObjectPermission.can_edit_project_member_permission(
+            permission, raise_exception=True
+        )
 
         permission = serializers.ChoiceField(
             choices=ObjectPermission.choices
