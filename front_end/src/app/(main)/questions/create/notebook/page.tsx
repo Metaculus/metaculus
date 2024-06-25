@@ -13,7 +13,7 @@ const NotebookCreator: React.FC = ({}) => {
         <input type="text" className="w-full max-w-[600px] p-1 text-xl" />
       </div>
       <div className="pl-2">
-        <MarkdownEditor markdown={""} mode="extended" />
+        <MarkdownEditor markdown={""} mode="write" />
       </div>
       <div className="pl-2">
         <Button className="text-xl">Create Notebook</Button>
