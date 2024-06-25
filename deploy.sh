@@ -1,3 +1,4 @@
+exit;
 #!/bin/bash
 
 # 0. Kill the tmux session named 'web_backend'
