@@ -68,8 +68,6 @@ const MarkdownEditor: FC<Props> = ({
     markdownShortcutPlugin(),
     thematicBreakPlugin(),
     linkDialogPlugin(),
-  ];
-  const extendedFormattingPlugins = [
     imagePlugin({
       disableImageSettingsButton: true,
       disableImageResize: true,
@@ -91,17 +89,13 @@ const MarkdownEditor: FC<Props> = ({
     return toolbarPlugin({
       toolbarContents: () => (
         <DiffSourceToggleWrapper options={["rich-text", "source"]}>
-          <>
-            <UndoRedo />
-            <Separator />
-            <BlockTypeSelect />
-          </>
+          <UndoRedo />
+          <Separator />
+          <BlockTypeSelect />
           <BoldItalicUnderlineToggles />
           <Separator />
-          <>
-            <CreateLink />
-            <InsertImage />
-          </>
+          <CreateLink />
+          <InsertImage />
           <InsertThematicBreak />
           <Separator />
           <EmbedQuestionAction />
@@ -139,7 +133,6 @@ const MarkdownEditor: FC<Props> = ({
       readOnly={mode === "read"}
       plugins={[
         ...baseFormattingPlugins,
-        ...extendedFormattingPlugins,
         jsxPlugin({ jsxComponentDescriptors }),
         ...(editorDiffSourcePlugin ? [editorDiffSourcePlugin] : []),
         ...(editorToolbarPlugin ? [editorToolbarPlugin] : []),
