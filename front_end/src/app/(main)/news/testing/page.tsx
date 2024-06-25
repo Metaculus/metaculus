@@ -18,7 +18,7 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit. Alias deserunt dicta e
 - list items 1
 - list item 2
 
-
+[Link](https://google.com)
 
 <EmbeddedQuestion id="1" />
 
@@ -27,8 +27,6 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit. Alias deserunt dicta e
 `;
 
 const extendedMarkdown = `${simpleMarkdown}
-
-[Link](https://google.com)
 
 ![image](https://fastly.picsum.photos/id/780/200/300.jpg?hmac=Zmxf0t2fpCbfZrR5NAXA_IKAP_8P6fYe9P440jUTWag "Title")
 ![image](https://fastly.picsum.photos/id/780/200/300.jpg?hmac=Zmxf0t2fpCbfZrR5NAXA_IKAP_8P6fYe9P440jUTWag "Title")
