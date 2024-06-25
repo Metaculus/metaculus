@@ -127,7 +127,7 @@ def get_posts_feed(
             case PostFilterSerializer.Order.CREATED_AT:
                 qs = qs.order_by("-created_at")
 
-    return qs
+    return qs.distinct("id")
 
 
 def create_post(
