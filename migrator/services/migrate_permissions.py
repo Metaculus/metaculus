@@ -275,8 +275,7 @@ def migrate_post_default_project():
 
     def prioritize_projects_for_default(prj: Project):
         permission_code = (
-            ObjectPermission.get_permissions_rank().get(prj.default_permission)
-            or 0
+            ObjectPermission.get_permissions_rank().get(prj.default_permission) or 0
         )
 
         if prj.type == Project.ProjectTypes.PERSONAL_PROJECT:

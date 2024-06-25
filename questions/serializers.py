@@ -76,7 +76,7 @@ class GroupOfQuestionsSerializer(serializers.ModelSerializer):
 
 
 class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
-    questions = QuestionWriteSerializer(many=True, required=True)
+    questions = QuestionWriteSerializer(many=True, required=True, partial=True)
 
     class Meta:
         model = GroupOfQuestions
