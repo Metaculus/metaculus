@@ -47,12 +47,14 @@ type Props = {
   markdown: string;
   mode?: EditorMode;
   onChange?: (markdown: string) => void;
+  contentEditableClassName?: string;
 };
 
 const MarkdownEditor: FC<Props> = ({
   markdown,
   mode = "default",
   onChange = console.log,
+  contentEditableClassName,
 }) => {
   const { theme } = useAppTheme();
 
@@ -122,6 +124,7 @@ const MarkdownEditor: FC<Props> = ({
       className={classNames("content markdown-editor", {
         "dark-theme": theme === "dark",
       })}
+      contentEditableClassName={contentEditableClassName}
       markdown={markdown}
       onChange={onChange}
       readOnly={mode === "readOnly"}

@@ -1,25 +1,30 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, Fragment, useState } from "react";
 
 import { fetchMorePosts } from "@/app/(main)/questions/actions";
+import NewsCard from "@/components/news_card";
 import PostCard from "@/components/post_card";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
-import { PostWithForecasts } from "@/types/post";
+import { PostWithForecasts, PostWithNotebook } from "@/types/post";
+
+export type PostsFeedType = "posts" | "news";
 
 type Props = {
   initialQuestions: PostWithForecasts[];
   totalCount: number;
   filters: PostsParams;
+  type?: PostsFeedType;
 };
 
 const PaginatedPostsFeed: FC<Props> = ({
   initialQuestions,
   totalCount,
   filters,
+  type = "posts",
 }) => {
   const t = useTranslations();
 
@@ -47,6 +52,14 @@ const PaginatedPostsFeed: FC<Props> = ({
     }
   };
 
+  const renderPost = (post: PostWithForecasts) => {
+    if (type === "news" && post.notebook) {
+      return <NewsCard post={post as PostWithNotebook} />;
+    }
+
+    return <PostCard post={post} />;
+  };
+
   return (
     <>
       <div className="flex flex-col gap-3">
@@ -55,8 +68,8 @@ const PaginatedPostsFeed: FC<Props> = ({
             {t("noResults") + "."}
           </span>
         )}
-        {paginatedPosts.map((q) => (
-          <PostCard key={q.id} post={q} />
+        {paginatedPosts.map((p) => (
+          <Fragment key={p.id}>{renderPost(p)}</Fragment>
         ))}
       </div>
 
