@@ -26,6 +26,7 @@ scipy = "^1.13.1"
 django-dynamic-fixture = "^4.0.1"
 django-admin-autocomplete-filter = "^0.7.1"
 html2text = "^2024.2.26"
+gunicorn = "^22.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"
