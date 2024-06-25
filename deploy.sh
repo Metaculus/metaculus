@@ -2,6 +2,7 @@
 set -x;
 source /home/ubuntu/.bashrc;
 
+
 tmux kill-session -t web_backend;
 tmux kill-session -t web_frontend;
 tmux kill-session -t dramatiq;
