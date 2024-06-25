@@ -1,59 +1,65 @@
 "use client";
 
+import { Field, Input, Label } from "@headlessui/react";
+import classNames from "classnames";
 import dynamic from "next/dynamic";
 import React, { useState } from "react";
 
+import { updateNotebook } from "@/app/(main)/questions/actions";
+import Button from "@/components/ui/button";
+import { PostWithNotebook } from "@/types/post";
 const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
   ssr: false,
 });
-import Button from "@/components/ui/button";
-import { Input } from "@/components/ui/form_field";
-import { PostWithForecasts } from "@/types/post";
-
-import { updateNotebook } from "../../questions/actions";
 
 interface NotebookEditorProps {
-  postData: PostWithForecasts;
+  postData: PostWithNotebook;
 }
 
 const NotebookEditor: React.FC<NotebookEditorProps> = ({ postData }) => {
-  const [mode, setMode] = useState<"readOnly" | "extended">("readOnly");
+  const [isEditing, setIsEditing] = useState(false);
+
   const [title, setTitle] = useState(postData.title);
-  // @ts-ignore
   const [markdown, setMarkdown] = useState(postData.notebook.markdown);
 
-  const handleSave = async () => {
-    await updateNotebook(postData.id, markdown, title);
+  const toggleEditMode = () => {
+    if (isEditing) {
+      void updateNotebook(postData.id, markdown, title);
+    }
+
+    setIsEditing((prev) => !prev);
   };
 
   return (
-    <div className="mt-4 p-2">
+    <div>
       <div>
-        <Button
-          className="text-ll mb-6 p-2"
-          onClick={() => {
-            if (mode == "extended") {
-              handleSave();
-            }
-            setMode(mode === "readOnly" ? "extended" : "readOnly");
-          }}
-        >
-          {mode === "readOnly" ? "Edit" : "Save"}
+        <Button className="p-2" onClick={toggleEditMode}>
+          {isEditing ? "Save" : "Edit"}
         </Button>
       </div>
-      {mode === "extended" ? (
-        <div>
+
+      <div className={classNames("flex flex-col", { hidden: !isEditing })}>
+        <Field className="my-2 flex items-center gap-1">
+          <Label>Title</Label>
           <Input
-            className="w-full max-w-[600px]"
+            name="title"
             type="text"
+            className="w-full max-w-[600px] rounded-sm border border-blue-500 p-1 dark:border-blue-500-dark"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-        </div>
-      ) : (
-        <div className="text-2xl">{title}</div>
-      )}
-      <MarkdownEditor markdown={markdown} mode={mode} onChange={setMarkdown} />
+        </Field>
+
+        <MarkdownEditor
+          mode="extended"
+          markdown={markdown}
+          onChange={setMarkdown}
+        />
+      </div>
+
+      <div className={classNames({ hidden: isEditing })}>
+        <MarkdownEditor mode="readOnly" markdown={markdown} />
+      </div>
     </div>
   );
 };
