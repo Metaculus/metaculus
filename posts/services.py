@@ -178,15 +178,17 @@ def create_post(
     return obj
 
 
-def get_post_permission_for_user(
-    post: Post, user: User = None
-) -> ObjectPermission | None:
+def get_post_permission_for_user(post: Post, user: User = None) -> ObjectPermission:
     """
     A small wrapper to get the permission of post
     """
 
-    return (
+    perm = (
         Post.objects.annotate_user_permission(user=user)
         .values_list("user_permission", flat=True)
         .get(id=post.id)
     )
+    if perm == None:
+        return ObjectPermission.NONE
+    else:
+        return perm

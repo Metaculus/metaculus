@@ -46,16 +46,20 @@ def create_private_user_project(user: User):
 
 def get_project_permission_for_user(
     project: Project, user: User = None
-) -> ObjectPermission | None:
+) -> ObjectPermission:
     """
     A small wrapper to get the permission of project
     """
 
-    return (
+    perm = (
         Project.objects.annotate_user_permission(user=user)
         .values_list("user_permission", flat=True)
         .get(id=project.id)
     )
+    if perm is None:
+        return ObjectPermission.NONE
+    else:
+        return perm
 
 
 def invite_user_to_project(

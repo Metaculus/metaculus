@@ -6,6 +6,8 @@ from rest_framework import serializers
 
 from comments.models import Comment
 from comments.serializers import CommentSerializer
+from comments.services import get_comment_permission_for_comment
+from projects.permissions import ObjectPermission
 
 
 @api_view(["GET"])
@@ -30,6 +32,14 @@ def comments_list_api_view(request: Request):
     # for testing, show a max of 20 comments
     # comments = comments.all()[:20]
 
-    data = [{**CommentSerializer(obj).data} for obj in comments.all()]
+    comments = [
+        c
+        for c in comments.all()
+        if ObjectPermission.can_view(
+            get_comment_permission_for_comment(c, request.user)
+        )
+    ]
+
+    data = [{**CommentSerializer(obj).data} for obj in comments]
 
     return Response(data)
