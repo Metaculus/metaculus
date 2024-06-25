@@ -15,7 +15,7 @@ poetry install;
 
 cd front_end;
 npm i;
-npm run dev;
+npm run build;
 cd ..;
 
 poetry run python3 manage.py migrate;
