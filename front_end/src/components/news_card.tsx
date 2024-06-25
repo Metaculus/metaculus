@@ -9,6 +9,7 @@ const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
   ssr: false,
 });
 import imagePlaceholder from "@/app/assets/images/tournament.webp";
+import CircleDivider from "@/components/ui/circle_divider";
 import useContainerSize from "@/hooks/use_container_size";
 import { PostWithNotebook } from "@/types/post";
 import { formatDate } from "@/utils/date_formatters";
@@ -49,19 +50,19 @@ const NewsCard: FC<Props> = ({ post }) => {
               <MarkdownEditor
                 mode="readOnly"
                 markdown={getNotebookSummary(post.notebook.markdown, width, 48)}
-                contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark !p-0 *:m-0"
+                contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
               />
             )}
           </div>
           <div className="mt-auto line-clamp-1 text-sm font-normal leading-tight text-gray-700 dark:text-gray-700-dark">
             <span>{formatDate(locale, new Date(post.published_at))}</span>
-            <FooterDivider />
+            <CircleDivider className="mx-2" />
             <span>by {post.author_username}</span>
-            <FooterDivider />
+            <CircleDivider className="mx-2" />
             <span>
               {`${commentsCount ? `${commentsCount} ` : ""} ${t("commentsWithCount", { count: commentsCount })}`}
             </span>
-            <FooterDivider />
+            <CircleDivider className="mx-2" />
             <span>
               {t("estimatedReadingTime", {
                 minutes: estimateReadingTime(post.notebook.markdown),
@@ -73,9 +74,5 @@ const NewsCard: FC<Props> = ({ post }) => {
     </div>
   );
 };
-
-const FooterDivider = () => (
-  <span className="mx-2 text-gray-400 dark:text-gray-400-dark">•</span>
-);
 
 export default NewsCard;

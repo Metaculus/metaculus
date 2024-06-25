@@ -128,5 +128,7 @@ export async function updateNotebook(
       markdown,
     },
   });
+  revalidatePath(`/notebooks/${postId}`);
+
   return response;
 }

@@ -80,6 +80,9 @@ export type PostConditional<QT> = {
 };
 
 export type Notebook = {
+  id: number;
+  created_at: string;
+  edited_at: string;
   markdown: string;
   type: string;
 };
