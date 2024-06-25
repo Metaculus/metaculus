@@ -67,9 +67,9 @@ const MarkdownEditor: FC<Props> = ({
     quotePlugin(),
     markdownShortcutPlugin(),
     thematicBreakPlugin(),
+    linkDialogPlugin(),
   ];
   const extendedFormattingPlugins = [
-    linkDialogPlugin(),
     imagePlugin({
       disableImageSettingsButton: true,
       disableImageResize: true,
