@@ -1,6 +1,9 @@
-import MarkdownEditor from "@/components/markdown_editor";
+import dynamic from "next/dynamic";
+
+const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
+  ssr: false,
+});
 import Button from "@/components/ui/button";
-import { Input } from "@/components/ui/form_field";
 
 const NotebookCreator: React.FC = ({}) => {
   return (

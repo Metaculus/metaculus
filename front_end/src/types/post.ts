@@ -48,7 +48,7 @@ export type Topic = {
 };
 
 export type PostVote = {
-  score: number;
+  score: number | null;
   user_vote: VoteDirection;
 };
 
@@ -108,6 +108,10 @@ export type Post<QT = Question> = {
   notebook?: Notebook;
   curation_status: PostStatus;
   user_permission: ProjectPermissions;
+};
+
+export type PostWithNotebook = Omit<Post, "notebook"> & {
+  notebook: Notebook;
 };
 
 export type PostWithForecasts = Post<QuestionWithForecasts>;
