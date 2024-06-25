@@ -180,6 +180,16 @@ class PostQuerySet(models.QuerySet):
         return self.filter(default_project__default_permission__isnull=True)
 
 
+class Notebook(TimeStampedModel):
+    class NotebookType(models.TextChoices):
+        DISCUSSION = "discussion"
+        NEWS = "news"
+        PUBLIC_FIGURE = "public_figure"
+
+    markdown = models.TextField()
+    type = models.CharField(max_length=100, choices=NotebookType)
+
+
 class Post(TimeStampedModel):
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -226,6 +236,10 @@ class Post(TimeStampedModel):
     )
     group_of_questions = models.OneToOneField(
         GroupOfQuestions, models.CASCADE, related_name="post", null=True, blank=True
+    )
+
+    notebook = models.OneToOneField(
+        Notebook, models.CASCADE, related_name="post", null=True, blank=True
     )
 
     # TODO: make required in the future

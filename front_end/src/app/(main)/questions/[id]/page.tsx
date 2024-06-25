@@ -1,6 +1,6 @@
 import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import CommentFeed from "@/components/comment_feed";
@@ -24,6 +24,10 @@ export default async function IndividualQuestion({
 
   if (!postData) {
     return notFound();
+  }
+
+  if (postData.notebook) {
+    return redirect(`/notebooks/${postData.id}`);
   }
 
   const t = await getTranslations();

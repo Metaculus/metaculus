@@ -55,7 +55,7 @@ def migrate_forecasts():
         paginated_query(
             "SELECT p.*, ps.user_id, ps.question_id, ps.aggregation_method FROM metac_question_prediction p "
             "JOIN metac_question_predictionsequence ps "
-            "ON p.prediction_sequence_id = ps.id AND aggregation_method = 'none' "
+            "ON p.prediction_sequence_id = ps.id AND aggregation_method = 'none'"
         )
     ):  # limit 300000
         if (i + 1) % 150000 == 0:
@@ -67,4 +67,3 @@ def migrate_forecasts():
             forecasts.append(forecast)
     print("Bulk inserting forecasts")
     Forecast.objects.bulk_create(forecasts, batch_size=50_000)
-
