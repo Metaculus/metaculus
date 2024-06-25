@@ -51,7 +51,7 @@ const SignUpModal: FC<SignInModalType> = ({
           {t("registrationHeadingSite")}
         </h2>
         <p className="mb-6 mt-3 text-base leading-tight">
-          {t("registrationSignInHeading")}
+          {t("registrationSignInHeading")}&nbsp;
           <Button
             variant="link"
             size="md"
@@ -76,7 +76,7 @@ const SignUpModal: FC<SignInModalType> = ({
             <div>
               <Input
                 autoComplete="new-password"
-                className="block w-full rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+                className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
                 placeholder={t("passwordPlaceholder")}
                 type="password"
                 errors={state?.errors}
@@ -84,7 +84,7 @@ const SignUpModal: FC<SignInModalType> = ({
               />
               <Input
                 autoComplete="new-password"
-                className="block w-full rounded-b border-x border-b border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+                className="block w-full rounded-b rounded-t-none border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
                 placeholder={t("registrationVerifyPasswordPlaceholder")}
                 type="password"
                 errors={state?.errors}
