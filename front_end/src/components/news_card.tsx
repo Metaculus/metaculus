@@ -48,7 +48,7 @@ const NewsCard: FC<Props> = ({ post }) => {
           <div ref={ref} className="mb-3 h-[48px]">
             {!!width && (
               <MarkdownEditor
-                mode="readOnly"
+                mode="read"
                 markdown={getNotebookSummary(post.notebook.markdown, width, 48)}
                 contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
               />
