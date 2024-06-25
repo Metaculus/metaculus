@@ -1,11 +1,17 @@
+"user client";
+
 import { faReply } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocale } from "next-intl";
-import { FC } from "react";
+import { FC, useState } from "react";
 
 import Button from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth_context";
+import ProfileApi from "@/services/profile";
 import { CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
+
+import MarkdownEditor from "../markdown_editor";
 
 type Props = {
   comment: CommentType;
@@ -13,6 +19,10 @@ type Props = {
 
 const Comment: FC<Props> = ({ comment }) => {
   const locale = useLocale();
+  const [commentMode, setCommentMode] = useState<"readOnly" | "default">(
+    "readOnly"
+  );
+  const { user } = useAuth();
 
   return (
     <div id={`comment-${comment.id}`}>
@@ -22,17 +32,7 @@ const Comment: FC<Props> = ({ comment }) => {
             className="no-underline"
             href={`/accounts/profile/${comment.author.id}/`}
           >
-            <h4 className="my-0">
-              {/*comment.is_deactivated
-                ? "[DEACTIVATED USER]"
-                : .author_name*/}
-              {comment.author.username}
-              {/*
-              {comment.author_forecaster_type === "BOT" && (
-                <span className="ml-1">🤖</span>
-              )}
-              */}
-            </h4>
+            <h4 className="my-0">{comment.author.username}</h4>
           </a>
           {/*
           {comment.is_moderator && !comment.is_admin && (
@@ -58,7 +58,9 @@ const Comment: FC<Props> = ({ comment }) => {
           <a href={`#comment-${comment.parent}`}>➞ in reply to: USERNAME</a>
         </div>
       )}
-      <div className="break-anywhere">{comment.text}</div>
+      <div className="break-anywhere">
+        <MarkdownEditor markdown={comment.text} mode={commentMode} />
+      </div>
       {/*
       {isEditing && (
         <div className="mx-auto my-3" ref={editRef}>
