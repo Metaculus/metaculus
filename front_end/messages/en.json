@@ -195,6 +195,7 @@
   "hideCommunityPrediction": "Hide Community Prediction",
   "viewMetaculusPrediction": "View Metaculus Prediction",
   "questionSearchPlaceholder": "search questions...",
+  "articlesSearchPlaceholder": "search articles...",
   "tagSearchPlaceholder": "search tags...",
   "searchFilterType": "Type",
   "searchFilterForecastStatus": "Forecast Status",
