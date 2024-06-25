@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { FC, useEffect } from "react";
+import { FC, useEffect, useTransition } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
@@ -29,6 +29,7 @@ const ResetPasswordModal: FC<SignInModalType> = ({
   onClose,
 }: SignInModalType) => {
   const t = useTranslations();
+  const [isPending, startTransition] = useTransition();
   const { setCurrentModal } = useModal();
   const { register } = useForm<PasswordResetRequestSchema>({
     resolver: zodResolver(passwordResetRequestSchema),
@@ -52,7 +53,13 @@ const ResetPasswordModal: FC<SignInModalType> = ({
         <p className="mb-6 mt-3 text-center text-base leading-tight">
           {t("passwordResetDescription")}
         </p>
-        <form action={formAction}>
+        <form
+          action={(data) => {
+            startTransition(() => {
+              formAction(data);
+            });
+          }}
+        >
           <Input
             className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
             type="text"
@@ -62,7 +69,12 @@ const ResetPasswordModal: FC<SignInModalType> = ({
           />
           <FormError errors={state?.errors}></FormError>
           <div className="text-xs text-red-500 dark:text-red-500-dark"></div>
-          <Button variant="primary" className="mt-4 w-full" type="submit">
+          <Button
+            variant="primary"
+            className="mt-4 w-full"
+            type="submit"
+            disabled={isPending}
+          >
             {t("resetPasswordButton")}
           </Button>
         </form>

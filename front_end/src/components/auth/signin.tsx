@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { FC, useEffect } from "react";
+import { FC, useEffect, useTransition } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
@@ -26,6 +26,7 @@ const SignInModal: FC<SignInModalType> = ({
   onClose,
 }: SignInModalType) => {
   const t = useTranslations();
+  const [isPending, startTransition] = useTransition();
   const { setUser } = useAuth();
   const { setCurrentModal } = useModal();
   const { register } = useForm<SignInSchema>({
@@ -62,7 +63,13 @@ const SignInModal: FC<SignInModalType> = ({
             {t("createAnAccount")}
           </Button>
         </p>
-        <form action={formAction}>
+        <form
+          action={(data) => {
+            startTransition(() => {
+              formAction(data);
+            });
+          }}
+        >
           <Input
             autoComplete="username"
             className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
@@ -81,7 +88,12 @@ const SignInModal: FC<SignInModalType> = ({
             errors={state?.errors}
           />
           <div className="mb-4 text-xs text-red-500 dark:text-red-500-dark"></div>
-          <Button variant="primary" className="w-full" type="submit">
+          <Button
+            variant="primary"
+            className="w-full"
+            type="submit"
+            disabled={isPending}
+          >
             {t("signInButton")}
           </Button>
         </form>
