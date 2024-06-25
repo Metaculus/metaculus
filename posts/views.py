@@ -68,7 +68,6 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
-    print(request.data)
     serializer = PostWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
@@ -83,8 +82,8 @@ def post_create_api_view(request):
 @api_view(["PUT"])
 def post_update_api_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    if request.user != post.author and False:
-        return Response(status=status.HTTP_403_FORBIDDEN)
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_edit(permission, raise_exception=True)
 
     serializer = PostSerializer(post, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
@@ -139,8 +138,6 @@ def post_delete_api_view(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_delete(permission, raise_exception=True)
 
-    if request.user != post.author:
-        return Response(status=status.HTTP_403_FORBIDDEN)
     post.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
