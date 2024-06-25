@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('comments', '0004_remove_comment_on_question_comment_on_post'),
+        ("comments", "0004_remove_comment_on_question_comment_on_post"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='comment',
-            name='type',
+            model_name="comment",
+            name="type",
         ),
         migrations.AddField(
-            model_name='comment',
-            name='is_private',
+            model_name="comment",
+            name="is_private",
             field=models.BooleanField(default=False),
         ),
     ]

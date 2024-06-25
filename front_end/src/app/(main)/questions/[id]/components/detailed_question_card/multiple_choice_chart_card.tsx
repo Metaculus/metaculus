@@ -3,6 +3,7 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
+import ChoicesLegend from "@/app/(main)/questions/[id]/components/choices_legend";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import usePrevious from "@/hooks/use_previous";
@@ -12,8 +13,14 @@ import { MultipleChoiceForecast } from "@/types/question";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
-import ChoiceCheckbox from "../choice_checkbox";
 import ChoicesTooltip from "../choices_tooltip";
+
+const MAX_VISIBLE_CHECKBOXES = 6;
+
+const generateList = (forecast: MultipleChoiceForecast) =>
+  generateChoiceItemsFromMultipleChoiceForecast(forecast, {
+    activeCount: MAX_VISIBLE_CHECKBOXES,
+  });
 
 type Props = {
   forecast: MultipleChoiceForecast;
@@ -28,7 +35,7 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
   }, []);
 
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
-    generateChoiceItemsFromMultipleChoiceForecast(forecast)
+    generateList(forecast)
   );
 
   const timestampsCount = forecast.timestamps.length;
@@ -36,7 +43,7 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
   // sync BE driven data with local state
   useEffect(() => {
     if (prevTimestampsCount && prevTimestampsCount !== timestampsCount) {
-      setChoiceItems(generateChoiceItemsFromMultipleChoiceForecast(forecast));
+      setChoiceItems(generateList(forecast));
     }
   }, [forecast, prevTimestampsCount, timestampsCount]);
 
@@ -91,6 +98,15 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
     },
     []
   );
+  const toggleSelectAll = useCallback((isAllSelected: boolean) => {
+    if (isAllSelected) {
+      setChoiceItems((prev) =>
+        prev.map((item) => ({ ...item, active: false, highlighted: false }))
+      );
+    } else {
+      setChoiceItems((prev) => prev.map((item) => ({ ...item, active: true })));
+    }
+  }, []);
 
   return (
     <div
@@ -118,19 +134,14 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
         />
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-xs font-normal">
-        {choiceItems.map(({ choice, color, active }) => (
-          <ChoiceCheckbox
-            key={`multiple-choice-legend-${choice}`}
-            choice={choice}
-            color={color.DEFAULT}
-            checked={active}
-            onChange={(checked) => handleChoiceChange(choice, checked)}
-            onHighlight={(highlighted) =>
-              handleChoiceHighlight(choice, highlighted)
-            }
-          />
-        ))}
+      <div className="mb-4 mt-3">
+        <ChoicesLegend
+          choices={choiceItems}
+          onChoiceChange={handleChoiceChange}
+          onChoiceHighlight={handleChoiceHighlight}
+          maxLegendChoices={MAX_VISIBLE_CHECKBOXES}
+          onToggleAll={toggleSelectAll}
+        />
       </div>
 
       {isTooltipActive && !!tooltipChoices.length && (

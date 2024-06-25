@@ -40,7 +40,7 @@ const MobileMenu: FC = () => {
           <MenuLink href={`/faq/`}>FAQ</MenuLink>
           <MenuLink href={`/questions/track-record/`}>Track Record</MenuLink>
           <MenuLink href={`/project/journal/`}>About Metaculus</MenuLink>
-          <MenuLink href={`/questions/create/`}>+ Write a Question</MenuLink>
+          <MenuLink href={`/questions/create/`}>+ Write</MenuLink>
           <SectionTitle>Account</SectionTitle>
           {user ? (
             <>

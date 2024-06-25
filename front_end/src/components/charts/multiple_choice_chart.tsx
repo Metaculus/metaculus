@@ -1,9 +1,9 @@
 "use client";
-import { fromUnixTime } from "date-fns";
 import React, { FC, memo, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
   LineSegment,
+  VictoryArea,
   VictoryAxis,
   VictoryChart,
   VictoryCursorContainer,
@@ -18,8 +18,9 @@ import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";
-import { BaseChartData, Line, TickFormat } from "@/types/charts";
+import { Area, BaseChartData, Line, TickFormat } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
+import { ThemeColor } from "@/types/theme";
 import {
   findClosestTimestamp,
   generateNumericDomain,
@@ -50,13 +51,13 @@ const MultipleChoiceChart: FC<Props> = ({
     height: chartHeight,
   } = useContainerSize<HTMLDivElement>();
 
-  const { theme } = useAppTheme();
+  const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
   const defaultCursor = timestamps[timestamps.length - 1];
   const [isCursorActive, setIsCursorActive] = useState(false);
 
-  const { xScale, yScale, lines } = useMemo(
+  const { xScale, yScale, graphs } = useMemo(
     () => buildChartData(timestamps, choiceItems, chartWidth, chartHeight),
     [timestamps, choiceItems, chartWidth, chartHeight]
   );
@@ -91,7 +92,7 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorComponent={
         <LineSegment
           style={{
-            stroke: METAC_COLORS.gray["600"].DEFAULT,
+            stroke: getThemeColor(METAC_COLORS.gray["600"]),
             strokeDasharray: "2,1",
           }}
         />
@@ -133,24 +134,32 @@ const MultipleChoiceChart: FC<Props> = ({
           ]}
           containerComponent={onCursorChange ? CursorContainer : undefined}
         >
-          {lines.map(({ line, color, active, highlighted }, index) => {
-            return (
-              <VictoryLine
-                key={`multiple-choice-line-${index}`}
-                data={line}
+          {graphs.map(({ line, color, active, highlighted }, index) => (
+            <VictoryLine
+              key={`multiple-choice-line-${index}`}
+              data={line}
+              style={{
+                data: {
+                  stroke: active ? getThemeColor(color) : "transparent",
+                  strokeOpacity: !isHighlightActive ? 1 : highlighted ? 1 : 0.2,
+                },
+              }}
+            />
+          ))}
+          {graphs.map(({ area, color, highlighted }, index) =>
+            !!area && highlighted ? (
+              <VictoryArea
+                key={`multiple-choice-area-${index}`}
+                data={area}
                 style={{
                   data: {
-                    stroke: active ? color : "transparent",
-                    strokeOpacity: !isHighlightActive
-                      ? 1
-                      : highlighted
-                        ? 1
-                        : 0.2,
+                    fill: getThemeColor(color),
+                    opacity: 0.3,
                   },
                 }}
               />
-            );
-          })}
+            ) : null
+          )}
           <VictoryAxis
             dependentAxis
             tickValues={yScale.ticks}
@@ -173,15 +182,16 @@ const MultipleChoiceChart: FC<Props> = ({
   );
 };
 
-export type ChoiceLine = {
+export type ChoiceGraph = {
   line: Line;
+  area?: Area;
   choice: string;
-  color: string;
+  color: ThemeColor;
   active: boolean;
   highlighted: boolean;
 };
 type ChartData = BaseChartData & {
-  lines: ChoiceLine[];
+  graphs: ChoiceGraph[];
 };
 
 function buildChartData(
@@ -190,26 +200,40 @@ function buildChartData(
   width: number,
   height: number
 ): ChartData {
-  const lines: ChoiceLine[] = choiceItems.map(
+  const graphs: ChoiceGraph[] = choiceItems.map(
     ({
       choice,
       values,
+      minValues,
+      maxValues,
       color,
       active,
       highlighted,
       timestamps: choiceTimestamps,
-    }) => ({
-      choice,
-      color: color.DEFAULT,
-      line: (choiceTimestamps ?? timestamps).map(
-        (timestamp, timestampIndex) => ({
+    }) => {
+      const actualTimestamps = choiceTimestamps ?? timestamps;
+
+      const item: ChoiceGraph = {
+        choice,
+        color,
+        line: actualTimestamps.map((timestamp, timestampIndex) => ({
           x: timestamp,
           y: values[timestampIndex] ?? 0,
-        })
-      ),
-      active,
-      highlighted,
-    })
+        })),
+        active,
+        highlighted,
+      };
+
+      if (minValues && maxValues) {
+        item.area = actualTimestamps.map((timestamp, timestampIndex) => ({
+          x: timestamp,
+          y: maxValues[timestampIndex] ?? 0,
+          y0: minValues[timestampIndex] ?? 0,
+        }));
+      }
+
+      return item;
+    }
   );
 
   const xDomain = generateNumericDomain(timestamps);
@@ -217,7 +241,7 @@ function buildChartData(
   return {
     xScale: generateTimestampXScale(xDomain, width),
     yScale: generatePercentageYScale(height),
-    lines,
+    graphs: graphs,
   };
 }
 

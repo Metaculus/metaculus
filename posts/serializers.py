@@ -21,7 +21,13 @@ from questions.serializers import (
     GroupOfQuestionsWriteSerializer,
 )
 from users.models import User
-from .models import Post
+from .models import Notebook, Post
+
+
+class NotebookSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notebook
+        fields = "__all__"
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -49,11 +55,18 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.author.username
 
 
+class NotebookWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notebook
+        fields = "markdown"
+
+
 class PostWriteSerializer(serializers.ModelSerializer):
     projects = PostProjectWriteSerializer(required=False)
     question = QuestionWriteSerializer(required=False)
     conditional = ConditionalWriteSerializer(required=False)
     group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
+    notebook = NotebookWriteSerializer(required=False)
 
     class Meta:
         model = Post
@@ -63,6 +76,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "question",
             "conditional",
             "group_of_questions",
+            "notebook",
         )
 
 
@@ -73,6 +87,12 @@ class PostFilterSerializer(serializers.Serializer):
         RESOLVED_AT = "resolved_at"
         CREATED_AT = "created_at"
 
+    class Access(models.TextChoices):
+        PRIVATE = "private"
+        PUBLIC = "public"
+
+    ids = serializers.ListField(child=serializers.IntegerField(), required=False)
+    access = serializers.ChoiceField(required=False, choices=Access.choices)
     topic = serializers.CharField(required=False)
     tags = serializers.ListField(child=serializers.CharField(), required=False)
     categories = serializers.ListField(child=serializers.CharField(), required=False)
@@ -137,6 +157,9 @@ def serialize_post(
             current_user=current_user,
         )
 
+    if post.notebook:
+        serialized_data["notebook"] = NotebookSerializer(post.notebook).data
+
     # Permissions
     serialized_data["user_permission"] = post.user_permission
 
@@ -159,7 +182,7 @@ def serialize_post_many(
     qs = Post.objects.filter(pk__in=[p.pk for p in data])
 
     qs = (
-        qs.annotate_predictions_count()
+        qs.annotate_forecasts_count()
         .annotate_user_permission(user=current_user)
         .annotate_vote_score()
         .annotate_nr_forecasters()
