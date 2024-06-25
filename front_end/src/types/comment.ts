@@ -8,3 +8,9 @@ export type CommentType = {
   text: string;
   type: string;
 };
+
+export enum CommentPermissions {
+  VIEWER = "VIEWER",
+  CURATOR = "CURATOR",
+  CREATOR = "CREATOR",
+}

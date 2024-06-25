@@ -20,7 +20,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "text",
             "on_post",
             "included_forecast",
-            "type",
+            "is_private",
             "vote_score",
             "children",
         )
