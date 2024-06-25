@@ -28,7 +28,7 @@ export default async function NewsFeed({
             <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
           }
         >
-          <AwaitedPostsFeed filters={filters} />
+          <AwaitedPostsFeed filters={filters} type="news" />
         </Suspense>
       </div>
     </main>
