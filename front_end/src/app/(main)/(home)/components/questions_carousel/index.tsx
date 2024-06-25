@@ -1,12 +1,14 @@
+"use client";
+
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import React, { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 
+import { fetchMorePosts } from "@/app/(main)/questions/actions";
 import Carousel, { CarouselItem } from "@/components/carousel";
 import { POST_STATUS_FILTER } from "@/constants/posts_feed";
-import PostsApi from "@/services/posts";
-import { PostStatus } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import QuestionCarouselItem from "./carousel_item";
 
@@ -14,10 +16,22 @@ type Props = {
   postIds: number[];
 };
 
-const QuestionCarousel: FC<Props> = async ({ postIds }) => {
-  const postsResponse = await PostsApi.getPostWithoutForecasts({
-    ids: postIds,
-  });
+const QuestionCarousel: FC<Props> = ({ postIds }) => {
+  const [data, setData] = useState<PostWithForecasts[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const postsResponse = await fetchMorePosts(
+        {
+          ids: postIds,
+        },
+        0,
+        20
+      );
+      setData(postsResponse);
+    };
+    fetchData();
+  }, []);
 
   return (
     <Carousel
@@ -34,7 +48,7 @@ const QuestionCarousel: FC<Props> = async ({ postIds }) => {
         </div>
       }
     >
-      {postsResponse.results.map((p) => (
+      {data.map((p) => (
         <CarouselItem key={p.id}>
           <QuestionCarouselItem post={p} />
         </CarouselItem>

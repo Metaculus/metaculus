@@ -25,7 +25,12 @@ import {
 } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
-import { ForecastType, PostForecastType, PostStatus } from "@/types/post";
+import {
+  ForecastType,
+  NotebookType,
+  PostForecastType,
+  PostStatus,
+} from "@/types/post";
 import { Category, Tag } from "@/types/projects";
 import { QuestionOrder, QuestionType } from "@/types/question";
 import { CurrentUser } from "@/types/users";
@@ -38,6 +43,7 @@ const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
   [QuestionType.Binary]: "Binary",
   [PostForecastType.Conditional]: "Conditional",
   [PostForecastType.Group]: "Group",
+  [NotebookType.Notebook]: "Notebook",
 };
 
 // TODO: translate
@@ -137,6 +143,7 @@ export function getPostsFilters({
       options: [
         ...mapForecastTypeOptions(Object.values(QuestionType), params),
         ...mapForecastTypeOptions(Object.values(PostForecastType), params),
+        ...mapForecastTypeOptions(Object.values(NotebookType), params),
       ],
     },
     {

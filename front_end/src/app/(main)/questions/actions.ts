@@ -116,3 +116,19 @@ export async function draftPost(postId: number) {
   });
   return response;
 }
+
+export async function updateNotebook(
+  postId: number,
+  markdown: string,
+  title: string
+) {
+  const response = await PostsApi.updatePost(postId, {
+    title: title,
+    notebook: {
+      markdown,
+    },
+  });
+  revalidatePath(`/notebooks/${postId}`);
+
+  return response;
+}

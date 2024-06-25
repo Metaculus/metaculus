@@ -1,6 +1,7 @@
 import { FC } from "react";
 
 import ConditionalTile from "@/components/conditional_tile";
+import NotebookTile from "@/components/post_card/notebook_tile";
 import { PostWithForecasts } from "@/types/post";
 
 import BasicPostCard from "./basic_post_card";
@@ -36,6 +37,7 @@ const PostCard: FC<Props> = ({ post }) => {
               curationStatus={post.curation_status}
             />
           )}
+          {!!post.notebook && <NotebookTile notebook={post.notebook} />}
         </div>
       </BasicPostCard>
     </PostCardErrorBoundary>

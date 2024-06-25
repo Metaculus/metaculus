@@ -1,6 +1,6 @@
 import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import CommentFeed from "@/components/comment_feed";
@@ -24,6 +24,10 @@ export default async function IndividualQuestion({
 
   if (!postData) {
     return notFound();
+  }
+
+  if (postData.notebook) {
+    return redirect(`/notebooks/${postData.id}`);
   }
 
   const t = await getTranslations();
@@ -125,7 +129,9 @@ export default async function IndividualQuestion({
               </div>
             </div>
           </div>
-          {commentsData && <CommentFeed initialComments={commentsData} />}
+          {commentsData && (
+            <CommentFeed initialComments={commentsData} post={postData} />
+          )}
         </div>
         <div className="hidden w-80 shrink-0 border border-transparent bg-gray-0 p-4 text-gray-700 dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-700-dark lg:block">
           <div className="mb-4 flex w-full items-center justify-between gap-2 border-b border-gray-300 pb-4 dark:border-gray-300-dark">

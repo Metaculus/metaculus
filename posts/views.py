@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from posts.models import Post, Vote
 from posts.serializers import (
+    NotebookSerializer,
     PostFilterSerializer,
     PostSerializer,
     PostWriteSerializer,
@@ -17,6 +18,12 @@ from posts.serializers import (
 )
 from posts.services import get_posts_feed, create_post, get_post_permission_for_user
 from projects.permissions import ObjectPermission
+from questions.models import Question
+from questions.serializers import (
+    ConditionalSerializer,
+    GroupOfQuestionsSerializer,
+    QuestionSerializer,
+)
 
 
 @api_view(["GET"])
@@ -43,7 +50,6 @@ def posts_list_api_view(request):
         with_forecasts=with_forecasts,
         current_user=request.user,
     )
-    print(len(data))
 
     return paginator.get_paginated_response(data)
 
@@ -62,7 +68,6 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
-    print(request.data)
     serializer = PostWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
@@ -77,11 +82,49 @@ def post_create_api_view(request):
 @api_view(["PUT"])
 def post_update_api_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    if request.user != post.author:
-        return Response(status=status.HTTP_403_FORBIDDEN)
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_edit(permission, raise_exception=True)
 
     serializer = PostSerializer(post, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
+
+    question_data = request.data.get("question", None)
+    conditional_data = request.data.get("conditional", None)
+    group_of_questions_data = request.data.get("group_of_questions", None)
+    notebook_data = request.data.get("notebook", None)
+
+    if question_data:
+        ser = QuestionSerializer(post.question, data=question_data, partial=True)
+        ser.is_valid(raise_exception=True)
+        ser.save()
+    if conditional_data:
+        ser = ConditionalSerializer(
+            post.conditional, data=conditional_data, partial=True
+        )
+        ser.is_valid(raise_exception=True)
+        ser.save()
+    if group_of_questions_data:
+        sub_questions = group_of_questions_data.get("questions", None)
+        if sub_questions:
+            for sub_question_data in sub_questions:
+                sub_ser = QuestionSerializer(
+                    Question.objects.get(id=sub_question_data["id"]),
+                    data=sub_question_data,
+                    partial=True,
+                )
+                sub_ser.is_valid(raise_exception=True)
+                sub_ser.save()
+
+        ser = GroupOfQuestionsSerializer(
+            post.group_of_questions, data=group_of_questions_data, partial=True
+        )
+        ser.is_valid(raise_exception=True)
+        ser.save()
+    if notebook_data:
+        ser = NotebookSerializer(post.notebook, data=notebook_data, partial=True)
+        ser.is_valid(raise_exception=True)
+        ser.save()
+
     serializer.save()
 
     return Response(serializer.data)
@@ -95,8 +138,6 @@ def post_delete_api_view(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_delete(permission, raise_exception=True)
 
-    if request.user != post.author:
-        return Response(status=status.HTTP_403_FORBIDDEN)
     post.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 

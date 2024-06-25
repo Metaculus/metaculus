@@ -63,6 +63,10 @@ def get_posts_feed(
     if forecast_type:
         forecast_type_q = Q()
 
+        if "notebook" in forecast_type:
+            forecast_type.pop(forecast_type.index("notebook"))
+            forecast_type_q |= Q(notebook__isnull=False)
+
         if "conditional" in forecast_type:
             forecast_type.pop(forecast_type.index("conditional"))
             forecast_type_q |= Q(conditional__isnull=False)
@@ -74,7 +78,9 @@ def get_posts_feed(
         if forecast_type:
             forecast_type_q |= Q(question__type__in=forecast_type)
 
+        print(len(qs))
         qs = qs.filter(forecast_type_q)
+        print(len(qs))
 
     if status:
         if "resolved" in status:
@@ -121,7 +127,7 @@ def get_posts_feed(
             case PostFilterSerializer.Order.CREATED_AT:
                 qs = qs.order_by("-created_at")
 
-    return qs
+    return qs.distinct("id")
 
 
 def create_post(

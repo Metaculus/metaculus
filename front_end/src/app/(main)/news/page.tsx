@@ -1,45 +1,35 @@
-import dynamic from "next/dynamic";
+import { Suspense } from "react";
 
-const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
-  ssr: false,
-});
+import AwaitedPostsFeed from "@/components/posts_feed";
+import LoadingIndicator from "@/components/ui/loading_indicator";
+import { SearchParams } from "@/types/navigation";
 
-const markdown = `
-# Heading 1
+import NewsFilters from "./components/news_filters";
+import { generateFiltersFromSearchParams } from "./helpers/filters";
 
-## Heading 2
+export default async function NewsFeed({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const filters = generateFiltersFromSearchParams(searchParams);
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit. Alias deserunt dicta ea enim et ex, fugit ipsa iste laboriosam nobis nostrum repellendus sequi sit suscipit ut vel velit vero vitae.
-
-[Link](https://google.com)
-
-> quote
-
-- list items 1
-- list item 2
-
-<EmbeddedQuestion id="1" />
-
-<EmbeddedQuestion id="2" />
-
-`;
-
-export default function TestNewsEditor() {
   return (
-    <main className="p-4">
-      <h1>Edit mode (default):</h1>
-      <div className="h-50vh mx-auto max-w-3xl overflow-auto rounded-lg bg-gray-0 dark:bg-gray-100-dark">
-        <MarkdownEditor markdown={markdown} />
-      </div>
-      <hr />
-      <h1>Edit mode (extended):</h1>
-      <div className="h-50vh mx-auto max-w-3xl overflow-auto rounded-lg bg-gray-0 dark:bg-gray-100-dark">
-        <MarkdownEditor markdown={markdown} mode="extended" />
-      </div>
-      <hr />
-      <h1>Reader mode:</h1>
-      <div className="h-50vh mx-auto max-w-6xl overflow-auto bg-gray-0 dark:bg-gray-100-dark">
-        <MarkdownEditor markdown={markdown} mode="readOnly" />
+    <main className="mx-auto mb-auto w-full max-w-3xl px-2 pb-4">
+      <h1 className="mb-6 mt-12 text-center text-5xl font-bold text-blue-800 dark:text-blue-800-dark">
+        Metaculus{" "}
+        <span className="text-blue-700 dark:text-blue-700-dark">News</span>
+      </h1>
+      <NewsFilters />
+      <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
+        <Suspense
+          key={JSON.stringify(searchParams)}
+          fallback={
+            <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
+          }
+        >
+          <AwaitedPostsFeed filters={filters} type="news" />
+        </Suspense>
       </div>
     </main>
   );

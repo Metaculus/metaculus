@@ -20,7 +20,17 @@ export enum ProjectPermissions {
   CREATOR = "creator",
 }
 
-export type ForecastType = PostForecastType | QuestionType;
+export enum NotebookType {
+  Notebook = "notebook",
+}
+
+export enum ArticleType {
+  Programs = "programs",
+  Research = "research",
+  Platform = "platform",
+}
+
+export type ForecastType = PostForecastType | QuestionType | NotebookType;
 
 export type Category = {
   id: number;
@@ -38,7 +48,7 @@ export type Topic = {
 };
 
 export type PostVote = {
-  score: number;
+  score: number | null;
   user_vote: VoteDirection;
 };
 
@@ -69,6 +79,14 @@ export type PostConditional<QT> = {
   question_no: QT;
 };
 
+export type Notebook = {
+  id: number;
+  created_at: string;
+  edited_at: string;
+  markdown: string;
+  type: string;
+};
+
 export type Post<QT = Question> = {
   id: number;
   projects: {
@@ -90,8 +108,13 @@ export type Post<QT = Question> = {
     id: number;
     questions: QT[];
   };
+  notebook?: Notebook;
   curation_status: PostStatus;
   user_permission: ProjectPermissions;
+};
+
+export type PostWithNotebook = Omit<Post, "notebook"> & {
+  notebook: Notebook;
 };
 
 export type PostWithForecasts = Post<QuestionWithForecasts>;

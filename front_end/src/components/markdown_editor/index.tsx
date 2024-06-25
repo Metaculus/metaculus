@@ -6,6 +6,9 @@ import {
   diffSourcePlugin,
   DiffSourceToggleWrapper,
   headingsPlugin,
+  imagePlugin,
+  InsertImage,
+  InsertThematicBreak,
   JsxComponentDescriptor,
   jsxPlugin,
   linkDialogPlugin,
@@ -15,6 +18,7 @@ import {
   MDXEditor,
   MDXEditorMethods,
   quotePlugin,
+  Separator,
   thematicBreakPlugin,
   toolbarPlugin,
   UndoRedo,
@@ -23,7 +27,6 @@ import classNames from "classnames";
 import React, { FC, useMemo, useRef } from "react";
 
 import "@mdxeditor/editor/style.css";
-import "./editor.css";
 
 import useAppTheme from "@/hooks/use_app_theme";
 
@@ -32,7 +35,9 @@ import {
   EmbedQuestionAction,
 } from "./embedded_question";
 
-type EditorMode = "default" | "extended" | "readOnly";
+import "./editor.css";
+
+type EditorMode = "write" | "read";
 
 const jsxComponentDescriptors: JsxComponentDescriptor[] = [
   embeddedQuestionDescriptor,
@@ -41,51 +46,77 @@ const jsxComponentDescriptors: JsxComponentDescriptor[] = [
 type Props = {
   markdown: string;
   mode?: EditorMode;
+  onChange?: (markdown: string) => void;
+  contentEditableClassName?: string;
 };
 
-const MarkdownEditor: FC<Props> = ({ markdown, mode = "default" }) => {
+const MarkdownEditor: FC<Props> = ({
+  markdown,
+  mode = "read",
+  onChange = console.log,
+  contentEditableClassName,
+}) => {
   const { theme } = useAppTheme();
 
   const editorRef = useRef<MDXEditorMethods>(null);
 
-  const editorDiffSourcePlugin = useMemo(() => {
-    if (mode === "extended") {
-      return diffSourcePlugin({
-        viewMode: "source",
-      });
-    }
+  const baseFormattingPlugins = [
+    headingsPlugin(),
+    listsPlugin(),
+    linkPlugin(),
+    quotePlugin(),
+    markdownShortcutPlugin(),
+    thematicBreakPlugin(),
+    linkDialogPlugin(),
+    imagePlugin({
+      disableImageSettingsButton: true,
+      disableImageResize: true,
+      imageUploadHandler,
+    }),
+  ];
 
-    return null;
+  const editorDiffSourcePlugin = useMemo(() => {
+    if (mode === "read") return null;
+
+    return diffSourcePlugin({
+      viewMode: "rich-text",
+    });
   }, [mode]);
 
   const editorToolbarPlugin = useMemo(() => {
-    const Controls = (
-      <>
-        <UndoRedo />
-        <BlockTypeSelect />
-        <BoldItalicUnderlineToggles />
-        <CreateLink />
-        <EmbedQuestionAction />
-      </>
-    );
+    if (mode === "read") return null;
 
-    switch (mode) {
-      case "readOnly":
-        return null;
-      case "extended":
-        return toolbarPlugin({
-          toolbarContents: () => (
-            <DiffSourceToggleWrapper options={["rich-text", "source"]}>
-              {Controls}
-            </DiffSourceToggleWrapper>
-          ),
-        });
-      default:
-        return toolbarPlugin({
-          toolbarContents: () => <>{Controls}</>,
-        });
-    }
+    return toolbarPlugin({
+      toolbarContents: () => (
+        <DiffSourceToggleWrapper options={["rich-text", "source"]}>
+          <UndoRedo />
+          <Separator />
+          <BlockTypeSelect />
+          <BoldItalicUnderlineToggles />
+          <Separator />
+          <CreateLink />
+          <InsertImage />
+          <InsertThematicBreak />
+          <Separator />
+          <EmbedQuestionAction />
+        </DiffSourceToggleWrapper>
+      ),
+    });
   }, [mode]);
+
+  async function imageUploadHandler(image: File) {
+    // TODO: integrate BE endpoint once it's ready
+    // const formData = new FormData();
+    // formData.append("image", image);
+    // const response = await fetch("/uploads/new", {
+    //   method: "POST",
+    //   body: formData,
+    // });
+    // const json = (await response.json()) as { url: string };
+    // return json.url;
+
+    return Promise.resolve("https://picsum.photos/200/300");
+  }
 
   return (
     <MDXEditor
@@ -93,17 +124,15 @@ const MarkdownEditor: FC<Props> = ({ markdown, mode = "default" }) => {
       className={classNames("content markdown-editor", {
         "dark-theme": theme === "dark",
       })}
+      contentEditableClassName={classNames(
+        { "!p-0": mode === "read" },
+        contentEditableClassName
+      )}
       markdown={markdown}
-      onChange={console.log}
-      readOnly={mode === "readOnly"}
+      onChange={onChange}
+      readOnly={mode === "read"}
       plugins={[
-        headingsPlugin(),
-        listsPlugin(),
-        linkPlugin(),
-        quotePlugin(),
-        markdownShortcutPlugin(),
-        thematicBreakPlugin(),
-        linkDialogPlugin(),
+        ...baseFormattingPlugins,
         jsxPlugin({ jsxComponentDescriptors }),
         ...(editorDiffSourcePlugin ? [editorDiffSourcePlugin] : []),
         ...(editorToolbarPlugin ? [editorToolbarPlugin] : []),
