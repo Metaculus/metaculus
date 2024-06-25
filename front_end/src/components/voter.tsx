@@ -10,7 +10,7 @@ import { VoteDirection } from "@/types/votes";
 type Props = {
   className?: string;
   disabled?: boolean;
-  votes?: number;
+  votes?: number | null;
   userVote: VoteDirection;
   onVoteUp: () => void;
   onVoteDown?: () => void;
