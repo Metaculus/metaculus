@@ -1,0 +1,84 @@
+"use client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React, { FC, useCallback, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
+import { inviteProjectUsers } from "@/app/(main)/tournaments/[slug]/actions";
+import Button from "@/components/ui/button";
+import { FormError, Textarea } from "@/components/ui/form_field";
+import { ErrorResponse } from "@/types/fetch";
+
+type Props = {
+  projectId: number;
+  refreshMembers: () => Promise<void>;
+};
+
+const projectUserInviteSchema = z.object({
+  usernames: z.string().transform((val) => val.split("\n")),
+});
+type FormData = z.infer<typeof projectUserInviteSchema>;
+
+const MembersInvite: FC<Props> = ({ projectId, refreshMembers }) => {
+  const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    handleSubmit,
+    register,
+    reset,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(projectUserInviteSchema),
+  });
+
+  const onSubmit = useCallback(
+    async ({ usernames }: FormData) => {
+      setSubmitErrors([]);
+
+      setIsSubmitting(true);
+      const responses = await inviteProjectUsers(projectId, usernames);
+
+      if (responses && "errors" in responses && !!responses.errors) {
+        setSubmitErrors(responses.errors);
+      } else {
+        await refreshMembers();
+        reset();
+      }
+
+      setIsSubmitting(false);
+    },
+    [refreshMembers, reset, projectId]
+  );
+
+  return (
+    <div className="mt-12 rounded-t bg-gray-0 px-3 py-6 dark:bg-gray-0-dark">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <h2 className="mt-0">Invite Users to Project</h2>
+        <p>
+          You can invite new members by their usernames if they are already
+          registered.
+        </p>
+        <div className="grid grid-cols-5">
+          <div className="col-span-3">
+            <Textarea
+              style={{ height: "75px" }}
+              className="w-full rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic dark:border-gray-700-dark"
+              {...register("usernames")}
+            />
+            <span className="text-[9px]">
+              Multiple usernames can be added, separated by new lines.
+            </span>
+            <FormError errors={submitErrors} />
+          </div>
+        </div>
+        <div className="mt-8">
+          <Button variant="primary" type="submit" disabled={isSubmitting}>
+            Add Users to Project
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default MembersInvite;

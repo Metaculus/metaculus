@@ -9,8 +9,18 @@ urlpatterns = [
     path("projects/tournaments/<str:slug>", views.tournament_by_slug_api_view),
     path("projects/tags", views.tags_list_api_view),
     path(
-        "projects/<int:project_id>/invite",
-        views.project_invite_api_view,
-        name="project-invite",
+        "projects/<int:project_id>/members",
+        views.project_members_api_view,
+        name="project-members",
+    ),
+    path(
+        "projects/<int:project_id>/members/invite",
+        views.project_members_invite_api_view,
+        name="project-members-invite",
+    ),
+    path(
+        "projects/<int:project_id>/members/<int:user_id>",
+        views.project_members_manage_api_view,
+        name="project-members-manage",
     ),
 ]
