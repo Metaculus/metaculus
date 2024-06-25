@@ -20,7 +20,7 @@ const NotebookTile: FC<Props> = ({ notebook }) => {
     <div ref={ref}>
       {!!width && (
         <MarkdownEditor
-          mode="readOnly"
+          mode="read"
           markdown={getNotebookSummary(notebook.markdown, width, 40)}
           contentEditableClassName="!m-0 *:m-0 line-clamp-2 !text-sm !text-gray-800 !dark:text-gray-800-dark"
         />

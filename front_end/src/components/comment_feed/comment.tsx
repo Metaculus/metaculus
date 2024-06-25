@@ -30,9 +30,7 @@ const copyToClipboard = async (text: string) => {
 
 const Comment: FC<Props> = ({ comment, url, permissions }) => {
   const locale = useLocale();
-  const [commentMode, setCommentMode] = useState<"readOnly" | "default">(
-    "readOnly"
-  );
+  const [commentMode, setCommentMode] = useState<"read" | "write">("read");
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
 
   const { user } = useAuth();
@@ -48,7 +46,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
       id: "edit",
       name: "Edit",
       onClick: () => {
-        setCommentMode("default");
+        setCommentMode("write");
       },
     },
     {
@@ -120,10 +118,10 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
           }}
         />
       </div>
-      {commentMode == "default" && (
+      {commentMode == "write" && (
         <Button
           onClick={() => {
-            setCommentMode("readOnly");
+            setCommentMode("read");
             // Upload new `commentMarkdown` here
             // updateComment(comment.id, {text: commentMarkdown})
           }}

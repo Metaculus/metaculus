@@ -51,14 +51,14 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({ postData }) => {
         </Field>
 
         <MarkdownEditor
-          mode="extended"
+          mode="write"
           markdown={markdown}
           onChange={setMarkdown}
         />
       </div>
 
       <div className={classNames({ hidden: isEditing })}>
-        <MarkdownEditor mode="readOnly" markdown={markdown} />
+        <MarkdownEditor mode="read" markdown={markdown} />
       </div>
     </div>
   );
