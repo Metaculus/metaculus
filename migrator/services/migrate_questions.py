@@ -3,10 +3,11 @@ from datetime import datetime
 
 from dateutil.parser import parse as date_parse
 import django
+import html2text
 
 from utils.the_math.formulas import scale_location
 from migrator.utils import paginated_query
-from posts.models import Post
+from posts.models import Notebook, Post
 from questions.models import Question, Conditional, GroupOfQuestions
 
 
@@ -98,26 +99,37 @@ def create_question(question: dict, **kwargs) -> Question:
 
 def create_post(question: dict, **kwargs) -> Post:
     curation_status = Post.CurationStatus.DRAFT
-    if question["approved_by_id"] or (
-        question["approved_time"]
-        and question["approved_time"] < django.utils.timezone.now()
-    ) or (question["publish_time"] and question["publish_time"] < django.utils.timezone.now()):
-        curation_status = Post.CurationStatus.APPROVED
-    if question["close_time"] < django.utils.timezone.now() and (
-        (
+    if (
+        question["approved_by_id"]
+        or (
             question["approved_time"]
             and question["approved_time"] < django.utils.timezone.now()
         )
-        or question["approved_by_id"]
+        or (
+            question["publish_time"]
+            and question["publish_time"] < django.utils.timezone.now()
+        )
+    ):
+        curation_status = Post.CurationStatus.APPROVED
+    if (
+        question["close_time"]
+        and question["close_time"] < django.utils.timezone.now()
+        and (
+            (
+                question["approved_time"]
+                and question["approved_time"] < django.utils.timezone.now()
+            )
+            or question["approved_by_id"]
+        )
     ):
         curation_status = Post.CurationStatus.CLOSED
-    '''if question["resolve_time"] < django.utils.timezone.now() and (
+    """if question["resolve_time"] < django.utils.timezone.now() and (
         (
             question["approved_time"]
             and question["approved_time"] < django.utils.timezone.now()
         )
         or question["approved_by_id"]
-    ):'''
+    ):"""
     if question["resolution"] is not None:
         curation_status = Post.CurationStatus.RESOLVED
     if question["mod_status"] == "PENDING":
@@ -144,7 +156,9 @@ def create_post(question: dict, **kwargs) -> Post:
 
 
 def migrate_questions():
+    print("Migrating simple questions...")
     migrate_questions__simple()
+    print("Migrating composite questions...")
     migrate_questions__composite()
 
 
@@ -160,7 +174,7 @@ def migrate_questions__simple():
                 metac_question_question q
             LEFT JOIN
                 metac_question_option o ON q.id = o.question_id
-            WHERE type not in ('conditional_group', 'group') and group_id is null
+            WHERE type not in ('conditional_group', 'group', 'notebook', 'discussion', 'claim') and group_id is null
             GROUP BY
         q.id;"""
     ):
@@ -193,7 +207,7 @@ def migrate_questions__composite():
                                     metac_question_question q
                                 LEFT JOIN
                                     metac_question_option o ON q.id = o.question_id
-                                WHERE  type in ('conditional_group', 'group') or group_id is not null
+                                WHERE  type in ('conditional_group', 'group', 'notebook', 'discussion', 'claim') or group_id is not null
                                 
                                 GROUP BY q.id
                             ) q
@@ -211,6 +225,9 @@ def migrate_questions__composite():
             old_groups[old_question["id"]] = {**old_question, "children": []}
         else:
             old_groups[group_id]["children"].append(old_question)
+
+    print("Migrating notebooks")
+    migrate_questions__notebook(list(old_groups.values()))
 
     print("Migrating groups")
     migrate_questions__groups(list(old_groups.values()))
@@ -247,6 +264,45 @@ def migrate_questions__groups(root_questions: list[dict]):
 
     GroupOfQuestions.objects.bulk_create(groups)
     Question.objects.bulk_create(questions)
+    Post.objects.bulk_create(posts)
+
+
+def migrate_questions__notebook(root_questions: list[dict]):
+    """
+    Migrates Conditional Questions
+    """
+
+    notebooks = []
+    posts = []
+
+    """
+    For news we classify them with 3 special "new_thing" tags that we'll create to track these projects
+    @Hlib can you figure this out please?
+    Programs is project 2421
+    Research is 2423
+    Platform is 2424
+    """
+    for root_question in root_questions:
+        if root_question["type"] in ["notebook", "discussion", "claim"]:
+            if root_question["type"] == "notebook":
+                notebook_type = Notebook.NotebookType.NEWS
+            elif root_question["type"] == "discussion":
+                notebook_type = Notebook.NotebookType.DISCUSSION
+            elif root_question["type"] == "claim":
+                notebook_type = Notebook.NotebookType.PUBLIC_FIGURE
+            else:
+                raise Exception("Unknown notebook type")
+
+            markdown = html2text.html2text(root_question["description_html"])
+            notebooks.append(
+                Notebook(id=root_question["id"], markdown=markdown, type=notebook_type)
+            )
+            # Create post from the root question, but don't create a root question
+            posts.append(create_post(root_question, notebook_id=root_question["id"]))
+
+    print(f"Nr notebooks: {len(notebooks)}")
+    print(f"Nr notebook posts: {len(posts)}")
+    Notebook.objects.bulk_create(notebooks)
     Post.objects.bulk_create(posts)
 
 

@@ -55,21 +55,6 @@ class ProjectsQuerySet(models.QuerySet):
                 )
             )
 
-        # Generating Numeric representation of Permission types
-        # To be able just to sort to get the permission with the highest influence rate
-        qs = qs.annotate(
-            user_permission__numeric=models.Case(
-                *[
-                    models.When(
-                        user_permission=enum_value, then=models.Value(numeric_value)
-                    )
-                    for enum_value, numeric_value in ObjectPermission.get_numeric_representation().items()
-                ],
-                default=models.Value(None),
-                output_field=models.IntegerField(null=True),
-            )
-        )
-
         return qs
 
     def filter_permission(self, user: User = None):
@@ -77,25 +62,29 @@ class ProjectsQuerySet(models.QuerySet):
         Returns only allowed projects for the user
         """
 
-        return self.filter(
-            # If any project has permissions (null value indicates private project)
-            models.Q(default_permission__isnull=False)
-            | (
-                # Or user was given permissions to access the private project
-                models.Q(projectuserpermission__user_id=user.id if user else None)
-                & models.Q(projectuserpermission__permission__isnull=False)
-            )
+        return self.annotate_user_permission(user=user).filter(
+            user_permission__isnull=False
         )
 
 
 class Project(TimeStampedModel):
     class ProjectTypes(models.TextChoices):
+        SITE_MAIN = "site_main"
         TOURNAMENT = "tournament"
         QUESTION_SERIES = "question_series"
+        PERSONAL_PROJECT = "personal_project"
+
         CATEGORY = "category"
         TAG = "tag"
         TOPIC = "topic"
-        PERSONAL_LIST = "personal_list"
+
+        @classmethod
+        def can_have_permissions(cls, tp: "ProjectTypes"):
+            """
+            Detects whether this project type can have permission configuration
+            """
+
+            return tp not in [cls.CATEGORY, cls.TAG, cls.TOPIC]
 
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics"
@@ -128,15 +117,6 @@ class Project(TimeStampedModel):
         default=0,
     )
 
-    # Access
-    is_public = models.BooleanField(
-        default=True,
-        help_text=(
-            "Public projects are accessible to all users even if they're "
-            "not project members."
-        ),
-        db_index=True,
-    )
     is_active = models.BooleanField(
         default=True,
         help_text="Inactive projects are not accessible to all users",
@@ -186,7 +166,6 @@ class Project(TimeStampedModel):
     # Annotated fields
     posts_count: int = 0
     user_permission: ObjectPermission = None
-    user_permission__numeric: ObjectPermission = None
 
     class Meta:
         ordering = ("order",)

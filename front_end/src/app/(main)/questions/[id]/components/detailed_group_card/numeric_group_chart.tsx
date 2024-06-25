@@ -16,6 +16,7 @@ const NumericGroupChart: FC<Props> = ({ questions }) => {
     <FanChart
       options={getFanOptionsFromNumericGroup(questions)}
       yLabel={t("communityPredictionLabel")}
+      withTooltip
     />
   );
 };
