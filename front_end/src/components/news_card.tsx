@@ -1,0 +1,81 @@
+"use client";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { FC } from "react";
+
+const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
+  ssr: false,
+});
+import imagePlaceholder from "@/app/assets/images/tournament.webp";
+import useContainerSize from "@/hooks/use_container_size";
+import { PostWithNotebook } from "@/types/post";
+import { formatDate } from "@/utils/date_formatters";
+import { estimateReadingTime, getNotebookSummary } from "@/utils/questions";
+
+type Props = {
+  post: PostWithNotebook;
+};
+
+const NewsCard: FC<Props> = ({ post }) => {
+  const locale = useLocale();
+  const t = useTranslations();
+
+  const { ref, width } = useContainerSize<HTMLDivElement>();
+  const commentsCount = post.vote.score ?? 0;
+
+  return (
+    <div className="rounded bg-gray-0 dark:bg-gray-0-dark">
+      <Link
+        href={`/notebooks/${post.id}`}
+        className="flex flex-col items-stretch no-underline sm:h-64 sm:flex-row-reverse"
+      >
+        <Image
+          src={imagePlaceholder}
+          alt=""
+          placeholder={"blur"}
+          className="w-full object-cover max-sm:h-40 max-sm:rounded-t sm:w-60 sm:rounded-r"
+        />
+        <div className="flex flex-1 flex-col p-6 text-base">
+          <span className="mb-3 font-serif font-semibold capitalize text-blue-700 dark:text-blue-700-dark">
+            {post.notebook.type}
+          </span>
+          <h2 className="mt-0 line-clamp-2 font-serif text-2xl font-bold text-blue-900 dark:text-blue-900-dark">
+            {post.title}
+          </h2>
+          <div ref={ref} className="mb-3 h-[48px]">
+            {!!width && (
+              <MarkdownEditor
+                mode="readOnly"
+                markdown={getNotebookSummary(post.notebook.markdown, width, 48)}
+                contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark !p-0 *:m-0"
+              />
+            )}
+          </div>
+          <div className="mt-auto line-clamp-1 text-sm font-normal leading-tight text-gray-700 dark:text-gray-700-dark">
+            <span>{formatDate(locale, new Date(post.published_at))}</span>
+            <FooterDivider />
+            <span>by {post.author_username}</span>
+            <FooterDivider />
+            <span>
+              {`${commentsCount ? `${commentsCount} ` : ""} ${t("commentsWithCount", { count: commentsCount })}`}
+            </span>
+            <FooterDivider />
+            <span>
+              {t("estimatedReadingTime", {
+                minutes: estimateReadingTime(post.notebook.markdown),
+              })}
+            </span>
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
+};
+
+const FooterDivider = () => (
+  <span className="mx-2 text-gray-400 dark:text-gray-400-dark">•</span>
+);
+
+export default NewsCard;

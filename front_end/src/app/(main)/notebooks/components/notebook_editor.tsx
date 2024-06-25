@@ -1,9 +1,11 @@
 "use client";
 
-import { notFound } from "next/navigation";
+import dynamic from "next/dynamic";
 import React, { useState } from "react";
 
-import MarkdownEditor from "@/components/markdown_editor";
+const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
+  ssr: false,
+});
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
 import { PostWithForecasts } from "@/types/post";
