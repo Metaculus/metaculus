@@ -30,10 +30,20 @@ def create_project(project_obj: dict) -> Project:
         "MP": Project.ProjectTypes.SITE_MAIN,
     }.get(project_obj["type"])
 
+    leaderboard_type = None
+    if project_type in ["TO", "QS"]:
+        if project_obj["score_type"] == "PEER_SCORE":
+            leaderboard_type = Project.LeaderboardTypes.PEER
+        elif project_obj["score_type"] == "LEGACY":
+            leaderboard_type = Project.LeaderboardTypes.RELATIVE_LEGACY
+        elif project_obj["score_type"] == "SPOT_PEER_SCORE":
+            leaderboard_type = Project.LeaderboardTypes.SPOT_PEER
+
     project = Project(
         # We keep original IDS for old projects
         id=project_obj["id"],
         type=project_type,
+        leaderboard_type=leaderboard_type,
         name=project_obj["name"],
         slug=project_obj["slug"],
         subtitle=project_obj["subtitle"],
