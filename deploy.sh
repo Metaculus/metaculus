@@ -15,6 +15,7 @@ cd /home/ubuntu/rewrite;
 git fetch origin;
 git reset --hard origin/main;
 poetry install;
+poetry update;
 
 cd front_end;
 npm i;
@@ -28,7 +29,7 @@ export ALPHA_ACCESS_TOKEN="the open source rewrite";
 tmux new-session -d -s web_backend;
 tmux send-keys -t web_backend 'poetry run python3 manage.py runserver' C-m;
 tmux new-session -d -s dramatiq;
-tmux send-keys -t dramatiq 'python manage.py rundramatiq --processes 1 --threads 1' C-m;
+tmux send-keys -t dramatiq 'poetry run python3 manage.py rundramatiq --processes 1 --threads 1' C-m;
 
 cd front_end;
 tmux new-session -d -s web_frontend;
