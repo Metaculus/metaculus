@@ -14,9 +14,13 @@ const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
 
 interface NotebookEditorProps {
   postData: PostWithNotebook;
+  contentId?: string;
 }
 
-const NotebookEditor: React.FC<NotebookEditorProps> = ({ postData }) => {
+const NotebookEditor: React.FC<NotebookEditorProps> = ({
+  postData,
+  contentId,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
 
   const [title, setTitle] = useState(postData.title);
@@ -57,7 +61,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({ postData }) => {
         />
       </div>
 
-      <div className={classNames({ hidden: isEditing })}>
+      <div className={classNames({ hidden: isEditing })} id={contentId}>
         <MarkdownEditor mode="read" markdown={markdown} />
       </div>
     </div>
