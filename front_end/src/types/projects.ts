@@ -30,6 +30,7 @@ export type Tag = {
 export enum TournamentType {
   QuestionSeries = "question_series",
   Tournament = "tournament",
+  GlobalLeaderboard = "global_leaderboard",
 }
 
 export enum TournamentsSortBy {
@@ -43,22 +44,25 @@ export type TournamentMember = {
   permission: ProjectPermissions;
 };
 
-export type Tournament = {
+export type ProjectWithLeaderboard = {
   id: number;
   type: TournamentType;
   name: string;
+  start_date: string;
+  close_date: string;
+  is_ongoing: boolean;
+  created_at: string;
+  edited_at: string;
+  user_permission: ProjectPermissions;
+};
+
+export type Tournament = ProjectWithLeaderboard & {
   slug: string | null;
   subtitle: string;
   description: string;
   header_image: string;
   header_logo: string;
   prize_pool: string | null;
-  start_date: string;
-  close_date: string;
   meta_description: string;
-  is_ongoing: boolean;
-  created_at: string;
-  edited_at: string;
   posts_count: number;
-  user_permission: ProjectPermissions;
 };
