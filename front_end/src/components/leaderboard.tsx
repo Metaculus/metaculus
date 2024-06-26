@@ -1,4 +1,3 @@
-import { re } from "mathjs";
 import { FC } from "react";
 
 import LeaderboardApi from "@/services/leaderboard";
