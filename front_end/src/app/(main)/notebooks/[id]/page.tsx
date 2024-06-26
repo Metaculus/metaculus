@@ -5,7 +5,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 
+import NotebookContentSections from "@/app/(main)/notebooks/components/notebook_content_sections";
 import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
+import {
+  NOTEBOOK_COMMENTS_TITLE,
+  NOTEBOOK_CONTENT_SECTION,
+  NOTEBOOK_TITLE,
+} from "@/app/(main)/notebooks/constants/page_sections";
 import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import CommentFeed from "@/components/comment_feed";
 import Button from "@/components/ui/button";
@@ -40,7 +46,10 @@ export default async function IndividualNotebook({
         alt=""
         placeholder={"blur"}
       />
-      <h1 className="mb-4 mt-0 font-serif text-3xl leading-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl sm:leading-tight">
+      <h1
+        id={NOTEBOOK_TITLE}
+        className="mb-4 mt-0 font-serif text-3xl leading-tight text-blue-900 dark:text-blue-900-dark sm:text-5xl sm:leading-tight"
+      >
         {postData.title}
       </h1>
       <div className="flex justify-between gap-2">
@@ -94,9 +103,14 @@ export default async function IndividualNotebook({
       <hr className="my-4 border-gray-400 dark:border-gray-400-dark" />
 
       <div className="block md:flex md:gap-8">
-        <div className="w-full md:mt-3 md:min-w-56 md:max-w-56">TODO</div>
+        <div className="inline w-full md:mt-3 md:min-w-56 md:max-w-56">
+          <NotebookContentSections commentsCount={postData.vote.score ?? 0} />
+        </div>
         <div className="w-full">
-          <NotebookEditor postData={postData as PostWithNotebook} />
+          <NotebookEditor
+            postData={postData as PostWithNotebook}
+            contentId={NOTEBOOK_CONTENT_SECTION}
+          />
           {!!postData.projects.category?.length && (
             <div>
               <div>{t("categories") + ":"}</div>
@@ -113,7 +127,17 @@ export default async function IndividualNotebook({
             </div>
           )}
 
-          <CommentFeed initialComments={commentsData} post={postData} />
+          <hr className="my-6 border-gray-400 dark:border-gray-400-dark" />
+
+          <div>
+            <h2
+              id={NOTEBOOK_COMMENTS_TITLE}
+              className="mb-1 mt-0 flex scroll-mt-16 items-baseline justify-between break-anywhere"
+            >
+              {t("comments")}
+            </h2>
+            <CommentFeed initialComments={commentsData} post={postData} />
+          </div>
         </div>
       </div>
     </main>
