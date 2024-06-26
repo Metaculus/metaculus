@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
@@ -77,6 +79,34 @@ class Question(TimeStampedModel):
 
         if self.group:
             return self.group.post
+
+    def get_global_leaderboard_dates(self) -> tuple[datetime, datetime] | None:
+        # returns the global leaderboard dates that this question counts for
+        from projects.models import get_global_leaderboard_dates
+
+        forecast_horizon_start = self.get_post().published_at
+        forecast_horizon_end = self.closed_at
+        global_leaderboard_dates = get_global_leaderboard_dates()
+
+        # iterate over the global leaderboard dates in reverse order
+        # to find the shortest interval that this question counts for
+        shortest_window = (None, None)
+        for gl_start, gl_end in global_leaderboard_dates[::-1]:
+            if forecast_horizon_start < gl_start or gl_end < forecast_horizon_start:
+                continue
+            if forecast_horizon_end > gl_end + timedelta(days=3):
+                continue
+            if self.resolved_at > gl_end + timedelta(days=100):
+                # we allow for a 100 day buffer after the global leaderboard closes
+                # for questions to be resolved
+                continue
+            if shortest_window[0] is None:
+                shortest_window = (gl_start, gl_end)
+            if gl_end - gl_start < shortest_window[1] - shortest_window[0]:
+                shortest_window = (gl_start, gl_end)
+        if shortest_window[0]:
+            return shortest_window
+        return None
 
 
 class Conditional(TimeStampedModel):

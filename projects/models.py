@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from django.db import models
 from django.db.models import Count
 from django.db.models.functions import Coalesce
@@ -71,6 +73,7 @@ class Project(TimeStampedModel):
     class ProjectTypes(models.TextChoices):
         SITE_MAIN = "site_main"
         TOURNAMENT = "tournament"
+        GLOBAL_LEADERBOARD = "global_leaderboard"
         QUESTION_SERIES = "question_series"
         PERSONAL_PROJECT = "personal_project"
 
@@ -94,6 +97,21 @@ class Project(TimeStampedModel):
         max_length=32,
         choices=ProjectTypes.choices,
         db_index=True,
+    )
+
+    class LeaderboardTypes(models.TextChoices):
+        RELATIVE_LEGACY = "relative_legacy"
+        PEER = "peer"
+        BASELINE = "baseline"
+        SPOT_PEER = "spot_peer"
+        SPOT_BASELINE = "spot_baseline"
+        COMMENT_INSIGHT = "comment_insight"
+        QUESTION_WRITING = "question_writing"
+
+    # Projects with leaderboards have a default leaderboard type to denote
+    # which is the primary way to rank users on the Project
+    leaderboard_type = models.CharField(
+        max_length=200, choices=LeaderboardTypes.choices, null=True
     )
 
     name = models.CharField(max_length=200)
@@ -181,6 +199,7 @@ class Project(TimeStampedModel):
     def is_ongoing(self):
         if self.type in (
             self.ProjectTypes.TOURNAMENT,
+            self.ProjectTypes.GLOBAL_LEADERBOARD,
             self.ProjectTypes.QUESTION_SERIES,
         ):
             return self.close_date > timezone.now() if self.close_date else True
@@ -202,3 +221,54 @@ class ProjectUserPermission(TimeStampedModel):
                 fields=["user_id", "project_id"],
             ),
         ]
+
+
+def get_global_leaderboard_dates() -> list[tuple[datetime, datetime]]:
+    # Returns the start and end dates for each global leaderboard
+    # This will have to be updated every year
+    utc = timezone.utc
+    return [
+        # one year intervals
+        (datetime(2016, 1, 1, tzinfo=utc), datetime(2017, 1, 1, tzinfo=utc)),
+        (datetime(2017, 1, 1, tzinfo=utc), datetime(2018, 1, 1, tzinfo=utc)),
+        (datetime(2018, 1, 1, tzinfo=utc), datetime(2019, 1, 1, tzinfo=utc)),
+        (datetime(2019, 1, 1, tzinfo=utc), datetime(2020, 1, 1, tzinfo=utc)),
+        (datetime(2020, 1, 1, tzinfo=utc), datetime(2021, 1, 1, tzinfo=utc)),
+        (datetime(2021, 1, 1, tzinfo=utc), datetime(2022, 1, 1, tzinfo=utc)),
+        (datetime(2022, 1, 1, tzinfo=utc), datetime(2023, 1, 1, tzinfo=utc)),
+        (datetime(2023, 1, 1, tzinfo=utc), datetime(2024, 1, 1, tzinfo=utc)),
+        (datetime(2024, 1, 1, tzinfo=utc), datetime(2025, 1, 1, tzinfo=utc)),
+        (datetime(2025, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
+        # two year intervals
+        (datetime(2016, 1, 1, tzinfo=utc), datetime(2018, 1, 1, tzinfo=utc)),
+        (datetime(2018, 1, 1, tzinfo=utc), datetime(2020, 1, 1, tzinfo=utc)),
+        (datetime(2020, 1, 1, tzinfo=utc), datetime(2022, 1, 1, tzinfo=utc)),
+        (datetime(2022, 1, 1, tzinfo=utc), datetime(2024, 1, 1, tzinfo=utc)),
+        (datetime(2024, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
+        # five year intervals
+        (datetime(2016, 1, 1, tzinfo=utc), datetime(2021, 1, 1, tzinfo=utc)),
+        (datetime(2021, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
+        # ten year intervals
+        (datetime(2016, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
+    ]
+
+
+def get_global_leaderboard_dates_and_score_types() -> (
+    list[tuple[datetime, datetime, str]]
+):
+    # Returns the entire set of global leaderboards
+    dates = get_global_leaderboard_dates()
+    global_leaderboards = []
+    for start, end in dates:
+        global_leaderboards.append((start, end, Project.LeaderboardTypes.PEER))
+        global_leaderboards.append((start, end, Project.LeaderboardTypes.SPOT_PEER))
+        global_leaderboards.append((start, end, Project.LeaderboardTypes.BASELINE))
+        global_leaderboards.append((start, end, Project.LeaderboardTypes.SPOT_BASELINE))
+        if end.year - start.year == 1:
+            global_leaderboards.append(
+                (start, end, Project.LeaderboardTypes.COMMENT_INSIGHT)
+            )
+            global_leaderboards.append(
+                (start, end, Project.LeaderboardTypes.QUESTION_WRITING)
+            )
+    return global_leaderboards
