@@ -33,7 +33,9 @@ class Score(TimeStampedModel):
 
 class LeaderboardEntry(TimeStampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="leaderboard_entries"
+    )
     leaderboard_type = models.CharField(
         max_length=200, choices=Project.LeaderboardTypes.choices
     )
