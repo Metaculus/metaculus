@@ -76,7 +76,7 @@ export async function signUpAction(
       validatedFields.data.username,
       validatedFields.data.password,
       {
-        "cf-turnstile-response": headersList.get("cf-turnstile-response"),
+        "cf-turnstile-response": validatedFields.data.turnstileToken,
         "CF-Connecting-IP": headersList.get("CF-Connecting-IP"),
       }
     );
