@@ -2,6 +2,8 @@
 set -x;
 source /home/ubuntu/.bashrc;
 
+sudo fuser -k 3000/tcp;
+sudo fuser -k 8000/tcp;
 
 tmux kill-session -t web_backend;
 tmux kill-session -t web_frontend;
