@@ -23,7 +23,7 @@ from projects.services import (
     get_project_permission_for_user,
     invite_user_to_project,
 )
-from scoring.serializers import LeaderboardEntrySerializer
+from scoring.serializers import LeaderboardSerializer
 from users.services import get_users_by_usernames
 
 
@@ -148,11 +148,8 @@ def project_leaderboard(
     permission = get_project_permission_for_user(obj, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    leaderboard_type = leaderboard_type or obj.leaderboard_type
-    leaderboard_entries = obj.leaderboard_entries.filter(
-        leaderboard_type=leaderboard_type
-    ).order_by("-score")
-    return Response(LeaderboardEntrySerializer(leaderboard_entries, many=True).data)
+    context = {"leaderboard_type": leaderboard_type or obj.leaderboard_type}
+    return Response(LeaderboardSerializer(obj, context=context).data)
 
 
 @api_view(["GET"])
