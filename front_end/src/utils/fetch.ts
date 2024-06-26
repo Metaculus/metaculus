@@ -48,10 +48,16 @@ const defaultOptions: FetchOptions = {
   },
 };
 
+type FetchConfig = {
+  emptyContentType?: boolean;
+};
 const appFetch = async <T>(
   url: string,
-  options: FetchOptions = {}
+  options: FetchOptions = {},
+  config?: FetchConfig
 ): Promise<T> => {
+  const { emptyContentType = false } = config ?? {};
+
   const authToken = getServerSession();
   const alphaToken = getAlphaTokenSession();
 
@@ -77,6 +83,13 @@ const appFetch = async <T>(
         : {}),
     },
   };
+  if (
+    emptyContentType &&
+    !!finalOptions.headers &&
+    "Content-Type" in finalOptions.headers
+  ) {
+    delete finalOptions.headers["Content-Type"];
+  }
 
   try {
     const response = await fetch(finalUrl, finalOptions);
@@ -96,11 +109,17 @@ const post = async <T, B = Record<string, any>>(
   body: B,
   options: FetchOptions = {}
 ): Promise<T> => {
-  return appFetch<T>(url, {
-    ...options,
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  const isFormData = body instanceof FormData;
+
+  return appFetch<T>(
+    url,
+    {
+      ...options,
+      method: "POST",
+      body: isFormData ? body : JSON.stringify(body),
+    },
+    { emptyContentType: isFormData }
+  );
 };
 
 const put = async <T, B>(
