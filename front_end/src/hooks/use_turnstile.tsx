@@ -16,14 +16,14 @@ interface WindowTurnstile extends Window {
   initCallback?: (() => void) | null;
 }
 
-const useTurnstileCaptcha = () => {
+const useTurnstileWidget = () => {
   const windowTurnstile =
     typeof window !== "undefined" ? (window as WindowTurnstile) : undefined;
 
-  const [token, setToken] = useState<string>();
+  const [turnstileToken, setTurnstileToken] = useState<string>();
   const [widgetId, setWidgetId] = useState<string>();
 
-  const turnstileContainer = useMemo(
+  const turnstileWidget = useMemo(
     () =>
       !!TURNSTILE_SITE_KEY ? (
         <>
@@ -43,7 +43,7 @@ const useTurnstileCaptcha = () => {
     if (windowTurnstile && windowTurnstile?.turnstile && TURNSTILE_SITE_KEY) {
       const id = windowTurnstile.turnstile.render("#turnstile-container", {
         sitekey: TURNSTILE_SITE_KEY,
-        callback: (token) => setToken(token),
+        callback: (turnstileToken) => setTurnstileToken(turnstileToken),
       });
 
       setWidgetId(id);
@@ -62,9 +62,15 @@ const useTurnstileCaptcha = () => {
 
   useEffect(() => {
     initCallback();
-  }, [turnstileContainer]);
+  }, [turnstileWidget]);
 
-  return { turnstileContainer, token };
+  const turnstileResetWidget = useCallback(() => {
+    if (windowTurnstile && windowTurnstile?.turnstile && widgetId) {
+      windowTurnstile.turnstile.reset(widgetId);
+    }
+  }, [widgetId]);
+
+  return { turnstileWidget, turnstileToken, turnstileResetWidget };
 };
 
-export default useTurnstileCaptcha;
+export default useTurnstileWidget;
