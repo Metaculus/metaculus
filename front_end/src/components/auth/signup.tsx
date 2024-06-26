@@ -16,6 +16,7 @@ import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
+import useTurnstileCaptcha from "@/hooks/user_turnstile";
 
 type SignInModalType = {
   isOpen: boolean;
@@ -27,6 +28,7 @@ const SignUpModal: FC<SignInModalType> = ({
   onClose,
 }: SignInModalType) => {
   const t = useTranslations();
+  const { turnstileContainer } = useTurnstileCaptcha();
   const [isPending, startTransition] = useTransition();
   const { setCurrentModal } = useModal();
   const { register, watch } = useForm<SignUpSchema>({
@@ -112,6 +114,8 @@ const SignUpModal: FC<SignInModalType> = ({
             >
               {t("createAnAccount")}
             </Button>
+
+            {turnstileContainer}
           </form>
           <div className="sm:w-80 sm:pl-4">
             <ul className="hidden leading-tight sm:block">

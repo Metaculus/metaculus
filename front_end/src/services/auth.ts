@@ -50,10 +50,16 @@ class AuthApi {
     );
   }
 
-  static async signUp(email: string, username: string, password: string) {
+  static async signUp(
+    email: string,
+    username: string,
+    password: string,
+    turnstileHeaders: Record<string, any>
+  ) {
     return post<null, { email: string; username: string; password: string }>(
       "/auth/signup",
-      { email, username, password }
+      { email, username, password },
+      { headers: turnstileHeaders }
     );
   }
 
