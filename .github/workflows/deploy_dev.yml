@@ -22,8 +22,7 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
 
     - name: Run deployment script on dev server
-      run:
-      - |
+      run: |
         ssh -o StrictHostKeyChecking=no ubuntu@54.175.13.98 << 'EOF'
         bash -il << 'ENDBASH'
         echo "Starting interactive shell"
