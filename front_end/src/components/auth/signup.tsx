@@ -16,7 +16,7 @@ import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
-import useTurnstileCaptcha from "@/hooks/user_turnstile";
+import useTurnstileWidget from "@/hooks/use_turnstile";
 
 type SignInModalType = {
   isOpen: boolean;
@@ -28,7 +28,8 @@ const SignUpModal: FC<SignInModalType> = ({
   onClose,
 }: SignInModalType) => {
   const t = useTranslations();
-  const { turnstileContainer, token: turnstileToken } = useTurnstileCaptcha();
+  const { turnstileWidget, turnstileToken, turnstileResetWidget } =
+    useTurnstileWidget();
   const [isPending, startTransition] = useTransition();
   const { setCurrentModal } = useModal();
   const { register, watch } = useForm<SignUpSchema>({
@@ -39,13 +40,19 @@ const SignUpModal: FC<SignInModalType> = ({
     null
   );
   useEffect(() => {
-    if (state && !("errors" in state)) {
+    if (!state) {
+      return;
+    }
+
+    turnstileResetWidget();
+
+    if (!("errors" in state)) {
       setCurrentModal({
         type: "signupSuccess",
         data: { email: watch("email"), username: watch("username") },
       });
     }
-  }, [setCurrentModal, watch, state]);
+  }, [turnstileResetWidget, setCurrentModal, watch, state]);
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
@@ -125,7 +132,7 @@ const SignUpModal: FC<SignInModalType> = ({
               />
               <FormError errors={state?.errors} />
             </div>
-            {turnstileContainer}
+            {turnstileWidget}
           </form>
           <div className="sm:w-80 sm:pl-4">
             <ul className="hidden leading-tight sm:block">
