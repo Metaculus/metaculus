@@ -1,13 +1,10 @@
 "use client";
 
-import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
 
 import { approvePost, draftPost } from "../../actions";
 
-export default async function Modbox({ post }: { post: PostWithForecasts }) {
-  const { user } = useAuth();
-
+export default function Modbox({ post }: { post: PostWithForecasts }) {
   return (
     <div className="mb-2 mt-2 flex flex-row items-center gap-4">
       <button

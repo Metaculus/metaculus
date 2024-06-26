@@ -16,7 +16,12 @@ type Props = {
 const PostCard: FC<Props> = ({ post }) => {
   return (
     <PostCardErrorBoundary>
-      <BasicPostCard post={post} hideTitle={!!post.conditional}>
+      <BasicPostCard
+        post={post}
+        hideTitle={!!post.conditional}
+        borderVariant={post.notebook ? "highlighted" : "regular"}
+        borderColor={post.notebook ? "purple" : "blue"}
+      >
         <div className="mb-0.5 pt-1.5">
           {!!post?.question && (
             <QuestionChartTile

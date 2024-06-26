@@ -94,6 +94,10 @@ class PostsApi {
   ): Promise<VoteResponse> {
     return await post<VoteResponse>(`/posts/${id}/vote`, { direction });
   }
+
+  static async uploadImage(formData: FormData): Promise<{ url: string }> {
+    return await post<{ url: string }>("/posts/upload-image", formData);
+  }
 }
 
 export default PostsApi;
