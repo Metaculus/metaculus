@@ -31,7 +31,7 @@ const QuestionCarousel: FC<Props> = ({ postIds }) => {
       setData(postsResponse);
     };
     fetchData();
-  }, []);
+  }, [postIds]);
 
   return (
     <Carousel

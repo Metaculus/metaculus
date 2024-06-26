@@ -28,6 +28,7 @@ import React, { FC, useMemo, useRef } from "react";
 
 import "@mdxeditor/editor/style.css";
 
+import { uploadImage } from "@/app/(main)/questions/actions";
 import useAppTheme from "@/hooks/use_app_theme";
 
 import {
@@ -105,17 +106,15 @@ const MarkdownEditor: FC<Props> = ({
   }, [mode]);
 
   async function imageUploadHandler(image: File) {
-    // TODO: integrate BE endpoint once it's ready
-    // const formData = new FormData();
-    // formData.append("image", image);
-    // const response = await fetch("/uploads/new", {
-    //   method: "POST",
-    //   body: formData,
-    // });
-    // const json = (await response.json()) as { url: string };
-    // return json.url;
-
-    return Promise.resolve("https://picsum.photos/200/300");
+    const formData = new FormData();
+    formData.append("image", image);
+    const response = await uploadImage(formData);
+    if ("errors" in response) {
+      console.error(response.errors);
+      return Promise.reject(response.errors);
+    } else {
+      return response.url;
+    }
   }
 
   return (
