@@ -1,6 +1,7 @@
 import { faComment as faRegularComment } from "@fortawesome/free-regular-svg-icons";
 import { faComment as faSolidComment } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -10,9 +11,14 @@ import { abbreviatedNumber } from "@/utils/number_formatters";
 type Props = {
   url: string;
   newCommentsCount: number;
+  commentColor?: "blue" | "purple";
 };
 
-const CommentStatus: FC<Props> = ({ newCommentsCount, url }) => {
+const CommentStatus: FC<Props> = ({
+  newCommentsCount,
+  url,
+  commentColor = "blue",
+}) => {
   const t = useTranslations();
   const formattedCount = abbreviatedNumber(newCommentsCount, 2, 0);
 
@@ -26,7 +32,12 @@ const CommentStatus: FC<Props> = ({ newCommentsCount, url }) => {
         <FontAwesomeIcon
           icon={faSolidComment}
           size="lg"
-          className="text-blue-500 dark:text-blue-500-dark"
+          className={classNames(
+            {
+              blue: "text-blue-500 dark:text-blue-500-dark",
+              purple: "text-purple-500 dark:text-purple-500",
+            }[commentColor]
+          )}
         />
       ) : (
         <FontAwesomeIcon
