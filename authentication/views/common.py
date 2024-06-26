@@ -23,6 +23,7 @@ from authentication.services import (
 )
 from users.models import User
 from users.serializers import UserPrivateSerializer
+from utils.cloudflare import validate_turnstile_from_request
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,9 @@ def login_api_view(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def signup_api_view(request):
+    # Validating captcha
+    validate_turnstile_from_request(request)
+
     serializer = SignupSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
