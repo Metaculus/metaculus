@@ -4,7 +4,7 @@ from projects.models import Project
 from questions.models import Question
 from scoring.models import Score
 from scoring.score_math import evaluate_question
-from scoring.leaderboard_math import evaluate_project_leaderboard
+from scoring.leaderboard_math import evaluate_score_based_leaderboard
 from utils.the_math.formulas import string_location_to_bucket_index
 
 
