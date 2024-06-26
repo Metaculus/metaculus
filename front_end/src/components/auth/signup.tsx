@@ -14,8 +14,9 @@ import { SignUpSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
-import { Input } from "@/components/ui/form_field";
+import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
+import useTurnstileCaptcha from "@/hooks/user_turnstile";
 
 type SignInModalType = {
   isOpen: boolean;
@@ -27,6 +28,7 @@ const SignUpModal: FC<SignInModalType> = ({
   onClose,
 }: SignInModalType) => {
   const t = useTranslations();
+  const { turnstileContainer, token: turnstileToken } = useTurnstileCaptcha();
   const [isPending, startTransition] = useTransition();
   const { setCurrentModal } = useModal();
   const { register, watch } = useForm<SignUpSchema>({
@@ -70,14 +72,16 @@ const SignUpModal: FC<SignInModalType> = ({
             }}
             className="flex flex-col gap-4 border-gray-300 dark:border-gray-700-dark sm:w-80 sm:border-r sm:pr-4"
           >
-            <Input
-              autoComplete="username"
-              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-              placeholder={t("registrationUsernamePlaceholder")}
-              type="text"
-              errors={state?.errors}
-              {...register("username")}
-            />
+            <div>
+              <Input
+                autoComplete="username"
+                className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+                placeholder={t("registrationUsernamePlaceholder")}
+                type="text"
+                errors={state?.errors}
+                {...register("username")}
+              />
+            </div>
             <div>
               <Input
                 autoComplete="new-password"
@@ -96,22 +100,32 @@ const SignUpModal: FC<SignInModalType> = ({
                 {...register("passwordAgain")}
               />
             </div>
-            <Input
-              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-              placeholder={t("registrationEmailPlaceholder")}
-              type="email"
-              errors={state?.errors}
-              {...register("email")}
-            />
-            <div className="text-xs text-red-500 dark:text-red-500-dark"></div>
-            <Button
-              variant="primary"
-              className="w-full"
-              type="submit"
-              disabled={isPending}
-            >
-              {t("createAnAccount")}
-            </Button>
+            <div>
+              <Input
+                className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+                placeholder={t("registrationEmailPlaceholder")}
+                type="email"
+                errors={state?.errors}
+                {...register("email")}
+              />
+            </div>
+            <div>
+              <Button
+                variant="primary"
+                className="w-full"
+                type="submit"
+                disabled={isPending}
+              >
+                {t("createAnAccount")}
+              </Button>
+              <input
+                type="hidden"
+                defaultValue={turnstileToken}
+                {...register("turnstileToken")}
+              />
+              <FormError errors={state?.errors} />
+            </div>
+            {turnstileContainer}
           </form>
           <div className="sm:w-80 sm:pl-4">
             <ul className="hidden leading-tight sm:block">
