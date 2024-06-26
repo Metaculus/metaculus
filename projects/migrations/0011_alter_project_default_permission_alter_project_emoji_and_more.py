@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects', '0010_remove_project_is_public_alter_project_type'),
+        ("projects", "0010_remove_project_is_public_alter_project_type"),
     ]
 
     operations = [

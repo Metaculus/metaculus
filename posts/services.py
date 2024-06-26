@@ -188,7 +188,4 @@ def get_post_permission_for_user(post: Post, user: User = None) -> ObjectPermiss
         .values_list("user_permission", flat=True)
         .get(id=post.id)
     )
-    if perm == None:
-        return ObjectPermission.NONE
-    else:
-        return perm
+    return perm
