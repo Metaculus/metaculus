@@ -61,6 +61,15 @@ class ProjectsApi {
     }
   }
 
+  static async getProjectLeaderboard(
+    projectId: number,
+    leaderboardType: string | null = null
+  ): Promise<Response> {
+    return get<Response>(`/projects/${projectId}/leaderboard/`, {
+      ...(leaderboardType ? { leaderboard_type: leaderboardType } : {}),
+    });
+  }
+
   static async inviteUsers(
     projectId: number,
     usernames: string[]
