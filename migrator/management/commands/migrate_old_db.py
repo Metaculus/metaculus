@@ -11,11 +11,11 @@ from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
 from migrator.utils import reset_sequence
 
-from migrator.services.scoring import score_questions
+from migrator.services.migrate_scoring import score_questions
 from migrator.services.migrate_leaderboards import (
     create_global_leaderboards,
     populate_global_leaderboards,
-    populate_project_leaderboards,
+    # populate_project_leaderboards,
 )
 
 
