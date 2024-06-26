@@ -132,3 +132,15 @@ export async function updateNotebook(
 
   return response;
 }
+
+export async function uploadImage(formData: FormData) {
+  try {
+    return await PostsApi.uploadImage(formData);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
