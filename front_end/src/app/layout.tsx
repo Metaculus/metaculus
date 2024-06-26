@@ -3,12 +3,10 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
-import { headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { ThemeProvider } from "next-themes";
 
-import Header from "@/app/(main)/components/header";
 import GlobalModals from "@/components/global_modals";
 import AuthProvider from "@/contexts/auth_context";
 import ModalProvider from "@/contexts/modal_context";
@@ -106,9 +104,8 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   const user = await ProfileApi.getMyProfile();
-  const currentUrl = new URL(headers().get("x-url")!);
   const socialProviders = await AuthApi.getSocialProviders(
-    `${currentUrl.origin}/accounts/social`
+    `${process.env.APP_URL}/accounts/social`
   );
 
   return (
