@@ -93,6 +93,7 @@ export const EmbedQuestionAction: FC = () => {
       <EmbedQuestionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onQuestionSelect={handleSelectQuestion}
       />
     </>
   );
