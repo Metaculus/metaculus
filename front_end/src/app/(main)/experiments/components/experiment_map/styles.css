@@ -1,0 +1,16 @@
+.mapStroke {
+  @apply stroke-blue-900 dark:stroke-blue-900-dark;
+}
+
+.mapLabelText {
+  @apply fill-white stroke-black stroke-3 font-sans;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  font-size: 13px;
+  paint-order: stroke;
+}
+
+.hoveredMapArea {
+  @apply stroke-blue-900 stroke-3 dark:stroke-blue-900;
+  transition: stroke-width 0.2s ease;
+}

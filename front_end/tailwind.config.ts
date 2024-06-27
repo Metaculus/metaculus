@@ -41,6 +41,9 @@ const config: Config = {
         mono: ['"Ubuntu mono"', ...defaultTheme.fontFamily.mono],
         "alternate-gothic": "var(--font-alternate-gothic-no-1-d)",
       },
+      strokeWidth: {
+        "3": "3px",
+      },
     },
   },
   plugins: [
