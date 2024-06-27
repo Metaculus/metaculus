@@ -5,4 +5,4 @@ from users.models import User
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    search_fields = ["username"]
+    search_fields = ["username", "email", "pk"]
