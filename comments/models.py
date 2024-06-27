@@ -3,7 +3,7 @@ from django.db.models import Sum
 
 from posts.models import Post
 from projects.models import Project
-from questions.models import Question, Forecast
+from questions.models import Forecast
 from users.models import User
 
 
@@ -33,6 +33,7 @@ class Comment(models.Model):
         Forecast, on_delete=models.SET_NULL, null=True
     )
     is_private = models.BooleanField(default=False)
+    edit_history = models.JSONField(default=list, null=False)
 
     # annotated fields
     vote_score: int = 0
