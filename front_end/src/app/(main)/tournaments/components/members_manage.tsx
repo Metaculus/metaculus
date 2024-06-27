@@ -8,7 +8,7 @@ import {
 } from "@/app/(main)/tournaments/[slug]/actions";
 import Button from "@/components/ui/button";
 import Hr from "@/components/ui/hr";
-import Select from "@/components/ui/select";
+import Listbox from "@/components/ui/listbox";
 import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
 import { TournamentMember } from "@/types/projects";
@@ -130,7 +130,7 @@ const UsersManage: FC<Props> = ({
               <span className="font-bold">{editingMember.user.username}</span>
             </div>
             <div className="my-2 w-fit">
-              <Select
+              <Listbox
                 className="rounded-full border border-solid !border-gray-700"
                 options={availablePermissions}
                 onChange={(value) =>
