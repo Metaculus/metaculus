@@ -29,7 +29,7 @@ def get_geometric_means(
             f.get_pmf()
             for f in forecasts
             if f.start_time.timestamp() <= timestep
-            and (f.end_time is None or f.end_time.timestamp() >= timestep)
+            and (f.end_time is None or f.end_time.timestamp() > timestep)
         ]
         if not prediction_values:
             continue  # TODO: doesn't account for going from 1 active forecast to 0
@@ -57,7 +57,7 @@ def get_medians(
             f.get_pmf()
             for f in forecasts
             if f.start_time.timestamp() <= timestep
-            and (f.end_time is None or f.end_time.timestamp() >= timestep)
+            and (f.end_time is None or f.end_time.timestamp() > timestep)
         ]
         if not prediction_values:
             continue  # TODO: doesn't account for going from 1 active forecast to 0
