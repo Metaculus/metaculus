@@ -1,8 +1,7 @@
 from django.db import models
 
 
-class BinaryResolution(models.TextChoices):
-    YES = "yes"
-    NO = "no"
+class ResolutionType(models.TextChoices):
     AMBIGUOUS = "ambiguous"
     ANNULLED = "annulled"
+

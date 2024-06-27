@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from posts.services import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Forecast, Question
+from questions.serializers import validate_question_resolution
+from questions.services import resolve_question
 
 
 @api_view(["POST"])
@@ -17,6 +19,11 @@ def resolve_api_view(request, pk: int):
     # Check permissions
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_resolve(permission, raise_exception=True)
+
+    resolution = validate_question_resolution(question, request.data.get("resolution"))
+    resolve_question(question, resolution)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["POST"])

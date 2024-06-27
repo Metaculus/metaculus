@@ -2,7 +2,6 @@ from django.db import IntegrityError
 
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
-from questions.models import Question
 from users.models import User
 
 
@@ -75,7 +74,3 @@ def invite_user_to_project(
     except IntegrityError:
         # User was already invited
         return
-
-
-def resolve_question(question: Question, user: User):
-    pass
