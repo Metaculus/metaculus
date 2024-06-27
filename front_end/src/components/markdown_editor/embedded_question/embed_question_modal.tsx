@@ -1,4 +1,6 @@
 "use client";
+import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
@@ -8,20 +10,27 @@ import PostStatus from "@/components/post_status";
 import SearchInput from "@/components/search_input";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import useDebounce from "@/hooks/use_debounce";
-import { Post } from "@/types/post";
+import { Post, PostWithForecasts } from "@/types/post";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { formatPrediction } from "@/utils/forecasts";
 import { extractPostStatus } from "@/utils/questions";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
+  onQuestionSelect: (id: number) => void;
 };
 
-const EmbedQuestionModal: FC<Props> = ({ isOpen, onClose }) => {
+const EmbedQuestionModal: FC<Props> = ({
+  isOpen,
+  onClose,
+  onQuestionSelect,
+}) => {
   const t = useTranslations();
 
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<PostWithForecasts[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -35,9 +44,14 @@ const EmbedQuestionModal: FC<Props> = ({ isOpen, onClose }) => {
     void fetchPosts();
   }, [debouncedSearch]);
 
+  const handlePostSelect = (id: number) => {
+    onQuestionSelect(id);
+    onClose();
+  };
+
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
-      <div className="max-h-full w-[520px] overflow-auto p-7">
+      <div className="max-h-full w-[520px] overflow-auto">
         <h2 className="mb-4 mr-3 mt-0 text-blue-900 dark:text-blue-900-dark">
           Add Forecast
         </h2>
@@ -53,7 +67,11 @@ const EmbedQuestionModal: FC<Props> = ({ isOpen, onClose }) => {
           ) : (
             <div className="my-2 flex flex-col gap-2">
               {posts.map((post) => (
-                <QuestionCard key={post.id} post={post} />
+                <QuestionCard
+                  key={post.id}
+                  post={post}
+                  onClick={() => handlePostSelect(post.id)}
+                />
               ))}
             </div>
           )}
@@ -63,15 +81,31 @@ const EmbedQuestionModal: FC<Props> = ({ isOpen, onClose }) => {
   );
 };
 
-const QuestionCard: FC<{ post: Post }> = ({ post }) => {
+const QuestionCard: FC<{ post: Post; onClick?: () => void }> = ({
+  post,
+  onClick,
+}) => {
   const statusData = extractPostStatus(post);
+  const withForecastData =
+    !!post.question &&
+    (post.question.type === QuestionType.Binary ||
+      post.question.type === QuestionType.Date ||
+      post.question.type === QuestionType.Numeric);
 
   return (
-    <div className="flex gap-2 rounded border border-blue-500 px-4 py-3 dark:border-blue-600">
-      <div className="flex flex-col">
+    <div
+      className="flex gap-2 rounded border border-blue-500 px-4 py-3 hover:cursor-pointer dark:border-blue-600"
+      onClick={onClick}
+    >
+      <div className="flex flex-col gap-1.5">
         <h4 className="my-0 text-gray-800 dark:text-gray-800-dark">
           {post.title}
         </h4>
+        {withForecastData && (
+          <PredictionInfo
+            question={post.question as QuestionWithNumericForecasts}
+          />
+        )}
         {!!statusData && (
           <PostStatus
             id={post.id}
@@ -82,6 +116,27 @@ const QuestionCard: FC<{ post: Post }> = ({ post }) => {
           />
         )}
       </div>
+    </div>
+  );
+};
+
+const PredictionInfo: FC<{ question: QuestionWithNumericForecasts }> = ({
+  question,
+}) => {
+  const prediction = question.forecasts.values_mean.at(-1);
+
+  return (
+    <div className="flex flex-row gap-2">
+      {prediction !== undefined && (
+        <div className="flex flex-row gap-0.5 text-xs font-medium text-olive-700 dark:text-olive-400">
+          <FontAwesomeIcon
+            icon={faUserGroup}
+            name="community"
+            className="w-[13px]"
+          />
+          <span>{formatPrediction(prediction, question.type)}</span>
+        </div>
+      )}
     </div>
   );
 };
