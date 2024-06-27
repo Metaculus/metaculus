@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
 import CommentFeed from "@/components/comment_feed";
-import CommentApi from "@/services/comments";
+import CommentsApi from "@/services/comments";
 import ProfileApi from "@/services/profile";
 
 export default async function Profile({
@@ -17,7 +17,7 @@ export default async function Profile({
     ? currentUser
     : await ProfileApi.getProfileById(id);
 
-  const comments = await CommentApi.getComments({ author: id });
+  const comments = await CommentsApi.getComments({ author: id });
 
   if (!profile) {
     return notFound();

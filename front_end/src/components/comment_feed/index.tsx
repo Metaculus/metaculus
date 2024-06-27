@@ -24,8 +24,8 @@ const CommentFeed: FC<Props> = ({ initialComments, post, profile }) => {
   if (post?.id) {
     url += `/questions/${post.id}`;
     if (
-      post.user_permission == ProjectPermissions.ADMIN ||
-      post.user_permission == ProjectPermissions.CURATOR
+      post.user_permission === ProjectPermissions.ADMIN ||
+      post.user_permission === ProjectPermissions.CURATOR
     ) {
       permissions = CommentPermissions.CURATOR;
     }
@@ -33,7 +33,7 @@ const CommentFeed: FC<Props> = ({ initialComments, post, profile }) => {
     url += `/accounts/profile/${profile.id}`;
   }
 
-  if (comments.length == 0) return null;
+  if (comments.length === 0) return null;
   return (
     <section>
       {comments.map((comment: CommentType) => (
