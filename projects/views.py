@@ -145,7 +145,7 @@ def project_leaderboard(
     qs = get_projects_qs(user=request.user)
     obj = get_object_or_404(qs, pk=project_id)
 
-    if leaderboard_type is None and obj.leaderboard_type:
+    if leaderboard_type is None and not obj.leaderboard_type:
         leaderboard_type = Project.LeaderboardTypes.PEER
 
     # Check permissions
