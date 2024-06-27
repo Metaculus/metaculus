@@ -9,6 +9,7 @@ import { FC, useState } from "react";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
+import CommentsApi from "@/services/comments";
 import { CommentPermissions, CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
 
@@ -36,15 +37,15 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
 
   const { user } = useAuth();
-  if (user?.id == comment.author.id) {
+  if (user?.id === comment.author.id) {
     permissions = CommentPermissions.CREATOR;
   }
 
   const menuItems: MenuItemProps[] = [
     {
-      show:
-        permissions == CommentPermissions.CREATOR ||
-        permissions == CommentPermissions.CURATOR,
+      show: true,
+      /*permissions === CommentPermissions.CREATOR ||
+        permissions === CommentPermissions.CURATOR,*/
       id: "edit",
       name: "Edit",
       onClick: () => {
@@ -68,11 +69,13 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
       },
     },
     {
-      show: permissions == CommentPermissions.CURATOR,
+      show: true, //permissions === CommentPermissions.CURATOR,
       id: "delete",
       name: "Delete",
-      onClick: () => {
-        return null; // setDeleteModalOpen(true),
+      onClick: async () => {
+        // setDeleteModalOpen(true),
+        // this is broken:
+        // await CommentsApi.softDeleteComment(comment.id);
       },
     },
   ];
@@ -120,7 +123,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
           }}
         />
       </div>
-      {commentMode == "write" && (
+      {commentMode === "write" && (
         <Button
           onClick={() => {
             setCommentMode("read");
