@@ -10,13 +10,15 @@ Normalise to 1 over all outcomes.
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
+from django.core.cache import cache
 
 import numpy as np
 
 from django.db.models import QuerySet
 from questions.models import Forecast, Question
+from utils.debug import print_runtime
 from utils.the_math.formulas import scale_location
 from utils.the_math.measures import weighted_percentile_2d, percent_point_function
 
@@ -56,15 +58,28 @@ class ForecastHistoryEntry:
     at_datetime: datetime
 
 
+@print_runtime
 def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
-    history = []
     forecasts: QuerySet[Forecast] = question.forecast_set.all()
     timesteps: set[datetime] = set()
     for forecast in forecasts:
         timesteps.add(forecast.start_time)
         if forecast.end_time:
             timesteps.add(forecast.end_time)
-    for timestep in sorted(timesteps):
+
+    reversed_sorted_timesteps = sorted(timesteps, reverse=True)
+    cache_key = f"forecast_history-{question.id}"
+    cached_history = cache.get(cache_key)
+    if cached_history:
+        history = cached_history["history"]
+        last_timestep = cached_history["last_timestep"]
+    else:
+        history = []
+        last_timestep = None
+
+    for timestep in reversed_sorted_timesteps:
+        if last_timestep and timestep <= last_timestep:
+            break
         active_forecasts = [
             f
             for f in forecasts
@@ -73,13 +88,25 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
         ]
         if len(active_forecasts) < 1:
             continue
-        history.append(
-            ForecastHistoryEntry(
-                [forecast.get_prediction_values() for forecast in active_forecasts],
-                timestep,
-            )
+        fhe = ForecastHistoryEntry(
+            [forecast.get_prediction_values() for forecast in active_forecasts],
+            timestep,
         )
-    return history
+        history.append(fhe)
+
+    if not last_timestep or reversed_sorted_timesteps[0] - last_timestep > timedelta(
+        hours=12
+    ):
+        cache.set(
+            cache_key,
+            {
+                "history": history,
+                "last_timestep": reversed_sorted_timesteps[0],
+            },
+            timeout=3600,
+        )
+
+    return list(reversed(history))
 
 
 @dataclass
