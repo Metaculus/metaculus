@@ -7,7 +7,7 @@ import {
   TOURNAMENTS_SORT,
 } from "@/app/(main)/tournaments/constants/query_params";
 import SearchInput from "@/components/search_input";
-import Select, { SelectOption } from "@/components/ui/select";
+import Listbox, { SelectOption } from "@/components/ui/listbox";
 import useSearchInputState from "@/hooks/use_search_input_state";
 import useSearchParams from "@/hooks/use_search_params";
 import { TournamentsSortBy } from "@/types/projects";
@@ -60,7 +60,7 @@ const TournamentFilters: FC = () => {
         className="max-w-3xl"
       />
       <div className="flex gap-3 justify-self-end">
-        <Select
+        <Listbox
           className="rounded-full"
           onChange={handleSortByChange}
           options={sortOptions}
