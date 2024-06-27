@@ -22,6 +22,13 @@ export async function fetchMorePosts(
   return response.results;
 }
 
+export async function fetchEmbedPosts(search: string) {
+  return await PostsApi.getPosts({
+    search: search || undefined,
+    limit: search ? undefined : 10,
+  });
+}
+
 export async function votePost(postId: number, direction: VoteDirection) {
   try {
     return await PostsApi.votePost(postId, direction);
