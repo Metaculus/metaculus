@@ -1,9 +1,9 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone as dt_timezone
 
 from django.db import models
 from django.db.models import Count
 from django.db.models.functions import Coalesce
-from django.utils import timezone
+from django.utils import timezone as django_timezone
 
 from projects.permissions import ObjectPermission
 from users.models import User
@@ -202,7 +202,7 @@ class Project(TimeStampedModel):
             self.ProjectTypes.GLOBAL_LEADERBOARD,
             self.ProjectTypes.QUESTION_SERIES,
         ):
-            return self.close_date > timezone.now() if self.close_date else True
+            return self.close_date > django_timezone.now() if self.close_date else True
 
 
 class ProjectUserPermission(TimeStampedModel):
@@ -226,7 +226,7 @@ class ProjectUserPermission(TimeStampedModel):
 def get_global_leaderboard_dates() -> list[tuple[datetime, datetime]]:
     # Returns the start and end dates for each global leaderboard
     # This will have to be updated every year
-    utc = timezone.utc
+    utc = dt_timezone.utc
     return [
         # one year intervals
         (datetime(2016, 1, 1, tzinfo=utc), datetime(2017, 1, 1, tzinfo=utc)),

@@ -34,6 +34,6 @@ def get_comment_permission_for_user(
     if user.id == comment.author.id:
         permissions = ObjectPermission.CREATOR
     if comment.is_private and permissions != ObjectPermission.CREATOR:
-        permissions = ObjectPermission.NONE
+        permissions = None
 
     return permissions

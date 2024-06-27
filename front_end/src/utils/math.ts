@@ -74,12 +74,15 @@ export function binWeightsFromSliders(
     { length: Math.floor(1 / step) + 1 },
     (_, i) => i * step
   );
-  const cdf = [
+  let cdf = [
     ...xArr.map((x) =>
       logisticCDF(x, params.mode, params.scale, params.asymmetry)
     ),
   ];
   const pmf = [];
+  if (cdf === null) {
+    cdf = [];
+  }
   for (let i = 0; i < cdf.length; i++) {
     if (i == 0) {
       pmf.push(cdf[0]);
@@ -93,6 +96,9 @@ export function binWeightsFromSliders(
 
 export function computeQuartilesFromCDF(cdf: number[]): Quartiles {
   function findQuantile(cdf: number[], quantile: number) {
+    if (cdf === null) {
+      cdf = [];
+    }
     for (let i = 0; i < cdf.length; i++) {
       if (cdf[i] >= quantile) {
         return i / (cdf.length - 1);

@@ -10,7 +10,7 @@ class UserWeightAdmin(admin.ModelAdmin):
 
 @admin.register(LeaderboardEntry)
 class LeaderboardEntryAdmin(admin.ModelAdmin):
-    search_fields = ["user", "for_project"]
+    search_fields = ["user", "project"]
 
 
 @admin.register(Score)
