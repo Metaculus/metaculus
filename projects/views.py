@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Callable
 
 from django.db.models import QuerySet
@@ -22,6 +23,8 @@ from projects.services import (
     get_project_permission_for_user,
     invite_user_to_project,
 )
+from scoring.serializers import LeaderboardSerializer
+from scoring.utils import create_leaderboard_entries
 from users.services import get_users_by_usernames
 
 
@@ -132,6 +135,27 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     data = enrich_posts_count(obj, data)
 
     return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def project_leaderboard(
+    request: Request, project_id: int, leaderboard_type: str | None = None
+):
+    qs = get_projects_qs(user=request.user)
+    obj = get_object_or_404(qs, pk=project_id)
+
+    if leaderboard_type is None and obj.leaderboard_type:
+        leaderboard_type = Project.LeaderboardTypes.PEER
+
+    # Check permissions
+    permission = get_project_permission_for_user(obj, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    context = {"leaderboard_type": leaderboard_type or obj.leaderboard_type}
+
+    create_leaderboard_entries(obj, leaderboard_type, False)
+    return Response(LeaderboardSerializer(obj, context=context).data)
 
 
 @api_view(["GET"])

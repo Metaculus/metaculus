@@ -2,7 +2,6 @@ from collections import defaultdict
 from datetime import datetime, timezone
 
 from projects.models import Project
-from questions.models import Question
 from scoring.models import LeaderboardEntry, Score
 
 
@@ -15,20 +14,20 @@ class KeyAwareDefaultDict(defaultdict):
 def evaluate_score_based_leaderboard(
     project: Project, leaderboard_type: str | None = None
 ) -> list[LeaderboardEntry]:
-    leaderboard_type = leaderboard_type or project.leaderboard_type
     scores = Score.objects.filter(
-        for_question__post__projects=project, score_type=leaderboard_type
+        question__post__projects=project, score_type=leaderboard_type
     )
     user_entries = KeyAwareDefaultDict(
         lambda user: LeaderboardEntry(
             user=user,
-            for_project=project,
+            project=project,
             leaderboard_type=leaderboard_type,
             score=0,
             coverage=0,
             contribution_count=0,
         )
     )
+
     for score in scores:
         user_entries[score.user].score += score.score
         user_entries[score.user].coverage += score.coverage
@@ -42,7 +41,7 @@ def evaluate_score_based_leaderboard(
     return sorted(user_entries.values(), key=lambda entry: entry.score, reverse=True)
 
 
-def get_gobal_leaderboard_entries(
+def get_global_leaderboard_entries(
     project: Project, leaderboard_type: str
 ) -> list[LeaderboardEntry]:
     leaderboard_type = leaderboard_type or project.leaderboard_type
@@ -57,7 +56,7 @@ def evaluate_project_leaderboard(
     project: Project, leaderboard_type: str
 ) -> list[LeaderboardEntry]:
     if project.type == Project.ProjectTypes.GLOBAL_LEADERBOARD:
-        return get_gobal_leaderboard_entries(project, leaderboard_type)
+        return get_global_leaderboard_entries(project, leaderboard_type)
     elif project.type == Project.ProjectTypes.TOURNAMENT:
         return []
     elif project.type == Project.ProjectTypes.QUESTION_SERIES:
