@@ -1,4 +1,4 @@
-import { PostStatus, Resolution } from "@/types/post";
+import { Resolution } from "@/types/post";
 
 export enum QuestionType {
   Numeric = "numeric",

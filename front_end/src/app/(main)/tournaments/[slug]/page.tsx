@@ -7,8 +7,6 @@ import invariant from "ts-invariant";
 
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import ProjectMembers from "@/app/(main)/tournaments/components/members";
-import InviteUsers from "@/app/(main)/tournaments/components/members_invite";
-import UsersManage from "@/app/(main)/tournaments/components/members_manage";
 import HtmlContent from "@/components/html_content";
 import AwaitedLeaderboard from "@/components/leaderboard";
 import AwaitedPostsFeed from "@/components/posts_feed";
