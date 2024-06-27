@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.utils import timezone
 
 from projects.models import Project
 from questions.models import Question
@@ -38,9 +39,21 @@ def score_question(
                 new_score.save()
 
 
-def create_leaderboard_entries(project: Project, leaderboard_type: str | None = None):
+def create_leaderboard_entries(
+    project: Project, leaderboard_type: str | None = None, live: bool = True
+):
     previous_entries = list(project.leaderboard_entries.all())
-    leaderboard_type = leaderboard_type or project.leaderboard_type
+    # Bit of a dirty hack but tl;dr "If this was generated recently don't bother !"
+    if not live:
+        for entry in previous_entries:
+            if entry.edited_at > timezone.now() - timedelta(days=1):
+                return
+
+    if not leaderboard_type:
+        leaderboard_type = project.leaderboard_type
+    if leaderboard_type is None:
+        raise Exception("Trying to generate leaderboard without a type!")
+
     new_entries = evaluate_score_based_leaderboard(project, leaderboard_type)
     for new_entry in new_entries:
         is_new = True
