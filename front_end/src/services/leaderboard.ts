@@ -7,8 +7,10 @@ class LeaderboardApi {
     leaderboardType: string | null = null
   ): Promise<LeaderboardDetails> {
     // TODO: make paginated
-    // TODO: add leaderboardType support
-    return await get<LeaderboardDetails>(`/projects/${projectId}/leaderboard`);
+    return await get<LeaderboardDetails>(
+      `/projects/${projectId}/leaderboard` +
+        (leaderboardType ? `?${leaderboardType}` : "")
+    );
   }
 }
 
