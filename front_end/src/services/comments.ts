@@ -1,5 +1,5 @@
 import { CommentType } from "@/types/comment";
-import { get, post } from "@/utils/fetch";
+import { get, put } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/query_params";
 
 export type CommentsParams = {
@@ -7,35 +7,26 @@ export type CommentsParams = {
   author?: number;
 };
 
-class CommentApi {
-  static async getComment(id: number): Promise<any> {
-    try {
-      return await get<any>(`/comments/${id}`);
-    } catch (err) {
-      console.error("Error getting comment:", err);
-      return null;
-    }
-  }
-
+class CommentsApi {
   static async getComments(params?: CommentsParams): Promise<any[]> {
     const queryParams = encodeQueryParams(params ?? {});
     try {
-      const data = await get<any>(`/comments${queryParams}`);
-      return data;
+      return await get<CommentType[]>(`/comments${queryParams}`);
     } catch (err) {
       console.error("Error getting comments:", err);
       return [];
     }
   }
 
-  /*
-  static async voteComment(
-    id: number,
-    direction: VoteDirection
-  ): Promise<VoteResponse> {
-    return await post<VoteResponse>(`/comments/${id}/vote`, { direction });
+  static async softDeleteComment(id: number): Promise<any> {
+    try {
+      // @ts-ignore
+      return await put<any, CommentType[]>(`/comments/${id}/delete`, null);
+    } catch (err) {
+      console.error("Error getting comment:", err);
+      return null;
+    }
   }
-  */
 }
 
-export default CommentApi;
+export default CommentsApi;
