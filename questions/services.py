@@ -1,5 +1,6 @@
 import numpy as np
 
+from questions.constants import BinaryResolution
 from questions.models import Question, GroupOfQuestions, Conditional
 from users.models import User
 from utils.the_math.community_prediction import (
@@ -130,7 +131,7 @@ def create_group_of_questions(*, questions: list[dict]) -> GroupOfQuestions:
 
 
 def create_conditional(
-    *, condition_id: int = None, condition_child_id: int = None
+        *, condition_id: int = None, condition_child_id: int = None
 ) -> Conditional:
     # Auto-generating yes/no questions
     def clone_question(question: Question, title: str = None):

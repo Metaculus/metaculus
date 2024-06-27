@@ -97,6 +97,19 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         return can
 
     @classmethod
+    def can_resolve(cls, permission: Self, raise_exception=False):
+        can = permission in (
+            cls.CREATOR,
+            cls.CURATOR,
+            cls.ADMIN,
+        )
+
+        if raise_exception and not can:
+            raise PermissionDenied("You do not have permission to resolve this question")
+
+        return can
+
+    @classmethod
     def can_manage_project_members(cls, permission: Self, raise_exception=False):
         can = permission in (
             cls.CURATOR,

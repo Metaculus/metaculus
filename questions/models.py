@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
+from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
 from users.models import User
@@ -107,6 +108,10 @@ class Question(TimeStampedModel):
         if shortest_window[0]:
             return shortest_window
         return None
+
+    def set_resolution(self, resolution: str):
+        self.resolution = resolution
+        self.resolved_at = timezone.now()
 
 
 class Conditional(TimeStampedModel):

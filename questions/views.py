@@ -11,6 +11,15 @@ from questions.models import Forecast, Question
 
 
 @api_view(["POST"])
+def resolve_api_view(request, pk: int):
+    question = get_object_or_404(Question.objects.all(), pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(question.get_post(), user=request.user)
+    ObjectPermission.can_resolve(permission, raise_exception=True)
+
+
+@api_view(["POST"])
 def create_forecast_api_view(request, pk: int):
     question = get_object_or_404(Question.objects.all(), pk=pk)
 

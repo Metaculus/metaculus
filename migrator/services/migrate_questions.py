@@ -15,7 +15,14 @@ def unscaled_location_to_string_location(
     question: Question, unscaled_location: float
 ) -> str:
     if question.type == "binary":
-        return "yes" if unscaled_location == 1.0 else "no"
+        mapping = {
+            1: "yes",
+            0: "no",
+            -1: "ambiguous",
+            -2: "annulled"
+        }
+
+        return mapping.get(int(unscaled_location))
     if question.type == "multiple_choice":
         return question.options[int(unscaled_location)]
     # continuous
