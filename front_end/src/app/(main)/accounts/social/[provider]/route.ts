@@ -15,7 +15,7 @@ export async function GET(
     const response = await AuthApi.exchangeSocialOauthCode(
       params.provider,
       search_params.code,
-      `${url.origin}${url.pathname}`
+      `${process.env.APP_URL}${url.pathname}`
     );
 
     if (response?.token) {

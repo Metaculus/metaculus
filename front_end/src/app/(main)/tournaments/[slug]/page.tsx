@@ -10,6 +10,7 @@ import ProjectMembers from "@/app/(main)/tournaments/components/members";
 import InviteUsers from "@/app/(main)/tournaments/components/members_invite";
 import UsersManage from "@/app/(main)/tournaments/components/members_manage";
 import HtmlContent from "@/components/html_content";
+import AwaitedLeaderboard from "@/components/leaderboard";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import PostsFilters from "@/components/posts_filters";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -107,6 +108,9 @@ export default async function TournamentSlug({
             />
           </div>
           <HtmlContent content={tournament.description} />
+        </div>
+        <div>
+          <AwaitedLeaderboard projectId={tournament.id} />
         </div>
         <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
           <h2 className="mb-5">{questionsTitle}</h2>

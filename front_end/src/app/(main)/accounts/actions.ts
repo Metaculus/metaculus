@@ -1,5 +1,7 @@
 "use server";
 
+import { headers } from "next/headers";
+
 import { signInSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
 import AuthApi from "@/services/auth";
 import { setServerSession } from "@/services/session";
@@ -56,6 +58,8 @@ export async function signUpAction(
   prevState: SignUpActionState,
   formData: FormData
 ): Promise<SignUpActionState> {
+  const headersList = headers();
+
   const validatedFields = signUpSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
@@ -70,7 +74,11 @@ export async function signUpAction(
     const response = await AuthApi.signUp(
       validatedFields.data.email,
       validatedFields.data.username,
-      validatedFields.data.password
+      validatedFields.data.password,
+      {
+        "cf-turnstile-response": validatedFields.data.turnstileToken,
+        "CF-Connecting-IP": headersList.get("CF-Connecting-IP"),
+      }
     );
 
     return {};

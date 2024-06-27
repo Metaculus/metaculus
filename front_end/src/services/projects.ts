@@ -6,6 +6,7 @@ import {
   Tournament,
   TournamentMember,
 } from "@/types/projects";
+import { LeaderboardDetails } from "@/types/scoring";
 import { del, get, patch, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/query_params";
 
@@ -59,6 +60,16 @@ class ProjectsApi {
       console.error("Error getting tournament:", err);
       return null;
     }
+  }
+
+  static async getProjectLeaderboard(
+    projectId: number,
+    leaderboardType: string | null = null
+  ): Promise<LeaderboardDetails> {
+    // @ts-ignore
+    return get<LeaderboardDetails>(`/projects/${projectId}/leaderboard/`, {
+      ...(leaderboardType ? { leaderboard_type: leaderboardType } : {}),
+    });
   }
 
   static async inviteUsers(
