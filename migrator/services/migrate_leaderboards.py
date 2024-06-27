@@ -1,4 +1,3 @@
-from datetime import datetime, timedelta
 from collections import defaultdict
 
 from posts.models import Post
@@ -60,7 +59,7 @@ def populate_global_leaderboards(qty: int | None = None):
             c,
             project.name,
             "(created",
-            LeaderboardEntry.objects.filter(for_project=project).count(),
+            LeaderboardEntry.objects.filter(project=project).count(),
             "entries)",
         )
 
@@ -82,6 +81,6 @@ def populate_project_leaderboards(qty: int | None = None):
             c,
             project.name,
             "(created",
-            LeaderboardEntry.objects.filter(for_project=project).count(),
+            LeaderboardEntry.objects.filter(project=project).count(),
             "entries)",
         )
