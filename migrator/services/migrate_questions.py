@@ -23,7 +23,9 @@ def unscaled_location_to_string_location(
         return "below_lower_bound"
     if unscaled_location == 3:
         return "above_upper_bound"
-    actual_location = scale_location(question.zero_point, question.max, question.min, unscaled_location)
+    actual_location = scale_location(
+        question.zero_point, question.max, question.min, unscaled_location
+    )
     if question.type == "date":
         return datetime.fromtimestamp(actual_location).isoformat()
     return str(actual_location)
