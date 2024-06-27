@@ -1,77 +1,35 @@
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  Listbox,
-  ListboxButton,
-  ListboxOption,
-  ListboxOptions,
-} from "@headlessui/react";
+import { Select as HeadlessSelect } from "@headlessui/react";
 import classNames from "classnames";
-import { Fragment, useMemo } from "react";
+import { forwardRef } from "react";
 
-import Button, { ButtonVariant } from "@/components/ui/button";
-
-export type SelectOption<T> = {
-  value: T;
-  label: string;
-  className?: string;
-};
+import { SelectOption } from "@/components/ui/listbox";
 
 type Props<T> = {
-  value: T;
-  onChange: (option: T) => void;
+  name?: string;
   options: SelectOption<T>[];
-  buttonVariant?: ButtonVariant;
-  label?: string;
   className?: string;
 };
 
-const Select = <T extends string>({
-  options,
-  onChange,
-  value,
-  buttonVariant = "text",
-  label,
-  className,
-}: Props<T>) => {
-  const activeOptionLabel = useMemo(
-    () => options.find((o) => o.value === value)?.label ?? "",
-    [options, value]
-  );
-
-  return (
-    <Listbox
-      as={"div"}
-      value={value}
-      onChange={onChange}
-      className="relative text-gray-900 dark:text-gray-900-dark"
-    >
-      <ListboxButton as={Button} variant={buttonVariant} className={className}>
-        <FontAwesomeIcon icon={faChevronDown} />
-        <span className="align-middle">{label ?? activeOptionLabel}</span>
-      </ListboxButton>
-      <ListboxOptions className="absolute right-0 top-10 z-50 divide-y divide-gray-300 rounded border border-gray-300 bg-gray-0 shadow-lg outline-none dark:divide-gray-300-dark dark:border-gray-300-dark dark:bg-gray-0-dark">
+const Select = forwardRef<HTMLSelectElement, Props<string>>(
+  ({ options, className, ...props }, ref) => {
+    return (
+      <HeadlessSelect
+        className={classNames(
+          "min-w-16 rounded-none border border-gray-600-dark bg-transparent py-1",
+          className
+        )}
+        ref={ref}
+        {...props}
+      >
         {options.map((option) => (
-          <ListboxOption as={Fragment} key={option.value} value={option.value}>
-            {({ focus, selected }) => (
-              <button
-                className={classNames(
-                  "h-10 w-full whitespace-nowrap px-3 text-right text-sm",
-                  {
-                    "bg-gray-200 dark:bg-gray-200-dark": focus,
-                    "font-bold": selected,
-                  },
-                  option.className
-                )}
-              >
-                {option.label}
-              </button>
-            )}
-          </ListboxOption>
+          <option value={option.value} key={option.value}>
+            {option.label}
+          </option>
         ))}
-      </ListboxOptions>
-    </Listbox>
-  );
-};
+      </HeadlessSelect>
+    );
+  }
+);
+Select.displayName = "Select";
 
 export default Select;
