@@ -36,16 +36,16 @@ def weighted_percentile_2d(
 
 
 def percent_point_function(cdf: list[float], percent: float) -> float:
-    length = len(cdf)
     if percent < cdf[0]:
         return 0.0
     if percent > cdf[-1]:
         return 1.0
+    length = len(cdf)
     for i in range(length - 1):
         left = cdf[i]
-        right = cdf[i + 1]
         if left == percent:
             return i / (length - 1)
+        right = cdf[i + 1]
         if left < percent < right:
             # linear interpolation
             return (i + (percent - left) / (right - left)) / (length - 1)
