@@ -7,7 +7,7 @@ import {
 } from "@/components/popover_filter/types";
 import { GroupButton } from "@/components/ui/button_group";
 import { ChipColor } from "@/components/ui/chip";
-import { SelectOption } from "@/components/ui/select";
+import { SelectOption } from "@/components/ui/listbox";
 import {
   POST_ACCESS_FILTER,
   POST_AUTHOR_FILTER,
