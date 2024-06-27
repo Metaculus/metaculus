@@ -1,7 +1,29 @@
 // TODO: BE should probably return a field, that can be used as chart title
+import { Post } from "@/types/post";
+
 export function extractQuestionGroupName(title: string) {
   const match = title.match(/\((.*?)\)/);
   return match ? match[1] : title;
+}
+
+export function extractPostStatus(post: Post) {
+  if (post.question) {
+    return {
+      status: post.curation_status,
+      closedAt: post.question.closed_at,
+      resolvedAt: post.question.resolved_at,
+    };
+  }
+
+  if (post.conditional) {
+    return {
+      status: post.conditional.condition.curation_status,
+      closedAt: post.conditional.condition.closed_at,
+      resolvedAt: post.conditional.condition.resolved_at,
+    };
+  }
+
+  return null;
 }
 
 export function getNotebookSummary(

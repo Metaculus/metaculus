@@ -13,6 +13,7 @@ import Link from "next/link";
 import { FC, useEffect, useState } from "react";
 
 import { getPost } from "@/app/(main)/questions/actions";
+import EmbedQuestionModal from "@/components/markdown_editor/embedded_question/embed_question_modal";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostWithForecasts } from "@/types/post";
@@ -72,25 +73,28 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
 
 export const EmbedQuestionAction: FC = () => {
   const insertJsx = usePublisher(insertJsx$);
-  return (
-    <Button
-      variant="tertiary"
-      onClick={() => {
-        const id = prompt("Enter question id");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-        if (id) {
-          insertJsx({
-            name: EmbeddedQuestion.name,
-            kind: "flow",
-            props: {
-              id,
-            },
-          });
-        }
-      }}
-    >
-      Add Question
-    </Button>
+  const handleSelectQuestion = (id: number) => {
+    insertJsx({
+      name: EmbeddedQuestion.name,
+      kind: "flow",
+      props: {
+        id: id.toString(),
+      },
+    });
+  };
+
+  return (
+    <>
+      <Button variant="tertiary" onClick={() => setIsModalOpen(true)}>
+        Add Question
+      </Button>
+      <EmbedQuestionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </>
   );
 };
 

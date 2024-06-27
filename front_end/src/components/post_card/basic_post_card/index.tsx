@@ -5,6 +5,7 @@ import { FC, PropsWithChildren, useMemo } from "react";
 
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
+import { extractPostStatus } from "@/utils/questions";
 
 import CommentStatus from "./comment_status";
 import PostVoter from "./post_voter";
@@ -27,26 +28,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   children,
 }) => {
   const { id, title } = post;
-
-  const statusData = useMemo(() => {
-    if (post.question) {
-      return {
-        status: post.curation_status,
-        closedAt: post.question.closed_at,
-        resolvedAt: post.question.resolved_at,
-      };
-    }
-
-    if (post.conditional) {
-      return {
-        status: post.conditional.condition.curation_status,
-        closedAt: post.conditional.condition.closed_at,
-        resolvedAt: post.conditional.condition.resolved_at,
-      };
-    }
-
-    return null;
-  }, [post.conditional, post.curation_status, post.question]);
+  const statusData = extractPostStatus(post);
 
   return (
     <div
