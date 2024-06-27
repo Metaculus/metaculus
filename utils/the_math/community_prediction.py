@@ -18,7 +18,6 @@ import numpy as np
 
 from django.db.models import QuerySet
 from questions.models import Forecast, Question
-from utils.debug import print_runtime
 from utils.the_math.formulas import scale_location
 from utils.the_math.measures import weighted_percentile_2d, percent_point_function
 
@@ -29,6 +28,25 @@ class CommunityPrediction:
     upper: float
     middle: float
 
+def compute_cp_binary_mc(    forecast_values: list[list[float]],
+    weights: Optional[list[float]],
+    percentile: Optional[float] = 50.0,):
+    return weighted_percentile_2d(
+                forecast_values, weights=weights, percentile=percentile
+            ).tolist()
+    # TODO: this needs to be normalized for MC, but special care needs to be taken
+    # if the percentile isn't 50 (namely it needs to be normalized based off the values
+    # at the median)
+
+def compute_cp_continuous(
+    forecast_values: list[list[float]],
+    weights: Optional[list[float]],
+):
+    #max_len = max([len(x) for x in forecast_values])
+    #for i in range(len(forecast_values)):
+    #    if len(forecast_values[i]) < max_len:
+    #        forecast_values[i].extend([0] * int(max_len - len(forecast_values[i])))
+    return np.average(forecast_values, axis=0, weights=weights)
 
 def compute_cp(
     question_type: str,
@@ -37,19 +55,9 @@ def compute_cp(
     percentile: Optional[float] = 50.0,
 ) -> list[float]:
     if question_type in ["binary", "multiple_choice"]:
-        return weighted_percentile_2d(
-            forecast_values, weights=weights, percentile=percentile
-        ).tolist()
-        # TODO: this needs to be normalized for MC, but special care needs to be taken
-        # if the percentile isn't 50 (namely it needs to be normalized based off the values
-        # at the median)
+        return compute_cp_binary_mc(forecast_values, weights, percentile)
     else:
-        max_len = max([len(x) for x in forecast_values])
-        for i in range(len(forecast_values)):
-            if len(forecast_values[i]) < max_len:
-                forecast_values[i].extend([0] * int(max_len - len(forecast_values[i])))
-        avg = np.average(forecast_values, axis=0, weights=weights)
-        return avg
+        return compute_cp_continuous(forecast_values, weights)
 
 
 @dataclass
@@ -58,7 +66,6 @@ class ForecastHistoryEntry:
     at_datetime: datetime
 
 
-@print_runtime
 def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
     forecasts: QuerySet[Forecast] = question.forecast_set.all()
     timesteps: set[datetime] = set()
@@ -103,7 +110,7 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
                 "history": history,
                 "last_timestep": reversed_sorted_timesteps[0],
             },
-            timeout=3600,
+            timeout=None,
         )
 
     return list(reversed(history))
@@ -138,9 +145,9 @@ def compute_binary_plotable_cp(question: Question) -> list[GraphCP]:
         weights = generate_recency_weights(len(entry.predictions))
         cps.append(
             GraphCP(
-                middle=compute_cp(question.type, entry.predictions, weights, 50.0)[1],
-                upper=compute_cp(question.type, entry.predictions, weights, 75.0)[1],
-                lower=compute_cp(question.type, entry.predictions, weights, 25.0)[1],
+                middle=compute_cp_binary_mc(entry.predictions, weights, 50.0)[1],
+                upper=compute_cp_binary_mc(entry.predictions, weights, 75.0)[1],
+                lower=compute_cp_binary_mc(entry.predictions, weights, 25.0)[1],
                 nr_forecasters=len(entry.predictions),
                 at_datetime=entry.at_datetime,
             )
@@ -153,9 +160,9 @@ def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[str, Gr
     cps = []
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
-        middles = compute_cp(question.type, entry.predictions, weights, 50.0)
-        uppers = compute_cp(question.type, entry.predictions, weights, 75.0)
-        downers = compute_cp(question.type, entry.predictions, weights, 25.0)
+        middles = compute_cp_binary_mc(entry.predictions, weights, 50.0)
+        uppers = compute_cp_binary_mc(entry.predictions, weights, 75.0)
+        downers = compute_cp_binary_mc(entry.predictions, weights, 25.0)
         cps.append(
             {
                 v: GraphCP(
@@ -175,15 +182,21 @@ def compute_continuous_plotable_cp(question: Question) -> int:
     forecast_history = get_forecast_history(question)
     cps = []
     cdf = None
+    zero_point, max, min = question.zero_point, question.max, question.min
+    # @TODO Luke should we be doing this ? I think so, plotting 4-5k datapoints is also going to make the FE very slow and nobody scrolls through that many *BUT* we should probably truncate at even timestamps
+    if len(forecast_history) > 105:
+        forecast_history = [
+            x for i, x in enumerate(forecast_history[:-5]) if i % int(len(forecast_history) / 100) == 0
+        ] + forecast_history[-5:]
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
-        cdf = compute_cp(question.type, entry.predictions, weights)
+        cdf = compute_cp_continuous(entry.predictions, weights)
 
         cps.append(
             GraphCP(
-                lower=scale_location(question, percent_point_function(cdf, 0.25)),
-                middle=scale_location(question, percent_point_function(cdf, 0.5)),
-                upper=scale_location(question, percent_point_function(cdf, 0.75)),
+                lower=scale_location(zero_point, max, min, percent_point_function(cdf, 0.25)),
+                middle=scale_location(zero_point, max, min, percent_point_function(cdf, 0.5)),
+                upper=scale_location(zero_point, max, min, percent_point_function(cdf, 0.75)),
                 nr_forecasters=len(entry.predictions),
                 at_datetime=entry.at_datetime,
             )

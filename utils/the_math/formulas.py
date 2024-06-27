@@ -3,29 +3,29 @@ from datetime import datetime
 from questions.models import Question
 
 
-def scale_location(question: Question, unscaled_location: float) -> float:
-    if question.zero_point:
-        deriv_ratio = (question.max - question.zero_point) / (
-            question.min - question.zero_point
+def scale_location(zero_point: float, max: float, min: float, unscaled_location: float) -> float:
+    if zero_point:
+        deriv_ratio = (max - zero_point) / (
+            min - zero_point
         )
-        return question.min + (question.max - question.min) * (
+        return min + (max - min) * (
             deriv_ratio**unscaled_location - 1
         ) / (deriv_ratio - 1)
-    return question.min + (question.max - question.min) * unscaled_location
+    return min + (max - min) * unscaled_location
 
 
-def unscale_location(question: Question, scaled_location: float) -> float:
-    if question.zero_point:
-        deriv_ratio = (question.max - question.zero_point) / (
-            question.min - question.zero_point
+def unscale_location(zero_point: float, max: float, min: float, scaled_location: float) -> float:
+    if zero_point:
+        deriv_ratio = (max - zero_point) / (
+            min - zero_point
         )
         return (
             1
             + (deriv_ratio - 1)
-            * (scaled_location - question.min)
-            / (question.max - question.min)
+            * (scaled_location - min)
+            / (max - min)
         ) ** (1 / deriv_ratio)
-    return (scaled_location - question.min) / (question.max - question.min)
+    return (scaled_location - min) / (max - min)
 
 
 def string_location_to_bucket_index(question: Question, string_location: str) -> int:
@@ -42,7 +42,7 @@ def string_location_to_bucket_index(question: Question, string_location: str) ->
         scaled_location = datetime.fromisoformat(string_location).timestamp()
     else:
         scaled_location = float(string_location)
-    unscaled_location = unscale_location(question, scaled_location)
+    unscaled_location = unscale_location(question.zero_point, question.max, question.min, scaled_location)
     if unscaled_location < 0:
         return 0
     if unscaled_location > 1:
