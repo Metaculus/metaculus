@@ -28,25 +28,30 @@ class CommunityPrediction:
     upper: float
     middle: float
 
-def compute_cp_binary_mc(    forecast_values: list[list[float]],
+
+def compute_cp_binary_mc(
+    forecast_values: list[list[float]],
     weights: Optional[list[float]],
-    percentile: Optional[float] = 50.0,):
+    percentile: Optional[float] = 50.0,
+):
     return weighted_percentile_2d(
-                forecast_values, weights=weights, percentile=percentile
-            ).tolist()
+        forecast_values, weights=weights, percentile=percentile
+    ).tolist()
     # TODO: this needs to be normalized for MC, but special care needs to be taken
     # if the percentile isn't 50 (namely it needs to be normalized based off the values
     # at the median)
+
 
 def compute_cp_continuous(
     forecast_values: list[list[float]],
     weights: Optional[list[float]],
 ):
-    #max_len = max([len(x) for x in forecast_values])
-    #for i in range(len(forecast_values)):
+    # max_len = max([len(x) for x in forecast_values])
+    # for i in range(len(forecast_values)):
     #    if len(forecast_values[i]) < max_len:
     #        forecast_values[i].extend([0] * int(max_len - len(forecast_values[i])))
     return np.average(forecast_values, axis=0, weights=weights)
+
 
 def compute_cp(
     question_type: str,
@@ -186,7 +191,9 @@ def compute_continuous_plotable_cp(question: Question) -> int:
     # @TODO Luke should we be doing this ? I think so, plotting 4-5k datapoints is also going to make the FE very slow and nobody scrolls through that many *BUT* we should probably truncate at even timestamps
     if len(forecast_history) > 105:
         forecast_history = [
-            x for i, x in enumerate(forecast_history[:-5]) if i % int(len(forecast_history) / 100) == 0
+            x
+            for i, x in enumerate(forecast_history[:-5])
+            if i % int(len(forecast_history) / 100) == 0
         ] + forecast_history[-5:]
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
@@ -194,9 +201,15 @@ def compute_continuous_plotable_cp(question: Question) -> int:
 
         cps.append(
             GraphCP(
-                lower=scale_location(zero_point, max, min, percent_point_function(cdf, 0.25)),
-                middle=scale_location(zero_point, max, min, percent_point_function(cdf, 0.5)),
-                upper=scale_location(zero_point, max, min, percent_point_function(cdf, 0.75)),
+                lower=scale_location(
+                    zero_point, max, min, percent_point_function(cdf, 0.25)
+                ),
+                middle=scale_location(
+                    zero_point, max, min, percent_point_function(cdf, 0.5)
+                ),
+                upper=scale_location(
+                    zero_point, max, min, percent_point_function(cdf, 0.75)
+                ),
                 nr_forecasters=len(entry.predictions),
                 at_datetime=entry.at_datetime,
             )
