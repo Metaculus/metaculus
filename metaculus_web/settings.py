@@ -245,6 +245,16 @@ DRAMATIQ_BROKER = {
     ],
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": f"{REDIS_URL}/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
 # Django-storages
 # https://github.com/jschneier/django-storages
 STORAGES = {
