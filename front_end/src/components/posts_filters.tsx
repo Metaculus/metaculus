@@ -16,7 +16,7 @@ import { FilterReplaceInfo } from "@/components/popover_filter/types";
 import SearchInput from "@/components/search_input";
 import ButtonGroup from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
-import Select from "@/components/ui/select";
+import Listbox from "@/components/ui/listbox";
 import {
   POST_GUESSED_BY_FILTER,
   POST_ORDER_BY_FILTER,
@@ -196,7 +196,7 @@ const PostsFilters: FC<Props> = ({ categories, tags }) => {
             </div>
           )}
           <div className="flex grow justify-end gap-3">
-            <Select
+            <Listbox
               className="rounded-full"
               onChange={handleOrderChange}
               options={dropdownSortOptions}

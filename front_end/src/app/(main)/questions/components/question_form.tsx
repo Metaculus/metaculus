@@ -9,7 +9,7 @@ import * as z from "zod";
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
-import Select, { SelectOption } from "@/components/ui/select";
+import Listbox, { SelectOption } from "@/components/ui/listbox";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 
@@ -190,7 +190,7 @@ const QuestionForm: React.FC<Props> = ({
         {display_type_selector && !questionType && (
           <>
             <span>Question Type</span>
-            <Select
+            <Listbox
               {...control.register("type")}
               value={questionType ? questionType : "binary"}
               // @ts-ignore
@@ -402,7 +402,7 @@ const QuestionForm: React.FC<Props> = ({
                 {questionForms.length === 0 ? (
                   <>
                     <span>Sub-Question Type</span>
-                    <Select
+                    <Listbox
                       value={subQuestionType ? subQuestionType : "binary"}
                       // @ts-ignore
                       label={questionTypeSelect[subQuestionType]}
