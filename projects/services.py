@@ -51,15 +51,11 @@ def get_project_permission_for_user(
     A small wrapper to get the permission of project
     """
 
-    perm = (
+    return (
         Project.objects.annotate_user_permission(user=user)
         .values_list("user_permission", flat=True)
         .get(id=project.id)
     )
-    if perm is None:
-        return ObjectPermission.NONE
-    else:
-        return perm
 
 
 def invite_user_to_project(
