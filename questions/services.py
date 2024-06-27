@@ -35,7 +35,7 @@ def build_question_forecasts(question: Question) -> dict | None:
         }
 
     if question.type == "multiple_choice":
-        cps = compute_multiple_choice_plotable_cp(question)
+        cps = compute_multiple_choice_plotable_cp(question, 100)
         for cp_dict in cps:
             for option, cp in cp_dict.items():
                 forecasts_data[option].append(
@@ -53,9 +53,9 @@ def build_question_forecasts(question: Question) -> dict | None:
             )
     else:
         if question.type == "binary":
-            cps = compute_binary_plotable_cp(question)
+            cps = compute_binary_plotable_cp(question, 100)
         elif question.type in ["numeric", "date"]:
-            cps, cdf = compute_continuous_plotable_cp(question)
+            cps, cdf = compute_continuous_plotable_cp(question, 100)
             forecasts_data["latest_cdf"] = cdf
             if cdf is not None and len(cdf) >= 2:
                 forecasts_data["latest_pmf"] = np.diff(cdf, prepend=0)
@@ -98,7 +98,7 @@ def build_question_forecasts_for_user(question: Question, user: User) -> dict:
         elif question.type == "binary":
             forecasts_data["values_mean"].append(x.probability_yes)
         elif question.type in ["numeric", "date"]:
-            cps, cdf = compute_continuous_plotable_cp(question)
+            cps, cdf = compute_continuous_plotable_cp(question, 100)
             forecasts_data["values_mean"].append(
                 scale_location(
                     zero_point, max, min, percent_point_function(x.continuous_cdf, 0.5)

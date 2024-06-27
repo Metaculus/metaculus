@@ -11,6 +11,7 @@ Normalise to 1 over all outcomes.
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+import math
 from typing import Optional
 from django.core.cache import cache
 
@@ -130,6 +131,19 @@ class GraphCP:
     at_datetime: datetime
 
 
+def truncate_forecast_history(
+    forecast_history: list[ForecastHistoryEntry], max_length: int
+) -> list[ForecastHistoryEntry]:
+    # @TODO Luke should we be doing this ? I think so, plotting 4-5k datapoints is also going to make the FE very slow and nobody scrolls through that many *BUT* we should probably truncate at even timestamps
+    if len(forecast_history) > max_length:
+        forecast_history = [
+            x
+            for i, x in enumerate(forecast_history[:-5])
+            if i % max(1, int(len(forecast_history) / max_length - 5)) == 0
+        ] + forecast_history[-5:]
+    return forecast_history
+
+
 def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
     if number_of_forecasts <= 2:
         return None
@@ -138,13 +152,12 @@ def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
     )
 
 
-def compute_binary_plotable_cp(question: Question) -> list[GraphCP]:
+def compute_binary_plotable_cp(
+    question: Question, max_length: Optional[int] = None
+) -> list[GraphCP]:
     forecast_history = get_forecast_history(question)
-    lfh = len(forecast_history)
-    if lfh > 200:
-        forecast_history = [
-            x for i, x in enumerate(forecast_history[:-5]) if i % int(lfh / 200) == 0
-        ] + forecast_history[-5:]
+    if max_length:
+        forecast_history = truncate_forecast_history(forecast_history, max_length)
     cps = []
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
@@ -160,8 +173,12 @@ def compute_binary_plotable_cp(question: Question) -> list[GraphCP]:
     return cps
 
 
-def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[str, GraphCP]]:
+def compute_multiple_choice_plotable_cp(
+    question: Question, max_length: Optional[int] = None
+) -> list[dict[str, GraphCP]]:
     forecast_history = get_forecast_history(question)
+    if max_length:
+        forecast_history = truncate_forecast_history(forecast_history, max_length)
     cps = []
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
@@ -183,18 +200,15 @@ def compute_multiple_choice_plotable_cp(question: Question) -> list[dict[str, Gr
     return cps
 
 
-def compute_continuous_plotable_cp(question: Question) -> int:
+def compute_continuous_plotable_cp(
+    question: Question, max_length: Optional[int] = None
+) -> int:
     forecast_history = get_forecast_history(question)
+    if max_length:
+        forecast_history = truncate_forecast_history(forecast_history, max_length)
     cps = []
     cdf = None
     zero_point, max, min = question.zero_point, question.max, question.min
-    # @TODO Luke should we be doing this ? I think so, plotting 4-5k datapoints is also going to make the FE very slow and nobody scrolls through that many *BUT* we should probably truncate at even timestamps
-    if len(forecast_history) > 105:
-        forecast_history = [
-            x
-            for i, x in enumerate(forecast_history[:-5])
-            if i % int(len(forecast_history) / 100) == 0
-        ] + forecast_history[-5:]
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
         cdf = compute_cp_continuous(entry.predictions, weights)
