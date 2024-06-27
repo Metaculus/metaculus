@@ -11,6 +11,13 @@ from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
 from migrator.utils import reset_sequence
 
+from migrator.services.migrate_scoring import score_questions
+from migrator.services.migrate_leaderboards import (
+    create_global_leaderboards,
+    populate_global_leaderboards,
+    # populate_project_leaderboards,
+)
+
 
 class Command(BaseCommand):
     help = """
@@ -28,6 +35,7 @@ class Command(BaseCommand):
         print("Migrated users")
         migrate_questions()
         print("Migrated questions")
+        # migrate_forecasts(3e5) # only migrate 300k forecasts
         migrate_forecasts()
         print("Migrated forecasts")
         migrate_projects()
@@ -38,6 +46,17 @@ class Command(BaseCommand):
         print("Migrated comments")
         migrate_permissions()
         print("Migrated permissions")
+
+        # scoring
+        # score_questions(qty=1000)  # only evaluate 1000 questions
+        score_questions()
+        print("Scored questions")
+        create_global_leaderboards()
+        print("Created global leaderboards")
+        populate_global_leaderboards()
+        print("Populated global leaderboards")
+        # populate_project_leaderboards()
+        # print("Populated project leaderboards")
 
         # Reset sql sequences
         reset_sequence()

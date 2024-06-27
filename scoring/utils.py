@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from django.utils import timezone
 
 from projects.models import Project
 from questions.models import Question
 from scoring.models import Score
 from scoring.score_math import evaluate_question
-from scoring.leaderboard_math import evaluate_project_leaderboard
+from scoring.leaderboard_math import evaluate_score_based_leaderboard
 from utils.the_math.formulas import string_location_to_bucket_index
 
 
@@ -20,7 +21,7 @@ def score_question(
     score_types = score_types or Score.ScoreTypes.choices
     for score_type in score_types:
         previous_scores = list(
-            Score.objects.filter(for_question=question, score_type=score_type)
+            Score.objects.filter(question=question, score_type=score_type)
         )
         new_scores = evaluate_question(
             question, resolution_bucket, score_type, spot_forecast_time
@@ -34,14 +35,26 @@ def score_question(
                     previous_score.save()
                     break
             if is_new:
-                new_score.for_question = question
+                new_score.question = question
                 new_score.save()
 
 
-def create_leaderboard_entries(project: Project, leaderboard_type: str | None = None):
+def create_leaderboard_entries(
+    project: Project, leaderboard_type: str | None = None, live: bool = True
+):
     previous_entries = list(project.leaderboard_entries.all())
-    leaderboard_type = leaderboard_type or project.leaderboard_type
-    new_entries = evaluate_project_leaderboard(project, leaderboard_type)
+    # Bit of a dirty hack but tl;dr "If this was generated recently don't bother !"
+    if not live:
+        for entry in previous_entries:
+            if entry.edited_at > timezone.now() - timedelta(days=1):
+                return
+
+    if not leaderboard_type:
+        leaderboard_type = project.leaderboard_type
+    if leaderboard_type is None:
+        raise Exception("Trying to generate leaderboard without a type!")
+
+    new_entries = evaluate_score_based_leaderboard(project, leaderboard_type)
     for new_entry in new_entries:
         is_new = True
         for previous_entry in previous_entries:
@@ -51,5 +64,5 @@ def create_leaderboard_entries(project: Project, leaderboard_type: str | None = 
                 previous_entry.save()
                 break
         if is_new:
-            new_entry.for_project = project
+            new_entry.project = project
             new_entry.save()
