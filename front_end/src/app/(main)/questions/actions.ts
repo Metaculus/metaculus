@@ -23,10 +23,12 @@ export async function fetchMorePosts(
 }
 
 export async function fetchEmbedPosts(search: string) {
-  return await PostsApi.getPosts({
+  const response = await PostsApi.getPostWithoutForecasts({
     search: search || undefined,
     limit: search ? undefined : 10,
   });
+
+  return response.results;
 }
 
 export async function votePost(postId: number, direction: VoteDirection) {
