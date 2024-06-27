@@ -20,7 +20,7 @@ def score_question(
     score_types = score_types or Score.ScoreTypes.choices
     for score_type in score_types:
         previous_scores = list(
-            Score.objects.filter(for_question=question, score_type=score_type)
+            Score.objects.filter(question=question, score_type=score_type)
         )
         new_scores = evaluate_question(
             question, resolution_bucket, score_type, spot_forecast_time
@@ -34,14 +34,14 @@ def score_question(
                     previous_score.save()
                     break
             if is_new:
-                new_score.for_question = question
+                new_score.question = question
                 new_score.save()
 
 
 def create_leaderboard_entries(project: Project, leaderboard_type: str | None = None):
     previous_entries = list(project.leaderboard_entries.all())
     leaderboard_type = leaderboard_type or project.leaderboard_type
-    new_entries = evaluate_project_leaderboard(project, leaderboard_type)
+    new_entries = evaluate_score_based_leaderboard(project, leaderboard_type)
     for new_entry in new_entries:
         is_new = True
         for previous_entry in previous_entries:
@@ -51,5 +51,5 @@ def create_leaderboard_entries(project: Project, leaderboard_type: str | None = 
                 previous_entry.save()
                 break
         if is_new:
-            new_entry.for_project = project
+            new_entry.project = project
             new_entry.save()

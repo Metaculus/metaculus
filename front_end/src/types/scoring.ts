@@ -9,7 +9,7 @@ export type LeaderboardType =
 
 export type Score = {
   userId: number;
-  for_question: Question;
+  question: Question;
   score: number;
   coverage: number;
   score_type: ScoreType;

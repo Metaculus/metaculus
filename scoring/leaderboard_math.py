@@ -17,12 +17,12 @@ def evaluate_score_based_leaderboard(
 ) -> list[LeaderboardEntry]:
     leaderboard_type = leaderboard_type or project.leaderboard_type
     scores = Score.objects.filter(
-        for_question__post__projects=project, score_type=leaderboard_type
+        question__post__projects=project, score_type=leaderboard_type
     )
     user_entries = KeyAwareDefaultDict(
         lambda user: LeaderboardEntry(
             user=user,
-            for_project=project,
+            project=project,
             leaderboard_type=leaderboard_type,
             score=0,
             coverage=0,
