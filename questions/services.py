@@ -89,6 +89,7 @@ def build_question_forecasts_for_user(question: Question, user: User) -> dict:
 
     # values_choice_1
     # TODO: fix N+1
+    zero_point, max, min = question.zero_point, question.max, question.min
     for x in question.forecast_set.filter(author=user).order_by("start_time").all():
         forecasts_data["slider_values"] = x.slider_values
         forecasts_data["timestamps"].append(x.start_time.timestamp())
@@ -99,7 +100,7 @@ def build_question_forecasts_for_user(question: Question, user: User) -> dict:
         elif question.type in ["numeric", "date"]:
             cps, cdf = compute_continuous_plotable_cp(question)
             forecasts_data["values_mean"].append(
-                scale_location(question, percent_point_function(x.continuous_cdf, 0.5))
+                scale_location(zero_point, max, min, percent_point_function(x.continuous_cdf, 0.5))
             )
 
     return forecasts_data
