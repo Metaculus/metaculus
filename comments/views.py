@@ -35,9 +35,7 @@ def comments_list_api_view(request: Request):
     comments = [
         c
         for c in comments.all()
-        if ObjectPermission.can_view(
-            get_comment_permission_for_user(c, request.user)
-        )
+        if ObjectPermission.can_view(get_comment_permission_for_user(c, request.user))
     ]
 
     data = [{**CommentSerializer(obj).data} for obj in comments]

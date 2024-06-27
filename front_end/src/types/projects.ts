@@ -30,6 +30,7 @@ export type Tag = {
 export enum TournamentType {
   QuestionSeries = "question_series",
   Tournament = "tournament",
+  GlobalLeaderboard = "global_leaderboard",
 }
 
 export enum TournamentsSortBy {
