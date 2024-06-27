@@ -11,33 +11,56 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='default_permission',
-            field=models.CharField(blank=True, choices=[('viewer', 'Viewer'), ('forecaster', 'Forecaster'), ('curator', 'Curator'), ('admin', 'Admin'), ('none', 'None')], db_index=True, default='forecaster', null=True),
+            model_name="project",
+            name="default_permission",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("viewer", "Viewer"),
+                    ("forecaster", "Forecaster"),
+                    ("curator", "Curator"),
+                    ("admin", "Admin"),
+                    ("none", "None"),
+                ],
+                db_index=True,
+                default="forecaster",
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='emoji',
-            field=models.CharField(blank=True, default='', max_length=10),
+            model_name="project",
+            name="emoji",
+            field=models.CharField(blank=True, default="", max_length=10),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='header_image',
-            field=models.ImageField(blank=True, null=True, upload_to=''),
+            model_name="project",
+            name="header_image",
+            field=models.ImageField(blank=True, null=True, upload_to=""),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='header_logo',
-            field=models.ImageField(blank=True, null=True, upload_to=''),
+            model_name="project",
+            name="header_logo",
+            field=models.ImageField(blank=True, null=True, upload_to=""),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='prize_pool',
-            field=models.DecimalField(blank=True, decimal_places=2, default=None, max_digits=15, null=True),
+            model_name="project",
+            name="prize_pool",
+            field=models.DecimalField(
+                blank=True, decimal_places=2, default=None, max_digits=15, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='projectuserpermission',
-            name='permission',
-            field=models.CharField(choices=[('viewer', 'Viewer'), ('forecaster', 'Forecaster'), ('curator', 'Curator'), ('admin', 'Admin'), ('none', 'None')], db_index=True),
+            model_name="projectuserpermission",
+            name="permission",
+            field=models.CharField(
+                choices=[
+                    ("viewer", "Viewer"),
+                    ("forecaster", "Forecaster"),
+                    ("curator", "Curator"),
+                    ("admin", "Admin"),
+                    ("none", "None"),
+                ],
+                db_index=True,
+            ),
         ),
     ]

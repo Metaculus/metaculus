@@ -46,7 +46,7 @@ class Command(BaseCommand):
         print("Migrated comments")
         migrate_permissions()
         print("Migrated permissions")
-        
+
         # scoring
         # score_questions(qty=1000)  # only evaluate 1000 questions
         score_questions()
