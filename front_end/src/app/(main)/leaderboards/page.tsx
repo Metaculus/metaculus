@@ -1,5 +1,6 @@
-import Leaderboard from "@/components/leaderboard";
+import AwaitedLeaderboard from "@/components/leaderboard";
 
+//  @TODO: How to not hardcode the ids here -- or maybe we just should (?)
 export default async function GlobalLeaderboards() {
   return (
     <main className="mx-auto mb-auto w-full max-w-3xl px-2 pb-4">
@@ -11,10 +12,10 @@ export default async function GlobalLeaderboards() {
       </h1>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Leaderboard projectId={31844} />
+          <AwaitedLeaderboard projectId={30492} />
         </div>
         <div>
-          <Leaderboard projectId={31850} />
+          <AwaitedLeaderboard projectId={30494} />
         </div>
       </div>
     </main>

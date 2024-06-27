@@ -24,6 +24,7 @@ from projects.services import (
     invite_user_to_project,
 )
 from scoring.serializers import LeaderboardSerializer
+from scoring.utils import create_leaderboard_entries
 from users.services import get_users_by_usernames
 
 
@@ -144,11 +145,16 @@ def project_leaderboard(
     qs = get_projects_qs(user=request.user)
     obj = get_object_or_404(qs, pk=project_id)
 
+    if leaderboard_type is None and obj.leaderboard_type:
+        leaderboard_type = Project.LeaderboardTypes.PEER
+
     # Check permissions
     permission = get_project_permission_for_user(obj, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
     context = {"leaderboard_type": leaderboard_type or obj.leaderboard_type}
+
+    create_leaderboard_entries(obj, leaderboard_type, False)
     return Response(LeaderboardSerializer(obj, context=context).data)
 
 

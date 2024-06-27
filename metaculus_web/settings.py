@@ -197,7 +197,9 @@ ANYMAIL = {
     "MAILGUN_API_KEY": os.environ.get("MAILGUN_API_KEY"),
 }
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
-EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg.metaculus.com>")
+EMAIL_HOST_USER = os.environ.get(
+    "EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg.metaculus.com>"
+)
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -251,9 +253,7 @@ STORAGES = {
         "OPTIONS": {},
     },
     # TODO: change for prod
-    "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
-    }
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
