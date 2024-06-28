@@ -246,7 +246,7 @@ class Post(TimeStampedModel):
     default_project = models.ForeignKey(
         Project, related_name="default_posts", on_delete=models.PROTECT, null=True
     )
-    projects = models.ManyToManyField(Project, related_name="posts")
+    projects = models.ManyToManyField(Project, related_name="posts", blank=True)
 
     objects = models.Manager.from_queryset(PostQuerySet)()
 
@@ -259,7 +259,6 @@ class Post(TimeStampedModel):
 
     def __str__(self):
         return self.title
-
 
 # TODO: create votes app
 class Vote(models.Model):
