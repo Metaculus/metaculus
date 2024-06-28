@@ -24,7 +24,7 @@ def get_posts_feed(
     categories: list[Project] = None,
     tournaments: list[Project] = None,
     forecast_type: list[str] = None,
-    status: str = None,
+    statuses: list[str] = None,
     answered_by_me: bool = None,
     order: str = None,
     access: PostFilterSerializer.Access = None,
@@ -38,6 +38,9 @@ def get_posts_feed(
     # If ids provided
     if ids:
         qs = qs.filter(id__in=ids)
+
+    # Filter by permission level
+    qs = qs.filter_permission(user=user, permission=permission)
 
     # Search
     if search:
@@ -80,25 +83,24 @@ def get_posts_feed(
 
         qs = qs.filter(forecast_type_q)
 
-    if status:
-        if "resolved" in status:
-            qs = qs.filter(question__resolved_at__isnull=False).filter(
-                question__resolved_at__lte=timezone.now()
-            )
-        if "draft" in status:
-            qs = qs.filter(curation_status=Post.CurationStatus.DRAFT)
+    statuses = statuses or []
+
+    q = Q()
+    for status in statuses:
+        if status in ["draft", "pending", "rejected", "deleted"]:
+            q |= Q(curation_status=status)
+        if status == "closed":
+            q |= Q(closed_at__isnull=False)
+        if status == "resolved":
+            q |= Q(resolved_at__isnull=False, resolved_at__lte=timezone.now())
+
         if "active" in status:
-            qs = qs.filter(curation_status=Post.CurationStatus.APPROVED)
-        if "closed" in status:
-            qs = qs.filter(curation_status=Post.CurationStatus.CLOSED)
-        if "pending" in status:
-            qs = qs.filter(curation_status=Post.CurationStatus.PENDING)
-        if "deleted" in status:
-            qs = qs.filter(curation_status=Post.CurationStatus.DELETED)
-        if "rejected" in status:
-            qs = qs.filter(curation_status=Post.CurationStatus.REJECTED)
-        if "resolved" in status:
-            qs = qs.filter(curation_status=Post.CurationStatus.RESOLVED)
+            q |= Q(curation_status=Post.CurationStatus.APPROVED) & (
+                (Q(resolved_at__isnull=True) | Q(resolved_at__gt=timezone.now()))
+                & (Q(closed_at__isnull=True) | Q(closed_at__gt=timezone.now()))
+            )
+
+    qs = qs.filter(q)
 
     if answered_by_me is not None and not user.is_anonymous:
         condition = {"question__forecast__author": user}
@@ -109,9 +111,6 @@ def get_posts_feed(
         qs = qs.filter_private()
     if access == PostFilterSerializer.Access.PUBLIC:
         qs = qs.filter_public()
-
-    # Filter by permission level
-    qs = qs.filter_permission(user=user, permission=permission)
 
     # Ordering
     if order:
@@ -124,8 +123,8 @@ def get_posts_feed(
                 qs = qs.order_by("-resolved_at")
             case PostFilterSerializer.Order.CREATED_AT:
                 qs = qs.order_by("-created_at")
-    
-    return qs.distinct("id")
+
+    return qs
 
 
 def create_post(

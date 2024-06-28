@@ -7,7 +7,7 @@ from utils.dtypes import setdefaults_not_null
 
 def factory_project(
     *,
-    default_permission: ObjectPermission = ObjectPermission.FORECASTER,
+    default_permission: ObjectPermission | None = ObjectPermission.FORECASTER,
     # user_id -> permission
     override_permissions: dict[int, ObjectPermission] = None,
     **kwargs

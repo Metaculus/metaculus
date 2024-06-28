@@ -28,8 +28,7 @@ class Question(TimeStampedModel):
 
     description = models.TextField(blank=True)
 
-    # TODO: Should it be post or question level?
-    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    resolution = models.TextField(null=True, blank=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
 
     max = models.FloatField(null=True, blank=True)
@@ -42,9 +41,6 @@ class Question(TimeStampedModel):
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
-
-    # Common fields
-    resolution = models.TextField(null=True, blank=True)
 
     objects = models.Manager.from_queryset(QuestionQuerySet)()
 

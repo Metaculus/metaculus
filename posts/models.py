@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Sum, Subquery, OuterRef, Count
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
@@ -161,8 +162,19 @@ class PostQuerySet(models.QuerySet):
             ObjectPermission.CREATOR
         ]
 
-        return self.annotate_user_permission(user=user).filter(
-            user_permission__in=permissions_lookup
+        return (
+            self.annotate_user_permission(user=user)
+            .filter(user_permission__in=permissions_lookup)
+            .filter(
+                models.Q(curation_status=Post.CurationStatus.APPROVED)
+                | models.Q(
+                    user_permission__in=[
+                        ObjectPermission.CREATOR,
+                        ObjectPermission.ADMIN,
+                        ObjectPermission.CURATOR,
+                    ]
+                )
+            )
         )
 
     def filter_public(self):
@@ -201,20 +213,19 @@ class Post(TimeStampedModel):
         # APPROVED, all viewers can see it
         APPROVED = "approved"
         # CLOSED, all viewers can see it, no forecasts or other interactions can happen
-        CLOSED = "closed"
-        # DELETED, all viewers can see it, no forecasts or other interactions can happen
         DELETED = "deleted"
-        # RESOLVED (This is kinda fuzzy)
-        RESOLVED = "resolved"
 
     curation_status = models.CharField(
-        max_length=20, choices=CurationStatus.choices, default=CurationStatus.DRAFT
+        max_length=20,
+        choices=CurationStatus.choices,
+        default=CurationStatus.DRAFT,
+        db_index=True,
     )
+    curation_status_updated_at = models.DateTimeField(null=True, blank=True)
+
     title = models.CharField(max_length=200)
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
 
-    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    rejected_at = models.DateTimeField(null=True, blank=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     approved_by = models.ForeignKey(
         User,
@@ -224,7 +235,8 @@ class Post(TimeStampedModel):
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    closed_at = models.DateTimeField(db_index=True)
+    resolved_at = models.DateTimeField(db_index=True, null=True, blank=True)
 
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
@@ -259,6 +271,11 @@ class Post(TimeStampedModel):
 
     def __str__(self):
         return self.title
+
+    def update_curation_status(self, status: CurationStatus):
+        self.curation_status = status
+        self.curation_status_updated_at = timezone.now()
+
 
 # TODO: create votes app
 class Vote(models.Model):
