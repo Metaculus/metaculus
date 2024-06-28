@@ -1,12 +1,12 @@
 "use client";
 import { FC } from "react";
 
-import { ElectionsExperimentMapArea, MapType } from "@/types/experiments";
+import { StateByForecastItem, MapType } from "@/types/experiments";
 import { getColorInSpectrum } from "@/utils/colors";
 
 import ExperimentMap from "../../components/experiment_map";
 
-const OTHER_MAP_AREAS: ElectionsExperimentMapArea[] = [
+const OTHER_MAP_AREAS: StateByForecastItem[] = [
   {
     name: "Alabama",
     abbreviation: "Alabama",
@@ -51,7 +51,7 @@ const OtherMap: FC = () => {
   );
 };
 
-const getStateColor = (state: ElectionsExperimentMapArea) => {
+const getStateColor = (state: StateByForecastItem) => {
   return getColorInSpectrum(
     [0xe0, 0x16, 0x2b], // "#E0162B",
     [0xe0, 0xe0, 0xe1], // "#E0E0E1",

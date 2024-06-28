@@ -1,14 +1,14 @@
 "use client";
 import { FC } from "react";
 
-import { ElectionsExperimentMapArea, MapType } from "@/types/experiments";
+import { StateByForecastItem, MapType } from "@/types/experiments";
 import { getColorInSpectrum } from "@/utils/colors";
 
 import StateHoverCard from "./state_hover_card";
-import ExperimentMap from "../../../components/experiment_map";
+import ExperimentMap from "../../../../components/experiment_map";
 
 type Props = {
-  mapAreas: ElectionsExperimentMapArea[];
+  mapAreas: StateByForecastItem[];
 };
 
 const ElectionsMap: FC<Props> = ({ mapAreas }) => {
@@ -22,7 +22,7 @@ const ElectionsMap: FC<Props> = ({ mapAreas }) => {
   );
 };
 
-const getMapAreaColor = (mapArea: ElectionsExperimentMapArea) => {
+const getMapAreaColor = (mapArea: StateByForecastItem) => {
   return getColorInSpectrum(
     [0xe0, 0x16, 0x2b], // "#E0162B",
     [0xe0, 0xe0, 0xe1], // "#E0E0E1",
