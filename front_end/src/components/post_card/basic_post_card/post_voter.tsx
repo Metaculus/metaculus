@@ -33,7 +33,7 @@ const PostVoter: FC<Props> = ({ className, post }) => {
     <Voter
       className={className}
       userVote={vote.user_vote}
-      votes={vote.score}
+      votes={vote.score ? vote.score : 0}
       onVoteUp={() => handleVote(1)}
       onVoteDown={() => handleVote(-1)}
     />

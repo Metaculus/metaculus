@@ -4,6 +4,7 @@ from django.db import models
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from comments.models import Comment
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers import (
@@ -33,6 +34,7 @@ class NotebookSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -46,6 +48,7 @@ class PostSerializer(serializers.ModelSerializer):
             "published_at",
             "edited_at",
             "curation_status",
+            "comment_count"
         )
 
     def get_projects(self, obj: Post):
@@ -53,6 +56,9 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_author_username(self, obj: Post):
         return obj.author.username
+    
+    def get_comment_count(self, obj: Post):
+        return Comment.objects.filter(on_post=obj).count()
 
 
 class NotebookWriteSerializer(serializers.ModelSerializer):
