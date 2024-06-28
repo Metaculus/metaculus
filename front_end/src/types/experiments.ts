@@ -13,4 +13,10 @@ export type BaseMapArea = {
 export type ElectionsExperimentMapArea = BaseMapArea & {
   votes: number;
   democratProbability: number;
+  link?: {
+    groupId: number;
+    questionId: number;
+  };
+  forecastersNumber?: number;
+  forecastsNumber?: number;
 };

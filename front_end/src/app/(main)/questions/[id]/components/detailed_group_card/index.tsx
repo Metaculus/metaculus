@@ -12,9 +12,10 @@ import BinaryGroupChart from "./binary_group_chart";
 
 type Props = {
   questions: QuestionWithForecasts[];
+  preselectedQuestionId?: number;
 };
 
-const DetailedGroupCard: FC<Props> = ({ questions }) => {
+const DetailedGroupCard: FC<Props> = ({ questions, preselectedQuestionId }) => {
   const groupType = questions.at(0)?.type;
 
   if (!groupType) {
@@ -31,6 +32,7 @@ const DetailedGroupCard: FC<Props> = ({ questions }) => {
         <BinaryGroupChart
           questions={questions as QuestionWithNumericForecasts[]}
           timestamps={timestamps}
+          preselectedQuestionId={preselectedQuestionId}
         />
       );
     }

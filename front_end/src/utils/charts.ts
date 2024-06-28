@@ -225,11 +225,19 @@ export function generateChoiceItemsFromBinaryGroup(
   config?: {
     withMinMax?: boolean;
     activeCount?: number;
+    preselectedQuestionId?: number;
   }
 ): ChoiceItem[] {
-  const { withMinMax, activeCount } = config ?? {};
+  const { withMinMax, activeCount, preselectedQuestionId } = config ?? {};
 
   return questions.map((q, index) => {
+    let active = true;
+    if (preselectedQuestionId !== undefined) {
+      active = q.id === preselectedQuestionId;
+    } else if (activeCount) {
+      active = index <= activeCount - 1;
+    }
+
     return {
       choice: extractQuestionGroupName(q.title),
       values: q.forecasts.values_mean,
@@ -241,8 +249,8 @@ export function generateChoiceItemsFromBinaryGroup(
         : {}),
       timestamps: q.forecasts.timestamps,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      active: !!activeCount ? index <= activeCount - 1 : true,
-      highlighted: false,
+      active,
+      highlighted: q.id === preselectedQuestionId,
     };
   });
 }

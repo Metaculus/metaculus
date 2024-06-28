@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import ElectionsMap from "@/app/(main)/experiments/elections/components/state_by_forecast/elections_map";
 import PostsApi from "@/services/posts";
+import { ElectionsExperimentMapArea } from "@/types/experiments";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { extractQuestionGroupName } from "@/utils/questions";
 
@@ -17,12 +18,15 @@ const StateByForecast: FC<Props> = async ({ questionGroupId }) => {
     return null;
   }
 
-  const mapAreas = getMapAreas(post.group_of_questions.questions);
+  const mapAreas = getMapAreas(post.id, post.group_of_questions.questions);
 
   return <ElectionsMap mapAreas={mapAreas} />;
 };
 
-const getMapAreas = (questions: QuestionWithForecasts[]) => {
+const getMapAreas = (
+  postId: number,
+  questions: QuestionWithForecasts[]
+): ElectionsExperimentMapArea[] => {
   const questionsDictionary = questions.reduce<
     Record<string, QuestionWithForecasts>
   >(
@@ -61,9 +65,18 @@ const getMapAreas = (questions: QuestionWithForecasts[]) => {
       return area;
     }
 
+    const forecastersNumber = questionData.forecasts.nr_forecasters.at(-1) ?? 0;
+    const forecastsNumber = questionData.forecasts.timestamps.length;
+
     return {
       ...area,
       democratProbability: 1 - prediction,
+      link: {
+        groupId: postId,
+        questionId: questionData.id,
+      },
+      forecastersNumber,
+      forecastsNumber,
     };
   });
 };
