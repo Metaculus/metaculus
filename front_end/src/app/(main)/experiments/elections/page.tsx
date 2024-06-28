@@ -17,11 +17,8 @@ export default function ElectionsExperiment() {
             </p>
           </div>
         </div>
-        <div className="mt-4 flex w-full flex-col gap-4 rounded bg-gray-0 p-4 dark:bg-gray-0-dark md:gap-10">
-          <div className="relative flex flex-col items-center gap-10">
-            <StateByForecast questionGroupId={18274} />
-          </div>
-        </div>
+
+        <StateByForecast questionGroupId={18274} />
       </div>
     </main>
   );

@@ -4,12 +4,12 @@ import { FC, MouseEvent, useEffect, useState } from "react";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import { useBreakpoint } from "@/hooks/tailwind";
-import { ElectionsExperimentMapArea } from "@/types/experiments";
+import { StateByForecastItem } from "@/types/experiments";
 
 type Props = {
   x: number;
   y: number;
-  mapArea: ElectionsExperimentMapArea | null;
+  mapArea: StateByForecastItem | null;
   onMouseEnter?: (event: MouseEvent<HTMLDivElement>) => void;
   onMouseLeave?: (event: MouseEvent<HTMLDivElement>) => void;
 };
