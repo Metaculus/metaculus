@@ -5,6 +5,7 @@ export type UserProfile = {
   bio: string;
   website: string;
   formerly_known_as?: string;
+  is_bot: boolean;
 };
 
 export type CurrentUser = UserProfile & {
