@@ -15,6 +15,7 @@ def factory_post(
     conditional: Conditional = None,
     projects: list[Project] = None,
     default_project: Project = None,
+    curation_status: Post.CurationStatus = Post.CurationStatus.APPROVED,
     **kwargs
 ):
     projects = projects or []
@@ -28,6 +29,7 @@ def factory_post(
             question=question,
             conditional=conditional,
             default_project=default_project,
+            curation_status=curation_status,
         )
     )
     post.projects.add(*projects)

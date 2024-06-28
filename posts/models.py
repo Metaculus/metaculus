@@ -235,7 +235,7 @@ class Post(TimeStampedModel):
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    closed_at = models.DateTimeField(db_index=True)
+    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
     resolved_at = models.DateTimeField(db_index=True, null=True, blank=True)
 
     # Relations
@@ -275,6 +275,14 @@ class Post(TimeStampedModel):
     def update_curation_status(self, status: CurationStatus):
         self.curation_status = status
         self.curation_status_updated_at = timezone.now()
+
+    @property
+    def is_closed(self):
+        return self.closed_at and self.closed_at <= timezone.now()
+
+    @property
+    def is_resolved(self):
+        return self.resolved_at and self.resolved_at <= timezone.now()
 
 
 # TODO: create votes app

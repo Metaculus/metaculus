@@ -141,10 +141,18 @@ def create_post(
     # Adding questions
     if question:
         obj.question = create_question(**question)
+        obj.resolved_at = obj.question.resolved_at
+        obj.closed_at = obj.question.closed_at
     elif conditional:
         obj.conditional = create_conditional(**conditional)
+        obj.resolved_at = obj.conditional.condition.resolved_at
+        obj.closed_at = obj.conditional.condition.closed_at
     elif group_of_questions:
         obj.group_of_questions = create_group_of_questions(**group_of_questions)
+        obj.resolved_at = max(
+            [x["resolved_at"] for x in group_of_questions["questions"]]
+        )
+        obj.closed_at = max([x["closed_at"] for x in group_of_questions["questions"]])
 
     # Projects appending
     # Tags, categories and topics
