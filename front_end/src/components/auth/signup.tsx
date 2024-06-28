@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useTransition } from "react";
+import React, { FC, useEffect, useTransition } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
@@ -14,6 +14,7 @@ import { SignUpSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
 import SocialButtons from "@/components/auth/social_buttons";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
+import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
 import useTurnstileWidget from "@/hooks/use_turnstile";
@@ -32,7 +33,7 @@ const SignUpModal: FC<SignInModalType> = ({
     useTurnstileWidget();
   const [isPending, startTransition] = useTransition();
   const { setCurrentModal } = useModal();
-  const { register, watch } = useForm<SignUpSchema>({
+  const { register, watch, setValue } = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
   });
   const [state, formAction] = useFormState<SignUpActionState, FormData>(
@@ -115,6 +116,18 @@ const SignUpModal: FC<SignInModalType> = ({
                 errors={state?.errors}
                 {...register("email")}
               />
+            </div>
+            <div>
+              <Checkbox
+                checked={watch("isBot")}
+                onChange={(is_bot) => {
+                  setValue("isBot", is_bot);
+                }}
+                label="Sign up as Bot"
+                className="p-1.5"
+              />
+              <FormError errors={state?.errors} name="isBot" />
+              <input type="hidden" {...register("isBot")} />
             </div>
             <div>
               <Button
