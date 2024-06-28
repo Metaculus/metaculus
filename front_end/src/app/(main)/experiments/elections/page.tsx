@@ -1,3 +1,4 @@
+import CardForecast from "./components/card_forecast";
 import StateByForecast from "./components/state_by_forecast";
 
 export default function ElectionsExperiment() {
@@ -16,6 +17,11 @@ export default function ElectionsExperiment() {
               Explore Metaculus forecasts for the 2024 US presidential election.
             </p>
           </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <CardForecast postId={6478} />
+          <CardForecast postId={11245} />
         </div>
 
         <StateByForecast questionGroupId={18274} />

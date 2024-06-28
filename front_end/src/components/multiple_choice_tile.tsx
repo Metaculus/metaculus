@@ -9,18 +9,18 @@ import ChoiceIcon from "@/components/choice_icon";
 import { ChoiceItem } from "@/types/choices";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
-const HEIGHT = 100;
-
 type Props = {
   timestamps: number[];
   choices: ChoiceItem[];
   visibleChoicesCount: number;
+  chartHeight?: number;
 };
 
 const MultipleChoiceTile: FC<Props> = ({
   timestamps,
   choices,
   visibleChoicesCount,
+  chartHeight = 100,
 }) => {
   const t = useTranslations();
 
@@ -66,7 +66,7 @@ const MultipleChoiceTile: FC<Props> = ({
       <MultipleChoiceChart
         timestamps={timestamps}
         choiceItems={choices}
-        height={HEIGHT}
+        height={chartHeight}
       />
     </div>
   );

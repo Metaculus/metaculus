@@ -7,10 +7,9 @@ import React, { FC, useEffect, useState } from "react";
 
 import { fetchMorePosts } from "@/app/(main)/questions/actions";
 import Carousel, { CarouselItem } from "@/components/carousel";
+import ForecastCard from "@/components/forecast_card";
 import { POST_STATUS_FILTER } from "@/constants/posts_feed";
 import { PostStatus, PostWithForecasts } from "@/types/post";
-
-import QuestionCarouselItem from "./carousel_item";
 
 type Props = {
   postIds: number[];
@@ -50,7 +49,7 @@ const QuestionCarousel: FC<Props> = ({ postIds }) => {
     >
       {data.map((p) => (
         <CarouselItem key={p.id}>
-          <QuestionCarouselItem post={p} />
+          <ForecastCard post={p} />
         </CarouselItem>
       ))}
     </Carousel>
