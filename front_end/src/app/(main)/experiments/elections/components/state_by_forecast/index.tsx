@@ -9,6 +9,7 @@ import { StateByForecastItem } from "@/types/experiments";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { extractQuestionGroupName } from "@/utils/questions";
 
+import MiddleVotesArrow from "./middle_votes_arrow";
 import StateByForecastCharts from "./state_by_forecast_charts";
 import { US_MAP_AREAS } from "./us_areas";
 
@@ -46,7 +47,41 @@ const StateByForecast: FC<Props> = async ({ questionGroupId }) => {
         </Link>
       </div>
 
+      <div className="relative mt-10 w-full md:mt-0">
+        <MiddleVotesArrow className="absolute left-2/4 -translate-x-2/4 -translate-y-full" />
+      </div>
+
       <StateByForecastCharts items={stateByItems} />
+
+      <div className="mt-2 flex w-full flex-col gap-2 self-center text-left font-sans font-light md:mt-8 lg:gap-7">
+        <div className="w-full  border-b border-blue-400 dark:border-blue-400-dark" />
+
+        <div className="flex flex-col gap-4">
+          <div className="text-sm leading-5 text-gray-600 dark:text-gray-600-dark">
+            <span className="font-semibold">
+              Currently, our map focuses only on the battleground states
+              outlined{" "}
+              <Link
+                href={`/questions/${post.id}`}
+                className="hover:text-blue-800 dark:hover:text-blue-800-dark"
+              >
+                in this question
+              </Link>
+              .
+            </span>{" "}
+            We marked some states “Safe Democrat” or “Safe Republican” based on
+            historical election data. If you believe we should include forecasts
+            for more states, let us know!
+          </div>
+
+          <div className="text-sm leading-5 text-gray-600 dark:text-gray-600-dark">
+            <span className="font-semibold">Regarding Maine and Nebraska:</span>{" "}
+            We’re aware of their unique approach to electoral vote distribution
+            and are working to incorporate this in our upcoming updates. Stay
+            tuned!
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
