@@ -1,16 +1,16 @@
 import json
+import re
 from datetime import datetime
 
-from dateutil.parser import parse as date_parse
 import django
 import html2text
-import re
+from dateutil.parser import parse as date_parse
 
-from projects.services import get_site_main_project
-from utils.the_math.formulas import scale_location
 from migrator.utils import paginated_query
 from posts.models import Notebook, Post
+from projects.services import get_site_main_project
 from questions.models import Question, Conditional, GroupOfQuestions
+from utils.the_math.formulas import scale_location
 
 
 def unscaled_location_to_string_location(
@@ -103,6 +103,7 @@ def create_question(question: dict, **kwargs) -> Question:
 
 def create_post(question: dict, **kwargs) -> Post:
     curation_status = Post.CurationStatus.DRAFT
+
     if (
         question["approved_by_id"]
         or (
@@ -115,18 +116,6 @@ def create_post(question: dict, **kwargs) -> Post:
         )
     ):
         curation_status = Post.CurationStatus.APPROVED
-    if (
-        question["close_time"]
-        and question["close_time"] < django.utils.timezone.now()
-        and (
-            (
-                question["approved_time"]
-                and question["approved_time"] < django.utils.timezone.now()
-            )
-            or question["approved_by_id"]
-        )
-    ):
-        curation_status = Post.CurationStatus.CLOSED
     """if question["resolve_time"] < django.utils.timezone.now() and (
         (
             question["approved_time"]
@@ -143,6 +132,10 @@ def create_post(question: dict, **kwargs) -> Post:
     if question["mod_status"] == "DELETED":
         curation_status = Post.CurationStatus.DELETED
 
+    curation_status_dates = list(
+        filter(bool, [question["publish_time"], question["approved_time"]])
+    )
+
     return Post(
         # Keeping the same ID as the old question
         id=question["id"],
@@ -151,6 +144,9 @@ def create_post(question: dict, **kwargs) -> Post:
         approved_by_id=question["approved_by_id"],
         closed_at=question["close_time"],
         curation_status=curation_status,
+        curation_status_updated_at=(
+            max(curation_status_dates) if curation_status_dates else None
+        ),
         published_at=question["publish_time"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
@@ -201,26 +197,26 @@ def migrate_questions__composite():
 
     for old_question in paginated_query(
         """SELECT 
-                        q.*, 
-                        qc.parent_id as condition_id, 
-                        qc.unconditional_question_id as condition_child_id, 
-                        qc.resolution as qc_resolution FROM (
-                                SELECT
-                                    q.*,
-                                    ARRAY_AGG(o.label) AS option_labels
-                                FROM
-                                    metac_question_question q
-                                LEFT JOIN
-                                    metac_question_option o ON q.id = o.question_id
-                                WHERE  type in ('conditional_group', 'group', 'notebook', 'discussion', 'claim') or group_id is not null
-                                
-                                GROUP BY q.id
-                            ) q
-                    LEFT JOIN 
-                        metac_question_conditional qc ON qc.child_id = q.id
-                    -- Ensure parents go first
-                    ORDER BY group_id DESC;
-                                                            """,
+                            q.*, 
+                            qc.parent_id as condition_id, 
+                            qc.unconditional_question_id as condition_child_id, 
+                            qc.resolution as qc_resolution FROM (
+                                    SELECT
+                                        q.*,
+                                        ARRAY_AGG(o.label) AS option_labels
+                                    FROM
+                                        metac_question_question q
+                                    LEFT JOIN
+                                        metac_question_option o ON q.id = o.question_id
+                                    WHERE  type in ('conditional_group', 'group', 'notebook', 'discussion', 'claim') or group_id is not null
+                                    
+                                    GROUP BY q.id
+                                ) q
+                        LEFT JOIN 
+                            metac_question_conditional qc ON qc.child_id = q.id
+                        -- Ensure parents go first
+                        ORDER BY group_id DESC;
+                                                                """,
         itersize=10000,
     ):
         group_id = old_question["group_id"]
@@ -273,28 +269,30 @@ def migrate_questions__groups(root_questions: list[dict]):
 
 
 def remove_newlines(match):
-    return match.group(0).replace('\n', ' ')
+    return match.group(0).replace("\n", " ")
+
 
 def remove_spaces(match):
-    return match.group(0).replace(' ', '')
+    return match.group(0).replace(" ", "")
+
 
 def convert_iframes_to_embedded_questions(html):
-    parts = re.split(r'(<iframe[^>]*>.*?</iframe>)', html, flags=re.DOTALL)
-    
+    parts = re.split(r"(<iframe[^>]*>.*?</iframe>)", html, flags=re.DOTALL)
+
     converted_parts = []
     for part in parts:
-        if part.startswith('<iframe'):
-            match = re.search(r'questions/question_embed/(\d+)/', part)
+        if part.startswith("<iframe"):
+            match = re.search(r"questions/question_embed/(\d+)/", part)
             if match:
                 question_id = match.group(1)
                 converted_parts.append(f'<EmbeddedQuestion id="{question_id}" />')
         else:
             converted_parts.append(html2text.html2text(part))
-    
-    md = '\n'.join(converted_parts)
-    md = re.sub(r'\[([^\]]*)\]', remove_newlines, md)
-    md = re.sub(r'\(([^)]*)\)', remove_newlines, md)
-    md = re.sub(r'\(([^)]*)\)', remove_spaces, md)
+
+    md = "\n".join(converted_parts)
+    md = re.sub(r"\[([^\]]*)\]", remove_newlines, md)
+    md = re.sub(r"\(([^)]*)\)", remove_newlines, md)
+    md = re.sub(r"\(([^)]*)\)", remove_spaces, md)
 
     return md
 
@@ -325,7 +323,9 @@ def migrate_questions__notebook(root_questions: list[dict]):
             else:
                 raise Exception("Unknown notebook type")
 
-            markdown = convert_iframes_to_embedded_questions(root_question["description_html"])
+            markdown = convert_iframes_to_embedded_questions(
+                root_question["description_html"]
+            )
             notebooks.append(
                 Notebook(id=root_question["id"], markdown=markdown, type=notebook_type)
             )
