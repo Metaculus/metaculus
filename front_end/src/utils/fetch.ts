@@ -21,7 +21,15 @@ const normalizeApiErrors = ({
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
-    const errorData: ApiErrorResponse = await response.json();
+    let errorData: ApiErrorResponse;
+
+    try {
+      errorData = await response.json();
+    } catch (err) {
+      errorData = {
+        detail: "Unexpected Server Error",
+      } as ApiErrorResponse;
+    }
 
     // Converting Django errors
     const data: ErrorResponse = normalizeApiErrors(errorData);

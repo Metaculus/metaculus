@@ -1,6 +1,7 @@
 from social_django.models import Association, Code, Nonce, Partial, UserSocialAuth
+from rest_framework.authtoken.models import Token
 
-from migrator.utils import paginated_query, one2one_query
+from migrator.utils import paginated_query
 from users.models import User
 
 
@@ -28,6 +29,7 @@ def create_user(user_obj: dict) -> User:
         is_active=user_obj["is_active"],
         is_staff=user_obj["metaculus_staff"],
         is_superuser=user_obj["is_superuser"],
+        is_bot=user_obj["forecaster_type"] == "BOT",
     )
 
     return user
@@ -57,6 +59,12 @@ def migrate_users():
         users.append(create_user(user_obj))
 
     User.objects.bulk_create(users, batch_size=10_000)
+
+    # Migrating existing bot/user tokens
+    tokens = [
+        Token(**token_obj) for token_obj in paginated_query("SELECT * FROM authtoken_token")
+    ]
+    Token.objects.bulk_create(tokens, batch_size=5_000)
 
     # Social migrations
     migrate_social_auth()

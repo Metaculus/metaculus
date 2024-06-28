@@ -49,7 +49,7 @@ const EmbeddedQuestionCard: FC<Props> = ({ postData }) => {
           );
           const choices = generateChoiceItemsFromBinaryGroup(
             questions as QuestionWithNumericForecasts[],
-            { activeCount: 3 }
+            { activeCount: 3, sortPredictionDesc: true }
           );
 
           return (
