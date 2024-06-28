@@ -46,6 +46,8 @@ class PostSerializer(serializers.ModelSerializer):
             "published_at",
             "edited_at",
             "curation_status",
+            "resolved_at",
+            "closed_at",
         )
 
     def get_projects(self, obj: Post):
@@ -98,7 +100,7 @@ class PostFilterSerializer(serializers.Serializer):
     categories = serializers.ListField(child=serializers.CharField(), required=False)
     tournaments = serializers.ListField(child=serializers.CharField(), required=False)
     forecast_type = serializers.ListField(child=serializers.CharField(), required=False)
-    status = serializers.ListField(child=serializers.CharField(), required=False)
+    statuses = serializers.ListField(child=serializers.CharField(), required=False)
     answered_by_me = serializers.BooleanField(required=False, allow_null=True)
     permission = serializers.ChoiceField(
         required=False,
