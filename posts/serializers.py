@@ -48,7 +48,8 @@ class PostSerializer(serializers.ModelSerializer):
             "published_at",
             "edited_at",
             "curation_status",
-            "comment_count" "resolved_at",
+            "comment_count",
+            "resolved_at",
             "closed_at",
         )
 
