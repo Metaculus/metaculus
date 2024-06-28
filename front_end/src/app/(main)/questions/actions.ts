@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import CommentsApi from "@/services/comments";
 import PostsApi, { PostsParams } from "@/services/posts";
 import QuestionsApi from "@/services/questions";
 import { FetchError } from "@/types/fetch";
@@ -145,6 +146,18 @@ export async function updateNotebook(
 export async function uploadImage(formData: FormData) {
   try {
     return await PostsApi.uploadImage(formData);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
+export async function softDeleteComment(commentId: number) {
+  try {
+    return await CommentsApi.softDeleteComment(commentId);
   } catch (err) {
     const error = err as FetchError;
 
