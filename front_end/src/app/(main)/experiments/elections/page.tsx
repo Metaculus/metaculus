@@ -1,4 +1,5 @@
 import CardForecast from "./components/card_forecast";
+import ExpectedElectoralVotesForecast from "./components/expected_electoral_votes_forecast";
 import StateByForecast from "./components/state_by_forecast";
 
 export default function ElectionsExperiment() {
@@ -23,6 +24,11 @@ export default function ElectionsExperiment() {
           <CardForecast postId={6478} />
           <CardForecast postId={11245} />
         </div>
+
+        <ExpectedElectoralVotesForecast
+          democratPostId={10958}
+          republicanPostId={10959}
+        />
 
         <StateByForecast questionGroupId={18274} />
       </div>
