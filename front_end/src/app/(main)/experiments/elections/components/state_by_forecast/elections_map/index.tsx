@@ -9,15 +9,19 @@ import ExperimentMap from "../../../../components/experiment_map";
 
 type Props = {
   mapAreas: StateByForecastItem[];
+  hoveredId: string | null;
+  onHover: (id: string | null) => void;
 };
 
-const ElectionsMap: FC<Props> = ({ mapAreas }) => {
+const ElectionsMap: FC<Props> = ({ mapAreas, hoveredId, onHover }) => {
   return (
     <ExperimentMap
       mapAreas={mapAreas}
       mapType={MapType.US}
       getMapAreaColor={getMapAreaColor}
       renderHoverPopover={(props) => <StateHoverCard {...props} />}
+      externalHoveredId={hoveredId}
+      onHover={onHover}
     />
   );
 };
