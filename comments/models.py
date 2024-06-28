@@ -23,8 +23,8 @@ class CommentQuerySet(models.QuerySet):
 class Comment(models.Model):
     author = models.ForeignKey(User, models.CASCADE)
     parent = models.ForeignKey("self", on_delete=models.SET_NULL, null=True)
+    # auto_now_add=True must be disabled when the migration is run
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
-    edited_at = models.DateTimeField(auto_now_add=True)
     is_soft_deleted = models.BooleanField(null=True)
     text = models.TextField()
     on_post = models.ForeignKey(Post, models.CASCADE, null=True)
@@ -33,10 +33,11 @@ class Comment(models.Model):
         Forecast, on_delete=models.SET_NULL, null=True
     )
     is_private = models.BooleanField(default=False)
-    edit_history = models.JSONField(default=list, null=False)
+    edit_history = models.JSONField(null=True)
 
     # annotated fields
     vote_score: int = 0
     author_username: str = ""
+    # edited_at: None   # convenience field from edit_history ?
     # user_vote_score: int = 0
     children = []
