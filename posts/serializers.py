@@ -48,7 +48,8 @@ class PostSerializer(serializers.ModelSerializer):
             "published_at",
             "edited_at",
             "curation_status",
-            "comment_count"
+            "comment_count" "resolved_at",
+            "closed_at",
         )
 
     def get_projects(self, obj: Post):
@@ -56,7 +57,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_author_username(self, obj: Post):
         return obj.author.username
-    
+
     def get_comment_count(self, obj: Post):
         return Comment.objects.filter(on_post=obj).count()
 
@@ -104,7 +105,7 @@ class PostFilterSerializer(serializers.Serializer):
     categories = serializers.ListField(child=serializers.CharField(), required=False)
     tournaments = serializers.ListField(child=serializers.CharField(), required=False)
     forecast_type = serializers.ListField(child=serializers.CharField(), required=False)
-    status = serializers.ListField(child=serializers.CharField(), required=False)
+    statuses = serializers.ListField(child=serializers.CharField(), required=False)
     answered_by_me = serializers.BooleanField(required=False, allow_null=True)
     permission = serializers.ChoiceField(
         required=False,

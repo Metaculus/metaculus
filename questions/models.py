@@ -28,9 +28,9 @@ class Question(TimeStampedModel):
 
     description = models.TextField(blank=True)
 
-    # TODO: Should it be post or question level?
-    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    resolved_at = models.DateTimeField(null=True, blank=True)
+    # TODO: Make them not-null!
+    closed_at = models.DateTimeField(db_index=True, null=True)
+    resolved_at = models.DateTimeField(db_index=True, null=True)
 
     max = models.FloatField(null=True, blank=True)
     min = models.FloatField(null=True, blank=True)

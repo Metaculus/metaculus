@@ -182,3 +182,30 @@ class TestPostPermissions:
                 user=user1, permission=ObjectPermission.ADMIN
             ).values_list("id", flat=True)
         )
+
+    def test_non_approved_queryset(self, user1, user2):
+        user3 = factory_user()
+        user4 = factory_user()
+
+        # User2 & User3
+        p1 = factory_post(
+            author=user1,
+            default_project=factory_project(
+                # Private Projects
+                default_permission=ObjectPermission.VIEWER,
+                override_permissions={
+                    user2.id: ObjectPermission.FORECASTER,
+                    user3.id: ObjectPermission.ADMIN,
+                },
+            ),
+            curation_status=Post.CurationStatus.PENDING,
+        )
+
+        # Post exists for creator
+        assert Post.objects.filter_permission(user=user1).filter(pk=p1.pk).exists()
+        # Post exists for the project owner
+        assert Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
+        # Post is not visible for Forecaster
+        assert not Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
+        # Post is not visible for a random user
+        assert not Post.objects.filter_permission(user=user4).filter(pk=p1.pk).exists()
