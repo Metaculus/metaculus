@@ -89,7 +89,6 @@ def tags_list_api_view(request: Request):
     else:
         qs = qs.order_by("-posts_count")
 
-    # Limit to 50 tags
     qs = qs[0:1000]
 
     data = [
