@@ -23,15 +23,24 @@ const MAX_VISIBLE_CHECKBOXES = 6;
 type Props = {
   questions: QuestionWithNumericForecasts[];
   timestamps: number[];
+  preselectedQuestionId?: number;
 };
 
-const generateList = (questions: QuestionWithNumericForecasts[]) =>
+const generateList = (
+  questions: QuestionWithNumericForecasts[],
+  preselectedQuestionId?: number
+) =>
   generateChoiceItemsFromBinaryGroup(questions, {
     withMinMax: true,
     activeCount: MAX_VISIBLE_CHECKBOXES,
+    preselectedQuestionId,
   });
 
-const BinaryGroupChart: FC<Props> = ({ questions, timestamps }) => {
+const BinaryGroupChart: FC<Props> = ({
+  questions,
+  timestamps,
+  preselectedQuestionId,
+}) => {
   const t = useTranslations();
 
   const [isChartReady, setIsChartReady] = useState(false);
@@ -40,7 +49,7 @@ const BinaryGroupChart: FC<Props> = ({ questions, timestamps }) => {
   }, []);
 
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
-    generateList(questions)
+    generateList(questions, preselectedQuestionId)
   );
 
   const timestampsCount = timestamps.length;
@@ -48,9 +57,9 @@ const BinaryGroupChart: FC<Props> = ({ questions, timestamps }) => {
   // sync BE driven data with local state
   useEffect(() => {
     if (prevTimestampsCount && prevTimestampsCount !== timestampsCount) {
-      setChoiceItems(generateList(questions));
+      setChoiceItems(generateList(questions, preselectedQuestionId));
     }
-  }, [questions, prevTimestampsCount, timestampsCount]);
+  }, [questions, prevTimestampsCount, timestampsCount, preselectedQuestionId]);
 
   const [cursorTimestamp, tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
