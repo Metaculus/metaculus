@@ -4,7 +4,6 @@ from datetime import datetime
 
 import django
 import html2text
-import re
 from django.utils import timezone
 
 from projects.models import Project
@@ -15,9 +14,7 @@ from dateutil.parser import parse as date_parse
 
 from migrator.utils import paginated_query
 from posts.models import Notebook, Post
-from projects.services import get_site_main_project
 from questions.models import Question, Conditional, GroupOfQuestions
-from utils.the_math.formulas import scale_location
 
 
 def unscaled_location_to_string_location(
@@ -319,7 +316,7 @@ def migrate_questions__notebook(root_questions: list[dict]):
 
     related_notebook_projects = list(
         paginated_query(
-            f"""
+            """
         SELECT qpp.question_id as question_id, p.id as id, p.name as name, p.type as type,
         p.slug, p.subtitle, p.description, p.header_image, p.header_logo, p.meta_description
                                                      ,p.created_at, p.edited_at, p.meta_description
