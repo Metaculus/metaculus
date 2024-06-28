@@ -28,27 +28,25 @@ const StateByForecast: FC<Props> = async ({ questionGroupId }) => {
   );
 
   return (
-    <div className="mt-4 flex w-full flex-col gap-4 rounded bg-gray-0 p-4 dark:bg-gray-0-dark md:gap-10">
-      <div className="flex w-full flex-col items-end">
-        <div className="mb-2 grid w-full grid-cols-[1fr_auto_1fr] gap-2">
-          <Link
-            className="col-start-2 row-span-1 row-start-1 flex items-center gap-2 text-lg text-gray-700 no-underline hover:text-gray-900 dark:text-gray-700-dark hover:dark:text-gray-900-dark md:col-start-1"
-            href={`/questions/${post.id}`}
+    <div className="mt-4 flex w-full flex-col rounded bg-gray-0 p-4 dark:bg-gray-0-dark">
+      <div className="mb-2 grid w-full grid-cols-[1fr_auto_1fr] gap-2">
+        <Link
+          className="col-start-2 row-span-1 row-start-1 flex items-center gap-2 text-lg text-gray-700 no-underline hover:text-gray-900 dark:text-gray-700-dark hover:dark:text-gray-900-dark md:col-start-1"
+          href={`/questions/${post.id}`}
+        >
+          <span>State-by-state Forecasts</span>
+          <Button
+            aria-label="Republican Electoral Vote"
+            variant="tertiary"
+            presentationType="icon"
+            size="sm"
           >
-            <span>State-by-state Forecasts</span>
-            <Button
-              aria-label="Republican Electoral Vote"
-              variant="tertiary"
-              presentationType="icon"
-              size="sm"
-            >
-              <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
-            </Button>
-          </Link>
-        </div>
-
-        <StateByForecastCharts items={stateByItems} />
+            <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+          </Button>
+        </Link>
       </div>
+
+      <StateByForecastCharts items={stateByItems} />
     </div>
   );
 };

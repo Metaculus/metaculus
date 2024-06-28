@@ -28,7 +28,8 @@ type Props<T> = {
   mapType: MapType;
   mapAreas: T[];
   getMapAreaColor: (mapArea: T) => string | undefined;
-  onHover?: (mapArea: T | null) => void;
+  externalHoveredId?: string | null;
+  onHover?: (id: string | null) => void;
   renderHoverPopover?: (props: HoverCardRendererProps<T | null>) => ReactNode;
 };
 
@@ -44,6 +45,7 @@ const ExperimentMap = <T extends BaseMapArea>({
   getMapAreaColor,
   onHover,
   renderHoverPopover,
+  externalHoveredId,
 }: Props<T>) => {
   const ref = useRef<SVGSVGElement>(null);
   const mapAreaDictionary = useMemo(
@@ -123,6 +125,20 @@ const ExperimentMap = <T extends BaseMapArea>({
     isMouseOverCard.current = false;
     setHoveredMapArea(null);
   }, []);
+  useEffect(() => {
+    if (externalHoveredId === undefined) return;
+
+    if (externalHoveredId) {
+      const mapArea = mapAreas.find(
+        (area) => area.abbreviation === externalHoveredId
+      );
+      if (mapArea) {
+        setHoveredMapArea(mapArea);
+      }
+    } else {
+      setHoveredMapArea(null);
+    }
+  }, [mapAreas, externalHoveredId]);
 
   useEffect(() => {
     if (!ref.current) {
@@ -151,7 +167,7 @@ const ExperimentMap = <T extends BaseMapArea>({
             clearTimeout(timer.current);
           }
           setHoveredMapArea(mapArea);
-          onHover?.(mapArea);
+          onHover?.(mapArea.abbreviation);
         };
         const onMouseLeave = () => {
           timer.current = setTimeout(() => {
