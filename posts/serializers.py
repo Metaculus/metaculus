@@ -157,7 +157,7 @@ class PostFilterSerializer(serializers.Serializer):
         return validate_categories(lookup_field="slug", lookup_values=values)
 
     def validate_tournaments(self, values: list[str]):
-        return validate_tournaments(lookup_field="slug", lookup_values=values)
+        return validate_tournaments(lookup_values=values)
 
 
 def serialize_post(
