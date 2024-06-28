@@ -4,6 +4,7 @@ import { FC } from "react";
 import { ElectionsExperimentMapArea, MapType } from "@/types/experiments";
 import { getColorInSpectrum } from "@/utils/colors";
 
+import StateHoverCard from "./state_hover_card";
 import ExperimentMap from "../../../components/experiment_map";
 
 type Props = {
@@ -16,6 +17,7 @@ const ElectionsMap: FC<Props> = ({ mapAreas }) => {
       mapAreas={mapAreas}
       mapType={MapType.US}
       getMapAreaColor={getMapAreaColor}
+      renderHoverPopover={(props) => <StateHoverCard {...props} />}
     />
   );
 };
