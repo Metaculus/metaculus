@@ -26,6 +26,7 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "bio",
             "website",
             "formerly_known_as",
+            "is_bot",
         )
 
     def get_formerly_known_as(self, obj: User):

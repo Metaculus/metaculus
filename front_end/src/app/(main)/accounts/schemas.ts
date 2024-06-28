@@ -12,6 +12,11 @@ export const signUpSchema = z
     password: z.string().min(1, { message: "Password is required" }),
     passwordAgain: z.string().min(1, { message: "Password is required" }),
     email: z.string().min(1, { message: "Password is required" }),
+    isBot: z
+      .string()
+      .toLowerCase()
+      .transform((x) => x === "true")
+      .pipe(z.boolean()),
     turnstileToken: z.string(),
   })
   .superRefine(({ passwordAgain, password }, ctx) => {

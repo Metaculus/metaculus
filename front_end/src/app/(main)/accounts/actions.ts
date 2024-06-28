@@ -75,6 +75,7 @@ export async function signUpAction(
       validatedFields.data.email,
       validatedFields.data.username,
       validatedFields.data.password,
+      validatedFields.data.isBot,
       {
         "cf-turnstile-response": validatedFields.data.turnstileToken,
         "CF-Connecting-IP": headersList.get("CF-Connecting-IP"),
