@@ -1,7 +1,8 @@
+from typing import Optional
 from django.db.models import Q
 from django.utils import timezone
 
-from posts.models import Post
+from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -30,6 +31,9 @@ def get_posts_feed(
     access: PostFilterSerializer.Access = None,
     permission: str = ObjectPermission.VIEWER,
     ids: list[int] = None,
+    public_figure: Project = None,
+    news_type: Project = None,
+    notebook_type: Notebook.NotebookType = None,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
@@ -55,6 +59,15 @@ def get_posts_feed(
     if categories:
         qs = qs.filter(projects__in=categories)
 
+    if notebook_type:
+        qs = qs.filter(notebook__isnull=False).filter(notebook__type=notebook_type)
+
+    if news_type:
+        qs = qs.filter(projects=news_type)
+
+    if public_figure:
+        qs = qs.filter(projects=public_figure)
+
     # TODO: ensure projects filtering logic is correct
     #   I assume it might not work exactly as before
     if tournaments:
@@ -77,7 +90,6 @@ def get_posts_feed(
 
         if forecast_type:
             forecast_type_q |= Q(question__type__in=forecast_type)
-
         qs = qs.filter(forecast_type_q)
 
     if status:
@@ -124,8 +136,10 @@ def get_posts_feed(
                 qs = qs.order_by("-resolved_at")
             case PostFilterSerializer.Order.CREATED_AT:
                 qs = qs.order_by("-created_at")
-    
-    return qs.distinct("id")
+    else:
+        qs = qs.order_by("-created_at")
+
+    return qs
 
 
 def create_post(

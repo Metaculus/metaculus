@@ -188,6 +188,8 @@ class Notebook(TimeStampedModel):
 
     markdown = models.TextField()
     type = models.CharField(max_length=100, choices=NotebookType)
+    news_type = models.CharField(max_length=100, blank=True)
+    image_url = models.URLField(blank=True)
 
 
 class Post(TimeStampedModel):
@@ -259,6 +261,7 @@ class Post(TimeStampedModel):
 
     def __str__(self):
         return self.title
+
 
 # TODO: create votes app
 class Vote(models.Model):

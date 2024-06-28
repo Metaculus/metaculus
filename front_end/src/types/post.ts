@@ -85,6 +85,7 @@ export type Notebook = {
   edited_at: string;
   markdown: string;
   type: string;
+  image_url: string;
 };
 
 export type Post<QT = Question> = {

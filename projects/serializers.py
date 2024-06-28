@@ -88,18 +88,18 @@ def validate_categories(lookup_field: str, lookup_values: list):
 
 
 def validate_tournaments(lookup_field: str, lookup_values: list):
-    categories = (
+    tournaments = (
         Project.objects.filter_tournament()
         .filter_active()
         .filter(**{f"{lookup_field}__in": lookup_values})
     )
-    lookup_values_fetched = {getattr(obj, lookup_field) for obj in categories}
+    lookup_values_fetched = {getattr(obj, lookup_field) for obj in tournaments}
 
     for value in lookup_values:
         if value not in lookup_values_fetched:
             raise ValidationError(f"Tournament {value} does not exist")
 
-    return categories
+    return tournaments
 
 
 class PostProjectWriteSerializer(serializers.Serializer):

@@ -107,8 +107,27 @@ class PostFilterSerializer(serializers.Serializer):
     order = serializers.ChoiceField(
         choices=Order.choices, required=False, allow_null=True
     )
+    notebook_type = serializers.ChoiceField(
+        choices=Notebook.NotebookType.choices, required=False, allow_null=True
+    )
+    news_type = serializers.CharField(required=False)
+    public_figure = serializers.CharField(required=False)
 
     search = serializers.CharField(required=False, allow_null=True)
+
+    def validate_public_figure(self, value: int):
+        try:
+            return Project.objects.filter(pk=value)
+        except Project.DoesNotExist:
+            raise ValidationError("Slug does not exist")
+
+    def validate_news_type(self, value: str):
+        try:
+            return Project.objects.get(
+                name__iexact=value, type=Project.ProjectTypes.NEWS_CATEGORY
+            )
+        except Project.DoesNotExist:
+            raise ValidationError("Slug does not exist")
 
     def validate_topic(self, value: str):
         try:
