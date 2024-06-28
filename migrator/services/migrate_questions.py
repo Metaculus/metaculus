@@ -4,7 +4,9 @@ from datetime import datetime
 from dateutil.parser import parse as date_parse
 import django
 import html2text
+import re
 
+from projects.services import get_site_main_project
 from utils.the_math.formulas import scale_location
 from migrator.utils import paginated_query
 from posts.models import Notebook, Post
@@ -153,6 +155,7 @@ def create_post(question: dict, **kwargs) -> Post:
         created_at=question["created_time"],
         edited_at=question["edited_time"],
         approved_at=question["approved_time"],
+        default_project=get_site_main_project(),
         **kwargs,
     )
 
@@ -269,6 +272,33 @@ def migrate_questions__groups(root_questions: list[dict]):
     Post.objects.bulk_create(posts)
 
 
+def remove_newlines(match):
+    return match.group(0).replace('\n', ' ')
+
+def remove_spaces(match):
+    return match.group(0).replace(' ', '')
+
+def convert_iframes_to_embedded_questions(html):
+    parts = re.split(r'(<iframe[^>]*>.*?</iframe>)', html, flags=re.DOTALL)
+    
+    converted_parts = []
+    for part in parts:
+        if part.startswith('<iframe'):
+            match = re.search(r'questions/question_embed/(\d+)/', part)
+            if match:
+                question_id = match.group(1)
+                converted_parts.append(f'<EmbeddedQuestion id="{question_id}" />')
+        else:
+            converted_parts.append(html2text.html2text(part))
+    
+    md = '\n'.join(converted_parts)
+    md = re.sub(r'\[([^\]]*)\]', remove_newlines, md)
+    md = re.sub(r'\(([^)]*)\)', remove_newlines, md)
+    md = re.sub(r'\(([^)]*)\)', remove_spaces, md)
+
+    return md
+
+
 def migrate_questions__notebook(root_questions: list[dict]):
     """
     Migrates Conditional Questions
@@ -295,7 +325,7 @@ def migrate_questions__notebook(root_questions: list[dict]):
             else:
                 raise Exception("Unknown notebook type")
 
-            markdown = html2text.html2text(root_question["description_html"])
+            markdown = convert_iframes_to_embedded_questions(root_question["description_html"])
             notebooks.append(
                 Notebook(id=root_question["id"], markdown=markdown, type=notebook_type)
             )

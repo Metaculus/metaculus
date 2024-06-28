@@ -78,9 +78,7 @@ def get_posts_feed(
         if forecast_type:
             forecast_type_q |= Q(question__type__in=forecast_type)
 
-        print(len(qs))
         qs = qs.filter(forecast_type_q)
-        print(len(qs))
 
     if status:
         if "resolved" in status:
@@ -126,7 +124,7 @@ def get_posts_feed(
                 qs = qs.order_by("-resolved_at")
             case PostFilterSerializer.Order.CREATED_AT:
                 qs = qs.order_by("-created_at")
-
+    
     return qs.distinct("id")
 
 
