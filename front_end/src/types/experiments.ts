@@ -10,7 +10,7 @@ export type BaseMapArea = {
   y_adjust: number;
 };
 
-export type ElectionsExperimentMapArea = BaseMapArea & {
+export type StateByForecastItem = BaseMapArea & {
   votes: number;
   democratProbability: number;
   link?: {
