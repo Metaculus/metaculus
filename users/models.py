@@ -3,7 +3,6 @@ from datetime import timedelta, datetime
 import dateutil.parser
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
-from django.db.models.functions import Lower
 from django.utils import timezone
 
 from utils.models import TimeStampedModel
@@ -13,6 +12,7 @@ class User(TimeStampedModel, AbstractUser):
     # Profile data
     bio = models.TextField(default="", blank=True)
     website = models.CharField(max_length=100, default="", blank=True)
+    is_bot = models.BooleanField(default=False)
 
     old_usernames = models.JSONField(default=list, null=False)
 
