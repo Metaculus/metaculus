@@ -226,11 +226,21 @@ export function generateChoiceItemsFromBinaryGroup(
     withMinMax?: boolean;
     activeCount?: number;
     preselectedQuestionId?: number;
+    sortPredictionDesc?: boolean;
   }
 ): ChoiceItem[] {
-  const { withMinMax, activeCount, preselectedQuestionId } = config ?? {};
+  const { withMinMax, activeCount, preselectedQuestionId, sortPredictionDesc } =
+    config ?? {};
 
-  return questions.map((q, index) => {
+  const sortedQuestions = sortPredictionDesc
+    ? [...questions].sort((a, b) => {
+        const aMean = a.forecasts.values_mean.at(-1) ?? 0;
+        const bMean = b.forecasts.values_mean.at(-1) ?? 0;
+        return bMean - aMean;
+      })
+    : questions;
+
+  return sortedQuestions.map((q, index) => {
     let active = true;
     if (preselectedQuestionId !== undefined) {
       active = q.id === preselectedQuestionId;
