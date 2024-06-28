@@ -76,7 +76,8 @@ class Project(TimeStampedModel):
         GLOBAL_LEADERBOARD = "global_leaderboard"
         QUESTION_SERIES = "question_series"
         PERSONAL_PROJECT = "personal_project"
-
+        NEWS_CATEGORY = "news_category"
+        PUBLIC_FIGURE = "public_figure"
         CATEGORY = "category"
         TAG = "tag"
         TOPIC = "topic"

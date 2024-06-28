@@ -23,15 +23,25 @@ const NotebookTile: FC<Props> = ({ notebook }) => {
       {!!width && (
         <MarkdownEditor
           mode="read"
-          markdown={getNotebookSummary(notebook.markdown, width, 40)}
+          markdown={getNotebookSummary(notebook.markdown, width, 80)}
           contentEditableClassName="!m-0 *:m-0 line-clamp-2 !text-sm !text-gray-800 !dark:text-gray-800-dark"
         />
       )}
-      <Image
-        src={imagePlaceholder}
-        alt=""
-        className="h-24 min-w-44 max-w-44 rounded object-cover"
-      />
+      {notebook.image_url && notebook.image_url.startsWith("https:") ? (
+        <Image
+          src={notebook.image_url}
+          alt=""
+          width={300}
+          height={300}
+          className="h-24 min-w-44 max-w-44 rounded object-cover"
+        />
+      ) : (
+        <Image
+          src={imagePlaceholder}
+          alt=""
+          className="h-24 min-w-44 max-w-44 rounded object-cover"
+        />
+      )}
     </div>
   );
 };
