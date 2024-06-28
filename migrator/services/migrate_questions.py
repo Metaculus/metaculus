@@ -1,7 +1,7 @@
 import json
+import re
 from datetime import datetime
 
-from dateutil.parser import parse as date_parse
 import django
 import html2text
 import re
@@ -11,9 +11,13 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
 from utils.the_math.formulas import scale_location
+from dateutil.parser import parse as date_parse
+
 from migrator.utils import paginated_query
 from posts.models import Notebook, Post
+from projects.services import get_site_main_project
 from questions.models import Question, Conditional, GroupOfQuestions
+from utils.the_math.formulas import scale_location
 
 
 def unscaled_location_to_string_location(
@@ -106,6 +110,7 @@ def create_question(question: dict, **kwargs) -> Question:
 
 def create_post(question: dict, **kwargs) -> Post:
     curation_status = Post.CurationStatus.DRAFT
+
     if (
         question["approved_by_id"]
         or (
@@ -118,18 +123,6 @@ def create_post(question: dict, **kwargs) -> Post:
         )
     ):
         curation_status = Post.CurationStatus.APPROVED
-    if (
-        question["close_time"]
-        and question["close_time"] < django.utils.timezone.now()
-        and (
-            (
-                question["approved_time"]
-                and question["approved_time"] < django.utils.timezone.now()
-            )
-            or question["approved_by_id"]
-        )
-    ):
-        curation_status = Post.CurationStatus.CLOSED
     """if question["resolve_time"] < django.utils.timezone.now() and (
         (
             question["approved_time"]
@@ -146,7 +139,11 @@ def create_post(question: dict, **kwargs) -> Post:
     if question["mod_status"] == "DELETED":
         curation_status = Post.CurationStatus.DELETED
 
-    post = Post(
+    curation_status_dates = list(
+        filter(bool, [question["publish_time"], question["approved_time"]])
+    )
+
+    return Post(
         # Keeping the same ID as the old question
         id=question["id"],
         title=question["title"],
@@ -154,6 +151,9 @@ def create_post(question: dict, **kwargs) -> Post:
         approved_by_id=question["approved_by_id"],
         closed_at=question["close_time"],
         curation_status=curation_status,
+        curation_status_updated_at=(
+            max(curation_status_dates) if curation_status_dates else None
+        ),
         published_at=question["publish_time"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
@@ -161,8 +161,6 @@ def create_post(question: dict, **kwargs) -> Post:
         default_project=get_site_main_project(),
         **kwargs,
     )
-
-    return post
 
 
 def migrate_questions():
@@ -206,26 +204,26 @@ def migrate_questions__composite():
 
     for old_question in paginated_query(
         """SELECT 
-                        q.*, 
-                        qc.parent_id as condition_id, 
-                        qc.unconditional_question_id as condition_child_id, 
-                        qc.resolution as qc_resolution, qc.image_url as image_url FROM (
-                                SELECT
-                                    q.*,
-                                    ARRAY_AGG(o.label) AS option_labels
-                                FROM
-                                    metac_question_question q
-                                LEFT JOIN
-                                    metac_question_option o ON q.id = o.question_id
-                                WHERE  type in ('conditional_group', 'group', 'notebook', 'discussion', 'claim') or group_id is not null
-                                
-                                GROUP BY q.id
-                            ) q
-                    LEFT JOIN 
-                        metac_question_conditional qc ON qc.child_id = q.id
-                    -- Ensure parents go first
-                    ORDER BY group_id DESC;
-                                                            """,
+                            q.*, 
+                            qc.parent_id as condition_id, 
+                            qc.unconditional_question_id as condition_child_id, 
+                            qc.resolution as qc_resolution FROM (
+                                    SELECT
+                                        q.*,
+                                        ARRAY_AGG(o.label) AS option_labels
+                                    FROM
+                                        metac_question_question q
+                                    LEFT JOIN
+                                        metac_question_option o ON q.id = o.question_id
+                                    WHERE  type in ('conditional_group', 'group', 'notebook', 'discussion', 'claim') or group_id is not null
+                                    
+                                    GROUP BY q.id
+                                ) q
+                        LEFT JOIN 
+                            metac_question_conditional qc ON qc.child_id = q.id
+                        -- Ensure parents go first
+                        ORDER BY group_id DESC;
+                                                                """,
         itersize=10000,
     ):
         group_id = old_question["group_id"]
