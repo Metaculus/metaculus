@@ -55,9 +55,14 @@ def signup_api_view(request):
     email = serializer.validated_data["email"]
     username = serializer.validated_data["username"]
     password = serializer.validated_data["password"]
+    is_bot = serializer.validated_data["password"]
 
     user = User.objects.create_user(
-        username=username, email=email, password=password, is_active=False
+        username=username,
+        email=email,
+        password=password,
+        is_active=False,
+        is_bot=is_bot,
     )
 
     send_activation_email(user)
