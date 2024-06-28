@@ -2,7 +2,7 @@ import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 
 import CategoriesDiscovery from "./components/categories";
-import TagsDiscovery from "./components/tags";
+import TagsDiscovery from "./components/tags_discovery";
 
 export default async function ProjectsDiscovery({
   searchParams,
