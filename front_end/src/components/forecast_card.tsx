@@ -4,21 +4,24 @@ import { FC, useState } from "react";
 
 import FanChart from "@/components/charts/fan_chart";
 import NumericChart from "@/components/charts/numeric_chart";
+import MultipleChoiceTile from "@/components/multiple_choice_tile";
 import PredictionChip from "@/components/prediction_chip";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
+  generateChoiceItemsFromBinaryGroup,
   getFanOptionsFromNumericGroup,
+  getGroupQuestionsTimestamps,
   getNumericChartTypeFromQuestion,
 } from "@/utils/charts";
 
-const CHART_HEIGHT = 170;
+const CHART_HEIGHT = 120;
 
 type Props = {
   post: PostWithForecasts;
 };
 
-const QuestionCarouselItem: FC<Props> = ({ post }) => {
+const ForecastCard: FC<Props> = ({ post }) => {
   const [cursorValue, setCursorValue] = useState<number | null>(null);
 
   const renderChart = () => {
@@ -44,6 +47,23 @@ const QuestionCarouselItem: FC<Props> = ({ post }) => {
             />
           );
         }
+        case QuestionType.Binary:
+          const visibleChoicesCount = 3;
+          const timestamps = getGroupQuestionsTimestamps(
+            questions as QuestionWithNumericForecasts[]
+          );
+          const choices = generateChoiceItemsFromBinaryGroup(
+            questions as QuestionWithNumericForecasts[],
+            { activeCount: visibleChoicesCount, sortPredictionDesc: true }
+          );
+          return (
+            <MultipleChoiceTile
+              choices={choices}
+              timestamps={timestamps}
+              visibleChoicesCount={visibleChoicesCount}
+              chartHeight={CHART_HEIGHT}
+            />
+          );
         default:
           return null;
       }
@@ -111,7 +131,7 @@ const QuestionCarouselItem: FC<Props> = ({ post }) => {
       className="flex w-full min-w-0 flex-col gap-3 bg-gray-0 p-5 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark xs:rounded-md"
     >
       <div className="flex items-start justify-between max-[288px]:flex-col">
-        <h2 className="mb-0.5 mt-0 line-clamp-2 text-lg font-medium leading-snug tracking-normal max-[288px]:mb-0 sm:mb-2 md:mb-5">
+        <h2 className="m-0 line-clamp-2 text-lg font-medium leading-snug tracking-normal">
           {post.title}
         </h2>
         {renderPrediction()}
@@ -123,4 +143,4 @@ const QuestionCarouselItem: FC<Props> = ({ post }) => {
   );
 };
 
-export default QuestionCarouselItem;
+export default ForecastCard;

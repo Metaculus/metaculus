@@ -1,4 +1,5 @@
-import OtherMap from "./components/other_map";
+import CardForecast from "./components/card_forecast";
+import ExpectedElectoralVotesForecast from "./components/expected_electoral_votes_forecast";
 import StateByForecast from "./components/state_by_forecast";
 
 export default function ElectionsExperiment() {
@@ -18,14 +19,18 @@ export default function ElectionsExperiment() {
             </p>
           </div>
         </div>
-        <div className="mt-4 flex w-full flex-col gap-4 rounded bg-gray-0 p-4 dark:bg-gray-0-dark md:gap-10">
-          <div className="relative flex flex-col items-center gap-10">
-            <StateByForecast questionGroupId={18274} />
-          </div>
-          <div className="relative flex flex-col items-center gap-10">
-            <OtherMap />
-          </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <CardForecast postId={6478} />
+          <CardForecast postId={11245} />
         </div>
+
+        <ExpectedElectoralVotesForecast
+          democratPostId={10958}
+          republicanPostId={10959}
+        />
+
+        <StateByForecast questionGroupId={18274} />
       </div>
     </main>
   );
