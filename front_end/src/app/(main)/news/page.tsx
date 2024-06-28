@@ -13,6 +13,7 @@ export default async function NewsFeed({
   searchParams: SearchParams;
 }) {
   const filters = generateFiltersFromSearchParams(searchParams);
+  filters.notebook_type = "news";
 
   return (
     <main className="mx-auto mb-auto w-full max-w-3xl px-2 pb-4">
