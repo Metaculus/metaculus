@@ -90,7 +90,7 @@ def tags_list_api_view(request: Request):
         qs = qs.order_by("-posts_count")
 
     # Limit to 50 tags
-    qs = qs[:50]
+    qs = qs[0:1000]
 
     data = [
         {**TagSerializer(obj).data, "posts_count": obj.posts_count} for obj in qs.all()
