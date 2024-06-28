@@ -1,4 +1,4 @@
-"user client";
+"use client";
 
 import { faReply } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -6,10 +6,10 @@ import dynamic from "next/dynamic";
 import { useLocale } from "next-intl";
 import { FC, useState } from "react";
 
+import { softDeleteComment } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
-import CommentsApi from "@/services/comments";
 import { CommentPermissions, CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
 
@@ -74,11 +74,31 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
       name: "Delete",
       onClick: async () => {
         // setDeleteModalOpen(true),
-        // this is broken:
-        // await CommentsApi.softDeleteComment(comment.id);
+        softDeleteComment(comment.id);
       },
     },
   ];
+
+  if (comment.is_soft_deleted) {
+    return (
+      <div id={`comment-${comment.id}`}>
+        <div className="my-2.5 flex flex-col items-start gap-1">
+          <span className="inline-flex items-center">
+            <span className="italic text-gray-600 dark:text-gray-600-dark">
+              deleted
+            </span>
+            <span className="mx-1">·</span>
+            {formatDate(locale, new Date(comment.created_at))}
+          </span>
+        </div>
+        <div className="italic text-gray-600 break-anywhere dark:text-gray-600-dark">
+          Comment deleted.
+        </div>
+
+        {/* comment children tree goes here */}
+      </div>
+    );
+  }
 
   return (
     <div id={`comment-${comment.id}`}>
@@ -177,30 +197,28 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
       )}
 */}
 
-      {!comment.is_soft_deleted && (
-        <div className="mb-2 mt-1 h-7 overflow-visible">
-          <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
-            <div className="inline-flex items-center">
-              {/*
-              <span className="mr-3 inline-flex items-center text-sm leading-4">
-                <Voter
-                  onVoteUp={() => onVote(comment, 1).catch(catchError)}
-                  disabled={user.id === comment.author}
-                  userVote={comment.user_like}
-                  votes={comment.num_likes}
-                />
-              </span>
-*/}
-              <Button variant="text">
-                <FontAwesomeIcon icon={faReply} />
-                Reply
-              </Button>
-            </div>
-
-            {!comment.is_soft_deleted && <DropdownMenu items={menuItems} />}
+      <div className="mb-2 mt-1 h-7 overflow-visible">
+        <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
+          <div className="inline-flex items-center">
+            {/*
+            <span className="mr-3 inline-flex items-center text-sm leading-4">
+              <Voter
+                onVoteUp={() => onVote(comment, 1).catch(catchError)}
+                disabled={user.id === comment.author}
+                userVote={comment.user_like}
+                votes={comment.num_likes}
+              />
+            </span>
+            */}
+            <Button variant="text">
+              <FontAwesomeIcon icon={faReply} />
+              Reply
+            </Button>
           </div>
+
+          <DropdownMenu items={menuItems} />
         </div>
-      )}
+      </div>
 
       {/*isReplying && (
         <form
