@@ -166,3 +166,15 @@ export async function softDeleteComment(commentId: number) {
     };
   }
 }
+
+export async function createComment(commentData: any) {
+  try {
+    return await CommentsApi.createComment(commentData);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}

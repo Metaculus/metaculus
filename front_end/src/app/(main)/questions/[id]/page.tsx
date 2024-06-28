@@ -1,13 +1,17 @@
 import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import dynamic from "next/dynamic";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import CommentFeed from "@/components/comment_feed";
+import CommentEditor from "@/components/comment_feed/comment_editor";
 import ConditionalTile from "@/components/conditional_tile";
 import ForecastMaker from "@/components/forecast_maker";
 import Button from "@/components/ui/button";
+import Hr from "@/components/ui/hr";
+import { useAuth } from "@/contexts/auth_context";
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
@@ -17,6 +21,10 @@ import DetailedGroupCard from "./components/detailed_group_card";
 import DetailedQuestionCard from "./components/detailed_question_card";
 import Modbox from "./components/modbox";
 
+const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
+  ssr: false,
+});
+
 export default async function IndividualQuestion({
   params,
   searchParams,
@@ -25,6 +33,8 @@ export default async function IndividualQuestion({
   searchParams: SearchParams;
 }) {
   const postData = await PostsApi.getPost(params.id);
+  //how to get the currently logged in user?
+  //const { user } = useAuth();
 
   if (!postData) {
     return notFound();
@@ -137,6 +147,14 @@ export default async function IndividualQuestion({
               </div>
             </div>
           </div>
+          <Hr className="my-4" />
+          <h2
+            className="mb-1 mt-0 flex scroll-mt-16 items-baseline justify-between break-anywhere"
+            id="comment-section"
+          >
+            Comments
+          </h2>
+          <CommentEditor />
           {commentsData && (
             <CommentFeed initialComments={commentsData} post={postData} />
           )}
