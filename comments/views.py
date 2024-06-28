@@ -44,12 +44,10 @@ def comments_list_api_view(request: Request):
     return Response(data)
 
 
-@api_view(["PUT"])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def comment_delete_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment.objects.all(), pk=pk)
-
-    breakpoint()
 
     comment.is_soft_deleted = True
     comment.save()
