@@ -4,8 +4,12 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import serializers, status
 from django.shortcuts import get_object_or_404
+from datetime import datetime
 
+from posts.models import Post
+from questions.models import Forecast
 from comments.models import Comment
+from users.models import User
 from comments.serializers import CommentSerializer
 from comments.services import get_comment_permission_for_user
 from projects.permissions import ObjectPermission
@@ -53,3 +57,36 @@ def comment_delete_api_view(request: Request, pk: int):
     comment.save()
 
     return Response({}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def comment_create_api_view(request: Request):
+
+    data = request.data
+    now = datetime.now()
+
+    author = User.objects.get(id=data['author'])
+    post = Post.objects.get(id=data['on_post'])
+    parent = None
+    if 'parent' in data and data['parent'] is not None:
+        parent = Comment.objects.get(id=data['parent'])
+
+    included_forecast = None
+    if 'included_forecast' in data and data['included_forecast'] is not None:
+        included_forecast = Forecast.objects.get(id=data['included_forecast'])
+
+    breakpoint()
+    comment = Comment.objects.create(
+        author=author,
+        parent=parent,
+        is_soft_deleted=False,
+        text=data['text'],
+        on_post=post,
+        included_forecast=included_forecast,
+        #is_private=data,
+    )
+    breakpoint()
+    comment.save()
+
+    return Response({}, status=status.HTTP_201_CREATED)
