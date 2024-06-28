@@ -55,7 +55,7 @@ def signup_api_view(request):
     email = serializer.validated_data["email"]
     username = serializer.validated_data["username"]
     password = serializer.validated_data["password"]
-    is_bot = serializer.validated_data["password"]
+    is_bot = serializer.validated_data.get("is_bot", False)
 
     user = User.objects.create_user(
         username=username,
