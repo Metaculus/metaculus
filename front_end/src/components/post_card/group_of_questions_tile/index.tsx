@@ -1,5 +1,6 @@
 import { FC } from "react";
 
+import MultipleChoiceTile from "@/components/multiple_choice_tile";
 import GroupNumericTile from "@/components/post_card/group_of_questions_tile/group_numeric_tile";
 import { PostStatus } from "@/types/post";
 import {
@@ -11,8 +12,6 @@ import {
   generateChoiceItemsFromBinaryGroup,
   getGroupQuestionsTimestamps,
 } from "@/utils/charts";
-
-import MultipleChoiceTile from "../multiple_choice_tile";
 
 type Props = {
   questions: QuestionWithForecasts[];
@@ -34,7 +33,7 @@ const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
       );
       const choices = generateChoiceItemsFromBinaryGroup(
         questions as QuestionWithNumericForecasts[],
-        { activeCount: visibleChoicesCount }
+        { activeCount: visibleChoicesCount, sortPredictionDesc: true }
       );
       return (
         <MultipleChoiceTile
