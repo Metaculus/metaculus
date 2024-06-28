@@ -12,6 +12,7 @@ class SignupSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "password",
+            "is_bot"
         )
         extra_kwargs = {"email": {"required": True}}
 

@@ -1,6 +1,6 @@
-import { ElectionsExperimentMapArea } from "@/types/experiments";
+import { StateByForecastItem } from "@/types/experiments";
 
-export const US_MAP_AREAS: ElectionsExperimentMapArea[] = [
+export const US_MAP_AREAS: StateByForecastItem[] = [
   {
     name: "ALABAMA",
     abbreviation: "AL",

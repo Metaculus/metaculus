@@ -3,6 +3,18 @@ export enum MapType {
   Other = "other",
 }
 
+export type BaseExperimentBar = {
+  id: string;
+  name: string;
+  value: number;
+};
+
+export type ByStateExperimentBar = BaseExperimentBar & {
+  abbreviation: string;
+  democratProbability: number;
+  hasQuestion: boolean;
+};
+
 export type BaseMapArea = {
   name: string;
   abbreviation: string;
@@ -10,7 +22,13 @@ export type BaseMapArea = {
   y_adjust: number;
 };
 
-export type ElectionsExperimentMapArea = BaseMapArea & {
+export type StateByForecastItem = BaseMapArea & {
   votes: number;
   democratProbability: number;
+  link?: {
+    groupId: number;
+    questionId: number;
+  };
+  forecastersNumber?: number;
+  forecastsNumber?: number;
 };
