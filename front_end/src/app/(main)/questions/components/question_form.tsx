@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
@@ -103,6 +104,7 @@ const QuestionForm: React.FC<Props> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const tournament_id = searchParams.get("tournament");
+  const t = useTranslations();
 
   const submitQuestion = async (data: any) => {
     data["tournament_id"] = tournament_id;
@@ -468,7 +470,7 @@ const QuestionForm: React.FC<Props> = ({
                     ]);
                   }}
                 >
-                  Add Question
+                  + {t("question")}
                 </Button>
               </>
             )}
