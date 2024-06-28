@@ -1,3 +1,6 @@
+import { ExtendedQuartiles } from "@/types/question";
+import { ThemeColor } from "@/types/theme";
+
 export enum MapType {
   US = "us",
   Other = "other",
@@ -31,4 +34,9 @@ export type StateByForecastItem = BaseMapArea & {
   };
   forecastersNumber?: number;
   forecastsNumber?: number;
+};
+
+export type Candle = {
+  quartiles: ExtendedQuartiles;
+  color: string;
 };
