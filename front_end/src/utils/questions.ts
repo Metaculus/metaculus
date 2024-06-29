@@ -37,7 +37,7 @@ export function getNotebookSummary(
   const charsPerLine = Math.floor(width / approxCharWidth);
   const maxLines = Math.floor(height / approxLineHeight);
   const maxChars = charsPerLine * maxLines;
-
+  markdown = markdown.replace(/\[.*?\]|\(.*?\)|\<.*?\>/g, "");
   const normalized = markdown
     .split("\n")
     .join(" ")

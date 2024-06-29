@@ -10,6 +10,7 @@ import {
   usePublisher,
 } from "@mdxeditor/editor";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
 import { getPost } from "@/app/(main)/questions/actions";
@@ -74,6 +75,7 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
 export const EmbedQuestionAction: FC = () => {
   const insertJsx = usePublisher(insertJsx$);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const t = useTranslations();
 
   const handleSelectQuestion = (id: number) => {
     insertJsx({
@@ -88,7 +90,7 @@ export const EmbedQuestionAction: FC = () => {
   return (
     <>
       <Button variant="tertiary" onClick={() => setIsModalOpen(true)}>
-        Add Question
+        + {t("question")}
       </Button>
       <EmbedQuestionModal
         isOpen={isModalOpen}

@@ -51,5 +51,3 @@ class Command(BaseCommand):
 
         # Reset sql sequences
         reset_sequence()
-
-

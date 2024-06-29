@@ -150,6 +150,8 @@ def create_conditional(
             open_upper_bound=question.open_upper_bound,
             open_lower_bound=question.open_lower_bound,
             options=question.options,
+            resolved_at=question.resolved_at,
+            closed_at=question.closed_at,
         )
 
     condition = Question.objects.get(pk=condition_id)
