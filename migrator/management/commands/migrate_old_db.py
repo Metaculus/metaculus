@@ -35,8 +35,8 @@ class Command(BaseCommand):
         print("Migrated users")
         migrate_questions()
         print("Migrated questions")
-        # migrate_forecasts(3e5) # only migrate 300k forecasts
-        migrate_forecasts()
+        migrate_forecasts(3e5) # only migrate 300k forecasts
+        #migrate_forecasts()
         print("Migrated forecasts")
         migrate_projects()
         print("Migrated projects")
