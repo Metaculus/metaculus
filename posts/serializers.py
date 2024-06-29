@@ -4,6 +4,7 @@ from django.db import models
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from comments.models import Comment
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers import (
@@ -33,6 +34,7 @@ class NotebookSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -46,6 +48,9 @@ class PostSerializer(serializers.ModelSerializer):
             "published_at",
             "edited_at",
             "curation_status",
+            "comment_count",
+            "resolved_at",
+            "closed_at",
         )
 
     def get_projects(self, obj: Post):
@@ -53,6 +58,9 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_author_username(self, obj: Post):
         return obj.author.username
+
+    def get_comment_count(self, obj: Post):
+        return Comment.objects.filter(on_post=obj).count()
 
 
 class NotebookWriteSerializer(serializers.ModelSerializer):
@@ -98,7 +106,7 @@ class PostFilterSerializer(serializers.Serializer):
     categories = serializers.ListField(child=serializers.CharField(), required=False)
     tournaments = serializers.ListField(child=serializers.CharField(), required=False)
     forecast_type = serializers.ListField(child=serializers.CharField(), required=False)
-    status = serializers.ListField(child=serializers.CharField(), required=False)
+    statuses = serializers.ListField(child=serializers.CharField(), required=False)
     answered_by_me = serializers.BooleanField(required=False, allow_null=True)
     permission = serializers.ChoiceField(
         required=False,
@@ -107,8 +115,27 @@ class PostFilterSerializer(serializers.Serializer):
     order = serializers.ChoiceField(
         choices=Order.choices, required=False, allow_null=True
     )
+    notebook_type = serializers.ChoiceField(
+        choices=Notebook.NotebookType.choices, required=False, allow_null=True
+    )
+    news_type = serializers.CharField(required=False)
+    public_figure = serializers.CharField(required=False)
 
     search = serializers.CharField(required=False, allow_null=True)
+
+    def validate_public_figure(self, value: int):
+        try:
+            return Project.objects.filter(pk=value)
+        except Project.DoesNotExist:
+            raise ValidationError("Slug does not exist")
+
+    def validate_news_type(self, value: str):
+        try:
+            return Project.objects.get(
+                name__iexact=value, type=Project.ProjectTypes.NEWS_CATEGORY
+            )
+        except Project.DoesNotExist:
+            raise ValidationError("Slug does not exist")
 
     def validate_topic(self, value: str):
         try:
@@ -130,7 +157,7 @@ class PostFilterSerializer(serializers.Serializer):
         return validate_categories(lookup_field="slug", lookup_values=values)
 
     def validate_tournaments(self, values: list[str]):
-        return validate_tournaments(lookup_field="slug", lookup_values=values)
+        return validate_tournaments(lookup_values=values)
 
 
 def serialize_post(

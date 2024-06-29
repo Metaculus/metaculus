@@ -62,7 +62,8 @@ def migrate_users():
 
     # Migrating existing bot/user tokens
     tokens = [
-        Token(**token_obj) for token_obj in paginated_query("SELECT * FROM authtoken_token")
+        Token(**token_obj)
+        for token_obj in paginated_query("SELECT * FROM authtoken_token")
     ]
     Token.objects.bulk_create(tokens, batch_size=5_000)
 
