@@ -29,7 +29,7 @@ def get_geometric_means(
             f.get_pmf()
             for f in forecasts
             if f.start_time.timestamp() <= timestep
-            and (f.end_time is None or f.end_time.timestamp() >= timestep)
+            and (f.end_time is None or f.end_time.timestamp() > timestep)
         ]
         if not prediction_values:
             continue  # TODO: doesn't account for going from 1 active forecast to 0
@@ -57,7 +57,7 @@ def get_medians(
             f.get_pmf()
             for f in forecasts
             if f.start_time.timestamp() <= timestep
-            and (f.end_time is None or f.end_time.timestamp() >= timestep)
+            and (f.end_time is None or f.end_time.timestamp() > timestep)
         ]
         if not prediction_values:
             continue  # TODO: doesn't account for going from 1 active forecast to 0
@@ -78,19 +78,21 @@ class ForecastScore:
 def evaluate_forecasts_baseline_accuracy(
     forecasts: list[Forecast],
     resolution_bucket: int,
-    window_start: float,
-    window_end: float,
+    forecast_horizon_start: float,
+    actual_close_time: float,
+    forecast_horizon_end: float,
     question_type: str,
     open_bounds_count: int,
 ) -> list[ForecastScore]:
-    total_duration = window_end - window_start
+    total_duration = forecast_horizon_end - forecast_horizon_start
     forecast_scores: list[tuple[float, float]] = []
     for forecast in forecasts:
-        forecast_start = max(forecast.start_time.timestamp(), window_start)
-        if forecast.end_time:
-            forecast_end = min(forecast.end_time.timestamp(), window_end)
-        else:
-            forecast_end = window_end
+        forecast_start = max(forecast.start_time.timestamp(), forecast_horizon_start)
+        forecast_end = (
+            actual_close_time
+            if forecast.end_time is None
+            else min(forecast.end_time.timestamp(), actual_close_time)
+        )
         forecast_duration = forecast_end - forecast_start
         if not forecast_duration:
             forecast_scores.append(ForecastScore(0))
@@ -148,25 +150,29 @@ def evaluate_forecasts_baseline_spot_forecast(
 def evaluate_forecasts_peer_accuracy(
     forecasts: list[Forecast],
     resolution_bucket: int,
-    window_start: float,
-    window_end: float,
+    forecast_horizon_start: float,
+    actual_close_time: float,
+    forecast_horizon_end: float,
     question_type: str,
 ) -> list[ForecastScore]:
     geometric_means = get_geometric_means(forecasts)
-    total_duration = window_end - window_start
+    for gm in geometric_means:
+        gm.timestamp = max(gm.timestamp, forecast_horizon_start)
+    total_duration = forecast_horizon_end - forecast_horizon_start
     forecast_scores: list[float] = []
     for forecast in forecasts:
-        forecast_start = max(forecast.start_time.timestamp(), window_start)
-        if forecast.end_time:
-            forecast_end = min(forecast.end_time.timestamp(), window_end)
-        else:
-            forecast_end = window_end
+        forecast_start = max(forecast.start_time.timestamp(), forecast_horizon_start)
+        forecast_end = (
+            actual_close_time
+            if forecast.end_time is None
+            else min(forecast.end_time.timestamp(), actual_close_time)
+        )
         if (forecast_end - forecast_start) <= 0:
             forecast_scores.append(ForecastScore(0))
             continue
 
         pmf = forecast.get_pmf()
-        interval_scores = []
+        interval_scores: float | None = []
         for gm in geometric_means:
             if forecast_start <= gm.timestamp < forecast_end:
                 score = (
@@ -178,14 +184,16 @@ def evaluate_forecasts_peer_accuracy(
                     score /= 2
                 interval_scores.append(score)
             else:
-                interval_scores.append(0)
+                interval_scores.append(None)
 
         forecast_score = 0
         forecast_coverage = 0
         times = [
-            gm.timestamp for gm in geometric_means if gm.timestamp < window_end
-        ] + [window_end]
+            gm.timestamp for gm in geometric_means if gm.timestamp < actual_close_time
+        ] + [actual_close_time]
         for i in range(len(times) - 1):
+            if interval_scores[i] is None:
+                continue
             interval_duration = times[i + 1] - times[i]
             forecast_score += interval_scores[i] * interval_duration / total_duration
             forecast_coverage += interval_duration / total_duration
@@ -233,8 +241,9 @@ def evaluate_forecasts_peer_spot_forecast(
 def evaluate_forecasts_legacy_relative(
     forecasts: list[Forecast],
     resolution_bucket: int,
-    window_start: float,
-    window_end: float,
+    forecast_horizon_start: float,
+    actual_close_time: float,
+    forecast_horizon_end: float,
     question_type: str,
 ) -> list[ForecastScore]:
     return [ForecastScore(0)] * len(forecasts)  # not yet implemented
@@ -246,8 +255,9 @@ def evaluate_question(
     score_type: str,
     spot_forecast_timestamp: float | None = None,
 ) -> list[Score]:
-    window_start = question.post.published_at.timestamp()
-    window_end = question.closed_at.timestamp()
+    forecast_horizon_start = question.post.published_at.timestamp()
+    forecast_horizon_end = question.closed_at.timestamp()
+    actual_close_time = min(forecast_horizon_end, question.resolved_at.timestamp())
 
     forecasts = question.forecast_set.all()
 
@@ -260,8 +270,9 @@ def evaluate_question(
             forecast_scores = evaluate_forecasts_baseline_accuracy(
                 forecasts,
                 resolution_bucket,
-                window_start,
-                window_end,
+                forecast_horizon_start,
+                actual_close_time,
+                forecast_horizon_end,
                 question.type,
                 open_bounds_count,
             )
@@ -280,8 +291,9 @@ def evaluate_question(
             forecast_scores = evaluate_forecasts_peer_accuracy(
                 forecasts,
                 resolution_bucket,
-                window_start,
-                window_end,
+                forecast_horizon_start,
+                actual_close_time,
+                forecast_horizon_end,
                 question.type,
             )
         case score_types.SPOT_PEER:
@@ -296,8 +308,9 @@ def evaluate_question(
             scores = evaluate_forecasts_legacy_relative(
                 forecasts,
                 resolution_bucket,
-                0,
-                0,
+                forecast_horizon_start,
+                actual_close_time,
+                forecast_horizon_end,
                 question.type,
             )
         case other:
@@ -312,12 +325,13 @@ def evaluate_question(
             if forecast.author == user:
                 user_score += score.score
                 user_coverage += score.coverage
-        scores.append(
-            Score(
-                user=user,
-                score=user_score,
-                coverage=user_coverage,
-                score_type=score_type,
+        if user_coverage > 0:
+            scores.append(
+                Score(
+                    user=user,
+                    score=user_score,
+                    coverage=user_coverage,
+                    score_type=score_type,
+                )
             )
-        )
     return scores
