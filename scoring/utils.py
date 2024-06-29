@@ -12,7 +12,7 @@ from utils.the_math.formulas import string_location_to_bucket_index
 def score_question(
     question: Question,
     resolution: str,
-    resolution_time: float,
+    resolution_time: datetime,
     spot_forecast_time: datetime | None = None,
     score_types: list[str] | None = None,
 ):
@@ -20,6 +20,7 @@ def score_question(
     question.resolved_at = resolution_time
     score_types = score_types or Score.ScoreTypes.choices
     for score_type in score_types:
+        seen = set()
         previous_scores = list(
             Score.objects.filter(question=question, score_type=score_type)
         )
@@ -32,11 +33,16 @@ def score_question(
                 if previous_score.user == new_score.user:
                     is_new = False
                     previous_score.score = new_score.score
+                    previous_score.coverage = new_score.coverage
                     previous_score.save()
+                    seen.add(previous_score)
                     break
             if is_new:
                 new_score.question = question
                 new_score.save()
+        for previous_score in previous_scores:
+            if previous_score not in seen:
+                previous_score.delete()
 
 
 def create_leaderboard_entries(
