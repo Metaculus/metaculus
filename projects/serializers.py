@@ -91,22 +91,19 @@ def validate_categories(lookup_field: str, lookup_values: list):
 def validate_tournaments(lookup_values: list):
     slug_values = []
     id_values = []
-    
+
     for value in lookup_values:
         if value.isdigit():
             id_values.append(int(value))
         else:
             slug_values.append(value)
-    
+
     tournaments = (
         Project.objects.filter_tournament()
         .filter_active()
-        .filter(
-            Q(**{f"slug__in": slug_values}) |
-            Q(pk__in=id_values)
-        )
+        .filter(Q(**{f"slug__in": slug_values}) | Q(pk__in=id_values))
     )
-    
+
     lookup_values_fetched = {obj.slug for obj in tournaments}
     lookup_values_fetched_id = {obj.pk for obj in tournaments}
 
