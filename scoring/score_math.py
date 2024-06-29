@@ -247,7 +247,7 @@ def evaluate_question(
     spot_forecast_timestamp: float | None = None,
 ) -> list[Score]:
     window_start = question.post.published_at.timestamp()
-    window_end = question.closed_at.timestamp()
+    window_end = question.post.closed_at.timestamp()
 
     forecasts = question.forecast_set.all()
 
