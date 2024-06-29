@@ -41,6 +41,7 @@ def unscaled_location_to_string_location(
 def has_resolution(resolution):
     return resolution is not None and resolution != ""
 
+
 def create_question(question: dict, **kwargs) -> Question:
     possibilities = json.loads(question["possibilities"])
     max = None
@@ -90,7 +91,9 @@ def create_question(question: dict, **kwargs) -> Question:
         description=question["description"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
-        resolved_at=question["resolve_time"] if has_resolution(question["resolution"]) else None,
+        resolved_at=(
+            question["resolve_time"] if has_resolution(question["resolution"]) else None
+        ),
         type=question_type,
         possibilities=possibilities,
         zero_point=zero_point,
@@ -156,8 +159,14 @@ def create_post(question: dict, **kwargs) -> Post:
         created_at=question["created_time"],
         edited_at=question["edited_time"],
         approved_at=question["approved_time"],
-        maybe_try_to_resolve_at=question["resolve_time"] if question["resolve_time"] else (timezone.now() + timezone.timedelta(days=40 * 365)),
-        resolved_at=question["resolve_time"] if has_resolution(question["resolution"]) else None,
+        maybe_try_to_resolve_at=(
+            question["resolve_time"]
+            if question["resolve_time"]
+            else (timezone.now() + timezone.timedelta(days=40 * 365))
+        ),
+        resolved_at=(
+            question["resolve_time"] if has_resolution(question["resolution"]) else None
+        ),
         default_project=get_site_main_project(),
         **kwargs,
     )
