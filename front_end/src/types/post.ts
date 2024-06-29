@@ -85,6 +85,7 @@ export type Notebook = {
   edited_at: string;
   markdown: string;
   type: string;
+  image_url: string;
 };
 
 export type Post<QT = Question> = {
@@ -111,6 +112,7 @@ export type Post<QT = Question> = {
   notebook?: Notebook;
   curation_status: PostStatus;
   user_permission: ProjectPermissions;
+  comment_count?: number;
 };
 
 export type PostWithNotebook = Omit<Post, "notebook"> & {

@@ -107,9 +107,10 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
         )
         history.append(fhe)
 
-    if not last_timestep or reversed_sorted_timesteps[0] - last_timestep > timedelta(
-        hours=12
-    ):
+    if (
+        not last_timestep
+        or reversed_sorted_timesteps[0] - last_timestep > timedelta(hours=12)
+    ) and reversed_sorted_timesteps:
         cache.set(
             cache_key,
             {
