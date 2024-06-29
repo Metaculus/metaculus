@@ -239,7 +239,7 @@ class Post(TimeStampedModel):
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
     closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
     resolved_at = models.DateTimeField(db_index=True, null=True, blank=True)
-
+    maybe_try_to_resolve_at = models.DateTimeField(db_index=True)
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
     question = models.OneToOneField(

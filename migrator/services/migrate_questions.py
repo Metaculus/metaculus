@@ -15,6 +15,7 @@ from dateutil.parser import parse as date_parse
 from migrator.utils import paginated_query
 from posts.models import Notebook, Post
 from questions.models import Question, Conditional, GroupOfQuestions
+from utils.the_math.formulas import scale_location
 
 
 def unscaled_location_to_string_location(
@@ -36,6 +37,9 @@ def unscaled_location_to_string_location(
         return datetime.fromtimestamp(actual_location).isoformat()
     return str(actual_location)
 
+
+def has_resolution(resolution):
+    return resolution is not None and resolution != ""
 
 def create_question(question: dict, **kwargs) -> Question:
     possibilities = json.loads(question["possibilities"])
@@ -87,7 +91,7 @@ def create_question(question: dict, **kwargs) -> Question:
         description=question["description"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
-        resolved_at=question["resolve_time"],
+        resolved_at=question["resolve_time"] if has_resolution(question["resolution"]) else None,
         type=question_type,
         possibilities=possibilities,
         zero_point=zero_point,
@@ -127,8 +131,6 @@ def create_post(question: dict, **kwargs) -> Post:
         )
         or question["approved_by_id"]
     ):"""
-    if question["resolution"] is not None:
-        curation_status = Post.CurationStatus.RESOLVED
     if question["mod_status"] == "PENDING":
         curation_status = Post.CurationStatus.PENDING
     if question["mod_status"] == "REJECTED":
@@ -155,6 +157,8 @@ def create_post(question: dict, **kwargs) -> Post:
         created_at=question["created_time"],
         edited_at=question["edited_time"],
         approved_at=question["approved_time"],
+        maybe_try_to_resolve_at=question["resolve_time"] if question["resolve_time"] else timezone.datetime.max,
+        resolved_at=question["resolve_time"] if has_resolution(question["resolution"]) else None,
         default_project=get_site_main_project(),
         **kwargs,
     )
