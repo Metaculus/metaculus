@@ -79,7 +79,7 @@ def evaluate_forecasts_baseline_accuracy(
     forecasts: list[Forecast],
     resolution_bucket: int,
     forecast_horizon_start: float,
-    effected_close_time: float,
+    actual_close_time: float,
     forecast_horizon_end: float,
     question_type: str,
     open_bounds_count: int,
@@ -88,10 +88,11 @@ def evaluate_forecasts_baseline_accuracy(
     forecast_scores: list[tuple[float, float]] = []
     for forecast in forecasts:
         forecast_start = max(forecast.start_time.timestamp(), forecast_horizon_start)
-        if forecast.end_time:
-            forecast_end = min(forecast.end_time.timestamp(), effected_close_time)
-        else:
-            forecast_end = effected_close_time
+        forecast_end = (
+            actual_close_time
+            if forecast.end_time is None
+            else min(forecast.end_time.timestamp(), actual_close_time)
+        )
         forecast_duration = forecast_end - forecast_start
         if not forecast_duration:
             forecast_scores.append(ForecastScore(0))
@@ -150,7 +151,7 @@ def evaluate_forecasts_peer_accuracy(
     forecasts: list[Forecast],
     resolution_bucket: int,
     forecast_horizon_start: float,
-    effected_close_time: float,
+    actual_close_time: float,
     forecast_horizon_end: float,
     question_type: str,
 ) -> list[ForecastScore]:
@@ -161,10 +162,11 @@ def evaluate_forecasts_peer_accuracy(
     forecast_scores: list[float] = []
     for forecast in forecasts:
         forecast_start = max(forecast.start_time.timestamp(), forecast_horizon_start)
-        if forecast.end_time:
-            forecast_end = min(forecast.end_time.timestamp(), effected_close_time)
-        else:
-            forecast_end = effected_close_time
+        forecast_end = (
+            actual_close_time
+            if forecast.end_time is None
+            else min(forecast.end_time.timestamp(), actual_close_time)
+        )
         if (forecast_end - forecast_start) <= 0:
             forecast_scores.append(ForecastScore(0))
             continue
@@ -187,8 +189,8 @@ def evaluate_forecasts_peer_accuracy(
         forecast_score = 0
         forecast_coverage = 0
         times = [
-            gm.timestamp for gm in geometric_means if gm.timestamp < effected_close_time
-        ] + [effected_close_time]
+            gm.timestamp for gm in geometric_means if gm.timestamp < actual_close_time
+        ] + [actual_close_time]
         for i in range(len(times) - 1):
             if interval_scores[i] is None:
                 continue
@@ -240,7 +242,7 @@ def evaluate_forecasts_legacy_relative(
     forecasts: list[Forecast],
     resolution_bucket: int,
     forecast_horizon_start: float,
-    effected_close_time: float,
+    actual_close_time: float,
     forecast_horizon_end: float,
     question_type: str,
 ) -> list[ForecastScore]:
@@ -255,7 +257,7 @@ def evaluate_question(
 ) -> list[Score]:
     forecast_horizon_start = question.post.published_at.timestamp()
     forecast_horizon_end = question.closed_at.timestamp()
-    effected_close_time = min(forecast_horizon_end, question.resolved_at.timestamp())
+    actual_close_time = min(forecast_horizon_end, question.resolved_at.timestamp())
 
     forecasts = question.forecast_set.all()
 
@@ -269,7 +271,7 @@ def evaluate_question(
                 forecasts,
                 resolution_bucket,
                 forecast_horizon_start,
-                effected_close_time,
+                actual_close_time,
                 forecast_horizon_end,
                 question.type,
                 open_bounds_count,
@@ -290,7 +292,7 @@ def evaluate_question(
                 forecasts,
                 resolution_bucket,
                 forecast_horizon_start,
-                effected_close_time,
+                actual_close_time,
                 forecast_horizon_end,
                 question.type,
             )
@@ -307,7 +309,7 @@ def evaluate_question(
                 forecasts,
                 resolution_bucket,
                 forecast_horizon_start,
-                effected_close_time,
+                actual_close_time,
                 forecast_horizon_end,
                 question.type,
             )
