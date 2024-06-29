@@ -97,7 +97,7 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
             f
             for f in forecasts
             if f.start_time <= timestep
-            and (f.end_time is None or f.end_time >= timestep)
+            and (f.end_time is None or f.end_time > timestep)
         ]
         if len(active_forecasts) < 1:
             continue
