@@ -28,8 +28,7 @@ class Question(TimeStampedModel):
 
     description = models.TextField(blank=True)
 
-    # TODO: Make them not-null!
-    closed_at = models.DateTimeField(db_index=True, null=True)
+    # This represents when the question was resolved
     resolved_at = models.DateTimeField(db_index=True, null=True)
 
     max = models.FloatField(null=True, blank=True)
