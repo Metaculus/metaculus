@@ -22,6 +22,8 @@ export type PostsParams = PaginationParams & {
   tournaments?: string | string[];
   ids?: number[];
   news_type?: string;
+  public_figure?: number;
+  notebook_type?: string;
 };
 
 class PostsApi {

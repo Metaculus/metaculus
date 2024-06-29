@@ -1,7 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
@@ -38,6 +40,7 @@ const baseQuestionSchema = z.object({
   resolution: z.string().optional(),
   closed_at: z.date().optional(),
   resolved_at: z.date().optional(),
+  tournament_id: z.number().optional(),
 });
 
 const binaryQuestionSchema = baseQuestionSchema;
@@ -99,7 +102,12 @@ const QuestionForm: React.FC<Props> = ({
   tiny = false,
 }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tournament_id = searchParams.get("tournament");
+  const t = useTranslations();
+
   const submitQuestion = async (data: any) => {
+    data["tournament_id"] = tournament_id;
     data["type"] = questionType;
     let post_data: PostCreationData = {
       title: data["title"],
@@ -187,6 +195,21 @@ const QuestionForm: React.FC<Props> = ({
         }}
         className={`${tiny ? "text-light-100 m-2 flex w-[420px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-2 text-xs" : "text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-8"}`}
       >
+        {tournament_id && (
+          <div className="mb-2">
+            <span className="">
+              For tournament:{" "}
+              <span className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1">
+                <Link
+                  href={`/tournaments/${tournament_id}`}
+                  className="no-underline"
+                >
+                  {tournament_id}
+                </Link>
+              </span>
+            </span>
+          </div>
+        )}
         {display_type_selector && !questionType && (
           <>
             <span>Question Type</span>
@@ -447,7 +470,7 @@ const QuestionForm: React.FC<Props> = ({
                     ]);
                   }}
                 >
-                  Add Question
+                  + {t("question")}
                 </Button>
               </>
             )}
