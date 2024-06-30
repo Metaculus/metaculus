@@ -44,7 +44,7 @@ def has_resolution(resolution):
 
 def create_question(question: dict, **kwargs) -> Question:
     possibilities = json.loads(question["possibilities"])
-    max = None
+    max_val = None
     min = None
     open_upper_bound = None
     open_lower_bound = None
@@ -58,20 +58,20 @@ def create_question(question: dict, **kwargs) -> Question:
         if possibilities.get("format", None) == "num":
             question_type = "numeric"
             if isinstance(possibilities["scale"]["max"], list):
-                max = possibilities["scale"]["max"][0]
+                max_val = possibilities["scale"]["max"][0]
             else:
-                max = possibilities["scale"]["max"]
+                max_val = possibilities["scale"]["max"]
             if isinstance(possibilities["scale"]["min"], list):
                 min = possibilities["scale"]["min"][0]
             else:
                 min = possibilities["scale"]["min"]
         else:
             question_type = "date"
-            max = date_parse(possibilities["scale"]["max"]).timestamp()
+            max_val = date_parse(possibilities["scale"]["max"]).timestamp()
             min = date_parse(possibilities["scale"]["min"]).timestamp()
         deriv_ratio = possibilities["scale"].get("deriv_ratio", 1)
         if deriv_ratio != 1:
-            zero_point = (deriv_ratio * min - max) / (deriv_ratio - 1)
+            zero_point = (deriv_ratio * min - max_val) / (deriv_ratio - 1)
         open_upper_bound = possibilities.get("low", None) == "tail"
         open_lower_bound = possibilities.get("high", None) == "tail"
     elif question["option_labels"] is not None:
@@ -80,18 +80,10 @@ def create_question(question: dict, **kwargs) -> Question:
     else:
         return None
 
-    resolved_at_possible_vals = [
-        x for x in [question["resolve_time"], question["close_time"]] if x is not None
-    ]
-    if len(resolved_at_possible_vals) and has_resolution(question["resolution"]):
-        resolved_at = max(resolved_at_possible_vals)
-    else:
-        resolved_at = None
-
     new_question = Question(
         id=question["id"],
         title=question["title"],
-        max=max,
+        max=max_val,
         min=min,
         open_upper_bound=open_upper_bound,
         open_lower_bound=open_lower_bound,
@@ -99,8 +91,7 @@ def create_question(question: dict, **kwargs) -> Question:
         description=question["description"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
-        resolved_at=resolved_at,
-        forecasting_open_at=question["published_time"],
+        forecasting_open_at=question["publish_time"],
         aim_to_close_at=(
             question["close_time"]
             if question["close_time"]
@@ -169,7 +160,7 @@ def create_post(question: dict, **kwargs) -> Post:
         id=question["id"],
         title=question["title"],
         author_id=question["author_id"],
-        curated_last_by=question["approved_by_id"],
+        curated_last_by_id=question["approved_by_id"],
         curation_status=curation_status,
         curation_status_updated_at=(
             max(curation_status_dates) if curation_status_dates else None

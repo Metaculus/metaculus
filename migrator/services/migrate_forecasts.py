@@ -72,5 +72,6 @@ def migrate_forecasts(qty: int | None = None):
             print("Migrating forecast", i + 1, "Bulk inserting forecasts...", end="\r")
             Forecast.objects.bulk_create(forecasts)
             forecasts = []
-    print("Migrating forecast", len(forecasts), "Bulk inserting forecasts...")
+    print("\nMigrated nr forecast:", len(forecasts))
+    print("\nMigrated nr forecast:", len(forecasts))
     Forecast.objects.bulk_create(forecasts)
