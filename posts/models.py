@@ -230,7 +230,7 @@ class Post(TimeStampedModel):
     title = models.CharField(max_length=200)
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
 
-    approved_by = models.ForeignKey(
+    moderated_by = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
         related_name="approved_questions",
@@ -262,7 +262,7 @@ class Post(TimeStampedModel):
                 for question in self.group_of_questions.questions.all()
             )
         elif self.conditional:
-            return self.conditional.condition_child.aim_to_resolve_at  
+            return self.conditional.condition_child.aim_to_resolve_at
 
         return None
 
@@ -289,7 +289,10 @@ class Post(TimeStampedModel):
                 for question in self.group_of_questions.questions.all()
             )
         elif self.conditional:
-            return self.conditional.condition_child.resolution and self.conditional.condition.resolution
+            return (
+                self.conditional.condition_child.resolution
+                and self.conditional.condition.resolution
+            )
         return False
 
     maybe_try_to_resolve_at = models.DateTimeField(

@@ -33,7 +33,7 @@ class Question(TimeStampedModel):
     forecasting_open_at = models.DateTimeField(db_index=True, null=True, blank=True)
     aim_to_close_at = models.DateTimeField(db_index=True, null=False, blank=False)
     aim_to_resolve_at = models.DateTimeField(db_index=True, null=False, blank=False)
-    
+
     resolution_known_at = models.DateTimeField(db_index=True, null=True, blank=True)
     resolution_field_set_at = models.DateTimeField(db_index=True, null=True, blank=True)
     closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
@@ -70,7 +70,7 @@ class Question(TimeStampedModel):
 
     def __str__(self):
         return f"{self.type} {self.title}"
-    
+
     @cached_property
     def forecast_scoring_ends(self) -> datetime | None:
         if self.closed_at is None or self.resolution_known_at is None:
