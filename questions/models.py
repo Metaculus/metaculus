@@ -31,8 +31,20 @@ class Question(TimeStampedModel):
     description = models.TextField(blank=True)
 
     forecasting_open_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    aim_to_close_at = models.DateTimeField(db_index=True, null=False, blank=False, default=django.utils.timezone.now() + django.utils.timezone.timedelta(days=10000))
-    aim_to_resolve_at = models.DateTimeField(db_index=True, null=False, blank=False, default=django.utils.timezone.now() + django.utils.timezone.timedelta(days=10000))
+    aim_to_close_at = models.DateTimeField(
+        db_index=True,
+        null=False,
+        blank=False,
+        default=django.utils.timezone.now()
+        + django.utils.timezone.timedelta(days=10000),
+    )
+    aim_to_resolve_at = models.DateTimeField(
+        db_index=True,
+        null=False,
+        blank=False,
+        default=django.utils.timezone.now()
+        + django.utils.timezone.timedelta(days=10000),
+    )
 
     resolution_known_at = models.DateTimeField(db_index=True, null=True, blank=True)
     resolution_field_set_at = models.DateTimeField(db_index=True, null=True, blank=True)
