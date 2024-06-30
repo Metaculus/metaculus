@@ -94,7 +94,7 @@ def evaluate_forecasts_baseline_accuracy(
             else min(forecast.end_time.timestamp(), actual_close_time)
         )
         forecast_duration = forecast_end - forecast_start
-        if not forecast_duration:
+        if forecast_duration <= 0:
             forecast_scores.append(ForecastScore(0))
             continue
         forecast_coverage = forecast_duration / total_duration
@@ -108,7 +108,7 @@ def evaluate_forecasts_baseline_accuracy(
                 baseline = 0.05
             else:
                 baseline = (1 - 0.05 * open_bounds_count) / (len(pmf) - 2)
-            forecast_score = 100 * np.log(pmf[resolution_bucket] * baseline) / 2
+            forecast_score = 100 * np.log(pmf[resolution_bucket] / baseline) / 2
         forecast_scores.append(
             ForecastScore(forecast_score * forecast_coverage, forecast_coverage)
         )
@@ -140,7 +140,7 @@ def evaluate_forecasts_baseline_spot_forecast(
                     baseline = 0.05
                 else:
                     baseline = (1 - 0.05 * open_bounds_count) / (len(pmf) - 2)
-                forecast_score = 100 * np.log(pmf[resolution_bucket] * baseline) / 2
+                forecast_score = 100 * np.log(pmf[resolution_bucket] / baseline) / 2
             forecast_scores.append(ForecastScore(forecast_score))
         else:
             forecast_scores.append(ForecastScore(0))

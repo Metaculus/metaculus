@@ -48,6 +48,7 @@ def score_question(
 def create_leaderboard_entries(
     project: Project, leaderboard_type: str | None = None, live: bool = True
 ):
+    seen = set()
     previous_entries = list(project.leaderboard_entries.all())
     # Bit of a dirty hack but tl;dr "If this was generated recently don't bother !"
     if not live:
@@ -67,8 +68,15 @@ def create_leaderboard_entries(
             if previous_entry.user == new_entry.user:
                 is_new = False
                 previous_entry.score = new_entry.score
+                previous_entry.coverage = new_entry.coverage
+                previous_entry.medal = new_entry.medal
+                previous_entry.contribution_count = new_entry.contribution_count
                 previous_entry.save()
+                seen.add(previous_entry)
                 break
         if is_new:
             new_entry.project = project
             new_entry.save()
+    for previous_entry in previous_entries:
+        if previous_entry not in seen:
+            previous_entry.delete()
