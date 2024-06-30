@@ -1,28 +1,33 @@
 from datetime import datetime
+import numpy as np
 
 from questions.models import Question
 
 
 def scale_location(
-    zero_point: float, max: float, min: float, unscaled_location: float
+    zero_point: float, range_max: float, range_min: float, unscaled_location: float
 ) -> float:
     if zero_point:
-        deriv_ratio = (max - zero_point) / (min - zero_point)
-        return min + (max - min) * (deriv_ratio**unscaled_location - 1) / (
-            deriv_ratio - 1
-        )
-    return min + (max - min) * unscaled_location
+        deriv_ratio = (range_max - zero_point) / (range_min - zero_point)
+        return range_min + (range_max - range_min) * (
+            deriv_ratio**unscaled_location - 1
+        ) / (deriv_ratio - 1)
+    return range_min + (range_max - range_min) * unscaled_location
 
 
 def unscale_location(
-    zero_point: float, max: float, min: float, scaled_location: float
+    zero_point: float, range_max: float, range_min: float, scaled_location: float
 ) -> float:
     if zero_point:
-        deriv_ratio = (max - zero_point) / (min - zero_point)
-        return (1 + (deriv_ratio - 1) * (scaled_location - min) / (max - min)) ** (
-            1 / deriv_ratio
-        )
-    return (scaled_location - min) / (max - min)
+        deriv_ratio = (range_max - zero_point) / (range_min - zero_point)
+        return (
+            np.log(
+                (scaled_location - range_min) * (deriv_ratio - 1)
+                + (range_max - range_min)
+            )
+            - np.log(range_max - range_min)
+        ) / np.log(deriv_ratio)
+    return (scaled_location - range_min) / (range_max - range_min)
 
 
 def string_location_to_bucket_index(question: Question, string_location: str) -> int:
@@ -48,4 +53,4 @@ def string_location_to_bucket_index(question: Question, string_location: str) ->
         return 201
     if unscaled_location == 1:
         return 200
-    return int(unscaled_location * 200 + 1 + 1e-7)
+    return max(int(unscaled_location * 200 + 1 - 1e-10), 0)
