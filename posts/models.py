@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db import models
 from django.db.models import Sum, Subquery, OuterRef, Count
 from django.db.models.functions import Coalesce
@@ -9,6 +10,7 @@ from projects.permissions import ObjectPermission
 from questions.models import Question, Conditional, GroupOfQuestions
 from users.models import User
 from utils.models import TimeStampedModel
+from django.utils.functional import cached_property
 
 
 class PostQuerySet(models.QuerySet):
@@ -228,7 +230,6 @@ class Post(TimeStampedModel):
     title = models.CharField(max_length=200)
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
 
-    approved_at = models.DateTimeField(null=True, blank=True)
     approved_by = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
@@ -237,8 +238,60 @@ class Post(TimeStampedModel):
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    resolved_at = models.DateTimeField(db_index=True, null=True, blank=True)
+
+    @cached_property
+    def post_aim_to_close_at(self) -> datetime | None:
+        if self.question:
+            return self.question.aim_to_close_at
+        elif self.group_of_questions:
+            return max(
+                group_of_questions.aim_to_close_at
+                for group_of_questions in self.group_of_questions.all()
+            )
+        elif self.conditional:
+            return self.conditional.condition_child.aim_to_close_at
+        return None
+
+    @cached_property
+    def post_aim_to_resolve_at(self) -> datetime | None:
+        if self.question:
+            return self.question.aim_to_resolve_at
+        elif self.group_of_questions:
+            return max(
+                question.aim_to_resolve_at
+                for question in self.group_of_questions.questions.all()
+            )
+        elif self.conditional:
+            return self.conditional.condition_child.aim_to_resolve_at  
+
+        return None
+
+    @cached_property
+    def post_closed_at(self) -> datetime | None:
+        if self.question:
+            return self.question.aim_to_close_at
+        elif self.group_of_questions:
+            return max(
+                group_of_questions.aim_to_close_at
+                for group_of_questions in self.group_of_questions.all()
+            )
+        elif self.conditional:
+            return self.conditional.condition_child.aim_to_close_at
+        return None
+
+    @cached_property
+    def post_resolved(self) -> bool:
+        if self.question.resolution:
+            return True
+        elif self.group_of_questions:
+            return all(
+                question.resolution
+                for question in self.group_of_questions.questions.all()
+            )
+        elif self.conditional:
+            return self.conditional.condition_child.resolution and self.conditional.condition.resolution
+        return False
+
     maybe_try_to_resolve_at = models.DateTimeField(
         db_index=True, default=timezone.now() + timezone.timedelta(days=40 * 365)
     )
