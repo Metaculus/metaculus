@@ -230,7 +230,7 @@ class Post(TimeStampedModel):
     title = models.CharField(max_length=200)
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
 
-    moderated_by = models.ForeignKey(
+    curated_last_by = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
         related_name="approved_questions",

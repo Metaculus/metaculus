@@ -80,6 +80,14 @@ def create_question(question: dict, **kwargs) -> Question:
     else:
         return None
 
+    resolved_at_possible_vals = [
+        x for x in [question["resolve_time"], question["close_time"]] if x is not None
+    ]
+    if len(resolved_at_possible_vals) and has_resolution(question["resolution"]):
+        resolved_at = max(resolved_at_possible_vals)
+    else:
+        resolved_at = None
+
     new_question = Question(
         id=question["id"],
         title=question["title"],
@@ -91,9 +99,21 @@ def create_question(question: dict, **kwargs) -> Question:
         description=question["description"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
-        resolved_at=(
-            question["resolve_time"] if has_resolution(question["resolution"]) else None
+        resolved_at=resolved_at,
+        forecasting_open_at=question["published_time"],
+        aim_to_close_at=(
+            question["close_time"]
+            if question["close_time"]
+            else django.utils.timezone.now() + timezone.timedelta(days=10000)
         ),
+        aim_to_resolve_at=(
+            question["resolve_time"]
+            if question["close_time"]
+            else django.utils.timezone.now() + timezone.timedelta(days=10000)
+        ),
+        resolution_known_at=question["resolve_time"],
+        resolution_field_set_at=question["resolve_time"],
+        closed_at=question["close_time"],
         type=question_type,
         possibilities=possibilities,
         zero_point=zero_point,
@@ -149,8 +169,7 @@ def create_post(question: dict, **kwargs) -> Post:
         id=question["id"],
         title=question["title"],
         author_id=question["author_id"],
-        approved_by_id=question["approved_by_id"],
-        closed_at=question["close_time"],
+        curated_last_by=question["approved_by_id"],
         curation_status=curation_status,
         curation_status_updated_at=(
             max(curation_status_dates) if curation_status_dates else None
@@ -158,15 +177,6 @@ def create_post(question: dict, **kwargs) -> Post:
         published_at=question["publish_time"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
-        approved_at=question["approved_time"],
-        maybe_try_to_resolve_at=(
-            question["resolve_time"]
-            if question["resolve_time"]
-            else (timezone.now() + timezone.timedelta(days=40 * 365))
-        ),
-        resolved_at=(
-            question["resolve_time"] if has_resolution(question["resolution"]) else None
-        ),
         default_project=get_site_main_project(),
         **kwargs,
     )

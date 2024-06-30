@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+import django
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
@@ -29,10 +30,9 @@ class Question(TimeStampedModel):
 
     description = models.TextField(blank=True)
 
-    # This represents when the question was resolved
     forecasting_open_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    aim_to_close_at = models.DateTimeField(db_index=True, null=False, blank=False)
-    aim_to_resolve_at = models.DateTimeField(db_index=True, null=False, blank=False)
+    aim_to_close_at = models.DateTimeField(db_index=True, null=False, blank=False, default=django.utils.timezone.now() + django.utils.timezone.timedelta(days=10000))
+    aim_to_resolve_at = models.DateTimeField(db_index=True, null=False, blank=False, default=django.utils.timezone.now() + django.utils.timezone.timedelta(days=10000))
 
     resolution_known_at = models.DateTimeField(db_index=True, null=True, blank=True)
     resolution_field_set_at = models.DateTimeField(db_index=True, null=True, blank=True)
@@ -96,8 +96,8 @@ class Question(TimeStampedModel):
         # returns the global leaderboard dates that this question counts for
         from projects.models import get_global_leaderboard_dates
 
-        forecast_horizon_start = self.get_post().published_at
-        forecast_horizon_end = self.get_post().closed_at
+        forecast_horizon_start = self.forecasting_open_at
+        forecast_horizon_end = self.forecast_scoring_ends
         global_leaderboard_dates = get_global_leaderboard_dates()
 
         # iterate over the global leaderboard dates in reverse order
