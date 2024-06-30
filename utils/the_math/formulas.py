@@ -53,4 +53,4 @@ def string_location_to_bucket_index(question: Question, string_location: str) ->
         return 201
     if unscaled_location == 1:
         return 200
-    return max(int(unscaled_location * 200 + 1 - 1e-10), 0)
+    return max(int(unscaled_location * 200 + 1 - 1e-10), 1)
