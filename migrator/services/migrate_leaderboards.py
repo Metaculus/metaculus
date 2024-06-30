@@ -14,7 +14,8 @@ def create_global_leaderboards():
     # get all the posts and the leaderboard dates they are associated with
     scored_posts = Post.objects.filter(
         question__isnull=False,
-        resolved_at__lte=timezone.now(),
+        question__resolution__isnull=False,
+        projects__type=Project.ProjectTypes.SITE_MAIN,
     )
     gl_dates_posts = defaultdict(list)
     for post in scored_posts:
