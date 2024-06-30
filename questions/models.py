@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
+from django.utils.functional import cached_property
 from sql_util.aggregates import SubqueryAggregate
 
 from users.models import User
@@ -29,7 +30,13 @@ class Question(TimeStampedModel):
     description = models.TextField(blank=True)
 
     # This represents when the question was resolved
-    resolved_at = models.DateTimeField(db_index=True, null=True)
+    forecasting_open_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    aim_to_close_at = models.DateTimeField(db_index=True, null=False, blank=False)
+    aim_to_resolve_at = models.DateTimeField(db_index=True, null=False, blank=False)
+    
+    resolution_known_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    resolution_field_set_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
 
     max = models.FloatField(null=True, blank=True)
     min = models.FloatField(null=True, blank=True)
@@ -63,6 +70,12 @@ class Question(TimeStampedModel):
 
     def __str__(self):
         return f"{self.type} {self.title}"
+    
+    @cached_property
+    def forecast_scoring_ends(self) -> datetime | None:
+        if self.closed_at is None or self.resolution_known_at is None:
+            return None
+        return min(self.closed_at, self.resolution_known_at)
 
     def get_post(self):
         # Back-rel of One2One relations does not populate None values,
