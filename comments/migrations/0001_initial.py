@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
                 ("is_soft_deleted", models.BooleanField(null=True)),
                 ("text", models.TextField()),
                 ("is_private", models.BooleanField(default=False)),
-                ("edit_history", models.JSONField(null=True)),
+                ("edit_history", models.JSONField(default=list)),
                 (
                     "author",
                     models.ForeignKey(
@@ -70,6 +70,36 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         null=True,
                         on_delete=django.db.models.deletion.SET_NULL,
+                        to="comments.comment",
+                    ),
+                ),
+            ],
+        ),
+        migrations.CreateModel(
+            name="CommentDiff",
+            fields=[
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("edited_at", models.DateTimeField(auto_now_add=True)),
+                ("text_diff", models.TextField()),
+                (
+                    "author",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "comment",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
                         to="comments.comment",
                     ),
                 ),
