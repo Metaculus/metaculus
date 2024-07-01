@@ -83,6 +83,7 @@ class Question(TimeStampedModel):
         return f"{self.type} {self.title}"
 
     forecast_scoring_ends = models.DateTimeField(db_index=True, null=True, blank=True)
+
     def set_forecast_scoring_ends(self) -> datetime | None:
         if self.closed_at is None or self.resolution_known_at is None:
             self.forecast_scoring_ends = None

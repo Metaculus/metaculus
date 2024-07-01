@@ -188,24 +188,38 @@ def resolve_question(question: Question, resolution, resolution_known_at: dateti
     question.save()
 
     # Check if the question is part of any/all conditionals
-    for conditional in [*question.conditional_conditions.all(), *question.conditional_children.all()]:
+    for conditional in [
+        *question.conditional_conditions.all(),
+        *question.conditional_children.all(),
+    ]:
         if conditional.condition.resolution and conditional.condition_child.resolution:
             if conditional.condition.resolution == "yes":
                 resolve_question(conditional.question_no, ResolutionType.ANNULLED)
-                resolve_question(conditional.question_yes, conditional.condition_child.resolution)
+                resolve_question(
+                    conditional.question_yes, conditional.condition_child.resolution
+                )
             elif conditional.condition.resolution == "no":
-                resolve_question(conditional.question_no, conditional.condition_child.resolution)
+                resolve_question(
+                    conditional.question_no, conditional.condition_child.resolution
+                )
                 resolve_question(conditional.question_yes, ResolutionType.ANNULLED)
             elif conditional.condition.resolution == ResolutionType.ANNULLED:
                 resolve_question(conditional.question_no, ResolutionType.ANNULLED)
-                resolve_question(conditional.question_yes.resolution, ResolutionType.ANNULLED)
+                resolve_question(
+                    conditional.question_yes.resolution, ResolutionType.ANNULLED
+                )
             elif conditional.condition.resolution == ResolutionType.AMBIGUOUS:
-                resolve_question(conditional.question_no.resolution, ResolutionType.AMBIGUOUS)
-                resolve_question(conditional.question_yes.resolution, ResolutionType.AMBIGUOUS)
+                resolve_question(
+                    conditional.question_no.resolution, ResolutionType.AMBIGUOUS
+                )
+                resolve_question(
+                    conditional.question_yes.resolution, ResolutionType.AMBIGUOUS
+                )
             else:
-                raise ValueError(f"Invalid resolution for conditionals' condition: {conditional.condition.resolution}")
-            
+                raise ValueError(
+                    f"Invalid resolution for conditionals' condition: {conditional.condition.resolution}"
+                )
+
     post = question.get_post()
     post.update_pseudo_materialized_fields()
     post.save()
-    
