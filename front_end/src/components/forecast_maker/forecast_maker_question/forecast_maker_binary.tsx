@@ -7,6 +7,7 @@ import { createForecast } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
+import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
@@ -27,6 +28,7 @@ const ForecastMakerBinary: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const { setCurrentModal } = useModal();
 
   const communityForecast = question.forecasts.values_mean.at(-1);
 
@@ -42,7 +44,7 @@ const ForecastMakerBinary: FC<Props> = ({
     setSubmitError(undefined);
 
     if (!user) {
-      //setCurrentModal({ type: "signup" });
+      setCurrentModal({ type: "signup" });
       return;
     }
 
