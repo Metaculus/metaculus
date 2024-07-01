@@ -6,8 +6,7 @@ import classNames from "classnames";
 import { FC } from "react";
 
 import RadioButton from "@/components/ui/radio_button";
-import { PostCondition } from "@/types/post";
-import { Question } from "@/types/question";
+import { Question, QuestionWithForecasts } from "@/types/question";
 
 export type ConditionalTableOption = {
   id: number;
@@ -17,7 +16,7 @@ export type ConditionalTableOption = {
 };
 
 type Props = {
-  condition: PostCondition;
+  condition: QuestionWithForecasts;
   childQuestion: Question;
   value: number | null;
   options: ConditionalTableOption[];

@@ -7,23 +7,11 @@ export function extractQuestionGroupName(title: string) {
 }
 
 export function extractPostStatus(post: Post) {
-  if (post.question) {
-    return {
-      status: post.curation_status,
-      closedAt: post.question.closed_at,
-      resolvedAt: post.question.resolved_at,
-    };
-  }
-
-  if (post.conditional) {
-    return {
-      status: post.conditional.condition.curation_status,
-      closedAt: post.conditional.condition.closed_at,
-      resolvedAt: post.conditional.condition.resolved_at,
-    };
-  }
-
-  return null;
+  return {
+    status: post.curation_status,
+    closedAt: post.aim_to_close_at,
+    resolvedAt: post.aim_to_resolve_at,
+  };
 }
 
 export function getNotebookSummary(
