@@ -173,3 +173,12 @@ def create_conditional(
     obj.save()
 
     return obj
+
+
+def resolve_question(question: Question, resolution):
+    question.set_resolution(resolution)
+    question.save()
+
+    # TODO: handle complex logic for conditional questions
+    # TODO: handle logic for group of questions
+

@@ -9,6 +9,7 @@ import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
+import { ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
@@ -17,9 +18,14 @@ import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 type Props = {
   question: QuestionWithNumericForecasts;
   prevForecast?: any;
+  permission?: ProjectPermissions;
 };
 
-const ForecastMakerBinary: FC<Props> = ({ question, prevForecast }) => {
+const ForecastMakerBinary: FC<Props> = ({
+  question,
+  prevForecast,
+  permission,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();

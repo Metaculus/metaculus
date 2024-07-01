@@ -8,6 +8,7 @@ export type ButtonVariant =
   | "primary"
   | "secondary"
   | "tertiary"
+  | "bright"
   | "text"
   | "link";
 type PresentationType = "default" | "icon";
@@ -49,7 +50,7 @@ const Button = forwardRef<HTMLButtonElement, Props>(
             "2xl": "gap-4 text-3xl font-medium leading-9",
           }[size],
           variant !== "link" &&
-            getPresentationTypeStyles(presentationType, size),
+            getPresentationTypeStyles(presentationType, size, variant),
           {
             primary:
               "border border-blue-900 bg-blue-900 text-gray-200 no-underline hover:border-blue-800 hover:bg-blue-800 active:border-gray-800 active:bg-gray-800 disabled:border-blue-900 disabled:bg-blue-900 dark:border-blue-900-dark dark:bg-blue-900-dark dark:text-gray-200-dark dark:hover:border-blue-800-dark dark:hover:bg-blue-800-dark dark:active:border-gray-800-dark dark:active:bg-gray-800-dark disabled:dark:border-blue-900-dark disabled:dark:bg-blue-900-dark",
@@ -59,6 +60,8 @@ const Button = forwardRef<HTMLButtonElement, Props>(
               "border border-blue-500 bg-gray-0 text-blue-700 no-underline hover:border-blue-600 hover:bg-blue-100 active:border-blue-600 active:bg-blue-200 disabled:border-blue-500 disabled:bg-gray-0 dark:border-blue-500-dark dark:bg-gray-0-dark dark:text-blue-700-dark dark:hover:border-blue-600-dark dark:hover:bg-blue-100-dark dark:active:border-blue-600-dark dark:active:bg-blue-200-dark disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark",
             text: "border border-transparent text-blue-800 no-underline hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 dark:text-blue-800-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark disabled:dark:text-blue-800-dark",
             link: "text-blue-800 underline hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 dark:text-blue-800-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark disabled:dark:text-blue-800-dark",
+            bright:
+              "rounded-none border border-gray-900-dark bg-blue-100-dark font-alternate-gothic font-light uppercase tracking-[0.08em] text-gray-900-dark",
           }[variant],
           className
         )}
@@ -71,7 +74,11 @@ const Button = forwardRef<HTMLButtonElement, Props>(
 );
 Button.displayName = "Button";
 
-function getPresentationTypeStyles(type: PresentationType, size: ButtonSize) {
+function getPresentationTypeStyles(
+  type: PresentationType,
+  size: ButtonSize,
+  variant: ButtonVariant
+) {
   switch (type) {
     case "icon":
       return {
@@ -83,6 +90,10 @@ function getPresentationTypeStyles(type: PresentationType, size: ButtonSize) {
         "2xl": "h-16 w-16",
       }[size];
     default:
+      if (variant === "bright") {
+        return "px-2 py-1";
+      }
+
       return {
         xs: "px-2 py-0.5",
         sm: "px-3 py-2",
