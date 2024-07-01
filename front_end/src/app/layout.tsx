@@ -5,9 +5,9 @@ import "./globals.css";
 import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
-import { ThemeProvider } from "next-themes";
 
 import GlobalModals from "@/components/global_modals";
+import AppThemeProvided from "@/components/theme_provider";
 import AuthProvider from "@/contexts/auth_context";
 import ModalProvider from "@/contexts/modal_context";
 import AuthApi from "@/services/auth";
@@ -117,7 +117,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <AppThemeProvided>
           <NextIntlClientProvider messages={messages}>
             <AuthProvider user={user} socialProviders={socialProviders}>
               <ModalProvider>
@@ -126,7 +126,7 @@ export default async function RootLayout({
               </ModalProvider>
             </AuthProvider>
           </NextIntlClientProvider>
-        </ThemeProvider>
+        </AppThemeProvided>
       </body>
     </html>
   );

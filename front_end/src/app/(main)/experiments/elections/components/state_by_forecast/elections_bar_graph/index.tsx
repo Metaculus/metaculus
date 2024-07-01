@@ -11,9 +11,15 @@ type Props = {
   items: StateByForecastItem[];
   hoveredId: string | null;
   onHover: (id: string | null) => void;
+  interactive?: boolean;
 };
 
-const ElectionsBarGraph: FC<Props> = ({ items, hoveredId, onHover }) => {
+const ElectionsBarGraph: FC<Props> = ({
+  items,
+  hoveredId,
+  onHover,
+  interactive,
+}) => {
   const totalValue = useMemo(
     () => items.reduce((acc, item) => acc + item.votes, 0),
     [items]
@@ -41,6 +47,7 @@ const ElectionsBarGraph: FC<Props> = ({ items, hoveredId, onHover }) => {
       externalHoveredId={hoveredId}
       onHover={onHover}
       renderHoverPopover={(bar) => <StateBarHoverPopup bar={bar} />}
+      interactive={interactive}
     />
   );
 };
