@@ -281,11 +281,27 @@ class Post(TimeStampedModel):
             self._closed_at = self.conditional.condition_child.aim_to_close_at
         else:
             self._closed_at = None
+    
+    def set_resolved(self):
+        if self.question.resolution:
+            self.resolved = True
+        elif self.group_of_questions:
+            self.resolved = all(
+                question.resolution for question in post.group_of_questions.questions.all()
+            )
+        elif self.conditional:
+            self.resolved = (
+                self.conditional.condition_child.resolution
+                and self.conditional.condition.resolution
+            )
+        else:
+            self.resolved = False
 
     def update_pseudo_materialized_fields(self):
         self.set_aim_to_close_at()
         self.set_closed_at()
         self.set_aim_to_resolve_at()
+        self.set_resolved()
         self.save()
 
     maybe_try_to_resolve_at = models.DateTimeField(
