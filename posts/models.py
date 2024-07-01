@@ -271,16 +271,32 @@ class Post(TimeStampedModel):
 
     def set_closed_at(self) -> datetime | None:
         if self.question:
-            self._closed_at = self.question.aim_to_close_at
+            self.closed_at = self.question.closed_at
         elif self.group_of_questions:
-            self._closed_at = max(
+            close_times = [
                 question.aim_to_close_at
                 for question in self.group_of_questions.questions.all()
-            )
+            ]
+
+            if None not in close_times:
+                self.closed_at = max(close_times)
+            else:
+                self.closed_at = None
         elif self.conditional:
-            self._closed_at = self.conditional.condition_child.aim_to_close_at
+            close_times = [
+                question.aim_to_close_at
+                for question in [
+                    self.conditional.condition_child,
+                    self.conditional.condition,
+                ]
+            ]
+
+            if None not in close_times:
+                self.closed_at = max(close_times)
+            else:
+                self.closed_at = None
         else:
-            self._closed_at = None
+            self.closed_at = None
 
     def set_resolved(self):
         if self.question:
@@ -299,14 +315,6 @@ class Post(TimeStampedModel):
             ]
             self.resolved = resolutions and all(resolutions)
         elif self.conditional:
-            resolutions = [
-                (
-                    True
-                    if question.resolution is not None and question.resolution != ""
-                    else False
-                )
-                for question in self.group_of_questions.questions.all()
-            ]
             self.resolved = (
                 self.conditional.condition_child.resolution is not None
                 and self.conditional.condition_child.resolution != ""
