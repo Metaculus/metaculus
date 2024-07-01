@@ -9,7 +9,7 @@ export type PostsParams = PaginationParams & {
   answered_by_me?: boolean;
   search?: string;
   forecast_type?: string | string[];
-  status?: string | string[];
+  statuses?: string | string[];
   categories?: string | string[];
   tags?: string | string[];
   guessed_by?: string;
