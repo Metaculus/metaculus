@@ -260,8 +260,10 @@ def migrate_questions__composite():
     all_posts = Post.objects.all()
     for q in all_questions:
         q.set_forecast_scoring_ends()
+        q.save()
     for p in all_posts:
         p.update_pseudo_materialized_fields()
+        p.save()
 
 
 def migrate_questions__groups(root_questions: list[dict]):
