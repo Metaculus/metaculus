@@ -4,7 +4,6 @@ import django
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
-from django.utils.functional import cached_property
 from sql_util.aggregates import SubqueryAggregate
 
 from users.models import User
@@ -83,26 +82,34 @@ class Question(TimeStampedModel):
     def __str__(self):
         return f"{self.type} {self.title}"
 
-    @cached_property
-    def forecast_scoring_ends(self) -> datetime | None:
+    forecast_scoring_ends = models.DateTimeField(db_index=True, null=True, blank=True)
+    def set_forecast_scoring_ends(self) -> datetime | None:
         if self.closed_at is None or self.resolution_known_at is None:
-            return None
-        return min(self.closed_at, self.resolution_known_at)
+            self.forecast_scoring_ends = None
+        self.forecast_scoring_ends = min(self.closed_at, self.resolution_known_at)
 
     def get_post(self):
         # Back-rel of One2One relations does not populate None values,
         # So we always need to check whether attr exists
+        posts = []
         if hasattr(self, "post"):
-            return self.post
+            posts.append(self.post)
 
         if hasattr(self, "conditional_no"):
-            return self.conditional_no.post
+            posts.append(self.conditional_no.post)
 
         if hasattr(self, "conditional_yes"):
-            return self.conditional_yes.post
+            posts.append(self.conditional_yes.post)
 
         if self.group:
-            return self.group.post
+            posts.append(self.group.post)
+
+        if len(posts) == 0:
+            return None
+        if len(posts) == 1:
+            return posts[0]
+        if len(posts) > 1:
+            raise ValueError(f"Question {self.id} has more than one post: {posts}")
 
     def get_global_leaderboard_dates(self) -> tuple[datetime, datetime] | None:
         # returns the global leaderboard dates that this question counts for
@@ -135,7 +142,7 @@ class Question(TimeStampedModel):
 
 class Conditional(TimeStampedModel):
     condition = models.ForeignKey(
-        Question, related_name="conditional_parents", on_delete=models.PROTECT
+        Question, related_name="conditional_conditions", on_delete=models.PROTECT
     )
     condition_child = models.ForeignKey(
         Question, related_name="conditional_children", on_delete=models.PROTECT

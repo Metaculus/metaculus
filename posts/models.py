@@ -1,7 +1,6 @@
 from datetime import datetime
 from django.db import models
-from django.db.models import Sum, Subquery, OuterRef, Count, Q, F
-from django.db.models.functions import Coalesce
+from django.db.models import Sum, Subquery, OuterRef, Count
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
@@ -10,7 +9,6 @@ from projects.permissions import ObjectPermission
 from questions.models import Question, Conditional, GroupOfQuestions
 from users.models import User
 from utils.models import TimeStampedModel
-from django.utils.functional import cached_property
 
 
 class PostQuerySet(models.QuerySet):
@@ -254,20 +252,21 @@ class Post(TimeStampedModel):
             )
         elif self.conditional:
             self.aim_to_close_at = self.conditional.condition_child.aim_to_close_at
-        self.aim_to_close_at = None
+        else:
+            self.aim_to_close_at = None
 
     def set_aim_to_resolve_at(self) -> datetime | None:
         if self.question:
-            return self.question.aim_to_resolve_at
+            self.aim_to_resolve_at = self.question.aim_to_resolve_at
         elif self.group_of_questions:
-            return max(
+            self.aim_to_resolve_at = max(
                 question.aim_to_resolve_at
                 for question in self.group_of_questions.questions.all()
             )
         elif self.conditional:
-            return self.conditional.condition_child.aim_to_resolve_at
-
-        return None
+            self.aim_to_resolve_at = self.conditional.condition_child.aim_to_resolve_at
+        else:
+            self.aim_to_resolve_at = None
 
     def set_closed_at(self) -> datetime | None:
         if self.question:
@@ -279,24 +278,10 @@ class Post(TimeStampedModel):
             )
         elif self.conditional:
             self._closed_at = self.conditional.condition_child.aim_to_close_at
-        self._closed_at = None
+        else:
+            self._closed_at = None
 
-    def set_resolved(self) -> bool:
-        if self.question.resolution:
-            self.resolved = True
-        elif self.group_of_questions:
-            self.resolved = all(
-                question.resolution
-                for question in self.group_of_questions.questions.all()
-            )
-        elif self.conditional:
-            self.resolved = (
-                self.conditional.condition_child.resolution
-                and self.conditional.condition.resolution
-            )
-        self.resolved = False
-
-    def set_dynamic_fields(self):
+    def update_pseudo_materialized_fields(self):
         self.set_aim_to_close_at()
         self.set_closed_at()
         self.set_aim_to_resolve_at()
