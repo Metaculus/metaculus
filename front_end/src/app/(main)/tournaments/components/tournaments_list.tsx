@@ -86,7 +86,11 @@ const TournamentsList: FC<Props> = ({
           {filteredItems.slice(0, displayItemsCount).map((item) => (
             <TournamentCard
               key={item.id}
-              href={`/tournaments/${item.slug}`}
+              href={
+                item.slug
+                  ? `/tournaments/${item.slug}`
+                  : `/tournaments/${item.id}`
+              }
               headerImageSrc={item.header_image}
               name={item.name}
               questionsCount={item.posts_count}

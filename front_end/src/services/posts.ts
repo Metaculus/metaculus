@@ -9,7 +9,7 @@ export type PostsParams = PaginationParams & {
   answered_by_me?: boolean;
   search?: string;
   forecast_type?: string | string[];
-  status?: string | string[];
+  statuses?: string | string[];
   categories?: string | string[];
   tags?: string | string[];
   guessed_by?: string;
@@ -22,6 +22,8 @@ export type PostsParams = PaginationParams & {
   tournaments?: string | string[];
   ids?: number[];
   news_type?: string;
+  public_figure?: number;
+  notebook_type?: string;
 };
 
 class PostsApi {

@@ -1,6 +1,8 @@
+from datetime import datetime
 from django.db import models
 from django.db.models import Sum, Subquery, OuterRef, Count
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
@@ -8,6 +10,7 @@ from projects.permissions import ObjectPermission
 from questions.models import Question, Conditional, GroupOfQuestions
 from users.models import User
 from utils.models import TimeStampedModel
+from django.utils.functional import cached_property
 
 
 class PostQuerySet(models.QuerySet):
@@ -161,8 +164,19 @@ class PostQuerySet(models.QuerySet):
             ObjectPermission.CREATOR
         ]
 
-        return self.annotate_user_permission(user=user).filter(
-            user_permission__in=permissions_lookup
+        return (
+            self.annotate_user_permission(user=user)
+            .filter(user_permission__in=permissions_lookup)
+            .filter(
+                models.Q(curation_status=Post.CurationStatus.APPROVED)
+                | models.Q(
+                    user_permission__in=[
+                        ObjectPermission.CREATOR,
+                        ObjectPermission.ADMIN,
+                        ObjectPermission.CURATOR,
+                    ]
+                )
+            )
         )
 
     def filter_public(self):
@@ -188,6 +202,8 @@ class Notebook(TimeStampedModel):
 
     markdown = models.TextField()
     type = models.CharField(max_length=100, choices=NotebookType)
+    news_type = models.CharField(max_length=100, blank=True)
+    image_url = models.URLField(blank=True)
 
 
 class Post(TimeStampedModel):
@@ -201,22 +217,20 @@ class Post(TimeStampedModel):
         # APPROVED, all viewers can see it
         APPROVED = "approved"
         # CLOSED, all viewers can see it, no forecasts or other interactions can happen
-        CLOSED = "closed"
-        # DELETED, all viewers can see it, no forecasts or other interactions can happen
         DELETED = "deleted"
-        # RESOLVED (This is kinda fuzzy)
-        RESOLVED = "resolved"
 
     curation_status = models.CharField(
-        max_length=20, choices=CurationStatus.choices, default=CurationStatus.DRAFT
+        max_length=20,
+        choices=CurationStatus.choices,
+        default=CurationStatus.DRAFT,
+        db_index=True,
     )
+    curation_status_updated_at = models.DateTimeField(null=True, blank=True)
+
     title = models.CharField(max_length=200)
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
 
-    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    rejected_at = models.DateTimeField(null=True, blank=True)
-    approved_at = models.DateTimeField(null=True, blank=True)
-    approved_by = models.ForeignKey(
+    curated_last_by = models.ForeignKey(
         User,
         on_delete=models.PROTECT,
         related_name="approved_questions",
@@ -224,8 +238,66 @@ class Post(TimeStampedModel):
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
 
+    @cached_property
+    def post_aim_to_close_at(self) -> datetime | None:
+        if self.question:
+            return self.question.aim_to_close_at
+        elif self.group_of_questions:
+            return max(
+                group_of_questions.aim_to_close_at
+                for group_of_questions in self.group_of_questions.all()
+            )
+        elif self.conditional:
+            return self.conditional.condition_child.aim_to_close_at
+        return None
+
+    @cached_property
+    def post_aim_to_resolve_at(self) -> datetime | None:
+        if self.question:
+            return self.question.aim_to_resolve_at
+        elif self.group_of_questions:
+            return max(
+                question.aim_to_resolve_at
+                for question in self.group_of_questions.questions.all()
+            )
+        elif self.conditional:
+            return self.conditional.condition_child.aim_to_resolve_at
+
+        return None
+
+    @cached_property
+    def post_closed_at(self) -> datetime | None:
+        if self.question:
+            return self.question.aim_to_close_at
+        elif self.group_of_questions:
+            return max(
+                group_of_questions.aim_to_close_at
+                for group_of_questions in self.group_of_questions.all()
+            )
+        elif self.conditional:
+            return self.conditional.condition_child.aim_to_close_at
+        return None
+
+    @cached_property
+    def post_resolved(self) -> bool:
+        if self.question.resolution:
+            return True
+        elif self.group_of_questions:
+            return all(
+                question.resolution
+                for question in self.group_of_questions.questions.all()
+            )
+        elif self.conditional:
+            return (
+                self.conditional.condition_child.resolution
+                and self.conditional.condition.resolution
+            )
+        return False
+
+    maybe_try_to_resolve_at = models.DateTimeField(
+        db_index=True, default=timezone.now() + timezone.timedelta(days=40 * 365)
+    )
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
     question = models.OneToOneField(
@@ -246,7 +318,7 @@ class Post(TimeStampedModel):
     default_project = models.ForeignKey(
         Project, related_name="default_posts", on_delete=models.PROTECT, null=True
     )
-    projects = models.ManyToManyField(Project, related_name="posts")
+    projects = models.ManyToManyField(Project, related_name="posts", blank=True)
 
     objects = models.Manager.from_queryset(PostQuerySet)()
 
@@ -259,6 +331,18 @@ class Post(TimeStampedModel):
 
     def __str__(self):
         return self.title
+
+    def update_curation_status(self, status: CurationStatus):
+        self.curation_status = status
+        self.curation_status_updated_at = timezone.now()
+
+    @property
+    def is_closed(self):
+        return self.closed_at and self.closed_at <= timezone.now()
+
+    @property
+    def is_resolved(self):
+        return self.resolved_at and self.resolved_at <= timezone.now()
 
 
 # TODO: create votes app

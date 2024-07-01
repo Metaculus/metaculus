@@ -1,4 +1,6 @@
 from collections import defaultdict
+from django.utils import timezone
+
 
 from posts.models import Post
 from projects.models import Project, get_global_leaderboard_dates_and_score_types
@@ -12,7 +14,8 @@ def create_global_leaderboards():
     # get all the posts and the leaderboard dates they are associated with
     scored_posts = Post.objects.filter(
         question__isnull=False,
-        curation_status=Post.CurationStatus.RESOLVED,
+        question__resolution__isnull=False,
+        projects__default_permission__isnull=False,
     )
     gl_dates_posts = defaultdict(list)
     for post in scored_posts:

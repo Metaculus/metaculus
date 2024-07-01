@@ -53,6 +53,10 @@ export type Quartiles = {
   lower25: number;
   upper75: number;
 };
+export type ExtendedQuartiles = Quartiles & {
+  lower10: number;
+  upper90: number;
+};
 
 export type Question = {
   id: number;

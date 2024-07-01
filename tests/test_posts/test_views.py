@@ -1,3 +1,6 @@
+import datetime
+
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -26,6 +29,8 @@ class TestPostCreate:
                     "min": 1,
                     "max": 100,
                     "open_upper_bound": True,
+                    "resolved_at": "2024-05-01T00:00:00Z",
+                    "closed_at": "2024-05-02T00:00:00Z",
                 },
             },
             format="json",
@@ -40,6 +45,8 @@ class TestPostCreate:
         assert response.data["question"]["min"] == 1
         assert response.data["question"]["max"] == 100
         assert response.data["question"]["open_upper_bound"]
+        assert response.data["resolved_at"] == response.data["question"]["resolved_at"]
+        assert response.data["closed_at"] == response.data["question"]["closed_at"]
 
     def test_create__group(self, user1, user1_client):
         response = user1_client.post(
@@ -55,6 +62,8 @@ class TestPostCreate:
                             "type": "binary",
                             "possibilities": {"type": "binary"},
                             "resolution": "1.0",
+                            "resolved_at": "2024-05-01T00:00:00Z",
+                            "closed_at": "2024-05-11T00:00:00Z",
                         },
                         {
                             "title": "Question #2",
@@ -62,6 +71,8 @@ class TestPostCreate:
                             "type": "binary",
                             "possibilities": {"type": "binary"},
                             "resolution": "1.0",
+                            "resolved_at": "2024-05-05T00:00:00Z",
+                            "closed_at": "2024-05-10T00:00:00Z",
                         },
                     ]
                 },
@@ -75,16 +86,24 @@ class TestPostCreate:
         assert response.data["author_id"] == user1.id
         questions = response.data["group_of_questions"]["questions"]
 
+        # Ensure take max dates of these data
+        assert response.data["resolved_at"] == "2024-05-05T00:00:00Z"
+        assert response.data["closed_at"] == "2024-05-11T00:00:00Z"
+
         assert {q["title"] for q in questions} == {"Question #1", "Question #2"}
 
     def test_create__conditional(self, user1, user1_client):
         question_binary = create_question(
             title="Starship Reaches Orbit in 2024?",
             question_type=Question.QuestionType.BINARY,
+            resolved_at=timezone.make_aware(datetime.datetime(2024, 5, 1)),
+            closed_at=timezone.make_aware(datetime.datetime(2024, 5, 2)),
         )
         question_numeric = create_question(
             title="Starship Booster Tower Catch Attempt in 2024?",
             question_type=Question.QuestionType.NUMERIC,
+            resolved_at=timezone.make_aware(datetime.datetime(2024, 4, 1)),
+            closed_at=timezone.make_aware(datetime.datetime(2024, 4, 2)),
         )
 
         response = user1_client.post(
@@ -114,6 +133,8 @@ class TestPostCreate:
             == "Starship Reaches Orbit in 2024? (No) → Starship Booster Tower Catch Attempt in 2024?"
         )
         assert response.data["conditional"]["question_no"]["type"] == "numeric"
+        assert response.data["resolved_at"] == "2024-05-01T00:00:00Z"
+        assert response.data["closed_at"] == "2024-05-02T00:00:00Z"
 
     def test_create__is_public__true(self, user1, user2, user1_client):
         response = user1_client.post(
@@ -130,6 +151,8 @@ class TestPostCreate:
                     "min": 1,
                     "max": 100,
                     "open_upper_bound": True,
+                    "resolved_at": "2024-05-01T00:00:00Z",
+                    "closed_at": "2024-05-02T00:00:00Z",
                 },
             },
             format="json",
@@ -138,6 +161,9 @@ class TestPostCreate:
         assert response.status_code == status.HTTP_201_CREATED
 
         post_id = response.data["id"]
+        Post.objects.filter(pk=post_id).update(
+            curation_status=Post.CurationStatus.APPROVED
+        )
 
         # Check is available for all users
         assert Post.objects.filter(id=post_id).filter_permission().exists()

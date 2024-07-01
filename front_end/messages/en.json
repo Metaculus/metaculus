@@ -489,5 +489,9 @@
   "Title": "Title",
   "Access": "Access",
   "Save": "Save",
-  "Candidates": "Candidates"
+  "Candidates": "Candidates",
+  "themeSelectLabel": "Select a theme",
+  "themeLightLabel": "Light",
+  "themeDarkLabel": "Dark",
+  "Preview": "Preview"
 }

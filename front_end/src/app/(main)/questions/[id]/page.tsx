@@ -3,12 +3,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
 import ForecastMaker from "@/components/forecast_maker";
 import Button from "@/components/ui/button";
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
+import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 
 import DetailedGroupCard from "./components/detailed_group_card";
@@ -17,8 +19,10 @@ import Modbox from "./components/modbox";
 
 export default async function IndividualQuestion({
   params,
+  searchParams,
 }: {
   params: { id: number };
+  searchParams: SearchParams;
 }) {
   const postData = await PostsApi.getPost(params.id);
 
@@ -29,6 +33,9 @@ export default async function IndividualQuestion({
   if (postData.notebook) {
     return redirect(`/notebooks/${postData.id}`);
   }
+
+  const preselectedGroupQuestionId =
+    extractPreselectedGroupQuestionId(searchParams);
 
   const t = await getTranslations();
   const commentsData = await CommentsApi.getComments({ post: params.id });
@@ -83,6 +90,7 @@ export default async function IndividualQuestion({
           {!!postData.group_of_questions && (
             <DetailedGroupCard
               questions={postData.group_of_questions.questions}
+              preselectedQuestionId={preselectedGroupQuestionId}
             />
           )}
           {!!postData.question && (
@@ -191,4 +199,14 @@ export default async function IndividualQuestion({
       </div>
     </main>
   );
+}
+
+function extractPreselectedGroupQuestionId(
+  searchParams: SearchParams
+): number | undefined {
+  const param = searchParams[SLUG_POST_SUB_QUESTION_ID];
+  if (typeof param === "string") {
+    const id = Number(param);
+    return isNaN(id) ? undefined : id;
+  }
 }
