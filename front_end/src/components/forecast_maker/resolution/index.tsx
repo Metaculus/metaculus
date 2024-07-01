@@ -23,9 +23,7 @@ const QuestionResolutionButton: FC<Props> = ({
 
   if (
     permission &&
-    [ProjectPermissions.ADMIN, ProjectPermissions.FORECASTER].includes(
-      permission
-    )
+    [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(permission)
   ) {
     return (
       <>
