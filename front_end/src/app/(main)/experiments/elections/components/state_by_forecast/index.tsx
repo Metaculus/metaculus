@@ -1,12 +1,16 @@
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classNames from "classnames";
 import Link from "next/link";
 import { FC } from "react";
 
+import ElectionsEmbedModal from "@/app/(main)/experiments/elections/components/elections_embed_modal";
 import Button from "@/components/ui/button";
 import PostsApi from "@/services/posts";
 import { StateByForecastItem } from "@/types/experiments";
+import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { formatPrediction } from "@/utils/forecasts";
 import { extractQuestionGroupName } from "@/utils/questions";
 
 import MiddleVotesArrow from "./middle_votes_arrow";
@@ -15,18 +19,74 @@ import { US_MAP_AREAS } from "./us_areas";
 
 type Props = {
   questionGroupId: number;
+  democratPostId?: number;
+  republicanPostId?: number;
+  isEmbed?: boolean;
 };
 
-const StateByForecast: FC<Props> = async ({ questionGroupId }) => {
+const StateByForecast: FC<Props> = async ({
+  questionGroupId,
+  democratPostId,
+  republicanPostId,
+  isEmbed,
+}) => {
   const post = await PostsApi.getPost(questionGroupId);
   if (!post?.group_of_questions) {
     return null;
+  }
+
+  let democratPrediction = null;
+  let republicanPrediction = null;
+  if (democratPostId && republicanPostId) {
+    const [demPost, repPost] = await Promise.all([
+      PostsApi.getPost(democratPostId),
+      PostsApi.getPost(republicanPostId),
+    ]);
+    const predictions = getDemocratRepublicanPrediction({ demPost, repPost });
+    if (predictions) {
+      democratPrediction = predictions.democratPrediction;
+      republicanPrediction = predictions.republicanPrediction;
+    }
   }
 
   const stateByItems = getStateByItems(
     post.id,
     post.group_of_questions.questions
   );
+
+  if (isEmbed) {
+    return (
+      <div className="relative mt-20 inline-flex w-full flex-col">
+        <div className="flex w-full flex-col">
+          <MiddleVotesArrow
+            className={classNames("absolute left-2/4 -translate-x-2/4")}
+          />
+          <div className="flex w-full justify-between">
+            {democratPrediction && (
+              <div className="svgTextDemocrat">
+                {`Democrat`}
+                <br />
+                <span className="svgTextSubtitle">
+                  {democratPrediction} votes
+                </span>
+              </div>
+            )}
+            {republicanPrediction && (
+              <div className="svgTextRepublican">
+                {`Republican`}
+                <br />
+                <span className="svgTextSubtitle mt-1">
+                  {republicanPrediction} votes
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <StateByForecastCharts items={stateByItems} interactive={false} />
+      </div>
+    );
+  }
 
   return (
     <div className="mt-4 flex w-full flex-col rounded bg-gray-0 p-4 dark:bg-gray-0-dark">
@@ -45,6 +105,8 @@ const StateByForecast: FC<Props> = async ({ questionGroupId }) => {
             <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
           </Button>
         </Link>
+
+        <ElectionsEmbedModal embedWidth={800} embedHeight={800} />
       </div>
 
       <div className="relative mt-10 w-full md:mt-0">
@@ -143,5 +205,38 @@ const getStateByItems = (
     };
   });
 };
+
+function getDemocratRepublicanPrediction({
+  demPost,
+  repPost,
+}: {
+  demPost: PostWithForecasts | null;
+  repPost: PostWithForecasts | null;
+}) {
+  if (!demPost?.question || !repPost?.question) {
+    return null;
+  }
+  const { question: demQuestion } = demPost;
+  const { question: repQuestion } = repPost;
+
+  if (
+    demQuestion.type === QuestionType.MultipleChoice ||
+    repQuestion.type === QuestionType.MultipleChoice
+  ) {
+    return null;
+  }
+
+  const rawDemocratPrediction = demQuestion.forecasts.values_mean.at(-1);
+  const rawRepublicanPrediction = repQuestion.forecasts.values_mean.at(-1);
+
+  return {
+    democratPrediction: rawDemocratPrediction
+      ? formatPrediction(rawDemocratPrediction, demQuestion.type)
+      : null,
+    republicanPrediction: rawRepublicanPrediction
+      ? formatPrediction(rawRepublicanPrediction, repQuestion.type)
+      : null,
+  };
+}
 
 export default StateByForecast;
