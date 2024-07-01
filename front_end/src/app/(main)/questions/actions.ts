@@ -146,13 +146,13 @@ export async function updateNotebook(
 export async function resolveQuestion(
   questionId: number,
   resolution: string,
-  resolution_known_at: string
+  resolutionKnownAt: string
 ) {
   try {
     return await QuestionsApi.resolve(
       questionId,
       resolution,
-      resolution_known_at
+      resolutionKnownAt
     );
   } catch (err) {
     const error = err as FetchError;
