@@ -15,10 +15,18 @@ class QuestionsApi {
     });
   }
 
-  static async resolve(id: number, resolution: string) {
-    return post<null, { resolution: string }>(`/questions/${id}/resolve/`, {
-      resolution: resolution,
-    });
+  static async resolve(
+    id: number,
+    resolution: string,
+    resolution_known_at: string
+  ): Promise<null> {
+    return post<null, { resolution: string; resolution_known_at: string }>(
+      `/questions/${id}/resolve/`,
+      {
+        resolution: resolution,
+        resolution_known_at: resolution_known_at,
+      }
+    );
   }
 }
 
