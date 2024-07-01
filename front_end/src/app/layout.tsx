@@ -5,9 +5,11 @@ import "./globals.css";
 import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import NextTopLoader from "nextjs-toploader";
 
 import GlobalModals from "@/components/global_modals";
 import AppThemeProvided from "@/components/theme_provider";
+import { METAC_COLORS } from "@/constants/colors";
 import AuthProvider from "@/contexts/auth_context";
 import ModalProvider from "@/contexts/modal_context";
 import AuthApi from "@/services/auth";
@@ -121,6 +123,10 @@ export default async function RootLayout({
           <NextIntlClientProvider messages={messages}>
             <AuthProvider user={user} socialProviders={socialProviders}>
               <ModalProvider>
+                <NextTopLoader
+                  showSpinner={false}
+                  color={METAC_COLORS.blue["500"].DEFAULT}
+                />
                 {children}
                 <GlobalModals />
               </ModalProvider>
