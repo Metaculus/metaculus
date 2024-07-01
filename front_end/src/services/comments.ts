@@ -15,6 +15,12 @@ export type CreateCommentParams = {
   included_forecast?: number;
 };
 
+export type EditCommentParams = {
+  id: number;
+  text: string;
+  author: number;
+};
+
 class CommentsApi {
   static async getComments(params?: CommentsParams): Promise<CommentType[]> {
     const queryParams = encodeQueryParams(params ?? {});
@@ -30,7 +36,22 @@ class CommentsApi {
     try {
       return await post<null, null>(`/comments/${id}/delete`, null);
     } catch (err) {
-      console.error("Error getting comment:", err);
+      console.error("Error deleting comment:", err);
+      return null;
+    }
+  }
+
+  static async editComment(
+    commentData: EditCommentParams
+  ): Promise<Response | null> {
+    try {
+      //return await post<null, EditCommentParams>(
+      //  `/comments/${commentData.id}/edit`,
+      //  commentData
+      //);
+      return null;
+    } catch (err) {
+      console.error("Error editing comment:", err);
       return null;
     }
   }
@@ -39,15 +60,12 @@ class CommentsApi {
     commentData: CreateCommentParams
   ): Promise<Response | null> {
     try {
-      return await post<null, CreateCommentParams>(`/comments/create`, {
-        author: commentData.author,
-        parent: commentData.parent,
-        text: commentData.text,
-        on_post: commentData.on_post,
-        included_forecast: commentData.included_forecast,
-      });
+      return await post<null, CreateCommentParams>(
+        `/comments/create`,
+        commentData
+      );
     } catch (err) {
-      console.error("Error getting comment:", err);
+      console.error("Error creating comment:", err);
       return null;
     }
   }
