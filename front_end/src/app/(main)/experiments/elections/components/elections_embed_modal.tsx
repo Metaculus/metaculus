@@ -1,14 +1,15 @@
 "use client";
 import { Field, Label, Select } from "@headlessui/react";
-import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { ENFORCED_THEME_PARAM } from "@/constants/global_search_params";
+import { useEmbedUrl } from "@/hooks/share";
 import useAppTheme from "@/hooks/use_app_theme";
-import useEmbedUrl from "@/hooks/use_embed_url";
 import { AppTheme } from "@/types/theme";
+
+import useEmbedElectionsModalContext from "../contexts/embed_context";
 
 type Props = {
   embedWidth: number;
@@ -16,11 +17,11 @@ type Props = {
 };
 
 const ElectionsEmbedModal: FC<Props> = ({ embedWidth, embedHeight }) => {
-  const t = useTranslations();
   const { theme: appTheme } = useAppTheme();
+  const { isOpen, updateIsOpen } = useEmbedElectionsModalContext();
 
   const embedUrl = useEmbedUrl("/embed/elections");
-  const [isOpen, setIsOpen] = useState(false);
+
   const [embedTheme, setEmbedTheme] = useState<AppTheme>(appTheme);
 
   if (!embedUrl) {
@@ -34,13 +35,13 @@ const ElectionsEmbedModal: FC<Props> = ({ embedWidth, embedHeight }) => {
         size="sm"
         className="col-start-3 row-start-1 hidden w-auto self-center justify-self-end xs:flex"
         onClick={() => {
-          setIsOpen(true);
+          updateIsOpen(true);
         }}
       >
         Embed
       </Button>
 
-      <BaseModal isOpen={isOpen} onClose={setIsOpen} variant={appTheme}>
+      <BaseModal isOpen={isOpen} onClose={updateIsOpen} variant={appTheme}>
         <div className="max-w-2xl">
           <h2 className="mb-4 mr-3 mt-0 text-blue-900 dark:text-blue-900-dark">
             Embed this page
@@ -52,7 +53,7 @@ const ElectionsEmbedModal: FC<Props> = ({ embedWidth, embedHeight }) => {
           </p>
           <div>
             <Field className="mr-4 mt-4 inline-block text-base leading-tight">
-              <Label>{t("themeSelectLabel")}</Label>
+              <Label>Select a theme</Label>
               <Select
                 value={embedTheme}
                 onChange={(event) =>
@@ -61,8 +62,8 @@ const ElectionsEmbedModal: FC<Props> = ({ embedWidth, embedHeight }) => {
                 name="chart-theme"
                 className="select-arrow ml-2 h-8 rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-3 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
               >
-                <option value="light">{t("themeLightLabel")}</option>
-                <option value="dark">{t("themeDarkLabel")}</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
               </Select>
             </Field>
             <textarea
@@ -76,7 +77,7 @@ const ElectionsEmbedModal: FC<Props> = ({ embedWidth, embedHeight }) => {
                 embedTheme
               )}" style="height:${embedHeight}px; width:100%; max-width:${embedWidth}px"></iframe>`}
             />
-            <p className="my-2 text-base leading-tight">{t("Preview")}</p>
+            <p className="my-2 text-base leading-tight">Preview</p>
             <div className="mt-2 max-w-full overflow-x-auto">
               <iframe
                 className="mx-auto"
