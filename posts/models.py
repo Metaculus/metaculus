@@ -118,28 +118,6 @@ class PostQuerySet(models.QuerySet):
             ),
         )
 
-    def annotate_post_closed_at(self):
-        return self.annotate(
-            closed_at=models.Case(
-                models.When(
-                    condition=Q(question__isnull=False),
-                    then=F("question__aim_to_resolve_at"),
-                ),
-                models.When(
-                    condition=Q(group_of_questions__isnull=False),
-                    then=models.Max(
-                        F("group_of_questions__questions__aim_to_resolve_at")
-                    ),
-                ),
-                models.When(
-                    condition=Q(conditional__isnull=False),
-                    then=F("conditional__condition__aim_to_resolve_at"),
-                ),
-                default=models.Value(None),
-                output_field=models.DateTimeField(),
-            ),
-        )
-
     #
     # Permissions
     #
@@ -261,21 +239,24 @@ class Post(TimeStampedModel):
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
 
-    @cached_property
-    def post_aim_to_close_at(self) -> datetime | None:
+    aim_to_close_at = models.DateTimeField(null=True, blank=True)
+    aim_to_resolve_at = models.DateTimeField(null=True, blank=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
+    resolved = models.BooleanField(default=False)
+
+    def set_aim_to_close_at(self) -> datetime | None:
         if self.question:
-            return self.question.aim_to_close_at
+            self.aim_to_close_at = self.question.aim_to_close_at
         elif self.group_of_questions:
-            return max(
+            self.aim_to_close_at = max(
                 group_of_questions.aim_to_close_at
                 for group_of_questions in self.group_of_questions.all()
             )
         elif self.conditional:
-            return self.conditional.condition_child.aim_to_close_at
-        return None
+            self.aim_to_close_at = self.conditional.condition_child.aim_to_close_at
+        self.aim_to_close_at = None
 
-    @cached_property
-    def post_aim_to_resolve_at(self) -> datetime | None:
+    def set_aim_to_resolve_at(self) -> datetime | None:
         if self.question:
             return self.question.aim_to_resolve_at
         elif self.group_of_questions:
@@ -288,34 +269,38 @@ class Post(TimeStampedModel):
 
         return None
 
-    @cached_property
-    def post_closed_at(self) -> datetime | None:
+    def set_closed_at(self) -> datetime | None:
         if self.question:
-            return self.question.aim_to_close_at
+            self._closed_at = self.question.aim_to_close_at
         elif self.group_of_questions:
-            return max(
+            self._closed_at = max(
                 group_of_questions.aim_to_close_at
                 for group_of_questions in self.group_of_questions.all()
             )
         elif self.conditional:
-            return self.conditional.condition_child.aim_to_close_at
-        return None
+            self._closed_at = self.conditional.condition_child.aim_to_close_at
+        self._closed_at = None
 
-    @cached_property
-    def post_resolved(self) -> bool:
+    def set_resolved(self) -> bool:
         if self.question.resolution:
-            return True
+            self.resolved = True
         elif self.group_of_questions:
-            return all(
+            self.resolved = all(
                 question.resolution
                 for question in self.group_of_questions.questions.all()
             )
         elif self.conditional:
-            return (
+            self.resolved = (
                 self.conditional.condition_child.resolution
                 and self.conditional.condition.resolution
             )
-        return False
+        self.resolved = False
+
+    def set_dynamic_fields(self):
+        self.set_aim_to_close_at()
+        self.set_closed_at()
+        self.set_aim_to_resolve_at()
+        self.save()
 
     maybe_try_to_resolve_at = models.DateTimeField(
         db_index=True, default=timezone.now() + timezone.timedelta(days=40 * 365)
@@ -350,7 +335,6 @@ class Post(TimeStampedModel):
     vote_score: int = 0
     user_vote = None
     user_permission: ObjectPermission = None
-    closed_at = None
 
     def __str__(self):
         return self.title
