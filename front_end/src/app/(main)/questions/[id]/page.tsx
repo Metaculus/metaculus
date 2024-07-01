@@ -1,21 +1,29 @@
 import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import dynamic from "next/dynamic";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import CommentFeed from "@/components/comment_feed";
+import CommentEditor from "@/components/comment_feed/comment_editor";
 import ConditionalTile from "@/components/conditional_tile";
 import ForecastMaker from "@/components/forecast_maker";
 import Button from "@/components/ui/button";
+import Hr from "@/components/ui/hr";
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
+import ProfileApi from "@/services/profile";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 
 import DetailedGroupCard from "./components/detailed_group_card";
 import DetailedQuestionCard from "./components/detailed_question_card";
 import Modbox from "./components/modbox";
+
+const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
+  ssr: false,
+});
 
 export default async function IndividualQuestion({
   params,
@@ -25,6 +33,7 @@ export default async function IndividualQuestion({
   searchParams: SearchParams;
 }) {
   const postData = await PostsApi.getPost(params.id);
+  const currentUser = await ProfileApi.getMyProfile();
 
   if (!postData) {
     return notFound();
@@ -137,9 +146,20 @@ export default async function IndividualQuestion({
               </div>
             </div>
           </div>
-          {commentsData && (
-            <CommentFeed initialComments={commentsData} post={postData} />
-          )}
+          <div>
+            <Hr className="my-4" />
+            <h2
+              className="mb-1 mt-0 flex scroll-mt-16 items-baseline justify-between break-anywhere"
+              id="comment-section"
+            >
+              Comments
+            </h2>
+            {/* TODO: can only use comment editor if logged in / have permissions */}
+            <CommentEditor />
+            {commentsData && (
+              <CommentFeed initialComments={commentsData} post={postData} />
+            )}
+          </div>
         </div>
         <div className="hidden w-80 shrink-0 border border-transparent bg-gray-0 p-4 text-gray-700 dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-700-dark lg:block">
           <div className="mb-4 flex w-full items-center justify-between gap-2 border-b border-gray-300 pb-4 dark:border-gray-300-dark">
