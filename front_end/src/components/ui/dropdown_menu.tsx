@@ -6,14 +6,14 @@ import { Fragment } from "react";
 
 import Button from "./button";
 
-export interface MenuItemProps {
+export type MenuItemProps = {
   id: string;
   name?: string;
   onClick?: (...args: unknown[]) => unknown;
   link?: string;
   openNewTab?: boolean;
-  show: boolean;
-}
+  hidden?: boolean;
+};
 
 interface DropdownMenuProps extends React.PropsWithChildren {
   items: MenuItemProps[];
@@ -21,7 +21,12 @@ interface DropdownMenuProps extends React.PropsWithChildren {
 }
 
 const defaultButton = (
-  <Button aria-label="menu" variant="tertiary" size="md">
+  <Button
+    aria-label="menu"
+    variant="tertiary"
+    size="md"
+    presentationType="icon"
+  >
     <FontAwesomeIcon icon={faEllipsis} />
   </Button>
 );
@@ -39,7 +44,7 @@ export default function DropdownMenu({
         className="absolute right-0 z-50 mt-1 flex origin-top-right flex-col overflow-y-auto rounded border border-gray-500 bg-gray-0 text-sm drop-shadow-lg dark:border-gray-500-dark dark:bg-gray-0-dark"
       >
         {items
-          .filter((x) => x.show)
+          .filter((x) => x.hidden !== false)
           .map((item) => (
             <MenuItem as={Fragment} key={item.id}>
               {({}) =>
