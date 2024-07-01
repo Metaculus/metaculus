@@ -1,6 +1,6 @@
 from datetime import datetime
 from django.db import models
-from django.db.models import Sum, Subquery, OuterRef, Count
+from django.db.models import Sum, Subquery, OuterRef, Count, Q, F
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
@@ -115,6 +115,28 @@ class PostQuerySet(models.QuerySet):
                 Vote.objects.filter(user=user, post=OuterRef("pk")).values("direction")[
                     :1
                 ]
+            ),
+        )
+
+    def annotate_post_closed_at(self):
+        return self.annotate(
+            closed_at=models.Case(
+                models.When(
+                    condition=Q(question__isnull=False),
+                    then=F("question__aim_to_resolve_at"),
+                ),
+                models.When(
+                    condition=Q(group_of_questions__isnull=False),
+                    then=models.Max(
+                        F("group_of_questions__questions__aim_to_resolve_at")
+                    ),
+                ),
+                models.When(
+                    condition=Q(conditional__isnull=False),
+                    then=F("conditional__condition__aim_to_resolve_at"),
+                ),
+                default=models.Value(None),
+                output_field=models.DateTimeField(),
             ),
         )
 
@@ -328,6 +350,7 @@ class Post(TimeStampedModel):
     vote_score: int = 0
     user_vote = None
     user_permission: ObjectPermission = None
+    closed_at = None
 
     def __str__(self):
         return self.title
@@ -335,14 +358,6 @@ class Post(TimeStampedModel):
     def update_curation_status(self, status: CurationStatus):
         self.curation_status = status
         self.curation_status_updated_at = timezone.now()
-
-    @property
-    def is_closed(self):
-        return self.closed_at and self.closed_at <= timezone.now()
-
-    @property
-    def is_resolved(self):
-        return self.resolved_at and self.resolved_at <= timezone.now()
 
 
 # TODO: create votes app
