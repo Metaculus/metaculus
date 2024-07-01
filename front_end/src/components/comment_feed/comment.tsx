@@ -43,9 +43,9 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
 
   const menuItems: MenuItemProps[] = [
     {
-      show: true,
-      /*permissions === CommentPermissions.CREATOR ||
-        permissions === CommentPermissions.CURATOR,*/
+      // hidden:
+      //     permissions !== CommentPermissions.CREATOR &&
+      //     permissions !== CommentPermissions.CURATOR,
       id: "edit",
       name: "Edit",
       onClick: () => {
@@ -53,7 +53,6 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
       },
     },
     {
-      show: true,
       id: "copyLink",
       name: "Copy Link",
       onClick: () => {
@@ -61,7 +60,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
       },
     },
     {
-      show: user?.id ? true : false,
+      hidden: !user?.id,
       id: "report",
       name: "Report",
       onClick: () => {
@@ -69,7 +68,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
       },
     },
     {
-      show: true, //permissions === CommentPermissions.CURATOR,
+      // hidden: permissions !== CommentPermissions.CURATOR,
       id: "delete",
       name: "Delete",
       onClick: async () => {
