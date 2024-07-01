@@ -203,15 +203,15 @@ export default async function IndividualQuestion({
             <div className="flex flex-row justify-between">
               <span>Closed:</span>
               <span>
-                {postData.question?.closed_at &&
-                  postData.question?.closed_at.slice(0, 7)}
+                {postData.aim_to_close_at &&
+                  postData.aim_to_close_at.slice(0, 7)}
               </span>
             </div>
             <div className="flex flex-row justify-between">
               <span>Resolved:</span>
               <span>
-                {postData.question?.resolved_at &&
-                  postData.question?.resolved_at.slice(0, 7)}
+                {postData.aim_to_resolve_at &&
+                  postData.aim_to_resolve_at.slice(0, 7)}
               </span>
             </div>
           </div>

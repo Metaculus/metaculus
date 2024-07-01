@@ -47,7 +47,7 @@ function getPredictionQuestion(
   const sortedQuestions = questions
     .map((q) => ({
       ...q,
-      resolvedAt: new Date(q.resolved_at),
+      resolvedAt: new Date(q.aim_to_resolve_at),
       fanName: extractQuestionGroupName(q.title),
     }))
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));

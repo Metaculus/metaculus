@@ -38,8 +38,8 @@ const baseQuestionSchema = z.object({
   title: z.string().min(4).max(200),
   description: z.string().min(10),
   resolution: z.string().optional(),
-  closed_at: z.date().optional(),
-  resolved_at: z.date().optional(),
+  aim_to_close_at: z.date().optional(),
+  aim_to_resolve_at: z.date().optional(),
   tournament_id: z.number().optional(),
 });
 
@@ -257,23 +257,23 @@ const QuestionForm: React.FC<Props> = ({
                 <span>Closing Date</span>
                 <Input
                   type="date"
-                  {...control.register("closed_at", {
+                  {...control.register("aim_to_close_at", {
                     setValueAs: (value: string) => {
                       return new Date(value);
                     },
                   })}
-                  errors={control.formState.errors.closed_at}
+                  errors={control.formState.errors.aim_to_close_at}
                 />
 
                 <span>Resolving Date</span>
                 <Input
                   type="date"
-                  {...control.register("resolved_at", {
+                  {...control.register("aim_to_resolve_at", {
                     setValueAs: (value: string) => {
                       return new Date(value);
                     },
                   })}
-                  errors={control.formState.errors.resolved_at}
+                  errors={control.formState.errors.aim_to_resolve_at}
                 />
               </>
             )}
