@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta
 
+import django
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
-from django.utils import timezone
+from django.utils.functional import cached_property
 from sql_util.aggregates import SubqueryAggregate
 
 from users.models import User
@@ -29,9 +30,25 @@ class Question(TimeStampedModel):
 
     description = models.TextField(blank=True)
 
-    # TODO: Should it be post or question level?
+    forecasting_open_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    aim_to_close_at = models.DateTimeField(
+        db_index=True,
+        null=False,
+        blank=False,
+        default=django.utils.timezone.now()
+        + django.utils.timezone.timedelta(days=10000),
+    )
+    aim_to_resolve_at = models.DateTimeField(
+        db_index=True,
+        null=False,
+        blank=False,
+        default=django.utils.timezone.now()
+        + django.utils.timezone.timedelta(days=10000),
+    )
+
+    resolution_known_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    resolution_field_set_at = models.DateTimeField(db_index=True, null=True, blank=True)
     closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    resolved_at = models.DateTimeField(null=True, blank=True)
 
     max = models.FloatField(null=True, blank=True)
     min = models.FloatField(null=True, blank=True)
@@ -66,6 +83,12 @@ class Question(TimeStampedModel):
     def __str__(self):
         return f"{self.type} {self.title}"
 
+    @cached_property
+    def forecast_scoring_ends(self) -> datetime | None:
+        if self.closed_at is None or self.resolution_known_at is None:
+            return None
+        return min(self.closed_at, self.resolution_known_at)
+
     def get_post(self):
         # Back-rel of One2One relations does not populate None values,
         # So we always need to check whether attr exists
@@ -85,8 +108,8 @@ class Question(TimeStampedModel):
         # returns the global leaderboard dates that this question counts for
         from projects.models import get_global_leaderboard_dates
 
-        forecast_horizon_start = self.get_post().published_at
-        forecast_horizon_end = self.closed_at
+        forecast_horizon_start = self.forecasting_open_at
+        forecast_horizon_end = self.forecast_scoring_ends
         global_leaderboard_dates = get_global_leaderboard_dates()
 
         # iterate over the global leaderboard dates in reverse order
@@ -108,10 +131,6 @@ class Question(TimeStampedModel):
         if shortest_window[0]:
             return shortest_window
         return None
-
-    def set_resolution(self, resolution: str):
-        self.resolution = resolution
-        self.resolved_at = timezone.now()
 
 
 class Conditional(TimeStampedModel):

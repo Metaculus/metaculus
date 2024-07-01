@@ -89,8 +89,7 @@ def tags_list_api_view(request: Request):
     else:
         qs = qs.order_by("-posts_count")
 
-    # Limit to 50 tags
-    qs = qs[:50]
+    qs = qs[0:1000]
 
     data = [
         {**TagSerializer(obj).data, "posts_count": obj.posts_count} for obj in qs.all()
@@ -129,7 +128,11 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     qs = get_projects_qs(user=request.user).filter_tournament()
     qs, enrich_posts_count = enrich_tournaments_with_posts_count(qs)
 
-    obj = get_object_or_404(qs, slug=slug)
+    try:
+        pk = int(slug)
+        obj = get_object_or_404(qs, pk=pk)
+    except Exception:
+        obj = get_object_or_404(qs, slug=slug)
 
     data = TournamentSerializer(obj).data
     data = enrich_posts_count(obj, data)

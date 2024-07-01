@@ -8,11 +8,7 @@ from users.serializers import validate_username
 class SignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = (
-            "username",
-            "email",
-            "password",
-        )
+        fields = ("username", "email", "password", "is_bot")
         extra_kwargs = {"email": {"required": True}}
 
     def validate_email(self, value):

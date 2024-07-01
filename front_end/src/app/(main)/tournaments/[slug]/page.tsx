@@ -11,6 +11,7 @@ import HtmlContent from "@/components/html_content";
 import AwaitedLeaderboard from "@/components/leaderboard";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import PostsFilters from "@/components/posts_filters";
+import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostsParams } from "@/services/posts";
 import ProjectsApi from "@/services/projects";
@@ -110,6 +111,17 @@ export default async function TournamentSlug({
         <div>
           <AwaitedLeaderboard projectId={tournament.id} />
         </div>
+        {[ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
+          tournament.user_permission
+        ) && (
+          <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
+            <div className="flex w-full justify-center">
+              <Button href={`/questions/create?tournament=${tournament.id}`}>
+                + {t("question")}
+              </Button>
+            </div>
+          </section>
+        )}
         <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
           <h2 className="mb-5">{questionsTitle}</h2>
           <PostsFilters categories={categories} tags={tags} />

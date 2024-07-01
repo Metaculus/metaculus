@@ -9,7 +9,7 @@ class PostAdmin(admin.ModelAdmin):
     list_filter = [AutocompleteFilterFactory("Author", "author")]
     autocomplete_fields = [
         "author",
-        "approved_by",
+        "curated_last_by",
         "question",
         "projects",
         "conditional",
