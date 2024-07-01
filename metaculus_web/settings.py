@@ -31,6 +31,7 @@ SECRET_KEY = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# TODO: disable in prod
 DEBUG = True
 
 # Application definition
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
     "anymail",
     "django_dramatiq",
     "admin_auto_filters",
+    "debug_toolbar",
     # first-party:
     "migrator",
     "utils",
@@ -71,6 +73,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -283,3 +286,4 @@ ALPHA_ACCESS_TOKEN = os.environ.get("ALPHA_ACCESS_TOKEN")
 
 ALLOWED_HOSTS = []
 CSRF_TRUSTED_ORIGINS = [FRONTEND_BASE_URL]
+INTERNAL_IPS = ["127.0.0.1"]
