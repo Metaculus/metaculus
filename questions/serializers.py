@@ -28,8 +28,8 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "open_upper_bound",
             "open_lower_bound",
             "options",
-            "resolved_at",
-            "closed_at",
+            "aim_to_resolve_at",
+            "aim_to_close_at",
         )
 
 

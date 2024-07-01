@@ -66,8 +66,13 @@ export type Question = {
   description: string;
   created_at: string;
   updated_at: string;
-  closed_at: string;
-  resolved_at: string;
+  forecasting_open_at?: string;
+  aim_to_resolve_at: string;
+  resolution_known_at?: string;
+  resolution_field_set_at?: string;
+  aim_to_close_at: string;
+  closed_at?: string;
+  forecast_scoring_ends?: string;
   type: QuestionType;
   options?: string[];
   possibilities: string; // TODO: update type
