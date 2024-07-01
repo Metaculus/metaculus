@@ -11,9 +11,9 @@ import ConditionalTile from "@/components/conditional_tile";
 import ForecastMaker from "@/components/forecast_maker";
 import Button from "@/components/ui/button";
 import Hr from "@/components/ui/hr";
-import { useAuth } from "@/contexts/auth_context";
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
+import ProfileApi from "@/services/profile";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 
@@ -33,8 +33,7 @@ export default async function IndividualQuestion({
   searchParams: SearchParams;
 }) {
   const postData = await PostsApi.getPost(params.id);
-  //how to get the currently logged in user?
-  //const { user } = useAuth();
+  const currentUser = await ProfileApi.getMyProfile();
 
   if (!postData) {
     return notFound();
@@ -147,17 +146,20 @@ export default async function IndividualQuestion({
               </div>
             </div>
           </div>
-          <Hr className="my-4" />
-          <h2
-            className="mb-1 mt-0 flex scroll-mt-16 items-baseline justify-between break-anywhere"
-            id="comment-section"
-          >
-            Comments
-          </h2>
-          <CommentEditor />
-          {commentsData && (
-            <CommentFeed initialComments={commentsData} post={postData} />
-          )}
+          <div>
+            <Hr className="my-4" />
+            <h2
+              className="mb-1 mt-0 flex scroll-mt-16 items-baseline justify-between break-anywhere"
+              id="comment-section"
+            >
+              Comments
+            </h2>
+            {/* TODO: can only use comment editor if logged in / have permissions */}
+            <CommentEditor />
+            {commentsData && (
+              <CommentFeed initialComments={commentsData} post={postData} />
+            )}
+          </div>
         </div>
         <div className="hidden w-80 shrink-0 border border-transparent bg-gray-0 p-4 text-gray-700 dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-700-dark lg:block">
           <div className="mb-4 flex w-full items-center justify-between gap-2 border-b border-gray-300 pb-4 dark:border-gray-300-dark">
