@@ -41,3 +41,9 @@ class Comment(models.Model):
     # edited_at: None   # convenience field from edit_history ?
     # user_vote_score: int = 0
     children = []
+
+#class CommentDiff(models.Model):
+#    commentId = models.ForeignKey(Comment, models.CASCADE)
+#    author = models.ForeignKey(User, models.CASCADE)
+#    edited_at = models.DateTimeField(auto_now_add=True, editable=False)
+#    text_diff = models.TextField()
