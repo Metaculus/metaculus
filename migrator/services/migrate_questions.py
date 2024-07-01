@@ -255,6 +255,14 @@ def migrate_questions__composite():
     print("Migrating conditional pairs")
     migrate_questions__conditional(list(old_groups.values()))
 
+    # Set relevant values:
+    all_questions = Question.objects.all()
+    all_posts = Post.objects.all()
+    for q in all_questions:
+        q.set_forecast_scoring_ends()
+    for p in all_posts:
+        p.update_pseudo_materialized_fields()
+
 
 def migrate_questions__groups(root_questions: list[dict]):
     """
