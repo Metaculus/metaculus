@@ -25,6 +25,7 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
+        '''
         with connection.cursor() as cursor:
             cursor.execute("DROP SCHEMA public CASCADE;")
             cursor.execute("CREATE SCHEMA public;")
@@ -49,6 +50,7 @@ class Command(BaseCommand):
 
         # scoring
         # score_questions(qty=1000)  # only evaluate 1000 questions
+        '''
         score_questions()
         print("Scored questions")
         create_global_leaderboards()

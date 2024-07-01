@@ -6,12 +6,15 @@ from scoring.models import Score
 def score_questions(qty: int | None = None):
     questions = Question.objects.filter(
         resolution__isnull=False,
-        post__isnull=False,  # this shouldn't be necessary
     )
     if qty:
         questions = questions.order_by("?")[:qty]
     c = len(questions)
     for i, question in enumerate(questions, 1):
+        if question.resolution and not question.forecast_horizon_end:
+            print(question.forecast_horizon_end, question.resolution)
+            print("Resolved q with no resolved time")
+            exit()
         score_question(
             question,
             question.resolution,
