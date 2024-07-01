@@ -75,7 +75,7 @@ export function generateFiltersFromSearchParams(
   }
 
   if (searchParams[POST_STATUS_FILTER]) {
-    filters.status = searchParams[POST_STATUS_FILTER];
+    filters.statuses = searchParams[POST_STATUS_FILTER];
   }
 
   if (searchParams[POST_CATEGORIES_FILTER]) {
