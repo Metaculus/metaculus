@@ -15,7 +15,6 @@ def score_questions(qty: int | None = None):
         score_question(
             question,
             question.resolution,
-            question.resolved_at,
             # TODO: add spot_forecast_time
             score_types=[Score.ScoreTypes.PEER, Score.ScoreTypes.BASELINE],
         )
