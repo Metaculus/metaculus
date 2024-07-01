@@ -90,18 +90,6 @@ const ForecastMakerBinary: FC<Props> = ({
           {user ? t("predictButton") : t("signUpButton")}
         </Button>
       </div>
-      {permission &&
-        [
-          ProjectPermissions.CREATOR,
-          ProjectPermissions.ADMIN,
-          ProjectPermissions.FORECASTER,
-        ].includes(permission) && (
-          <div className="flex items-center justify-center py-5">
-            <Button variant="secondary" className="uppercase">
-              {t("resolveButton")}
-            </Button>
-          </div>
-        )}
       <FormError errors={submitError} />
     </section>
   );
