@@ -332,7 +332,7 @@ class Post(TimeStampedModel):
         self.save()
 
     maybe_try_to_resolve_at = models.DateTimeField(
-        db_index=True, default=timezone.now() + timezone.timedelta(days=40 * 365)
+        db_index=True, default=timezone.make_aware(timezone.now().max)
     )
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
