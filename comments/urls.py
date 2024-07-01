@@ -7,6 +7,7 @@ urlpatterns = [
     path(
         "comments/<int:pk>/delete", views.comment_delete_api_view, name="comment-delete"
     ),
-    # path("comments/<int:pk>/edit", views.comment_edit_api_view, name="comment-edit"),
+    path("comments/<int:pk>/delete", views.comment_delete_api_view, name="comment-delete"),
+    path("comments/<int:pk>/edit", views.comment_edit_api_view, name="comment-edit"),
     path("comments/create", views.comment_create_api_view, name="comment-create"),
 ]
