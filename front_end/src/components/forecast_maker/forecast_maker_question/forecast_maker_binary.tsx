@@ -4,12 +4,9 @@ import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
-import BaseModal from "@/components/base_modal";
-import QuestionResolutionModal from "@/components/forecast_maker/resolution/resolution_modal_binary";
 import Button from "@/components/ui/button";
-import { FormError, Input } from "@/components/ui/form_field";
+import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
@@ -106,8 +103,6 @@ const ForecastMakerBinary: FC<Props> = ({
           </div>
         )}
       <FormError errors={submitError} />
-
-      <QuestionResolutionModal question={question} />
     </section>
   );
 };

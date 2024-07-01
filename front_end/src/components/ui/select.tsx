@@ -6,8 +6,11 @@ import { SelectOption } from "@/components/ui/listbox";
 
 type Props<T> = {
   name?: string;
-  options: SelectOption<T>[];
+  options: (SelectOption<T> & {
+    disabled?: boolean;
+  })[];
   className?: string;
+  defaultValue?: T;
 };
 
 const Select = forwardRef<HTMLSelectElement, Props<string>>(
@@ -22,7 +25,11 @@ const Select = forwardRef<HTMLSelectElement, Props<string>>(
         {...props}
       >
         {options.map((option) => (
-          <option value={option.value} key={option.value}>
+          <option
+            value={option.value}
+            key={option.value}
+            disabled={option.disabled}
+          >
             {option.label}
           </option>
         ))}

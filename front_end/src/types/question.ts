@@ -65,6 +65,7 @@ export type Question = {
   closed_at: string;
   resolved_at: string;
   type: QuestionType;
+  options?: string[];
   possibilities: string; // TODO: update type
   resolution: Resolution | null;
   nr_forecasters: number;

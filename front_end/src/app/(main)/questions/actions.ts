@@ -142,6 +142,18 @@ export async function updateNotebook(
   return response;
 }
 
+export async function resolveQuestion(questionId: number, resolution: string) {
+  try {
+    return await QuestionsApi.resolve(questionId, resolution);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
 export async function uploadImage(formData: FormData) {
   try {
     return await PostsApi.uploadImage(formData);
