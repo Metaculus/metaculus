@@ -14,6 +14,12 @@ class QuestionsApi {
       slider_values: sliderValues,
     });
   }
+
+  static async resolve(id: number, resolution: string) {
+    return post<null, { resolution: string }>(`/questions/${id}/resolve/`, {
+      resolution: resolution,
+    });
+  }
 }
 
 export default QuestionsApi;
