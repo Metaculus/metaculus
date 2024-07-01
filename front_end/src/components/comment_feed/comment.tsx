@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { useLocale } from "next-intl";
 import { FC, useState } from "react";
 
-import { softDeleteComment } from "@/app/(main)/questions/actions";
+import { softDeleteComment, editComment } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
@@ -139,7 +139,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
           markdown={commentMarkdown}
           mode={commentMode}
           onChange={(text) => {
-            setCommentMarkdown(commentMarkdown);
+            setCommentMarkdown(text);
           }}
         />
       </div>
@@ -147,8 +147,11 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
         <Button
           onClick={() => {
             setCommentMode("read");
-            // Upload new `commentMarkdown` here
-            // updateComment(comment.id, {text: commentMarkdown})
+            editComment({
+              id: comment.id,
+              text: commentMarkdown,
+              author: user!.id,
+            });
           }}
         >
           Save
