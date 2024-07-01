@@ -7,11 +7,14 @@ export function extractQuestionGroupName(title: string) {
 }
 
 export function extractPostStatus(post: Post) {
-  return {
-    status: post.curation_status,
-    closedAt: post.aim_to_close_at,
-    resolvedAt: post.aim_to_resolve_at,
-  };
+  if (post.aim_to_close_at && post.aim_to_resolve_at) {
+    return {
+      status: post.curation_status,
+      closedAt: post.aim_to_close_at,
+      resolvedAt: post.aim_to_resolve_at,
+    };
+  }
+  return null;
 }
 
 export function getNotebookSummary(
