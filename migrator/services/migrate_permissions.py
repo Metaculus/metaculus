@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+from django.db.models import OuterRef, Exists
+
 from migrator.utils import paginated_query
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
@@ -312,7 +314,23 @@ def migrate_post_default_project():
     print(f"Migrated default_project for {len(posts_to_update)} posts")
 
 
+def deduplicate_default_project_and_m2m():
+    """
+    In some cases we might have same project appeared in both Post.default_project and PostProject m2m table.
+    This function removes redundant m2m relations
+    """
+
+    PostProject = Post.projects.through
+
+    subquery = Post.objects.filter(
+        id=OuterRef("post_id"), default_project=OuterRef("project_id")
+    )
+
+    PostProject.objects.filter(Exists(subquery)).delete()
+
+
 def migrate_permissions():
     migrate_personal_projects()
     migrate_common_permissions()
     migrate_post_default_project()
+    deduplicate_default_project_and_m2m()
