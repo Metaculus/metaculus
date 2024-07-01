@@ -12,7 +12,12 @@ def score_questions(qty: int | None = None):
     c = len(questions)
     for i, question in enumerate(questions, 1):
         if question.resolution and not question.forecast_scoring_ends:
-            print(question.forecast_scoring_ends, question.resolution, question.get_post().title, question.get_post().id)
+            print(
+                question.forecast_scoring_ends,
+                question.resolution,
+                question.get_post().title,
+                question.get_post().id,
+            )
             print("Resolved q with no resolved time")
             exit()
         score_question(

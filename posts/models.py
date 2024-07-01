@@ -248,8 +248,8 @@ class Post(TimeStampedModel):
             self.aim_to_close_at = self.question.aim_to_close_at
         elif self.group_of_questions:
             self.aim_to_close_at = max(
-                group_of_questions.aim_to_close_at
-                for group_of_questions in self.group_of_questions.all()
+                question.aim_to_close_at
+                for question in self.group_of_questions.questions.all()
             )
         elif self.conditional:
             self.aim_to_close_at = self.conditional.condition_child.aim_to_close_at
@@ -274,25 +274,44 @@ class Post(TimeStampedModel):
             self._closed_at = self.question.aim_to_close_at
         elif self.group_of_questions:
             self._closed_at = max(
-                group_of_questions.aim_to_close_at
-                for group_of_questions in self.group_of_questions.all()
+                question.aim_to_close_at
+                for question in self.group_of_questions.questions.all()
             )
         elif self.conditional:
             self._closed_at = self.conditional.condition_child.aim_to_close_at
         else:
             self._closed_at = None
-    
+
     def set_resolved(self):
-        if self.question.resolution:
-            self.resolved = True
+        if self.question:
+            if self.question.resolution:
+                self.resolved = True
+            else:
+                self.resolved = False
         elif self.group_of_questions:
-            self.resolved = all(
-                question.resolution for question in post.group_of_questions.questions.all()
-            )
+            resolutions = [
+                (
+                    True
+                    if question.resolution is not None and question.resolution != ""
+                    else False
+                )
+                for question in self.group_of_questions.questions.all()
+            ]
+            self.resolved = resolutions and all(resolutions)
         elif self.conditional:
+            resolutions = [
+                (
+                    True
+                    if question.resolution is not None and question.resolution != ""
+                    else False
+                )
+                for question in self.group_of_questions.questions.all()
+            ]
             self.resolved = (
-                self.conditional.condition_child.resolution
-                and self.conditional.condition.resolution
+                self.conditional.condition_child.resolution is not None
+                and self.conditional.condition_child.resolution != ""
+                and self.conditional.condition.resolution is not None
+                and self.conditional.condition.resolution != ""
             )
         else:
             self.resolved = False
