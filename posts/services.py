@@ -107,9 +107,12 @@ def get_posts_feed(
             q |= Q(resolved_at__isnull=False, resolved_at__lte=timezone.now())
 
         if "active" in status:
-            q |= Q(curation_status=Post.CurationStatus.APPROVED) & (
-                (Q(resolved_at__isnull=True) | Q(resolved_at__gt=timezone.now()))
-                & (Q(closed_at__isnull=True) | Q(closed_at__gt=timezone.now()))
+            qs = qs.annotate_post_closed_at()
+
+            q |= Q(
+                published_at__isnull=False,
+                curation_status=Post.CurationStatus.APPROVED,
+                closed_at__isnull=True,
             )
 
     qs = qs.filter(q)
