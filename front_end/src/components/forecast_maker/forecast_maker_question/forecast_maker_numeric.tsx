@@ -4,7 +4,9 @@ import { FC, useMemo, useState } from "react";
 import { createForecast } from "@/app/(main)/questions/actions";
 import NumericSlider from "@/components/forecast_maker/numeric_slider";
 import NumericForecastTable from "@/components/forecast_maker/numeric_table";
+import QuestionResolutionButton from "@/components/forecast_maker/resolution";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
+import { ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import {
   extractPrevNumericForecastValue,
@@ -16,9 +18,14 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 type Props = {
   question: QuestionWithNumericForecasts;
   prevForecast?: any;
+  permission?: ProjectPermissions;
 };
 
-const ForecastMakerNumeric: FC<Props> = ({ question, prevForecast }) => {
+const ForecastMakerNumeric: FC<Props> = ({
+  question,
+  permission,
+  prevForecast,
+}) => {
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
 
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
@@ -96,6 +103,9 @@ const ForecastMakerNumeric: FC<Props> = ({ question, prevForecast }) => {
             question.forecasts.latest_cdf
           )}
         />
+      </div>
+      <div className="flex flex-col items-center justify-center">
+        <QuestionResolutionButton question={question} permission={permission} />
       </div>
     </>
   );
