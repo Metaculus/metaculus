@@ -1,5 +1,7 @@
 import numpy as np
 
+from django.utils import timezone
+from questions.constants import ResolutionType
 from questions.models import Question, GroupOfQuestions, Conditional
 from users.models import User
 from utils.the_math.community_prediction import (
@@ -176,9 +178,44 @@ def create_conditional(
 
 
 def resolve_question(question: Question, resolution):
-    question.set_resolution(resolution)
+    question.resolution = resolution
+    question.resolution_field_set_at = timezone.now()
+    if not question.closed_at:
+        question.closed_at = timezone.now()
+    question.set_forecast_scoring_ends()
     question.save()
 
-    # TODO: handle complex logic for conditional questions
-    # TODO: handle logic for group of questions
-
+    # Check if the question is part of any/all conditionals
+    for conditional in [*question.conditional_conditions.all(), *question.conditional_children.all()]:
+        if conditional.condition.resolution and conditional.condition_child.resolution:
+            if conditional.condition.resolution == "yes":
+                resolve_question(conditional.question_no, ResolutionType.ANNULLED)
+                resolve_question(conditional.question_yes, conditional.condition_child.resolution)
+            elif conditional.condition.resolution == "no":
+                resolve_question(conditional.question_no, conditional.condition_child.resolution)
+                resolve_question(conditional.question_yes, ResolutionType.ANNULLED)
+            elif conditional.condition.resolution == ResolutionType.ANNULLED:
+                resolve_question(conditional.question_no, ResolutionType.ANNULLED)
+                resolve_question(conditional.question_yes.resolution, ResolutionType.ANNULLED)
+            elif conditional.condition.resolution == ResolutionType.AMBIGUOUS:
+                resolve_question(conditional.question_no.resolution, ResolutionType.AMBIGUOUS)
+                resolve_question(conditional.question_yes.resolution, ResolutionType.AMBIGUOUS)
+            else:
+                raise ValueError(f"Invalid resolution for conditionals' condition: {conditional.condition.resolution}")
+            
+    post = question.get_post()
+    if post.question.resolution:
+        post.resolved = True
+    elif post.group_of_questions:
+        post.resolved = all(
+            question.resolution for question in post.group_of_questions.questions.all()
+        )
+    elif post.conditional:
+        post.resolved = (
+            post.conditional.condition_child.resolution
+            and post.conditional.condition.resolution
+        )
+    else:
+        post.resolved = False
+    post.save()
+    
