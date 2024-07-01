@@ -33,7 +33,7 @@ class Comment(models.Model):
         Forecast, on_delete=models.SET_NULL, null=True
     )
     is_private = models.BooleanField(default=False)
-    edit_history = models.JSONField(null=True)
+    edit_history = models.JSONField(default=list, null=False)
 
     # annotated fields
     vote_score: int = 0
@@ -42,9 +42,8 @@ class Comment(models.Model):
     # user_vote_score: int = 0
     children = []
 
-
-# class CommentDiff(models.Model):
-#    commentId = models.ForeignKey(Comment, models.CASCADE)
-#    author = models.ForeignKey(User, models.CASCADE)
-#    edited_at = models.DateTimeField(auto_now_add=True, editable=False)
-#    text_diff = models.TextField()
+class CommentDiff(models.Model):
+    comment = models.ForeignKey(Comment, models.CASCADE)
+    author = models.ForeignKey(User, models.CASCADE)
+    edited_at = models.DateTimeField(auto_now_add=True, editable=False)
+    text_diff = models.TextField()
