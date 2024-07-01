@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from users.models import User
+from .constants import ResolutionType
 from .models import Question, Conditional, GroupOfQuestions
 from .services import build_question_forecasts, build_question_forecasts_for_user
 
@@ -152,3 +153,27 @@ def serialize_group(
         )
 
     return serialized_data
+
+
+def validate_question_resolution(question: Question, resolution: str):
+    if resolution in ResolutionType:
+        return resolution
+
+    if question.type == Question.QuestionType.BINARY:
+        return serializers.ChoiceField(choices=["yes", "no"]).run_validation(resolution)
+
+    if question.type == Question.QuestionType.NUMERIC:
+        resolution = serializers.FloatField().run_validation(resolution)
+
+        if resolution > question.max or resolution < question.min:
+            raise ValidationError(
+                f"Resolution must be between {question.min} and {question.max}"
+            )
+
+        return resolution
+
+    if question.type == Question.QuestionType.DATE:
+        return serializers.DateField().run_validation(resolution)
+
+    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
+        return serializers.ChoiceField(choices=question.options)
