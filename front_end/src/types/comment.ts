@@ -1,12 +1,12 @@
 export type CommentType = {
   id: number;
   author: any; //create author type
+  on_post: number;
   parent?: number;
   created_at: Date;
-  edited_at?: Date;
   is_soft_deleted: boolean;
   text: string;
-  type: string;
+  included_forecast?: number;
 };
 
 export enum CommentPermissions {

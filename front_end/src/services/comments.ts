@@ -7,35 +7,68 @@ export type CommentsParams = {
   author?: number;
 };
 
-class CommentApi {
-  static async getComment(id: number): Promise<any> {
-    try {
-      return await get<any>(`/comments/${id}`);
-    } catch (err) {
-      console.error("Error getting comment:", err);
-      return null;
-    }
-  }
+export type CreateCommentParams = {
+  author: number;
+  parent?: number;
+  text: string;
+  on_post?: number;
+  included_forecast?: number;
+};
 
-  static async getComments(params?: CommentsParams): Promise<any[]> {
+export type EditCommentParams = {
+  id: number;
+  text: string;
+  author: number;
+};
+
+class CommentsApi {
+  static async getComments(params?: CommentsParams): Promise<CommentType[]> {
     const queryParams = encodeQueryParams(params ?? {});
     try {
-      const data = await get<any>(`/comments${queryParams}`);
-      return data;
+      return await get<CommentType[]>(`/comments${queryParams}`);
     } catch (err) {
       console.error("Error getting comments:", err);
       return [];
     }
   }
 
-  /*
-  static async voteComment(
-    id: number,
-    direction: VoteDirection
-  ): Promise<VoteResponse> {
-    return await post<VoteResponse>(`/comments/${id}/vote`, { direction });
+  static async softDeleteComment(id: number): Promise<Response | null> {
+    try {
+      return await post<null, null>(`/comments/${id}/delete`, null);
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+      return null;
+    }
   }
-  */
+
+  static async editComment(
+    commentData: EditCommentParams
+  ): Promise<Response | null> {
+    try {
+      //return await post<null, EditCommentParams>(
+      //  `/comments/${commentData.id}/edit`,
+      //  commentData
+      //);
+      return null;
+    } catch (err) {
+      console.error("Error editing comment:", err);
+      return null;
+    }
+  }
+
+  static async createComment(
+    commentData: CreateCommentParams
+  ): Promise<Response | null> {
+    try {
+      return await post<null, CreateCommentParams>(
+        `/comments/create`,
+        commentData
+      );
+    } catch (err) {
+      console.error("Error creating comment:", err);
+      return null;
+    }
+  }
 }
 
-export default CommentApi;
+export default CommentsApi;
