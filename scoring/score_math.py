@@ -257,7 +257,7 @@ def evaluate_question(
 ) -> list[Score]:
     forecast_horizon_start = question.forecasting_open_at.timestamp()
     forecast_horizon_end = question.forecast_scoring_ends.timestamp()
-    actual_close_time = min(forecast_horizon_end, question.resolved_at.timestamp())
+    actual_close_time = min(forecast_horizon_end, question.closed_at.timestamp())
 
     forecasts = question.forecast_set.all()
 
