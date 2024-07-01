@@ -1,4 +1,5 @@
 "use client";
+import classNames from "classnames";
 import {
   ReactNode,
   useCallback,
@@ -31,6 +32,7 @@ type Props<T> = {
   externalHoveredId?: string | null;
   onHover?: (id: string | null) => void;
   renderHoverPopover?: (props: HoverCardRendererProps<T | null>) => ReactNode;
+  interactive?: boolean;
 };
 
 type HoverCard<T extends BaseMapArea> = {
@@ -46,6 +48,7 @@ const ExperimentMap = <T extends BaseMapArea>({
   onHover,
   renderHoverPopover,
   externalHoveredId,
+  interactive = true,
 }: Props<T>) => {
   const ref = useRef<SVGSVGElement>(null);
   const mapAreaDictionary = useMemo(
@@ -209,7 +212,11 @@ const ExperimentMap = <T extends BaseMapArea>({
   }, [getMapAreaColor, getMapArea, onHover]);
 
   return (
-    <>
+    <div
+      className={classNames("relative flex flex-col items-center gap-10", {
+        "pointer-events-none": !interactive,
+      })}
+    >
       <RawMap ref={ref} mapType={mapType} />
       {renderHoverPopover && hoveredCard.mapArea
         ? renderHoverPopover({
@@ -220,7 +227,7 @@ const ExperimentMap = <T extends BaseMapArea>({
             onMouseLeave: handleHoverCardMouseLeave,
           })
         : null}
-    </>
+    </div>
   );
 };
 

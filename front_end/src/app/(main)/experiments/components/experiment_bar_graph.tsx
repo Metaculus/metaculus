@@ -12,6 +12,7 @@ type Props<T> = {
   externalHoveredId?: string | null;
   onHover?: (id: string | null) => void;
   renderHoverPopover?: (bar: T) => ReactNode;
+  interactive?: boolean;
 };
 
 const ExperimentBarGraph = <T extends BaseExperimentBar>({
@@ -21,6 +22,7 @@ const ExperimentBarGraph = <T extends BaseExperimentBar>({
   onHover,
   externalHoveredId,
   renderHoverPopover,
+  interactive = true,
 }: Props<T>) => {
   const [hoveredBar, setHoveredBar] = useState<T | null>(null);
 
@@ -44,7 +46,11 @@ const ExperimentBarGraph = <T extends BaseExperimentBar>({
 
   let accumulatedOffsetX = 0;
   return (
-    <div className="relative flex w-full flex-col">
+    <div
+      className={classNames("relative flex w-full flex-col", {
+        "pointer-events-none": !interactive,
+      })}
+    >
       <div className="relative mt-2 h-4 w-full">
         {bars.map((bar, index) => {
           const barWidth = (bar.value * 100) / totalValue;

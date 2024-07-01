@@ -8,9 +8,10 @@ import ElectionsMap from "./elections_map";
 
 type Props = {
   items: StateByForecastItem[];
+  interactive?: boolean;
 };
 
-const StateByForecastCharts: FC<Props> = ({ items }) => {
+const StateByForecastCharts: FC<Props> = ({ items, interactive }) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   return (
@@ -19,12 +20,14 @@ const StateByForecastCharts: FC<Props> = ({ items }) => {
         items={items}
         hoveredId={hoveredId}
         onHover={setHoveredId}
+        interactive={interactive}
       />
-      <div className="relative mt-4 flex flex-col items-center gap-10 md:mt-10">
+      <div className="mt-4 md:mt-10">
         <ElectionsMap
           mapAreas={items}
           hoveredId={hoveredId}
           onHover={setHoveredId}
+          interactive={interactive}
         />
       </div>
     </>
