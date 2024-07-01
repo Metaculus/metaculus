@@ -45,10 +45,10 @@ class CommentsApi {
     commentData: EditCommentParams
   ): Promise<Response | null> {
     try {
-      //return await post<null, EditCommentParams>(
-      //  `/comments/${commentData.id}/edit`,
-      //  commentData
-      //);
+      return await post<null, EditCommentParams>(
+        `/comments/${commentData.id}/edit`,
+        commentData
+      );
       return null;
     } catch (err) {
       console.error("Error editing comment:", err);
