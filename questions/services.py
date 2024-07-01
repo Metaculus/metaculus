@@ -206,19 +206,6 @@ def resolve_question(question: Question, resolution, resolution_known_at: dateti
                 raise ValueError(f"Invalid resolution for conditionals' condition: {conditional.condition.resolution}")
             
     post = question.get_post()
-    if post.question.resolution:
-        post.resolved = True
-    elif post.group_of_questions:
-        post.resolved = all(
-            question.resolution for question in post.group_of_questions.questions.all()
-        )
-    elif post.conditional:
-        post.resolved = (
-            post.conditional.condition_child.resolution
-            and post.conditional.condition.resolution
-        )
-    else:
-        post.resolved = False
     post.update_pseudo_materialized_fields()
     post.save()
     
