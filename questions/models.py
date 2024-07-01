@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-import django
+from django.utils import timezone
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
@@ -34,15 +34,13 @@ class Question(TimeStampedModel):
         db_index=True,
         null=False,
         blank=False,
-        default=django.utils.timezone.now()
-        + django.utils.timezone.timedelta(days=10000),
+        default=timezone.make_aware(timezone.now().max),
     )
     aim_to_resolve_at = models.DateTimeField(
         db_index=True,
         null=False,
         blank=False,
-        default=django.utils.timezone.now()
-        + django.utils.timezone.timedelta(days=10000),
+        default=timezone.make_aware(timezone.now().max),
     )
 
     resolution_known_at = models.DateTimeField(db_index=True, null=True, blank=True)
@@ -128,7 +126,7 @@ class Question(TimeStampedModel):
                 continue
             if forecast_horizon_end > gl_end + timedelta(days=3):
                 continue
-            if self.resolved_at > gl_end + timedelta(days=100):
+            if self.resolution_field_set_at > gl_end + timedelta(days=100):
                 # we allow for a 100 day buffer after the global leaderboard closes
                 # for questions to be resolved
                 continue
