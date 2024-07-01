@@ -19,6 +19,7 @@ const QuestionForecastMaker: FC<Props> = ({ question, permission }) => {
       return (
         <ForecastMakerNumeric
           question={question}
+          permission={permission}
           prevForecast={question.forecasts.my_forecasts?.slider_values}
         />
       );
@@ -34,6 +35,7 @@ const QuestionForecastMaker: FC<Props> = ({ question, permission }) => {
       return (
         <ForecastMakerMultipleChoice
           question={question}
+          permission={permission}
           prevForecast={question.forecasts.my_forecasts?.slider_values}
         />
       );
