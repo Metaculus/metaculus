@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
+import QuestionResolutionButton from "@/components/forecast_maker/resolution";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
@@ -83,7 +84,7 @@ const ForecastMakerBinary: FC<Props> = ({
           setIsForecastDirty(true);
         }}
       />
-      <div className="flex items-center justify-center">
+      <div className="flex flex-col items-center justify-center">
         <Button
           variant="primary"
           disabled={!!user && (!isForecastDirty || isSubmitting)}
@@ -91,6 +92,11 @@ const ForecastMakerBinary: FC<Props> = ({
         >
           {user ? t("predictButton") : t("signUpButton")}
         </Button>
+        <QuestionResolutionButton
+          question={question}
+          permission={permission}
+          className="mt-4"
+        />
       </div>
       <FormError errors={submitError} />
     </section>
