@@ -15,7 +15,6 @@ class CommentSerializer(serializers.ModelSerializer):
             "author",
             "parent",
             "created_at",
-            "edited_at",
             "is_soft_deleted",
             "text",
             "on_post",
