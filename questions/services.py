@@ -1,3 +1,4 @@
+from datetime import datetime
 import numpy as np
 
 from django.utils import timezone
@@ -177,9 +178,10 @@ def create_conditional(
     return obj
 
 
-def resolve_question(question: Question, resolution):
+def resolve_question(question: Question, resolution, resolution_known_at: datetime):
     question.resolution = resolution
     question.resolution_field_set_at = timezone.now()
+    question.resolution_known_at = resolution_known_at
     if not question.closed_at:
         question.closed_at = timezone.now()
     question.set_forecast_scoring_ends()
@@ -217,5 +219,6 @@ def resolve_question(question: Question, resolution):
         )
     else:
         post.resolved = False
+    post.update_pseudo_materialized_fields()
     post.save()
     

@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
+from rest_framework.serializers import DateTimeField
 
 from posts.services import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -21,7 +22,8 @@ def resolve_api_view(request, pk: int):
     ObjectPermission.can_resolve(permission, raise_exception=True)
 
     resolution = validate_question_resolution(question, request.data.get("resolution"))
-    resolve_question(question, resolution)
+    resolution_known_at = DateTimeField().run_validation(request.data.get("resolution_known_at"))
+    resolve_question(question, resolution, resolution_known_at)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 

@@ -143,9 +143,17 @@ export async function updateNotebook(
   return response;
 }
 
-export async function resolveQuestion(questionId: number, resolution: string) {
+export async function resolveQuestion(
+  questionId: number,
+  resolution: string,
+  resolution_known_at: string
+) {
   try {
-    return await QuestionsApi.resolve(questionId, resolution);
+    return await QuestionsApi.resolve(
+      questionId,
+      resolution,
+      resolution_known_at
+    );
   } catch (err) {
     const error = err as FetchError;
 

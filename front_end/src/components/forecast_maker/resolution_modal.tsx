@@ -20,6 +20,7 @@ type Props = {
 const schema = z.object({
   resolutionType: z.string(),
   resolutionValue: z.string().optional(),
+  resolution_known_at: z.string(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -67,14 +68,19 @@ const QuestionResolutionModal: FC<Props> = ({ question }) => {
   }, [question.options, question.type]);
 
   const onSubmit = useCallback(
-    async ({ resolutionType, resolutionValue }: FormData) => {
+    async ({
+      resolutionType,
+      resolutionValue,
+      resolution_known_at,
+    }: FormData) => {
       setSubmitErrors([]);
 
       setIsSubmitting(true);
 
       const responses = await resolveQuestion(
         question.id,
-        resolutionValue || resolutionType
+        resolutionValue || resolutionType,
+        resolution_known_at
       );
 
       setIsSubmitting(false);
@@ -117,6 +123,12 @@ const QuestionResolutionModal: FC<Props> = ({ question }) => {
               />
             </div>
           )}
+          <Input
+            type="date"
+            placeholder="date when resolution was known"
+            defaultValue={new Date().toISOString()}
+            {...register("resolution_known_at")}
+          ></Input>
           <FormError errors={submitErrors} />
           <p>
             Notifications will be sent in 10 minutes (at Jun 27, 2024, 8:32 PM).
