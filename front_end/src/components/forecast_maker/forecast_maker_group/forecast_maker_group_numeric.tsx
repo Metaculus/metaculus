@@ -309,7 +309,10 @@ function generateGroupOptions(
 ): ConditionalTableOption[] {
   return [...questions]
     .sort((a, b) =>
-      differenceInMilliseconds(new Date(a.resolved_at), new Date(b.resolved_at))
+      differenceInMilliseconds(
+        new Date(a.aim_to_resolve_at),
+        new Date(b.aim_to_resolve_at)
+      )
     )
     .map((q) => {
       const prevForecast = prevForecastValuesMap[q.id]?.forecast;
