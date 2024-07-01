@@ -11,9 +11,15 @@ type Props = {
   mapAreas: StateByForecastItem[];
   hoveredId: string | null;
   onHover: (id: string | null) => void;
+  interactive?: boolean;
 };
 
-const ElectionsMap: FC<Props> = ({ mapAreas, hoveredId, onHover }) => {
+const ElectionsMap: FC<Props> = ({
+  mapAreas,
+  hoveredId,
+  onHover,
+  interactive,
+}) => {
   return (
     <ExperimentMap
       mapAreas={mapAreas}
@@ -22,6 +28,7 @@ const ElectionsMap: FC<Props> = ({ mapAreas, hoveredId, onHover }) => {
       renderHoverPopover={(props) => <StateHoverCard {...props} />}
       externalHoveredId={hoveredId}
       onHover={onHover}
+      interactive={interactive}
     />
   );
 };
