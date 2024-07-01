@@ -1,9 +1,14 @@
 from django.urls import path
 
-from questions.views import create_forecast_api_view
+from questions import views
 
 urlpatterns = [
     path(
-        "questions/<int:pk>/forecast/", create_forecast_api_view, name="create-forecast"
+        "questions/<int:pk>/forecast/",
+        views.create_forecast_api_view,
+        name="create-forecast",
+    ),
+    path(
+        "questions/<int:pk>/resolve/", views.resolve_api_view, name="question-resolve"
     ),
 ]

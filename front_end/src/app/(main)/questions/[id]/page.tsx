@@ -107,6 +107,7 @@ export default async function IndividualQuestion({
           )}
           <ForecastMaker
             postId={postData.id}
+            permission={postData.user_permission}
             question={postData.question}
             conditional={postData.conditional}
             groupOfQuestions={postData.group_of_questions}
