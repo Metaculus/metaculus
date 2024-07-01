@@ -1,6 +1,6 @@
 import { FC } from "react";
 
-import { MultiSliderValue } from "@/components/sliders/multi_slider";
+import { ProjectPermissions } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 
 import ForecastMakerBinary from "./forecast_maker_binary";
@@ -9,9 +9,10 @@ import ForecastMakerNumeric from "./forecast_maker_numeric";
 
 type Props = {
   question: QuestionWithForecasts;
+  permission?: ProjectPermissions;
 };
 
-const QuestionForecastMaker: FC<Props> = ({ question }) => {
+const QuestionForecastMaker: FC<Props> = ({ question, permission }) => {
   switch (question.type) {
     case QuestionType.Numeric:
     case QuestionType.Date:
@@ -25,6 +26,7 @@ const QuestionForecastMaker: FC<Props> = ({ question }) => {
       return (
         <ForecastMakerBinary
           question={question}
+          permission={permission}
           prevForecast={question.forecasts.my_forecasts?.slider_values}
         />
       );
