@@ -49,8 +49,6 @@ class PostSerializer(serializers.ModelSerializer):
             "edited_at",
             "curation_status",
             "comment_count",
-            "resolved_at",
-            "closed_at",
         )
 
     def get_projects(self, obj: Post):
