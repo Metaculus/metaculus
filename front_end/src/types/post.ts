@@ -89,8 +89,8 @@ export type Post<QT = Question> = {
   updated_at: string;
   published_at: string;
   curation_status_updated_at: string | null;
-  aim_to_close_at: string;
-  aim_to_resolve_at: string;
+  aim_to_close_at: string | null;
+  aim_to_resolve_at: string | null;
   vote: PostVote;
   nr_forecasters: number;
   author_username: string;
