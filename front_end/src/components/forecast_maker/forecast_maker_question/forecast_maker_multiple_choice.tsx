@@ -7,12 +7,14 @@ import percentRound from "percent-round";
 import { FC, useCallback, useMemo, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
+import QuestionResolutionButton from "@/components/forecast_maker/resolution";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
+import { ProjectPermissions } from "@/types/post";
 import {
   MultipleChoiceForecast,
   QuestionWithMultipleChoiceForecasts,
@@ -36,9 +38,14 @@ type ChoiceOption = {
 type Props = {
   question: QuestionWithMultipleChoiceForecasts;
   prevForecast?: any;
+  permission?: ProjectPermissions;
 };
 
-const ForecastMakerMultipleChoice: FC<Props> = ({ question, prevForecast }) => {
+const ForecastMakerMultipleChoice: FC<Props> = ({
+  question,
+  permission,
+  prevForecast,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -241,6 +248,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({ question, prevForecast }) => {
           </Button>
         </div>
         <FormError errors={submitError} />
+      </div>
+      <div className="flex flex-col items-center justify-center">
+        <QuestionResolutionButton question={question} permission={permission} />
       </div>
     </section>
   );

@@ -12,10 +12,12 @@ import Button from "@/components/ui/button";
 import { FormError, Input } from "@/components/ui/form_field";
 import Select from "@/components/ui/select";
 import { ErrorResponse } from "@/types/fetch";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { Question } from "@/types/question";
 
 type Props = {
-  question: QuestionWithNumericForecasts;
+  question: Question;
+  isOpen: boolean;
+  onClose?: (isOpen: boolean) => void;
 };
 
 const schema = z.object({
@@ -27,7 +29,7 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-const QuestionResolutionModal: FC<Props> = ({ question }) => {
+const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
   const t = useTranslations();
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,7 +105,7 @@ const QuestionResolutionModal: FC<Props> = ({ question }) => {
   );
 
   return (
-    <BaseModal isOpen={true} onClose={() => {}} variant="dark">
+    <BaseModal isOpen={isOpen} onClose={onClose} variant="dark">
       <div className="max-w-xl flex-col items-center text-center">
         <h3 className="mb-4 text-white">{question.title}</h3>
         <p className="mb-3">What is the resolution?</p>
