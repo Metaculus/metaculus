@@ -22,6 +22,7 @@ const QuestionResolutionButton: FC<Props> = ({
   const [isOpen, setIsOpen] = useState(false);
 
   if (
+    !question.resolution_known_at &&
     permission &&
     [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(permission)
   ) {

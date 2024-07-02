@@ -149,11 +149,15 @@ export async function resolveQuestion(
   resolutionKnownAt: string
 ) {
   try {
-    return await QuestionsApi.resolve(
+    const response = await QuestionsApi.resolve(
       questionId,
       resolution,
       resolutionKnownAt
     );
+
+    revalidatePath(`/questions/${questionId}`);
+
+    return response;
   } catch (err) {
     const error = err as FetchError;
 
