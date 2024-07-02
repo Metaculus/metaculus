@@ -39,31 +39,34 @@ def create_project(project_obj: dict) -> Project:
         elif project_obj["score_type"] == "SPOT_PEER_SCORE":
             leaderboard_type = Project.LeaderboardTypes.SPOT_PEER
 
-    project = Project(
-        # We keep original IDS for old projects
-        id=project_obj["id"],
-        type=project_type,
-        leaderboard_type=leaderboard_type,
-        name=project_obj["name"],
-        slug=project_obj["slug"],
-        subtitle=project_obj["subtitle"],
-        description=project_obj["description"],
-        header_image=project_obj["header_image"],
-        header_logo=project_obj["header_logo"],
-        prize_pool=project_obj["prize_pool"],
-        close_date=project_obj["tournament_close_date"],
-        start_date=project_obj["tournament_start_date"],
-        sign_up_fields=sign_up_fields,
-        meta_description=project_obj["meta_description"],
-        created_at=project_obj["created_at"],
-        edited_at=project_obj["edited_at"],
-        # Old project.default_question_permissions was not working
-        # And project visibility was determined by `is_public` attr
-        default_permission=(
-            ObjectPermission.FORECASTER if project_obj["public"] else None
-        ),
-    )
-
+    if project_type == Project.ProjectTypes.SITE_MAIN:
+        project = Project.objects.get(type=project_type)
+    else:
+        project = Project(
+            # We keep original IDS for old projects
+            id=project_obj["id"],
+            type=project_type,
+            leaderboard_type=leaderboard_type,
+            name=project_obj["name"],
+            slug=project_obj["slug"],
+            subtitle=project_obj["subtitle"],
+            description=project_obj["description"],
+            header_image=project_obj["header_image"],
+            header_logo=project_obj["header_logo"],
+            prize_pool=project_obj["prize_pool"],
+            close_date=project_obj["tournament_close_date"],
+            start_date=project_obj["tournament_start_date"],
+            sign_up_fields=sign_up_fields,
+            meta_description=project_obj["meta_description"],
+            created_at=project_obj["created_at"],
+            edited_at=project_obj["edited_at"],
+            # Old project.default_question_permissions was not working
+            # And project visibility was determined by `is_public` attr
+            default_permission=(
+                ObjectPermission.FORECASTER if project_obj["public"] else None
+            ),
+        )
+    project.save()
     return project
 
 
@@ -216,7 +219,6 @@ def migrate_projects():
         "SELECT * FROM metac_project_project WHERE type in ('TO', 'QS') OR (type = 'MP' and site_id = 1)"
     ):
         project = create_project(project_obj)
-        project.save()
 
         #
         # Migrate question relations
