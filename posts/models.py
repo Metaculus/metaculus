@@ -1,6 +1,7 @@
 from datetime import datetime
+
 from django.db import models
-from django.db.models import Sum, Subquery, OuterRef, Count
+from django.db.models import Sum, Subquery, OuterRef, Count, Q, F
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
@@ -132,16 +133,27 @@ class PostQuerySet(models.QuerySet):
         )
 
         return self.annotate(
+            # Intermediate annotation of the default_project permissions
+            default_project_user_permission=Subquery(project_permissions_subquery),
+            # Alter permissions based on the Ownership status
             user_permission=models.Case(
                 # If user is the question author
+                models.When(
+                    Q(
+                        default_project_user_permission__in=[
+                            ObjectPermission.ADMIN,
+                            ObjectPermission.CURATOR,
+                        ]
+                    ),
+                    then=F("default_project_user_permission"),
+                ),
                 models.When(
                     author_id=user.id if user else None,
                     then=models.Value(ObjectPermission.CREATOR),
                 ),
-                # Otherwise, check permissions
-                default=Subquery(project_permissions_subquery),
+                default=F("default_project_user_permission"),
                 output_field=models.CharField(),
-            )
+            ),
         )
 
     def filter_permission(
