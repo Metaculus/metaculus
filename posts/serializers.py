@@ -81,6 +81,8 @@ class NotebookWriteSerializer(serializers.ModelSerializer):
         model = Notebook
         fields = (
             "markdown",
+            "type",
+            "image_url",
         )
 
 
