@@ -152,7 +152,7 @@ const Chip: FC<PropsWithChildren<ChipProps>> = ({
 }) => (
   <span
     className={classNames(
-      "inline-flex w-max items-center gap-2 whitespace-nowrap rounded-full px-2 py-0.5 font-semibold text-gray-0 dark:text-gray-0-dark",
+      "PredictionChip inline-flex w-max items-center gap-2 whitespace-nowrap rounded-full px-2 py-0.5 font-semibold text-gray-0 dark:text-gray-0-dark",
       {
         "h-5 text-xs": size === "compact",
         "h-9 text-xl": size === "large",
@@ -176,7 +176,7 @@ const Label: FC<PropsWithChildren<LabelProps>> = ({
 }) => (
   <span
     className={classNames(
-      "whitespace-nowrap",
+      "PredictionLabel whitespace-nowrap",
       {
         "text-sm": size === "compact",
         "text-xl": size === "large",
