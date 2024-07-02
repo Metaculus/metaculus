@@ -1,17 +1,10 @@
-from typing import Optional
 from django.db.models import Q
-from django.utils import timezone
 
 from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
-from questions.services import (
-    create_question,
-    create_conditional,
-    create_group_of_questions,
-)
 from users.models import User
 from utils.dtypes import flatten
 
@@ -127,21 +120,23 @@ def get_posts_feed(
     if access == PostFilterSerializer.Access.PUBLIC:
         qs = qs.filter_public()
 
+    order_field = "-created_at"
+
     # Ordering
     if order:
         match order:
             case PostFilterSerializer.Order.MOST_FORECASTERS:
-                qs = qs.annotate_nr_forecasters().order_by("-nr_forecasters")
+                order_field = "-nr_forecasters"
+                qs = qs.annotate_nr_forecasters()
             case PostFilterSerializer.Order.CLOSED_AT:
-                qs = qs.order_by("-closed_at")
+                order_field = "-closed_at"
             case PostFilterSerializer.Order.RESOLVED_AT:
-                qs = qs.order_by("-resolved_at")
-            case PostFilterSerializer.Order.CREATED_AT:
-                qs = qs.order_by("-created_at")
-    else:
-        qs = qs.order_by("-created_at")
+                order_field = "-resolved_at"
 
-    return qs
+    qs = qs.order_by(order_field)
+
+    # Distinct should include previously declared ordering
+    return qs.distinct("id", order_field.replace("-", ""))
 
 
 def create_post(
