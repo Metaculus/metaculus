@@ -106,7 +106,7 @@ def get_posts_feed(
         if status == "closed":
             q |= Q(closed_at__isnull=False)
         if status == "resolved":
-            q |= Q(resolved_at__isnull=False, resolved_at__lte=timezone.now())
+            q |= Q(resolved=True, curation_status=Post.CurationStatus.APPROVED)
 
         if "active" in status:
             q |= Q(

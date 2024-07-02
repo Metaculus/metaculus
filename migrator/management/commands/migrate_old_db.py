@@ -33,7 +33,7 @@ class Command(BaseCommand):
         call_command("makemigrations")
         call_command("migrate")    
 
-        obj = Project.objects.get_or_create(
+        Project.objects.get_or_create(
             type=Project.ProjectTypes.SITE_MAIN,
             defaults={
                 "name": "Metaculus Community",
