@@ -51,7 +51,12 @@ class PostSerializer(serializers.ModelSerializer):
             "edited_at",
             "curation_status",
             "comment_count",
-            "status"
+            "status",
+            "closed_at",
+            "resolved",
+            "aim_to_close_at",
+            "aim_to_resolve_at",
+            "maybe_try_to_resolve_at",
         )
 
     def get_projects(self, obj: Post):
