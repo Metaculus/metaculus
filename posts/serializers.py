@@ -1,5 +1,6 @@
 from typing import Union
 
+from django.utils import timezone
 from django.db import models
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -35,6 +36,7 @@ class PostSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -49,6 +51,7 @@ class PostSerializer(serializers.ModelSerializer):
             "edited_at",
             "curation_status",
             "comment_count",
+            "status"
         )
 
     def get_projects(self, obj: Post):
@@ -59,6 +62,13 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_comment_count(self, obj: Post):
         return Comment.objects.filter(on_post=obj).count()
+
+    def get_status(self, obj: Post):
+        if obj.resolved:
+            return "resolved"
+        if obj.closed_at and obj.closed_at < timezone.now():
+            return "closed"
+        return obj.curation_status
 
 
 class NotebookWriteSerializer(serializers.ModelSerializer):
@@ -196,6 +206,7 @@ def serialize_post(
     # Forecasters
     serialized_data["nr_forecasters"] = post.nr_forecasters
 
+    serialized_data["forecasts_count"] = post.forecasts_count
     return serialized_data
 
 

@@ -93,7 +93,7 @@ export default async function IndividualQuestion({
           {!!postData.conditional && (
             <ConditionalTile
               conditional={postData.conditional}
-              curationStatus={postData.curation_status}
+              curationStatus={postData.status}
             />
           )}
           {!!postData.group_of_questions && (

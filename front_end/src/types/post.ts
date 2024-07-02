@@ -103,8 +103,10 @@ export type Post<QT = Question> = {
   };
   notebook?: Notebook;
   curation_status: PostStatus;
+  status: PostStatus;
   user_permission: ProjectPermissions;
   comment_count?: number;
+  forecasts_count?: number;
 };
 
 export type PostWithNotebook = Omit<Post, "notebook"> & {
