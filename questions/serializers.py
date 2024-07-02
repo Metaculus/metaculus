@@ -14,6 +14,9 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
+    aim_to_resolve_at = serializers.DateTimeField(required=True)
+    aim_to_close_at = serializers.DateTimeField(required=True)
+
     class Meta:
         model = Question
         fields = (
@@ -31,6 +34,18 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "aim_to_resolve_at",
             "aim_to_close_at",
         )
+
+    def validate(self, data: dict):
+        if data["aim_to_resolve_at"] <= data["aim_to_close_at"]:
+            raise ValidationError(
+                {
+                    "aim_to_resolve_at": [
+                        "The expected resolve date should be after the question closes."
+                    ]
+                }
+            )
+
+        return data
 
 
 class ConditionalSerializer(serializers.ModelSerializer):

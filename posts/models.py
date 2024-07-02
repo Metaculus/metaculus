@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.db import models
 from django.db.models import Sum, Subquery, OuterRef, Count, Q, F
 from django.db.models.functions import Coalesce
@@ -256,7 +254,7 @@ class Post(TimeStampedModel):
     closed_at = models.DateTimeField(null=True, blank=True)
     resolved = models.BooleanField(default=False)
 
-    def set_aim_to_close_at(self) -> datetime | None:
+    def set_aim_to_close_at(self):
         if self.question:
             self.aim_to_close_at = self.question.aim_to_close_at
         elif self.group_of_questions:
@@ -269,7 +267,7 @@ class Post(TimeStampedModel):
         else:
             self.aim_to_close_at = None
 
-    def set_aim_to_resolve_at(self) -> datetime | None:
+    def set_aim_to_resolve_at(self):
         if self.question:
             self.aim_to_resolve_at = self.question.aim_to_resolve_at
         elif self.group_of_questions:
@@ -282,7 +280,7 @@ class Post(TimeStampedModel):
         else:
             self.aim_to_resolve_at = None
 
-    def set_closed_at(self) -> datetime | None:
+    def set_closed_at(self):
         if self.question:
             self.closed_at = self.question.closed_at
         elif self.group_of_questions:
