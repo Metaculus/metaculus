@@ -14,7 +14,9 @@ def get_projects_qs(user: User = None):
 
 
 def get_site_main_project():
-    return Project.objects.get(type=Project.ProjectTypes.SITE_MAIN)
+    obj, _ = Project.objects.get_or_create(type=Project.ProjectTypes.SITE_MAIN)
+
+    return obj
 
 
 def create_private_user_project(user: User):

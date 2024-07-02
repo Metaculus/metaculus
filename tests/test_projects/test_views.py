@@ -17,7 +17,7 @@ class TestInviteUsersToPrivateProject:
             default_permission=None,
             override_permissions={user1.id: ObjectPermission.ADMIN},
         )
-        url = reverse("project-invite", kwargs={"project_id": project.id})
+        url = reverse("project-members-invite", kwargs={"project_id": project.id})
 
         response = user1_client.post(
             url,
@@ -63,7 +63,7 @@ class TestInviteUsersToPrivateProject:
             default_permission=None,
             override_permissions={user1.id: ObjectPermission.FORECASTER},
         )
-        url = reverse("project-invite", kwargs={"project_id": project.id})
+        url = reverse("project-members-invite", kwargs={"project_id": project.id})
 
         response = user1_client.post(
             url,
