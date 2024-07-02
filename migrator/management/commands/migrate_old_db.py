@@ -17,6 +17,8 @@ from migrator.services.migrate_leaderboards import (
     populate_global_leaderboards,
     # populate_project_leaderboards,
 )
+from projects.models import Project
+from projects.permissions import ObjectPermission
 
 
 class Command(BaseCommand):
@@ -29,7 +31,16 @@ class Command(BaseCommand):
             cursor.execute("DROP SCHEMA public CASCADE;")
             cursor.execute("CREATE SCHEMA public;")
         call_command("makemigrations")
-        call_command("migrate")
+        call_command("migrate")    
+
+        obj = Project.objects.get_or_create(
+            type=Project.ProjectTypes.SITE_MAIN,
+            defaults={
+                "name": "Metaculus Community",
+                "type": Project.ProjectTypes.SITE_MAIN,
+                "default_permission": ObjectPermission.FORECASTER,
+            },
+        )
 
         migrate_users()
         print("Migrated users")

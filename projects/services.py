@@ -14,16 +14,7 @@ def get_projects_qs(user: User = None):
 
 
 def get_site_main_project():
-    obj, _ = Project.objects.get_or_create(
-        type=Project.ProjectTypes.SITE_MAIN,
-        defaults={
-            "name": "Metaculus Community",
-            "type": Project.ProjectTypes.SITE_MAIN,
-            "default_permission": ObjectPermission.FORECASTER,
-        },
-    )
-
-    return obj
+    return Project.objects.get(type=Project.ProjectTypes.SITE_MAIN)
 
 
 def create_private_user_project(user: User):

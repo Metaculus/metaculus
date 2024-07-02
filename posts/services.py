@@ -99,8 +99,10 @@ def get_posts_feed(
 
     q = Q()
     for status in statuses:
-        if status in ["draft", "pending", "rejected", "deleted"]:
+        if status in ["pending", "rejected", "deleted"]:
             q |= Q(curation_status=status)
+        if status == "draft":
+            q |= Q(curation_status=status, author=user)
         if status == "closed":
             q |= Q(closed_at__isnull=False)
         if status == "resolved":
@@ -153,22 +155,7 @@ def create_post(
 ) -> Post:
     obj = Post(title=title, author=author, curation_status=Post.CurationStatus.DRAFT)
 
-    # Adding questions
-    if question:
-        obj.question = create_question(**question)
-        obj.resolved_at = obj.question.resolved_at
-        obj.closed_at = obj.question.closed_at
-    elif conditional:
-        obj.conditional = create_conditional(**conditional)
-        obj.resolved_at = obj.conditional.condition.resolved_at
-        obj.closed_at = obj.conditional.condition.closed_at
-    elif group_of_questions:
-        obj.group_of_questions = create_group_of_questions(**group_of_questions)
-        obj.resolved_at = max(
-            [x["resolved_at"] for x in group_of_questions["questions"]]
-        )
-        obj.closed_at = max([x["closed_at"] for x in group_of_questions["questions"]])
-
+    obj.update_pseudo_materialized_fields()
     # Projects appending
     # Tags, categories and topics
     meta_projects = []
