@@ -1,4 +1,5 @@
 "use client";
+import { merge } from "lodash";
 import React, { FC, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
@@ -13,6 +14,7 @@ import {
   VictoryLabelProps,
   VictoryLine,
   VictoryScatter,
+  VictoryThemeDefinition,
 } from "victory";
 
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
@@ -44,6 +46,7 @@ type Props = {
   onCursorChange?: (value: number) => void;
   onChartReady?: () => void;
   type?: NumericChartType;
+  extraTheme?: VictoryThemeDefinition;
 };
 
 const NumericChart: FC<Props> = ({
@@ -53,12 +56,16 @@ const NumericChart: FC<Props> = ({
   onCursorChange,
   onChartReady,
   type = "numeric",
+  extraTheme,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
+  const actualTheme = extraTheme
+    ? merge({}, chartTheme, extraTheme)
+    : chartTheme;
 
   const defaultCursor = dataset.timestamps[dataset.timestamps.length - 1];
   const [isCursorActive, setIsCursorActive] = useState(false);
@@ -121,7 +128,7 @@ const NumericChart: FC<Props> = ({
           domain={{ y: yDomain }}
           width={chartWidth}
           height={height}
-          theme={chartTheme}
+          theme={actualTheme}
           events={[
             {
               target: "parent",
