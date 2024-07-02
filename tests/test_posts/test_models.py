@@ -209,3 +209,35 @@ class TestPostPermissions:
         assert not Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
         # Post is not visible for a random user
         assert not Post.objects.filter_permission(user=user4).filter(pk=p1.pk).exists()
+
+    @pytest.mark.parametrize(
+        "user_project_permission,excepted_permission",
+        [
+            [ObjectPermission.ADMIN, ObjectPermission.ADMIN],
+            [ObjectPermission.CURATOR, ObjectPermission.CURATOR],
+            [ObjectPermission.FORECASTER, ObjectPermission.CREATOR],
+            [ObjectPermission.VIEWER, ObjectPermission.CREATOR],
+        ],
+    )
+    def test_owner_vs_admin_permission(
+        self, user1, user_project_permission, excepted_permission
+    ):
+        p1 = factory_post(
+            author=user1,
+            default_project=factory_project(
+                # Private Projects
+                override_permissions={
+                    user1.id: user_project_permission,
+                },
+            ),
+            curation_status=Post.CurationStatus.APPROVED,
+        )
+
+        # Post exists for creator
+        assert (
+            Post.objects.annotate_user_permission(user=user1)
+            .filter(pk=p1.pk)
+            .first()
+            .user_permission
+            == excepted_permission
+        )
