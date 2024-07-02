@@ -27,6 +27,7 @@ const ForecastMaker: FC<Props> = ({
       <ForecastMakerGroup
         postId={postId}
         questions={groupOfQuestions.questions}
+        permission={permission}
       />
     );
   }
