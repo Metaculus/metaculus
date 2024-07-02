@@ -153,7 +153,11 @@ def create_conditional(
             open_upper_bound=question.open_upper_bound,
             open_lower_bound=question.open_lower_bound,
             options=question.options,
-            resolved_at=question.resolved_at,
+            resolution_field_set_at=question.resolution_field_set_at,
+            resolution_known_at=question.resolution_known_at,
+            aim_to_close_at=question.aim_to_close_at,
+            aim_to_resolve_at=question.aim_to_resolve_at,
+            forecasting_open_at=question.forecasting_open_at,
             closed_at=question.closed_at,
         )
 

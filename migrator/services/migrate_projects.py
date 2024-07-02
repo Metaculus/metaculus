@@ -211,7 +211,6 @@ def migrate_projects():
     # Please note: post ids are the same as question ids!
     post_ids = Post.objects.values_list("id", flat=True)
     q_p_m2m_cls = Post.projects.through
-
     # Migrating only Tournament projects for now
     for project_obj in paginated_query(
         "SELECT * FROM metac_project_project WHERE type in ('TO', 'QS') OR (type = 'MP' and site_id = 1)"
