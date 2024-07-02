@@ -74,7 +74,9 @@ class PostSerializer(serializers.ModelSerializer):
 class NotebookWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notebook
-        fields = "markdown"
+        fields = (
+            "markdown",
+        )
 
 
 class PostWriteSerializer(serializers.ModelSerializer):
