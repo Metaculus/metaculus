@@ -1,17 +1,26 @@
 "use client";
-import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
+import { faEllipsis, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useMemo, useState } from "react";
+import React, {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
+import ForecastMakerGroupControls from "@/components/forecast_maker/forecast_maker_group/forecast_maker_group_menu";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
+import { ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
@@ -31,14 +40,20 @@ type QuestionOption = {
   forecast: number | null;
   isDirty: boolean;
   color: ThemeColor;
+  menu: ReactNode;
 };
 
 type Props = {
   postId: number;
   questions: QuestionWithNumericForecasts[];
+  permission?: ProjectPermissions;
 };
 
-const ForecastMakerGroupBinary: FC<Props> = ({ postId, questions }) => {
+const ForecastMakerGroupBinary: FC<Props> = ({
+  postId,
+  questions,
+  permission,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -59,6 +74,12 @@ const ForecastMakerGroupBinary: FC<Props> = ({ postId, questions }) => {
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
     generateChoiceOptions(questions, prevForecastValuesMap)
   );
+
+  useEffect(() => {
+    setQuestionOptions(
+      generateChoiceOptions(questions, prevForecastValuesMap, permission)
+    );
+  }, [permission, prevForecastValuesMap, questions]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
@@ -179,6 +200,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({ postId, questions }) => {
               onChange={handleForecastChange}
               isDirty={questionOption.isDirty}
               isRowDirty={questionOption.isDirty}
+              menu={questionOption.menu}
             />
           ))}
         </tbody>
@@ -222,7 +244,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({ postId, questions }) => {
 
 function generateChoiceOptions(
   questions: QuestionWithNumericForecasts[],
-  prevForecastValuesMap: Record<number, number | null>
+  prevForecastValuesMap: Record<number, number | null>,
+  permission?: ProjectPermissions
 ): QuestionOption[] {
   return questions.map((question, index) => {
     return {
@@ -232,6 +255,17 @@ function generateChoiceOptions(
       forecast: prevForecastValuesMap[question.id] ?? null,
       isDirty: false,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      menu: (
+        <ForecastMakerGroupControls
+          question={question}
+          permission={permission}
+          button={
+            <Button className="h-8 w-8" variant="tertiary">
+              <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
+            </Button>
+          }
+        />
+      ),
     };
   });
 }

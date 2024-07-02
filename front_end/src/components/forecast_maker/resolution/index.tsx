@@ -6,6 +6,7 @@ import QuestionResolutionModal from "@/components/forecast_maker/resolution/reso
 import Button from "@/components/ui/button";
 import { ProjectPermissions } from "@/types/post";
 import { Question } from "@/types/question";
+import { canResolveQuestion } from "@/utils/questions";
 
 type Props = {
   question: Question;
@@ -21,11 +22,7 @@ const QuestionResolutionButton: FC<Props> = ({
   const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
 
-  if (
-    !question.resolution_known_at &&
-    permission &&
-    [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(permission)
-  ) {
+  if (canResolveQuestion(question, permission)) {
     return (
       <>
         <Button
