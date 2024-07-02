@@ -3,6 +3,7 @@ import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ChoiceIcon from "@/components/choice_icon";
@@ -14,6 +15,7 @@ type Props = {
   choices: ChoiceItem[];
   visibleChoicesCount: number;
   chartHeight?: number;
+  chartTheme?: VictoryThemeDefinition;
 };
 
 const MultipleChoiceTile: FC<Props> = ({
@@ -21,6 +23,7 @@ const MultipleChoiceTile: FC<Props> = ({
   choices,
   visibleChoicesCount,
   chartHeight = 100,
+  chartTheme,
 }) => {
   const t = useTranslations();
 
@@ -28,7 +31,7 @@ const MultipleChoiceTile: FC<Props> = ({
   const otherItemsCount = choices.length - visibleChoices.length;
 
   return (
-    <div className="ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 p-1 pl-0 xs:grid">
+    <div className="MultipleChoiceTile ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 p-1 pl-0 xs:grid">
       <div className="resize-container">
         <div className="embed-gap flex flex-col gap-2">
           {visibleChoices.map(({ choice, color, values }) => (
@@ -67,6 +70,7 @@ const MultipleChoiceTile: FC<Props> = ({
         timestamps={timestamps}
         choiceItems={choices}
         height={chartHeight}
+        extraTheme={chartTheme}
       />
     </div>
   );
