@@ -15,8 +15,7 @@ def create_global_leaderboards():
     scored_posts = Post.objects.filter(
         question__isnull=False,
         question__resolution__isnull=False,
-        projects__default_permission__isnull=False,
-    )
+    ).filter_public()
     gl_dates_posts = defaultdict(list)
     for post in scored_posts:
         gl_dates_posts[post.question.get_global_leaderboard_dates()].append(post)
