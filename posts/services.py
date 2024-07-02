@@ -151,6 +151,7 @@ def create_post(
     question: dict = None,
     conditional: dict = None,
     group_of_questions: dict = None,
+    notebook: dict = None,
     author: User = None,
 ) -> Post:
     obj = Post(title=title, author=author, curation_status=Post.CurationStatus.DRAFT)
@@ -162,6 +163,8 @@ def create_post(
         obj.conditional = create_conditional(**conditional)
     elif group_of_questions:
         obj.group_of_questions = create_group_of_questions(**group_of_questions)
+    elif notebook:
+        obj.notebook = Notebook.objects.create(**notebook)
 
     # Projects appending
     # Tags, categories and topics
