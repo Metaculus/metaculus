@@ -115,7 +115,7 @@ class Question(TimeStampedModel):
         from projects.models import get_global_leaderboard_dates
 
         forecast_horizon_start = self.forecasting_open_at
-        forecast_horizon_end = self.forecast_scoring_ends
+        forecast_horizon_end = self.closed_at
         global_leaderboard_dates = get_global_leaderboard_dates()
 
         # iterate over the global leaderboard dates in reverse order
