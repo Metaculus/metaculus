@@ -38,7 +38,7 @@ const ConditionalTile: FC<Props> = ({ conditional, curationStatus }) => {
     condition.resolution !== question_no.resolution;
 
   return (
-    <div className="grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
+    <div className="ConditionalSummary grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
       <div className="col-span-2 row-span-1 flex flex-col justify-center md:col-span-1 md:row-auto">
         <ConditionalCard
           label="Condition"
