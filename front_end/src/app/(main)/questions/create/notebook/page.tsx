@@ -40,7 +40,7 @@ const NotebookCreator: React.FC = ({}) => {
             createQuestionPost({
               title: title,
               notebook: {
-                type: "notebook",
+                type: "discussion",
                 image_url: null,
                 markdown: markdown,
               },
