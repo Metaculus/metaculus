@@ -41,8 +41,14 @@ class PostQuerySet(models.QuerySet):
     def annotate_forecasts_count(self):
         return self.annotate(
             forecasts_count=(
+                # Note: Order is important
                 Coalesce(
                     SubqueryAggregate("question__forecast", aggregate=Count),
+                    # Question groups
+                    SubqueryAggregate(
+                        "group_of_questions__questions__forecast",
+                        aggregate=Count,
+                    ),
                     # Conditional questions
                     Coalesce(
                         SubqueryAggregate(
@@ -57,11 +63,6 @@ class PostQuerySet(models.QuerySet):
                             aggregate=Count,
                         ),
                         0,
-                    ),
-                    # Question groups
-                    SubqueryAggregate(
-                        "group_of_questions__questions__forecast",
-                        aggregate=Count,
                     ),
                 )
             )
