@@ -27,7 +27,7 @@ def resolve_api_view(request, pk: int):
     )
     resolve_question(question, resolution, resolution_known_at)
 
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    return Response({"post_id": question.get_post().pk})
 
 
 @api_view(["POST"])
