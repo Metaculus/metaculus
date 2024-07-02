@@ -1,4 +1,5 @@
 "use client";
+import { merge } from "lodash";
 import React, { FC, memo, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
@@ -10,6 +11,7 @@ import {
   VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
+  VictoryThemeDefinition,
 } from "victory";
 
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
@@ -35,6 +37,7 @@ type Props = {
   yLabel?: string;
   onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
+  extraTheme?: VictoryThemeDefinition;
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -44,6 +47,7 @@ const MultipleChoiceChart: FC<Props> = ({
   yLabel,
   onCursorChange,
   onChartReady,
+  extraTheme,
 }) => {
   const {
     ref: chartContainerRef,
@@ -53,6 +57,9 @@ const MultipleChoiceChart: FC<Props> = ({
 
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
+  const actualTheme = extraTheme
+    ? merge({}, chartTheme, extraTheme)
+    : chartTheme;
 
   const defaultCursor = timestamps[timestamps.length - 1];
   const [isCursorActive, setIsCursorActive] = useState(false);
@@ -114,7 +121,7 @@ const MultipleChoiceChart: FC<Props> = ({
         <VictoryChart
           width={chartWidth}
           height={height}
-          theme={chartTheme}
+          theme={actualTheme}
           events={[
             {
               target: "parent",
