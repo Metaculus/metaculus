@@ -99,9 +99,11 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
 
       if (responses && "errors" in responses && !!responses.errors) {
         setSubmitErrors(responses.errors);
+      } else {
+        onClose && onClose(true);
       }
     },
-    [question.id]
+    [onClose, question.id]
   );
 
   return (
