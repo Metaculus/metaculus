@@ -81,6 +81,8 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
             timesteps.add(forecast.end_time)
 
     reversed_sorted_timesteps = sorted(timesteps, reverse=True)
+    if len(reversed_sorted_timesteps) == 0:
+        return []
     cache_key = f"forecast_history-{question.id}"
     cached_history = cache.get(cache_key)
     if cached_history:
