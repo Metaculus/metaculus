@@ -21,7 +21,9 @@ export default async function RootLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <div className="flex-grow pt-12">{children}</div>
+      <div className="flex-grow bg-zinc-200 pt-12 dark:bg-gray-900">
+        {children}
+      </div>
       <FeedbackFloat />
       <Footer />
     </div>

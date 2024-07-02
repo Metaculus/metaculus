@@ -1,27 +1,39 @@
 "use client";
+import classNames from "classnames";
 import Link from "next/link";
 import { FC, useState } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import FanChart from "@/components/charts/fan_chart";
 import NumericChart from "@/components/charts/numeric_chart";
+import ConditionalTile from "@/components/conditional_tile";
 import MultipleChoiceTile from "@/components/multiple_choice_tile";
 import PredictionChip from "@/components/prediction_chip";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
   generateChoiceItemsFromBinaryGroup,
+  generateChoiceItemsFromMultipleChoiceForecast,
   getFanOptionsFromNumericGroup,
   getGroupQuestionsTimestamps,
   getNumericChartTypeFromQuestion,
 } from "@/utils/charts";
 
-const CHART_HEIGHT = 120;
-
 type Props = {
   post: PostWithForecasts;
+  className?: string;
+  chartHeight?: number;
+  chartTheme?: VictoryThemeDefinition;
+  nonInteractive?: boolean;
 };
 
-const ForecastCard: FC<Props> = ({ post }) => {
+const ForecastCard: FC<Props> = ({
+  post,
+  className,
+  chartTheme,
+  chartHeight = 120,
+  nonInteractive = false,
+}) => {
   const [cursorValue, setCursorValue] = useState<number | null>(null);
 
   const renderChart = () => {
@@ -42,8 +54,8 @@ const ForecastCard: FC<Props> = ({ post }) => {
           return (
             <FanChart
               options={predictionQuestion}
-              height={CHART_HEIGHT}
-              withTooltip
+              height={chartHeight}
+              withTooltip={!nonInteractive}
             />
           );
         }
@@ -61,12 +73,22 @@ const ForecastCard: FC<Props> = ({ post }) => {
               choices={choices}
               timestamps={timestamps}
               visibleChoicesCount={visibleChoicesCount}
-              chartHeight={CHART_HEIGHT}
+              chartHeight={chartHeight}
+              chartTheme={chartTheme}
             />
           );
         default:
           return null;
       }
+    }
+
+    if (post.conditional) {
+      return (
+        <ConditionalTile
+          conditional={post.conditional}
+          curationStatus={post.curation_status}
+        />
+      );
     }
 
     if (post.question) {
@@ -79,9 +101,25 @@ const ForecastCard: FC<Props> = ({ post }) => {
           return (
             <NumericChart
               dataset={question.forecasts}
-              height={CHART_HEIGHT}
+              height={chartHeight}
               type={getNumericChartTypeFromQuestion(question.type)}
-              onCursorChange={setCursorValue}
+              onCursorChange={nonInteractive ? undefined : setCursorValue}
+              extraTheme={chartTheme}
+            />
+          );
+        case QuestionType.MultipleChoice:
+          const visibleChoicesCount = 3;
+          const choices = generateChoiceItemsFromMultipleChoiceForecast(
+            question.forecasts,
+            { activeCount: visibleChoicesCount }
+          );
+          return (
+            <MultipleChoiceTile
+              choices={choices}
+              timestamps={question.forecasts.timestamps}
+              visibleChoicesCount={visibleChoicesCount}
+              chartHeight={chartHeight}
+              chartTheme={chartTheme}
             />
           );
         default:
@@ -128,15 +166,24 @@ const ForecastCard: FC<Props> = ({ post }) => {
   return (
     <Link
       href={`/questions/${post.id}`}
-      className="flex w-full min-w-0 flex-col gap-3 bg-gray-0 p-5 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark xs:rounded-md"
+      className={classNames(
+        "flex w-full min-w-0 flex-col gap-3 bg-gray-0 p-5 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark xs:rounded-md",
+        className
+      )}
     >
       <div className="flex items-start justify-between max-[288px]:flex-col">
-        <h2 className="m-0 line-clamp-2 text-lg font-medium leading-snug tracking-normal">
-          {post.title}
-        </h2>
+        {!post.conditional && (
+          <h2 className="ForecastTitle m-0 line-clamp-2 text-lg font-medium leading-snug tracking-normal">
+            {post.title}
+          </h2>
+        )}
         {renderPrediction()}
       </div>
-      <div className="flex size-full min-h-[120px] min-w-0 items-start">
+      <div
+        className={classNames(
+          "flex size-full min-h-[120px] min-w-0 items-start"
+        )}
+      >
         {renderChart()}
       </div>
     </Link>

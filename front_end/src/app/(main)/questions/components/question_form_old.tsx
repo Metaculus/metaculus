@@ -13,7 +13,11 @@ import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionType } from "@/types/question";
+import {
+  Question,
+  QuestionType,
+  QuestionWithForecasts,
+} from "@/types/question";
 
 import { createQuestionPost, getPost } from "../actions";
 
@@ -92,6 +96,9 @@ type Props = {
   question_type?: string;
   display_type_selector?: boolean;
   tiny?: boolean;
+  post_id?: number;
+  question?: QuestionWithForecasts;
+  post?: PostWithForecasts | null;
 };
 
 const QuestionForm: React.FC<Props> = ({
@@ -100,10 +107,14 @@ const QuestionForm: React.FC<Props> = ({
   question_type = null,
   display_type_selector = true,
   tiny = false,
+  post_id = null,
+  question = null,
+  post = null,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tournament_id = searchParams.get("tournament");
+
   const t = useTranslations();
 
   const submitQuestion = async (data: any) => {
@@ -134,8 +145,29 @@ const QuestionForm: React.FC<Props> = ({
   const [condition, setCondition] = useState<PostWithForecasts | null>(null);
   const [conditionChild, setConditionChild] =
     useState<PostWithForecasts | null>(null);
-  const [questionForms, setQuestionForms] = useState<any[]>([]);
   const [questionFormValues, setQuestionFormValues] = useState<any[]>([]);
+
+  const initialSubQuestionForms: any[] = [];
+  if (post && post.group_of_questions) {
+    for (let question of post.group_of_questions.questions) {
+      initialSubQuestionForms.push(
+        <QuestionForm
+          no_submit={true}
+          question={question}
+          display_type_selector={false}
+          tiny={true}
+          question_type={question.type}
+          change_callback={(data: any) => {
+            questionFormValues[questionForms.length] = data;
+            setQuestionFormValues([...questionFormValues]);
+          }}
+        />
+      );
+    }
+  }
+  const [questionForms, setQuestionForms] = useState<any[]>(
+    initialSubQuestionForms
+  );
 
   const getFormSchema = (type: string) => {
     switch (type) {
@@ -447,7 +479,6 @@ const QuestionForm: React.FC<Props> = ({
                   <span>Sub-Question Type: {subQuestionType}</span>
                 )}
 
-                {questionForms}
                 <Button
                   onClick={() => {
                     setQuestionFormValues([...questionFormValues, {}]);
@@ -510,6 +541,7 @@ const QuestionForm: React.FC<Props> = ({
           </>
         )}
       </form>
+      <div className="flex flex-col">{questionForms}</div>
     </div>
   );
 };
