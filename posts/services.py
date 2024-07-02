@@ -5,6 +5,11 @@ from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
+from questions.services import (
+    create_question,
+    create_conditional,
+    create_group_of_questions,
+)
 from users.models import User
 from utils.dtypes import flatten
 
@@ -150,7 +155,14 @@ def create_post(
 ) -> Post:
     obj = Post(title=title, author=author, curation_status=Post.CurationStatus.DRAFT)
 
-    obj.update_pseudo_materialized_fields()
+    # Adding questions
+    if question:
+        obj.question = create_question(**question)
+    elif conditional:
+        obj.conditional = create_conditional(**conditional)
+    elif group_of_questions:
+        obj.group_of_questions = create_group_of_questions(**group_of_questions)
+
     # Projects appending
     # Tags, categories and topics
     meta_projects = []
@@ -173,6 +185,9 @@ def create_post(
     # Save project and validate
     obj.full_clean()
     obj.save()
+
+    # Sync status fields
+    obj.update_pseudo_materialized_fields()
 
     # Adding projects
     obj.projects.add(*(meta_projects + main_projects))

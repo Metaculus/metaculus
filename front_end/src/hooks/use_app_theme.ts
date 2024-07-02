@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction, useCallback } from "react";
 import { AppTheme, ThemeColor } from "@/types/theme";
 
 const useAppTheme = () => {
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme, forcedTheme } = useTheme();
 
   const getThemeColor = useCallback(
     (color: ThemeColor) => {
@@ -18,7 +18,7 @@ const useAppTheme = () => {
   );
 
   return {
-    theme: resolvedTheme as AppTheme,
+    theme: (forcedTheme ?? resolvedTheme) as AppTheme,
     setTheme: setTheme as Dispatch<SetStateAction<AppTheme>>,
     getThemeColor,
   };
