@@ -3,6 +3,8 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
+import { headers } from "next/headers";
+import { NextRequest } from "next/server";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
@@ -93,10 +95,17 @@ const alternateGothic = localFont({
   variable: "--font-alternate-gothic-no-1-d",
 });
 
-export const metadata: Metadata = {
-  title: "Metaculus",
-  description: "Metaculus rewrite",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const url = headers().get("x-url");
+  const request = new NextRequest(url ?? "http://localhost:3000");
+  const origin = request.nextUrl.origin;
+
+  return {
+    title: "Metaculus",
+    description: "Metaculus rewrite",
+    metadataBase: new URL(origin),
+  };
+}
 
 export default async function RootLayout({
   children,

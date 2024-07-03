@@ -4,7 +4,7 @@ import ForecastCard from "@/components/forecast_card";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
 
-import "./styles.css";
+import "./styles.scss";
 
 export default async function GenerateQuestionPreview({
   params,
