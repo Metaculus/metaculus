@@ -31,7 +31,7 @@ class Command(BaseCommand):
             cursor.execute("DROP SCHEMA public CASCADE;")
             cursor.execute("CREATE SCHEMA public;")
         call_command("makemigrations")
-        call_command("migrate")    
+        call_command("migrate")
 
         Project.objects.get_or_create(
             type=Project.ProjectTypes.SITE_MAIN,
@@ -60,7 +60,7 @@ class Command(BaseCommand):
 
         # scoring
         # score_questions(qty=1000)  # only evaluate 1000 questions
-        
+
         score_questions()
         print("Scored questions")
         create_global_leaderboards()

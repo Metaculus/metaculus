@@ -128,9 +128,7 @@ const Creator: React.FC<{ searchParams: SearchParams }> = ({
             </div>
           </Link>
           <Link
-            href={createHref("/questions/create/conditional", {
-              type: "multiple_choice",
-            })}
+            href={createHref("/questions/create/conditional")}
             className="no-underline"
           >
             <div className="w-100 m-4 rounded-s border p-4 hover:bg-blue-500">

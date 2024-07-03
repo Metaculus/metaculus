@@ -59,6 +59,13 @@ export async function createQuestionPost(body: any) {
   }
 }
 
+export async function updatePost(postId: number, body: any) {
+  const post = await PostsApi.updatePost(postId, body);
+  return {
+    post: post,
+  };
+}
+
 export async function createForecast(
   questionId: number,
   forecastData: ForecastData,
