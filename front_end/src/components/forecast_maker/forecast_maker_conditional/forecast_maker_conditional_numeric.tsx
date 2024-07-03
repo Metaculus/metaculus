@@ -29,6 +29,7 @@ type Props = {
   conditional: PostConditional<QuestionWithNumericForecasts>;
   prevYesForecast?: any;
   prevNoForecast?: any;
+  canPredict: boolean;
 };
 
 const ForecastMakerConditionalNumeric: FC<Props> = ({
@@ -36,6 +37,7 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
   conditional,
   prevYesForecast,
   prevNoForecast,
+  canPredict,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -304,49 +306,51 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
       ))}
       <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
         {user ? (
-          <>
-            <Button
-              variant="secondary"
-              type="reset"
-              onClick={
-                copyForecastButton
-                  ? () =>
-                      copyForecast(
-                        copyForecastButton.fromQuestionId,
-                        copyForecastButton.toQuestionId
-                      )
-                  : undefined
-              }
-              disabled={!copyForecastButton}
-            >
-              {copyForecastButton?.label ?? "Copy from Child"}
-            </Button>
-            {activeTableOption !== null && (
+          canPredict && (
+            <>
               <Button
                 variant="secondary"
                 type="reset"
-                onClick={() => handleAddComponent(activeTableOption)}
+                onClick={
+                  copyForecastButton
+                    ? () =>
+                        copyForecast(
+                          copyForecastButton.fromQuestionId,
+                          copyForecastButton.toQuestionId
+                        )
+                    : undefined
+                }
+                disabled={!copyForecastButton}
               >
-                {t("addComponentButton")}
+                {copyForecastButton?.label ?? "Copy from Child"}
               </Button>
-            )}
-            <Button
-              variant="secondary"
-              type="reset"
-              onClick={handleResetForecasts}
-              disabled={!isPickerDirty}
-            >
-              {t("discardChangesButton")}
-            </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              onClick={handlePredictSubmit}
-              disabled={!submitIsAllowed}
-            >
-              {t("saveButton")}
-            </Button>
-          </>
+              {activeTableOption !== null && (
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={() => handleAddComponent(activeTableOption)}
+                >
+                  {t("addComponentButton")}
+                </Button>
+              )}
+              <Button
+                variant="secondary"
+                type="reset"
+                onClick={handleResetForecasts}
+                disabled={!isPickerDirty}
+              >
+                {t("discardChangesButton")}
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                onClick={handlePredictSubmit}
+                disabled={!submitIsAllowed}
+              >
+                {t("saveButton")}
+              </Button>
+            </>
+          )
         ) : (
           <Button
             variant="primary"

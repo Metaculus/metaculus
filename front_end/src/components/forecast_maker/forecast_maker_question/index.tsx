@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { boolean } from "zod";
 
 import { ProjectPermissions } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
@@ -10,9 +11,16 @@ import ForecastMakerNumeric from "./forecast_maker_numeric";
 type Props = {
   question: QuestionWithForecasts;
   permission?: ProjectPermissions;
+  canPredict: boolean;
+  canResolve: boolean;
 };
 
-const QuestionForecastMaker: FC<Props> = ({ question, permission }) => {
+const QuestionForecastMaker: FC<Props> = ({
+  question,
+  permission,
+  canPredict,
+  canResolve,
+}) => {
   switch (question.type) {
     case QuestionType.Numeric:
     case QuestionType.Date:
@@ -21,6 +29,8 @@ const QuestionForecastMaker: FC<Props> = ({ question, permission }) => {
           question={question}
           permission={permission}
           prevForecast={question.forecasts.my_forecasts?.slider_values}
+          canPredict={canPredict}
+          canResolve={canResolve}
         />
       );
     case QuestionType.Binary:
@@ -29,6 +39,8 @@ const QuestionForecastMaker: FC<Props> = ({ question, permission }) => {
           question={question}
           permission={permission}
           prevForecast={question.forecasts.my_forecasts?.slider_values}
+          canPredict={canPredict}
+          canResolve={canResolve}
         />
       );
     case QuestionType.MultipleChoice:
@@ -37,6 +49,8 @@ const QuestionForecastMaker: FC<Props> = ({ question, permission }) => {
           question={question}
           permission={permission}
           prevForecast={question.forecasts.my_forecasts?.slider_values}
+          canPredict={canPredict}
+          canResolve={canResolve}
         />
       );
     default:

@@ -1,5 +1,6 @@
 "use server";
 
+import moment from "moment";
 import { revalidatePath } from "next/cache";
 
 import CommentsApi, { EditCommentParams } from "@/services/comments";
@@ -123,6 +124,7 @@ export async function getPost(postId: number) {
 export async function approvePost(postId: number) {
   const response = await PostsApi.updatePost(postId, {
     curation_status: PostStatus.APPROVED,
+    published_at: moment.utc(),
   });
   return response;
 }
@@ -130,6 +132,13 @@ export async function approvePost(postId: number) {
 export async function draftPost(postId: number) {
   const response = await PostsApi.updatePost(postId, {
     curation_status: PostStatus.DRAFT,
+  });
+  return response;
+}
+
+export async function submitPostForReview(postId: number) {
+  const response = await PostsApi.updatePost(postId, {
+    curation_status: PostStatus.PENDING,
   });
   return response;
 }
