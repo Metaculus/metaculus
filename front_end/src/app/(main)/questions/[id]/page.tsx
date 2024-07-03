@@ -1,7 +1,10 @@
 import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { parseISO } from "date-fns";
+<<<<<<< HEAD
 import { Metadata } from "next";
+=======
+>>>>>>> e594bf3 (restrict commentEditor if not signed in)
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
@@ -26,6 +29,7 @@ import DetailedGroupCard from "./components/detailed_group_card";
 import DetailedQuestionCard from "./components/detailed_question_card";
 import Modbox from "./components/modbox";
 
+<<<<<<< HEAD
 type Props = {
   params: { id: number };
   searchParams: SearchParams;
@@ -51,6 +55,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+=======
+>>>>>>> e594bf3 (restrict commentEditor if not signed in)
 export default async function IndividualQuestion({
   params,
   searchParams,
