@@ -171,7 +171,7 @@ const QuestionForm: React.FC<Props> = ({
           <Textarea
             {...control.register("description")}
             errors={control.formState.errors.description}
-            className="h-[120px] w-[400px]"
+            className="h-[120px] w-full"
             defaultValue={post?.question?.description}
           />
 
@@ -199,7 +199,7 @@ const QuestionForm: React.FC<Props> = ({
             defaultValue={post?.aim_to_resolve_at}
           />
 
-          <span>Forecasting Open At</span>
+          <span>Opening date</span>
           <Input
             type="date"
             {...control.register("forecasting_open_at", {
@@ -317,7 +317,7 @@ const QuestionForm: React.FC<Props> = ({
                 errors={
                   control.formState.errors.resolution_criteria_description
                 }
-                className="h-[120px] w-[400px]"
+                className="h-[120px] w-full"
                 defaultValue={
                   post?.question?.resolution_criteria_description
                     ? post?.question?.resolution_criteria_description
@@ -328,7 +328,7 @@ const QuestionForm: React.FC<Props> = ({
               <Textarea
                 {...control.register("fine_print")}
                 errors={control.formState.errors.fine_print}
-                className="h-[120px] w-[400px]"
+                className="h-[120px] w-full"
                 defaultValue={
                   post?.question?.resolution_criteria_description
                     ? post?.question?.resolution_criteria_description
