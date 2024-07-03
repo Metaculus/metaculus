@@ -394,6 +394,8 @@
   "category": "Category",
   "tags": "Tags",
   "tagFilter": "Tag: {tag}",
+  "questionAuthor": "Question Author",
+  "questionAuthorFilter": "Author: {author}",
   "myParticipation": "My Participation",
   "year": "year",
   "years": "years",
