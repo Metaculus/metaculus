@@ -25,8 +25,8 @@ const groupQuestionSchema = z.object({
   description: z.string().min(10),
   resolution_criteria_description: z.string().optional(),
   fine_print: z.string().optional(),
-  aim_to_close_at: z.date().optional(),
-  aim_to_resolve_at: z.date().optional(),
+  scheduled_close_time: z.date().optional(),
+  scheduled_resolve_time: z.date().optional(),
   tournament_id: z.number().optional(),
 });
 
@@ -126,25 +126,25 @@ const GroupForm: React.FC<Props> = ({
           <span>Closing Date</span>
           <Input
             type="date"
-            {...control.register("aim_to_close_at", {
+            {...control.register("scheduled_close_time", {
               setValueAs: (value: string) => {
                 return new Date(value);
               },
             })}
-            errors={control.formState.errors.aim_to_close_at}
-            defaultValue={post?.aim_to_close_at}
+            errors={control.formState.errors.scheduled_close_time}
+            defaultValue={post?.scheduled_close_time}
           />
 
           <span>Resolving Date</span>
           <Input
             type="date"
-            {...control.register("aim_to_resolve_at", {
+            {...control.register("scheduled_resolve_time", {
               setValueAs: (value: string) => {
                 return new Date(value);
               },
             })}
-            errors={control.formState.errors.aim_to_resolve_at}
-            defaultValue={post?.aim_to_resolve_at}
+            errors={control.formState.errors.scheduled_resolve_time}
+            defaultValue={post?.scheduled_resolve_time}
           />
 
           {advanced && (
