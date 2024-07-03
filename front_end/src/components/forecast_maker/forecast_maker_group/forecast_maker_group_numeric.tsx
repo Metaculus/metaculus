@@ -332,8 +332,8 @@ function generateGroupOptions(
   return [...questions]
     .sort((a, b) =>
       differenceInMilliseconds(
-        new Date(a.aim_to_resolve_at),
-        new Date(b.aim_to_resolve_at)
+        new Date(a.scheduled_resolve_time),
+        new Date(b.scheduled_resolve_time)
       )
     )
     .map((q) => {
