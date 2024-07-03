@@ -74,6 +74,7 @@ def get_posts_feed(
     if tournaments:
         qs = qs.filter(Q(projects__in=tournaments) | Q(default_project__in=tournaments))
 
+    forecast_type = forecast_type or []
     forecast_type_q = Q()
 
     for f_type in forecast_type:
