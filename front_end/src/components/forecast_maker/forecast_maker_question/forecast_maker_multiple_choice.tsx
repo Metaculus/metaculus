@@ -39,12 +39,16 @@ type Props = {
   question: QuestionWithMultipleChoiceForecasts;
   prevForecast?: any;
   permission?: ProjectPermissions;
+  canPredict: boolean;
+  canResolve: boolean;
 };
 
 const ForecastMakerMultipleChoice: FC<Props> = ({
   question,
   permission,
   prevForecast,
+  canPredict,
+  canResolve,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -218,35 +222,37 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
             ({getForecastPctString(remainingSum)} remaining)
           </span>
         </div>
-        <div className="flex flex-wrap justify-center gap-2">
-          <div className="w-full text-center sm:w-auto">
+        {canPredict && (
+          <div className="flex flex-wrap justify-center gap-2">
+            <div className="w-full text-center sm:w-auto">
+              <Button
+                className="h-8"
+                variant="link"
+                type="button"
+                onClick={rescaleForecasts}
+                disabled={!forecastHasValues || isForecastValid}
+              >
+                {t("rescalePredictionButton")}
+              </Button>
+            </div>
             <Button
-              className="h-8"
-              variant="link"
-              type="button"
-              onClick={rescaleForecasts}
-              disabled={!forecastHasValues || isForecastValid}
+              variant="secondary"
+              type="reset"
+              onClick={resetForecasts}
+              disabled={!isDirty}
             >
-              {t("rescalePredictionButton")}
+              {t("discardChangesButton")}
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              disabled={!submitIsAllowed}
+              onClick={handlePredictSubmit}
+            >
+              {user ? t("saveButton") : t("signUpButton")}
             </Button>
           </div>
-          <Button
-            variant="secondary"
-            type="reset"
-            onClick={resetForecasts}
-            disabled={!isDirty}
-          >
-            {t("discardChangesButton")}
-          </Button>
-          <Button
-            variant="primary"
-            type="submit"
-            disabled={!submitIsAllowed}
-            onClick={handlePredictSubmit}
-          >
-            {user ? t("saveButton") : t("signUpButton")}
-          </Button>
-        </div>
+        )}
         <FormError errors={submitError} />
       </div>
       <div className="flex flex-col items-center justify-center">

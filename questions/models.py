@@ -28,6 +28,10 @@ class Question(TimeStampedModel):
     title = models.CharField(max_length=200)
 
     description = models.TextField(blank=True)
+    resolution_criteria_description = models.TextField(blank=True, null=True)
+    fine_print = models.TextField(blank=True, null=True)
+
+    label = models.TextField(blank=True, null=True)
 
     forecasting_open_at = models.DateTimeField(db_index=True, null=True, blank=True)
     aim_to_close_at = models.DateTimeField(
@@ -156,7 +160,25 @@ class Conditional(TimeStampedModel):
 
 
 class GroupOfQuestions(TimeStampedModel):
-    pass
+
+    description = models.TextField(blank=True)
+    resolution_criteria_description = models.TextField(blank=True, null=True)
+    fine_print = models.TextField(blank=True, null=True)
+
+    label = models.TextField(blank=True, null=True)
+
+    aim_to_close_at = models.DateTimeField(
+        db_index=True,
+        null=False,
+        blank=False,
+        default=timezone.make_aware(timezone.now().max),
+    )
+    aim_to_resolve_at = models.DateTimeField(
+        db_index=True,
+        null=False,
+        blank=False,
+        default=timezone.make_aware(timezone.now().max),
+    )
 
 
 class Forecast(models.Model):

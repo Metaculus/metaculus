@@ -19,7 +19,6 @@ class QuestionSerializer(serializers.ModelSerializer):
             "max",
             "description",
             "created_at",
-            # "updated_at",
             "forecasting_open_at",
             "aim_to_resolve_at",
             "resolution_known_at",
@@ -33,6 +32,9 @@ class QuestionSerializer(serializers.ModelSerializer):
             "resolution",
             "zero_point",
             "post_id",
+            "resolution_criteria_description",
+            "fine_print",
+            "label",
         )
 
     def get_post_id(self, obj):
