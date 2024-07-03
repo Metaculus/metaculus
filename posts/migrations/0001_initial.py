@@ -90,7 +90,7 @@ class Migration(migrations.Migration):
                 ),
                 ("aim_to_close_at", models.DateTimeField(blank=True, null=True)),
                 ("aim_to_resolve_at", models.DateTimeField(blank=True, null=True)),
-                ("actual_close_time", models.DateTimeField(blank=True, null=True)),
+                ("closed_at", models.DateTimeField(blank=True, null=True)),
                 ("resolved", models.BooleanField(default=False)),
                 (
                     "maybe_try_to_resolve_at",
