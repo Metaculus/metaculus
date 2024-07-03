@@ -134,15 +134,15 @@ export default async function IndividualQuestion({
               <div className="flex flex-row justify-between">
                 <span>Closed:</span>
                 <span>
-                  {postData.aim_to_close_at &&
-                    postData.aim_to_close_at.slice(0, 7)}
+                  {postData.scheduled_close_time &&
+                    postData.scheduled_close_time.slice(0, 7)}
                 </span>
               </div>
               <div className="flex flex-row justify-between">
                 <span>Resolved:</span>
                 <span>
-                  {postData.aim_to_resolve_at &&
-                    postData.aim_to_resolve_at.slice(0, 7)}
+                  {postData.scheduled_resolve_time &&
+                    postData.scheduled_resolve_time.slice(0, 7)}
                 </span>
               </div>
             </div>
@@ -203,15 +203,15 @@ export default async function IndividualQuestion({
             <div className="flex flex-row justify-between">
               <span>Closed:</span>
               <span>
-                {postData.aim_to_close_at &&
-                  postData.aim_to_close_at.slice(0, 7)}
+                {postData.scheduled_close_time &&
+                  postData.scheduled_close_time.slice(0, 7)}
               </span>
             </div>
             <div className="flex flex-row justify-between">
               <span>Resolved:</span>
               <span>
-                {postData.aim_to_resolve_at &&
-                  postData.aim_to_resolve_at.slice(0, 7)}
+                {postData.scheduled_resolve_time &&
+                  postData.scheduled_resolve_time.slice(0, 7)}
               </span>
             </div>
           </div>

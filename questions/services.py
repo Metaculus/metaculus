@@ -153,12 +153,12 @@ def create_conditional(
             open_upper_bound=question.open_upper_bound,
             open_lower_bound=question.open_lower_bound,
             options=question.options,
-            resolution_field_set_at=question.resolution_field_set_at,
-            resolution_known_at=question.resolution_known_at,
-            aim_to_close_at=question.aim_to_close_at,
-            aim_to_resolve_at=question.aim_to_resolve_at,
-            forecasting_open_at=question.forecasting_open_at,
-            closed_at=question.closed_at,
+            resolution_set_time=question.resolution_set_time,
+            actual_resolve_time=question.actual_resolve_time,
+            scheduled_close_time=question.scheduled_close_time,
+            scheduled_resolve_time=question.scheduled_resolve_time,
+            open_time=question.open_time,
+            actual_close_time=question.actual_close_time,
         )
 
     condition = Question.objects.get(pk=condition_id)
@@ -182,12 +182,12 @@ def create_conditional(
     return obj
 
 
-def resolve_question(question: Question, resolution, resolution_known_at: datetime):
+def resolve_question(question: Question, resolution, actual_resolve_time: datetime):
     question.resolution = resolution
-    question.resolution_field_set_at = timezone.now()
-    question.resolution_known_at = resolution_known_at
-    if not question.closed_at:
-        question.closed_at = timezone.now()
+    question.resolution_set_time = timezone.now()
+    question.actual_resolve_time = actual_resolve_time
+    if not question.actual_close_time:
+        question.actual_close_time = timezone.now()
     question.set_forecast_scoring_ends()
     question.save()
 

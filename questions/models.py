@@ -29,30 +29,42 @@ class Question(TimeStampedModel):
 
     description = models.TextField(blank=True)
 
-    forecasting_open_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    aim_to_close_at = models.DateTimeField(
+    # Forecast and scoring related fields set at question creation
+    # When the question becomes open for forecasting
+    open_time = models.DateTimeField(db_index=True, null=True, blank=True)
+    # The planned time when the question closes for forecasting
+    scheduled_close_time = models.DateTimeField(
         db_index=True,
         null=False,
         blank=False,
         default=timezone.make_aware(timezone.now().max),
     )
-    aim_to_resolve_at = models.DateTimeField(
+    # The time when the question is scheduled to be resolved
+    # affter scheduled_close_time
+    scheduled_resolve_time = models.DateTimeField(
         db_index=True,
         null=False,
         blank=False,
         default=timezone.make_aware(timezone.now().max),
     )
 
-    resolution_known_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    resolution_field_set_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    closed_at = models.DateTimeField(db_index=True, null=True, blank=True)
+    # Forecast and scoring related fields set at question resolution
+    # The time when the resolution of the question is known
+    actual_resolve_time = models.DateTimeField(db_index=True, null=True, blank=True)
+    # The time when the resolution field was set
+    resolution_set_time = models.DateTimeField(db_index=True, null=True, blank=True)
+    # The time when the question actually closes. For instance, it can close before
+    # scheduled_close_time if the resolution becomes known before that point.
+    actual_close_time = models.DateTimeField(db_index=True, null=True, blank=True)
 
+    # continuous boundary related fields
     max = models.FloatField(null=True, blank=True)
     min = models.FloatField(null=True, blank=True)
     zero_point = models.FloatField(null=True, blank=True)
-
     open_upper_bound = models.BooleanField(null=True, blank=True)
     open_lower_bound = models.BooleanField(null=True, blank=True)
+
+    # multiple choice related fields
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
 
     # Legacy field that will be removed
@@ -83,9 +95,11 @@ class Question(TimeStampedModel):
     forecast_scoring_ends = models.DateTimeField(db_index=True, null=True, blank=True)
 
     def set_forecast_scoring_ends(self) -> datetime | None:
-        if self.closed_at is None or self.resolution_known_at is None:
+        if self.actual_close_time is None or self.actual_resolve_time is None:
             self.forecast_scoring_ends = None
-        self.forecast_scoring_ends = min(self.closed_at, self.resolution_known_at)
+        self.forecast_scoring_ends = min(
+            self.actual_close_time, self.actual_resolve_time
+        )
 
     def get_post(self):
         # Back-rel of One2One relations does not populate None values,
@@ -114,8 +128,8 @@ class Question(TimeStampedModel):
         # returns the global leaderboard dates that this question counts for
         from projects.models import get_global_leaderboard_dates
 
-        forecast_horizon_start = self.forecasting_open_at
-        forecast_horizon_end = self.closed_at
+        forecast_horizon_start = self.open_time
+        forecast_horizon_end = self.actual_close_time
         global_leaderboard_dates = get_global_leaderboard_dates()
 
         # iterate over the global leaderboard dates in reverse order
@@ -126,7 +140,7 @@ class Question(TimeStampedModel):
                 continue
             if forecast_horizon_end > gl_end + timedelta(days=3):
                 continue
-            if self.resolution_field_set_at > gl_end + timedelta(days=100):
+            if self.resolution_set_time > gl_end + timedelta(days=100):
                 # we allow for a 100 day buffer after the global leaderboard closes
                 # for questions to be resolved
                 continue

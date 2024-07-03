@@ -8,13 +8,19 @@ import { formatRelativeDate } from "@/utils/date_formatters";
 type Props = {
   id: number;
   status: PostStatusEnum;
-  closedAt: string;
+  actualCloseTime: string;
   resolvedAt: string;
   post: Post;
 };
 
 // TODO: revisit this component once BE provide all data, required for status definition
-const PostStatus: FC<Props> = ({ id, status, closedAt, resolvedAt, post }) => {
+const PostStatus: FC<Props> = ({
+  id,
+  status,
+  actualCloseTime,
+  resolvedAt,
+  post,
+}) => {
   const t = useTranslations();
   const locale = useLocale();
 
@@ -26,7 +32,7 @@ const PostStatus: FC<Props> = ({ id, status, closedAt, resolvedAt, post }) => {
     if (status === PostStatusEnum.APPROVED) {
       return [
         t("closes"),
-        formatRelativeDate(locale, new Date(closedAt), {
+        formatRelativeDate(locale, new Date(actualCloseTime), {
           short: true,
         }),
       ];
@@ -42,14 +48,14 @@ const PostStatus: FC<Props> = ({ id, status, closedAt, resolvedAt, post }) => {
     }
 
     return [];
-  }, [closedAt, locale, resolvedAt, status, t]);
+  }, [actualCloseTime, locale, resolvedAt, status, t]);
 
   return (
     <div className="flex flex-row items-center gap-1.5 truncate text-gray-900 dark:text-gray-900-dark">
       <PostStatusIcon
         status={status}
         published_at={post.published_at}
-        closed_at={closedAt}
+        actual_close_time={actualCloseTime}
       />
       <span className="whitespace-nowrap text-sm">
         {statusInfo.map((part) => (
