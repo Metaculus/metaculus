@@ -47,7 +47,7 @@ const NavMoreButton: FC = () => {
         <LinkMenuItem href="/press/" label="For Journalists" />
         <LinkMenuItem href="/faq/" label="FAQ" />
         <LinkMenuItem href="/questions/track-record/" label="Track Record" />
-        <LinkMenuItem href="/project/journal/" label="About Metaculus" />
+        <LinkMenuItem href="/project/journal/" label="The Journal" />
       </MenuItems>
     </Menu>
   );
