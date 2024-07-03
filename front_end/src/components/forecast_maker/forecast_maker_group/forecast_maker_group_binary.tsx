@@ -47,12 +47,16 @@ type Props = {
   postId: number;
   questions: QuestionWithNumericForecasts[];
   permission?: ProjectPermissions;
+  canPredict: boolean;
+  canResolve: boolean;
 };
 
 const ForecastMakerGroupBinary: FC<Props> = ({
   postId,
   questions,
   permission,
+  canPredict,
+  canResolve,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -207,24 +211,26 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       </table>
       <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
         {user ? (
-          <>
-            <Button
-              variant="secondary"
-              type="reset"
-              onClick={resetForecasts}
-              disabled={!isPickerDirty}
-            >
-              {t("discardChangesButton")}
-            </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              onClick={handlePredictSubmit}
-              disabled={!submitIsAllowed}
-            >
-              {t("saveButton")}
-            </Button>
-          </>
+          canPredict && (
+            <>
+              <Button
+                variant="secondary"
+                type="reset"
+                onClick={resetForecasts}
+                disabled={!isPickerDirty}
+              >
+                {t("discardChangesButton")}
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                onClick={handlePredictSubmit}
+                disabled={!submitIsAllowed}
+              >
+                {t("saveButton")}
+              </Button>
+            </>
+          )
         ) : (
           <Button
             variant="primary"

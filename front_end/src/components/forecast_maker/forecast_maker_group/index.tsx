@@ -15,9 +15,17 @@ type Props = {
   postId: number;
   questions: QuestionWithForecasts[];
   permission?: ProjectPermissions;
+  canPredict: boolean;
+  canResolve: boolean;
 };
 
-const ForecastMakerGroup: FC<Props> = ({ postId, questions, permission }) => {
+const ForecastMakerGroup: FC<Props> = ({
+  postId,
+  questions,
+  permission,
+  canResolve,
+  canPredict,
+}) => {
   const t = useTranslations();
 
   const renderForecastMaker = () => {
@@ -34,6 +42,8 @@ const ForecastMakerGroup: FC<Props> = ({ postId, questions, permission }) => {
             postId={postId}
             questions={questions as QuestionWithNumericForecasts[]}
             permission={permission}
+            canResolve={canResolve}
+            canPredict={canPredict}
           />
         );
       case QuestionType.Numeric:
@@ -43,6 +53,8 @@ const ForecastMakerGroup: FC<Props> = ({ postId, questions, permission }) => {
             postId={postId}
             questions={questions as QuestionWithNumericForecasts[]}
             permission={permission}
+            canResolve={canResolve}
+            canPredict={canPredict}
           />
         );
       default:
