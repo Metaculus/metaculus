@@ -80,6 +80,7 @@ export type Question = {
   nr_forecasters: number;
   author_username: string;
   zero_point: number;
+  post_id?: number;
 };
 
 export type QuestionWithNumericForecasts = Question & {

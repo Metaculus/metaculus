@@ -45,8 +45,14 @@ class TestPostCreate:
         assert response.data["question"]["min"] == 1
         assert response.data["question"]["max"] == 100
         assert response.data["question"]["open_upper_bound"]
-        assert response.data["aim_to_resolve_at"] == response.data["question"]["aim_to_resolve_at"]
-        assert response.data["aim_to_close_at"] == response.data["question"]["aim_to_close_at"]
+        assert (
+            response.data["aim_to_resolve_at"]
+            == response.data["question"]["aim_to_resolve_at"]
+        )
+        assert (
+            response.data["aim_to_close_at"]
+            == response.data["question"]["aim_to_close_at"]
+        )
 
     def test_create__group(self, user1, user1_client):
         response = user1_client.post(

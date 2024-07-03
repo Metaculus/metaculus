@@ -42,6 +42,7 @@ class Comment(models.Model):
     # user_vote_score: int = 0
     children = []
 
+
 class CommentDiff(models.Model):
     comment = models.ForeignKey(Comment, models.CASCADE)
     author = models.ForeignKey(User, models.CASCADE)
