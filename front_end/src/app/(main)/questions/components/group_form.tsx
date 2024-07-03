@@ -62,6 +62,7 @@ const GroupForm: React.FC<Props> = ({
   };
 
   const [advanced, setAdvanced] = useState(false);
+  const [subQuestions, setSubQuestions] = useState<any[]>([]);
 
   const control = useForm({
     // @ts-ignore
@@ -119,7 +120,7 @@ const GroupForm: React.FC<Props> = ({
           <Textarea
             {...control.register("description")}
             errors={control.formState.errors.description}
-            className="h-[120px] w-[400px]"
+            className="h-[120px] w-full"
             defaultValue={post?.question?.description}
           />
 
@@ -147,6 +148,18 @@ const GroupForm: React.FC<Props> = ({
             defaultValue={post?.aim_to_resolve_at}
           />
 
+          <span>Opening date</span>
+          <Input
+            type="date"
+            {...control.register("forecasting_open_at", {
+              setValueAs: (value: string) => {
+                return new Date(value);
+              },
+            })}
+            errors={control.formState.errors.forecasting_open_at}
+            defaultValue={post?.question?.forecasting_open_at}
+          />
+
           {advanced && (
             <>
               <span>Resolution Criteria</span>
@@ -155,7 +168,7 @@ const GroupForm: React.FC<Props> = ({
                 errors={
                   control.formState.errors.resolution_criteria_description
                 }
-                className="h-[120px] w-[400px]"
+                className="h-[120px] w-full"
                 defaultValue={
                   post?.question?.resolution_criteria_description
                     ? post?.question?.resolution_criteria_description
@@ -166,7 +179,7 @@ const GroupForm: React.FC<Props> = ({
               <Textarea
                 {...control.register("fine_print")}
                 errors={control.formState.errors.fine_print}
-                className="h-[120px] w-[400px]"
+                className="h-[120px] w-full"
                 defaultValue={
                   post?.question?.resolution_criteria_description
                     ? post?.question?.resolution_criteria_description
@@ -175,7 +188,131 @@ const GroupForm: React.FC<Props> = ({
               />
             </>
           )}
+          <div className="flex-col rounded border bg-zinc-200 p-4 dark:bg-blue-700">
+            <div className="mb-4">Subquestions</div>
 
+            {subQuestions.map((subQuestion, index) => {
+              return (
+                <div
+                  key={index}
+                  className="m-4 flex flex-col space-y-4 rounded border bg-white p-4 dark:bg-blue-900"
+                >
+                  <span className="text-gray-300">Subquestion Label</span>
+                  <Input
+                    onChange={(e) => {
+                      setSubQuestions(
+                        subQuestions.map((subQuestion, iter_index) => {
+                          if (index == iter_index) {
+                            subQuestion.label = e.target.value;
+                          }
+                          return subQuestion;
+                        })
+                      );
+                    }}
+                    defaultValue={post?.title}
+                  />
+                  <span className="text-xs font-thin text-gray-300"></span>
+
+                  <span>Closing Date</span>
+                  <Input
+                    type="date"
+                    onChange={(e) => {
+                      setSubQuestions(
+                        subQuestions.map((subQuestion, iter_index) => {
+                          if (index == iter_index) {
+                            subQuestion.aim_to_close_at = e.target.value;
+                          }
+                          return subQuestion;
+                        })
+                      );
+                    }}
+                    defaultValue={post?.aim_to_close_at}
+                  />
+
+                  <span>Resolving Date</span>
+                  <Input
+                    type="date"
+                    onChange={(e) => {
+                      setSubQuestions(
+                        subQuestions.map((subQuestion, iter_index) => {
+                          if (index == iter_index) {
+                            subQuestion.aim_to_resolve_at = e.target.value;
+                          }
+                          return subQuestion;
+                        })
+                      );
+                    }}
+                    defaultValue={post?.aim_to_resolve_at}
+                  />
+                  <span>Opening date</span>
+                  <Input
+                    type="date"
+                    onChange={(e) => {
+                      setSubQuestions(
+                        subQuestions.map((subQuestion, iter_index) => {
+                          if (index == iter_index) {
+                            subQuestion.forecasting_open_at = e.target.value;
+                          }
+                          return subQuestion;
+                        })
+                      );
+                    }}
+                    defaultValue={post?.question?.forecasting_open_at}
+                  />
+                </div>
+              );
+            })}
+
+            <Button
+              onClick={() => {
+                if (subtype === "numeric") {
+                  setSubQuestions([
+                    ...subQuestions,
+                    {
+                      type: "numeric",
+                      label: "",
+                      forecasting_open_at:
+                        control.getValues().forecasting_open_at,
+                      aim_to_close_at: control.getValues().aim_to_close_at,
+                      aim_to_resolve_at: control.getValues().aim_to_resolve_at,
+                      min: null,
+                      max: null,
+                      zero_point: null,
+                    },
+                  ]);
+                } else if (subtype === "date") {
+                  setSubQuestions([
+                    ...subQuestions,
+                    {
+                      type: "date",
+                      label: "",
+                      forecasting_open_at:
+                        control.getValues().forecasting_open_at,
+                      aim_to_close_at: control.getValues().aim_to_close_at,
+                      aim_to_resolve_at: control.getValues().aim_to_resolve_at,
+                      min: null,
+                      max: null,
+                      zero_point: null,
+                    },
+                  ]);
+                } else {
+                  setSubQuestions([
+                    ...subQuestions,
+                    {
+                      type: "binary",
+                      label: "",
+                      forecasting_open_at:
+                        control.getValues().forecasting_open_at,
+                      aim_to_close_at: control.getValues().aim_to_close_at,
+                      aim_to_resolve_at: control.getValues().aim_to_resolve_at,
+                    },
+                  ]);
+                }
+              }}
+            >
+              + New Subquestion
+            </Button>
+          </div>
           <div className=""></div>
           <Button type="submit">
             {mode == "create" ? "Create Question" : "Edit Question"}
