@@ -8,9 +8,37 @@ from .services import build_question_forecasts, build_question_forecasts_for_use
 
 
 class QuestionSerializer(serializers.ModelSerializer):
+    post_id = serializers.SerializerMethodField()
+
     class Meta:
         model = Question
-        fields = "__all__"
+        fields = (
+            "id",
+            "title",
+            "min",
+            "max",
+            "description",
+            "created_at",
+            # "updated_at",
+            "forecasting_open_at",
+            "aim_to_resolve_at",
+            "resolution_known_at",
+            "resolution_field_set_at",
+            "aim_to_close_at",
+            "closed_at",
+            "forecast_scoring_ends",
+            "type",
+            "options",
+            "possibilities",
+            "resolution",
+            "zero_point",
+            "post_id",
+        )
+
+    def get_post_id(self, obj):
+        if obj.get_post():
+            return obj.get_post().id
+        return None
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):

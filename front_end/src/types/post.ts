@@ -65,6 +65,7 @@ export enum PostStatus {
 export type PostConditional<QT> = {
   id: number;
   condition: QuestionWithForecasts;
+  condition_child: QuestionWithForecasts;
   question_yes: QT;
   question_no: QT;
 };
