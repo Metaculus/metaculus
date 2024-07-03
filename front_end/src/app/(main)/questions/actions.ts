@@ -162,13 +162,13 @@ export async function updateNotebook(
 export async function resolveQuestion(
   questionId: number,
   resolution: string,
-  resolutionKnownAt: string
+  actualResolveTime: string
 ) {
   try {
     const { post_id } = await QuestionsApi.resolve(
       questionId,
       resolution,
-      resolutionKnownAt
+      actualResolveTime
     );
 
     revalidatePath(`/questions/${post_id}`);

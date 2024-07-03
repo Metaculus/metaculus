@@ -5,17 +5,20 @@ from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from users.models import User
-from users.serializers import (
+from .models import User
+from .serializers import (
     UserPrivateSerializer,
     UserPublicSerializer,
     validate_username,
     UserUpdateProfileSerializer,
+    UserFilterSerializer,
 )
+from .services import get_users
 
 
 @api_view(["GET"])
@@ -30,6 +33,23 @@ def user_profile_api_view(request, pk: int):
     user = get_object_or_404(qs, pk=pk)
 
     return Response(UserPublicSerializer(user).data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def users_list_api_view(request):
+    paginator = LimitOffsetPagination()
+
+    # Apply filtering
+    filters_serializer = UserFilterSerializer(data=request.query_params)
+    filters_serializer.is_valid(raise_exception=True)
+
+    qs = get_users(**filters_serializer.validated_data)
+
+    # Paginating queryset
+    qs = paginator.paginate_queryset(qs, request)
+
+    return paginator.get_paginated_response(UserPublicSerializer(qs, many=True).data)
 
 
 @api_view(["POST"])

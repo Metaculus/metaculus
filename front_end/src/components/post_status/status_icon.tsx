@@ -8,10 +8,14 @@ const CLOCK_RADIUS = 10;
 type Props = {
   status: PostStatus;
   published_at: string;
-  closed_at: string;
+  actual_close_time: string;
 };
 
-const PostStatusIcon: FC<Props> = ({ status, closed_at, published_at }) => {
+const PostStatusIcon: FC<Props> = ({
+  status,
+  actual_close_time,
+  published_at,
+}) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
   const showClock =
@@ -25,7 +29,7 @@ const PostStatusIcon: FC<Props> = ({ status, closed_at, published_at }) => {
       new Date(published_at)
     );
     const totalTime = differenceInMilliseconds(
-      new Date(closed_at),
+      new Date(actual_close_time),
       new Date(published_at)
     );
     // Make the math simpler by not handling the case where all the time
@@ -48,7 +52,7 @@ const PostStatusIcon: FC<Props> = ({ status, closed_at, published_at }) => {
     const radius = nodes[2];
     radius.setAttribute("x2", x.toString());
     radius.setAttribute("y2", y.toString());
-  }, [closed_at, published_at, showClock]);
+  }, [actual_close_time, published_at, showClock]);
 
   const renderIcon = () => {
     // TODO: BE need to support this status

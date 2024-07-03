@@ -249,53 +249,57 @@ class Post(TimeStampedModel):
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
 
-    aim_to_close_at = models.DateTimeField(null=True, blank=True)
-    aim_to_resolve_at = models.DateTimeField(null=True, blank=True)
-    closed_at = models.DateTimeField(null=True, blank=True)
+    scheduled_close_time = models.DateTimeField(null=True, blank=True)
+    scheduled_resolve_time = models.DateTimeField(null=True, blank=True)
+    actual_close_time = models.DateTimeField(null=True, blank=True)
     resolved = models.BooleanField(default=False)
 
-    def set_aim_to_close_at(self):
+    def set_scheduled_close_time(self):
         if self.question:
-            self.aim_to_close_at = self.question.aim_to_close_at
+            self.scheduled_close_time = self.question.scheduled_close_time
         elif self.group_of_questions:
-            self.aim_to_close_at = max(
-                question.aim_to_close_at
+            self.scheduled_close_time = max(
+                question.scheduled_close_time
                 for question in self.group_of_questions.questions.all()
             )
         elif self.conditional:
-            self.aim_to_close_at = self.conditional.condition_child.aim_to_close_at
+            self.scheduled_close_time = (
+                self.conditional.condition_child.scheduled_close_time
+            )
         else:
-            self.aim_to_close_at = None
+            self.scheduled_close_time = None
 
-    def set_aim_to_resolve_at(self):
+    def set_scheduled_resolve_time(self):
         if self.question:
-            self.aim_to_resolve_at = self.question.aim_to_resolve_at
+            self.scheduled_resolve_time = self.question.scheduled_resolve_time
         elif self.group_of_questions:
-            self.aim_to_resolve_at = max(
-                question.aim_to_resolve_at
+            self.scheduled_resolve_time = max(
+                question.scheduled_resolve_time
                 for question in self.group_of_questions.questions.all()
             )
         elif self.conditional:
-            self.aim_to_resolve_at = self.conditional.condition_child.aim_to_resolve_at
+            self.scheduled_resolve_time = (
+                self.conditional.condition_child.scheduled_resolve_time
+            )
         else:
-            self.aim_to_resolve_at = None
+            self.scheduled_resolve_time = None
 
-    def set_closed_at(self):
+    def set_actual_close_time(self):
         if self.question:
-            self.closed_at = self.question.closed_at
+            self.actual_close_time = self.question.actual_close_time
         elif self.group_of_questions:
             close_times = [
-                question.aim_to_close_at
+                question.scheduled_close_time
                 for question in self.group_of_questions.questions.all()
             ]
 
             if None not in close_times:
-                self.closed_at = max(close_times)
+                self.actual_close_time = max(close_times)
             else:
-                self.closed_at = None
+                self.actual_close_time = None
         elif self.conditional:
             close_times = [
-                question.aim_to_close_at
+                question.scheduled_close_time
                 for question in [
                     self.conditional.condition_child,
                     self.conditional.condition,
@@ -303,11 +307,11 @@ class Post(TimeStampedModel):
             ]
 
             if None not in close_times:
-                self.closed_at = max(close_times)
+                self.actual_close_time = max(close_times)
             else:
-                self.closed_at = None
+                self.actual_close_time = None
         else:
-            self.closed_at = None
+            self.actual_close_time = None
 
     def set_resolved(self):
         if self.question:
@@ -336,9 +340,9 @@ class Post(TimeStampedModel):
             self.resolved = False
 
     def update_pseudo_materialized_fields(self):
-        self.set_aim_to_close_at()
-        self.set_closed_at()
-        self.set_aim_to_resolve_at()
+        self.set_scheduled_close_time()
+        self.set_actual_close_time()
+        self.set_scheduled_resolve_time()
         self.set_resolved()
         self.save()
 
