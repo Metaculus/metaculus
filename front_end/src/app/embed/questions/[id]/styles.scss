@@ -1,0 +1,175 @@
+$embeds-min-width: 480px;
+$embeds-max-width: 600px;
+$plot-stroke-width: 2;
+
+@function calculateDimension(
+  $minFontSize,
+  $maxFontSize,
+  $minViewportWidth,
+  $maxViewportWidth
+) {
+  @return "max(min(" + $maxFontSize + "px, calc(" + $minFontSize + "px + (" +
+    $maxFontSize + " - " + $minFontSize + ") * ((100vw - " + $minViewportWidth +
+    "px) / (" + $maxViewportWidth + " - " + $minViewportWidth + ")))), " +
+    $minFontSize + "px)";
+}
+
+.ForecastCard-header > h2 {
+  line-height: 120%;
+  font-weight: 700;
+  font-size: unquote(calculateDimension(20, 40, 550, 1200));
+}
+
+.ForecastCard-prediction .InternalChip,
+.ForecastCard-prediction .InternalLabel {
+  font-size: unquote(calculateDimension(20, 40, 550, 1200));
+  line-height: 1.1;
+}
+
+.ForecastCard-prediction .InternalChip {
+  padding-left: unquote(calculateDimension(10, 20, 550, 1200));
+  padding-right: unquote(calculateDimension(10, 20, 550, 1200));
+  padding-top: unquote(calculateDimension(18, 36, 550, 1200));
+  padding-bottom: unquote(calculateDimension(18, 36, 550, 1200));
+}
+
+a {
+  text-decoration: auto;
+}
+
+.ForecastCard {
+  &-header {
+    justify-content: space-between;
+    gap: 10px;
+    @media screen and (max-width: $embeds-max-width) {
+      gap: 16px;
+    }
+  }
+}
+
+.ConditionalSummary {
+  grid-template-columns: 72px minmax(0, 1fr);
+
+  @media screen and (min-width: $embeds-min-width) {
+    grid-template-columns: minmax(0, 1fr) 88px minmax(0, 1fr);
+  }
+
+  @media screen and (min-width: $embeds-max-width) {
+    grid-template-columns: minmax(0, 1fr) 166px minmax(0, 1fr);
+  }
+
+  @media screen and (min-width: $embeds-min-width) {
+    height: 100%;
+    align-items: center;
+    &-conditional-arrow {
+      width: auto;
+      background-size: 80%;
+    }
+  }
+
+  &-conditional-label {
+    font-size: unquote(calculateDimension(12, 18, 550, 1200));
+    @apply bg-blue-100 dark:bg-blue-100-dark;
+  }
+
+  &-card {
+    border-width: 2px;
+    padding: 16px 12px 12px 12px;
+    &-heading {
+      font-weight: 500;
+      line-height: 110%;
+      font-size: unquote(calculateDimension(16, 32, 550, 1200));
+    }
+  }
+
+  &-condition {
+    .ConditionalSummary-card {
+      gap: 20px;
+      @apply bg-blue-200 dark:bg-blue-200-dark;
+
+      &-label {
+        font-weight: 400;
+        font-size: 12px;
+        @media screen and (min-width: $embeds-max-width) {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+
+  &-conditionals {
+    .ConditionalSummary-card {
+      display: block;
+    }
+
+    .BinaryPredictionBar,
+    .BinaryPredictionBar-inner,
+    .BinaryPredictionBar-outer {
+      height: 20px;
+      margin-top: 4px;
+      @media screen and (min-width: $embeds-max-width) {
+        height: 40px;
+      }
+    }
+  }
+}
+
+.BinaryPredictionBar-value {
+  font-size: 20px;
+
+  @media screen and (max-width: $embeds-max-width) {
+    font-size: 14px;
+  }
+}
+
+.MultipleChoiceTile,
+.MultiTimeSeriesTile {
+  @apply grid-cols-2;
+
+  .resize-label {
+    font-size: unquote(calculateDimension(16, 32, 550, 1200));
+    line-height: unquote(calculateDimension(20, 40, 550, 1200));
+  }
+  .resize-icon {
+    height: unquote(calculateDimension(16, 32, 550, 1200));
+    width: unquote(calculateDimension(16, 32, 550, 1200));
+  }
+  .resize-ellipsis {
+    font-size: unquote(calculateDimension(16, 32, 550, 1200));
+    line-height: unquote(calculateDimension(20, 40, 550, 1200));
+    width: unquote(calculateDimension(16, 32, 550, 1200));
+  }
+  @media screen and (min-width: $embeds-max-width) {
+    gap: 2rem;
+    .resize-label {
+      padding-left: 16px;
+    }
+    .embed-gap {
+      gap: 1.35rem;
+    }
+
+    .resize-container {
+      // legend color box
+      border-radius: 15%;
+    }
+    .MultipleChoiceTimeSeriesGraph,
+    .MultiTimeSeriesGraph {
+      .label text {
+        font-size: 16px;
+      }
+
+      .option-line > path {
+        stroke-width: 3;
+        fill: none;
+      }
+
+      .continuous-user-predictions line {
+        stroke-width: 4px;
+      }
+
+      .scatter-group .inner-point {
+        stroke-width: 3px;
+      }
+    }
+  }
+}

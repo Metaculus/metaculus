@@ -1,6 +1,7 @@
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import NumericAreaChart from "@/components/charts/numeric_area_chart";
 import PredictionChip from "@/components/prediction_chip";
@@ -14,6 +15,8 @@ type Props = {
   question: QuestionWithForecasts;
   parentStatus: PostStatus;
   disabled: boolean;
+  chartHeight?: number;
+  chartTheme?: VictoryThemeDefinition;
 };
 
 const ConditionalChart: FC<Props> = ({
@@ -21,6 +24,7 @@ const ConditionalChart: FC<Props> = ({
   parentResolved,
   parentStatus,
   disabled,
+  chartTheme,
 }) => {
   const resolved = parentResolved && question.resolution !== null;
 
@@ -94,6 +98,7 @@ const ConditionalChart: FC<Props> = ({
                   color: "green",
                 },
               ]}
+              extraTheme={chartTheme}
             />
           </div>
           {resolved && (

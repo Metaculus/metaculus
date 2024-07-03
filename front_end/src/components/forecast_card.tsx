@@ -56,6 +56,7 @@ const ForecastCard: FC<Props> = ({
               options={predictionQuestion}
               height={chartHeight}
               withTooltip={!nonInteractive}
+              extraTheme={chartTheme}
             />
           );
         }
@@ -87,6 +88,7 @@ const ForecastCard: FC<Props> = ({
         <ConditionalTile
           conditional={post.conditional}
           curationStatus={post.curation_status}
+          chartTheme={chartTheme}
         />
       );
     }
@@ -152,6 +154,7 @@ const ForecastCard: FC<Props> = ({
               status={post.curation_status}
               prediction={prediction}
               resolution={question.resolution}
+              className="ForecastCard-prediction"
             />
           );
         }
@@ -167,11 +170,11 @@ const ForecastCard: FC<Props> = ({
     <Link
       href={`/questions/${post.id}`}
       className={classNames(
-        "flex w-full min-w-0 flex-col gap-3 bg-gray-0 p-5 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark xs:rounded-md",
+        "ForecastCard flex w-full min-w-0 flex-col gap-3 bg-gray-0 p-5 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark xs:rounded-md",
         className
       )}
     >
-      <div className="flex items-start justify-between max-[288px]:flex-col">
+      <div className="ForecastCard-header flex items-start justify-between max-[288px]:flex-col">
         {!post.conditional && (
           <h2 className="ForecastTitle m-0 line-clamp-2 text-lg font-medium leading-snug tracking-normal">
             {post.title}
@@ -181,7 +184,7 @@ const ForecastCard: FC<Props> = ({
       </div>
       <div
         className={classNames(
-          "flex size-full min-h-[120px] min-w-0 items-start"
+          "ForecastCard-graph-container flex size-full min-h-[120px] min-w-0 items-start"
         )}
       >
         {renderChart()}
