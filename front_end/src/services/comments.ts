@@ -13,6 +13,7 @@ export type CreateCommentParams = {
   text: string;
   on_post?: number;
   included_forecast?: number;
+  is_private: boolean;
 };
 
 export type EditCommentParams = {
