@@ -198,7 +198,6 @@ export function getPostsFilters({
         active: params.getAll(POST_USERNAMES_FILTER).includes(username),
       })),
       optionsFetcher: async (query) => {
-        // TODO: cancel on KeyDown?
         if (query.length < 3) {
           return [];
         }
