@@ -1,5 +1,5 @@
 import ShareElectionsMenu from "@/app/(main)/experiments/elections/components/share_elections_menu";
-import { EmbedElectionsModalContextProvider } from "@/app/(main)/experiments/elections/contexts/embed_context";
+import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 
 import CardForecast from "./components/card_forecast";
 import ExpectedElectoralVotesForecast from "./components/expected_electoral_votes_forecast";
@@ -7,7 +7,7 @@ import StateByForecast from "./components/state_by_forecast";
 
 export default function ElectionsExperiment() {
   return (
-    <EmbedElectionsModalContextProvider>
+    <EmbedModalContextProvider>
       <main className="text-extra-label-blue-700 dark:text-extra-label-blue-700-dark mx-auto mb-24 w-full max-w-[93rem] flex-1 items-stretch px-6 sm:px-8 md:mt-4 md:px-12 lg:mt-8 lg:px-16">
         <div className="mx-auto w-full max-w-[68rem]">
           <div className="flex items-center justify-between gap-6 text-left">
@@ -42,6 +42,6 @@ export default function ElectionsExperiment() {
           <StateByForecast questionGroupId={18274} />
         </div>
       </main>
-    </EmbedElectionsModalContextProvider>
+    </EmbedModalContextProvider>
   );
 }

@@ -35,7 +35,6 @@ export default async function GenerateQuestionPreview({
           axis: { style: { tickLabels: { fontSize: 16 } } },
           line: { style: { data: { strokeWidth: 2 } } },
         }}
-        chartHeight={300}
         nonInteractive={!!nonInteractiveParam && nonInteractiveParam === "true"}
       />
       <div className="flex items-center justify-between gap-8">

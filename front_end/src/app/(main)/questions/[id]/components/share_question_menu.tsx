@@ -13,36 +13,19 @@ import {
 } from "@/hooks/share";
 import { useBreakpoint } from "@/hooks/tailwind";
 
-const ShareElectionsMenu: FC = () => {
+type Props = {};
+
+const ShareQuestionMenu: FC<Props> = () => {
   const isLargeScreen = useBreakpoint("md");
 
   const { updateIsOpen } = useEmbedModalContext();
   const copyUrl = useCopyUrl();
-  const shareOnTwitterLink = useShareOnTwitterLink(
-    "Metaculus 2024 US Presidential Election Forecast Map"
-  );
+  const shareOnTwitterLink = useShareOnTwitterLink();
   const shareOnFacebookLink = useShareOnFacebookLink();
 
   return (
     <DropdownMenu
       items={[
-        {
-          id: "copy_link",
-          name: "Copy link",
-          onClick: copyUrl,
-        },
-        {
-          id: "share_fb",
-          name: "Share on Facebook",
-          link: shareOnFacebookLink,
-          openNewTab: true,
-        },
-        {
-          id: "share_twitter",
-          name: "Share on Twitter ",
-          link: shareOnTwitterLink,
-          openNewTab: true,
-        },
         ...(isLargeScreen
           ? []
           : [
@@ -52,17 +35,34 @@ const ShareElectionsMenu: FC = () => {
                 onClick: () => updateIsOpen(true),
               },
             ]),
+        {
+          id: "share_fb",
+          name: "Facebook",
+          link: shareOnFacebookLink,
+          openNewTab: true,
+        },
+        {
+          id: "share_twitter",
+          name: "X / Twitter",
+          link: shareOnTwitterLink,
+          openNewTab: true,
+        },
+        {
+          id: "copy_link",
+          name: "Copy link",
+          onClick: copyUrl,
+        },
       ]}
     >
       <Button
-        className="border-metac-blue-500 dark:border-metac-blue-500-dark"
-        variant="tertiary"
+        variant="secondary"
+        className="!rounded border-0"
+        presentationType="icon"
       >
         <FontAwesomeIcon icon={faShareNodes} />
-        Share
       </Button>
     </DropdownMenu>
   );
 };
 
-export default ShareElectionsMenu;
+export default ShareQuestionMenu;
