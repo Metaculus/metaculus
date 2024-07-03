@@ -8,11 +8,11 @@ export function extractQuestionGroupName(title: string) {
 }
 
 export function extractPostStatus(post: Post) {
-  if (post.aim_to_close_at && post.aim_to_resolve_at) {
+  if (post.scheduled_close_time && post.scheduled_resolve_time) {
     return {
       status: post.curation_status,
-      closedAt: post.aim_to_close_at,
-      resolvedAt: post.aim_to_resolve_at,
+      actualCloseTime: post.scheduled_close_time,
+      resolvedAt: post.scheduled_resolve_time,
     };
   }
   return null;

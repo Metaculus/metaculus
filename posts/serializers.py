@@ -52,10 +52,10 @@ class PostSerializer(serializers.ModelSerializer):
             "curation_status",
             "comment_count",
             "status",
-            "closed_at",
+            "actual_close_time",
             "resolved",
-            "aim_to_close_at",
-            "aim_to_resolve_at",
+            "scheduled_close_time",
+            "scheduled_resolve_time",
             "maybe_try_to_resolve_at",
         )
 
@@ -71,7 +71,7 @@ class PostSerializer(serializers.ModelSerializer):
     def get_status(self, obj: Post):
         if obj.resolved:
             return "resolved"
-        if obj.closed_at and obj.closed_at < timezone.now():
+        if obj.actual_close_time and obj.actual_close_time < timezone.now():
             return "closed"
         return obj.curation_status
 
@@ -108,7 +108,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
 class PostFilterSerializer(serializers.Serializer):
     class Order(models.TextChoices):
         MOST_FORECASTERS = "most_forecasters"
-        CLOSED_AT = "closed_at"
+        actual_close_time = "actual_close_time"
         RESOLVED_AT = "resolved_at"
         CREATED_AT = "created_at"
 
@@ -137,6 +137,7 @@ class PostFilterSerializer(serializers.Serializer):
     )
     news_type = serializers.CharField(required=False)
     public_figure = serializers.CharField(required=False)
+    usernames = serializers.ListField(child=serializers.CharField(), required=False)
 
     search = serializers.CharField(required=False, allow_null=True)
 

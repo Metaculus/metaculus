@@ -32,6 +32,7 @@ def get_posts_feed(
     public_figure: Project = None,
     news_type: Project = None,
     notebook_type: Notebook.NotebookType = None,
+    usernames: list[str] = None,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
@@ -49,6 +50,10 @@ def get_posts_feed(
         qs = qs.filter(
             Q(title__icontains=search) | Q(author__username__icontains=search)
         )
+
+    # Author usernames
+    if usernames:
+        qs = qs.filter(author__username__in=usernames)
 
     # Filters
     if topic:
@@ -99,7 +104,7 @@ def get_posts_feed(
         if status == "draft":
             q |= Q(curation_status=status, author=user)
         if status == "closed":
-            q |= Q(closed_at__isnull=False)
+            q |= Q(actual_close_time__isnull=False)
         if status == "resolved":
             q |= Q(resolved=True, curation_status=Post.CurationStatus.APPROVED)
 
@@ -107,7 +112,7 @@ def get_posts_feed(
             q |= Q(
                 published_at__isnull=False,
                 curation_status=Post.CurationStatus.APPROVED,
-                closed_at__isnull=True,
+                actual_close_time__isnull=True,
             )
 
     qs = qs.filter(q)
@@ -130,8 +135,8 @@ def get_posts_feed(
             case PostFilterSerializer.Order.MOST_FORECASTERS:
                 order_field = "-nr_forecasters"
                 qs = qs.annotate_nr_forecasters()
-            case PostFilterSerializer.Order.CLOSED_AT:
-                order_field = "-closed_at"
+            case PostFilterSerializer.Order.actual_close_time:
+                order_field = "-actual_close_time"
             case PostFilterSerializer.Order.RESOLVED_AT:
                 order_field = "-resolved_at"
 
