@@ -49,6 +49,7 @@ type Props = {
   prediction: number | undefined;
   resolution: string | null;
   size?: Size;
+  className?: string;
   chipClassName?: string;
 };
 
@@ -58,6 +59,7 @@ const PredictionChip: FC<Props> = ({
   nr_forecasters,
   prediction,
   resolution,
+  className,
   chipClassName,
   size,
 }) => {
@@ -68,14 +70,20 @@ const PredictionChip: FC<Props> = ({
 
   switch (status) {
     case PostStatus.PENDING:
-      return <span className="inline-flex flex-col"></span>;
+      return (
+        <span className={classNames("inline-flex flex-col", className)}></span>
+      );
     case PostStatus.RESOLVED:
       return (
         <span
-          className={classNames("inline-flex", {
-            "flex-col": size === "large" || !size,
-            "flex-row items-center gap-1": size === "compact",
-          })}
+          className={classNames(
+            "inline-flex",
+            {
+              "flex-col": size === "large" || !size,
+              "flex-row items-center gap-1": size === "compact",
+            },
+            className
+          )}
         >
           <Label className="text-purple-900 dark:text-purple-900-dark">
             {t("resolved")} :
@@ -98,7 +106,7 @@ const PredictionChip: FC<Props> = ({
       );
     case PostStatus.CLOSED:
       return (
-        <span className="inline-flex flex-col">
+        <span className={classNames("inline-flex flex-col", className)}>
           <Chip
             size={size}
             className={classNames(
@@ -119,7 +127,7 @@ const PredictionChip: FC<Props> = ({
     case PostStatus.APPROVED:
     default:
       return (
-        <span className="inline-flex flex-col">
+        <span className={classNames("inline-flex flex-col", className)}>
           <Chip
             size={size}
             className={classNames(
@@ -152,7 +160,7 @@ const Chip: FC<PropsWithChildren<ChipProps>> = ({
 }) => (
   <span
     className={classNames(
-      "PredictionChip inline-flex w-max items-center gap-2 whitespace-nowrap rounded-full px-2 py-0.5 font-semibold text-gray-0 dark:text-gray-0-dark",
+      "InternalChip inline-flex w-max items-center gap-2 whitespace-nowrap rounded-full px-2 py-0.5 font-semibold text-gray-0 dark:text-gray-0-dark",
       {
         "h-5 text-xs": size === "compact",
         "h-9 text-xl": size === "large",
@@ -176,7 +184,7 @@ const Label: FC<PropsWithChildren<LabelProps>> = ({
 }) => (
   <span
     className={classNames(
-      "PredictionLabel whitespace-nowrap",
+      "InternalLabel whitespace-nowrap",
       {
         "text-sm": size === "compact",
         "text-xl": size === "large",
