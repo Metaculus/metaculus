@@ -2,6 +2,7 @@
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
+import { boolean } from "zod";
 
 import { createForecast } from "@/app/(main)/questions/actions";
 import QuestionResolutionButton from "@/components/forecast_maker/resolution";
@@ -20,12 +21,16 @@ type Props = {
   question: QuestionWithNumericForecasts;
   prevForecast?: any;
   permission?: ProjectPermissions;
+  canPredict: boolean;
+  canResolve: boolean;
 };
 
 const ForecastMakerBinary: FC<Props> = ({
   question,
   prevForecast,
   permission,
+  canPredict,
+  canResolve,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -85,18 +90,22 @@ const ForecastMakerBinary: FC<Props> = ({
         }}
       />
       <div className="flex flex-col items-center justify-center">
-        <Button
-          variant="primary"
-          disabled={!!user && (!isForecastDirty || isSubmitting)}
-          onClick={handlePredictSubmit}
-        >
-          {user ? t("predictButton") : t("signUpButton")}
-        </Button>
-        <QuestionResolutionButton
-          question={question}
-          permission={permission}
-          className="mt-4"
-        />
+        {canPredict && (
+          <Button
+            variant="primary"
+            disabled={!!user && (!isForecastDirty || isSubmitting)}
+            onClick={handlePredictSubmit}
+          >
+            {user ? t("predictButton") : t("signUpButton")}
+          </Button>
+        )}
+        {canResolve && (
+          <QuestionResolutionButton
+            question={question}
+            permission={permission}
+            className="mt-4"
+          />
+        )}
       </div>
       <FormError errors={submitError} />
     </section>

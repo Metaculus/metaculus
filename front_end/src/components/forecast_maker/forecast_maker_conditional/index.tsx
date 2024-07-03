@@ -14,9 +14,16 @@ import ForecastMakerConditionalBinary from "./forecast_maker_conditional_binary"
 type Props = {
   postId: number;
   conditional: PostConditional<QuestionWithForecasts>;
+  canPredict: boolean;
+  canResolve: boolean;
 };
 
-const ForecastMakerConditional: FC<Props> = ({ postId, conditional }) => {
+const ForecastMakerConditional: FC<Props> = ({
+  postId,
+  conditional,
+  canPredict,
+  canResolve,
+}) => {
   const t = useTranslations();
 
   const { question_yes, question_no } = conditional;
@@ -35,6 +42,7 @@ const ForecastMakerConditional: FC<Props> = ({ postId, conditional }) => {
             }
             prevYesForecast={question_yes.forecasts.my_forecasts?.slider_values}
             prevNoForecast={question_no.forecasts.my_forecasts?.slider_values}
+            canPredict={canPredict}
           />
         );
       case QuestionType.Date:
@@ -47,6 +55,7 @@ const ForecastMakerConditional: FC<Props> = ({ postId, conditional }) => {
             }
             prevYesForecast={question_yes.forecasts.my_forecasts?.slider_values}
             prevNoForecast={question_no.forecasts.my_forecasts?.slider_values}
+            canPredict={canPredict}
           />
         );
       default:

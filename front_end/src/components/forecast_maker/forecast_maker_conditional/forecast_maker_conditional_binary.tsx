@@ -27,6 +27,7 @@ type Props = {
   conditional: PostConditional<QuestionWithNumericForecasts>;
   prevYesForecast?: any;
   prevNoForecast?: any;
+  canPredict: boolean;
 };
 
 const ForecastMakerConditionalBinary: FC<Props> = ({
@@ -34,6 +35,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   conditional,
   prevYesForecast,
   prevNoForecast,
+  canPredict,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -251,40 +253,42 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       ))}
       <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
         {user ? (
-          <>
-            <Button
-              variant="secondary"
-              type="reset"
-              onClick={
-                copyForecastButton
-                  ? () =>
-                      copyForecast(
-                        copyForecastButton.fromQuestionId,
-                        copyForecastButton.toQuestionId
-                      )
-                  : undefined
-              }
-              disabled={!copyForecastButton}
-            >
-              {copyForecastButton?.label ?? "Copy from Child"}
-            </Button>
-            <Button
-              variant="secondary"
-              type="reset"
-              onClick={resetForecasts}
-              disabled={!isPickerDirty}
-            >
-              {t("discardChangesButton")}
-            </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              onClick={handlePredictSubmit}
-              disabled={!submitIsAllowed}
-            >
-              {t("saveButton")}
-            </Button>
-          </>
+          canPredict && (
+            <>
+              <Button
+                variant="secondary"
+                type="reset"
+                onClick={
+                  copyForecastButton
+                    ? () =>
+                        copyForecast(
+                          copyForecastButton.fromQuestionId,
+                          copyForecastButton.toQuestionId
+                        )
+                    : undefined
+                }
+                disabled={!copyForecastButton}
+              >
+                {copyForecastButton?.label ?? "Copy from Child"}
+              </Button>
+              <Button
+                variant="secondary"
+                type="reset"
+                onClick={resetForecasts}
+                disabled={!isPickerDirty}
+              >
+                {t("discardChangesButton")}
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                onClick={handlePredictSubmit}
+                disabled={!submitIsAllowed}
+              >
+                {t("saveButton")}
+              </Button>
+            </>
+          )
         ) : (
           <Button
             variant="primary"
