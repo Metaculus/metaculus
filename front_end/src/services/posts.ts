@@ -11,6 +11,7 @@ export type PostsParams = PaginationParams & {
   forecast_type?: string | string[];
   statuses?: string | string[];
   categories?: string | string[];
+  usernames?: string | string[];
   tags?: string | string[];
   guessed_by?: string;
   not_guessed_by?: string;

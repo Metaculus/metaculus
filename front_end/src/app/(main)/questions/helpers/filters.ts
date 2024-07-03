@@ -1,7 +1,9 @@
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 
+import { searchUsers } from "@/app/(main)/questions/actions";
 import {
+  FilterOption,
   FilterOptionType,
   FilterSection,
 } from "@/components/popover_filter/types";
@@ -11,16 +13,17 @@ import { SelectOption } from "@/components/ui/listbox";
 import {
   POST_ACCESS_FILTER,
   POST_AUTHOR_FILTER,
+  POST_USERNAMES_FILTER,
   POST_CATEGORIES_FILTER,
   POST_COMMENTED_BY_FILTER,
   POST_GUESSED_BY_FILTER,
   POST_NOT_GUESSED_BY_FILTER,
   POST_ORDER_BY_FILTER,
-  POST_TYPE_FILTER,
   POST_STATUS_FILTER,
   POST_TAGS_FILTER,
   POST_TEXT_SEARCH_FILTER,
   POST_TOPIC_FILTER,
+  POST_TYPE_FILTER,
   POST_UPVOTED_BY_FILTER,
 } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
@@ -86,6 +89,10 @@ export function generateFiltersFromSearchParams(
     filters.tags = searchParams[POST_TAGS_FILTER];
   }
 
+  if (searchParams[POST_USERNAMES_FILTER]) {
+    filters.usernames = searchParams[POST_USERNAMES_FILTER];
+  }
+
   if (typeof searchParams[POST_GUESSED_BY_FILTER] === "string") {
     filters.guessed_by = searchParams[POST_GUESSED_BY_FILTER];
   }
@@ -122,6 +129,7 @@ const mapForecastTypeOptions = (
     value: type,
     active: params.getAll(POST_TYPE_FILTER).includes(type),
   }));
+
 export function getPostsFilters({
   tags,
   user,
@@ -178,6 +186,38 @@ export function getPostsFilters({
       })),
       chipColor: getFilterChipColor(POST_TAGS_FILTER),
       chipFormat: (value) => t("tagFilter", { tag: value.toLowerCase() }),
+      shouldEnforceSearch: true,
+    },
+    {
+      id: POST_USERNAMES_FILTER,
+      title: t("questionAuthor"),
+      type: FilterOptionType.Combobox,
+      options: params.getAll(POST_USERNAMES_FILTER).map((username) => ({
+        label: username,
+        value: username,
+        active: params.getAll(POST_USERNAMES_FILTER).includes(username),
+      })),
+      optionsFetcher: async (query) => {
+        // TODO: cancel on KeyDown?
+        if (query.length < 3) {
+          return [];
+        }
+
+        const response = await searchUsers(query);
+
+        if (response && "errors" in response) {
+          return [];
+        }
+
+        return response.results.map((obj) => ({
+          label: obj.username,
+          value: obj.username,
+          active: params.getAll(POST_USERNAMES_FILTER).includes(obj.username),
+        }));
+      },
+      chipColor: getFilterChipColor(POST_USERNAMES_FILTER),
+      chipFormat: (value) =>
+        t("questionAuthorFilter", { author: value.toLowerCase() }),
       shouldEnforceSearch: true,
     },
   ];
