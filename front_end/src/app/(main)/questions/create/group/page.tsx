@@ -4,7 +4,7 @@ import { SearchParams } from "@/types/navigation";
 import { PostWithForecasts } from "@/types/post";
 
 import { getPost } from "../../actions";
-import QuestionForm from "../../components/question_form_old";
+import GroupForm from "../../components/group_form";
 
 const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   searchParams,
@@ -14,7 +14,19 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   if (post_id) {
     post = await getPost(Number(post_id));
   }
-  return <QuestionForm question_type={"group"} post={post}></QuestionForm>;
+
+  return (
+    <GroupForm
+      // @ts-ignore
+      subtype={searchParams["subtype"]}
+      post={post}
+      tournament_id={
+        searchParams["tournament_id"]
+          ? Number(searchParams["tournament_id"])
+          : undefined
+      }
+    ></GroupForm>
+  );
 };
 
 export default GroupQuestionCreator;
