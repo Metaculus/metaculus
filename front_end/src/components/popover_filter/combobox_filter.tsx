@@ -8,7 +8,8 @@ import {
   ComboboxOption,
   ComboboxOptions,
 } from "@headlessui/react";
-import { FC, useEffect, useMemo, useState } from "react";
+import { debounce } from "lodash";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import { FilterOption } from "@/components/popover_filter/types";
 import Chip, { ChipColor } from "@/components/ui/chip";
@@ -16,10 +17,7 @@ import Chip, { ChipColor } from "@/components/ui/chip";
 type Props = {
   filterId: string;
   options: FilterOption[];
-  optionsFetcher?: (
-    query: string,
-    abortController: AbortController
-  ) => Promise<FilterOption[]>;
+  optionsFetcher?: (query: string) => Promise<FilterOption[]>;
   onChange: (filterId: string, optionValue: string[]) => void;
   chipColor?: ChipColor;
   chipFormat?: (value: string) => string;
@@ -42,13 +40,18 @@ const ComboboxFilter: FC<Props> = ({
   );
   const [searchedOptions, setSearchedOptions] = useState<FilterOption[]>([]);
 
-  useEffect(() => {
-    const abortController = new AbortController();
+  const fetchOptions = useCallback(
+    debounce((q) => {
+      if (optionsFetcher) optionsFetcher(q).then(setSearchedOptions);
+    }, 200),
+    [optionsFetcher]
+  );
 
+  useEffect(() => {
     if (query === "") {
       setSearchedOptions(shouldEnforceSearch ? [] : options || []);
     } else if (optionsFetcher) {
-      optionsFetcher(query, abortController).then(setSearchedOptions);
+      fetchOptions(query);
     } else {
       setSearchedOptions(
         options.filter((o) =>
@@ -56,7 +59,7 @@ const ComboboxFilter: FC<Props> = ({
         )
       );
     }
-  }, [options, optionsFetcher, query, shouldEnforceSearch]);
+  }, [fetchOptions, options, optionsFetcher, query, shouldEnforceSearch]);
 
   const handleClearChipClick = (option: FilterOption) => {
     onChange(
