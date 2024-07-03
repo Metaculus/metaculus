@@ -25,8 +25,8 @@ const groupQuestionSchema = z.object({
   description: z.string().min(10),
   resolution_criteria_description: z.string().optional(),
   fine_print: z.string().optional(),
-  aim_to_close_at: z.date().optional(),
-  aim_to_resolve_at: z.date().optional(),
+  scheduled_close_time: z.date().optional(),
+  scheduled_resolve_time: z.date().optional(),
   tournament_id: z.number().optional(),
 });
 
@@ -127,37 +127,37 @@ const GroupForm: React.FC<Props> = ({
           <span>Closing Date</span>
           <Input
             type="date"
-            {...control.register("aim_to_close_at", {
+            {...control.register("scheduled_close_time", {
               setValueAs: (value: string) => {
                 return new Date(value);
               },
             })}
-            errors={control.formState.errors.aim_to_close_at}
-            defaultValue={post?.aim_to_close_at}
+            errors={control.formState.errors.scheduled_close_time}
+            defaultValue={post?.scheduled_close_time}
           />
 
           <span>Resolving Date</span>
           <Input
             type="date"
-            {...control.register("aim_to_resolve_at", {
+            {...control.register("scheduled_resolve_time", {
               setValueAs: (value: string) => {
                 return new Date(value);
               },
             })}
-            errors={control.formState.errors.aim_to_resolve_at}
-            defaultValue={post?.aim_to_resolve_at}
+            errors={control.formState.errors.scheduled_resolve_time}
+            defaultValue={post?.scheduled_resolve_time}
           />
 
           <span>Opening date</span>
           <Input
             type="date"
-            {...control.register("forecasting_open_at", {
+            {...control.register("open_time", {
               setValueAs: (value: string) => {
                 return new Date(value);
               },
             })}
-            errors={control.formState.errors.forecasting_open_at}
-            defaultValue={post?.question?.forecasting_open_at}
+            errors={control.formState.errors.open_time}
+            defaultValue={post?.question?.open_time}
           />
 
           {advanced && (
@@ -220,13 +220,13 @@ const GroupForm: React.FC<Props> = ({
                       setSubQuestions(
                         subQuestions.map((subQuestion, iter_index) => {
                           if (index == iter_index) {
-                            subQuestion.aim_to_close_at = e.target.value;
+                            subQuestion.scheduled_close_time = e.target.value;
                           }
                           return subQuestion;
                         })
                       );
                     }}
-                    defaultValue={post?.aim_to_close_at}
+                    defaultValue={post?.scheduled_close_time}
                   />
 
                   <span>Resolving Date</span>
@@ -236,13 +236,13 @@ const GroupForm: React.FC<Props> = ({
                       setSubQuestions(
                         subQuestions.map((subQuestion, iter_index) => {
                           if (index == iter_index) {
-                            subQuestion.aim_to_resolve_at = e.target.value;
+                            subQuestion.scheduled_resolve_time = e.target.value;
                           }
                           return subQuestion;
                         })
                       );
                     }}
-                    defaultValue={post?.aim_to_resolve_at}
+                    defaultValue={post?.scheduled_resolve_time}
                   />
                   <span>Opening date</span>
                   <Input
@@ -251,13 +251,13 @@ const GroupForm: React.FC<Props> = ({
                       setSubQuestions(
                         subQuestions.map((subQuestion, iter_index) => {
                           if (index == iter_index) {
-                            subQuestion.forecasting_open_at = e.target.value;
+                            subQuestion.open_time = e.target.value;
                           }
                           return subQuestion;
                         })
                       );
                     }}
-                    defaultValue={post?.question?.forecasting_open_at}
+                    defaultValue={post?.question?.open_time}
                   />
                 </div>
               );
@@ -271,10 +271,11 @@ const GroupForm: React.FC<Props> = ({
                     {
                       type: "numeric",
                       label: "",
-                      forecasting_open_at:
-                        control.getValues().forecasting_open_at,
-                      aim_to_close_at: control.getValues().aim_to_close_at,
-                      aim_to_resolve_at: control.getValues().aim_to_resolve_at,
+                      open_time: control.getValues().open_time,
+                      scheduled_close_time:
+                        control.getValues().scheduled_close_time,
+                      scheduled_resolve_time:
+                        control.getValues().scheduled_resolve_time,
                       min: null,
                       max: null,
                       zero_point: null,
@@ -286,10 +287,11 @@ const GroupForm: React.FC<Props> = ({
                     {
                       type: "date",
                       label: "",
-                      forecasting_open_at:
-                        control.getValues().forecasting_open_at,
-                      aim_to_close_at: control.getValues().aim_to_close_at,
-                      aim_to_resolve_at: control.getValues().aim_to_resolve_at,
+                      open_time: control.getValues().open_time,
+                      scheduled_close_time:
+                        control.getValues().scheduled_close_time,
+                      scheduled_resolve_time:
+                        control.getValues().scheduled_resolve_time,
                       min: null,
                       max: null,
                       zero_point: null,
@@ -301,10 +303,11 @@ const GroupForm: React.FC<Props> = ({
                     {
                       type: "binary",
                       label: "",
-                      forecasting_open_at:
-                        control.getValues().forecasting_open_at,
-                      aim_to_close_at: control.getValues().aim_to_close_at,
-                      aim_to_resolve_at: control.getValues().aim_to_resolve_at,
+                      open_time: control.getValues().open_time,
+                      scheduled_close_time:
+                        control.getValues().scheduled_close_time,
+                      scheduled_resolve_time:
+                        control.getValues().scheduled_resolve_time,
                     },
                   ]);
                 }

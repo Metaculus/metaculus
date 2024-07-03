@@ -65,7 +65,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
             <PostStatus
               id={post.id}
               status={statusData.status}
-              closedAt={statusData.closedAt}
+              actualCloseTime={statusData.actualCloseTime}
               resolvedAt={statusData.resolvedAt}
               post={post}
             />

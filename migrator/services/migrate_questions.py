@@ -93,20 +93,20 @@ def create_question(question: dict, **kwargs) -> Question:
         description=question["description"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
-        forecasting_open_at=question["publish_time"],
-        aim_to_close_at=(
+        open_time=question["publish_time"],
+        scheduled_close_time=(
             question["close_time"]
             if question["close_time"]
             else django.utils.timezone.now() + timezone.timedelta(days=10000)
         ),
-        aim_to_resolve_at=(
+        scheduled_resolve_time=(
             question["resolve_time"]
             if question["close_time"]
             else django.utils.timezone.now() + timezone.timedelta(days=10000)
         ),
-        resolution_known_at=question["resolve_time"],
-        resolution_field_set_at=question["resolve_time"],
-        closed_at=question["close_time"],
+        actual_resolve_time=question["resolve_time"],
+        resolution_set_time=question["resolve_time"],
+        actual_close_time=question["close_time"],
         type=question_type,
         possibilities=possibilities,
         zero_point=zero_point,

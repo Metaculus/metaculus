@@ -74,3 +74,7 @@ def validate_username(value: str):
         raise serializers.ValidationError("The username is already taken")
 
     return value
+
+
+class UserFilterSerializer(serializers.Serializer):
+    search = serializers.CharField(required=True, min_length=3)

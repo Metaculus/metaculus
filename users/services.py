@@ -4,6 +4,22 @@ from rest_framework.exceptions import ValidationError
 from users.models import User
 
 
+def get_users(
+    search: str = None,
+) -> User.objects:
+    """
+    Applies filtering on the User QuerySet
+    """
+
+    qs = User.objects.filter(is_active=True)
+
+    # Search
+    if search:
+        qs = qs.filter(username__icontains=search)
+
+    return qs
+
+
 def get_users_by_usernames(usernames: list[str]) -> list[User]:
     if not usernames:
         return User.objects.none()
