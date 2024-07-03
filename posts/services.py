@@ -32,7 +32,7 @@ def get_posts_feed(
     public_figure: Project = None,
     news_type: Project = None,
     notebook_type: Notebook.NotebookType = None,
-    authors: list[str] = None,
+    usernames: list[str] = None,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
@@ -52,8 +52,8 @@ def get_posts_feed(
         )
 
     # Author usernames
-    if authors:
-        qs = qs.filter(author__username__in=authors)
+    if usernames:
+        qs = qs.filter(author__username__in=usernames)
 
     # Filters
     if topic:
