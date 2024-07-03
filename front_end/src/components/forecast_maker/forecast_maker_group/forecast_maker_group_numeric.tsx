@@ -1,11 +1,14 @@
 "use client";
+import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { differenceInMilliseconds } from "date-fns";
 import { useTranslations } from "next-intl";
-import React, { FC, useCallback, useMemo, useState } from "react";
+import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import NumericPickerChart from "@/components/charts/numeric_area_chart";
+import ForecastMakerGroupControls from "@/components/forecast_maker/forecast_maker_group/forecast_maker_group_menu";
 import GroupForecastTable, {
   ConditionalTableOption,
 } from "@/components/forecast_maker/group_forecast_table";
@@ -17,6 +20,7 @@ import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
+import { ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import {
   extractPrevNumericForecastValue,
@@ -29,9 +33,14 @@ import { extractQuestionGroupName } from "@/utils/questions";
 type Props = {
   postId: number;
   questions: QuestionWithNumericForecasts[];
+  permission?: ProjectPermissions;
 };
 
-const ForecastMakerGroupNumeric: FC<Props> = ({ postId, questions }) => {
+const ForecastMakerGroupNumeric: FC<Props> = ({
+  postId,
+  questions,
+  permission,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -55,6 +64,13 @@ const ForecastMakerGroupNumeric: FC<Props> = ({ postId, questions }) => {
   const [groupOptions, setGroupOptions] = useState<ConditionalTableOption[]>(
     generateGroupOptions(questions, prevForecastValuesMap)
   );
+
+  useEffect(() => {
+    setGroupOptions(
+      generateGroupOptions(questions, prevForecastValuesMap, permission)
+    );
+  }, [permission, prevForecastValuesMap, questions]);
+
   const [activeTableOption, setActiveTableOption] = useState(
     groupOptions.at(0)?.id ?? null
   );
@@ -243,7 +259,6 @@ const ForecastMakerGroupNumeric: FC<Props> = ({ postId, questions }) => {
           </div>
         );
       })}
-
       {!!activeGroupOption && !activeGroupOption?.resolution && (
         <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
           {user ? (
@@ -305,7 +320,8 @@ function generateGroupOptions(
       forecast?: MultiSliderValue[];
       weights?: number[];
     }
-  >
+  >,
+  permission?: ProjectPermissions
 ): ConditionalTableOption[] {
   return [...questions]
     .sort((a, b) =>
@@ -328,6 +344,17 @@ function generateGroupOptions(
         communityQuartiles: computeQuartilesFromCDF(q.forecasts.latest_cdf),
         resolution: q.resolution,
         isDirty: false,
+        menu: (
+          <ForecastMakerGroupControls
+            question={q}
+            permission={permission}
+            button={
+              <Button className="h-8 w-8" variant="link">
+                <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
+              </Button>
+            }
+          />
+        ),
       };
     });
 }

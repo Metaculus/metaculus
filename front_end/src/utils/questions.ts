@@ -1,5 +1,6 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import { Post } from "@/types/post";
+import { Post, ProjectPermissions } from "@/types/post";
+import { Question } from "@/types/question";
 
 export function extractQuestionGroupName(title: string) {
   const match = title.match(/\((.*?)\)/);
@@ -43,4 +44,15 @@ export function estimateReadingTime(markdown: string) {
   const words = markdown.split(/\s+/).length;
   const wordsPerMinute = 225;
   return Math.ceil(words / wordsPerMinute);
+}
+
+export function canResolveQuestion(
+  question: Question,
+  permission?: ProjectPermissions
+) {
+  return (
+    !question.resolution &&
+    permission &&
+    [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(permission)
+  );
 }

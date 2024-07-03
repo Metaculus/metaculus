@@ -19,14 +19,14 @@ class QuestionsApi {
     id: number,
     resolution: string,
     resolution_known_at: string
-  ): Promise<null> {
-    return post<null, { resolution: string; resolution_known_at: string }>(
-      `/questions/${id}/resolve/`,
-      {
-        resolution: resolution,
-        resolution_known_at: resolution_known_at,
-      }
-    );
+  ) {
+    return post<
+      { post_id: number },
+      { resolution: string; resolution_known_at: string }
+    >(`/questions/${id}/resolve/`, {
+      resolution: resolution,
+      resolution_known_at: resolution_known_at,
+    });
   }
 }
 
