@@ -1,5 +1,6 @@
 import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import moment from "moment";
 import dynamic from "next/dynamic";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -15,7 +16,7 @@ import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import { SearchParams } from "@/types/navigation";
-import { ProjectPermissions } from "@/types/post";
+import { PostStatus, ProjectPermissions } from "@/types/post";
 
 import DetailedGroupCard from "./components/detailed_group_card";
 import DetailedQuestionCard from "./components/detailed_question_card";
@@ -33,7 +34,6 @@ export default async function IndividualQuestion({
   searchParams: SearchParams;
 }) {
   const postData = await PostsApi.getPost(params.id);
-  const currentUser = await ProfileApi.getMyProfile();
 
   if (!postData) {
     return notFound();
@@ -48,15 +48,21 @@ export default async function IndividualQuestion({
 
   const t = await getTranslations();
   const commentsData = await CommentsApi.getComments({ post: params.id });
-
   return (
     <main className="mx-auto flex w-full max-w-max flex-col py-4">
       <div className="flex items-start gap-3 bg-gray-0 px-3 pt-3 dark:bg-gray-0-dark xs:px-4 lg:bg-transparent lg:p-0 lg:dark:bg-transparent">
         <span className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
-          {t("question")}
-        </span>
-        <span className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
-          Edit
+          {(() => {
+            if (postData.group_of_questions) {
+              return t("group");
+            } else if (postData.conditional) {
+              return t("conditionalGroup");
+            } else if (postData.question) {
+              return t("question");
+            } else {
+              return t("searchOptionNotebook");
+            }
+          })()}
         </span>
         <div className="ml-auto flex h-9 flex-row text-gray-700 dark:text-gray-700-dark lg:hidden">
           <Button
@@ -78,7 +84,8 @@ export default async function IndividualQuestion({
       <div className="flex w-full items-start gap-4">
         <div className="w-[48rem] max-w-full border-transparent bg-gray-0 px-3 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
           {postData.user_permission === ProjectPermissions.ADMIN ||
-          postData.user_permission === ProjectPermissions.CURATOR ? (
+          postData.user_permission === ProjectPermissions.CURATOR ||
+          postData.user_permission === ProjectPermissions.CREATOR ? (
             <Modbox post={postData} />
           ) : (
             <></>
@@ -111,6 +118,17 @@ export default async function IndividualQuestion({
             question={postData.question}
             conditional={postData.conditional}
             groupOfQuestions={postData.group_of_questions}
+            canPredict={
+              postData.user_permission !== ProjectPermissions.VIEWER &&
+              moment(postData.published_at) <= moment.utc() &&
+              postData.status === PostStatus.APPROVED
+            }
+            canResolve={
+              (postData.user_permission === ProjectPermissions.CURATOR ||
+                postData.user_permission === ProjectPermissions.ADMIN) &&
+              moment(postData.published_at) <= moment.utc() &&
+              postData.status === PostStatus.APPROVED
+            }
           />
           <div className="my-4 flex flex-col items-start gap-4 self-stretch border-t border-gray-300 pt-4 @container dark:border-gray-300-dark lg:hidden">
             {/*TODO: make a reusable component for this*/}
