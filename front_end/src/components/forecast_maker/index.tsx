@@ -13,6 +13,8 @@ type Props = {
   conditional?: PostConditional<QuestionWithForecasts>;
   question?: QuestionWithForecasts;
   permission?: ProjectPermissions;
+  canPredict: boolean;
+  canResolve: boolean;
 };
 
 const ForecastMaker: FC<Props> = ({
@@ -21,6 +23,8 @@ const ForecastMaker: FC<Props> = ({
   question,
   groupOfQuestions,
   permission,
+  canPredict,
+  canResolve,
 }) => {
   if (groupOfQuestions) {
     return (
@@ -28,19 +32,31 @@ const ForecastMaker: FC<Props> = ({
         postId={postId}
         questions={groupOfQuestions.questions}
         permission={permission}
+        canPredict={canPredict}
+        canResolve={canResolve}
       />
     );
   }
 
   if (conditional) {
     return (
-      <ForecastMakerConditional postId={postId} conditional={conditional} />
+      <ForecastMakerConditional
+        postId={postId}
+        conditional={conditional}
+        canPredict={canPredict}
+        canResolve={canResolve}
+      />
     );
   }
 
   if (question) {
     return (
-      <QuestionForecastMaker question={question} permission={permission} />
+      <QuestionForecastMaker
+        question={question}
+        permission={permission}
+        canPredict={canPredict}
+        canResolve={canResolve}
+      />
     );
   }
 

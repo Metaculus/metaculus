@@ -489,5 +489,8 @@
   "Title": "Title",
   "Access": "Access",
   "Save": "Save",
-  "Candidates": "Candidates"
+  "Candidates": "Candidates",
+  "sendBackDraftButton": "Send back draft"
+  ,"approveButton": "Approve"
+  ,"submitForReviewButton": "Submit for review"
 }
