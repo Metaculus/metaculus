@@ -18,14 +18,14 @@ class QuestionsApi {
   static async resolve(
     id: number,
     resolution: string,
-    resolution_known_at: string
+    actual_resolve_time: string
   ) {
     return post<
       { post_id: number },
-      { resolution: string; resolution_known_at: string }
+      { resolution: string; actual_resolve_time: string }
     >(`/questions/${id}/resolve/`, {
       resolution: resolution,
-      resolution_known_at: resolution_known_at,
+      actual_resolve_time: actual_resolve_time,
     });
   }
 }

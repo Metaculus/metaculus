@@ -25,10 +25,10 @@ const baseQuestionSchema = z.object({
   description: z.string().min(10),
   resolution_criteria_description: z.string().optional(),
   fine_print: z.string().optional(),
-  aim_to_close_at: z.date().optional(),
-  aim_to_resolve_at: z.date().optional(),
+  scheduled_close_time: z.date().optional(),
+  scheduled_resolve_time: z.date().optional(),
   tournament_id: z.number().optional(),
-  forecasting_open_at: z.date().optional(),
+  open_time: z.date().optional(),
 });
 
 const binaryQuestionSchema = baseQuestionSchema;
@@ -178,37 +178,37 @@ const QuestionForm: React.FC<Props> = ({
           <span>Closing Date</span>
           <Input
             type="date"
-            {...control.register("aim_to_close_at", {
+            {...control.register("scheduled_close_time", {
               setValueAs: (value: string) => {
                 return new Date(value);
               },
             })}
-            errors={control.formState.errors.aim_to_close_at}
-            defaultValue={post?.aim_to_close_at}
+            errors={control.formState.errors.scheduled_close_time}
+            defaultValue={post?.scheduled_close_time}
           />
 
           <span>Resolving Date</span>
           <Input
             type="date"
-            {...control.register("aim_to_resolve_at", {
+            {...control.register("scheduled_resolve_time", {
               setValueAs: (value: string) => {
                 return new Date(value);
               },
             })}
-            errors={control.formState.errors.aim_to_resolve_at}
-            defaultValue={post?.aim_to_resolve_at}
+            errors={control.formState.errors.scheduled_resolve_time}
+            defaultValue={post?.scheduled_resolve_time}
           />
 
           <span>Forecasting Open At</span>
           <Input
             type="date"
-            {...control.register("forecasting_open_at", {
+            {...control.register("open_time", {
               setValueAs: (value: string) => {
                 return new Date(value);
               },
             })}
-            errors={control.formState.errors.forecasting_open_at}
-            defaultValue={post?.question?.forecasting_open_at}
+            errors={control.formState.errors.open_time}
+            defaultValue={post?.question?.open_time}
           />
 
           {questionType == "numeric" && (
