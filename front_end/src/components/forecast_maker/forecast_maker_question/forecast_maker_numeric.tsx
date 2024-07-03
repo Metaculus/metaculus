@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
@@ -19,14 +20,19 @@ type Props = {
   question: QuestionWithNumericForecasts;
   prevForecast?: any;
   permission?: ProjectPermissions;
+  canPredict: boolean;
+  canResolve: boolean;
 };
 
 const ForecastMakerNumeric: FC<Props> = ({
   question,
   permission,
   prevForecast,
+  canPredict,
+  canResolve,
 }) => {
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
+  const t = useTranslations();
 
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
     prevForecastValue?.forecast ?? [
@@ -77,25 +83,27 @@ const ForecastMakerNumeric: FC<Props> = ({
           >
             Add Component
           </button>
-          <button
-            className="rounded-lg bg-blue-300 px-4 py-2 text-gray-800"
-            onClick={async () => {
-              await createForecast(
-                question.id,
-                {
-                  continuousCdf: dataset.cdf,
-                  probabilityYes: null,
-                  probabilityYesPerCategory: null,
-                },
-                {
-                  forecast: forecast,
-                  weights: weights,
-                }
-              );
-            }}
-          >
-            Predict
-          </button>
+          {canPredict && (
+            <button
+              className="rounded-lg bg-blue-300 px-4 py-2 text-gray-800"
+              onClick={async () => {
+                await createForecast(
+                  question.id,
+                  {
+                    continuousCdf: dataset.cdf,
+                    probabilityYes: null,
+                    probabilityYesPerCategory: null,
+                  },
+                  {
+                    forecast: forecast,
+                    weights: weights,
+                  }
+                );
+              }}
+            >
+              {t("MakePrediction")}
+            </button>
+          )}
         </div>
         <NumericForecastTable
           userQuartiles={computeQuartilesFromCDF(dataset.cdf)}
@@ -104,9 +112,14 @@ const ForecastMakerNumeric: FC<Props> = ({
           )}
         />
       </div>
-      <div className="flex flex-col items-center justify-center">
-        <QuestionResolutionButton question={question} permission={permission} />
-      </div>
+      {canResolve && (
+        <div className="flex flex-col items-center justify-center">
+          <QuestionResolutionButton
+            question={question}
+            permission={permission}
+          />
+        </div>
+      )}
     </>
   );
 };

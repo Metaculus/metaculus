@@ -34,12 +34,16 @@ type Props = {
   postId: number;
   questions: QuestionWithNumericForecasts[];
   permission?: ProjectPermissions;
+  canPredict: boolean;
+  canResolve: boolean;
 };
 
 const ForecastMakerGroupNumeric: FC<Props> = ({
   postId,
   questions,
   permission,
+  canPredict,
+  canResolve,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -262,31 +266,33 @@ const ForecastMakerGroupNumeric: FC<Props> = ({
       {!!activeGroupOption && !activeGroupOption?.resolution && (
         <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
           {user ? (
-            <>
-              <Button
-                variant="secondary"
-                type="reset"
-                onClick={() => handleAddComponent(activeGroupOption.id)}
-              >
-                {t("addComponentButton")}
-              </Button>
-              <Button
-                variant="secondary"
-                type="reset"
-                onClick={handleResetForecasts}
-                disabled={!isPickerDirty}
-              >
-                {t("discardChangesButton")}
-              </Button>
-              <Button
-                variant="primary"
-                type="submit"
-                onClick={handlePredictSubmit}
-                disabled={!submitIsAllowed}
-              >
-                {t("saveButton")}
-              </Button>
-            </>
+            canPredict && (
+              <>
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={() => handleAddComponent(activeGroupOption.id)}
+                >
+                  {t("addComponentButton")}
+                </Button>
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={handleResetForecasts}
+                  disabled={!isPickerDirty}
+                >
+                  {t("discardChangesButton")}
+                </Button>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  onClick={handlePredictSubmit}
+                  disabled={!submitIsAllowed}
+                >
+                  {t("saveButton")}
+                </Button>
+              </>
+            )
           ) : (
             <Button
               variant="primary"
