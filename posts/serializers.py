@@ -137,7 +137,7 @@ class PostFilterSerializer(serializers.Serializer):
     )
     news_type = serializers.CharField(required=False)
     public_figure = serializers.CharField(required=False)
-    authors = serializers.ListField(child=serializers.CharField(), required=False)
+    usernames = serializers.ListField(child=serializers.CharField(), required=False)
 
     search = serializers.CharField(required=False, allow_null=True)
 
