@@ -23,7 +23,7 @@ type Props = {
 const schema = z.object({
   resolutionType: z.string(),
   resolutionValue: z.string().optional(),
-  resolutionKnownAt: z
+  actualResolveTime: z
     .string()
     .transform((value) => new Date(value).toISOString()),
 });
@@ -43,7 +43,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       resolver: zodResolver(schema),
       defaultValues: {
         resolutionType: "",
-        resolutionKnownAt: currentDateTime,
+        actualResolveTime: currentDateTime,
       },
     }
   );
@@ -83,7 +83,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
     async ({
       resolutionType,
       resolutionValue,
-      resolutionKnownAt,
+      actualResolveTime,
     }: FormData) => {
       setSubmitErrors([]);
 
@@ -92,7 +92,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       const responses = await resolveQuestion(
         question.id,
         resolutionValue || resolutionType,
-        resolutionKnownAt
+        actualResolveTime
       );
 
       setIsSubmitting(false);
@@ -144,7 +144,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               type="datetime-local"
               placeholder="date when resolution was known"
               className="!rounded-none border-gray-600-dark bg-transparent pl-1"
-              {...register("resolutionKnownAt")}
+              {...register("actualResolveTime")}
               max={currentDateTime}
             />
           </div>

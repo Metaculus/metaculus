@@ -19,12 +19,12 @@ class QuestionSerializer(serializers.ModelSerializer):
             "max",
             "description",
             "created_at",
-            "forecasting_open_at",
-            "aim_to_resolve_at",
-            "resolution_known_at",
-            "resolution_field_set_at",
-            "aim_to_close_at",
-            "closed_at",
+            "open_time",
+            "scheduled_resolve_time",
+            "actual_resolve_time",
+            "resolution_set_time",
+            "scheduled_close_time",
+            "actual_close_time",
             "forecast_scoring_ends",
             "type",
             "options",
@@ -44,8 +44,8 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
-    aim_to_resolve_at = serializers.DateTimeField(required=True)
-    aim_to_close_at = serializers.DateTimeField(required=True)
+    scheduled_resolve_time = serializers.DateTimeField(required=True)
+    scheduled_close_time = serializers.DateTimeField(required=True)
 
     class Meta:
         model = Question
@@ -61,15 +61,15 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "open_upper_bound",
             "open_lower_bound",
             "options",
-            "aim_to_resolve_at",
-            "aim_to_close_at",
+            "scheduled_resolve_time",
+            "scheduled_close_time",
         )
 
     def validate(self, data: dict):
-        if data["aim_to_resolve_at"] <= data["aim_to_close_at"]:
+        if data["scheduled_resolve_time"] <= data["scheduled_close_time"]:
             raise ValidationError(
                 {
-                    "aim_to_resolve_at": [
+                    "scheduled_resolve_time": [
                         "The expected resolve date should be after the question closes."
                     ]
                 }

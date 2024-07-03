@@ -272,7 +272,7 @@ export function getFanOptionsFromNumericGroup(
     .map((q) => ({
       name: extractQuestionGroupName(q.title),
       cdf: q.forecasts.latest_cdf,
-      resolvedAt: new Date(q.aim_to_resolve_at),
+      resolvedAt: new Date(q.scheduled_resolve_time),
       resolved: q.resolution !== null,
     }))
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt))
