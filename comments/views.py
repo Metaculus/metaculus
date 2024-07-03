@@ -75,6 +75,10 @@ def comment_create_api_view(request: Request):
     if "included_forecast" in data and data["included_forecast"] is not None:
         included_forecast = Forecast.objects.get(id=data["included_forecast"])
 
+    is_private = False 
+    if "is_private" in data and data["is_private"] is not None:
+        is_private = data["is_private"]
+
     comment = Comment.objects.create(
         author=author,
         parent=parent,
@@ -82,7 +86,7 @@ def comment_create_api_view(request: Request):
         text=data["text"],
         on_post=post,
         included_forecast=included_forecast,
-        # is_private=data,
+        is_private=is_private,
     )
     comment.save()
 
