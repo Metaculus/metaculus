@@ -1,6 +1,6 @@
 "use server";
 
-import moment from "moment";
+import { formatISO } from "date-fns";
 import { revalidatePath } from "next/cache";
 
 import CommentsApi, { EditCommentParams } from "@/services/comments";
@@ -124,7 +124,7 @@ export async function getPost(postId: number) {
 export async function approvePost(postId: number) {
   const response = await PostsApi.updatePost(postId, {
     curation_status: PostStatus.APPROVED,
-    published_at: moment.utc(),
+    published_at: formatISO(new Date(), { representation: "complete" }),
   });
   return response;
 }

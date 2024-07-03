@@ -1,6 +1,6 @@
 import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import moment from "moment";
+import { parseISO } from "date-fns";
 import dynamic from "next/dynamic";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -120,13 +120,13 @@ export default async function IndividualQuestion({
             groupOfQuestions={postData.group_of_questions}
             canPredict={
               postData.user_permission !== ProjectPermissions.VIEWER &&
-              moment(postData.published_at) <= moment.utc() &&
+              parseISO(postData.published_at) <= new Date() &&
               postData.status === PostStatus.APPROVED
             }
             canResolve={
               (postData.user_permission === ProjectPermissions.CURATOR ||
                 postData.user_permission === ProjectPermissions.ADMIN) &&
-              moment(postData.published_at) <= moment.utc() &&
+              parseISO(postData.published_at) <= new Date() &&
               postData.status === PostStatus.APPROVED
             }
           />
