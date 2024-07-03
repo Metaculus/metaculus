@@ -1,6 +1,13 @@
 "use client";
+import { merge } from "lodash";
 import React, { FC, useMemo } from "react";
-import { VictoryArea, VictoryAxis, VictoryChart, VictoryLine } from "victory";
+import {
+  VictoryArea,
+  VictoryAxis,
+  VictoryChart,
+  VictoryLine,
+  VictoryThemeDefinition,
+} from "victory";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
@@ -20,14 +27,24 @@ type Props = {
     cdf: number[];
     color: NumericAreaColor;
   }[];
+  extraTheme?: VictoryThemeDefinition;
 };
 
-const NumericAreaChart: FC<Props> = ({ height = 150, min, max, data }) => {
+const NumericAreaChart: FC<Props> = ({
+  height = 150,
+  min,
+  max,
+  data,
+  extraTheme,
+}) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
+  const actualTheme = extraTheme
+    ? merge({}, chartTheme, extraTheme)
+    : chartTheme;
 
   const charts = useMemo(
     () =>
@@ -55,7 +72,7 @@ const NumericAreaChart: FC<Props> = ({ height = 150, min, max, data }) => {
         <VictoryChart
           width={chartWidth}
           height={height}
-          theme={chartTheme}
+          theme={actualTheme}
           padding={{
             left: 10,
             bottom: 20,
