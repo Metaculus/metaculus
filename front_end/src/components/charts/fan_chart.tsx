@@ -1,5 +1,5 @@
 "use client";
-import { isNil } from "lodash";
+import { isNil, merge } from "lodash";
 import React, { FC, useMemo, useState } from "react";
 import {
   VictoryArea,
@@ -7,6 +7,7 @@ import {
   VictoryChart,
   VictoryLine,
   VictoryScatter,
+  VictoryThemeDefinition,
   VictoryVoronoiContainer,
 } from "victory";
 
@@ -26,6 +27,7 @@ type Props = {
   height?: number;
   yLabel?: string;
   withTooltip?: boolean;
+  extraTheme?: VictoryThemeDefinition;
 };
 
 const FanChart: FC<Props> = ({
@@ -33,12 +35,16 @@ const FanChart: FC<Props> = ({
   height = 150,
   yLabel,
   withTooltip = false,
+  extraTheme,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
+  const actualTheme = extraTheme
+    ? merge({}, chartTheme, extraTheme)
+    : chartTheme;
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
 
@@ -63,7 +69,7 @@ const FanChart: FC<Props> = ({
         <VictoryChart
           width={chartWidth}
           height={height}
-          theme={chartTheme}
+          theme={actualTheme}
           domain={{
             y: [0, 1],
           }}

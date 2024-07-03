@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import { PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
@@ -13,9 +14,14 @@ import DisabledArrow from "./icons/DisabledArrow";
 type Props = {
   conditional: PostConditional<QuestionWithForecasts>;
   curationStatus: PostStatus;
+  chartTheme?: VictoryThemeDefinition;
 };
 
-const ConditionalTile: FC<Props> = ({ conditional, curationStatus }) => {
+const ConditionalTile: FC<Props> = ({
+  conditional,
+  curationStatus,
+  chartTheme,
+}) => {
   const t = useTranslations();
 
   const { condition, question_yes, question_no } = conditional;
@@ -39,14 +45,14 @@ const ConditionalTile: FC<Props> = ({ conditional, curationStatus }) => {
 
   return (
     <div className="ConditionalSummary grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
-      <div className="col-span-2 row-span-1 flex flex-col justify-center md:col-span-1 md:row-auto">
+      <div className="ConditionalSummary-condition col-span-2 row-span-1 flex flex-col justify-center md:col-span-1 md:row-auto">
         <ConditionalCard
           label="Condition"
           title={condition.title}
           resolved={parentSuccessfullyResolved}
         />
       </div>
-      <div className="relative row-span-2 ml-3 flex flex-col justify-start gap-0 md:row-auto md:ml-0 md:justify-center md:gap-12">
+      <div className="ConditionalSummary-arrows relative row-span-2 ml-3 flex flex-col justify-start gap-0 md:row-auto md:ml-0 md:justify-center md:gap-12">
         <ConditionalArrow
           label={t("arrowIfNo")}
           didHappen={yesHappened}
@@ -61,13 +67,14 @@ const ConditionalTile: FC<Props> = ({ conditional, curationStatus }) => {
         />
         <div className="absolute left-0 top-0 h-3/4 w-[1px] bg-blue-700 dark:bg-blue-700-dark md:hidden" />
       </div>
-      <div className="row-span-2 flex flex-col gap-3 md:row-auto">
+      <div className="ConditionalSummary-conditionals row-span-2 flex flex-col gap-3 md:row-auto">
         <ConditionalCard title={question_yes.title}>
           <ConditionalChart
             parentResolved={parentSuccessfullyResolved}
             question={question_yes}
             disabled={yesDisabled}
             parentStatus={curationStatus}
+            chartTheme={chartTheme}
           />
         </ConditionalCard>
         <ConditionalCard title={question_no.title}>
@@ -76,6 +83,7 @@ const ConditionalTile: FC<Props> = ({ conditional, curationStatus }) => {
             question={question_no}
             disabled={noDisabled}
             parentStatus={curationStatus}
+            chartTheme={chartTheme}
           />
         </ConditionalCard>
       </div>
@@ -92,7 +100,7 @@ const ConditionalArrow: FC<{
   return (
     <div
       className={classNames(
-        "relative flex items-center justify-center",
+        "ConditionalSummary-conditional-arrow relative flex items-center justify-center",
         className
       )}
     >
@@ -102,7 +110,7 @@ const ConditionalArrow: FC<{
 
       <span
         className={classNames(
-          "z-[2] bg-gray-0 px-1 text-xs font-semibold uppercase dark:bg-gray-0-dark",
+          "ConditionalSummary-conditional-label z-[2] bg-gray-0 px-1 text-xs font-semibold uppercase dark:bg-gray-0-dark",
           didHappen
             ? "text-blue-900 dark:text-blue-900-dark"
             : "text-blue-700 dark:text-blue-700-dark"
