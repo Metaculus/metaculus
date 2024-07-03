@@ -110,7 +110,7 @@ const QuestionCard: FC<{ post: Post; onClick?: () => void }> = ({
           <PostStatus
             id={post.id}
             status={statusData.status}
-            closedAt={statusData.closedAt}
+            actualCloseTime={statusData.actualCloseTime}
             resolvedAt={statusData.resolvedAt}
             post={post}
           />
