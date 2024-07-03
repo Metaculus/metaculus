@@ -16,11 +16,11 @@ import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
   title: string;
-  question: any;
+  group_of_questions: any;
 };
 
-const baseQuestionSchema = z.object({
-  type: z.enum(["binary", "multiple_choice", "date", "numeric"]),
+const groupQuestionSchema = z.object({
+  subtype: z.enum(["binary", "date", "numeric"]),
   title: z.string().min(4).max(200),
   description: z.string().min(10),
   resolution_criteria_description: z.string().optional(),
@@ -28,48 +28,17 @@ const baseQuestionSchema = z.object({
   aim_to_close_at: z.date().optional(),
   aim_to_resolve_at: z.date().optional(),
   tournament_id: z.number().optional(),
-  forecasting_open_at: z.date().optional(),
 });
 
-const binaryQuestionSchema = baseQuestionSchema;
-
-const continuousQuestionSchema = baseQuestionSchema.merge(
-  z.object({
-    zero_point: z.number().default(0),
-    open_upper_bound: z.boolean().default(true),
-    open_lower_bound: z.boolean().default(true),
-  })
-);
-
-const numericQuestionSchema = continuousQuestionSchema.merge(
-  z.object({
-    max: z.number().optional(),
-    min: z.number().optional(),
-  })
-);
-
-const dateQuestionSchema = continuousQuestionSchema.merge(
-  z.object({
-    max: z.date().optional(),
-    min: z.date().optional(),
-  })
-);
-
-const multipleChoiceQuestionSchema = baseQuestionSchema.merge(
-  z.object({
-    options: z.array(z.string()).min(1),
-  })
-);
-
 type Props = {
-  questionType: string;
+  subtype: "binary" | "numeric" | "date";
   tournament_id?: number;
   post?: PostWithForecasts | null;
   mode: "create" | "edit";
 };
 
-const QuestionForm: React.FC<Props> = ({
-  questionType,
+const GroupForm: React.FC<Props> = ({
+  subtype,
   mode,
   tournament_id = null,
   post = null,
@@ -79,10 +48,9 @@ const QuestionForm: React.FC<Props> = ({
 
   const submitQuestion = async (data: any) => {
     data["tournament_id"] = tournament_id;
-    data["type"] = questionType;
     let post_data: PostCreationData = {
       title: data["title"],
-      question: data,
+      group_of_questions: data,
     };
     if (mode == "edit" && post) {
       const resp = await updatePost(post.id, post_data);
@@ -95,29 +63,10 @@ const QuestionForm: React.FC<Props> = ({
 
   const [advanced, setAdvanced] = useState(false);
 
-  const getFormSchema = (type: string) => {
-    switch (type) {
-      case "binary":
-        return binaryQuestionSchema;
-      case "numeric":
-        return numericQuestionSchema;
-      case "date":
-        return dateQuestionSchema;
-      case "multiple_choice":
-        return multipleChoiceQuestionSchema;
-      default:
-        throw new Error("Invalid question type");
-    }
-  };
-
   const control = useForm({
     // @ts-ignore
-    resolver: zodResolver(getFormSchema(questionType)),
+    resolver: zodResolver(groupQuestionSchema),
   });
-
-  if (questionType) {
-    control.setValue("type", questionType);
-  }
 
   return (
     <div className="flex flex-row justify-center">
@@ -135,7 +84,6 @@ const QuestionForm: React.FC<Props> = ({
         }}
         onChange={async (e) => {
           const data = control.getValues();
-          data["type"] = questionType;
         }}
         className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-8"
       >
@@ -199,116 +147,6 @@ const QuestionForm: React.FC<Props> = ({
             defaultValue={post?.aim_to_resolve_at}
           />
 
-          <span>Forecasting Open At</span>
-          <Input
-            type="date"
-            {...control.register("forecasting_open_at", {
-              setValueAs: (value: string) => {
-                return new Date(value);
-              },
-            })}
-            errors={control.formState.errors.forecasting_open_at}
-            defaultValue={post?.question?.forecasting_open_at}
-          />
-
-          {questionType == "numeric" && (
-            <>
-              <span>Max</span>
-              <Input
-                type="number"
-                {...control.register("max", {
-                  setValueAs: (value: string) => Number(value),
-                })}
-                errors={control.formState.errors.max}
-                defaultValue={post?.question?.max}
-              />
-              <span>Min</span>
-              <Input
-                type="number"
-                {...control.register("min", {
-                  setValueAs: (value: string) => Number(value),
-                })}
-                errors={control.formState.errors.min}
-                defaultValue={post?.question?.min}
-              />
-            </>
-          )}
-          {questionType == "date" && (
-            <>
-              <span>Max</span>
-              <Input
-                type="date"
-                {...control.register("max", {
-                  setValueAs: (value: string) => {
-                    return new Date(value);
-                  },
-                })}
-                errors={control.formState.errors.max}
-                defaultValue={post?.question?.max}
-              />
-              <span>Min</span>
-              <Input
-                type="date"
-                {...control.register("min", {
-                  setValueAs: (value: string) => {
-                    return new Date(value);
-                  },
-                })}
-                errors={control.formState.errors.min}
-                defaultValue={post?.question?.min}
-              />
-            </>
-          )}
-          {(questionType == "numeric" || questionType == "date") && (
-            <>
-              <span>Open Upper Bound</span>
-              <Input
-                type="checkbox"
-                {...control.register("open_upper_bound")}
-                errors={control.formState.errors.open_upper_bound}
-              />
-
-              <span>Open Lower Bound</span>
-              <Input
-                type="checkbox"
-                {...control.register("open_lower_bound")}
-                errors={control.formState.errors.open_lower_bound}
-              />
-            </>
-          )}
-
-          {questionType == "multiple_choice" && (
-            <>
-              <span>Multiple Choice (separate by ,)</span>
-              <Input
-                type="text"
-                onChange={(event) => {
-                  const options = String(event.target.value)
-                    .split(",")
-                    .map((option) => option.trim());
-                  control.setValue("options", options);
-                }}
-                errors={control.formState.errors.options}
-                defaultValue={post?.question?.options?.join(",")}
-              />
-            </>
-          )}
-
-          {advanced &&
-            (questionType == "numeric" || questionType == "date") && (
-              <>
-                <span>Zero Point</span>
-                <Input
-                  type="number"
-                  {...control.register("zero_point", {
-                    setValueAs: (value: string) => Number(value),
-                  })}
-                  errors={control.formState.errors.zero_point}
-                  defaultValue={post?.question?.zero_point}
-                />
-              </>
-            )}
-
           {advanced && (
             <>
               <span>Resolution Criteria</span>
@@ -351,4 +189,4 @@ const QuestionForm: React.FC<Props> = ({
   );
 };
 
-export default QuestionForm;
+export default GroupForm;
