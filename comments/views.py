@@ -93,12 +93,13 @@ def comment_create_api_view(request: Request):
 @permission_classes([AllowAny])
 def comment_edit_api_view(request: Request, pk: int):
     import difflib
+
     differ = difflib.Differ()
     data = request.data
     comment = Comment.objects.get(id=pk)
-    author = User.objects.get(id=data['author'])
+    author = User.objects.get(id=data["author"])
 
-    diff = list(differ.compare(comment.text.splitlines(), data['text'].splitlines()))
+    diff = list(differ.compare(comment.text.splitlines(), data["text"].splitlines()))
     text_diff = "\n".join(diff)
 
     comment_diff = CommentDiff.objects.create(
@@ -108,7 +109,7 @@ def comment_edit_api_view(request: Request, pk: int):
     )
 
     comment.edit_history.append(comment_diff.id)
-    comment.text = data['text']
+    comment.text = data["text"]
     comment.save()
 
     return Response({}, status=status.HTTP_200_OK)

@@ -132,41 +132,43 @@ def create_group_of_questions(*, questions: list[dict]) -> GroupOfQuestions:
     return obj
 
 
+def clone_question(question: Question, title: str = None):
+    """
+    Avoid auto-cloning to prevent unexpected side effects
+    """
+
+    return create_question(
+        title=title,
+        description=question.description,
+        type=question.type,
+        possibilities=question.possibilities,
+        resolution=question.resolution,
+        max=question.max,
+        min=question.min,
+        zero_point=question.zero_point,
+        open_upper_bound=question.open_upper_bound,
+        open_lower_bound=question.open_lower_bound,
+        options=question.options,
+        resolution_field_set_at=question.resolution_field_set_at,
+        resolution_known_at=question.resolution_known_at,
+        aim_to_close_at=question.aim_to_close_at,
+        aim_to_resolve_at=question.aim_to_resolve_at,
+        forecasting_open_at=question.forecasting_open_at,
+        closed_at=question.closed_at,
+    )
+
+
 def create_conditional(
     *, condition_id: int = None, condition_child_id: int = None
 ) -> Conditional:
     # Auto-generating yes/no questions
-    def clone_question(question: Question, title: str = None):
-        """
-        Avoid auto-cloning to prevent unexpected side effects
-        """
-
-        return create_question(
-            title=title,
-            description=question.description,
-            type=question.type,
-            possibilities=question.possibilities,
-            resolution=question.resolution,
-            max=question.max,
-            min=question.min,
-            zero_point=question.zero_point,
-            open_upper_bound=question.open_upper_bound,
-            open_lower_bound=question.open_lower_bound,
-            options=question.options,
-            resolution_field_set_at=question.resolution_field_set_at,
-            resolution_known_at=question.resolution_known_at,
-            aim_to_close_at=question.aim_to_close_at,
-            aim_to_resolve_at=question.aim_to_resolve_at,
-            forecasting_open_at=question.forecasting_open_at,
-            closed_at=question.closed_at,
-        )
 
     condition = Question.objects.get(pk=condition_id)
     condition_child = Question.objects.get(pk=condition_child_id)
 
     obj = Conditional(
         condition_id=condition_id,
-        condition_child_id=condition_id,
+        condition_child_id=condition_child_id,
         # Autogen questions
         question_yes=clone_question(
             condition_child, title=f"{condition.title} (Yes) → {condition_child.title}"

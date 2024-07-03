@@ -26,6 +26,7 @@ from questions.serializers import (
     GroupOfQuestionsSerializer,
     QuestionSerializer,
 )
+from questions.services import clone_question
 from utils.files import UserUploadedImage, generate_filename
 
 
@@ -102,11 +103,37 @@ def post_update_api_view(request, pk):
         ser.is_valid(raise_exception=True)
         ser.save()
     if conditional_data:
-        ser = ConditionalSerializer(
-            post.conditional, data=conditional_data, partial=True
-        )
-        ser.is_valid(raise_exception=True)
-        ser.save()
+        condition = None
+        condition_child = None
+        if conditional_data["condition_id"] != post.conditional.condition_id:
+            condition = Question.objects.get(pk=conditional_data["condition_id"])
+        if (
+            conditional_data["condition_child_id"]
+            != post.conditional.condition_child_id
+        ):
+            condition_child = Question.objects.get(
+                pk=conditional_data["condition_child_id"]
+            )
+
+        if condition_child or condition:
+            if condition_child:
+                post.conditional.condition_child = condition_child
+            if condition:
+                post.conditional.condition = condition
+            q = clone_question(
+                condition_child,
+                title=f"{post.conditional.condition.title} (Yes) → {post.conditional.condition_child.title}",
+            )
+            q.save()
+            post.conditional.question_yes = q
+            q = clone_question(
+                condition_child,
+                title=f"{post.conditional.condition.title} (No) → {post.conditional.condition_child.title}",
+            )
+            q.save()
+            post.conditional.question_no = q
+        print(post.conditional.question_no_id, post.conditional.question_yes_id)
+        post.conditional.save()
     if group_of_questions_data:
         sub_questions = group_of_questions_data.get("questions", None)
         if sub_questions:
