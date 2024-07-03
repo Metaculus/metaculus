@@ -74,24 +74,20 @@ def get_posts_feed(
     if tournaments:
         qs = qs.filter(Q(projects__in=tournaments) | Q(default_project__in=tournaments))
 
-    if forecast_type:
-        forecast_type_q = Q()
+    forecast_type_q = Q()
 
-        if "notebook" in forecast_type:
-            forecast_type.pop(forecast_type.index("notebook"))
-            forecast_type_q |= Q(notebook__isnull=False)
+    for f_type in forecast_type:
+        match f_type:
+            case "notebook":
+                forecast_type_q |= Q(notebook__isnull=False)
+            case "conditional":
+                forecast_type_q |= Q(conditional__isnull=False)
+            case "group_of_questions":
+                forecast_type_q |= Q(group_of_questions__isnull=False)
+            case _:
+                forecast_type_q |= Q(question__type__in=forecast_type)
 
-        if "conditional" in forecast_type:
-            forecast_type.pop(forecast_type.index("conditional"))
-            forecast_type_q |= Q(conditional__isnull=False)
-
-        if "group_of_questions" in forecast_type:
-            forecast_type.pop(forecast_type.index("group_of_questions"))
-            forecast_type_q |= Q(group_of_questions__isnull=False)
-
-        if forecast_type:
-            forecast_type_q |= Q(question__type__in=forecast_type)
-        qs = qs.filter(forecast_type_q)
+    qs = qs.filter(forecast_type_q)
 
     statuses = statuses or []
 
