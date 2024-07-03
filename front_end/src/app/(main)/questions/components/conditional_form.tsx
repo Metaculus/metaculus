@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -10,7 +10,7 @@ import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
 import { PostStatus, PostWithForecasts } from "@/types/post";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { QuestionType } from "@/types/question";
 
 import { createQuestionPost, getPost, updatePost } from "../actions";
 
