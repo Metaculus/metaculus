@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { ProjectPermissions } from "@/types/post";
 import {
   QuestionType,
   QuestionWithForecasts,
@@ -13,9 +14,10 @@ import ForecastMakerGroupNumeric from "./forecast_maker_group_numeric";
 type Props = {
   postId: number;
   questions: QuestionWithForecasts[];
+  permission?: ProjectPermissions;
 };
 
-const ForecastMakerGroup: FC<Props> = ({ postId, questions }) => {
+const ForecastMakerGroup: FC<Props> = ({ postId, questions, permission }) => {
   const t = useTranslations();
 
   const renderForecastMaker = () => {
@@ -31,6 +33,7 @@ const ForecastMakerGroup: FC<Props> = ({ postId, questions }) => {
           <ForecastMakerGroupBinary
             postId={postId}
             questions={questions as QuestionWithNumericForecasts[]}
+            permission={permission}
           />
         );
       case QuestionType.Numeric:
@@ -39,6 +42,7 @@ const ForecastMakerGroup: FC<Props> = ({ postId, questions }) => {
           <ForecastMakerGroupNumeric
             postId={postId}
             questions={questions as QuestionWithNumericForecasts[]}
+            permission={permission}
           />
         );
       default:
