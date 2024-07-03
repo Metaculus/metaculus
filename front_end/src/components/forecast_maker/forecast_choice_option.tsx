@@ -1,7 +1,7 @@
 "use client";
 
 import classNames from "classnames";
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState, ReactNode } from "react";
 
 import ChoiceIcon from "@/components/choice_icon";
 import Slider from "@/components/sliders/slider";
@@ -23,6 +23,7 @@ type Props<T> = {
   onChange: (id: T, forecast: number) => void;
   isDirty: boolean;
   isRowDirty?: boolean;
+  menu?: ReactNode;
 };
 
 const ForecastChoiceOption = <T = string,>({
@@ -37,6 +38,7 @@ const ForecastChoiceOption = <T = string,>({
   forecastValue,
   isDirty,
   isRowDirty,
+  menu,
 }: Props<T>) => {
   const inputDisplayValue = forecastValue
     ? forecastValue?.toString() + "%"
@@ -124,7 +126,10 @@ const ForecastChoiceOption = <T = string,>({
           />
         </td>
         <td className="hidden w-full border-t border-gray-300 p-2 dark:border-gray-300-dark sm:table-cell">
-          {SliderElement}
+          <div className="flex">
+            <div className="w-full">{SliderElement}</div>
+            <div>{menu}</div>
+          </div>
         </td>
       </tr>
       <tr

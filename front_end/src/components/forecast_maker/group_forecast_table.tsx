@@ -5,6 +5,7 @@ import {
   DetailedHTMLProps,
   FC,
   PropsWithChildren,
+  ReactNode,
   ThHTMLAttributes,
   useMemo,
 } from "react";
@@ -24,6 +25,7 @@ export type ConditionalTableOption = {
   communityQuartiles: Quartiles;
   isDirty: boolean;
   resolution: string | null;
+  menu?: ReactNode;
 };
 
 type Props = {
@@ -78,11 +80,14 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
                   </RadioButton>
                 </Td>
                 <Td className="border-b" colSpan={3}>
-                  <div className="flex items-center justify-center">
-                    <ResolutionIcon />
-                    <span className="text-purple-800 dark:text-purple-800-dark">
-                      {option.resolution}
-                    </span>
+                  <div className="flex">
+                    <div className="flex w-full items-center justify-center">
+                      <ResolutionIcon />
+                      <span className="text-purple-800 dark:text-purple-800-dark">
+                        {option.resolution}
+                      </span>
+                    </div>
+                    <div>{option.menu}</div>
                   </div>
                 </Td>
               </>
@@ -160,11 +165,16 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
                     "border-b": optionIdx !== pendingOptions.length - 1,
                   })}
                 >
-                  <PredictionCell
-                    communityValue={option.communityQuartiles.upper75}
-                    userValue={option.userQuartiles?.upper75}
-                    isDirty={option.isDirty}
-                  />
+                  <div className="flex">
+                    <div className="w-full">
+                      <PredictionCell
+                        communityValue={option.communityQuartiles.upper75}
+                        userValue={option.userQuartiles?.upper75}
+                        isDirty={option.isDirty}
+                      />
+                    </div>
+                    <div>{option.menu}</div>
+                  </div>
                 </Td>
               </>
             )}
