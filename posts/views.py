@@ -22,7 +22,6 @@ from posts.services import get_posts_feed, create_post, get_post_permission_for_
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers import (
-    ConditionalSerializer,
     GroupOfQuestionsSerializer,
     QuestionSerializer,
 )

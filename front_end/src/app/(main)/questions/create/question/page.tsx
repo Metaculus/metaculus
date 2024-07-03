@@ -17,6 +17,7 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   const question_type: string = post
     ? (post.question?.type as string)
     : (searchParams["type"] as string);
+
   return (
     <QuestionForm
       post={post}

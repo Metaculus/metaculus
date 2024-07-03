@@ -10,22 +10,21 @@ const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
 import { useState } from "react";
 import Button from "@/components/ui/button";
 import { createQuestionPost } from "../../actions";
+import { useTranslations } from "next-intl";
 
 const NotebookCreator: React.FC = ({}) => {
   const [markdown, setMarkdown] = useState("");
   const [title, setTitle] = useState("");
+  const t = useTranslations();
 
   return (
     <div className="h-50vh mx-auto mb-8 mt-4 max-w-3xl overflow-auto rounded-lg bg-gray-0 p-6 dark:bg-gray-100-dark">
       <input
-        className="text-xl"
+        className="mb-4 p-1 pl-2 text-xl"
         type="text"
-        placeholder="Title of this notebook"
+        placeholder={t("Title")}
         onChange={(e) => setTitle(e.target.value)}
       ></input>
-      <div className="m-2  mb-4">
-        <input type="text" className="w-full max-w-[600px] p-1 text-xl" />
-      </div>
       <div className="pl-2">
         <MarkdownEditor
           markdown={markdown}
