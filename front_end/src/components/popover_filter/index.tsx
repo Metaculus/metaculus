@@ -92,6 +92,7 @@ const PopoverFilter: FC<Props> = ({
           <ComboboxFilter
             filterId={filter.id}
             options={filter.options}
+            optionsFetcher={filter.optionsFetcher}
             onChange={onChange}
             chipColor={filter.chipColor}
             chipFormat={filter.chipFormat}
