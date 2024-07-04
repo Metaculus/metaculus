@@ -71,7 +71,6 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
-    print(request.data)
     serializer = PostWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
@@ -131,7 +130,6 @@ def post_update_api_view(request, pk):
             )
             q.save()
             post.conditional.question_no = q
-        print(post.conditional.question_no_id, post.conditional.question_yes_id)
         post.conditional.save()
     if group_of_questions_data:
         sub_questions = group_of_questions_data.get("questions", None)
