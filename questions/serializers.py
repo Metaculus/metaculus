@@ -119,7 +119,7 @@ class ConditionalWriteSerializer(serializers.ModelSerializer):
 class GroupOfQuestionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = GroupOfQuestions
-        fields = ("id",)
+        fields = ("id", "description", "resolution_criteria_description", "fine_print", "group_variable")
 
 
 class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
