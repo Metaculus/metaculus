@@ -29,7 +29,7 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
                   href={provider.auth_url}
                   variant="tertiary"
                   size="sm"
-                  className="mt-2 w-full"
+                  className="w-full"
                 >
                   <Google className="mr-2 flex-none" />
                   <span className="flex-1 whitespace-nowrap text-center">
@@ -46,7 +46,7 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
                   href={provider.auth_url}
                   variant="tertiary"
                   size="sm"
-                  className="mt-2 w-full"
+                  className="w-full"
                 >
                   <FontAwesomeIcon
                     icon={faFacebook}
