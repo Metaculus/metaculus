@@ -8,7 +8,6 @@ export type ButtonVariant =
   | "primary"
   | "secondary"
   | "tertiary"
-  | "bright"
   | "text"
   | "link";
 type PresentationType = "default" | "icon";
@@ -90,10 +89,6 @@ function getPresentationTypeStyles(
         "2xl": "h-16 w-16",
       }[size];
     default:
-      if (variant === "bright") {
-        return "px-2 py-1";
-      }
-
       return {
         xs: "px-2 py-0.5",
         sm: "px-3 py-2",
