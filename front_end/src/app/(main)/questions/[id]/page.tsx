@@ -1,10 +1,7 @@
 import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { parseISO } from "date-fns";
-<<<<<<< HEAD
 import { Metadata } from "next";
-=======
->>>>>>> e594bf3 (restrict commentEditor if not signed in)
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
@@ -16,11 +13,8 @@ import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
 import ForecastMaker from "@/components/forecast_maker";
 import Button from "@/components/ui/button";
-<<<<<<< HEAD
 import Hr from "@/components/ui/hr";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
-=======
->>>>>>> 148f3d7 (add filtering private comments)
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
@@ -31,7 +25,6 @@ import DetailedGroupCard from "./components/detailed_group_card";
 import DetailedQuestionCard from "./components/detailed_question_card";
 import Modbox from "./components/modbox";
 
-<<<<<<< HEAD
 type Props = {
   params: { id: number };
   searchParams: SearchParams;
@@ -57,8 +50,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-=======
->>>>>>> e594bf3 (restrict commentEditor if not signed in)
 export default async function IndividualQuestion({
   params,
   searchParams,
@@ -197,15 +188,6 @@ export default async function IndividualQuestion({
               </div>
             </div>
             <div>
-              <Hr className="my-4" />
-              <h2
-                className="mb-1 mt-0 flex scroll-mt-16 items-baseline justify-between break-anywhere"
-                id="comment-section"
-              >
-                Comments
-              </h2>
-              {/* TODO: can only use comment editor if logged in / have permissions */}
-              <CommentEditor />
               {commentsData && (
                 <CommentFeed initialComments={commentsData} post={postData} />
               )}
@@ -259,14 +241,6 @@ export default async function IndividualQuestion({
               </div>
             </div>
           </div>
-<<<<<<< HEAD
-=======
-          <div>
-            {commentsData && (
-              <CommentFeed initialComments={commentsData} post={postData} />
-            )}
-          </div>
->>>>>>> 148f3d7 (add filtering private comments)
         </div>
       </main>
 
