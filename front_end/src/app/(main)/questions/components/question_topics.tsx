@@ -117,6 +117,12 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             onClick={switchToHomeFeed}
             isActive={selectedTopic === null}
           />
+          <TopicItem
+            text={t("myPredictions")}
+            emoji={<FontAwesomeIcon icon={faHome} />}
+            onClick={switchToHomeFeed}
+            isActive={false}
+          />
 
           <TopicItem
             isActive={false}

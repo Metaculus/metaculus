@@ -7,10 +7,10 @@ import invariant from "ts-invariant";
 
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import ProjectMembers from "@/app/(main)/tournaments/components/members";
+import TournamentFilters from "@/components/filters/tournament_filters";
 import HtmlContent from "@/components/html_content";
 import AwaitedLeaderboard from "@/components/leaderboard";
 import AwaitedPostsFeed from "@/components/posts_feed";
-import PostsFilters from "@/components/posts_filters";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostsParams } from "@/services/posts";
@@ -124,7 +124,7 @@ export default async function TournamentSlug({
         )}
         <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
           <h2 className="mb-5">{questionsTitle}</h2>
-          <PostsFilters categories={categories} tags={tags} />
+          <TournamentFilters categories={categories} tags={tags} />
           <Suspense
             key={JSON.stringify(searchParams)}
             fallback={

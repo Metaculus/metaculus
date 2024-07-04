@@ -441,6 +441,8 @@
   "new": "New",
   "oldest": "Oldest",
   "newest": "Newest",
+  "stale": "Stale",
+  "newComments": "New Comments",
   "divergence": "Divergence",
   "myPredictions": "My Predictions",
   "mostUpvotes": "Most Upvotes",

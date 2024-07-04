@@ -9,6 +9,9 @@ export enum QuestionType {
 
 export enum QuestionOrder {
   ActivityDesc = "-activity",
+  StaleDesc = "-stale",
+  // TODO: clarify logic
+  NewCommentsDesc = "-new_comment_count",
   WeeklyMovementDesc = "-weekly_movement",
   PublishTimeDesc = "-publish_time",
   LastPredictionTimeAsc = "last_prediction_time",

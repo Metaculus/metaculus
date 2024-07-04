@@ -7,14 +7,15 @@ import { FC, useMemo } from "react";
 import {
   getDropdownSortOptions,
   getFilterChipColor,
-  getMainOrderOptions,
-  getPostsFilters,
   getUserSortOptions,
 } from "@/app/(main)/questions/helpers/filters";
 import PopoverFilter from "@/components/popover_filter";
-import { FilterReplaceInfo } from "@/components/popover_filter/types";
+import {
+  FilterReplaceInfo,
+  FilterSection,
+} from "@/components/popover_filter/types";
 import SearchInput from "@/components/search_input";
-import ButtonGroup from "@/components/ui/button_group";
+import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
 import Listbox from "@/components/ui/listbox";
 import {
@@ -26,7 +27,6 @@ import {
 import { useAuth } from "@/contexts/auth_context";
 import useSearchInputState from "@/hooks/use_search_input_state";
 import useSearchParams from "@/hooks/use_search_params";
-import { Category, Tag } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 
 type ActiveFilter = {
@@ -42,6 +42,12 @@ const OPEN_STATUS_FILTERS = [
   QuestionOrder.LastPredictionTimeDesc,
   QuestionOrder.LastPredictionTimeDesc,
   QuestionOrder.DivergenceDesc,
+  QuestionOrder.StaleDesc,
+  QuestionOrder.NewCommentsDesc,
+];
+const RESOLVED_STATUS_FILTERS = [
+  QuestionOrder.StaleDesc,
+  QuestionOrder.NewCommentsDesc,
 ];
 const GUESSED_BY_FILTERS = [
   QuestionOrder.LastPredictionTimeAsc,
@@ -50,11 +56,11 @@ const GUESSED_BY_FILTERS = [
 ];
 
 type Props = {
-  categories: Category[];
-  tags: Tag[];
+  filters: FilterSection[];
+  mainSortOptions: GroupButton<QuestionOrder>[];
 };
 
-const PostsFilters: FC<Props> = ({ categories, tags }) => {
+const PostsFilters: FC<Props> = ({ filters, mainSortOptions }) => {
   const t = useTranslations();
   const {
     params,
@@ -73,14 +79,12 @@ const PostsFilters: FC<Props> = ({ categories, tags }) => {
 
   const order = (params.get(POST_ORDER_BY_FILTER) ??
     DEFAULT_ORDER) as QuestionOrder;
-  const mainSortOptions = useMemo(() => getMainOrderOptions(t), [t]);
   const userPredictionSortOptions = useMemo(() => getUserSortOptions(t), [t]);
   const dropdownSortOptions = useMemo(
     () => getDropdownSortOptions(t, !!user),
     [t, user]
   );
   const [popoverFilters, activeFilters] = useMemo(() => {
-    const filters = getPostsFilters({ tags, user, t, params, categories });
     const activeFilters: ActiveFilter[] = filters.flatMap((filterSection) =>
       filterSection.options
         .filter((o) => o.active)
@@ -92,11 +96,12 @@ const PostsFilters: FC<Props> = ({ categories, tags }) => {
     );
 
     return [filters, activeFilters];
-  }, [categories, params, t, tags, user]);
+  }, [filters]);
   const handleOrderChange = (order: QuestionOrder) => {
     const withNavigation = false;
 
     clearPopupFilters(withNavigation);
+    const postStatusFilters = [];
 
     if (order === DEFAULT_ORDER) {
       deleteParam(POST_ORDER_BY_FILTER, withNavigation);
@@ -104,9 +109,9 @@ const PostsFilters: FC<Props> = ({ categories, tags }) => {
       setParam(POST_ORDER_BY_FILTER, order, withNavigation);
     }
 
-    if (OPEN_STATUS_FILTERS.includes(order)) {
-      setParam(POST_STATUS_FILTER, "open", withNavigation);
-    }
+    if (OPEN_STATUS_FILTERS.includes(order)) postStatusFilters.push("open");
+    if (RESOLVED_STATUS_FILTERS.includes(order))
+      postStatusFilters.push("resolved");
 
     if (!!user && GUESSED_BY_FILTERS.includes(order)) {
       setParam(POST_GUESSED_BY_FILTER, user.id.toString(), withNavigation);
@@ -114,6 +119,10 @@ const PostsFilters: FC<Props> = ({ categories, tags }) => {
 
     if (order === QuestionOrder.ResolveTimeAsc) {
       setParam(POST_STATUS_FILTER, "open", withNavigation);
+    }
+
+    if (postStatusFilters.length) {
+      setParam(POST_STATUS_FILTER, postStatusFilters, withNavigation);
     }
 
     navigateToSearchParams();

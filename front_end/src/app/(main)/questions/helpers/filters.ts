@@ -50,7 +50,7 @@ const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
 };
 
 // TODO: translate
-const POST_STATUS_LABEL_MAP = {
+export const POST_STATUS_LABEL_MAP = {
   [PostStatus.APPROVED]: "Open",
   [PostStatus.RESOLVED]: "Resolved",
   [PostStatus.CLOSED]: "Closed",
@@ -120,6 +120,84 @@ export function generateFiltersFromSearchParams(
   return filters;
 }
 
+export function getFilterSectionPostType({
+  t,
+  params,
+}: {
+  t: ReturnType<typeof useTranslations>;
+  params: URLSearchParams;
+}): FilterSection {
+  return {
+    id: POST_TYPE_FILTER,
+    title: t("questionType"),
+    type: FilterOptionType.MultiChip,
+    options: [
+      ...mapForecastTypeOptions(Object.values(QuestionType), params),
+      ...mapForecastTypeOptions(Object.values(PostForecastType), params),
+      ...mapForecastTypeOptions(Object.values(NotebookType), params),
+    ],
+  };
+}
+
+export function getFilterSectionPostStatus({
+  t,
+  params,
+}: {
+  t: ReturnType<typeof useTranslations>;
+  params: URLSearchParams;
+}): FilterSection {
+  return {
+    id: POST_STATUS_FILTER,
+    title: t("questionStatus"),
+    type: FilterOptionType.MultiChip,
+    options: Object.values(PostStatus).map((status) => ({
+      label: POST_STATUS_LABEL_MAP[status],
+      value: status,
+      active: params.getAll(POST_STATUS_FILTER).includes(status),
+    })),
+  };
+}
+
+export function getFilterSectionUsername({
+  t,
+  params,
+}: {
+  t: ReturnType<typeof useTranslations>;
+  params: URLSearchParams;
+}): FilterSection {
+  return {
+    id: POST_USERNAMES_FILTER,
+    title: t("questionAuthor"),
+    type: FilterOptionType.Combobox,
+    options: params.getAll(POST_USERNAMES_FILTER).map((username) => ({
+      label: username,
+      value: username,
+      active: params.getAll(POST_USERNAMES_FILTER).includes(username),
+    })),
+    optionsFetcher: async (query: string) => {
+      if (query.length < 3) {
+        return [];
+      }
+
+      const response = await searchUsers(query);
+
+      if (response && "errors" in response) {
+        return [];
+      }
+
+      return response.results.map((obj) => ({
+        label: obj.username,
+        value: obj.username,
+        active: params.getAll(POST_USERNAMES_FILTER).includes(obj.username),
+      }));
+    },
+    chipColor: getFilterChipColor(POST_USERNAMES_FILTER),
+    chipFormat: (value: string) =>
+      t("questionAuthorFilter", { author: value.toLowerCase() }),
+    shouldEnforceSearch: true,
+  };
+}
+
 const mapForecastTypeOptions = (
   types: ForecastType[],
   params: URLSearchParams
@@ -144,26 +222,8 @@ export function getPostsFilters({
   user: CurrentUser | null;
 }): FilterSection[] {
   const filters: FilterSection[] = [
-    {
-      id: POST_TYPE_FILTER,
-      title: t("questionType"),
-      type: FilterOptionType.MultiChip,
-      options: [
-        ...mapForecastTypeOptions(Object.values(QuestionType), params),
-        ...mapForecastTypeOptions(Object.values(PostForecastType), params),
-        ...mapForecastTypeOptions(Object.values(NotebookType), params),
-      ],
-    },
-    {
-      id: POST_STATUS_FILTER,
-      title: t("questionStatus"),
-      type: FilterOptionType.MultiChip,
-      options: Object.values(PostStatus).map((status) => ({
-        label: POST_STATUS_LABEL_MAP[status],
-        value: status,
-        active: params.getAll(POST_STATUS_FILTER).includes(status),
-      })),
-    },
+    getFilterSectionPostType({ t, params }),
+    getFilterSectionPostStatus({ t, params }),
     {
       id: POST_CATEGORIES_FILTER,
       title: t("category"),
@@ -188,37 +248,7 @@ export function getPostsFilters({
       chipFormat: (value) => t("tagFilter", { tag: value.toLowerCase() }),
       shouldEnforceSearch: true,
     },
-    {
-      id: POST_USERNAMES_FILTER,
-      title: t("questionAuthor"),
-      type: FilterOptionType.Combobox,
-      options: params.getAll(POST_USERNAMES_FILTER).map((username) => ({
-        label: username,
-        value: username,
-        active: params.getAll(POST_USERNAMES_FILTER).includes(username),
-      })),
-      optionsFetcher: async (query) => {
-        if (query.length < 3) {
-          return [];
-        }
-
-        const response = await searchUsers(query);
-
-        if (response && "errors" in response) {
-          return [];
-        }
-
-        return response.results.map((obj) => ({
-          label: obj.username,
-          value: obj.username,
-          active: params.getAll(POST_USERNAMES_FILTER).includes(obj.username),
-        }));
-      },
-      chipColor: getFilterChipColor(POST_USERNAMES_FILTER),
-      chipFormat: (value) =>
-        t("questionAuthorFilter", { author: value.toLowerCase() }),
-      shouldEnforceSearch: true,
-    },
+    getFilterSectionUsername({ t, params }),
   ];
 
   if (user) {
