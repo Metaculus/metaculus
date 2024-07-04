@@ -4,9 +4,11 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import usePrevious from "@/hooks/use_previous";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import {
@@ -42,6 +44,7 @@ const BinaryGroupChart: FC<Props> = ({
   preselectedQuestionId,
 }) => {
   const t = useTranslations();
+  const { user } = useAuth();
 
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => {
@@ -138,6 +141,12 @@ const BinaryGroupChart: FC<Props> = ({
           yLabel={t("communityPredictionLabel")}
           onChartReady={handleChartReady}
           onCursorChange={handleCursorChange}
+          defaultZoom={
+            user
+              ? TimelineChartZoomOption.All
+              : TimelineChartZoomOption.TwoMonths
+          }
+          withZoomPicker
         />
       </div>
 

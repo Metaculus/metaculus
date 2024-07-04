@@ -24,6 +24,7 @@ const QuestionEmbedModal: FC<Props> = ({ postId }) => {
       embedWidth={550}
       embedHeight={430}
       url={embedUrl}
+      withChartZoom
     />
   );
 };

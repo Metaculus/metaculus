@@ -26,3 +26,10 @@ export type FanOption = {
   quartiles: Quartiles;
   resolved: boolean;
 };
+
+export enum TimelineChartZoomOption {
+  OneDay = "1d",
+  OneWeek = "1w",
+  TwoMonths = "2m",
+  All = "all",
+}

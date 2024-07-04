@@ -1,6 +1,9 @@
+"use client";
 import { FC } from "react";
 
 import MultipleChoiceTile from "@/components/multiple_choice_tile";
+import { useAuth } from "@/contexts/auth_context";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
@@ -19,6 +22,8 @@ const QuestionChartTile: FC<Props> = ({
   authorUsername,
   curationStatus,
 }) => {
+  const { user } = useAuth();
+
   if (curationStatus === PostStatus.PENDING) {
     return (
       <div>{`Created by ${authorUsername} on ${question.created_at.slice(0, 7)}`}</div>
@@ -30,6 +35,10 @@ const QuestionChartTile: FC<Props> = ({
     return <div>Forecasts data is empty</div>;
   }
 
+  const defaultChartZoom: TimelineChartZoomOption = user
+    ? TimelineChartZoomOption.All
+    : TimelineChartZoomOption.TwoMonths;
+
   switch (question.type) {
     case QuestionType.Numeric:
     case QuestionType.Date:
@@ -38,6 +47,7 @@ const QuestionChartTile: FC<Props> = ({
         <QuestionNumericTile
           question={question}
           curationStatus={curationStatus}
+          defaultChartZoom={defaultChartZoom}
         />
       );
     case QuestionType.MultipleChoice: {
@@ -52,6 +62,7 @@ const QuestionChartTile: FC<Props> = ({
           timestamps={question.forecasts.timestamps}
           choices={choices}
           visibleChoicesCount={visibleChoicesCount}
+          defaultChartZoom={defaultChartZoom}
         />
       );
     }

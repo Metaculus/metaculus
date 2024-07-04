@@ -9,6 +9,7 @@ import { fetchMorePosts } from "@/app/(main)/questions/actions";
 import Carousel, { CarouselItem } from "@/components/carousel";
 import ForecastCard from "@/components/forecast_card";
 import { POST_STATUS_FILTER } from "@/constants/posts_feed";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 
 type Props = {
@@ -49,7 +50,10 @@ const QuestionCarousel: FC<Props> = ({ postIds }) => {
     >
       {data.map((p) => (
         <CarouselItem key={p.id}>
-          <ForecastCard post={p} />
+          <ForecastCard
+            post={p}
+            defaultChartZoom={TimelineChartZoomOption.TwoMonths}
+          />
         </CarouselItem>
       ))}
     </Carousel>

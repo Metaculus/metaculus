@@ -40,6 +40,7 @@ const NumericSlider: FC<Props> = ({
         height={300}
         min={question.min}
         max={question.max}
+        type={question.type}
         data={[
           {
             pmf: question.forecasts.latest_pmf,

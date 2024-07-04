@@ -5,7 +5,7 @@ import { FC, useState } from "react";
 
 import SearchInput from "@/components/search_input";
 import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
-import { encodeQueryParams } from "@/utils/query_params";
+import { encodeQueryParams } from "@/utils/navigation";
 
 type Props = {};
 
