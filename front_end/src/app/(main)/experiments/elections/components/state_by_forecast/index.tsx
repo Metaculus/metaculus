@@ -106,7 +106,7 @@ const StateByForecast: FC<Props> = async ({
           </Button>
         </Link>
 
-        <ElectionsEmbedModal embedWidth={800} embedHeight={800} />
+        <ElectionsEmbedModal />
       </div>
 
       <div className="relative mt-10 w-full md:mt-0">

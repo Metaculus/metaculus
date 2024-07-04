@@ -8,6 +8,7 @@ import { NextRequest } from "next/server";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
+import { Toaster } from "react-hot-toast";
 
 import GlobalModals from "@/components/global_modals";
 import AppThemeProvided from "@/components/theme_provider";
@@ -138,6 +139,7 @@ export default async function RootLayout({
                 />
                 {children}
                 <GlobalModals />
+                <Toaster />
               </ModalProvider>
             </AuthProvider>
           </NextIntlClientProvider>
