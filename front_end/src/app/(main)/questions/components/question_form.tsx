@@ -94,7 +94,9 @@ const QuestionForm: React.FC<Props> = ({
   };
 
   const [advanced, setAdvanced] = useState(false);
-
+  const [optionsList, setOptionsList] = useState<string[]>(
+    post?.question?.options ? post?.question?.options : []
+  );
   const getFormSchema = (type: string) => {
     switch (type) {
       case "binary":
@@ -301,11 +303,34 @@ const QuestionForm: React.FC<Props> = ({
                   const options = String(event.target.value)
                     .split(",")
                     .map((option) => option.trim());
-                  control.setValue("options", options);
+                  setOptionsList(options);
                 }}
                 errors={control.formState.errors.options}
-                defaultValue={post?.question?.options?.join(",")}
+                value={optionsList.join(",")}
               />
+              {optionsList && (
+                <div className="flex flex-col">
+                  {optionsList.map((option: string, opt_index: number) => {
+                    return (
+                      <Input
+                        key={opt_index}
+                        className="m-2 w-min min-w-[120px] border p-2 text-xs"
+                        value={option}
+                        onChange={(e) => {
+                          setOptionsList(
+                            optionsList.map((opt, index) => {
+                              if (index == opt_index) {
+                                return e.target.value;
+                              }
+                              return opt;
+                            })
+                          );
+                        }}
+                      ></Input>
+                    );
+                  })}
+                </div>
+              )}
             </>
           )}
 
