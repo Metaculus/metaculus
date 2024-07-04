@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework import serializers, status
 from django.shortcuts import get_object_or_404
 from datetime import datetime
+from django.db.models import Q
 
 from posts.models import Post
 from questions.models import Forecast
@@ -33,6 +34,9 @@ def comments_list_api_view(request: Request):
     )
     if author_param:
         comments = comments.filter(author_id=author_param)
+
+    #filter out private comments, unless they were written by the request user
+    comments = comments.filter(Q(is_private=False)|Q(author=request._user))
 
     # for testing, show a max of 20 comments
     comments = comments.all()[:20]
@@ -65,6 +69,7 @@ def comment_create_api_view(request: Request):
     data = request.data
     now = datetime.now()
 
+    # need to do validation that author exists?  author is allowed to comment on this post?
     author = User.objects.get(id=data["author"])
     post = Post.objects.get(id=data["on_post"])
     parent = None
