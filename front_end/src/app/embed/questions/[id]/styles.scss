@@ -38,6 +38,7 @@ a {
 }
 
 .ForecastCard {
+  @apply p-0;
   &-header {
     justify-content: space-between;
     gap: 10px;
@@ -61,6 +62,9 @@ a {
   @media screen and (min-width: $embeds-min-width) {
     height: 100%;
     align-items: center;
+    &-arrows {
+      @apply gap-12;
+    }
     &-conditional-arrow {
       width: auto;
       background-size: 80%;

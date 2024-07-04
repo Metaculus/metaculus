@@ -5,6 +5,7 @@ import { VictoryThemeDefinition } from "victory";
 
 import { PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
+import { getConditionalQuestionTitle } from "@/utils/questions";
 
 import ConditionalCard from "./conditional_card";
 import ConditionalChart from "./conditional_chart";
@@ -25,6 +26,7 @@ const ConditionalTile: FC<Props> = ({
   const t = useTranslations();
 
   const { condition, question_yes, question_no } = conditional;
+  const isEmbedded = !!chartTheme;
 
   const parentSuccessfullyResolved =
     curationStatus === PostStatus.RESOLVED &&
@@ -45,30 +47,47 @@ const ConditionalTile: FC<Props> = ({
 
   return (
     <div className="ConditionalSummary grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
-      <div className="ConditionalSummary-condition col-span-2 row-span-1 flex flex-col justify-center md:col-span-1 md:row-auto">
+      <div
+        className={classNames(
+          "ConditionalSummary-condition flex flex-col justify-center",
+          { "col-span-2 row-span-1 md:col-span-1 md:row-auto": !isEmbedded }
+        )}
+      >
         <ConditionalCard
           label="Condition"
           title={condition.title}
           resolved={parentSuccessfullyResolved}
         />
       </div>
-      <div className="ConditionalSummary-arrows relative row-span-2 ml-3 flex flex-col justify-start gap-0 md:row-auto md:ml-0 md:justify-center md:gap-12">
+      <div
+        className={classNames(
+          "ConditionalSummary-arrows relative flex flex-col justify-start gap-0 md:row-auto md:justify-center md:gap-12",
+          { "row-span-2 ml-3 md:ml-0": !isEmbedded }
+        )}
+      >
         <ConditionalArrow
           label={t("arrowIfNo")}
           didHappen={yesHappened}
           disabled={yesDisabled}
-          className="flex-1 md:flex-none"
+          className={!isEmbedded ? "flex-1 md:flex-none" : undefined}
         />
         <ConditionalArrow
           label={t("arrowIfYes")}
           didHappen={noHappened}
           disabled={noDisabled}
-          className="flex-1 md:flex-none"
+          className={!isEmbedded ? "flex-1 md:flex-none" : undefined}
         />
-        <div className="absolute left-0 top-0 h-3/4 w-[1px] bg-blue-700 dark:bg-blue-700-dark md:hidden" />
+        {!isEmbedded && (
+          <div className="absolute left-0 top-0 h-3/4 w-[1px] bg-blue-700 dark:bg-blue-700-dark md:hidden" />
+        )}
       </div>
-      <div className="ConditionalSummary-conditionals row-span-2 flex flex-col gap-3 md:row-auto">
-        <ConditionalCard title={question_yes.title}>
+      <div
+        className={classNames(
+          "ConditionalSummary-conditionals flex flex-col gap-3",
+          { "row-span-2 md:row-auto": !isEmbedded }
+        )}
+      >
+        <ConditionalCard title={getConditionalQuestionTitle(question_yes)}>
           <ConditionalChart
             parentResolved={parentSuccessfullyResolved}
             question={question_yes}
@@ -77,7 +96,7 @@ const ConditionalTile: FC<Props> = ({
             chartTheme={chartTheme}
           />
         </ConditionalCard>
-        <ConditionalCard title={question_no.title}>
+        <ConditionalCard title={getConditionalQuestionTitle(question_no)}>
           <ConditionalChart
             parentResolved={parentSuccessfullyResolved}
             question={question_no}
