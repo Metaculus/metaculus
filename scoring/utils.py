@@ -1,11 +1,13 @@
+from collections import defaultdict
 from datetime import datetime, timedelta
 from django.utils import timezone
+from django.db.models.query import QuerySet
 
+from users.models import User
 from projects.models import Project
 from questions.models import Question
-from scoring.models import Score
+from scoring.models import Score, LeaderboardEntry, Leaderboard
 from scoring.score_math import evaluate_question
-from scoring.leaderboard_math import evaluate_score_based_leaderboard
 from utils.the_math.formulas import string_location_to_bucket_index
 
 
@@ -43,23 +45,79 @@ def score_question(
                 previous_score.delete()
 
 
-def create_leaderboard_entries(
-    project: Project, leaderboard_type: str | None = None, live: bool = True
-):
+def generate_scoring_leaderboard_entries(
+    questions: list[Question],
+    score_type: Leaderboard.ScoreTypes,
+) -> list[LeaderboardEntry]:
+    scores: QuerySet[Score] = Score.objects.filter(
+        question__in=questions,
+        score_type=Leaderboard.ScoreTypes.get_base_score(score_type),
+    )
+    user_entries: dict[User, LeaderboardEntry] = {}
+    now = timezone.now()
+    for score in scores:
+        user_id = score.user_id
+        if user_id not in user_entries:
+            user_entries[user_id] = LeaderboardEntry(
+                user_id=user_id,
+                score=0,
+                coverage=0,
+                contribution_count=0,
+                calculated_on=now,
+            )
+        user_entries[user_id].score += score.score
+        user_entries[user_id].coverage += score.coverage
+        user_entries[user_id].contribution_count += 1
+    if score_type == Leaderboard.ScoreTypes.PEER_GLOBAL:
+        for entry in user_entries.values():
+            entry.score /= max(30, entry.coverage)
+    elif score_type == Leaderboard.ScoreTypes.PEER_GLOBAL_LEGACY:
+        for entry in user_entries.values():
+            entry.score /= max(40, entry.contribution_count)
+    return sorted(user_entries.values(), key=lambda entry: entry.score, reverse=True)
+
+
+def generate_project_leaderboard(
+    project: Project,
+    leaderboard: Leaderboard | None = None,
+) -> list[LeaderboardEntry]:
+    """Calculates (does not save) LeaderboardEntries for a project."""
+
+    leaderboard = leaderboard or project.primary_leaderboard
+    if not leaderboard:
+        raise ValueError("Leaderboard not found")
+
+    leaderboard.project = project
+
+    if leaderboard.score_type in [
+        Leaderboard.ScoreTypes.COMMENT_INSIGHT,
+        Leaderboard.ScoreTypes.QUESTION_WRITING,
+    ]:
+        # TODO
+        return []
+    # We have a scoring based leaderboard
+    return generate_scoring_leaderboard_entries(
+        leaderboard.get_questions(), leaderboard.score_type
+    )
+
+
+def update_project_leaderboard(
+    project: Project,
+    leaderboard: Leaderboard | None = None,
+) -> list[LeaderboardEntry]:
+    leaderboard = leaderboard or project.primary_leaderboard
+    if not leaderboard:
+        raise ValueError("Leaderboard not found")
+
+    leaderboard.project = project
+    leaderboard.save()
+
     seen = set()
-    previous_entries = list(project.leaderboard_entries.all())
-    # Bit of a dirty hack but tl;dr "If this was generated recently don't bother !"
-    if not live:
-        for entry in previous_entries:
-            if entry.edited_at > timezone.now() - timedelta(days=1):
-                return
+    previous_entries = list(leaderboard.entries.all())
+    new_entries = generate_project_leaderboard(project, leaderboard)
 
-    if not leaderboard_type:
-        leaderboard_type = project.leaderboard_type
-    if leaderboard_type is None:
-        raise Exception("Trying to generate leaderboard without a type!")
+    # TODO: add medals & prize update logic here
 
-    new_entries = evaluate_score_based_leaderboard(project, leaderboard_type)
     for new_entry in new_entries:
         is_new = True
         for previous_entry in previous_entries:
@@ -68,13 +126,15 @@ def create_leaderboard_entries(
                 previous_entry.score = new_entry.score
                 previous_entry.coverage = new_entry.coverage
                 previous_entry.medal = new_entry.medal
+                previous_entry.prize = new_entry.prize
                 previous_entry.contribution_count = new_entry.contribution_count
                 previous_entry.save()
                 seen.add(previous_entry)
                 break
         if is_new:
-            new_entry.project = project
+            new_entry.leaderboard = leaderboard
             new_entry.save()
     for previous_entry in previous_entries:
         if previous_entry not in seen:
             previous_entry.delete()
+    return new_entries

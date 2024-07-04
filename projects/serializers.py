@@ -5,6 +5,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from projects.models import Project, ProjectUserPermission
+from scoring.serializers import LeaderboardSerializer
 from users.serializers import UserPublicSerializer
 from django.db.models import Q
 
@@ -28,6 +29,8 @@ class TopicSerializer(serializers.ModelSerializer):
 
 
 class TournamentSerializer(serializers.ModelSerializer):
+    primary_leaderboard = LeaderboardSerializer()
+
     class Meta:
         model = Project
         fields = (
@@ -47,6 +50,7 @@ class TournamentSerializer(serializers.ModelSerializer):
             "user_permission",
             "created_at",
             "edited_at",
+            "primary_leaderboard",
         )
 
 

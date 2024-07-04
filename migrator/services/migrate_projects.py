@@ -5,6 +5,7 @@ from django.db import IntegrityError
 
 from migrator.utils import paginated_query, reset_sequence
 from posts.models import Post
+from scoring.models import Leaderboard
 from projects.models import Project
 from projects.permissions import ObjectPermission
 
@@ -30,14 +31,14 @@ def create_project(project_obj: dict) -> Project:
         "MP": Project.ProjectTypes.SITE_MAIN,
     }.get(project_obj["type"])
 
-    leaderboard_type = None
+    leaderboard_score_type = None
     if project_type in ["TO", "QS"]:
         if project_obj["score_type"] == "PEER_SCORE":
-            leaderboard_type = Project.LeaderboardTypes.PEER
+            leaderboard_score_type = Leaderboard.ScoreTypes.PEER_TOURNAMENT
         elif project_obj["score_type"] == "LEGACY":
-            leaderboard_type = Project.LeaderboardTypes.RELATIVE_LEGACY
+            leaderboard_score_type = Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
         elif project_obj["score_type"] == "SPOT_PEER_SCORE":
-            leaderboard_type = Project.LeaderboardTypes.SPOT_PEER
+            leaderboard_score_type = Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT
 
     if project_type == Project.ProjectTypes.SITE_MAIN:
         project = Project.objects.get(type=project_type)
@@ -46,7 +47,6 @@ def create_project(project_obj: dict) -> Project:
             # We keep original IDS for old projects
             id=project_obj["id"],
             type=project_type,
-            leaderboard_type=leaderboard_type,
             name=project_obj["name"],
             slug=project_obj["slug"],
             subtitle=project_obj["subtitle"],
@@ -67,6 +67,14 @@ def create_project(project_obj: dict) -> Project:
             ),
         )
     project.save()
+    if leaderboard_score_type:
+        project.primary_leaderboard = Leaderboard.objects.create(
+            project=project,
+            score_type=leaderboard_score_type,
+        )
+        # awkward double save since Leaderboard creation requires project.id
+        # And project.primary_leaderboard requires Leaderboard.id
+        project.save()
     return project
 
 
@@ -244,6 +252,10 @@ def migrate_projects():
 
     # Normalize id sequences
     reset_sequence()
+
+    # special handling for the MAIN_SITE project
+    project = Project.objects.get(type=Project.ProjectTypes.SITE_MAIN)
+    project.posts.set(Post.objects.filter_public())
 
     # Migrate Categories
     for cat_obj in paginated_query("SELECT * FROM metac_question_category"):
