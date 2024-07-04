@@ -14,9 +14,11 @@ import { FC, useMemo, useState } from "react";
 
 import Button from "@/components/ui/button";
 import {
+  POST_FORECASTED_ID_FILTER,
   POST_ORDER_BY_FILTER,
   POST_TOPIC_FILTER,
 } from "@/constants/posts_feed";
+import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
@@ -37,9 +39,11 @@ type Props = {
 
 const QuestionTopics: FC<Props> = ({ topics }) => {
   const t = useTranslations();
+  const { user } = useAuth();
   const { params, setParam, deleteParam } = useSearchParams();
 
   const selectedTopic = params.get(POST_TOPIC_FILTER);
+  const forecastedId = params.get(POST_FORECASTED_ID_FILTER);
   const orderBy = params.get(POST_ORDER_BY_FILTER);
 
   const { hotTopics, hotCategories } = useMemo(
@@ -64,11 +68,19 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   const switchToHomeFeed = () => {
     clearInReview();
     deleteParam(POST_TOPIC_FILTER);
+    deleteParam(POST_FORECASTED_ID_FILTER);
+  };
+
+  const switchToMyPredictionsFeed = () => {
+    clearInReview();
+    deleteParam(POST_TOPIC_FILTER);
+    user && setParam(POST_FORECASTED_ID_FILTER, user.id.toString());
   };
 
   const selectTopic = (topic: Topic) => {
     clearInReview();
     setParam(POST_TOPIC_FILTER, topic.slug);
+    deleteParam(POST_FORECASTED_ID_FILTER);
     setIsMobileExpanded(false);
   };
 
@@ -115,15 +127,16 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             text={t("feedHome")}
             emoji={<FontAwesomeIcon icon={faHome} />}
             onClick={switchToHomeFeed}
-            isActive={selectedTopic === null}
+            isActive={selectedTopic === null && forecastedId === null}
           />
-          <TopicItem
-            text={t("myPredictions")}
-            emoji={<FontAwesomeIcon icon={faHome} />}
-            onClick={switchToHomeFeed}
-            isActive={false}
-          />
-
+          {user && (
+            <TopicItem
+              text={t("myPredictions")}
+              emoji={"👤"}
+              onClick={switchToMyPredictionsFeed}
+              isActive={forecastedId !== null}
+            />
+          )}
           <TopicItem
             isActive={false}
             emoji="🇺🇸"

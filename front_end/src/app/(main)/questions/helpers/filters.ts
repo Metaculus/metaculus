@@ -25,6 +25,7 @@ import {
   POST_TOPIC_FILTER,
   POST_TYPE_FILTER,
   POST_UPVOTED_BY_FILTER,
+  POST_FORECASTED_ID_FILTER,
 } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
@@ -115,6 +116,10 @@ export function generateFiltersFromSearchParams(
 
   if (typeof searchParams[POST_ORDER_BY_FILTER] === "string") {
     filters.order_by = searchParams[POST_ORDER_BY_FILTER];
+  }
+
+  if (typeof searchParams[POST_FORECASTED_ID_FILTER] === "string") {
+    filters.forecaster_id = searchParams[POST_FORECASTED_ID_FILTER];
   }
 
   return filters;

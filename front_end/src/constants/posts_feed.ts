@@ -13,5 +13,6 @@ export const POST_COMMENTED_BY_FILTER = "commented_by";
 export const POST_ACCESS_FILTER = "access";
 export const POST_ORDER_BY_FILTER = "order_by";
 export const POST_NEWS_TYPE_FILTER = "news_type";
+export const POST_FORECASTED_ID_FILTER = "forecaster_id";
 
 export const POSTS_PER_PAGE = 10;

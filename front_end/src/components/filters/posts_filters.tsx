@@ -193,17 +193,6 @@ const PostsFilters: FC<Props> = ({ filters, mainSortOptions }) => {
             onChange={handleOrderChange}
             variant="tertiary"
           />
-          {!!user && (
-            <div className="hidden flex-row items-center text-gray-900 dark:text-gray-900-dark lg:flex">
-              <span className="px-2 text-sm">{t("myPredictions")}: </span>
-              <ButtonGroup
-                value={order}
-                buttons={userPredictionSortOptions}
-                onChange={handleOrderChange}
-                variant="tertiary"
-              />
-            </div>
-          )}
           <div className="flex grow justify-end gap-3">
             <Listbox
               className="rounded-full"

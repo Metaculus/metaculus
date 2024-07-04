@@ -3,9 +3,7 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
 import {
-  getFilterSectionPostStatus,
   getFilterSectionPostType,
-  getFilterSectionUsername,
   POST_STATUS_LABEL_MAP,
 } from "@/app/(main)/questions/helpers/filters";
 import PostsFilters from "@/components/filters/posts_filters";
