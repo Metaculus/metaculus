@@ -22,6 +22,7 @@ type PostCreationData = {
 const groupQuestionSchema = z.object({
   subtype: z.enum(["binary", "date", "numeric"]),
   title: z.string().min(4).max(200),
+  group_variable: z.string().max(200),
   description: z.string().min(10),
   resolution_criteria_description: z.string().optional(),
   fine_print: z.string().optional(),
@@ -116,6 +117,7 @@ const GroupForm: React.FC<Props> = ({
             errors={control.formState.errors.title}
             defaultValue={post?.title}
           />
+
           <span>Description</span>
           <Textarea
             {...control.register("description")}
@@ -158,6 +160,13 @@ const GroupForm: React.FC<Props> = ({
             })}
             errors={control.formState.errors.open_time}
             defaultValue={post?.question?.open_time}
+          />
+
+          <span>Title</span>
+          <Input
+            {...control.register("group_variable")}
+            errors={control.formState.errors.group_variable}
+            defaultValue={post?.group_of_questions.group_variable}
           />
 
           {advanced && (

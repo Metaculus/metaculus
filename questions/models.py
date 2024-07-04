@@ -166,20 +166,7 @@ class GroupOfQuestions(TimeStampedModel):
     resolution_criteria_description = models.TextField(blank=True, null=True)
     fine_print = models.TextField(blank=True, null=True)
 
-    label = models.TextField(blank=True, null=True)
-
-    scheduled_close_time = models.DateTimeField(
-        db_index=True,
-        null=False,
-        blank=False,
-        default=timezone.make_aware(timezone.now().max),
-    )
-    scheduled_resolve_time = models.DateTimeField(
-        db_index=True,
-        null=False,
-        blank=False,
-        default=timezone.make_aware(timezone.now().max),
-    )
+    group_variable = models.TextField(blank=True, null=True)
 
 
 class Forecast(models.Model):
