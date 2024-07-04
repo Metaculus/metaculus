@@ -97,14 +97,12 @@ const alternateGothic = localFont({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const url = headers().get("x-url");
-  const request = new NextRequest(url ?? "http://localhost:3000");
-  const origin = request.nextUrl.origin;
-
   return {
     title: "Metaculus",
     description: "Metaculus rewrite",
-    metadataBase: new URL(origin),
+    metadataBase: new URL(
+      process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+    ),
   };
 }
 
