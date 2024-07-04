@@ -83,7 +83,9 @@ const PaginatedPostsFeed: FC<Props> = ({
             </Button>
           )}
         </div>
-      ) : null}
+      ) : (
+        <div className="m-8"></div>
+      )}
     </>
   );
 };
