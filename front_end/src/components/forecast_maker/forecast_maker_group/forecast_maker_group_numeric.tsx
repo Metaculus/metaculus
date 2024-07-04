@@ -236,6 +236,7 @@ const ForecastMakerGroupNumeric: FC<Props> = ({
                 height={300}
                 min={option.question.min}
                 max={option.question.max}
+                type={option.question.type}
                 data={[
                   {
                     pmf: option.question.forecasts.latest_pmf,

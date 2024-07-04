@@ -9,6 +9,7 @@ import NumericChart from "@/components/charts/numeric_chart";
 import ConditionalTile from "@/components/conditional_tile";
 import MultipleChoiceTile from "@/components/multiple_choice_tile";
 import PredictionChip from "@/components/prediction_chip";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
@@ -23,6 +24,7 @@ type Props = {
   post: PostWithForecasts;
   className?: string;
   chartTheme?: VictoryThemeDefinition;
+  defaultChartZoom?: TimelineChartZoomOption;
   nonInteractive?: boolean;
 };
 
@@ -30,6 +32,7 @@ const ForecastCard: FC<Props> = ({
   post,
   className,
   chartTheme,
+  defaultChartZoom,
   nonInteractive = false,
 }) => {
   const [cursorValue, setCursorValue] = useState<number | null>(null);
@@ -82,6 +85,7 @@ const ForecastCard: FC<Props> = ({
               visibleChoicesCount={visibleChoicesCount}
               chartHeight={chartHeight}
               chartTheme={chartTheme}
+              defaultChartZoom={defaultChartZoom}
             />
           );
         default:
@@ -113,6 +117,7 @@ const ForecastCard: FC<Props> = ({
               type={getNumericChartTypeFromQuestion(question.type)}
               onCursorChange={nonInteractive ? undefined : setCursorValue}
               extraTheme={chartTheme}
+              defaultZoom={defaultChartZoom}
             />
           );
         case QuestionType.MultipleChoice:
@@ -128,6 +133,7 @@ const ForecastCard: FC<Props> = ({
               visibleChoicesCount={visibleChoicesCount}
               chartHeight={chartHeight}
               chartTheme={chartTheme}
+              defaultChartZoom={defaultChartZoom}
             />
           );
         default:

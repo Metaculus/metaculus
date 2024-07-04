@@ -2,7 +2,7 @@ import { PaginatedPayload, PaginationParams } from "@/types/fetch";
 import { Post, PostWithForecasts } from "@/types/post";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post, put } from "@/utils/fetch";
-import { encodeQueryParams } from "@/utils/query_params";
+import { encodeQueryParams } from "@/utils/navigation";
 
 export type PostsParams = PaginationParams & {
   topic?: string;
