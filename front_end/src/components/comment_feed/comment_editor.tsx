@@ -78,17 +78,15 @@ const CommentEditor: React.FC<NotebookEditorProps> = ({ text, isPrivate }) => {
           <Button
             className="p-2"
             onClick={() => {
-              user
-                ? createComment({
-                    /* test data */
-                    author: user.id,
-                    parent: null,
-                    text: markdown,
-                    on_post: 1,
-                    included_forecast: null,
-                    is_private: isPrivateComment,
-                  })
-                : null;
+              createComment({
+                /* test data */
+                author: user.id,
+                parent: null,
+                text: markdown,
+                on_post: 1,
+                included_forecast: null,
+                is_private: isPrivateComment,
+              });
             }}
           >
             Save
