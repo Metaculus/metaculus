@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import FeedFilters from "@/app/(main)/questions/components/feed_filters";
+import FeedFilters from "@/app/(main)/questions/components/fees_filters";
 import QuestionTopics from "@/app/(main)/questions/components/question_topics";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";

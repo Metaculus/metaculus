@@ -7,10 +7,10 @@ import invariant from "ts-invariant";
 
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import ProjectMembers from "@/app/(main)/tournaments/components/members";
-import TournamentFilters from "@/components/filters/tournament_filters";
 import HtmlContent from "@/components/html_content";
 import AwaitedLeaderboard from "@/components/leaderboard";
 import AwaitedPostsFeed from "@/components/posts_feed";
+import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostsParams } from "@/services/posts";

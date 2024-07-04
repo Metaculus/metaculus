@@ -6,8 +6,8 @@ import {
   getFilterSectionPostType,
   POST_STATUS_LABEL_MAP,
 } from "@/app/(main)/questions/helpers/filters";
-import PostsFilters from "@/components/filters/posts_filters";
 import { FilterOptionType } from "@/components/popover_filter/types";
+import PostsFilters from "@/components/posts_filters";
 import { POST_STATUS_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";

@@ -7,7 +7,7 @@ import {
   getFilterSectionPostType,
   getFilterSectionUsername,
 } from "@/app/(main)/questions/helpers/filters";
-import PostsFilters from "@/components/filters/posts_filters";
+import PostsFilters from "@/components/posts_filters";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
