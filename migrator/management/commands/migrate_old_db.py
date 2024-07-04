@@ -15,8 +15,9 @@ from migrator.services.migrate_scoring import score_questions
 from migrator.services.migrate_leaderboards import (
     create_global_leaderboards,
     populate_global_leaderboards,
-    # populate_project_leaderboards,
+    populate_project_leaderboards,
 )
+from scoring.models import populate_medal_exclusion_records
 from projects.models import Project
 from projects.permissions import ObjectPermission
 
@@ -27,48 +28,47 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
-        with connection.cursor() as cursor:
-            cursor.execute("DROP SCHEMA public CASCADE;")
-            cursor.execute("CREATE SCHEMA public;")
-        call_command("makemigrations")
-        call_command("migrate")
+        # with connection.cursor() as cursor:
+        #     cursor.execute("DROP SCHEMA public CASCADE;")
+        #     cursor.execute("CREATE SCHEMA public;")
+        # call_command("makemigrations")
+        # call_command("migrate")
 
-        Project.objects.get_or_create(
-            type=Project.ProjectTypes.SITE_MAIN,
-            defaults={
-                "name": "Metaculus Community",
-                "type": Project.ProjectTypes.SITE_MAIN,
-                "default_permission": ObjectPermission.FORECASTER,
-            },
-        )
+        # Project.objects.get_or_create(
+        #     type=Project.ProjectTypes.SITE_MAIN,
+        #     defaults={
+        #         "name": "Metaculus Community",
+        #         "type": Project.ProjectTypes.SITE_MAIN,
+        #         "default_permission": ObjectPermission.FORECASTER,
+        #     },
+        # )
 
-        migrate_users()
-        print("Migrated users")
-        migrate_questions()
-        print("Migrated questions")
-        # migrate_forecasts(3e5)  # only migrate 300k forecasts
-        migrate_forecasts()
-        print("Migrated forecasts")
-        migrate_projects()
-        print("Migrated projects")
-        migrate_votes()
-        print("Migrated votes")
-        migrate_comments()
-        print("Migrated comments")
-        migrate_permissions()
-        print("Migrated permissions")
+        # migrate_users()
+        # print("Migrated users")
+        # migrate_questions()
+        # print("Migrated questions")
+        # migrate_forecasts()
+        # print("Migrated forecasts")
+        # migrate_projects()
+        # print("Migrated projects")
+        # migrate_votes()
+        # print("Migrated votes")
+        # migrate_comments()
+        # print("Migrated comments")
+        # migrate_permissions()
+        # print("Migrated permissions")
 
-        # scoring
-        # score_questions(qty=1000)  # only evaluate 1000 questions
-
-        score_questions()
-        print("Scored questions")
-        create_global_leaderboards()
-        print("Created global leaderboards")
+        # # scoring
+        # score_questions()
+        # print("Scored questions")
+        # populate_medal_exclusion_records()
+        # print("Populated medal exclusion records")
+        # create_global_leaderboards()
+        # print("Created global leaderboards")
         populate_global_leaderboards()
         print("Populated global leaderboards")
-        # populate_project_leaderboards()
-        # print("Populated project leaderboards")
+        populate_project_leaderboards()
+        print("Populated project leaderboards")
 
         # Reset sql sequences
         reset_sequence()

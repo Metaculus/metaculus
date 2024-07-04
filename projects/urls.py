@@ -9,7 +9,7 @@ urlpatterns = [
     path("projects/tournaments/<str:slug>", views.tournament_by_slug_api_view),
     path("projects/tags", views.tags_list_api_view),
     path(
-        "projects/<int:project_id>/leaderboard/<str:leaderboard_type>",
+        "projects/<int:project_id>/leaderboard/<str:score_type>",
         views.project_leaderboard,
         name="project-leaderboard",
     ),
