@@ -11,6 +11,7 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
+import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import Button from "@/components/ui/button";
 import {
   FeedType,
@@ -44,10 +45,8 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   const { user } = useAuth();
   const { params, setParam, deleteParam } = useSearchParams();
 
+  const { switchFeed, currentFeed, clearInReview } = useFeed();
   const selectedTopic = params.get(POST_TOPIC_FILTER);
-  const forecastedId = params.get(POST_FORECASTED_ID_FILTER);
-  const authorUsernames = params.getAll(POST_USERNAMES_FILTER);
-  const orderBy = params.get(POST_ORDER_BY_FILTER);
 
   const { hotTopics, hotCategories } = useMemo(
     () => ({
@@ -60,38 +59,6 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   const isMobileExpandable =
     hotTopics.length + hotCategories.length > EXPAND_THRESHOLD;
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
-
-  const currentFeed = useMemo(() => {
-    if (selectedTopic) return null;
-
-    if (forecastedId) return FeedType.MY_PREDICTIONS;
-    if (user && authorUsernames.every((obj) => obj === user.username)) {
-      return FeedType.MY_QUESTIONS_AND_POSTS;
-    }
-
-    return FeedType.HOME;
-  }, [authorUsernames, forecastedId, selectedTopic, user]);
-
-  const switchFeed = (feedType: FeedType) => {
-    clearInReview();
-    deleteParam(POST_TOPIC_FILTER);
-    deleteParam(POST_FORECASTED_ID_FILTER);
-    deleteParam(POST_USERNAMES_FILTER);
-
-    if (feedType === FeedType.MY_PREDICTIONS) {
-      user && setParam(POST_FORECASTED_ID_FILTER, user.id.toString());
-    }
-    if (feedType === FeedType.MY_QUESTIONS_AND_POSTS) {
-      user && setParam(POST_USERNAMES_FILTER, user.username.toString());
-    }
-  };
-
-  // TODO: cleanup status when BE supports pending status
-  const clearInReview = () => {
-    if (orderBy === QuestionOrder.VotesDesc) {
-      deleteParam(POST_ORDER_BY_FILTER, false);
-    }
-  };
 
   const selectTopic = (topic: Topic) => {
     clearInReview();

@@ -3,31 +3,22 @@ import { FC } from "react";
 
 import MainFeedFilters from "@/app/(main)/questions/components/fees_filters/main";
 import MyQuestionsAndPostsFilters from "@/app/(main)/questions/components/fees_filters/my_questions_and_posts";
-import {
-  POST_FORECASTED_ID_FILTER,
-  POST_USERNAMES_FILTER,
-} from "@/constants/posts_feed";
-import { useAuth } from "@/contexts/auth_context";
-import useSearchParams from "@/hooks/use_search_params";
+import useFeed from "@/app/(main)/questions/hooks/use_feed";
+import { FeedType } from "@/constants/posts_feed";
 
 import MyPredictionsFilters from "./my_predictions";
 
 const FeedFilters: FC = () => {
-  const { params } = useSearchParams();
-  const { user } = useAuth();
+  const { currentFeed } = useFeed();
 
-  if (user) {
-    if (params.getAll(POST_FORECASTED_ID_FILTER).length) {
+  switch (currentFeed) {
+    case FeedType.MY_PREDICTIONS:
       return <MyPredictionsFilters />;
-    }
-    if (
-      params.getAll(POST_USERNAMES_FILTER).every((obj) => obj === user.username)
-    ) {
+    case FeedType.MY_QUESTIONS_AND_POSTS:
       return <MyQuestionsAndPostsFilters />;
-    }
+    default:
+      return <MainFeedFilters />;
   }
-
-  return <MainFeedFilters />;
 };
 
 export default FeedFilters;
