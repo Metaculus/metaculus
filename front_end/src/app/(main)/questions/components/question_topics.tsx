@@ -122,7 +122,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               />
               <TopicItem
                 text={t("myQuestionsAndPosts")}
-                emoji={"👤"}
+                emoji={"✍️"}
                 onClick={() => switchFeed(FeedType.MY_QUESTIONS_AND_POSTS)}
                 isActive={currentFeed === FeedType.MY_QUESTIONS_AND_POSTS}
               />
