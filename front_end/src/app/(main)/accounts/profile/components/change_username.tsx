@@ -63,13 +63,17 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
   }, [state?.user]);
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} variant="dark">
-      <div className="flex max-w-lg flex-col items-center text-center">
-        <h3 className="mb-4 text-lg text-white">
-          {t("changeUsernameHeading")}
-        </h3>
-        <p className="mb-3">{t("changeUsernameDescription")}</p>
-        <form className="flex w-full max-w-44 flex-col" action={formAction}>
+    <BaseModal
+      label={t("changeUsernameHeading")}
+      isOpen={isOpen}
+      onClose={onClose}
+    >
+      <form
+        className="flex w-full max-w-44 max-w-lg flex-col items-center gap-4 text-center"
+        action={formAction}
+      >
+        {t("changeUsernameDescription")}
+        <div>
           <Input
             type="text"
             name="username"
@@ -78,7 +82,7 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
           />
           <FormError
             errors={state?.errors}
-            className="text-red-500-dark"
+            className="text-red-500 dark:text-red-500-dark"
             {...register("username")}
           />
           <Input
@@ -90,26 +94,21 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
           <FormError
             name="usernameConfirm"
             errors={state?.errors}
-            className="text-red-500-dark"
+            className="text-red-500 dark:text-red-500-dark"
           />
+        </div>
+        <div className="flex justify-center">
           {/* Global errors container */}
+          <Button type="submit" value="Submit" className="uppercase">
+            {t("submitButton")}
+          </Button>
           <FormError
             errors={state?.errors}
             name="non_field_errors"
-            className="text-red-500-dark"
+            className="text-red-500 dark:text-red-500-dark"
           />
-          <div className="mt-4">
-            <Button
-              variant="secondary"
-              type="submit"
-              value="Submit"
-              className="w-full bg-blue-900-dark font-sans uppercase tracking-[0.08em]"
-            >
-              {t("submitButton")}
-            </Button>
-          </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </BaseModal>
   );
 };

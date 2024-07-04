@@ -45,21 +45,21 @@ const ResetPasswordModal: FC<SignInModalType> = ({
   }, [setCurrentModal, state]);
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
-      <div className="max-w-xs">
-        <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
-          {t("passwordResetHeading")}
-        </h2>
-        <p className="mb-6 mt-3 text-center text-base leading-tight">
-          {t("passwordResetDescription")}
-        </p>
-        <form
-          action={(data) => {
-            startTransition(() => {
-              formAction(data);
-            });
-          }}
-        >
+    <BaseModal
+      label={t("passwordResetHeading")}
+      isOpen={isOpen}
+      onClose={onClose}
+    >
+      <form
+        action={(data) => {
+          startTransition(() => {
+            formAction(data);
+          });
+        }}
+        className="flex max-w-xs flex-col gap-4"
+      >
+        {t("passwordResetDescription")}
+        <div>
           <Input
             className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
             type="text"
@@ -68,17 +68,16 @@ const ResetPasswordModal: FC<SignInModalType> = ({
             errors={state?.errors}
           />
           <FormError errors={state?.errors}></FormError>
-          <div className="text-xs text-red-500 dark:text-red-500-dark"></div>
-          <Button
-            variant="primary"
-            className="mt-4 w-full"
-            type="submit"
-            disabled={isPending}
-          >
-            {t("resetPasswordButton")}
-          </Button>
-        </form>
-      </div>
+        </div>
+        <Button
+          variant="primary"
+          className="w-full"
+          type="submit"
+          disabled={isPending}
+        >
+          {t("resetPasswordButton")}
+        </Button>
+      </form>
     </BaseModal>
   );
 };
@@ -90,15 +89,14 @@ export const ResetPasswordConfirmModal: FC<SignInModalType> = ({
   const t = useTranslations();
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
-      <div className="max-w-sm">
-        <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
-          {t("resetPasswordEmailSentHeading")}
-        </h2>
-        <p className="mb-2 text-sm leading-tight">
-          {t("resetPasswordEmailSent1")}
-        </p>
-        <p className="text-sm leading-tight">{t("resetPasswordEmailSent2")}</p>
+    <BaseModal
+      label={t("resetPasswordEmailSentHeading")}
+      isOpen={isOpen}
+      onClose={onClose}
+    >
+      <div className="max-w-sm text-sm leading-tight">
+        <p>{t("resetPasswordEmailSent1")}</p>
+        <p>{t("resetPasswordEmailSent2")}</p>
       </div>
     </BaseModal>
   );
