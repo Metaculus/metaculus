@@ -54,22 +54,47 @@ const MyQuestionsAndPostsFilters: FC = () => {
     ];
   }, [params, t]);
 
-  const mainSortOptions = [
-    {
-      id: QuestionOrder.DivergenceDesc,
-      label: t("hot"),
-    },
-    {
-      id: QuestionOrder.WeeklyMovementDesc,
-      label: t("movers"),
-    },
-    {
-      id: QuestionOrder.PredictionCountDesc,
-      label: t("mostPredictions"),
-    },
-  ];
+  const mainSortOptions = useMemo(
+    () => [
+      {
+        id: QuestionOrder.DivergenceDesc,
+        label: t("hot"),
+      },
+      {
+        id: QuestionOrder.WeeklyMovementDesc,
+        label: t("movers"),
+      },
+      {
+        id: QuestionOrder.PredictionCountDesc,
+        label: t("mostPredictions"),
+      },
+    ],
+    [t]
+  );
 
-  return <PostsFilters filters={filters} mainSortOptions={mainSortOptions} />;
+  const sortOptions = useMemo(
+    () => [
+      {
+        value: QuestionOrder.UnreadCommentCountDesc,
+        label: t("unreadComments"),
+      },
+      { value: QuestionOrder.CommentCountDesc, label: t("mostComments") },
+      { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
+      {
+        value: QuestionOrder.PublishTimeDesc,
+        label: t("newest"),
+      },
+    ],
+    [t]
+  );
+
+  return (
+    <PostsFilters
+      filters={filters}
+      mainSortOptions={mainSortOptions}
+      sortOptions={sortOptions}
+    />
+  );
 };
 
 export default MyQuestionsAndPostsFilters;

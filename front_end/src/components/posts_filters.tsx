@@ -4,11 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
-import {
-  getDropdownSortOptions,
-  getFilterChipColor,
-  getUserSortOptions,
-} from "@/app/(main)/questions/helpers/filters";
+import { getFilterChipColor } from "@/app/(main)/questions/helpers/filters";
 import PopoverFilter from "@/components/popover_filter";
 import {
   FilterReplaceInfo,
@@ -17,7 +13,7 @@ import {
 import SearchInput from "@/components/search_input";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
-import Listbox from "@/components/ui/listbox";
+import Listbox, { SelectOption } from "@/components/ui/listbox";
 import {
   POST_GUESSED_BY_FILTER,
   POST_ORDER_BY_FILTER,
@@ -40,10 +36,10 @@ const OPEN_STATUS_FILTERS = [
   QuestionOrder.PublishTimeDesc,
   QuestionOrder.WeeklyMovementDesc,
   QuestionOrder.LastPredictionTimeDesc,
-  QuestionOrder.LastPredictionTimeDesc,
   QuestionOrder.DivergenceDesc,
   QuestionOrder.StaleDesc,
   QuestionOrder.NewCommentsDesc,
+  QuestionOrder.CloseTimeAsc,
 ];
 const RESOLVED_STATUS_FILTERS = [
   QuestionOrder.StaleDesc,
@@ -58,9 +54,14 @@ const GUESSED_BY_FILTERS = [
 type Props = {
   filters: FilterSection[];
   mainSortOptions: GroupButton<QuestionOrder>[];
+  sortOptions: SelectOption<QuestionOrder>[];
 };
 
-const PostsFilters: FC<Props> = ({ filters, mainSortOptions }) => {
+const PostsFilters: FC<Props> = ({
+  filters,
+  mainSortOptions,
+  sortOptions: dropdownSortOptions,
+}) => {
   const t = useTranslations();
   const {
     params,
@@ -79,11 +80,7 @@ const PostsFilters: FC<Props> = ({ filters, mainSortOptions }) => {
 
   const order = (params.get(POST_ORDER_BY_FILTER) ??
     DEFAULT_ORDER) as QuestionOrder;
-  const userPredictionSortOptions = useMemo(() => getUserSortOptions(t), [t]);
-  const dropdownSortOptions = useMemo(
-    () => getDropdownSortOptions(t, !!user),
-    [t, user]
-  );
+
   const [popoverFilters, activeFilters] = useMemo(() => {
     const activeFilters: ActiveFilter[] = filters.flatMap((filterSection) =>
       filterSection.options

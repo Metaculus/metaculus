@@ -22,7 +22,6 @@ const useFeed = () => {
 
   const currentFeed = useMemo(() => {
     if (selectedTopic) return null;
-
     if (forecastedId) return FeedType.MY_PREDICTIONS;
 
     if (
@@ -46,9 +45,16 @@ const useFeed = () => {
   const switchFeed = useCallback(
     (feedType: FeedType) => {
       clearInReview();
-      deleteParam(POST_TOPIC_FILTER);
-      deleteParam(POST_FORECASTED_ID_FILTER);
-      deleteParam(POST_USERNAMES_FILTER);
+
+      // If switching from another feed
+      if (currentFeed) {
+        for (let p of Array.from(params)) {
+          deleteParam(p[0]);
+        }
+      } else {
+        // If switching from category
+        deleteParam(POST_TOPIC_FILTER);
+      }
 
       if (feedType === FeedType.MY_PREDICTIONS) {
         user && setParam(POST_FORECASTED_ID_FILTER, user.id.toString());
@@ -57,7 +63,7 @@ const useFeed = () => {
         user && setParam(POST_USERNAMES_FILTER, user.username.toString());
       }
     },
-    [clearInReview, deleteParam, setParam, user]
+    [currentFeed, clearInReview, deleteParam, params, setParam, user]
   );
 
   return {

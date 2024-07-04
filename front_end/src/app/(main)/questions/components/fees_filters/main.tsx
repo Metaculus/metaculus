@@ -25,22 +25,45 @@ const MainFeedFilters: FC = () => {
     ];
   }, [params, t]);
 
-  const mainSortOptions = [
-    {
-      id: QuestionOrder.ActivityDesc,
-      label: t("hot"),
-    },
-    {
-      id: QuestionOrder.WeeklyMovementDesc,
-      label: t("movers"),
-    },
-    {
-      id: QuestionOrder.PublishTimeDesc,
-      label: t("new"),
-    },
-  ];
+  const mainSortOptions = useMemo(
+    () => [
+      {
+        id: QuestionOrder.ActivityDesc,
+        label: t("hot"),
+      },
+      {
+        id: QuestionOrder.WeeklyMovementDesc,
+        label: t("movers"),
+      },
+      {
+        id: QuestionOrder.PublishTimeDesc,
+        label: t("new"),
+      },
+    ],
+    [t]
+  );
 
-  return <PostsFilters filters={filters} mainSortOptions={mainSortOptions} />;
+  const sortOptions = useMemo(
+    () => [
+      { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
+      { value: QuestionOrder.CommentCountDesc, label: t("mostComments") },
+      {
+        value: QuestionOrder.PredictionCountDesc,
+        label: t("mostPredictions"),
+      },
+      { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
+      { value: QuestionOrder.ResolveTimeAsc, label: t("resolvingSoon") },
+    ],
+    [t]
+  );
+
+  return (
+    <PostsFilters
+      filters={filters}
+      mainSortOptions={mainSortOptions}
+      sortOptions={sortOptions}
+    />
+  );
 };
 
 export default MainFeedFilters;

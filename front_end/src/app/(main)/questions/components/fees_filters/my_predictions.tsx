@@ -1,4 +1,5 @@
 "use client";
+import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
@@ -39,26 +40,48 @@ const MyPredictionsFilters: FC = () => {
     ];
   }, [params, t]);
 
-  const mainSortOptions = [
-    {
-      id: QuestionOrder.WeeklyMovementDesc,
-      label: t("movers"),
-    },
-    {
-      id: QuestionOrder.DivergenceDesc,
-      label: t("hot"),
-    },
-    {
-      id: QuestionOrder.StaleDesc,
-      label: t("stale"),
-    },
-    {
-      id: QuestionOrder.NewCommentsDesc,
-      label: t("newComments"),
-    },
-  ];
+  const mainSortOptions = useMemo(
+    () => [
+      {
+        id: QuestionOrder.WeeklyMovementDesc,
+        label: t("movers"),
+      },
+      {
+        id: QuestionOrder.DivergenceDesc,
+        label: t("hot"),
+      },
+      {
+        id: QuestionOrder.StaleDesc,
+        label: t("stale"),
+      },
+      {
+        id: QuestionOrder.NewCommentsDesc,
+        label: t("newComments"),
+      },
+    ],
+    [t]
+  );
 
-  return <PostsFilters filters={filters} mainSortOptions={mainSortOptions} />;
+  const sortOptions = useMemo(
+    () => [
+      {
+        value: QuestionOrder.LastPredictionTimeDesc,
+        label: t("newestPredictions"),
+        className: classNames("block lg:hidden"),
+      },
+      { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
+      // TODO: best scores + worst scores
+    ],
+    [t]
+  );
+
+  return (
+    <PostsFilters
+      filters={filters}
+      mainSortOptions={mainSortOptions}
+      sortOptions={sortOptions}
+    />
+  );
 };
 
 export default MyPredictionsFilters;

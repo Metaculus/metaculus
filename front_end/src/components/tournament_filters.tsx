@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
 import {
+  getDropdownSortOptions,
   getMainOrderOptions,
   getPostsFilters,
 } from "@/app/(main)/questions/helpers/filters";
@@ -29,7 +30,17 @@ const TournamentFilters: FC<Props> = ({ categories, tags }) => {
     return getMainOrderOptions(t);
   }, [t]);
 
-  return <PostsFilters filters={filters} mainSortOptions={mainSortOptions} />;
+  const sortOptions = useMemo(() => {
+    return getDropdownSortOptions(t, !!user);
+  }, [t, user]);
+
+  return (
+    <PostsFilters
+      filters={filters}
+      mainSortOptions={mainSortOptions}
+      sortOptions={sortOptions}
+    />
+  );
 };
 
 export default TournamentFilters;
