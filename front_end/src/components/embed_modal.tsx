@@ -49,11 +49,8 @@ const EmbedModal: FC<Props> = ({
   );
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} variant={appTheme}>
+    <BaseModal label="Embed this page" isOpen={isOpen} onClose={onClose}>
       <div className="max-w-2xl">
-        <h2 className="mb-4 mr-3 mt-0 text-blue-900 dark:text-blue-900-dark">
-          Embed this page
-        </h2>
         <p className="text-base leading-tight">
           You can use the below code snippet to embed this page on your own
           webpage. Feel free to change the height and width to suit your needs.

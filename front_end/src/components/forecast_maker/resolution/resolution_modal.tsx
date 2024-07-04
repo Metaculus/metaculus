@@ -107,62 +107,62 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
   );
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} variant="dark">
+    <BaseModal isOpen={isOpen} onClose={onClose}>
       <div className="max-w-xl flex-col items-center text-center">
-        <h3 className="mb-4 text-white">{question.title}</h3>
-        <p className="mb-3">What is the resolution?</p>
+        <h3 className="mb-4 text-gray-900 dark:text-gray-900-dark">
+          {question.title}
+        </h3>
         <form
           onSubmit={handleSubmit((formData: FormData) => {
             onSubmit(formData).then();
           })}
-          className="flex flex-col gap-y-2"
+          className="flex flex-col items-center gap-4"
         >
-          <div>
+          <label className="flex flex-col gap-2">
+            What is the resolution?
             <Select
               {...register("resolutionType")}
               options={[
                 { value: "", label: "select one", disabled: true },
                 ...resolutionTypeOptions,
               ]}
+              className="pl-1"
             />
-          </div>
-          {question.type === "numeric" && resolutionType == "unambiguous" && (
-            <div className="mt-2">
-              <Input
-                type="number"
-                placeholder="numeric resolution"
-                className="min-w-40 !rounded-none border-gray-600-dark bg-transparent"
-                min={question.min}
-                max={question.max}
-                {...register("resolutionValue")}
-              />
-            </div>
-          )}
-          <div>
-            <p>Date when resolution was known:</p>
+            {question.type === "numeric" &&
+              resolutionType === "unambiguous" && (
+                <Input
+                  type="number"
+                  placeholder="numeric resolution"
+                  className="max-w-xs bg-transparent"
+                  min={question.min}
+                  max={question.max}
+                  {...register("resolutionValue")}
+                />
+              )}
+          </label>
+          <label className="flex flex-col gap-2">
+            Date when resolution was known:
             <Input
               type="datetime-local"
               placeholder="date when resolution was known"
-              className="!rounded-none border-gray-600-dark bg-transparent pl-1"
+              className="bg-transparent pl-1"
               {...register("actualResolveTime")}
               max={currentDateTime}
             />
-          </div>
-          <FormError errors={submitErrors} />
-          <p className="m-0">
+          </label>
+          <div>
             Notifications will be sent in 10 minutes (at Jun 27, 2024, 8:32 PM).
             If this question is unresolved before then, no notification will be
             sent.
-          </p>
-          <div>
+          </div>
+          <div className="flex justify-center">
             <Button
-              variant="bright"
               type="submit"
-              size="lg"
               disabled={!formState.isValid || !resolutionType || isSubmitting}
             >
               {t("resolveButton")}
             </Button>
+            <FormError errors={submitErrors} />
           </div>
         </form>
       </div>
