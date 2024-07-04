@@ -100,6 +100,10 @@ export type Post<QT = Question> = {
   conditional?: PostConditional<QT>;
   group_of_questions: {
     id: number;
+    description: string;
+    resolution_criteria_description: string;
+    fine_print: string;
+    group_variable: string;
     questions: QT[];
   };
   notebook?: Notebook;
