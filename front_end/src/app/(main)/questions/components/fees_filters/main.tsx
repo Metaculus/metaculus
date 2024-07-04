@@ -6,10 +6,14 @@ import {
   getFilterSectionPostStatus,
   getFilterSectionPostType,
   getFilterSectionUsername,
+  POST_STATUS_LABEL_MAP,
 } from "@/app/(main)/questions/helpers/filters";
+import { FilterOptionType } from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
+import { POST_STATUS_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
+import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
 const MainFeedFilters: FC = () => {
@@ -20,7 +24,22 @@ const MainFeedFilters: FC = () => {
   const filters = useMemo(() => {
     return [
       getFilterSectionPostType({ t, params }),
-      getFilterSectionPostStatus({ t, params }),
+      {
+        id: POST_STATUS_FILTER,
+        title: t("questionStatus"),
+        type: FilterOptionType.MultiChip,
+        options: [
+          PostStatus.OPEN,
+          PostStatus.CLOSED,
+          PostStatus.RESOLVED,
+          PostStatus.UPCOMING,
+          PostStatus.PENDING,
+        ].map((status) => ({
+          label: POST_STATUS_LABEL_MAP[status],
+          value: status,
+          active: params.getAll(POST_STATUS_FILTER).includes(status),
+        })),
+      },
       getFilterSectionUsername({ t, params }),
     ];
   }, [params, t]);

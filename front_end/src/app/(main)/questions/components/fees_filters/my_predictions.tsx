@@ -27,15 +27,13 @@ const MyPredictionsFilters: FC = () => {
         id: POST_STATUS_FILTER,
         title: t("questionStatus"),
         type: FilterOptionType.MultiChip,
-        options: [
-          PostStatus.APPROVED,
-          PostStatus.CLOSED,
-          PostStatus.RESOLVED,
-        ].map((status) => ({
-          label: POST_STATUS_LABEL_MAP[status],
-          value: status,
-          active: params.getAll(POST_STATUS_FILTER).includes(status),
-        })),
+        options: [PostStatus.OPEN, PostStatus.CLOSED, PostStatus.RESOLVED].map(
+          (status) => ({
+            label: POST_STATUS_LABEL_MAP[status],
+            value: status,
+            active: params.getAll(POST_STATUS_FILTER).includes(status),
+          })
+        ),
       },
     ];
   }, [params, t]);
@@ -48,14 +46,14 @@ const MyPredictionsFilters: FC = () => {
       },
       {
         id: QuestionOrder.DivergenceDesc,
-        label: t("hot"),
+        label: t("divergence"),
       },
       {
         id: QuestionOrder.StaleDesc,
         label: t("stale"),
       },
       {
-        id: QuestionOrder.NewCommentsDesc,
+        id: QuestionOrder.UnreadCommentCountDesc,
         label: t("newComments"),
       },
     ],
@@ -66,14 +64,16 @@ const MyPredictionsFilters: FC = () => {
     () => [
       {
         value: QuestionOrder.LastPredictionTimeDesc,
-        label: t("newestPredictions"),
-        className: classNames("block lg:hidden"),
+        label: t("recentPredictions"),
       },
       { value: QuestionOrder.CloseTimeAsc, label: t("closingSoon") },
-      // TODO: best scores + worst scores
+      { value: QuestionOrder.ScoreDesc, label: t("bestScores") },
+      { value: QuestionOrder.ScoreAsc, label: t("worstScores") },
     ],
     [t]
   );
+
+  console.log(sortOptions);
 
   return (
     <PostsFilters

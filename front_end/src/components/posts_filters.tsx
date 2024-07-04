@@ -38,12 +38,13 @@ const OPEN_STATUS_FILTERS = [
   QuestionOrder.LastPredictionTimeDesc,
   QuestionOrder.DivergenceDesc,
   QuestionOrder.StaleDesc,
-  QuestionOrder.NewCommentsDesc,
   QuestionOrder.CloseTimeAsc,
+  QuestionOrder.ScoreDesc,
+  QuestionOrder.ScoreAsc,
 ];
 const RESOLVED_STATUS_FILTERS = [
   QuestionOrder.StaleDesc,
-  QuestionOrder.NewCommentsDesc,
+  QuestionOrder.UnreadCommentCountDesc,
 ];
 const GUESSED_BY_FILTERS = [
   QuestionOrder.LastPredictionTimeAsc,

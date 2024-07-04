@@ -11,7 +11,6 @@ export enum QuestionOrder {
   ActivityDesc = "-activity",
   StaleDesc = "-stale",
   // TODO: clarify logic
-  NewCommentsDesc = "-new_comment_count",
   WeeklyMovementDesc = "-weekly_movement",
   PublishTimeDesc = "-publish_time",
   LastPredictionTimeAsc = "last_prediction_time",
@@ -22,6 +21,8 @@ export enum QuestionOrder {
   UnreadCommentCountDesc = "-unread_comment_count",
   PredictionCountDesc = "-prediction_count",
   CloseTimeAsc = "close_time",
+  ScoreDesc = "-score",
+  ScoreAsc = "score",
   ResolveTimeAsc = "resolve_time",
 }
 

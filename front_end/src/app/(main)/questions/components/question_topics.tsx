@@ -14,7 +14,7 @@ import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import Button from "@/components/ui/button";
 import {
   FeedType,
-  POST_FORECASTED_ID_FILTER,
+  POST_GUESSED_BY_FILTER,
   POST_TOPIC_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
@@ -58,7 +58,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   const selectTopic = (topic: Topic) => {
     clearInReview();
     setParam(POST_TOPIC_FILTER, topic.slug);
-    deleteParam(POST_FORECASTED_ID_FILTER);
+    deleteParam(POST_GUESSED_BY_FILTER);
     setIsMobileExpanded(false);
   };
 

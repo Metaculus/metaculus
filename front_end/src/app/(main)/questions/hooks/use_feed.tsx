@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import {
   FeedType,
-  POST_FORECASTED_ID_FILTER,
+  POST_GUESSED_BY_FILTER,
   POST_ORDER_BY_FILTER,
   POST_STATUS_FILTER,
   POST_TOPIC_FILTER,
@@ -18,14 +18,14 @@ const useFeed = () => {
   const { user } = useAuth();
 
   const selectedTopic = params.get(POST_TOPIC_FILTER);
-  const forecastedId = params.get(POST_FORECASTED_ID_FILTER);
+  const guessedById = params.get(POST_GUESSED_BY_FILTER);
   const authorUsernames = params.getAll(POST_USERNAMES_FILTER);
   const orderBy = params.get(POST_ORDER_BY_FILTER);
   const postStatus = params.get(POST_STATUS_FILTER);
 
   const currentFeed = useMemo(() => {
     if (selectedTopic) return null;
-    if (forecastedId) return FeedType.MY_PREDICTIONS;
+    if (guessedById) return FeedType.MY_PREDICTIONS;
     if (postStatus === PostStatus.PENDING) return FeedType.IN_REVIEW;
 
     if (
@@ -37,7 +37,7 @@ const useFeed = () => {
     }
 
     return FeedType.HOME;
-  }, [authorUsernames, forecastedId, selectedTopic, user]);
+  }, [authorUsernames, guessedById, selectedTopic, user]);
 
   // TODO: cleanup status when BE supports pending status
   const clearInReview = useCallback(() => {
@@ -61,7 +61,7 @@ const useFeed = () => {
       }
 
       if (feedType === FeedType.MY_PREDICTIONS) {
-        user && setParam(POST_FORECASTED_ID_FILTER, user.id.toString());
+        user && setParam(POST_GUESSED_BY_FILTER, user.id.toString());
       }
       if (feedType === FeedType.MY_QUESTIONS_AND_POSTS) {
         user && setParam(POST_USERNAMES_FILTER, user.username.toString());

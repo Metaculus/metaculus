@@ -25,7 +25,6 @@ import {
   POST_TOPIC_FILTER,
   POST_TYPE_FILTER,
   POST_UPVOTED_BY_FILTER,
-  POST_FORECASTED_ID_FILTER,
 } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
@@ -53,11 +52,13 @@ const POST_TYPE_LABEL_MAP: Record<ForecastType, string> = {
 // TODO: translate
 export const POST_STATUS_LABEL_MAP = {
   [PostStatus.APPROVED]: "Open",
+  [PostStatus.OPEN]: "Open",
+  [PostStatus.UPCOMING]: "Upcoming",
   [PostStatus.RESOLVED]: "Resolved",
   [PostStatus.CLOSED]: "Closed",
   [PostStatus.PENDING]: "In Review",
-  [PostStatus.DRAFT]: "My Drafts",
-  [PostStatus.DELETED]: "Removed Posts",
+  [PostStatus.DRAFT]: "Draft",
+  [PostStatus.DELETED]: "Deleted",
   [PostStatus.REJECTED]: "Rejected Posts",
 };
 
@@ -116,10 +117,6 @@ export function generateFiltersFromSearchParams(
 
   if (typeof searchParams[POST_ORDER_BY_FILTER] === "string") {
     filters.order_by = searchParams[POST_ORDER_BY_FILTER];
-  }
-
-  if (typeof searchParams[POST_FORECASTED_ID_FILTER] === "string") {
-    filters.forecaster_id = searchParams[POST_FORECASTED_ID_FILTER];
   }
 
   return filters;

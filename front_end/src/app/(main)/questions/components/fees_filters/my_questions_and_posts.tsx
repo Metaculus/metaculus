@@ -27,7 +27,7 @@ const MyQuestionsAndPostsFilters: FC = () => {
         options: [
           PostStatus.DRAFT,
           PostStatus.PENDING,
-          // TODO: add upcoming
+          PostStatus.UPCOMING,
           PostStatus.APPROVED,
           PostStatus.CLOSED,
           PostStatus.RESOLVED,
@@ -57,7 +57,7 @@ const MyQuestionsAndPostsFilters: FC = () => {
   const mainSortOptions = useMemo(
     () => [
       {
-        id: QuestionOrder.DivergenceDesc,
+        id: QuestionOrder.ActivityDesc,
         label: t("hot"),
       },
       {
@@ -78,7 +78,7 @@ const MyQuestionsAndPostsFilters: FC = () => {
         value: QuestionOrder.UnreadCommentCountDesc,
         label: t("unreadComments"),
       },
-      { value: QuestionOrder.CommentCountDesc, label: t("mostComments") },
+      { value: QuestionOrder.CommentCountDesc, label: t("totalComments") },
       { value: QuestionOrder.VotesDesc, label: t("mostUpvotes") },
       {
         value: QuestionOrder.PublishTimeDesc,
