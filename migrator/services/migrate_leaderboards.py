@@ -1,81 +1,74 @@
+from datetime import timedelta
+
 from collections import defaultdict
 from django.utils import timezone
 
 
 from posts.models import Post
-from projects.models import Project, get_global_leaderboard_dates_and_score_types
-from scoring.models import LeaderboardEntry
-from scoring.utils import create_leaderboard_entries
+from projects.models import Project
+from scoring.models import (
+    LeaderboardEntry,
+    Leaderboard,
+    global_leaderboard_dates_and_score_types,
+)
+from scoring.utils import update_project_leaderboard
 
 
 def create_global_leaderboards():
-    leaderboard_details = get_global_leaderboard_dates_and_score_types()
-
-    # get all the posts and the leaderboard dates they are associated with
-    scored_posts = Post.objects.filter(
-        question__isnull=False,
-        question__resolution__isnull=False,
-    ).filter_public()
-    gl_dates_posts = defaultdict(list)
-    for post in scored_posts:
-        gl_dates_posts[post.question.get_global_leaderboard_dates()].append(post)
-
-    i = 0
-    c = len(leaderboard_details)
-    for start, end, leaderboard_type in leaderboard_details:
-        i += 1
-        # Site stuff?
-        project = Project.objects.get_or_create(
-            start_date=start,
-            close_date=end,
-            type=Project.ProjectTypes.GLOBAL_LEADERBOARD,
-            leaderboard_type=leaderboard_type,
+    leaderboard_details = global_leaderboard_dates_and_score_types()
+    main_site_project = Project.objects.filter(
+        type=Project.ProjectTypes.SITE_MAIN
+    ).first()
+    for start, end, score_type in leaderboard_details:
+        leaderboard: Leaderboard = Leaderboard.objects.get_or_create(
+            project=main_site_project,
+            start_time=start,
+            end_time=end,
+            score_type=score_type,
         )[0]
-        project.name = f"{start.year}: {end.year - start.year} year {leaderboard_type}"
-        project.save()
-        if leaderboard_type in [
-            Project.LeaderboardTypes.COMMENT_INSIGHT,
-            Project.LeaderboardTypes.QUESTION_WRITING,
+        if leaderboard.score_type in [
+            Leaderboard.ScoreTypes.PEER_GLOBAL,
+            Leaderboard.ScoreTypes.PEER_GLOBAL_LEGACY,
+            Leaderboard.ScoreTypes.BASELINE_GLOBAL,
         ]:
-            # there are no posts for these leaderboards
-            continue
-        print("setting up global leaderboard", i, "/", c, project.name, end="\r")
-        project.posts.set(gl_dates_posts[(start, end)])
-    print()
+            leaderboard.finalize_time = leaderboard.end_time + timedelta(days=100)
+        else:
+            leaderboard.finalize_time = leaderboard.end_time
+        leaderboard.name = f"{start.year}: {end.year - start.year} year {score_type}"
+        leaderboard.save()
 
 
-def populate_global_leaderboards(qty: int | None = None):
-    global_leaderboard_projects = Project.objects.filter(
-        type=Project.ProjectTypes.GLOBAL_LEADERBOARD
-    )
-    if qty:
-        global_leaderboard_projects = global_leaderboard_projects.order_by("?")[:qty]
-    c = len(global_leaderboard_projects)
-    for i, project in enumerate(global_leaderboard_projects, 1):
-        print("populating:", i, "/", c, project.name, end="\r")
-        create_leaderboard_entries(project)
+def populate_global_leaderboards():
+    main_site_project = Project.objects.filter(
+        type=Project.ProjectTypes.SITE_MAIN
+    ).first()
+    global_leaderboards = main_site_project.leaderboards.all()
+
+    c = len(global_leaderboards)
+    for i, leaderboard in enumerate(global_leaderboards, 1):
+        print("populating:", i, "/", c, leaderboard.name, end="\r")
+        update_project_leaderboard(main_site_project, leaderboard)
         print(
             "populating:",
             i,
             "/",
             c,
-            project.name,
+            leaderboard.name,
             "(created",
-            LeaderboardEntry.objects.filter(project=project).count(),
+            LeaderboardEntry.objects.filter(leaderboard=leaderboard).count(),
             "entries)",
         )
 
 
-def populate_project_leaderboards(qty: int | None = None):
+def populate_project_leaderboards():
     projects_with_leaderboads = Project.objects.filter(
         type__in=[Project.ProjectTypes.TOURNAMENT, Project.ProjectTypes.QUESTION_SERIES]
     )
-    if qty:
-        projects_with_leaderboads = projects_with_leaderboads.order_by("?")[:qty]
     c = len(projects_with_leaderboads)
     for i, project in enumerate(projects_with_leaderboads, 1):
         print("populating:", i, "/", c, project.name, end="\r")
-        create_leaderboard_entries(project)
+        for leaderboard in project.leaderboards.all():
+            update_project_leaderboard(project, leaderboard)
         print(
             "populating:",
             i,
@@ -83,6 +76,6 @@ def populate_project_leaderboards(qty: int | None = None):
             c,
             project.name,
             "(created",
-            LeaderboardEntry.objects.filter(project=project).count(),
+            LeaderboardEntry.objects.filter(leaderboard__project=project).count(),
             "entries)",
         )
