@@ -2,6 +2,7 @@ export enum FeedType {
   HOME = "home",
   MY_PREDICTIONS = "my_predictions",
   MY_QUESTIONS_AND_POSTS = "my_questions_and_posts",
+  IN_REVIEW = "in_review",
 }
 
 export const POST_TOPIC_FILTER = "topic";
