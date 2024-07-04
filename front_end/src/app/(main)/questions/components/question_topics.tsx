@@ -1,25 +1,25 @@
 "use client";
 import {
-  faHome,
-  faEllipsis,
   faArrowUp,
-  faLockOpen,
-  faSearch,
+  faEllipsis,
   faFileClipboard,
+  faHome,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
+import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import Button from "@/components/ui/button";
 import {
-  POST_ORDER_BY_FILTER,
+  FeedType,
+  POST_GUESSED_BY_FILTER,
   POST_TOPIC_FILTER,
 } from "@/constants/posts_feed";
+import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
-import { QuestionOrder } from "@/types/question";
 
 import TopicItem from "./topic_item";
 
@@ -37,10 +37,11 @@ type Props = {
 
 const QuestionTopics: FC<Props> = ({ topics }) => {
   const t = useTranslations();
+  const { user } = useAuth();
   const { params, setParam, deleteParam } = useSearchParams();
 
+  const { switchFeed, currentFeed, clearInReview } = useFeed();
   const selectedTopic = params.get(POST_TOPIC_FILTER);
-  const orderBy = params.get(POST_ORDER_BY_FILTER);
 
   const { hotTopics, hotCategories } = useMemo(
     () => ({
@@ -54,21 +55,10 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     hotTopics.length + hotCategories.length > EXPAND_THRESHOLD;
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
-  // TODO: cleanup status when BE supports pending status
-  const clearInReview = () => {
-    if (orderBy === QuestionOrder.VotesDesc) {
-      deleteParam(POST_ORDER_BY_FILTER, false);
-    }
-  };
-
-  const switchToHomeFeed = () => {
-    clearInReview();
-    deleteParam(POST_TOPIC_FILTER);
-  };
-
   const selectTopic = (topic: Topic) => {
     clearInReview();
     setParam(POST_TOPIC_FILTER, topic.slug);
+    deleteParam(POST_GUESSED_BY_FILTER);
     setIsMobileExpanded(false);
   };
 
@@ -114,10 +104,25 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
           <TopicItem
             text={t("feedHome")}
             emoji={<FontAwesomeIcon icon={faHome} />}
-            onClick={switchToHomeFeed}
-            isActive={selectedTopic === null}
+            onClick={() => switchFeed(FeedType.HOME)}
+            isActive={currentFeed === FeedType.HOME}
           />
-
+          {user && (
+            <>
+              <TopicItem
+                text={t("myPredictions")}
+                emoji={"👤"}
+                onClick={() => switchFeed(FeedType.MY_PREDICTIONS)}
+                isActive={currentFeed === FeedType.MY_PREDICTIONS}
+              />
+              <TopicItem
+                text={t("myQuestionsAndPosts")}
+                emoji={"✍️"}
+                onClick={() => switchFeed(FeedType.MY_QUESTIONS_AND_POSTS)}
+                isActive={currentFeed === FeedType.MY_QUESTIONS_AND_POSTS}
+              />
+            </>
+          )}
           <TopicItem
             isActive={false}
             emoji="🇺🇸"
@@ -162,12 +167,14 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             isActive={false}
           />
           <hr className="mb-0 mt-0"></hr>
-          <TopicItem
-            href="/questions?status=pending"
-            text="In Review"
-            emoji={<FontAwesomeIcon icon={faFileClipboard} />}
-            isActive={false}
-          />
+          {user && (
+            <TopicItem
+              text={t("Pending")}
+              emoji={<FontAwesomeIcon icon={faFileClipboard} />}
+              onClick={() => switchFeed(FeedType.IN_REVIEW)}
+              isActive={currentFeed === FeedType.IN_REVIEW}
+            />
+          )}
         </div>
       </div>
     </div>
