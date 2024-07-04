@@ -1,4 +1,5 @@
 from datetime import datetime, timezone as dt_timezone
+from typing import TYPE_CHECKING
 
 from django.db import models
 from django.db.models import Count, Q
@@ -11,6 +12,10 @@ from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
 
 from questions.models import Question
+
+
+if TYPE_CHECKING:
+    from scoring.models import Leaderboard
 
 
 class ProjectsQuerySet(models.QuerySet):
@@ -73,6 +78,9 @@ class ProjectsQuerySet(models.QuerySet):
 
 
 class Project(TimeStampedModel):
+    id: int
+    leaderboards: QuerySet["Leaderboard"]
+
     class ProjectTypes(models.TextChoices):
         SITE_MAIN = "site_main"
         TOURNAMENT = "tournament"
