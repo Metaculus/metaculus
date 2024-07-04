@@ -1,3 +1,9 @@
+export enum FeedType {
+  HOME = "home",
+  MY_PREDICTIONS = "my_predictions",
+  MY_QUESTIONS_AND_POSTS = "my_questions_and_posts",
+}
+
 export const POST_TOPIC_FILTER = "topic";
 export const POST_TEXT_SEARCH_FILTER = "search";
 export const POST_TYPE_FILTER = "forecast_type";

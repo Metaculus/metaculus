@@ -1,11 +1,9 @@
 "use client";
 import {
-  faHome,
-  faEllipsis,
   faArrowUp,
-  faLockOpen,
-  faSearch,
+  faEllipsis,
   faFileClipboard,
+  faHome,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
@@ -14,6 +12,7 @@ import { FC, useMemo, useState } from "react";
 
 import Button from "@/components/ui/button";
 import {
+  FeedType,
   POST_FORECASTED_ID_FILTER,
   POST_ORDER_BY_FILTER,
   POST_TOPIC_FILTER,
@@ -58,23 +57,29 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     hotTopics.length + hotCategories.length > EXPAND_THRESHOLD;
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
+  const currentFeed = useMemo(() => {
+    if (selectedTopic) return null;
+
+    if (forecastedId) return FeedType.MY_PREDICTIONS;
+
+    return FeedType.HOME;
+  }, [forecastedId, selectedTopic]);
+
+  const switchFeed = (feedType: FeedType) => {
+    clearInReview();
+    deleteParam(POST_TOPIC_FILTER);
+    deleteParam(POST_FORECASTED_ID_FILTER);
+
+    if (feedType === FeedType.MY_PREDICTIONS) {
+      user && setParam(POST_FORECASTED_ID_FILTER, user.id.toString());
+    }
+  };
+
   // TODO: cleanup status when BE supports pending status
   const clearInReview = () => {
     if (orderBy === QuestionOrder.VotesDesc) {
       deleteParam(POST_ORDER_BY_FILTER, false);
     }
-  };
-
-  const switchToHomeFeed = () => {
-    clearInReview();
-    deleteParam(POST_TOPIC_FILTER);
-    deleteParam(POST_FORECASTED_ID_FILTER);
-  };
-
-  const switchToMyPredictionsFeed = () => {
-    clearInReview();
-    deleteParam(POST_TOPIC_FILTER);
-    user && setParam(POST_FORECASTED_ID_FILTER, user.id.toString());
   };
 
   const selectTopic = (topic: Topic) => {
@@ -126,15 +131,15 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
           <TopicItem
             text={t("feedHome")}
             emoji={<FontAwesomeIcon icon={faHome} />}
-            onClick={switchToHomeFeed}
-            isActive={selectedTopic === null && forecastedId === null}
+            onClick={() => switchFeed(FeedType.HOME)}
+            isActive={currentFeed === FeedType.HOME}
           />
           {user && (
             <TopicItem
               text={t("myPredictions")}
               emoji={"👤"}
-              onClick={switchToMyPredictionsFeed}
-              isActive={forecastedId !== null}
+              onClick={() => switchFeed(FeedType.MY_PREDICTIONS)}
+              isActive={currentFeed === FeedType.MY_PREDICTIONS}
             />
           )}
           <TopicItem
