@@ -16,7 +16,6 @@ import {
 } from "@/app/(main)/accounts/schemas";
 import Button from "@/components/ui/button";
 import { FormError, Input } from "@/components/ui/form_field";
-import Hr from "@/components/ui/hr";
 
 export type PasswordResetProps = {
   user_id: number;
@@ -35,7 +34,7 @@ const PasswordReset: FC<PasswordResetProps> = ({ user_id, token }) => {
 
   return (
     <>
-      <Hr className="my-0" />
+      <hr className="my-0" />
       <div className="flex items-center justify-between">
         <h2 className="my-4 text-2xl font-bold">{t("passwordResetHeading")}</h2>
       </div>
