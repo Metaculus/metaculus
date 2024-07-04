@@ -38,6 +38,18 @@ type Props = {
   mode: "create" | "edit";
 };
 
+function fmtDateStrForInput(
+  dt_string: string | null | undefined
+): string | undefined {
+  console.log(dt_string, dt_string === null, dt_string === undefined);
+  if (dt_string === null || dt_string === undefined) {
+    return undefined;
+  }
+  const as_date = new Date(dt_string);
+  console.log("HERE", as_date.toISOString().split("T")[0]);
+  return as_date.toISOString().split("T")[0];
+}
+
 const GroupForm: React.FC<Props> = ({
   subtype,
   mode,
@@ -64,6 +76,7 @@ const GroupForm: React.FC<Props> = ({
 
   const [advanced, setAdvanced] = useState(false);
   const [subQuestions, setSubQuestions] = useState<any[]>([]);
+  const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<any[]>([]);
 
   const control = useForm({
     // @ts-ignore
@@ -84,10 +97,7 @@ const GroupForm: React.FC<Props> = ({
             }
           )(e);
         }}
-        onChange={async (e) => {
-          const data = control.getValues();
-        }}
-        className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-8"
+        className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s bg-white p-8 dark:bg-blue-900"
       >
         {tournament_id && (
           <div className="mb-2">
@@ -131,11 +141,14 @@ const GroupForm: React.FC<Props> = ({
             type="date"
             {...control.register("scheduled_close_time", {
               setValueAs: (value: string) => {
+                if (value == "" || value == null || value == undefined) {
+                  return null;
+                }
                 return new Date(value);
               },
             })}
             errors={control.formState.errors.scheduled_close_time}
-            defaultValue={post?.scheduled_close_time}
+            defaultValue={fmtDateStrForInput(post?.scheduled_close_time)}
           />
 
           <span>Resolving Date</span>
@@ -143,11 +156,14 @@ const GroupForm: React.FC<Props> = ({
             type="date"
             {...control.register("scheduled_resolve_time", {
               setValueAs: (value: string) => {
+                if (value == "" || value == null || value == undefined) {
+                  return null;
+                }
                 return new Date(value);
               },
             })}
             errors={control.formState.errors.scheduled_resolve_time}
-            defaultValue={post?.scheduled_resolve_time}
+            defaultValue={fmtDateStrForInput(post?.scheduled_resolve_time)}
           />
 
           <span>Opening date</span>
@@ -155,19 +171,23 @@ const GroupForm: React.FC<Props> = ({
             type="date"
             {...control.register("open_time", {
               setValueAs: (value: string) => {
+                if (value == "" || value == null || value == undefined) {
+                  return null;
+                }
                 return new Date(value);
               },
             })}
             errors={control.formState.errors.open_time}
-            defaultValue={post?.question?.open_time}
+            defaultValue={fmtDateStrForInput(post?.question?.open_time)}
           />
 
-          <span>Title</span>
+          <span>Group Variable</span>
           <Input
             {...control.register("group_variable")}
             errors={control.formState.errors.group_variable}
             defaultValue={post?.group_of_questions.group_variable}
           />
+          <span className="text-xs font-thin text-gray-800">{`A name for the parameter which varies between subquestions, like "Option", "Year" or "Country"`}</span>
 
           {advanced && (
             <>
@@ -206,68 +226,123 @@ const GroupForm: React.FC<Props> = ({
                   key={index}
                   className="m-4 flex flex-col space-y-4 rounded border bg-white p-4 dark:bg-blue-900"
                 >
-                  <span className="text-gray-300">Subquestion Label</span>
+                  <span className="">Subquestion Label</span>
                   <Input
                     onChange={(e) => {
                       setSubQuestions(
                         subQuestions.map((subQuestion, iter_index) => {
                           if (index == iter_index) {
-                            subQuestion.label = e.target.value;
+                            subQuestion["label"] = e.target.value;
                           }
                           return subQuestion;
                         })
                       );
                     }}
-                    defaultValue={post?.title}
+                    value={subQuestion?.label}
                   />
-                  <span className="text-xs font-thin text-gray-300"></span>
+                  <span className="text-xs font-thin text-gray-800">{`The label or parameter which identifies this subquestion, like "Option 1", "2033" or "France"`}</span>
+                  {collapsedSubQuestions[index] && (
+                    <>
+                      <span>Closing Date</span>
+                      <Input
+                        type="date"
+                        onChange={(e) => {
+                          setSubQuestions(
+                            subQuestions.map((subQuestion, iter_index) => {
+                              if (index == iter_index) {
+                                subQuestion.scheduled_close_time =
+                                  e.target.value;
+                              }
+                              return subQuestion;
+                            })
+                          );
+                        }}
+                        value={fmtDateStrForInput(
+                          subQuestion.scheduled_close_time
+                            ? subQuestion.scheduled_close_time
+                            : control.getValues().scheduled_close_time
+                        )}
+                      />
 
-                  <span>Closing Date</span>
-                  <Input
-                    type="date"
-                    onChange={(e) => {
-                      setSubQuestions(
-                        subQuestions.map((subQuestion, iter_index) => {
-                          if (index == iter_index) {
-                            subQuestion.scheduled_close_time = e.target.value;
-                          }
-                          return subQuestion;
-                        })
-                      );
-                    }}
-                    defaultValue={post?.scheduled_close_time}
-                  />
+                      <span>Resolving Date</span>
+                      <Input
+                        type="date"
+                        onChange={(e) => {
+                          setSubQuestions(
+                            subQuestions.map((subQuestion, iter_index) => {
+                              if (index == iter_index) {
+                                subQuestion.scheduled_resolve_time =
+                                  e.target.value;
+                              }
+                              return subQuestion;
+                            })
+                          );
+                        }}
+                        value={fmtDateStrForInput(
+                          subQuestion.scheduled_resolve_time
+                            ? subQuestion.scheduled_resolve_time
+                            : control.getValues().scheduled_resolve_time
+                        )}
+                      />
+                      <span>Opening date</span>
+                      <Input
+                        type="date"
+                        onChange={(e) => {
+                          setSubQuestions(
+                            subQuestions.map((subQuestion, iter_index) => {
+                              if (index == iter_index) {
+                                subQuestion.open_time = e.target.value;
+                              }
+                              return subQuestion;
+                            })
+                          );
+                        }}
+                        value={fmtDateStrForInput(
+                          subQuestion.open_time
+                            ? subQuestion.open_time
+                            : control.getValues().open_time
+                        )}
+                      />
+                    </>
+                  )}
 
-                  <span>Resolving Date</span>
-                  <Input
-                    type="date"
-                    onChange={(e) => {
-                      setSubQuestions(
-                        subQuestions.map((subQuestion, iter_index) => {
-                          if (index == iter_index) {
-                            subQuestion.scheduled_resolve_time = e.target.value;
-                          }
-                          return subQuestion;
-                        })
-                      );
-                    }}
-                    defaultValue={post?.scheduled_resolve_time}
-                  />
-                  <span>Opening date</span>
-                  <Input
-                    type="date"
-                    onChange={(e) => {
-                      setSubQuestions(
-                        subQuestions.map((subQuestion, iter_index) => {
-                          if (index == iter_index) {
-                            subQuestion.open_time = e.target.value;
-                          }
-                          return subQuestion;
-                        })
-                      );
-                    }}
-                    defaultValue={post?.question?.open_time}
-                  />
+                  <div className="flex justify-between">
+                    <Button
+                      className="rounded-xxl border border-0 bg-gray-300 text-black dark:bg-blue-300 dark:text-blue-800"
+                      onClick={() => {
+                        setCollapsedSubQuestions(
+                          collapsedSubQuestions.map((x, iter_index) => {
+                            if (iter_index == index) {
+                              return !x;
+                            }
+                            return x;
+                          })
+                        );
+                      }}
+                    >
+                      {collapsedSubQuestions[index] === false
+                        ? "⌄ Expand"
+                        : "^ Collapse"}
+                    </Button>
+
+                    <Button
+                      className="rounded-xxl border-0 bg-red-200 text-red-800 dark:bg-red-200 dark:text-red-800"
+                      onClick={() => {
+                        setSubQuestions(
+                          subQuestions.filter(
+                            (subQuestion, iter_index) => index != iter_index
+                          )
+                        );
+                        setCollapsedSubQuestions(
+                          collapsedSubQuestions.filter(
+                            (_, iter_index) => index != iter_index
+                          )
+                        );
+                      }}
+                    >
+                      x Remove Subquestion
+                    </Button>
+                  </div>
                 </div>
               );
             })}
@@ -320,6 +395,7 @@ const GroupForm: React.FC<Props> = ({
                     },
                   ]);
                 }
+                setCollapsedSubQuestions([...collapsedSubQuestions, true]);
               }}
             >
               + New Subquestion
