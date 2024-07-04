@@ -148,8 +148,8 @@ def project_leaderboard(
     leaderboard_name: str | None = None,
     score_type: str | None = None,
 ):
-    qs = get_projects_qs(user=request.user)
-    project = get_object_or_404(qs, pk=project_id)
+    querys_set = get_projects_qs(user=request.user)
+    project: Project = get_object_or_404(querys_set, pk=project_id)
 
     # Check permissions
     permission = get_project_permission_for_user(project, user=request.user)
