@@ -24,13 +24,17 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
     };
 
     return (
-      <div ref={ref} className="relative w-full" style={{ height }}>
+      <div
+        ref={ref}
+        className="relative flex w-full flex-col"
+        style={{ height }}
+      >
         {!!zoom && (
           <TabGroup
             selectedIndex={selectedIndex}
             onChange={handleTabChange}
             manual
-            className="absolute right-0 top-0 z-[1]"
+            className="self-end"
           >
             <TabList className="flex gap-0.5">
               {tabOptions.map((option) => (
@@ -40,7 +44,10 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
                       className={classNames(
                         "rounded px-1.5 py-1 text-sm font-medium leading-4 text-gray-600 hover:text-blue-800 focus:outline-none dark:text-gray-600-dark hover:dark:text-blue-800-dark",
                         { "text-gray-800 dark:text-gray-800-dark": selected },
-                        { "bg-gray-300 dark:bg-gray-300": hover || selected }
+                        {
+                          "bg-gray-300 dark:bg-gray-300-dark":
+                            hover || selected,
+                        }
                       )}
                     >
                       {option.label}
