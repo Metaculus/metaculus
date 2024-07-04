@@ -8,33 +8,31 @@ import {
   useState,
 } from "react";
 
-type EmbedElectionsModalContext = {
+type EmbedModalContext = {
   isOpen: boolean;
   updateIsOpen: (open: boolean) => void;
 };
 
-const EmbedElectionsModalContext = createContext(
-  {} as EmbedElectionsModalContext
-);
+const EmbedModalContext = createContext({} as EmbedModalContext);
 
-export const EmbedElectionsModalContextProvider: FC<PropsWithChildren> = ({
+export const EmbedModalContextProvider: FC<PropsWithChildren> = ({
   children,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const updateIsOpen = useCallback((open: boolean) => setIsOpen(open), []);
 
   return (
-    <EmbedElectionsModalContext.Provider
+    <EmbedModalContext.Provider
       value={{
         isOpen,
         updateIsOpen,
       }}
     >
       {children}
-    </EmbedElectionsModalContext.Provider>
+    </EmbedModalContext.Provider>
   );
 };
 
-export default function useEmbedElectionsModalContext(): EmbedElectionsModalContext {
-  return useContext(EmbedElectionsModalContext);
+export default function useEmbedModalContext(): EmbedModalContext {
+  return useContext(EmbedModalContext);
 }
