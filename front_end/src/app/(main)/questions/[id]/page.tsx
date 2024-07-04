@@ -13,12 +13,14 @@ import QuestionEmbedModal from "@/app/(main)/questions/[id]/components/question_
 import ShareQuestionMenu from "@/app/(main)/questions/[id]/components/share_question_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import CommentFeed from "@/components/comment_feed";
-import CommentEditor from "@/components/comment_feed/comment_editor";
 import ConditionalTile from "@/components/conditional_tile";
 import ForecastMaker from "@/components/forecast_maker";
 import Button from "@/components/ui/button";
+<<<<<<< HEAD
 import Hr from "@/components/ui/hr";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
+=======
+>>>>>>> 148f3d7 (add filtering private comments)
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
@@ -257,6 +259,14 @@ export default async function IndividualQuestion({
               </div>
             </div>
           </div>
+<<<<<<< HEAD
+=======
+          <div>
+            {commentsData && (
+              <CommentFeed initialComments={commentsData} post={postData} />
+            )}
+          </div>
+>>>>>>> 148f3d7 (add filtering private comments)
         </div>
       </main>
 

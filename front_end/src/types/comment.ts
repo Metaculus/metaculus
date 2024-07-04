@@ -7,6 +7,7 @@ export type CommentType = {
   is_soft_deleted: boolean;
   text: string;
   included_forecast?: number;
+  is_private: boolean;
 };
 
 export enum CommentPermissions {
