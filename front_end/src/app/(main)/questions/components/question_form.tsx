@@ -180,6 +180,9 @@ const QuestionForm: React.FC<Props> = ({
             type="date"
             {...control.register("scheduled_close_time", {
               setValueAs: (value: string) => {
+                if (value == "" || value == null || value == undefined) {
+                  return null;
+                }
                 return new Date(value);
               },
             })}
@@ -192,6 +195,9 @@ const QuestionForm: React.FC<Props> = ({
             type="date"
             {...control.register("scheduled_resolve_time", {
               setValueAs: (value: string) => {
+                if (value == "" || value == null || value == undefined) {
+                  return null;
+                }
                 return new Date(value);
               },
             })}
@@ -204,6 +210,9 @@ const QuestionForm: React.FC<Props> = ({
             type="date"
             {...control.register("open_time", {
               setValueAs: (value: string) => {
+                if (value == "" || value == null || value == undefined) {
+                  return null;
+                }
                 return new Date(value);
               },
             })}
@@ -240,6 +249,9 @@ const QuestionForm: React.FC<Props> = ({
                 type="date"
                 {...control.register("max", {
                   setValueAs: (value: string) => {
+                    if (value == "" || value == null || value == undefined) {
+                      return null;
+                    }
                     return new Date(value);
                   },
                 })}
@@ -251,6 +263,9 @@ const QuestionForm: React.FC<Props> = ({
                 type="date"
                 {...control.register("min", {
                   setValueAs: (value: string) => {
+                    if (value == "" || value == null || value == undefined) {
+                      return null;
+                    }
                     return new Date(value);
                   },
                 })}
