@@ -1,6 +1,7 @@
 import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { parseISO } from "date-fns";
+import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
@@ -18,19 +19,42 @@ import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
-import { PostStatus, ProjectPermissions } from "@/types/post";
+import { Post, PostStatus, ProjectPermissions } from "@/types/post";
+import { getConditionalQuestionTitle } from "@/utils/questions";
 
 import DetailedGroupCard from "./components/detailed_group_card";
 import DetailedQuestionCard from "./components/detailed_question_card";
 import Modbox from "./components/modbox";
 
+type Props = {
+  params: { id: number };
+  searchParams: SearchParams;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const postData = await PostsApi.getPost(params.id);
+  if (!postData) {
+    return {};
+  }
+
+  const questionTitle = getQuestionTitle(postData);
+  return {
+    title: questionTitle,
+    description: null,
+    openGraph: {
+      type: "article",
+    },
+    twitter: {
+      site: "@metaculus",
+      card: "summary_large_image",
+    },
+  };
+}
+
 export default async function IndividualQuestion({
   params,
   searchParams,
-}: {
-  params: { id: number };
-  searchParams: SearchParams;
-}) {
+}: Props) {
   const postData = await PostsApi.getPost(params.id);
 
   if (!postData) {
@@ -183,7 +207,7 @@ export default async function IndividualQuestion({
             <div className="mb-4 flex w-full items-center justify-between gap-2 border-b border-gray-300 pb-4 dark:border-gray-300-dark">
               <QuestionEmbedButton />
               <div className="flex gap-2">
-                <ShareQuestionMenu />
+                <ShareQuestionMenu questionTitle={getQuestionTitle(postData)} />
                 <Button
                   variant="secondary"
                   className="!rounded border-0"
@@ -243,4 +267,12 @@ function extractPreselectedGroupQuestionId(
     const id = Number(param);
     return isNaN(id) ? undefined : id;
   }
+}
+
+function getQuestionTitle(post: Post) {
+  if (post.conditional) {
+    return getConditionalQuestionTitle(post.conditional.question_yes);
+  }
+
+  return post.title;
 }

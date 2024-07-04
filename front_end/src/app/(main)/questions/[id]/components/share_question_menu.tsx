@@ -7,20 +7,26 @@ import Button from "@/components/ui/button";
 import DropdownMenu from "@/components/ui/dropdown_menu";
 import useEmbedModalContext from "@/contexts/embed_modal_context";
 import {
+  useMetaImageUrl,
   useCopyUrl,
   useShareOnFacebookLink,
   useShareOnTwitterLink,
 } from "@/hooks/share";
 import { useBreakpoint } from "@/hooks/tailwind";
 
-type Props = {};
+type Props = {
+  questionTitle: string;
+};
 
-const ShareQuestionMenu: FC<Props> = () => {
+const ShareQuestionMenu: FC<Props> = ({ questionTitle }) => {
   const isLargeScreen = useBreakpoint("md");
 
   const { updateIsOpen } = useEmbedModalContext();
   const copyUrl = useCopyUrl();
-  const shareOnTwitterLink = useShareOnTwitterLink();
+  const copyImageUrl = useMetaImageUrl("twitter:image");
+  const shareOnTwitterLink = useShareOnTwitterLink(
+    `${questionTitle} #metaculus`
+  );
   const shareOnFacebookLink = useShareOnFacebookLink();
 
   return (
@@ -47,6 +53,15 @@ const ShareQuestionMenu: FC<Props> = () => {
           link: shareOnTwitterLink,
           openNewTab: true,
         },
+        ...(copyImageUrl
+          ? [
+              {
+                id: "image",
+                name: "Image",
+                link: copyImageUrl,
+              },
+            ]
+          : []),
         {
           id: "copy_link",
           name: "Copy link",

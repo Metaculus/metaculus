@@ -1,9 +1,23 @@
+import { Metadata } from "next";
+
 import ShareElectionsMenu from "@/app/(main)/experiments/elections/components/share_elections_menu";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 
 import CardForecast from "./components/card_forecast";
 import ExpectedElectoralVotesForecast from "./components/expected_electoral_votes_forecast";
 import StateByForecast from "./components/state_by_forecast";
+
+export const metadata: Metadata = {
+  title: "2024 US Election Hub",
+  description: null,
+  openGraph: {
+    type: "website",
+  },
+  twitter: {
+    site: "@metaculus",
+    card: "summary_large_image",
+  },
+};
 
 export default function ElectionsExperiment() {
   return (

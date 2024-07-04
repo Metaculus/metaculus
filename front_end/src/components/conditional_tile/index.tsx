@@ -5,6 +5,7 @@ import { VictoryThemeDefinition } from "victory";
 
 import { PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
+import { getConditionalQuestionTitle } from "@/utils/questions";
 
 import ConditionalCard from "./conditional_card";
 import ConditionalChart from "./conditional_chart";
@@ -86,7 +87,7 @@ const ConditionalTile: FC<Props> = ({
           { "row-span-2 md:row-auto": !isEmbedded }
         )}
       >
-        <ConditionalCard title={question_yes.title}>
+        <ConditionalCard title={getConditionalQuestionTitle(question_yes)}>
           <ConditionalChart
             parentResolved={parentSuccessfullyResolved}
             question={question_yes}
@@ -95,7 +96,7 @@ const ConditionalTile: FC<Props> = ({
             chartTheme={chartTheme}
           />
         </ConditionalCard>
-        <ConditionalCard title={question_no.title}>
+        <ConditionalCard title={getConditionalQuestionTitle(question_no)}>
           <ConditionalChart
             parentResolved={parentSuccessfullyResolved}
             question={question_no}
