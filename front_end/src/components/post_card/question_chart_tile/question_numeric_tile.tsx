@@ -2,6 +2,7 @@ import { FC } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
 import PredictionChip from "@/components/prediction_chip";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getNumericChartTypeFromQuestion } from "@/utils/charts";
@@ -11,9 +12,14 @@ const HEIGHT = 100;
 type Props = {
   question: QuestionWithNumericForecasts;
   curationStatus: PostStatus;
+  defaultChartZoom?: TimelineChartZoomOption;
 };
 
-const QuestionNumericTile: FC<Props> = ({ question, curationStatus }) => {
+const QuestionNumericTile: FC<Props> = ({
+  question,
+  curationStatus,
+  defaultChartZoom,
+}) => {
   const prediction =
     question.forecasts.values_mean[question.forecasts.values_mean.length - 1];
 
@@ -33,6 +39,7 @@ const QuestionNumericTile: FC<Props> = ({ question, curationStatus }) => {
           dataset={question.forecasts}
           height={HEIGHT}
           type={getNumericChartTypeFromQuestion(question.type)}
+          defaultZoom={defaultChartZoom}
         />
       </div>
     </div>

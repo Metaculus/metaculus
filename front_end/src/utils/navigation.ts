@@ -14,3 +14,14 @@ export function encodeQueryParams(params: Record<string, any>): string {
 
   return encodedParams ? `?${encodedParams}` : "";
 }
+
+export const addUrlParams = (
+  url: string,
+  params: Array<{ paramName: string; paramValue: string }>
+) => {
+  const urlObject = new URL(url);
+  params.forEach(({ paramName, paramValue }) => {
+    urlObject.searchParams.set(paramName, paramValue);
+  });
+  return urlObject.toString();
+};
