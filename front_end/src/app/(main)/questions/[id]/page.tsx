@@ -13,7 +13,6 @@ import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
 import ForecastMaker from "@/components/forecast_maker";
 import Button from "@/components/ui/button";
-import Hr from "@/components/ui/hr";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
