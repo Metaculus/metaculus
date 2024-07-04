@@ -6,6 +6,7 @@ import {
   faHome,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { use } from "ast-types";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
@@ -13,9 +14,11 @@ import { FC, useMemo, useState } from "react";
 import Button from "@/components/ui/button";
 import {
   FeedType,
+  POST_AUTHOR_FILTER,
   POST_FORECASTED_ID_FILTER,
   POST_ORDER_BY_FILTER,
   POST_TOPIC_FILTER,
+  POST_USERNAMES_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
@@ -43,6 +46,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
 
   const selectedTopic = params.get(POST_TOPIC_FILTER);
   const forecastedId = params.get(POST_FORECASTED_ID_FILTER);
+  const authorUsernames = params.getAll(POST_USERNAMES_FILTER);
   const orderBy = params.get(POST_ORDER_BY_FILTER);
 
   const { hotTopics, hotCategories } = useMemo(
@@ -61,17 +65,24 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     if (selectedTopic) return null;
 
     if (forecastedId) return FeedType.MY_PREDICTIONS;
+    if (user && authorUsernames.every((obj) => obj === user.username)) {
+      return FeedType.MY_QUESTIONS_AND_POSTS;
+    }
 
     return FeedType.HOME;
-  }, [forecastedId, selectedTopic]);
+  }, [authorUsernames, forecastedId, selectedTopic, user]);
 
   const switchFeed = (feedType: FeedType) => {
     clearInReview();
     deleteParam(POST_TOPIC_FILTER);
     deleteParam(POST_FORECASTED_ID_FILTER);
+    deleteParam(POST_USERNAMES_FILTER);
 
     if (feedType === FeedType.MY_PREDICTIONS) {
       user && setParam(POST_FORECASTED_ID_FILTER, user.id.toString());
+    }
+    if (feedType === FeedType.MY_QUESTIONS_AND_POSTS) {
+      user && setParam(POST_USERNAMES_FILTER, user.username.toString());
     }
   };
 
@@ -135,12 +146,20 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             isActive={currentFeed === FeedType.HOME}
           />
           {user && (
-            <TopicItem
-              text={t("myPredictions")}
-              emoji={"👤"}
-              onClick={() => switchFeed(FeedType.MY_PREDICTIONS)}
-              isActive={currentFeed === FeedType.MY_PREDICTIONS}
-            />
+            <>
+              <TopicItem
+                text={t("myPredictions")}
+                emoji={"👤"}
+                onClick={() => switchFeed(FeedType.MY_PREDICTIONS)}
+                isActive={currentFeed === FeedType.MY_PREDICTIONS}
+              />
+              <TopicItem
+                text={t("myQuestionsAndPosts")}
+                emoji={"👤"}
+                onClick={() => switchFeed(FeedType.MY_QUESTIONS_AND_POSTS)}
+                isActive={currentFeed === FeedType.MY_QUESTIONS_AND_POSTS}
+              />
+            </>
           )}
           <TopicItem
             isActive={false}
