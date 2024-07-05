@@ -141,39 +141,6 @@ def tournament_by_slug_api_view(request: Request, slug: str):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
-def project_leaderboard(
-    request: Request,
-    project_id: int,
-    leaderboard_name: str | None = None,
-    score_type: str | None = None,
-):
-    querys_set = get_projects_qs(user=request.user)
-    project: Project = get_object_or_404(querys_set, pk=project_id)
-
-    # Check permissions
-    permission = get_project_permission_for_user(project, user=request.user)
-    ObjectPermission.can_view(permission, raise_exception=True)
-
-    if leaderboard_name:
-        leaderboard = project.leaderboards.filter(name=leaderboard_name).first()
-    elif score_type:
-        leaderboard = project.leaderboards.filter(score_type=score_type).first()
-    else:
-        leaderboard = project.primary_leaderboard
-    if not leaderboard:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    leaderboard_data = LeaderboardSerializer(leaderboard).data
-
-    entries = list(leaderboard.entries.all())
-    if len(entries) == 0:
-        entries = generate_project_leaderboard(project, leaderboard)
-    leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
-
-    return Response(leaderboard_data)
-
-
-@api_view(["GET"])
 def project_members_api_view(request: Request, project_id: int):
     qs = get_projects_qs(user=request.user)
     obj = get_object_or_404(qs, pk=project_id)
