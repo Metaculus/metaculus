@@ -230,9 +230,6 @@ def serialize_post_many(
     ids = [p.pk for p in data]
     qs = Post.objects.filter(pk__in=ids)
 
-    # TODO: remove
-    with_forecasts = False
-
     qs = (
         qs.annotate_forecasts_count()
         .annotate_user_permission(user=current_user)
