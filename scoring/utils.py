@@ -1,12 +1,12 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
 from django.utils import timezone
-from django.db.models.query import QuerySet
+from django.db.models import QuerySet, Q
 
 from users.models import User
 from projects.models import Project
 from questions.models import Question
-from scoring.models import Score, LeaderboardEntry, Leaderboard
+from scoring.models import Score, LeaderboardEntry, Leaderboard, MedalExclusionRecord
 from scoring.score_math import evaluate_question
 from utils.the_math.formulas import string_location_to_bucket_index
 
@@ -116,7 +116,30 @@ def update_project_leaderboard(
     previous_entries = list(leaderboard.entries.all())
     new_entries = generate_project_leaderboard(project, leaderboard)
 
-    # TODO: add medals & prize update logic here
+    if timezone.now() > leaderboard.finalize_time:
+        # assign medals
+        excluded_users = MedalExclusionRecord.objects.filter(
+            Q(end_time__isnull=True) | Q(end_time__gte=leaderboard.start_time),
+            start_time__lte=leaderboard.end_time,
+        ).values_list("user", flat=True)
+        entry_count = len(new_entries)
+        golds = max(0.01 * entry_count, 1)
+        silvers = max(0.02 * entry_count, 2)
+        bronzes = max(0.05 * entry_count, 3)
+        rank = 1
+        for entry in new_entries:
+            if entry.user in excluded_users:
+                entry.medal = None
+                entry.rank = None
+                continue
+            if rank <= golds:
+                entry.medal = LeaderboardEntry.Medals.GOLD
+            elif rank <= golds + silvers:
+                entry.medal = LeaderboardEntry.Medals.SILVER
+            elif rank <= golds + silvers + bronzes:
+                entry.medal = LeaderboardEntry.Medals.BRONZE
+            entry.rank = rank
+            rank += 1
 
     for new_entry in new_entries:
         is_new = True
@@ -124,9 +147,10 @@ def update_project_leaderboard(
             if previous_entry.user == new_entry.user:
                 is_new = False
                 previous_entry.score = new_entry.score
-                previous_entry.coverage = new_entry.coverage
+                previous_entry.rank = new_entry.rank
                 previous_entry.medal = new_entry.medal
                 previous_entry.prize = new_entry.prize
+                previous_entry.coverage = new_entry.coverage
                 previous_entry.contribution_count = new_entry.contribution_count
                 previous_entry.save()
                 seen.add(previous_entry)
