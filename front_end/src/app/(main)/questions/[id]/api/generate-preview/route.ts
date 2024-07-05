@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 
 import { ENFORCED_THEME_PARAM } from "@/constants/global_search_params";
-import { COOKIE_NAME_DEV_TOKEN } from "@/services/session";
-import { getAlphaAccessToken } from "@/utils/alpha_access";
 
 export async function GET(
   req: NextRequest,
@@ -19,19 +17,8 @@ export async function GET(
   });
   const page = await browser.newPage();
 
-  const alphaAccessToken = await getAlphaAccessToken();
-  if (alphaAccessToken) {
-    console.log("alphaAccessToken", alphaAccessToken);
-
-    await page.setCookie({
-      name: COOKIE_NAME_DEV_TOKEN,
-      value: alphaAccessToken,
-      domain: new URL(req.nextUrl.origin).hostname,
-      path: "/",
-    });
-  }
-
-  const url = `${req.nextUrl.origin}/embed/questions/${params.id}?${ENFORCED_THEME_PARAM}=dark&non-interactive=true`;
+  const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const url = `${origin}/embed/questions/${params.id}?${ENFORCED_THEME_PARAM}=dark&non-interactive=true`;
   await page.goto(url, { waitUntil: "networkidle0" });
   const element = await page.$("#id-used-by-screenshot-donot-change");
 
