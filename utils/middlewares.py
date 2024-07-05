@@ -8,7 +8,6 @@ def middleware_alpha_access_check(get_response):
     def middleware(request):
         # Code to be executed for each request before
         # the view (and later middleware) are called.
-
         if (
             not request.path.startswith("/admin/")
             and settings.ALPHA_ACCESS_TOKEN
