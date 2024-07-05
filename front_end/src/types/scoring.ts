@@ -3,7 +3,12 @@ import { Question } from "./question";
 export type ScoreType = "peer" | "spot_peer" | "baseline" | "spot_baseline";
 
 export type LeaderboardType =
-  | ScoreType
+  | "relative_legacy_tournament"
+  | "peer_global"
+  | "peer_global_legacy"
+  | "peer_tournament"
+  | "spot_peer_tournament"
+  | "baseline_global"
   | "comment_insight"
   | "question_writing";
 
@@ -23,6 +28,7 @@ export type LeaderboardEntry = {
   coverage: number;
   contribution_count: number;
   medal: string;
+  prize: number;
   calculated_on: string;
 };
 

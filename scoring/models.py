@@ -40,6 +40,7 @@ class Score(TimeStampedModel):
 
 class Leaderboard(TimeStampedModel):
     id: int
+    project_id: int
     objects: models.Manager["Leaderboard"]
     entries: QuerySet["LeaderboardEntry"]
 
