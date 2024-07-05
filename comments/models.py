@@ -27,7 +27,7 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     is_soft_deleted = models.BooleanField(null=True)
     text = models.TextField()
-    on_post = models.ForeignKey(Post, models.CASCADE, null=True)
+    on_post = models.ForeignKey(Post, models.CASCADE, null=True, related_name="comments")
     on_project = models.ForeignKey(Project, models.CASCADE, null=True)
     included_forecast = models.ForeignKey(
         Forecast, on_delete=models.SET_NULL, null=True

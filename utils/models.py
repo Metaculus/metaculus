@@ -1,5 +1,6 @@
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import F
 
 from django.utils.translation import gettext_lazy as _
 
@@ -25,3 +26,13 @@ validate_alpha_slug = RegexValidator(
     ),
     "invalid",
 )
+
+
+def build_order_by(value: str, is_desc: bool):
+    """
+    Builds order_by argument for django orm
+    """
+
+    q = F(value)
+
+    return q.desc(nulls_last=True) if is_desc else q.asc(nulls_last=True)
