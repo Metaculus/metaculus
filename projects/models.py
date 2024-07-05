@@ -53,19 +53,13 @@ class ProjectsQuerySet(models.QuerySet):
             project_id=models.OuterRef("pk"), user_id=user.id if user else None
         ).values("permission")[:1]
 
-        # Annotate the queryset
-        if user and user.is_superuser:
-            qs = self.annotate(user_permission=models.Value(ObjectPermission.ADMIN))
-        else:
-            qs = self.annotate(
-                user_permission=Coalesce(
-                    models.Subquery(user_permission_subquery),
-                    "default_permission",
-                    output_field=models.CharField(),
-                )
+        return self.annotate(
+            user_permission=Coalesce(
+                models.Subquery(user_permission_subquery),
+                "default_permission",
+                output_field=models.CharField(),
             )
-
-        return qs
+        )
 
     def filter_permission(self, user: User = None):
         """
