@@ -143,6 +143,7 @@ class PostFilterSerializer(serializers.Serializer):
             return Project.objects.filter(pk=value)
         except Project.DoesNotExist:
             raise ValidationError("Slug does not exist")
+
     def validate_news_type(self, value: str):
         try:
             return Project.objects.get(
@@ -189,12 +190,18 @@ def serialize_post(
 
     if post.question:
         serialized_data["question"] = serialize_question(
-            post.question, with_forecasts=with_forecasts, current_user=current_user
+            post.question,
+            with_forecasts=with_forecasts,
+            current_user=current_user,
+            post_id=post.id,
         )
 
     if post.conditional:
         serialized_data["conditional"] = serialize_conditional(
-            post.conditional, with_forecasts=with_forecasts, current_user=current_user
+            post.conditional,
+            with_forecasts=with_forecasts,
+            current_user=current_user,
+            post_id=post.id,
         )
 
     if post.group_of_questions:
@@ -202,6 +209,7 @@ def serialize_post(
             post.group_of_questions,
             with_forecasts=with_forecasts,
             current_user=current_user,
+            post_id=post.id,
         )
 
     if post.notebook:

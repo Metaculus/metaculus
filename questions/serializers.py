@@ -8,8 +8,6 @@ from .services import build_question_forecasts, build_question_forecasts_for_use
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-    post_id = serializers.SerializerMethodField()
-
     class Meta:
         model = Question
         fields = (
@@ -31,16 +29,10 @@ class QuestionSerializer(serializers.ModelSerializer):
             "possibilities",
             "resolution",
             "zero_point",
-            "post_id",
             "resolution_criteria_description",
             "fine_print",
             "label",
         )
-
-    def get_post_id(self, obj):
-        if obj.get_post():
-            return obj.get_post().id
-        return None
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
@@ -140,12 +132,14 @@ def serialize_question(
     question: Question,
     with_forecasts: bool = False,
     current_user: User = None,
+    post_id: int = None,
 ):
     """
     Serializes question object
     """
 
     serialized_data = QuestionSerializer(question).data
+    serialized_data["post_id"] = post_id
 
     if with_forecasts:
         serialized_data["forecasts"] = build_question_forecasts(question)
@@ -161,17 +155,20 @@ def serialize_question(
 
 
 def serialize_conditional(
-    conditional: Conditional, with_forecasts: bool = False, current_user: User = None
+    conditional: Conditional,
+    with_forecasts: bool = False,
+    current_user: User = None,
+    post_id: int = None,
 ):
     # Serialization of basic data
     serialized_data = ConditionalSerializer(conditional).data
 
     # Generic questions
     serialized_data["condition"] = serialize_question(
-        conditional.condition, with_forecasts=False
+        conditional.condition, with_forecasts=False, post_id=post_id
     )
     serialized_data["condition_child"] = serialize_question(
-        conditional.condition_child, with_forecasts=False
+        conditional.condition_child, with_forecasts=False, post_id=post_id
     )
 
     # Autogen questions
@@ -179,18 +176,23 @@ def serialize_conditional(
         conditional.question_yes,
         with_forecasts=with_forecasts,
         current_user=current_user,
+        post_id=post_id,
     )
     serialized_data["question_no"] = serialize_question(
         conditional.question_no,
         with_forecasts=with_forecasts,
         current_user=current_user,
+        post_id=post_id,
     )
 
     return serialized_data
 
 
 def serialize_group(
-    group: GroupOfQuestions, with_forecasts: bool = False, current_user: User = None
+    group: GroupOfQuestions,
+    with_forecasts: bool = False,
+    current_user: User = None,
+    post_id: int = None,
 ):
     # Serialization of basic data
     serialized_data = GroupOfQuestionsSerializer(group).data
@@ -199,7 +201,10 @@ def serialize_group(
     for question in group.questions.all():
         serialized_data["questions"].append(
             serialize_question(
-                question, with_forecasts=with_forecasts, current_user=current_user
+                question,
+                with_forecasts=with_forecasts,
+                current_user=current_user,
+                post_id=post_id,
             )
         )
 

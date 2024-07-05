@@ -204,17 +204,27 @@ class PostQuerySet(models.QuerySet):
             ObjectPermission.CREATOR
         ]
 
-        return (
-            self.annotate_user_permission(user=user)
-            .filter(user_permission__in=permissions_lookup)
-            .filter(
-                models.Q(curation_status=Post.CurationStatus.APPROVED)
-                | models.Q(
-                    user_permission__in=[
-                        ObjectPermission.CREATOR,
-                        ObjectPermission.ADMIN,
-                        ObjectPermission.CURATOR,
-                    ]
+        projects = Project.objects.annotate_user_permission(user=user)
+
+        return self.filter(
+            # If author -> have access to all own posts
+            Q(author_id=user_id)
+            | (
+                Q(
+                    default_project__in=projects.filter(
+                        user_permission__in=permissions_lookup
+                    )
+                )
+                & (
+                    Q(curation_status=Post.CurationStatus.APPROVED)
+                    | Q(
+                        default_project__in=projects.filter(
+                            user_permission__in=[
+                                ObjectPermission.ADMIN,
+                                ObjectPermission.CURATOR,
+                            ]
+                        )
+                    )
                 )
             )
         )
