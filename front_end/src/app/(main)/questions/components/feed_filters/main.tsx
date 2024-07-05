@@ -3,7 +3,6 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
 import {
-  getFilterSectionPostStatus,
   getFilterSectionPostType,
   getFilterSectionUsername,
   POST_STATUS_LABEL_MAP,
@@ -17,7 +16,6 @@ import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
 const MainFeedFilters: FC = () => {
-  const { user } = useAuth();
   const { params } = useSearchParams();
   const t = useTranslations();
 
@@ -76,11 +74,33 @@ const MainFeedFilters: FC = () => {
     [t]
   );
 
+  const onOrderChange = (
+    order: QuestionOrder,
+    setFilterParam: (
+      name: string,
+      val: string | string[],
+      withNavigation?: boolean
+    ) => void
+  ) => {
+    if (
+      [
+        QuestionOrder.ActivityDesc,
+        QuestionOrder.WeeklyMovementDesc,
+        QuestionOrder.PublishTimeDesc,
+        QuestionOrder.CloseTimeAsc,
+        QuestionOrder.ResolveTimeAsc,
+      ].includes(order)
+    ) {
+      setFilterParam(POST_STATUS_FILTER, "open", false);
+    }
+  };
+
   return (
     <PostsFilters
       filters={filters}
       mainSortOptions={mainSortOptions}
       sortOptions={sortOptions}
+      onOrderChange={onOrderChange}
     />
   );
 };
