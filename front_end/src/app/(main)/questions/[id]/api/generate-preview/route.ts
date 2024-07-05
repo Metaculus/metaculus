@@ -22,31 +22,21 @@ export async function GET(
   });
   const page = await browser.newPage();
 
-  // Get the alpha access token
   const alphaAccessToken = await getAlphaAccessToken();
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
-  // Set the x-alpha-auth-token header for all requests
-  console.log(
-    "\n\n\n\n------------\n\n\n",
-    String(alphaAccessToken),
-    origin,
-    "\n\n\n\n------------\n\n\n"
-  );
-  await page.setExtraHTTPHeaders({
-    "x-alpha-auth-token": String(alphaAccessToken),
-  });
 
   const url = `${origin}/embed/questions/${params.id}?${ENFORCED_THEME_PARAM}=dark&non-interactive=true`;
 
   await page.setCookie({
     name: "alpha_token",
     value: String(alphaAccessToken),
-    domain: origin, // Adjust the domain as needed
+    domain: origin.replace("https://", "").replace("http://", ""), // Adjust the domain as needed
+    path: "/",
+    url: origin,
+    secure: false,
+    sameSite: "Lax",
   });
 
-  const c = await page.cookies(origin);
-  console.log("-", c, "-");
   await page.goto(url, { waitUntil: "networkidle0" });
   const element = await page.$("#id-used-by-screenshot-donot-change");
 
