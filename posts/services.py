@@ -12,6 +12,8 @@ from questions.services import (
 )
 from users.models import User
 from utils.dtypes import flatten
+from utils.models import build_order_by
+from utils.serializers import parse_order_by
 
 
 def get_posts_feed(
@@ -24,8 +26,7 @@ def get_posts_feed(
     tournaments: list[Project] = None,
     forecast_type: list[str] = None,
     statuses: list[str] = None,
-    answered_by_me: bool = None,
-    order: str = None,
+    order_by: str = None,
     access: PostFilterSerializer.Access = None,
     permission: str = ObjectPermission.VIEWER,
     ids: list[int] = None,
@@ -33,9 +34,19 @@ def get_posts_feed(
     news_type: Project = None,
     notebook_type: Notebook.NotebookType = None,
     usernames: list[str] = None,
+    forecaster_id: int = None,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
+
+    TODO: implement "upcoming" filtering
+    TODO: implement "New Comments" ordering
+    TODO: implement "Hot Posts" ordering
+    TODO: implement "movers" @george ordering
+    TODO: implement "divergence" @george ordering
+    TODO: implement "stale" @george ordering
+    TODO: implement "Best Scores" @george ordering
+    TODO: implement "Worst Scores" @george ordering
     """
 
     # If ids provided
@@ -101,6 +112,8 @@ def get_posts_feed(
     for status in statuses:
         if status in ["pending", "rejected", "deleted"]:
             q |= Q(curation_status=status)
+        if status == "upcoming":
+            q |= Q()
         if status == "draft":
             q |= Q(curation_status=status, author=user)
         if status == "closed":
@@ -108,7 +121,7 @@ def get_posts_feed(
         if status == "resolved":
             q |= Q(resolved=True, curation_status=Post.CurationStatus.APPROVED)
 
-        if "active" in status:
+        if "open" in status:
             q |= Q(
                 published_at__isnull=False,
                 curation_status=Post.CurationStatus.APPROVED,
@@ -117,9 +130,10 @@ def get_posts_feed(
 
     qs = qs.filter(q)
 
-    if answered_by_me is not None and not user.is_anonymous:
-        condition = {"question__forecast__author": user}
-        qs = qs.filter(**condition) if answered_by_me else qs.exclude(**condition)
+    if forecaster_id:
+        qs = qs.annotate_last_forecast_date_for_user(forecaster_id).filter(
+            user_last_forecasts_date__isnull=False
+        )
 
     # Filter by access
     if access == PostFilterSerializer.Access.PRIVATE:
@@ -127,23 +141,28 @@ def get_posts_feed(
     if access == PostFilterSerializer.Access.PUBLIC:
         qs = qs.filter_public()
 
-    order_field = "-created_at"
+    # Performing query override
+    # Before running order_by
+    qs = Post.objects.filter(pk__in=qs.distinct("id"))
 
     # Ordering
-    if order:
-        match order:
-            case PostFilterSerializer.Order.MOST_FORECASTERS:
-                order_field = "-nr_forecasters"
-                qs = qs.annotate_nr_forecasters()
-            case PostFilterSerializer.Order.actual_close_time:
-                order_field = "-actual_close_time"
-            case PostFilterSerializer.Order.RESOLVED_AT:
-                order_field = "-resolved_at"
+    if order_by:
+        order_desc, order_type = parse_order_by(order_by)
 
-    qs = qs.order_by(order_field)
+        if order_type == PostFilterSerializer.Order.VOTES:
+            qs = qs.annotate_vote_score()
+        if order_type == PostFilterSerializer.Order.COMMENT_COUNT:
+            qs = qs.annotate_comment_count()
+        if order_type == PostFilterSerializer.Order.FORECASTS_COUNT:
+            qs = qs.annotate_forecasts_count()
+        if forecaster_id and order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE:
+            qs = qs.annotate_last_forecast_date_for_user(forecaster_id)
 
-    # Distinct should include previously declared ordering
-    return qs.distinct("id", order_field.replace("-", ""))
+        qs = qs.order_by(build_order_by(order_type, order_desc))
+    else:
+        qs = qs.order_by("-created_at")
+
+    return qs
 
 
 def create_post(

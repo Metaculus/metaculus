@@ -6,7 +6,7 @@ from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from questions.models import Question, Conditional, GroupOfQuestions
+from questions.models import Question, Conditional, GroupOfQuestions, Forecast
 from users.models import User
 from utils.models import TimeStampedModel
 
@@ -99,6 +99,34 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
+    def annotate_last_forecast_date_for_user(self, author_id: int):
+        """
+        Annotate last forecast date for user
+        """
+
+        def get_subquery(relation: str):
+            return (
+                Forecast.objects.filter(
+                    **{relation: models.OuterRef("pk"), "author_id": author_id}
+                )
+                .order_by("-start_time")
+                .values("start_time")[:1]
+            )
+
+        return self.annotate(
+            user_last_forecasts_date=(
+                # Note: Order is important
+                Coalesce(
+                    get_subquery("question__post"),
+                    # Question groups
+                    get_subquery("question__group__post"),
+                    # Conditional questions
+                    get_subquery("question__conditional_yes__post"),
+                    get_subquery("question__conditional_no__post"),
+                )
+            )
+        )
+
     def annotate_vote_score(self):
         return self.annotate(
             vote_score=SubqueryAggregate("votes__direction", aggregate=Sum)
@@ -115,6 +143,11 @@ class PostQuerySet(models.QuerySet):
                     :1
                 ]
             ),
+        )
+
+    def annotate_comment_count(self):
+        return self.annotate(
+            comment_count=SubqueryAggregate("comments__id", aggregate=Count)
         )
 
     #
@@ -376,6 +409,7 @@ class Post(TimeStampedModel):
     vote_score: int = 0
     user_vote = None
     user_permission: ObjectPermission = None
+    comment_count: int = 0
 
     def __str__(self):
         return self.title
