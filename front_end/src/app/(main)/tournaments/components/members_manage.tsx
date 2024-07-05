@@ -7,7 +7,6 @@ import {
   updateMember,
 } from "@/app/(main)/tournaments/[slug]/actions";
 import Button from "@/components/ui/button";
-import Hr from "@/components/ui/hr";
 import Listbox from "@/components/ui/listbox";
 import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
@@ -121,7 +120,7 @@ const UsersManage: FC<Props> = ({
           ))}
         </tbody>
       </table>
-      <Hr />
+      <hr />
       <div ref={memberEditRef}>
         {editingMember && (
           <>

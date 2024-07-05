@@ -32,7 +32,8 @@ export default function Questions() {
         min={10}
         max={300}
         value={multiSliderValue}
-        step={0.1}
+        step={1}
+        clampStep={10}
         onChange={setMultiSliderValue}
       />
       Slider:

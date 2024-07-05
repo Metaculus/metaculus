@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 
 import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import ProjectsApi from "@/services/projects";
-import { encodeQueryParams } from "@/utils/query_params";
+import { encodeQueryParams } from "@/utils/navigation";
 
 import FocusAreaLink, { FocusAreaItem } from "./components/focus_area_link";
 import HomeSearch from "./components/home_search";

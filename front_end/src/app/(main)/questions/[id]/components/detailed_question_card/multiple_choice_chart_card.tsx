@@ -5,9 +5,11 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import ChoicesLegend from "@/app/(main)/questions/[id]/components/choices_legend";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import usePrevious from "@/hooks/use_previous";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { MultipleChoiceForecast } from "@/types/question";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
@@ -28,6 +30,7 @@ type Props = {
 
 const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
   const t = useTranslations();
+  const { user } = useAuth();
 
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => {
@@ -131,6 +134,12 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
           yLabel={t("communityPredictionLabel")}
           onChartReady={handleChartReady}
           onCursorChange={handleCursorChange}
+          defaultZoom={
+            user
+              ? TimelineChartZoomOption.All
+              : TimelineChartZoomOption.TwoMonths
+          }
+          withZoomPicker
         />
       </div>
 

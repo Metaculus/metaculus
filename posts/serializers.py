@@ -240,7 +240,7 @@ def serialize_post_many(
 
     if with_forecasts:
         qs = qs.prefetch_forecasts()
-
+    
     return [
         serialize_post(post, with_forecasts=with_forecasts, current_user=current_user)
         for post in qs.all()

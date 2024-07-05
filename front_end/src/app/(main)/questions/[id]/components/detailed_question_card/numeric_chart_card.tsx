@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
 import NumericChart from "@/components/charts/numeric_chart";
+import { useAuth } from "@/contexts/auth_context";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { NumericForecast, QuestionType } from "@/types/question";
 import { getNumericChartTypeFromQuestion } from "@/utils/charts";
 import { formatPrediction } from "@/utils/forecasts";
@@ -17,6 +19,7 @@ type Props = {
 
 const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
   const t = useTranslations();
+  const { user } = useAuth();
 
   const [isChartReady, setIsChartReady] = useState(false);
 
@@ -65,6 +68,10 @@ const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
         yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}
         type={getNumericChartTypeFromQuestion(questionType)}
+        defaultZoom={
+          user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths
+        }
+        withZoomPicker
       />
 
       <div className="my-3 grid grid-cols-2 gap-x-4 gap-y-2 dark:text-white xs:gap-x-8 sm:mx-8 sm:gap-x-4 sm:gap-y-0">

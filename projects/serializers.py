@@ -27,6 +27,25 @@ class TopicSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "slug", "emoji", "section")
 
 
+class MiniTournamentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = (
+            "id",
+            "type",
+            "name",
+            "slug",
+            "prize_pool",
+            "start_date",
+            "close_date",
+            "meta_description",
+            "is_ongoing",
+            "user_permission",
+            "created_at",
+            "edited_at",
+        )
+
+
 class TournamentSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -63,9 +82,9 @@ def serialize_projects(projects: list[Project]) -> defaultdict[Any, list]:
             case obj.ProjectTypes.CATEGORY:
                 serializer = CategorySerializer
             case obj.ProjectTypes.TOURNAMENT:
-                serializer = TournamentSerializer
+                serializer = MiniTournamentSerializer
             case obj.ProjectTypes.QUESTION_SERIES:
-                serializer = TournamentSerializer
+                serializer = MiniTournamentSerializer
             case _:
                 continue
 

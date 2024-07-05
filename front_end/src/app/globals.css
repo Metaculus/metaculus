@@ -66,7 +66,7 @@ h6 {
 }
 
 hr {
-  @apply my-5 border-t border-gray-500;
+  @apply my-5 border-t border-gray-500 dark:border-gray-500-dark;
 }
 
 p {
@@ -151,7 +151,7 @@ a {
 }
 
 .content table .sticky-column {
-  @apply sticky left-0 bg-gray-50;
+  @apply sticky left-0 bg-gray-50 dark:bg-gray-100-dark;
 }
 
 .content table tbody > tr > td {
@@ -160,7 +160,7 @@ a {
 
 .content table thead td,
 .content table thead th {
-  @apply border-b border-gray-300 pr-2 text-gray-900;
+  @apply border-b border-gray-300 pr-2 text-gray-900 dark:border-gray-300-dark dark:text-gray-900-dark;
 }
 
 .content table tbody tr:last-child td,

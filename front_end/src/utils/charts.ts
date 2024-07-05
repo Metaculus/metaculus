@@ -1,10 +1,22 @@
 import * as d3 from "d3";
-import { differenceInMilliseconds, fromUnixTime, getUnixTime } from "date-fns";
+import {
+  differenceInMilliseconds,
+  fromUnixTime,
+  getUnixTime,
+  isAfter,
+  subDays,
+  subMonths,
+} from "date-fns";
 import { uniq } from "lodash";
 import { Tuple } from "victory";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
-import { FanOption, NumericChartType, Scale } from "@/types/charts";
+import {
+  FanOption,
+  NumericChartType,
+  Scale,
+  TimelineChartZoomOption,
+} from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import {
   MultipleChoiceForecast,
@@ -301,4 +313,71 @@ export function findClosestTimestamp(
   return timestamps.reduce((prev, curr) =>
     Math.abs(curr - timestamp) < Math.abs(prev - timestamp) ? curr : prev
   );
+}
+
+export const getChartZoomOptions = () =>
+  Object.values(TimelineChartZoomOption).map((zoomOption) => ({
+    label: zoomOption,
+    value: zoomOption,
+  }));
+
+export function zoomTimestamps(
+  timestamps: number[],
+  zoom: TimelineChartZoomOption
+): number[] {
+  const latestTimestamp = Math.max(...timestamps);
+  const latestDate = fromUnixTime(latestTimestamp);
+  let filterDate: Date;
+
+  switch (zoom) {
+    case TimelineChartZoomOption.OneDay:
+      filterDate = subDays(latestDate, 1);
+      break;
+    case TimelineChartZoomOption.OneWeek:
+      filterDate = subDays(latestDate, 7);
+      break;
+    case TimelineChartZoomOption.TwoMonths:
+      filterDate = subMonths(latestDate, 2);
+      break;
+    default:
+      return timestamps;
+  }
+
+  return timestamps.filter((timestamp) =>
+    isAfter(fromUnixTime(timestamp), filterDate)
+  );
+}
+
+export function zoomChartData<T extends Record<string, number[] | undefined>>(
+  timestamps: number[],
+  zoom: TimelineChartZoomOption,
+  valuesDictionary: T
+) {
+  if (zoom === TimelineChartZoomOption.All) {
+    return {
+      timestamps,
+      valuesDictionary,
+    };
+  }
+  const timestampsSet = new Set(zoomTimestamps(timestamps, zoom));
+  const zoomedValuesDictionary = Object.entries(valuesDictionary).reduce(
+    (acc, [key, values]) => {
+      if (!values) {
+        return acc;
+      }
+
+      return {
+        ...acc,
+        [key]: values.filter((_, index) =>
+          timestampsSet.has(timestamps[index])
+        ),
+      };
+    },
+    {} as T
+  );
+
+  return {
+    timestamps: Array.from(timestampsSet),
+    valuesDictionary: zoomedValuesDictionary,
+  };
 }

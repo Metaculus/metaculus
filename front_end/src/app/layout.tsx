@@ -8,6 +8,7 @@ import { NextRequest } from "next/server";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
+import { Toaster } from "react-hot-toast";
 
 import GlobalModals from "@/components/global_modals";
 import AppThemeProvided from "@/components/theme_provider";
@@ -96,14 +97,12 @@ const alternateGothic = localFont({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const url = headers().get("x-url");
-  const request = new NextRequest(url ?? "http://localhost:3000");
-  const origin = request.nextUrl.origin;
-
   return {
     title: "Metaculus",
     description: "Metaculus rewrite",
-    metadataBase: new URL(origin),
+    metadataBase: new URL(
+      process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+    ),
   };
 }
 
@@ -138,6 +137,7 @@ export default async function RootLayout({
                 />
                 {children}
                 <GlobalModals />
+                <Toaster />
               </ModalProvider>
             </AuthProvider>
           </NextIntlClientProvider>

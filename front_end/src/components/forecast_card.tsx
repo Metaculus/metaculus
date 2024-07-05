@@ -1,7 +1,7 @@
 "use client";
 import classNames from "classnames";
 import Link from "next/link";
-import { FC, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import FanChart from "@/components/charts/fan_chart";
@@ -9,6 +9,7 @@ import NumericChart from "@/components/charts/numeric_chart";
 import ConditionalTile from "@/components/conditional_tile";
 import MultipleChoiceTile from "@/components/multiple_choice_tile";
 import PredictionChip from "@/components/prediction_chip";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
@@ -22,8 +23,8 @@ import {
 type Props = {
   post: PostWithForecasts;
   className?: string;
-  chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
+  defaultChartZoom?: TimelineChartZoomOption;
   nonInteractive?: boolean;
 };
 
@@ -31,10 +32,18 @@ const ForecastCard: FC<Props> = ({
   post,
   className,
   chartTheme,
-  chartHeight = 120,
+  defaultChartZoom,
   nonInteractive = false,
 }) => {
   const [cursorValue, setCursorValue] = useState<number | null>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [chartHeight, setChartHeight] = useState(0);
+
+  useEffect(() => {
+    if (!chartContainerRef.current) return;
+
+    setChartHeight(chartContainerRef.current?.clientHeight);
+  }, []);
 
   const renderChart = () => {
     if (post.group_of_questions) {
@@ -76,6 +85,7 @@ const ForecastCard: FC<Props> = ({
               visibleChoicesCount={visibleChoicesCount}
               chartHeight={chartHeight}
               chartTheme={chartTheme}
+              defaultChartZoom={defaultChartZoom}
             />
           );
         default:
@@ -107,6 +117,7 @@ const ForecastCard: FC<Props> = ({
               type={getNumericChartTypeFromQuestion(question.type)}
               onCursorChange={nonInteractive ? undefined : setCursorValue}
               extraTheme={chartTheme}
+              defaultZoom={defaultChartZoom}
             />
           );
         case QuestionType.MultipleChoice:
@@ -122,6 +133,7 @@ const ForecastCard: FC<Props> = ({
               visibleChoicesCount={visibleChoicesCount}
               chartHeight={chartHeight}
               chartTheme={chartTheme}
+              defaultChartZoom={defaultChartZoom}
             />
           );
         default:
@@ -183,8 +195,9 @@ const ForecastCard: FC<Props> = ({
         {renderPrediction()}
       </div>
       <div
+        ref={chartContainerRef}
         className={classNames(
-          "ForecastCard-graph-container flex size-full min-h-[120px] min-w-0 items-start"
+          "ForecastCard-graph-container flex size-full min-h-[120px] min-w-0 flex-1 items-start"
         )}
       >
         {renderChart()}

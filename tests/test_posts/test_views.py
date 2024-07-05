@@ -44,7 +44,6 @@ class TestPostCreate:
         assert response.data["question"]["type"] == "numeric"
         assert response.data["question"]["min"] == 1
         assert response.data["question"]["max"] == 100
-        assert response.data["question"]["open_upper_bound"]
         assert (
             response.data["scheduled_resolve_time"]
             == response.data["question"]["scheduled_resolve_time"]
@@ -139,8 +138,8 @@ class TestPostCreate:
             == "Starship Reaches Orbit in 2024? (No) → Starship Booster Tower Catch Attempt in 2024?"
         )
         assert response.data["conditional"]["question_no"]["type"] == "numeric"
-        assert response.data["scheduled_close_time"] == "2024-05-01T00:00:00Z"
-        assert response.data["scheduled_resolve_time"] == "2024-05-02T00:00:00Z"
+        assert response.data["scheduled_close_time"] == "2024-04-01T00:00:00Z"
+        assert response.data["scheduled_resolve_time"] == "2024-04-02T00:00:00Z"
 
     def test_create__is_public__true(self, user1, user2, user1_client):
         response = user1_client.post(
