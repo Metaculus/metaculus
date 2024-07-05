@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { FC } from "react";
 
-import Hr from "@/components/ui/hr";
 import { UserProfile } from "@/types/users";
 
 export type Props = {
@@ -13,7 +12,7 @@ export type Props = {
 const ApiAccess: FC<Props> = ({ token }) => {
   return (
     <div>
-      <Hr className="m-0" />
+      <hr className="m-0" />
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">API Access</h2>
       </div>

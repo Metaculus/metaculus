@@ -56,12 +56,13 @@ const SignUpModal: FC<SignInModalType> = ({
   }, [turnstileResetWidget, setCurrentModal, watch, state]);
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
-      <div className="mt-6">
-        <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
-          {t("registrationHeadingSite")}
-        </h2>
-        <p className="mb-6 mt-3 text-base leading-tight">
+    <BaseModal
+      label={t("registrationHeadingSite")}
+      isOpen={isOpen}
+      onClose={onClose}
+    >
+      <div className="mt-4">
+        <div className="mb-6 text-base leading-tight">
           {t("registrationSignInHeading")}&nbsp;
           <Button
             variant="link"
@@ -70,7 +71,7 @@ const SignUpModal: FC<SignInModalType> = ({
           >
             {t("signInButton")}
           </Button>
-        </p>
+        </div>
         <div className="flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">
           <form
             action={(data) => {
@@ -80,16 +81,14 @@ const SignUpModal: FC<SignInModalType> = ({
             }}
             className="flex flex-col gap-4 border-gray-300 dark:border-gray-700-dark sm:w-80 sm:border-r sm:pr-4"
           >
-            <div>
-              <Input
-                autoComplete="username"
-                className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-                placeholder={t("registrationUsernamePlaceholder")}
-                type="text"
-                errors={state?.errors}
-                {...register("username")}
-              />
-            </div>
+            <Input
+              autoComplete="username"
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              placeholder={t("registrationUsernamePlaceholder")}
+              type="text"
+              errors={state?.errors}
+              {...register("username")}
+            />
             <div>
               <Input
                 autoComplete="new-password"
@@ -108,27 +107,23 @@ const SignUpModal: FC<SignInModalType> = ({
                 {...register("passwordAgain")}
               />
             </div>
-            <div>
-              <Input
-                className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-                placeholder={t("registrationEmailPlaceholder")}
-                type="email"
-                errors={state?.errors}
-                {...register("email")}
-              />
-            </div>
-            <div>
-              <Checkbox
-                checked={watch("isBot")}
-                onChange={(is_bot) => {
-                  setValue("isBot", is_bot);
-                }}
-                label="Sign up as Bot"
-                className="p-1.5"
-              />
-              <FormError errors={state?.errors} name="isBot" />
-              <input type="hidden" {...register("isBot")} />
-            </div>
+            <Input
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+              placeholder={t("registrationEmailPlaceholder")}
+              type="email"
+              errors={state?.errors}
+              {...register("email")}
+            />
+            <Checkbox
+              checked={watch("isBot")}
+              onChange={(is_bot) => {
+                setValue("isBot", is_bot);
+              }}
+              label="Sign up as Bot"
+              className="p-1.5"
+            />
+            <FormError errors={state?.errors} name="isBot" />
+            <input type="hidden" {...register("isBot")} />
             <div>
               <Button
                 variant="primary"
@@ -186,7 +181,9 @@ const SignUpModal: FC<SignInModalType> = ({
               </li>
             </ul>
             <hr className="my-6 border-gray-300 dark:border-gray-300-dark sm:hidden" />
-            <SocialButtons type="signup" />
+            <div className="flex flex-col gap-2">
+              <SocialButtons type="signup" />
+            </div>
           </div>
         </div>
         <div className="mt-6 text-center text-gray-700 dark:text-gray-700-dark">
@@ -222,7 +219,7 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
   const t = useTranslations();
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
+    <BaseModal isOpen={isOpen} onClose={onClose}>
       <div className="max-w-xs">
         <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
           {t("registrationSuccessHeading")}

@@ -325,7 +325,7 @@ export function zoomTimestamps(
   timestamps: number[],
   zoom: TimelineChartZoomOption
 ): number[] {
-  const latestTimestamp = timestamps[timestamps.length - 1];
+  const latestTimestamp = Math.max(...timestamps);
   const latestDate = fromUnixTime(latestTimestamp);
   let filterDate: Date;
 
@@ -346,4 +346,38 @@ export function zoomTimestamps(
   return timestamps.filter((timestamp) =>
     isAfter(fromUnixTime(timestamp), filterDate)
   );
+}
+
+export function zoomChartData<T extends Record<string, number[] | undefined>>(
+  timestamps: number[],
+  zoom: TimelineChartZoomOption,
+  valuesDictionary: T
+) {
+  if (zoom === TimelineChartZoomOption.All) {
+    return {
+      timestamps,
+      valuesDictionary,
+    };
+  }
+  const timestampsSet = new Set(zoomTimestamps(timestamps, zoom));
+  const zoomedValuesDictionary = Object.entries(valuesDictionary).reduce(
+    (acc, [key, values]) => {
+      if (!values) {
+        return acc;
+      }
+
+      return {
+        ...acc,
+        [key]: values.filter((_, index) =>
+          timestampsSet.has(timestamps[index])
+        ),
+      };
+    },
+    {} as T
+  );
+
+  return {
+    timestamps: Array.from(timestampsSet),
+    valuesDictionary: zoomedValuesDictionary,
+  };
 }

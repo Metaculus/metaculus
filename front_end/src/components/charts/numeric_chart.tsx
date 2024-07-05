@@ -1,5 +1,5 @@
 "use client";
-import { differenceInMilliseconds, fromUnixTime } from "date-fns";
+
 import { merge } from "lodash";
 import React, { FC, useEffect, useMemo, useState } from "react";
 import {
@@ -40,7 +40,7 @@ import {
   generateNumericYScale,
   generatePercentageYScale,
   generateTimestampXScale,
-  zoomTimestamps,
+  zoomChartData,
 } from "@/utils/charts";
 
 type Props = {
@@ -76,10 +76,7 @@ const NumericChart: FC<Props> = ({
     : chartTheme;
 
   const defaultCursor = useMemo(
-    () =>
-      [...dataset.timestamps].sort((a, b) =>
-        differenceInMilliseconds(fromUnixTime(a), fromUnixTime(b))
-      )[dataset.timestamps.length - 1],
+    () => Math.max(...dataset.timestamps),
     [dataset.timestamps]
   );
   const [isCursorActive, setIsCursorActive] = useState(false);
@@ -233,31 +230,38 @@ function buildChartData({
   type: NumericChartType;
   zoom: TimelineChartZoomOption;
 }): ChartData {
-  const datasetTimestamps = zoomTimestamps(dataset.timestamps, zoom);
+  const { timestamps: zoomedTimestamps, valuesDictionary: zoomedValues } =
+    zoomChartData(dataset.timestamps, zoom, {
+      valuesMean: dataset.values_mean,
+      valuesMin: dataset.values_min,
+      valuesMax: dataset.values_max,
+    });
 
-  const line = datasetTimestamps.map((timestamp, index) => ({
+  const line = zoomedTimestamps.map((timestamp, index) => ({
     x: timestamp,
-    y: dataset.values_mean[index],
+    y: zoomedValues.valuesMean[index],
   }));
-  const area = datasetTimestamps.map((timestamp, index) => ({
+  const area = zoomedTimestamps.map((timestamp, index) => ({
     x: timestamp,
-    y0: dataset.values_min[index],
-    y: dataset.values_max[index],
+    y0: zoomedValues.valuesMin[index],
+    y: zoomedValues.valuesMax[index],
   }));
 
   let points: Line = [];
   if (dataset.my_forecasts !== null) {
-    const myForecastsTimestamps = zoomTimestamps(
-      dataset.my_forecasts.timestamps,
-      zoom
-    );
-    points = myForecastsTimestamps.map((timestamp, index) => ({
+    const {
+      timestamps: myForecastTimestamps,
+      valuesDictionary: { valuesMean: myForecastsValuesMean },
+    } = zoomChartData(dataset.my_forecasts.timestamps, zoom, {
+      valuesMean: dataset.my_forecasts.values_mean,
+    });
+    points = myForecastTimestamps.map((timestamp, index) => ({
       x: timestamp,
-      y: dataset.my_forecasts!.values_mean[index],
+      y: myForecastsValuesMean[index],
     }));
   }
 
-  const xDomain = generateNumericDomain(datasetTimestamps);
+  const xDomain = generateNumericDomain(zoomedTimestamps);
   const xScale = generateTimestampXScale(xDomain, width);
 
   let yDomain: Tuple<number>;
