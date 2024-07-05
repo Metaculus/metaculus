@@ -148,7 +148,11 @@ const QuestionForm: React.FC<Props> = ({
           {" "}
           <span>Django admin view: </span>
           {post && (
-            <a>http://localhost:3000/admin/posts/post/{post.id}/change</a>
+            <a
+              href={`http://localhost:3000/admin/posts/post/${post.id}/change`}
+            >
+              http://localhost:3000/admin/posts/post/{post.id}/change
+            </a>
           )}
         </div>
         {tournament_id && (
