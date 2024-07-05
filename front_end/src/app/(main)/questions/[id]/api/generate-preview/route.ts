@@ -24,13 +24,8 @@ export async function GET(
 
   const alphaAccessToken = await getAlphaAccessToken();
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const cookie_origin = origin.replace("https://", "").replace("http://", "");
 
-  console.log(
-    "\n\n\n\n------------\n\n\n",
-    String(alphaAccessToken),
-    origin,
-    "\n\n\n\n------------\n\n\n"
-  );
   await page.setExtraHTTPHeaders({
     "x-alpha-auth-token": String(alphaAccessToken),
   });
@@ -48,7 +43,6 @@ export async function GET(
   });
 
   const c = await page.cookies();
-  console.log("\n\n\n\n------------\n\n\n", c, "\n\n\n\n------------\n\n\n");
   await page.goto(url, { waitUntil: "networkidle0" });
   const element = await page.$("#id-used-by-screenshot-donot-change");
 
