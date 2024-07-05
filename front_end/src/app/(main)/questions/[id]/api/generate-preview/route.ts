@@ -13,7 +13,11 @@ export async function GET(
       width: 1200,
       height: 630,
     },
-    args: [`--window-size=1200,630`],
+    args: [
+      `--window-size=1200,630`,
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+    ],
   });
   const page = await browser.newPage();
 
