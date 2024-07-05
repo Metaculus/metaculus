@@ -33,6 +33,7 @@ import {
   generateNumericDomain,
   generatePercentageYScale,
   generateTimestampXScale,
+  zoomChartData,
   zoomTimestamps,
 } from "@/utils/charts";
 
@@ -252,24 +253,35 @@ function buildChartData({
       timestamps: choiceTimestamps,
     }) => {
       const actualTimestamps = choiceTimestamps ?? timestamps;
-      const zoomedTimestamps = zoomTimestamps(actualTimestamps, zoom);
+      const {
+        timestamps: zoomedTimestamps,
+        valuesDictionary: {
+          values: zoomedValues,
+          minValues: zoomedMinValues,
+          maxValues: zoomedMaxValues,
+        },
+      } = zoomChartData(actualTimestamps, zoom, {
+        values,
+        minValues,
+        maxValues,
+      });
 
       const item: ChoiceGraph = {
         choice,
         color,
         line: zoomedTimestamps.map((timestamp, timestampIndex) => ({
           x: timestamp,
-          y: values[timestampIndex] ?? 0,
+          y: zoomedValues[timestampIndex] ?? 0,
         })),
         active,
         highlighted,
       };
 
-      if (minValues && maxValues) {
+      if (zoomedMinValues && zoomedMaxValues) {
         item.area = zoomedTimestamps.map((timestamp, timestampIndex) => ({
           x: timestamp,
-          y: maxValues[timestampIndex] ?? 0,
-          y0: minValues[timestampIndex] ?? 0,
+          y: zoomedMaxValues[timestampIndex] ?? 0,
+          y0: zoomedMinValues[timestampIndex] ?? 0,
         }));
       }
 

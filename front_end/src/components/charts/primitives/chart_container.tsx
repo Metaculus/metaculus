@@ -24,11 +24,7 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
     };
 
     return (
-      <div
-        ref={ref}
-        className="relative flex w-full flex-col"
-        style={{ height }}
-      >
+      <div className="relative flex w-full flex-col">
         {!!zoom && (
           <TabGroup
             selectedIndex={selectedIndex}
@@ -58,8 +54,9 @@ const ChartContainer = forwardRef<HTMLDivElement, PropsWithChildren<Props>>(
             </TabList>
           </TabGroup>
         )}
-
-        {children}
+        <div ref={ref} style={{ height }} className="w-full">
+          {children}
+        </div>
       </div>
     );
   }
