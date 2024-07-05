@@ -22,13 +22,15 @@ type PostCreationData = {
 const baseQuestionSchema = z.object({
   type: z.enum(["binary", "multiple_choice", "date", "numeric"]),
   title: z.string().min(4).max(200),
+  url_title: z.string().min(4).max(200),
   description: z.string().min(10),
-  resolution_criteria_description: z.string().optional(),
-  fine_print: z.string().optional(),
-  scheduled_close_time: z.date().optional(),
-  scheduled_resolve_time: z.date().optional(),
-  tournament_id: z.number().optional(),
-  open_time: z.date().optional(),
+  resolution_criteria_description: z.string(),
+  fine_print: z.string(),
+  scheduled_close_time: z.date(),
+  scheduled_resolve_time: z.date(),
+  default_project_id: z.number(),
+  cp_reveal_date: z.date(),
+  categories: z.array(z.number()),
 });
 
 const binaryQuestionSchema = baseQuestionSchema;
@@ -93,10 +95,11 @@ const QuestionForm: React.FC<Props> = ({
     }
   };
 
-  const [advanced, setAdvanced] = useState(false);
   const [optionsList, setOptionsList] = useState<string[]>(
     post?.question?.options ? post?.question?.options : []
   );
+  const [isLogarithmic, setIsLogarithmic] = useState<boolean>(false);
+
   const getFormSchema = (type: string) => {
     switch (type) {
       case "binary":
@@ -141,6 +144,13 @@ const QuestionForm: React.FC<Props> = ({
         }}
         className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-8"
       >
+        <div>
+          {" "}
+          <span>Django admin view: </span>
+          {post && (
+            <a>http://localhost:3000/admin/posts/post/{post.id}/change</a>
+          )}
+        </div>
         {tournament_id && (
           <div className="mb-2">
             <span className="">
@@ -169,6 +179,14 @@ const QuestionForm: React.FC<Props> = ({
             errors={control.formState.errors.title}
             defaultValue={post?.title}
           />
+          <div>
+            <span>URL Title</span>
+            <Input
+              {...control.register("url_title")}
+              errors={control.formState.errors.title}
+              defaultValue={post?.title}
+            />
+          </div>
           <span>Description</span>
           <Textarea
             {...control.register("description")}
@@ -176,121 +194,144 @@ const QuestionForm: React.FC<Props> = ({
             className="h-[120px] w-full"
             defaultValue={post?.question?.description}
           />
-
-          <span>Closing Date</span>
-          <Input
-            type="date"
-            {...control.register("scheduled_close_time", {
-              setValueAs: (value: string) => {
-                if (value == "" || value == null || value == undefined) {
-                  return null;
-                }
-                return new Date(value);
-              },
-            })}
-            errors={control.formState.errors.scheduled_close_time}
-            defaultValue={post?.scheduled_close_time}
-          />
-
-          <span>Resolving Date</span>
-          <Input
-            type="date"
-            {...control.register("scheduled_resolve_time", {
-              setValueAs: (value: string) => {
-                if (value == "" || value == null || value == undefined) {
-                  return null;
-                }
-                return new Date(value);
-              },
-            })}
-            errors={control.formState.errors.scheduled_resolve_time}
-            defaultValue={post?.scheduled_resolve_time}
-          />
-
-          <span>Opening date</span>
-          <Input
-            type="date"
-            {...control.register("open_time", {
-              setValueAs: (value: string) => {
-                if (value == "" || value == null || value == undefined) {
-                  return null;
-                }
-                return new Date(value);
-              },
-            })}
-            errors={control.formState.errors.open_time}
-            defaultValue={post?.question?.open_time}
-          />
+          <div>
+            <span>Closing Date</span>
+            <Input
+              type="date"
+              {...control.register("scheduled_close_time", {
+                setValueAs: (value: string) => {
+                  if (value == "" || value == null || value == undefined) {
+                    return null;
+                  }
+                  return new Date(value);
+                },
+              })}
+              errors={control.formState.errors.scheduled_close_time}
+              defaultValue={post?.scheduled_close_time}
+            />
+          </div>
+          <div>
+            <span>Resolving Date</span>
+            <Input
+              type="date"
+              {...control.register("scheduled_resolve_time", {
+                setValueAs: (value: string) => {
+                  if (value == "" || value == null || value == undefined) {
+                    return null;
+                  }
+                  return new Date(value);
+                },
+              })}
+              errors={control.formState.errors.scheduled_resolve_time}
+              defaultValue={post?.scheduled_resolve_time}
+            />
+          </div>
 
           {questionType == "numeric" && (
             <>
-              <span>Max</span>
-              <Input
-                type="number"
-                {...control.register("max", {
-                  setValueAs: (value: string) => Number(value),
-                })}
-                errors={control.formState.errors.max}
-                defaultValue={post?.question?.max}
-              />
-              <span>Min</span>
-              <Input
-                type="number"
-                {...control.register("min", {
-                  setValueAs: (value: string) => Number(value),
-                })}
-                errors={control.formState.errors.min}
-                defaultValue={post?.question?.min}
-              />
+              <div>
+                <span>Max</span>
+                <Input
+                  type="number"
+                  {...control.register("max", {
+                    setValueAs: (value: string) => Number(value),
+                  })}
+                  errors={control.formState.errors.max}
+                  defaultValue={post?.question?.max}
+                />
+              </div>
+              <div>
+                <span>Min</span>
+                <Input
+                  type="number"
+                  {...control.register("min", {
+                    setValueAs: (value: string) => Number(value),
+                  })}
+                  errors={control.formState.errors.min}
+                  defaultValue={post?.question?.min}
+                />
+              </div>
             </>
           )}
           {questionType == "date" && (
             <>
-              <span>Max</span>
-              <Input
-                type="date"
-                {...control.register("max", {
-                  setValueAs: (value: string) => {
-                    if (value == "" || value == null || value == undefined) {
-                      return null;
-                    }
-                    return new Date(value);
-                  },
-                })}
-                errors={control.formState.errors.max}
-                defaultValue={post?.question?.max}
-              />
-              <span>Min</span>
-              <Input
-                type="date"
-                {...control.register("min", {
-                  setValueAs: (value: string) => {
-                    if (value == "" || value == null || value == undefined) {
-                      return null;
-                    }
-                    return new Date(value);
-                  },
-                })}
-                errors={control.formState.errors.min}
-                defaultValue={post?.question?.min}
-              />
+              <div>
+                <span>Max</span>
+                <Input
+                  type="date"
+                  {...control.register("max", {
+                    setValueAs: (value: string) => {
+                      if (value == "" || value == null || value == undefined) {
+                        return null;
+                      }
+                      return new Date(value);
+                    },
+                  })}
+                  errors={control.formState.errors.max}
+                  defaultValue={post?.question?.max}
+                />
+              </div>
+              <div>
+                <span>Min</span>
+                <Input
+                  type="date"
+                  {...control.register("min", {
+                    setValueAs: (value: string) => {
+                      if (value == "" || value == null || value == undefined) {
+                        return null;
+                      }
+                      return new Date(value);
+                    },
+                  })}
+                  errors={control.formState.errors.min}
+                  defaultValue={post?.question?.min}
+                />
+              </div>
             </>
           )}
           {(questionType == "numeric" || questionType == "date") && (
             <>
-              <span>Open Upper Bound</span>
-              <Input
-                type="checkbox"
-                {...control.register("open_upper_bound")}
-                errors={control.formState.errors.open_upper_bound}
-              />
-
-              <span>Open Lower Bound</span>
-              <Input
-                type="checkbox"
-                {...control.register("open_lower_bound")}
-                errors={control.formState.errors.open_lower_bound}
-              />
+              <div>
+                <span>Open Upper Bound</span>
+                <Input
+                  type="checkbox"
+                  {...control.register("open_upper_bound")}
+                  errors={control.formState.errors.open_upper_bound}
+                />
+              </div>
+              <div>
+                <span>Open Lower Bound</span>
+                <Input
+                  type="checkbox"
+                  {...control.register("open_lower_bound")}
+                  errors={control.formState.errors.open_lower_bound}
+                />
+              </div>
+              <div>
+                <span className="mr-2">Is Logarithmic ?</span>
+                <Input
+                  type="checkbox"
+                  onChange={(e) => {
+                    setIsLogarithmic(e.target.checked);
+                  }}
+                  checked={isLogarithmic}
+                  errors={control.formState.errors.open_lower_bound}
+                />
+              </div>
+              {(questionType == "numeric" || questionType == "date") &&
+                isLogarithmic && (
+                  <>
+                    <span>Zero Point</span>
+                    <Input
+                      type="number"
+                      {...control.register("zero_point", {
+                        setValueAs: (value: string) => Number(value),
+                      })}
+                      errors={control.formState.errors.zero_point}
+                      defaultValue={post?.question?.zero_point}
+                    />
+                  </>
+                )}
             </>
           )}
 
@@ -334,56 +375,32 @@ const QuestionForm: React.FC<Props> = ({
             </>
           )}
 
-          {advanced &&
-            (questionType == "numeric" || questionType == "date") && (
-              <>
-                <span>Zero Point</span>
-                <Input
-                  type="number"
-                  {...control.register("zero_point", {
-                    setValueAs: (value: string) => Number(value),
-                  })}
-                  errors={control.formState.errors.zero_point}
-                  defaultValue={post?.question?.zero_point}
-                />
-              </>
-            )}
-
-          {advanced && (
-            <>
-              <span>Resolution Criteria</span>
-              <Textarea
-                {...control.register("resolution_criteria_description")}
-                errors={
-                  control.formState.errors.resolution_criteria_description
-                }
-                className="h-[120px] w-full"
-                defaultValue={
-                  post?.question?.resolution_criteria_description
-                    ? post?.question?.resolution_criteria_description
-                    : undefined
-                }
-              />
-              <span>Fine Print</span>
-              <Textarea
-                {...control.register("fine_print")}
-                errors={control.formState.errors.fine_print}
-                className="h-[120px] w-full"
-                defaultValue={
-                  post?.question?.resolution_criteria_description
-                    ? post?.question?.resolution_criteria_description
-                    : undefined
-                }
-              />
-            </>
-          )}
+          <span>Resolution Criteria</span>
+          <Textarea
+            {...control.register("resolution_criteria_description")}
+            errors={control.formState.errors.resolution_criteria_description}
+            className="h-[120px] w-full"
+            defaultValue={
+              post?.question?.resolution_criteria_description
+                ? post?.question?.resolution_criteria_description
+                : undefined
+            }
+          />
+          <span>Fine Print</span>
+          <Textarea
+            {...control.register("fine_print")}
+            errors={control.formState.errors.fine_print}
+            className="h-[120px] w-full"
+            defaultValue={
+              post?.question?.resolution_criteria_description
+                ? post?.question?.resolution_criteria_description
+                : undefined
+            }
+          />
 
           <div className=""></div>
           <Button type="submit">
             {mode == "create" ? "Create Question" : "Edit Question"}
-          </Button>
-          <Button onClick={() => setAdvanced(!advanced)}>
-            {advanced ? "Change to Simple Mode" : "Change to Advanced Mode"}
           </Button>
         </>
       </form>
