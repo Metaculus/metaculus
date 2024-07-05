@@ -253,10 +253,6 @@ def migrate_projects():
     # Normalize id sequences
     reset_sequence()
 
-    # special handling for the MAIN_SITE project
-    project = Project.objects.get(type=Project.ProjectTypes.SITE_MAIN)
-    project.posts.set(Post.objects.filter_public())
-
     # Migrate Categories
     for cat_obj in paginated_query("SELECT * FROM metac_question_category"):
         project = create_category(cat_obj)
