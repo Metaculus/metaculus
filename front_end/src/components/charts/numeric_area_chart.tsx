@@ -1,4 +1,5 @@
 "use client";
+import { format, fromUnixTime } from "date-fns";
 import { merge } from "lodash";
 import React, { FC, useMemo } from "react";
 import {
@@ -14,12 +15,12 @@ import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { Line } from "@/types/charts";
+import { QuestionType } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 type NumericAreaColor = "orange" | "green";
 
 type Props = {
-  height?: number;
   min: number;
   max: number;
   data: {
@@ -27,14 +28,17 @@ type Props = {
     cdf: number[];
     color: NumericAreaColor;
   }[];
+  type?: QuestionType;
+  height?: number;
   extraTheme?: VictoryThemeDefinition;
 };
 
 const NumericAreaChart: FC<Props> = ({
-  height = 150,
   min,
   max,
   data,
+  type = QuestionType.Numeric,
+  height = 150,
   extraTheme,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
@@ -58,8 +62,8 @@ const NumericAreaChart: FC<Props> = ({
     [data, max, min]
   );
   const { ticks, tickFormat } = useMemo(
-    () => generateNumericAreaTicks(min, max, chartWidth),
-    [chartWidth, max, min]
+    () => generateNumericAreaTicks(min, max, type, chartWidth),
+    [chartWidth, max, min, type]
   );
 
   // TODO: find a nice way to display the out of bounds weights as numbers
@@ -190,6 +194,7 @@ function generateNumericAreaGraph(data: {
 function generateNumericAreaTicks(
   min: number,
   max: number,
+  type: QuestionType,
   chartWidth: number
 ) {
   const minPixelPerTick = 50;
@@ -218,7 +223,18 @@ function generateNumericAreaTicks(
 
   return {
     ticks,
-    tickFormat: (x: number) => (majorTicks.includes(x) ? x.toString() : ""),
+    tickFormat: (x: number) => {
+      if (majorTicks.includes(x)) {
+        switch (type) {
+          case QuestionType.Date:
+            return format(fromUnixTime(x), "MMM d");
+          default:
+            return x.toString();
+        }
+      }
+
+      return "";
+    },
   };
 }
 

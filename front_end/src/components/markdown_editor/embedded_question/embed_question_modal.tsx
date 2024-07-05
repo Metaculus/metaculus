@@ -50,11 +50,8 @@ const EmbedQuestionModal: FC<Props> = ({
   };
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
+    <BaseModal label="Add Forecast" isOpen={isOpen} onClose={onClose}>
       <div className="max-h-full w-[520px] overflow-auto">
-        <h2 className="mb-4 mr-3 mt-0 text-blue-900 dark:text-blue-900-dark">
-          Add Forecast
-        </h2>
         <SearchInput
           value={search}
           onChange={(e) => setSearch(e.target.value)}

@@ -1,5 +1,6 @@
 import { getServerSession } from "@/services/session";
-import { CurrentUser } from "@/types/users";
+import { PaginatedPayload } from "@/types/fetch";
+import { CurrentUser, UserProfile } from "@/types/users";
 import { get, patch, post } from "@/utils/fetch";
 
 class ProfileApi {
@@ -35,6 +36,10 @@ class ProfileApi {
 
   static async updateProfile(props: { bio?: string; website?: string }) {
     return patch<CurrentUser, typeof props>("/users/me/update", props);
+  }
+
+  static async searchUsers(query: string) {
+    return await get<PaginatedPayload<UserProfile>>(`/users/?search=${query}`);
   }
 }
 

@@ -38,10 +38,17 @@ export async function middleware(request: NextRequest) {
     const alphaAccessToken = await getAlphaAccessToken();
     const alphaAuthUrl = "/alpha-auth";
 
+    const isEmbeddingRequest =
+      Boolean(request.headers.get("image-preview-request")) ||
+      request.nextUrl.pathname.includes("/api/generate-preview") ||
+      request.nextUrl.pathname.includes("/embed/") ||
+      request.nextUrl.pathname.includes("/opengraph-image-") ||
+      request.nextUrl.pathname.includes("/twitter-image-");
     if (
       alphaAccessToken &&
       getAlphaTokenSession() !== alphaAccessToken &&
-      !request.nextUrl.pathname.startsWith(alphaAuthUrl)
+      !request.nextUrl.pathname.startsWith(alphaAuthUrl) &&
+      !isEmbeddingRequest
     ) {
       return NextResponse.redirect(new URL(alphaAuthUrl, request.url));
     }

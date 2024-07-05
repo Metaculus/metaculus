@@ -7,6 +7,7 @@ import { FC } from "react";
 
 import RadioButton from "@/components/ui/radio_button";
 import { Question, QuestionWithForecasts } from "@/types/question";
+import { getConditionalQuestionTitle } from "@/utils/questions";
 
 export type ConditionalTableOption = {
   id: number;
@@ -43,7 +44,7 @@ const ConditionalForecastTable: FC<Props> = ({
           </th>
           <th className="border-l py-3 pl-4 pr-2 text-left align-top">
             <h4 className="m-0 text-base font-bold leading-5">
-              {childQuestion.title}
+              {getConditionalQuestionTitle(childQuestion)}
             </h4>
           </th>
         </tr>
