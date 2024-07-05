@@ -3,7 +3,7 @@ import { FC } from "react";
 import LeaderboardApi from "@/services/leaderboard";
 import { LeaderboardDetails, LeaderboardType } from "@/types/scoring";
 
-const LeaderboardTable = (leaderboardDetails: LeaderboardDetails) => (
+const GlobalLeaderboardTable = (leaderboardDetails: LeaderboardDetails) => (
   <table>
     <thead>
       <tr>
@@ -30,24 +30,20 @@ const leaderboard = (leaderboardDetails: LeaderboardDetails) => {
   return (
     <div>
       <h3>{leaderboardDetails.name}</h3>
-      <LeaderboardTable {...leaderboardDetails} />
+      <GlobalLeaderboardTable {...leaderboardDetails} />
     </div>
   );
 };
 
 type Props = {
-  projectId: number;
-  leaderboardType?: LeaderboardType;
+  leaderboardName?: string;
 };
 
-const AwaitedLeaderboard: FC<Props> = async ({
-  projectId,
-  leaderboardType,
-}) => {
+const AwaitedGlobalLeaderboard: FC<Props> = async ({ leaderboardName }) => {
   const leaderboardDetails: LeaderboardDetails =
-    await LeaderboardApi.getLeaderboard(projectId, leaderboardType);
+    await LeaderboardApi.getGlobalLeaderboard(leaderboardName);
   // TODO: add pagination, but for now just return 20 entries
   return <div>{leaderboard(leaderboardDetails)}</div>;
 };
 
-export default AwaitedLeaderboard;
+export default AwaitedGlobalLeaderboard;

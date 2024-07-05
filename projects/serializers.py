@@ -47,6 +47,7 @@ class MiniTournamentSerializer(serializers.ModelSerializer):
 
 
 class TournamentSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Project
         fields = (

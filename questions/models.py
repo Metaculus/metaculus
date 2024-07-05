@@ -118,11 +118,11 @@ class Question(TimeStampedModel):
 
     def get_global_leaderboard_dates(self) -> tuple[datetime, datetime] | None:
         # returns the global leaderboard dates that this question counts for
-        from projects.models import get_global_leaderboard_dates
+        from scoring.models import global_leaderboard_dates
 
         forecast_horizon_start = self.open_time
         forecast_horizon_end = self.actual_close_time
-        global_leaderboard_dates = get_global_leaderboard_dates()
+        global_leaderboard_dates = global_leaderboard_dates()
 
         # iterate over the global leaderboard dates in reverse order
         # to find the shortest interval that this question counts for
