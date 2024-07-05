@@ -15,9 +15,7 @@ import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import Chip from "@/components/ui/chip";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
 import {
-  POST_GUESSED_BY_FILTER,
   POST_ORDER_BY_FILTER,
-  POST_STATUS_FILTER,
   POST_TEXT_SEARCH_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
@@ -31,37 +29,27 @@ type ActiveFilter = {
   value: string;
 };
 
-const DEFAULT_ORDER = QuestionOrder.ActivityDesc;
-const OPEN_STATUS_FILTERS = [
-  QuestionOrder.PublishTimeDesc,
-  QuestionOrder.WeeklyMovementDesc,
-  QuestionOrder.LastPredictionTimeDesc,
-  QuestionOrder.DivergenceDesc,
-  QuestionOrder.StaleDesc,
-  QuestionOrder.CloseTimeAsc,
-  QuestionOrder.ScoreDesc,
-  QuestionOrder.ScoreAsc,
-];
-const RESOLVED_STATUS_FILTERS = [
-  QuestionOrder.StaleDesc,
-  QuestionOrder.UnreadCommentCountDesc,
-];
-const GUESSED_BY_FILTERS = [
-  QuestionOrder.LastPredictionTimeAsc,
-  QuestionOrder.LastPredictionTimeDesc,
-  QuestionOrder.DivergenceDesc,
-];
-
 type Props = {
+  defaultOrder?: QuestionOrder;
   filters: FilterSection[];
   mainSortOptions: GroupButton<QuestionOrder>[];
   sortOptions: SelectOption<QuestionOrder>[];
+  onOrderChange?: (
+    order: QuestionOrder,
+    setParam: (
+      name: string,
+      val: string | string[],
+      withNavigation?: boolean
+    ) => void
+  ) => void;
 };
 
 const PostsFilters: FC<Props> = ({
+  defaultOrder,
   filters,
   mainSortOptions,
   sortOptions: dropdownSortOptions,
+  onOrderChange,
 }) => {
   const t = useTranslations();
   const {
@@ -73,6 +61,7 @@ const PostsFilters: FC<Props> = ({
     navigateToSearchParams,
   } = useSearchParams();
   const { user } = useAuth();
+  defaultOrder = defaultOrder ?? QuestionOrder.ActivityDesc;
 
   const [search, setSearch] = useSearchInputState(POST_TEXT_SEARCH_FILTER);
   const eraseSearch = () => {
@@ -80,7 +69,7 @@ const PostsFilters: FC<Props> = ({
   };
 
   const order = (params.get(POST_ORDER_BY_FILTER) ??
-    DEFAULT_ORDER) as QuestionOrder;
+    defaultOrder) as QuestionOrder;
 
   const [popoverFilters, activeFilters] = useMemo(() => {
     const activeFilters: ActiveFilter[] = filters.flatMap((filterSection) =>
@@ -101,27 +90,13 @@ const PostsFilters: FC<Props> = ({
     clearPopupFilters(withNavigation);
     const postStatusFilters = [];
 
-    if (order === DEFAULT_ORDER) {
+    if (order === defaultOrder) {
       deleteParam(POST_ORDER_BY_FILTER, withNavigation);
     } else {
       setParam(POST_ORDER_BY_FILTER, order, withNavigation);
     }
 
-    if (OPEN_STATUS_FILTERS.includes(order)) postStatusFilters.push("open");
-    if (RESOLVED_STATUS_FILTERS.includes(order))
-      postStatusFilters.push("resolved");
-
-    if (!!user && GUESSED_BY_FILTERS.includes(order)) {
-      setParam(POST_GUESSED_BY_FILTER, user.id.toString(), withNavigation);
-    }
-
-    if (order === QuestionOrder.ResolveTimeAsc) {
-      setParam(POST_STATUS_FILTER, "open", withNavigation);
-    }
-
-    if (postStatusFilters.length) {
-      setParam(POST_STATUS_FILTER, postStatusFilters, withNavigation);
-    }
+    if (onOrderChange) onOrderChange(order, setParam);
 
     navigateToSearchParams();
   };
@@ -196,7 +171,7 @@ const PostsFilters: FC<Props> = ({
               className="rounded-full"
               onChange={handleOrderChange}
               options={dropdownSortOptions}
-              value={order || DEFAULT_ORDER}
+              value={order || defaultOrder}
               label="More"
             />
             <PopoverFilter
