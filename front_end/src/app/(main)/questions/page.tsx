@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 
-import FeedFilters from "@/app/(main)/questions/components/fees_filters";
-import QuestionTopics from "@/app/(main)/questions/components/question_topics";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 
+import FeedFilters from "./components/feed_filters";
+import QuestionTopics from "./components/question_topics";
 import { generateFiltersFromSearchParams } from "./helpers/filters";
 
 export default async function Questions({

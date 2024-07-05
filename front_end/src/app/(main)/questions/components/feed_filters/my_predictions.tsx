@@ -1,5 +1,4 @@
 "use client";
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
@@ -10,13 +9,11 @@ import {
 import { FilterOptionType } from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
 import { POST_STATUS_FILTER } from "@/constants/posts_feed";
-import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
 const MyPredictionsFilters: FC = () => {
-  const { user } = useAuth();
   const { params } = useSearchParams();
   const t = useTranslations();
 
@@ -73,13 +70,38 @@ const MyPredictionsFilters: FC = () => {
     [t]
   );
 
-  console.log(sortOptions);
+  const onOrderChange = (
+    order: QuestionOrder,
+    setFilterParam: (
+      name: string,
+      val: string | string[],
+      withNavigation?: boolean
+    ) => void
+  ) => {
+    if (
+      [
+        QuestionOrder.WeeklyMovementDesc,
+        QuestionOrder.DivergenceDesc,
+        QuestionOrder.StaleDesc,
+        QuestionOrder.UnreadCommentCountDesc,
+        QuestionOrder.CloseTimeAsc,
+      ].includes(order)
+    ) {
+      setFilterParam(POST_STATUS_FILTER, "open", false);
+    }
+
+    if ([QuestionOrder.ScoreDesc, QuestionOrder.ScoreAsc].includes(order)) {
+      setFilterParam(POST_STATUS_FILTER, "resolved", false);
+    }
+  };
 
   return (
     <PostsFilters
       filters={filters}
       mainSortOptions={mainSortOptions}
       sortOptions={sortOptions}
+      onOrderChange={onOrderChange}
+      defaultOrder={QuestionOrder.WeeklyMovementDesc}
     />
   );
 };
