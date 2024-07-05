@@ -5,6 +5,7 @@ import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import DropdownMenu from "@/components/ui/dropdown_menu";
+import useEmbedModalContext from "@/contexts/embed_modal_context";
 import {
   useCopyUrl,
   useShareOnFacebookLink,
@@ -12,14 +13,10 @@ import {
 } from "@/hooks/share";
 import { useBreakpoint } from "@/hooks/tailwind";
 
-import useEmbedElectionsModalContext from "../contexts/embed_context";
-
-type Props = {};
-
-const ShareElectionsMenu: FC<Props> = () => {
+const ShareElectionsMenu: FC = () => {
   const isLargeScreen = useBreakpoint("md");
 
-  const { updateIsOpen } = useEmbedElectionsModalContext();
+  const { updateIsOpen } = useEmbedModalContext();
   const copyUrl = useCopyUrl();
   const shareOnTwitterLink = useShareOnTwitterLink(
     "Metaculus 2024 US Presidential Election Forecast Map"

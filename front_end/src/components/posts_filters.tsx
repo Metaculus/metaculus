@@ -4,29 +4,23 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
-import {
-  getDropdownSortOptions,
-  getFilterChipColor,
-  getMainOrderOptions,
-  getPostsFilters,
-  getUserSortOptions,
-} from "@/app/(main)/questions/helpers/filters";
+import { getFilterChipColor } from "@/app/(main)/questions/helpers/filters";
 import PopoverFilter from "@/components/popover_filter";
-import { FilterReplaceInfo } from "@/components/popover_filter/types";
-import SearchInput from "@/components/search_input";
-import ButtonGroup from "@/components/ui/button_group";
-import Chip from "@/components/ui/chip";
-import Listbox from "@/components/ui/listbox";
 import {
-  POST_GUESSED_BY_FILTER,
+  FilterReplaceInfo,
+  FilterSection,
+} from "@/components/popover_filter/types";
+import SearchInput from "@/components/search_input";
+import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
+import Chip from "@/components/ui/chip";
+import Listbox, { SelectOption } from "@/components/ui/listbox";
+import {
   POST_ORDER_BY_FILTER,
-  POST_STATUS_FILTER,
   POST_TEXT_SEARCH_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchInputState from "@/hooks/use_search_input_state";
 import useSearchParams from "@/hooks/use_search_params";
-import { Category, Tag } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 
 type ActiveFilter = {
@@ -35,26 +29,28 @@ type ActiveFilter = {
   value: string;
 };
 
-const DEFAULT_ORDER = QuestionOrder.ActivityDesc;
-const OPEN_STATUS_FILTERS = [
-  QuestionOrder.PublishTimeDesc,
-  QuestionOrder.WeeklyMovementDesc,
-  QuestionOrder.LastPredictionTimeDesc,
-  QuestionOrder.LastPredictionTimeDesc,
-  QuestionOrder.DivergenceDesc,
-];
-const GUESSED_BY_FILTERS = [
-  QuestionOrder.LastPredictionTimeAsc,
-  QuestionOrder.LastPredictionTimeDesc,
-  QuestionOrder.DivergenceDesc,
-];
-
 type Props = {
-  categories: Category[];
-  tags: Tag[];
+  defaultOrder?: QuestionOrder;
+  filters: FilterSection[];
+  mainSortOptions: GroupButton<QuestionOrder>[];
+  sortOptions?: SelectOption<QuestionOrder>[];
+  onOrderChange?: (
+    order: QuestionOrder,
+    setParam: (
+      name: string,
+      val: string | string[],
+      withNavigation?: boolean
+    ) => void
+  ) => void;
 };
 
-const PostsFilters: FC<Props> = ({ categories, tags }) => {
+const PostsFilters: FC<Props> = ({
+  defaultOrder,
+  filters,
+  mainSortOptions,
+  sortOptions: dropdownSortOptions,
+  onOrderChange,
+}) => {
   const t = useTranslations();
   const {
     params,
@@ -65,6 +61,7 @@ const PostsFilters: FC<Props> = ({ categories, tags }) => {
     navigateToSearchParams,
   } = useSearchParams();
   const { user } = useAuth();
+  defaultOrder = defaultOrder ?? QuestionOrder.ActivityDesc;
 
   const [search, setSearch] = useSearchInputState(POST_TEXT_SEARCH_FILTER);
   const eraseSearch = () => {
@@ -72,15 +69,9 @@ const PostsFilters: FC<Props> = ({ categories, tags }) => {
   };
 
   const order = (params.get(POST_ORDER_BY_FILTER) ??
-    DEFAULT_ORDER) as QuestionOrder;
-  const mainSortOptions = useMemo(() => getMainOrderOptions(t), [t]);
-  const userPredictionSortOptions = useMemo(() => getUserSortOptions(t), [t]);
-  const dropdownSortOptions = useMemo(
-    () => getDropdownSortOptions(t, !!user),
-    [t, user]
-  );
+    defaultOrder) as QuestionOrder;
+
   const [popoverFilters, activeFilters] = useMemo(() => {
-    const filters = getPostsFilters({ tags, user, t, params, categories });
     const activeFilters: ActiveFilter[] = filters.flatMap((filterSection) =>
       filterSection.options
         .filter((o) => o.active)
@@ -92,29 +83,20 @@ const PostsFilters: FC<Props> = ({ categories, tags }) => {
     );
 
     return [filters, activeFilters];
-  }, [categories, params, t, tags, user]);
+  }, [filters]);
   const handleOrderChange = (order: QuestionOrder) => {
     const withNavigation = false;
 
     clearPopupFilters(withNavigation);
+    const postStatusFilters = [];
 
-    if (order === DEFAULT_ORDER) {
+    if (order === defaultOrder) {
       deleteParam(POST_ORDER_BY_FILTER, withNavigation);
     } else {
       setParam(POST_ORDER_BY_FILTER, order, withNavigation);
     }
 
-    if (OPEN_STATUS_FILTERS.includes(order)) {
-      setParam(POST_STATUS_FILTER, "open", withNavigation);
-    }
-
-    if (!!user && GUESSED_BY_FILTERS.includes(order)) {
-      setParam(POST_GUESSED_BY_FILTER, user.id.toString(), withNavigation);
-    }
-
-    if (order === QuestionOrder.ResolveTimeAsc) {
-      setParam(POST_STATUS_FILTER, "open", withNavigation);
-    }
+    if (onOrderChange) onOrderChange(order, setParam);
 
     navigateToSearchParams();
   };
@@ -184,25 +166,16 @@ const PostsFilters: FC<Props> = ({ categories, tags }) => {
             onChange={handleOrderChange}
             variant="tertiary"
           />
-          {!!user && (
-            <div className="hidden flex-row items-center text-gray-900 dark:text-gray-900-dark lg:flex">
-              <span className="px-2 text-sm">{t("myPredictions")}: </span>
-              <ButtonGroup
-                value={order}
-                buttons={userPredictionSortOptions}
-                onChange={handleOrderChange}
-                variant="tertiary"
-              />
-            </div>
-          )}
           <div className="flex grow justify-end gap-3">
-            <Listbox
-              className="rounded-full"
-              onChange={handleOrderChange}
-              options={dropdownSortOptions}
-              value={order || DEFAULT_ORDER}
-              label="More"
-            />
+            {dropdownSortOptions && (
+              <Listbox
+                className="rounded-full"
+                onChange={handleOrderChange}
+                options={dropdownSortOptions}
+                value={order || defaultOrder}
+                label="More"
+              />
+            )}
             <PopoverFilter
               filters={popoverFilters}
               onChange={handlePopOverFilterChange}

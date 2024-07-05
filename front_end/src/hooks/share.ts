@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 
 export const useCopyUrl = () => {
   return useCallback(() => {
@@ -7,11 +8,27 @@ export const useCopyUrl = () => {
         .writeText(window.location.href)
         .then(() => {
           console.log("Link copied to clipboard");
+          toast("URL is now copied to your clipboard", {
+            className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
+          });
           // Optionally, show a notification to the user that the link was copied.
         })
         .catch((err) => console.error("Error copying link: ", err));
     }
   }, []);
+};
+
+export const useMetaImageUrl = (tagName: string) => {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const metaTag = document.querySelector(`meta[name='${tagName}']`);
+    if (metaTag) {
+      setImageUrl(metaTag.getAttribute("content"));
+    }
+  }, [tagName]);
+
+  return imageUrl;
 };
 
 export const useShareOnTwitterLink = (message = "") => {

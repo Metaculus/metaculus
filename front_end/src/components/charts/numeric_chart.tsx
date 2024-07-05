@@ -1,4 +1,5 @@
 "use client";
+
 import { merge } from "lodash";
 import React, { FC, useEffect, useMemo, useState } from "react";
 import {
@@ -17,6 +18,7 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
+import ChartContainer from "@/components/charts/primitives/chart_container";
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
@@ -29,6 +31,7 @@ import {
   Line,
   NumericChartType,
   Scale,
+  TimelineChartZoomOption,
 } from "@/types/charts";
 import { NumericForecast } from "@/types/question";
 import {
@@ -37,10 +40,13 @@ import {
   generateNumericYScale,
   generatePercentageYScale,
   generateTimestampXScale,
+  zoomChartData,
 } from "@/utils/charts";
 
 type Props = {
   dataset: NumericForecast;
+  defaultZoom?: TimelineChartZoomOption;
+  withZoomPicker?: boolean;
   yLabel?: string;
   height?: number;
   onCursorChange?: (value: number) => void;
@@ -51,6 +57,8 @@ type Props = {
 
 const NumericChart: FC<Props> = ({
   dataset,
+  defaultZoom = TimelineChartZoomOption.All,
+  withZoomPicker = false,
   yLabel,
   height = 150,
   onCursorChange,
@@ -67,12 +75,16 @@ const NumericChart: FC<Props> = ({
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
 
-  const defaultCursor = dataset.timestamps[dataset.timestamps.length - 1];
+  const defaultCursor = useMemo(
+    () => Math.max(...dataset.timestamps),
+    [dataset.timestamps]
+  );
   const [isCursorActive, setIsCursorActive] = useState(false);
 
+  const [zoom, setZoom] = useState(defaultZoom);
   const { line, area, yDomain, xScale, yScale, points } = useMemo(
-    () => buildChartData(dataset, chartWidth, height, type),
-    [dataset, chartWidth, height, type]
+    () => buildChartData({ dataset, width: chartWidth, height, type, zoom }),
+    [dataset, chartWidth, height, type, zoom]
   );
 
   const prevWidth = usePrevious(chartWidth);
@@ -122,7 +134,12 @@ const NumericChart: FC<Props> = ({
     !!chartWidth && !!xScale.ticks.length && yScale.ticks.length;
 
   return (
-    <div ref={chartContainerRef} className="w-full" style={{ height }}>
+    <ChartContainer
+      ref={chartContainerRef}
+      height={height}
+      zoom={withZoomPicker ? zoom : undefined}
+      onZoomChange={setZoom}
+    >
       {shouldDisplayChart && (
         <VictoryChart
           domain={{ y: yDomain }}
@@ -189,7 +206,7 @@ const NumericChart: FC<Props> = ({
           />
         </VictoryChart>
       )}
-    </div>
+    </ChartContainer>
   );
 };
 
@@ -200,31 +217,51 @@ type ChartData = BaseChartData & {
   yDomain: DomainTuple;
 };
 
-function buildChartData(
-  dataset: NumericForecast,
-  width: number,
-  height: number,
-  type: NumericChartType
-): ChartData {
-  const line = dataset.timestamps.map((timestamp, index) => ({
-    x: timestamp,
-    y: dataset.values_mean[index],
-  }));
-  const area = dataset.timestamps.map((timestamp, index) => ({
-    x: timestamp,
-    y0: dataset.values_min[index],
-    y: dataset.values_max[index],
-  }));
-  let points: Line =
-    dataset.my_forecasts === null
-      ? []
-      : dataset.my_forecasts.timestamps.map((timestamp, index) => ({
-          x: timestamp,
-          // @ts-ignore
-          y: dataset.my_forecasts.values_mean[index],
-        }));
+function buildChartData({
+  type,
+  height,
+  dataset,
+  width,
+  zoom,
+}: {
+  dataset: NumericForecast;
+  width: number;
+  height: number;
+  type: NumericChartType;
+  zoom: TimelineChartZoomOption;
+}): ChartData {
+  const { timestamps: zoomedTimestamps, valuesDictionary: zoomedValues } =
+    zoomChartData(dataset.timestamps, zoom, {
+      valuesMean: dataset.values_mean,
+      valuesMin: dataset.values_min,
+      valuesMax: dataset.values_max,
+    });
 
-  const xDomain = generateNumericDomain(dataset.timestamps);
+  const line = zoomedTimestamps.map((timestamp, index) => ({
+    x: timestamp,
+    y: zoomedValues.valuesMean[index],
+  }));
+  const area = zoomedTimestamps.map((timestamp, index) => ({
+    x: timestamp,
+    y0: zoomedValues.valuesMin[index],
+    y: zoomedValues.valuesMax[index],
+  }));
+
+  let points: Line = [];
+  if (dataset.my_forecasts !== null) {
+    const {
+      timestamps: myForecastTimestamps,
+      valuesDictionary: { valuesMean: myForecastsValuesMean },
+    } = zoomChartData(dataset.my_forecasts.timestamps, zoom, {
+      valuesMean: dataset.my_forecasts.values_mean,
+    });
+    points = myForecastTimestamps.map((timestamp, index) => ({
+      x: timestamp,
+      y: myForecastsValuesMean[index],
+    }));
+  }
+
+  const xDomain = generateNumericDomain(zoomedTimestamps);
   const xScale = generateTimestampXScale(xDomain, width);
 
   let yDomain: Tuple<number>;

@@ -1,6 +1,6 @@
 import { CommentType } from "@/types/comment";
 import { get, post } from "@/utils/fetch";
-import { encodeQueryParams } from "@/utils/query_params";
+import { encodeQueryParams } from "@/utils/navigation";
 
 export type CommentsParams = {
   post?: number;
@@ -13,6 +13,7 @@ export type CreateCommentParams = {
   text: string;
   on_post?: number;
   included_forecast?: number;
+  is_private: boolean;
 };
 
 export type EditCommentParams = {

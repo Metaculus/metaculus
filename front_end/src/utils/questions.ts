@@ -56,3 +56,12 @@ export function canResolveQuestion(
     [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(permission)
   );
 }
+
+export function getConditionalQuestionTitle(question: Question): string {
+  const titleCandidate = question.title.split("→")[1];
+  if (titleCandidate) {
+    return titleCandidate.trim();
+  }
+
+  return question.title;
+}
