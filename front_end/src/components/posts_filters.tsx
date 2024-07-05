@@ -33,7 +33,7 @@ type Props = {
   defaultOrder?: QuestionOrder;
   filters: FilterSection[];
   mainSortOptions: GroupButton<QuestionOrder>[];
-  sortOptions: SelectOption<QuestionOrder>[];
+  sortOptions?: SelectOption<QuestionOrder>[];
   onOrderChange?: (
     order: QuestionOrder,
     setParam: (
@@ -167,13 +167,15 @@ const PostsFilters: FC<Props> = ({
             variant="tertiary"
           />
           <div className="flex grow justify-end gap-3">
-            <Listbox
-              className="rounded-full"
-              onChange={handleOrderChange}
-              options={dropdownSortOptions}
-              value={order || defaultOrder}
-              label="More"
-            />
+            {dropdownSortOptions && (
+              <Listbox
+                className="rounded-full"
+                onChange={handleOrderChange}
+                options={dropdownSortOptions}
+                value={order || defaultOrder}
+                label="More"
+              />
+            )}
             <PopoverFilter
               filters={popoverFilters}
               onChange={handlePopOverFilterChange}
