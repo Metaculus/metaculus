@@ -8,7 +8,7 @@ import {
 } from "@/types/projects";
 import { LeaderboardDetails } from "@/types/scoring";
 import { del, get, patch, post } from "@/utils/fetch";
-import { encodeQueryParams } from "@/utils/query_params";
+import { encodeQueryParams } from "@/utils/navigation";
 
 export type TagsParams = {
   search?: string;

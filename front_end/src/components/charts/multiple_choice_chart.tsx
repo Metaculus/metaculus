@@ -14,13 +14,18 @@ import {
   VictoryThemeDefinition,
 } from "victory";
 
-import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
 import { lightTheme, darkTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import usePrevious from "@/hooks/use_previous";
-import { Area, BaseChartData, Line, TickFormat } from "@/types/charts";
+import {
+  Area,
+  BaseChartData,
+  Line,
+  TickFormat,
+  TimelineChartZoomOption,
+} from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import { ThemeColor } from "@/types/theme";
 import {
@@ -28,11 +33,18 @@ import {
   generateNumericDomain,
   generatePercentageYScale,
   generateTimestampXScale,
+  zoomChartData,
+  zoomTimestamps,
 } from "@/utils/charts";
+
+import ChartContainer from "./primitives/chart_container";
+import ChartCursorLabel from "./primitives/chart_cursor_label";
 
 type Props = {
   timestamps: number[];
   choiceItems: ChoiceItem[];
+  defaultZoom?: TimelineChartZoomOption;
+  withZoomPicker?: boolean;
   height?: number;
   yLabel?: string;
   onCursorChange?: (value: number, format: TickFormat) => void;
@@ -43,6 +55,8 @@ type Props = {
 const MultipleChoiceChart: FC<Props> = ({
   timestamps,
   choiceItems,
+  defaultZoom = TimelineChartZoomOption.All,
+  withZoomPicker = false,
   height = 150,
   yLabel,
   onCursorChange,
@@ -64,9 +78,17 @@ const MultipleChoiceChart: FC<Props> = ({
   const defaultCursor = timestamps[timestamps.length - 1];
   const [isCursorActive, setIsCursorActive] = useState(false);
 
+  const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
   const { xScale, yScale, graphs } = useMemo(
-    () => buildChartData(timestamps, choiceItems, chartWidth, chartHeight),
-    [timestamps, choiceItems, chartWidth, chartHeight]
+    () =>
+      buildChartData({
+        timestamps,
+        choiceItems,
+        width: chartWidth,
+        height: chartHeight,
+        zoom,
+      }),
+    [timestamps, choiceItems, chartWidth, chartHeight, zoom]
   );
 
   const isHighlightActive = useMemo(
@@ -116,7 +138,12 @@ const MultipleChoiceChart: FC<Props> = ({
   );
 
   return (
-    <div ref={chartContainerRef} className="w-full" style={{ height }}>
+    <ChartContainer
+      ref={chartContainerRef}
+      height={height}
+      zoom={withZoomPicker ? zoom : undefined}
+      onZoomChange={setZoom}
+    >
       {!!chartWidth && (
         <VictoryChart
           width={chartWidth}
@@ -185,7 +212,7 @@ const MultipleChoiceChart: FC<Props> = ({
           />
         </VictoryChart>
       )}
-    </div>
+    </ChartContainer>
   );
 };
 
@@ -201,12 +228,19 @@ type ChartData = BaseChartData & {
   graphs: ChoiceGraph[];
 };
 
-function buildChartData(
-  timestamps: number[],
-  choiceItems: ChoiceItem[],
-  width: number,
-  height: number
-): ChartData {
+function buildChartData({
+  height,
+  width,
+  choiceItems,
+  timestamps,
+  zoom,
+}: {
+  timestamps: number[];
+  choiceItems: ChoiceItem[];
+  width: number;
+  height: number;
+  zoom: TimelineChartZoomOption;
+}): ChartData {
   const graphs: ChoiceGraph[] = choiceItems.map(
     ({
       choice,
@@ -219,23 +253,35 @@ function buildChartData(
       timestamps: choiceTimestamps,
     }) => {
       const actualTimestamps = choiceTimestamps ?? timestamps;
+      const {
+        timestamps: zoomedTimestamps,
+        valuesDictionary: {
+          values: zoomedValues,
+          minValues: zoomedMinValues,
+          maxValues: zoomedMaxValues,
+        },
+      } = zoomChartData(actualTimestamps, zoom, {
+        values,
+        minValues,
+        maxValues,
+      });
 
       const item: ChoiceGraph = {
         choice,
         color,
-        line: actualTimestamps.map((timestamp, timestampIndex) => ({
+        line: zoomedTimestamps.map((timestamp, timestampIndex) => ({
           x: timestamp,
-          y: values[timestampIndex] ?? 0,
+          y: zoomedValues[timestampIndex] ?? 0,
         })),
         active,
         highlighted,
       };
 
-      if (minValues && maxValues) {
-        item.area = actualTimestamps.map((timestamp, timestampIndex) => ({
+      if (zoomedMinValues && zoomedMaxValues) {
+        item.area = zoomedTimestamps.map((timestamp, timestampIndex) => ({
           x: timestamp,
-          y: maxValues[timestampIndex] ?? 0,
-          y0: minValues[timestampIndex] ?? 0,
+          y: zoomedMaxValues[timestampIndex] ?? 0,
+          y0: zoomedMinValues[timestampIndex] ?? 0,
         }));
       }
 
@@ -243,7 +289,7 @@ function buildChartData(
     }
   );
 
-  const xDomain = generateNumericDomain(timestamps);
+  const xDomain = generateNumericDomain(zoomTimestamps(timestamps, zoom));
 
   return {
     xScale: generateTimestampXScale(xDomain, width),

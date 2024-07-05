@@ -18,7 +18,6 @@ import {
 } from "@/app/(main)/accounts/schemas";
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
-import Hr from "@/components/ui/hr";
 import { useAuth } from "@/contexts/auth_context";
 import { UserProfile } from "@/types/users";
 
@@ -49,7 +48,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
 
   return (
     <form action={formAction}>
-      <Hr className="m-0" />
+      <hr className="m-0" />
       <div className="flex items-center justify-between">
         <h2 className="my-4 text-2xl font-bold">{t("profile")}</h2>
         {isCurrentUser && (

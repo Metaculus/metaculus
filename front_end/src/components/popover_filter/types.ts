@@ -19,11 +19,13 @@ type BaseFilterSection = {
   options: FilterOption[];
 };
 
-type ComboboxFilterSection = BaseFilterSection & {
+type ComboboxFilterSection = Omit<BaseFilterSection, "options"> & {
   type: FilterOptionType.Combobox;
   chipColor?: ChipColor;
   chipFormat?: (value: string) => string;
   shouldEnforceSearch?: boolean;
+  options: FilterOption[];
+  optionsFetcher?: (query: string) => Promise<FilterOption[]>;
 };
 
 type ToggleChipFilterSection = BaseFilterSection & {

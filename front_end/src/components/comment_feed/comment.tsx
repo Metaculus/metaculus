@@ -91,7 +91,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
           </span>
         </div>
         <div className="italic text-gray-600 break-anywhere dark:text-gray-600-dark">
-          Comment deleted.
+          Comment deleted
         </div>
 
         {/* comment children tree goes here */}

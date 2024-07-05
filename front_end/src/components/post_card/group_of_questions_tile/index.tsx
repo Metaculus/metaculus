@@ -1,7 +1,10 @@
+"use client";
 import { FC } from "react";
 
 import MultipleChoiceTile from "@/components/multiple_choice_tile";
 import GroupNumericTile from "@/components/post_card/group_of_questions_tile/group_numeric_tile";
+import { useAuth } from "@/contexts/auth_context";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus } from "@/types/post";
 import {
   QuestionType,
@@ -19,6 +22,7 @@ type Props = {
 };
 
 const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
+  const { user } = useAuth();
   const tileType = questions.at(0)?.type;
 
   if (!tileType) {
@@ -40,6 +44,11 @@ const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
           choices={choices}
           timestamps={timestamps}
           visibleChoicesCount={visibleChoicesCount}
+          defaultChartZoom={
+            user
+              ? TimelineChartZoomOption.All
+              : TimelineChartZoomOption.TwoMonths
+          }
         />
       );
     }
