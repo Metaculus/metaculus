@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 
 import { ENFORCED_THEME_PARAM } from "@/constants/global_search_params";
+import { COOKIE_NAME_DEV_TOKEN } from "@/services/session";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const alphaToken = req.cookies.get(COOKIE_NAME_DEV_TOKEN)?.value;
+  if (!alphaToken) {
+    return new NextResponse("Authentication token missing", { status: 401 });
+  }
+
   const browser = await puppeteer.launch({
     headless: true,
     defaultViewport: {
@@ -16,6 +22,12 @@ export async function GET(
     args: [`--window-size=1200,630`],
   });
   const page = await browser.newPage();
+  await page.setCookie({
+    name: COOKIE_NAME_DEV_TOKEN,
+    value: alphaToken,
+    domain: new URL(req.nextUrl.origin).hostname,
+    path: "/",
+  });
 
   const url = `${req.nextUrl.origin}/embed/questions/${params.id}?${ENFORCED_THEME_PARAM}=dark&non-interactive=true`;
   await page.goto(url, { waitUntil: "networkidle0" });
