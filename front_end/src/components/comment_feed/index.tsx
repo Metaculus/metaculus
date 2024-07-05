@@ -4,7 +4,6 @@ import { FC, useState } from "react";
 import Comment from "@/components/comment_feed/comment";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import ButtonGroup from "@/components/ui/button_group";
-import Hr from "@/components/ui/hr";
 import { CommentPermissions, CommentType } from "@/types/comment";
 import { Post, ProjectPermissions } from "@/types/post";
 import { UserProfile } from "@/types/users";
@@ -52,7 +51,7 @@ const CommentFeed: FC<Props> = ({ initialComments, post, profile }) => {
 
   return (
     <section>
-      <Hr className="my-4" />
+      <hr className="my-4" />
       <div className="my-4 flex flex-row gap-4">
         <h2
           className="mb-1 mt-0 flex scroll-mt-16 items-baseline justify-between break-anywhere"
@@ -72,14 +71,14 @@ const CommentFeed: FC<Props> = ({ initialComments, post, profile }) => {
       {post && <CommentEditor />}
       {comments.map((comment: CommentType) => (
         <div key={comment.id}>
-          <Hr className="my-4" />
+          <hr className="my-4" />
 
           <Comment comment={comment} url={url} permissions={permissions} />
         </div>
       ))}
       {comments.length == 0 && (
         <>
-          <Hr className="my-4" />
+          <hr className="my-4" />
           <div className="text-center italic text-gray-700 dark:text-gray-700-dark">
             no comments
           </div>
