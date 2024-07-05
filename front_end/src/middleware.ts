@@ -41,7 +41,9 @@ export async function middleware(request: NextRequest) {
     const isEmbeddingRequest =
       Boolean(request.headers.get("image-preview-request")) ||
       request.nextUrl.pathname.includes("/api/generate-preview") ||
-      request.nextUrl.pathname.includes("/embed/");
+      request.nextUrl.pathname.includes("/embed/") ||
+      request.nextUrl.pathname.includes("/opengraph-image-") ||
+      request.nextUrl.pathname.includes("/twitter-image-");
     if (
       alphaAccessToken &&
       getAlphaTokenSession() !== alphaAccessToken &&
