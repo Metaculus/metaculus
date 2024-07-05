@@ -35,8 +35,11 @@ def comments_list_api_view(request: Request):
     if author_param:
         comments = comments.filter(author_id=author_param)
 
-    #filter out private comments, unless they were written by the request user
-    comments = comments.filter(Q(is_private=False)|Q(author=request._user))
+    # filter out private comments, unless they were written by the request user
+    if request.user.is_anonymous:
+        comments = comments.filter(is_private=False)
+    else:
+        comments = comments.filter(Q(is_private=False) | Q(author=request.user))
 
     # for testing, show a max of 20 comments
     comments = comments.all()[:20]
