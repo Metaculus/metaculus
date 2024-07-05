@@ -1,13 +1,21 @@
 from datetime import datetime, timezone as dt_timezone
+from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Q
+from django.db.models.query import QuerySet
 from django.db.models.functions import Coalesce
 from django.utils import timezone as django_timezone
 
 from projects.permissions import ObjectPermission
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
+
+from questions.models import Question
+
+
+if TYPE_CHECKING:
+    from scoring.models import Leaderboard
 
 
 class ProjectsQuerySet(models.QuerySet):
@@ -70,6 +78,9 @@ class ProjectsQuerySet(models.QuerySet):
 
 
 class Project(TimeStampedModel):
+    id: int
+    leaderboards: QuerySet["Leaderboard"]
+
     class ProjectTypes(models.TextChoices):
         SITE_MAIN = "site_main"
         TOURNAMENT = "tournament"
@@ -100,19 +111,11 @@ class Project(TimeStampedModel):
         db_index=True,
     )
 
-    class LeaderboardTypes(models.TextChoices):
-        RELATIVE_LEGACY = "relative_legacy"
-        PEER = "peer"
-        BASELINE = "baseline"
-        SPOT_PEER = "spot_peer"
-        SPOT_BASELINE = "spot_baseline"
-        COMMENT_INSIGHT = "comment_insight"
-        QUESTION_WRITING = "question_writing"
-
-    # Projects with leaderboards have a default leaderboard type to denote
-    # which is the primary way to rank users on the Project
-    leaderboard_type = models.CharField(
-        max_length=200, choices=LeaderboardTypes.choices, null=True
+    primary_leaderboard = models.ForeignKey(
+        "scoring.Leaderboard",
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="primary_project",
     )
 
     name = models.CharField(max_length=200)
@@ -222,54 +225,3 @@ class ProjectUserPermission(TimeStampedModel):
                 fields=["user_id", "project_id"],
             ),
         ]
-
-
-def get_global_leaderboard_dates() -> list[tuple[datetime, datetime]]:
-    # Returns the start and end dates for each global leaderboard
-    # This will have to be updated every year
-    utc = dt_timezone.utc
-    return [
-        # one year intervals
-        (datetime(2016, 1, 1, tzinfo=utc), datetime(2017, 1, 1, tzinfo=utc)),
-        (datetime(2017, 1, 1, tzinfo=utc), datetime(2018, 1, 1, tzinfo=utc)),
-        (datetime(2018, 1, 1, tzinfo=utc), datetime(2019, 1, 1, tzinfo=utc)),
-        (datetime(2019, 1, 1, tzinfo=utc), datetime(2020, 1, 1, tzinfo=utc)),
-        (datetime(2020, 1, 1, tzinfo=utc), datetime(2021, 1, 1, tzinfo=utc)),
-        (datetime(2021, 1, 1, tzinfo=utc), datetime(2022, 1, 1, tzinfo=utc)),
-        (datetime(2022, 1, 1, tzinfo=utc), datetime(2023, 1, 1, tzinfo=utc)),
-        (datetime(2023, 1, 1, tzinfo=utc), datetime(2024, 1, 1, tzinfo=utc)),
-        (datetime(2024, 1, 1, tzinfo=utc), datetime(2025, 1, 1, tzinfo=utc)),
-        (datetime(2025, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
-        # two year intervals
-        (datetime(2016, 1, 1, tzinfo=utc), datetime(2018, 1, 1, tzinfo=utc)),
-        (datetime(2018, 1, 1, tzinfo=utc), datetime(2020, 1, 1, tzinfo=utc)),
-        (datetime(2020, 1, 1, tzinfo=utc), datetime(2022, 1, 1, tzinfo=utc)),
-        (datetime(2022, 1, 1, tzinfo=utc), datetime(2024, 1, 1, tzinfo=utc)),
-        (datetime(2024, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
-        # five year intervals
-        (datetime(2016, 1, 1, tzinfo=utc), datetime(2021, 1, 1, tzinfo=utc)),
-        (datetime(2021, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
-        # ten year intervals
-        (datetime(2016, 1, 1, tzinfo=utc), datetime(2026, 1, 1, tzinfo=utc)),
-    ]
-
-
-def get_global_leaderboard_dates_and_score_types() -> (
-    list[tuple[datetime, datetime, str]]
-):
-    # Returns the entire set of global leaderboards
-    dates = get_global_leaderboard_dates()
-    global_leaderboards = []
-    for start, end in dates:
-        global_leaderboards.append((start, end, Project.LeaderboardTypes.PEER))
-        global_leaderboards.append((start, end, Project.LeaderboardTypes.SPOT_PEER))
-        global_leaderboards.append((start, end, Project.LeaderboardTypes.BASELINE))
-        global_leaderboards.append((start, end, Project.LeaderboardTypes.SPOT_BASELINE))
-        if end.year - start.year == 1:
-            global_leaderboards.append(
-                (start, end, Project.LeaderboardTypes.COMMENT_INSIGHT)
-            )
-            global_leaderboards.append(
-                (start, end, Project.LeaderboardTypes.QUESTION_WRITING)
-            )
-    return global_leaderboards

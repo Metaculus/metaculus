@@ -372,7 +372,6 @@ def migrate_questions__notebook(root_questions: list[dict]):
                             if project_obj["type"] == "PF"
                             else Project.ProjectTypes.NEWS_CATEGORY
                         ),
-                        leaderboard_type=None,
                         name=project_obj["name"],
                         slug=project_obj["slug"],
                         subtitle=project_obj["subtitle"],
