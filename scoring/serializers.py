@@ -7,10 +7,11 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username")
     user_id = serializers.IntegerField(source="user.id")
     score = serializers.FloatField()
-    coverage = serializers.FloatField()
-    contribution_count = serializers.IntegerField()
+    rank = serializers.IntegerField()
     medal = serializers.CharField()
     prize = serializers.FloatField()
+    coverage = serializers.FloatField()
+    contribution_count = serializers.IntegerField()
     calculated_on = serializers.DateTimeField()
 
     class Meta:
@@ -19,10 +20,11 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
             "username",
             "user_id",
             "score",
-            "coverage",
-            "contribution_count",
+            "rank",
             "medal",
             "prize",
+            "coverage",
+            "contribution_count",
             "calculated_on",
         ]
 

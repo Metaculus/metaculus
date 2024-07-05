@@ -121,10 +121,17 @@ class LeaderboardEntry(TimeStampedModel):
         Leaderboard, on_delete=models.CASCADE, related_name="entries", null=True
     )
     score = models.FloatField()
+    rank = models.IntegerField(null=True)
+
+    class Medals(models.TextChoices):
+        GOLD = "gold"
+        SILVER = "silver"
+        BRONZE = "bronze"
+
+    medal = models.CharField(max_length=200, null=True, choices=Medals.choices)
+    prize = models.FloatField(null=True)
     coverage = models.FloatField(null=True)
     contribution_count = models.IntegerField(default=0)
-    medal = models.CharField(max_length=200, null=True)
-    prize = models.FloatField(null=True)
     calculated_on = models.DateTimeField(auto_now=True)
 
 
