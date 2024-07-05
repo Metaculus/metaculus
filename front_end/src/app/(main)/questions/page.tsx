@@ -15,11 +15,7 @@ export default async function Questions({
   searchParams: SearchParams;
 }) {
   const filters = generateFiltersFromSearchParams(searchParams);
-  const [topics, categories, tags] = await Promise.all([
-    ProjectsApi.getTopics(),
-    ProjectsApi.getCategories(),
-    ProjectsApi.getTags(),
-  ]);
+  const topics = await ProjectsApi.getTopics();
 
   return (
     <main className="mx-auto mt-4 min-h-min w-full max-w-5xl flex-auto px-0 sm:px-2 md:px-3">
