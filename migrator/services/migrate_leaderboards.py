@@ -15,6 +15,10 @@ from scoring.utils import update_project_leaderboard
 
 
 def create_global_leaderboards():
+    # make sure Main Site project has all public posts
+    project = Project.objects.get(type=Project.ProjectTypes.SITE_MAIN)
+    project.posts.set(Post.objects.filter_public())
+
     leaderboard_details = global_leaderboard_dates_and_score_types()
     main_site_project = Project.objects.filter(
         type=Project.ProjectTypes.SITE_MAIN
