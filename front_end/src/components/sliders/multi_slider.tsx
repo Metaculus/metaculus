@@ -19,6 +19,7 @@ type Props = {
   min: number;
   max: number;
   step: number;
+  clampStep?: number;
   onChange: (value: MultiSliderValue) => void;
   shouldSyncWithDefault?: boolean;
 };
@@ -28,6 +29,7 @@ const MultiSlider: FC<Props> = ({
   min,
   max,
   step,
+  clampStep = 0,
   onChange,
   shouldSyncWithDefault,
 }) => {
@@ -36,10 +38,19 @@ const MultiSlider: FC<Props> = ({
     value.center,
     value.right,
   ]);
-  const persistedPositionOrigin = useRef<ControlledValue | null>(null);
+  const [allowCross, setAllowCross] = useState(true);
+  // controls the slide change behaviour
+  // undefined - block any changes (e.g. clicking the track)
+  // null - regular slide change (a.k.a. dragging a single thumb)
+  // ControlledValue - dragging the center thumb (a.k.a. sync boundary thumbs according to the center thumb position)
+  const persistedPositionOrigin = useRef<ControlledValue | null | undefined>(
+    undefined
+  );
   const handlePressIn = (index: number) => {
     if (index === 1) {
       persistedPositionOrigin.current = controlledValue;
+    } else {
+      persistedPositionOrigin.current = null;
     }
   };
 
@@ -49,6 +60,51 @@ const MultiSlider: FC<Props> = ({
     }
   }, [value, shouldSyncWithDefault]);
 
+  const handleValueChange = (value: ControlledValue) => {
+    if (persistedPositionOrigin.current === undefined) {
+      return;
+    }
+
+    let newValue: ControlledValue;
+    if (persistedPositionOrigin.current !== null) {
+      setAllowCross(true);
+      const firstItemDelta = calculateCenterMovementDiff(
+        {
+          origin: persistedPositionOrigin.current[1],
+          value: persistedPositionOrigin.current[0],
+        },
+        { origin: value[1], value: value[0] }
+      );
+      const lastItemDelta = calculateCenterMovementDiff(
+        {
+          origin: persistedPositionOrigin.current[1],
+          value: persistedPositionOrigin.current[2],
+        },
+        { origin: value[1], value: value[2] }
+      );
+
+      newValue = [
+        value[0] + firstItemDelta,
+        value[1],
+        value[2] + lastItemDelta,
+      ];
+    } else {
+      setAllowCross(false);
+      newValue = [
+        Math.min(value[0], value[1] - clampStep),
+        value[1],
+        Math.max(value[2], value[1] + clampStep),
+      ];
+    }
+
+    setControlledValue(newValue);
+    onChange({
+      left: newValue[0],
+      center: newValue[1],
+      right: newValue[2],
+    });
+  };
+
   return (
     <Slider
       min={min}
@@ -56,43 +112,13 @@ const MultiSlider: FC<Props> = ({
       step={step}
       value={controlledValue}
       range
-      onChange={(_value) => {
-        const value = _value as ControlledValue;
-        let newValue = value;
-        if (persistedPositionOrigin.current !== null) {
-          const firstItemDelta = calculateCenterMovementDiff(
-            {
-              origin: persistedPositionOrigin.current[1],
-              value: persistedPositionOrigin.current[0],
-            },
-            { origin: value[1], value: value[0] }
-          );
-          const lastItemDelta = calculateCenterMovementDiff(
-            {
-              origin: persistedPositionOrigin.current[1],
-              value: persistedPositionOrigin.current[2],
-            },
-            { origin: value[1], value: value[2] }
-          );
-
-          newValue = [
-            value[0] + firstItemDelta,
-            value[1],
-            value[2] + lastItemDelta,
-          ];
-        }
-        setControlledValue(newValue);
-        onChange({
-          left: newValue[0],
-          center: newValue[1],
-          right: newValue[2],
-        });
-      }}
+      onChange={(value) => handleValueChange(value as ControlledValue)}
       onChangeComplete={() => {
-        persistedPositionOrigin.current = null;
+        persistedPositionOrigin.current = undefined;
       }}
       pushable={true}
-      allowCross={true}
+      allowCross={allowCross}
+      draggableTrack={false}
       handleRender={(origin, props) => {
         return (
           <SliderThumb
