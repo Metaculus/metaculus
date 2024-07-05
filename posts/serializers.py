@@ -1,11 +1,10 @@
 from typing import Union
 
-from django.utils import timezone
 from django.db import models
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from comments.models import Comment
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers import (
@@ -35,7 +34,6 @@ class NotebookSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
-    comment_count = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
 
     class Meta:
@@ -64,9 +62,6 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_author_username(self, obj: Post):
         return obj.author.username
-
-    def get_comment_count(self, obj: Post):
-        return Comment.objects.filter(on_post=obj).count()
 
     def get_status(self, obj: Post):
         if obj.resolved:
@@ -106,11 +101,15 @@ class PostWriteSerializer(serializers.ModelSerializer):
 
 
 class PostFilterSerializer(serializers.Serializer):
+    # TODO: ignore incorrect filter options in case of error, so users with old links could get results
     class Order(models.TextChoices):
-        MOST_FORECASTERS = "most_forecasters"
-        actual_close_time = "actual_close_time"
-        RESOLVED_AT = "resolved_at"
-        CREATED_AT = "created_at"
+        PUBLISHED_AT = "published_at"
+        VOTES = "vote_score"
+        COMMENT_COUNT = "comment_count"
+        FORECASTS_COUNT = "forecasts_count"
+        SCHEDULED_CLOSE_TIME = "scheduled_close_time"
+        SCHEDULED_RESOLVE_TIME = "scheduled_resolve_time"
+        USER_LAST_FORECASTS_DATE = "user_last_forecasts_date"
 
     class Access(models.TextChoices):
         PRIVATE = "private"
@@ -124,20 +123,18 @@ class PostFilterSerializer(serializers.Serializer):
     tournaments = serializers.ListField(child=serializers.CharField(), required=False)
     forecast_type = serializers.ListField(child=serializers.CharField(), required=False)
     statuses = serializers.ListField(child=serializers.CharField(), required=False)
-    answered_by_me = serializers.BooleanField(required=False, allow_null=True)
     permission = serializers.ChoiceField(
         required=False,
         choices=ObjectPermission.choices + [ObjectPermission.CREATOR],
     )
-    order = serializers.ChoiceField(
-        choices=Order.choices, required=False, allow_null=True
-    )
+    order_by = serializers.CharField(required=False, allow_null=True)
     notebook_type = serializers.ChoiceField(
         choices=Notebook.NotebookType.choices, required=False, allow_null=True
     )
     news_type = serializers.CharField(required=False)
     public_figure = serializers.CharField(required=False)
     usernames = serializers.ListField(child=serializers.CharField(), required=False)
+    forecaster_id = serializers.IntegerField(required=False, allow_null=True)
 
     search = serializers.CharField(required=False, allow_null=True)
 
@@ -146,7 +143,6 @@ class PostFilterSerializer(serializers.Serializer):
             return Project.objects.filter(pk=value)
         except Project.DoesNotExist:
             raise ValidationError("Slug does not exist")
-
     def validate_news_type(self, value: str):
         try:
             return Project.objects.get(
@@ -176,6 +172,12 @@ class PostFilterSerializer(serializers.Serializer):
 
     def validate_tournaments(self, values: list[str]):
         return validate_tournaments(lookup_values=values)
+
+    def validate_order_by(self, value: str):
+        if value.lstrip("-") in self.Order:
+            return value
+
+        return
 
 
 def serialize_post(
@@ -225,7 +227,11 @@ def serialize_post_many(
     with_forecasts: bool = False,
     current_user: User = None,
 ) -> list[dict]:
-    qs = Post.objects.filter(pk__in=[p.pk for p in data])
+    ids = [p.pk for p in data]
+    qs = Post.objects.filter(pk__in=ids)
+
+    # TODO: remove
+    with_forecasts = False
 
     qs = (
         qs.annotate_forecasts_count()
@@ -234,14 +240,19 @@ def serialize_post_many(
         .annotate_nr_forecasters()
         .prefetch_projects()
         .prefetch_questions()
+        .annotate_comment_count()
     )
     if current_user and not current_user.is_anonymous:
         qs = qs.annotate_user_vote(current_user)
 
     if with_forecasts:
         qs = qs.prefetch_forecasts()
-    
+
+    # Restore the original ordering
+    objects = list(qs.all())
+    objects.sort(key=lambda obj: ids.index(obj.id))
+
     return [
         serialize_post(post, with_forecasts=with_forecasts, current_user=current_user)
-        for post in qs.all()
+        for post in objects
     ]
