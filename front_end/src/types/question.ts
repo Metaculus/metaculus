@@ -12,18 +12,18 @@ export enum QuestionOrder {
   StaleDesc = "-stale",
   // TODO: clarify logic
   WeeklyMovementDesc = "-weekly_movement",
-  PublishTimeDesc = "-publish_time",
-  LastPredictionTimeAsc = "last_prediction_time",
-  LastPredictionTimeDesc = "-last_prediction_time",
+  PublishTimeDesc = "-published_at",
+  LastPredictionTimeAsc = "user_last_forecasts_date",
+  LastPredictionTimeDesc = "-user_last_forecasts_date",
   DivergenceDesc = "-divergence",
-  VotesDesc = "-votes",
+  VotesDesc = "-vote_score",
   CommentCountDesc = "-comment_count",
   UnreadCommentCountDesc = "-unread_comment_count",
-  PredictionCountDesc = "-prediction_count",
-  CloseTimeAsc = "close_time",
+  PredictionCountDesc = "-forecasts_count",
+  CloseTimeAsc = "scheduled_close_time",
   ScoreDesc = "-score",
   ScoreAsc = "score",
-  ResolveTimeAsc = "resolve_time",
+  ResolveTimeAsc = "scheduled_resolve_time",
 }
 
 export type BaseForecast = {

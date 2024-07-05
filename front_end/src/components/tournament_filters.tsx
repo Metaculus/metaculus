@@ -9,8 +9,7 @@ import {
 } from "@/app/(main)/questions/helpers/filters";
 import PostsFilters from "@/components/posts_filters";
 import {
-  POST_GUESSED_BY_FILTER,
-  POST_ORDER_BY_FILTER,
+  POST_FORECASTER_ID_FILTER,
   POST_STATUS_FILTER,
 } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
@@ -37,7 +36,7 @@ const RESOLVED_STATUS_FILTERS = [
   QuestionOrder.StaleDesc,
   QuestionOrder.UnreadCommentCountDesc,
 ];
-const GUESSED_BY_FILTERS = [
+const FORECASTER_ID_FILTERS = [
   QuestionOrder.LastPredictionTimeAsc,
   QuestionOrder.LastPredictionTimeDesc,
   QuestionOrder.DivergenceDesc,
@@ -75,8 +74,8 @@ const TournamentFilters: FC<Props> = ({ categories, tags }) => {
     if (RESOLVED_STATUS_FILTERS.includes(order))
       postStatusFilters.push("resolved");
 
-    if (!!user && GUESSED_BY_FILTERS.includes(order)) {
-      setFilterParam(POST_GUESSED_BY_FILTER, user.id.toString(), false);
+    if (!!user && FORECASTER_ID_FILTERS.includes(order)) {
+      setFilterParam(POST_FORECASTER_ID_FILTER, user.id.toString(), false);
     }
 
     if (order === QuestionOrder.ResolveTimeAsc) {

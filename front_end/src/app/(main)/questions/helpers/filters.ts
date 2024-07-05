@@ -16,8 +16,8 @@ import {
   POST_USERNAMES_FILTER,
   POST_CATEGORIES_FILTER,
   POST_COMMENTED_BY_FILTER,
-  POST_GUESSED_BY_FILTER,
-  POST_NOT_GUESSED_BY_FILTER,
+  POST_FORECASTER_ID_FILTER,
+  POST_NOT_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
   POST_STATUS_FILTER,
   POST_TAGS_FILTER,
@@ -95,8 +95,8 @@ export function generateFiltersFromSearchParams(
     filters.usernames = searchParams[POST_USERNAMES_FILTER];
   }
 
-  if (typeof searchParams[POST_GUESSED_BY_FILTER] === "string") {
-    filters.guessed_by = searchParams[POST_GUESSED_BY_FILTER];
+  if (typeof searchParams[POST_FORECASTER_ID_FILTER] === "string") {
+    filters.forecaster_id = searchParams[POST_FORECASTER_ID_FILTER];
   }
   if (typeof searchParams[POST_AUTHOR_FILTER] === "string") {
     filters.author = searchParams[POST_AUTHOR_FILTER];
@@ -107,8 +107,8 @@ export function generateFiltersFromSearchParams(
   if (typeof searchParams[POST_COMMENTED_BY_FILTER] === "string") {
     filters.commented_by = searchParams[POST_COMMENTED_BY_FILTER];
   }
-  if (typeof searchParams[POST_NOT_GUESSED_BY_FILTER] === "string") {
-    filters.not_guessed_by = searchParams[POST_NOT_GUESSED_BY_FILTER];
+  if (typeof searchParams[POST_NOT_FORECASTER_ID_FILTER] === "string") {
+    filters.not_forecaster_id = searchParams[POST_NOT_FORECASTER_ID_FILTER];
   }
 
   if (typeof searchParams[POST_ACCESS_FILTER] === "string") {
@@ -260,16 +260,16 @@ export function getPostsFilters({
       type: FilterOptionType.ToggleChip,
       options: [
         {
-          id: POST_GUESSED_BY_FILTER,
+          id: POST_FORECASTER_ID_FILTER,
           label: t("predicted"),
           value: user.id.toString(),
-          active: !!params.get(POST_GUESSED_BY_FILTER),
+          active: !!params.get(POST_FORECASTER_ID_FILTER),
         },
         {
-          id: POST_NOT_GUESSED_BY_FILTER,
+          id: POST_NOT_FORECASTER_ID_FILTER,
           label: t("notPredicted"),
           value: user.id.toString(),
-          active: !!params.get(POST_NOT_GUESSED_BY_FILTER),
+          active: !!params.get(POST_NOT_FORECASTER_ID_FILTER),
         },
         {
           id: POST_AUTHOR_FILTER,
