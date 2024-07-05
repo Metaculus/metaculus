@@ -18,7 +18,6 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
         fields = [
             "username",
             "user_id",
-            "leaderboard_type",
             "score",
             "coverage",
             "contribution_count",
@@ -33,7 +32,7 @@ class LeaderboardSerializer(serializers.Serializer):
     score_type = serializers.CharField()
     name = serializers.CharField()
     start_time = serializers.DateTimeField()
-    close_time = serializers.DateTimeField()
+    end_time = serializers.DateTimeField()
     finalize_time = serializers.DateTimeField()
 
     class Meta:
@@ -43,6 +42,6 @@ class LeaderboardSerializer(serializers.Serializer):
             "score_type",
             "name",
             "start_time",
-            "close_time",
+            "end_time",
             "finalize_time",
         ]

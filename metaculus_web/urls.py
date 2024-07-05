@@ -27,6 +27,7 @@ urlpatterns = [
     path("api/", include("posts.urls")),
     path("api/", include("questions.urls")),
     path("api/", include("comments.urls")),
+    path("api/", include("scoring.urls")),
 ]
 
 if settings.DEBUG:
