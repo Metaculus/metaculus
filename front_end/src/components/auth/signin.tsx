@@ -48,13 +48,14 @@ const SignInModal: FC<SignInModalType> = ({
   }, [setCurrentModal, setUser, state]);
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} variant="light">
-      <div>
-        <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
-          {t("signInButton")}
-        </h2>
-        <p className="mb-6 mt-3 text-base leading-tight">
-          {t("loginSignUpHeading")}&nbsp;
+    <BaseModal label={t("signInButton")} isOpen={isOpen} onClose={onClose}>
+      {/* dummy div to give the modal a 384px max width */}
+      <div className="w-[328px]" />
+      <div className="flex w-full flex-col gap-2">
+        <div className="mb-4 text-base leading-tight">
+          <span className="text-blue-900 dark:text-gray-1000-dark">
+            {t("loginSignUpHeading")}{" "}
+          </span>
           <Button
             variant="link"
             size="md"
@@ -62,13 +63,14 @@ const SignInModal: FC<SignInModalType> = ({
           >
             {t("createAnAccount")}
           </Button>
-        </p>
+        </div>
         <form
           action={(data) => {
             startTransition(() => {
               formAction(data);
             });
           }}
+          className="flex flex-col gap-4"
         >
           <Input
             autoComplete="username"
@@ -78,16 +80,14 @@ const SignInModal: FC<SignInModalType> = ({
             {...register("login")}
             errors={state?.errors}
           />
-          <div className="text-xs text-red-500 dark:text-red-500-dark"></div>
           <Input
             autoComplete="current-password"
-            className="mt-4 block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+            className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
             type="password"
             placeholder="password"
             {...register("password")}
             errors={state?.errors}
           />
-          <div className="mb-4 text-xs text-red-500 dark:text-red-500-dark"></div>
           <Button
             variant="primary"
             className="w-full"
@@ -99,12 +99,12 @@ const SignInModal: FC<SignInModalType> = ({
         </form>
         <Button
           variant="text"
-          className="mt-2 w-full px-3 py-2"
+          className="w-full px-3 py-2"
           onClick={() => setCurrentModal({ type: "resetPassword" })}
         >
           {t("forgotPasswordLink")}
         </Button>
-        <hr className="my-3 border-gray-300 dark:border-gray-300-dark" />
+        <hr className="mb-3 mt-1 border-gray-300 dark:border-gray-300-dark" />
         <SocialButtons type="sigin" />
       </div>
     </BaseModal>
