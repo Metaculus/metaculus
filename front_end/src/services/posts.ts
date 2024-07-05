@@ -13,8 +13,8 @@ export type PostsParams = PaginationParams & {
   categories?: string | string[];
   usernames?: string | string[];
   tags?: string | string[];
-  guessed_by?: string;
-  not_guessed_by?: string;
+  forecaster_id?: string;
+  not_forecaster_id?: string;
   author?: string;
   upvoted_by?: string;
   access?: string;
