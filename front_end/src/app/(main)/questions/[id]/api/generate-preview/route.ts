@@ -24,25 +24,25 @@ export async function GET(
 
   const alphaAccessToken = await getAlphaAccessToken();
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const cookie_origin = origin.replace("https://", "").replace("http://", "");
-
-  await page.setExtraHTTPHeaders({
-    "x-alpha-auth-token": String(alphaAccessToken),
-  });
 
   const url = `${origin}/embed/questions/${params.id}?${ENFORCED_THEME_PARAM}=dark&non-interactive=true`;
 
-  await page.setCookie({
-    name: "alpha_token",
-    value: String(alphaAccessToken),
-    domain: origin.replace("https://", "").replace("http://", ""), // Adjust the domain as needed
-    path: "/",
-    url: origin,
-    secure: false,
-    sameSite: "Lax",
-  });
+  if (alphaAccessToken) {
+    await page.setExtraHTTPHeaders({
+      "x-alpha-auth-token": String(alphaAccessToken),
+    });
 
-  const c = await page.cookies();
+    await page.setCookie({
+      name: "alpha_token",
+      value: String(alphaAccessToken),
+      domain: origin.replace("https://", "").replace("http://", ""), // Adjust the domain as needed
+      path: "/",
+      url: origin,
+      secure: false,
+      sameSite: "Lax",
+    });
+  }
+
   await page.goto(url, { waitUntil: "networkidle0" });
   const element = await page.$("#id-used-by-screenshot-donot-change");
 
