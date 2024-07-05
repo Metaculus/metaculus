@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import {
   FeedType,
-  POST_GUESSED_BY_FILTER,
+  POST_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
   POST_STATUS_FILTER,
   POST_TOPIC_FILTER,
@@ -18,7 +18,7 @@ const useFeed = () => {
   const { user } = useAuth();
 
   const selectedTopic = params.get(POST_TOPIC_FILTER);
-  const guessedById = params.get(POST_GUESSED_BY_FILTER);
+  const guessedById = params.get(POST_FORECASTER_ID_FILTER);
   const authorUsernames = params.getAll(POST_USERNAMES_FILTER);
   const orderBy = params.get(POST_ORDER_BY_FILTER);
   const postStatus = params.get(POST_STATUS_FILTER);
@@ -61,7 +61,7 @@ const useFeed = () => {
       }
 
       if (feedType === FeedType.MY_PREDICTIONS) {
-        user && setParam(POST_GUESSED_BY_FILTER, user.id.toString());
+        user && setParam(POST_FORECASTER_ID_FILTER, user.id.toString());
       }
       if (feedType === FeedType.MY_QUESTIONS_AND_POSTS) {
         user && setParam(POST_USERNAMES_FILTER, user.username.toString());
