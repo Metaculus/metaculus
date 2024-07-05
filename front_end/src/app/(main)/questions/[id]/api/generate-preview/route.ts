@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 
 import { ENFORCED_THEME_PARAM } from "@/constants/global_search_params";
+import { getAlphaAccessToken } from "@/utils/alpha_access";
 
 export async function GET(
   req: NextRequest,
@@ -20,6 +21,14 @@ export async function GET(
     ],
   });
   const page = await browser.newPage();
+
+  // Get the alpha access token
+  const alphaAccessToken = await getAlphaAccessToken();
+
+  // Set the x-alpha-auth-token header for all requests
+  await page.setExtraHTTPHeaders({
+    "x-alpha-auth-token": String(alphaAccessToken),
+  });
 
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const url = `${origin}/embed/questions/${params.id}?${ENFORCED_THEME_PARAM}=dark&non-interactive=true`;
