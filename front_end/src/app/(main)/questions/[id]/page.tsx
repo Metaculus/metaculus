@@ -62,7 +62,7 @@ export default async function IndividualQuestion({
   if (postData.notebook) {
     return redirect(`/notebooks/${postData.id}`);
   }
-
+  console.log(postData.status);
   const preselectedGroupQuestionId =
     extractPreselectedGroupQuestionId(searchParams);
 
@@ -156,7 +156,7 @@ export default async function IndividualQuestion({
               <div className="flex flex-col self-stretch">
                 <div className="flex flex-row justify-between">
                   <span>Status:</span>
-                  <span>{postData.curation_status}</span>
+                  <span>{postData.status}</span>
                 </div>
                 <div className="flex flex-row justify-between">
                   <span>Author:</span>
@@ -210,7 +210,7 @@ export default async function IndividualQuestion({
             <div className="flex flex-col border-b border-gray-300 pb-4 dark:border-gray-300-dark">
               <div className="flex flex-row justify-between">
                 <span>Status:</span>
-                <span>{postData.curation_status}</span>
+                <span>{postData.status}</span>
               </div>
               <div className="flex flex-row justify-between">
                 <span>Author:</span>
