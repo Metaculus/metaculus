@@ -201,7 +201,7 @@ const QuestionForm: React.FC<Props> = ({
           <div>
             <span>Closing Date</span>
             <Input
-              type="date"
+              type="datetime-local"
               {...control.register("scheduled_close_time", {
                 setValueAs: (value: string) => {
                   if (value == "" || value == null || value == undefined) {
@@ -217,7 +217,7 @@ const QuestionForm: React.FC<Props> = ({
           <div>
             <span>Resolving Date</span>
             <Input
-              type="date"
+              type="datetime-local"
               {...control.register("scheduled_resolve_time", {
                 setValueAs: (value: string) => {
                   if (value == "" || value == null || value == undefined) {
