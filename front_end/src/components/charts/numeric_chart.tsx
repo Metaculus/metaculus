@@ -171,14 +171,17 @@ const NumericChart: FC<Props> = ({
                 opacity: 0.3,
               },
             }}
+            interpolation="stepAfter"
           />
           <VictoryLine
             data={line}
             style={{
               data: {
+                strokeWidth: 1.5,
                 stroke: getThemeColor(METAC_COLORS.olive["700"]),
               },
             }}
+            interpolation="stepAfter"
           />
           <VictoryScatter
             data={points.map((x) => ({ ...x, symbol: "diamond" }))}
@@ -198,6 +201,7 @@ const NumericChart: FC<Props> = ({
             tickValues={yScale.ticks}
             tickFormat={yScale.tickFormat}
             label={yLabel}
+            offsetX={48}
             axisLabelComponent={<VictoryLabel dy={-10} />}
           />
           <VictoryAxis

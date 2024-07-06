@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.utils import timezone
 
 from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
@@ -121,11 +122,11 @@ def get_posts_feed(
         if status == "resolved":
             q |= Q(resolved=True, curation_status=Post.CurationStatus.APPROVED)
 
-        if "open" in status:
+        if status == "open":
             q |= Q(
-                published_at__isnull=False,
-                curation_status=Post.CurationStatus.APPROVED,
-                actual_close_time__isnull=True,
+                Q(published_at__lte=timezone.now())
+                & Q(curation_status=Post.CurationStatus.APPROVED)
+                & Q(Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=timezone.now())),
             )
 
     qs = qs.filter(q)

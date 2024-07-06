@@ -8,7 +8,6 @@ import invariant from "ts-invariant";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import ProjectMembers from "@/app/(main)/tournaments/components/members";
 import HtmlContent from "@/components/html_content";
-import AwaitedLeaderboard from "@/components/leaderboard";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
@@ -19,6 +18,8 @@ import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
+
+import AwaitedProjectLeaderboard from "../../leaderboards/components/projectLeaderboard";
 
 export default async function TournamentSlug({
   params,
@@ -109,7 +110,7 @@ export default async function TournamentSlug({
           <HtmlContent content={tournament.description} />
         </div>
         <div>
-          <AwaitedLeaderboard projectId={tournament.id} />
+          <AwaitedProjectLeaderboard projectId={tournament.id} />
         </div>
         {[ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
           tournament.user_permission
