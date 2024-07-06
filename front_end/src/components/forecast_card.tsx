@@ -97,7 +97,7 @@ const ForecastCard: FC<Props> = ({
       return (
         <ConditionalTile
           conditional={post.conditional}
-          curationStatus={post.curation_status}
+          curationStatus={post.status}
           chartTheme={chartTheme}
         />
       );
@@ -163,7 +163,7 @@ const ForecastCard: FC<Props> = ({
           return (
             <PredictionChip
               questionType={question.type}
-              status={post.curation_status}
+              status={post.status}
               prediction={prediction}
               resolution={question.resolution}
               className="ForecastCard-prediction"
