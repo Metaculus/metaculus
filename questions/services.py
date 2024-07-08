@@ -14,7 +14,7 @@ from utils.the_math.formulas import scale_location
 from utils.the_math.measures import percent_point_function
 
 
-def build_question_forecasts(question: Question) -> dict | None:
+def build_question_forecasts(question: Question, empty: bool = False) -> dict:
     """
     Enriches questions with the forecasts object.
     """
@@ -36,6 +36,8 @@ def build_question_forecasts(question: Question) -> dict | None:
             "latest_pmf": [],
             "latest_cdf": [],
         }
+    if empty:
+        return forecasts_data
 
     if question.type == "multiple_choice":
         cps = compute_multiple_choice_plotable_cp(question, 100)
