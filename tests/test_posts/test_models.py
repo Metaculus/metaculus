@@ -1,7 +1,10 @@
+import datetime
+
 from posts.models import Post
 from projects.permissions import ObjectPermission
 from tests.fixtures import *  # noqa
-from tests.test_posts.factories import factory_post
+from tests.test_comments.factories import factory_comment
+from tests.test_posts.factories import factory_post, factory_post_snapshot
 from tests.test_projects.factories import factory_project
 from tests.test_questions.factories import create_forecast
 from tests.test_questions.fixtures import *  # noqa
@@ -241,3 +244,30 @@ class TestPostPermissions:
             .user_permission
             == excepted_permission
         )
+
+
+def test_annotate_unread_comment_count(user1, user2):
+    # User2 & User3
+    post = factory_post(
+        author=factory_user(),
+        default_project=factory_project(default_permission=ObjectPermission.VIEWER),
+        curation_status=Post.CurationStatus.APPROVED,
+    )
+
+    factory_post_snapshot(
+        user=user1, post=post, comments_count=1, viewed_at=datetime.datetime(2024, 6, 1)
+    )
+    factory_post_snapshot(
+        user=user2, post=post, comments_count=2, viewed_at=datetime.datetime(2024, 6, 2)
+    )
+
+    factory_comment(on_post=post, created_at=datetime.datetime(2024, 6, 1))
+    factory_comment(on_post=post, created_at=datetime.datetime(2024, 6, 2))
+    factory_comment(on_post=post, created_at=datetime.datetime(2024, 6, 3))
+
+    assert (
+        Post.objects.filter(pk=post.id).annotate_unread_comment_count(user1.id).first()
+    ).unread_comment_count == 2
+    assert (
+        Post.objects.filter(pk=post.id).annotate_unread_comment_count(user2.id).first()
+    ).unread_comment_count == 1

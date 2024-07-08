@@ -1,6 +1,6 @@
 from django_dynamic_fixture import G
 
-from posts.models import Post
+from posts.models import Post, PostUserSnapshot
 from projects.models import Project
 from projects.services import get_site_main_project
 from questions.models import Question, Conditional
@@ -35,3 +35,14 @@ def factory_post(
     post.projects.add(*projects)
 
     return post
+
+
+def factory_post_snapshot(*, user: User = None, post: Post = None, **kwargs):
+    return G(
+        PostUserSnapshot,
+        **setdefaults_not_null(
+            kwargs,
+            user=user,
+            post=post,
+        )
+    )

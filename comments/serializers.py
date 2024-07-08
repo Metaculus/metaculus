@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from comments.models import Comment
 from posts.models import Post
-from questions.models import Forecast
 from users.serializers import UserCommentSerializer
 
 
@@ -29,7 +28,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class CommentWriteSerializer(serializers.ModelSerializer):
     on_post = serializers.IntegerField(required=True)
     parent = serializers.IntegerField(required=False)
-    included_forecast = serializers.IntegerField(required=False)
+    include_forecast = serializers.BooleanField(required=False)
     is_private = serializers.BooleanField(required=False, default=False)
 
     class Meta:
@@ -41,6 +40,3 @@ class CommentWriteSerializer(serializers.ModelSerializer):
 
     def validate_parent(self, value):
         return Comment.objects.get(pk=value)
-
-    def validate_included_forecast(self, value):
-        return Forecast.objects.get(pk=value)

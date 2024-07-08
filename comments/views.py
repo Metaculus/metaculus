@@ -66,19 +66,30 @@ def comment_delete_api_view(request: Request, pk: int):
 
 @api_view(["POST"])
 def comment_create_api_view(request: Request):
+    user = request.user
     serializer = CommentWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
     on_post = serializer.validated_data["on_post"]
     parent = serializer.validated_data.get("parent")
+    include_forecast = serializer.validated_data.pop("include_forecast", None)
 
     # Small validation
     permission = get_post_permission_for_user(
-        parent.on_post if parent else on_post, user=request.user
+        parent.on_post if parent else on_post, user=user
     )
     ObjectPermission.can_comment(permission, raise_exception=True)
 
-    create_comment(**serializer.validated_data, user=request.user)
+    if include_forecast:
+        included_forecast = (
+            on_post.question.forecast_set.filter(author_id=user.id)
+            .order_by("-start_time")
+            .first()
+        )
+
+    create_comment(
+        **serializer.validated_data, included_forecast=included_forecast, user=user
+    )
 
     return Response({}, status=status.HTTP_201_CREATED)
 
