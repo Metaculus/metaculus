@@ -23,6 +23,7 @@ from posts.services import (
     create_post,
     get_post_permission_for_user,
     update_post_user_snapshot,
+    add_categories,
 )
 from projects.permissions import ObjectPermission
 from questions.models import Question
@@ -70,7 +71,7 @@ def post_detail(request: Request, pk):
 
     if not posts:
         raise NotFound("Post not found")
-
+    print(posts[0]["question"]["scheduled_close_time"])
     return Response(posts[0])
 
 
@@ -80,6 +81,8 @@ def post_create_api_view(request):
     serializer.is_valid(raise_exception=True)
 
     post = create_post(**serializer.validated_data, author=request.user)
+    if "categories" in request.data:
+        add_categories(request.data["categories"], post)
 
     return Response(
         serialize_post(post, with_forecasts=False, current_user=request.user),
@@ -158,8 +161,10 @@ def post_update_api_view(request, pk):
         ser.is_valid(raise_exception=True)
         ser.save()
 
+    post.update_pseudo_materialized_fields()
+    if "categories" in request.data:
+        add_categories(request.data["categories"], post)
     serializer.save()
-
     return Response(serializer.data)
 
 

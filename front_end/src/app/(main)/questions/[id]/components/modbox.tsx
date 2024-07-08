@@ -55,7 +55,7 @@ export default function Modbox({ post }: { post: PostWithForecasts }) {
           <button
             className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark"
             onClick={async () => {
-              await approvePost(post.id);
+              // await approvePost(post.id);
               router.refresh();
             }}
           >
