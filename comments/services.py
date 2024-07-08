@@ -1,5 +1,5 @@
 from comments.models import Comment
-from posts.models import Post
+from posts.models import Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
@@ -63,5 +63,8 @@ def create_comment(
     # Save project and validate
     obj.full_clean()
     obj.save()
+
+    # Update comments read cache counter
+    PostUserSnapshot.update_viewed_at(on_post, user)
 
     return obj
