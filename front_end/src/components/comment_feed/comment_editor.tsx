@@ -81,10 +81,10 @@ const CommentEditor: React.FC<NotebookEditorProps> = ({ text, isPrivate }) => {
               createComment({
                 /* test data */
                 author: user.id,
-                parent: null,
+                parent: undefined,
                 text: markdown,
                 on_post: 1,
-                included_forecast: null,
+                included_forecast: undefined,
                 is_private: isPrivateComment,
               });
             }}

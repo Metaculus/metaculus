@@ -8,10 +8,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from comments.models import Comment, CommentDiff
-from comments.serializers import CommentSerializer, CommentWriteSerializer
+from comments.models import Comment, CommentVote, CommentDiff
+from comments.serializers import CommentWriteSerializer, serialize_comment_many 
 from comments.services import create_comment
 from posts.services import get_post_permission_for_user
+from posts.models import Post
+from questions.models import Forecast
+from users.models import User
 from projects.permissions import ObjectPermission
 
 
@@ -49,14 +52,14 @@ def comments_list_api_view(request: Request):
     #    if ObjectPermission.can_view(get_comment_permission_for_user(c, request.user))
     # ]
 
-    data = [{**CommentSerializer(obj).data} for obj in comments.all()]
+    data = serialize_comment_many(comments, request.user)
 
     return Response(data)
 
 
 @api_view(["POST"])
 def comment_delete_api_view(request: Request, pk: int):
-    comment = get_object_or_404(Comment.objects.filter(author=request.user), pk=pk)
+    comment = get_object_or_404(Comment, pk=pk)
 
     comment.is_soft_deleted = True
     comment.save()
@@ -119,3 +122,22 @@ def comment_edit_api_view(request: Request, pk: int):
     comment.save()
 
     return Response({}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def comment_vote_api_view(request: Request, pk: int):
+    comment = get_object_or_404(Comment, pk=pk)
+    direction = serializers.ChoiceField(
+        required=False, allow_null=True, choices=CommentVote.VoteDirection.choices
+    ).run_validation(request.data.get("vote"))
+
+    # Deleting existing vote
+    CommentVote.objects.filter(user=request.user, comment=comment).delete()
+
+    if direction:
+        CommentVote.objects.create(user=request.user, comment=comment, direction=direction)
+
+    return Response(
+        {"score": Comment.objects.annotate_vote_score().get(pk=comment.pk).vote_score}
+    )
+
