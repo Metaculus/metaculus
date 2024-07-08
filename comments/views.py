@@ -80,12 +80,11 @@ def comment_create_api_view(request: Request):
     )
     ObjectPermission.can_comment(permission, raise_exception=True)
 
-    if include_forecast:
-        included_forecast = (
-            on_post.question.forecast_set.filter(author_id=user.id)
-            .order_by("-start_time")
-            .first()
-        )
+    included_forecast = (
+        on_post.question.forecast_set.filter(author_id=user.id)
+        .order_by("-start_time")
+        .first()
+    ) if include_forecast else None
 
     create_comment(
         **serializer.validated_data, included_forecast=included_forecast, user=user
