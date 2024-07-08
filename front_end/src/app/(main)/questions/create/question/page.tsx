@@ -1,4 +1,5 @@
 import PostsApi from "@/services/posts";
+import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 
 import QuestionForm from "../../components/question_form";
@@ -14,6 +15,7 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
     throw new Error("Type is required !");
   }
 
+  const allCategories = await ProjectsApi.getCategories();
   const question_type: string = post
     ? (post.question?.type as string)
     : (searchParams["type"] as string);
@@ -28,6 +30,7 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
           ? Number(searchParams["tournament_id"])
           : undefined
       }
+      allCategories={allCategories}
     ></QuestionForm>
   );
 };

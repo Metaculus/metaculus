@@ -7,7 +7,6 @@ export const useCopyUrl = () => {
       navigator.clipboard
         .writeText(window.location.href)
         .then(() => {
-          console.log("Link copied to clipboard");
           toast("URL is now copied to your clipboard", {
             className: "dark:bg-blue-700-dark dark:text-gray-0-dark",
           });
