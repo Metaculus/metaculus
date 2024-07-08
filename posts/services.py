@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.forms import ValidationError
 from django.utils import timezone
 
 from posts.models import Notebook, Post
@@ -16,6 +17,16 @@ from utils.dtypes import flatten
 from utils.models import build_order_by
 from utils.serializers import parse_order_by
 
+
+def add_categories(categories: list[int], post: Post):
+    existing = [x.pk for x in post.projects.filter(type=Project.ProjectTypes.CATEGORY)]
+    categories = [x for x in categories if x not in existing]
+    all_category_ids = [x.id for x in Project.objects.filter(type=Project.ProjectTypes.CATEGORY).all()]
+    for category_id in categories:
+        if category_id not in all_category_ids:
+            raise ValidationError(f"Category with id {category_id} does not exist")
+        post.projects.add(Project.objects.get(pk=category_id))
+    post.save()
 
 def get_posts_feed(
     qs: Post.objects = None,

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from django.utils import timezone
 from users.models import User
 from .constants import ResolutionType
 from .models import Question, Conditional, GroupOfQuestions
@@ -142,7 +143,10 @@ def serialize_question(
     serialized_data["post_id"] = post_id
 
     if with_forecasts:
-        serialized_data["forecasts"] = build_question_forecasts(question)
+        if question.cp_reveal_time is None or question.cp_reveal_time < timezone.now():
+            serialized_data["forecasts"] = []
+        else:
+            serialized_data["forecasts"] = build_question_forecasts(question)
 
         if current_user and not current_user.is_anonymous:
             serialized_data["my_forecasts"] = build_question_forecasts_for_user(

@@ -28,8 +28,8 @@ class Question(TimeStampedModel):
     title = models.CharField(max_length=200)
 
     description = models.TextField(blank=True)
-    resolution_criteria_description = models.TextField(blank=True, null=True)
-    fine_print = models.TextField(blank=True, null=True)
+    resolution_criteria_description = models.TextField(blank=True)
+    fine_print = models.TextField(blank=True)
 
     label = models.TextField(blank=True, null=True)
 
@@ -50,6 +50,7 @@ class Question(TimeStampedModel):
     actual_resolve_time = models.DateTimeField(db_index=True, null=True, blank=True)
     resolution_set_time = models.DateTimeField(db_index=True, null=True, blank=True)
     actual_close_time = models.DateTimeField(db_index=True, null=True, blank=True)
+    cp_reveal_time = models.DateTimeField(null=True, blank=True)
 
     max = models.FloatField(null=True, blank=True)
     min = models.FloatField(null=True, blank=True)

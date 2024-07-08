@@ -1,6 +1,7 @@
 import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { parseISO } from "date-fns";
+import { isNil } from "lodash";
 import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -62,7 +63,6 @@ export default async function IndividualQuestion({
   if (postData.notebook) {
     return redirect(`/notebooks/${postData.id}`);
   }
-  console.log(postData.status);
   const preselectedGroupQuestionId =
     extractPreselectedGroupQuestionId(searchParams);
 
@@ -141,12 +141,14 @@ export default async function IndividualQuestion({
               groupOfQuestions={postData.group_of_questions}
               canPredict={
                 postData.user_permission !== ProjectPermissions.VIEWER &&
+                !isNil(postData.published_at) &&
                 parseISO(postData.published_at) <= new Date() &&
                 postData.status === PostStatus.APPROVED
               }
               canResolve={
                 (postData.user_permission === ProjectPermissions.CURATOR ||
                   postData.user_permission === ProjectPermissions.ADMIN) &&
+                !isNil(postData.published_at) &&
                 parseISO(postData.published_at) <= new Date() &&
                 postData.status === PostStatus.APPROVED
               }
@@ -226,17 +228,11 @@ export default async function IndividualQuestion({
               </div>
               <div className="flex flex-row justify-between">
                 <span>Closed:</span>
-                <span>
-                  {postData.scheduled_close_time &&
-                    postData.scheduled_close_time.slice(0, 7)}
-                </span>
+                <span>{postData.scheduled_close_time.slice(0, 7)}</span>
               </div>
               <div className="flex flex-row justify-between">
                 <span>Resolved:</span>
-                <span>
-                  {postData.scheduled_resolve_time &&
-                    postData.scheduled_resolve_time.slice(0, 7)}
-                </span>
+                <span>{postData.scheduled_resolve_time.slice(0, 7)}</span>
               </div>
             </div>
           </div>
