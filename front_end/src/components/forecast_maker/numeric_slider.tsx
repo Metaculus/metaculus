@@ -63,6 +63,7 @@ const NumericSlider: FC<Props> = ({
               max={1}
               value={forecast[index]}
               step={0.00001}
+              clampStep={0.035}
               onChange={(value) => {
                 const newForecast = [
                   ...forecast.slice(0, index),

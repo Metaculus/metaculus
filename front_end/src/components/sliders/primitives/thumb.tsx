@@ -47,7 +47,7 @@ const SliderThumb: FC<Props> = ({
       onTouchStart={onClickIn}
       className={classNames(
         "border border-gray-900 bg-blue-100 dark:border-gray-900-dark dark:bg-blue-100-dark",
-        active ? "size-5" : "size-5 rounded-full"
+        active ? "size-5" : "size-4 rounded-full"
       )}
     />
     {!!onArrowClickIn && !!onArrowClickOut && (
