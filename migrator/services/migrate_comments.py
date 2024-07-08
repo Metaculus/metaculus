@@ -1,11 +1,18 @@
-from comments.models import Comment
+from comments.models import Comment, CommentVote
 from questions.models import Forecast
 from migrator.utils import paginated_query
 from posts.models import Post
 
+def create_comment_vote(vote_obj):
+    return CommentVote(
+        user_id=vote_obj["user_id"],
+        comment_id=vote_obj["comment_id"],
+        direction=vote_obj["value"],
+        created_at=vote_obj["created_at"],
+    )
+
 
 def create_comment(comment_obj: dict) -> Comment:
-
     is_private = False
     if comment_obj["submit_type"] == "N":
         is_private = True
@@ -27,7 +34,6 @@ def create_comment(comment_obj: dict) -> Comment:
         id=comment_obj["id"],
         author_id=comment_obj["author_id"],
         parent_id=comment_obj["parent_id"],
-        # created_at is failing, all comments are being given the time the migration is ran
         created_at=comment_obj["created_time"],
         is_soft_deleted=comment_obj["deleted"],
         text=comment_obj["comment_text"],
@@ -37,6 +43,21 @@ def create_comment(comment_obj: dict) -> Comment:
     )
 
     return comment
+
+
+def migrate_comment_votes():
+    comment_ids = Comment.objects.values_list("id", flat=True)
+    vote_instances = []
+
+    vote_instances += [
+        create_comment_vote(obj)
+        for obj in paginated_query(
+            "SELECT * FROM metac_question_comment_likes"
+        )
+        if obj["comment_id"] in comment_ids 
+    ]
+
+    CommentVote.objects.bulk_create(vote_instances, ignore_conflicts=True, batch_size=1_000)
 
 
 def migrate_comments():

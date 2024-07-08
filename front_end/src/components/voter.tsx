@@ -52,7 +52,7 @@ const Voter: FC<Props> = ({
           />
         )}
       </Button>
-      {!!votes !== null && (
+      {!!votes != null && votes !== 0 && (
         <span
           className={classNames("text-gray-900 dark:text-gray-900-dark", {
             "font-bold": !!userVote,
