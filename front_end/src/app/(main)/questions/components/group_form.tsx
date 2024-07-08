@@ -41,12 +41,10 @@ type Props = {
 function fmtDateStrForInput(
   dt_string: string | null | undefined
 ): string | undefined {
-  console.log(dt_string, dt_string === null, dt_string === undefined);
   if (dt_string === null || dt_string === undefined) {
     return undefined;
   }
   const as_date = new Date(dt_string);
-  console.log("HERE", as_date.toISOString().split("T")[0]);
   return as_date.toISOString().split("T")[0];
 }
 
