@@ -1,3 +1,5 @@
+import { VoteDirection } from "@/types/votes";
+
 export type CommentType = {
   id: number;
   author: any; //create author type
@@ -8,6 +10,8 @@ export type CommentType = {
   text: string;
   included_forecast?: number;
   is_private: boolean;
+  vote_score?: number;
+  user_vote: VoteDirection;
 };
 
 export enum CommentPermissions {
