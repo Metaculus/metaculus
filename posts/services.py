@@ -21,12 +21,15 @@ from utils.serializers import parse_order_by
 def add_categories(categories: list[int], post: Post):
     existing = [x.pk for x in post.projects.filter(type=Project.ProjectTypes.CATEGORY)]
     categories = [x for x in categories if x not in existing]
-    all_category_ids = [x.id for x in Project.objects.filter(type=Project.ProjectTypes.CATEGORY).all()]
+    all_category_ids = [
+        x.id for x in Project.objects.filter(type=Project.ProjectTypes.CATEGORY).all()
+    ]
     for category_id in categories:
         if category_id not in all_category_ids:
             raise ValidationError(f"Category with id {category_id} does not exist")
         post.projects.add(Project.objects.get(pk=category_id))
     post.save()
+
 
 def get_posts_feed(
     qs: Post.objects = None,
@@ -137,13 +140,16 @@ def get_posts_feed(
             q |= Q(
                 Q(published_at__lte=timezone.now())
                 & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Q(Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=timezone.now())),
+                & Q(
+                    Q(actual_close_time__isnull=True)
+                    | Q(actual_close_time__gte=timezone.now())
+                ),
             )
 
     qs = qs.filter(q)
 
     if forecaster_id:
-        qs = qs.annotate_last_forecast_date_for_user(forecaster_id).filter(
+        qs = qs.annotate_user_last_forecasts_date(forecaster_id).filter(
             user_last_forecasts_date__isnull=False
         )
 
@@ -167,8 +173,13 @@ def get_posts_feed(
             qs = qs.annotate_comment_count()
         if order_type == PostFilterSerializer.Order.FORECASTS_COUNT:
             qs = qs.annotate_forecasts_count()
-        if forecaster_id and order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE:
-            qs = qs.annotate_last_forecast_date_for_user(forecaster_id)
+        if (
+            forecaster_id
+            and order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE
+        ):
+            qs = qs.annotate_user_last_forecasts_date(forecaster_id)
+        if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
+            qs = qs.annotate_unread_comment_count(user_id=user.id)
 
         qs = qs.order_by(build_order_by(order_type, order_desc))
     else:
