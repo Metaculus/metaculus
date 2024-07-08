@@ -441,6 +441,27 @@ class PostUserSnapshot(models.Model):
             )
         ]
 
+    @classmethod
+    def update_last_forecast_date(cls, post: Post, user: User):
+        cls.objects.update_or_create(
+            user=user,
+            post=post,
+            defaults={
+                "last_forecast_date": timezone.now(),
+            },
+        )
+
+    @classmethod
+    def update_viewed_at(cls, post: Post, user: User):
+        cls.objects.update_or_create(
+            user=user,
+            post=post,
+            defaults={
+                "comments_count": post.comments.count(),
+                "viewed_at": timezone.now(),
+            },
+        )
+
 
 class Vote(models.Model):
     class VoteDirection(models.IntegerChoices):

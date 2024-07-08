@@ -2,12 +2,11 @@ from django.db.models import Q
 from django.forms import ValidationError
 from django.utils import timezone
 
-from posts.models import Notebook, Post, PostUserSnapshot
+from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
-from questions.models import Forecast
 from questions.services import (
     create_question,
     create_conditional,
@@ -22,12 +21,15 @@ from utils.serializers import parse_order_by
 def add_categories(categories: list[int], post: Post):
     existing = [x.pk for x in post.projects.filter(type=Project.ProjectTypes.CATEGORY)]
     categories = [x for x in categories if x not in existing]
-    all_category_ids = [x.id for x in Project.objects.filter(type=Project.ProjectTypes.CATEGORY).all()]
+    all_category_ids = [
+        x.id for x in Project.objects.filter(type=Project.ProjectTypes.CATEGORY).all()
+    ]
     for category_id in categories:
         if category_id not in all_category_ids:
             raise ValidationError(f"Category with id {category_id} does not exist")
         post.projects.add(Project.objects.get(pk=category_id))
     post.save()
+
 
 def get_posts_feed(
     qs: Post.objects = None,
@@ -251,36 +253,3 @@ def get_post_permission_for_user(post: Post, user: User = None) -> ObjectPermiss
         .get(id=post.id)
     )
     return perm
-
-
-def update_post_user_snapshot(post: Post, user: User):
-    """
-    Updates Post<>User metadata snapshot
-
-    TODO: add to forecast endpoint
-    TODO: add to comment endpoint
-    """
-
-    last_forecast_date = (
-        Forecast.objects.filter(author=user)
-        .filter(
-            Q(question__post=post)
-            | Q(question__group__post=post)
-            | Q(question__conditional_yes__post=post)
-            | Q(question__conditional_no__post=post)
-        )
-        .order_by("-start_time")
-        .first()
-    )
-
-    PostUserSnapshot.objects.update_or_create(
-        user=user,
-        post=post,
-        defaults={
-            "comments_count": post.comments.count(),
-            "viewed_at": timezone.now(),
-            "last_forecast_date": (
-                last_forecast_date.start_time if last_forecast_date else None
-            ),
-        },
-    )

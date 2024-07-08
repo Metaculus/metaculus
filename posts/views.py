@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from posts.models import Post, Vote
+from posts.models import Post, Vote, PostUserSnapshot
 from posts.serializers import (
     NotebookSerializer,
     PostFilterSerializer,
@@ -22,7 +22,6 @@ from posts.services import (
     get_posts_feed,
     create_post,
     get_post_permission_for_user,
-    update_post_user_snapshot,
     add_categories,
 )
 from projects.permissions import ObjectPermission
@@ -210,7 +209,7 @@ def post_view_event_api_view(request: Request, pk: int):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    update_post_user_snapshot(post, request.user)
+    PostUserSnapshot.update_viewed_at(post, request.user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
