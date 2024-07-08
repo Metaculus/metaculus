@@ -1,6 +1,5 @@
 from django.core.files.storage import default_storage
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.exceptions import NotFound
@@ -10,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from posts.models import Post, Vote, PostUserSnapshot
+from posts.models import Post, Vote
 from posts.serializers import (
     NotebookSerializer,
     PostFilterSerializer,
@@ -19,7 +18,12 @@ from posts.serializers import (
     serialize_post_many,
     serialize_post,
 )
-from posts.services import get_posts_feed, create_post, get_post_permission_for_user
+from posts.services import (
+    get_posts_feed,
+    create_post,
+    get_post_permission_for_user,
+    update_post_user_snapshot,
+)
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers import (
@@ -201,15 +205,7 @@ def post_view_event_api_view(request: Request, pk: int):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    # Add extra data
-    PostUserSnapshot.objects.update_or_create(
-        user=request.user,
-        post=post,
-        defaults={
-            "comments_count": post.comments.count(),
-            "viewed_at": timezone.now(),
-        },
-    )
+    update_post_user_snapshot(post, request.user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 

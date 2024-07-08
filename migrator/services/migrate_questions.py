@@ -1,10 +1,12 @@
 import json
 import re
+from collections import defaultdict
 from datetime import datetime
 
 import django
 import html2text
 from dateutil.parser import parse as date_parse
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from migrator.utils import paginated_query
@@ -12,7 +14,7 @@ from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
-from questions.models import Question, Conditional, GroupOfQuestions
+from questions.models import Question, Conditional, GroupOfQuestions, Forecast
 from utils.the_math.formulas import scale_location
 
 
@@ -515,3 +517,49 @@ def migrate_post_user_snapshots():
         if len(snapshots) >= 5_000:
             PostUserSnapshot.objects.bulk_create(snapshots)
             snapshots = []
+
+
+def migrate_post_snapshots_forecasts():
+    # Subquery to get the latest forecast for each user per post
+    qs = (
+        Forecast.objects.annotate(
+            post_id=Coalesce(
+                "question__post__id",
+                "question__group__post__id",
+                "question__conditional_yes__post__id",
+                "question__conditional_no__post__id",
+            )
+        )
+        .order_by("post_id", "author_id", "-start_time")
+        .distinct("post_id", "author_id")
+        .values_list("post_id", "author_id", "start_time")
+    )
+
+    mapping = defaultdict(dict)
+
+    for post_id, author_id, start_time in qs:
+        mapping[post_id][author_id] = start_time
+
+    # Updating in bulk
+    bulk_update = []
+    processed = 0
+
+    for snapshot in PostUserSnapshot.objects.all().iterator(chunk_size=1_000):
+        start_time = mapping[snapshot.post_id].get(snapshot.user_id)
+
+        if not start_time:
+            continue
+
+        snapshot.last_forecast_date = start_time
+        bulk_update.append(snapshot)
+
+        processed += 1
+
+        if len(bulk_update) >= 1000:
+            PostUserSnapshot.objects.bulk_update(
+                bulk_update, fields=["last_forecast_date"]
+            )
+            bulk_update = []
+
+        if not (processed % 25_000):
+            print(f"Updated PostUserSnapshot.last_forecast_date: {processed}")

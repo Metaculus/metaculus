@@ -99,32 +99,13 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
-    def annotate_last_forecast_date_for_user(self, author_id: int):
+    def annotate_user_last_forecasts_date(self, author_id: int):
         """
         Annotate last forecast date for user
         """
 
-        def get_subquery(relation: str):
-            return (
-                Forecast.objects.filter(
-                    **{relation: models.OuterRef("pk"), "author_id": author_id}
-                )
-                .order_by("-start_time")
-                .values("start_time")[:1]
-            )
-
-        return self.annotate(
-            user_last_forecasts_date=(
-                # Note: Order is important
-                Coalesce(
-                    get_subquery("question__post"),
-                    # Question groups
-                    get_subquery("question__group__post"),
-                    # Conditional questions
-                    get_subquery("question__conditional_yes__post"),
-                    get_subquery("question__conditional_no__post"),
-                )
-            )
+        return self.filter(snapshots__user_id=author_id).annotate(
+            user_last_forecasts_date=F("snapshots__last_forecast_date")
         )
 
     def annotate_unread_comment_count(self, user_id: int):
@@ -434,6 +415,7 @@ class Post(TimeStampedModel):
     user_vote = None
     user_permission: ObjectPermission = None
     comment_count: int = 0
+    user_last_forecasts_date = None
 
     def __str__(self):
         return self.title
@@ -448,6 +430,7 @@ class PostUserSnapshot(models.Model):
     post = models.ForeignKey(Post, models.CASCADE, related_name="snapshots")
 
     # Comments count in the moment of viewing post by the user
+    last_forecast_date = models.DateTimeField(db_index=True, default=None, null=True)
     comments_count = models.IntegerField(default=0)
     viewed_at = models.DateTimeField(db_index=True, default=timezone.now)
 

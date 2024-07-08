@@ -1,11 +1,12 @@
 from django.db.models import Q
 from django.utils import timezone
 
-from posts.models import Notebook, Post
+from posts.models import Notebook, Post, PostUserSnapshot
 from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
+from questions.models import Forecast
 from questions.services import (
     create_question,
     create_conditional,
@@ -135,7 +136,7 @@ def get_posts_feed(
     qs = qs.filter(q)
 
     if forecaster_id:
-        qs = qs.annotate_last_forecast_date_for_user(forecaster_id).filter(
+        qs = qs.annotate_user_last_forecasts_date(forecaster_id).filter(
             user_last_forecasts_date__isnull=False
         )
 
@@ -163,7 +164,7 @@ def get_posts_feed(
             forecaster_id
             and order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE
         ):
-            qs = qs.annotate_last_forecast_date_for_user(forecaster_id)
+            qs = qs.annotate_user_last_forecasts_date(forecaster_id)
         if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
             qs = qs.annotate_unread_comment_count(user_id=user.id)
 
@@ -239,3 +240,36 @@ def get_post_permission_for_user(post: Post, user: User = None) -> ObjectPermiss
         .get(id=post.id)
     )
     return perm
+
+
+def update_post_user_snapshot(post: Post, user: User):
+    """
+    Updates Post<>User metadata snapshot
+
+    TODO: add to forecast endpoint
+    TODO: add to comment endpoint
+    """
+
+    last_forecast_date = (
+        Forecast.objects.filter(author=user)
+        .filter(
+            Q(question__post=post)
+            | Q(question__group__post=post)
+            | Q(question__conditional_yes__post=post)
+            | Q(question__conditional_no__post=post)
+        )
+        .order_by("-start_time")
+        .first()
+    )
+
+    PostUserSnapshot.objects.update_or_create(
+        user=user,
+        post=post,
+        defaults={
+            "comments_count": post.comments.count(),
+            "viewed_at": timezone.now(),
+            "last_forecast_date": (
+                last_forecast_date.start_time if last_forecast_date else None
+            ),
+        },
+    )
