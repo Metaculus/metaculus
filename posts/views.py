@@ -18,7 +18,12 @@ from posts.serializers import (
     serialize_post_many,
     serialize_post,
 )
-from posts.services import add_categories, get_posts_feed, create_post, get_post_permission_for_user
+from posts.services import (
+    add_categories,
+    get_posts_feed,
+    create_post,
+    get_post_permission_for_user,
+)
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers import (
@@ -65,7 +70,7 @@ def post_detail(request: Request, pk):
 
     if not posts:
         raise NotFound("Post not found")
-    print(posts[0]["question"]["scheduled_close_time"])
+
     return Response(posts[0])
 
 
@@ -154,7 +159,7 @@ def post_update_api_view(request, pk):
         ser = NotebookSerializer(post.notebook, data=notebook_data, partial=True)
         ser.is_valid(raise_exception=True)
         ser.save()
-    
+
     post.update_pseudo_materialized_fields()
     if "categories" in request.data:
         add_categories(request.data["categories"], post)
