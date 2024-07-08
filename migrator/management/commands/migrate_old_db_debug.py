@@ -16,6 +16,7 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
+        migrate_post_user_snapshots()
         migrate_post_snapshots_forecasts()
         # Reset sql sequences
         reset_sequence()
