@@ -210,7 +210,7 @@ def test_delete_post(user1_client, user1, user2_client):
     assert not Post.objects.filter(pk=post.pk).exists()
 
 
-def test_upload_image_api_view(user1, user1_client):
+def test_post_view_event_api_view(user1, user1_client):
     post = factory_post(author=user1)
     factory_comment(on_post=post)
 
@@ -219,7 +219,9 @@ def test_upload_image_api_view(user1, user1_client):
     with freeze_time("2024-06-01"):
         user1_client.post(reverse("post-mark-read", kwargs={"pk": post.pk}))
 
-    snapshot = PostUserSnapshot.objects.filter(pk=post.pk).get()
+    print()
+
+    snapshot = PostUserSnapshot.objects.filter(post_id=post.pk).get()
     assert snapshot.user_id == user1.id
     assert snapshot.comments_count == 1
     assert snapshot.viewed_at == make_aware(datetime.datetime(2024, 6, 1))
@@ -230,7 +232,7 @@ def test_upload_image_api_view(user1, user1_client):
     with freeze_time("2024-06-02"):
         user1_client.post(reverse("post-mark-read", kwargs={"pk": post.pk}))
 
-    snapshot = PostUserSnapshot.objects.filter(pk=post.pk).get()
+    snapshot = PostUserSnapshot.objects.filter(post_id=post.pk).get()
     assert snapshot.user_id == user1.id
     assert snapshot.comments_count == 2
     assert snapshot.viewed_at == make_aware(datetime.datetime(2024, 6, 2))
