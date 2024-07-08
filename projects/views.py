@@ -1,10 +1,8 @@
-from datetime import datetime, timezone
 from typing import Callable
 
 from django.db.models import QuerySet
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
@@ -24,8 +22,6 @@ from projects.services import (
     get_project_permission_for_user,
     invite_user_to_project,
 )
-from scoring.serializers import LeaderboardSerializer, LeaderboardEntrySerializer
-from scoring.utils import generate_project_leaderboard
 from users.services import get_users_by_usernames
 
 
@@ -187,10 +183,9 @@ def project_members_manage_api_view(request: Request, project_id: int, user_id: 
     member = get_object_or_404(obj.projectuserpermission_set.all(), user_id=user_id)
 
     if request.method == "DELETE":
-        if permission == ObjectPermission.CURATOR and member.permission == ObjectPermission.ADMIN:
-            raise PermissionDenied(
-                "Mods do not have permission to delete admins of the project"
-            )
+        ObjectPermission.can_delete_project_member(
+            permission, member, raise_exception=True
+        )
 
         member.delete()
     elif request.method == "PATCH":
