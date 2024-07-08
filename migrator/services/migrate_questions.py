@@ -94,6 +94,7 @@ def create_question(question: dict, **kwargs) -> Question:
         created_at=question["created_time"],
         edited_at=question["edited_time"],
         open_time=question["publish_time"],
+        cp_reveal_time=question["publish_time"],
         scheduled_close_time=(
             question["close_time"]
             if question["close_time"]
