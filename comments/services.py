@@ -2,6 +2,7 @@ from comments.models import Comment
 from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from questions.models import Forecast
 from users.models import User
 
 
@@ -37,3 +38,30 @@ def get_comment_permission_for_user(
         permissions = None
 
     return permissions
+
+
+def create_comment(
+    user: User,
+    on_post: Post = None,
+    parent: Comment = None,
+    included_forecast: Forecast = None,
+    is_private: bool = False,
+    text: str = None,
+) -> Comment:
+    on_post = parent.on_post if parent else on_post
+
+    obj = Comment.objects.create(
+        author=user,
+        parent=parent,
+        is_soft_deleted=False,
+        text=text,
+        on_post=on_post,
+        included_forecast=included_forecast,
+        is_private=is_private,
+    )
+
+    # Save project and validate
+    obj.full_clean()
+    obj.save()
+
+    return obj
