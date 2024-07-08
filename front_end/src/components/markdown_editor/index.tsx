@@ -8,6 +8,7 @@ import {
   headingsPlugin,
   imagePlugin,
   InsertImage,
+  InsertTable,
   InsertThematicBreak,
   JsxComponentDescriptor,
   jsxPlugin,
@@ -19,6 +20,7 @@ import {
   MDXEditorMethods,
   quotePlugin,
   Separator,
+  tablePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
   UndoRedo,
@@ -69,6 +71,7 @@ const MarkdownEditor: FC<Props> = ({
     markdownShortcutPlugin(),
     thematicBreakPlugin(),
     linkDialogPlugin(),
+    tablePlugin(),
     imagePlugin({
       disableImageSettingsButton: true,
       disableImageResize: true,
@@ -98,6 +101,7 @@ const MarkdownEditor: FC<Props> = ({
           <CreateLink />
           <InsertImage />
           <InsertThematicBreak />
+          <InsertTable />
           <Separator />
           <EmbedQuestionAction />
         </DiffSourceToggleWrapper>
