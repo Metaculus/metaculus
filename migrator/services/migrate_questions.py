@@ -4,16 +4,14 @@ from datetime import datetime
 
 import django
 import html2text
+from dateutil.parser import parse as date_parse
 from django.utils import timezone
 
+from migrator.utils import paginated_query
+from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
-from utils.the_math.formulas import scale_location
-from dateutil.parser import parse as date_parse
-
-from migrator.utils import paginated_query
-from posts.models import Notebook, Post
 from questions.models import Question, Conditional, GroupOfQuestions
 from utils.the_math.formulas import scale_location
 
@@ -255,6 +253,11 @@ def migrate_questions__composite():
     print("Migrating conditional pairs")
     migrate_questions__conditional(list(old_groups.values()))
 
+    print("Migrating post snapshots")
+    migrate_post_user_snapshots()
+
+    print("Set relevant values")
+
     # Set relevant values:
     all_questions = Question.objects.all()
     all_posts = Post.objects.all()
@@ -488,3 +491,27 @@ def migrate_questions__conditional(root_questions: list[dict]):
     Question.objects.bulk_create(questions)
     Conditional.objects.bulk_create(conditionals)
     Post.objects.bulk_create(posts)
+
+
+def migrate_post_user_snapshots():
+    post_ids = Post.objects.values_list("id", flat=True)
+    snapshots = []
+
+    for snapshot_obj in paginated_query(
+        "SELECT * FROM metac_question_questionsnapshot"
+    ):
+        if snapshot_obj["question_id"] not in post_ids:
+            continue
+
+        snapshots.append(
+            PostUserSnapshot(
+                user_id=snapshot_obj["user_id"],
+                post_id=snapshot_obj["question_id"],
+                comments_count=snapshot_obj["comments_count"],
+                viewed_at=snapshot_obj["time"],
+            )
+        )
+
+        if len(snapshots) >= 5_000:
+            PostUserSnapshot.objects.bulk_create(snapshots)
+            snapshots = []

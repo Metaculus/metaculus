@@ -1,12 +1,15 @@
 import datetime
 
 from django.utils import timezone
+from django.utils.timezone import make_aware
+from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from posts.models import Post
+from posts.models import Post, PostUserSnapshot
 from questions.models import Question
 from tests.fixtures import *  # noqa
+from tests.test_comments.factories import factory_comment
 from tests.test_posts.factories import factory_post
 from tests.test_questions.factories import create_question
 
@@ -205,3 +208,29 @@ def test_delete_post(user1_client, user1, user2_client):
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert not Post.objects.filter(pk=post.pk).exists()
+
+
+def test_upload_image_api_view(user1, user1_client):
+    post = factory_post(author=user1)
+    factory_comment(on_post=post)
+
+    assert not PostUserSnapshot.objects.filter(pk=post.pk).exists()
+
+    with freeze_time("2024-06-01"):
+        user1_client.post(reverse("post-mark-read", kwargs={"pk": post.pk}))
+
+    snapshot = PostUserSnapshot.objects.filter(pk=post.pk).get()
+    assert snapshot.user_id == user1.id
+    assert snapshot.comments_count == 1
+    assert snapshot.viewed_at == make_aware(datetime.datetime(2024, 6, 1))
+
+    factory_comment(on_post=post)
+
+    # New view
+    with freeze_time("2024-06-02"):
+        user1_client.post(reverse("post-mark-read", kwargs={"pk": post.pk}))
+
+    snapshot = PostUserSnapshot.objects.filter(pk=post.pk).get()
+    assert snapshot.user_id == user1.id
+    assert snapshot.comments_count == 2
+    assert snapshot.viewed_at == make_aware(datetime.datetime(2024, 6, 2))

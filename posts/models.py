@@ -127,6 +127,19 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
+    def annotate_unread_comment_count(self, user_id: int):
+        """
+        Annotate last forecast date for user
+        """
+
+        return (
+            self.filter(snapshots__user_id=user_id)
+            .annotate_comment_count()
+            .annotate(
+                unread_comment_count=F("comment_count") - F("snapshots__comment_count"),
+            )
+        )
+
     def annotate_vote_score(self):
         return self.annotate(
             vote_score=SubqueryAggregate("votes__direction", aggregate=Sum)
@@ -410,6 +423,7 @@ class Post(TimeStampedModel):
         Project, related_name="default_posts", on_delete=models.PROTECT, null=True
     )
     projects = models.ManyToManyField(Project, related_name="posts", blank=True)
+    users = models.ManyToManyField(User, through="PostUserSnapshot")
 
     objects = models.Manager.from_queryset(PostQuerySet)()
 
@@ -429,7 +443,22 @@ class Post(TimeStampedModel):
         self.curation_status_updated_at = timezone.now()
 
 
-# TODO: create votes app
+class PostUserSnapshot(models.Model):
+    user = models.ForeignKey(User, models.CASCADE, related_name="post_snapshots")
+    post = models.ForeignKey(Post, models.CASCADE, related_name="snapshots")
+
+    # Comments count in the moment of viewing post by the user
+    comments_count = models.IntegerField(default=0)
+    viewed_at = models.DateTimeField(db_index=True, default=timezone.now)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="postusersnapshot_unique_user_post", fields=["user_id", "post_id"]
+            )
+        ]
+
+
 class Vote(models.Model):
     class VoteDirection(models.IntegerChoices):
         UP = 1

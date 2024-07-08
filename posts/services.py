@@ -126,7 +126,10 @@ def get_posts_feed(
             q |= Q(
                 Q(published_at__lte=timezone.now())
                 & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Q(Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=timezone.now())),
+                & Q(
+                    Q(actual_close_time__isnull=True)
+                    | Q(actual_close_time__gte=timezone.now())
+                ),
             )
 
     qs = qs.filter(q)
@@ -156,8 +159,13 @@ def get_posts_feed(
             qs = qs.annotate_comment_count()
         if order_type == PostFilterSerializer.Order.FORECASTS_COUNT:
             qs = qs.annotate_forecasts_count()
-        if forecaster_id and order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE:
+        if (
+            forecaster_id
+            and order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE
+        ):
             qs = qs.annotate_last_forecast_date_for_user(forecaster_id)
+        if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
+            qs = qs.annotate_unread_comment_count(user_id=user.id)
 
         qs = qs.order_by(build_order_by(order_type, order_desc))
     else:
