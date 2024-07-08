@@ -1,9 +1,11 @@
 from datetime import datetime
-import numpy as np
 
+import numpy as np
 from django.utils import timezone
+
+from posts.models import PostUserSnapshot
 from questions.constants import ResolutionType
-from questions.models import Question, GroupOfQuestions, Conditional
+from questions.models import Question, GroupOfQuestions, Conditional, Forecast
 from users.models import User
 from utils.the_math.community_prediction import (
     compute_multiple_choice_plotable_cp,
@@ -229,3 +231,43 @@ def resolve_question(question: Question, resolution, actual_resolve_time: dateti
     post = question.get_post()
     post.update_pseudo_materialized_fields()
     post.save()
+
+
+def create_forecast(
+    *,
+    question: Question = None,
+    user: User = None,
+    continuous_cdf: list[float] = None,
+    probability_yes: float = None,
+    probability_yes_per_category: list[float] = None,
+    slider_values=None,
+    **kwargs,
+):
+    now = timezone.now()
+
+    prev_forecasts = (
+        Forecast.objects.filter(question=question, author=user)
+        .order_by("start_time")
+        .last()
+    )
+    if prev_forecasts:
+        prev_forecasts.end_time = now
+        prev_forecasts.save()
+
+    forecast = Forecast.objects.create(
+        question=question,
+        author=user,
+        start_time=now,
+        end_time=None,
+        continuous_cdf=continuous_cdf,
+        probability_yes=probability_yes,
+        probability_yes_per_category=probability_yes_per_category,
+        distribution_components=None,
+        slider_values=slider_values,
+    )
+    forecast.save()
+
+    # Update cache
+    PostUserSnapshot.update_last_forecast_date(question.get_post(), user)
+
+    return forecast
