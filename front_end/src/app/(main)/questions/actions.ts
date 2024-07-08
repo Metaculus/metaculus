@@ -3,7 +3,11 @@
 import { formatISO } from "date-fns";
 import { revalidatePath } from "next/cache";
 
-import CommentsApi, { EditCommentParams } from "@/services/comments";
+import CommentsApi, {
+  EditCommentParams,
+  VoteCommentParams,
+  CreateCommentParams,
+} from "@/services/comments";
 import PostsApi, { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import QuestionsApi from "@/services/questions";
@@ -216,9 +220,21 @@ export async function editComment(commentData: EditCommentParams) {
   }
 }
 
-export async function createComment(commentData: any) {
+export async function createComment(commentData: CreateCommentParams) {
   try {
     return await CommentsApi.createComment(commentData);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
+export async function voteComment(voteData: VoteCommentParams) {
+  try {
+    return await CommentsApi.voteComment(voteData);
   } catch (err) {
     const error = err as FetchError;
 
