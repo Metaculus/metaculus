@@ -4,6 +4,7 @@ from typing import Callable
 from django.db.models import QuerySet
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
@@ -186,6 +187,11 @@ def project_members_manage_api_view(request: Request, project_id: int, user_id: 
     member = get_object_or_404(obj.projectuserpermission_set.all(), user_id=user_id)
 
     if request.method == "DELETE":
+        if permission == ObjectPermission.CURATOR and member.permission == ObjectPermission.ADMIN:
+            raise PermissionDenied(
+                "Mods do not have permission to delete admins of the project"
+            )
+
         member.delete()
     elif request.method == "PATCH":
         # Check permissions
