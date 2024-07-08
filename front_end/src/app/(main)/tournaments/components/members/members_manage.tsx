@@ -1,34 +1,34 @@
 "use client";
-import { useRouter } from "next/navigation";
-import React, { FC, useCallback, useRef, useState } from "react";
+import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 
 import {
   deleteProjectMember,
   updateMember,
 } from "@/app/(main)/tournaments/[slug]/actions";
 import Button from "@/components/ui/button";
+import { FormError } from "@/components/ui/form_field";
 import Listbox from "@/components/ui/listbox";
 import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
-import { TournamentMember } from "@/types/projects";
+import { Tournament, TournamentMember } from "@/types/projects";
 
 type Props = {
   user_permission: ProjectPermissions;
-  projectId: number;
+  project: Tournament;
   members: TournamentMember[];
-  refreshMembers: () => Promise<void>;
 };
 
-const UsersManage: FC<Props> = ({
-  members,
-  projectId,
-  refreshMembers,
-  user_permission,
-}) => {
+const UsersManage: FC<Props> = ({ members, project, user_permission }) => {
   const memberEditRef = useRef<null | HTMLDivElement>(null);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingMember, setEditingMember] = useState<TournamentMember>();
+
+  // A hacky way to wait until revalidatePath does a thing
+  useEffect(() => {
+    setIsSubmitting(false);
+    setEditingMember(undefined);
+  }, [members]);
 
   const availablePermissions = [
     ProjectPermissions.ADMIN,
@@ -36,24 +36,19 @@ const UsersManage: FC<Props> = ({
     ProjectPermissions.FORECASTER,
     ProjectPermissions.VIEWER,
   ].map((obj) => ({ label: obj, value: obj }));
-  const router = useRouter();
-
   const onDelete = useCallback(
     async (userId: number) => {
       setSubmitErrors([]);
 
       setIsSubmitting(true);
-      const responses = await deleteProjectMember(projectId, userId);
+      const responses = await deleteProjectMember(project.id, userId);
 
       if (responses && "errors" in responses && !!responses.errors) {
         setSubmitErrors(responses.errors);
-      } else {
-        await refreshMembers();
+        setIsSubmitting(false);
       }
-
-      setIsSubmitting(false);
     },
-    [refreshMembers, projectId]
+    [project.id]
   );
 
   const onUpdate = useCallback(
@@ -61,18 +56,14 @@ const UsersManage: FC<Props> = ({
       setSubmitErrors([]);
 
       setIsSubmitting(true);
-      const responses = await updateMember(projectId, userId, permission);
+      const responses = await updateMember(project.id, userId, permission);
 
       if (responses && "errors" in responses && !!responses.errors) {
         setSubmitErrors(responses.errors);
-      } else {
-        setEditingMember(undefined);
-        await refreshMembers();
+        setIsSubmitting(false);
       }
-
-      setIsSubmitting(false);
     },
-    [refreshMembers, projectId]
+    [project.id]
   );
 
   return (
@@ -157,6 +148,7 @@ const UsersManage: FC<Props> = ({
             </div>
           </>
         )}
+        <FormError errors={submitErrors} />
       </div>
     </div>
   );
