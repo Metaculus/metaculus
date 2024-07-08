@@ -46,6 +46,10 @@ export async function votePost(postId: number, direction: VoteDirection) {
   }
 }
 
+export async function markPostAsRead(postId: number) {
+  return await PostsApi.sendPostReadEvent(postId);
+}
+
 export async function createQuestionPost(body: any) {
   try {
     const post = await PostsApi.createQuestionPost(body);
