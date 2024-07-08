@@ -61,6 +61,16 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         return can
 
     @classmethod
+    def can_comment(cls, permission: Self, raise_exception=False):
+        # TODO: who can comment: viewers or forecasters only?
+        can = bool(permission)
+
+        if raise_exception and not can:
+            raise PermissionDenied("You do not have permission to comment this project")
+
+        return can
+
+    @classmethod
     def can_forecast(cls, permission: Self, raise_exception=False):
         can = permission in (
             cls.FORECASTER,
@@ -134,6 +144,20 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         if raise_exception and not can:
             raise PermissionDenied(
                 "You do not have permission to edit member permissions of this project"
+            )
+
+        return can
+
+    @classmethod
+    def can_delete_project_member(cls, permission: Self, member, raise_exception=False):
+        can = permission == cls.ADMIN or (
+            permission == cls.CURATOR
+            and member.permission not in [cls.CURATOR, cls.ADMIN]
+        )
+
+        if raise_exception and not can:
+            raise PermissionDenied(
+                "You do not have permission delete this member of the project"
             )
 
         return can

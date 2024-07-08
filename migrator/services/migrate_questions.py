@@ -1,20 +1,20 @@
 import json
 import re
+from collections import defaultdict
 from datetime import datetime
 
 import django
 import html2text
+from dateutil.parser import parse as date_parse
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
+from migrator.utils import paginated_query
+from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
-from utils.the_math.formulas import scale_location
-from dateutil.parser import parse as date_parse
-
-from migrator.utils import paginated_query
-from posts.models import Notebook, Post
-from questions.models import Question, Conditional, GroupOfQuestions
+from questions.models import Question, Conditional, GroupOfQuestions, Forecast
 from utils.the_math.formulas import scale_location
 
 
@@ -256,6 +256,11 @@ def migrate_questions__composite():
     print("Migrating conditional pairs")
     migrate_questions__conditional(list(old_groups.values()))
 
+    print("Migrating post snapshots")
+    migrate_post_user_snapshots()
+
+    print("Set relevant values")
+
     # Set relevant values:
     all_questions = Question.objects.all()
     all_posts = Post.objects.all()
@@ -489,3 +494,73 @@ def migrate_questions__conditional(root_questions: list[dict]):
     Question.objects.bulk_create(questions)
     Conditional.objects.bulk_create(conditionals)
     Post.objects.bulk_create(posts)
+
+
+def migrate_post_user_snapshots():
+    post_ids = Post.objects.values_list("id", flat=True)
+    snapshots = []
+
+    for snapshot_obj in paginated_query(
+        "SELECT * FROM metac_question_questionsnapshot"
+    ):
+        if snapshot_obj["question_id"] not in post_ids:
+            continue
+
+        snapshots.append(
+            PostUserSnapshot(
+                user_id=snapshot_obj["user_id"],
+                post_id=snapshot_obj["question_id"],
+                comments_count=snapshot_obj["comments_count"],
+                viewed_at=snapshot_obj["time"],
+            )
+        )
+
+        if len(snapshots) >= 5_000:
+            PostUserSnapshot.objects.bulk_create(snapshots)
+            snapshots = []
+
+
+def migrate_post_snapshots_forecasts():
+    # Subquery to get the latest forecast for each user per post
+    qs = (
+        Forecast.objects.annotate(
+            post_id=Coalesce(
+                "question__post__id",
+                "question__group__post__id",
+                "question__conditional_yes__post__id",
+                "question__conditional_no__post__id",
+            )
+        )
+        .order_by("post_id", "author_id", "-start_time")
+        .distinct("post_id", "author_id")
+        .values_list("post_id", "author_id", "start_time")
+    )
+
+    mapping = defaultdict(dict)
+
+    for post_id, author_id, start_time in qs:
+        mapping[post_id][author_id] = start_time
+
+    # Updating in bulk
+    bulk_update = []
+    processed = 0
+
+    for snapshot in PostUserSnapshot.objects.all().iterator(chunk_size=1_000):
+        start_time = mapping[snapshot.post_id].get(snapshot.user_id)
+
+        if not start_time:
+            continue
+
+        snapshot.last_forecast_date = start_time
+        bulk_update.append(snapshot)
+
+        processed += 1
+
+        if len(bulk_update) >= 1000:
+            PostUserSnapshot.objects.bulk_update(
+                bulk_update, fields=["last_forecast_date"]
+            )
+            bulk_update = []
+
+        if not (processed % 25_000):
+            print(f"Updated PostUserSnapshot.last_forecast_date: {processed}")

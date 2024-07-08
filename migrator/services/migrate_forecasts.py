@@ -1,5 +1,6 @@
 import numpy as np
 
+from migrator.services.migrate_questions import migrate_post_snapshots_forecasts
 from migrator.utils import paginated_query
 from questions.models import Forecast, Question
 from users.models import User
@@ -74,3 +75,7 @@ def migrate_forecasts(qty: int | None = None):
             forecasts = []
     print("Migrating forecast", i + 1, "Bulk inserting forecasts...")
     Forecast.objects.bulk_create(forecasts, batch_size=5_000)
+
+    print("Migrating last user<>post forecast snapshots")
+
+    migrate_post_snapshots_forecasts()

@@ -110,6 +110,7 @@ class PostFilterSerializer(serializers.Serializer):
         SCHEDULED_CLOSE_TIME = "scheduled_close_time"
         SCHEDULED_RESOLVE_TIME = "scheduled_resolve_time"
         USER_LAST_FORECASTS_DATE = "user_last_forecasts_date"
+        UNREAD_COMMENT_COUNT = "unread_comment_count"
 
     class Access(models.TextChoices):
         PRIVATE = "private"

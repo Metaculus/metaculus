@@ -99,31 +99,25 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
-    def annotate_last_forecast_date_for_user(self, author_id: int):
+    def annotate_user_last_forecasts_date(self, author_id: int):
         """
         Annotate last forecast date for user
         """
 
-        def get_subquery(relation: str):
-            return (
-                Forecast.objects.filter(
-                    **{relation: models.OuterRef("pk"), "author_id": author_id}
-                )
-                .order_by("-start_time")
-                .values("start_time")[:1]
-            )
+        return self.filter(snapshots__user_id=author_id).annotate(
+            user_last_forecasts_date=F("snapshots__last_forecast_date")
+        )
 
-        return self.annotate(
-            user_last_forecasts_date=(
-                # Note: Order is important
-                Coalesce(
-                    get_subquery("question__post"),
-                    # Question groups
-                    get_subquery("question__group__post"),
-                    # Conditional questions
-                    get_subquery("question__conditional_yes__post"),
-                    get_subquery("question__conditional_no__post"),
-                )
+    def annotate_unread_comment_count(self, user_id: int):
+        """
+        Annotate last forecast date for user
+        """
+
+        return (
+            self.filter(snapshots__user_id=user_id)
+            .annotate_comment_count()
+            .annotate(
+                unread_comment_count=F("comment_count") - F("snapshots__comment_count"),
             )
         )
 
@@ -409,6 +403,7 @@ class Post(TimeStampedModel):
         Project, related_name="default_posts", on_delete=models.PROTECT, null=True
     )
     projects = models.ManyToManyField(Project, related_name="posts", blank=True)
+    users = models.ManyToManyField(User, through="PostUserSnapshot")
 
     objects = models.Manager.from_queryset(PostQuerySet)()
 
@@ -419,6 +414,7 @@ class Post(TimeStampedModel):
     user_vote = None
     user_permission: ObjectPermission = None
     comment_count: int = 0
+    user_last_forecasts_date = None
 
     def __str__(self):
         return self.title
@@ -428,7 +424,44 @@ class Post(TimeStampedModel):
         self.curation_status_updated_at = timezone.now()
 
 
-# TODO: create votes app
+class PostUserSnapshot(models.Model):
+    user = models.ForeignKey(User, models.CASCADE, related_name="post_snapshots")
+    post = models.ForeignKey(Post, models.CASCADE, related_name="snapshots")
+
+    # Comments count in the moment of viewing post by the user
+    last_forecast_date = models.DateTimeField(db_index=True, default=None, null=True)
+    comments_count = models.IntegerField(default=0)
+    viewed_at = models.DateTimeField(db_index=True, default=timezone.now)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="postusersnapshot_unique_user_post", fields=["user_id", "post_id"]
+            )
+        ]
+
+    @classmethod
+    def update_last_forecast_date(cls, post: Post, user: User):
+        cls.objects.update_or_create(
+            user=user,
+            post=post,
+            defaults={
+                "last_forecast_date": timezone.now(),
+            },
+        )
+
+    @classmethod
+    def update_viewed_at(cls, post: Post, user: User):
+        cls.objects.update_or_create(
+            user=user,
+            post=post,
+            defaults={
+                "comments_count": post.comments.count(),
+                "viewed_at": timezone.now(),
+            },
+        )
+
+
 class Vote(models.Model):
     class VoteDirection(models.IntegerChoices):
         UP = 1

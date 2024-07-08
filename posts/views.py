@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from posts.models import Post, Vote
+from posts.models import Post, Vote, PostUserSnapshot
 from posts.serializers import (
     NotebookSerializer,
     PostFilterSerializer,
@@ -18,7 +18,12 @@ from posts.serializers import (
     serialize_post_many,
     serialize_post,
 )
-from posts.services import add_categories, get_posts_feed, create_post, get_post_permission_for_user
+from posts.services import (
+    get_posts_feed,
+    create_post,
+    get_post_permission_for_user,
+    add_categories,
+)
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers import (
@@ -65,7 +70,7 @@ def post_detail(request: Request, pk):
 
     if not posts:
         raise NotFound("Post not found")
-    print(posts[0]["question"]["scheduled_close_time"])
+
     return Response(posts[0])
 
 
@@ -154,7 +159,7 @@ def post_update_api_view(request, pk):
         ser = NotebookSerializer(post.notebook, data=notebook_data, partial=True)
         ser.is_valid(raise_exception=True)
         ser.save()
-    
+
     post.update_pseudo_materialized_fields()
     if "categories" in request.data:
         add_categories(request.data["categories"], post)
@@ -190,6 +195,23 @@ def post_vote_api_view(request: Request, pk: int):
     return Response(
         {"score": Post.objects.annotate_vote_score().get(pk=post.pk).vote_score}
     )
+
+
+@api_view(["POST"])
+def post_view_event_api_view(request: Request, pk: int):
+    """
+    Mark post view
+    """
+
+    post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    PostUserSnapshot.update_viewed_at(post, request.user)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["POST"])
