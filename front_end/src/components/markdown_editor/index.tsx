@@ -31,13 +31,14 @@ import React, { FC, useMemo, useRef } from "react";
 import "@mdxeditor/editor/style.css";
 
 import { uploadImage } from "@/app/(main)/questions/actions";
+import MathJaxRenderer from "@/components/markdown_editor/mathjax_renderer";
 import useAppTheme from "@/hooks/use_app_theme";
 
 import {
   embeddedQuestionDescriptor,
   EmbedQuestionAction,
 } from "./embedded_question";
-
+import { mathjaxPlugin } from "./plugins/math-jax";
 import "./editor.css";
 
 type EditorMode = "write" | "read";
@@ -77,6 +78,7 @@ const MarkdownEditor: FC<Props> = ({
       disableImageResize: true,
       imageUploadHandler,
     }),
+    mathjaxPlugin(), // Add the custom plugin
   ];
 
   const editorDiffSourcePlugin = useMemo(() => {
@@ -122,25 +124,35 @@ const MarkdownEditor: FC<Props> = ({
   }
 
   return (
-    <MDXEditor
-      ref={editorRef}
-      className={classNames("content markdown-editor", {
-        "dark-theme": theme === "dark",
-      })}
-      contentEditableClassName={classNames(
-        { "!p-0": mode === "read" },
-        contentEditableClassName
-      )}
-      markdown={markdown}
-      onChange={onChange}
-      readOnly={mode === "read"}
-      plugins={[
-        ...baseFormattingPlugins,
-        jsxPlugin({ jsxComponentDescriptors }),
-        ...(editorDiffSourcePlugin ? [editorDiffSourcePlugin] : []),
-        ...(editorToolbarPlugin ? [editorToolbarPlugin] : []),
-      ]}
-    />
+    <>
+      <MDXEditor
+        ref={editorRef}
+        className={classNames("content markdown-editor", {
+          "dark-theme": theme === "dark",
+        })}
+        contentEditableClassName={classNames(
+          { "!p-0": mode === "read" },
+          contentEditableClassName
+        )}
+        markdown={markdown}
+        onChange={onChange}
+        readOnly={mode === "read"}
+        plugins={[
+          ...baseFormattingPlugins,
+          jsxPlugin({ jsxComponentDescriptors }),
+          ...(editorDiffSourcePlugin ? [editorDiffSourcePlugin] : []),
+          ...(editorToolbarPlugin ? [editorToolbarPlugin] : []),
+        ]}
+      />
+      <MathJaxRenderer
+        content={`\\begin{align}
+  \\log_2 \\left ( \\frac{p}{0.5} \\right ) &= \\log_2 \\left ( p \\right ) + 1 \\\\
+  \\log_2 \\left ( \\frac{p}{0.5} \\right ) &= \\frac{\\log(p) - \\log(0.5)}{\\log(1) - \\log(0.5)}
+\\end{align}`}
+      />
+      <MathJaxRenderer content={`\\[e=mc^2\\]`} />
+      <MathJaxRenderer content={`\\(e=mc^2\\)`} />
+    </>
   );
 };
 
