@@ -10,6 +10,9 @@ export default function RootError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  console.log("\n\n--- ERROR ---\n\n");
+  console.log("Error message:", error);
+  console.log("Stack: ", error.stack);
   return (
     <div className="flex flex-col items-center justify-center">
       <h2>{error.message}</h2>

@@ -30,8 +30,6 @@ const ForecastMakerGroupControls: FC<Props> = ({
   const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
   const t = useTranslations();
 
-  console.log("PERMISSIONS: ", permission);
-
   return (
     <div className="flex gap-1">
       <DropdownMenu

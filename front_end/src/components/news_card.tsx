@@ -25,7 +25,6 @@ const NewsCard: FC<Props> = ({ post }) => {
 
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const commentsCount = post.vote.score ?? 0;
-  console.log(1, post.notebook.image_url);
   return (
     <div className="rounded bg-gray-0 dark:bg-gray-0-dark">
       <Link

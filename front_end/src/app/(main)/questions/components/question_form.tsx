@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { all } from "mathjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -10,12 +12,14 @@ import * as z from "zod";
 
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
-import { PostWithForecasts } from "@/types/post";
+import { Category, PostWithForecasts } from "@/types/post";
 
+import CategoryPicker from "./category_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
   title: string;
+  categories: number[];
   question: any;
 };
 
@@ -23,14 +27,12 @@ const baseQuestionSchema = z.object({
   type: z.enum(["binary", "multiple_choice", "date", "numeric"]),
   title: z.string().min(4).max(200),
   url_title: z.string().min(4).max(200),
-  description: z.string().min(10),
+  description: z.string().min(4),
   resolution_criteria_description: z.string(),
   fine_print: z.string(),
   scheduled_close_time: z.date(),
   scheduled_resolve_time: z.date(),
-  default_project_id: z.number(),
-  cp_reveal_date: z.date(),
-  categories: z.array(z.number()),
+  default_project_id: z.nullable(z.union([z.number(), z.string()])),
 });
 
 const binaryQuestionSchema = baseQuestionSchema;
@@ -57,15 +59,12 @@ const dateQuestionSchema = continuousQuestionSchema.merge(
   })
 );
 
-const multipleChoiceQuestionSchema = baseQuestionSchema.merge(
-  z.object({
-    options: z.array(z.string()).min(1),
-  })
-);
+const multipleChoiceQuestionSchema = baseQuestionSchema;
 
 type Props = {
   questionType: string;
   tournament_id?: number;
+  allCategories: Category[];
   post?: PostWithForecasts | null;
   mode: "create" | "edit";
 };
@@ -73,6 +72,7 @@ type Props = {
 const QuestionForm: React.FC<Props> = ({
   questionType,
   mode,
+  allCategories,
   tournament_id = null,
   post = null,
 }) => {
@@ -80,10 +80,12 @@ const QuestionForm: React.FC<Props> = ({
   const t = useTranslations();
 
   const submitQuestion = async (data: any) => {
-    data["tournament_id"] = tournament_id;
     data["type"] = questionType;
+    data["options"] = optionsList;
+
     let post_data: PostCreationData = {
       title: data["title"],
+      categories: categoriesList.map((x) => x.id),
       question: data,
     };
     if (mode == "edit" && post) {
@@ -97,6 +99,9 @@ const QuestionForm: React.FC<Props> = ({
 
   const [optionsList, setOptionsList] = useState<string[]>(
     post?.question?.options ? post?.question?.options : []
+  );
+  const [categoriesList, setCategoriesList] = useState<Category[]>(
+    post?.projects.category ? post?.projects.category : ([] as Category[])
   );
   const [isLogarithmic, setIsLogarithmic] = useState<boolean>(false);
 
@@ -116,7 +121,6 @@ const QuestionForm: React.FC<Props> = ({
   };
 
   const control = useForm({
-    // @ts-ignore
     resolver: zodResolver(getFormSchema(questionType)),
   });
 
@@ -128,7 +132,11 @@ const QuestionForm: React.FC<Props> = ({
     <div className="flex flex-row justify-center">
       <form
         onSubmit={async (e) => {
-          // e.preventDefault(); // Good for debugging
+          if (control.getValues("default_project_id") === "") {
+            control.setValue("default_project_id", null);
+          }
+
+          e.preventDefault(); // Good for debugging
           await control.handleSubmit(
             async (data) => {
               await submitQuestion(data);
@@ -144,32 +152,39 @@ const QuestionForm: React.FC<Props> = ({
         }}
         className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-8"
       >
-        <div>
-          {" "}
-          <span>Django admin view: </span>
-          {post && (
-            <a
-              href={`http://localhost:3000/admin/posts/post/${post.id}/change`}
-            >
-              http://localhost:3000/admin/posts/post/{post.id}/change
+        {post && (
+          <div>
+            <a href={`/admin/posts/post/${post.id}/change`}>
+              View in django admin
             </a>
-          )}
-        </div>
-        {tournament_id && (
-          <div className="mb-2">
-            <span className="">
-              For tournament:{" "}
-              <span className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1">
-                <Link
-                  href={`/tournaments/${tournament_id}`}
-                  className="no-underline"
-                >
-                  {tournament_id}
-                </Link>
-              </span>
-            </span>
           </div>
         )}
+        <span>Project</span>
+        <Input
+          type="number"
+          {...control.register("default_project_id")}
+          errors={control.formState.errors.default_project_id}
+          defaultValue={
+            control.getValues("default_project_id")
+              ? control.getValues("default_project_id")
+              : tournament_id
+          }
+        />
+        <div>
+          <span className="">
+            Initial project:
+            <span className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1">
+              <Link
+                href={`/tournaments/${control.getValues("default_project_id")}`}
+                className="no-underline"
+              >
+                {control.getValues("default_project_id")
+                  ? control.getValues("default_project_id")
+                  : "Global"}
+              </Link>
+            </span>
+          </span>
+        </div>
 
         <FormError
           errors={control.formState.errors}
@@ -211,7 +226,14 @@ const QuestionForm: React.FC<Props> = ({
                 },
               })}
               errors={control.formState.errors.scheduled_close_time}
-              defaultValue={post?.scheduled_close_time}
+              defaultValue={
+                post?.question?.scheduled_close_time
+                  ? format(
+                      new Date(post.question.scheduled_close_time),
+                      "yyyy-MM-dd'T'HH:mm"
+                    )
+                  : undefined
+              }
             />
           </div>
           <div>
@@ -227,7 +249,14 @@ const QuestionForm: React.FC<Props> = ({
                 },
               })}
               errors={control.formState.errors.scheduled_resolve_time}
-              defaultValue={post?.scheduled_resolve_time}
+              defaultValue={
+                post?.question?.scheduled_resolve_time
+                  ? format(
+                      new Date(post.question.scheduled_resolve_time),
+                      "yyyy-MM-dd'T'HH:mm"
+                    )
+                  : undefined
+              }
             />
           </div>
 
@@ -339,6 +368,14 @@ const QuestionForm: React.FC<Props> = ({
             </>
           )}
 
+          <span>Categories (separate by ,)</span>
+          <CategoryPicker
+            allCategories={allCategories}
+            categories={categoriesList}
+            onChange={(categories) => {
+              setCategoriesList(categories);
+            }}
+          ></CategoryPicker>
           {questionType == "multiple_choice" && (
             <>
               <span>Multiple Choice (separate by ,)</span>
