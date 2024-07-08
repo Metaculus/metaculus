@@ -1,6 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { FC, useCallback, useState } from "react";
+import React, { FC, useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -8,10 +8,11 @@ import { inviteProjectUsers } from "@/app/(main)/tournaments/[slug]/actions";
 import Button from "@/components/ui/button";
 import { FormError, Textarea } from "@/components/ui/form_field";
 import { ErrorResponse } from "@/types/fetch";
+import { TournamentMember } from "@/types/projects";
 
 type Props = {
   projectId: number;
-  refreshMembers: () => Promise<void>;
+  members: TournamentMember[];
 };
 
 const projectUserInviteSchema = z.object({
@@ -19,7 +20,7 @@ const projectUserInviteSchema = z.object({
 });
 type FormData = z.infer<typeof projectUserInviteSchema>;
 
-const MembersInvite: FC<Props> = ({ projectId, refreshMembers }) => {
+const MembersInvite: FC<Props> = ({ projectId, members }) => {
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const {
@@ -31,6 +32,12 @@ const MembersInvite: FC<Props> = ({ projectId, refreshMembers }) => {
     resolver: zodResolver(projectUserInviteSchema),
   });
 
+  // A hacky way to wait until revalidatePath does a thing
+  useEffect(() => {
+    setIsSubmitting(false);
+    reset();
+  }, [members]);
+
   const onSubmit = useCallback(
     async ({ usernames }: FormData) => {
       setSubmitErrors([]);
@@ -41,13 +48,10 @@ const MembersInvite: FC<Props> = ({ projectId, refreshMembers }) => {
       if (responses && "errors" in responses && !!responses.errors) {
         setSubmitErrors(responses.errors);
       } else {
-        await refreshMembers();
         reset();
       }
-
-      setIsSubmitting(false);
     },
-    [refreshMembers, reset, projectId]
+    [reset, projectId]
   );
 
   return (

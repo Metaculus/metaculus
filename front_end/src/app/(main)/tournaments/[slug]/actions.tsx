@@ -15,7 +15,11 @@ export async function inviteProjectUsers(
   usernames: string[]
 ) {
   try {
-    return await ProjectsApi.inviteUsers(projectId, usernames);
+    const response = await ProjectsApi.inviteUsers(projectId, usernames);
+
+    revalidatePath("/tournaments/[slug]");
+
+    return response;
   } catch (err) {
     const error = err as FetchError;
 
@@ -27,7 +31,11 @@ export async function inviteProjectUsers(
 
 export async function deleteProjectMember(projectId: number, userId: number) {
   try {
-    return await ProjectsApi.deleteMember(projectId, userId);
+    const response = await ProjectsApi.deleteMember(projectId, userId);
+
+    revalidatePath("/tournaments/[slug]");
+
+    return response;
   } catch (err) {
     const error = err as FetchError;
 
