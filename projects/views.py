@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from typing import Callable
 
 from django.db.models import QuerySet
@@ -23,8 +22,6 @@ from projects.services import (
     get_project_permission_for_user,
     invite_user_to_project,
 )
-from scoring.serializers import LeaderboardSerializer, LeaderboardEntrySerializer
-from scoring.utils import generate_project_leaderboard
 from users.services import get_users_by_usernames
 
 
@@ -186,6 +183,10 @@ def project_members_manage_api_view(request: Request, project_id: int, user_id: 
     member = get_object_or_404(obj.projectuserpermission_set.all(), user_id=user_id)
 
     if request.method == "DELETE":
+        ObjectPermission.can_delete_project_member(
+            permission, member, raise_exception=True
+        )
+
         member.delete()
     elif request.method == "PATCH":
         # Check permissions

@@ -55,7 +55,7 @@ def project_leaderboard(
     project: Project = get_object_or_404(projects, pk=project_id)
     # Check permissions
     permission = get_project_permission_for_user(project, user=request.user)
-    ObjectPermission.can_manage_project_members(permission, raise_exception=True)
+    ObjectPermission.can_view(permission, raise_exception=True)
 
     # filtering
     leaderboards = Leaderboard.objects.filter(project=project)
