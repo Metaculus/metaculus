@@ -101,6 +101,10 @@ class PostsApi {
   static async uploadImage(formData: FormData): Promise<{ url: string }> {
     return await post<{ url: string }>("/posts/upload-image", formData);
   }
+
+  static async sendPostReadEvent(postId: number) {
+    return post(`/posts/${postId}/read`, {});
+  }
 }
 
 export default PostsApi;
