@@ -71,7 +71,7 @@ def post_detail(request: Request, pk):
 
     if not posts:
         raise NotFound("Post not found")
-    print(posts[0]["question"]["scheduled_close_time"])
+
     return Response(posts[0])
 
 
