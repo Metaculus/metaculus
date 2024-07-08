@@ -122,20 +122,6 @@ export async function getPost(postId: number) {
   return response;
 }
 
-export async function approvePost(
-  postId: number,
-  cp_reveal_time: string,
-  open_time: string
-) {
-  const response = await PostsApi.updatePost(postId, {
-    curation_status: PostStatus.APPROVED,
-    published_at: formatISO(new Date(), { representation: "complete" }),
-    cp_reveal_time: cp_reveal_time,
-    open_time: open_time,
-  });
-  return response;
-}
-
 export async function draftPost(postId: number) {
   const response = await PostsApi.updatePost(postId, {
     curation_status: PostStatus.DRAFT,

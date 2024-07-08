@@ -288,7 +288,6 @@ class Post(TimeStampedModel):
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
-
     scheduled_close_time = models.DateTimeField(null=True, blank=True)
     scheduled_resolve_time = models.DateTimeField(null=True, blank=True)
     actual_close_time = models.DateTimeField(null=True, blank=True)

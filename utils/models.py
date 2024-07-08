@@ -1,6 +1,7 @@
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F
+from django.utils import timezone
 
 from django.utils.translation import gettext_lazy as _
 
@@ -11,8 +12,8 @@ class TimeStampedModel(models.Model):
     ``created_on`` and ``modified_on`` fields.
     """
 
-    created_at = models.DateTimeField(auto_now_add=True, editable=False)
-    edited_at = models.DateTimeField(auto_now=True, editable=False)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    edited_at = models.DateTimeField(default=timezone.now, editable=False)
 
     class Meta:
         abstract = True
