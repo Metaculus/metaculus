@@ -27,7 +27,7 @@ poetry run python3 manage.py migrate;
 export ALPHA_ACCESS_TOKEN="the open source rewrite";
 
 tmux new-session -d -s web_backend;
-tmux send-keys -t web_backend 'poetry run python3 manage.py runserver' C-m;
+tmux send-keys -t web_backend 'poetry run gunicorn metaculus_web.wsgi:application --workers 8 --bind 0.0.0.0:8000' C-m;
 tmux new-session -d -s dramatiq;
 tmux send-keys -t dramatiq 'poetry run python3 manage.py rundramatiq --processes 1 --threads 1' C-m;
 
