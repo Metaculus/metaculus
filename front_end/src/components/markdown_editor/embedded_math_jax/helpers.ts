@@ -1,7 +1,7 @@
 export const transformMathJax = (markdown: string): string => {
   const simpleMathJaxExpression = /\\([\(\[])(.*?)(\\[\)\]])/gs;
   markdown = markdown.replace(simpleMathJaxExpression, (_match, p1, p2, p3) => {
-    return `<EmbeddedMathJax content="\\${p1}${p2}\\${p3}" />`;
+    return `<EmbeddedMathJax content="\\${p1}${p2}${p3}" />`;
   });
 
   const complexMathJaxExpression = /\\begin{([^}]*)}(.*?)\\end{([^}]*)}/gs;
