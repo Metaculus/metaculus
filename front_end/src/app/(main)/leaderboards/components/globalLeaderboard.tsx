@@ -36,12 +36,22 @@ const leaderboard = (leaderboardDetails: LeaderboardDetails) => {
 };
 
 type Props = {
-  leaderboardName?: string;
+  startTime?: string;
+  endTime?: string;
+  leaderboardType?: LeaderboardType;
 };
 
-const AwaitedGlobalLeaderboard: FC<Props> = async ({ leaderboardName }) => {
+const AwaitedGlobalLeaderboard: FC<Props> = async ({
+  startTime,
+  endTime,
+  leaderboardType,
+}) => {
   const leaderboardDetails: LeaderboardDetails =
-    await LeaderboardApi.getGlobalLeaderboard(leaderboardName);
+    await LeaderboardApi.getGlobalLeaderboard(
+      startTime,
+      endTime,
+      leaderboardType
+    );
   // TODO: add pagination, but for now just return 20 entries
   return <div>{leaderboard(leaderboardDetails)}</div>;
 };
