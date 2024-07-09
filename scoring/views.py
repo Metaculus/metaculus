@@ -20,12 +20,18 @@ def global_leaderboard(
     request: Request,
 ):
     # params
-    leaderboard_name = request.GET.get("leaderboardName", None)
+    start_time = request.GET.get("startTime", None)
+    end_time = request.GET.get("endTime", None)
+    leaderboard_type = request.GET.get("leaderboardType", None)
 
     # filtering
     leaderboards = Leaderboard.objects.filter(project_id=1)
-    if leaderboard_name:
-        leaderboards = leaderboards.filter(name=leaderboard_name)
+    if start_time:
+        leaderboards = leaderboards.filter(start_time=start_time)
+    if end_time:
+        leaderboards = leaderboards.filter(end_time=end_time)
+    if leaderboard_type:
+        leaderboards = leaderboards.filter(score_type=leaderboard_type)
 
     leaderboard_count = leaderboards.count()
     if leaderboard_count == 0:
