@@ -7,6 +7,7 @@ from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
+from questions.models import Question, Forecast
 from questions.services import (
     create_question,
     create_conditional,
@@ -15,6 +16,8 @@ from questions.services import (
 from users.models import User
 from utils.dtypes import flatten
 from utils.models import build_order_by
+from utils.the_math.community_prediction import get_cp_at_time
+from utils.the_math.measures import prediction_difference_for_sorting
 from utils.serializers import parse_order_by
 
 
@@ -253,3 +256,53 @@ def get_post_permission_for_user(post: Post, user: User = None) -> ObjectPermiss
         .get(id=post.id)
     )
     return perm
+
+
+def compute_movement(post: Post) -> float | None:
+    if post.group_of_questions:
+        questions: list[Question] = post.group_of_questions.questions.all()
+    elif post.conditional:
+        questions = [post.conditional.yes, post.conditional.no]
+    else:
+        questions = [post.question]
+    movement = None
+    for question in questions:
+        cp_now = get_cp_at_time(question, timezone.now())
+        cp_previous = get_cp_at_time(
+            question, timezone.now() - timezone.timedelta(days=7)
+        )
+        if cp_now is None or cp_previous is None:
+            continue
+        difference = prediction_difference_for_sorting(cp_now, cp_previous, question)
+        if (movement is None) or (abs(difference) > abs(movement)):
+            movement = difference
+    return movement
+
+
+def compute_divergence(post: Post) -> dict[User, float]:
+    user_divergences = dict()
+    if post.group_of_questions:
+        questions: list[Question] = post.group_of_questions.questions.all()
+    elif post.conditional:
+        questions = [post.conditional.yes, post.conditional.no]
+    else:
+        questions = [post.question]
+    now = timezone.now()
+    for question in questions:
+        cp = get_cp_at_time(question, now)
+        if cp is None:
+            continue
+        active_forecasts = Forecast.objects.filter(
+            Q(end_time__isnull=True) | Q(end_time__gt=now),
+            start_time__lte=now,
+            question=question,
+        )
+        for forecast in active_forecasts:
+            difference = prediction_difference_for_sorting(
+                forecast.get_prediction_values(), cp, question
+            )
+            if (forecast.author not in user_divergences) or (
+                abs(user_divergences[forecast.author]) < abs(difference)
+            ):
+                user_divergences[forecast.author] = difference
+    return user_divergences

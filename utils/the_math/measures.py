@@ -1,5 +1,8 @@
 import numpy as np
 
+from questions.models import Question
+from utils.the_math.formulas import scale_location
+
 
 def weighted_percentile_2d(
     values: list[list[float]] | np.ndarray,
@@ -52,8 +55,35 @@ def percent_point_function(cdf: list[float], percent: float) -> float:
     return 1.0
 
 
-def divergence_binary(p1: float, p2: float) -> float:
-    return (p1 - p2) * (np.log2(p1 / (1 - p1)) - np.log2(p2 / (1 - p2)))
+def prediction_difference_for_sorting(p1, p2, question: Question) -> float:
+    # Uses Jeffrey's Divergence
+    if question.type in ["binary", "multiple_choice"]:
+        return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
+    return float(
+        np.trapz(np.abs(np.array(p1) - np.array(p2)), x=np.linspace(0, 1, len(p1)))
+    )
 
 
-def divergence_multiple_choice(p1: list[float], p2: list[float]) -> float: ...
+def prediction_difference_for_display(
+    p1, p2, question: Question
+) -> tuple[float, float] | list[tuple[float, float]]:
+    if question.type == "binary":
+        # abs pred diff, ratio of odds
+        return (p2 - p1, (p2 / (1 - p2)) / (p1 / (1 - p1)))
+    elif question.type == "multiple_choice":
+        # list of (abs pred diff, ratio of odds)
+        return [(q - p, (q / (1 - q)) / (p / (1 - p))) for p, q in zip(p1, p2)]
+    # total earth mover's distance, assymmetric earth mover's distance
+    x_locations = scale_location(
+        question.zero_point,
+        question.max,
+        question.min,
+        np.linspace(
+            question.min,
+            question.max,
+            len(p1),
+        ),
+    )
+    total = np.trapz(np.abs(np.array(p1) - np.array(p2)), x=x_locations)
+    asymmetric = -np.trapz(np.array(p1) - np.array(p2), x=x_locations)
+    return float(total), float(asymmetric)
