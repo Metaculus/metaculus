@@ -1,4 +1,5 @@
 import PostsApi from "@/services/posts";
+import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 
 import ConditionalForm from "../../components/conditional_form";
@@ -18,6 +19,7 @@ const QuestionConditionalCreator: React.FC<{
       Number(post?.conditional?.condition_child.post_id)
     );
   }
+  const allCategories = await ProjectsApi.getCategories();
 
   return (
     <ConditionalForm
@@ -25,6 +27,7 @@ const QuestionConditionalCreator: React.FC<{
       post={post}
       conditionInit={condition}
       conditionChildInit={conditionChild}
+      allCategories={allCategories}
       tournament_id={
         searchParams["tournament_id"]
           ? Number(searchParams["tournament_id"])

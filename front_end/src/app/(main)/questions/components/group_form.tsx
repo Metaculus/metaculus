@@ -1,17 +1,20 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { title } from "process";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
-import { PostStatus, PostWithForecasts } from "@/types/post";
+import { Category, PostStatus, PostWithForecasts } from "@/types/post";
 
+import CategoryPicker from "./category_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
@@ -26,8 +29,6 @@ const groupQuestionSchema = z.object({
   description: z.string().min(10),
   resolution_criteria_description: z.string().optional(),
   fine_print: z.string().optional(),
-  scheduled_close_time: z.date().optional(),
-  scheduled_resolve_time: z.date().optional(),
   tournament_id: z.number().optional(),
 });
 
@@ -36,6 +37,7 @@ type Props = {
   tournament_id?: number;
   post?: PostWithForecasts | null;
   mode: "create" | "edit";
+  allCategories: Category[];
 };
 
 function fmtDateStrForInput(
@@ -51,6 +53,7 @@ function fmtDateStrForInput(
 const GroupForm: React.FC<Props> = ({
   subtype,
   mode,
+  allCategories,
   tournament_id = null,
   post = null,
 }) => {
@@ -79,9 +82,21 @@ const GroupForm: React.FC<Props> = ({
     }
   };
 
-  const [advanced, setAdvanced] = useState(false);
-  const [subQuestions, setSubQuestions] = useState<any[]>([]);
+  const [subQuestions, setSubQuestions] = useState<any[]>(
+    post?.group_of_questions?.questions
+      ? post?.group_of_questions?.questions.map((x) => {
+          return {
+            scheduled_close_time: x.scheduled_close_time,
+            scheduled_resolve_time: x.scheduled_resolve_time,
+            title: x.title,
+          };
+        })
+      : []
+  );
   const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<any[]>([]);
+  const [categoriesList, setCategoriesList] = useState<Category[]>(
+    post?.projects.category ? post?.projects.category : ([] as Category[])
+  );
 
   const control = useForm({
     // @ts-ignore
@@ -104,27 +119,33 @@ const GroupForm: React.FC<Props> = ({
         }}
         className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s bg-white p-8 dark:bg-blue-900"
       >
-        {tournament_id && (
-          <div className="mb-2">
-            <span className="">
-              For tournament:{" "}
-              <span className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1">
-                <Link
-                  href={`/tournaments/${tournament_id}`}
-                  className="no-underline"
-                >
-                  {tournament_id}
-                </Link>
-              </span>
-            </span>
-          </div>
-        )}
-
-        <FormError
-          errors={control.formState.errors}
-          className="text-red-500-dark"
-          {...control.register("type")}
+        <span>Project</span>
+        <Input
+          type="number"
+          {...control.register("default_project_id")}
+          errors={control.formState.errors.default_project_id}
+          defaultValue={
+            control.getValues("default_project_id")
+              ? control.getValues("default_project_id")
+              : tournament_id
+          }
+          readOnly={isLive}
         />
+        <div>
+          <span className="">
+            Initial project:
+            <span className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1">
+              <Link
+                href={`/tournaments/${control.getValues("default_project_id")}`}
+                className="no-underline"
+              >
+                {control.getValues("default_project_id")
+                  ? control.getValues("default_project_id")
+                  : "Global"}
+              </Link>
+            </span>
+          </span>
+        </div>
         <>
           <span>Title</span>
           <Input
@@ -141,87 +162,46 @@ const GroupForm: React.FC<Props> = ({
             defaultValue={post?.question?.description}
           />
 
-          <span>Closing Date</span>
-          <Input
-            type="date"
-            {...control.register("scheduled_close_time", {
-              setValueAs: (value: string) => {
-                if (value == "" || value == null || value == undefined) {
-                  return null;
-                }
-                return new Date(value);
-              },
-            })}
-            errors={control.formState.errors.scheduled_close_time}
-            defaultValue={fmtDateStrForInput(post?.scheduled_close_time)}
-          />
-
-          <span>Resolving Date</span>
-          <Input
-            type="date"
-            {...control.register("scheduled_resolve_time", {
-              setValueAs: (value: string) => {
-                if (value == "" || value == null || value == undefined) {
-                  return null;
-                }
-                return new Date(value);
-              },
-            })}
-            errors={control.formState.errors.scheduled_resolve_time}
-            defaultValue={fmtDateStrForInput(post?.scheduled_resolve_time)}
-          />
-
-          <span>Opening date</span>
-          <Input
-            type="date"
-            {...control.register("open_time", {
-              setValueAs: (value: string) => {
-                if (value == "" || value == null || value == undefined) {
-                  return null;
-                }
-                return new Date(value);
-              },
-            })}
-            errors={control.formState.errors.open_time}
-            defaultValue={fmtDateStrForInput(post?.question?.open_time)}
-          />
-
           <span>Group Variable</span>
           <Input
+            disabled={isLive}
             {...control.register("group_variable")}
             errors={control.formState.errors.group_variable}
             defaultValue={post?.group_of_questions.group_variable}
           />
+
+          <span>Resolution Criteria</span>
+          <Textarea
+            {...control.register("resolution_criteria_description")}
+            errors={control.formState.errors.resolution_criteria_description}
+            className="h-[120px] w-full"
+            defaultValue={
+              post?.question?.resolution_criteria_description
+                ? post?.question?.resolution_criteria_description
+                : undefined
+            }
+          />
+          <span>Fine Print</span>
+          <Textarea
+            {...control.register("fine_print")}
+            errors={control.formState.errors.fine_print}
+            className="h-[120px] w-full"
+            defaultValue={
+              post?.question?.fine_print
+                ? post?.question?.fine_print
+                : undefined
+            }
+          />
+
+          <CategoryPicker
+            allCategories={allCategories}
+            categories={categoriesList}
+            onChange={(categories) => {
+              setCategoriesList(categories);
+            }}
+          ></CategoryPicker>
           <span className="text-xs font-thin text-gray-800">{`A name for the parameter which varies between subquestions, like "Option", "Year" or "Country"`}</span>
 
-          {advanced && (
-            <>
-              <span>Resolution Criteria</span>
-              <Textarea
-                {...control.register("resolution_criteria_description")}
-                errors={
-                  control.formState.errors.resolution_criteria_description
-                }
-                className="h-[120px] w-full"
-                defaultValue={
-                  post?.question?.resolution_criteria_description
-                    ? post?.question?.resolution_criteria_description
-                    : undefined
-                }
-              />
-              <span>Fine Print</span>
-              <Textarea
-                {...control.register("fine_print")}
-                errors={control.formState.errors.fine_print}
-                className="h-[120px] w-full"
-                defaultValue={
-                  post?.question?.resolution_criteria_description
-                    ? post?.question?.resolution_criteria_description
-                    : undefined
-                }
-              />
-            </>
-          )}
           <div className="flex-col rounded border bg-zinc-200 p-4 dark:bg-blue-700">
             <div className="mb-4">Subquestions</div>
 
@@ -237,20 +217,31 @@ const GroupForm: React.FC<Props> = ({
                       setSubQuestions(
                         subQuestions.map((subQuestion, iter_index) => {
                           if (index == iter_index) {
-                            subQuestion["label"] = e.target.value;
+                            subQuestion["title"] = e.target.value;
                           }
                           return subQuestion;
                         })
                       );
                     }}
-                    value={subQuestion?.label}
+                    value={subQuestion?.title}
                   />
                   <span className="text-xs font-thin text-gray-800">{`The label or parameter which identifies this subquestion, like "Option 1", "2033" or "France"`}</span>
                   {collapsedSubQuestions[index] && (
                     <>
                       <span>Closing Date</span>
                       <Input
-                        type="date"
+                        readOnly={isLive}
+                        type="datetime-local"
+                        defaultValue={
+                          subQuestions[index].scheduled_close_time
+                            ? format(
+                                new Date(
+                                  subQuestions[index].scheduled_close_time
+                                ),
+                                "yyyy-MM-dd'T'HH:mm"
+                              )
+                            : undefined
+                        }
                         onChange={(e) => {
                           setSubQuestions(
                             subQuestions.map((subQuestion, iter_index) => {
@@ -262,51 +253,33 @@ const GroupForm: React.FC<Props> = ({
                             })
                           );
                         }}
-                        value={fmtDateStrForInput(
-                          subQuestion.scheduled_close_time
-                            ? subQuestion.scheduled_close_time
-                            : control.getValues().scheduled_close_time
-                        )}
                       />
 
                       <span>Resolving Date</span>
                       <Input
-                        type="date"
+                        readOnly={isLive}
+                        type="datetime-local"
+                        defaultValue={
+                          subQuestions[index].scheduled_resolve_time
+                            ? format(
+                                new Date(
+                                  subQuestions[index].scheduled_resolve_time
+                                ),
+                                "yyyy-MM-dd'T'HH:mm"
+                              )
+                            : undefined
+                        }
                         onChange={(e) => {
                           setSubQuestions(
                             subQuestions.map((subQuestion, iter_index) => {
                               if (index == iter_index) {
-                                subQuestion.scheduled_resolve_time =
+                                subQuestion.scheduled_close_time =
                                   e.target.value;
                               }
                               return subQuestion;
                             })
                           );
                         }}
-                        value={fmtDateStrForInput(
-                          subQuestion.scheduled_resolve_time
-                            ? subQuestion.scheduled_resolve_time
-                            : control.getValues().scheduled_resolve_time
-                        )}
-                      />
-                      <span>Opening date</span>
-                      <Input
-                        type="date"
-                        onChange={(e) => {
-                          setSubQuestions(
-                            subQuestions.map((subQuestion, iter_index) => {
-                              if (index == iter_index) {
-                                subQuestion.open_time = e.target.value;
-                              }
-                              return subQuestion;
-                            })
-                          );
-                        }}
-                        value={fmtDateStrForInput(
-                          subQuestion.open_time
-                            ? subQuestion.open_time
-                            : control.getValues().open_time
-                        )}
                       />
                     </>
                   )}
@@ -331,6 +304,7 @@ const GroupForm: React.FC<Props> = ({
                     </Button>
 
                     <Button
+                      disabled={isLive}
                       className="rounded-xxl border-0 bg-red-200 text-red-800 dark:bg-red-200 dark:text-red-800"
                       onClick={() => {
                         setSubQuestions(
@@ -359,8 +333,7 @@ const GroupForm: React.FC<Props> = ({
                     ...subQuestions,
                     {
                       type: "numeric",
-                      label: "",
-                      open_time: control.getValues().open_time,
+                      title: "",
                       scheduled_close_time:
                         control.getValues().scheduled_close_time,
                       scheduled_resolve_time:
@@ -376,7 +349,6 @@ const GroupForm: React.FC<Props> = ({
                     {
                       type: "date",
                       label: "",
-                      open_time: control.getValues().open_time,
                       scheduled_close_time:
                         control.getValues().scheduled_close_time,
                       scheduled_resolve_time:
@@ -392,7 +364,6 @@ const GroupForm: React.FC<Props> = ({
                     {
                       type: "binary",
                       label: "",
-                      open_time: control.getValues().open_time,
                       scheduled_close_time:
                         control.getValues().scheduled_close_time,
                       scheduled_resolve_time:
@@ -409,9 +380,6 @@ const GroupForm: React.FC<Props> = ({
           <div className=""></div>
           <Button type="submit">
             {mode == "create" ? "Create Question" : "Edit Question"}
-          </Button>
-          <Button onClick={() => setAdvanced(!advanced)}>
-            {advanced ? "Change to Simple Mode" : "Change to Advanced Mode"}
           </Button>
         </>
       </form>

@@ -11,11 +11,14 @@ import { useState } from "react";
 import Button from "@/components/ui/button";
 import { createQuestionPost } from "../../actions";
 import { useTranslations } from "next-intl";
+import ProjectsApi from "@/services/projects";
 
 const NotebookCreator: React.FC = ({}) => {
   const [markdown, setMarkdown] = useState("");
   const [title, setTitle] = useState("");
   const t = useTranslations();
+  // @TODO Separate notebook editor client
+  // const allCategories = await ProjectsApi.getCategories();
 
   return (
     <div className="h-50vh mx-auto mb-8 mt-4 max-w-3xl overflow-auto rounded-lg bg-gray-0 p-6 dark:bg-gray-100-dark">

@@ -144,7 +144,7 @@ export default async function IndividualQuestion({
                   ? postData.question.open_time
                     ? parseISO(postData.question.open_time) < new Date()
                     : false
-                  : false) &&
+                  : true) &&
                 !isNil(postData.published_at) &&
                 parseISO(postData.published_at) <= new Date() &&
                 postData.status === PostStatus.APPROVED

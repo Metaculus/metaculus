@@ -22,6 +22,7 @@ type PostCreationData = {
   title: string;
   categories: number[];
   question: any;
+  default_project_id: number;
 };
 
 const baseQuestionSchema = z.object({
@@ -101,6 +102,7 @@ const QuestionForm: React.FC<Props> = ({
     }
     let post_data: PostCreationData = {
       title: data["title"],
+      default_project_id: data["default_project_id"],
       categories: categoriesList.map((x) => x.id),
       question: data,
     };
@@ -231,6 +233,7 @@ const QuestionForm: React.FC<Props> = ({
             className="h-[120px] w-full"
             defaultValue={post?.question?.description}
           />
+
           <div>
             <span>Closing Date</span>
             <Input
