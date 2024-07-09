@@ -3,12 +3,20 @@ import { get } from "@/utils/fetch";
 
 class LeaderboardApi {
   static async getGlobalLeaderboard(
-    leaderboardName: string | null = null
+    startTime: string | null = null,
+    endTime: string | null = null,
+    leaderboardType: string | null = null
   ): Promise<LeaderboardDetails> {
     // TODO: make paginated
     const params = new URLSearchParams();
-    if (leaderboardName) {
-      params.append("leaderboardName", leaderboardName);
+    if (startTime) {
+      params.append("startTime", startTime.toString());
+    }
+    if (endTime) {
+      params.append("endTime", endTime.toString());
+    }
+    if (leaderboardType) {
+      params.append("leaderboardType", leaderboardType);
     }
     const url = `/leaderboards/global/${params.toString() ? `?${params.toString()}` : ""}`;
     return await get<LeaderboardDetails>(url);
