@@ -44,8 +44,14 @@ const AwaitedProjectLeaderboard: FC<Props> = async ({
   projectId,
   leaderboardType,
 }) => {
-  const leaderboardDetails: LeaderboardDetails =
-    await LeaderboardApi.getProjectLeaderboard(projectId, leaderboardType);
+  const leaderboardDetails = await LeaderboardApi.getProjectLeaderboard(
+    projectId,
+    leaderboardType
+  );
+  if (!leaderboardDetails) {
+    return null;
+  }
+
   // TODO: add pagination, but for now just return 20 entries
   return <div>{leaderboard(leaderboardDetails)}</div>;
 };

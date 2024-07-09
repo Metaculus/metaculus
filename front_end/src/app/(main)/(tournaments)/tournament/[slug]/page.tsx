@@ -6,6 +6,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { FC, Suspense } from "react";
 import invariant from "ts-invariant";
 
+import AwaitedProjectLeaderboard from "@/app/(main)/leaderboards/components/projectLeaderboard";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import HtmlContent from "@/components/html_content";
 import AwaitedPostsFeed from "@/components/posts_feed";
@@ -19,14 +20,9 @@ import { ProjectPermissions } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 
-import AwaitedProjectLeaderboard from "../../leaderboards/components/projectLeaderboard";
-
-const LazyProjectMembers = dynamic(
-  () => import("@/app/(main)/tournaments/components/members"),
-  {
-    ssr: false,
-  }
-);
+const LazyProjectMembers = dynamic(() => import("../components/members"), {
+  ssr: false,
+});
 
 export default async function TournamentSlug({
   params,
@@ -116,9 +112,7 @@ export default async function TournamentSlug({
           </div>
           <HtmlContent content={tournament.description} />
         </div>
-        <div>
-          <AwaitedProjectLeaderboard projectId={tournament.id} />
-        </div>
+        <div>{<AwaitedProjectLeaderboard projectId={tournament.id} />}</div>
         {[ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
           tournament.user_permission
         ) && (
