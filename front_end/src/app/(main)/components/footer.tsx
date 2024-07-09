@@ -4,11 +4,16 @@ import { faTwitter } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { setCookie } from "cookies-next";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { FC } from "react";
+
+import useSearchParams from "@/hooks/use_search_params";
+import { encodeQueryParams } from "@/utils/navigation";
 
 const Footer: FC = () => {
   const router = useRouter();
+  const { params } = useSearchParams();
+  const pathname = usePathname();
 
   return (
     <footer className="dark relative mx-auto my-0 flex w-full flex-wrap justify-center bg-blue-900 px-0 pb-0 pt-2 text-white">
@@ -110,7 +115,9 @@ const Footer: FC = () => {
             className="pr-2 hover:text-white lg:pr-1"
             onClick={(e) => {
               e.preventDefault();
-              setCookie("NEXT_LOCALE", "en");
+              params.delete("locale");
+              params.append("locale", "en");
+              router.push(pathname + "?" + params.toString());
               router.refresh();
             }}
             name="language"
@@ -122,7 +129,9 @@ const Footer: FC = () => {
             className="border-l border-gray-600-dark pl-2 pr-2 hover:text-white lg:pl-1"
             onClick={(e) => {
               e.preventDefault();
-              setCookie("NEXT_LOCALE", "cs");
+              params.delete("locale");
+              params.append("locale", "cs");
+              router.push(pathname + "?" + params.toString());
               router.refresh();
             }}
             name="language"
@@ -134,7 +143,9 @@ const Footer: FC = () => {
             className="border-l border-gray-600-dark pl-2 hover:text-white lg:pl-1"
             onClick={(e) => {
               e.preventDefault();
-              setCookie("NEXT_LOCALE", "zh");
+              params.delete("locale");
+              params.append("locale", "zh");
+              router.push(pathname + "?" + params.toString());
               router.refresh();
             }}
             name="language"
