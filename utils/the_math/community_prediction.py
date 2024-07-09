@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 import math
 from typing import Optional
 from django.core.cache import cache
+from django.db.models import Q
 
 import numpy as np
 
@@ -30,10 +31,10 @@ class CommunityPrediction:
     middle: float
 
 
-def compute_cp_binary_mc(
+def compute_cp_discrete(
     forecast_values: list[list[float]],
-    weights: Optional[list[float]],
-    percentile: Optional[float] = 50.0,
+    weights: list[float] | None = None,
+    percentile: float = 50.0,
 ):
     return weighted_percentile_2d(
         forecast_values, weights=weights, percentile=percentile
@@ -45,7 +46,7 @@ def compute_cp_binary_mc(
 
 def compute_cp_continuous(
     forecast_values: list[list[float]],
-    weights: Optional[list[float]],
+    weights: list[float] | None = None,
 ):
     # max_len = max([len(x) for x in forecast_values])
     # for i in range(len(forecast_values)):
@@ -54,14 +55,16 @@ def compute_cp_continuous(
     return np.average(forecast_values, axis=0, weights=weights)
 
 
-def compute_cp(
-    question_type: str,
-    forecast_values: list[list[float]],
-    weights: Optional[list[float]],
-    percentile: Optional[float] = 50.0,
-) -> list[float]:
-    if question_type in ["binary", "multiple_choice"]:
-        return compute_cp_binary_mc(forecast_values, weights, percentile)
+def get_cp_at_time(question: Question, time: datetime) -> list[float] | None:
+    forecasts = question.forecast_set.filter(
+        Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
+    )
+    if forecasts.count() == 0:
+        return None
+    forecast_values = [forecast.get_prediction_values() for forecast in forecasts]
+    weights = generate_recency_weights(len(forecast_values))
+    if question.type in ["binary", "multiple_choice"]:
+        return compute_cp_discrete(forecast_values, weights, 50.0)
     else:
         return compute_cp_continuous(forecast_values, weights)
 
@@ -170,9 +173,9 @@ def compute_binary_plotable_cp(
         weights = generate_recency_weights(len(entry.predictions))
         cps.append(
             GraphCP(
-                middle=compute_cp_binary_mc(entry.predictions, weights, 50.0)[1],
-                upper=compute_cp_binary_mc(entry.predictions, weights, 75.0)[1],
-                lower=compute_cp_binary_mc(entry.predictions, weights, 25.0)[1],
+                middle=compute_cp_discrete(entry.predictions, weights, 50.0)[1],
+                upper=compute_cp_discrete(entry.predictions, weights, 75.0)[1],
+                lower=compute_cp_discrete(entry.predictions, weights, 25.0)[1],
                 nr_forecasters=len(entry.predictions),
                 at_datetime=entry.at_datetime,
             )
@@ -189,9 +192,9 @@ def compute_multiple_choice_plotable_cp(
     cps = []
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
-        middles = compute_cp_binary_mc(entry.predictions, weights, 50.0)
-        uppers = compute_cp_binary_mc(entry.predictions, weights, 75.0)
-        downers = compute_cp_binary_mc(entry.predictions, weights, 25.0)
+        middles = compute_cp_discrete(entry.predictions, weights, 50.0)
+        uppers = compute_cp_discrete(entry.predictions, weights, 75.0)
+        downers = compute_cp_discrete(entry.predictions, weights, 25.0)
         cps.append(
             {
                 v: GraphCP(
