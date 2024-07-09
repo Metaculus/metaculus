@@ -33,6 +33,8 @@ class QuestionSerializer(serializers.ModelSerializer):
             "resolution_criteria_description",
             "fine_print",
             "label",
+            "open_upper_bound",
+            "open_lower_bound",
         )
 
 
