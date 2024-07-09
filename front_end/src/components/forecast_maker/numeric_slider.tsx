@@ -2,7 +2,7 @@ import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 
-import NumericPickerChart from "@/components/charts/numeric_area_chart";
+import NumericAreaChart from "@/components/charts/numeric_area_chart";
 import MultiSlider, {
   MultiSliderValue,
 } from "@/components/sliders/multi_slider";
@@ -28,15 +28,9 @@ const NumericSlider: FC<Props> = ({
   onChange,
   question,
 }) => {
-  const isForecastEmpty = getIsForecastEmpty(question.forecasts);
-
-  if (isForecastEmpty) {
-    return null;
-  }
-
   return (
     <div>
-      <NumericPickerChart
+      <NumericAreaChart
         height={300}
         min={question.min}
         max={question.max}
