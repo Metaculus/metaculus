@@ -58,6 +58,8 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "options",
             "scheduled_resolve_time",
             "scheduled_close_time",
+            "resolution_criteria_description",
+            "fine_print",
         )
 
     def validate(self, data: dict):
