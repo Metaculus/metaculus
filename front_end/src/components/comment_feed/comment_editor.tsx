@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import React, { useState } from "react";
 
 import { createComment } from "@/app/(main)/questions/actions";
@@ -20,6 +21,8 @@ interface NotebookEditorProps {
 }
 
 const CommentEditor: React.FC<NotebookEditorProps> = ({ text, isPrivate }) => {
+  const t = useTranslations();
+
   const [isEditing, setIsEditing] = useState(true);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivate ?? false);
 
@@ -33,12 +36,12 @@ const CommentEditor: React.FC<NotebookEditorProps> = ({ text, isPrivate }) => {
       <>
         <Textarea
           disabled
-          placeholder="you must log in to make a comment"
+          placeholder={t("youMustLogInToComment")}
           className="mt-4 w-full bg-gray-100 dark:bg-gray-100-dark"
         />
         <div className="my-4 flex justify-end gap-3">
           <Button onClick={() => setCurrentModal({ type: "signin" })}>
-            log in
+            {t("logIn")}
           </Button>
         </div>
       </>
@@ -57,13 +60,14 @@ const CommentEditor: React.FC<NotebookEditorProps> = ({ text, isPrivate }) => {
       )}
       {!isEditing && <MarkdownEditor mode="read" markdown={markdown} />}
 
-      <div className="flex justify-end gap-3">
+      <div className="flex items-center justify-end gap-3">
         <Checkbox
           checked={isPrivateComment}
           onChange={(checked) => {
             setIsPrivateComment(checked);
           }}
-          label="private comment"
+          label={t("privateComment")}
+          className="text-sm"
         />
         <Button
           disabled={markdown.length === 0}
@@ -72,7 +76,7 @@ const CommentEditor: React.FC<NotebookEditorProps> = ({ text, isPrivate }) => {
             setIsEditing((prev) => !prev);
           }}
         >
-          {isEditing ? "Preview" : "Edit"}
+          {isEditing ? t("preview") : t("edit")}
         </Button>
         {!isEditing && (
           <Button
@@ -89,7 +93,7 @@ const CommentEditor: React.FC<NotebookEditorProps> = ({ text, isPrivate }) => {
               });
             }}
           >
-            Save
+            {t("submit")}
           </Button>
         )}
       </div>
