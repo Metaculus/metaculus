@@ -1,5 +1,6 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import NavUserButton, { DropdownIcon } from "@/components/auth";
@@ -7,17 +8,6 @@ import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 
 import MobileMenu from "./mobile_menu";
-
-const LINKS = [
-  {
-    label: "Questions",
-    href: "/questions",
-  },
-  {
-    label: "Tournaments",
-    href: "/tournaments",
-  },
-];
 
 const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
   return (
@@ -54,6 +44,19 @@ const NavMoreButton: FC = () => {
 };
 
 const Header: FC = () => {
+  const t = useTranslations();
+
+  const LINKS = [
+    {
+      label: t("questions"),
+      href: "/questions",
+    },
+    {
+      label: t("tournaments"),
+      href: "/tournaments",
+    },
+  ];
+
   return (
     <header className="fixed left-0 top-0 z-50 flex w-full flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-white">
       <div className="ml-0.5 flex min-h-12 flex-auto">
@@ -88,7 +91,7 @@ const Header: FC = () => {
               className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
               activeClassName="bg-blue-300-dark"
             >
-              Leaderboards
+              {t("leaderboards")}
             </NavLink>
           </li>
           <li>
@@ -97,7 +100,7 @@ const Header: FC = () => {
               className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
               activeClassName="bg-blue-300-dark"
             >
-              News
+              {t("News")}
             </NavLink>
           </li>
           <li>
@@ -110,7 +113,7 @@ const Header: FC = () => {
               className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
               activeClassName="bg-blue-300-dark"
             >
-              + Write
+              + {t("Write")}
             </NavLink>
           </li>
           <li className="z-10 flex h-full items-center justify-center">
