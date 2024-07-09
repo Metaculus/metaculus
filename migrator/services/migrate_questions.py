@@ -392,7 +392,9 @@ def migrate_questions__notebook(root_questions: list[dict]):
                         slug=project_obj["slug"],
                         subtitle=project_obj["subtitle"],
                         description=project_obj["description"],
-                        resolution_criteria_description=root_question["resolution_criteria"],
+                        resolution_criteria_description=root_question[
+                            "resolution_criteria"
+                        ],
                         fine_print=root_question["fine_print"],
                         header_image=project_obj["header_image"],
                         header_logo=project_obj["header_logo"],
