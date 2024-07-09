@@ -25,7 +25,7 @@ class Question(TimeStampedModel):
         MULTIPLE_CHOICE = "multiple_choice"
 
     type = models.CharField(max_length=20, choices=QuestionType.choices)
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=2000)
 
     description = models.TextField(blank=True)
     resolution_criteria_description = models.TextField(blank=True)
