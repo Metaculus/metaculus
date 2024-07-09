@@ -3,6 +3,7 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useState } from "react";
 
 import { fetchMorePosts } from "@/app/(main)/questions/actions";
@@ -18,6 +19,7 @@ type Props = {
 
 const QuestionCarousel: FC<Props> = ({ postIds }) => {
   const [data, setData] = useState<PostWithForecasts[]>([]);
+  const t = useTranslations();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +44,7 @@ const QuestionCarousel: FC<Props> = ({ postIds }) => {
             className="inline-flex items-center text-right text-base font-bold text-blue-800 no-underline dark:text-blue-800-dark"
             href={`/questions?${POST_STATUS_FILTER}=${PostStatus.APPROVED}`}
           >
-            See All Forecasts
+            {t("seeAllForecasts")}
             <FontAwesomeIcon icon={faArrowRight} className="ml-1.5 mr-1" />
           </Link>
         </div>

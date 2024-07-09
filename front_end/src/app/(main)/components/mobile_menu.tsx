@@ -7,6 +7,7 @@ import {
   Transition,
 } from "@headlessui/react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
 import ThemeToggle from "@/components/theme_toggle";
@@ -17,6 +18,7 @@ import { Href } from "@/types/navigation";
 const MobileMenu: FC = () => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
+  const t = useTranslations();
 
   return (
     <Menu>
@@ -32,27 +34,33 @@ const MobileMenu: FC = () => {
         leaveTo="opacity-0"
       >
         <MenuItems className="absolute inset-x-0 top-12 max-h-[calc(100dvh-48px)] list-none flex-col items-stretch justify-end space-y-0.5 overflow-y-auto bg-blue-200-dark text-base no-underline lg:hidden">
-          <MenuLink href={`/leaderboards/global/`}>Leaderboards</MenuLink>
-          <MenuLink href={`/news/`}>News</MenuLink>
-          <SectionTitle>More</SectionTitle>
-          <MenuLink href={`/about/`}>About Metaculus</MenuLink>
-          <MenuLink href={`/press/`}>For Journalists</MenuLink>
-          <MenuLink href={`/faq/`}>FAQ</MenuLink>
-          <MenuLink href={`/questions/track-record/`}>Track Record</MenuLink>
-          <MenuLink href={`/project/journal/`}>The Journal</MenuLink>
-          <MenuLink href={`/questions/create/`}>+ Write</MenuLink>
-          <SectionTitle>Account</SectionTitle>
+          <MenuLink href={`/leaderboards/global/`}>
+            {t("leaderboards")}
+          </MenuLink>
+          <MenuLink href={`/news/`}>{t("News")}</MenuLink>
+          <SectionTitle>{t("More")}</SectionTitle>
+          <MenuLink href={`/about/`}>{t("About Metaculus")}</MenuLink>
+          <MenuLink href={`/press/`}>{t("For Journalists")}</MenuLink>
+          <MenuLink href={`/faq/`}>{t("FAQ")}</MenuLink>
+          <MenuLink href={`/questions/track-record/`}>
+            {t("Track Record")}
+          </MenuLink>
+          <MenuLink href={`/project/journal/`}>{t("The Journal")}</MenuLink>
+          <MenuLink href={`/questions/create/`}>+ {t("Write")}</MenuLink>
+          <SectionTitle>{t("Account")}</SectionTitle>
           {user ? (
             <>
-              <MenuLink href={`/accounts/profile/${user.id}`}>Profile</MenuLink>
-              <MenuLink href={"/accounts/settings/"}>Settings</MenuLink>
+              <MenuLink href={`/accounts/profile/${user.id}`}>
+                {t("profile")}
+              </MenuLink>
+              <MenuLink href={"/accounts/settings/"}>{t("Settings")}</MenuLink>
               <MenuLink href="/accounts/signout" regularLink>
-                Logout
+                {t("Logout")}
               </MenuLink>
             </>
           ) : (
             <MenuLink onClick={() => setCurrentModal({ type: "signin" })}>
-              Login
+              {t("Login")}
             </MenuLink>
           )}
 
