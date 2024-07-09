@@ -243,10 +243,8 @@ def serialize_post_many(
     qs = Post.objects.filter(pk__in=ids)
 
     qs = (
-        qs.annotate_forecasts_count()
-        .annotate_user_permission(user=current_user)
+        qs.annotate_user_permission(user=current_user)
         .annotate_vote_score()
-        .annotate_nr_forecasters()
         .prefetch_projects()
         .prefetch_questions()
         .annotate_comment_count()
