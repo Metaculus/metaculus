@@ -22,7 +22,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
       <Dialog as="div" className="relative z-50" onClose={onClose}>
         <div className="fixed inset-0 bg-blue-900/50 dark:bg-gray-1000/50" />
         <div className="fixed inset-0 flex min-h-full justify-center overflow-y-auto sm:p-4">
-          <DialogPanel className="h-fit w-full max-w-fit transform overflow-y-scroll rounded bg-gray-0 p-7 text-left align-middle text-sm text-blue-900 shadow-xl transition-all dark:bg-gray-0-dark dark:text-blue-900-dark">
+          <DialogPanel className="my-auto h-fit w-full max-w-fit transform overflow-y-scroll rounded bg-gray-0 p-7 text-left align-middle text-sm text-blue-900 shadow-xl transition-all dark:bg-gray-0-dark dark:text-blue-900-dark">
             {label && (
               <h2 className="mb-4 mt-0 text-gray-900 dark:text-gray-900-dark">
                 {label}
