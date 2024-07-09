@@ -124,13 +124,13 @@ def update_project_leaderboard(
         ).values_list("user", flat=True)
         entry_count = len(new_entries)
         golds = max(0.01 * entry_count, 1)
-        silvers = max(0.02 * entry_count, 2)
-        bronzes = max(0.05 * entry_count, 3)
+        silvers = max(0.01 * entry_count, 2)
+        bronzes = max(0.03 * entry_count, 3)
         rank = 1
         for entry in new_entries:
             if entry.user in excluded_users:
                 entry.medal = None
-                entry.rank = None
+                entry.rank = rank
                 continue
             if rank <= golds:
                 entry.medal = LeaderboardEntry.Medals.GOLD
@@ -142,22 +142,13 @@ def update_project_leaderboard(
             rank += 1
 
     for new_entry in new_entries:
-        is_new = True
+        new_entry.leaderboard = leaderboard
         for previous_entry in previous_entries:
             if previous_entry.user == new_entry.user:
-                is_new = False
-                previous_entry.score = new_entry.score
-                previous_entry.rank = new_entry.rank
-                previous_entry.medal = new_entry.medal
-                previous_entry.prize = new_entry.prize
-                previous_entry.coverage = new_entry.coverage
-                previous_entry.contribution_count = new_entry.contribution_count
-                previous_entry.save()
+                new_entry.id = previous_entry.id
                 seen.add(previous_entry)
                 break
-        if is_new:
-            new_entry.leaderboard = leaderboard
-            new_entry.save()
+        new_entry.save()
     for previous_entry in previous_entries:
         if previous_entry not in seen:
             previous_entry.delete()

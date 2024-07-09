@@ -9,7 +9,7 @@ from projects.models import Project
 from projects.views import get_projects_qs, get_project_permission_for_user
 from projects.permissions import ObjectPermission
 
-from scoring.models import Leaderboard
+from scoring.models import Leaderboard, LeaderboardEntry
 from scoring.serializers import LeaderboardSerializer, LeaderboardEntrySerializer
 from scoring.utils import generate_project_leaderboard
 
@@ -88,3 +88,20 @@ def project_leaderboard(
         entries = generate_project_leaderboard(project, leaderboard)
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     return Response(leaderboard_data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def user_medals(
+    request: Request,
+    user_id: int,
+):
+    entries_with_medals = LeaderboardEntry.objects.filter(
+        user_id=user_id, medal__isnull=False
+    )
+    entries = []
+    for entry in entries_with_medals:
+        entry_data = LeaderboardEntrySerializer(entry).data
+        leaderboard = LeaderboardSerializer(entry.leaderboard).data
+        entries.append({**entry_data, **leaderboard})
+    return Response(entries)
