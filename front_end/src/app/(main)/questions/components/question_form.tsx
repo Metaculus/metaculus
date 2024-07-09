@@ -398,7 +398,7 @@ const QuestionForm: React.FC<Props> = ({
               <div>
                 <span className="mr-2">Is Logarithmic ?</span>
                 <Input
-                  readOnly={isLive}
+                  disabled={isLive}
                   type="checkbox"
                   onChange={(e) => {
                     setIsLogarithmic(e.target.checked);

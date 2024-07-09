@@ -169,17 +169,18 @@ function generateNumericAreaGraph(data: {
 
   const verticalLines: Line = [];
   const quantiles = computeQuartilesFromCDF(cdf);
+  console.log(graph);
   verticalLines.push(
     {
-      x: quantiles.lower25 * 10,
+      x: quantiles.lower25 * max,
       y: graph[Math.min(198, Math.round(quantiles.lower25 * 200))]?.y ?? 0,
     },
     {
-      x: quantiles.median * 10,
+      x: quantiles.median * max,
       y: graph[Math.min(198, Math.round(quantiles.median * 200))]?.y ?? 0,
     },
     {
-      x: quantiles.upper75 * 10,
+      x: quantiles.upper75 * max,
       y: graph[Math.min(198, Math.round(quantiles.upper75 * 200))]?.y ?? 0,
     }
   );
