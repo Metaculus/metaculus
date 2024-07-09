@@ -8,6 +8,7 @@ import {
   headingsPlugin,
   imagePlugin,
   InsertImage,
+  InsertTable,
   InsertThematicBreak,
   JsxComponentDescriptor,
   jsxPlugin,
@@ -19,6 +20,7 @@ import {
   MDXEditorMethods,
   quotePlugin,
   Separator,
+  tablePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
   UndoRedo,
@@ -29,18 +31,26 @@ import React, { FC, useMemo, useRef } from "react";
 import "@mdxeditor/editor/style.css";
 
 import { uploadImage } from "@/app/(main)/questions/actions";
+import {
+  EmbedMathJaxAction,
+  mathJaxDescriptor,
+} from "@/components/markdown_editor/embedded_math_jax";
 import useAppTheme from "@/hooks/use_app_theme";
 
+import {
+  transformMathJax,
+  revertMathJaxTransform,
+} from "./embedded_math_jax/helpers";
 import {
   embeddedQuestionDescriptor,
   EmbedQuestionAction,
 } from "./embedded_question";
-
 import "./editor.css";
 
 type EditorMode = "write" | "read";
 
 const jsxComponentDescriptors: JsxComponentDescriptor[] = [
+  mathJaxDescriptor,
   embeddedQuestionDescriptor,
 ];
 
@@ -61,6 +71,12 @@ const MarkdownEditor: FC<Props> = ({
 
   const editorRef = useRef<MDXEditorMethods>(null);
 
+  // Transform MathJax syntax to JSX embeds to properly utilise the MarkJax renderer
+  const formattedMarkdown = useMemo(
+    () => transformMathJax(markdown),
+    [markdown]
+  );
+
   const baseFormattingPlugins = [
     headingsPlugin(),
     listsPlugin(),
@@ -69,6 +85,7 @@ const MarkdownEditor: FC<Props> = ({
     markdownShortcutPlugin(),
     thematicBreakPlugin(),
     linkDialogPlugin(),
+    tablePlugin(),
     imagePlugin({
       disableImageSettingsButton: true,
       disableImageResize: true,
@@ -98,6 +115,8 @@ const MarkdownEditor: FC<Props> = ({
           <CreateLink />
           <InsertImage />
           <InsertThematicBreak />
+          <InsertTable />
+          <EmbedMathJaxAction />
           <Separator />
           <EmbedQuestionAction />
         </DiffSourceToggleWrapper>
@@ -127,8 +146,11 @@ const MarkdownEditor: FC<Props> = ({
         { "!p-0": mode === "read" },
         contentEditableClassName
       )}
-      markdown={markdown}
-      onChange={onChange}
+      markdown={formattedMarkdown}
+      onChange={(value) => {
+        // Revert the MathJax transformation before passing the markdown to the parent component
+        onChange(revertMathJaxTransform(value));
+      }}
       readOnly={mode === "read"}
       plugins={[
         ...baseFormattingPlugins,
