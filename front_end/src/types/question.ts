@@ -93,6 +93,8 @@ export type Question = {
 export type QuestionWithNumericForecasts = Question & {
   type: QuestionType.Numeric | QuestionType.Date | QuestionType.Binary;
   forecasts: NumericForecast;
+  open_upper_bound?: boolean;
+  open_lower_bound?: boolean;
 };
 export type QuestionWithMultipleChoiceForecasts = Question & {
   type: QuestionType.MultipleChoice;

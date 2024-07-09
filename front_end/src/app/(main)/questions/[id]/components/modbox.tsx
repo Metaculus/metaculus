@@ -8,6 +8,7 @@ import { FC, useMemo, useState } from "react";
 import { z } from "zod";
 
 import BaseModal from "@/components/base_modal";
+import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
 import { ErrorResponse } from "@/types/fetch";
 import {
@@ -25,15 +26,22 @@ type ApprovalData = Record<
   { open_time: string | null; cp_reveal_time: string | null }
 >;
 
-const PostApprovalModal: FC<{ post: Post; isOpen: boolean }> = ({
-  post,
-  isOpen,
-}) => {
+const PostApprovalModal: FC<{
+  post: Post;
+  isOpen: boolean;
+  setIsOpen: any;
+}> = ({ post, isOpen, setIsOpen }) => {
   const router = useRouter();
   const t = useTranslations();
-  const [approvalError, setApprovalError] = useState<ErrorResponse>([]);
+  const [approvalError, setApprovalError] = useState<ErrorResponse | null>(
+    null
+  );
   const currentDateTime = useMemo(
-    () => format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+    () =>
+      format(
+        new Date(new Date().getTime() + new Date().getTimezoneOffset() * 60000),
+        "yyyy-MM-dd'T'HH:mm:ss'Z'"
+      ),
     []
   );
 
@@ -47,8 +55,8 @@ const PostApprovalModal: FC<{ post: Post; isOpen: boolean }> = ({
   }
 
   const initApprovalData: ApprovalData = {};
-  for (let question_id in Object.values(approvalMap)) {
-    initApprovalData[approvalMap[question_id]] = {
+  for (let question_id of Object.values(approvalMap)) {
+    initApprovalData[question_id] = {
       open_time: null,
       cp_reveal_time: null,
     };
@@ -58,43 +66,52 @@ const PostApprovalModal: FC<{ post: Post; isOpen: boolean }> = ({
     useState<ApprovalData>(initApprovalData);
 
   return (
-    <BaseModal isOpen={isOpen}>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={() => {
+        setIsOpen(false);
+      }}
+    >
       <div className="max-w-xl flex-col items-center text-center">
         <form className="flex flex-col items-center gap-4">
           {approvalMap && (
             <>
               {Object.entries(approvalMap).map(([key, value], index) => {
-                <div key={index}>
-                  <span>Question: </span>
-                  <span>{key}</span>
-                  <span>Open Time</span>
-                  <Input
-                    type="datetime-local"
-                    placeholder="date when forecasts will open"
-                    className="bg-transparent pl-1"
-                    min={currentDateTime}
-                    onChange={(e) => {
-                      approvalData[value].open_time = e.target.value;
-                      setApprovalData(approvalData);
-                    }}
-                  />
-                  <span>CP Reveal Time</span>
-                  <Input
-                    type="datetime-local"
-                    placeholder="time when the cp will be revealed"
-                    className="bg-transparent pl-1"
-                    min={currentDateTime}
-                    onChange={(e) => {
-                      approvalData[value].cp_reveal_time = e.target.value;
-                      setApprovalData(approvalData);
-                    }}
-                  />
-                </div>;
+                return (
+                  <div key={index} className="flex flex-col gap-2">
+                    <div>
+                      <span>Question: </span>
+                      <span>{key}</span>
+                    </div>
+                    <span>Open Time</span>
+                    <Input
+                      type="datetime-local"
+                      placeholder="date when forecasts will open"
+                      className="bg-transparent pl-1"
+                      min={currentDateTime}
+                      onChange={(e) => {
+                        approvalData[value].open_time = e.target.value;
+                        setApprovalData(approvalData);
+                      }}
+                    />
+                    <span>CP Reveal Time</span>
+                    <Input
+                      type="datetime-local"
+                      placeholder="time when the cp will be revealed"
+                      className="bg-transparent pl-1"
+                      min={currentDateTime}
+                      onChange={(e) => {
+                        approvalData[value].cp_reveal_time = e.target.value;
+                        setApprovalData(approvalData);
+                      }}
+                    />
+                  </div>
+                );
               })}
             </>
           )}
-          <button
-            onClick={() => {
+          <Button
+            onClick={async () => {
               for (let question_id in approvalData) {
                 if (approvalData[question_id].open_time === null) {
                   setApprovalError({
@@ -110,8 +127,10 @@ const PostApprovalModal: FC<{ post: Post; isOpen: boolean }> = ({
                 }
               }
               if (post.question) {
-                updatePost(post.id, {
+                await updatePost(post.id, {
+                  published_at: currentDateTime,
                   curation_status: PostStatus.APPROVED,
+
                   question: {
                     id: post.question.id,
                     open_time: approvalData[post.question.id].open_time,
@@ -128,19 +147,26 @@ const PostApprovalModal: FC<{ post: Post; isOpen: boolean }> = ({
                     cp_reveal_time: approvalData[question_id].cp_reveal_time,
                   });
                 }
-                updatePost(post.id, {
+                await updatePost(post.id, {
                   curation_status: PostStatus.APPROVED,
-                  group_of_questions: { questions: approvalDatesArr },
+                  group_of_questions: {
+                    published_at: currentDateTime,
+                    questions: approvalDatesArr,
+                  },
                 });
               } else {
-                updatePost(post.id, { curation_status: PostStatus.APPROVED });
+                await updatePost(post.id, {
+                  published_at: currentDateTime,
+                  curation_status: PostStatus.APPROVED,
+                });
               }
 
+              setIsOpen(false);
               router.refresh();
             }}
           >
             {t("approveButton")}
-          </button>
+          </Button>
           {approvalError && (
             <div className="rounded-md bg-red-500 p-4 text-white">
               {approvalError.message}
@@ -171,6 +197,7 @@ export default function Modbox({ post }: { post: PostWithForecasts }) {
       <PostApprovalModal
         isOpen={approvalModalOpen}
         post={post}
+        setIsOpen={setIsApprovalModalOpen}
       ></PostApprovalModal>
       {post.status == PostStatus.PENDING && (
         <button

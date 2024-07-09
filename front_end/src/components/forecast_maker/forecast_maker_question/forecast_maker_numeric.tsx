@@ -33,7 +33,6 @@ const ForecastMakerNumeric: FC<Props> = ({
 }) => {
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
   const t = useTranslations();
-
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
     prevForecastValue?.forecast ?? [
       {

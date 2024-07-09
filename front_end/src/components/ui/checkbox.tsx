@@ -4,6 +4,10 @@ import { Checkbox as HeadlessCheckbox, Field, Label } from "@headlessui/react";
 import classNames from "classnames";
 import { FC, MouseEventHandler, TouchEventHandler } from "react";
 
+import { ErrorResponse } from "@/types/fetch";
+
+import { FormError } from "./form_field";
+
 type Props = {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -15,6 +19,8 @@ type Props = {
   onMouseLeave?: MouseEventHandler<HTMLDivElement>;
   onTouchStart?: TouchEventHandler<HTMLDivElement>;
   onTouchMove?: TouchEventHandler<HTMLDivElement>;
+  readOnly?: boolean;
+  errors?: ErrorResponse;
 };
 
 const Checkbox: FC<Props> = ({
@@ -28,6 +34,8 @@ const Checkbox: FC<Props> = ({
   onMouseLeave,
   onTouchStart,
   onTouchMove,
+  readOnly,
+  errors,
 }) => {
   return (
     <Field
@@ -40,6 +48,13 @@ const Checkbox: FC<Props> = ({
       <HeadlessCheckbox
         checked={checked}
         onChange={onChange}
+        onClick={(e) => {
+          if (readOnly) {
+            e.stopPropagation();
+            e.preventDefault();
+            return false;
+          }
+        }}
         className="focus:outline-none"
       >
         {({ checked }) =>
@@ -60,6 +75,7 @@ const Checkbox: FC<Props> = ({
           )
         }
       </HeadlessCheckbox>
+      {errors && <FormError errors={errors} name={label} />}
       <Label className="hover:cursor-pointer">{label}</Label>
     </Field>
   );

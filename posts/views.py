@@ -164,6 +164,7 @@ def post_update_api_view(request, pk):
     if "categories" in request.data:
         add_categories(request.data["categories"], post)
     serializer.save()
+
     return Response(serializer.data)
 
 
