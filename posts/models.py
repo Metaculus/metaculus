@@ -439,6 +439,11 @@ class Post(TimeStampedModel):
     projects = models.ManyToManyField(Project, related_name="posts", blank=True)
     users = models.ManyToManyField(User, through="PostUserSnapshot")
 
+    # Evaluated Fields
+    movement = models.FloatField(null=True, blank=True)  # Jeffrey's Divergence
+    # TODO: these two fields might be necessary for display purposes
+    # movement_total = models.FloatField(null=True, blank=True)
+    # movement_asymmetric = models.FloatField(null=True, blank=True)
     forecasts_count = models.PositiveIntegerField(
         default=0, editable=False, db_index=True
     )
@@ -477,6 +482,12 @@ class PostUserSnapshot(models.Model):
     last_forecast_date = models.DateTimeField(db_index=True, default=None, null=True)
     comments_count = models.IntegerField(default=0)
     viewed_at = models.DateTimeField(db_index=True, default=timezone.now)
+
+    # Evaluated Fields
+    divergence = models.FloatField(null=True, blank=True)  # Jeffrey's Divergence
+    # TODO: these two fields might be necessary for display purposes
+    # divergence_total = models.FloatField(null=True, blank=True)
+    # divergence_asymmetric = models.FloatField(null=True, blank=True)
 
     class Meta:
         constraints = [
