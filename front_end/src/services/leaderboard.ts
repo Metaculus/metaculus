@@ -18,18 +18,23 @@ class LeaderboardApi {
     projectId: number,
     leaderboardType: string | null = null,
     leaderboardName: string | null = null
-  ): Promise<LeaderboardDetails> {
-    // TODO: make paginated
-    const params = new URLSearchParams();
-    if (leaderboardType) {
-      params.append("leaderboardType", leaderboardType);
-    }
-    if (leaderboardName) {
-      params.append("leaderboardName", leaderboardName);
-    }
+  ): Promise<LeaderboardDetails | null> {
+    try {
+      // TODO: make paginated
+      const params = new URLSearchParams();
+      if (leaderboardType) {
+        params.append("leaderboardType", leaderboardType);
+      }
+      if (leaderboardName) {
+        params.append("leaderboardName", leaderboardName);
+      }
 
-    const url = `/leaderboards/project/${projectId}/${params.toString() ? `?${params.toString()}` : ""}`;
-    return await get<LeaderboardDetails>(url);
+      const url = `/leaderboards/project/${projectId}/${params.toString() ? `?${params.toString()}` : ""}`;
+      return await get<LeaderboardDetails>(url);
+    } catch (err) {
+      console.error("Error getting project leaderboard:", err);
+      return null;
+    }
   }
 }
 

@@ -166,12 +166,12 @@ def serialize_conditional(
     serialized_data["condition"] = serialize_question(
         conditional.condition,
         with_forecasts=False,
-        post_id=conditional.condition.get_post().id,
+        post_id=post_id,
     )
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
         with_forecasts=False,
-        post_id=conditional.condition_child.get_post().id,
+        post_id=post_id,
     )
 
     # Autogen questions

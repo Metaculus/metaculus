@@ -1,7 +1,12 @@
 import numpy as np
+from django.db import connection
+from django.db.models import Count, F
+from django.db.models.functions import Coalesce
+from sql_util.aggregates import SubqueryAggregate
 
 from migrator.services.migrate_questions import migrate_post_snapshots_forecasts
 from migrator.utils import paginated_query
+from posts.models import Post
 from questions.models import Forecast, Question
 from users.models import User
 
@@ -79,3 +84,76 @@ def migrate_forecasts(qty: int | None = None):
     print("Migrating last user<>post forecast snapshots")
 
     migrate_post_snapshots_forecasts()
+    migrate_forecast_post_relation()
+    migrate_post_forecasts_count()
+
+
+def migrate_forecast_post_relation():
+    print("Migrating Forecast.post_id. Usually takes up to 2-3 minutes!")
+
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            -- Optimized update query
+            WITH post_ids AS (
+                SELECT 
+                    q.id AS question_id,
+                    COALESCE(p.id, NULL) AS post_id
+                FROM 
+                    questions_question q
+                LEFT JOIN 
+                    questions_groupofquestions g ON q.group_id = g.id
+                LEFT JOIN 
+                    questions_conditional c ON c.question_yes_id = q.id OR c.question_no_id = q.id
+                LEFT JOIN 
+                    posts_post p ON p.question_id = q.id OR p.group_of_questions_id = g.id OR p.conditional_id = c.id
+            )
+            UPDATE 
+                questions_forecast f
+            SET 
+                post_id = post_ids.post_id
+            FROM 
+                post_ids
+            WHERE 
+                f.question_id = post_ids.question_id;
+        """
+        )
+
+    print("Finished migrating Forecast.post_id")
+
+
+def migrate_post_forecasts_count():
+    print("Migrating Post.forecasts_count")
+
+    qs = Post.objects.annotate(
+        forecasts_count_annotated=(
+            # Note: Order is important
+            Coalesce(
+                SubqueryAggregate("question__forecast", aggregate=Count),
+                # Question groups
+                SubqueryAggregate(
+                    "group_of_questions__questions__forecast",
+                    aggregate=Count,
+                ),
+                # Conditional questions
+                Coalesce(
+                    SubqueryAggregate(
+                        "conditional__question_yes__forecast",
+                        aggregate=Count,
+                    ),
+                    0,
+                )
+                + Coalesce(
+                    SubqueryAggregate(
+                        "conditional__question_no__forecast",
+                        aggregate=Count,
+                    ),
+                    0,
+                ),
+            )
+        )
+    )
+
+    qs.update(forecasts_count=F("forecasts_count_annotated"))
+
+    print("Finished migrating Post.forecasts_count")
