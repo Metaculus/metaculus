@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { setCookie } from "cookies-next";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import useSearchParams from "@/hooks/use_search_params";
@@ -14,6 +15,7 @@ const Footer: FC = () => {
   const router = useRouter();
   const { params } = useSearchParams();
   const pathname = usePathname();
+  const t = useTranslations();
 
   return (
     <footer className="dark relative mx-auto my-0 flex w-full flex-wrap justify-center bg-blue-900 px-0 pb-0 pt-2 text-white">
@@ -22,17 +24,17 @@ const Footer: FC = () => {
           <ul>
             <li className="my-2">
               <a className="no-underline" href="/about/">
-                About
+                {t("about")}
               </a>
             </li>
             <li className="my-2">
               <a className="no-underline" href="/api">
-                API
+                {t("API")}
               </a>
             </li>
             <li className="my-2">
               <a className="no-underline" href="/otherinitiatives/">
-                Other Initiatives
+                {t("Other Initiatives")}
               </a>
             </li>
           </ul>
@@ -41,17 +43,17 @@ const Footer: FC = () => {
           <ul>
             <li className="my-2">
               <a className="no-underline" href="/help/faq">
-                FAQ
+                {t("FAQ")}
               </a>
             </li>
             <li className="my-2">
               <a className="no-underline" href="/help/prediction-resources">
-                Forecasting Resources
+                {t("Forecasting Resources")}
               </a>
             </li>
             <li className="my-2">
               <a className="no-underline" href="/press">
-                Metaculus for Journalists
+                {t("Metaculus for Journalists")}
               </a>
             </li>
           </ul>
@@ -59,14 +61,16 @@ const Footer: FC = () => {
         <div className="mr-3">
           <ul>
             <li className="my-2">
-              <button ng-click="modals.setActive('contact-us')">Contact</button>
+              <button ng-click="modals.setActive('contact-us')">
+                {t("Contact")}
+              </button>
             </li>
             <li className="my-2">
               <a
                 className="no-underline"
                 href="https://apply.workable.com/metaculus"
               >
-                Careers
+                {t("Careers")}
               </a>
             </li>
             <li className="my-2">
@@ -90,19 +94,19 @@ const Footer: FC = () => {
             className="my-1 inline px-2 no-underline lg:block lg:px-0"
             href="/help/guidelines/"
           >
-            Guidelines
+            {t("Guidelines")}
           </a>
           <a
             className="my-1 inline border-l border-gray-600-dark px-2 no-underline lg:block lg:border-0 lg:px-0"
             href="/privacy-policy/"
           >
-            Privacy Policy
+            {t("Privacy Policy")}
           </a>
           <a
             className="my-1 inline border-l border-gray-600-dark px-2 no-underline lg:block lg:border-0 lg:px-0"
             href="/terms-of-use/"
           >
-            Terms of Use
+            {t("Terms of Use")}
           </a>
         </div>
 
@@ -137,7 +141,7 @@ const Footer: FC = () => {
             name="language"
             value="cs"
           >
-            Czech
+            Čeština
           </button>
           <button
             className="border-l border-gray-600-dark pl-2 hover:text-white lg:pl-1"
@@ -151,7 +155,7 @@ const Footer: FC = () => {
             name="language"
             value="zh"
           >
-            Chinese
+            中国人
           </button>
         </form>
       </div>

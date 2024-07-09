@@ -3,6 +3,7 @@
 import { Field, Input, Label } from "@headlessui/react";
 import classNames from "classnames";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import React, { useState } from "react";
 
 import { updateNotebook } from "@/app/(main)/questions/actions";
@@ -21,6 +22,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
   postData,
   contentId,
 }) => {
+  const t = useTranslations();
   const [isEditing, setIsEditing] = useState(false);
 
   const [title, setTitle] = useState(postData.title);
@@ -44,7 +46,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
 
       <div className={classNames("flex flex-col", { hidden: !isEditing })}>
         <Field className="my-2 flex items-center gap-1">
-          <Label>Title</Label>
+          <Label>{t("Title")}</Label>
           <Input
             name="title"
             type="text"
