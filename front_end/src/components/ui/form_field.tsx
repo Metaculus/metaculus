@@ -27,7 +27,7 @@ export interface SelectProps
 }
 
 const extractError = (field_error: any): string | undefined => {
-  console.log("extractError", field_error);
+  console.log("Error: ", field_error);
 
   if (typeof field_error === "string") return field_error;
 

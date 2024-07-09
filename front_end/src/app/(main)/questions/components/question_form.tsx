@@ -11,8 +11,9 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import Button from "@/components/ui/button";
+import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
-import { Category, PostWithForecasts } from "@/types/post";
+import { Category, PostStatus, PostWithForecasts } from "@/types/post";
 
 import CategoryPicker from "./category_picker";
 import { createQuestionPost, updatePost } from "../actions";
@@ -78,11 +79,26 @@ const QuestionForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
+  const isLive =
+    post?.curation_status == PostStatus.APPROVED ||
+    post?.curation_status == PostStatus.OPEN;
+  const isDone =
+    post?.curation_status == PostStatus.RESOLVED ||
+    post?.curation_status == PostStatus.CLOSED ||
+    post?.curation_status == PostStatus.DELETED;
+
+  if (isDone) {
+    throw new Error("Cannot edit closed, resolved or rejected questions");
+  }
 
   const submitQuestion = async (data: any) => {
     data["type"] = questionType;
     data["options"] = optionsList;
 
+    if (questionType == "date") {
+      data["max"] = new Date(data["max"]).getTime() / 1000;
+      data["min"] = new Date(data["min"]).getTime() / 1000;
+    }
     let post_data: PostCreationData = {
       title: data["title"],
       categories: categoriesList.map((x) => x.id),
@@ -96,14 +112,15 @@ const QuestionForm: React.FC<Props> = ({
       router.push(`/questions/${resp.post?.id}`);
     }
   };
-
   const [optionsList, setOptionsList] = useState<string[]>(
     post?.question?.options ? post?.question?.options : []
   );
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
-  const [isLogarithmic, setIsLogarithmic] = useState<boolean>(false);
+  const [isLogarithmic, setIsLogarithmic] = useState<boolean>(
+    post?.question ? post?.question?.zero_point != 0 : false
+  );
 
   const getFormSchema = (type: string) => {
     switch (type) {
@@ -169,6 +186,7 @@ const QuestionForm: React.FC<Props> = ({
               ? control.getValues("default_project_id")
               : tournament_id
           }
+          readOnly={isLive}
         />
         <div>
           <span className="">
@@ -216,6 +234,7 @@ const QuestionForm: React.FC<Props> = ({
           <div>
             <span>Closing Date</span>
             <Input
+              readOnly={isLive}
               type="datetime-local"
               {...control.register("scheduled_close_time", {
                 setValueAs: (value: string) => {
@@ -239,6 +258,7 @@ const QuestionForm: React.FC<Props> = ({
           <div>
             <span>Resolving Date</span>
             <Input
+              readOnly={isLive}
               type="datetime-local"
               {...control.register("scheduled_resolve_time", {
                 setValueAs: (value: string) => {
@@ -265,6 +285,7 @@ const QuestionForm: React.FC<Props> = ({
               <div>
                 <span>Max</span>
                 <Input
+                  readOnly={isLive}
                   type="number"
                   {...control.register("max", {
                     setValueAs: (value: string) => Number(value),
@@ -276,6 +297,7 @@ const QuestionForm: React.FC<Props> = ({
               <div>
                 <span>Min</span>
                 <Input
+                  readOnly={isLive}
                   type="number"
                   {...control.register("min", {
                     setValueAs: (value: string) => Number(value),
@@ -291,6 +313,7 @@ const QuestionForm: React.FC<Props> = ({
               <div>
                 <span>Max</span>
                 <Input
+                  readOnly={isLive}
                   type="date"
                   {...control.register("max", {
                     setValueAs: (value: string) => {
@@ -301,12 +324,20 @@ const QuestionForm: React.FC<Props> = ({
                     },
                   })}
                   errors={control.formState.errors.max}
-                  defaultValue={post?.question?.max}
+                  defaultValue={
+                    post?.question?.max
+                      ? format(
+                          new Date(post?.question?.max * 1000),
+                          "yyyy-MM-dd"
+                        )
+                      : undefined
+                  }
                 />
               </div>
               <div>
                 <span>Min</span>
                 <Input
+                  readOnly={isLive}
                   type="date"
                   {...control.register("min", {
                     setValueAs: (value: string) => {
@@ -317,7 +348,14 @@ const QuestionForm: React.FC<Props> = ({
                     },
                   })}
                   errors={control.formState.errors.min}
-                  defaultValue={post?.question?.min}
+                  defaultValue={
+                    post?.question?.min
+                      ? format(
+                          new Date(post?.question?.min * 1000),
+                          "yyyy-MM-dd"
+                        )
+                      : undefined
+                  }
                 />
               </div>
             </>
@@ -326,23 +364,38 @@ const QuestionForm: React.FC<Props> = ({
             <>
               <div>
                 <span>Open Upper Bound</span>
-                <Input
-                  type="checkbox"
-                  {...control.register("open_upper_bound")}
+                <Checkbox
+                  readOnly={isLive}
                   errors={control.formState.errors.open_upper_bound}
+                  onChange={(e) => {
+                    control.setValue("open_upper_bound", e);
+                  }}
+                  // @ts-ignore
+                  defaultValue={
+                    // @ts-ignore
+                    post?.question ? post?.question?.open_upper_bound : false
+                  }
                 />
               </div>
               <div>
                 <span>Open Lower Bound</span>
-                <Input
-                  type="checkbox"
-                  {...control.register("open_lower_bound")}
+                <Checkbox
+                  readOnly={isLive}
                   errors={control.formState.errors.open_lower_bound}
+                  onChange={(e) => {
+                    control.setValue("open_lower_bound", e);
+                  }}
+                  // @ts-ignore
+                  defaultValue={
+                    // @ts-ignore
+                    post?.question ? post?.question?.open_lower_bound : false
+                  }
                 />
               </div>
               <div>
                 <span className="mr-2">Is Logarithmic ?</span>
                 <Input
+                  readOnly={isLive}
                   type="checkbox"
                   onChange={(e) => {
                     setIsLogarithmic(e.target.checked);
@@ -356,6 +409,7 @@ const QuestionForm: React.FC<Props> = ({
                   <>
                     <span>Zero Point</span>
                     <Input
+                      readOnly={isLive}
                       type="number"
                       {...control.register("zero_point", {
                         setValueAs: (value: string) => Number(value),
@@ -380,6 +434,7 @@ const QuestionForm: React.FC<Props> = ({
             <>
               <span>Multiple Choice (separate by ,)</span>
               <Input
+                readOnly={isLive}
                 type="text"
                 onChange={(event) => {
                   const options = String(event.target.value)
@@ -395,6 +450,7 @@ const QuestionForm: React.FC<Props> = ({
                   {optionsList.map((option: string, opt_index: number) => {
                     return (
                       <Input
+                        readOnly={isLive}
                         key={opt_index}
                         className="m-2 w-min min-w-[120px] border p-2 text-xs"
                         value={option}
@@ -433,8 +489,8 @@ const QuestionForm: React.FC<Props> = ({
             errors={control.formState.errors.fine_print}
             className="h-[120px] w-full"
             defaultValue={
-              post?.question?.resolution_criteria_description
-                ? post?.question?.resolution_criteria_description
+              post?.question?.fine_print
+                ? post?.question?.fine_print
                 : undefined
             }
           />

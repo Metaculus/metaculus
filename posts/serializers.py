@@ -97,6 +97,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "conditional",
             "group_of_questions",
             "notebook",
+            "published_at",
         )
 
 
