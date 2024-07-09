@@ -1,6 +1,6 @@
 from django.db.models import Q
-from django.forms import ValidationError
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
@@ -180,6 +180,11 @@ def get_posts_feed(
             qs = qs.annotate_unread_comment_count(user_id=user.id)
         if order_type == PostFilterSerializer.Order.HOT:
             qs = qs.annotate_hot()
+        if order_type == PostFilterSerializer.Order.SCORE:
+            if not forecaster_id:
+                raise ValidationError("Can not order by score without forecaster_id provided")
+
+            qs = qs.annotate_score(forecaster_id, desc=order_desc)
 
         qs = qs.order_by(build_order_by(order_type, order_desc))
     else:

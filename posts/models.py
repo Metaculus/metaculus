@@ -1,13 +1,26 @@
 from datetime import timedelta
 
 from django.db import models
-from django.db.models import Sum, Subquery, OuterRef, Count, Q, F, Case, When, Value
+from django.db.models import (
+    Sum,
+    Subquery,
+    OuterRef,
+    Count,
+    Q,
+    F,
+    Case,
+    When,
+    Value,
+    Max,
+    Min,
+)
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Question, Conditional, GroupOfQuestions, Forecast
+from scoring.models import Score
 from users.models import User
 from utils.models import TimeStampedModel
 
@@ -125,6 +138,22 @@ class PostQuerySet(models.QuerySet):
                 unread_comment_count=F("comment_count") - F("snapshots__comment_count"),
             )
         )
+
+    def annotate_score(self, user_id: int, desc=True):
+        subquery = (
+            Score.objects.filter(user_id=user_id)
+            .filter(
+                Q(question__post=OuterRef("pk"))
+                | Q(question__group__post=OuterRef("pk"))
+                | Q(question__conditional_yes__post=OuterRef("pk"))
+                | Q(question__conditional_no__post=OuterRef("pk"))
+            )
+            .values("score")
+            .annotate(agg_score=Max("score") if desc else Min("score"))
+            .values("agg_score")
+        )[:1]
+
+        return self.annotate(score=subquery)
 
     def annotate_vote_score(self):
         return self.annotate(

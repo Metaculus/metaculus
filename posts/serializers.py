@@ -114,6 +114,7 @@ class PostFilterSerializer(serializers.Serializer):
         UNREAD_COMMENT_COUNT = "unread_comment_count"
         WEEKLY_MOVEMENT = "weekly_movement"
         HOT = "hot"
+        SCORE = "score"
 
     class Access(models.TextChoices):
         PRIVATE = "private"
