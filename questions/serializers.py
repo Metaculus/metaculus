@@ -59,15 +59,6 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data: dict):
-        if data["scheduled_resolve_time"] <= data["scheduled_close_time"]:
-            raise ValidationError(
-                {
-                    "scheduled_resolve_time": [
-                        "The expected resolve date should be after the question closes."
-                    ]
-                }
-            )
-
         return data
 
 
