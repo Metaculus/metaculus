@@ -14,6 +14,18 @@
   --baseBgActive: theme("colors.gray.0.dark");
 }
 
+.markdown-editor table th,
+.markdown-editor table td {
+  @apply !align-middle;
+}
+
+.markdown-editor table tbody th {
+  @apply !border-b !border-l-0 !border-r-0 !border-t-0 !border-gray-300 !pb-0 !pl-0 !pr-2 !pt-0 dark:!border-gray-300-dark;
+}
+.markdown-editor table tbody td {
+  @apply !pb-0 !pl-0 !pr-3 !pt-2;
+}
+
 [data-editor-block-type="image"] {
   @apply w-full;
 }
