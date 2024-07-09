@@ -14,8 +14,13 @@ urlpatterns = [
         name="project-leaderboard",
     ),
     path(
-        "leaderboards/medals/user/<int:user_id>/",
+        "medals/",
         views.user_medals,
         name="user-medals",
+    ),
+    path(
+        "medals/contributions/",
+        views.medal_contributions,
+        name="medal-contributions",
     ),
 ]
