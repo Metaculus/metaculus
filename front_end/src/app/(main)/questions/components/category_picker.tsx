@@ -22,7 +22,6 @@ const CategoryPicker: React.FC<{
   const [query, setQuery] = useState<string>("");
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   useEffect(() => {
-    console.log("HERE !");
     setFilteredCategories(
       allCategories.filter((category) =>
         category.name.toLowerCase().includes(query.toLowerCase())

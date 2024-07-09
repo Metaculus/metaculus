@@ -143,7 +143,7 @@ def serialize_question(
     serialized_data["post_id"] = post_id
 
     if with_forecasts:
-        if question.cp_reveal_time is None or question.cp_reveal_time < timezone.now():
+        if question.cp_reveal_time is None or question.cp_reveal_time > timezone.now():
             serialized_data["forecasts"] = build_question_forecasts(question, True)
         else:
             serialized_data["forecasts"] = build_question_forecasts(question)
