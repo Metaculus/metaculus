@@ -13,4 +13,9 @@ urlpatterns = [
         views.project_leaderboard,
         name="project-leaderboard",
     ),
+    path(
+        "leaderboards/medals/user/<int:user_id>/",
+        views.user_medals,
+        name="user-medals",
+    ),
 ]
