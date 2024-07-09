@@ -273,7 +273,7 @@ export default function Modbox({ post }: { post: PostWithForecasts }) {
           href={`/questions/create/${edit_type}?post_id=${post.id}`}
           className="no-underline"
         >
-          {t("editButton")}
+          {t("edit")}
         </a>
       </button>
     </div>
