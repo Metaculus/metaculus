@@ -368,13 +368,14 @@ const QuestionForm: React.FC<Props> = ({
               <div>
                 <span>Open Upper Bound</span>
                 <Checkbox
+                  label={"Open Upper Bound"}
                   readOnly={isLive}
                   errors={control.formState.errors.open_upper_bound}
                   onChange={(e) => {
                     control.setValue("open_upper_bound", e);
                   }}
                   // @ts-ignore
-                  defaultValue={
+                  checked={
                     // @ts-ignore
                     post?.question ? post?.question?.open_upper_bound : false
                   }
@@ -383,13 +384,14 @@ const QuestionForm: React.FC<Props> = ({
               <div>
                 <span>Open Lower Bound</span>
                 <Checkbox
+                  label={"Open Lower Bound"}
                   readOnly={isLive}
                   errors={control.formState.errors.open_lower_bound}
                   onChange={(e) => {
                     control.setValue("open_lower_bound", e);
                   }}
                   // @ts-ignore
-                  defaultValue={
+                  checked={
                     // @ts-ignore
                     post?.question ? post?.question?.open_lower_bound : false
                   }
