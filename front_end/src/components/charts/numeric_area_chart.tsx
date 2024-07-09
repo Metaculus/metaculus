@@ -83,7 +83,7 @@ const NumericAreaChart: FC<Props> = ({
             right: 10,
           }}
           domain={{
-            x: [min, max],
+            x: [0 * (max - min), 1 * (max - min)],
             y: [0, 1.2 * Math.max(...data.map((x) => x.pmf).flat())],
           }}
         >
@@ -169,18 +169,17 @@ function generateNumericAreaGraph(data: {
 
   const verticalLines: Line = [];
   const quantiles = computeQuartilesFromCDF(cdf);
-  console.log(graph);
   verticalLines.push(
     {
-      x: quantiles.lower25 * max,
+      x: quantiles.lower25 * (max - min),
       y: graph[Math.min(198, Math.round(quantiles.lower25 * 200))]?.y ?? 0,
     },
     {
-      x: quantiles.median * max,
+      x: quantiles.median * (max - min),
       y: graph[Math.min(198, Math.round(quantiles.median * 200))]?.y ?? 0,
     },
     {
-      x: quantiles.upper75 * max,
+      x: quantiles.upper75 * (max - min),
       y: graph[Math.min(198, Math.round(quantiles.upper75 * 200))]?.y ?? 0,
     }
   );
@@ -228,9 +227,14 @@ function generateNumericAreaTicks(
       if (majorTicks.includes(x)) {
         switch (type) {
           case QuestionType.Date:
-            return format(fromUnixTime(x), "MMM d");
+            return format(fromUnixTime(x), "yyyy-MM");
           default:
-            return x.toString();
+            if (x > 10000) {
+              return Math.round(x / 1000).toString() + "k";
+            } else if (x < 0) {
+              return (Math.round(x * 10000) / 10000).toString();
+            }
+            return (Math.round(x * 1000) / 1000).toString();
         }
       }
 
