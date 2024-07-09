@@ -4,7 +4,7 @@ import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import {
   deleteProjectMember,
   updateMember,
-} from "@/app/(main)/tournaments/[slug]/actions";
+} from "@/app/(main)/(tournaments)/tournament/[slug]/actions";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import Listbox from "@/components/ui/listbox";
