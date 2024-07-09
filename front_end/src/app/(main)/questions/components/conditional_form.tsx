@@ -43,7 +43,17 @@ const ConditionalForm: React.FC<{
   mode = "create",
 }) => {
   const router = useRouter();
+  const isLive =
+    post?.curation_status == PostStatus.APPROVED ||
+    post?.curation_status == PostStatus.OPEN;
+  const isDone =
+    post?.curation_status == PostStatus.RESOLVED ||
+    post?.curation_status == PostStatus.CLOSED ||
+    post?.curation_status == PostStatus.DELETED;
 
+  if (isDone) {
+    throw new Error("Cannot edit closed, resolved or rejected questions");
+  }
   const [condition, setCondition] = useState<PostWithForecasts | null>(
     conditionInit
   );
@@ -99,6 +109,7 @@ const ConditionalForm: React.FC<{
         />
         <span>Condition ID</span>
         <Input
+          disabled={!isLive}
           defaultValue={condition?.id}
           readOnly={Boolean(post && post.curation_status !== PostStatus.DRAFT)}
           type="number"
@@ -131,6 +142,7 @@ const ConditionalForm: React.FC<{
 
         <span>Condition Child ID</span>
         <Input
+          disabled={!isLive}
           defaultValue={conditionChild?.id}
           readOnly={Boolean(post && post.curation_status !== PostStatus.DRAFT)}
           type="number"
@@ -160,7 +172,7 @@ const ConditionalForm: React.FC<{
             Please enter the id of a question.
           </span>
         )}
-        <Button type="submit">
+        <Button type="submit" disabled={!isLive}>
           {mode === "edit" ? "Edit Question" : "Create Question"}
         </Button>
       </form>

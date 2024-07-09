@@ -139,11 +139,15 @@ def truncate_forecast_history(
 ) -> list[ForecastHistoryEntry]:
     # @TODO Luke should we be doing this ? I think so, plotting 4-5k datapoints is also going to make the FE very slow and nobody scrolls through that many *BUT* we should probably truncate at even timestamps
     if len(forecast_history) > max_length:
-        forecast_history = forecast_history[:5] + [
-            x
-            for i, x in enumerate(forecast_history[5:-5])
-            if i % max(1, int(len(forecast_history) / max_length - 10)) == 0
-        ] + forecast_history[-5:]
+        forecast_history = (
+            forecast_history[:5]
+            + [
+                x
+                for i, x in enumerate(forecast_history[5:-5])
+                if i % max(1, int(len(forecast_history) / max_length - 10)) == 0
+            ]
+            + forecast_history[-5:]
+        )
     return forecast_history
 
 

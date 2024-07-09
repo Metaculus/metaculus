@@ -10,7 +10,7 @@ import * as z from "zod";
 
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
-import { PostWithForecasts } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import { createQuestionPost, updatePost } from "../actions";
 
@@ -56,6 +56,13 @@ const GroupForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
+  const isLive =
+    post?.curation_status == PostStatus.APPROVED ||
+    post?.curation_status == PostStatus.OPEN;
+  const isDone =
+    post?.curation_status == PostStatus.RESOLVED ||
+    post?.curation_status == PostStatus.CLOSED ||
+    post?.curation_status == PostStatus.DELETED;
 
   const submitQuestion = async (data: any) => {
     data["tournament_id"] = tournament_id;
