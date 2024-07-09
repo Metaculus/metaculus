@@ -40,7 +40,7 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
     <div>
       <div>
         <Button className="p-2" onClick={toggleEditMode}>
-          {isEditing ? "Save" : "Edit"}
+          {isEditing ? "save" : "edit"}
         </Button>
       </div>
 
