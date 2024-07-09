@@ -12,6 +12,7 @@ import Button from "@/components/ui/button";
 import { createQuestionPost } from "../../actions";
 import { useTranslations } from "next-intl";
 import ProjectsApi from "@/services/projects";
+import { useRouter } from "next/navigation";
 
 const NotebookCreator: React.FC = ({}) => {
   const [markdown, setMarkdown] = useState("");
@@ -19,6 +20,7 @@ const NotebookCreator: React.FC = ({}) => {
   const t = useTranslations();
   // @TODO Separate notebook editor client
   // const allCategories = await ProjectsApi.getCategories();
+  const router = useRouter();
 
   return (
     <div className="h-50vh mx-auto mb-8 mt-4 max-w-3xl overflow-auto rounded-lg bg-gray-0 p-6 dark:bg-gray-100-dark">
@@ -39,7 +41,7 @@ const NotebookCreator: React.FC = ({}) => {
         <Button
           className="text-xl"
           onClick={async () => {
-            createQuestionPost({
+            const resp = await createQuestionPost({
               title: title,
               notebook: {
                 type: "discussion",
@@ -47,6 +49,7 @@ const NotebookCreator: React.FC = ({}) => {
                 markdown: markdown,
               },
             });
+            router.push(`/questions/${resp?.post?.id}`);
           }}
         >
           Create Notebook
