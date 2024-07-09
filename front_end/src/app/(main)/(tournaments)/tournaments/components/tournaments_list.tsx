@@ -3,10 +3,6 @@ import { differenceInMilliseconds, isAfter } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
-import {
-  TOURNAMENTS_SEARCH,
-  TOURNAMENTS_SORT,
-} from "@/app/(main)/tournaments/constants/query_params";
 import TournamentCard from "@/components/tournament_card";
 import Button from "@/components/ui/button";
 import useSearchParams from "@/hooks/use_search_params";
@@ -16,6 +12,11 @@ import {
   TournamentType,
 } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
+
+import {
+  TOURNAMENTS_SEARCH,
+  TOURNAMENTS_SORT,
+} from "../constants/query_params";
 
 type Props = {
   items: Tournament[];
@@ -88,8 +89,8 @@ const TournamentsList: FC<Props> = ({
               key={item.id}
               href={
                 item.slug
-                  ? `/tournaments/${item.slug}`
-                  : `/tournaments/${item.id}`
+                  ? `/tournament/${item.slug}`
+                  : `/tournament/${item.id}`
               }
               headerImageSrc={item.header_image}
               name={item.name}

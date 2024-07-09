@@ -1,5 +1,8 @@
 import datetime
 
+import pytest
+from freezegun import freeze_time
+
 from posts.models import Post
 from projects.permissions import ObjectPermission
 from tests.fixtures import *  # noqa
@@ -20,7 +23,6 @@ class TestPostQuerySetAnnotatePredictionsCount:
 
         assert (
             Post.objects.filter(pk=post.id)
-            .annotate_forecasts_count()
             .first()
             .forecasts_count
             == 2
@@ -33,13 +35,7 @@ class TestPostQuerySetAnnotatePredictionsCount:
         create_forecast(question=conditional_1.question_no, author=user1)
         create_forecast(question=conditional_1.question_no, author=user1)
 
-        assert (
-            Post.objects.filter(pk=post.id)
-            .annotate_forecasts_count()
-            .first()
-            .forecasts_count
-            == 3
-        )
+        assert Post.objects.filter(pk=post.id).first().forecasts_count == 3
 
     def test_mixed(self, conditional_1, question_binary, user1):
         """
@@ -57,7 +53,7 @@ class TestPostQuerySetAnnotatePredictionsCount:
         create_forecast(question=question_binary, author=user1)
         create_forecast(question=question_binary, author=user1)
 
-        qs = Post.objects.annotate_forecasts_count().annotate_nr_forecasters().all()
+        qs = Post.objects.all()
 
         assert next(x for x in qs if x.id == post1.id).forecasts_count == 3
         assert next(x for x in qs if x.id == post2.id).forecasts_count == 2
@@ -271,3 +267,37 @@ def test_annotate_unread_comment_count(user1, user2):
     assert (
         Post.objects.filter(pk=post.id).annotate_unread_comment_count(user2.id).first()
     ).unread_comment_count == 1
+
+
+@freeze_time("2024-07-09")
+@pytest.mark.skip()
+def test_annotate_weekly_movement(user1, conditional_1):
+    post = factory_post(author=user1, conditional=conditional_1)
+
+    for _ in range(2):
+        create_forecast(
+            question=conditional_1.question_yes,
+            author=user1,
+            start_time=datetime.datetime(2024, 7, 8),
+        )
+        create_forecast(
+            question=conditional_1.question_no,
+            author=user1,
+            start_time=datetime.datetime(2024, 7, 7),
+        )
+
+    # Previous month
+    for idx in range(4):
+        create_forecast(
+            question=conditional_1.question_no,
+            author=user1,
+            start_time=datetime.datetime(2024, 6, idx + 1),
+        )
+
+    assert (
+        Post.objects.filter(pk=post.id)
+        .annotate_weekly_movement()
+        .first()
+        .weekly_movement
+        == 2
+    )

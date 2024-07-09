@@ -53,6 +53,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "last_name",
             "email",
             "formerly_known_as",
+            "is_superuser",
         )
 
 

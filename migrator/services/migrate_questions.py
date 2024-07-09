@@ -534,16 +534,16 @@ def migrate_post_snapshots_forecasts():
     # Subquery to get the latest forecast for each user per post
     qs = (
         Forecast.objects.annotate(
-            post_id=Coalesce(
+            assumed_post_id=Coalesce(
                 "question__post__id",
                 "question__group__post__id",
                 "question__conditional_yes__post__id",
                 "question__conditional_no__post__id",
             )
         )
-        .order_by("post_id", "author_id", "-start_time")
-        .distinct("post_id", "author_id")
-        .values_list("post_id", "author_id", "start_time")
+        .order_by("assumed_post_id", "author_id", "-start_time")
+        .distinct("assumed_post_id", "author_id")
+        .values_list("assumed_post_id", "author_id", "start_time")
     )
 
     mapping = defaultdict(dict)

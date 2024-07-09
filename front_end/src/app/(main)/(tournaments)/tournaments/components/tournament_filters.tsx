@@ -2,15 +2,16 @@
 import { useTranslations } from "next-intl";
 import { ChangeEvent, FC } from "react";
 
-import {
-  TOURNAMENTS_SEARCH,
-  TOURNAMENTS_SORT,
-} from "@/app/(main)/tournaments/constants/query_params";
 import SearchInput from "@/components/search_input";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
 import useSearchInputState from "@/hooks/use_search_input_state";
 import useSearchParams from "@/hooks/use_search_params";
 import { TournamentsSortBy } from "@/types/projects";
+
+import {
+  TOURNAMENTS_SEARCH,
+  TOURNAMENTS_SORT,
+} from "../constants/query_params";
 
 const TournamentFilters: FC = () => {
   const t = useTranslations();
