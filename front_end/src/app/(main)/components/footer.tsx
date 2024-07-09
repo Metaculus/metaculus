@@ -1,9 +1,15 @@
+"use client";
+
 import { faTwitter } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { setCookie } from "cookies-next";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { FC } from "react";
 
 const Footer: FC = () => {
+  const router = useRouter();
+
   return (
     <footer className="dark relative mx-auto my-0 flex w-full flex-wrap justify-center bg-blue-900 px-0 pb-0 pt-2 text-white">
       <div className="flex min-w-[300px] max-w-[400px] flex-1 flex-grow-[300px] justify-evenly px-4 pb-0 pt-4">
@@ -102,19 +108,39 @@ const Footer: FC = () => {
         >
           <button
             className="pr-2 hover:text-white lg:pr-1"
-            type="submit"
+            onClick={(e) => {
+              e.preventDefault();
+              setCookie("NEXT_LOCALE", "en");
+              router.refresh();
+            }}
             name="language"
-            value="en-us"
+            value="en"
           >
             English
           </button>
           <button
-            className="border-l border-gray-600-dark pl-2 hover:text-white lg:pl-1"
-            type="submit"
+            className="border-l border-gray-600-dark pl-2 pr-2 hover:text-white lg:pl-1"
+            onClick={(e) => {
+              e.preventDefault();
+              setCookie("NEXT_LOCALE", "cs");
+              router.refresh();
+            }}
             name="language"
             value="cs"
           >
             Czech
+          </button>
+          <button
+            className="border-l border-gray-600-dark pl-2 hover:text-white lg:pl-1"
+            onClick={(e) => {
+              e.preventDefault();
+              setCookie("NEXT_LOCALE", "zh");
+              router.refresh();
+            }}
+            name="language"
+            value="zh"
+          >
+            Chinese
           </button>
         </form>
       </div>
