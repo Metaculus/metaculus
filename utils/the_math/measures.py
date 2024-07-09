@@ -50,3 +50,10 @@ def percent_point_function(cdf: list[float], percent: float) -> float:
             # linear interpolation
             return (i + (percent - left) / (right - left)) / (length - 1)
     return 1.0
+
+
+def divergence_binary(p1: float, p2: float) -> float:
+    return (p1 - p2) * (np.log2(p1 / (1 - p1)) - np.log2(p2 / (1 - p2)))
+
+
+def divergence_multiple_choice(p1: list[float], p2: list[float]) -> float: ...
