@@ -140,7 +140,7 @@ const ConditionalForm: React.FC<{
             Initial project:
             <span className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1">
               <Link
-                href={`/tournaments/${control.getValues("default_project_id")}`}
+                href={`/tournament/${control.getValues("default_project_id")}`}
                 className="no-underline"
               >
                 {control.getValues("default_project_id")
