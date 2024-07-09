@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 
-from django.utils import timezone
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
+from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
 from users.models import User
@@ -200,6 +200,15 @@ class Forecast(models.Model):
 
     author = models.ForeignKey(User, models.CASCADE)
     question = models.ForeignKey(Question, models.CASCADE)
+    # TODO: make required
+    post = models.ForeignKey(
+        "posts.Post",
+        models.CASCADE,
+        null=True,
+        editable=False,
+        blank=False,
+        related_name="forecasts",
+    )
 
     slider_values = models.JSONField(null=True)
 
@@ -221,3 +230,9 @@ class Forecast(models.Model):
             pmf.append(cdf[i] - cdf[i - 1])
         pmf.append(1 - cdf[-1])
         return pmf
+
+    def save(self, **kwargs):
+        if not self.post:
+            self.post = self.question.get_post()
+
+        return super().save(**kwargs)
