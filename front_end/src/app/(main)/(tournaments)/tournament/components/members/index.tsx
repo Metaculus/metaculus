@@ -1,9 +1,10 @@
 "use server";
 
-import InviteUsers from "@/app/(main)/tournaments/components/members/members_invite";
-import UsersManage from "@/app/(main)/tournaments/components/members/members_manage";
 import ProjectsApi from "@/services/projects";
-import { Tournament, TournamentMember } from "@/types/projects";
+import { Tournament } from "@/types/projects";
+
+import InviteUsers from "./members_invite";
+import UsersManage from "./members_manage";
 
 type Props = {
   project: Tournament;

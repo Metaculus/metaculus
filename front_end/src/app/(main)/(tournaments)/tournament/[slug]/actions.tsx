@@ -17,7 +17,7 @@ export async function inviteProjectUsers(
   try {
     const response = await ProjectsApi.inviteUsers(projectId, usernames);
 
-    revalidatePath("/tournaments/[slug]");
+    revalidatePath("/tournament/[slug]");
 
     return response;
   } catch (err) {
@@ -33,7 +33,7 @@ export async function deleteProjectMember(projectId: number, userId: number) {
   try {
     const response = await ProjectsApi.deleteMember(projectId, userId);
 
-    revalidatePath("/tournaments/[slug]");
+    revalidatePath("/tournament/[slug]");
 
     return response;
   } catch (err) {

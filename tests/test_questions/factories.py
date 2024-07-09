@@ -34,7 +34,7 @@ def create_conditional(
 
 
 def create_forecast(*, author: User = None, question: Question = None, **kwargs):
-    return G(
+    f = G(
         Forecast,
         **setdefaults_not_null(
             kwargs,
@@ -42,3 +42,6 @@ def create_forecast(*, author: User = None, question: Question = None, **kwargs)
             question=question,
         )
     )
+
+    f.post.update_forecasts_count()
+    return f
