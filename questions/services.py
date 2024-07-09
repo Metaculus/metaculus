@@ -246,6 +246,7 @@ def create_forecast(
     **kwargs,
 ):
     now = timezone.now()
+    post = question.get_post()
 
     prev_forecasts = (
         Forecast.objects.filter(question=question, author=user)
@@ -266,10 +267,12 @@ def create_forecast(
         probability_yes_per_category=probability_yes_per_category,
         distribution_components=None,
         slider_values=slider_values,
+        post=post,
     )
     forecast.save()
 
     # Update cache
     PostUserSnapshot.update_last_forecast_date(question.get_post(), user)
+    post.update_forecasts_count()
 
     return forecast
