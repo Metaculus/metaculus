@@ -271,7 +271,7 @@ class Post(TimeStampedModel):
     )
     curation_status_updated_at = models.DateTimeField(null=True, blank=True)
 
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=2000)
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
 
     curated_last_by = models.ForeignKey(

@@ -1,5 +1,7 @@
+import { all } from "mathjs";
 import { useSearchParams } from "next/navigation";
 
+import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { PostWithForecasts } from "@/types/post";
 
@@ -14,12 +16,14 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   if (post_id) {
     post = await getPost(Number(post_id));
   }
+  const allCategories = await ProjectsApi.getCategories();
 
   return (
     <GroupForm
       // @ts-ignore
       subtype={searchParams["subtype"]}
       post={post}
+      allCategories={allCategories}
       tournament_id={
         searchParams["tournament_id"]
           ? Number(searchParams["tournament_id"])
