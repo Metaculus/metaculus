@@ -1,8 +1,11 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
+from dataclasses import dataclass
+
 from django.utils import timezone
 from django.db.models import QuerySet, Q
 
+from comments.models import Comment
 from users.models import User
 from projects.models import Project
 from questions.models import Question
@@ -153,3 +156,36 @@ def update_project_leaderboard(
         if previous_entry not in seen:
             previous_entry.delete()
     return new_entries
+
+
+@dataclass
+class Contribution:
+    score: float
+    coverage: float
+    question: Question | None = None
+    comment: Comment | None = None
+
+
+def get_contributions(
+    user: User,
+    leaderboard: Leaderboard,
+) -> list[Contribution]:
+    if leaderboard.score_type in [
+        Leaderboard.ScoreTypes.COMMENT_INSIGHT,
+        Leaderboard.ScoreTypes.QUESTION_WRITING,
+    ]:
+        # TODO
+        return []
+    scores = Score.objects.filter(
+        question__in=leaderboard.get_questions(),
+        user=user,
+        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+    )
+    return [
+        Contribution(
+            score=score.score,
+            coverage=score.coverage,
+            question=score.question,
+        )
+        for score in scores
+    ]
