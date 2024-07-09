@@ -88,6 +88,7 @@ export type Post<QT = Question> = {
     topic: Topic[];
   };
   title: string;
+  url_title: string;
   created_at: string;
   updated_at: string;
   published_at: string;
