@@ -113,6 +113,9 @@ class PostFilterSerializer(serializers.Serializer):
         SCHEDULED_RESOLVE_TIME = "scheduled_resolve_time"
         USER_LAST_FORECASTS_DATE = "user_last_forecasts_date"
         UNREAD_COMMENT_COUNT = "unread_comment_count"
+        WEEKLY_MOVEMENT = "weekly_movement"
+        HOT = "hot"
+        SCORE = "score"
 
     class Access(models.TextChoices):
         PRIVATE = "private"
@@ -242,10 +245,8 @@ def serialize_post_many(
     qs = Post.objects.filter(pk__in=ids)
 
     qs = (
-        qs.annotate_forecasts_count()
-        .annotate_user_permission(user=current_user)
+        qs.annotate_user_permission(user=current_user)
         .annotate_vote_score()
-        .annotate_nr_forecasters()
         .prefetch_projects()
         .prefetch_questions()
         .annotate_comment_count()

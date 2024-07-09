@@ -1,12 +1,26 @@
+from datetime import timedelta
+
 from django.db import models
-from django.db.models import Sum, Subquery, OuterRef, Count, Q, F
-from django.db.models.functions import Coalesce
+from django.db.models import (
+    Sum,
+    Subquery,
+    OuterRef,
+    Count,
+    Q,
+    F,
+    Case,
+    When,
+    Value,
+    Max,
+    Min,
+)
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Question, Conditional, GroupOfQuestions, Forecast
+from scoring.models import Score
 from users.models import User
 from utils.models import TimeStampedModel
 
@@ -37,65 +51,69 @@ class PostQuerySet(models.QuerySet):
             "group_of_questions__questions",
         )
 
-    def annotate_forecasts_count(self):
+    def annotate_weekly_movement(self):
+        """
+        TODO: should be implemented in the future
+
+        weekly_forecast = SubqueryAggregate(
+            "forecasts",
+            filter=Q(start_time__gte=timezone.now() - timedelta(days=7)),
+            aggregate=Count,
+        )
         return self.annotate(
-            forecasts_count=(
-                # Note: Order is important
-                Coalesce(
-                    SubqueryAggregate("question__forecast", aggregate=Count),
-                    # Question groups
-                    SubqueryAggregate(
-                        "group_of_questions__questions__forecast",
-                        aggregate=Count,
-                    ),
-                    # Conditional questions
-                    Coalesce(
-                        SubqueryAggregate(
-                            "conditional__question_yes__forecast",
-                            aggregate=Count,
-                        ),
-                        0,
-                    )
-                    + Coalesce(
-                        SubqueryAggregate(
-                            "conditional__question_no__forecast",
-                            aggregate=Count,
-                        ),
-                        0,
-                    ),
-                )
+            weekly_movement=Case(
+                When(forecasts_count=0, then=Value(0)),
+                default=(weekly_forecast * weekly_forecast / F("forecasts_count")),
             )
         )
+        """
 
-    def annotate_nr_forecasters(self):
+        return self
+
+    def annotate_hot(self):
+        """
+        nb predictions in last week +
+        net votes in last week * 5 +
+        nb comments in last week * 10 +
+        net boosts in last week * 20 +
+        approved in last week * 50
+        """
+
+        last_week_dt = timezone.now() - timedelta(days=7)
+
         return self.annotate(
-            nr_forecasters=Coalesce(
+            # nb predictions in last week
+            hot=SubqueryAggregate(
+                "forecasts",
+                filter=Q(start_time__gte=timezone.now() - timedelta(days=7)),
+                aggregate=Count,
+            )
+            + (
+                # Net votes in last week * 5
+                # Please note: we dind't have this before
                 SubqueryAggregate(
-                    "question__forecast__author", aggregate=Count, distinct=True
-                ),
-                # Conditional questions
-                Coalesce(
-                    SubqueryAggregate(
-                        "conditional__question_yes__forecast__author",
-                        aggregate=Count,
-                        distinct=True,
-                    ),
-                    0,
+                    "votes__direction",
+                    filter=Q(created_at__gte=last_week_dt),
+                    aggregate=Sum,
                 )
-                + Coalesce(
-                    SubqueryAggregate(
-                        "conditional__question_no__forecast__author",
-                        aggregate=Count,
-                        distinct=True,
-                    ),
-                    0,
-                ),
-                # Question groups
+                * 5
+            )
+            + (
+                # nb comments in last week * 10
                 SubqueryAggregate(
-                    "group_of_questions__questions__forecast__author",
+                    "comments__id",
+                    filter=Q(created_at__gte=last_week_dt),
                     aggregate=Count,
-                    distinct=True,
+                )
+                * 10
+            )
+            + Case(
+                # approved in last week
+                When(
+                    published_at__gte=last_week_dt,
+                    then=Value(50),
                 ),
+                default=Value(0),
             )
         )
 
@@ -120,6 +138,22 @@ class PostQuerySet(models.QuerySet):
                 unread_comment_count=F("comment_count") - F("snapshots__comment_count"),
             )
         )
+
+    def annotate_score(self, user_id: int, desc=True):
+        subquery = (
+            Score.objects.filter(user_id=user_id)
+            .filter(
+                Q(question__post=OuterRef("pk"))
+                | Q(question__group__post=OuterRef("pk"))
+                | Q(question__conditional_yes__post=OuterRef("pk"))
+                | Q(question__conditional_no__post=OuterRef("pk"))
+            )
+            .values("score")
+            .annotate(agg_score=Max("score") if desc else Min("score"))
+            .values("agg_score")
+        )[:1]
+
+        return self.annotate(score=subquery)
 
     def annotate_vote_score(self):
         return self.annotate(
@@ -405,10 +439,21 @@ class Post(TimeStampedModel):
     projects = models.ManyToManyField(Project, related_name="posts", blank=True)
     users = models.ManyToManyField(User, through="PostUserSnapshot")
 
+    forecasts_count = models.PositiveIntegerField(
+        default=0, editable=False, db_index=True
+    )
+
+    def update_forecasts_count(self):
+        """
+        Update forecasts count cache
+        """
+
+        self.forecasts_count = self.forecasts.count()
+        self.save(update_fields=["forecasts_count"])
+
     objects = models.Manager.from_queryset(PostQuerySet)()
 
     # Annotated fields
-    forecasts_count: int = 0
     nr_forecasters: int = 0
     vote_score: int = 0
     user_vote = None
@@ -462,7 +507,7 @@ class PostUserSnapshot(models.Model):
         )
 
 
-class Vote(models.Model):
+class Vote(TimeStampedModel):
     class VoteDirection(models.IntegerChoices):
         UP = 1
         DOWN = -1
