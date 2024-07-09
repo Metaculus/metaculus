@@ -28,7 +28,7 @@ type PostCreationData = {
 const baseQuestionSchema = z.object({
   type: z.enum(["binary", "multiple_choice", "date", "numeric"]),
   title: z.string().min(4).max(200),
-  url_title: z.string().min(4).max(200),
+  url_title: z.string().min(4).max(60),
   description: z.string().min(4),
   resolution_criteria_description: z.string(),
   fine_print: z.string(),
@@ -219,11 +219,11 @@ const QuestionForm: React.FC<Props> = ({
             defaultValue={post?.title}
           />
           <div>
-            <span>URL Title</span>
+            <span>{t("Short Title")}</span>
             <Input
               {...control.register("url_title")}
-              errors={control.formState.errors.title}
-              defaultValue={post?.title}
+              errors={control.formState.errors.url_title}
+              defaultValue={post?.url_title}
             />
           </div>
           <span>Description</span>

@@ -41,6 +41,7 @@ class PostSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
+            "url_title",
             "author_id",
             "author_username",
             "projects",
