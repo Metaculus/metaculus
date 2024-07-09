@@ -9,7 +9,8 @@ import { ErrorResponse } from "@/types/fetch";
 import { FormError } from "./form_field";
 
 type Props = {
-  checked: boolean;
+  checked?: boolean;
+  defaultChecked?: boolean;
   onChange: (checked: boolean) => void;
   label: string;
   inputClassName?: string;
@@ -25,6 +26,7 @@ type Props = {
 
 const Checkbox: FC<Props> = ({
   checked,
+  defaultChecked,
   onChange,
   label,
   inputClassName,
@@ -47,6 +49,7 @@ const Checkbox: FC<Props> = ({
     >
       <HeadlessCheckbox
         checked={checked}
+        defaultChecked={defaultChecked}
         onChange={onChange}
         onClick={(e) => {
           if (readOnly) {

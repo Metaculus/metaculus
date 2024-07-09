@@ -8,7 +8,7 @@ def scale_location(
     zero_point: float, range_max: float, range_min: float, unscaled_location: float
 ) -> float:
     if zero_point:
-        deriv_ratio = (range_max - zero_point) / (range_min - zero_point)
+        deriv_ratio = (range_max - zero_point) / max((range_min - zero_point), 0.0000001)
         return range_min + (range_max - range_min) * (
             deriv_ratio**unscaled_location - 1
         ) / (deriv_ratio - 1)
@@ -19,7 +19,7 @@ def unscale_location(
     zero_point: float, range_max: float, range_min: float, scaled_location: float
 ) -> float:
     if zero_point:
-        deriv_ratio = (range_max - zero_point) / (range_min - zero_point)
+        deriv_ratio = (range_max - zero_point) / max((range_min - zero_point), 0.0000001)
         return (
             np.log(
                 (scaled_location - range_min) * (deriv_ratio - 1)
