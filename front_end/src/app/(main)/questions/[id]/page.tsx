@@ -65,7 +65,6 @@ export default async function IndividualQuestion({
   }
   const preselectedGroupQuestionId =
     extractPreselectedGroupQuestionId(searchParams);
-
   const t = await getTranslations();
   const commentsData = await CommentsApi.getComments({ post: params.id });
   return (
@@ -141,6 +140,11 @@ export default async function IndividualQuestion({
               groupOfQuestions={postData.group_of_questions}
               canPredict={
                 postData.user_permission !== ProjectPermissions.VIEWER &&
+                (postData.question
+                  ? postData.question.open_time
+                    ? parseISO(postData.question.open_time) < new Date()
+                    : false
+                  : false) &&
                 !isNil(postData.published_at) &&
                 parseISO(postData.published_at) <= new Date() &&
                 postData.status === PostStatus.APPROVED
