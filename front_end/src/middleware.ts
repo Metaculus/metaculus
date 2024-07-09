@@ -56,15 +56,32 @@ export async function middleware(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-url", request.url);
+
+  const locale_in_url = request.nextUrl.searchParams.get("locale");
+  const local_in_cookie = request.cookies.get("NEXT_LOCALE")?.value;
+  /*
+  if ((locale_in_url == "en" && local_in_cookie == locale_in_url) || (!locale_in_url && local_in_cookie)) {
+    if (locale_in_url == "en" && local_in_cookie == locale_in_url) {
+        request.nextUrl.searchParams.delete("locale")
+      } else if (!locale_in_url && local_in_cookie) {
+        request.nextUrl.searchParams.append("locale", local_in_cookie);
+      }
+      return NextResponse.redirect(request.nextUrl)
+  }
+  */
+
   const response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   });
 
+  if (locale_in_url && locale_in_url !== local_in_cookie) {
+    response.cookies.set("NEXT_LOCALE", locale_in_url);
+  }
+
   if (deleteCookieToken) {
     response.cookies.delete(COOKIE_NAME_TOKEN);
   }
-
   return response;
 }
