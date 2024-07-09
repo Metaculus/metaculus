@@ -288,7 +288,17 @@ def migrate_questions__groups(root_questions: list[dict]):
                 continue
 
             # Please note: to simplify the process, our GroupOfQuestions will have the same id
-            groups.append(GroupOfQuestions(id=root_question["id"]))
+            groups.append(
+                GroupOfQuestions(
+                    id=root_question["id"],
+                    description=root_question["description"],
+                    group_variable=root_question["group_label"],
+                    resolution_criteria_description=root_question[
+                        "resolution_criteria"
+                    ],
+                    fine_print=root_question["fine_print"],
+                )
+            )
 
             for child in root_question["children"]:
                 questions.append(create_question(child, group_id=root_question["id"]))
@@ -382,6 +392,8 @@ def migrate_questions__notebook(root_questions: list[dict]):
                         slug=project_obj["slug"],
                         subtitle=project_obj["subtitle"],
                         description=project_obj["description"],
+                        resolution_criteria_description=root_question["resolution_criteria"],
+                        fine_print=root_question["fine_print"],
                         header_image=project_obj["header_image"],
                         header_logo=project_obj["header_logo"],
                         prize_pool=None,

@@ -7,14 +7,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects', '0002_remove_project_leaderboard_type'),
-        ('scoring', '0002_remove_leaderboardentry_leaderboard_type_and_more'),
+        ("projects", "0002_remove_project_leaderboard_type"),
+        ("scoring", "0002_remove_leaderboardentry_leaderboard_type_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='primary_leaderboard',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='primary_project', to='scoring.leaderboard'),
+            model_name="project",
+            name="primary_leaderboard",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="primary_project",
+                to="scoring.leaderboard",
+            ),
         ),
     ]
