@@ -43,8 +43,14 @@ const SliderThumb: FC<Props> = ({
       />
     )}
     <div
-      onMouseDown={onClickIn}
-      onTouchStart={onClickIn}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onClickIn?.();
+      }}
+      onTouchStart={(e) => {
+        e.preventDefault();
+        onClickIn?.();
+      }}
       className={classNames(
         "border border-gray-900 bg-blue-100 dark:border-gray-900-dark dark:bg-blue-100-dark",
         active ? "size-5" : "size-4 rounded-full"
@@ -78,9 +84,15 @@ const ArrowButton: FC<ArrowButtonProps> = ({
       "invisible flex h-5 items-center bg-blue-200 px-1.5 text-gray-300 hover:text-gray-600 active:text-gray-900 group-hover:visible dark:bg-blue-200-dark dark:text-gray-300-dark dark:hover:text-gray-600-dark dark:active:text-gray-900-dark",
       className
     )}
-    onMouseDown={onClickIn}
+    onMouseDown={(e) => {
+      e.stopPropagation();
+      onClickIn();
+    }}
     onMouseUp={onClickOut}
-    onTouchStart={onClickIn}
+    onTouchStart={(e) => {
+      e.stopPropagation();
+      onClickIn();
+    }}
     onTouchEnd={onClickOut}
   >
     <FontAwesomeIcon
