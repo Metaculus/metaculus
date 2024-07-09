@@ -13,7 +13,7 @@ class TimeStampedModel(models.Model):
     """
 
     created_at = models.DateTimeField(default=timezone.now, editable=False)
-    edited_at = models.DateTimeField(default=timezone.now, editable=False)
+    edited_at = models.DateTimeField(default=timezone.now, editable=False, null=True)
 
     class Meta:
         abstract = True
