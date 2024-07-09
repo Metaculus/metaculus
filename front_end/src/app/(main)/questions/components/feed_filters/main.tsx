@@ -31,7 +31,6 @@ const MainFeedFilters: FC = () => {
           PostStatus.CLOSED,
           PostStatus.RESOLVED,
           PostStatus.UPCOMING,
-          PostStatus.PENDING,
         ].map((status) => ({
           label: POST_STATUS_LABEL_MAP[status],
           value: status,
