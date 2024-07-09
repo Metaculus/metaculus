@@ -171,8 +171,6 @@ def get_posts_feed(
             qs = qs.annotate_vote_score()
         if order_type == PostFilterSerializer.Order.COMMENT_COUNT:
             qs = qs.annotate_comment_count()
-        if order_type == PostFilterSerializer.Order.FORECASTS_COUNT:
-            qs = qs.annotate_forecasts_count()
         if (
             forecaster_id
             and order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE
@@ -180,6 +178,8 @@ def get_posts_feed(
             qs = qs.annotate_user_last_forecasts_date(forecaster_id)
         if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
             qs = qs.annotate_unread_comment_count(user_id=user.id)
+        if order_type == PostFilterSerializer.Order.HOT:
+            qs = qs.annotate_hot()
 
         qs = qs.order_by(build_order_by(order_type, order_desc))
     else:
