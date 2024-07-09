@@ -7,14 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects', '0003_project_primary_leaderboard'),
-        ('scoring', '0002_remove_leaderboardentry_leaderboard_type_and_more'),
+        ("projects", "0003_project_primary_leaderboard"),
+        ("scoring", "0002_remove_leaderboardentry_leaderboard_type_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='medalexclusionrecord',
-            name='project',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='projects.project'),
+            model_name="medalexclusionrecord",
+            name="project",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="projects.project",
+            ),
         ),
     ]
