@@ -3,7 +3,9 @@ from django.db import connection
 
 from migrator.services.migrate_questions import (
     migrate_questions,
-    migrate_questions__notebook, migrate_post_user_snapshots, migrate_post_snapshots_forecasts,
+    migrate_questions__notebook,
+    migrate_post_user_snapshots,
+    migrate_post_snapshots_forecasts,
 )
 
 from ...services.migrate_permissions import migrate_permissions
