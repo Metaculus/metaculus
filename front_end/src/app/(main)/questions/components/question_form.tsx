@@ -366,23 +366,21 @@ const QuestionForm: React.FC<Props> = ({
           {(questionType == "numeric" || questionType == "date") && (
             <>
               <div>
-                <span>Open Upper Bound</span>
                 <Checkbox
                   label={"Open Upper Bound"}
                   readOnly={isLive}
                   errors={control.formState.errors.open_upper_bound}
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     control.setValue("open_upper_bound", e);
                   }}
                   // @ts-ignore
-                  checked={
+                  defaultChecked={
                     // @ts-ignore
                     post?.question ? post?.question?.open_upper_bound : false
                   }
                 />
               </div>
               <div>
-                <span>Open Lower Bound</span>
                 <Checkbox
                   label={"Open Lower Bound"}
                   readOnly={isLive}
@@ -391,7 +389,7 @@ const QuestionForm: React.FC<Props> = ({
                     control.setValue("open_lower_bound", e);
                   }}
                   // @ts-ignore
-                  checked={
+                  defaultChecked={
                     // @ts-ignore
                     post?.question ? post?.question?.open_lower_bound : false
                   }
