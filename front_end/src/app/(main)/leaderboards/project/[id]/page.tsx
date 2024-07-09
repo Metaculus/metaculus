@@ -13,10 +13,14 @@ export default async function ProjectLeaderboard() {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <AwaitedGlobalLeaderboard
-            leaderboardName={"2016: 1 year peer_global_legacy"}
+            startTime={"2016-01-01"}
+            endTime={"2017-01-01"}
+            leaderboardType={"peer_global_legacy"}
           />
           <AwaitedGlobalLeaderboard
-            leaderboardName={"2016: 1 year baseline_global"}
+            startTime={"2016-01-01"}
+            endTime={"2017-01-01"}
+            leaderboardType={"baseline_global"}
           />
         </div>
       </div>
