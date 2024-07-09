@@ -94,7 +94,7 @@ const SignInModal: FC<SignInModalType> = ({
             type="submit"
             disabled={isPending}
           >
-            {t("signInButton")}
+            {t("logIn")}
           </Button>
         </form>
         <Button
