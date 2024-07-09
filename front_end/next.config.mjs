@@ -8,10 +8,6 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-    i18n: {
-        locales: ['en', 'cz'],
-        defaultLocale: 'en',
-      },
   env: {
     API_BASE_URL,
     APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
