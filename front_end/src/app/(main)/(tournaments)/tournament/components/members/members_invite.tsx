@@ -4,7 +4,7 @@ import React, { FC, useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
-import { inviteProjectUsers } from "@/app/(main)/tournaments/[slug]/actions";
+import { inviteProjectUsers } from "@/app/(main)/(tournaments)/tournament/[slug]/actions";
 import Button from "@/components/ui/button";
 import { FormError, Textarea } from "@/components/ui/form_field";
 import { ErrorResponse } from "@/types/fetch";
