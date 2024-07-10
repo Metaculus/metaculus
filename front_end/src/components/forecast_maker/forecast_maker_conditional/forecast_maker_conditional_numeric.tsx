@@ -305,8 +305,8 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
         </div>
       ))}
       <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-        {user ? (
-          canPredict && (
+        {canPredict &&
+          (user ? (
             <>
               <Button
                 variant="secondary"
@@ -350,16 +350,15 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
                 {t("saveButton")}
               </Button>
             </>
-          )
-        ) : (
-          <Button
-            variant="primary"
-            type="button"
-            onClick={() => setCurrentModal({ type: "signup" })}
-          >
-            {t("signUpButton")}
-          </Button>
-        )}
+          ) : (
+            <Button
+              variant="primary"
+              type="button"
+              onClick={() => setCurrentModal({ type: "signup" })}
+            >
+              {t("signUpButton")}
+            </Button>
+          ))}
       </div>
       {submitErrors.map((errResponse, index) => (
         <FormError key={`error-${index}`} errors={errResponse} />
