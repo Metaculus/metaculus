@@ -10,4 +10,5 @@ export type UserProfile = {
 
 export type CurrentUser = UserProfile & {
   email: string;
+  is_superuser: boolean;
 };
