@@ -179,6 +179,9 @@ const PostApprovalModal: FC<{
 };
 
 export default function Modbox({ post }: { post: PostWithForecasts }) {
+  const router = useRouter();
+  const t = useTranslations();
+
   let edit_type = "question";
   if (post.group_of_questions) {
     edit_type = "group";
@@ -188,17 +191,15 @@ export default function Modbox({ post }: { post: PostWithForecasts }) {
     edit_type = "notebook";
   }
 
-  const router = useRouter();
-  const t = useTranslations();
   const [approvalModalOpen, setIsApprovalModalOpen] = useState(false);
 
   return (
-    <div className="mb-2 mt-2 flex flex-row items-center gap-4">
+    <div className="flex flex-row flex-wrap items-center gap-4">
       <PostApprovalModal
         isOpen={approvalModalOpen}
         post={post}
         setIsOpen={setIsApprovalModalOpen}
-      ></PostApprovalModal>
+      />
       {post.status == PostStatus.PENDING && (
         <button
           className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark"
