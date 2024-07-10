@@ -3,14 +3,14 @@ import classNames from "classnames";
 import Button, { ButtonVariant } from "@/components/ui/button";
 
 export type GroupButton<T> = {
-  id: T;
+  value: T;
   label: string;
 };
 
 type Props<T> = {
   value: T;
   buttons: GroupButton<T>[];
-  onChange: (id: T) => void;
+  onChange: (value: T) => void;
   variant?: ButtonVariant;
   activeVariant?: ButtonVariant;
 };
@@ -26,9 +26,9 @@ const ButtonGroup = <T extends string>({
     <div className="flex">
       {buttons.map((button, index) => (
         <Button
-          key={button.id}
-          variant={button.id === value ? activeVariant : variant}
-          onClick={() => onChange(button.id)}
+          key={button.value}
+          variant={button.value === value ? activeVariant : variant}
+          onClick={() => onChange(button.value)}
           className={classNames(
             "relative hover:z-10 focus:z-20",
             buttons.length > 1 &&
