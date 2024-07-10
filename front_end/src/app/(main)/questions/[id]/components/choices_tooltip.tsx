@@ -26,8 +26,8 @@ const ChoicesTooltip: FC<Props> = ({ date, choices }) => {
             />
           </td>
         </tr>
-        {choices.map(({ color, choiceLabel, valueLabel }) => (
-          <tr key={`choice-tooltip-row-${choiceLabel}`}>
+        {choices.map(({ color, choiceLabel, valueLabel }, idx) => (
+          <tr key={`choice-tooltip-row-${choiceLabel}-${idx}`}>
             <td className="px-1.5 py-1">
               <ChoiceIcon color={color} />
             </td>

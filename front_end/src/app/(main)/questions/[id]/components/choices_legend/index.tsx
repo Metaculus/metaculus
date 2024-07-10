@@ -44,9 +44,9 @@ const ChoicesLegend: FC<Props> = ({
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-normal">
-      {legendChoices.map(({ choice, color, active }) => (
+      {legendChoices.map(({ choice, color, active }, idx) => (
         <ChoiceCheckbox
-          key={`multiple-choice-legend-${choice}`}
+          key={`multiple-choice-legend-${choice}-${idx}`}
           choice={choice}
           color={color.DEFAULT}
           checked={active}
@@ -79,9 +79,9 @@ const ChoicesLegend: FC<Props> = ({
                   label={areAllSelected ? "Deselect All" : "Select All"}
                   className="p-1.5"
                 />
-                {dropdownChoices.map(({ choice, color, active }) => (
+                {dropdownChoices.map(({ choice, color, active }, idx) => (
                   <ChoiceCheckbox
-                    key={`multiple-choice-dropdown-${choice}`}
+                    key={`multiple-choice-dropdown-${choice}-${idx}`}
                     choice={choice}
                     color={color.DEFAULT}
                     checked={active}

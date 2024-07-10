@@ -87,7 +87,7 @@ const Header: FC = () => {
         <ul className="relative hidden list-none items-center justify-end text-sm font-medium lg:flex">
           <li>
             <NavLink
-              href={`/leaderboards/global/`}
+              href={`/leaderboard`}
               className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
               activeClassName="bg-blue-300-dark"
             >
