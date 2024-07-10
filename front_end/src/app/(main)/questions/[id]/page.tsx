@@ -6,6 +6,7 @@ import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import PostDropdownMenu from "@/app/(main)/questions/[id]/components/question_dropdown_menu";
 import QuestionEmbedButton from "@/app/(main)/questions/[id]/components/question_embed_button";
 import QuestionEmbedModal from "@/app/(main)/questions/[id]/components/question_embed_modal";
 import ShareQuestionMenu from "@/app/(main)/questions/[id]/components/share_question_menu";
@@ -203,13 +204,7 @@ export default async function IndividualQuestion({
               <QuestionEmbedButton />
               <div className="flex gap-2">
                 <ShareQuestionMenu questionTitle={getQuestionTitle(postData)} />
-                <Button
-                  variant="secondary"
-                  className="!rounded border-0"
-                  presentationType="icon"
-                >
-                  <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
-                </Button>
+                <PostDropdownMenu post={postData} />
               </div>
             </div>
             {/*TODO: make a reusable component for this*/}
