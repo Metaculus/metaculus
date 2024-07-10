@@ -32,7 +32,10 @@ def create_project(project_obj: dict) -> Project:
     }.get(project_obj["type"])
 
     leaderboard_score_type = None
-    if project_type in ["TO", "QS"]:
+    if project_type in [
+        Project.ProjectTypes.TOURNAMENT,
+        Project.ProjectTypes.QUESTION_SERIES,
+    ]:
         if project_obj["score_type"] == "PEER_SCORE":
             leaderboard_score_type = Leaderboard.ScoreTypes.PEER_TOURNAMENT
         elif project_obj["score_type"] == "LEGACY":
@@ -71,6 +74,8 @@ def create_project(project_obj: dict) -> Project:
         project.primary_leaderboard = Leaderboard.objects.create(
             project=project,
             score_type=leaderboard_score_type,
+            start_time=project.start_date,
+            finalize_time=project.close_date,
         )
         # awkward double save since Leaderboard creation requires project.id
         # And project.primary_leaderboard requires Leaderboard.id
