@@ -58,7 +58,7 @@ class PostSerializer(serializers.ModelSerializer):
         )
 
     def get_projects(self, obj: Post):
-        return serialize_projects(obj.projects.all())
+        return serialize_projects(obj.projects.all(), obj.default_project)
 
     def get_author_username(self, obj: Post):
         return obj.author.username

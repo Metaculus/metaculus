@@ -62,4 +62,5 @@ export type Tournament = {
   edited_at: string;
   posts_count: number;
   user_permission: ProjectPermissions;
+  default_permission: ProjectPermissions;
 };
