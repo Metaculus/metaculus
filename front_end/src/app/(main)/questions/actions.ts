@@ -1,6 +1,5 @@
 "use server";
 
-import { formatISO } from "date-fns";
 import { revalidatePath } from "next/cache";
 
 import CommentsApi, { EditCommentParams } from "@/services/comments";
@@ -238,4 +237,8 @@ export async function searchUsers(query: string) {
       errors: error.data,
     };
   }
+}
+
+export async function changePostActivityBoost(postId: number, value: number) {
+  return await PostsApi.changePostActivityBoost(postId, value);
 }
