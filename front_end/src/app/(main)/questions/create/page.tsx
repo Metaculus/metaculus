@@ -24,11 +24,17 @@ const Creator: React.FC<{ searchParams: SearchParams }> = ({
   };
 
   return (
-    <div className="mb-4 flex max-w-[840px] flex-col justify-center self-center rounded-md bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
+    <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <div className="flex flex-col gap-2 md:gap-3">
         <h1 className="text-2xl font-medium md:text-3xl">Create New Content</h1>
         <span className="text-sm text-gray-600 dark:text-gray-300 md:text-base">
-          Check out our <a href="/question-writing">question writing guide</a>{" "}
+          Check out our{" "}
+          <a
+            href="/question-writing"
+            className="text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+          >
+            question writing guide
+          </a>{" "}
           for tips. Good questions are approved faster, and get more
           predictions.
         </span>
