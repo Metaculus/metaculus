@@ -8,6 +8,7 @@ export type FetchOptions = RequestInit & {
 export type ApiErrorResponse = Record<string, string[]> & {
   non_field_errors?: string[];
   detail?: string;
+  status?: number;
 };
 
 /**
