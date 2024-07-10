@@ -321,15 +321,15 @@ export function getMainOrderOptions(
 ): GroupButton<QuestionOrder>[] {
   return [
     {
-      id: QuestionOrder.ActivityDesc,
+      value: QuestionOrder.ActivityDesc,
       label: t("hot"),
     },
     {
-      id: QuestionOrder.WeeklyMovementDesc,
+      value: QuestionOrder.WeeklyMovementDesc,
       label: t("movers"),
     },
     {
-      id: QuestionOrder.PublishTimeDesc,
+      value: QuestionOrder.PublishTimeDesc,
       label: t("new"),
     },
   ];
@@ -341,15 +341,15 @@ export function getUserSortOptions(
   return [
     {
       label: t("oldest"),
-      id: QuestionOrder.LastPredictionTimeAsc,
+      value: QuestionOrder.LastPredictionTimeAsc,
     },
     {
       label: t("newest"),
-      id: QuestionOrder.LastPredictionTimeDesc,
+      value: QuestionOrder.LastPredictionTimeDesc,
     },
     {
       label: t("divergence"),
-      id: QuestionOrder.DivergenceDesc,
+      value: QuestionOrder.DivergenceDesc,
     },
   ];
 }
