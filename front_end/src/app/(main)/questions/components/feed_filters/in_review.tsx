@@ -25,7 +25,7 @@ const InReviewFeed: FC = () => {
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [
       {
-        value: QuestionOrder.ActivityDesc,
+        value: QuestionOrder.HotDesc,
         label: t("hot"),
       },
       {
