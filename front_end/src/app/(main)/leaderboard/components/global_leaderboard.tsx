@@ -46,12 +46,12 @@ const AwaitedGlobalLeaderboard: FC<Props> = async ({
   endTime,
   leaderboardType,
 }) => {
-  const leaderboardDetails: LeaderboardDetails =
-    await LeaderboardApi.getGlobalLeaderboard(
-      startTime,
-      endTime,
-      leaderboardType
-    );
+  const leaderboardDetails = await LeaderboardApi.getGlobalLeaderboard(
+    startTime,
+    endTime,
+    leaderboardType
+  );
+
   // TODO: add pagination, but for now just return 20 entries
   return <div>{leaderboard(leaderboardDetails)}</div>;
 };
