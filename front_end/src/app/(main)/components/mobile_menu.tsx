@@ -34,9 +34,7 @@ const MobileMenu: FC = () => {
         leaveTo="opacity-0"
       >
         <MenuItems className="absolute inset-x-0 top-12 max-h-[calc(100dvh-48px)] list-none flex-col items-stretch justify-end space-y-0.5 overflow-y-auto bg-blue-200-dark text-base no-underline lg:hidden">
-          <MenuLink href={`/leaderboards/global/`}>
-            {t("leaderboards")}
-          </MenuLink>
+          <MenuLink href={`/leaderboard`}>{t("leaderboards")}</MenuLink>
           <MenuLink href={`/news/`}>{t("News")}</MenuLink>
           <SectionTitle>{t("More")}</SectionTitle>
           <MenuLink href={`/about/`}>{t("About Metaculus")}</MenuLink>
