@@ -27,13 +27,13 @@ const OPEN_STATUS_FILTERS = [
   QuestionOrder.WeeklyMovementDesc,
   QuestionOrder.LastPredictionTimeDesc,
   QuestionOrder.DivergenceDesc,
-  QuestionOrder.StaleDesc,
+  QuestionOrder.HotAsc,
   QuestionOrder.CloseTimeAsc,
   QuestionOrder.ScoreDesc,
   QuestionOrder.ScoreAsc,
 ];
 const RESOLVED_STATUS_FILTERS = [
-  QuestionOrder.StaleDesc,
+  QuestionOrder.HotAsc,
   QuestionOrder.UnreadCommentCountDesc,
 ];
 const FORECASTER_ID_FILTERS = [

@@ -47,7 +47,7 @@ const MyPredictionsFilters: FC = () => {
         label: t("divergence"),
       },
       {
-        value: QuestionOrder.StaleDesc,
+        value: QuestionOrder.HotAsc,
         label: t("stale"),
       },
       {
@@ -83,7 +83,7 @@ const MyPredictionsFilters: FC = () => {
       [
         QuestionOrder.WeeklyMovementDesc,
         QuestionOrder.DivergenceDesc,
-        QuestionOrder.StaleDesc,
+        QuestionOrder.HotAsc,
         QuestionOrder.UnreadCommentCountDesc,
         QuestionOrder.CloseTimeAsc,
       ].includes(order)
