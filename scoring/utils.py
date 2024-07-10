@@ -119,11 +119,11 @@ def update_project_leaderboard(
     previous_entries = list(leaderboard.entries.all())
     new_entries = generate_project_leaderboard(project, leaderboard)
 
-    if timezone.now() > leaderboard.finalize_time:
+    if leaderboard.finalize_time and (timezone.now() > leaderboard.finalize_time):
         # assign medals
         excluded_users = MedalExclusionRecord.objects.filter(
             Q(end_time__isnull=True) | Q(end_time__gte=leaderboard.start_time),
-            start_time__lte=leaderboard.end_time,
+            start_time__lte=leaderboard.finalize_time,
         ).values_list("user", flat=True)
         entry_count = len(new_entries)
         golds = max(0.01 * entry_count, 1)
