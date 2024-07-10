@@ -239,7 +239,7 @@ const QuestionForm: React.FC<Props> = ({
             defaultValue={post?.title}
           />
           <div>
-            <span>{t("Short Title")}</span>
+            <span className="mr-2">{t("Short Title")}</span>
             <Input
               {...control.register("url_title")}
               errors={control.formState.errors.url_title}
