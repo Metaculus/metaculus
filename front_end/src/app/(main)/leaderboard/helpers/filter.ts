@@ -1,6 +1,8 @@
+import { endOfYear, format, isWithinInterval, startOfYear } from "date-fns";
 import { useTranslations } from "next-intl";
 
 import { SearchParams } from "@/types/navigation";
+import { LeaderboardType } from "@/types/scoring";
 
 import {
   CategoryKey,
@@ -82,4 +84,57 @@ export function extractLeaderboardFiltersFromParams(
   }
 
   return { category, durations, duration, periods, year };
+}
+
+export function getLeaderboardTimeInterval(
+  year: string,
+  duration: string
+): { startTime: string; endTime: string } {
+  const formattedDuration = Number(duration);
+
+  if (formattedDuration === 1) {
+    const start = startOfYear(new Date(year));
+    const end = endOfYear(new Date(year));
+
+    return {
+      startTime: format(start, "yyyy-MM-dd"),
+      endTime: format(end, "yyyy-MM-dd"),
+    };
+  }
+
+  const formattedYear = Number(year);
+  const start = startOfYear(
+    new Date(`${formattedYear - formattedDuration + 1}`)
+  );
+  const end = endOfYear(new Date(year));
+
+  return {
+    startTime: format(start, "yyyy-MM-dd"),
+    endTime: format(end, "yyyy-MM-dd"),
+  };
+}
+
+export function mapCategoryKeyToLeaderboardType(
+  categoryKey: CategoryKey,
+  startTime: string,
+  endTime: string
+): LeaderboardType | null {
+  switch (categoryKey) {
+    case "comments":
+      return "comment_insight";
+    case "questionWriting":
+      return "question_writing";
+    case "baseline":
+      return "baseline_global";
+    case "peer": {
+      const isLegacy = !isWithinInterval(new Date("2024"), {
+        start: new Date(startTime),
+        end: new Date(endTime),
+      });
+      console.log("isLegacy", isLegacy);
+      return isLegacy ? "peer_global_legacy" : "peer_global";
+    }
+    default:
+      return null;
+  }
 }
