@@ -275,4 +275,9 @@ def create_forecast(
     PostUserSnapshot.update_last_forecast_date(question.get_post(), user)
     post.update_forecasts_count()
 
+    # Run async tasks
+    from posts.tasks import run_compute_divergence
+
+    run_compute_divergence.send(post.id)
+
     return forecast
