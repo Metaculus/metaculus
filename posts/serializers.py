@@ -113,6 +113,7 @@ class PostFilterSerializer(serializers.Serializer):
         USER_LAST_FORECASTS_DATE = "user_last_forecasts_date"
         UNREAD_COMMENT_COUNT = "unread_comment_count"
         WEEKLY_MOVEMENT = "weekly_movement"
+        DIVERGENCE = "divergence"
         HOT = "hot"
         SCORE = "score"
 
