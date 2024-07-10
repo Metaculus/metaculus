@@ -59,11 +59,7 @@ def get_posts_feed(
     TODO: implement "upcoming" filtering
     TODO: implement "New Comments" ordering
     TODO: implement "Hot Posts" ordering
-    TODO: implement "movers" @george ordering
-    TODO: implement "divergence" @george ordering
     TODO: implement "stale" @george ordering
-    TODO: implement "Best Scores" @george ordering
-    TODO: implement "Worst Scores" @george ordering
     """
 
     # If ids provided
@@ -192,7 +188,12 @@ def get_posts_feed(
         if order_type == PostFilterSerializer.Order.WEEKLY_MOVEMENT:
             order_type = "movement"
         if order_type == PostFilterSerializer.Order.DIVERGENCE:
-            qs = qs.annotate_divergence()
+            if not forecaster_id:
+                raise ValidationError(
+                    "Can not order by score without forecaster_id provided"
+                )
+
+            qs = qs.annotate_divergence(forecaster_id)
 
         qs = qs.order_by(build_order_by(order_type, order_desc))
     else:
