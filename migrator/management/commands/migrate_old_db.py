@@ -9,6 +9,7 @@ from migrator.services.migrate_projects import migrate_projects
 from migrator.services.migrate_questions import migrate_questions
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
+from migrator.services.post_migrate import post_migrate_calculate_divergence, post_migrate_movements
 from migrator.utils import reset_sequence
 
 from migrator.services.migrate_scoring import score_questions
@@ -69,6 +70,10 @@ class Command(BaseCommand):
         print("Populated global leaderboards")
         populate_project_leaderboards()
         print("Populated project leaderboards")
+
+        print("Running post-migrate commands")
+        post_migrate_calculate_divergence()
+        post_migrate_movements()
 
         # Reset sql sequences
         reset_sequence()
