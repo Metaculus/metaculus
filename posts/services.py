@@ -7,7 +7,6 @@ from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
-from questions.models import Question, Forecast
 from questions.services import (
     create_question,
     create_conditional,
@@ -16,9 +15,9 @@ from questions.services import (
 from users.models import User
 from utils.dtypes import flatten
 from utils.models import build_order_by
+from utils.serializers import parse_order_by
 from utils.the_math.community_prediction import get_cp_at_time
 from utils.the_math.measures import prediction_difference_for_sorting
-from utils.serializers import parse_order_by
 
 
 def add_categories(categories: list[int], post: Post):
@@ -185,9 +184,15 @@ def get_posts_feed(
             qs = qs.annotate_hot()
         if order_type == PostFilterSerializer.Order.SCORE:
             if not forecaster_id:
-                raise ValidationError("Can not order by score without forecaster_id provided")
+                raise ValidationError(
+                    "Can not order by score without forecaster_id provided"
+                )
 
             qs = qs.annotate_score(forecaster_id, desc=order_desc)
+        if order_type == PostFilterSerializer.Order.WEEKLY_MOVEMENT:
+            order_type = "movement"
+        if order_type == PostFilterSerializer.Order.DIVERGENCE:
+            qs = qs.annotate_divergence()
 
         qs = qs.order_by(build_order_by(order_type, order_desc))
     else:
@@ -264,12 +269,7 @@ def get_post_permission_for_user(post: Post, user: User = None) -> ObjectPermiss
 
 
 def compute_movement(post: Post) -> float | None:
-    if post.group_of_questions:
-        questions: list[Question] = post.group_of_questions.questions.all()
-    elif post.conditional:
-        questions = [post.conditional.yes, post.conditional.no]
-    else:
-        questions = [post.question]
+    questions = post.get_questions()
     movement = None
     for question in questions:
         cp_now = get_cp_at_time(question, timezone.now())
@@ -284,30 +284,26 @@ def compute_movement(post: Post) -> float | None:
     return movement
 
 
-def compute_divergence(post: Post) -> dict[User, float]:
+def compute_divergence(post: Post) -> dict[int, float]:
     user_divergences = dict()
-    if post.group_of_questions:
-        questions: list[Question] = post.group_of_questions.questions.all()
-    elif post.conditional:
-        questions = [post.conditional.yes, post.conditional.no]
-    else:
-        questions = [post.question]
+    questions = post.get_questions()
     now = timezone.now()
     for question in questions:
         cp = get_cp_at_time(question, now)
         if cp is None:
             continue
-        active_forecasts = Forecast.objects.filter(
+
+        active_forecasts = question.forecast_set.filter(
             Q(end_time__isnull=True) | Q(end_time__gt=now),
             start_time__lte=now,
-            question=question,
         )
         for forecast in active_forecasts:
             difference = prediction_difference_for_sorting(
                 forecast.get_prediction_values(), cp, question
             )
-            if (forecast.author not in user_divergences) or (
-                abs(user_divergences[forecast.author]) < abs(difference)
+            if (forecast.author_id not in user_divergences) or (
+                abs(user_divergences[forecast.author_id]) < abs(difference)
             ):
-                user_divergences[forecast.author] = difference
+                user_divergences[forecast.author_id] = difference
+
     return user_divergences

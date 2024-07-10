@@ -178,6 +178,14 @@ class PostQuerySet(models.QuerySet):
             comment_count=SubqueryAggregate("comments__id", aggregate=Count)
         )
 
+    def annotate_divergence(self, user_id: int):
+        return (
+            self.filter(snapshots__user_id=user_id)
+            .annotate(
+                divergence=F("snapshots__divergence")
+            )
+        )
+
     #
     # Permissions
     #
@@ -270,6 +278,18 @@ class PostQuerySet(models.QuerySet):
         """
 
         return self.filter(default_project__default_permission__isnull=True)
+
+    def filter_active(self):
+        """
+        Filter active posts
+        """
+
+        return self.filter(
+            published_at__lte=timezone.now(),
+            curation_status=Post.CurationStatus.APPROVED,
+        ).filter(
+            Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=timezone.now())
+        )
 
 
 class Notebook(TimeStampedModel):
@@ -465,6 +485,7 @@ class Post(TimeStampedModel):
     user_permission: ObjectPermission = None
     comment_count: int = 0
     user_last_forecasts_date = None
+    divergence: int = None
 
     def __str__(self):
         return self.title
@@ -472,6 +493,20 @@ class Post(TimeStampedModel):
     def update_curation_status(self, status: CurationStatus):
         self.curation_status = status
         self.curation_status_updated_at = timezone.now()
+
+    def get_questions(self) -> list[Question]:
+        """
+        Generate list of questions available for forecasting
+        """
+
+        if self.question_id:
+            return [self.question]
+        if self.group_of_questions_id:
+            return self.group_of_questions.questions.all()
+        elif self.conditional_id:
+            return [self.conditional.question_yes, self.conditional.question_no]
+        else:
+            return []
 
 
 class PostUserSnapshot(models.Model):
@@ -485,6 +520,7 @@ class PostUserSnapshot(models.Model):
 
     # Evaluated Fields
     divergence = models.FloatField(null=True, blank=True)  # Jeffrey's Divergence
+
     # TODO: these two fields might be necessary for display purposes
     # divergence_total = models.FloatField(null=True, blank=True)
     # divergence_asymmetric = models.FloatField(null=True, blank=True)

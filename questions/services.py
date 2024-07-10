@@ -243,6 +243,7 @@ def create_forecast(
     probability_yes: float = None,
     probability_yes_per_category: list[float] = None,
     slider_values=None,
+    run_compute_divergence=None,
     **kwargs,
 ):
     now = timezone.now()
@@ -274,5 +275,8 @@ def create_forecast(
     # Update cache
     PostUserSnapshot.update_last_forecast_date(question.get_post(), user)
     post.update_forecasts_count()
+
+    # Run async tasks
+    run_compute_divergence.send(post.id)
 
     return forecast
