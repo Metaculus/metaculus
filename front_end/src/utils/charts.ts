@@ -310,8 +310,10 @@ export function findClosestTimestamp(
   timestamps: number[],
   timestamp: number
 ): number {
-  return timestamps.reduce((prev, curr) =>
-    Math.abs(curr - timestamp) < Math.abs(prev - timestamp) ? curr : prev
+  return timestamps.reduce(
+    (prev, curr) =>
+      Math.abs(curr - timestamp) < Math.abs(prev - timestamp) ? curr : prev,
+    0
   );
 }
 

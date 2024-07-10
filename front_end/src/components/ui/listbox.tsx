@@ -22,6 +22,7 @@ type Props<T> = {
   onChange: (option: T) => void;
   options: SelectOption<T>[];
   buttonVariant?: ButtonVariant;
+  arrowPosition?: "left" | "right";
   label?: string;
   className?: string;
 };
@@ -31,6 +32,7 @@ const Listbox = <T extends string>({
   onChange,
   value,
   buttonVariant = "text",
+  arrowPosition = "left",
   label,
   className,
 }: Props<T>) => {
@@ -46,7 +48,13 @@ const Listbox = <T extends string>({
       onChange={onChange}
       className="relative text-gray-900 dark:text-gray-900-dark"
     >
-      <ListboxButton as={Button} variant={buttonVariant} className={className}>
+      <ListboxButton
+        as={Button}
+        variant={buttonVariant}
+        className={classNames(className, {
+          "flex-row-reverse": arrowPosition === "right",
+        })}
+      >
         <FontAwesomeIcon icon={faChevronDown} />
         <span className="align-middle">{label ?? activeOptionLabel}</span>
       </ListboxButton>

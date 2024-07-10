@@ -1,4 +1,4 @@
-import AwaitedGlobalLeaderboard from "../../components/globalLeaderboard";
+import AwaitedGlobalLeaderboard from "../../components/global_leaderboard";
 
 //  @TODO: How to not hardcode the ids here -- or maybe we just should (?)
 export default async function ProjectLeaderboard() {

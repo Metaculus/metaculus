@@ -5,14 +5,10 @@ import { FC, useMemo } from "react";
 import {
   getFilterSectionPostType,
   getFilterSectionUsername,
-  POST_STATUS_LABEL_MAP,
 } from "@/app/(main)/questions/helpers/filters";
-import { FilterOptionType } from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
-import { POST_STATUS_FILTER } from "@/constants/posts_feed";
-import { useAuth } from "@/contexts/auth_context";
+import { GroupButton } from "@/components/ui/button_group";
 import useSearchParams from "@/hooks/use_search_params";
-import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
 
 const InReviewFeed: FC = () => {
@@ -26,14 +22,14 @@ const InReviewFeed: FC = () => {
     ];
   }, [params, t]);
 
-  const mainSortOptions = useMemo(
+  const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [
       {
-        id: QuestionOrder.ActivityDesc,
+        value: QuestionOrder.ActivityDesc,
         label: t("hot"),
       },
       {
-        id: QuestionOrder.PublishTimeDesc,
+        value: QuestionOrder.PublishTimeDesc,
         label: t("new"),
       },
     ],

@@ -22,6 +22,12 @@ export type EditCommentParams = {
   author: number;
 };
 
+export type VoteCommentParams = {
+  id: number;
+  vote: number | null;
+  user: number;
+};
+
 class CommentsApi {
   static async getComments(params?: CommentsParams): Promise<CommentType[]> {
     const queryParams = encodeQueryParams(params ?? {});
@@ -64,6 +70,20 @@ class CommentsApi {
       return await post<null, CreateCommentParams>(
         `/comments/create`,
         commentData
+      );
+    } catch (err) {
+      console.error("Error creating comment:", err);
+      return null;
+    }
+  }
+
+  static async voteComment(
+    voteData: VoteCommentParams
+  ): Promise<Response | null> {
+    try {
+      return await post<null, VoteCommentParams>(
+        `/comments/${voteData.id}/vote`,
+        voteData
       );
     } catch (err) {
       console.error("Error creating comment:", err);
