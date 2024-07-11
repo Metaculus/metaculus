@@ -58,9 +58,13 @@ def build_question_forecasts(question: Question, empty: bool = False) -> dict:
             forecasts_data["nr_forecasters"].append(
                 list(cp_dict.values())[0].nr_forecasters
             )
+        forecasts_data["latest_cdf"] = None
+        forecasts_data["latest_pmf"] = [forecasts_data[option][-1]["value_mean"]/100 for option in question.options]
     else:
         if question.type == "binary":
             cps = compute_binary_plotable_cp(question, 100)
+            forecasts_data["latest_cdf"] = None
+            forecasts_data["latest_pmf"] = [1 - cps[-1].middle/100, cps[-1].middle/100]
         elif question.type in ["numeric", "date"]:
             cps, cdf = compute_continuous_plotable_cp(question, 100)
             forecasts_data["latest_cdf"] = cdf
@@ -278,8 +282,8 @@ def create_forecast(
     post.update_forecasts_count()
 
     # Run async tasks
-    from posts.tasks import run_compute_divergence
+    from posts.tasks import run_compute_sorting_divergence
 
-    run_compute_divergence.send(post.id)
+    run_compute_sorting_divergence.send(post.id)
 
     return forecast

@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Optional
 
 from django.db.models import Q, Count, Sum, Value, Case, When, F
 from django.db.models.functions import Coalesce
@@ -21,7 +22,7 @@ from utils.dtypes import flatten
 from utils.models import build_order_by
 from utils.serializers import parse_order_by
 from utils.the_math.community_prediction import get_cp_at_time
-from utils.the_math.measures import prediction_difference_for_sorting
+from utils.the_math.measures import prediction_difference_for_display, prediction_difference_for_sorting
 
 
 def add_categories(categories: list[int], post: Post):
@@ -284,8 +285,8 @@ def compute_movement(post: Post) -> float | None:
             movement = difference
     return movement
 
-
-def compute_divergence(post: Post) -> dict[int, float]:
+# Computes the jeffry divergence
+def compute_sorting_divergence(post: Post) -> dict[int, float]:
     user_divergences = dict()
     questions = post.get_questions()
     now = timezone.now()
