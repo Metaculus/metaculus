@@ -21,12 +21,7 @@ class TestPostQuerySetAnnotatePredictionsCount:
         create_forecast(question=question_binary, author=user1)
         create_forecast(question=question_binary, author=user1)
 
-        assert (
-            Post.objects.filter(pk=post.id)
-            .first()
-            .forecasts_count
-            == 2
-        )
+        assert Post.objects.filter(pk=post.id).first().forecasts_count == 2
 
     def test_conditional_questions(self, conditional_1, user1):
         post = factory_post(author=user1, conditional=conditional_1)
