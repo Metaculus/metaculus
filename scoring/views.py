@@ -28,6 +28,7 @@ from scoring.utils import update_project_leaderboard, get_contributions
 def global_leaderboard(
     request: Request,
 ):
+
     # params
     start_time = request.GET.get("startTime", None)
     end_time = request.GET.get("endTime", None)
@@ -52,8 +53,16 @@ def global_leaderboard(
     entries = list(leaderboard.entries.all())
     if len(entries) == 0:
         entries = update_project_leaderboard(leaderboard.project, leaderboard)
-    entries = [e for e in entries if e.rank <= len(entries) * 0.05]
-    leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
+    leader_entries = [e for e in entries if e.rank <= len(entries) * 0.05]
+    leaderboard_data["entries"] = LeaderboardEntrySerializer(
+        leader_entries, many=True
+    ).data
+    # add user entry
+    user = request.user
+    for entry in entries:
+        if entry.user == user:
+            leaderboard_data["userEntry"] = LeaderboardEntrySerializer(entry).data
+
     return Response(leaderboard_data)
 
 
@@ -97,6 +106,11 @@ def project_leaderboard(
     if len(entries) == 0:
         entries = update_project_leaderboard(project, leaderboard)
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
+    # add user entry
+    user = request.user
+    for entry in entries:
+        if entry.user == user:
+            leaderboard_data["userEntry"] = LeaderboardEntrySerializer(entry).data
     return Response(leaderboard_data)
 
 
