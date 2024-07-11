@@ -155,10 +155,28 @@ def serialize_question(
             serialized_data["my_forecasts"] = build_question_forecasts_for_user(
                 question, current_user
             )
-        
-        last_forecast = question.forecast_set.filter(author=current_user).order_by("start_time").last()
-        if last_forecast:
-            serialized_data["dispaly_divergences"] = prediction_difference_for_display(last_forecast.get_prediction_values(), np.array(serialized_data["forecasts"]["latest_cdf"]) if question.type in [Question.QuestionType.NUMERIC, Question.QuestionType.DATE] else np.array(serialized_data["forecasts"]["latest_pmf"]), question)
+
+            last_forecast = (
+                question.forecast_set.filter(author=current_user)
+                .order_by("start_time")
+                .last()
+            )
+            if last_forecast:
+                serialized_data["dispaly_divergences"] = (
+                    prediction_difference_for_display(
+                        last_forecast.get_prediction_values(),
+                        (
+                            np.array(serialized_data["forecasts"]["latest_cdf"])
+                            if question.type
+                            in [
+                                Question.QuestionType.NUMERIC,
+                                Question.QuestionType.DATE,
+                            ]
+                            else np.array(serialized_data["forecasts"]["latest_pmf"])
+                        ),
+                        question,
+                    )
+                )
 
     serialized_data["resolution"] = question.resolution
 
