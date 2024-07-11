@@ -22,15 +22,17 @@ export type Score = {
   score_type: ScoreType;
 };
 
+export type ScoreMedal = "gold" | "silver" | "bronze";
+
 export type LeaderboardEntry = {
   username: string;
   user_id: number;
-  leaderboard_type: LeaderboardType;
   score: number;
+  rank: number;
+  medal: ScoreMedal | null;
+  prize: number | null;
   coverage: number;
   contribution_count: number;
-  medal: string;
-  prize: number;
   calculated_on: string;
 };
 
