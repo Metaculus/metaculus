@@ -119,30 +119,34 @@ def update_project_leaderboard(
     previous_entries = list(leaderboard.entries.all())
     new_entries = generate_project_leaderboard(project, leaderboard)
 
+    # assign ranks (and medals if finalized)
+    new_entries.sort(key=lambda entry: entry.score, reverse=True)
+    excluded_users = MedalExclusionRecord.objects.filter(
+        Q(end_time__isnull=True) | Q(end_time__gte=leaderboard.start_time),
+        start_time__lte=leaderboard.finalize_time,
+    ).values_list("user", flat=True)
+    # medals
+    golds = silvers = bronzes = 0
     if leaderboard.finalize_time and (timezone.now() > leaderboard.finalize_time):
-        # assign medals
-        excluded_users = MedalExclusionRecord.objects.filter(
-            Q(end_time__isnull=True) | Q(end_time__gte=leaderboard.start_time),
-            start_time__lte=leaderboard.finalize_time,
-        ).values_list("user", flat=True)
         entry_count = len(new_entries)
         golds = max(0.01 * entry_count, 1)
-        silvers = max(0.01 * entry_count, 2)
-        bronzes = max(0.03 * entry_count, 3)
-        rank = 1
-        for entry in new_entries:
-            if entry.user in excluded_users:
-                entry.medal = None
-                entry.rank = rank
-                continue
-            if rank <= golds:
-                entry.medal = LeaderboardEntry.Medals.GOLD
-            elif rank <= golds + silvers:
-                entry.medal = LeaderboardEntry.Medals.SILVER
-            elif rank <= golds + silvers + bronzes:
-                entry.medal = LeaderboardEntry.Medals.BRONZE
+        silvers = max(0.01 * entry_count, 1)
+        bronzes = max(0.03 * entry_count, 1)
+    rank = 1
+    for entry in new_entries:
+        if entry.user.id in excluded_users:
+            entry.excluded = True
+            entry.medal = None
             entry.rank = rank
-            rank += 1
+            continue
+        if rank <= golds:
+            entry.medal = LeaderboardEntry.Medals.GOLD
+        elif rank <= golds + silvers:
+            entry.medal = LeaderboardEntry.Medals.SILVER
+        elif rank <= golds + silvers + bronzes:
+            entry.medal = LeaderboardEntry.Medals.BRONZE
+        entry.rank = rank
+        rank += 1
 
     for new_entry in new_entries:
         new_entry.leaderboard = leaderboard
