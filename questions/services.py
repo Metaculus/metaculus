@@ -210,26 +210,48 @@ def resolve_question(question: Question, resolution, actual_resolve_time: dateti
     ]:
         if conditional.condition.resolution and conditional.condition_child.resolution:
             if conditional.condition.resolution == "yes":
-                resolve_question(conditional.question_no, ResolutionType.ANNULLED)
                 resolve_question(
-                    conditional.question_yes, conditional.condition_child.resolution
+                    conditional.question_no,
+                    ResolutionType.ANNULLED,
+                    actual_resolve_time,
+                )
+                resolve_question(
+                    conditional.question_yes,
+                    conditional.condition_child.resolution,
+                    actual_resolve_time,
                 )
             elif conditional.condition.resolution == "no":
                 resolve_question(
-                    conditional.question_no, conditional.condition_child.resolution
+                    conditional.question_no,
+                    conditional.condition_child.resolution,
+                    actual_resolve_time,
                 )
-                resolve_question(conditional.question_yes, ResolutionType.ANNULLED)
-            elif conditional.condition.resolution == ResolutionType.ANNULLED:
-                resolve_question(conditional.question_no, ResolutionType.ANNULLED)
                 resolve_question(
-                    conditional.question_yes.resolution, ResolutionType.ANNULLED
+                    conditional.question_yes,
+                    ResolutionType.ANNULLED,
+                    actual_resolve_time,
+                )
+            elif conditional.condition.resolution == ResolutionType.ANNULLED:
+                resolve_question(
+                    conditional.question_no,
+                    ResolutionType.ANNULLED,
+                    actual_resolve_time,
+                )
+                resolve_question(
+                    conditional.question_yes.resolution,
+                    ResolutionType.ANNULLED,
+                    actual_resolve_time,
                 )
             elif conditional.condition.resolution == ResolutionType.AMBIGUOUS:
                 resolve_question(
-                    conditional.question_no.resolution, ResolutionType.AMBIGUOUS
+                    conditional.question_no.resolution,
+                    ResolutionType.AMBIGUOUS,
+                    actual_resolve_time,
                 )
                 resolve_question(
-                    conditional.question_yes.resolution, ResolutionType.AMBIGUOUS
+                    conditional.question_yes.resolution,
+                    ResolutionType.AMBIGUOUS,
+                    actual_resolve_time,
                 )
             else:
                 raise ValueError(
