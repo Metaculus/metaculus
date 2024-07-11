@@ -69,7 +69,7 @@ def prediction_difference_for_display(
 ) -> tuple[float, float] | list[tuple[float, float]]:
     if question.type == "binary":
         # abs pred diff, ratio of odds
-        return (p2 - p1, (p2 / (1 - p2)) / (p1 / (1 - p1)))
+        return (p2[1] - p1[1], (p2[1] / (1 - p2[1])) / (p1[1] / (1 - p1[1])))
     elif question.type == "multiple_choice":
         # list of (abs pred diff, ratio of odds)
         return [(q - p, (q / (1 - q)) / (p / (1 - p))) for p, q in zip(p1, p2)]

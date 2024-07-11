@@ -4,23 +4,23 @@ import dramatiq
 from django.db.models import Q
 
 from posts.models import Post, PostUserSnapshot
-from posts.services import compute_divergence, compute_movement
+from posts.services import compute_sorting_divergence, compute_movement
 
 logger = logging.getLogger(__name__)
 
 
 @dramatiq.actor
-def run_compute_divergence(post_id):
+def run_compute_sorting_divergence(post_id):
     """
     TODO: ensure tasks of this group are executed consequent and keep the FIFO order
         and implement a cancellation of previous task with the same type
     """
 
-    logger.info(f"Running run_compute_divergence for post_id {post_id}")
+    logger.info(f"Running run_compute_sorting_divergence for post_id {post_id}")
 
     post = Post.objects.get(pk=post_id)
 
-    divergence = compute_divergence(post)
+    divergence = compute_sorting_divergence(post)
 
     snapshots = PostUserSnapshot.objects.filter(
         post=post, user_id__in=divergence.keys()
@@ -38,7 +38,7 @@ def run_compute_divergence(post_id):
     PostUserSnapshot.objects.bulk_update(bulk_update, fields=["divergence"])
 
     logger.info(
-        f"Finished run_compute_divergence for post_id {post_id}. "
+        f"Finished run_compute_sorting_divergence for post_id {post_id}. "
         f"Updated {len(bulk_update)} user snapshots"
     )
 

@@ -3,9 +3,11 @@ from rest_framework.exceptions import ValidationError
 
 from django.utils import timezone
 from users.models import User
+from utils.the_math.measures import prediction_difference_for_display
 from .constants import ResolutionType
 from .models import Question, Conditional, GroupOfQuestions
 from .services import build_question_forecasts, build_question_forecasts_for_user
+import numpy as np
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -153,6 +155,11 @@ def serialize_question(
             serialized_data["my_forecasts"] = build_question_forecasts_for_user(
                 question, current_user
             )
+        
+        last_forecast = question.forecast_set.filter(author=current_user).order_by("start_time").last()
+        if last_forecast:
+            serialized_data["dispaly_divergences"] = prediction_difference_for_display(last_forecast.get_prediction_values(), np.array(serialized_data["forecasts"]["latest_cdf"]) if question.type in [Question.QuestionType.NUMERIC, Question.QuestionType.DATE] else np.array(serialized_data["forecasts"]["latest_pmf"]), question)
+
 
     serialized_data["resolution"] = question.resolution
 
