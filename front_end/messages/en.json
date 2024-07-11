@@ -501,35 +501,39 @@
   "Access": "Access",
   "Save": "Save",
   "Candidates": "Candidates",
-  "sendBackDraftButton": "Send back draft"
-  ,"approveButton": "Approve"
-  ,"submitForReviewButton": "Submit for review"
-  ,"seeAllForecasts": "See All Forecasts"
-  ,"documentation": "documentation"
-  ,"apiAcessText": "You may use an API token to access the Metaculus API, per our"
-  ,"apiAccess": "API Access"
-  ,"yourAPITokenIs": "Your API token is:"
-  ,"about": "About"
-  ,"API": "API"
-  ,"Other Initiatives": "Other Initiatives"
-  ,"Forecasting Resources": "Forecasting Resources"
-  ,"Metaculus for Journalists": "Metaculus for Journalists"
-  ,"Careers": "Careers"
-  ,"Guidelines": "Guidelines"
-  ,"Privacy Policy": "Privacy Policy"
-  ,"Terms of Use": "Terms of Use"
-  ,"FAQ": "FAQ"
-  ,"Contact": "Contact"
-  ,"News": "News"
-  ,"Write": "Write"
-  ,"Login": "Login"
-  ,"Logout": "Logout"
-  ,"About Metaculus": "About Metaculus"
-  ,"More": "More"
-  ,"For Journalists": "For Journalists"
-  ,"Track Record": "Track Record"
-  ,"The Journal": "The Journal"
-  ,"Account": "Account"
-  ,"Settings": "Settings"
-  ,"Short Title": "Short Title"
+  "sendBackDraftButton": "Send back draft",
+  "approveButton": "Approve",
+  "submitForReviewButton": "Submit for review",
+  "seeAllForecasts": "See All Forecasts",
+  "documentation": "documentation",
+  "apiAcessText": "You may use an API token to access the Metaculus API, per our",
+  "apiAccess": "API Access",
+  "yourAPITokenIs": "Your API token is:",
+  "about": "About",
+  "API": "API",
+  "Other Initiatives": "Other Initiatives",
+  "Forecasting Resources": "Forecasting Resources",
+  "Metaculus for Journalists": "Metaculus for Journalists",
+  "Careers": "Careers",
+  "Guidelines": "Guidelines",
+  "Privacy Policy": "Privacy Policy",
+  "Terms of Use": "Terms of Use",
+  "FAQ": "FAQ",
+  "Contact": "Contact",
+  "News": "News",
+  "Write": "Write",
+  "Login": "Login",
+  "Logout": "Logout",
+  "About Metaculus": "About Metaculus",
+  "More": "More",
+  "For Journalists": "For Journalists",
+  "Track Record": "Track Record",
+  "The Journal": "The Journal",
+  "Account": "Account",
+  "Settings": "Settings",
+  "Short Title": "Short Title",
+  "boost": "Boost",
+  "bury": "Bury",
+  "contentBoosted": "Content boosted! value {value} activity",
+  "contentBuried": "Content buried! value {value} activity"
 }

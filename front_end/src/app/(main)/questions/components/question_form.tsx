@@ -13,7 +13,12 @@ import * as z from "zod";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
-import { Category, PostStatus, PostWithForecasts } from "@/types/post";
+import {
+  Category,
+  PostStatus,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
@@ -31,7 +36,7 @@ const baseQuestionSchema = z.object({
   title: z.string().min(4).max(200),
   url_title: z.string().min(4).max(60),
   description: z.string().min(4),
-  resolution_criteria_description: z.string(),
+  resolution_criteria_description: z.string().min(1),
   fine_print: z.string(),
   scheduled_close_time: z.date(),
   scheduled_resolve_time: z.date(),
@@ -126,6 +131,14 @@ const QuestionForm: React.FC<Props> = ({
     };
 
   const submitQuestion = async (data: any) => {
+    if (data["zero_point"]) {
+      if (data["zero_point"] > 0 || data["zero_point"] < data["min"]) {
+        alert(
+          "Zero point should be > 0 and < min | You probably don't know what you are doing, please stop using log scales and ask :)"
+        );
+        return;
+      }
+    }
     data["type"] = questionType;
     data["options"] = optionsList;
 
@@ -155,6 +168,13 @@ const QuestionForm: React.FC<Props> = ({
   );
   const [isLogarithmic, setIsLogarithmic] = useState<boolean>(
     post?.question ? post?.question?.zero_point != 0 : false
+  );
+
+  const can_see_logarithmic = () => {
+    return post?.user_permission == ProjectPermissions.ADMIN || !post;
+  };
+  const [logScaleEnabled, setLogScaleEnabled] = useState<boolean>(
+    can_see_logarithmic()
   );
 
   const getFormSchema = (type: string) => {
@@ -362,33 +382,45 @@ const QuestionForm: React.FC<Props> = ({
 
           {questionType == "numeric" && (
             <>
-              <div className="flex w-full flex-col gap-4 md:flex-row">
-                <div className="flex w-full flex-col gap-2">
-                  <span className={inputLabelStyles}>Max</span>
-                  <Input
-                    readOnly={isLive}
-                    type="number"
-                    className={baseInputStyles}
-                    {...control.register("max", {
-                      setValueAs: (value: string) => Number(value),
-                    })}
-                    errors={control.formState.errors.max}
-                    defaultValue={post?.question?.max}
-                  />
-                </div>
-                <div className="flex w-full flex-col gap-2">
-                  <span className={inputLabelStyles}>Min</span>
-                  <Input
-                    readOnly={isLive}
-                    type="number"
-                    className={baseInputStyles}
-                    {...control.register("min", {
-                      setValueAs: (value: string) => Number(value),
-                    })}
-                    errors={control.formState.errors.min}
-                    defaultValue={post?.question?.min}
-                  />
-                </div>
+              <div>
+                <span>Max</span>
+                <Input
+                  readOnly={isLive}
+                  type="number"
+                  {...control.register("max", {
+                    setValueAs: (value: string) => Number(value),
+                  })}
+                  errors={control.formState.errors.max}
+                  defaultValue={post?.question?.max}
+                />
+              </div>
+              <div>
+                <span>Min</span>
+                <Input
+                  readOnly={isLive}
+                  type="number"
+                  {...control.register("min", {
+                    setValueAs: (value: string) => {
+                      return Number(value);
+                    },
+                  })}
+                  errors={control.formState.errors.min}
+                  defaultValue={post?.question?.min}
+                  onChange={(e) => {
+                    if (Number(e.target.value) <= 0) {
+                      if (isLogarithmic) {
+                        control.setError("min", {
+                          message:
+                            "Min must be greater than 0 when logarithmic",
+                        });
+                        return;
+                      }
+                      setLogScaleEnabled(false);
+                    } else {
+                      setLogScaleEnabled(can_see_logarithmic());
+                    }
+                  }}
+                />
               </div>
             </>
           )}
@@ -490,35 +522,34 @@ const QuestionForm: React.FC<Props> = ({
                   />
                 </div>
               </div>
-              <div className="flex flex-row-reverse gap-2.5 self-start">
-                <span>Is Logarithmic ?</span>
-                <Input
-                  disabled={isLive}
-                  type="checkbox"
-                  onChange={(e) => {
-                    setIsLogarithmic(e.target.checked);
-                  }}
-                  checked={isLogarithmic}
-                  errors={control.formState.errors.open_lower_bound}
-                  className="size-5"
-                />
-              </div>
-              {(questionType == "numeric" || questionType == "date") &&
-                isLogarithmic && (
-                  <div className={inputContainerStyles}>
-                    <span className={inputLabelStyles}>Zero Point</span>
-                    <Input
-                      readOnly={isLive}
-                      type="number"
-                      className={baseInputStyles}
-                      {...control.register("zero_point", {
-                        setValueAs: (value: string) => Number(value),
-                      })}
-                      errors={control.formState.errors.zero_point}
-                      defaultValue={post?.question?.zero_point}
-                    />
-                  </div>
-                )}
+              {logScaleEnabled && (
+                <div>
+                  <span className="mr-2">Is Logarithmic ?</span>
+                  <Input
+                    disabled={isLive}
+                    type="checkbox"
+                    onChange={(e) => {
+                      setIsLogarithmic(e.target.checked);
+                    }}
+                    checked={isLogarithmic}
+                    errors={control.formState.errors.zero_point}
+                  />
+                  {isLogarithmic && (
+                    <div className="ml-2">
+                      <span className="mr-2">Zero Point</span>
+                      <Input
+                        readOnly={isLive}
+                        type="number"
+                        {...control.register("zero_point", {
+                          setValueAs: (value: string) => Number(value),
+                        })}
+                        errors={control.formState.errors.zero_point}
+                        defaultValue={post?.question?.zero_point}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
           <div className={inputContainerStyles}>
