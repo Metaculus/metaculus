@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "anymail",
     "django_dramatiq",
     "admin_auto_filters",
+    # TODO: disable in prod
     "debug_toolbar",
     # first-party:
     "migrator",
@@ -287,3 +288,25 @@ ALPHA_ACCESS_TOKEN = os.environ.get("ALPHA_ACCESS_TOKEN")
 ALLOWED_HOSTS = []
 CSRF_TRUSTED_ORIGINS = [FRONTEND_BASE_URL]
 INTERNAL_IPS = ["127.0.0.1"]
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "console": {
+            "format": "[\x1b[1m%(asctime)s %(levelname)s] %(name)s:\x1b[0m %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "console",
+        },
+    },
+    "loggers": {
+        "": {
+            "level": "INFO",
+            "handlers": ["console"],
+        },
+    },
+}
