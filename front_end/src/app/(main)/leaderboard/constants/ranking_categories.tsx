@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-import { CategoryKey } from "./filters";
+import { CategoryKey } from "@/types/scoring";
 
 export const RANKING_CATEGORIES: Record<
   CategoryKey,
