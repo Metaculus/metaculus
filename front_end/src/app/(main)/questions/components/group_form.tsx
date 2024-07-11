@@ -69,13 +69,14 @@ const GroupForm: React.FC<Props> = ({
       return;
     }
 
+    let break_out = false;
     const groupData = subQuestions
       .filter((x) => !x.id)
       .map((x) => {
         if (x["min"] || x["max"]) {
           if (x["max"] <= x["min"]) {
             alert("Max should be > min");
-            return;
+            break_out = true;
           }
         }
         if (subtype == "binary") {
@@ -105,6 +106,9 @@ const GroupForm: React.FC<Props> = ({
           };
         }
       });
+    if (break_out) {
+      return;
+    }
     const questionToDelete: number[] = [];
     if (post?.group_of_questions.questions) {
       forEach(post?.group_of_questions.questions, (sq, index) => {
