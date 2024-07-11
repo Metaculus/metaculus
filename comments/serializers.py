@@ -54,7 +54,7 @@ def serialize_comment(
     serialized_data = CommentSerializer(comment).data
 
     # Permissions
-    #serialized_data["user_permission"] = post.user_permission
+    # serialized_data["user_permission"] = post.user_permission
 
     # Annotate user's vote
     serialized_data["vote_score"] = comment.vote_score
@@ -75,6 +75,5 @@ def serialize_comment_many(
         qs = qs.annotate_user_vote(current_user)
 
     return [
-        serialize_comment(comment, current_user=current_user)
-        for comment in qs.all()
+        serialize_comment(comment, current_user=current_user) for comment in qs.all()
     ]

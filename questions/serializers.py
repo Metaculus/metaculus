@@ -121,7 +121,13 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GroupOfQuestions
-        fields = ("questions",)
+        fields = (
+            "questions",
+            "fine_print",
+            "resolution_criteria_description",
+            "description",
+            "group_variable",
+        )
 
 
 def serialize_question(
