@@ -33,9 +33,9 @@ const CategoryPicker: React.FC<{
     <div>
       <Combobox multiple>
         <div className="relative mt-1">
-          <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
+          <div className="relative w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
             <ComboboxInput
-              className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 dark:text-gray-200"
+              className="w-full border-none p-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 dark:bg-blue-950 dark:text-gray-200"
               displayValue={(categories: Category[]) => query}
               onChange={(e) => {
                 setQuery(e.target.value);
@@ -44,7 +44,8 @@ const CategoryPicker: React.FC<{
             <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
               <FontAwesomeIcon
                 icon={faSearch}
-                className="h-5 w-5 text-gray-400"
+                size="lg"
+                className="text-gray-500"
               />
             </ComboboxButton>
           </div>
