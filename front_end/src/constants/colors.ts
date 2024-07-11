@@ -23,6 +23,7 @@ export const METAC_COLORS = {
     700: { DEFAULT: "#4f6882", dark: "#bfd4ec" },
     800: { DEFAULT: "#2f4155", dark: "#d7e7f7" },
     900: { DEFAULT: "#283441", dark: "#ebf5fe" },
+    950: { DEFAULT: "#22262B", dark: "#22262B" },
   },
   olive: {
     100: { DEFAULT: "#f9fbf9", dark: "#2a332a" },
