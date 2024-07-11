@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_dramatiq.tasks import delete_old_tasks
 
+from posts.services import compute_hotness
 from posts.tasks import run_compute_movement
 
 logger = logging.getLogger(__name__)
@@ -68,6 +69,13 @@ class Command(BaseCommand):
         scheduler.add_job(
             close_old_connections(run_compute_movement.send),
             trigger=CronTrigger.from_crontab("0 * * * *"),  # Every Hour
+            id="posts_run_compute_movement",
+            max_instances=1,
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            close_old_connections(compute_hotness),
+            trigger=CronTrigger.from_crontab("15 * * * *"),  # Every Hour at :15
             id="posts_run_compute_movement",
             max_instances=1,
             replace_existing=True,
