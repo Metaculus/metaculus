@@ -124,6 +124,7 @@ class LeaderboardEntry(TimeStampedModel):
     )
     score = models.FloatField()
     rank = models.IntegerField(null=True)
+    excluded = models.BooleanField(default=False)
 
     class Medals(models.TextChoices):
         GOLD = "gold"
