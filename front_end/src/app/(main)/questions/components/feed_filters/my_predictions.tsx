@@ -8,6 +8,7 @@ import {
 } from "@/app/(main)/questions/helpers/filters";
 import { FilterOptionType } from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
+import { GroupButton } from "@/components/ui/button_group";
 import { POST_STATUS_FILTER } from "@/constants/posts_feed";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
@@ -35,22 +36,22 @@ const MyPredictionsFilters: FC = () => {
     ];
   }, [params, t]);
 
-  const mainSortOptions = useMemo(
+  const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [
       {
-        id: QuestionOrder.WeeklyMovementDesc,
+        value: QuestionOrder.WeeklyMovementDesc,
         label: t("movers"),
       },
       {
-        id: QuestionOrder.DivergenceDesc,
+        value: QuestionOrder.DivergenceDesc,
         label: t("divergence"),
       },
       {
-        id: QuestionOrder.StaleDesc,
+        value: QuestionOrder.StaleDesc,
         label: t("stale"),
       },
       {
-        id: QuestionOrder.UnreadCommentCountDesc,
+        value: QuestionOrder.UnreadCommentCountDesc,
         label: t("newComments"),
       },
     ],
