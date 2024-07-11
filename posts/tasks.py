@@ -1,9 +1,10 @@
 import logging
 
 import dramatiq
+from django.db.models import Q
 
 from posts.models import Post, PostUserSnapshot
-from posts.services import compute_divergence
+from posts.services import compute_divergence, compute_movement
 
 logger = logging.getLogger(__name__)
 
@@ -40,3 +41,35 @@ def run_compute_divergence(post_id):
         f"Finished run_compute_divergence for post_id {post_id}. "
         f"Updated {len(bulk_update)} user snapshots"
     )
+
+
+@dramatiq.actor
+def run_compute_movement():
+    qs = (
+        Post.objects.filter_active()
+        .filter(
+            Q(question__isnull=False)
+            | Q(group_of_questions__isnull=False)
+            | Q(conditional__isnull=False)
+        )
+        .prefetch_questions()
+    )
+    total = qs.count()
+
+    posts = []
+
+    for idx, post in enumerate(qs.iterator(100)):
+        try:
+            post.movement = compute_movement(post)
+        except:
+            logger.exception(f"Error during compute_movement for post_id {post.id}")
+            continue
+
+        posts.append(post)
+
+        if len(posts) >= 100:
+            Post.objects.bulk_update(posts, fields=["movement"])
+            posts = []
+
+        if not idx % 100:
+            logger.info(f"Processed {idx + 1}/{total}. ")
