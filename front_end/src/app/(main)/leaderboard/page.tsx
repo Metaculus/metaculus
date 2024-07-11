@@ -4,13 +4,12 @@ import { Suspense } from "react";
 
 import AwaitedGlobalLeaderboard from "@/app/(main)/leaderboard/components/global_leaderboard";
 import { SearchParams } from "@/types/navigation";
+import { CategoryKey, LeaderboardFilters } from "@/types/scoring";
 
 import LeaderboardHeader from "./components/leaderboard_header";
-import { CategoryKey } from "./constants/filters";
 import {
   extractLeaderboardFiltersFromParams,
   getLeaderboardTimeInterval,
-  LeaderboardFilters,
   mapCategoryKeyToLeaderboardType,
 } from "./helpers/filter";
 
