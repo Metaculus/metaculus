@@ -62,7 +62,7 @@ def global_leaderboard(
     for entry in entries:
         if entry.user == user:
             leaderboard_data["userEntry"] = LeaderboardEntrySerializer(entry).data
-
+            break
     return Response(leaderboard_data)
 
 
@@ -111,6 +111,7 @@ def project_leaderboard(
     for entry in entries:
         if entry.user == user:
             leaderboard_data["userEntry"] = LeaderboardEntrySerializer(entry).data
+            break
     return Response(leaderboard_data)
 
 
