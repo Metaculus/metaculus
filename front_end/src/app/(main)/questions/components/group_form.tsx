@@ -297,7 +297,11 @@ const GroupForm: React.FC<Props> = ({
                   className="flex w-full flex-col space-y-4 rounded border bg-white p-4 dark:bg-blue-900"
                 >
                   <div className={inputContainerStyles}>
-                    <span className={inputLabelStyles}>Subquestion Label</span>
+                    {collapsedSubQuestions[index] && (
+                      <span className={inputLabelStyles}>
+                        Subquestion Label
+                      </span>
+                    )}
                     <Input
                       onChange={(e) => {
                         setSubQuestions(
@@ -312,9 +316,11 @@ const GroupForm: React.FC<Props> = ({
                       className={baseInputStyles}
                       value={subQuestion?.title}
                     />
-                    <span
-                      className={inputDescriptionStyles}
-                    >{`The label or parameter which identifies this subquestion, like "Option 1", "2033" or "France"`}</span>
+                    {collapsedSubQuestions[index] && (
+                      <span className={inputDescriptionStyles}>
+                        {`The label or parameter which identifies this subquestion, like "Option 1", "2033" or "France"`}
+                      </span>
+                    )}
                   </div>
                   {collapsedSubQuestions[index] && (
                     <div className="flex w-full flex-col gap-4 md:flex-row">
