@@ -2,7 +2,6 @@ import { FC } from "react";
 
 import LeaderboardTable from "@/app/(main)/leaderboard/components/leaderboard_table";
 import LeaderboardApi from "@/services/leaderboard";
-import ProfileApi from "@/services/profile";
 import { CategoryKey, LeaderboardType } from "@/types/scoring";
 
 type Props = {

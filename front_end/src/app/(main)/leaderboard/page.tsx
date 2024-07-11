@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import AwaitedGlobalLeaderboard from "@/app/(main)/leaderboard/components/global_leaderboard";
+import MobileGlobalLeaderboard from "@/app/(main)/leaderboard/components/mobile_global_leaderboard";
 import ProfileApi from "@/services/profile";
 import { SearchParams } from "@/types/navigation";
 import { CategoryKey, LeaderboardFilters } from "@/types/scoring";
@@ -101,6 +102,10 @@ export default async function GlobalLeaderboards({
             </div>
           );
         })}
+      </section>
+
+      <section className="flex w-full flex-col gap-3 sm:hidden">
+        <MobileGlobalLeaderboard categoryKeys={categoryKeys} />
       </section>
     </main>
   );
