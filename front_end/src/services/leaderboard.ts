@@ -10,13 +10,13 @@ class LeaderboardApi {
     // TODO: make paginated
     const params = new URLSearchParams();
     if (startTime) {
-      params.append("start_time", startTime.toString());
+      params.append("startTime", startTime.toString());
     }
     if (endTime) {
-      params.append("end_time", endTime.toString());
+      params.append("endTime", endTime.toString());
     }
     if (leaderboardType) {
-      params.append("leaderboard_type", leaderboardType);
+      params.append("leaderboardType", leaderboardType);
     }
     const url = `/leaderboards/global/${params.toString() ? `?${params.toString()}` : ""}`;
     return await get<LeaderboardDetails>(url);
