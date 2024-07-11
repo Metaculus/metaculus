@@ -1,6 +1,6 @@
 "use client";
 
-import { faSearch, faX } from "@fortawesome/free-solid-svg-icons";
+import { faSearch, faX, faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Combobox,
@@ -21,22 +21,31 @@ const CategoryPicker: React.FC<{
 }> = ({ allCategories, categories, onChange }) => {
   const [query, setQuery] = useState<string>("");
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
+
   useEffect(() => {
     setFilteredCategories(
       allCategories.filter((category) =>
         category.name.toLowerCase().includes(query.toLowerCase())
       )
     );
-  }, [query]);
+  }, [query, allCategories]);
 
   return (
     <div>
-      <Combobox immediate multiple>
+      <Combobox
+        immediate
+        multiple
+        value={categories}
+        onChange={(newCategories) => {
+          onChange(newCategories);
+          setQuery("");
+        }}
+      >
         <div className="relative mt-1">
           <div className="relative w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
             <ComboboxInput
               className="w-full border-none p-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 dark:bg-blue-950 dark:text-gray-200"
-              displayValue={(categories: Category[]) => query}
+              displayValue={() => query}
               onChange={(e) => {
                 setQuery(e.target.value);
               }}
@@ -66,7 +75,7 @@ const CategoryPicker: React.FC<{
                   <ComboboxOption
                     key={category.id}
                     className={({ active }) =>
-                      `relative cursor-default select-none ${
+                      `group relative cursor-default select-none ${
                         active
                           ? "bg-blue-600 text-white"
                           : "text-gray-900 dark:text-gray-300"
@@ -75,20 +84,23 @@ const CategoryPicker: React.FC<{
                     value={category}
                   >
                     {({ selected }) => (
-                      <>
+                      <div className="flex flex-row items-center">
                         <span
-                          onClick={() => {
-                            setQuery("");
-                            setFilteredCategories([]);
-                            onChange([...categories, category]);
-                          }}
-                          className={`block cursor-pointer truncate py-2 pl-4 pr-4 ${
-                            selected ? "font-medium" : "font-normal"
+                          className={`block cursor-pointer truncate py-2 pl-4 pr-2.5 ${
+                            selected ? "font-bold" : "font-normal"
                           }`}
                         >
                           {category.name}
                         </span>
-                      </>
+                        {selected && (
+                          <span className="flex items-center">
+                            <FontAwesomeIcon
+                              icon={faCheck}
+                              className="text-blue-600 group-hover:text-white group-focus:text-white"
+                            />
+                          </span>
+                        )}
+                      </div>
                     )}
                   </ComboboxOption>
                 ))
