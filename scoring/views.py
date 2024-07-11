@@ -1,3 +1,4 @@
+import math
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -19,7 +20,7 @@ from scoring.serializers import (
     LeaderboardEntrySerializer,
     ContributionSerializer,
 )
-from scoring.utils import generate_project_leaderboard, get_contributions
+from scoring.utils import update_project_leaderboard, get_contributions
 
 
 @api_view(["GET"])
@@ -27,6 +28,7 @@ from scoring.utils import generate_project_leaderboard, get_contributions
 def global_leaderboard(
     request: Request,
 ):
+
     # params
     start_time = request.GET.get("startTime", None)
     end_time = request.GET.get("endTime", None)
@@ -50,8 +52,22 @@ def global_leaderboard(
     leaderboard_data = LeaderboardSerializer(leaderboard).data
     entries = list(leaderboard.entries.all())
     if len(entries) == 0:
-        entries = generate_project_leaderboard(leaderboard.project, leaderboard)
-    leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
+        entries = update_project_leaderboard(leaderboard.project, leaderboard)
+    user = request.user
+    leader_entries = [
+        e
+        for e in entries
+        if e.rank <= len(entries) * 0.05
+        if (not e.excluded or user.is_staff)
+    ]
+    leaderboard_data["entries"] = LeaderboardEntrySerializer(
+        leader_entries, many=True
+    ).data
+    # add user entry
+    for entry in entries:
+        if entry.user == user:
+            leaderboard_data["userEntry"] = LeaderboardEntrySerializer(entry).data
+            break
     return Response(leaderboard_data)
 
 
@@ -93,8 +109,17 @@ def project_leaderboard(
     leaderboard_data = LeaderboardSerializer(leaderboard).data
     entries = list(leaderboard.entries.all())
     if len(entries) == 0:
-        entries = generate_project_leaderboard(project, leaderboard)
-    leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
+        entries = update_project_leaderboard(project, leaderboard)
+    user = request.user
+    leader_entries = [e for e in entries if (not e.excluded or user.is_staff)]
+    leaderboard_data["entries"] = LeaderboardEntrySerializer(
+        leader_entries, many=True
+    ).data
+    # add user entry
+    for entry in entries:
+        if entry.user == user:
+            leaderboard_data["userEntry"] = LeaderboardEntrySerializer(entry).data
+            break
     return Response(leaderboard_data)
 
 
