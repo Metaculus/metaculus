@@ -1,3 +1,4 @@
+import math
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -19,7 +20,7 @@ from scoring.serializers import (
     LeaderboardEntrySerializer,
     ContributionSerializer,
 )
-from scoring.utils import generate_project_leaderboard, get_contributions
+from scoring.utils import update_project_leaderboard, get_contributions
 
 
 @api_view(["GET"])
@@ -50,7 +51,8 @@ def global_leaderboard(
     leaderboard_data = LeaderboardSerializer(leaderboard).data
     entries = list(leaderboard.entries.all())
     if len(entries) == 0:
-        entries = generate_project_leaderboard(leaderboard.project, leaderboard)
+        entries = update_project_leaderboard(leaderboard.project, leaderboard)
+    entries = [e for e in entries if e.rank <= len(entries) * 0.05]
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     return Response(leaderboard_data)
 
@@ -93,7 +95,7 @@ def project_leaderboard(
     leaderboard_data = LeaderboardSerializer(leaderboard).data
     entries = list(leaderboard.entries.all())
     if len(entries) == 0:
-        entries = generate_project_leaderboard(project, leaderboard)
+        entries = update_project_leaderboard(project, leaderboard)
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     return Response(leaderboard_data)
 
