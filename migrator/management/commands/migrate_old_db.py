@@ -15,9 +15,7 @@ from migrator.services.migrate_questions import migrate_questions
 from migrator.services.migrate_scoring import score_questions
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
-from migrator.services.post_migrate import (
-    post_migrate_calculate_divergence,
-)
+from migrator.services.post_migrate import post_migrate_calculate_divergence
 from migrator.utils import reset_sequence
 from posts.tasks import run_compute_movement
 from projects.models import Project

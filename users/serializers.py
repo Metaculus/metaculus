@@ -27,6 +27,18 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "website",
             "formerly_known_as",
             "is_bot",
+            "twitter",
+            "linkedin",
+            "facebook",
+            "github",
+            "good_judgement_open",
+            "kalshi",
+            "manifold",
+            "infer",
+            "hypermind",
+            "occupation",
+            "location",
+            "profile_picture",
         )
 
     def get_formerly_known_as(self, obj: User):
@@ -54,6 +66,22 @@ class UserPrivateSerializer(UserPublicSerializer):
             "email",
             "formerly_known_as",
             "is_superuser",
+            "bio",
+            "website",
+            "formerly_known_as",
+            "is_bot",
+            "twitter",
+            "linkedin",
+            "facebook",
+            "github",
+            "good_judgement_open",
+            "kalshi",
+            "manifold",
+            "infer",
+            "hypermind",
+            "occupation",
+            "location",
+            "profile_picture",
         )
 
 
@@ -62,7 +90,22 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("bio", "website")
+        fields = ("bio",
+            "website",
+            "formerly_known_as",
+            "is_bot",
+            "twitter",
+            "linkedin",
+            "facebook",
+            "github",
+            "good_judgement_open",
+            "kalshi",
+            "manifold",
+            "infer",
+            "hypermind",
+            "occupation",
+            "location",
+            "profile_picture")
 
 
 def validate_username(value: str):

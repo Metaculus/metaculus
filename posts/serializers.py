@@ -58,7 +58,7 @@ class PostSerializer(serializers.ModelSerializer):
         )
 
     def get_projects(self, obj: Post):
-        return serialize_projects(obj.projects.all())
+        return serialize_projects(obj.projects.all(), obj.default_project)
 
     def get_author_username(self, obj: Post):
         return obj.author.username
@@ -85,7 +85,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
     projects = PostProjectWriteSerializer(required=False)
     question = QuestionWriteSerializer(required=False)
     conditional = ConditionalWriteSerializer(required=False)
-    group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
+    group_of_questions = GroupOfQuestionsWriteSerializer(required=True)
     notebook = NotebookWriteSerializer(required=False)
 
     class Meta:
@@ -96,6 +96,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "question",
             "conditional",
             "group_of_questions",
+            "default_project_id",
             "notebook",
             "published_at",
         )

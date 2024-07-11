@@ -43,7 +43,11 @@ const ForecastMakerConditional: FC<Props> = ({
             }
             prevYesForecast={question_yes.forecasts.my_forecasts?.slider_values}
             prevNoForecast={question_no.forecasts.my_forecasts?.slider_values}
-            canPredict={canPredict}
+            canPredict={
+              canPredict &&
+              conditional.condition_child.open_time !== undefined &&
+              new Date(conditional.condition_child.open_time) <= new Date()
+            }
           />
         );
       case QuestionType.Date:
@@ -56,7 +60,11 @@ const ForecastMakerConditional: FC<Props> = ({
             }
             prevYesForecast={question_yes.forecasts.my_forecasts?.slider_values}
             prevNoForecast={question_no.forecasts.my_forecasts?.slider_values}
-            canPredict={canPredict}
+            canPredict={
+              canPredict &&
+              conditional.condition_child.open_time !== undefined &&
+              new Date(conditional.condition_child.open_time) <= new Date()
+            }
           />
         );
       default:

@@ -179,11 +179,8 @@ class PostQuerySet(models.QuerySet):
         )
 
     def annotate_divergence(self, user_id: int):
-        return (
-            self.filter(snapshots__user_id=user_id)
-            .annotate(
-                divergence=F("snapshots__divergence")
-            )
+        return self.filter(snapshots__user_id=user_id).annotate(
+            divergence=F("snapshots__divergence")
         )
 
     #
@@ -561,7 +558,6 @@ class Vote(TimeStampedModel):
 
     user = models.ForeignKey(User, models.CASCADE, related_name="votes")
     post = models.ForeignKey(Post, models.CASCADE, related_name="votes")
-    # comment = models.ForeignKey(Comment, models.CASCADE, related_name="votes")
     direction = models.SmallIntegerField(choices=VoteDirection.choices)
 
     class Meta:
@@ -569,11 +565,4 @@ class Vote(TimeStampedModel):
             models.UniqueConstraint(
                 name="votes_unique_user_question", fields=["user_id", "post_id"]
             ),
-            # models.CheckConstraint(
-            #    name='has_question_xor_comment',
-            #    check=(
-            #        models.Q(post__isnull=True, comment__isnull=False) |
-            #        models.Q(post__isnull=False, comment__isnull=True)
-            #    )
-            # )
         ]
