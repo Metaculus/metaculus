@@ -53,12 +53,17 @@ def global_leaderboard(
     entries = list(leaderboard.entries.all())
     if len(entries) == 0:
         entries = update_project_leaderboard(leaderboard.project, leaderboard)
-    leader_entries = [e for e in entries if e.rank <= len(entries) * 0.05]
+    user = request.user
+    leader_entries = [
+        e
+        for e in entries
+        if e.rank <= len(entries) * 0.05
+        if (not e.excluded or user.is_staff)
+    ]
     leaderboard_data["entries"] = LeaderboardEntrySerializer(
         leader_entries, many=True
     ).data
     # add user entry
-    user = request.user
     for entry in entries:
         if entry.user == user:
             leaderboard_data["userEntry"] = LeaderboardEntrySerializer(entry).data
@@ -105,9 +110,12 @@ def project_leaderboard(
     entries = list(leaderboard.entries.all())
     if len(entries) == 0:
         entries = update_project_leaderboard(project, leaderboard)
-    leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
-    # add user entry
     user = request.user
+    leader_entries = [e for e in entries if (not e.excluded or user.is_staff)]
+    leaderboard_data["entries"] = LeaderboardEntrySerializer(
+        leader_entries, many=True
+    ).data
+    # add user entry
     for entry in entries:
         if entry.user == user:
             leaderboard_data["userEntry"] = LeaderboardEntrySerializer(entry).data
