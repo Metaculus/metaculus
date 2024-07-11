@@ -1,8 +1,9 @@
 import classNames from "classnames";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import AwaitedGlobalLeaderboard from "@/app/(main)/leaderboard/components/global_leaderboard";
+import ProfileApi from "@/services/profile";
 import { SearchParams } from "@/types/navigation";
 import { CategoryKey, LeaderboardFilters } from "@/types/scoring";
 
@@ -14,12 +15,15 @@ import {
 } from "./helpers/filter";
 
 //  @TODO: How to not hardcode the ids here -- or maybe we just should (?)
-export default function GlobalLeaderboards({
+export default async function GlobalLeaderboards({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
-  const t = useTranslations();
+  const profile = await ProfileApi.getMyProfile();
+  const userId = profile?.id;
+
+  const t = await getTranslations();
   const filters = extractLeaderboardFiltersFromParams(searchParams, t);
   const { year, duration } = filters;
 
@@ -27,8 +31,9 @@ export default function GlobalLeaderboards({
   const timeInterval = getLeaderboardTimeInterval(year, duration);
 
   if (categoryKeys.length === 1) {
+    const categoryKey = categoryKeys[0];
     const leaderboardType = mapCategoryKeyToLeaderboardType(
-      categoryKeys[0],
+      categoryKey,
       timeInterval.startTime,
       timeInterval.endTime
     );
@@ -46,6 +51,10 @@ export default function GlobalLeaderboards({
             leaderboardType={leaderboardType}
             startTime={timeInterval.startTime}
             endTime={timeInterval.endTime}
+            duration={duration}
+            year={year}
+            category={categoryKey}
+            userId={userId}
           />
         </Suspense>
       </main>
@@ -82,6 +91,11 @@ export default function GlobalLeaderboards({
                   leaderboardType={leaderboardType}
                   startTime={timeInterval.startTime}
                   endTime={timeInterval.endTime}
+                  duration={duration}
+                  year={year}
+                  category={categoryKey}
+                  cardSized
+                  userId={userId}
                 />
               </Suspense>
             </div>
