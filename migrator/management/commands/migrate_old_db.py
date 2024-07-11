@@ -4,26 +4,23 @@ from django.db import connection
 
 from migrator.services.migrate_comments import migrate_comments
 from migrator.services.migrate_forecasts import migrate_forecasts
-from migrator.services.migrate_permissions import migrate_permissions
-from migrator.services.migrate_projects import migrate_projects
-from migrator.services.migrate_questions import migrate_questions
-from migrator.services.migrate_users import migrate_users
-from migrator.services.migrate_votes import migrate_votes
-from migrator.services.post_migrate import (
-    post_migrate_calculate_divergence,
-    post_migrate_movements,
-)
-from migrator.utils import reset_sequence
-
-from migrator.services.migrate_scoring import score_questions
 from migrator.services.migrate_leaderboards import (
     create_global_leaderboards,
     populate_global_leaderboards,
     populate_project_leaderboards,
 )
-from scoring.models import populate_medal_exclusion_records
+from migrator.services.migrate_permissions import migrate_permissions
+from migrator.services.migrate_projects import migrate_projects
+from migrator.services.migrate_questions import migrate_questions
+from migrator.services.migrate_scoring import score_questions
+from migrator.services.migrate_users import migrate_users
+from migrator.services.migrate_votes import migrate_votes
+from migrator.services.post_migrate import post_migrate_calculate_divergence
+from migrator.utils import reset_sequence
+from posts.tasks import run_compute_movement
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from scoring.models import populate_medal_exclusion_records
 
 
 class Command(BaseCommand):
@@ -76,7 +73,7 @@ class Command(BaseCommand):
 
         print("Running post-migrate commands")
         post_migrate_calculate_divergence()
-        post_migrate_movements()
+        run_compute_movement()
 
         # Reset sql sequences
         reset_sequence()
