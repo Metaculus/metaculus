@@ -1,3 +1,5 @@
+import { LEADERBOARD_CATEGORIES } from "@/app/(main)/leaderboard/constants/filters";
+
 import { Question } from "./question";
 
 export type ScoreType = "peer" | "spot_peer" | "baseline" | "spot_baseline";
@@ -43,4 +45,18 @@ export type LeaderboardDetails = {
   start_date: string;
   close_date: string;
   is_ongoing: boolean;
+};
+
+export type CategoryKey = (typeof LEADERBOARD_CATEGORIES)[number];
+
+export type LeaderboardFilter = {
+  label: string;
+  value: string;
+};
+export type LeaderboardFilters = {
+  category: CategoryKey;
+  durations: LeaderboardFilter[];
+  duration: string;
+  periods: LeaderboardFilter[];
+  year: string;
 };

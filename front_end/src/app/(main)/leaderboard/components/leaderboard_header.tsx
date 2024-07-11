@@ -6,6 +6,7 @@ import { FC } from "react";
 import ButtonGroup from "@/components/ui/button_group";
 import Listbox from "@/components/ui/listbox";
 import useSearchParams from "@/hooks/use_search_params";
+import { LeaderboardFilters } from "@/types/scoring";
 
 import {
   LEADERBOARD_CATEGORY_FILTER,
@@ -14,7 +15,6 @@ import {
   LEADERBOARD_YEAR_OPTIONS,
 } from "../constants/filters";
 import { RANKING_CATEGORIES } from "../constants/ranking_categories";
-import { LeaderboardFilters } from "../helpers/filter";
 
 type Props = {
   filters: LeaderboardFilters;
