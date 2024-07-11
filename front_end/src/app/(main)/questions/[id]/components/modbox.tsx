@@ -255,7 +255,19 @@ export default function Modbox({ post }: { post: PostWithForecasts }) {
             {t("approveButton")}
           </button>
         )}
-
+      {post.status == PostStatus.APPROVED &&
+        [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
+          post.user_permission
+        ) && (
+          <button
+            className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark"
+            onClick={async () => {
+              setIsApprovalModalOpen(true);
+            }}
+          >
+            {t("Edit Open & CP Reveal Times")}
+          </button>
+        )}
       <button className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
         <a
           href={`/questions/create/${edit_type}?post_id=${post.id}`}
