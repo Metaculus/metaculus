@@ -123,8 +123,10 @@ def create_question(*, title: str = None, **kwargs) -> Question:
     return obj
 
 
-def create_group_of_questions(*, questions: list[dict]) -> GroupOfQuestions:
-    obj = GroupOfQuestions()
+def create_group_of_questions(
+    *, title: str = None, questions: list[dict], **kwargs
+) -> GroupOfQuestions:
+    obj = GroupOfQuestions(**kwargs)
 
     obj.full_clean()
     obj.save()

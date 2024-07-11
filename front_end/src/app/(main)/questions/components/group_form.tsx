@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
+import { forEach } from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -18,18 +19,19 @@ import CategoryPicker from "./category_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
-  title: string;
   group_of_questions: any;
+  title: string;
+  categories: number[];
+  default_project_id: number;
 };
 
 const groupQuestionSchema = z.object({
-  subtype: z.enum(["binary", "date", "numeric"]),
   title: z.string().min(4).max(200),
   group_variable: z.string().max(200),
   description: z.string().min(10),
-  resolution_criteria_description: z.string().optional(),
-  fine_print: z.string().optional(),
-  tournament_id: z.number().optional(),
+  resolution_criteria_description: z.string().min(1),
+  fine_print: z.string(),
+  default_project_id: z.nullable(z.union([z.number(), z.string()])),
 });
 
 type Props = {
@@ -39,16 +41,6 @@ type Props = {
   mode: "create" | "edit";
   allCategories: Category[];
 };
-
-function fmtDateStrForInput(
-  dt_string: string | null | undefined
-): string | undefined {
-  if (dt_string === null || dt_string === undefined) {
-    return undefined;
-  }
-  const as_date = new Date(dt_string);
-  return as_date.toISOString().split("T")[0];
-}
 
 const GroupForm: React.FC<Props> = ({
   subtype,
@@ -68,10 +60,73 @@ const GroupForm: React.FC<Props> = ({
     post?.curation_status == PostStatus.DELETED;
 
   const submitQuestion = async (data: any) => {
-    data["tournament_id"] = tournament_id;
+    if (control.getValues("default_project_id") === "") {
+      control.setValue("default_project_id", null);
+    }
+    const labels = subQuestions.map((q) => q.label);
+    if (new Set(labels).size !== labels.length) {
+      alert("Duplicate sub question labels");
+      return;
+    }
+
+    const groupData = subQuestions
+      .filter((x) => !x.id)
+      .map((x) => {
+        if (x["min"] || x["max"]) {
+          if (x["max"] <= x["min"]) {
+            alert("Max should be > min");
+            return;
+          }
+        }
+        if (subtype == "binary") {
+          return {
+            type: subtype,
+            title: x.label,
+            scheduled_close_time: x.scheduled_close_time,
+            scheduled_resolve_time: x.scheduled_resolve_time,
+          };
+        } else if (subtype == "numeric") {
+          return {
+            type: subtype,
+            title: x.label,
+            scheduled_close_time: x.scheduled_close_time,
+            scheduled_resolve_time: x.scheduled_resolve_time,
+            min: x.min,
+            max: x.max,
+          };
+        } else if (subtype == "date") {
+          return {
+            type: subtype,
+            title: x.label,
+            scheduled_close_time: x.scheduled_close_time,
+            scheduled_resolve_time: x.scheduled_resolve_time,
+            min: new Date(x.min).getTime() / 1000,
+            max: new Date(x.max).getTime() / 1000,
+          };
+        }
+      });
+    const questionToDelete: number[] = [];
+    if (post?.group_of_questions.questions) {
+      forEach(post?.group_of_questions.questions, (sq, index) => {
+        if (!subQuestions.map((x) => x.id).includes(sq.id)) {
+          questionToDelete.push(sq.id);
+        }
+      });
+    }
     let post_data: PostCreationData = {
       title: data["title"],
-      group_of_questions: data,
+      default_project_id: data["default_project_id"],
+      categories: categoriesList.map((x) => x.id),
+      group_of_questions: {
+        delete: questionToDelete,
+        title: data["title"],
+        fine_print: data["fine_print"],
+        resolution_criteria_description:
+          data["resolution_criteria_description"],
+        description: data["description"],
+        group_variable: data["group_variable"],
+        questions: groupData,
+      },
     };
     if (mode == "edit" && post) {
       const resp = await updatePost(post.id, post_data);
@@ -86,16 +141,21 @@ const GroupForm: React.FC<Props> = ({
     post?.group_of_questions?.questions
       ? post?.group_of_questions?.questions.map((x) => {
           return {
+            id: x.id,
             scheduled_close_time: x.scheduled_close_time,
             scheduled_resolve_time: x.scheduled_resolve_time,
-            title: x.title,
+            label: x.title,
+            max: x.max,
+            min: x.min,
           };
         })
       : []
   );
-  const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<any[]>([]);
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
+  );
+  const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<any[]>(
+    subQuestions.map((x) => true)
   );
 
   const control = useForm({
@@ -107,7 +167,7 @@ const GroupForm: React.FC<Props> = ({
     <div className="flex flex-row justify-center">
       <form
         onSubmit={async (e) => {
-          // e.preventDefault(); // Good for debugging
+          e.preventDefault(); // Good for debugging
           await control.handleSubmit(
             async (data) => {
               await submitQuestion(data);
@@ -159,12 +219,11 @@ const GroupForm: React.FC<Props> = ({
             {...control.register("description")}
             errors={control.formState.errors.description}
             className="h-[120px] w-full"
-            defaultValue={post?.question?.description}
+            defaultValue={post?.group_of_questions?.description}
           />
 
           <span>Group Variable</span>
           <Input
-            disabled={isLive}
             {...control.register("group_variable")}
             errors={control.formState.errors.group_variable}
             defaultValue={post?.group_of_questions.group_variable}
@@ -176,8 +235,8 @@ const GroupForm: React.FC<Props> = ({
             errors={control.formState.errors.resolution_criteria_description}
             className="h-[120px] w-full"
             defaultValue={
-              post?.question?.resolution_criteria_description
-                ? post?.question?.resolution_criteria_description
+              post?.group_of_questions?.resolution_criteria_description
+                ? post?.group_of_questions?.resolution_criteria_description
                 : undefined
             }
           />
@@ -187,8 +246,8 @@ const GroupForm: React.FC<Props> = ({
             errors={control.formState.errors.fine_print}
             className="h-[120px] w-full"
             defaultValue={
-              post?.question?.fine_print
-                ? post?.question?.fine_print
+              post?.group_of_questions?.fine_print
+                ? post?.group_of_questions?.fine_print
                 : undefined
             }
           />
@@ -217,20 +276,21 @@ const GroupForm: React.FC<Props> = ({
                       setSubQuestions(
                         subQuestions.map((subQuestion, iter_index) => {
                           if (index == iter_index) {
-                            subQuestion["title"] = e.target.value;
+                            subQuestion["label"] = e.target.value;
                           }
                           return subQuestion;
                         })
                       );
                     }}
-                    value={subQuestion?.title}
+                    defaultValue={subQuestion?.label}
+                    disabled={subQuestions[index]["id"]}
                   />
                   <span className="text-xs font-thin text-gray-800">{`The label or parameter which identifies this subquestion, like "Option 1", "2033" or "France"`}</span>
                   {collapsedSubQuestions[index] && (
                     <>
                       <span>Closing Date</span>
                       <Input
-                        readOnly={isLive}
+                        disabled={subQuestions[index]["id"]}
                         type="datetime-local"
                         defaultValue={
                           subQuestions[index].scheduled_close_time
@@ -257,7 +317,7 @@ const GroupForm: React.FC<Props> = ({
 
                       <span>Resolving Date</span>
                       <Input
-                        readOnly={isLive}
+                        disabled={subQuestions[index]["id"]}
                         type="datetime-local"
                         defaultValue={
                           subQuestions[index].scheduled_resolve_time
@@ -273,7 +333,7 @@ const GroupForm: React.FC<Props> = ({
                           setSubQuestions(
                             subQuestions.map((subQuestion, iter_index) => {
                               if (index == iter_index) {
-                                subQuestion.scheduled_close_time =
+                                subQuestion.scheduled_resolve_time =
                                   e.target.value;
                               }
                               return subQuestion;
@@ -281,6 +341,113 @@ const GroupForm: React.FC<Props> = ({
                           );
                         }}
                       />
+
+                      {subtype == "numeric" && (
+                        <>
+                          <div>
+                            <span>Max</span>
+                            <Input
+                              disabled={subQuestions[index]["id"]}
+                              type="number"
+                              defaultValue={subQuestions[index].max}
+                              onChange={(e) => {
+                                setSubQuestions(
+                                  subQuestions.map(
+                                    (subQuestion, iter_index) => {
+                                      if (index == iter_index) {
+                                        subQuestion.max = Number(
+                                          e.target.value
+                                        );
+                                      }
+                                      return subQuestion;
+                                    }
+                                  )
+                                );
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <span>Min</span>
+                            <Input
+                              disabled={subQuestions[index]["id"]}
+                              type="number"
+                              defaultValue={subQuestions[index].min}
+                              onChange={(e) => {
+                                setSubQuestions(
+                                  subQuestions.map(
+                                    (subQuestion, iter_index) => {
+                                      if (index == iter_index) {
+                                        subQuestion.min = Number(
+                                          e.target.value
+                                        );
+                                      }
+                                      return subQuestion;
+                                    }
+                                  )
+                                );
+                              }}
+                            />
+                          </div>
+                        </>
+                      )}
+                      {subtype == "date" && (
+                        <>
+                          <div>
+                            <span>Max</span>
+                            <Input
+                              disabled={subQuestions[index]["id"]}
+                              type="date"
+                              defaultValue={
+                                subQuestions[index].max
+                                  ? format(
+                                      new Date(subQuestions[index].max),
+                                      "yyyy-MM-dd"
+                                    )
+                                  : undefined
+                              }
+                              onChange={(e) => {
+                                setSubQuestions(
+                                  subQuestions.map(
+                                    (subQuestion, iter_index) => {
+                                      if (index == iter_index) {
+                                        subQuestion.max = e.target.value;
+                                      }
+                                      return subQuestion;
+                                    }
+                                  )
+                                );
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <span>Min</span>
+                            <Input
+                              disabled={subQuestions[index]["id"]}
+                              type="date"
+                              defaultValue={
+                                subQuestions[index].min
+                                  ? format(
+                                      new Date(subQuestions[index].min),
+                                      "yyyy-MM-dd"
+                                    )
+                                  : undefined
+                              }
+                              onChange={(e) => {
+                                setSubQuestions(
+                                  subQuestions.map(
+                                    (subQuestion, iter_index) => {
+                                      if (index == iter_index) {
+                                        subQuestion.min = e.target.value;
+                                      }
+                                      return subQuestion;
+                                    }
+                                  )
+                                );
+                              }}
+                            />
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
 
@@ -333,7 +500,7 @@ const GroupForm: React.FC<Props> = ({
                     ...subQuestions,
                     {
                       type: "numeric",
-                      title: "",
+                      label: "",
                       scheduled_close_time:
                         control.getValues().scheduled_close_time,
                       scheduled_resolve_time:

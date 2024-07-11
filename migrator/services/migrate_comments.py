@@ -3,6 +3,7 @@ from questions.models import Forecast
 from migrator.utils import paginated_query
 from posts.models import Post
 
+
 def create_comment_vote(vote_obj):
     return CommentVote(
         user_id=vote_obj["user_id"],
@@ -51,13 +52,13 @@ def migrate_comment_votes():
 
     vote_instances += [
         create_comment_vote(obj)
-        for obj in paginated_query(
-            "SELECT * FROM metac_question_comment_likes"
-        )
-        if obj["comment_id"] in comment_ids 
+        for obj in paginated_query("SELECT * FROM metac_question_comment_likes")
+        if obj["comment_id"] in comment_ids
     ]
 
-    CommentVote.objects.bulk_create(vote_instances, ignore_conflicts=True, batch_size=1_000)
+    CommentVote.objects.bulk_create(
+        vote_instances, ignore_conflicts=True, batch_size=1_000
+    )
 
 
 def migrate_comments():

@@ -535,5 +535,8 @@
   "boost": "Boost",
   "bury": "Bury",
   "contentBoosted": "Content boosted! value {value} activity",
-  "contentBuried": "Content buried! value {value} activity"
+  "contentBuried": "Content buried! value {value} activity",
+  "CP Reveal Time": "CP Reveal Time",
+  "Open Time": "Open Time",
+  "Question": "Question"
 }
