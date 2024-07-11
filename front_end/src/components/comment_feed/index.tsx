@@ -4,7 +4,7 @@ import { FC, useEffect, useState } from "react";
 import { markPostAsRead } from "@/app/(main)/questions/actions";
 import Comment from "@/components/comment_feed/comment";
 import CommentEditor from "@/components/comment_feed/comment_editor";
-import ButtonGroup from "@/components/ui/button_group";
+import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import { useAuth } from "@/contexts/auth_context";
 import { CommentPermissions, CommentType } from "@/types/comment";
 import { Post, ProjectPermissions } from "@/types/post";
@@ -16,13 +16,13 @@ type Props = {
   profile?: UserProfile;
 };
 
-const feedOptions = [
+const feedOptions: GroupButton<string>[] = [
   {
-    id: "public",
+    value: "public",
     label: "public",
   },
   {
-    id: "private",
+    value: "private",
     label: "private",
   },
 ];

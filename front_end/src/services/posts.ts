@@ -105,6 +105,10 @@ class PostsApi {
   static async sendPostReadEvent(postId: number) {
     return post(`/posts/${postId}/read`, {});
   }
+
+  static async changePostActivityBoost(postId: number, value: number) {
+    return post(`/posts/${postId}/boost`, { value: value });
+  }
 }
 
 export default PostsApi;

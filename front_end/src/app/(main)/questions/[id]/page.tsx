@@ -6,6 +6,7 @@ import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import PostDropdownMenu from "@/app/(main)/questions/[id]/components/question_dropdown_menu";
 import QuestionEmbedButton from "@/app/(main)/questions/[id]/components/question_embed_button";
 import QuestionEmbedModal from "@/app/(main)/questions/[id]/components/question_embed_modal";
 import ShareQuestionMenu from "@/app/(main)/questions/[id]/components/share_question_menu";
@@ -67,23 +68,31 @@ export default async function IndividualQuestion({
     extractPreselectedGroupQuestionId(searchParams);
   const t = await getTranslations();
   const commentsData = await CommentsApi.getComments({ post: params.id });
+
+  let typeLabel: string;
+  if (postData.group_of_questions) {
+    typeLabel = t("group");
+  } else if (postData.conditional) {
+    typeLabel = t("conditionalGroup");
+  } else if (postData.question) {
+    typeLabel = t("question");
+  } else {
+    typeLabel = t("searchOptionNotebook");
+  }
+
+  const allowModifications =
+    postData.user_permission === ProjectPermissions.ADMIN ||
+    postData.user_permission === ProjectPermissions.CURATOR ||
+    postData.user_permission === ProjectPermissions.CREATOR;
+
   return (
     <EmbedModalContextProvider>
       <main className="mx-auto flex w-full max-w-max flex-col py-4">
         <div className="flex items-start gap-3 bg-gray-0 px-3 pt-3 dark:bg-gray-0-dark xs:px-4 lg:bg-transparent lg:p-0 lg:dark:bg-transparent">
           <span className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
-            {(() => {
-              if (postData.group_of_questions) {
-                return t("group");
-              } else if (postData.conditional) {
-                return t("conditionalGroup");
-              } else if (postData.question) {
-                return t("question");
-              } else {
-                return t("searchOptionNotebook");
-              }
-            })()}
+            {typeLabel}
           </span>
+          {allowModifications && <Modbox post={postData} />}
           <div className="ml-auto flex h-9 flex-row text-gray-700 dark:text-gray-700-dark lg:hidden">
             <Button
               variant="secondary"
@@ -103,13 +112,6 @@ export default async function IndividualQuestion({
         </div>
         <div className="flex w-full items-start gap-4">
           <div className="w-[48rem] max-w-full border-transparent bg-gray-0 px-3 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
-            {postData.user_permission === ProjectPermissions.ADMIN ||
-            postData.user_permission === ProjectPermissions.CURATOR ||
-            postData.user_permission === ProjectPermissions.CREATOR ? (
-              <Modbox post={postData} />
-            ) : (
-              <></>
-            )}
             <div className="my-0 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2 lg:mt-4">
               {!postData.conditional && (
                 <h1 className="ng-binding m-0 text-xl leading-tight sm:text-3xl">
@@ -203,13 +205,7 @@ export default async function IndividualQuestion({
               <QuestionEmbedButton />
               <div className="flex gap-2">
                 <ShareQuestionMenu questionTitle={getQuestionTitle(postData)} />
-                <Button
-                  variant="secondary"
-                  className="!rounded border-0"
-                  presentationType="icon"
-                >
-                  <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
-                </Button>
+                <PostDropdownMenu post={postData} />
               </div>
             </div>
             {/*TODO: make a reusable component for this*/}
