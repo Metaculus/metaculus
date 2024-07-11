@@ -206,6 +206,8 @@ const QuestionForm: React.FC<Props> = ({
   const baseTextareaStyles = "border border-gray-500 rounded dark:bg-blue-950";
   const inputLabelStyles = "text-sm font-bold text-gray-600 dark:text-gray-400";
   const inputDescriptionStyles = "text-xs text-gray-700 dark:text-gray-300";
+  const markdownStyles =
+    "text-xs font-mono pb-0.5 pt-0 px-1 rounded-sm bg-blue-400 dark:bg-yellow-500/25";
 
   return (
     <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -293,8 +295,8 @@ const QuestionForm: React.FC<Props> = ({
             <span className={inputDescriptionStyles}>
               This should be a shorter version of the question text, used where
               there is less space to display a title. It should end with a
-              question mark. Examples: `&quot;`NASA 2022 spacesuit contract
-              winner?`&quot;` or `&quot;`EU GDP from 2025 to 2035?`&quot;`.
+              question mark. Examples: &quot;NASA 2022 spacesuit contract
+              winner?&quot; or &quot;EU GDP from 2025 to 2035?&quot;.
             </span>
           </div>
           <div className={inputContainerStyles}>
@@ -307,9 +309,9 @@ const QuestionForm: React.FC<Props> = ({
             />
             <span className={inputDescriptionStyles}>
               This should be a shorter version of the Long Title, used where
-              there is less space to display a title. Examples: `&quot;`NASA
-              2022 Spacesuit Contract Winner`&quot;` ; `&quot;`EU GDP From 2025
-              to 2035`&quot;`.
+              there is less space to display a title. Examples: &quot;NASA 2022
+              Spacesuit Contract Winner&quot; ; &quot;EU GDP From 2025 to
+              2035&quot;.
             </span>
           </div>
           <div className={inputContainerStyles}>
@@ -323,8 +325,11 @@ const QuestionForm: React.FC<Props> = ({
             <span className={inputDescriptionStyles}>
               Provide background information for your question in a factual and
               unbiased tone. Links should be added to relevant and helpful
-              resources using markdown syntax: [Link
-              title](https://link-url.com).
+              resources using markdown syntax:{" "}
+              <span className={markdownStyles}>
+                [Link title](https://link-url.com)
+              </span>
+              .
             </span>
           </div>
           <div className="flex w-full flex-col gap-4 md:flex-row">
@@ -618,6 +623,13 @@ const QuestionForm: React.FC<Props> = ({
                   : undefined
               }
             />
+            <span className={inputDescriptionStyles}>
+              A good question will almost always resolve unambiguously. If you
+              have a data source by which the question will resolve, link to it
+              here. If there is some simple math that will need to be done to
+              resolve this question, define the equation in markdown:{" "}
+              <span className={markdownStyles}>\[ y = ax^2+b \]</span>.
+            </span>
           </div>
           <div className={inputContainerStyles}>
             <span className={inputLabelStyles}>Fine Print</span>
@@ -631,9 +643,11 @@ const QuestionForm: React.FC<Props> = ({
                   : undefined
               }
             />
+            <span className={inputDescriptionStyles}>
+              Use the fine print for any sort of lawyerly details which
+              don&apos;t need to be prominently displayed. This is optional.
+            </span>
           </div>
-
-          <div className=""></div>
           <Button type="submit">
             {mode == "create" ? "Create Question" : "Edit Question"}
           </Button>
