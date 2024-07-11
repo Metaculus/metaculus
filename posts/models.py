@@ -179,11 +179,8 @@ class PostQuerySet(models.QuerySet):
         )
 
     def annotate_divergence(self, user_id: int):
-        return (
-            self.filter(snapshots__user_id=user_id)
-            .annotate(
-                divergence=F("snapshots__divergence")
-            )
+        return self.filter(snapshots__user_id=user_id).annotate(
+            divergence=F("snapshots__divergence")
         )
 
     #

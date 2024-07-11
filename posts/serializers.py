@@ -85,7 +85,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
     projects = PostProjectWriteSerializer(required=False)
     question = QuestionWriteSerializer(required=False)
     conditional = ConditionalWriteSerializer(required=False)
-    group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
+    group_of_questions = GroupOfQuestionsWriteSerializer(required=True)
     notebook = NotebookWriteSerializer(required=False)
 
     class Meta:
@@ -96,6 +96,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "question",
             "conditional",
             "group_of_questions",
+            "default_project_id",
             "notebook",
             "published_at",
         )

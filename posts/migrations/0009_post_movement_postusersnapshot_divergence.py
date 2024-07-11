@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('posts', '0008_alter_post_title'),
+        ("posts", "0008_alter_post_title"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='post',
-            name='movement',
+            model_name="post",
+            name="movement",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='postusersnapshot',
-            name='divergence',
+            model_name="postusersnapshot",
+            name="divergence",
             field=models.FloatField(blank=True, null=True),
         ),
     ]
