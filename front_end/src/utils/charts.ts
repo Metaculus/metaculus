@@ -222,7 +222,14 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
 ): ChoiceItem[] {
   const { activeCount } = config ?? {};
 
-  const { timestamps, nr_forecasters, my_forecasts, ...choices } = dataset;
+  const {
+    timestamps,
+    nr_forecasters,
+    my_forecasts,
+    latest_pmf,
+    latest_cdf,
+    ...choices
+  } = dataset;
   return Object.entries(choices).map(([choice, values], index) => ({
     choice,
     values: values.map((x: { value_mean: number }) => x.value_mean),
