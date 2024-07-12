@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('posts', '0009_post_forecasts_count_vote_created_at_vote_edited_at'),
-        ('posts', '0009_post_movement_postusersnapshot_divergence'),
+        ("posts", "0009_post_forecasts_count_vote_created_at_vote_edited_at"),
+        ("posts", "0009_post_movement_postusersnapshot_divergence"),
     ]
 
-    operations = [
-    ]
+    operations = []

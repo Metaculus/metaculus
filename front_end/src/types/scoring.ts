@@ -1,3 +1,5 @@
+import { LEADERBOARD_CATEGORIES } from "@/app/(main)/leaderboard/constants/filters";
+
 import { Question } from "./question";
 
 export type ScoreType = "peer" | "spot_peer" | "baseline" | "spot_baseline";
@@ -20,15 +22,18 @@ export type Score = {
   score_type: ScoreType;
 };
 
+export type ScoreMedal = "gold" | "silver" | "bronze";
+
 export type LeaderboardEntry = {
   username: string;
   user_id: number;
-  leaderboard_type: LeaderboardType;
   score: number;
+  rank: number | null;
+  excluded: boolean;
+  medal: ScoreMedal | null;
+  prize: number | null;
   coverage: number;
   contribution_count: number;
-  medal: string;
-  prize: number;
   calculated_on: string;
 };
 
@@ -39,8 +44,23 @@ export type LeaderboardDetails = {
   name: string;
   slug: string;
   entries: LeaderboardEntry[];
+  userEntry?: LeaderboardEntry;
   prize_pool: number;
   start_date: string;
   close_date: string;
   is_ongoing: boolean;
+};
+
+export type CategoryKey = (typeof LEADERBOARD_CATEGORIES)[number];
+
+export type LeaderboardFilter = {
+  label: string;
+  value: string;
+};
+export type LeaderboardFilters = {
+  category: CategoryKey;
+  durations: LeaderboardFilter[];
+  duration: string;
+  periods: LeaderboardFilter[];
+  year: string;
 };

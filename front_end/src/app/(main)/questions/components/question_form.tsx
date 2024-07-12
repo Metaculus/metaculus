@@ -20,6 +20,7 @@ import {
   ProjectPermissions,
 } from "@/types/post";
 
+import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
@@ -97,12 +98,50 @@ const QuestionForm: React.FC<Props> = ({
     throw new Error("Cannot edit closed, resolved or rejected questions");
   }
 
+  const questionTypeDisplayMap: Record<
+    string,
+    { title: string; description: string }
+  > = {
+    binary: {
+      title: "Binary Question",
+      description:
+        'Binary questions are generally of the form "Will X happen?" They either resolve as Yes or No.',
+    },
+    multiple_choice: {
+      title: "Multiple Choice",
+      description:
+        'Multiple choice questions are generally of the form "Which of the following will happen?" or "Which option is correct?"',
+    },
+    date: {
+      title: "Date Range",
+      description:
+        "A date question asks when something will happen. Its resolution will typically fall within a specified range.",
+    },
+    numeric: {
+      title: "Numeric Range",
+      description:
+        "A numeric question asks about the value of an unknown future quantity. Its resolution will typically fall within a specified range.",
+    },
+  };
+
+  const { title: formattedQuestionType, description: questionDescription } =
+    questionTypeDisplayMap[questionType] || {
+      title: questionType,
+      description: "",
+    };
+
   const submitQuestion = async (data: any) => {
     if (data["zero_point"]) {
       if (data["zero_point"] > 0 || data["zero_point"] < data["min"]) {
         alert(
           "Zero point should be > 0 and < min | You probably don't know what you are doing, please stop using log scales and ask :)"
         );
+        return;
+      }
+    }
+    if (data["min"] || data["max"]) {
+      if (data["max"] <= data["min"]) {
+        alert("Max should be > min");
         return;
       }
     }
@@ -167,8 +206,23 @@ const QuestionForm: React.FC<Props> = ({
     control.setValue("type", questionType);
   }
 
+  const inputContainerStyles = "flex flex-col gap-1.5";
+  const baseInputStyles =
+    "px-3 py-2 text-base border border-gray-500 rounded dark:bg-blue-950";
+  const baseTextareaStyles = "border border-gray-500 rounded dark:bg-blue-950";
+  const inputLabelStyles = "text-sm font-bold text-gray-600 dark:text-gray-400";
+  const inputDescriptionStyles = "text-xs text-gray-700 dark:text-gray-300";
+
   return (
-    <div className="flex flex-row justify-center">
+    <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
+      <BacktoCreate
+        backText="Create"
+        backHref="/questions/create"
+        currentPage={formattedQuestionType}
+      />
+      <p className="mt-0 text-sm text-gray-600 dark:text-gray-300 md:mt-1 md:text-base">
+        {questionDescription}
+      </p>
       <form
         onSubmit={async (e) => {
           if (control.getValues("default_project_id") === "") {
@@ -189,7 +243,7 @@ const QuestionForm: React.FC<Props> = ({
           const data = control.getValues();
           data["type"] = questionType;
         }}
-        className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-8"
+        className="mt-4 flex flex w-[540px] w-full flex-col space-y-4 rounded"
       >
         {post && (
           <div>
@@ -198,25 +252,27 @@ const QuestionForm: React.FC<Props> = ({
             </a>
           </div>
         )}
-        <span>Project</span>
-        <Input
-          type="number"
-          {...control.register("default_project_id")}
-          errors={control.formState.errors.default_project_id}
-          defaultValue={
-            control.getValues("default_project_id")
-              ? control.getValues("default_project_id")
-              : tournament_id
-          }
-          readOnly={isLive}
-        />
-        <div>
-          <span className="">
+        <div className={inputContainerStyles}>
+          <span className={inputLabelStyles}>Project ID</span>
+          <Input
+            type="number"
+            {...control.register("default_project_id")}
+            errors={control.formState.errors.default_project_id}
+            defaultValue={
+              control.getValues("default_project_id")
+                ? control.getValues("default_project_id")
+                : tournament_id
+            }
+            readOnly={isLive}
+            className={baseInputStyles}
+          />
+
+          <span className="text-xs">
             Initial project:
             <span className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1">
               <Link
                 href={`/tournament/${control.getValues("default_project_id")}`}
-                className="no-underline"
+                className="text-white no-underline"
               >
                 {control.getValues("default_project_id")
                   ? control.getValues("default_project_id")
@@ -231,76 +287,103 @@ const QuestionForm: React.FC<Props> = ({
           className="text-red-500-dark"
           {...control.register("type")}
         />
-        <>
-          <span>Title</span>
-          <Input
-            {...control.register("title")}
-            errors={control.formState.errors.title}
-            defaultValue={post?.title}
-          />
-          <div>
-            <span>{t("Short Title")}</span>
+        <div className="flex flex-col gap-6">
+          <div className={inputContainerStyles}>
+            <span className={inputLabelStyles}>Long Title</span>
+            <Textarea
+              {...control.register("title")}
+              errors={control.formState.errors.title}
+              defaultValue={post?.title}
+              className={`${baseTextareaStyles} min-h-[148px] p-5 text-xl font-normal`}
+            />
+            <span className={inputDescriptionStyles}>
+              This should be a shorter version of the question text, used where
+              there is less space to display a title. It should end with a
+              question mark. Examples: `&quot;`NASA 2022 spacesuit contract
+              winner?`&quot;` or `&quot;`EU GDP from 2025 to 2035?`&quot;`.
+            </span>
+          </div>
+          <div className={inputContainerStyles}>
+            <span className={inputLabelStyles}>{t("Short Title")}</span>
             <Input
               {...control.register("url_title")}
               errors={control.formState.errors.url_title}
               defaultValue={post?.url_title}
+              className={baseInputStyles}
             />
+            <span className={inputDescriptionStyles}>
+              This should be a shorter version of the Long Title, used where
+              there is less space to display a title. Examples: `&quot;`NASA
+              2022 Spacesuit Contract Winner`&quot;` ; `&quot;`EU GDP From 2025
+              to 2035`&quot;`.
+            </span>
           </div>
-          <span>Description</span>
-          <Textarea
-            {...control.register("description")}
-            errors={control.formState.errors.description}
-            className="h-[120px] w-full"
-            defaultValue={post?.question?.description}
-          />
-
-          <div>
-            <span>Closing Date</span>
-            <Input
-              readOnly={isLive}
-              type="datetime-local"
-              {...control.register("scheduled_close_time", {
-                setValueAs: (value: string) => {
-                  if (value == "" || value == null || value == undefined) {
-                    return null;
-                  }
-                  return new Date(value);
-                },
-              })}
-              errors={control.formState.errors.scheduled_close_time}
-              defaultValue={
-                post?.question?.scheduled_close_time
-                  ? format(
-                      new Date(post.question.scheduled_close_time),
-                      "yyyy-MM-dd'T'HH:mm"
-                    )
-                  : undefined
-              }
+          <div className={inputContainerStyles}>
+            <span className={inputLabelStyles}>Background Information</span>
+            <Textarea
+              {...control.register("description")}
+              errors={control.formState.errors.description}
+              className={`${baseTextareaStyles} h-[120px] w-full p-3 text-sm`}
+              defaultValue={post?.question?.description}
             />
+            <span className={inputDescriptionStyles}>
+              Provide background information for your question in a factual and
+              unbiased tone. Links should be added to relevant and helpful
+              resources using markdown syntax: [Link
+              title](https://link-url.com).
+            </span>
           </div>
-          <div>
-            <span>Resolving Date</span>
-            <Input
-              readOnly={isLive}
-              type="datetime-local"
-              {...control.register("scheduled_resolve_time", {
-                setValueAs: (value: string) => {
-                  if (value == "" || value == null || value == undefined) {
-                    return null;
-                  }
-                  return new Date(value);
-                },
-              })}
-              errors={control.formState.errors.scheduled_resolve_time}
-              defaultValue={
-                post?.question?.scheduled_resolve_time
-                  ? format(
-                      new Date(post.question.scheduled_resolve_time),
-                      "yyyy-MM-dd'T'HH:mm"
-                    )
-                  : undefined
-              }
-            />
+          <div className="flex w-full flex-col gap-4 md:flex-row">
+            <div className="flex w-full flex-col gap-2">
+              <span className={inputLabelStyles}>Closing Date</span>
+              <Input
+                readOnly={isLive}
+                type="datetime-local"
+                className={baseInputStyles}
+                {...control.register("scheduled_close_time", {
+                  setValueAs: (value: string) => {
+                    if (value == "" || value == null || value == undefined) {
+                      return null;
+                    }
+                    return new Date(value);
+                  },
+                })}
+                errors={control.formState.errors.scheduled_close_time}
+                defaultValue={
+                  post?.question?.scheduled_close_time
+                    ? format(
+                        new Date(post.question.scheduled_close_time),
+                        "yyyy-MM-dd'T'HH:mm"
+                      )
+                    : undefined
+                }
+              />
+            </div>
+            <div className="flex w-full flex-col gap-2">
+              <span className={inputLabelStyles}>Resolving Date</span>
+              <Input
+                readOnly={isLive}
+                type="datetime-local"
+                className={baseInputStyles}
+                {...control.register("scheduled_resolve_time", {
+                  setValueAs: (value: string) => {
+                    if (value == "" || value == null || value == undefined) {
+                      return null;
+                    }
+                    return new Date(value);
+                  },
+                })}
+                errors={control.formState.errors.scheduled_resolve_time}
+                defaultValue={
+                  post?.question?.scheduled_resolve_time
+                    ? format(
+                        new Date(post.question.scheduled_resolve_time),
+                        "yyyy-MM-dd'T'HH:mm"
+                      )
+                    : undefined
+                }
+              />
+            </div>
           </div>
 
           {questionType == "numeric" && (
@@ -349,89 +432,102 @@ const QuestionForm: React.FC<Props> = ({
           )}
           {questionType == "date" && (
             <>
-              <div>
-                <span>Max</span>
-                <Input
-                  readOnly={isLive}
-                  type="date"
-                  {...control.register("max", {
-                    setValueAs: (value: string) => {
-                      if (value == "" || value == null || value == undefined) {
-                        return null;
-                      }
-                      return new Date(value);
-                    },
-                  })}
-                  errors={control.formState.errors.max}
-                  defaultValue={
-                    post?.question?.max
-                      ? format(
-                          new Date(post?.question?.max * 1000),
-                          "yyyy-MM-dd"
-                        )
-                      : undefined
-                  }
-                />
-              </div>
-              <div>
-                <span>Min</span>
-                <Input
-                  readOnly={isLive}
-                  type="date"
-                  {...control.register("min", {
-                    setValueAs: (value: string) => {
-                      if (value == "" || value == null || value == undefined) {
-                        return null;
-                      }
-                      return new Date(value);
-                    },
-                  })}
-                  errors={control.formState.errors.min}
-                  defaultValue={
-                    post?.question?.min
-                      ? format(
-                          new Date(post?.question?.min * 1000),
-                          "yyyy-MM-dd"
-                        )
-                      : undefined
-                  }
-                />
+              <div className="flex w-full flex-col gap-4 md:flex-row">
+                <div className="flex w-full flex-col gap-2">
+                  <span className={inputLabelStyles}>Max</span>
+                  <Input
+                    readOnly={isLive}
+                    type="date"
+                    className={baseInputStyles}
+                    {...control.register("max", {
+                      setValueAs: (value: string) => {
+                        if (
+                          value == "" ||
+                          value == null ||
+                          value == undefined
+                        ) {
+                          return null;
+                        }
+                        return new Date(value);
+                      },
+                    })}
+                    errors={control.formState.errors.max}
+                    defaultValue={
+                      post?.question?.max
+                        ? format(
+                            new Date(post?.question?.max * 1000),
+                            "yyyy-MM-dd"
+                          )
+                        : undefined
+                    }
+                  />
+                </div>
+                <div className="flex w-full flex-col gap-2">
+                  <span className={inputLabelStyles}>Min</span>
+                  <Input
+                    readOnly={isLive}
+                    type="date"
+                    className={baseInputStyles}
+                    {...control.register("min", {
+                      setValueAs: (value: string) => {
+                        if (
+                          value == "" ||
+                          value == null ||
+                          value == undefined
+                        ) {
+                          return null;
+                        }
+                        return new Date(value);
+                      },
+                    })}
+                    errors={control.formState.errors.min}
+                    defaultValue={
+                      post?.question?.min
+                        ? format(
+                            new Date(post?.question?.min * 1000),
+                            "yyyy-MM-dd"
+                          )
+                        : undefined
+                    }
+                  />
+                </div>
               </div>
             </>
           )}
           {(questionType == "numeric" || questionType == "date") && (
             <>
-              <div>
-                <Checkbox
-                  label={"Open Upper Bound"}
-                  readOnly={isLive}
-                  errors={control.formState.errors.open_upper_bound}
-                  onChange={async (e) => {
-                    control.setValue("open_upper_bound", e);
-                  }}
-                  // @ts-ignore
-                  defaultChecked={
+              <div className="flex w-full flex-col gap-4 md:mt-[-8px] md:flex-row">
+                <div className="flex w-full flex-col gap-2">
+                  <Checkbox
+                    label={"Open Upper Bound"}
+                    readOnly={isLive}
+                    errors={control.formState.errors.open_upper_bound}
+                    onChange={async (e) => {
+                      control.setValue("open_upper_bound", e);
+                    }}
                     // @ts-ignore
-                    post?.question ? post?.question?.open_upper_bound : false
-                  }
-                />
-              </div>
-              <div>
-                <Checkbox
-                  label={"Open Lower Bound"}
-                  readOnly={isLive}
-                  errors={control.formState.errors.open_lower_bound}
-                  onChange={(e) => {
-                    control.setValue("open_lower_bound", e);
-                  }}
-                  // @ts-ignore
-                  defaultChecked={
+                    defaultChecked={
+                      // @ts-ignore
+                      post?.question ? post?.question?.open_upper_bound : false
+                    }
+                  />
+                </div>
+                <div className="flex w-full flex-col gap-2">
+                  <Checkbox
+                    label={"Open Lower Bound"}
+                    readOnly={isLive}
+                    errors={control.formState.errors.open_lower_bound}
+                    onChange={(e) => {
+                      control.setValue("open_lower_bound", e);
+                    }}
                     // @ts-ignore
-                    post?.question ? post?.question?.open_lower_bound : false
-                  }
-                />
+                    defaultChecked={
+                      // @ts-ignore
+                      post?.question ? post?.question?.open_lower_bound : false
+                    }
+                  />
+                </div>
               </div>
-
               {logScaleEnabled && (
                 <div>
                   <span className="mr-2">Is Logarithmic ?</span>
@@ -462,21 +558,25 @@ const QuestionForm: React.FC<Props> = ({
               )}
             </>
           )}
-
-          <span>Categories (separate by ,)</span>
-          <CategoryPicker
-            allCategories={allCategories}
-            categories={categoriesList}
-            onChange={(categories) => {
-              setCategoriesList(categories);
-            }}
-          ></CategoryPicker>
+          <div className={inputContainerStyles}>
+            <span className={inputLabelStyles}>Categories</span>
+            <CategoryPicker
+              allCategories={allCategories}
+              categories={categoriesList}
+              onChange={(categories) => {
+                setCategoriesList(categories);
+              }}
+            ></CategoryPicker>
+          </div>
           {questionType == "multiple_choice" && (
-            <>
-              <span>Multiple Choice (separate by ,)</span>
+            <div className={inputContainerStyles}>
+              <span className={inputLabelStyles}>
+                Multiple Choice (separate by ,)
+              </span>
               <Input
                 readOnly={isLive}
                 type="text"
+                className={baseInputStyles}
                 onChange={(event) => {
                   const options = String(event.target.value)
                     .split(",")
@@ -510,37 +610,40 @@ const QuestionForm: React.FC<Props> = ({
                   })}
                 </div>
               )}
-            </>
+            </div>
           )}
-
-          <span>Resolution Criteria</span>
-          <Textarea
-            {...control.register("resolution_criteria_description")}
-            errors={control.formState.errors.resolution_criteria_description}
-            className="h-[120px] w-full"
-            defaultValue={
-              post?.question?.resolution_criteria_description
-                ? post?.question?.resolution_criteria_description
-                : undefined
-            }
-          />
-          <span>Fine Print</span>
-          <Textarea
-            {...control.register("fine_print")}
-            errors={control.formState.errors.fine_print}
-            className="h-[120px] w-full"
-            defaultValue={
-              post?.question?.fine_print
-                ? post?.question?.fine_print
-                : undefined
-            }
-          />
+          <div className={inputContainerStyles}>
+            <span className={inputLabelStyles}>Resolution Criteria</span>
+            <Textarea
+              {...control.register("resolution_criteria_description")}
+              errors={control.formState.errors.resolution_criteria_description}
+              className={`${baseTextareaStyles} h-[120px] w-full p-3 text-sm`}
+              defaultValue={
+                post?.question?.resolution_criteria_description
+                  ? post?.question?.resolution_criteria_description
+                  : undefined
+              }
+            />
+          </div>
+          <div className={inputContainerStyles}>
+            <span className={inputLabelStyles}>Fine Print</span>
+            <Textarea
+              {...control.register("fine_print")}
+              errors={control.formState.errors.fine_print}
+              className={`${baseTextareaStyles} h-[120px] w-full p-3 text-sm`}
+              defaultValue={
+                post?.question?.fine_print
+                  ? post?.question?.fine_print
+                  : undefined
+              }
+            />
+          </div>
 
           <div className=""></div>
           <Button type="submit">
             {mode == "create" ? "Create Question" : "Edit Question"}
           </Button>
-        </>
+        </div>
       </form>
     </div>
   );

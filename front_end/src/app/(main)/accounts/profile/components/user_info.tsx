@@ -16,6 +16,7 @@ import {
   UpdateProfileSchema,
   updateProfileSchema,
 } from "@/app/(main)/accounts/schemas";
+import CalibrationChart from "@/app/(main)/charts/calibration_chart";
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
@@ -89,7 +90,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
       )}
       <div>
         <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900 dark:bg-gray-100-dark dark:text-gray-900-dark">
-          {t("memberSince")}
+          {t("Member Since")}
         </div>
         <div className="flex content-center justify-between px-1 py-4">
           <div className="flex items-center text-sm">
@@ -143,6 +144,44 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
         </div>
       </div>
       <FormError errors={state?.errors} name={"non_field_errors"} />
+      <span>Tournaments</span>
+      <div>
+        {profile.tournament_medals &&
+          Object.entries(profile.tournament_medals).map((k, v) => {
+            return `${k}: ${v}`;
+          })}
+      </div>
+      <span>Peer Score</span>
+      <div>
+        {profile.peer_score_medals &&
+          Object.entries(profile.peer_score_medals).map((k, v) => {
+            return `${k}: ${v}`;
+          })}
+      </div>
+      <span>Baseline Score</span>
+      <div>
+        {profile.baseline_medals &&
+          Object.entries(profile.baseline_medals).map((k, v) => {
+            return `${k}: ${v}`;
+          })}
+      </div>
+      <span>Insight</span>
+      <div>
+        {profile.comment_insight_medals &&
+          Object.entries(profile.comment_insight_medals).map((k, v) => {
+            return `${k}: ${v}`;
+          })}
+      </div>
+      <span>Question Writing</span>
+      <div>
+        {profile.question_writing_medals &&
+          Object.entries(profile.question_writing_medals).map((k, v) => {
+            return ` ${k} - ${v} `;
+          })}
+      </div>
+      {profile.calibration_curve && (
+        <CalibrationChart data={profile.calibration_curve} />
+      )}
     </form>
   );
 };
