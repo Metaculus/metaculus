@@ -11,8 +11,10 @@ class UserWeightAdmin(admin.ModelAdmin):
 @admin.register(LeaderboardEntry)
 class LeaderboardEntryAdmin(admin.ModelAdmin):
     search_fields = ["user", "project"]
+    autocomplete_fields = ["user"]
 
 
 @admin.register(Score)
 class ScoreAdmin(admin.ModelAdmin):
     search_fields = ["user", "for_question"]
+    autocomplete_fields = ["user", "question"]

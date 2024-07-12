@@ -14,6 +14,8 @@ import { useAuth } from "@/contexts/auth_context";
 import { CommentPermissions, CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
 
+import IncludedForecast from "./included_forecast";
+
 const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
   ssr: false,
 });
@@ -82,6 +84,12 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
   if (comment.is_soft_deleted) {
     return (
       <div id={`comment-${comment.id}`}>
+        {comment.included_forecast && (
+          <IncludedForecast
+            author="deleted author"
+            forecast={comment.included_forecast}
+          />
+        )}
         <div className="my-2.5 flex flex-col items-start gap-1">
           <span className="inline-flex items-center">
             <span className="italic text-gray-600 dark:text-gray-600-dark">
@@ -102,6 +110,12 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
 
   return (
     <div id={`comment-${comment.id}`}>
+      {comment.included_forecast && (
+        <IncludedForecast
+          author={comment.author.username}
+          forecast={comment.included_forecast}
+        />
+      )}
       <div className="my-2.5 flex flex-col items-start gap-1">
         <span className="inline-flex items-center">
           <a
@@ -115,7 +129,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
             <Moderator className="ml-2 text-lg" />
           )}
           {comment.is_admin && <Admin className="ml-2 text-lg" />}
-        */}
+          */}
           <span className="mx-1">·</span>
           {formatDate(locale, new Date(comment.created_at))}
         </span>
@@ -157,49 +171,6 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
           Save
         </Button>
       )}
-      {/*
-      {isEditing && (
-        <div className="mx-auto my-3" ref={editRef}>
-          <TextAreaWithMentions
-            value={editText}
-            data={tribute}
-            onChange={({ target }) => setEditText(target.value)}
-            autoFocus
-          />
-          {editPreview && (
-            <div
-              className="comment__html bg-gray-200 dark:bg-gray-200-dark mt-3 p-2 font-serif text-base leading-tight break-anywhere dark:font-light"
-              dangerouslySetInnerHTML={{ __html: editPreview }}
-            />
-          )}
-          <div className="my-2 flex items-center justify-end gap-2">
-            {user.permissions["metac_question.delete_comment"] && (
-              <Button
-                variant="secondary"
-                href={`/admin/metac_question/comment/${comment.id}/`}
-              >
-                {t("adminEditButton")}
-              </Button>
-            )}
-            <Button disabled={!editText.trim()} onClick={getEditPreview}>
-              {editPreview ? t("updatePreviewButton") : t("previewButton")}
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => {
-                onEdit({ ...comment, comment_text: editText })
-                  .then(endEditing)
-                  .catch((error) => catchError({ comment_text: `${error}` }));
-              }}
-              disabled={!editText.trim()}
-            >
-              {t("postButton")}
-            </Button>
-          </div>
-        </div>
-      )}
-      */}
-
       <div className="mb-2 mt-1 h-7 overflow-visible">
         <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
           <div className="inline-flex items-center gap-3">
