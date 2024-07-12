@@ -179,7 +179,7 @@ def serialize_question(
                     cp_prediction_values = serialized_data["forecasts"]["latest_cdf"]
                 else:
                     cp_prediction_values = serialized_data["forecasts"]["latest_pmf"]
-                if cp_prediction_values:
+                if cp_prediction_values is not None:
                     serialized_data["dispaly_divergences"] = (
                         prediction_difference_for_display(
                             last_forecast.get_prediction_values(),
