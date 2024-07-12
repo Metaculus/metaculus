@@ -3,17 +3,21 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import useLeaderboardMobileTabBar from "@/app/(main)/leaderboard/mobile_tab_bar_context";
+import {
+  MEDALS_PATH_FILTER,
+  MEDALS_USER_FILTER,
+} from "@/app/(main)/(leaderboards)/medals/search_params";
 import { useBreakpoint } from "@/hooks/tailwind";
-import { CategoryKey, LeaderboardDetails } from "@/types/scoring";
+import { CategoryKey, LeaderboardDetails, MedalsPath } from "@/types/scoring";
 
 import LeaderboardRow, { UserLeaderboardRow } from "./leaderboard_row";
+import { RANKING_CATEGORIES } from "../../../ranking_categories";
 import {
   LEADERBOARD_CATEGORY_FILTER,
   LEADERBOARD_DURATION_FILTER,
   LEADERBOARD_YEAR_FILTER,
-} from "../../constants/filters";
-import { RANKING_CATEGORIES } from "../../constants/ranking_categories";
+} from "../../filters";
+import useLeaderboardMobileTabBar from "../../mobile_tab_bar_context";
 
 type Props = {
   year: string;
@@ -80,7 +84,7 @@ const LeaderboardTable: FC<Props> = ({
               <LeaderboardRow
                 key={`ranking-row-${category}-${entry.user_id}`}
                 rowEntry={entry}
-                href={`/medals?user=${entry.user_id}&path=leaderboard`}
+                href={`/medals?${MEDALS_USER_FILTER}=${entry.user_id}&${MEDALS_PATH_FILTER}=${MedalsPath.Leaderboard}`}
               />
             ))
           ) : (
