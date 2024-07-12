@@ -540,5 +540,11 @@
   "Open Time": "Open Time",
   "Question": "Question",
   "Edit Open & CP Reveal Times": "Edit Open & CP Reveal Times",
-  "No questions have resolved yet in this period": "No questions have resolved yet in this period."
+  "No questions have resolved yet in this period": "No questions have resolved yet in this period.",
+  "baselineAccuracyShort": "Baseline",
+  "peerAccuracyShort": "Peer",
+  "Comments": "Comments",
+  "questionWritingShort": "Q.Writing",
+  "scoringDurationLabel": "Duration:",
+  "scoringTimePeriodLabel": "Time Period:"
 }
