@@ -48,7 +48,7 @@ const SignInModal: FC<SignInModalType> = ({
   }, [setCurrentModal, setUser, state]);
 
   return (
-    <BaseModal label={t("signInButton")} isOpen={isOpen} onClose={onClose}>
+    <BaseModal label={t("logIn")} isOpen={isOpen} onClose={onClose}>
       {/* dummy div to give the modal a 384px max width */}
       <div className="w-[328px]" />
       <div className="flex w-full flex-col gap-2">
