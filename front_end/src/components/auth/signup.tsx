@@ -69,7 +69,7 @@ const SignUpModal: FC<SignInModalType> = ({
             size="md"
             onClick={() => setCurrentModal({ type: "signin" })}
           >
-            {t("signInButton")}
+            {t("logIn")}
           </Button>
         </div>
         <div className="flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">

@@ -73,7 +73,7 @@ def comment_create_api_view(request: Request):
 
     on_post = serializer.validated_data["on_post"]
     parent = serializer.validated_data.get("parent")
-    include_forecast = serializer.validated_data.pop("include_forecast", None)
+    included_forecast = serializer.validated_data.pop("included_forecast", None)
 
     # Small validation
     permission = get_post_permission_for_user(
@@ -81,18 +81,18 @@ def comment_create_api_view(request: Request):
     )
     ObjectPermission.can_comment(permission, raise_exception=True)
 
-    included_forecast = (
+    forecast = (
         (
             on_post.question.forecast_set.filter(author_id=user.id)
             .order_by("-start_time")
             .first()
         )
-        if include_forecast
+        if included_forecast
         else None
     )
 
     create_comment(
-        **serializer.validated_data, included_forecast=included_forecast, user=user
+        **serializer.validated_data, included_forecast=forecast, user=user
     )
 
     return Response({}, status=status.HTTP_201_CREATED)

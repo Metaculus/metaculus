@@ -9,6 +9,7 @@ from .constants import ResolutionType
 from .models import Question, Conditional, GroupOfQuestions
 from .services import build_question_forecasts, build_question_forecasts_for_user
 import numpy as np
+from questions.models import Forecast
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -130,6 +131,17 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
             "resolution_criteria_description",
             "description",
             "group_variable",
+        )
+
+
+class ForecastSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Forecast
+        fields = (
+            "start_time",
+            "probability_yes",
+            "probability_yes_per_category",
+            "continuous_cdf",
         )
 
 
