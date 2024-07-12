@@ -1,5 +1,7 @@
 "use client";
 
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { forEach } from "lodash";
@@ -15,6 +17,7 @@ import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { Category, PostStatus, PostWithForecasts } from "@/types/post";
 
+import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
@@ -167,8 +170,49 @@ const GroupForm: React.FC<Props> = ({
     resolver: zodResolver(groupQuestionSchema),
   });
 
+  const questionSubtypeDisplayMap: Record<
+    string,
+    { title: string; description: string }
+  > = {
+    binary: {
+      title: "Binary Question Group",
+      description:
+        'Binary question groups contain questions that generally have the form "Will X happen?" and resolve as Yes or No.',
+    },
+    numeric: {
+      title: "Numeric Question Group",
+      description:
+        "Numeric question groups contain questions that ask about the value of an unknown future quantity and resolve within a specified range.",
+    },
+    date: {
+      title: "Date Question Group",
+      description:
+        "Date question groups contain questions that ask when something will happen and resolve within a specified date range.",
+    },
+  };
+
+  const { title: formattedQuestionType, description: questionDescription } =
+    questionSubtypeDisplayMap[subtype] || { title: subtype, description: "" };
+
+  const inputContainerStyles = "flex flex-col gap-1.5";
+  const baseInputStyles =
+    "px-3 py-2 text-base border border-gray-500 rounded dark:bg-blue-950";
+  const baseTextareaStyles = "border border-gray-500 rounded dark:bg-blue-950";
+  const inputLabelStyles = "text-sm font-bold text-gray-600 dark:text-gray-400";
+  const inputDescriptionStyles = "text-xs text-gray-700 dark:text-gray-300";
+  const markdownStyles =
+    "text-xs font-mono pb-0.5 pt-0 px-1 rounded-sm bg-blue-400 dark:bg-yellow-500/25";
+
   return (
-    <div className="flex flex-row justify-center">
+    <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
+      <BacktoCreate
+        backText="Create"
+        backHref="/questions/create"
+        currentPage={formattedQuestionType}
+      />
+      <p className="mt-0 text-sm text-gray-600 dark:text-gray-300 md:mt-1 md:text-base">
+        {questionDescription}
+      </p>
       <form
         onSubmit={async (e) => {
           e.preventDefault(); // Good for debugging
@@ -181,27 +225,29 @@ const GroupForm: React.FC<Props> = ({
             }
           )(e);
         }}
-        className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s bg-white p-8 dark:bg-blue-900"
+        className="mt-4 flex flex w-[540px] w-full flex-col space-y-4 rounded"
       >
-        <span>Project</span>
-        <Input
-          type="number"
-          {...control.register("default_project_id")}
-          errors={control.formState.errors.default_project_id}
-          defaultValue={
-            control.getValues("default_project_id")
-              ? control.getValues("default_project_id")
-              : tournament_id
-          }
-          readOnly={isLive}
-        />
-        <div>
-          <span className="">
+        <div className={inputContainerStyles}>
+          <span className={inputLabelStyles}>Project ID</span>
+          <Input
+            type="number"
+            {...control.register("default_project_id")}
+            errors={control.formState.errors.default_project_id}
+            defaultValue={
+              control.getValues("default_project_id")
+                ? control.getValues("default_project_id")
+                : tournament_id
+            }
+            readOnly={isLive}
+            className={baseInputStyles}
+          />
+
+          <span className="text-xs">
             Initial project:
             <span className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1">
               <Link
                 href={`/tournament/${control.getValues("default_project_id")}`}
-                className="no-underline"
+                className="text-white no-underline"
               >
                 {control.getValues("default_project_id")
                   ? control.getValues("default_project_id")
@@ -210,29 +256,7 @@ const GroupForm: React.FC<Props> = ({
             </span>
           </span>
         </div>
-        <>
-          <span>Title</span>
-          <Input
-            {...control.register("title")}
-            errors={control.formState.errors.title}
-            defaultValue={post?.title}
-          />
-
-          <span>Description</span>
-          <Textarea
-            {...control.register("description")}
-            errors={control.formState.errors.description}
-            className="h-[120px] w-full"
-            defaultValue={post?.group_of_questions?.description}
-          />
-
-          <span>Group Variable</span>
-          <Input
-            {...control.register("group_variable")}
-            errors={control.formState.errors.group_variable}
-            defaultValue={post?.group_of_questions.group_variable}
-          />
-
+        <div>
           <span>Resolution Criteria</span>
           <Textarea
             {...control.register("resolution_criteria_description")}
@@ -272,192 +296,101 @@ const GroupForm: React.FC<Props> = ({
               return (
                 <div
                   key={index}
-                  className="m-4 flex flex-col space-y-4 rounded border bg-white p-4 dark:bg-blue-900"
+                  className="flex w-full flex-col space-y-4 rounded border bg-white p-4 dark:bg-blue-900"
                 >
-                  <span className="">Subquestion Label</span>
-                  <Input
-                    onChange={(e) => {
-                      setSubQuestions(
-                        subQuestions.map((subQuestion, iter_index) => {
-                          if (index == iter_index) {
-                            subQuestion["label"] = e.target.value;
-                          }
-                          return subQuestion;
-                        })
-                      );
-                    }}
-                    defaultValue={subQuestion?.label}
-                    disabled={subQuestions[index]["id"]}
-                  />
-                  <span className="text-xs font-thin text-gray-800">{`The label or parameter which identifies this subquestion, like "Option 1", "2033" or "France"`}</span>
+                  <div className={inputContainerStyles}>
+                    {collapsedSubQuestions[index] && (
+                      <span className={inputLabelStyles}>
+                        Subquestion Label
+                      </span>
+                    )}
+                    <Input
+                      onChange={(e) => {
+                        setSubQuestions(
+                          subQuestions.map((subQuestion, iter_index) => {
+                            if (index == iter_index) {
+                              subQuestion["title"] = e.target.value;
+                            }
+                            return subQuestion;
+                          })
+                        );
+                      }}
+                      className={baseInputStyles}
+                      value={subQuestion?.title}
+                    />
+                    {collapsedSubQuestions[index] && (
+                      <span className={inputDescriptionStyles}>
+                        {`The label or parameter which identifies this subquestion, like "Option 1", "2033" or "France"`}
+                      </span>
+                    )}
+                  </div>
                   {collapsedSubQuestions[index] && (
-                    <>
-                      <span>Closing Date</span>
-                      <Input
-                        disabled={subQuestions[index]["id"]}
-                        type="datetime-local"
-                        defaultValue={
-                          subQuestions[index].scheduled_close_time
-                            ? format(
-                                new Date(
-                                  subQuestions[index].scheduled_close_time
-                                ),
-                                "yyyy-MM-dd'T'HH:mm"
-                              )
-                            : undefined
-                        }
-                        onChange={(e) => {
-                          setSubQuestions(
-                            subQuestions.map((subQuestion, iter_index) => {
-                              if (index == iter_index) {
-                                subQuestion.scheduled_close_time =
-                                  e.target.value;
-                              }
-                              return subQuestion;
-                            })
-                          );
-                        }}
-                      />
-
-                      <span>Resolving Date</span>
-                      <Input
-                        disabled={subQuestions[index]["id"]}
-                        type="datetime-local"
-                        defaultValue={
-                          subQuestions[index].scheduled_resolve_time
-                            ? format(
-                                new Date(
-                                  subQuestions[index].scheduled_resolve_time
-                                ),
-                                "yyyy-MM-dd'T'HH:mm"
-                              )
-                            : undefined
-                        }
-                        onChange={(e) => {
-                          setSubQuestions(
-                            subQuestions.map((subQuestion, iter_index) => {
-                              if (index == iter_index) {
-                                subQuestion.scheduled_resolve_time =
-                                  e.target.value;
-                              }
-                              return subQuestion;
-                            })
-                          );
-                        }}
-                      />
-
-                      {subtype == "numeric" && (
-                        <>
-                          <div>
-                            <span>Max</span>
-                            <Input
-                              disabled={subQuestions[index]["id"]}
-                              type="number"
-                              defaultValue={subQuestions[index].max}
-                              onChange={(e) => {
-                                setSubQuestions(
-                                  subQuestions.map(
-                                    (subQuestion, iter_index) => {
-                                      if (index == iter_index) {
-                                        subQuestion.max = Number(
-                                          e.target.value
-                                        );
-                                      }
-                                      return subQuestion;
-                                    }
-                                  )
-                                );
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <span>Min</span>
-                            <Input
-                              disabled={subQuestions[index]["id"]}
-                              type="number"
-                              defaultValue={subQuestions[index].min}
-                              onChange={(e) => {
-                                setSubQuestions(
-                                  subQuestions.map(
-                                    (subQuestion, iter_index) => {
-                                      if (index == iter_index) {
-                                        subQuestion.min = Number(
-                                          e.target.value
-                                        );
-                                      }
-                                      return subQuestion;
-                                    }
-                                  )
-                                );
-                              }}
-                            />
-                          </div>
-                        </>
-                      )}
-                      {subtype == "date" && (
-                        <>
-                          <div>
-                            <span>Max</span>
-                            <Input
-                              disabled={subQuestions[index]["id"]}
-                              type="date"
-                              defaultValue={
-                                subQuestions[index].max
-                                  ? format(
-                                      new Date(subQuestions[index].max),
-                                      "yyyy-MM-dd"
-                                    )
-                                  : undefined
-                              }
-                              onChange={(e) => {
-                                setSubQuestions(
-                                  subQuestions.map(
-                                    (subQuestion, iter_index) => {
-                                      if (index == iter_index) {
-                                        subQuestion.max = e.target.value;
-                                      }
-                                      return subQuestion;
-                                    }
-                                  )
-                                );
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <span>Min</span>
-                            <Input
-                              disabled={subQuestions[index]["id"]}
-                              type="date"
-                              defaultValue={
-                                subQuestions[index].min
-                                  ? format(
-                                      new Date(subQuestions[index].min),
-                                      "yyyy-MM-dd"
-                                    )
-                                  : undefined
-                              }
-                              onChange={(e) => {
-                                setSubQuestions(
-                                  subQuestions.map(
-                                    (subQuestion, iter_index) => {
-                                      if (index == iter_index) {
-                                        subQuestion.min = e.target.value;
-                                      }
-                                      return subQuestion;
-                                    }
-                                  )
-                                );
-                              }}
-                            />
-                          </div>
-                        </>
-                      )}
-                    </>
+                    <div className="flex w-full flex-col gap-4 md:flex-row">
+                      <div className="flex w-full flex-col gap-2">
+                        <span className={inputLabelStyles}>Closing Date</span>
+                        <Input
+                          readOnly={isLive}
+                          type="datetime-local"
+                          className={baseInputStyles}
+                          defaultValue={
+                            subQuestions[index].scheduled_close_time
+                              ? format(
+                                  new Date(
+                                    subQuestions[index].scheduled_close_time
+                                  ),
+                                  "yyyy-MM-dd'T'HH:mm"
+                                )
+                              : undefined
+                          }
+                          onChange={(e) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index == iter_index) {
+                                  subQuestion.scheduled_close_time =
+                                    e.target.value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </div>
+                      <div className="flex w-full flex-col gap-2">
+                        <span className={inputLabelStyles}>Resolving Date</span>
+                        <Input
+                          readOnly={isLive}
+                          type="datetime-local"
+                          className={baseInputStyles}
+                          defaultValue={
+                            subQuestions[index].scheduled_resolve_time
+                              ? format(
+                                  new Date(
+                                    subQuestions[index].scheduled_resolve_time
+                                  ),
+                                  "yyyy-MM-dd'T'HH:mm"
+                                )
+                              : undefined
+                          }
+                          onChange={(e) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index == iter_index) {
+                                  subQuestion.scheduled_close_time =
+                                    e.target.value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </div>
+                    </div>
                   )}
 
                   <div className="flex justify-between">
                     <Button
-                      className="rounded-xxl border border-0 bg-gray-300 text-black dark:bg-blue-300 dark:text-blue-800"
+                      size="sm"
+                      variant="tertiary"
                       onClick={() => {
                         setCollapsedSubQuestions(
                           collapsedSubQuestions.map((x, iter_index) => {
@@ -470,13 +403,16 @@ const GroupForm: React.FC<Props> = ({
                       }}
                     >
                       {collapsedSubQuestions[index] === false
-                        ? "⌄ Expand"
-                        : "^ Collapse"}
+                        ? "Expand"
+                        : "Collapse"}
                     </Button>
 
                     <Button
                       disabled={isLive}
-                      className="rounded-xxl border-0 bg-red-200 text-red-800 dark:bg-red-200 dark:text-red-800"
+                      size="md"
+                      presentationType="icon"
+                      variant="tertiary"
+                      className="border-red-200 text-red-400 hover:border-red-400 active:border-red-600 active:bg-red-100/50 dark:border-red-400/50 dark:text-red-400 dark:hover:border-red-400 dark:active:border-red-300/75 dark:active:bg-red-400/15"
                       onClick={() => {
                         setSubQuestions(
                           subQuestions.filter(
@@ -490,7 +426,7 @@ const GroupForm: React.FC<Props> = ({
                         );
                       }}
                     >
-                      x Remove Subquestion
+                      <FontAwesomeIcon icon={faTrash}></FontAwesomeIcon>
                     </Button>
                   </div>
                 </div>
@@ -548,11 +484,10 @@ const GroupForm: React.FC<Props> = ({
               + New Subquestion
             </Button>
           </div>
-          <div className=""></div>
           <Button type="submit">
             {mode == "create" ? "Create Question" : "Edit Question"}
           </Button>
-        </>
+        </div>
       </form>
     </div>
   );
