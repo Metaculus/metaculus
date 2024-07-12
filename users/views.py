@@ -99,27 +99,27 @@ def user_profile_api_view(request, pk: int):
     ser["calibration_curve"] = [
         {
             "y_real": 0.25,
-            "y_perfect": 0.2,
+            "y_perfect": 0.1,
             "y_perfect_ci": [0.05, 0.35],
         },
         {
             "y_real": 0.4,
-            "y_perfect": 0.4,
+            "y_perfect": 0.3,
             "y_perfect_ci": [0.2, 0.55],
         },
         {
             "y_real": 0.6,
-            "y_perfect": 0.6,
+            "y_perfect": 0.5,
             "y_perfect_ci": [0.4, 0.7],
         },
         {
             "y_real": 0.85,
-            "y_perfect": 0.8,
+            "y_perfect": 0.7,
             "y_perfect_ci": [0.5, 0.9],
         },
         {
             "y_real": 0.88,
-            "y_perfect": 1,
+            "y_perfect": 0.9,
             "y_perfect_ci": [0.8, 1],
         },
     ]
