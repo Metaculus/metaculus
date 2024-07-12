@@ -28,15 +28,13 @@ const feedOptions: GroupButton<string>[] = [
 ];
 
 const CommentFeed: FC<Props> = ({ initialComments, post, profile }) => {
-  const [numberOfComments, setNumberOfComments] = useState(10);
+  //const [numberOfComments, setNumberOfComments] = useState(10);
   const [feedSection, setFeedSection] = useState("public");
   const { user } = useAuth();
 
-  const comments = initialComments
-    .slice(0, numberOfComments)
-    .filter((comment) =>
-      feedSection === "public" ? !comment.is_private : comment.is_private
-    );
+  const comments = initialComments.filter((comment) =>
+    feedSection === "public" ? !comment.is_private : comment.is_private
+  );
   let url = "";
 
   let permissions: CommentPermissions = CommentPermissions.VIEWER;
@@ -84,7 +82,7 @@ const CommentFeed: FC<Props> = ({ initialComments, post, profile }) => {
           variant="tertiary"
         />
       </div>
-      {post && <CommentEditor />}
+      {post && <CommentEditor postId={post.id} />}
       {comments.map((comment: CommentType) => (
         <div key={comment.id}>
           <hr className="my-4" />

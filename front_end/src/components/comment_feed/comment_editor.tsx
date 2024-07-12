@@ -11,21 +11,28 @@ import { Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 
+import IncludedForecast from "./included_forecast";
+
 const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
   ssr: false,
 });
 
-interface NotebookEditorProps {
+interface CommentEditorProps {
   text?: string;
   isPrivate?: boolean;
+  postId?: number;
 }
 
-const CommentEditor: React.FC<NotebookEditorProps> = ({ text, isPrivate }) => {
+const CommentEditor: React.FC<CommentEditorProps> = ({
+  text,
+  isPrivate,
+  postId,
+}) => {
   const t = useTranslations();
 
   const [isEditing, setIsEditing] = useState(true);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivate ?? false);
-
+  const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
 
   const { user } = useAuth();
@@ -49,6 +56,20 @@ const CommentEditor: React.FC<NotebookEditorProps> = ({ text, isPrivate }) => {
 
   return (
     <>
+      {/* TODO: this box can only be shown in create, not edit mode */}
+      {/* TODO: the user should only see the checkbox if they have made a forecast! */}
+      <Checkbox
+        checked={hasIncludedForecast}
+        onChange={(checked) => {
+          setHasIncludedForecast(checked);
+        }}
+        label={t("includeMyForecast")}
+        className="p-1 text-sm"
+      />
+      {/* TODO: display in preview mode only */}
+      {/*comment.included_forecast && (
+        <IncludedForecast author="test" forecastValue={test} />
+      )*/}
       {isEditing && (
         <div className="flex flex-col">
           <MarkdownEditor
@@ -83,12 +104,10 @@ const CommentEditor: React.FC<NotebookEditorProps> = ({ text, isPrivate }) => {
             className="p-2"
             onClick={() => {
               createComment({
-                /* test data */
-                author: user.id,
                 parent: undefined,
                 text: markdown,
-                on_post: 1,
-                included_forecast: undefined,
+                on_post: postId,
+                included_forecast: hasIncludedForecast,
                 is_private: isPrivateComment,
               });
             }}
