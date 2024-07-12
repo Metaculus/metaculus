@@ -5,7 +5,6 @@ export default getRequestConfig(async () => {
   const locale = cookies().get("NEXT_LOCALE")
     ? cookies().get("NEXT_LOCALE")?.value
     : "en";
-  console.log(locale);
   return {
     locale,
     messages: {

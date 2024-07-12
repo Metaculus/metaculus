@@ -386,7 +386,7 @@
   "continuousScoringInfo3": "Průměrné relativní log skóre pro spojité otázky je -0.5, jelikož je komunita jako celek přesnější, než jednotlivci.",
   "profile": "Profil",
   "changeUsernameButton": "změnit",
-  "memberSince": "Člen od",
+  "Member Since": "Člen od",
   "bio": "O uživateli",
   "website": "Web",
   "profileBioPlaceholder": "Pokud chcete, zde nám o sobě můžete něco málo sdělit (např. jaká témata Vás zajímají).",

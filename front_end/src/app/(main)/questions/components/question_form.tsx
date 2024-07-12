@@ -139,6 +139,12 @@ const QuestionForm: React.FC<Props> = ({
         return;
       }
     }
+    if (data["min"] || data["max"]) {
+      if (data["max"] <= data["min"]) {
+        alert("Max should be > min");
+        return;
+      }
+    }
     data["type"] = questionType;
     data["options"] = optionsList;
 

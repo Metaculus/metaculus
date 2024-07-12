@@ -55,21 +55,28 @@ def percent_point_function(cdf: list[float], percent: float) -> float:
     return 1.0
 
 
-def prediction_difference_for_sorting(p1, p2, question: Question) -> float:
+def prediction_difference_for_sorting(
+    p1: list[float], p2: list[float], question: Question
+) -> float:
+    """for binary and multiple choice, takes pmfs
+    for continuous takes cdfs"""
     # Uses Jeffrey's Divergence
     if question.type in ["binary", "multiple_choice"]:
         return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
-    return float(
-        np.trapz(np.abs(np.array(p1) - np.array(p2)), x=np.linspace(0, 1, len(p1)))
-    )
+    cdf1 = np.array([1 - p1, p1])
+    cdf2 = np.array([1 - p2, p2])
+    divergences = np.sum((cdf1 - cdf2) * np.log2(cdf1 / cdf2), axis=0)
+    return float(np.trapz(divergences, x=np.linspace(0, 1, len(p1))))
 
 
 def prediction_difference_for_display(
-    p1, p2, question: Question
-) -> tuple[float, float] | list[tuple[float, float]]:
+    p1: list[float], p2: list[float], question: Question
+) -> list[tuple[float, float]]:
+    """for binary and multiple choice, takes pmfs
+    for continuous takes cdfs"""
     if question.type == "binary":
-        # abs pred diff, ratio of odds
-        return (p2 - p1, (p2 / (1 - p2)) / (p1 / (1 - p1)))
+        # single-item list of (abs pred diff, ratio of odds)
+        return [(p2[1] - p1[1], (p2[1] / (1 - p2[1])) / (p1[1] / (1 - p1[1])))]
     elif question.type == "multiple_choice":
         # list of (abs pred diff, ratio of odds)
         return [(q - p, (q / (1 - q)) / (p / (1 - p))) for p, q in zip(p1, p2)]
@@ -84,6 +91,7 @@ def prediction_difference_for_display(
             len(p1),
         ),
     )
-    total = np.trapz(np.abs(np.array(p1) - np.array(p2)), x=x_locations)
-    asymmetric = -np.trapz(np.array(p1) - np.array(p2), x=x_locations)
-    return float(total), float(asymmetric)
+    diffs = np.array(p1) - np.array(p2)
+    total = np.trapz(np.abs(diffs), x=x_locations)
+    asymmetric = -np.trapz(diffs, x=x_locations)
+    return [(float(total), float(asymmetric))]

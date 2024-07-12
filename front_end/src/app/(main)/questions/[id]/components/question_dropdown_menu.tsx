@@ -20,16 +20,16 @@ const PostDropdownMenu: FC<Props> = ({ post }) => {
   const { user } = useAuth();
 
   const changePostActivity = useCallback(
-    (value: number) => {
-      changePostActivityBoost(post.id, value).then(() => {
-        if (value > 0) {
-          alert(t("contentBoosted", { value }));
+    (score: number) => {
+      changePostActivityBoost(post.id, score).then(({ score_total }) => {
+        if (score > 0) {
+          alert(t("contentBoosted", { score, score_total }));
         } else {
-          alert(t("contentBuried", { value }));
+          alert(t("contentBuried", { score, score_total }));
         }
       });
     },
-    [post.id]
+    [post.id, t]
   );
   const items = useMemo(
     () => [

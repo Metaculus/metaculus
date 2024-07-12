@@ -58,7 +58,7 @@ const MyQuestionsAndPostsFilters: FC = () => {
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [
       {
-        value: QuestionOrder.ActivityDesc,
+        value: QuestionOrder.HotDesc,
         label: t("hot"),
       },
       {
@@ -94,7 +94,7 @@ const MyQuestionsAndPostsFilters: FC = () => {
       filters={filters}
       mainSortOptions={mainSortOptions}
       sortOptions={sortOptions}
-      defaultOrder={QuestionOrder.ActivityDesc}
+      defaultOrder={QuestionOrder.HotDesc}
     />
   );
 };

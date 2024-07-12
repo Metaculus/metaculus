@@ -7,6 +7,7 @@ import { useLocale } from "next-intl";
 import { FC, useState } from "react";
 
 import { softDeleteComment, editComment } from "@/app/(main)/questions/actions";
+import CommentVoter from "@/components/comment_feed/comment_voter";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
@@ -114,7 +115,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
             <Moderator className="ml-2 text-lg" />
           )}
           {comment.is_admin && <Admin className="ml-2 text-lg" />}
-*/}
+        */}
           <span className="mx-1">·</span>
           {formatDate(locale, new Date(comment.created_at))}
         </span>
@@ -125,7 +126,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
             : t(commentTypes[comment.submit_type]?.verb ?? "commented")}{" "}
           {commentAge(comment.created_time)}
         </span>
-*/}
+        */}
       </div>
 
       {comment.parent && (
@@ -197,21 +198,18 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
           </div>
         </div>
       )}
-*/}
+      */}
 
       <div className="mb-2 mt-1 h-7 overflow-visible">
         <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
-          <div className="inline-flex items-center">
-            {/*
-            <span className="mr-3 inline-flex items-center text-sm leading-4">
-              <Voter
-                onVoteUp={() => onVote(comment, 1).catch(catchError)}
-                disabled={user.id === comment.author}
-                userVote={comment.user_like}
-                votes={comment.num_likes}
-              />
-            </span>
-            */}
+          <div className="inline-flex items-center gap-3">
+            <CommentVoter
+              voteData={{
+                commentId: comment.id,
+                voteScore: comment.vote_score,
+                userVote: comment.user_vote ?? null,
+              }}
+            />
             <Button variant="text">
               <FontAwesomeIcon icon={faReply} />
               Reply

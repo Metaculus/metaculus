@@ -43,6 +43,7 @@ class MiniTournamentSerializer(serializers.ModelSerializer):
             "user_permission",
             "created_at",
             "edited_at",
+            "default_permission",
         )
 
 
@@ -67,12 +68,20 @@ class TournamentSerializer(serializers.ModelSerializer):
             "user_permission",
             "created_at",
             "edited_at",
+            "default_permission",
         )
 
 
-def serialize_projects(projects: list[Project]) -> defaultdict[Any, list]:
+def serialize_projects(
+    projects: list[Project], default_project: Project = None
+) -> defaultdict[Any, list]:
     data = defaultdict(list)
 
+    if (
+        default_project
+        and len([x for x in projects if x.id == default_project.id]) == 0
+    ):
+        projects = [x for x in projects] + [default_project]
     for obj in projects:
         match obj.type:
             case obj.ProjectTypes.TAG:
@@ -85,11 +94,14 @@ def serialize_projects(projects: list[Project]) -> defaultdict[Any, list]:
                 serializer = MiniTournamentSerializer
             case obj.ProjectTypes.QUESTION_SERIES:
                 serializer = MiniTournamentSerializer
+            case obj.ProjectTypes.SITE_MAIN:
+                serializer = MiniTournamentSerializer
             case _:
                 continue
 
         data[obj.type].append(serializer(obj).data)
-
+        if default_project and obj.id == default_project.id:
+            data["default_project"] = data[obj.type][-1]
     return data
 
 

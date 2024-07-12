@@ -11,10 +11,32 @@ from utils.models import TimeStampedModel
 class User(TimeStampedModel, AbstractUser):
     # Profile data
     bio = models.TextField(default="", blank=True)
-    website = models.CharField(max_length=100, default="", blank=True)
     is_bot = models.BooleanField(default=False)
 
     old_usernames = models.JSONField(default=list, null=False)
+
+    # Social Link
+    website = models.CharField(max_length=100, default=None, null=True, blank=True)
+    twitter = models.CharField(max_length=100, default=None, null=True, blank=True)
+    linkedin = models.CharField(max_length=100, default=None, null=True, blank=True)
+    facebook = models.CharField(max_length=100, default=None, null=True, blank=True)
+    github = models.CharField(max_length=100, default=None, null=True, blank=True)
+
+    # Forecasting Platform Links
+    good_judgement_open = models.CharField(
+        max_length=100, default=None, null=True, blank=True
+    )
+    kalshi = models.CharField(max_length=100, default=None, null=True, blank=True)
+    manifold = models.CharField(max_length=100, default=None, null=True, blank=True)
+    infer = models.CharField(max_length=100, default=None, null=True, blank=True)
+    hypermind = models.CharField(max_length=100, default=None, null=True, blank=True)
+
+    # Personal Details
+    occupation = models.CharField(max_length=100, default=None, null=True, blank=True)
+    location = models.CharField(max_length=100, default=None, null=True, blank=True)
+
+    # @Hlib TODO: Can you add profile picture + update logic for profile picture images ? (Not urgent)
+    profile_picture = models.ImageField(null=True, blank=True, default=None)
 
     objects = UserManager()
 
