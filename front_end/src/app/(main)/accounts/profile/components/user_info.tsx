@@ -56,12 +56,12 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
           <>
             {isEdit && (
               <Button variant="primary" type="submit">
-                {t("submitButton")}
+                {t("submit")}
               </Button>
             )}
             {!isEdit && (
               <Button variant="link" onClick={() => setIsEdit(true)}>
-                {t("editButton")}
+                {t("edit")}
               </Button>
             )}
           </>

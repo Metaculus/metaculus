@@ -100,7 +100,7 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
         <div className="flex justify-center">
           {/* Global errors container */}
           <Button type="submit" value="Submit" className="uppercase">
-            {t("submitButton")}
+            {t("submit")}
           </Button>
           <FormError
             errors={state?.errors}
