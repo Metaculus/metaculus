@@ -102,7 +102,7 @@ def user_profile_api_view(request, pk: int):
             "y_perfect": 0.2,
             "y_perfect_ci": [0.05, 0.35],
         },
-            {
+        {
             "y_real": 0.4,
             "y_perfect": 0.4,
             "y_perfect_ci": [0.2, 0.55],

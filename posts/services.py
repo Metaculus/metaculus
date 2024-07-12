@@ -22,7 +22,10 @@ from utils.dtypes import flatten
 from utils.models import build_order_by
 from utils.serializers import parse_order_by
 from utils.the_math.community_prediction import get_cp_at_time
-from utils.the_math.measures import prediction_difference_for_display, prediction_difference_for_sorting
+from utils.the_math.measures import (
+    prediction_difference_for_display,
+    prediction_difference_for_sorting,
+)
 
 
 def add_categories(categories: list[int], post: Post):
@@ -284,6 +287,7 @@ def compute_movement(post: Post) -> float | None:
         if (movement is None) or (abs(difference) > abs(movement)):
             movement = difference
     return movement
+
 
 # Computes the jeffry divergence
 def compute_sorting_divergence(post: Post) -> dict[int, float]:
