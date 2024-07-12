@@ -1,5 +1,4 @@
 from datetime import timedelta
-from typing import Optional
 
 from django.db.models import Q, Count, Sum, Value, Case, When, F
 from django.db.models.functions import Coalesce
@@ -23,7 +22,6 @@ from utils.models import build_order_by
 from utils.serializers import parse_order_by
 from utils.the_math.community_prediction import get_cp_at_time
 from utils.the_math.measures import (
-    prediction_difference_for_display,
     prediction_difference_for_sorting,
 )
 
@@ -64,7 +62,6 @@ def get_posts_feed(
     """
     Applies filtering on the Questions QuerySet
 
-    TODO: implement "upcoming" filtering
     TODO: implement "New Comments" ordering
     """
 
@@ -132,7 +129,10 @@ def get_posts_feed(
         if status in ["pending", "rejected", "deleted"]:
             q |= Q(curation_status=status)
         if status == "upcoming":
-            q |= Q()
+            q |= Q(
+                Q(curation_status=Post.CurationStatus.APPROVED)
+                & (Q(published_at__gte=timezone.now()) | Q(published_at__isnull=True))
+            )
         if status == "draft":
             q |= Q(curation_status=status, author=user)
         if status == "closed":
