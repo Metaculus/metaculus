@@ -25,7 +25,7 @@ const Creator: React.FC<{ searchParams: SearchParams }> = ({
 
   return (
     <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
-      <div className="flex flex-col gap-2 md:gap-3">
+      <div className="mb-4 flex flex-col gap-2 md:gap-3">
         <h1 className="text-2xl font-medium md:text-3xl">Create New Content</h1>
         <span className="text-sm text-gray-600 dark:text-gray-300 md:text-base">
           Check out our{" "}
@@ -43,7 +43,6 @@ const Creator: React.FC<{ searchParams: SearchParams }> = ({
           on our core topic areas or that we otherwise judge valuable. We may
           not publish questions that are not a good fit.
         </span>
-        <hr className="my-1.5 border-blue-400 dark:border-blue-700/50" />
       </div>
       <p className="text-lg font-light text-gray-700 dark:text-gray-300">
         Single Question
