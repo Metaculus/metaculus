@@ -9,8 +9,6 @@ export enum QuestionType {
 
 export enum QuestionOrder {
   ActivityDesc = "-activity",
-  StaleDesc = "-stale",
-  // TODO: clarify logic
   WeeklyMovementDesc = "-weekly_movement",
   PublishTimeDesc = "-published_at",
   LastPredictionTimeAsc = "user_last_forecasts_date",
@@ -24,6 +22,8 @@ export enum QuestionOrder {
   ScoreDesc = "-score",
   ScoreAsc = "score",
   ResolveTimeAsc = "scheduled_resolve_time",
+  HotDesc = "-hotness",
+  HotAsc = "hotness",
 }
 
 export type BaseForecast = {
@@ -88,6 +88,7 @@ export type Question = {
   author_username: string;
   zero_point: number;
   post_id?: number;
+  dispaly_divergences?: number[][];
 };
 
 export type QuestionWithNumericForecasts = Question & {

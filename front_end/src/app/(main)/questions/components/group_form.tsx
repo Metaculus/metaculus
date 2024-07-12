@@ -4,6 +4,7 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
+import { forEach } from "lodash";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -21,18 +22,19 @@ import CategoryPicker from "./category_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
-  title: string;
   group_of_questions: any;
+  title: string;
+  categories: number[];
+  default_project_id: number;
 };
 
 const groupQuestionSchema = z.object({
-  subtype: z.enum(["binary", "date", "numeric"]),
   title: z.string().min(4).max(200),
   group_variable: z.string().max(200),
   description: z.string().min(10),
-  resolution_criteria_description: z.string().optional(),
-  fine_print: z.string().optional(),
-  tournament_id: z.number().optional(),
+  resolution_criteria_description: z.string().min(1),
+  fine_print: z.string(),
+  default_project_id: z.nullable(z.union([z.number(), z.string()])),
 });
 
 type Props = {
@@ -42,16 +44,6 @@ type Props = {
   mode: "create" | "edit";
   allCategories: Category[];
 };
-
-function fmtDateStrForInput(
-  dt_string: string | null | undefined
-): string | undefined {
-  if (dt_string === null || dt_string === undefined) {
-    return undefined;
-  }
-  const as_date = new Date(dt_string);
-  return as_date.toISOString().split("T")[0];
-}
 
 const GroupForm: React.FC<Props> = ({
   subtype,
@@ -71,10 +63,77 @@ const GroupForm: React.FC<Props> = ({
     post?.curation_status == PostStatus.DELETED;
 
   const submitQuestion = async (data: any) => {
-    data["tournament_id"] = tournament_id;
+    if (control.getValues("default_project_id") === "") {
+      control.setValue("default_project_id", null);
+    }
+    const labels = subQuestions.map((q) => q.label);
+    if (new Set(labels).size !== labels.length) {
+      alert("Duplicate sub question labels");
+      return;
+    }
+
+    let break_out = false;
+    const groupData = subQuestions
+      .filter((x) => !x.id)
+      .map((x) => {
+        if (x["min"] || x["max"]) {
+          if (x["max"] <= x["min"]) {
+            alert("Max should be > min");
+            break_out = true;
+          }
+        }
+        if (subtype == "binary") {
+          return {
+            type: subtype,
+            title: x.label,
+            scheduled_close_time: x.scheduled_close_time,
+            scheduled_resolve_time: x.scheduled_resolve_time,
+          };
+        } else if (subtype == "numeric") {
+          return {
+            type: subtype,
+            title: x.label,
+            scheduled_close_time: x.scheduled_close_time,
+            scheduled_resolve_time: x.scheduled_resolve_time,
+            min: x.min,
+            max: x.max,
+          };
+        } else if (subtype == "date") {
+          return {
+            type: subtype,
+            title: x.label,
+            scheduled_close_time: x.scheduled_close_time,
+            scheduled_resolve_time: x.scheduled_resolve_time,
+            min: new Date(x.min).getTime() / 1000,
+            max: new Date(x.max).getTime() / 1000,
+          };
+        }
+      });
+    if (break_out) {
+      return;
+    }
+    const questionToDelete: number[] = [];
+    if (post?.group_of_questions.questions) {
+      forEach(post?.group_of_questions.questions, (sq, index) => {
+        if (!subQuestions.map((x) => x.id).includes(sq.id)) {
+          questionToDelete.push(sq.id);
+        }
+      });
+    }
     let post_data: PostCreationData = {
       title: data["title"],
-      group_of_questions: data,
+      default_project_id: data["default_project_id"],
+      categories: categoriesList.map((x) => x.id),
+      group_of_questions: {
+        delete: questionToDelete,
+        title: data["title"],
+        fine_print: data["fine_print"],
+        resolution_criteria_description:
+          data["resolution_criteria_description"],
+        description: data["description"],
+        group_variable: data["group_variable"],
+        questions: groupData,
+      },
     };
     if (mode == "edit" && post) {
       const resp = await updatePost(post.id, post_data);
@@ -89,16 +148,21 @@ const GroupForm: React.FC<Props> = ({
     post?.group_of_questions?.questions
       ? post?.group_of_questions?.questions.map((x) => {
           return {
+            id: x.id,
             scheduled_close_time: x.scheduled_close_time,
             scheduled_resolve_time: x.scheduled_resolve_time,
-            title: x.title,
+            label: x.title,
+            max: x.max,
+            min: x.min,
           };
         })
       : []
   );
-  const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<any[]>([]);
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
+  );
+  const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<any[]>(
+    subQuestions.map((x) => true)
   );
 
   const control = useForm({
@@ -151,7 +215,7 @@ const GroupForm: React.FC<Props> = ({
       </p>
       <form
         onSubmit={async (e) => {
-          // e.preventDefault(); // Good for debugging
+          e.preventDefault(); // Good for debugging
           await control.handleSubmit(
             async (data) => {
               await submitQuestion(data);
@@ -192,103 +256,41 @@ const GroupForm: React.FC<Props> = ({
             </span>
           </span>
         </div>
-        <div className="flex flex-col gap-6">
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>Long Title</span>
-            <Textarea
-              {...control.register("title")}
-              errors={control.formState.errors.title}
-              defaultValue={post?.title}
-              className={`${baseTextareaStyles} min-h-[148px] p-5 text-xl font-normal`}
-            />
-            <span className={inputDescriptionStyles}>
-              This should be a shorter version of the question text, used where
-              there is less space to display a title. It should end with a
-              question mark. Examples: &quot;NASA 2022 spacesuit contract
-              winner?&quot; or &quot;EU GDP from 2025 to 2035?&quot;.
-            </span>
-          </div>
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>Background Information</span>
-            <Textarea
-              {...control.register("description")}
-              errors={control.formState.errors.description}
-              className={`${baseTextareaStyles} h-[120px] w-full p-3 text-sm`}
-              defaultValue={post?.question?.description}
-            />
-            <span className={inputDescriptionStyles}>
-              Provide background information for your question in a factual and
-              unbiased tone. Links should be added to relevant and helpful
-              resources using markdown syntax:{" "}
-              <span className={markdownStyles}>
-                [Link title](https://link-url.com)
-              </span>
-              .
-            </span>
-          </div>
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>Group Variable</span>
-            <Input
-              disabled={isLive}
-              {...control.register("group_variable")}
-              errors={control.formState.errors.group_variable}
-              defaultValue={post?.group_of_questions.group_variable}
-              className={baseInputStyles}
-            />{" "}
-            <span className={inputDescriptionStyles}>
-              A name for the parameter which varies between subquestions, like
-              &quot;Option&quot;, &quot;Year&quot; or &quot;Country&quot;
-            </span>
-          </div>
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>Resolution Criteria</span>
-            <Textarea
-              {...control.register("resolution_criteria_description")}
-              errors={control.formState.errors.resolution_criteria_description}
-              className={`${baseTextareaStyles} h-[120px] w-full p-3 text-sm`}
-              defaultValue={
-                post?.question?.resolution_criteria_description
-                  ? post?.question?.resolution_criteria_description
-                  : undefined
-              }
-            />
-            <span className={inputDescriptionStyles}>
-              A good question will almost always resolve unambiguously. If you
-              have a data source by which the question will resolve, link to it
-              here. If there is some simple math that will need to be done to
-              resolve this question, define the equation in markdown:{" "}
-              <span className={markdownStyles}>\[ y = ax^2+b \]</span>.
-            </span>
-          </div>
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>Fine Print</span>
-            <Textarea
-              {...control.register("fine_print")}
-              errors={control.formState.errors.fine_print}
-              className={`${baseTextareaStyles} h-[120px] w-full p-3 text-sm`}
-              defaultValue={
-                post?.question?.fine_print
-                  ? post?.question?.fine_print
-                  : undefined
-              }
-            />
-            <span className={inputDescriptionStyles}>
-              Use the fine print for any sort of lawyerly details which
-              don&apos;t need to be prominently displayed. This is optional.
-            </span>
-          </div>
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>Categories</span>
-            <CategoryPicker
-              allCategories={allCategories}
-              categories={categoriesList}
-              onChange={(categories) => {
-                setCategoriesList(categories);
-              }}
-            ></CategoryPicker>
-          </div>
-          <div className="flex flex-col items-start gap-4 rounded border border-gray-300 bg-blue-200/50 p-4 dark:bg-blue-700/50">
-            <div className="text-xl">Subquestions</div>
+        <div>
+          <span>Resolution Criteria</span>
+          <Textarea
+            {...control.register("resolution_criteria_description")}
+            errors={control.formState.errors.resolution_criteria_description}
+            className="h-[120px] w-full"
+            defaultValue={
+              post?.group_of_questions?.resolution_criteria_description
+                ? post?.group_of_questions?.resolution_criteria_description
+                : undefined
+            }
+          />
+          <span>Fine Print</span>
+          <Textarea
+            {...control.register("fine_print")}
+            errors={control.formState.errors.fine_print}
+            className="h-[120px] w-full"
+            defaultValue={
+              post?.group_of_questions?.fine_print
+                ? post?.group_of_questions?.fine_print
+                : undefined
+            }
+          />
+
+          <CategoryPicker
+            allCategories={allCategories}
+            categories={categoriesList}
+            onChange={(categories) => {
+              setCategoriesList(categories);
+            }}
+          ></CategoryPicker>
+          <span className="text-xs font-thin text-gray-800">{`A name for the parameter which varies between subquestions, like "Option", "Year" or "Country"`}</span>
+
+          <div className="flex-col rounded border bg-zinc-200 p-4 dark:bg-blue-700">
+            <div className="mb-4">Subquestions</div>
 
             {subQuestions.map((subQuestion, index) => {
               return (
@@ -438,7 +440,7 @@ const GroupForm: React.FC<Props> = ({
                     ...subQuestions,
                     {
                       type: "numeric",
-                      title: "",
+                      label: "",
                       scheduled_close_time:
                         control.getValues().scheduled_close_time,
                       scheduled_resolve_time:

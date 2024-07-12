@@ -61,7 +61,10 @@ const useFeed = () => {
       }
 
       if (feedType === FeedType.MY_PREDICTIONS) {
-        user && setParam(POST_FORECASTER_ID_FILTER, user.id.toString());
+        if (user) {
+          setParam(POST_FORECASTER_ID_FILTER, user.id.toString());
+          setParam(POST_ORDER_BY_FILTER, QuestionOrder.WeeklyMovementDesc);
+        }
       }
       if (feedType === FeedType.MY_QUESTIONS_AND_POSTS) {
         user && setParam(POST_USERNAMES_FILTER, user.username.toString());

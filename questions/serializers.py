@@ -1,11 +1,14 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from datetime import datetime, timezone as dt_timezone
 
 from django.utils import timezone
 from users.models import User
+from utils.the_math.measures import prediction_difference_for_display
 from .constants import ResolutionType
 from .models import Question, Conditional, GroupOfQuestions
 from .services import build_question_forecasts, build_question_forecasts_for_user
+import numpy as np
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -121,7 +124,13 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GroupOfQuestions
-        fields = ("questions",)
+        fields = (
+            "questions",
+            "fine_print",
+            "resolution_criteria_description",
+            "description",
+            "group_variable",
+        )
 
 
 def serialize_question(
@@ -147,6 +156,25 @@ def serialize_question(
             serialized_data["my_forecasts"] = build_question_forecasts_for_user(
                 question, current_user
             )
+
+            last_forecast = (
+                question.forecast_set.filter(author=current_user)
+                .order_by("start_time")
+                .last()
+            )
+            if last_forecast:
+                if question.type in ["binary", "multiple_choice"]:
+                    cp_prediction_values = serialized_data["forecasts"]["latest_cdf"]
+                else:
+                    cp_prediction_values = serialized_data["forecasts"]["latest_pmf"]
+                if cp_prediction_values:
+                    serialized_data["dispaly_divergences"] = (
+                        prediction_difference_for_display(
+                            last_forecast.get_prediction_values(),
+                            cp_prediction_values,
+                            question,
+                        )
+                    )
 
     serialized_data["resolution"] = question.resolution
 
@@ -214,25 +242,35 @@ def serialize_group(
     return serialized_data
 
 
-def validate_question_resolution(question: Question, resolution: str):
+def validate_question_resolution(question: Question, resolution: str) -> str:
     if resolution in ResolutionType:
         return resolution
 
     if question.type == Question.QuestionType.BINARY:
         return serializers.ChoiceField(choices=["yes", "no"]).run_validation(resolution)
+    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
+        return serializers.ChoiceField(choices=question.options).run_validation(
+            resolution
+        )
 
+    # Continuous question
     if question.type == Question.QuestionType.NUMERIC:
         resolution = serializers.FloatField().run_validation(resolution)
+        range_min = question.min
+        range_max = question.max
+    else:  # question.type == Question.QuestionType.DATE
+        resolution = serializers.DateTimeField().run_validation(resolution)
+        range_min = datetime.fromtimestamp(question.min, tz=dt_timezone.utc)
+        range_max = datetime.fromtimestamp(question.max, tz=dt_timezone.utc)
 
-        if resolution > question.max or resolution < question.min:
-            raise ValidationError(
-                f"Resolution must be between {question.min} and {question.max}"
-            )
-
-        return resolution
-
-    if question.type == Question.QuestionType.DATE:
-        return serializers.DateField().run_validation(resolution)
-
-    if question.type == Question.QuestionType.MULTIPLE_CHOICE:
-        return serializers.ChoiceField(choices=question.options)
+    if resolution > range_max and not question.open_upper_bound:
+        raise ValidationError(
+            f"Resolution must be below {range_max} due to a closed upper bound. "
+            f"Received {resolution}"
+        )
+    if resolution < range_min and not question.open_lower_bound:
+        raise ValidationError(
+            f"Resolution must be above {range_min} due to a closed lower bound. "
+            f"Received {resolution}"
+        )
+    return str(resolution)
