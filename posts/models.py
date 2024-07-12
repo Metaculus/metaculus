@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django.db import models
 from django.db.models import (
     Sum,
@@ -8,9 +6,6 @@ from django.db.models import (
     Count,
     Q,
     F,
-    Case,
-    When,
-    Value,
     Max,
     Min,
 )
@@ -69,53 +64,6 @@ class PostQuerySet(models.QuerySet):
         """
 
         return self
-
-    def annotate_hot(self):
-        """
-        nb predictions in last week +
-        net votes in last week * 5 +
-        nb comments in last week * 10 +
-        net boosts in last week * 20 +
-        approved in last week * 50
-        """
-
-        last_week_dt = timezone.now() - timedelta(days=7)
-
-        return self.annotate(
-            # nb predictions in last week
-            hot=SubqueryAggregate(
-                "forecasts",
-                filter=Q(start_time__gte=timezone.now() - timedelta(days=7)),
-                aggregate=Count,
-            )
-            + (
-                # Net votes in last week * 5
-                # Please note: we dind't have this before
-                SubqueryAggregate(
-                    "votes__direction",
-                    filter=Q(created_at__gte=last_week_dt),
-                    aggregate=Sum,
-                )
-                * 5
-            )
-            + (
-                # nb comments in last week * 10
-                SubqueryAggregate(
-                    "comments__id",
-                    filter=Q(created_at__gte=last_week_dt),
-                    aggregate=Count,
-                )
-                * 10
-            )
-            + Case(
-                # approved in last week
-                When(
-                    published_at__gte=last_week_dt,
-                    then=Value(50),
-                ),
-                default=Value(0),
-            )
-        )
 
     def annotate_user_last_forecasts_date(self, author_id: int):
         """
@@ -179,11 +127,8 @@ class PostQuerySet(models.QuerySet):
         )
 
     def annotate_divergence(self, user_id: int):
-        return (
-            self.filter(snapshots__user_id=user_id)
-            .annotate(
-                divergence=F("snapshots__divergence")
-            )
+        return self.filter(snapshots__user_id=user_id).annotate(
+            divergence=F("snapshots__divergence")
         )
 
     #
@@ -460,10 +405,13 @@ class Post(TimeStampedModel):
     users = models.ManyToManyField(User, through="PostUserSnapshot")
 
     # Evaluated Fields
-    movement = models.FloatField(null=True, blank=True)  # Jeffrey's Divergence
+    movement = models.FloatField(
+        null=True, blank=True, db_index=True
+    )  # Jeffrey's Divergence
     # TODO: these two fields might be necessary for display purposes
     # movement_total = models.FloatField(null=True, blank=True)
     # movement_asymmetric = models.FloatField(null=True, blank=True)
+    hotness = models.IntegerField(null=True, blank=True, editable=False, db_index=True)
     forecasts_count = models.PositiveIntegerField(
         default=0, editable=False, db_index=True
     )
@@ -519,7 +467,9 @@ class PostUserSnapshot(models.Model):
     viewed_at = models.DateTimeField(db_index=True, default=timezone.now)
 
     # Evaluated Fields
-    divergence = models.FloatField(null=True, blank=True)  # Jeffrey's Divergence
+    divergence = models.FloatField(
+        null=True, blank=True, db_index=True
+    )  # Jeffrey's Divergence
 
     # TODO: these two fields might be necessary for display purposes
     # divergence_total = models.FloatField(null=True, blank=True)
@@ -552,6 +502,11 @@ class PostUserSnapshot(models.Model):
                 "viewed_at": timezone.now(),
             },
         )
+
+
+class PostActivityBoost(TimeStampedModel):
+    post = models.ForeignKey(Post, models.CASCADE, related_name="activity_boosts")
+    score = models.IntegerField()
 
 
 class Vote(TimeStampedModel):

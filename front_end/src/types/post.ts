@@ -5,6 +5,8 @@ import {
 } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
+import { Tournament } from "./projects";
+
 export type Resolution = "yes" | "no";
 
 export enum PostForecastType {
@@ -86,6 +88,7 @@ export type Post<QT = Question> = {
   projects: {
     category: Category[];
     topic: Topic[];
+    default_project: Tournament;
   };
   title: string;
   url_title: string;

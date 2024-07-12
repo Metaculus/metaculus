@@ -2,7 +2,7 @@ from django.core.management import call_command
 from django.db.models import Q
 
 from posts.models import Post
-from posts.tasks import run_compute_divergence
+from posts.tasks import run_compute_sorting_divergence
 
 
 def post_migrate_calculate_divergence():
@@ -20,7 +20,7 @@ def post_migrate_calculate_divergence():
     posts_total = posts.count()
 
     for idx, post in enumerate(posts.iterator(chunk_size=100)):
-        run_compute_divergence(post.id)
+        run_compute_sorting_divergence(post.id)
 
         if not idx % 250:
             print(f"Processed {idx + 1}/{posts_total} posts")
