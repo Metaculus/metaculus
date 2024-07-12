@@ -24,9 +24,7 @@ const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
     <VictoryChart domain={{ x: [0, 1], y: [0, 1] }}>
       <VictoryScatter
         data={calibrationData.map((d: any, index: number) => {
-          const y =
-            (d.y_real + (index > 0 ? calibrationData[index - 1].y_real : 0)) /
-            2;
+          const y = d.y_real;
           return {
             x: (index + 0.5) / calibrationData.length,
             y0: y - 0.01,
@@ -44,10 +42,7 @@ const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
       <VictoryBar
         barRatio={1.4}
         data={calibrationData.map((d: any, index: number) => {
-          const y =
-            (d.y_perfect +
-              (index > 0 ? calibrationData[index - 1].y_perfect : 0)) /
-            2;
+          const y = d.y_perfect;
           return {
             x: (index + 0.5) / calibrationData.length,
             y0: y - 0.01,
