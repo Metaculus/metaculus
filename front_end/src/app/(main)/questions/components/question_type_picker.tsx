@@ -17,7 +17,7 @@ const QuestionTypePicker: React.FC<QuestionTypePickerProps> = ({
   return (
     <Link href={url} className="no-underline">
       <div className="flex h-full w-full flex-col gap-1 rounded-s border border-blue-400 p-3 hover:bg-blue-300 dark:border-blue-700 hover:dark:bg-blue-700 md:p-4">
-        <div className="text-lg text-blue-800 dark:text-blue-200 md:text-xl">
+        <div className="text-lg font-medium text-blue-700 dark:text-blue-300 md:text-xl">
           {questionType}
         </div>
         <div className="text-sm font-light text-gray-600 dark:text-gray-400 md:text-lg">
