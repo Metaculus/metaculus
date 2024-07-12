@@ -8,11 +8,10 @@ export type CommentsParams = {
 };
 
 export type CreateCommentParams = {
-  author: number;
   parent?: number;
   text: string;
   on_post?: number;
-  included_forecast?: number;
+  included_forecast?: boolean;
   is_private: boolean;
 };
 
@@ -32,7 +31,15 @@ class CommentsApi {
   static async getComments(params?: CommentsParams): Promise<CommentType[]> {
     const queryParams = encodeQueryParams(params ?? {});
     try {
-      return await get<CommentType[]>(`/comments${queryParams}`);
+      const comments = await get<CommentType[]>(`/comments${queryParams}`);
+      return comments.map((comment) => {
+        if (comment.included_forecast) {
+          comment.included_forecast.start_time = new Date(
+            comment.included_forecast.start_time
+          );
+        }
+        return comment;
+      });
     } catch (err) {
       console.error("Error getting comments:", err);
       return [];
