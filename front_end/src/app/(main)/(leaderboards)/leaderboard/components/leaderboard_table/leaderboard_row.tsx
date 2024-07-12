@@ -2,15 +2,16 @@ import classNames from "classnames";
 import Link from "next/link";
 import { FC } from "react";
 
-import MedalIcon from "@/app/(main)/leaderboard/components/medal_icon";
+import { Href } from "@/types/navigation";
+import { CategoryKey, LeaderboardEntry } from "@/types/scoring";
+import { abbreviatedNumber } from "@/utils/number_formatters";
+
+import MedalIcon from "../../../components/medal_icon";
 import {
   LEADERBOARD_CATEGORY_FILTER,
   LEADERBOARD_DURATION_FILTER,
   LEADERBOARD_YEAR_FILTER,
-} from "@/app/(main)/leaderboard/constants/filters";
-import { Href } from "@/types/navigation";
-import { CategoryKey, LeaderboardEntry } from "@/types/scoring";
-import { abbreviatedNumber } from "@/utils/number_formatters";
+} from "../../filters";
 
 type Props = {
   rowEntry: LeaderboardEntry;
@@ -19,7 +20,8 @@ type Props = {
 };
 
 const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
-  const { username, rank, contribution_count, score, medal } = rowEntry;
+  const { username, rank, contribution_count, score, medal, excluded } =
+    rowEntry;
 
   return (
     <tr
@@ -28,6 +30,10 @@ const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
         {
           "bg-blue-300 last-of-type:border-t hover:bg-blue-400 dark:bg-blue-300-dark hover:dark:bg-blue-400-dark":
             isUserRow,
+        },
+        {
+          "bg-purple-200 hover:bg-purple-300 dark:bg-purple-200-dark hover:dark:bg-purple-300-dark":
+            !isUserRow && excluded,
         }
       )}
     >
@@ -95,8 +101,9 @@ export const UserLeaderboardRow: FC<UserLeaderboardRowProps> = ({
   if (!userEntry) return null;
 
   // TODO: implement contributions route
-  // TODO: implement medals route
-  const userHref = `/contributions/?${LEADERBOARD_CATEGORY_FILTER}=${category}&${LEADERBOARD_YEAR_FILTER}=${year}&${LEADERBOARD_DURATION_FILTER}=${duration}`;
+  const userHref = userEntry.medal
+    ? "/medals"
+    : `/contributions/?${LEADERBOARD_CATEGORY_FILTER}=${category}&${LEADERBOARD_YEAR_FILTER}=${year}&${LEADERBOARD_DURATION_FILTER}=${duration}`;
 
   return <LeaderboardRow rowEntry={userEntry} href={userHref} isUserRow />;
 };

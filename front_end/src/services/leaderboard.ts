@@ -1,4 +1,4 @@
-import { LeaderboardDetails } from "@/types/scoring";
+import { LeaderboardDetails, MedalEntry } from "@/types/scoring";
 import { get } from "@/utils/fetch";
 
 class LeaderboardApi {
@@ -43,6 +43,10 @@ class LeaderboardApi {
       console.error("Error getting project leaderboard:", err);
       return null;
     }
+  }
+
+  static async getUserMedals(userId: number) {
+    return await get<MedalEntry[]>(`/medals?userId=${userId}`);
   }
 }
 

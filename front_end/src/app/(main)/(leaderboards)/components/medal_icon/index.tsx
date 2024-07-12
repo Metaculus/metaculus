@@ -1,13 +1,13 @@
 import { FC } from "react";
 
-import { ScoreMedal } from "@/types/scoring";
+import { MedalType } from "@/types/scoring";
 
 import BronzeMedal from "./icons/bronze_medal";
 import GoldMedal from "./icons/gold_medal";
 import SilverMedal from "./icons/silver_medal";
 
 type Props = {
-  type: ScoreMedal;
+  type: MedalType;
   className?: string;
 };
 

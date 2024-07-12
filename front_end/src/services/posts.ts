@@ -106,8 +106,8 @@ class PostsApi {
     return post(`/posts/${postId}/read`, {});
   }
 
-  static async changePostActivityBoost(postId: number, value: number) {
-    return post(`/posts/${postId}/boost`, { value: value });
+  static async changePostActivityBoost(postId: number, score: number) {
+    return post<{ score_total: number }>(`/posts/${postId}/boost`, { score });
   }
 }
 

@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 from django.db.models import (
     Sum,
@@ -45,25 +47,6 @@ class PostQuerySet(models.QuerySet):
             # Group Of Questions
             "group_of_questions__questions",
         )
-
-    def annotate_weekly_movement(self):
-        """
-        TODO: should be implemented in the future
-
-        weekly_forecast = SubqueryAggregate(
-            "forecasts",
-            filter=Q(start_time__gte=timezone.now() - timedelta(days=7)),
-            aggregate=Count,
-        )
-        return self.annotate(
-            weekly_movement=Case(
-                When(forecasts_count=0, then=Value(0)),
-                default=(weekly_forecast * weekly_forecast / F("forecasts_count")),
-            )
-        )
-        """
-
-        return self
 
     def annotate_user_last_forecasts_date(self, author_id: int):
         """
@@ -505,8 +488,18 @@ class PostUserSnapshot(models.Model):
 
 
 class PostActivityBoost(TimeStampedModel):
+    user = models.ForeignKey(User, models.CASCADE)
     post = models.ForeignKey(Post, models.CASCADE, related_name="activity_boosts")
     score = models.IntegerField()
+
+    @classmethod
+    def get_post_score(cls, post_id: int):
+        return (
+            cls.objects.filter(
+                post_id=post_id, created_at__gte=timezone.now() - timedelta(days=7)
+            ).aggregate(total_score=Sum("score"))["total_score"]
+            or 0
+        )
 
 
 class Vote(TimeStampedModel):
