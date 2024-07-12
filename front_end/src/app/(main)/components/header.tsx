@@ -110,10 +110,10 @@ const Header: FC = () => {
             {" "}
             <NavLink
               href={`/questions/create/`}
-              className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
+              className="mr-2 flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
               activeClassName="bg-blue-300-dark"
             >
-              + {t("Write")}
+              + {t("Create")}
             </NavLink>
           </li>
           <li className="z-10 flex h-full items-center justify-center">

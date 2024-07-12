@@ -18,6 +18,7 @@ import {
 } from "@/types/post";
 import { QuestionType } from "@/types/question";
 
+import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import { createQuestionPost, getPost, updatePost } from "../actions";
 
@@ -102,10 +103,28 @@ const ConditionalForm: React.FC<{
     }
   };
 
+  const inputContainerStyles = "flex flex-col gap-1.5";
+  const baseInputStyles =
+    "px-3 py-2 text-base border border-gray-500 rounded dark:bg-blue-950";
+  const baseTextareaStyles = "border border-gray-500 rounded dark:bg-blue-950";
+  const inputLabelStyles = "text-sm font-bold text-gray-600 dark:text-gray-400";
+  const inputDescriptionStyles = "text-xs text-gray-700 dark:text-gray-300";
+
   return (
-    <div className="flex flex-row justify-center">
+    <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
+      <BacktoCreate
+        backText="Create"
+        backHref="/questions/create"
+        currentPage="Conditional Pair"
+      />
+      <p className="mt-0 text-sm text-gray-600 dark:text-gray-300 md:mt-1 md:text-base">
+        A Conditional Pair is a special type of Question Group that elicits
+        conditional probabilities. Each Conditional Pair sits between a Parent
+        Question and a Child Question. Both Parent and Child must be existing
+        Metaculus Binary Questions.
+      </p>
       <form
-        className="text-light-100 text-m mb-8 mt-8 flex w-[540px] flex-col space-y-4 rounded-s border border-blue-800 bg-blue-900 p-8"
+        className="mt-4 flex flex w-[540px] w-full flex-col space-y-4 rounded"
         onSubmit={async (e) => {
           if (control.getValues("default_project_id") === "") {
             control.setValue("default_project_id", null);
@@ -128,25 +147,26 @@ const ConditionalForm: React.FC<{
             </a>
           </div>
         )}
-        <span>Project</span>
-        <Input
-          type="number"
-          {...control.register("default_project_id")}
-          errors={control.formState.errors.default_project_id}
-          defaultValue={
-            control.getValues("default_project_id")
-              ? control.getValues("default_project_id")
-              : tournament_id
-          }
-          readOnly={isLive}
-        />
-        <div>
-          <span className="">
+        <div className={inputContainerStyles}>
+          <span className={inputLabelStyles}>Project ID</span>
+          <Input
+            type="number"
+            {...control.register("default_project_id")}
+            errors={control.formState.errors.default_project_id}
+            className={baseInputStyles}
+            defaultValue={
+              control.getValues("default_project_id")
+                ? control.getValues("default_project_id")
+                : tournament_id
+            }
+            readOnly={isLive}
+          />
+          <span className="text-xs">
             Initial project:
             <span className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1">
               <Link
                 href={`/tournament/${control.getValues("default_project_id")}`}
-                className="no-underline"
+                className="text-white no-underline"
               >
                 {control.getValues("default_project_id")
                   ? control.getValues("default_project_id")
@@ -155,162 +175,93 @@ const ConditionalForm: React.FC<{
             </span>
           </span>
         </div>
-        <span>Title</span>
-        <Input
-          {...control.register("title")}
-          errors={control.formState.errors.title}
-          defaultValue={post ? post.title : ""}
-        />
-        <span>Condition ID</span>
-        <Input
-          readOnly={isLive}
-          defaultValue={condition?.id}
-          type="number"
-          {...control.register("condition_id", {
-            setValueAs: (value: string) => {
-              if (!value) {
-                return undefined;
-              }
-              const valueAsNr = Number(value);
-              getPost(valueAsNr).then((res) => {
-                if (
-                  res &&
-                  res?.projects.default_project.default_permission &&
-                  res?.projects.default_project.id !=
-                    control.getValues("default_project_id")
-                ) {
-                  console.log(res);
-                  control.setError("condition_id", {
-                    message:
-                      "Only questions from the same private project can be in a conditional that's part of a private project",
-                  });
-                  setCondition(null);
-                  return;
-                }
-                if (res && res.question) {
-                  if (res.question.type !== QuestionType.Binary) {
-                    control.setError("condition_id", {
-                      message:
-                        "The condition must be a binary (Yes/No) question.",
-                    });
-                    setCondition(null);
-                  } else {
-                    if (
-                      (res.question.actual_close_time === undefined ||
-                        new Date(res.question.actual_close_time) >
-                          new Date()) &&
-                      (res.question.forecast_scoring_ends === undefined ||
-                        new Date(res.question.forecast_scoring_ends) >
-                          new Date())
-                    ) {
-                      control.setError("condition_id", {
-                        message: "",
-                      });
-                      setCondition(res);
-                    } else {
-                      control.setError("condition_id", {
-                        message: "This queston has already been closed.",
-                      });
-                      setCondition(null);
-                    }
-                  }
-                } else {
-                  setCondition(null);
-                  control.setError("condition_id", {
-                    message: "This is no a question.",
-                  });
-                }
-              });
-              return valueAsNr;
-            },
-          })}
-          errors={control.formState.errors.condition_id}
-        />
-        {condition?.question ? (
-          <QuestionChartTile
-            question={condition?.question}
-            authorUsername={condition.author_username}
-            curationStatus={condition.curation_status}
+        <div className={inputContainerStyles}>
+          <span className={inputLabelStyles}>Long Title</span>
+          <Input
+            {...control.register("title")}
+            errors={control.formState.errors.title}
+            className={baseInputStyles}
+            defaultValue={post ? post.title : ""}
           />
-        ) : (
-          <span className="text-l w-full text-center">
-            Please enter the id of a question post
-          </span>
-        )}
-
-        <span>Condition Child ID</span>
-        <Input
-          readOnly={isLive}
-          defaultValue={conditionChild?.id}
-          type="number"
-          {...control.register("condition_child_id", {
-            setValueAs: (value: string) => {
-              if (!value) {
-                return undefined;
-              }
-              const valueAsNr = Number(value);
-              getPost(valueAsNr).then((res) => {
-                console.log("value", res?.projects.default_project);
-                if (
-                  res &&
-                  res?.projects.default_project.default_permission &&
-                  res?.projects.default_project.id !=
-                    control.getValues("default_project_id")
-                ) {
-                  control.setError("condition_child_id", {
-                    message:
-                      "Only questions from the same private project can be in a conditional that's part of a private project",
-                  });
-                  setConditionChild(null);
-                  return;
-                }
-                if (res && res.question) {
-                  if (
-                    (res.question.actual_close_time === undefined ||
-                      new Date(res.question.actual_close_time) > new Date()) &&
-                    (res.question.forecast_scoring_ends === undefined ||
-                      new Date(res.question.forecast_scoring_ends) > new Date())
-                  ) {
-                    setConditionChild(res);
-                    control.setError("condition_child_id", {
-                      message: "",
-                    });
+        </div>
+        <div className={inputContainerStyles}>
+          <span className={inputLabelStyles}>Condition ID</span>
+          <Input
+            readOnly={isLive}
+            defaultValue={condition?.id}
+            className={baseInputStyles}
+            type="number"
+            {...control.register("condition_id", {
+              setValueAs: (value: string) => {
+                const valueAsNr = Number(value);
+                getPost(valueAsNr).then((res) => {
+                  if (res && res.question?.type === QuestionType.Binary) {
+                    setCondition(res);
                   } else {
-                    control.setError("condition_child_id", {
-                      message: "This queston has already been closed.",
-                    });
+                    setCondition(null);
+                  }
+                });
+                return valueAsNr;
+              },
+            })}
+            errors={control.formState.errors.condition_id}
+          />
+          {condition?.question ? (
+            <QuestionChartTile
+              question={condition?.question}
+              authorUsername={condition.author_username}
+              curationStatus={condition.curation_status}
+            />
+          ) : (
+            <span className={inputDescriptionStyles}>
+              Please enter the id of a binary question.
+            </span>
+          )}
+        </div>
+        <div className={inputContainerStyles}>
+          <span className={inputLabelStyles}>Condition Child ID</span>
+          <Input
+            readOnly={isLive}
+            defaultValue={conditionChild?.id}
+            className={baseInputStyles}
+            type="number"
+            {...control.register("condition_child_id", {
+              setValueAs: (value: string) => {
+                const valueAsNr = Number(value);
+                getPost(valueAsNr).then((res) => {
+                  if (res && res.question) {
+                    setConditionChild(res);
+                  } else {
                     setConditionChild(null);
                   }
-                } else {
-                  setConditionChild(null);
-                  control.setError("condition_child_id", {
-                    message: "This is no a question.",
-                  });
-                }
-              });
-              return valueAsNr;
-            },
-          })}
-          errors={control.formState.errors.condition_child_id}
-        />
-        {conditionChild?.question ? (
-          <QuestionChartTile
-            question={conditionChild?.question}
-            authorUsername={conditionChild.author_username}
-            curationStatus={conditionChild.curation_status}
+                });
+                return valueAsNr;
+              },
+            })}
+            errors={control.formState.errors.condition_child_id}
           />
-        ) : (
-          <span className="text-l w-full text-center">
-            Please enter the id of a question post
-          </span>
-        )}
-        <CategoryPicker
-          allCategories={allCategories}
-          categories={categoriesList}
-          onChange={(categories) => {
-            setCategoriesList(categories);
-          }}
-        ></CategoryPicker>
+          {conditionChild?.question ? (
+            <QuestionChartTile
+              question={conditionChild?.question}
+              authorUsername={conditionChild.author_username}
+              curationStatus={conditionChild.curation_status}
+            />
+          ) : (
+            <span className={inputDescriptionStyles}>
+              Please enter the id of a question.
+            </span>
+          )}
+        </div>
+        <div className={inputContainerStyles}>
+          <span className={inputLabelStyles}>Categories</span>
+          <CategoryPicker
+            allCategories={allCategories}
+            categories={categoriesList}
+            onChange={(categories) => {
+              setCategoriesList(categories);
+            }}
+          ></CategoryPicker>
+        </div>
         <Button type="submit">
           {mode === "edit" ? "Edit Question" : "Create Question"}
         </Button>
