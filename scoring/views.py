@@ -57,7 +57,7 @@ def global_leaderboard(
     leader_entries = [
         e
         for e in entries
-        if e.rank <= len(entries) * 0.05
+        if e.rank and e.rank <= len(entries) * 0.05
         if (not e.excluded or user.is_staff)
     ]
     leaderboard_data["entries"] = LeaderboardEntrySerializer(
