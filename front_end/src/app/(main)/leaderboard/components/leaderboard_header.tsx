@@ -77,7 +77,9 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
           duration &&
           ["all", "peer", "baseline"].includes(category) && (
             <div className="flex flex-row items-center justify-center gap-2.5">
-              <span className="text-base font-medium">Duration:</span>
+              <span className="text-base font-medium">
+                {t("scoringDurationLabel")}
+              </span>
               <ButtonGroup
                 buttons={durations}
                 value={duration}
@@ -88,7 +90,9 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
           )}
         {periods && year && (
           <div className="flex flex-row items-center justify-center gap-2.5">
-            <span className="text-base font-medium">Time Period:</span>
+            <span className="text-base font-medium">
+              {t("scoringTimePeriodLabel")}
+            </span>
             <ButtonGroup
               buttons={periods}
               value={year}
@@ -105,7 +109,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
           ["all", "peer", "baseline"].includes(category) && (
             <div className="flex items-center gap-2.5">
               <span className="text-metac-blue-800 dark:text-metac-blue-800-dark text-base font-medium">
-                Duration:
+                {t("scoringDurationLabel")}
               </span>
               <Listbox
                 value={duration}
@@ -119,7 +123,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
         {periods && year && (
           <div className="flex items-center gap-2.5">
             <span className="text-metac-blue-800 dark:text-metac-blue-800-dark text-base font-medium">
-              Time Period:
+              {t("scoringTimePeriodLabel")}
             </span>
             <Listbox
               value={year}

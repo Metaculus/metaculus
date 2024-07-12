@@ -544,5 +544,7 @@
   "baselineAccuracyShort": "Baseline",
   "peerAccuracyShort": "Peer",
   "Comments": "Comments",
-  "questionWritingShort": "Q.Writing"
+  "questionWritingShort": "Q.Writing",
+  "scoringDurationLabel": "Duration:",
+  "scoringTimePeriodLabel": "Time Period:"
 }
