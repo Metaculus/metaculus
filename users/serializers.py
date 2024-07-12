@@ -90,7 +90,8 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("bio",
+        fields = (
+            "bio",
             "website",
             "formerly_known_as",
             "is_bot",
@@ -105,7 +106,8 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
             "hypermind",
             "occupation",
             "location",
-            "profile_picture")
+            "profile_picture",
+        )
 
 
 def validate_username(value: str):

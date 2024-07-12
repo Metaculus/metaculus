@@ -405,7 +405,9 @@ class Post(TimeStampedModel):
     users = models.ManyToManyField(User, through="PostUserSnapshot")
 
     # Evaluated Fields
-    movement = models.FloatField(null=True, blank=True, db_index=True)  # Jeffrey's Divergence
+    movement = models.FloatField(
+        null=True, blank=True, db_index=True
+    )  # Jeffrey's Divergence
     # TODO: these two fields might be necessary for display purposes
     # movement_total = models.FloatField(null=True, blank=True)
     # movement_asymmetric = models.FloatField(null=True, blank=True)
@@ -465,7 +467,9 @@ class PostUserSnapshot(models.Model):
     viewed_at = models.DateTimeField(db_index=True, default=timezone.now)
 
     # Evaluated Fields
-    divergence = models.FloatField(null=True, blank=True, db_index=True)  # Jeffrey's Divergence
+    divergence = models.FloatField(
+        null=True, blank=True, db_index=True
+    )  # Jeffrey's Divergence
 
     # TODO: these two fields might be necessary for display purposes
     # divergence_total = models.FloatField(null=True, blank=True)
