@@ -36,7 +36,13 @@ const InReviewFeed: FC = () => {
     [t]
   );
 
-  return <PostsFilters filters={filters} mainSortOptions={mainSortOptions} />;
+  return (
+    <PostsFilters
+      filters={filters}
+      mainSortOptions={mainSortOptions}
+      defaultOrder={QuestionOrder.HotDesc}
+    />
+  );
 };
 
 export default InReviewFeed;

@@ -94,7 +94,7 @@ const MyQuestionsAndPostsFilters: FC = () => {
       filters={filters}
       mainSortOptions={mainSortOptions}
       sortOptions={sortOptions}
-      defaultOrder={QuestionOrder.ActivityDesc}
+      defaultOrder={QuestionOrder.HotDesc}
     />
   );
 };
