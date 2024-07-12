@@ -44,7 +44,7 @@ const MobileMenu: FC = () => {
             {t("Track Record")}
           </MenuLink>
           <MenuLink href={`/project/journal/`}>{t("The Journal")}</MenuLink>
-          <MenuLink href={`/questions/create/`}>+ {t("Write")}</MenuLink>
+          <MenuLink href={`/questions/create/`}>+ {t("Create")}</MenuLink>
           <SectionTitle>{t("Account")}</SectionTitle>
           {user ? (
             <>
