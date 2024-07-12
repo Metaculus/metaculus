@@ -10,7 +10,12 @@ import * as z from "zod";
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
-import { Category, PostStatus, PostWithForecasts } from "@/types/post";
+import {
+  Category,
+  PostStatus,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
 import { QuestionType } from "@/types/question";
 
 import BacktoCreate from "./back_to_create";

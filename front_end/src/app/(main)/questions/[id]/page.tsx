@@ -94,13 +94,7 @@ export default async function IndividualQuestion({
           </span>
           {allowModifications && <Modbox post={postData} />}
           <div className="ml-auto flex h-9 flex-row text-gray-700 dark:text-gray-700-dark lg:hidden">
-            <Button
-              variant="secondary"
-              className="!rounded border-0"
-              presentationType="icon"
-            >
-              <FontAwesomeIcon icon={faShareNodes}></FontAwesomeIcon>
-            </Button>
+            <ShareQuestionMenu questionTitle={getQuestionTitle(postData)} />
             <Button
               variant="secondary"
               className="!rounded border-0"

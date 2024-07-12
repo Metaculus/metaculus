@@ -1,3 +1,4 @@
+import { parseISO } from "date-fns";
 import { FC } from "react";
 import { boolean } from "zod";
 
@@ -29,7 +30,11 @@ const QuestionForecastMaker: FC<Props> = ({
           question={question}
           permission={permission}
           prevForecast={question.forecasts.my_forecasts?.slider_values}
-          canPredict={canPredict}
+          canPredict={
+            canPredict &&
+            question.open_time !== undefined &&
+            parseISO(question.open_time) < new Date()
+          }
           canResolve={canResolve}
         />
       );
@@ -39,7 +44,11 @@ const QuestionForecastMaker: FC<Props> = ({
           question={question}
           permission={permission}
           prevForecast={question.forecasts.my_forecasts?.slider_values}
-          canPredict={canPredict}
+          canPredict={
+            canPredict &&
+            question.open_time !== undefined &&
+            parseISO(question.open_time) < new Date()
+          }
           canResolve={canResolve}
         />
       );
@@ -49,7 +58,11 @@ const QuestionForecastMaker: FC<Props> = ({
           question={question}
           permission={permission}
           prevForecast={question.forecasts.my_forecasts?.slider_values}
-          canPredict={canPredict}
+          canPredict={
+            canPredict &&
+            question.open_time !== undefined &&
+            parseISO(question.open_time) < new Date()
+          }
           canResolve={canResolve}
         />
       );

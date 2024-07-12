@@ -58,9 +58,27 @@ def build_question_forecasts(question: Question, empty: bool = False) -> dict:
             forecasts_data["nr_forecasters"].append(
                 list(cp_dict.values())[0].nr_forecasters
             )
+        forecasts_data["latest_cdf"] = None
+        forecasts_data["latest_pmf"] = (
+            None
+            if len(forecasts_data[option]) == 0
+            else [
+                forecasts_data[option][-1]["value_mean"] / 100
+                for option in question.options
+            ]
+        )
     else:
         if question.type == "binary":
             cps = compute_binary_plotable_cp(question, 100)
+            forecasts_data["latest_cdf"] = None
+            forecasts_data["latest_pmf"] = (
+                None
+                if len(cps) == 0
+                else [
+                    1 - cps[-1].middle / 100,
+                    cps[-1].middle / 100,
+                ]
+            )
         elif question.type in ["numeric", "date"]:
             cps, cdf = compute_continuous_plotable_cp(question, 100)
             forecasts_data["latest_cdf"] = cdf
@@ -123,8 +141,10 @@ def create_question(*, title: str = None, **kwargs) -> Question:
     return obj
 
 
-def create_group_of_questions(*, questions: list[dict]) -> GroupOfQuestions:
-    obj = GroupOfQuestions()
+def create_group_of_questions(
+    *, title: str = None, questions: list[dict], **kwargs
+) -> GroupOfQuestions:
+    obj = GroupOfQuestions(**kwargs)
 
     obj.full_clean()
     obj.save()
@@ -204,26 +224,48 @@ def resolve_question(question: Question, resolution, actual_resolve_time: dateti
     ]:
         if conditional.condition.resolution and conditional.condition_child.resolution:
             if conditional.condition.resolution == "yes":
-                resolve_question(conditional.question_no, ResolutionType.ANNULLED)
                 resolve_question(
-                    conditional.question_yes, conditional.condition_child.resolution
+                    conditional.question_no,
+                    ResolutionType.ANNULLED,
+                    actual_resolve_time,
+                )
+                resolve_question(
+                    conditional.question_yes,
+                    conditional.condition_child.resolution,
+                    actual_resolve_time,
                 )
             elif conditional.condition.resolution == "no":
                 resolve_question(
-                    conditional.question_no, conditional.condition_child.resolution
+                    conditional.question_no,
+                    conditional.condition_child.resolution,
+                    actual_resolve_time,
                 )
-                resolve_question(conditional.question_yes, ResolutionType.ANNULLED)
-            elif conditional.condition.resolution == ResolutionType.ANNULLED:
-                resolve_question(conditional.question_no, ResolutionType.ANNULLED)
                 resolve_question(
-                    conditional.question_yes.resolution, ResolutionType.ANNULLED
+                    conditional.question_yes,
+                    ResolutionType.ANNULLED,
+                    actual_resolve_time,
+                )
+            elif conditional.condition.resolution == ResolutionType.ANNULLED:
+                resolve_question(
+                    conditional.question_no,
+                    ResolutionType.ANNULLED,
+                    actual_resolve_time,
+                )
+                resolve_question(
+                    conditional.question_yes.resolution,
+                    ResolutionType.ANNULLED,
+                    actual_resolve_time,
                 )
             elif conditional.condition.resolution == ResolutionType.AMBIGUOUS:
                 resolve_question(
-                    conditional.question_no.resolution, ResolutionType.AMBIGUOUS
+                    conditional.question_no.resolution,
+                    ResolutionType.AMBIGUOUS,
+                    actual_resolve_time,
                 )
                 resolve_question(
-                    conditional.question_yes.resolution, ResolutionType.AMBIGUOUS
+                    conditional.question_yes.resolution,
+                    ResolutionType.AMBIGUOUS,
+                    actual_resolve_time,
                 )
             else:
                 raise ValueError(
@@ -276,8 +318,8 @@ def create_forecast(
     post.update_forecasts_count()
 
     # Run async tasks
-    from posts.tasks import run_compute_divergence
+    from posts.tasks import run_compute_sorting_divergence
 
-    run_compute_divergence.send(post.id)
+    run_compute_sorting_divergence.send(post.id)
 
     return forecast

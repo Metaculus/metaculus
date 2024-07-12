@@ -1,7 +1,9 @@
 from rest_framework import serializers
+from django.db.models.query import QuerySet
 
 from comments.models import Comment
 from posts.models import Post
+from users.models import User
 from users.serializers import UserCommentSerializer
 
 
@@ -43,3 +45,35 @@ class CommentWriteSerializer(serializers.ModelSerializer):
             return value
 
         return Comment.objects.get(pk=value)
+
+
+def serialize_comment(
+    comment: Comment,
+    current_user: User | None = None,
+) -> dict:
+    serialized_data = CommentSerializer(comment).data
+
+    # Permissions
+    # serialized_data["user_permission"] = post.user_permission
+
+    # Annotate user's vote
+    serialized_data["vote_score"] = comment.vote_score
+    serialized_data["user_vote"] = comment.user_vote
+
+    return serialized_data
+
+
+def serialize_comment_many(
+    comments: QuerySet[Comment] | list[Comment],
+    current_user: User | None = None,
+) -> list[dict]:
+    qs = Comment.objects.filter(pk__in=[c.pk for c in comments])
+
+    qs = qs.annotate_vote_score()
+
+    if current_user and not current_user.is_anonymous:
+        qs = qs.annotate_user_vote(current_user)
+
+    return [
+        serialize_comment(comment, current_user=current_user) for comment in qs.all()
+    ]

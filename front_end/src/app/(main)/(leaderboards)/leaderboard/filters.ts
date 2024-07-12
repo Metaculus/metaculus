@@ -1,3 +1,5 @@
+import { CategoryKey } from "@/types/scoring";
+
 export const LEADERBOARD_CATEGORIES = [
   "baseline",
   "peer",
@@ -6,7 +8,6 @@ export const LEADERBOARD_CATEGORIES = [
   "tournament",
   "all",
 ] as const;
-export type CategoryKey = (typeof LEADERBOARD_CATEGORIES)[number];
 export const DEFAULT_LEADERBOARD_CATEGORY: CategoryKey = "all";
 
 const LEADERBOARD_YEARS = [
