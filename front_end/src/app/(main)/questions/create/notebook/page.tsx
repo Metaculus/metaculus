@@ -13,6 +13,7 @@ import { createQuestionPost } from "../../actions";
 import { useTranslations } from "next-intl";
 import ProjectsApi from "@/services/projects";
 import { useRouter } from "next/navigation";
+import BacktoCreate from "../../components/back_to_create";
 
 const NotebookCreator: React.FC = ({}) => {
   const [markdown, setMarkdown] = useState("");
@@ -23,23 +24,28 @@ const NotebookCreator: React.FC = ({}) => {
   const router = useRouter();
 
   return (
-    <div className="h-50vh mx-auto mb-8 mt-4 max-w-3xl overflow-auto rounded-lg bg-gray-0 p-6 dark:bg-gray-100-dark">
+    <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center gap-4 self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
+      <BacktoCreate
+        backText="Create"
+        backHref="/questions/create"
+        currentPage="Notebook"
+      />
       <input
-        className="mb-4 p-1 pl-2 text-xl"
+        className="rounded border border-gray-500 px-3 py-2 text-xl dark:bg-blue-950"
         type="text"
         placeholder={t("Title")}
         onChange={(e) => setTitle(e.target.value)}
       ></input>
-      <div className="pl-2">
+      <div className="rounded border border-gray-300 dark:border-gray-600/60">
         <MarkdownEditor
           markdown={markdown}
           onChange={setMarkdown}
           mode="write"
         />
       </div>
-      <div className="pl-2">
+      <div>
         <Button
-          className="text-xl"
+          size="lg"
           onClick={async () => {
             const resp = await createQuestionPost({
               title: title,
