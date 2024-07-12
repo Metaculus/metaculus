@@ -50,7 +50,7 @@ def global_leaderboard(
 
     # serialize
     leaderboard_data = LeaderboardSerializer(leaderboard).data
-    entries = list(leaderboard.entries.all())
+    entries = list(leaderboard.entries.order_by("rank"))
     if len(entries) == 0:
         entries = update_project_leaderboard(leaderboard.project, leaderboard)
     user = request.user
@@ -107,7 +107,7 @@ def project_leaderboard(
 
     # serialize
     leaderboard_data = LeaderboardSerializer(leaderboard).data
-    entries = list(leaderboard.entries.all())
+    entries = list(leaderboard.entries.order_by("rank"))
     if len(entries) == 0:
         entries = update_project_leaderboard(project, leaderboard)
     user = request.user
@@ -177,7 +177,7 @@ def medal_contributions(
         return Response(status=status.HTTP_404_NOT_FOUND)
     leaderboard = leaderboard.first()
 
-    contributions = get_contributions(user)
+    contributions = get_contributions(user, leaderboard)
 
     return_data = {
         "contributions": ContributionSerializer(contributions, many=True).data,
