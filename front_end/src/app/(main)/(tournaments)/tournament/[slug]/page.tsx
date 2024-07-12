@@ -6,7 +6,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { FC, Suspense } from "react";
 import invariant from "ts-invariant";
 
-import AwaitedProjectLeaderboard from "@/app/(main)/leaderboard/components/projectLeaderboard";
+import AwaitedProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/projectLeaderboard";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import HtmlContent from "@/components/html_content";
 import AwaitedPostsFeed from "@/components/posts_feed";
