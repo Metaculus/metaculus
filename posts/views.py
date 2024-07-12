@@ -29,8 +29,9 @@ from questions.models import Question
 from questions.serializers import (
     GroupOfQuestionsSerializer,
     QuestionSerializer,
+    QuestionWriteSerializer,
 )
-from questions.services import clone_question
+from questions.services import clone_question, create_question
 from utils.files import UserUploadedImage, generate_filename
 
 
@@ -76,6 +77,7 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
+    print(request.data["group_of_questions"]["questions"])
     serializer = PostWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
@@ -140,15 +142,33 @@ def post_update_api_view(request, pk):
         post.conditional.save()
     if group_of_questions_data:
         sub_questions = group_of_questions_data.get("questions", None)
+        delete = group_of_questions_data.get("delete", None)
+        if delete:
+            for question_id in delete:
+                question = Question.objects.get(
+                    pk=question_id, group_id=post.group_of_questions.id
+                )
+                question.delete()
         if sub_questions:
             for sub_question_data in sub_questions:
-                sub_ser = QuestionSerializer(
-                    Question.objects.get(id=sub_question_data["id"]),
-                    data=sub_question_data,
-                    partial=True,
-                )
-                sub_ser.is_valid(raise_exception=True)
-                sub_ser.save()
+                if sub_question_data.get("id", None):
+                    sub_question = Question.objects.get(
+                        pk=sub_question_data["id"], group_id=post.group_of_questions.id
+                    )
+                    sub_ser = QuestionSerializer(
+                        sub_question,
+                        data=sub_question_data,
+                        partial=True,
+                    )
+                    sub_ser.is_valid(raise_exception=True)
+                    sub_ser.save()
+                else:
+                    sub_ser = QuestionWriteSerializer(
+                        data=sub_question_data,
+                        partial=True,
+                    )
+                    sub_ser.is_valid(raise_exception=True)
+                    create_question(group_id=post.group_of_questions.id, **sub_ser.data)
 
         ser = GroupOfQuestionsSerializer(
             post.group_of_questions, data=group_of_questions_data, partial=True

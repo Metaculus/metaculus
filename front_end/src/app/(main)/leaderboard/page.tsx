@@ -1,20 +1,21 @@
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import { Suspense } from "react";
+import { Fragment, Suspense } from "react";
 
-import AwaitedGlobalLeaderboard from "@/app/(main)/leaderboard/components/global_leaderboard";
+import GlobalLeaderboard from "@/app/(main)/leaderboard/components/global_leaderboard";
+import LeaderboardCategoriesTabBar from "@/app/(main)/leaderboard/components/mobile_global_leaderboard";
+import { LeaderboardMobileTabBarProvider } from "@/app/(main)/leaderboard/mobile_tab_bar_context";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { SearchParams } from "@/types/navigation";
+import { CategoryKey, LeaderboardFilters } from "@/types/scoring";
 
 import LeaderboardHeader from "./components/leaderboard_header";
-import { CategoryKey } from "./constants/filters";
 import {
   extractLeaderboardFiltersFromParams,
   getLeaderboardTimeInterval,
-  LeaderboardFilters,
   mapCategoryKeyToLeaderboardType,
 } from "./helpers/filter";
 
-//  @TODO: How to not hardcode the ids here -- or maybe we just should (?)
 export default function GlobalLeaderboards({
   searchParams,
 }: {
@@ -27,9 +28,11 @@ export default function GlobalLeaderboards({
   const categoryKeys = getPageCategoryKeys(filters);
   const timeInterval = getLeaderboardTimeInterval(year, duration);
 
+  // single category view
   if (categoryKeys.length === 1) {
+    const categoryKey = categoryKeys[0];
     const leaderboardType = mapCategoryKeyToLeaderboardType(
-      categoryKeys[0],
+      categoryKey,
       timeInterval.startTime,
       timeInterval.endTime
     );
@@ -40,56 +43,79 @@ export default function GlobalLeaderboards({
         <LeaderboardHeader filters={filters} />
 
         <Suspense
-          key={JSON.stringify(searchParams)}
-          fallback={<div>loading...</div>}
+          key={JSON.stringify(filters)}
+          fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}
         >
-          <AwaitedGlobalLeaderboard
+          <GlobalLeaderboard
             leaderboardType={leaderboardType}
             startTime={timeInterval.startTime}
             endTime={timeInterval.endTime}
+            duration={duration}
+            year={year}
+            category={categoryKey}
           />
         </Suspense>
       </main>
     );
   }
 
+  // "all" category view
   return (
-    <main className="m-auto mb-12 flex w-full max-w-[81.5rem] flex-col items-center gap-3 p-3 sm:mb-24">
-      <LeaderboardHeader filters={filters} />
+    <LeaderboardMobileTabBarProvider>
+      <main className="m-auto mb-12 flex w-full max-w-[81.5rem] flex-col items-center gap-3 p-3 sm:mb-24">
+        <LeaderboardHeader filters={filters} />
 
-      <section
-        className={classNames(
-          "gap-3 self-stretch overflow-hidden max-sm:hidden",
-          duration === "1"
-            ? "grid-cols-[repeat(auto-fill,minmax(280px,1fr))] sm:grid"
-            : "sm:flex"
-        )}
-      >
-        {categoryKeys.map((categoryKey) => {
-          const leaderboardType = mapCategoryKeyToLeaderboardType(
-            categoryKey,
-            timeInterval.startTime,
-            timeInterval.endTime
-          );
-          if (!leaderboardType) return null;
+        <section
+          className={classNames(
+            "flex flex-col gap-3 self-stretch overflow-hidden sm:flex-row",
+            duration === "1"
+              ? "grid-cols-[repeat(auto-fill,minmax(280px,1fr))] sm:grid"
+              : "sm:flex"
+          )}
+        >
+          <div className="sm:hidden">
+            <LeaderboardCategoriesTabBar
+              categoryKeys={categoryKeys}
+              startTime={timeInterval.startTime}
+              endTime={timeInterval.endTime}
+              duration={duration}
+              year={year}
+              searchParams={searchParams}
+            />
+          </div>
 
-          return (
-            <div key={categoryKey}>
-              <Suspense
-                key={JSON.stringify(searchParams)}
-                fallback={<div>loading...</div>}
-              >
-                <AwaitedGlobalLeaderboard
-                  leaderboardType={leaderboardType}
-                  startTime={timeInterval.startTime}
-                  endTime={timeInterval.endTime}
-                />
-              </Suspense>
-            </div>
-          );
-        })}
-      </section>
-    </main>
+          {categoryKeys.map((categoryKey) => {
+            const leaderboardType = mapCategoryKeyToLeaderboardType(
+              categoryKey,
+              timeInterval.startTime,
+              timeInterval.endTime
+            );
+            if (!leaderboardType) return null;
+
+            return (
+              <Fragment key={categoryKey}>
+                <Suspense
+                  key={JSON.stringify(searchParams)}
+                  fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}
+                >
+                  <GlobalLeaderboard
+                    leaderboardType={leaderboardType}
+                    startTime={timeInterval.startTime}
+                    endTime={timeInterval.endTime}
+                    duration={duration}
+                    year={year}
+                    category={categoryKey}
+                    cardSized
+                  />
+                </Suspense>
+              </Fragment>
+            );
+          })}
+        </section>
+
+        <section className="flex w-full flex-col gap-3 sm:hidden"></section>
+      </main>
+    </LeaderboardMobileTabBarProvider>
   );
 }
 

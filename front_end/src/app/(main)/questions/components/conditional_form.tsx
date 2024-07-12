@@ -10,7 +10,12 @@ import * as z from "zod";
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
-import { Category, PostStatus, PostWithForecasts } from "@/types/post";
+import {
+  Category,
+  PostStatus,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
 import { QuestionType } from "@/types/question";
 
 import CategoryPicker from "./category_picker";
@@ -163,12 +168,57 @@ const ConditionalForm: React.FC<{
           type="number"
           {...control.register("condition_id", {
             setValueAs: (value: string) => {
+              if (!value) {
+                return undefined;
+              }
               const valueAsNr = Number(value);
               getPost(valueAsNr).then((res) => {
-                if (res && res.question?.type === QuestionType.Binary) {
-                  setCondition(res);
+                if (
+                  res &&
+                  res?.projects.default_project.default_permission &&
+                  res?.projects.default_project.id !=
+                    control.getValues("default_project_id")
+                ) {
+                  console.log(res);
+                  control.setError("condition_id", {
+                    message:
+                      "Only questions from the same private project can be in a conditional that's part of a private project",
+                  });
+                  setCondition(null);
+                  return;
+                }
+                if (res && res.question) {
+                  if (res.question.type !== QuestionType.Binary) {
+                    control.setError("condition_id", {
+                      message:
+                        "The condition must be a binary (Yes/No) question.",
+                    });
+                    setCondition(null);
+                  } else {
+                    if (
+                      (res.question.actual_close_time === undefined ||
+                        new Date(res.question.actual_close_time) >
+                          new Date()) &&
+                      (res.question.forecast_scoring_ends === undefined ||
+                        new Date(res.question.forecast_scoring_ends) >
+                          new Date())
+                    ) {
+                      control.setError("condition_id", {
+                        message: "",
+                      });
+                      setCondition(res);
+                    } else {
+                      control.setError("condition_id", {
+                        message: "This queston has already been closed.",
+                      });
+                      setCondition(null);
+                    }
+                  }
                 } else {
                   setCondition(null);
+                  control.setError("condition_id", {
+                    message: "This is no a question.",
+                  });
                 }
               });
               return valueAsNr;
@@ -183,8 +233,8 @@ const ConditionalForm: React.FC<{
             curationStatus={condition.curation_status}
           />
         ) : (
-          <span className="text-l w-full text-center text-red-300">
-            Please enter the id of a binary question.
+          <span className="text-l w-full text-center">
+            Please enter the id of a question post
           </span>
         )}
 
@@ -195,12 +245,47 @@ const ConditionalForm: React.FC<{
           type="number"
           {...control.register("condition_child_id", {
             setValueAs: (value: string) => {
+              if (!value) {
+                return undefined;
+              }
               const valueAsNr = Number(value);
               getPost(valueAsNr).then((res) => {
+                console.log("value", res?.projects.default_project);
+                if (
+                  res &&
+                  res?.projects.default_project.default_permission &&
+                  res?.projects.default_project.id !=
+                    control.getValues("default_project_id")
+                ) {
+                  control.setError("condition_child_id", {
+                    message:
+                      "Only questions from the same private project can be in a conditional that's part of a private project",
+                  });
+                  setConditionChild(null);
+                  return;
+                }
                 if (res && res.question) {
-                  setConditionChild(res);
+                  if (
+                    (res.question.actual_close_time === undefined ||
+                      new Date(res.question.actual_close_time) > new Date()) &&
+                    (res.question.forecast_scoring_ends === undefined ||
+                      new Date(res.question.forecast_scoring_ends) > new Date())
+                  ) {
+                    setConditionChild(res);
+                    control.setError("condition_child_id", {
+                      message: "",
+                    });
+                  } else {
+                    control.setError("condition_child_id", {
+                      message: "This queston has already been closed.",
+                    });
+                    setConditionChild(null);
+                  }
                 } else {
                   setConditionChild(null);
+                  control.setError("condition_child_id", {
+                    message: "This is no a question.",
+                  });
                 }
               });
               return valueAsNr;
@@ -215,8 +300,8 @@ const ConditionalForm: React.FC<{
             curationStatus={conditionChild.curation_status}
           />
         ) : (
-          <span className="text-l w-full text-center text-red-300">
-            Please enter the id of a question.
+          <span className="text-l w-full text-center">
+            Please enter the id of a question post
           </span>
         )}
         <CategoryPicker
