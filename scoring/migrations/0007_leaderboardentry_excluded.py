@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scoring', '0006_alter_leaderboard_edited_at_and_more'),
+        ("scoring", "0006_alter_leaderboard_edited_at_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='leaderboardentry',
-            name='excluded',
+            model_name="leaderboardentry",
+            name="excluded",
             field=models.BooleanField(default=False),
         ),
     ]
