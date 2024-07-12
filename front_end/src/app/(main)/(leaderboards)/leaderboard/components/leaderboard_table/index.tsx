@@ -1,23 +1,29 @@
+"use client";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { CategoryKey, LeaderboardDetails } from "@/types/scoring";
+import {
+  MEDALS_PATH_FILTER,
+  MEDALS_USER_FILTER,
+} from "@/app/(main)/(leaderboards)/medals/search_params";
+import { useBreakpoint } from "@/hooks/tailwind";
+import { CategoryKey, LeaderboardDetails, MedalsPath } from "@/types/scoring";
 
 import LeaderboardRow, { UserLeaderboardRow } from "./leaderboard_row";
+import { RANKING_CATEGORIES } from "../../../ranking_categories";
 import {
   LEADERBOARD_CATEGORY_FILTER,
   LEADERBOARD_DURATION_FILTER,
   LEADERBOARD_YEAR_FILTER,
-} from "../../constants/filters";
-import { RANKING_CATEGORIES } from "../../constants/ranking_categories";
+} from "../../filters";
+import useLeaderboardMobileTabBar from "../../mobile_tab_bar_context";
 
 type Props = {
   year: string;
   duration: string;
   category: CategoryKey;
   leaderboardDetails: LeaderboardDetails;
-  userId?: number;
   cardSized?: boolean;
 };
 
@@ -26,18 +32,22 @@ const LeaderboardTable: FC<Props> = ({
   duration,
   category,
   leaderboardDetails,
-  userId,
   cardSized = false,
 }) => {
   const t = useTranslations();
+  const { activeCategoryKey } = useLeaderboardMobileTabBar();
+  const isLargeScreen = useBreakpoint("md");
 
   const categoryUrl = `/leaderboard/?${LEADERBOARD_CATEGORY_FILTER}=${category}&${LEADERBOARD_YEAR_FILTER}=${year}&${LEADERBOARD_DURATION_FILTER}=${duration}`;
 
-  const userEntry =
-    leaderboardDetails.entries.find((e) => e.user_id === userId) ?? null;
+  const userEntry = leaderboardDetails.userEntry ?? null;
   const entriesToDisplay = cardSized
     ? leaderboardDetails.entries.slice(0, 10)
     : leaderboardDetails.entries;
+
+  if (!isLargeScreen && !!activeCategoryKey && activeCategoryKey !== category) {
+    return null;
+  }
 
   return (
     <div className="h-min w-full min-w-[280px] max-w-3xl rounded border border-gray-300 bg-gray-0 text-gray-800 @container dark:border-gray-300-dark dark:bg-gray-0-dark dark:text-gray-800-dark">
@@ -72,9 +82,9 @@ const LeaderboardTable: FC<Props> = ({
           {!!entriesToDisplay.length ? (
             entriesToDisplay.map((entry) => (
               <LeaderboardRow
-                key={`ranking-row-${category}-${leaderboardDetails.slug}`}
+                key={`ranking-row-${category}-${entry.user_id}`}
                 rowEntry={entry}
-                href={`/medals?user=${entry.user_id}&path=leaderboard`}
+                href={`/medals?${MEDALS_USER_FILTER}=${entry.user_id}&${MEDALS_PATH_FILTER}=${MedalsPath.Leaderboard}`}
               />
             ))
           ) : (

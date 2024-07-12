@@ -7,12 +7,14 @@ export const RANKING_CATEGORIES: Record<
   {
     id: string;
     translationKey: any; // TODO: provide a proper type
+    shortTranslationKey: any; // TODO: provide a proper type
     explanation: ReactNode;
   }
 > = {
   all: {
     id: "all",
     translationKey: "all",
+    shortTranslationKey: "all",
     explanation: (
       <span>
         <a href="/help/medals-faq/">Learn more</a> about Metaculus Medals
@@ -22,6 +24,7 @@ export const RANKING_CATEGORIES: Record<
   baseline: {
     id: "baseline",
     translationKey: "baselineAccuracy",
+    shortTranslationKey: "baselineAccuracyShort",
     explanation: (
       <span>
         <strong>Baseline Accuracy</strong> measures how accurate a user was
@@ -36,6 +39,7 @@ export const RANKING_CATEGORIES: Record<
   peer: {
     id: "peer",
     translationKey: "peerAccuracy",
+    shortTranslationKey: "peerAccuracyShort",
     explanation: (
       <span>
         <strong>Peer Accuracy</strong> measures how accurate a user was compared
@@ -52,6 +56,7 @@ export const RANKING_CATEGORIES: Record<
   comments: {
     id: "comments",
     translationKey: "comments",
+    shortTranslationKey: "comments",
     explanation: (
       <span>
         The <strong>Comments</strong> category rewards writing insightful
@@ -66,6 +71,7 @@ export const RANKING_CATEGORIES: Record<
   questionWriting: {
     id: "questionWriting",
     translationKey: "questionWriting",
+    shortTranslationKey: "questionWritingShort",
     explanation: (
       <span>
         The <strong>Question Writing</strong> category rewards authoring
@@ -80,6 +86,7 @@ export const RANKING_CATEGORIES: Record<
   tournament: {
     id: "tournament",
     translationKey: "tournament",
+    shortTranslationKey: "all",
     explanation: null,
   },
 };

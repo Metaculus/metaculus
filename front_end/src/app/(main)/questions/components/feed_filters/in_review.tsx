@@ -25,7 +25,7 @@ const InReviewFeed: FC = () => {
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [
       {
-        value: QuestionOrder.ActivityDesc,
+        value: QuestionOrder.HotDesc,
         label: t("hot"),
       },
       {
@@ -36,7 +36,13 @@ const InReviewFeed: FC = () => {
     [t]
   );
 
-  return <PostsFilters filters={filters} mainSortOptions={mainSortOptions} />;
+  return (
+    <PostsFilters
+      filters={filters}
+      mainSortOptions={mainSortOptions}
+      defaultOrder={QuestionOrder.HotDesc}
+    />
+  );
 };
 
 export default InReviewFeed;
