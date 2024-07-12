@@ -15,10 +15,17 @@ import * as z from "zod";
 
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
-import { Category, PostStatus, PostWithForecasts } from "@/types/post";
+import {
+  Category,
+  PostStatus,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
+import { QuestionType } from "@/types/question";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
+import NumericQuestionInput from "./numeric_question_input";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
@@ -76,12 +83,6 @@ const GroupForm: React.FC<Props> = ({
     const groupData = subQuestions
       .filter((x) => !x.id)
       .map((x) => {
-        if (x["min"] || x["max"]) {
-          if (x["max"] <= x["min"]) {
-            alert("Max should be > min");
-            break_out = true;
-          }
-        }
         if (subtype == "binary") {
           return {
             type: subtype,
@@ -90,6 +91,16 @@ const GroupForm: React.FC<Props> = ({
             scheduled_resolve_time: x.scheduled_resolve_time,
           };
         } else if (subtype == "numeric") {
+          if (
+            x.max == null ||
+            x.min == null ||
+            x.max == undefined ||
+            x.min == undefined
+          ) {
+            alert("Please enter a max or min value for numeric questions");
+            break_out = true;
+            return;
+          }
           return {
             type: subtype,
             title: x.label,
@@ -99,13 +110,23 @@ const GroupForm: React.FC<Props> = ({
             max: x.max,
           };
         } else if (subtype == "date") {
+          if (
+            x.max == null ||
+            x.min == null ||
+            x.max == undefined ||
+            x.min == undefined
+          ) {
+            alert("Please enter a max or min value for numeric questions");
+            break_out = true;
+            return;
+          }
           return {
             type: subtype,
             title: x.label,
             scheduled_close_time: x.scheduled_close_time,
             scheduled_resolve_time: x.scheduled_resolve_time,
-            min: new Date(x.min).getTime() / 1000,
-            max: new Date(x.max).getTime() / 1000,
+            min: x.min,
+            max: x.max,
           };
         }
       });
@@ -309,14 +330,14 @@ const GroupForm: React.FC<Props> = ({
                         setSubQuestions(
                           subQuestions.map((subQuestion, iter_index) => {
                             if (index == iter_index) {
-                              subQuestion["title"] = e.target.value;
+                              subQuestion["label"] = e.target.value;
                             }
                             return subQuestion;
                           })
                         );
                       }}
                       className={baseInputStyles}
-                      value={subQuestion?.title}
+                      value={subQuestion?.label}
                     />
                     {collapsedSubQuestions[index] && (
                       <span className={inputDescriptionStyles}>
@@ -384,6 +405,51 @@ const GroupForm: React.FC<Props> = ({
                           }}
                         />
                       </div>
+                      {(subtype === QuestionType.Date ||
+                        subtype === QuestionType.Numeric) && (
+                        <NumericQuestionInput
+                          // @ts-ignore
+                          questionType={subtype}
+                          defaultMin={subQuestions[index].min}
+                          defaultMax={subQuestions[index].max}
+                          // @ts-ignore
+                          defaultOpenLowerBound={
+                            subQuestions[index].open_lower_bound
+                          }
+                          // @ts-ignore
+                          defaultOpenUpperBound={
+                            subQuestions[index].open_upper_bound
+                          }
+                          defaultZeroPoint={subQuestions[index].zero_point}
+                          isLive={isLive}
+                          canSeeLogarithmic={
+                            post?.user_permission == ProjectPermissions.ADMIN ||
+                            !post
+                          }
+                          onChange={(
+                            min,
+                            max,
+                            openLowerBound,
+                            openUpperBound,
+                            zeroPoint
+                          ) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index == iter_index) {
+                                  subQuestion["min"] = min;
+                                  subQuestion["max"] = max;
+                                  subQuestion["openLowerBound"] =
+                                    openLowerBound;
+                                  subQuestion["openUpperBound"] =
+                                    openUpperBound;
+                                  subQuestion["zeroPoint"] = zeroPoint;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      )}
                     </div>
                   )}
 
@@ -432,61 +498,68 @@ const GroupForm: React.FC<Props> = ({
                 </div>
               );
             })}
-
-            <Button
-              onClick={() => {
-                if (subtype === "numeric") {
-                  setSubQuestions([
-                    ...subQuestions,
-                    {
-                      type: "numeric",
-                      label: "",
-                      scheduled_close_time:
-                        control.getValues().scheduled_close_time,
-                      scheduled_resolve_time:
-                        control.getValues().scheduled_resolve_time,
-                      min: null,
-                      max: null,
-                      zero_point: null,
-                    },
-                  ]);
-                } else if (subtype === "date") {
-                  setSubQuestions([
-                    ...subQuestions,
-                    {
-                      type: "date",
-                      label: "",
-                      scheduled_close_time:
-                        control.getValues().scheduled_close_time,
-                      scheduled_resolve_time:
-                        control.getValues().scheduled_resolve_time,
-                      min: null,
-                      max: null,
-                      zero_point: null,
-                    },
-                  ]);
-                } else {
-                  setSubQuestions([
-                    ...subQuestions,
-                    {
-                      type: "binary",
-                      label: "",
-                      scheduled_close_time:
-                        control.getValues().scheduled_close_time,
-                      scheduled_resolve_time:
-                        control.getValues().scheduled_resolve_time,
-                    },
-                  ]);
-                }
-                setCollapsedSubQuestions([...collapsedSubQuestions, true]);
-              }}
-            >
-              + New Subquestion
+            <div className="mt-4">
+              <Button
+                onClick={() => {
+                  if (subtype === "numeric") {
+                    setSubQuestions([
+                      ...subQuestions,
+                      {
+                        type: "numeric",
+                        label: "",
+                        scheduled_close_time:
+                          control.getValues().scheduled_close_time,
+                        scheduled_resolve_time:
+                          control.getValues().scheduled_resolve_time,
+                        min: null,
+                        max: null,
+                        zero_point: null,
+                        open_lower_bound: null,
+                        open_upper_bound: null,
+                      },
+                    ]);
+                  } else if (subtype === "date") {
+                    setSubQuestions([
+                      ...subQuestions,
+                      {
+                        type: "date",
+                        label: "",
+                        scheduled_close_time:
+                          control.getValues().scheduled_close_time,
+                        scheduled_resolve_time:
+                          control.getValues().scheduled_resolve_time,
+                        min: null,
+                        max: null,
+                        zero_point: null,
+                        open_lower_bound: null,
+                        open_upper_bound: null,
+                      },
+                    ]);
+                  } else {
+                    setSubQuestions([
+                      ...subQuestions,
+                      {
+                        type: "binary",
+                        label: "",
+                        scheduled_close_time:
+                          control.getValues().scheduled_close_time,
+                        scheduled_resolve_time:
+                          control.getValues().scheduled_resolve_time,
+                      },
+                    ]);
+                  }
+                  setCollapsedSubQuestions([...collapsedSubQuestions, true]);
+                }}
+              >
+                + New Subquestion
+              </Button>
+            </div>
+          </div>
+          <div className="mt-4">
+            <Button type="submit">
+              {mode == "create" ? "Create Question" : "Edit Question"}
             </Button>
           </div>
-          <Button type="submit">
-            {mode == "create" ? "Create Question" : "Edit Question"}
-          </Button>
         </div>
       </form>
     </div>

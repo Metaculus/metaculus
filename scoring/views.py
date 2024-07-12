@@ -28,12 +28,10 @@ from scoring.utils import update_project_leaderboard, get_contributions
 def global_leaderboard(
     request: Request,
 ):
-
     # params
     start_time = request.GET.get("startTime", None)
     end_time = request.GET.get("endTime", None)
     leaderboard_type = request.GET.get("leaderboardType", None)
-
     # filtering
     leaderboards = Leaderboard.objects.filter(project_id=1)
     if start_time:
@@ -42,12 +40,10 @@ def global_leaderboard(
         leaderboards = leaderboards.filter(end_time=end_time)
     if leaderboard_type:
         leaderboards = leaderboards.filter(score_type=leaderboard_type)
-
     leaderboard_count = leaderboards.count()
     if leaderboard_count == 0:
         return Response(status=status.HTTP_404_NOT_FOUND)
     leaderboard = leaderboards.first()
-
     # serialize
     leaderboard_data = LeaderboardSerializer(leaderboard).data
     entries = list(leaderboard.entries.all())
