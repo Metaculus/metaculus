@@ -12,10 +12,8 @@ from comments.models import Comment, CommentVote, CommentDiff
 from comments.serializers import CommentWriteSerializer, serialize_comment_many
 from comments.services import create_comment
 from posts.services import get_post_permission_for_user
-from posts.models import Post
-from questions.models import Forecast
-from users.models import User
 from projects.permissions import ObjectPermission
+
 
 
 @api_view(["GET"])
