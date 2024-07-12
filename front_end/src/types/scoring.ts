@@ -28,7 +28,8 @@ export type LeaderboardEntry = {
   username: string;
   user_id: number;
   score: number;
-  rank: number;
+  rank: number | null;
+  excluded: boolean;
   medal: ScoreMedal | null;
   prize: number | null;
   coverage: number;
@@ -43,6 +44,7 @@ export type LeaderboardDetails = {
   name: string;
   slug: string;
   entries: LeaderboardEntry[];
+  userEntry?: LeaderboardEntry;
   prize_pool: number;
   start_date: string;
   close_date: string;
