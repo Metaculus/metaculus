@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
+from django.utils import timezone
 
 from posts.services import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -35,6 +36,12 @@ def create_forecast_api_view(request, pk: int):
     # Check permissions
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_forecast(permission, raise_exception=True)
+
+    if not question.open_time or question.open_time > timezone.now():
+        return Response(
+            {"error": "You cannot forecast on this question yet !"},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
     create_forecast(question=question, user=request.user, **request.data)
 

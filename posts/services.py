@@ -1,6 +1,11 @@
-from django.db.models import Q
+from datetime import timedelta
+from typing import Optional
+
+from django.db.models import Q, Count, Sum, Value, Case, When, F
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
+from sql_util.aggregates import SubqueryAggregate
 
 from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
@@ -17,7 +22,10 @@ from utils.dtypes import flatten
 from utils.models import build_order_by
 from utils.serializers import parse_order_by
 from utils.the_math.community_prediction import get_cp_at_time
-from utils.the_math.measures import prediction_difference_for_sorting
+from utils.the_math.measures import (
+    prediction_difference_for_display,
+    prediction_difference_for_sorting,
+)
 
 
 def add_categories(categories: list[int], post: Post):
@@ -58,8 +66,6 @@ def get_posts_feed(
 
     TODO: implement "upcoming" filtering
     TODO: implement "New Comments" ordering
-    TODO: implement "Hot Posts" ordering
-    TODO: implement "stale" @george ordering
     """
 
     # If ids provided
@@ -176,8 +182,6 @@ def get_posts_feed(
             qs = qs.annotate_user_last_forecasts_date(forecaster_id)
         if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
             qs = qs.annotate_unread_comment_count(user_id=user.id)
-        if order_type == PostFilterSerializer.Order.HOT:
-            qs = qs.annotate_hot()
         if order_type == PostFilterSerializer.Order.SCORE:
             if not forecaster_id:
                 raise ValidationError(
@@ -285,7 +289,8 @@ def compute_movement(post: Post) -> float | None:
     return movement
 
 
-def compute_divergence(post: Post) -> dict[int, float]:
+# Computes the jeffry divergence
+def compute_sorting_divergence(post: Post) -> dict[int, float]:
     user_divergences = dict()
     questions = post.get_questions()
     now = timezone.now()
@@ -308,3 +313,66 @@ def compute_divergence(post: Post) -> dict[int, float]:
                 user_divergences[forecast.author_id] = difference
 
     return user_divergences
+
+
+def compute_hotness():
+    qs = Post.objects.filter_active()
+    last_week_dt = timezone.now() - timedelta(days=7)
+
+    qs = qs.annotate(
+        # nb predictions in last week
+        hotness_value=Coalesce(
+            SubqueryAggregate(
+                "forecasts",
+                filter=Q(start_time__gte=last_week_dt),
+                aggregate=Count,
+            ),
+            0,
+        )
+        + (
+            # Net votes in last week * 5
+            # Please note: we dind't have this before
+            Coalesce(
+                SubqueryAggregate(
+                    "votes__direction",
+                    filter=Q(created_at__gte=last_week_dt),
+                    aggregate=Sum,
+                ),
+                0,
+            )
+            * 5
+        )
+        + (
+            # nb comments in last week * 10
+            Coalesce(
+                SubqueryAggregate(
+                    "comments__id",
+                    filter=Q(created_at__gte=last_week_dt),
+                    aggregate=Count,
+                ),
+                0,
+            )
+            * 10
+        )
+        + (
+            Coalesce(
+                SubqueryAggregate(
+                    "activity_boosts",
+                    filter=Q(created_at__gte=last_week_dt),
+                    aggregate=Sum,
+                ),
+                0,
+            )
+            * 20
+        )
+        + Case(
+            # approved in last week
+            When(
+                published_at__gte=last_week_dt,
+                then=Value(50),
+            ),
+            default=Value(0),
+        )
+    )
+
+    qs.update(hotness=F("hotness_value"))

@@ -21,9 +21,9 @@ class CommentQuerySet(models.QuerySet):
 
         return self.annotate(
             user_vote=Subquery(
-                CommentVote.objects.filter(user=user, comment=OuterRef("pk")).values("direction")[
-                    :1
-                ]
+                CommentVote.objects.filter(user=user, comment=OuterRef("pk")).values(
+                    "direction"
+                )[:1]
             ),
         )
 

@@ -1,22 +1,27 @@
-import { endOfYear, format, isWithinInterval, startOfYear } from "date-fns";
+import {
+  addDays,
+  format,
+  isWithinInterval,
+  startOfDay,
+  startOfYear,
+} from "date-fns";
 import { useTranslations } from "next-intl";
 
 import { SearchParams } from "@/types/navigation";
-import { LeaderboardType } from "@/types/scoring";
-
 import {
   CategoryKey,
+  LeaderboardFilter,
+  LeaderboardFilters,
+  LeaderboardType,
+} from "@/types/scoring";
+
+import {
   DEFAULT_LEADERBOARD_CATEGORY,
   LEADERBOARD_CATEGORY_FILTER,
   LEADERBOARD_DURATION_FILTER,
   LEADERBOARD_YEAR_FILTER,
   LEADERBOARD_YEAR_OPTIONS,
 } from "../constants/filters";
-
-type LeaderboardFilter = {
-  label: string;
-  value: string;
-};
 
 const getLeaderboardTimePeriodFilters = (
   duration: string
@@ -53,13 +58,10 @@ const getLeaderboardDurationFilters = (
     );
 };
 
-export type LeaderboardFilters = ReturnType<
-  typeof extractLeaderboardFiltersFromParams
->;
 export function extractLeaderboardFiltersFromParams(
   params: SearchParams,
   t: ReturnType<typeof useTranslations>
-) {
+): LeaderboardFilters {
   const category = (params[LEADERBOARD_CATEGORY_FILTER] ??
     DEFAULT_LEADERBOARD_CATEGORY) as CategoryKey;
 
@@ -90,27 +92,26 @@ export function getLeaderboardTimeInterval(
   year: string,
   duration: string
 ): { startTime: string; endTime: string } {
-  const formattedDuration = Number(duration);
+  const yearNumber = Number(year);
+  const durationNumber = Number(duration);
+  const dateFormat = "yyyy-MM-dd";
 
-  if (formattedDuration === 1) {
-    const start = startOfYear(new Date(year));
-    const end = endOfYear(new Date(year));
+  if (durationNumber === 1) {
+    const startDate = startOfYear(new Date(year));
+    const end = startOfYear(new Date(`${yearNumber + 1}`));
 
     return {
-      startTime: format(start, "yyyy-MM-dd"),
-      endTime: format(end, "yyyy-MM-dd"),
+      startTime: format(startDate, dateFormat),
+      endTime: format(end, dateFormat),
     };
   }
 
-  const formattedYear = Number(year);
-  const start = startOfYear(
-    new Date(`${formattedYear - formattedDuration + 1}`)
-  );
-  const end = endOfYear(new Date(year));
+  const start = startOfYear(new Date(`${yearNumber - durationNumber + 1}`));
+  const end = startOfYear(new Date(`${yearNumber + 1}`));
 
   return {
-    startTime: format(start, "yyyy-MM-dd"),
-    endTime: format(end, "yyyy-MM-dd"),
+    startTime: format(start, dateFormat),
+    endTime: format(end, dateFormat),
   };
 }
 
@@ -127,11 +128,13 @@ export function mapCategoryKeyToLeaderboardType(
     case "baseline":
       return "baseline_global";
     case "peer": {
-      const isLegacy = !isWithinInterval(new Date("2024"), {
-        start: new Date(startTime),
-        end: new Date(endTime),
-      });
-      console.log("isLegacy", isLegacy);
+      const isLegacy = !isWithinInterval(
+        addDays(startOfDay(new Date("2024")), 1),
+        {
+          start: new Date(startTime),
+          end: new Date(endTime),
+        }
+      );
       return isLegacy ? "peer_global_legacy" : "peer_global";
     }
     default:

@@ -6,6 +6,7 @@ import { FC } from "react";
 import ButtonGroup from "@/components/ui/button_group";
 import Listbox from "@/components/ui/listbox";
 import useSearchParams from "@/hooks/use_search_params";
+import { LeaderboardFilters } from "@/types/scoring";
 
 import {
   LEADERBOARD_CATEGORY_FILTER,
@@ -14,7 +15,6 @@ import {
   LEADERBOARD_YEAR_OPTIONS,
 } from "../constants/filters";
 import { RANKING_CATEGORIES } from "../constants/ranking_categories";
-import { LeaderboardFilters } from "../helpers/filter";
 
 type Props = {
   filters: LeaderboardFilters;
@@ -77,7 +77,9 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
           duration &&
           ["all", "peer", "baseline"].includes(category) && (
             <div className="flex flex-row items-center justify-center gap-2.5">
-              <span className="text-base font-medium">Duration:</span>
+              <span className="text-base font-medium">
+                {t("scoringDurationLabel")}
+              </span>
               <ButtonGroup
                 buttons={durations}
                 value={duration}
@@ -88,7 +90,9 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
           )}
         {periods && year && (
           <div className="flex flex-row items-center justify-center gap-2.5">
-            <span className="text-base font-medium">Time Period:</span>
+            <span className="text-base font-medium">
+              {t("scoringTimePeriodLabel")}
+            </span>
             <ButtonGroup
               buttons={periods}
               value={year}
@@ -105,7 +109,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
           ["all", "peer", "baseline"].includes(category) && (
             <div className="flex items-center gap-2.5">
               <span className="text-metac-blue-800 dark:text-metac-blue-800-dark text-base font-medium">
-                Duration:
+                {t("scoringDurationLabel")}
               </span>
               <Listbox
                 value={duration}
@@ -119,7 +123,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
         {periods && year && (
           <div className="flex items-center gap-2.5">
             <span className="text-metac-blue-800 dark:text-metac-blue-800-dark text-base font-medium">
-              Time Period:
+              {t("scoringTimePeriodLabel")}
             </span>
             <Listbox
               value={year}
