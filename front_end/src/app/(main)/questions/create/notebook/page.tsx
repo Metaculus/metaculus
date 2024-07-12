@@ -13,6 +13,7 @@ import { createQuestionPost } from "../../actions";
 import { useTranslations } from "next-intl";
 import ProjectsApi from "@/services/projects";
 import { useRouter } from "next/navigation";
+import BacktoCreate from "../../components/back_to_create";
 
 const NotebookCreator: React.FC = ({}) => {
   const [markdown, setMarkdown] = useState("");
@@ -23,37 +24,44 @@ const NotebookCreator: React.FC = ({}) => {
   const router = useRouter();
 
   return (
-    <div className="h-50vh mx-auto mb-8 mt-4 max-w-3xl overflow-auto rounded-lg bg-gray-0 p-6 dark:bg-gray-100-dark">
-      <input
-        className="mb-4 p-1 pl-2 text-xl"
-        type="text"
-        placeholder={t("Title")}
-        onChange={(e) => setTitle(e.target.value)}
-      ></input>
-      <div className="pl-2">
-        <MarkdownEditor
-          markdown={markdown}
-          onChange={setMarkdown}
-          mode="write"
-        />
-      </div>
-      <div className="pl-2">
-        <Button
-          className="text-xl"
-          onClick={async () => {
-            const resp = await createQuestionPost({
-              title: title,
-              notebook: {
-                type: "discussion",
-                image_url: null,
-                markdown: markdown,
-              },
-            });
-            router.push(`/questions/${resp?.post?.id}`);
-          }}
-        >
-          Create Notebook
-        </Button>
+    <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center gap-2 self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:gap-4 md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto lg:gap-6">
+      <BacktoCreate
+        backText="Create"
+        backHref="/questions/create"
+        currentPage="Notebook"
+      />
+      <div className="flex w-full flex-col gap-6">
+        <input
+          className="rounded border border-gray-500 px-3 py-2 text-xl dark:bg-blue-950"
+          type="text"
+          placeholder={t("Title")}
+          onChange={(e) => setTitle(e.target.value)}
+        ></input>
+        <div className="rounded border border-gray-300 dark:border-gray-600/60">
+          <MarkdownEditor
+            markdown={markdown}
+            onChange={setMarkdown}
+            mode="write"
+          />
+        </div>
+        <div>
+          <Button
+            size="md"
+            onClick={async () => {
+              const resp = await createQuestionPost({
+                title: title,
+                notebook: {
+                  type: "discussion",
+                  image_url: null,
+                  markdown: markdown,
+                },
+              });
+              router.push(`/questions/${resp?.post?.id}`);
+            }}
+          >
+            Create Notebook
+          </Button>
+        </div>
       </div>
     </div>
   );
