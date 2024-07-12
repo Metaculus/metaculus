@@ -21,7 +21,7 @@ import {
   LEADERBOARD_DURATION_FILTER,
   LEADERBOARD_YEAR_FILTER,
   LEADERBOARD_YEAR_OPTIONS,
-} from "../constants/filters";
+} from "../filters";
 
 const getLeaderboardTimePeriodFilters = (
   duration: string
