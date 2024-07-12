@@ -4,6 +4,7 @@ import AwaitedPostsFeed from "@/components/posts_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
+import { QuestionOrder } from "@/types/question";
 
 import FeedFilters from "./components/feed_filters";
 import QuestionTopics from "./components/question_topics";
@@ -14,7 +15,11 @@ export default async function Questions({
 }: {
   searchParams: SearchParams;
 }) {
-  const filters = generateFiltersFromSearchParams(searchParams);
+  const filters = generateFiltersFromSearchParams(
+    searchParams,
+    // Default Feed ordering should be hotness
+    QuestionOrder.HotDesc
+  );
   const topics = await ProjectsApi.getTopics();
 
   return (
