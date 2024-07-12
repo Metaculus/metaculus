@@ -2,11 +2,12 @@
 import { useTranslations } from "next-intl";
 import { FC, useEffect } from "react";
 
-import { RANKING_CATEGORIES } from "@/app/(main)/leaderboard/constants/ranking_categories";
-import useLeaderboardMobileTabBar from "@/app/(main)/leaderboard/mobile_tab_bar_context";
 import TabBar from "@/components/ui/tab_bar/tab_bar";
 import { SearchParams } from "@/types/navigation";
 import { CategoryKey } from "@/types/scoring";
+
+import { RANKING_CATEGORIES } from "../../ranking_categories";
+import useLeaderboardMobileTabBar from "../mobile_tab_bar_context";
 
 type Props = {
   categoryKeys: CategoryKey[];

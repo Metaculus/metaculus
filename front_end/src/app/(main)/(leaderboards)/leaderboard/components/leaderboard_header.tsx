@@ -8,13 +8,13 @@ import Listbox from "@/components/ui/listbox";
 import useSearchParams from "@/hooks/use_search_params";
 import { LeaderboardFilters } from "@/types/scoring";
 
+import { RANKING_CATEGORIES } from "../../ranking_categories";
 import {
   LEADERBOARD_CATEGORY_FILTER,
   LEADERBOARD_DURATION_FILTER,
   LEADERBOARD_YEAR_FILTER,
   LEADERBOARD_YEAR_OPTIONS,
-} from "../constants/filters";
-import { RANKING_CATEGORIES } from "../constants/ranking_categories";
+} from "../filters";
 
 type Props = {
   filters: LeaderboardFilters;

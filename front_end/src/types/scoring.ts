@@ -1,4 +1,4 @@
-import { LEADERBOARD_CATEGORIES } from "@/app/(main)/leaderboard/constants/filters";
+import { LEADERBOARD_CATEGORIES } from "@/app/(main)/(leaderboards)/leaderboard/filters";
 
 import { Question } from "./question";
 
@@ -22,7 +22,24 @@ export type Score = {
   score_type: ScoreType;
 };
 
-export type ScoreMedal = "gold" | "silver" | "bronze";
+export enum MedalsPath {
+  Leaderboard = "leaderboard",
+  Profile = "profile",
+}
+
+export type MedalType = "gold" | "silver" | "bronze";
+
+export type Medal = {
+  type: MedalType;
+  duration: number;
+  rank: number;
+  name: string;
+};
+
+export type MedalCategory = {
+  name: CategoryKey;
+  medals: Medal[];
+};
 
 export type LeaderboardEntry = {
   username: string;
@@ -30,11 +47,20 @@ export type LeaderboardEntry = {
   score: number;
   rank: number | null;
   excluded: boolean;
-  medal: ScoreMedal | null;
+  medal: MedalType | null;
   prize: number | null;
   coverage: number;
   contribution_count: number;
   calculated_on: string;
+};
+
+export type MedalEntry = LeaderboardEntry & {
+  project_id: number;
+  score_type: LeaderboardType;
+  name: string;
+  start_time: string;
+  end_time: string;
+  finalize_time: string;
 };
 
 export type LeaderboardDetails = {
