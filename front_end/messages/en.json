@@ -541,8 +541,8 @@
   "Question": "Question",
   "Edit Open & CP Reveal Times": "Edit Open & CP Reveal Times",
   "No questions have resolved yet in this period": "No questions have resolved yet in this period.",
-  "Baseline": "Baseline",
-  "Peer": "Peer",
+  "baselineAccuracyShort": "Baseline",
+  "peerAccuracyShort": "Peer",
   "Comments": "Comments",
-  "Q.Writing": "Q.Writing"
+  "questionWritingShort": "Q.Writing"
 }

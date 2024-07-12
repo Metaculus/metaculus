@@ -24,7 +24,7 @@ export const RANKING_CATEGORIES: Record<
   baseline: {
     id: "baseline",
     translationKey: "baselineAccuracy",
-    shortTranslationKey: "Baseline",
+    shortTranslationKey: "baselineAccuracyShort",
     explanation: (
       <span>
         <strong>Baseline Accuracy</strong> measures how accurate a user was
@@ -39,7 +39,7 @@ export const RANKING_CATEGORIES: Record<
   peer: {
     id: "peer",
     translationKey: "peerAccuracy",
-    shortTranslationKey: "Peer",
+    shortTranslationKey: "peerAccuracyShort",
     explanation: (
       <span>
         <strong>Peer Accuracy</strong> measures how accurate a user was compared
@@ -56,7 +56,7 @@ export const RANKING_CATEGORIES: Record<
   comments: {
     id: "comments",
     translationKey: "comments",
-    shortTranslationKey: "Comments",
+    shortTranslationKey: "comments",
     explanation: (
       <span>
         The <strong>Comments</strong> category rewards writing insightful
@@ -71,7 +71,7 @@ export const RANKING_CATEGORIES: Record<
   questionWriting: {
     id: "questionWriting",
     translationKey: "questionWriting",
-    shortTranslationKey: "Q.Writing",
+    shortTranslationKey: "questionWritingShort",
     explanation: (
       <span>
         The <strong>Question Writing</strong> category rewards authoring
