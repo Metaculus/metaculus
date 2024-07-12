@@ -11,6 +11,8 @@ import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { PostWithForecasts, PostWithNotebook } from "@/types/post";
 
+import InReviewBox from "./in_review_box";
+
 export type PostsFeedType = "posts" | "news";
 
 type Props = {
@@ -63,6 +65,7 @@ const PaginatedPostsFeed: FC<Props> = ({
   return (
     <>
       <div className="flex flex-col gap-3">
+        {filters.statuses && filters.statuses === "pending" && <InReviewBox />}
         {!paginatedPosts.length && (
           <span className="mt-3 text-center text-sm text-gray-900 dark:text-gray-900-dark">
             {t("noResults") + "."}

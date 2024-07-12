@@ -2,14 +2,14 @@ from django.core.files.storage import default_storage
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from posts.models import Post, Vote, PostUserSnapshot
+from posts.models import Post, Vote, PostUserSnapshot, PostActivityBoost
 from posts.serializers import (
     NotebookSerializer,
     PostFilterSerializer,
@@ -29,8 +29,9 @@ from questions.models import Question
 from questions.serializers import (
     GroupOfQuestionsSerializer,
     QuestionSerializer,
+    QuestionWriteSerializer,
 )
-from questions.services import clone_question
+from questions.services import clone_question, create_question
 from utils.files import UserUploadedImage, generate_filename
 
 
@@ -76,6 +77,7 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
+    print(request.data["group_of_questions"]["questions"])
     serializer = PostWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
@@ -140,15 +142,33 @@ def post_update_api_view(request, pk):
         post.conditional.save()
     if group_of_questions_data:
         sub_questions = group_of_questions_data.get("questions", None)
+        delete = group_of_questions_data.get("delete", None)
+        if delete:
+            for question_id in delete:
+                question = Question.objects.get(
+                    pk=question_id, group_id=post.group_of_questions.id
+                )
+                question.delete()
         if sub_questions:
             for sub_question_data in sub_questions:
-                sub_ser = QuestionSerializer(
-                    Question.objects.get(id=sub_question_data["id"]),
-                    data=sub_question_data,
-                    partial=True,
-                )
-                sub_ser.is_valid(raise_exception=True)
-                sub_ser.save()
+                if sub_question_data.get("id", None):
+                    sub_question = Question.objects.get(
+                        pk=sub_question_data["id"], group_id=post.group_of_questions.id
+                    )
+                    sub_ser = QuestionSerializer(
+                        sub_question,
+                        data=sub_question_data,
+                        partial=True,
+                    )
+                    sub_ser.is_valid(raise_exception=True)
+                    sub_ser.save()
+                else:
+                    sub_ser = QuestionWriteSerializer(
+                        data=sub_question_data,
+                        partial=True,
+                    )
+                    sub_ser.is_valid(raise_exception=True)
+                    create_question(group_id=post.group_of_questions.id, **sub_ser.data)
 
         ser = GroupOfQuestionsSerializer(
             post.group_of_questions, data=group_of_questions_data, partial=True
@@ -230,3 +250,27 @@ def upload_image_api_view(request):
     file_url = default_storage.url(filename)
 
     return Response({"url": file_url})
+
+
+@api_view(["POST"])
+def activity_boost_api_view(request, pk):
+    """
+    Boots/Bury post
+    """
+
+    post = get_object_or_404(Post, pk=pk)
+    score = serializers.IntegerField().run_validation(request.data.get("score"))
+
+    if not request.user.is_superuser:
+        raise PermissionDenied("You do not have permission boost this post")
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    PostActivityBoost.objects.create(user=request.user, post=post, score=score)
+
+    return Response(
+        {"score_total": PostActivityBoost.get_post_score(pk)},
+        status=status.HTTP_201_CREATED,
+    )

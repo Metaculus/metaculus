@@ -21,8 +21,13 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   return (
     <GroupForm
       // @ts-ignore
-      subtype={searchParams["subtype"]}
+      subtype={
+        post
+          ? post.group_of_questions.questions[0].type
+          : searchParams["subtype"]
+      }
       post={post}
+      mode={post ? "edit" : "create"}
       allCategories={allCategories}
       tournament_id={
         searchParams["tournament_id"]

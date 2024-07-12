@@ -1,4 +1,4 @@
-import { LeaderboardDetails } from "@/types/scoring";
+import { LeaderboardDetails, MedalEntry } from "@/types/scoring";
 import { get } from "@/utils/fetch";
 
 class LeaderboardApi {
@@ -10,13 +10,13 @@ class LeaderboardApi {
     // TODO: make paginated
     const params = new URLSearchParams();
     if (startTime) {
-      params.append("start_time", startTime.toString());
+      params.append("startTime", startTime.toString());
     }
     if (endTime) {
-      params.append("end_time", endTime.toString());
+      params.append("endTime", endTime.toString());
     }
     if (leaderboardType) {
-      params.append("leaderboard_type", leaderboardType);
+      params.append("leaderboardType", leaderboardType);
     }
     const url = `/leaderboards/global/${params.toString() ? `?${params.toString()}` : ""}`;
     return await get<LeaderboardDetails>(url);
@@ -43,6 +43,10 @@ class LeaderboardApi {
       console.error("Error getting project leaderboard:", err);
       return null;
     }
+  }
+
+  static async getUserMedals(userId: number) {
+    return await get<MedalEntry[]>(`/medals?userId=${userId}`);
   }
 }
 

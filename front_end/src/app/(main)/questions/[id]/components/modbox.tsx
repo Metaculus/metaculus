@@ -1,6 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
+import { addDays, format } from "date-fns";
 import { e } from "mathjs";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -57,8 +57,24 @@ const PostApprovalModal: FC<{
   const initApprovalData: ApprovalData = {};
   for (let question_id of Object.values(approvalMap)) {
     initApprovalData[question_id] = {
-      open_time: null,
-      cp_reveal_time: null,
+      open_time: format(
+        addDays(
+          new Date(
+            new Date().getTime() + new Date().getTimezoneOffset() * 60000
+          ),
+          1
+        ),
+        "yyyy-MM-dd'T'HH:mm"
+      ),
+      cp_reveal_time: format(
+        addDays(
+          new Date(
+            new Date().getTime() + new Date().getTimezoneOffset() * 60000
+          ),
+          5
+        ),
+        "yyyy-MM-dd'T'HH:mm"
+      ),
     };
   }
 
@@ -80,10 +96,10 @@ const PostApprovalModal: FC<{
                 return (
                   <div key={index} className="flex flex-col gap-2">
                     <div>
-                      <span>Question: </span>
+                      <span>{t("Question")}: </span>
                       <span>{key}</span>
                     </div>
-                    <span>Open Time</span>
+                    <span>{t("Open Time")}</span>
                     <Input
                       type="datetime-local"
                       placeholder="date when forecasts will open"
@@ -93,8 +109,9 @@ const PostApprovalModal: FC<{
                         approvalData[value].open_time = e.target.value;
                         setApprovalData(approvalData);
                       }}
+                      defaultValue={approvalData[value].open_time as string}
                     />
-                    <span>CP Reveal Time</span>
+                    <span>{t("CP Reveal Time")}</span>
                     <Input
                       type="datetime-local"
                       placeholder="time when the cp will be revealed"
@@ -104,6 +121,9 @@ const PostApprovalModal: FC<{
                         approvalData[value].cp_reveal_time = e.target.value;
                         setApprovalData(approvalData);
                       }}
+                      defaultValue={
+                        approvalData[value].cp_reveal_time as string
+                      }
                     />
                   </div>
                 );
@@ -149,8 +169,8 @@ const PostApprovalModal: FC<{
                 }
                 await updatePost(post.id, {
                   curation_status: PostStatus.APPROVED,
+                  published_at: currentDateTime,
                   group_of_questions: {
-                    published_at: currentDateTime,
                     questions: approvalDatesArr,
                   },
                 });
@@ -235,7 +255,19 @@ export default function Modbox({ post }: { post: PostWithForecasts }) {
             {t("approveButton")}
           </button>
         )}
-
+      {post.status == PostStatus.APPROVED &&
+        [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
+          post.user_permission
+        ) && (
+          <button
+            className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark"
+            onClick={async () => {
+              setIsApprovalModalOpen(true);
+            }}
+          >
+            {t("Edit Open & CP Reveal Times")}
+          </button>
+        )}
       <button className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
         <a
           href={`/questions/create/${edit_type}?post_id=${post.id}`}

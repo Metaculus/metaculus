@@ -9,7 +9,10 @@ from migrator.services.migrate_questions import (
 )
 
 from ...services.migrate_permissions import migrate_permissions
-from ...services.post_migrate import post_migrate_calculate_divergence, post_migrate_movements
+from ...services.post_migrate import (
+    post_migrate_calculate_divergence,
+    post_migrate_movements,
+)
 from ...utils import paginated_query, reset_sequence
 
 
@@ -20,7 +23,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         post_migrate_movements()
-        #migrate_post_user_snapshots()
-        #migrate_post_snapshots_forecasts()
+        # migrate_post_user_snapshots()
+        # migrate_post_snapshots_forecasts()
         # Reset sql sequences
         reset_sequence()
