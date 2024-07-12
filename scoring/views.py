@@ -138,7 +138,8 @@ def user_medals(
     for entry in entries_with_medals:
         entry_data = LeaderboardEntrySerializer(entry).data
         leaderboard = LeaderboardSerializer(entry.leaderboard).data
-        entries.append({**entry_data, **leaderboard})
+        total_entries = entry.leaderboard.entries.filter(excluded=False).count()
+        entries.append({**entry_data, **leaderboard, "total_entries": total_entries})
     return Response(entries)
 
 
