@@ -35,7 +35,6 @@ class CommentQuerySet(models.QuerySet):
 
 
 class Comment(models.Model):
-    objects = models.Manager.from_queryset(CommentQuerySet)()
     author = models.ForeignKey(User, models.CASCADE)
     parent = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True)
     # auto_now_add=True must be disabled when the migration is run
@@ -58,6 +57,9 @@ class Comment(models.Model):
     # edited_at: None   # convenience field from edit_history ?
     user_vote: int = 0
     children = []
+
+    objects = models.Manager.from_queryset(CommentQuerySet)()
+
 
 
 class CommentDiff(models.Model):
