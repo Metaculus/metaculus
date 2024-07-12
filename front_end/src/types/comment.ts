@@ -8,10 +8,17 @@ export type CommentType = {
   created_at: Date;
   is_soft_deleted: boolean;
   text: string;
-  included_forecast?: number;
+  included_forecast?: ForecastType;
   is_private: boolean;
   vote_score?: number;
   user_vote: VoteDirection;
+};
+
+export type ForecastType = {
+  start_time: Date;
+  probability_yes: number;
+  probability_yes_per_category: number[];
+  continuous_cdf: number[];
 };
 
 export enum CommentPermissions {
