@@ -2,19 +2,19 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { Fragment, Suspense } from "react";
 
-import GlobalLeaderboard from "@/app/(main)/leaderboard/components/global_leaderboard";
-import LeaderboardCategoriesTabBar from "@/app/(main)/leaderboard/components/mobile_global_leaderboard";
-import { LeaderboardMobileTabBarProvider } from "@/app/(main)/leaderboard/mobile_tab_bar_context";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { SearchParams } from "@/types/navigation";
 import { CategoryKey, LeaderboardFilters } from "@/types/scoring";
 
+import LeaderboardCategoriesTabBar from "./components/categories_tab_bar";
+import GlobalLeaderboard from "./components/global_leaderboard";
 import LeaderboardHeader from "./components/leaderboard_header";
 import {
   extractLeaderboardFiltersFromParams,
   getLeaderboardTimeInterval,
   mapCategoryKeyToLeaderboardType,
 } from "./helpers/filter";
+import { LeaderboardMobileTabBarProvider } from "./mobile_tab_bar_context";
 
 export default function GlobalLeaderboards({
   searchParams,
