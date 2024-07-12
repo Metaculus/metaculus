@@ -63,7 +63,8 @@ export const POST_STATUS_LABEL_MAP = {
 };
 
 export function generateFiltersFromSearchParams(
-  searchParams: SearchParams
+  searchParams: SearchParams,
+  defaultOrderBy?: string
 ): PostsParams {
   const filters: PostsParams = {};
 
@@ -117,6 +118,8 @@ export function generateFiltersFromSearchParams(
 
   if (typeof searchParams[POST_ORDER_BY_FILTER] === "string") {
     filters.order_by = searchParams[POST_ORDER_BY_FILTER];
+  } else if (defaultOrderBy) {
+    filters.order_by = defaultOrderBy;
   }
 
   return filters;
