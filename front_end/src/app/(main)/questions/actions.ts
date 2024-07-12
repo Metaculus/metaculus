@@ -255,6 +255,6 @@ export async function searchUsers(query: string) {
   }
 }
 
-export async function changePostActivityBoost(postId: number, value: number) {
-  return await PostsApi.changePostActivityBoost(postId, value);
+export async function changePostActivityBoost(postId: number, score: number) {
+  return await PostsApi.changePostActivityBoost(postId, score);
 }
