@@ -551,5 +551,11 @@
   "inReviewBox2": "Questions that achieve a positive vote balance will be prioritized for Admin review and approval.",
   "inReviewBox3": "Questions that receive a significant number of negative votes will be rejected by default.",
   "inReviewBox4": "Please refer to our <link>Question writing guidelines</link> to learn what makes a good question.",
-  "inReviewBoxTitle": "Participate in the review process"
+  "inReviewBoxTitle": "Participate in the review process",
+  "userProfile": "{username}'s profile",
+  "unknownUserProfile": "User's profile",
+  "userMedals": "{username}'s medals",
+  "unknownUserMedals": "User's medals",
+  "medals": "Medals",
+  "leaderboard": "Leaderboard"
 }
