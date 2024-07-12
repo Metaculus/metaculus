@@ -546,5 +546,10 @@
   "Comments": "Comments",
   "questionWritingShort": "Q.Writing",
   "scoringDurationLabel": "Duration:",
-  "scoringTimePeriodLabel": "Time Period:"
+  "scoringTimePeriodLabel": "Time Period:",
+  "inReviewBox1": "You are welcome to participate in our review process by voting and commenting on questions during their development.",
+  "inReviewBox2": "Questions that achieve a positive vote balance will be prioritized for Admin review and approval.",
+  "inReviewBox3": "Questions that receive a significant number of negative votes will be rejected by default.",
+  "inReviewBox4": "Please refer to our <link>Question writing guidelines</link> to learn what makes a good question.",
+  "inReviewBoxTitle": "Participate in the review process"
 }
