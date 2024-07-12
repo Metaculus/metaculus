@@ -19,9 +19,11 @@ import {
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
+import { QuestionType } from "@/types/question";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
+import NumericQuestionInput from "./numeric_question_input";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
@@ -131,27 +133,15 @@ const QuestionForm: React.FC<Props> = ({
     };
 
   const submitQuestion = async (data: any) => {
-    if (data["zero_point"]) {
-      if (data["zero_point"] > 0 || data["zero_point"] < data["min"]) {
-        alert(
-          "Zero point should be > 0 and < min | You probably don't know what you are doing, please stop using log scales and ask :)"
-        );
-        return;
-      }
-    }
-    if (data["min"] || data["max"]) {
-      if (data["max"] <= data["min"]) {
-        alert("Max should be > min");
-        return;
-      }
+    if (
+      questionType === QuestionType.Date ||
+      questionType === QuestionType.Numeric
+    ) {
+      data["options"] = optionsList;
     }
     data["type"] = questionType;
     data["options"] = optionsList;
 
-    if (questionType == "date") {
-      data["max"] = new Date(data["max"]).getTime() / 1000;
-      data["min"] = new Date(data["min"]).getTime() / 1000;
-    }
     let post_data: PostCreationData = {
       title: data["title"],
       default_project_id: data["default_project_id"],
@@ -171,16 +161,6 @@ const QuestionForm: React.FC<Props> = ({
   );
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
-  );
-  const [isLogarithmic, setIsLogarithmic] = useState<boolean>(
-    post?.question ? post?.question?.zero_point != 0 : false
-  );
-
-  const can_see_logarithmic = () => {
-    return post?.user_permission == ProjectPermissions.ADMIN || !post;
-  };
-  const [logScaleEnabled, setLogScaleEnabled] = useState<boolean>(
-    can_see_logarithmic()
   );
 
   const getFormSchema = (type: string) => {
@@ -390,179 +370,37 @@ const QuestionForm: React.FC<Props> = ({
               />
             </div>
           </div>
+          {(questionType === QuestionType.Date ||
+            questionType === QuestionType.Numeric) && (
+            <NumericQuestionInput
+              questionType={questionType}
+              defaultMin={post?.question?.min}
+              defaultMax={post?.question?.max}
+              // @ts-ignore
+              defaultOpenLowerBound={post?.question?.open_lower_bound}
+              // @ts-ignore
+              defaultOpenUpperBound={post?.question?.open_upper_bound}
+              defaultZeroPoint={post?.question?.zero_point}
+              isLive={isLive}
+              canSeeLogarithmic={
+                post?.user_permission == ProjectPermissions.ADMIN || !post
+              }
+              onChange={(
+                min,
+                max,
+                openLowerBound,
+                openUpperBound,
+                zeroPoint
+              ) => {
+                control.setValue("min", min);
+                control.setValue("max", max);
+                control.setValue("open_lower_bound", openLowerBound);
+                control.setValue("open_upper_bound", openUpperBound);
+                control.setValue("zero_point", zeroPoint);
+              }}
+            />
+          )}
 
-          {questionType == "numeric" && (
-            <>
-              <div>
-                <span>Max</span>
-                <Input
-                  readOnly={isLive}
-                  type="number"
-                  {...control.register("max", {
-                    setValueAs: (value: string) => Number(value),
-                  })}
-                  errors={control.formState.errors.max}
-                  defaultValue={post?.question?.max}
-                />
-              </div>
-              <div>
-                <span>Min</span>
-                <Input
-                  readOnly={isLive}
-                  type="number"
-                  {...control.register("min", {
-                    setValueAs: (value: string) => {
-                      return Number(value);
-                    },
-                  })}
-                  errors={control.formState.errors.min}
-                  defaultValue={post?.question?.min}
-                  onChange={(e) => {
-                    if (Number(e.target.value) <= 0) {
-                      if (isLogarithmic) {
-                        control.setError("min", {
-                          message:
-                            "Min must be greater than 0 when logarithmic",
-                        });
-                        return;
-                      }
-                      setLogScaleEnabled(false);
-                    } else {
-                      setLogScaleEnabled(can_see_logarithmic());
-                    }
-                  }}
-                />
-              </div>
-            </>
-          )}
-          {questionType == "date" && (
-            <>
-              <div className="flex w-full flex-col gap-4 md:flex-row">
-                <div className="flex w-full flex-col gap-2">
-                  <span className={inputLabelStyles}>Max</span>
-                  <Input
-                    readOnly={isLive}
-                    type="date"
-                    className={baseInputStyles}
-                    {...control.register("max", {
-                      setValueAs: (value: string) => {
-                        if (
-                          value == "" ||
-                          value == null ||
-                          value == undefined
-                        ) {
-                          return null;
-                        }
-                        return new Date(value);
-                      },
-                    })}
-                    errors={control.formState.errors.max}
-                    defaultValue={
-                      post?.question?.max
-                        ? format(
-                            new Date(post?.question?.max * 1000),
-                            "yyyy-MM-dd"
-                          )
-                        : undefined
-                    }
-                  />
-                </div>
-                <div className="flex w-full flex-col gap-2">
-                  <span className={inputLabelStyles}>Min</span>
-                  <Input
-                    readOnly={isLive}
-                    type="date"
-                    className={baseInputStyles}
-                    {...control.register("min", {
-                      setValueAs: (value: string) => {
-                        if (
-                          value == "" ||
-                          value == null ||
-                          value == undefined
-                        ) {
-                          return null;
-                        }
-                        return new Date(value);
-                      },
-                    })}
-                    errors={control.formState.errors.min}
-                    defaultValue={
-                      post?.question?.min
-                        ? format(
-                            new Date(post?.question?.min * 1000),
-                            "yyyy-MM-dd"
-                          )
-                        : undefined
-                    }
-                  />
-                </div>
-              </div>
-            </>
-          )}
-          {(questionType == "numeric" || questionType == "date") && (
-            <>
-              <div className="flex w-full flex-col gap-4 md:mt-[-8px] md:flex-row">
-                <div className="flex w-full flex-col gap-2">
-                  <Checkbox
-                    label={"Open Upper Bound"}
-                    readOnly={isLive}
-                    errors={control.formState.errors.open_upper_bound}
-                    onChange={async (e) => {
-                      control.setValue("open_upper_bound", e);
-                    }}
-                    // @ts-ignore
-                    defaultChecked={
-                      // @ts-ignore
-                      post?.question ? post?.question?.open_upper_bound : false
-                    }
-                  />
-                </div>
-                <div className="flex w-full flex-col gap-2">
-                  <Checkbox
-                    label={"Open Lower Bound"}
-                    readOnly={isLive}
-                    errors={control.formState.errors.open_lower_bound}
-                    onChange={(e) => {
-                      control.setValue("open_lower_bound", e);
-                    }}
-                    // @ts-ignore
-                    defaultChecked={
-                      // @ts-ignore
-                      post?.question ? post?.question?.open_lower_bound : false
-                    }
-                  />
-                </div>
-              </div>
-              {logScaleEnabled && (
-                <div>
-                  <span className="mr-2">Is Logarithmic ?</span>
-                  <Input
-                    disabled={isLive}
-                    type="checkbox"
-                    onChange={(e) => {
-                      setIsLogarithmic(e.target.checked);
-                    }}
-                    checked={isLogarithmic}
-                    errors={control.formState.errors.zero_point}
-                  />
-                  {isLogarithmic && (
-                    <div className="ml-2">
-                      <span className="mr-2">Zero Point</span>
-                      <Input
-                        readOnly={isLive}
-                        type="number"
-                        {...control.register("zero_point", {
-                          setValueAs: (value: string) => Number(value),
-                        })}
-                        errors={control.formState.errors.zero_point}
-                        defaultValue={post?.question?.zero_point}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
           <div className={inputContainerStyles}>
             <span className={inputLabelStyles}>Categories</span>
             <CategoryPicker
