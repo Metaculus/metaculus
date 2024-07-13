@@ -173,6 +173,9 @@ AUTHENTICATION_BACKENDS = (
     "social_core.backends.facebook.FacebookOAuth2",
     "social_core.backends.google.GoogleOAuth2",
 )
+if os.environ.get("DEBUG") == "True":
+    # Allow to authenticate without correst password in development
+    AUTHENTICATION_BACKENDS += ("authentication.backends.PermissiveAuthLoginBackend",)
 
 SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.social_details",
