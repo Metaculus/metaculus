@@ -560,5 +560,6 @@
   "leaderboard": "Leaderboard",
   "namesPrediction": "<name>{username}'s</name> Prediction",
   "includeMyForecast": "include your latest forecast in this comment",
-  "privateComment": "private comment"
+  "privateComment": "private comment",
+  "groupVariable": "Group Variable"
 }
