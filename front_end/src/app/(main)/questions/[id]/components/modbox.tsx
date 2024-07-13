@@ -258,7 +258,9 @@ export default function Modbox({ post }: { post: PostWithForecasts }) {
       {post.status == PostStatus.APPROVED &&
         [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
           post.user_permission
-        ) && (
+        ) &&
+        post?.forecasts_count &&
+        post.forecasts_count < 1 && (
           <button
             className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark"
             onClick={async () => {

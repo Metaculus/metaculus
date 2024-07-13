@@ -37,6 +37,7 @@ type PostCreationData = {
 
 const groupQuestionSchema = z.object({
   title: z.string().min(4).max(200),
+  url_title: z.string().min(1),
   group_variable: z.string().max(200),
   description: z.string().min(10),
   resolution_criteria_description: z.string().min(1),
@@ -83,14 +84,14 @@ const GroupForm: React.FC<Props> = ({
     const groupData = subQuestions
       .filter((x) => !x.id)
       .map((x) => {
-        if (subtype == "binary") {
+        if (subtype == QuestionType.Binary) {
           return {
             type: subtype,
             title: x.label,
             scheduled_close_time: x.scheduled_close_time,
             scheduled_resolve_time: x.scheduled_resolve_time,
           };
-        } else if (subtype == "numeric") {
+        } else if (subtype == QuestionType.Numeric) {
           if (
             x.max == null ||
             x.min == null ||
@@ -108,8 +109,11 @@ const GroupForm: React.FC<Props> = ({
             scheduled_resolve_time: x.scheduled_resolve_time,
             min: x.min,
             max: x.max,
+            open_lower_bound: x.openLowerBound,
+            open_upper_bound: x.openUpperBound,
+            zero_point: x.zeroPoint,
           };
-        } else if (subtype == "date") {
+        } else if (subtype == QuestionType.Date) {
           if (
             x.max == null ||
             x.min == null ||
@@ -127,7 +131,14 @@ const GroupForm: React.FC<Props> = ({
             scheduled_resolve_time: x.scheduled_resolve_time,
             min: x.min,
             max: x.max,
+            open_lower_bound: x.openLowerBound,
+            open_upper_bound: x.openUpperBound,
+            zero_point: x.zeroPoint,
           };
+        } else {
+          alert("Invalid sub-question type");
+          break_out = true;
+          return;
         }
       });
     if (break_out) {
@@ -246,7 +257,7 @@ const GroupForm: React.FC<Props> = ({
             }
           )(e);
         }}
-        className="mt-4 flex flex w-[540px] w-full flex-col space-y-4 rounded"
+        className="mt-4 flex w-[540px] w-full flex-col gap-4 rounded"
       >
         <div className={inputContainerStyles}>
           <span className={inputLabelStyles}>Project ID</span>
@@ -277,289 +288,343 @@ const GroupForm: React.FC<Props> = ({
             </span>
           </span>
         </div>
-        <div>
-          <span>Resolution Criteria</span>
+        <div className={inputContainerStyles}>
+          <span className={inputLabelStyles}>Long Title</span>
           <Textarea
-            {...control.register("resolution_criteria_description")}
-            errors={control.formState.errors.resolution_criteria_description}
-            className="h-[120px] w-full"
-            defaultValue={
-              post?.group_of_questions?.resolution_criteria_description
-                ? post?.group_of_questions?.resolution_criteria_description
-                : undefined
-            }
+            {...control.register("title")}
+            errors={control.formState.errors.title}
+            defaultValue={post?.title}
+            className={`${baseTextareaStyles} min-h-[148px] p-5 text-xl font-normal`}
           />
-          <span>Fine Print</span>
+          <span className={inputDescriptionStyles}>
+            This should be a shorter version of the question text, used where
+            there is less space to display a title. It should end with a
+            question mark. Examples: &quot;NASA 2022 spacesuit contract
+            winner?&quot; or &quot;EU GDP from 2025 to 2035?&quot;.
+          </span>
+        </div>
+        <div className={inputContainerStyles}>
+          <span className={inputLabelStyles}>{t("Short Title")}</span>
+          <Input
+            {...control.register("url_title")}
+            errors={control.formState.errors.url_title}
+            defaultValue={post?.url_title}
+            className={baseInputStyles}
+          />
+          <span className={inputDescriptionStyles}>
+            This should be a shorter version of the Long Title, used where there
+            is less space to display a title. Examples: &quot;NASA 2022
+            Spacesuit Contract Winner&quot; ; &quot;EU GDP From 2025 to
+            2035&quot;.
+          </span>
+        </div>
+        <div className={inputContainerStyles}>
+          <span className={inputLabelStyles}>Background Information</span>
           <Textarea
-            {...control.register("fine_print")}
-            errors={control.formState.errors.fine_print}
-            className="h-[120px] w-full"
-            defaultValue={
-              post?.group_of_questions?.fine_print
-                ? post?.group_of_questions?.fine_print
-                : undefined
-            }
+            {...control.register("description")}
+            errors={control.formState.errors.description}
+            className={`${baseTextareaStyles} h-[120px] w-full p-3 text-sm`}
+            defaultValue={post?.group_of_questions?.description}
           />
+          <span className={inputDescriptionStyles}>
+            Provide background information for your question in a factual and
+            unbiased tone. Links should be added to relevant and helpful
+            resources using markdown syntax:{" "}
+            <span className={markdownStyles}>
+              [Link title](https://link-url.com)
+            </span>
+            .
+          </span>
+        </div>
+        <div className={inputContainerStyles}>
+          <span className={inputLabelStyles}>{t("groupVariable")}</span>
+          <Input
+            {...control.register("group_variable")}
+            errors={control.formState.errors.group_variable}
+            defaultValue={post?.group_of_questions.group_variable}
+            className={baseInputStyles}
+          />
+          <span className={inputDescriptionStyles}>
+            What the subquestion labels represent (e.g. year, country, etc).
+          </span>
+        </div>
+        <span>Resolution Criteria</span>
+        <Textarea
+          {...control.register("resolution_criteria_description")}
+          errors={control.formState.errors.resolution_criteria_description}
+          className="h-[120px] w-full"
+          defaultValue={
+            post?.group_of_questions?.resolution_criteria_description
+              ? post?.group_of_questions?.resolution_criteria_description
+              : undefined
+          }
+        />
+        <span>Fine Print</span>
+        <Textarea
+          {...control.register("fine_print")}
+          errors={control.formState.errors.fine_print}
+          className="h-[120px] w-full"
+          defaultValue={
+            post?.group_of_questions?.fine_print
+              ? post?.group_of_questions?.fine_print
+              : undefined
+          }
+        />
 
-          <CategoryPicker
-            allCategories={allCategories}
-            categories={categoriesList}
-            onChange={(categories) => {
-              setCategoriesList(categories);
-            }}
-          ></CategoryPicker>
-          <span className="text-xs font-thin text-gray-800">{`A name for the parameter which varies between subquestions, like "Option", "Year" or "Country"`}</span>
+        <CategoryPicker
+          allCategories={allCategories}
+          categories={categoriesList}
+          onChange={(categories) => {
+            setCategoriesList(categories);
+          }}
+        ></CategoryPicker>
+        <span className="text-xs font-thin text-gray-800">{`A name for the parameter which varies between subquestions, like "Option", "Year" or "Country"`}</span>
 
-          <div className="flex-col rounded border bg-zinc-200 p-4 dark:bg-blue-700">
-            <div className="mb-4">Subquestions</div>
+        <div className="flex-col rounded border bg-zinc-200 p-4 dark:bg-blue-700">
+          <div className="mb-4">Subquestions</div>
 
-            {subQuestions.map((subQuestion, index) => {
-              return (
-                <div
-                  key={index}
-                  className="flex w-full flex-col space-y-4 rounded border bg-white p-4 dark:bg-blue-900"
-                >
-                  <div className={inputContainerStyles}>
-                    {collapsedSubQuestions[index] && (
-                      <span className={inputLabelStyles}>
-                        Subquestion Label
-                      </span>
-                    )}
-                    <Input
-                      onChange={(e) => {
-                        setSubQuestions(
-                          subQuestions.map((subQuestion, iter_index) => {
-                            if (index == iter_index) {
-                              subQuestion["label"] = e.target.value;
-                            }
-                            return subQuestion;
-                          })
-                        );
-                      }}
-                      className={baseInputStyles}
-                      value={subQuestion?.label}
-                    />
-                    {collapsedSubQuestions[index] && (
-                      <span className={inputDescriptionStyles}>
-                        {`The label or parameter which identifies this subquestion, like "Option 1", "2033" or "France"`}
-                      </span>
-                    )}
-                  </div>
-                  {collapsedSubQuestions[index] && (
-                    <div className="flex w-full flex-col gap-4 md:flex-row">
-                      <div className="flex w-full flex-col gap-2">
-                        <span className={inputLabelStyles}>Closing Date</span>
-                        <Input
-                          readOnly={isLive}
-                          type="datetime-local"
-                          className={baseInputStyles}
-                          defaultValue={
-                            subQuestions[index].scheduled_close_time
-                              ? format(
-                                  new Date(
-                                    subQuestions[index].scheduled_close_time
-                                  ),
-                                  "yyyy-MM-dd'T'HH:mm"
-                                )
-                              : undefined
-                          }
-                          onChange={(e) => {
-                            setSubQuestions(
-                              subQuestions.map((subQuestion, iter_index) => {
-                                if (index == iter_index) {
-                                  subQuestion.scheduled_close_time =
-                                    e.target.value;
-                                }
-                                return subQuestion;
-                              })
-                            );
-                          }}
-                        />
-                      </div>
-                      <div className="flex w-full flex-col gap-2">
-                        <span className={inputLabelStyles}>Resolving Date</span>
-                        <Input
-                          readOnly={isLive}
-                          type="datetime-local"
-                          className={baseInputStyles}
-                          defaultValue={
-                            subQuestions[index].scheduled_resolve_time
-                              ? format(
-                                  new Date(
-                                    subQuestions[index].scheduled_resolve_time
-                                  ),
-                                  "yyyy-MM-dd'T'HH:mm"
-                                )
-                              : undefined
-                          }
-                          onChange={(e) => {
-                            setSubQuestions(
-                              subQuestions.map((subQuestion, iter_index) => {
-                                if (index == iter_index) {
-                                  subQuestion.scheduled_close_time =
-                                    e.target.value;
-                                }
-                                return subQuestion;
-                              })
-                            );
-                          }}
-                        />
-                      </div>
-                      {(subtype === QuestionType.Date ||
-                        subtype === QuestionType.Numeric) && (
-                        <NumericQuestionInput
-                          // @ts-ignore
-                          questionType={subtype}
-                          defaultMin={subQuestions[index].min}
-                          defaultMax={subQuestions[index].max}
-                          // @ts-ignore
-                          defaultOpenLowerBound={
-                            subQuestions[index].open_lower_bound
-                          }
-                          // @ts-ignore
-                          defaultOpenUpperBound={
-                            subQuestions[index].open_upper_bound
-                          }
-                          defaultZeroPoint={subQuestions[index].zero_point}
-                          isLive={isLive}
-                          canSeeLogarithmic={
-                            post?.user_permission == ProjectPermissions.ADMIN ||
-                            !post
-                          }
-                          onChange={(
-                            min,
-                            max,
-                            openLowerBound,
-                            openUpperBound,
-                            zeroPoint
-                          ) => {
-                            setSubQuestions(
-                              subQuestions.map((subQuestion, iter_index) => {
-                                if (index == iter_index) {
-                                  subQuestion["min"] = min;
-                                  subQuestion["max"] = max;
-                                  subQuestion["openLowerBound"] =
-                                    openLowerBound;
-                                  subQuestion["openUpperBound"] =
-                                    openUpperBound;
-                                  subQuestion["zeroPoint"] = zeroPoint;
-                                }
-                                return subQuestion;
-                              })
-                            );
-                          }}
-                        />
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex justify-between">
-                    <Button
-                      size="sm"
-                      variant="tertiary"
-                      onClick={() => {
-                        setCollapsedSubQuestions(
-                          collapsedSubQuestions.map((x, iter_index) => {
-                            if (iter_index == index) {
-                              return !x;
-                            }
-                            return x;
-                          })
-                        );
-                      }}
-                    >
-                      {collapsedSubQuestions[index] === false
-                        ? "Expand"
-                        : "Collapse"}
-                    </Button>
-
-                    <Button
-                      disabled={isLive}
-                      size="md"
-                      presentationType="icon"
-                      variant="tertiary"
-                      className="border-red-200 text-red-400 hover:border-red-400 active:border-red-600 active:bg-red-100/50 dark:border-red-400/50 dark:text-red-400 dark:hover:border-red-400 dark:active:border-red-300/75 dark:active:bg-red-400/15"
-                      onClick={() => {
-                        setSubQuestions(
-                          subQuestions.filter(
-                            (subQuestion, iter_index) => index != iter_index
-                          )
-                        );
-                        setCollapsedSubQuestions(
-                          collapsedSubQuestions.filter(
-                            (_, iter_index) => index != iter_index
-                          )
-                        );
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faTrash}></FontAwesomeIcon>
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-            <div className="mt-4">
-              <Button
-                onClick={() => {
-                  if (subtype === "numeric") {
-                    setSubQuestions([
-                      ...subQuestions,
-                      {
-                        type: "numeric",
-                        label: "",
-                        scheduled_close_time:
-                          control.getValues().scheduled_close_time,
-                        scheduled_resolve_time:
-                          control.getValues().scheduled_resolve_time,
-                        min: null,
-                        max: null,
-                        zero_point: null,
-                        open_lower_bound: null,
-                        open_upper_bound: null,
-                      },
-                    ]);
-                  } else if (subtype === "date") {
-                    setSubQuestions([
-                      ...subQuestions,
-                      {
-                        type: "date",
-                        label: "",
-                        scheduled_close_time:
-                          control.getValues().scheduled_close_time,
-                        scheduled_resolve_time:
-                          control.getValues().scheduled_resolve_time,
-                        min: null,
-                        max: null,
-                        zero_point: null,
-                        open_lower_bound: null,
-                        open_upper_bound: null,
-                      },
-                    ]);
-                  } else {
-                    setSubQuestions([
-                      ...subQuestions,
-                      {
-                        type: "binary",
-                        label: "",
-                        scheduled_close_time:
-                          control.getValues().scheduled_close_time,
-                        scheduled_resolve_time:
-                          control.getValues().scheduled_resolve_time,
-                      },
-                    ]);
-                  }
-                  setCollapsedSubQuestions([...collapsedSubQuestions, true]);
-                }}
+          {subQuestions.map((subQuestion, index) => {
+            return (
+              <div
+                key={index}
+                className="flex w-full flex-col space-y-4 rounded border bg-white p-4 dark:bg-blue-900"
               >
-                + New Subquestion
-              </Button>
-            </div>
-          </div>
+                <div className={inputContainerStyles}>
+                  {collapsedSubQuestions[index] && (
+                    <span className={inputLabelStyles}>Subquestion Label</span>
+                  )}
+                  <Input
+                    onChange={(e) => {
+                      setSubQuestions(
+                        subQuestions.map((subQuestion, iter_index) => {
+                          if (index == iter_index) {
+                            subQuestion["label"] = e.target.value;
+                          }
+                          return subQuestion;
+                        })
+                      );
+                    }}
+                    className={baseInputStyles}
+                    value={subQuestion?.label}
+                  />
+                  {collapsedSubQuestions[index] && (
+                    <span className={inputDescriptionStyles}>
+                      {`The label or parameter which identifies this subquestion, like "Option 1", "2033" or "France"`}
+                    </span>
+                  )}
+                </div>
+                {collapsedSubQuestions[index] && (
+                  <div className="flex w-full flex-col gap-4 md:flex-row">
+                    <div className="flex w-full flex-col gap-2">
+                      <span className={inputLabelStyles}>Closing Date</span>
+                      <Input
+                        readOnly={isLive}
+                        type="datetime-local"
+                        className={baseInputStyles}
+                        defaultValue={
+                          subQuestions[index].scheduled_close_time
+                            ? format(
+                                new Date(
+                                  subQuestions[index].scheduled_close_time
+                                ),
+                                "yyyy-MM-dd'T'HH:mm"
+                              )
+                            : undefined
+                        }
+                        onChange={(e) => {
+                          setSubQuestions(
+                            subQuestions.map((subQuestion, iter_index) => {
+                              if (index == iter_index) {
+                                subQuestion.scheduled_close_time =
+                                  e.target.value;
+                              }
+                              return subQuestion;
+                            })
+                          );
+                        }}
+                      />
+                    </div>
+                    <div className="flex w-full flex-col gap-2">
+                      <span className={inputLabelStyles}>Resolving Date</span>
+                      <Input
+                        readOnly={isLive}
+                        type="datetime-local"
+                        className={baseInputStyles}
+                        defaultValue={
+                          subQuestions[index].scheduled_resolve_time
+                            ? format(
+                                new Date(
+                                  subQuestions[index].scheduled_resolve_time
+                                ),
+                                "yyyy-MM-dd'T'HH:mm"
+                              )
+                            : undefined
+                        }
+                        onChange={(e) => {
+                          setSubQuestions(
+                            subQuestions.map((subQuestion, iter_index) => {
+                              if (index == iter_index) {
+                                subQuestion.scheduled_resolve_time =
+                                  e.target.value;
+                              }
+                              return subQuestion;
+                            })
+                          );
+                        }}
+                      />
+                    </div>
+                    {(subtype === QuestionType.Date ||
+                      subtype === QuestionType.Numeric) && (
+                      <NumericQuestionInput
+                        // @ts-ignore
+                        questionType={subtype}
+                        defaultMin={subQuestions[index].min}
+                        defaultMax={subQuestions[index].max}
+                        // @ts-ignore
+                        defaultOpenLowerBound={
+                          subQuestions[index].open_lower_bound
+                        }
+                        // @ts-ignore
+                        defaultOpenUpperBound={
+                          subQuestions[index].open_upper_bound
+                        }
+                        defaultZeroPoint={subQuestions[index].zero_point}
+                        isLive={isLive}
+                        canSeeLogarithmic={
+                          post?.user_permission == ProjectPermissions.ADMIN ||
+                          !post
+                        }
+                        onChange={(
+                          min,
+                          max,
+                          openLowerBound,
+                          openUpperBound,
+                          zeroPoint
+                        ) => {
+                          setSubQuestions(
+                            subQuestions.map((subQuestion, iter_index) => {
+                              if (index == iter_index) {
+                                subQuestion["min"] = min;
+                                subQuestion["max"] = max;
+                                subQuestion["openLowerBound"] = openLowerBound;
+                                subQuestion["openUpperBound"] = openUpperBound;
+                                subQuestion["zeroPoint"] = zeroPoint;
+                              }
+                              return subQuestion;
+                            })
+                          );
+                        }}
+                      />
+                    )}
+                  </div>
+                )}
+
+                <div className="flex justify-between">
+                  <Button
+                    size="sm"
+                    variant="tertiary"
+                    onClick={() => {
+                      setCollapsedSubQuestions(
+                        collapsedSubQuestions.map((x, iter_index) => {
+                          if (iter_index == index) {
+                            return !x;
+                          }
+                          return x;
+                        })
+                      );
+                    }}
+                  >
+                    {collapsedSubQuestions[index] === false
+                      ? "Expand"
+                      : "Collapse"}
+                  </Button>
+
+                  <Button
+                    disabled={isLive}
+                    size="md"
+                    presentationType="icon"
+                    variant="tertiary"
+                    className="border-red-200 text-red-400 hover:border-red-400 active:border-red-600 active:bg-red-100/50 dark:border-red-400/50 dark:text-red-400 dark:hover:border-red-400 dark:active:border-red-300/75 dark:active:bg-red-400/15"
+                    onClick={() => {
+                      setSubQuestions(
+                        subQuestions.filter(
+                          (subQuestion, iter_index) => index != iter_index
+                        )
+                      );
+                      setCollapsedSubQuestions(
+                        collapsedSubQuestions.filter(
+                          (_, iter_index) => index != iter_index
+                        )
+                      );
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faTrash}></FontAwesomeIcon>
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
           <div className="mt-4">
-            <Button type="submit">
-              {mode == "create" ? "Create Question" : "Edit Question"}
+            <Button
+              onClick={() => {
+                if (subtype === "numeric") {
+                  setSubQuestions([
+                    ...subQuestions,
+                    {
+                      type: "numeric",
+                      label: "",
+                      scheduled_close_time:
+                        control.getValues().scheduled_close_time,
+                      scheduled_resolve_time:
+                        control.getValues().scheduled_resolve_time,
+                      min: null,
+                      max: null,
+                      zero_point: null,
+                      open_lower_bound: null,
+                      open_upper_bound: null,
+                    },
+                  ]);
+                } else if (subtype === "date") {
+                  setSubQuestions([
+                    ...subQuestions,
+                    {
+                      type: "date",
+                      label: "",
+                      scheduled_close_time:
+                        control.getValues().scheduled_close_time,
+                      scheduled_resolve_time:
+                        control.getValues().scheduled_resolve_time,
+                      min: null,
+                      max: null,
+                      zero_point: null,
+                      open_lower_bound: null,
+                      open_upper_bound: null,
+                    },
+                  ]);
+                } else {
+                  setSubQuestions([
+                    ...subQuestions,
+                    {
+                      type: "binary",
+                      label: "",
+                      scheduled_close_time:
+                        control.getValues().scheduled_close_time,
+                      scheduled_resolve_time:
+                        control.getValues().scheduled_resolve_time,
+                    },
+                  ]);
+                }
+                setCollapsedSubQuestions([...collapsedSubQuestions, true]);
+              }}
+            >
+              + New Subquestion
             </Button>
           </div>
+        </div>
+        <div className="mt-4">
+          <Button type="submit">
+            {mode == "create" ? "Create Question" : "Edit Question"}
+          </Button>
         </div>
       </form>
     </div>
