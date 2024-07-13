@@ -70,7 +70,6 @@ const NumericQuestionInput: React.FC<{
         }
       }
     }
-    console.log(min, max);
     if (min !== undefined && max !== undefined) {
       if (min >= max) {
         current_errors.push("Minimum value should be less than maximum value");
@@ -207,8 +206,12 @@ const NumericQuestionInput: React.FC<{
             <Input
               disabled={isLive}
               type="checkbox"
-              onChange={(e) => {
-                setZeroPoint(2.8);
+              onClick={(e) => {
+                if (zeroPoint != 0) {
+                  setZeroPoint(0);
+                } else {
+                  setZeroPoint(2.8);
+                }
               }}
               checked={zeroPoint != 0}
             />
