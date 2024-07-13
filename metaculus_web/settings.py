@@ -32,7 +32,7 @@ SECRET_KEY = os.environ.get(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # TODO: disable in prod
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "true").lower() == "true"
 
 # Application definition
 
@@ -173,7 +173,7 @@ AUTHENTICATION_BACKENDS = (
     "social_core.backends.facebook.FacebookOAuth2",
     "social_core.backends.google.GoogleOAuth2",
 )
-if os.environ.get("DEBUG") == "True":
+if DEBUG:
     # Allow to authenticate without correst password in development
     AUTHENTICATION_BACKENDS += ("authentication.backends.PermissiveAuthLoginBackend",)
 
