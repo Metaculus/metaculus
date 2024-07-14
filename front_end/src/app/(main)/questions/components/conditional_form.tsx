@@ -28,7 +28,6 @@ import { createQuestionPost, getPost, updatePost } from "../actions";
 type PostCreationData = {
   title: string;
   url_title: string;
-  tournament_id?: number;
   categories: number[];
   default_project_id: number;
   conditional: {
@@ -39,9 +38,9 @@ type PostCreationData = {
 const conditionalQuestionSchema = z.object({
   title: z.string().min(4).max(200),
   url_title: z.string().min(4).max(60),
-  tournament_id: z.number().optional(),
   condition_id: z.number(),
   condition_child_id: z.number(),
+  default_project_id: z.number(),
 });
 
 const ConditionalForm: React.FC<{
@@ -96,7 +95,6 @@ const ConditionalForm: React.FC<{
         title: data["title"],
         url_title: data["url_title"],
         default_project_id: data["default_project_id"],
-        tournament_id: tournament_id ? tournament_id : undefined,
         categories: categoriesList.map((x) => x.id),
         conditional: {
           condition_id: condition?.question?.id as number,
@@ -114,13 +112,11 @@ const ConditionalForm: React.FC<{
     }
   };
 
-  const defaultProject = control.getValues("default_project_id")
-    ? [...tournaments, siteMain].filter((x) =>
-        x.id === control.getValues("default_project_id")
-          ? control.getValues("default_project_id")
-          : tournament_id
-      )[0]
-    : siteMain;
+  const defaultProject = post
+    ? post.projects.default_project
+    : tournament_id
+      ? [...tournaments, siteMain].filter((x) => x.id === tournament_id)[0]
+      : siteMain;
 
   const inputContainerStyles = "flex flex-col gap-1.5";
   const baseInputStyles =
