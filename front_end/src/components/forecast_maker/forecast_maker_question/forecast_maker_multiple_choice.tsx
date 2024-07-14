@@ -30,7 +30,7 @@ import ForecastChoiceOption from "../forecast_choice_option";
 
 type ChoiceOption = {
   name: string;
-  communityForecast: number | null;
+  communityForecast?: number | null;
   forecast: number | null;
   color: ThemeColor;
 };
@@ -277,7 +277,7 @@ function generateChoiceOptions(
   return Object.entries(choices).map(([choice, values], index) => ({
     name: choice,
     color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-    communityForecast: values.at(-1)?.value_mean ?? null,
+    communityForecast: values ? values.at(-1)?.value_mean : null,
     forecast: getDefaultForecast(index, defaultForecasts),
   }));
 }

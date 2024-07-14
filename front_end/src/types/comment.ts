@@ -18,7 +18,9 @@ export type ForecastType = {
   start_time: Date;
   probability_yes: number;
   probability_yes_per_category: number[];
+  options: string[];
   continuous_cdf: number[];
+  quartiles: number[];
 };
 
 export enum CommentPermissions {

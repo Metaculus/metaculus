@@ -1,7 +1,7 @@
 import numpy as np
 
 from questions.models import Question
-from utils.the_math.formulas import scale_location
+from utils.the_math.formulas import unscaled_location_to_scaled_location
 
 
 def weighted_percentile_2d(
@@ -40,16 +40,17 @@ def weighted_percentile_2d(
 
 
 def percent_point_function(cdf: list[float], percent: float) -> float:
-    if percent < cdf[0]:
+    # percent is a float between 0 and 100
+    if percent < cdf[0] * 100:
         return 0.0
-    if percent > cdf[-1]:
+    if percent > cdf[-1] * 100:
         return 1.0
     length = len(cdf)
     for i in range(length - 1):
-        left = cdf[i]
+        left = cdf[i] * 100
         if left == percent:
             return i / (length - 1)
-        right = cdf[i + 1]
+        right = cdf[i + 1] * 100
         if left < percent < right:
             # linear interpolation
             return (i + (percent - left) / (right - left)) / (length - 1)
@@ -82,15 +83,13 @@ def prediction_difference_for_display(
         # list of (abs pred diff, ratio of odds)
         return [(q - p, (q / (1 - q)) / (p / (1 - p))) for p, q in zip(p1, p2)]
     # total earth mover's distance, assymmetric earth mover's distance
-    x_locations = scale_location(
-        question.zero_point,
-        question.max,
-        question.min,
+    x_locations = unscaled_location_to_scaled_location(
         np.linspace(
             question.min,
             question.max,
             len(p1),
         ),
+        question,
     )
     diffs = np.array(p1) - np.array(p2)
     total = np.trapz(np.abs(diffs), x=x_locations)

@@ -12,7 +12,7 @@ from utils.the_math.community_prediction import (
     compute_binary_plotable_cp,
     compute_continuous_plotable_cp,
 )
-from utils.the_math.formulas import scale_location
+from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import percent_point_function
 
 
@@ -114,19 +114,19 @@ def build_question_forecasts_for_user(question: Question, user: User) -> dict:
 
     # values_choice_1
     # TODO: fix N+1
-    zero_point, max, min = question.zero_point, question.max, question.min
-    for x in question.forecast_set.filter(author=user).order_by("start_time").all():
-        forecasts_data["slider_values"] = x.slider_values
-        forecasts_data["timestamps"].append(x.start_time.timestamp())
+    for forecast in (
+        question.forecast_set.filter(author=user).order_by("start_time").all()
+    ):
+        forecasts_data["slider_values"] = forecast.slider_values
+        forecasts_data["timestamps"].append(forecast.start_time.timestamp())
         if question.type == "multiple_choice":
             forecasts_data["values_mean"].append(0)
         elif question.type == "binary":
-            forecasts_data["values_mean"].append(x.probability_yes)
+            forecasts_data["values_mean"].append(forecast.probability_yes)
         elif question.type in ["numeric", "date"]:
-            cps, cdf = compute_continuous_plotable_cp(question, 100)
             forecasts_data["values_mean"].append(
-                scale_location(
-                    zero_point, max, min, percent_point_function(x.continuous_cdf, 0.5)
+                unscaled_location_to_scaled_location(
+                    percent_point_function(forecast.continuous_cdf, 50), question
                 )
             )
 

@@ -19,7 +19,7 @@ type Props<T> = {
   max: number;
   defaultSliderValue: number;
   forecastValue: number | null;
-  communityForecast: number | null;
+  communityForecast?: number | null;
   onChange: (id: T, forecast: number) => void;
   isDirty: boolean;
   isRowDirty?: boolean;
