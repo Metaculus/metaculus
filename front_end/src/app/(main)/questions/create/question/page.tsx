@@ -19,6 +19,8 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   const question_type: string = post
     ? (post.question?.type as string)
     : (searchParams["type"] as string);
+  const allTournaments = await ProjectsApi.getTournaments();
+  const siteMain = await ProjectsApi.getSiteMain();
 
   return (
     <QuestionForm
@@ -31,6 +33,8 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
           : undefined
       }
       allCategories={allCategories}
+      tournaments={allTournaments}
+      siteMain={siteMain}
     ></QuestionForm>
   );
 };
