@@ -5,10 +5,13 @@ from datetime import datetime, timezone as dt_timezone
 from django.utils import timezone
 from users.models import User
 from utils.the_math.measures import prediction_difference_for_display
+from utils.the_math.formulas import (
+    get_scaled_quartiles_from_cdf,
+    scaled_location_to_string_location,
+)
 from .constants import ResolutionType
 from .models import Question, Conditional, GroupOfQuestions
 from .services import build_question_forecasts, build_question_forecasts_for_user
-import numpy as np
 from questions.models import Forecast
 
 
@@ -135,6 +138,14 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
 
 
 class ForecastSerializer(serializers.ModelSerializer):
+    quartiles = serializers.SerializerMethodField()
+    range_min = serializers.FloatField(source="question.min")
+    range_max = serializers.FloatField(source="question.max")
+    zero_point = serializers.FloatField(source="question.zero_point")
+    options = serializers.ListField(
+        child=serializers.CharField(), source="question.options"
+    )
+
     class Meta:
         model = Forecast
         fields = (
@@ -142,7 +153,17 @@ class ForecastSerializer(serializers.ModelSerializer):
             "probability_yes",
             "probability_yes_per_category",
             "continuous_cdf",
+            "quartiles",
+            "range_min",
+            "range_max",
+            "zero_point",
+            "options",
         )
+
+    def get_quartiles(self, forecast: Forecast):
+        question = forecast.question
+        if question.type in [Question.QuestionType.DATE, Question.QuestionType.NUMERIC]:
+            return get_scaled_quartiles_from_cdf(forecast.continuous_cdf, question)
 
 
 def serialize_question(
@@ -175,12 +196,12 @@ def serialize_question(
             )
             if last_forecast:
                 if question.type in ["binary", "multiple_choice"]:
-                    cp_prediction_values = serialized_data["forecasts"]["latest_cdf"]
-                else:
                     cp_prediction_values = serialized_data["forecasts"]["latest_pmf"]
+                else:
+                    cp_prediction_values = serialized_data["forecasts"]["latest_cdf"]
                 if cp_prediction_values is not None:
                     try:
-                        serialized_data["dispaly_divergences"] = (
+                        serialized_data["display_divergences"] = (
                             prediction_difference_for_display(
                                 last_forecast.get_prediction_values(),
                                 cp_prediction_values,

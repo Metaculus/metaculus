@@ -1,6 +1,5 @@
 import { parseISO } from "date-fns";
 import { FC } from "react";
-import { boolean } from "zod";
 
 import { ProjectPermissions } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";

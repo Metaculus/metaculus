@@ -8,6 +8,7 @@ import html2text
 from dateutil.parser import parse as date_parse
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+from questions.constants import ResolutionType
 
 from migrator.utils import paginated_query
 from posts.models import Notebook, Post, PostUserSnapshot
@@ -15,29 +16,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
 from questions.models import Question, Conditional, GroupOfQuestions, Forecast
-from utils.the_math.formulas import scale_location
-
-
-def unscaled_location_to_string_location(
-    question: Question, unscaled_location: float
-) -> str:
-    if question.type == "binary":
-        mapping = {1: "yes", 0: "no", -1: "ambiguous", -2: "annulled"}
-
-        return mapping.get(int(unscaled_location))
-    if question.type == "multiple_choice":
-        return question.options[int(unscaled_location)]
-    # continuous
-    if unscaled_location == 2:
-        return "below_lower_bound"
-    if unscaled_location == 3:
-        return "above_upper_bound"
-    actual_location = scale_location(
-        question.zero_point, question.max, question.min, unscaled_location
-    )
-    if question.type == "date":
-        return datetime.fromtimestamp(actual_location).isoformat()
-    return str(actual_location)
+from utils.the_math.formulas import unscaled_location_to_string_location
 
 
 def has_resolution(resolution):
@@ -116,9 +95,19 @@ def create_question(question: dict, **kwargs) -> Question:
 
     resolution: str | None = None
     resolution_float = question["resolution"]
-    if (resolution_float is not None) and (resolution_float >= 0):
+    if resolution_float == -1:
+        resolution = ResolutionType.AMBIGUOUS
+    elif resolution_float == -2:
+        resolution = ResolutionType.ANNULLED
+    elif (resolution_float is not None) and (resolution_float >= 0):
+        if new_question.type in ["numeric", "date"]:
+            # out of bound values need to be rescaled
+            if resolution_float == 2:
+                resolution_float = -1
+            elif resolution_float == 3:
+                resolution_float = 2
         resolution = unscaled_location_to_string_location(
-            new_question, resolution_float
+            resolution_float, new_question
         )
     new_question.resolution = resolution
 

@@ -11,7 +11,6 @@ Normalise to 1 over all outcomes.
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-import math
 from typing import Optional
 from django.core.cache import cache
 from django.db.models import Q
@@ -20,8 +19,8 @@ import numpy as np
 
 from django.db.models import QuerySet
 from questions.models import Forecast, Question
-from utils.the_math.formulas import scale_location
-from utils.the_math.measures import weighted_percentile_2d, percent_point_function
+from utils.the_math.formulas import get_scaled_quartiles_from_cdf
+from utils.the_math.measures import weighted_percentile_2d
 
 
 class CommunityPrediction:
@@ -218,22 +217,16 @@ def compute_continuous_plotable_cp(
         forecast_history = truncate_forecast_history(forecast_history, max_length)
     cps = []
     cdf = None
-    zero_point, max, min = question.zero_point, question.max, question.min
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
         cdf = compute_cp_continuous(entry.predictions, weights)
+        lower, middle, upper = get_scaled_quartiles_from_cdf(cdf, question)
 
         cps.append(
             GraphCP(
-                lower=scale_location(
-                    zero_point, max, min, percent_point_function(cdf, 0.25)
-                ),
-                middle=scale_location(
-                    zero_point, max, min, percent_point_function(cdf, 0.5)
-                ),
-                upper=scale_location(
-                    zero_point, max, min, percent_point_function(cdf, 0.75)
-                ),
+                lower=lower,
+                middle=middle,
+                upper=upper,
                 nr_forecasters=len(entry.predictions),
                 at_datetime=entry.at_datetime,
             )
