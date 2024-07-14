@@ -3,27 +3,31 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
-import { Input } from "@/components/ui/form_field";
+import { Input, Textarea } from "@/components/ui/form_field";
 import {
   Category,
   PostStatus,
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
+import { Tournament } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
+import ProjectPicker from "./project_picker";
 import { createQuestionPost, getPost, updatePost } from "../actions";
 
 type PostCreationData = {
   title: string;
+  url_title: string;
   tournament_id?: number;
   categories: number[];
   default_project_id: number;
@@ -34,6 +38,7 @@ type PostCreationData = {
 };
 const conditionalQuestionSchema = z.object({
   title: z.string().min(4).max(200),
+  url_title: z.string().min(4).max(60),
   tournament_id: z.number().optional(),
   condition_id: z.number(),
   condition_child_id: z.number(),
@@ -46,6 +51,8 @@ const ConditionalForm: React.FC<{
   tournament_id: number | null;
   mode: "create" | "edit";
   allCategories: Category[];
+  tournaments: Tournament[];
+  siteMain: Tournament;
 }> = ({
   post = null,
   conditionInit = null,
@@ -53,8 +60,11 @@ const ConditionalForm: React.FC<{
   tournament_id = null,
   mode = "create",
   allCategories,
+  tournaments,
+  siteMain,
 }) => {
   const router = useRouter();
+  const t = useTranslations();
   const isLive =
     post?.curation_status == PostStatus.APPROVED ||
     post?.curation_status == PostStatus.OPEN;
@@ -84,6 +94,7 @@ const ConditionalForm: React.FC<{
     if (condition?.id && conditionChild?.id) {
       let post_data: PostCreationData = {
         title: data["title"],
+        url_title: data["url_title"],
         default_project_id: data["default_project_id"],
         tournament_id: tournament_id ? tournament_id : undefined,
         categories: categoriesList.map((x) => x.id),
@@ -102,6 +113,14 @@ const ConditionalForm: React.FC<{
       }
     }
   };
+
+  const defaultProject = control.getValues("default_project_id")
+    ? [...tournaments, siteMain].filter((x) =>
+        x.id === control.getValues("default_project_id")
+          ? control.getValues("default_project_id")
+          : tournament_id
+      )[0]
+    : siteMain;
 
   const inputContainerStyles = "flex flex-col gap-1.5";
   const baseInputStyles =
@@ -126,9 +145,6 @@ const ConditionalForm: React.FC<{
       <form
         className="mt-4 flex flex w-[540px] w-full flex-col space-y-4 rounded"
         onSubmit={async (e) => {
-          if (control.getValues("default_project_id") === "") {
-            control.setValue("default_project_id", null);
-          }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
             async (data) => {
@@ -148,52 +164,58 @@ const ConditionalForm: React.FC<{
           </div>
         )}
         <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>Project ID</span>
-          <Input
-            type="number"
-            {...control.register("default_project_id")}
-            errors={control.formState.errors.default_project_id}
-            className={baseInputStyles}
-            defaultValue={
-              control.getValues("default_project_id")
-                ? control.getValues("default_project_id")
-                : tournament_id
-            }
-            readOnly={isLive}
+          <ProjectPicker
+            tournaments={tournaments}
+            siteMain={siteMain}
+            currentProject={defaultProject}
+            onChange={(project) => {
+              control.setValue("default_project_id", project.id);
+            }}
           />
-          <span className="text-xs">
-            Initial project:
-            <span className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1">
-              <Link
-                href={`/tournament/${control.getValues("default_project_id")}`}
-                className="text-white no-underline"
-              >
-                {control.getValues("default_project_id")
-                  ? control.getValues("default_project_id")
-                  : "Global"}
-              </Link>
-            </span>
-          </span>
         </div>
         <div className={inputContainerStyles}>
           <span className={inputLabelStyles}>Long Title</span>
-          <Input
+          <Textarea
             {...control.register("title")}
             errors={control.formState.errors.title}
-            className={baseInputStyles}
-            defaultValue={post ? post.title : ""}
+            defaultValue={post?.title}
+            className={`${baseTextareaStyles} min-h-[148px] p-5 text-xl font-normal`}
           />
+          <span className={inputDescriptionStyles}>
+            This should be a shorter version of the question text, used where
+            there is less space to display a title. It should end with a
+            question mark. Examples: &quot;NASA 2022 spacesuit contract
+            winner?&quot; or &quot;EU GDP from 2025 to 2035?&quot;.
+          </span>
+        </div>
+        <div className={inputContainerStyles}>
+          <span className={inputLabelStyles}>{t("Short Title")}</span>
+          <Input
+            {...control.register("url_title")}
+            errors={control.formState.errors.url_title}
+            defaultValue={post?.url_title}
+            className={baseInputStyles}
+          />
+          <span className={inputDescriptionStyles}>
+            This should be a shorter version of the Long Title, used where there
+            is less space to display a title. Examples: &quot;NASA 2022
+            Spacesuit Contract Winner&quot; ; &quot;EU GDP From 2025 to
+            2035&quot;.
+          </span>
         </div>
         <div className={inputContainerStyles}>
           <span className={inputLabelStyles}>Condition ID</span>
           <Input
             readOnly={isLive}
-            defaultValue={condition?.id}
+            value={condition?.id}
             className={baseInputStyles}
             type="number"
             {...control.register("condition_id", {
               setValueAs: (value: string) => {
                 const valueAsNr = Number(value);
+                if (valueAsNr == 0) {
+                  return;
+                }
                 getPost(valueAsNr).then((res) => {
                   if (res && res.question?.type === QuestionType.Binary) {
                     setCondition(res);
@@ -222,12 +244,15 @@ const ConditionalForm: React.FC<{
           <span className={inputLabelStyles}>Condition Child ID</span>
           <Input
             readOnly={isLive}
-            defaultValue={conditionChild?.id}
+            value={conditionChild?.id}
             className={baseInputStyles}
             type="number"
             {...control.register("condition_child_id", {
               setValueAs: (value: string) => {
                 const valueAsNr = Number(value);
+                if (valueAsNr == 0) {
+                  return;
+                }
                 getPost(valueAsNr).then((res) => {
                   if (res && res.question) {
                     setConditionChild(res);

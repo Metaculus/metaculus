@@ -149,14 +149,13 @@ def serialize_question(
     question: Question,
     with_forecasts: bool = False,
     current_user: User = None,
-    post_id: int = None,
 ):
     """
     Serializes question object
     """
 
     serialized_data = QuestionSerializer(question).data
-    serialized_data["post_id"] = post_id
+    serialized_data["post_id"] = question.get_post().id
 
     if with_forecasts:
         if question.cp_reveal_time is None or question.cp_reveal_time > timezone.now():
@@ -206,12 +205,10 @@ def serialize_conditional(
     serialized_data["condition"] = serialize_question(
         conditional.condition,
         with_forecasts=False,
-        post_id=post_id,
     )
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
         with_forecasts=False,
-        post_id=post_id,
     )
 
     # Autogen questions
@@ -219,13 +216,11 @@ def serialize_conditional(
         conditional.question_yes,
         with_forecasts=with_forecasts,
         current_user=current_user,
-        post_id=post_id,
     )
     serialized_data["question_no"] = serialize_question(
         conditional.question_no,
         with_forecasts=with_forecasts,
         current_user=current_user,
-        post_id=post_id,
     )
 
     return serialized_data
@@ -247,7 +242,6 @@ def serialize_group(
                 question,
                 with_forecasts=with_forecasts,
                 current_user=current_user,
-                post_id=post_id,
             )
         )
 
