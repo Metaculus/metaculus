@@ -15,8 +15,8 @@ const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
     calibrationData.map((d: any, index: number) => {
       return {
         x: 1 - 1 / (index + 1),
-        y0: d.y_perfect_ci[0],
-        y: d.y_perfect_ci[1],
+        user_lower_quartile: d.user_lower_quartile,
+        user_upper_quartile: d.user_upper_quartile,
       };
     })
   );
@@ -24,7 +24,7 @@ const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
     <VictoryChart domain={{ x: [0, 1], y: [0, 1] }}>
       <VictoryScatter
         data={calibrationData.map((d: any, index: number) => {
-          const y = d.y_real;
+          const y = d.user_middle_quartile;
           return {
             x: (index + 0.5) / calibrationData.length,
             y0: y - 0.01,
@@ -42,7 +42,7 @@ const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
       <VictoryBar
         barRatio={1.4}
         data={calibrationData.map((d: any, index: number) => {
-          const y = d.y_perfect;
+          const y = d.perfect_calibration;
           return {
             x: (index + 0.5) / calibrationData.length,
             y0: y - 0.01,
@@ -57,8 +57,8 @@ const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
         data={calibrationData.map((d: any, index: number) => {
           return {
             x: (index + 0.5) / calibrationData.length,
-            y0: d.y_perfect_ci[0],
-            y: d.y_perfect_ci[1],
+            y0: d.user_lower_quartile,
+            y: d.user_upper_quartile,
           };
         })}
         style={{ data: { fill: "lightgray", opacity: 0.5 } }}
