@@ -17,6 +17,8 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
     post = await getPost(Number(post_id));
   }
   const allCategories = await ProjectsApi.getCategories();
+  const allTournaments = await ProjectsApi.getTournaments();
+  const siteMain = await ProjectsApi.getSiteMain();
 
   return (
     <GroupForm
@@ -34,6 +36,8 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
           ? Number(searchParams["tournament_id"])
           : undefined
       }
+      tournaments={allTournaments}
+      siteMain={siteMain}
     ></GroupForm>
   );
 };

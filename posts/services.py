@@ -245,7 +245,8 @@ def create_post(
     if not main_projects:
         main_projects = [get_site_main_project()]
 
-    obj.default_project = main_projects.pop(0)
+    if not obj.default_project:
+        obj.default_project = main_projects.pop(0)
 
     # Save project and validate
     obj.full_clean()

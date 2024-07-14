@@ -182,8 +182,9 @@ def post_update_api_view(request, pk):
     post.update_pseudo_materialized_fields()
     if "categories" in request.data:
         add_categories(request.data["categories"], post)
+    if request.data["default_project_id"]:
+        post.default_project_id = request.data["default_project_id"]
     serializer.save()
-
     return Response(serializer.data)
 
 

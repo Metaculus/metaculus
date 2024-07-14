@@ -21,11 +21,13 @@ import {
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
+import { Tournament } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
+import ProjectPicker from "./project_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
@@ -51,12 +53,16 @@ type Props = {
   post?: PostWithForecasts | null;
   mode: "create" | "edit";
   allCategories: Category[];
+  tournaments: Tournament[];
+  siteMain: Tournament;
 };
 
 const GroupForm: React.FC<Props> = ({
   subtype,
   mode,
   allCategories,
+  tournaments,
+  siteMain,
   tournament_id = null,
   post = null,
 }) => {
@@ -69,6 +75,12 @@ const GroupForm: React.FC<Props> = ({
     post?.curation_status == PostStatus.RESOLVED ||
     post?.curation_status == PostStatus.CLOSED ||
     post?.curation_status == PostStatus.DELETED;
+
+  const defaultProject = post
+    ? post.projects.default_project
+    : tournament_id
+      ? [...tournaments, siteMain].filter((x) => x.id === tournament_id)[0]
+      : siteMain;
 
   const submitQuestion = async (data: any) => {
     if (control.getValues("default_project_id") === "") {
@@ -260,33 +272,14 @@ const GroupForm: React.FC<Props> = ({
         className="mt-4 flex w-[540px] w-full flex-col gap-4 rounded"
       >
         <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>Project ID</span>
-          <Input
-            type="number"
-            {...control.register("default_project_id")}
-            errors={control.formState.errors.default_project_id}
-            defaultValue={
-              control.getValues("default_project_id")
-                ? control.getValues("default_project_id")
-                : tournament_id
-            }
-            readOnly={isLive}
-            className={baseInputStyles}
+          <ProjectPicker
+            tournaments={tournaments}
+            siteMain={siteMain}
+            currentProject={defaultProject}
+            onChange={(project) => {
+              control.setValue("default_project_id", project.id);
+            }}
           />
-
-          <span className="text-xs">
-            Initial project:
-            <span className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1">
-              <Link
-                href={`/tournament/${control.getValues("default_project_id")}`}
-                className="text-white no-underline"
-              >
-                {control.getValues("default_project_id")
-                  ? control.getValues("default_project_id")
-                  : "Global"}
-              </Link>
-            </span>
-          </span>
         </div>
         <div className={inputContainerStyles}>
           <span className={inputLabelStyles}>Long Title</span>
