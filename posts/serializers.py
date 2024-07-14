@@ -41,6 +41,7 @@ class PostSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
+            "url_title",
             "author_id",
             "author_username",
             "projects",
@@ -85,13 +86,14 @@ class PostWriteSerializer(serializers.ModelSerializer):
     projects = PostProjectWriteSerializer(required=False)
     question = QuestionWriteSerializer(required=False)
     conditional = ConditionalWriteSerializer(required=False)
-    group_of_questions = GroupOfQuestionsWriteSerializer(required=True)
+    group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
     notebook = NotebookWriteSerializer(required=False)
 
     class Meta:
         model = Post
         fields = (
             "title",
+            "url_title",
             "projects",
             "question",
             "conditional",
@@ -200,7 +202,6 @@ def serialize_post(
             post.question,
             with_forecasts=with_forecasts,
             current_user=current_user,
-            post_id=post.id,
         )
 
     if post.conditional:
