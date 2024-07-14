@@ -13,6 +13,7 @@ def weighted_percentile_2d(
     if weights is None:
         ordered_weights = np.ones_like(values)
     else:
+        weights = np.array(weights)
         ordered_weights = weights[values.argsort(axis=0)]
 
     sorted_values = values.copy()  # avoid side effects
