@@ -44,6 +44,14 @@ class ProjectsApi {
     }
   }
 
+  static async getSiteMain(): Promise<Tournament> {
+    try {
+      return await get<Tournament>("/projects/site_main");
+    } catch (err) {
+      throw new Error("Error getting main site");
+    }
+  }
+
   static async getTournaments(): Promise<Tournament[]> {
     try {
       return await get<Tournament[]>("/projects/tournaments");

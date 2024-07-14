@@ -77,7 +77,6 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
-    print(request.data["group_of_questions"]["questions"])
     serializer = PostWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 

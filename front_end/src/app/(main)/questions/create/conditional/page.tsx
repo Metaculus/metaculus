@@ -10,7 +10,12 @@ const QuestionConditionalCreator: React.FC<{
   let post = null;
   let condition = null;
   let conditionChild = null;
-  if (searchParams["post_id"]) {
+  if (
+    searchParams["post_id"] &&
+    searchParams["post_id"] !== null &&
+    searchParams["post_id"] !== undefined &&
+    Number(searchParams["post_id"]) !== 0
+  ) {
     post = await PostsApi.getPost(Number(searchParams["post_id"]));
     condition = await PostsApi.getPost(
       Number(post?.conditional?.condition.post_id)
@@ -19,7 +24,10 @@ const QuestionConditionalCreator: React.FC<{
       Number(post?.conditional?.condition_child.post_id)
     );
   }
+
   const allCategories = await ProjectsApi.getCategories();
+  const allTournaments = await ProjectsApi.getTournaments();
+  const siteMain = await ProjectsApi.getSiteMain();
 
   return (
     <ConditionalForm
@@ -33,6 +41,8 @@ const QuestionConditionalCreator: React.FC<{
           ? Number(searchParams["tournament_id"])
           : null
       }
+      tournaments={allTournaments}
+      siteMain={siteMain}
     ></ConditionalForm>
   );
 };
