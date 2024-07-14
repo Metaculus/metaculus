@@ -561,5 +561,7 @@
   "namesPrediction": "<name>{username}'s</name> Prediction",
   "includeMyForecast": "include your latest forecast in this comment",
   "privateComment": "private comment",
-  "groupVariable": "Group Variable"
+  "groupVariable": "Group Variable",
+  "showFullForecast": "...show full forecast",
+  "closeFullForecast": "close full forecast"
 }
