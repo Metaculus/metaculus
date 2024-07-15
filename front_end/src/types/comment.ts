@@ -5,7 +5,14 @@ export type CommentType = {
   id: number;
   author: any; //create author type
   on_post: number;
-  parent?: number;
+  parent?: {
+    id: number;
+    on_post: number;
+    author: {
+      id: number;
+      username: string;
+    };
+  };
   created_at: Date;
   is_soft_deleted: boolean;
   text: string;
