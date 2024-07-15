@@ -3,9 +3,10 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { Href } from "@/types/navigation";
-import { Medal, MedalProjectType } from "@/types/scoring";
+import { Medal } from "@/types/scoring";
 
 import MedalIcon from "../../components/medal_icon";
+import { getMedalDisplayTitle } from "../helpers/medal_title";
 
 type Props = {
   href: Href;
@@ -23,7 +24,7 @@ const MedalCard: FC<Props> = ({ medal, href }) => {
       <MedalIcon type={medal.type} className="size-7" />
       <div className="flex flex-col items-center gap-2 self-stretch">
         <span className="text-center text-lg font-bold leading-6 text-gray-800 dark:text-gray-800-dark">
-          {getGlobalMedalDisplayTitle(medal)}
+          {getMedalDisplayTitle(medal)}
         </span>
         <span className="text-base font-normal text-gray-700 dark:text-gray-700-dark">
           {t("rank")}: <span className="font-bold">#{medal.rank}</span>{" "}
@@ -32,28 +33,6 @@ const MedalCard: FC<Props> = ({ medal, href }) => {
       </div>
     </Link>
   );
-};
-
-const getGlobalMedalDisplayTitle = (medal: Medal): string => {
-  if (medal.projectType === MedalProjectType.Tournament) {
-    return medal.projectName;
-  }
-
-  const { name } = medal;
-  const match = name.match(/^(\d{4}): (\d+) year .+$/);
-  if (!match) {
-    return "";
-  }
-
-  const startYear = parseInt(match[1], 10);
-  const duration = parseInt(match[2], 10);
-
-  if (duration === 1) {
-    return `${startYear}`;
-  } else {
-    const endYear = startYear + duration - 1;
-    return `${startYear} - ${endYear}`;
-  }
 };
 
 export default MedalCard;

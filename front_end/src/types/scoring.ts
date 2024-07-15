@@ -37,6 +37,7 @@ export type Medal = {
   totalEntries: number;
   name: string;
   projectName: string;
+  projectId: number;
 };
 
 export type MedalCategory = {

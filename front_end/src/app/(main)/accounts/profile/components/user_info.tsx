@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format, parseISO } from "date-fns";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
@@ -25,9 +25,14 @@ import { UserProfile } from "@/types/users";
 export type UserInfoProps = {
   profile: UserProfile;
   isCurrentUser: boolean;
+  MedalsComponent: ReactNode;
 };
 
-const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
+const UserInfo: FC<UserInfoProps> = ({
+  profile,
+  isCurrentUser,
+  MedalsComponent,
+}) => {
   const t = useTranslations();
   const { setUser } = useAuth();
   const [isEdit, setIsEdit] = useState(false);
@@ -144,41 +149,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
         </div>
       </div>
       <FormError errors={state?.errors} name={"non_field_errors"} />
-      <span>Tournaments</span>
-      <div>
-        {profile.tournament_medals &&
-          Object.entries(profile.tournament_medals).map((k, v) => {
-            return `${k}: ${v}`;
-          })}
-      </div>
-      <span>Peer Score</span>
-      <div>
-        {profile.peer_score_medals &&
-          Object.entries(profile.peer_score_medals).map((k, v) => {
-            return `${k}: ${v}`;
-          })}
-      </div>
-      <span>Baseline Score</span>
-      <div>
-        {profile.baseline_medals &&
-          Object.entries(profile.baseline_medals).map((k, v) => {
-            return `${k}: ${v}`;
-          })}
-      </div>
-      <span>Insight</span>
-      <div>
-        {profile.comment_insight_medals &&
-          Object.entries(profile.comment_insight_medals).map((k, v) => {
-            return `${k}: ${v}`;
-          })}
-      </div>
-      <span>Question Writing</span>
-      <div>
-        {profile.question_writing_medals &&
-          Object.entries(profile.question_writing_medals).map((k, v) => {
-            return ` ${k} - ${v} `;
-          })}
-      </div>
+      {MedalsComponent}
       {profile.calibration_curve && (
         <CalibrationChart data={profile.calibration_curve} />
       )}
