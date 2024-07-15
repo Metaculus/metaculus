@@ -16,7 +16,6 @@ import ConditionalTile from "@/components/conditional_tile";
 import ForecastMaker from "@/components/forecast_maker";
 import Button from "@/components/ui/button";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
-import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
 import { Post, PostStatus, ProjectPermissions } from "@/types/post";
@@ -66,7 +65,6 @@ export default async function IndividualQuestion({
   const preselectedGroupQuestionId =
     extractPreselectedGroupQuestionId(searchParams);
   const t = await getTranslations();
-  const commentsData = await CommentsApi.getComments({ post: params.id });
 
   let typeLabel: string;
   if (postData.group_of_questions) {
@@ -187,11 +185,10 @@ export default async function IndividualQuestion({
                 </div>
               </div>
             </div>
-            <div>
-              {commentsData && (
-                <CommentFeed initialComments={commentsData} post={postData} />
-              )}
-            </div>
+            <CommentFeed
+              postId={postData.id}
+              postPermissions={postData.user_permission}
+            />
           </div>
           <div className="hidden w-80 shrink-0 border border-transparent bg-gray-0 p-4 text-gray-700 dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-700-dark lg:block">
             <div className="mb-4 flex w-full items-center justify-between gap-2 border-b border-gray-300 pb-4 dark:border-gray-300-dark">

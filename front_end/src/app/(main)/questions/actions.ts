@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import CommentsApi, {
+  getCommentsParams,
   EditCommentParams,
   VoteCommentParams,
   CreateCommentParams,
@@ -186,6 +187,21 @@ export async function resolveQuestion(
 export async function uploadImage(formData: FormData) {
   try {
     return await PostsApi.uploadImage(formData);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
+export async function getComments(
+  url: string,
+  commentsParams: getCommentsParams
+) {
+  try {
+    return await CommentsApi.getComments(url, commentsParams);
   } catch (err) {
     const error = err as FetchError;
 
