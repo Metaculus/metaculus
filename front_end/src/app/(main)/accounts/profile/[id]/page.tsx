@@ -5,7 +5,6 @@ import MedalsWidget from "@/app/(main)/(leaderboards)/medals/components/medals_w
 import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
 import CommentFeed from "@/components/comment_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import CommentsApi from "@/services/comments";
 import ProfileApi from "@/services/profile";
 
 export default async function Profile({
@@ -19,8 +18,6 @@ export default async function Profile({
   const profile = isCurrentUser
     ? currentUser
     : await ProfileApi.getProfileById(id);
-
-  const comments = await CommentsApi.getComments({ author: id });
 
   if (!profile) {
     return notFound();
@@ -39,7 +36,7 @@ export default async function Profile({
           </Suspense>
         }
       />
-      {comments && <CommentFeed initialComments={comments} profile={profile} />}
+      <CommentFeed profileId={profile.id} />
     </main>
   );
 }
