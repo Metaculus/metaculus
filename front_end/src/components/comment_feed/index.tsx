@@ -7,13 +7,14 @@ import { getComments } from "@/app/(main)/questions/actions";
 import Comment from "@/components/comment_feed/comment";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { CommentPermissions, CommentType } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
 
 type Props = {
   postId?: number;
-  postPermissions: ProjectPermissions;
+  postPermissions?: ProjectPermissions;
   profileId?: number;
 };
 
@@ -39,12 +40,14 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
 
   const fetchComments = async (url: string = "/comments") => {
     try {
+      setIsLoading(true);
       const response = await getComments(url, {
         post: postId,
         author: profileId,
         parent_isnull: postId ? true : false,
       });
       setComments(() => [...response]);
+      setIsLoading(false);
     } catch (err) {
       console.error("Error fetching comments:", err);
     } finally {
@@ -117,7 +120,8 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
           <Comment comment={comment} url={url} permissions={permissions} />
         </div>
       ))}
-      {comments.length == 0 && (
+      {isLoading && <LoadingIndicator className="mx-auto my-8 w-24" />}
+      {comments.length == 0 && !isLoading && (
         <>
           <hr className="my-4" />
           <div className="text-center italic text-gray-700 dark:text-gray-700-dark">
