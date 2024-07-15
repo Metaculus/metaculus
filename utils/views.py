@@ -11,11 +11,6 @@ def custom_exception_handler(exc, context):
 
     # Adapter for legacy django validation errors
     print(f"Error:\n{exc}")
-    if isinstance(exc, DjangoValidationError):
-        if exc.error_list:
-            exc = DRFValidationError([x.message for x in exc.error_list])
-        elif exc.messages:
-            exc = DRFValidationError(exc.messages)
 
     if isinstance(exc, DRFValidationError):
         if isinstance(exc.detail, list) or (
