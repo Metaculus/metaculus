@@ -77,9 +77,11 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
+    if not request.data.get("url_title", None):
+        request.data["url_title"] = request.data["title"]
+
     serializer = PostWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-
     post = create_post(**serializer.validated_data, author=request.user)
     if "categories" in request.data:
         add_categories(request.data["categories"], post)
