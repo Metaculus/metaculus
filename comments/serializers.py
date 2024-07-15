@@ -10,6 +10,7 @@ from users.serializers import UserCommentSerializer
 
 class CommentSerializer(serializers.ModelSerializer):
     author = UserCommentSerializer()
+    parent = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
@@ -26,6 +27,16 @@ class CommentSerializer(serializers.ModelSerializer):
             "vote_score",
             "children",
         )
+
+    def get_parent(self, comment: Comment):
+        if comment.parent:
+            parent = comment.parent
+            return {
+                "id": parent.id,
+                "on_post": parent.on_post.id,
+                "author": UserCommentSerializer(parent.author).data,
+            }
+        return None
 
 
 class CommentWriteSerializer(serializers.ModelSerializer):

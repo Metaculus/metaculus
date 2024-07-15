@@ -145,7 +145,11 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
 
       {comment.parent && (
         <div>
-          <a href={`#comment-${comment.parent}`}>➞ in reply to: USERNAME</a>
+          <a
+            href={`/questions/${comment.parent.on_post}/#comment-${comment.parent.id}`}
+          >
+            ➞ in reply to: {comment.parent.author.username}
+          </a>
         </div>
       )}
       <div className="break-anywhere">
