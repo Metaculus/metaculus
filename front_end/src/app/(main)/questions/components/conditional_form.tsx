@@ -141,6 +141,9 @@ const ConditionalForm: React.FC<{
       <form
         className="mt-4 flex flex w-[540px] w-full flex-col space-y-4 rounded"
         onSubmit={async (e) => {
+          if (!control.getValues("default_project_id")) {
+            control.setValue("default_project_id", siteMain.id);
+          }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
             async (data) => {
