@@ -1,3 +1,4 @@
+import { QuestionType } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
 export type CommentType = {
@@ -21,6 +22,7 @@ export type ForecastType = {
   options: string[];
   continuous_cdf: number[];
   quartiles: number[];
+  question_type: QuestionType;
 };
 
 export enum CommentPermissions {

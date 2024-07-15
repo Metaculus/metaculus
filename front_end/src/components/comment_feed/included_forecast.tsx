@@ -8,6 +8,7 @@ import Button from "@/components/ui/button";
 import { MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { ForecastType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
+import { abbreviatedNumber } from "@/utils/number_formatters";
 
 type Props = {
   author: string;
@@ -24,14 +25,14 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
 
   const [showAll, setShowAll] = useState(false);
 
-  if (forecast.probability_yes) {
+  if (forecast.question_type == "binary") {
     return (
       <div className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
         {`${forecast.probability_yes * 100}%`}
       </div>
     );
   }
-  if (forecast.probability_yes_per_category) {
+  if (forecast.question_type == "multiple_choice") {
     const choices = forecast.probability_yes_per_category
       .map((probability, index) => ({
         probability: probability,
@@ -64,13 +65,17 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
       </ol>
     );
   }
-  if (forecast.quartiles) {
+  if (forecast.question_type == "date") {
     return (
       <div className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
-        {`${formatDate(locale, new Date(forecast.quartiles[0] * 1000))} - ${formatDate(
-          locale,
-          new Date(forecast.quartiles[2] * 1000)
-        )}`}
+        {`${formatDate(locale, new Date(forecast.quartiles[1] * 1000))} (${formatDate(locale, new Date(forecast.quartiles[0] * 1000))} - ${formatDate(locale, new Date(forecast.quartiles[2] * 1000))})`}
+      </div>
+    );
+  }
+  if (forecast.question_type == "numeric") {
+    return (
+      <div className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
+        {`${abbreviatedNumber(forecast.quartiles[1])} (${abbreviatedNumber(forecast.quartiles[0])} - ${abbreviatedNumber(forecast.quartiles[2])})`}
       </div>
     );
   }
