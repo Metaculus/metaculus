@@ -259,7 +259,10 @@ const GroupForm: React.FC<Props> = ({
       </p>
       <form
         onSubmit={async (e) => {
-          e.preventDefault(); // Good for debugging
+          if (!control.getValues("default_project_id")) {
+            control.setValue("default_project_id", siteMain.id);
+          }
+          // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
             async (data) => {
               await submitQuestion(data);
