@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { Href } from "@/types/navigation";
-import { Medal } from "@/types/scoring";
+import { Medal, MedalProjectType } from "@/types/scoring";
 
 import MedalIcon from "../../components/medal_icon";
 
@@ -23,19 +23,23 @@ const MedalCard: FC<Props> = ({ medal, href }) => {
       <MedalIcon type={medal.type} className="size-7" />
       <div className="flex flex-col items-center gap-2 self-stretch">
         <span className="text-center text-lg font-bold leading-6 text-gray-800 dark:text-gray-800-dark">
-          {getMedalDisplayTitle(medal.name)}
+          {getGlobalMedalDisplayTitle(medal)}
         </span>
         <span className="text-base font-normal text-gray-700 dark:text-gray-700-dark">
-          {t("rank")}: <span className="font-bold">#{medal.rank}</span>
+          {t("rank")}: <span className="font-bold">#{medal.rank}</span>{" "}
+          {t("outOfRank", { total: medal.totalEntries })}
         </span>
       </div>
     </Link>
   );
 };
 
-const getMedalDisplayTitle = (name: string | null): string => {
-  if (!name) return "";
+const getGlobalMedalDisplayTitle = (medal: Medal): string => {
+  if (medal.projectType === MedalProjectType.Tournament) {
+    return medal.projectName;
+  }
 
+  const { name } = medal;
   const match = name.match(/^(\d{4}): (\d+) year .+$/);
   if (!match) {
     return "";

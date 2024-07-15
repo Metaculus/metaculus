@@ -85,7 +85,7 @@ export const RANKING_CATEGORIES: Record<
   },
   tournament: {
     id: "tournament",
-    translationKey: "tournament",
+    translationKey: "tournaments",
     shortTranslationKey: "all",
     explanation: null,
   },
