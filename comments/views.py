@@ -23,6 +23,12 @@ def comments_list_api_view(request: Request):
     # complex to do with multiple nesting levels
     comments = Comment.objects
 
+    parent_param = serializers.CharField(allow_null=True).run_validation(
+        request.query_params.get("parent_isnull")
+    )
+    if parent_param:
+        comments = comments.filter(parent=None)
+
     post_param = serializers.CharField(allow_null=True).run_validation(
         request.query_params.get("post")
     )
