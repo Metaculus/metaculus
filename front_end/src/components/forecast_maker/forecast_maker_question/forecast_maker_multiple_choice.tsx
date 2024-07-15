@@ -266,7 +266,14 @@ function generateChoiceOptions(
   dataset: MultipleChoiceForecast,
   defaultForecasts?: number[]
 ): ChoiceOption[] {
-  const { timestamps, nr_forecasters, my_forecasts, ...choices } = dataset;
+  const {
+    timestamps,
+    nr_forecasters,
+    my_forecasts,
+    latest_pmf,
+    latest_cdf,
+    ...choices
+  } = dataset;
   return Object.entries(choices).map(([choice, values], index) => ({
     name: choice,
     color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
