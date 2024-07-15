@@ -215,8 +215,9 @@ def create_post(
     group_of_questions: dict = None,
     notebook: dict = None,
     author: User = None,
+    url_title: str = None,
 ) -> Post:
-    obj = Post(title=title, author=author, curation_status=Post.CurationStatus.DRAFT)
+    obj = Post(title=title, url_title=url_title, author=author, curation_status=Post.CurationStatus.DRAFT)
 
     # Adding questions
     if question:
