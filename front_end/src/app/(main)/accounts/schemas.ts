@@ -47,8 +47,21 @@ export const changeUsernameSchema = z
 export type ChangeUsernameSchema = z.infer<typeof changeUsernameSchema>;
 
 export const updateProfileSchema = z.object({
-  bio: z.string(),
+  bio: z.string().optional(),
   website: z.string(),
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  twitter: z.string().optional(),
+  linkedin: z.string().optional(),
+  facebook: z.string().optional(),
+  github: z.string().optional(),
+  good_judgement_open: z.string().optional(),
+  kalshi: z.string().optional(),
+  manifold: z.string().optional(),
+  infer: z.string().optional(),
+  hypermind: z.string().optional(),
+  occupation: z.string().optional(),
+  location: z.string().optional(),
 });
 
 export type UpdateProfileSchema = z.infer<typeof updateProfileSchema>;
