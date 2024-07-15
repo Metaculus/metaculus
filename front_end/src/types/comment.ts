@@ -20,6 +20,7 @@ export type CommentType = {
   is_private: boolean;
   vote_score?: number;
   user_vote: VoteDirection;
+  children: CommentType[];
 };
 
 export type ForecastType = {
