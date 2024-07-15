@@ -1,3 +1,4 @@
+"use client";
 import { Tab, TabGroup, TabList } from "@headlessui/react";
 import classNames from "classnames";
 import { forwardRef, Fragment, PropsWithChildren, useState } from "react";
