@@ -48,7 +48,7 @@ const SocialMediaSection: FC<{
         return (
           <div key={index} className="flex flex-col">
             {link && (
-              <Link href={link}>
+              <Link href={link} target="#blank">
                 <FontAwesomeIcon icon={icon} size="lg"></FontAwesomeIcon>
               </Link>
             )}
