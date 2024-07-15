@@ -1,4 +1,6 @@
+import classNames from "classnames";
 import { Metadata } from "next";
+import { FC, Suspense } from "react";
 
 import ShareElectionsMenu from "@/app/(main)/experiments/elections/components/share_elections_menu";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
@@ -44,18 +46,40 @@ export default function ElectionsExperiment() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <CardForecast postId={6478} />
-            <CardForecast postId={11245} />
+            <Suspense fallback={<Skeleton />}>
+              <CardForecast postId={6478} />
+            </Suspense>
+            <Suspense fallback={<Skeleton />}>
+              <CardForecast postId={11245} />
+            </Suspense>
           </div>
 
-          <ExpectedElectoralVotesForecast
-            democratPostId={10958}
-            republicanPostId={10959}
-          />
+          <Suspense fallback={<Skeleton className="mt-4" />}>
+            <ExpectedElectoralVotesForecast
+              democratPostId={10958}
+              republicanPostId={10959}
+            />
+          </Suspense>
 
-          <StateByForecast questionGroupId={18274} />
+          <Suspense fallback={<Skeleton className="mt-4" />}>
+            <StateByForecast questionGroupId={18274} />
+          </Suspense>
         </div>
       </main>
     </EmbedModalContextProvider>
   );
 }
+
+const Skeleton: FC<{ className?: string }> = ({ className }) => (
+  <div
+    className={classNames(
+      "animate-pulse rounded-lg bg-gray-0 p-4 shadow-md dark:bg-gray-0-dark",
+      className
+    )}
+  >
+    <div className="mb-2 h-4 w-2/3 rounded bg-gray-300 dark:bg-gray-300-dark"></div>
+    <div className="mb-2 h-8 w-full rounded bg-gray-300 dark:bg-gray-300-dark"></div>
+    <div className="mb-2 h-8 w-full rounded bg-gray-300 dark:bg-gray-300-dark"></div>
+    <div className="h-8 w-1/2 rounded bg-gray-300 dark:bg-gray-300-dark"></div>
+  </div>
+);
