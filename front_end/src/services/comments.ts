@@ -5,6 +5,7 @@ import { encodeQueryParams } from "@/utils/navigation";
 export type CommentsParams = {
   post?: number;
   author?: number;
+  parent_isnull?: boolean;
 };
 
 export type CreateCommentParams = {
@@ -63,7 +64,6 @@ class CommentsApi {
         `/comments/${commentData.id}/edit`,
         commentData
       );
-      return null;
     } catch (err) {
       console.error("Error editing comment:", err);
       return null;
