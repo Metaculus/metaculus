@@ -414,6 +414,7 @@
   "relativeAccuracy": "Relative Accuracy",
   "absoluteAccuracy": "Absolute Accuracy",
   "rank": "Rank",
+  "outOfRank": "out of {total}",
   "comments": "Comments",
   "questions": "Questions",
   "viewMore": "View more...",
