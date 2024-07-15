@@ -91,7 +91,6 @@
   "resolutionCoverage": "<span>coverage</span><span><strong>{{coverage}}</strong></span>",
   "questionWillOpenAt": "This question will open {{date}}.",
   "questionNotOpenYet": "This question is not yet open for predictions.",
-  "commentsHeading": "Comments",
   "commentsClosedHeading": "Comments Closed",
   "commentsCount_one": "{{count}} comment",
   "commentsCount_few": "{{count}} comments",
@@ -415,7 +414,7 @@
   "absoluteAccuracy": "Absolute Accuracy",
   "rank": "Rank",
   "outOfRank": "out of {total}",
-  "comments": "Comments",
+  "comments": "comments",
   "questions": "Questions",
   "viewMore": "View more...",
   "randomQuestion": "Random Question",
@@ -544,7 +543,6 @@
   "No questions have resolved yet in this period": "No questions have resolved yet in this period.",
   "baselineAccuracyShort": "Baseline",
   "peerAccuracyShort": "Peer",
-  "Comments": "Comments",
   "questionWritingShort": "Q.Writing",
   "scoringDurationLabel": "Duration:",
   "scoringTimePeriodLabel": "Time Period:",
@@ -565,5 +563,6 @@
   "privateComment": "private comment",
   "groupVariable": "Group Variable",
   "showFullForecast": "...show full forecast",
-  "closeFullForecast": "close full forecast"
+  "closeFullForecast": "close full forecast",
+  "noComments": "no comments"
 }
