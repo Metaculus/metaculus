@@ -5,10 +5,7 @@ from datetime import datetime, timezone as dt_timezone
 from django.utils import timezone
 from users.models import User
 from utils.the_math.measures import prediction_difference_for_display
-from utils.the_math.formulas import (
-    get_scaled_quartiles_from_cdf,
-    scaled_location_to_string_location,
-)
+from utils.the_math.formulas import get_scaled_quartiles_from_cdf
 from .constants import ResolutionType
 from .models import Question, Conditional, GroupOfQuestions
 from .services import build_question_forecasts, build_question_forecasts_for_user
@@ -145,6 +142,7 @@ class ForecastSerializer(serializers.ModelSerializer):
     options = serializers.ListField(
         child=serializers.CharField(), source="question.options"
     )
+    question_type = serializers.CharField(source="question.type")
 
     class Meta:
         model = Forecast
@@ -158,6 +156,7 @@ class ForecastSerializer(serializers.ModelSerializer):
             "range_max",
             "zero_point",
             "options",
+            "question_type",
         )
 
     def get_quartiles(self, forecast: Forecast):
