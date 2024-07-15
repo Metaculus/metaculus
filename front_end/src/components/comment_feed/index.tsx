@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
 import { markPostAsRead } from "@/app/(main)/questions/actions";
@@ -16,20 +17,9 @@ type Props = {
   profileId?: number;
 };
 
-const feedOptions: GroupButton<string>[] = [
-  {
-    value: "public",
-    label: "public",
-  },
-  {
-    value: "private",
-    label: "private",
-  },
-];
-
 const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
+  const t = useTranslations();
   const { user } = useAuth();
-
   const [feedSection, setFeedSection] = useState("public");
   const [comments, setComments] = useState<CommentType[]>([]);
   const [shownComments, setShownComments] = useState<CommentType[]>([]);
@@ -89,15 +79,26 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
     }
   }, [postId, user?.id]);
 
+  const feedOptions: GroupButton<string>[] = [
+    {
+      value: "public",
+      label: t("public"),
+    },
+    {
+      value: "private",
+      label: t("private"),
+    },
+  ];
+
   return (
     <section>
       <hr className="my-4" />
       <div className="my-4 flex flex-row gap-4">
         <h2
-          className="mb-1 mt-0 flex scroll-mt-16 items-baseline justify-between break-anywhere"
+          className="mb-1 mt-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
           id="comment-section"
         >
-          Comments
+          {t("comments")}
         </h2>
         <ButtonGroup
           value={feedSection}
@@ -120,7 +121,7 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
         <>
           <hr className="my-4" />
           <div className="text-center italic text-gray-700 dark:text-gray-700-dark">
-            no comments
+            {t("noComments")}
           </div>
         </>
       )}
