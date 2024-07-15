@@ -15,6 +15,7 @@ cd /home/ubuntu/rewrite;
 
 git fetch origin;
 git reset --hard origin/main;
+git pull origin main --force
 poetry install;
 poetry update;
 

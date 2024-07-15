@@ -11,15 +11,6 @@ import {
 
 const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
   const calibrationData = data;
-  console.log(
-    calibrationData.map((d: any, index: number) => {
-      return {
-        x: 1 - 1 / (index + 1),
-        user_lower_quartile: d.user_lower_quartile,
-        user_upper_quartile: d.user_upper_quartile,
-      };
-    })
-  );
   return (
     <VictoryChart domain={{ x: [0, 1], y: [0, 1] }}>
       <VictoryScatter
