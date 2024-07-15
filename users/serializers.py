@@ -93,7 +93,6 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
         fields = (
             "bio",
             "website",
-            "formerly_known_as",
             "is_bot",
             "twitter",
             "linkedin",

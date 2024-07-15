@@ -7,6 +7,7 @@ import { FC, useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
+import MedalIcon from "@/app/(main)/(leaderboards)/components/medal_icon";
 import {
   updateProfileAction,
   UpdateProfileState,
@@ -20,7 +21,10 @@ import CalibrationChart from "@/app/(main)/charts/calibration_chart";
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
+import { MedalType } from "@/types/scoring";
 import { UserProfile } from "@/types/users";
+
+import SocialMediaSection from "./social_media_section";
 
 export type UserInfoProps = {
   profile: UserProfile;
@@ -76,15 +80,13 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
           {isCurrentUser && <ChangeUsername />}
         </div>
       </div>
-      {profile.formerly_known_as && (
+      {profile.username && (
         <div>
           <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900 dark:bg-gray-100-dark dark:text-gray-900-dark">
             {t("formerlyKnownAs")}
           </div>
           <div className="flex content-center justify-between px-1 py-4">
-            <div className="flex items-center text-sm">
-              {profile.formerly_known_as}
-            </div>
+            <div className="flex items-center text-sm">{profile.username}</div>
           </div>
         </div>
       )}
@@ -123,61 +125,50 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
           )}
         </div>
       </div>
-      <div>
-        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900 dark:bg-gray-100-dark dark:text-gray-900-dark">
-          {t("website")}
-        </div>
-        <div className="flex flex-col content-center justify-between px-1 py-4">
-          {isEdit ? (
-            <>
-              <Input
-                className="w-6/12 rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic dark:border-gray-700-dark	"
-                placeholder="http://www.example.com"
-                defaultValue={profile.website}
-                {...register("website")}
-              />
-              <FormError errors={state?.errors} name={"website"} />
-            </>
-          ) : (
-            <div className="flex items-center text-sm">{profile.website}</div>
-          )}
-        </div>
+      <div className="m-2 bg-blue-500 p-4">
+        <SocialMediaSection
+          user={profile}
+          editMode={isEdit}
+          register={register}
+          state={state}
+        />
       </div>
       <FormError errors={state?.errors} name={"non_field_errors"} />
-      <span>Tournaments</span>
-      <div>
-        {profile.tournament_medals &&
-          Object.entries(profile.tournament_medals).map((k, v) => {
-            return `${k}: ${v}`;
-          })}
-      </div>
-      <span>Peer Score</span>
-      <div>
-        {profile.peer_score_medals &&
-          Object.entries(profile.peer_score_medals).map((k, v) => {
-            return `${k}: ${v}`;
-          })}
-      </div>
-      <span>Baseline Score</span>
-      <div>
-        {profile.baseline_medals &&
-          Object.entries(profile.baseline_medals).map((k, v) => {
-            return `${k}: ${v}`;
-          })}
-      </div>
-      <span>Insight</span>
-      <div>
-        {profile.comment_insight_medals &&
-          Object.entries(profile.comment_insight_medals).map((k, v) => {
-            return `${k}: ${v}`;
-          })}
-      </div>
-      <span>Question Writing</span>
-      <div>
-        {profile.question_writing_medals &&
-          Object.entries(profile.question_writing_medals).map((k, v) => {
-            return ` ${k} - ${v} `;
-          })}
+      <div className="max-w-[260px] rounded bg-blue-300 p-4 dark:bg-blue-500">
+        {[
+          ["Tournaments", profile.tournament_medals],
+          ["Peer Score", profile.peer_score_medals],
+          ["Baseline Score", profile.baseline_medals],
+          ["Insight", profile.comment_insight_medals],
+          ["Question Writing", profile.question_writing_medals],
+        ].map((x, index) => {
+          const medal_collection: Record<MedalType, number> = x[1] as Record<
+            MedalType,
+            number
+          >;
+          return (
+            <div className="mt-4" key={index}>
+              <span className="text-xl">{x[0] as string}</span>
+              <div className="flex flex-row">
+                {medal_collection &&
+                Object.keys(medal_collection).length > 0 ? (
+                  Object.keys(medal_collection).map((k, subindex) => {
+                    return (
+                      <div className="flex flex-row gap-x-2 p-2" key={subindex}>
+                        <span className="text-xl font-bold">
+                          {medal_collection[k as MedalType]} x
+                        </span>
+                        <MedalIcon type={k as MedalType} className="size-7" />
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-xs text-gray-600">None</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
       {profile.calibration_curve && (
         <CalibrationChart data={profile.calibration_curve} />

@@ -196,15 +196,10 @@ def change_username_api_view(request: Request):
 @api_view(["PATCH"])
 def update_profile_api_view(request: Request):
     user = request.user
-    serializer = UserUpdateProfileSerializer(data=request.data, partial=True)
+    serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
 
-    if "bio" in serializer.validated_data:
-        user.bio = serializer.validated_data["bio"]
-
-    if "website" in serializer.validated_data:
-        user.website = serializer.validated_data["website"]
-
+    serializer.save()
     user.save()
 
     return Response(UserPrivateSerializer(user).data)
