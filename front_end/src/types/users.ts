@@ -1,3 +1,5 @@
+import { MedalType } from "./scoring";
+
 export type UserProfile = {
   id: number;
   username: string;
@@ -18,11 +20,11 @@ export type UserProfile = {
   occupation?: string;
   location?: string;
   profile_picture?: string;
-  tournament_medals?: Record<string, number>;
-  peer_score_medals?: Record<string, number>;
-  baseline_medals?: Record<string, number>;
-  comment_insight_medals?: Record<string, number>;
-  question_writing_medals?: Record<string, number>;
+  tournament_medals?: Record<MedalType, number>;
+  peer_score_medals?: Record<MedalType, number>;
+  baseline_medals?: Record<MedalType, number>;
+  comment_insight_medals?: Record<MedalType, number>;
+  question_writing_medals?: Record<MedalType, number>;
   calibration_curve?: any;
   score_histogram?: any;
 };
