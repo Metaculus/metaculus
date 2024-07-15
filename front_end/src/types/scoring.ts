@@ -31,9 +31,12 @@ export type MedalType = "gold" | "silver" | "bronze";
 
 export type Medal = {
   type: MedalType;
+  projectType: MedalProjectType;
   duration: number;
   rank: number;
+  totalEntries: number;
   name: string;
+  projectName: string;
 };
 
 export type MedalCategory = {
@@ -54,13 +57,22 @@ export type LeaderboardEntry = {
   calculated_on: string;
 };
 
+export enum MedalProjectType {
+  SiteMain = "site_main",
+  Tournament = "tournament",
+  QuestionSeries = "question_series",
+}
+
 export type MedalEntry = LeaderboardEntry & {
   project_id: number;
+  project_type: MedalProjectType;
+  project_name: string;
   score_type: LeaderboardType;
   name: string;
   start_time: string;
   end_time: string;
   finalize_time: string;
+  total_entries: number;
 };
 
 export type LeaderboardDetails = {
