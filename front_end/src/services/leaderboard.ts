@@ -1,5 +1,5 @@
 import { LeaderboardDetails, MedalEntry } from "@/types/scoring";
-import { get } from "@/utils/fetch";
+import { get, handleRequestError } from "@/utils/fetch";
 
 class LeaderboardApi {
   static async getGlobalLeaderboard(
@@ -40,8 +40,10 @@ class LeaderboardApi {
       const url = `/leaderboards/project/${projectId}/${params.toString() ? `?${params.toString()}` : ""}`;
       return await get<LeaderboardDetails>(url);
     } catch (err) {
-      console.error("Error getting project leaderboard:", err);
-      return null;
+      return handleRequestError(err, () => {
+        console.error("Error getting project leaderboard:", err);
+        return null;
+      });
     }
   }
 

@@ -1,7 +1,7 @@
 import { getServerSession } from "@/services/session";
 import { PaginatedPayload } from "@/types/fetch";
 import { CurrentUser, UserProfile } from "@/types/users";
-import { get, patch, post } from "@/utils/fetch";
+import { get, handleRequestError, patch, post } from "@/utils/fetch";
 
 class ProfileApi {
   static async getMyProfile() {
@@ -14,8 +14,10 @@ class ProfileApi {
     try {
       return await get<CurrentUser>("/users/me");
     } catch (err) {
-      console.error("Error getting current user:", err);
-      return null;
+      return handleRequestError(err, () => {
+        console.error("Error getting current user:", err);
+        return null;
+      });
     }
   }
 
@@ -23,8 +25,10 @@ class ProfileApi {
     try {
       return await get<CurrentUser>(`/users/${id}`);
     } catch (err) {
-      console.error("Error getting user profile:", err);
-      return null;
+      return handleRequestError(err, () => {
+        console.error("Error getting user profile:", err);
+        return null;
+      });
     }
   }
 
