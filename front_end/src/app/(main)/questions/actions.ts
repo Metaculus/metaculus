@@ -21,7 +21,7 @@ export async function fetchMorePosts(
   offset: number,
   limit: number
 ) {
-  const response = await PostsApi.getPostWithoutForecasts({
+  const response = await PostsApi.getPostsWithCP({
     ...filters,
     offset,
     limit,
@@ -30,7 +30,7 @@ export async function fetchMorePosts(
 }
 
 export async function fetchEmbedPosts(search: string) {
-  const response = await PostsApi.getPostWithoutForecasts({
+  const response = await PostsApi.getPostsWithCP({
     search: search || undefined,
     limit: search ? undefined : 10,
   });
