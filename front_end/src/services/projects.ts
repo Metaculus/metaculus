@@ -7,7 +7,7 @@ import {
   TournamentMember,
 } from "@/types/projects";
 import { LeaderboardDetails } from "@/types/scoring";
-import { del, get, patch, post } from "@/utils/fetch";
+import { del, get, handleRequestError, patch, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type TagsParams = {
@@ -19,8 +19,10 @@ class ProjectsApi {
     try {
       return await get<Topic[]>("/projects/topics");
     } catch (err) {
-      console.error("Error getting topics:", err);
-      return [];
+      return handleRequestError(err, () => {
+        console.error("Error getting topics:", err);
+        return [];
+      });
     }
   }
 
@@ -28,8 +30,10 @@ class ProjectsApi {
     try {
       return await get<Category[]>("/projects/categories");
     } catch (err) {
-      console.error("Error getting categories:", err);
-      return [];
+      return handleRequestError(err, () => {
+        console.error("Error getting categories:", err);
+        return [];
+      });
     }
   }
 
@@ -39,8 +43,10 @@ class ProjectsApi {
     try {
       return await get<Tag[]>(`/projects/tags${queryParams}`);
     } catch (err) {
-      console.error("Error getting tags:", err);
-      return [];
+      return handleRequestError(err, () => {
+        console.error("Error getting tags:", err);
+        return [];
+      });
     }
   }
 
@@ -56,8 +62,10 @@ class ProjectsApi {
     try {
       return await get<Tournament[]>("/projects/tournaments");
     } catch (err) {
-      console.error("Error getting tournaments:", err);
-      return [];
+      return handleRequestError(err, () => {
+        console.error("Error getting tournaments:", err);
+        return [];
+      });
     }
   }
 
@@ -65,8 +73,10 @@ class ProjectsApi {
     try {
       return await get<Tournament>(`/projects/tournaments/${slug}`);
     } catch (err) {
-      console.error("Error getting tournament:", err);
-      return null;
+      return handleRequestError(err, () => {
+        console.error("Error getting tournament:", err);
+        return null;
+      });
     }
   }
 

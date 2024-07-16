@@ -1,7 +1,7 @@
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
 import { Post, PostWithForecasts } from "@/types/post";
 import { VoteDirection, VoteResponse } from "@/types/votes";
-import { get, post, put } from "@/utils/fetch";
+import { get, handleRequestError, post, put } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type PostsParams = PaginationParams & {
@@ -34,8 +34,10 @@ class PostsApi {
         `/posts/${id}${encodeQueryParams({ with_forecasts: true })}`
       );
     } catch (err) {
-      console.error("Error getting post:", err);
-      return null;
+      return handleRequestError(err, () => {
+        console.error("Error getting post:", err);
+        return null;
+      });
     }
   }
 
@@ -45,8 +47,10 @@ class PostsApi {
       const data = await get<PaginatedPayload<Post>>(`/posts${queryParams}`);
       return data.results;
     } catch (err) {
-      console.error("Error getting posts:", err);
-      return [];
+      return handleRequestError(err, () => {
+        console.error("Error getting posts:", err);
+        return [];
+      });
     }
   }
 
@@ -63,8 +67,10 @@ class PostsApi {
         `/posts${queryParams}`
       );
     } catch (err) {
-      console.error("Error getting posts:", err);
-      return { count: 0, results: [], next: null, previous: null };
+      return handleRequestError(err, () => {
+        console.error("Error getting posts:", err);
+        return { count: 0, results: [], next: null, previous: null };
+      });
     }
   }
 
@@ -74,8 +80,10 @@ class PostsApi {
     try {
       return await post<PostWithForecasts>(`/posts/create/`, body);
     } catch (err) {
-      console.error("Error getting posts:", err);
-      return null;
+      return handleRequestError(err, () => {
+        console.error("Error creating post:", err);
+        return null;
+      });
     }
   }
 
@@ -86,8 +94,10 @@ class PostsApi {
     try {
       return await put<any, PostWithForecasts>(`/posts/${id}/update/`, body);
     } catch (err) {
-      console.error("Error getting posts:", err);
-      return null;
+      return handleRequestError(err, () => {
+        console.error("Error updating post:", err);
+        return null;
+      });
     }
   }
 

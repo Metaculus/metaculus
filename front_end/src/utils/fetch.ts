@@ -1,3 +1,7 @@
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { NextResponse } from "next/server";
+
 import { getAlphaTokenSession, getServerSession } from "@/services/session";
 import {
   ApiErrorResponse,
@@ -159,4 +163,19 @@ const del = async <T>(url: string, options: FetchOptions = {}): Promise<T> => {
 };
 
 export { get, post, put, del, patch };
+
+/**
+ * Enforce error throw for admins to navigate to the error page
+ */
+export function handleRequestError(error: unknown, callback: () => any): any {
+  const isDebugModeEnabled =
+    cookies().get("isDebugModeEnabled")?.value === "true";
+
+  if (isDebugModeEnabled) {
+    throw error;
+  }
+
+  return callback();
+}
+
 export default appFetch;
