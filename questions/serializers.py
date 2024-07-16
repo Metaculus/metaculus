@@ -167,7 +167,7 @@ class ForecastSerializer(serializers.ModelSerializer):
 
 def serialize_question(
     question: Question,
-    with_forecasts: bool = False,
+    with_cp: bool = False,
     current_user: User = None,
 ):
     """
@@ -177,7 +177,7 @@ def serialize_question(
     serialized_data = QuestionSerializer(question).data
     serialized_data["post_id"] = question.get_post().id
 
-    if with_forecasts:
+    if with_cp:
         if question.cp_reveal_time is None or question.cp_reveal_time > timezone.now():
             serialized_data["forecasts"] = build_question_forecasts(question, True)
         else:
@@ -217,7 +217,7 @@ def serialize_question(
 
 def serialize_conditional(
     conditional: Conditional,
-    with_forecasts: bool = False,
+    with_cp: bool = False,
     current_user: User = None,
     post_id: int = None,
 ):
@@ -227,22 +227,22 @@ def serialize_conditional(
     # Generic questions
     serialized_data["condition"] = serialize_question(
         conditional.condition,
-        with_forecasts=False,
+        with_cp=False,
     )
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
-        with_forecasts=False,
+        with_cp=False,
     )
 
     # Autogen questions
     serialized_data["question_yes"] = serialize_question(
         conditional.question_yes,
-        with_forecasts=with_forecasts,
+        with_cp=with_cp,
         current_user=current_user,
     )
     serialized_data["question_no"] = serialize_question(
         conditional.question_no,
-        with_forecasts=with_forecasts,
+        with_cp=with_cp,
         current_user=current_user,
     )
 
@@ -251,7 +251,7 @@ def serialize_conditional(
 
 def serialize_group(
     group: GroupOfQuestions,
-    with_forecasts: bool = False,
+    with_cp: bool = False,
     current_user: User = None,
     post_id: int = None,
 ):
@@ -263,7 +263,7 @@ def serialize_group(
         serialized_data["questions"].append(
             serialize_question(
                 question,
-                with_forecasts=with_forecasts,
+                with_cp=with_cp,
                 current_user=current_user,
             )
         )
