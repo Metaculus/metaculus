@@ -222,14 +222,18 @@ def migrate_topics(question_ids: list[int], q_p_m2m_cls):
         q_p_m2m_cls.objects.bulk_create(m2m_objects, ignore_conflicts=True)
 
 
-def migrate_projects():
+def migrate_projects(site_ids: list[int] = None):
+    site_ids = site_ids or []
+
     # Extracting all post IDs to filter out those we didn't migrate
     # Please note: post ids are the same as question ids!
     post_ids = Post.objects.values_list("id", flat=True)
     q_p_m2m_cls = Post.projects.through
-    # Migrating only Tournament projects for now
+
     for project_obj in paginated_query(
-        "SELECT * FROM metac_project_project WHERE type in ('TO', 'QS') OR (type = 'MP' and site_id = 1)"
+        "SELECT * FROM metac_project_project "
+        "WHERE site_id in %s AND (type in ('TO', 'QS') OR (type = 'MP' and site_id = 1))",
+        [tuple(site_ids)],
     ):
         project = create_project(project_obj)
 
