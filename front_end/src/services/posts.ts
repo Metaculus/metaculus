@@ -54,7 +54,7 @@ class PostsApi {
     }
   }
 
-  static async getPostWithoutForecasts(
+  static async getPostsWithCP(
     params?: PostsParams
   ): Promise<PaginatedPayload<PostWithForecasts>> {
     const queryParams = encodeQueryParams({
