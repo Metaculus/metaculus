@@ -1,5 +1,5 @@
 import { CommentType } from "@/types/comment";
-import { get, post } from "@/utils/fetch";
+import { get, handleRequestError, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type getCommentsParams = {
@@ -45,8 +45,10 @@ class CommentsApi {
         return comment;
       });
     } catch (err) {
-      console.error("Error getting comments:", err);
-      return [];
+      return handleRequestError(err, () => {
+        console.error("Error getting comments:", err);
+        return [];
+      });
     }
   }
 
@@ -54,8 +56,10 @@ class CommentsApi {
     try {
       return await post<null, null>(`/comments/${id}/delete`, null);
     } catch (err) {
-      console.error("Error deleting comment:", err);
-      return null;
+      return handleRequestError(err, () => {
+        console.error("Error deleting comment:", err);
+        return null;
+      });
     }
   }
 
@@ -68,8 +72,10 @@ class CommentsApi {
         commentData
       );
     } catch (err) {
-      console.error("Error editing comment:", err);
-      return null;
+      return handleRequestError(err, () => {
+        console.error("Error editing comment:", err);
+        return null;
+      });
     }
   }
 
@@ -82,8 +88,10 @@ class CommentsApi {
         commentData
       );
     } catch (err) {
-      console.error("Error creating comment:", err);
-      return null;
+      return handleRequestError(err, () => {
+        console.error("Error creating comment:", err);
+        return null;
+      });
     }
   }
 
@@ -96,8 +104,10 @@ class CommentsApi {
         voteData
       );
     } catch (err) {
-      console.error("Error creating comment:", err);
-      return null;
+      return handleRequestError(err, () => {
+        console.error("Error voting comment:", err);
+        return null;
+      });
     }
   }
 }
