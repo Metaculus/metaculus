@@ -26,7 +26,7 @@ import {
   UndoRedo,
 } from "@mdxeditor/editor";
 import classNames from "classnames";
-import React, { FC, useMemo, useRef } from "react";
+import React, { FC, useEffect, useMemo, useRef } from "react";
 
 import "@mdxeditor/editor/style.css";
 
@@ -59,6 +59,7 @@ type Props = {
   mode?: EditorMode;
   onChange?: (markdown: string) => void;
   contentEditableClassName?: string;
+  shouldConfirmLeave?: boolean;
 };
 
 const MarkdownEditor: FC<Props> = ({
@@ -66,8 +67,22 @@ const MarkdownEditor: FC<Props> = ({
   mode = "read",
   onChange = console.log,
   contentEditableClassName,
+  shouldConfirmLeave = false,
 }) => {
   const { theme } = useAppTheme();
+
+  useEffect(() => {
+    function beforeUnload(e: BeforeUnloadEvent) {
+      if (!shouldConfirmLeave) return;
+      e.preventDefault();
+    }
+
+    window.addEventListener("beforeunload", beforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnload);
+    };
+  }, [shouldConfirmLeave]);
 
   const editorRef = useRef<MDXEditorMethods>(null);
 
