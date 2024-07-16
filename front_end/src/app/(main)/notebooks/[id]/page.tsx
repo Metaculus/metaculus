@@ -17,7 +17,6 @@ import CommentFeed from "@/components/comment_feed";
 import Button from "@/components/ui/button";
 import CircleDivider from "@/components/ui/circle_divider";
 import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
-import CommentsApi from "@/services/comments";
 import PostsApi from "@/services/posts";
 import { PostWithNotebook } from "@/types/post";
 import { formatDate } from "@/utils/date_formatters";
@@ -36,7 +35,6 @@ export default async function IndividualNotebook({
 
   const locale = await getLocale();
   const t = await getTranslations();
-  const commentsData = await CommentsApi.getComments({ post: params.id });
 
   return (
     <main className="mx-auto mb-24 mt-12 flex w-full max-w-6xl flex-1 flex-col bg-gray-0 p-4 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark xs:p-8">
@@ -136,7 +134,10 @@ export default async function IndividualNotebook({
             >
               {t("comments")}
             </h2>
-            <CommentFeed initialComments={commentsData} post={postData} />
+            <CommentFeed
+              postId={postData.id}
+              postPermissions={postData.user_permission}
+            />
           </div>
         </div>
       </div>

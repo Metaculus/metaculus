@@ -2,9 +2,10 @@ import { CommentType } from "@/types/comment";
 import { get, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
-export type CommentsParams = {
+export type getCommentsParams = {
   post?: number;
   author?: number;
+  parent_isnull?: boolean;
 };
 
 export type CreateCommentParams = {
@@ -28,11 +29,14 @@ export type VoteCommentParams = {
 };
 
 class CommentsApi {
-  static async getComments(params?: CommentsParams): Promise<CommentType[]> {
+  static async getComments(
+    url: string = "/comments",
+    params?: getCommentsParams
+  ): Promise<CommentType[]> {
     const queryParams = encodeQueryParams(params ?? {});
     try {
-      const comments = await get<CommentType[]>(`/comments${queryParams}`);
-      return comments.map((comment) => {
+      const response = await get<CommentType[]>(`${url}${queryParams}`);
+      return response.map((comment) => {
         if (comment.included_forecast) {
           comment.included_forecast.start_time = new Date(
             comment.included_forecast.start_time
@@ -63,7 +67,6 @@ class CommentsApi {
         `/comments/${commentData.id}/edit`,
         commentData
       );
-      return null;
     } catch (err) {
       console.error("Error editing comment:", err);
       return null;
