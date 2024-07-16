@@ -12,7 +12,7 @@ type Props = {
 };
 
 const AwaitedPostsFeed: FC<Props> = async ({ filters, type }) => {
-  const { results: questions, count } = await PostsApi.getPostWithoutForecasts({
+  const { results: questions, count } = await PostsApi.getPostsWithCP({
     ...filters,
     limit: POSTS_PER_PAGE,
   });
