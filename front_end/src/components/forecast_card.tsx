@@ -25,7 +25,9 @@ type Props = {
   className?: string;
   chartTheme?: VictoryThemeDefinition;
   defaultChartZoom?: TimelineChartZoomOption;
+  withZoomPicker?: boolean;
   nonInteractive?: boolean;
+  navigateToNewTab?: boolean;
 };
 
 const ForecastCard: FC<Props> = ({
@@ -33,7 +35,9 @@ const ForecastCard: FC<Props> = ({
   className,
   chartTheme,
   defaultChartZoom,
+  withZoomPicker,
   nonInteractive = false,
+  navigateToNewTab,
 }) => {
   const [cursorValue, setCursorValue] = useState<number | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -86,6 +90,7 @@ const ForecastCard: FC<Props> = ({
               chartHeight={chartHeight}
               chartTheme={chartTheme}
               defaultChartZoom={defaultChartZoom}
+              withZoomPicker={withZoomPicker}
             />
           );
         default:
@@ -118,6 +123,7 @@ const ForecastCard: FC<Props> = ({
               onCursorChange={nonInteractive ? undefined : setCursorValue}
               extraTheme={chartTheme}
               defaultZoom={defaultChartZoom}
+              withZoomPicker={withZoomPicker}
             />
           );
         case QuestionType.MultipleChoice:
@@ -134,6 +140,7 @@ const ForecastCard: FC<Props> = ({
               chartHeight={chartHeight}
               chartTheme={chartTheme}
               defaultChartZoom={defaultChartZoom}
+              withZoomPicker={withZoomPicker}
             />
           );
         default:
@@ -179,13 +186,17 @@ const ForecastCard: FC<Props> = ({
   };
 
   return (
-    <Link
-      href={`/questions/${post.id}`}
+    <div
       className={classNames(
-        "ForecastCard flex w-full min-w-0 flex-col gap-3 bg-gray-0 p-5 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark xs:rounded-md",
+        "ForecastCard relative flex w-full min-w-0 flex-col gap-3 bg-gray-0 p-5 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark xs:rounded-md",
         className
       )}
     >
+      <Link
+        href={`/questions/${post.id}`}
+        className="absolute inset-0"
+        target={navigateToNewTab ? "_blank" : "_self"}
+      />
       <div className="ForecastCard-header flex items-start justify-between max-[288px]:flex-col">
         {!post.conditional && (
           <h2 className="ForecastTitle m-0 line-clamp-2 text-lg font-medium leading-snug tracking-normal">
@@ -202,7 +213,7 @@ const ForecastCard: FC<Props> = ({
       >
         {renderChart()}
       </div>
-    </Link>
+    </div>
   );
 };
 
