@@ -16,7 +16,7 @@ from migrator.services.migrate_scoring import score_questions
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
 from migrator.services.post_migrate import post_migrate_calculate_divergence
-from migrator.utils import reset_sequence
+from migrator.utils import reset_sequence, paginated_query
 from posts.tasks import run_compute_movement
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -28,7 +28,18 @@ class Command(BaseCommand):
     Migrates old database data to the new one
     """
 
-    def handle(self, *args, **options):
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "site_ids",
+            type=str,
+            nargs="?",
+            default="1",
+            help="Comma-separated list of site IDs",
+        )
+
+    def handle(self, *args, site_ids=None, **options):
+        site_ids = [int(x) for x in site_ids.split(",")]
+
         with connection.cursor() as cursor:
             cursor.execute("DROP SCHEMA public CASCADE;")
             cursor.execute("CREATE SCHEMA public;")
@@ -46,11 +57,11 @@ class Command(BaseCommand):
 
         migrate_users()
         print("Migrated users")
-        migrate_questions()
+        migrate_questions(site_ids=site_ids)
         print("Migrated questions")
         migrate_forecasts()
         print("Migrated forecasts")
-        migrate_projects()
+        migrate_projects(site_ids=site_ids)
         print("Migrated projects")
         migrate_votes()
         print("Migrated votes")

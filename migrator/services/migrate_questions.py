@@ -165,28 +165,36 @@ def create_post(question: dict, **kwargs) -> Post:
     )
 
 
-def migrate_questions():
+def migrate_questions(site_ids: list[int] = None):
     print("Migrating simple questions...")
-    migrate_questions__simple()
+    migrate_questions__simple(site_ids=site_ids)
     print("Migrating composite questions...")
-    migrate_questions__composite()
+    migrate_questions__composite(site_ids=site_ids)
 
 
-def migrate_questions__simple():
+def migrate_questions__simple(site_ids: list[int] = None):
     questions = []
     posts = []
+    site_ids = site_ids or []
 
     for old_question in paginated_query(
         """SELECT
-                q.*,
-                ARRAY_AGG(o.label) AS option_labels
-            FROM
-                metac_question_question q
-            LEFT JOIN
-                metac_question_option o ON q.id = o.question_id
-            WHERE type not in ('conditional_group', 'group', 'notebook', 'discussion', 'claim') and group_id is null
-            GROUP BY
-        q.id;"""
+                    q.*,
+                    ARRAY_AGG(o.label) AS option_labels
+                FROM
+                    metac_question_question q
+                LEFT JOIN
+                    metac_question_option o ON q.id = o.question_id
+                JOIN
+                    metac_project_questionprojectpermissions pqp ON q.id = pqp.question_id
+                JOIN
+                    metac_project_project pp ON pqp.project_id = pp.id
+                WHERE
+                    pp.site_id IN %s
+                    AND q.type NOT IN ('conditional_group', 'group', 'notebook', 'discussion', 'claim')
+                    AND q.group_id IS NULL
+                GROUP BY q.id;""",
+        [tuple(site_ids)],
     ):
         question = create_question(old_question)
         if question is not None:
@@ -201,31 +209,37 @@ def migrate_questions__simple():
 #
 
 
-def migrate_questions__composite():
+def migrate_questions__composite(site_ids: list[int] = None):
     old_groups = {}
+    site_ids = site_ids or []
 
     for old_question in paginated_query(
         """SELECT 
-                            q.*, 
-                            qc.parent_id as condition_id, 
-                            qc.unconditional_question_id as condition_child_id, 
-                            qc.resolution as qc_resolution FROM (
-                                    SELECT
-                                        q.*,
-                                        ARRAY_AGG(o.label) AS option_labels
-                                    FROM
-                                        metac_question_question q
-                                    LEFT JOIN
-                                        metac_question_option o ON q.id = o.question_id
-                                    WHERE  type in ('conditional_group', 'group', 'notebook', 'discussion', 'claim') or group_id is not null
-                                    
-                                    GROUP BY q.id
-                                ) q
-                        LEFT JOIN 
-                            metac_question_conditional qc ON qc.child_id = q.id
-                        -- Ensure parents go first
-                        ORDER BY group_id DESC;
-                                                                """,
+                q.*, 
+                qc.parent_id as condition_id, 
+                qc.unconditional_question_id as condition_child_id, 
+                qc.resolution as qc_resolution FROM (
+                        SELECT
+                            q.*,
+                            ARRAY_AGG(o.label) AS option_labels
+                        FROM
+                            metac_question_question q
+                        LEFT JOIN
+                            metac_question_option o ON q.id = o.question_id
+                        LEFT JOIN
+                            metac_project_questionprojectpermissions pqp ON q.id = pqp.question_id
+                        LEFT JOIN
+                            metac_project_project pp ON pqp.project_id = pp.id
+                        WHERE
+                            (q.type in ('conditional_group', 'group', 'notebook', 'discussion', 'claim') and pp.site_id IN %s)
+                            OR q.group_id is not null
+                        GROUP BY q.id
+                    ) q
+            LEFT JOIN 
+                metac_question_conditional qc ON qc.child_id = q.id
+            -- Ensure parents go first
+            ORDER BY group_id DESC;""",
+        [tuple(site_ids)],
         itersize=10000,
     ):
         group_id = old_question["group_id"]
@@ -234,7 +248,10 @@ def migrate_questions__composite():
         if not group_id:
             old_groups[old_question["id"]] = {**old_question, "children": []}
         else:
-            old_groups[group_id]["children"].append(old_question)
+            # Since we filter out parent questions which does not belong to the given site_ids
+            # Some child questions might not have a parent, so we need to exclude such questions
+            if group_id in old_groups:
+                old_groups[group_id]["children"].append(old_question)
 
     print("Migrating notebooks")
     migrate_questions__notebook(list(old_groups.values()))
