@@ -1,3 +1,4 @@
+import json
 import math
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -64,6 +65,7 @@ def global_leaderboard(
         if entry.user == user:
             leaderboard_data["userEntry"] = LeaderboardEntrySerializer(entry).data
             break
+
     return Response(leaderboard_data)
 
 

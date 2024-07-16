@@ -15,7 +15,6 @@ from posts.services import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 
 
-
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def comments_list_api_view(request: Request):
@@ -97,9 +96,7 @@ def comment_create_api_view(request: Request):
         else None
     )
 
-    create_comment(
-        **serializer.validated_data, included_forecast=forecast, user=user
-    )
+    create_comment(**serializer.validated_data, included_forecast=forecast, user=user)
 
     return Response({}, status=status.HTTP_201_CREATED)
 
