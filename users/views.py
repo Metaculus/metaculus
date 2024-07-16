@@ -40,65 +40,6 @@ def user_profile_api_view(request, pk: int):
     user = get_object_or_404(qs, pk=pk)
     ser = UserPublicSerializer(user).data
 
-    # Medals
-    entries_with_medals = LeaderboardEntry.objects.filter(
-        user=user, medal__isnull=False
-    )
-    ser["tournament_medals"] = dict(
-        Counter(
-            [
-                x.medal
-                for x in entries_with_medals.filter(
-                    leaderboard__project__type=Project.ProjectTypes.TOURNAMENT
-                )
-            ]
-        ).most_common(100)
-    )
-    ser["peer_score_medals"] = dict(
-        Counter(
-            [
-                x.medal
-                for x in entries_with_medals.filter(
-                    leaderboard__project__type=Project.ProjectTypes.SITE_MAIN,
-                    leaderboard__score_type=Leaderboard.ScoreTypes.PEER_GLOBAL,
-                )
-            ]
-        ).most_common(100)
-    )
-    ser["baseline_medals"] = dict(
-        Counter(
-            [
-                x.medal
-                for x in entries_with_medals.filter(
-                    leaderboard__project__type=Project.ProjectTypes.SITE_MAIN,
-                    leaderboard__score_type=Leaderboard.ScoreTypes.BASELINE_GLOBAL,
-                )
-            ]
-        ).most_common(100)
-    )
-    ser["comment_insight_medals"] = dict(
-        Counter(
-            [
-                x.medal
-                for x in entries_with_medals.filter(
-                    leaderboard__project__type=Project.ProjectTypes.SITE_MAIN,
-                    leaderboard__score_type=Leaderboard.ScoreTypes.COMMENT_INSIGHT,
-                )
-            ]
-        ).most_common(100)
-    )
-    ser["question_writing_medals"] = dict(
-        Counter(
-            [
-                x.medal
-                for x in entries_with_medals.filter(
-                    leaderboard__project__type=Project.ProjectTypes.SITE_MAIN,
-                    leaderboard__score_type=Leaderboard.ScoreTypes.QUESTION_WRITING,
-                )
-            ]
-        ).most_common(100)
-    )
-
     forecasts = Forecast.objects.filter(
         author=user,
         question__type="binary",
