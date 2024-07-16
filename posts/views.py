@@ -24,6 +24,7 @@ from posts.services import (
     get_post_permission_for_user,
     add_categories,
 )
+from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers import (
@@ -85,6 +86,15 @@ def post_create_api_view(request):
     post = create_post(**serializer.validated_data, author=request.user)
     if "categories" in request.data:
         add_categories(request.data["categories"], post)
+    if request.data.get("news_type", None):
+        news_project = (
+            Project.objects.filter(type=Project.ProjectTypes.NEWS_CATEGORY)
+            .filter(name__iexact=request.data["news_type"])
+            .first()
+        )
+        print(news_project, request.data["news_type"])
+        post.projects.add(news_project)
+        post.save()
 
     return Response(
         serialize_post(post, with_cp=False, current_user=request.user),

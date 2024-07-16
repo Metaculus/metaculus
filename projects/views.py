@@ -94,11 +94,13 @@ def tags_list_api_view(request: Request):
 
     return Response(data)
 
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def site_main_view(request: Request):
     site_main = Project.objects.get(type=Project.ProjectTypes.SITE_MAIN)
     return Response(TournamentSerializer(site_main).data)
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])

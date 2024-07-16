@@ -231,6 +231,7 @@ class Notebook(TimeStampedModel):
     news_type = models.CharField(max_length=100, blank=True, null=True)
     image_url = models.URLField(blank=True, null=True)
 
+
 class Post(TimeStampedModel):
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -253,7 +254,7 @@ class Post(TimeStampedModel):
     curation_status_updated_at = models.DateTimeField(null=True, blank=True)
 
     title = models.CharField(max_length=2000)
-    url_title = models.CharField(max_length=2000, default='')
+    url_title = models.CharField(max_length=2000, default="")
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
 
     curated_last_by = models.ForeignKey(
@@ -441,8 +442,12 @@ class Post(TimeStampedModel):
 
 
 class RelatedPost(TimeStampedModel):
-    post1 = models.ForeignKey(Post, models.CASCADE, related_name='related_posts_as_post1')
-    post2 = models.ForeignKey(Post, models.CASCADE, related_name='related_posts_as_post2')
+    post1 = models.ForeignKey(
+        Post, models.CASCADE, related_name="related_posts_as_post1"
+    )
+    post2 = models.ForeignKey(
+        Post, models.CASCADE, related_name="related_posts_as_post2"
+    )
 
 
 class PostUserSnapshot(models.Model):
