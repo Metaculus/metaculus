@@ -46,7 +46,7 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
         author: profileId,
         parent_isnull: postId ? true : false,
       });
-      setComments(() => [...response]);
+      setComments(() => [...(response ? (response as CommentType[]) : [])]);
       setIsLoading(false);
     } catch (err) {
       console.error("Error fetching comments:", err);
