@@ -2,7 +2,7 @@
 import { useTranslations } from "next-intl";
 import { FC, useEffect } from "react";
 
-import TabBar from "@/components/ui/tab_bar/tab_bar";
+import TabBar from "@/components/ui/tab_bar";
 import { SearchParams } from "@/types/navigation";
 import { CategoryKey } from "@/types/scoring";
 
