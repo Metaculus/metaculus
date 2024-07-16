@@ -192,7 +192,7 @@ class PostFilterSerializer(serializers.Serializer):
 
 def serialize_post(
     post: Post,
-    with_forecasts: bool = False,
+    with_cp: bool = False,
     current_user: User = None,
 ) -> dict:
     serialized_data = PostSerializer(post).data
@@ -200,14 +200,14 @@ def serialize_post(
     if post.question:
         serialized_data["question"] = serialize_question(
             post.question,
-            with_forecasts=with_forecasts,
+            with_cp=with_cp,
             current_user=current_user,
         )
 
     if post.conditional:
         serialized_data["conditional"] = serialize_conditional(
             post.conditional,
-            with_forecasts=with_forecasts,
+            with_cp=with_cp,
             current_user=current_user,
             post_id=post.id,
         )
@@ -215,7 +215,7 @@ def serialize_post(
     if post.group_of_questions:
         serialized_data["group_of_questions"] = serialize_group(
             post.group_of_questions,
-            with_forecasts=with_forecasts,
+            with_cp=with_cp,
             current_user=current_user,
             post_id=post.id,
         )
@@ -240,7 +240,7 @@ def serialize_post(
 
 def serialize_post_many(
     data: Union[Post.objects, list[Post]],
-    with_forecasts: bool = False,
+    with_cp: bool = False,
     current_user: User = None,
 ) -> list[dict]:
     ids = [p.pk for p in data]
@@ -256,7 +256,7 @@ def serialize_post_many(
     if current_user and not current_user.is_anonymous:
         qs = qs.annotate_user_vote(current_user)
 
-    if with_forecasts:
+    if with_cp:
         qs = qs.prefetch_forecasts()
 
     # Restore the original ordering
@@ -264,6 +264,6 @@ def serialize_post_many(
     objects.sort(key=lambda obj: ids.index(obj.id))
 
     return [
-        serialize_post(post, with_forecasts=with_forecasts, current_user=current_user)
+        serialize_post(post, with_cp=with_cp, current_user=current_user)
         for post in objects
     ]
