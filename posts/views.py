@@ -42,8 +42,8 @@ def posts_list_api_view(request):
     qs = Post.objects.all()
 
     # Extra params
-    with_forecasts = serializers.BooleanField(allow_null=True).run_validation(
-        request.query_params.get("with_forecasts")
+    with_cp = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("with_cp")
     )
 
     # Apply filtering
@@ -56,7 +56,7 @@ def posts_list_api_view(request):
 
     data = serialize_post_many(
         posts,
-        with_forecasts=with_forecasts,
+        with_cp=with_cp,
         current_user=request.user,
     )
 
@@ -67,7 +67,7 @@ def posts_list_api_view(request):
 @permission_classes([AllowAny])
 def post_detail(request: Request, pk):
     qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
-    posts = serialize_post_many(qs, current_user=request.user, with_forecasts=True)
+    posts = serialize_post_many(qs, current_user=request.user, with_cp=True)
 
     if not posts:
         raise NotFound("Post not found")
@@ -87,7 +87,7 @@ def post_create_api_view(request):
         add_categories(request.data["categories"], post)
 
     return Response(
-        serialize_post(post, with_forecasts=False, current_user=request.user),
+        serialize_post(post, with_cp=False, current_user=request.user),
         status=status.HTTP_201_CREATED,
     )
 

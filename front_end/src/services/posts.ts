@@ -31,7 +31,7 @@ class PostsApi {
   static async getPost(id: number): Promise<PostWithForecasts | null> {
     try {
       return await get<PostWithForecasts>(
-        `/posts/${id}${encodeQueryParams({ with_forecasts: true })}`
+        `/posts/${id}${encodeQueryParams({ with_cp: true })}`
       );
     } catch (err) {
       return handleRequestError(err, () => {
@@ -59,7 +59,7 @@ class PostsApi {
   ): Promise<PaginatedPayload<PostWithForecasts>> {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
-      with_forecasts: true,
+      with_cp: true,
     });
 
     try {
