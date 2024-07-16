@@ -4,6 +4,7 @@ from django.contrib import admin
 
 from .models import Comment
 
+
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     list_filter = [
@@ -16,5 +17,12 @@ class CommentAdmin(admin.ModelAdmin):
         "on_project",
     ]
     readonly_fields = ["included_forecast"]
-    fields = ["author", "text", "on_post", "on_project", "is_soft_deleted", "included_forecast", "is_private"]
-
+    fields = [
+        "author",
+        "text",
+        "on_post",
+        "on_project",
+        "is_soft_deleted",
+        "included_forecast",
+        "is_private",
+    ]

@@ -64,7 +64,6 @@ class Comment(models.Model):
     objects = models.Manager.from_queryset(CommentQuerySet)()
 
 
-
 class CommentDiff(models.Model):
     comment = models.ForeignKey(Comment, models.CASCADE)
     author = models.ForeignKey(User, models.CASCADE)
