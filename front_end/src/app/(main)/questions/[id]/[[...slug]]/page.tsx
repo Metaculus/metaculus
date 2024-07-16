@@ -1,4 +1,4 @@
-import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
+import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { parseISO } from "date-fns";
 import { isNil } from "lodash";
@@ -22,12 +22,12 @@ import { SearchParams } from "@/types/navigation";
 import { Post, PostStatus, ProjectPermissions } from "@/types/post";
 import { getConditionalQuestionTitle } from "@/utils/questions";
 
-import DetailedGroupCard from "./components/detailed_group_card";
-import DetailedQuestionCard from "./components/detailed_question_card";
-import Modbox from "./components/modbox";
+import DetailedGroupCard from "../components/detailed_group_card";
+import DetailedQuestionCard from "../components/detailed_question_card";
+import Modbox from "../components/modbox";
 
 type Props = {
-  params: { id: number };
+  params: { id: number; slug: string[] };
   searchParams: SearchParams;
 };
 
@@ -56,7 +56,6 @@ export default async function IndividualQuestion({
   searchParams,
 }: Props) {
   const postData = await PostsApi.getPost(params.id);
-
   if (!postData) {
     return notFound();
   }
