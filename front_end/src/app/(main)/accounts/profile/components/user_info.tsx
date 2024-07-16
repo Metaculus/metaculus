@@ -139,42 +139,6 @@ const UserInfo: FC<UserInfoProps> = ({
         />
       </div>
       <FormError errors={state?.errors} name={"non_field_errors"} />
-      <div className="max-w-[260px] rounded bg-blue-300 p-4 dark:bg-blue-500">
-        {[
-          ["Tournaments", profile.tournament_medals],
-          ["Peer Score", profile.peer_score_medals],
-          ["Baseline Score", profile.baseline_medals],
-          ["Insight", profile.comment_insight_medals],
-          ["Question Writing", profile.question_writing_medals],
-        ].map((x, index) => {
-          const medal_collection: Record<MedalType, number> = x[1] as Record<
-            MedalType,
-            number
-          >;
-          return (
-            <div className="mt-4" key={index}>
-              <span className="text-xl">{x[0] as string}</span>
-              <div className="flex flex-row">
-                {medal_collection &&
-                Object.keys(medal_collection).length > 0 ? (
-                  Object.keys(medal_collection).map((k, subindex) => {
-                    return (
-                      <div className="flex flex-row gap-x-2 p-2" key={subindex}>
-                        <span className="text-xl font-bold">
-                          {medal_collection[k as MedalType]} x
-                        </span>
-                        <MedalIcon type={k as MedalType} className="size-7" />
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="text-xs text-gray-600">None</div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
       {MedalsComponent}
       {profile.calibration_curve && (
         <CalibrationChart data={profile.calibration_curve} />

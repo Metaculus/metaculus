@@ -20,11 +20,6 @@ export type UserProfile = {
   occupation?: string;
   location?: string;
   profile_picture?: string;
-  tournament_medals?: Record<MedalType, number>;
-  peer_score_medals?: Record<MedalType, number>;
-  baseline_medals?: Record<MedalType, number>;
-  comment_insight_medals?: Record<MedalType, number>;
-  question_writing_medals?: Record<MedalType, number>;
   calibration_curve?: any;
   score_histogram?: any;
 };
