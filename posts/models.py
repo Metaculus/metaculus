@@ -231,7 +231,6 @@ class Notebook(TimeStampedModel):
     news_type = models.CharField(max_length=100, blank=True, null=True)
     image_url = models.URLField(blank=True, null=True)
 
-
 class Post(TimeStampedModel):
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -439,6 +438,11 @@ class Post(TimeStampedModel):
             return [self.conditional.question_yes, self.conditional.question_no]
         else:
             return []
+
+
+class RelatedPost(TimeStampedModel):
+    post1 = models.ForeignKey(Post, models.CASCADE, related_name='related_posts_as_post1')
+    post2 = models.ForeignKey(Post, models.CASCADE, related_name='related_posts_as_post2')
 
 
 class PostUserSnapshot(models.Model):
