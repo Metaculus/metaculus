@@ -16,6 +16,7 @@ type Props = {
   choices: ChoiceItem[];
   visibleChoicesCount: number;
   defaultChartZoom?: TimelineChartZoomOption;
+  withZoomPicker?: boolean;
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
 };
@@ -25,6 +26,7 @@ const MultipleChoiceTile: FC<Props> = ({
   choices,
   visibleChoicesCount,
   defaultChartZoom,
+  withZoomPicker,
   chartHeight = 100,
   chartTheme,
 }) => {
@@ -75,6 +77,7 @@ const MultipleChoiceTile: FC<Props> = ({
         height={chartHeight}
         extraTheme={chartTheme}
         defaultZoom={defaultChartZoom}
+        withZoomPicker={withZoomPicker}
       />
     </div>
   );
