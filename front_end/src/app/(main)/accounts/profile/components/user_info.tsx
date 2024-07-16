@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format, parseISO } from "date-fns";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
@@ -29,9 +29,14 @@ import SocialMediaSection from "./social_media_section";
 export type UserInfoProps = {
   profile: UserProfile;
   isCurrentUser: boolean;
+  MedalsComponent: ReactNode;
 };
 
-const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
+const UserInfo: FC<UserInfoProps> = ({
+  profile,
+  isCurrentUser,
+  MedalsComponent,
+}) => {
   const t = useTranslations();
   const { setUser } = useAuth();
   const [isEdit, setIsEdit] = useState(false);
@@ -170,6 +175,7 @@ const UserInfo: FC<UserInfoProps> = ({ profile, isCurrentUser }) => {
           );
         })}
       </div>
+      {MedalsComponent}
       {profile.calibration_curve && (
         <CalibrationChart data={profile.calibration_curve} />
       )}

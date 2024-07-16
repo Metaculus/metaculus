@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 
-import { ENFORCED_THEME_PARAM } from "@/constants/global_search_params";
+import {
+  ENFORCED_THEME_PARAM,
+  HIDE_ZOOM_PICKER,
+} from "@/constants/global_search_params";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 
 export async function GET(
@@ -25,7 +28,7 @@ export async function GET(
   const alphaAccessToken = await getAlphaAccessToken();
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
-  const url = `${origin}/embed/questions/${params.id}?${ENFORCED_THEME_PARAM}=dark&non-interactive=true`;
+  const url = `${origin}/embed/questions/${params.id}?${ENFORCED_THEME_PARAM}=dark&${HIDE_ZOOM_PICKER}=true&non-interactive=true`;
 
   if (alphaAccessToken) {
     await page.setExtraHTTPHeaders({
