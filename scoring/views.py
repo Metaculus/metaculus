@@ -1,5 +1,3 @@
-import json
-import math
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -7,14 +5,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from users.models import User
-
-from comments.serializers import UserCommentSerializer
-
 from projects.models import Project
-from projects.views import get_projects_qs, get_project_permission_for_user
 from projects.permissions import ObjectPermission
-
+from projects.views import get_projects_qs, get_project_permission_for_user
 from scoring.models import Leaderboard, LeaderboardEntry
 from scoring.serializers import (
     LeaderboardSerializer,
@@ -22,6 +15,7 @@ from scoring.serializers import (
     ContributionSerializer,
 )
 from scoring.utils import update_project_leaderboard, get_contributions
+from users.models import User
 
 
 @api_view(["GET"])
@@ -47,19 +41,15 @@ def global_leaderboard(
     leaderboard = leaderboards.first()
     # serialize
     leaderboard_data = LeaderboardSerializer(leaderboard).data
-    entries = leaderboard.entries.order_by("rank").select_related("user")
-    if len(entries) == 0:
-        entries = update_project_leaderboard(leaderboard.project, leaderboard)
+
     user = request.user
-    leader_entries = [
-        e
-        for e in entries
-        if e.rank and e.rank <= len(entries) * 0.05
-        if (not e.excluded or user.is_staff)
-    ]
-    leaderboard_data["entries"] = LeaderboardEntrySerializer(
-        leader_entries, many=True
-    ).data
+    entries = leaderboard.entries.select_related("user").order_by("rank")
+    entries = entries.filter(rank__lte=entries.count() * 0.05)
+
+    if not user.is_staff:
+        entries = entries.filter(excluded=False)
+
+    leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     # add user entry
     for entry in entries:
         if entry.user == user:
