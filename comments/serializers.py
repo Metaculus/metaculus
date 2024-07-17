@@ -5,11 +5,11 @@ from comments.models import Comment
 from posts.models import Post
 from questions.serializers import ForecastSerializer
 from users.models import User
-from users.serializers import UserCommentSerializer
+from users.serializers import BaseUserSerializer
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = UserCommentSerializer()
+    author = BaseUserSerializer()
     parent = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()
 
@@ -35,7 +35,7 @@ class CommentSerializer(serializers.ModelSerializer):
             return {
                 "id": parent.id,
                 "on_post": parent.on_post.id,
-                "author": UserCommentSerializer(parent.author).data,
+                "author": BaseUserSerializer(parent.author).data,
             }
         return None
 
