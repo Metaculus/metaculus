@@ -121,6 +121,7 @@ def update_project_leaderboard(
 
     # assign ranks (and medals if finalized)
     new_entries.sort(key=lambda entry: entry.score, reverse=True)
+<<<<<<< HEAD
     exclusion_records = MedalExclusionRecord.objects.all()
     if leaderboard.start_time:
         exclusion_records = exclusion_records.filter(
@@ -131,6 +132,15 @@ def update_project_leaderboard(
             start_time__lte=leaderboard.finalize_time
         )
     excluded_users = exclusion_records.values_list("user", flat=True)
+=======
+    if not leaderboard.start_time or not leaderboard.finalize_time:
+        excluded_users = {}
+    else:
+        excluded_users = MedalExclusionRecord.objects.filter(
+            Q(Q(end_time__isnull=True) | Q(start_time__isnull=True)) | Q(end_time__gte=leaderboard.start_time),
+            start_time__lte=leaderboard.finalize_time,
+        ).values_list("user", flat=True)
+>>>>>>> 52dfdb0ccec840d0989b756d70652dd443f453ba
     # medals
     golds = silvers = bronzes = 0
     if leaderboard.finalize_time and (timezone.now() > leaderboard.finalize_time):
