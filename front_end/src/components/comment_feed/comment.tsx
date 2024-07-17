@@ -3,7 +3,7 @@
 import { faReply } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import dynamic from "next/dynamic";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import { softDeleteComment, editComment } from "@/app/(main)/questions/actions";
@@ -36,6 +36,7 @@ const copyToClipboard = async (text: string) => {
 
 const Comment: FC<Props> = ({ comment, url, permissions }) => {
   const locale = useLocale();
+  const t = useTranslations();
   const [commentMode, setCommentMode] = useState<"read" | "write">("read");
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
 
@@ -50,14 +51,14 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
       //     permissions !== CommentPermissions.CREATOR &&
       //     permissions !== CommentPermissions.CURATOR,
       id: "edit",
-      name: "Edit",
+      name: t("edit"),
       onClick: () => {
         setCommentMode("write");
       },
     },
     {
       id: "copyLink",
-      name: "Copy Link",
+      name: t("copyLink"),
       onClick: () => {
         copyToClipboard(`${url}#comment-${comment.id}`);
       },
@@ -65,7 +66,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
     {
       hidden: !user?.id,
       id: "report",
-      name: "Report",
+      name: t("report"),
       onClick: () => {
         return null; //setReportModalOpen(true)
       },
@@ -73,7 +74,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
     {
       // hidden: permissions !== CommentPermissions.CURATOR,
       id: "delete",
-      name: "Delete",
+      name: t("delete"),
       onClick: async () => {
         // setDeleteModalOpen(true),
         softDeleteComment(comment.id);
@@ -86,21 +87,21 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
       <div id={`comment-${comment.id}`}>
         {comment.included_forecast && (
           <IncludedForecast
-            author="deleted author"
+            author={t("deletedAuthor")}
             forecast={comment.included_forecast}
           />
         )}
         <div className="my-2.5 flex flex-col items-start gap-1">
           <span className="inline-flex items-center">
             <span className="italic text-gray-600 dark:text-gray-600-dark">
-              deleted
+              {t("deleted")}
             </span>
             <span className="mx-1">·</span>
             {formatDate(locale, new Date(comment.created_at))}
           </span>
         </div>
         <div className="italic text-gray-600 break-anywhere dark:text-gray-600-dark">
-          Comment deleted
+          {t("commentDeleted")}
         </div>
 
         {/* comment children tree goes here */}
@@ -122,7 +123,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
             className="no-underline"
             href={`/accounts/profile/${comment.author.id}/`}
           >
-            <h4 className="my-0">{comment.author.username}</h4>
+            <h4 className="my-1">{comment.author.username}</h4>
           </a>
           {/*
           {comment.is_moderator && !comment.is_admin && (
@@ -148,7 +149,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
           <a
             href={`/questions/${comment.parent.on_post}/#comment-${comment.parent.id}`}
           >
-            ➞ in reply to: {comment.parent.author.username}
+            ➞ {t("inReplyTo")} {comment.parent.author.username}
           </a>
         </div>
       )}
@@ -172,7 +173,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
             });
           }}
         >
-          Save
+          {t("save")}
         </Button>
       )}
       <div className="mb-2 mt-1 h-7 overflow-visible">
@@ -187,7 +188,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
             />
             <Button variant="text">
               <FontAwesomeIcon icon={faReply} />
-              Reply
+              {t("reply")}
             </Button>
           </div>
 
