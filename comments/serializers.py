@@ -38,7 +38,7 @@ class CommentSerializer(serializers.ModelSerializer):
                 "author": UserCommentSerializer(parent.author).data,
             }
         return None
-    
+
     def get_children(self, comment: Comment):
         children = Comment.objects.filter(parent=comment)
         return CommentSerializer(children, many=True).data
@@ -95,6 +95,4 @@ def serialize_comment_many(
     if current_user and not current_user.is_anonymous:
         qs = qs.annotate_user_vote(current_user)
 
-    return [
-        serialize_comment(comment) for comment in qs.all()
-    ]
+    return [serialize_comment(comment) for comment in qs.all()]

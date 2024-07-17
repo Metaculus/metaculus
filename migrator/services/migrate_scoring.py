@@ -22,11 +22,16 @@ def score_questions(qty: int | None = None):
             )
             print("Resolved q with no resolved time")
             exit()
-        score_question(
-            question,
-            question.resolution,
-            # TODO: add spot_forecast_time
-            score_types=[Score.ScoreTypes.PEER, Score.ScoreTypes.BASELINE],
-        )
-        print("scored question", i, "/", c, "ID:", question.id, end="\r")
-    print()
+        try:
+            score_question(
+                question,
+                question.resolution,
+                # TODO: add spot_forecast_time
+                score_types=[Score.ScoreTypes.PEER, Score.ScoreTypes.BASELINE],
+            )
+            print("scored question", i, "/", c, "ID:", question.id, end="\r")
+        except Exception as e:
+            if "ambiguous or annulled" in str(e):
+                pass
+            else:
+                raise e
