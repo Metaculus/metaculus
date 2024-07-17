@@ -14,7 +14,7 @@ from scoring.serializers import (
     LeaderboardEntrySerializer,
     ContributionSerializer,
 )
-from scoring.utils import update_project_leaderboard, get_contributions
+from scoring.utils import get_contributions
 from users.models import User
 
 
@@ -95,14 +95,13 @@ def project_leaderboard(
 
     # serialize
     leaderboard_data = LeaderboardSerializer(leaderboard).data
-    entries = list(leaderboard.entries.order_by("rank"))
-    if len(entries) == 0:
-        entries = update_project_leaderboard(project, leaderboard)
+    entries = leaderboard.entries.order_by("rank").select_related("user")
     user = request.user
-    leader_entries = [e for e in entries if (not e.excluded or user.is_staff)]
-    leaderboard_data["entries"] = LeaderboardEntrySerializer(
-        leader_entries, many=True
-    ).data
+
+    if not user.is_staff:
+        entries = entries.filter(excluded=False)
+
+    leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     # add user entry
     for entry in entries:
         if entry.user == user:
