@@ -26,7 +26,7 @@ import {
   UndoRedo,
 } from "@mdxeditor/editor";
 import classNames from "classnames";
-import React, { FC, useMemo, useRef } from "react";
+import React, { FC, useEffect, useMemo, useRef } from "react";
 
 import "@mdxeditor/editor/style.css";
 
@@ -45,6 +45,7 @@ import {
   embeddedQuestionDescriptor,
   EmbedQuestionAction,
 } from "./embedded_question";
+
 import "./editor.css";
 
 type EditorMode = "write" | "read";
@@ -59,6 +60,7 @@ type Props = {
   mode?: EditorMode;
   onChange?: (markdown: string) => void;
   contentEditableClassName?: string;
+  shouldConfirmLeave?: boolean;
 };
 
 const MarkdownEditor: FC<Props> = ({
