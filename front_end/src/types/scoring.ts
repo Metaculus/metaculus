@@ -1,4 +1,5 @@
 import { LEADERBOARD_CATEGORIES } from "@/app/(main)/(leaderboards)/leaderboard/filters";
+import { User } from "@/types/users";
 
 import { Question } from "./question";
 
@@ -46,8 +47,7 @@ export type MedalCategory = {
 };
 
 export type LeaderboardEntry = {
-  username: string;
-  user_id: number;
+  user: User;
   score: number;
   rank: number | null;
   excluded: boolean;
