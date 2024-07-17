@@ -30,7 +30,7 @@ const ProjectLeaderboardTable: FC<Props> = ({ leaderboardDetails, userId }) => {
       </thead>
       <tbody>
         {leaderboardDetails.entries.map((entry) => (
-          <TableRow key={entry.user_id} rowEntry={entry} userId={userId} />
+          <TableRow key={entry.user.id} rowEntry={entry} userId={userId} />
         ))}
       </tbody>
     </table>
