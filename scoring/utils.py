@@ -20,7 +20,7 @@ def score_question(
     spot_forecast_time: datetime | None = None,
     score_types: list[str] | None = None,
 ):
-    resolution_bucket = string_location_to_bucket_index(question, resolution)
+    resolution_bucket = string_location_to_bucket_index(resolution, question)
     score_types = score_types or Score.ScoreTypes.choices
     for score_type in score_types:
         seen = set()
