@@ -17,6 +17,11 @@ class QuestionQuerySet(models.QuerySet):
         )
 
 
+class QuestionManager(models.Manager.from_queryset(QuestionQuerySet)):
+    def get_queryset(self):
+        return super().get_queryset().defer("composed_forecasts")
+
+
 class Question(TimeStampedModel):
     class QuestionType(models.TextChoices):
         BINARY = "binary"
@@ -59,6 +64,7 @@ class Question(TimeStampedModel):
     open_upper_bound = models.BooleanField(null=True, blank=True)
     open_lower_bound = models.BooleanField(null=True, blank=True)
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
+    composed_forecasts = models.JSONField(null=True, blank=True, editable=False)
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
@@ -66,7 +72,7 @@ class Question(TimeStampedModel):
     # Common fields
     resolution = models.TextField(null=True, blank=True)
 
-    objects = models.Manager.from_queryset(QuestionQuerySet)()
+    objects = QuestionManager()
 
     # Group
     group = models.ForeignKey(
@@ -81,6 +87,7 @@ class Question(TimeStampedModel):
 
     # Annotated fields
     forecasts_count: int = 0
+    user_forecasts: list = None
 
     def __str__(self):
         return f"{self.type} {self.title}"
