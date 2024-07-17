@@ -82,9 +82,9 @@ const LeaderboardTable: FC<Props> = ({
           {!!entriesToDisplay.length ? (
             entriesToDisplay.map((entry) => (
               <LeaderboardRow
-                key={`ranking-row-${category}-${entry.user_id}`}
+                key={`ranking-row-${category}-${entry.user.id}`}
                 rowEntry={entry}
-                href={`/medals?${MEDALS_USER_FILTER}=${entry.user_id}&${MEDALS_PATH_FILTER}=${MedalsPath.Leaderboard}`}
+                href={`/medals?${MEDALS_USER_FILTER}=${entry.user.id}&${MEDALS_PATH_FILTER}=${MedalsPath.Leaderboard}`}
               />
             ))
           ) : (

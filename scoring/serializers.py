@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
 from scoring.models import Leaderboard, LeaderboardEntry
+from users.serializers import BaseUserSerializer
 
 
 class LeaderboardEntrySerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source="user.username")
-    user_id = serializers.IntegerField(source="user.id")
+    user = BaseUserSerializer(required=False)
     score = serializers.FloatField()
     rank = serializers.IntegerField()
     excluded = serializers.BooleanField()
@@ -14,12 +14,13 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
     coverage = serializers.FloatField()
     contribution_count = serializers.IntegerField()
     calculated_on = serializers.DateTimeField()
+    take = serializers.FloatField(required=False)
+    percent_prize = serializers.FloatField(required=False)
 
     class Meta:
         model = LeaderboardEntry
         fields = [
-            "username",
-            "user_id",
+            "user",
             "score",
             "rank",
             "excluded",
@@ -28,6 +29,8 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
             "coverage",
             "contribution_count",
             "calculated_on",
+            "take",
+            "percent_prize",
         ]
 
 

@@ -133,7 +133,11 @@ def update_project_leaderboard(
     excluded_users = exclusion_records.values_list("user", flat=True)
     # medals
     golds = silvers = bronzes = 0
-    if leaderboard.finalize_time and (timezone.now() > leaderboard.finalize_time):
+    if (
+        (leaderboard.project.type != "question_series")
+        and leaderboard.finalize_time
+        and (timezone.now() > leaderboard.finalize_time)
+    ):
         entry_count = len(new_entries)
         golds = max(0.01 * entry_count, 1)
         silvers = max(0.01 * entry_count, 1)
@@ -199,3 +203,22 @@ def get_contributions(
         )
         for score in scores
     ]
+
+
+def hydrate_take(
+    leaderboard_entries: list[LeaderboardEntry] | QuerySet[LeaderboardEntry],
+) -> list[LeaderboardEntry] | QuerySet[LeaderboardEntry]:
+    total_take = 0
+    for entry in leaderboard_entries:
+        if entry.excluded:
+            setattr(entry, "take", 0)
+        else:
+            take = max(entry.score, 0) ** 2
+            setattr(entry, "take", take)
+            total_take += take
+    for entry in leaderboard_entries:
+        if total_take == 0:
+            setattr(entry, "percent_prize", 0)
+        else:
+            setattr(entry, "percent_prize", entry.take / total_take)
+    return leaderboard_entries

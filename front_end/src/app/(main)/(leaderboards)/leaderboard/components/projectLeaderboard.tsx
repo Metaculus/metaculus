@@ -17,7 +17,11 @@ const ProjectLeaderboardTable = (leaderboardDetails: LeaderboardDetails) => (
       {leaderboardDetails.entries.slice(0, 20).map((entry, index) => (
         <tr key={entry.user_id}>
           <td style={{ textAlign: "center" }}>{index + 1}</td>
-          <td style={{ textAlign: "center" }}>{entry.username}</td>
+          <td style={{ textAlign: "center" }}>
+            <a href={`/accounts/profile/${entry.user.id}`}>
+              {entry.user.username}
+            </a>
+          </td>
           <td style={{ textAlign: "center" }}>{entry.score.toFixed(3)}</td>
           <td style={{ textAlign: "center" }}>{entry.contribution_count}</td>
         </tr>
