@@ -24,14 +24,18 @@ class Command(BaseCommand):
 
             try:
                 run_build_question_forecasts(question.id)
-            except:
+            except Exception:
                 logger.exception(
-                    f"Failed to generate forecast for question {question.id}"
+                    "Failed to generate forecast for question %s", question.id
                 )
 
             processed += 1
-            if not processed % 100:
-                print(
-                    f"Processed {round(processed / total * 100)}% ({processed}/{total}) questions. "
-                    f"Overall duration: {round(time.time() - tm, 2)}s"
-                )
+            print(
+                f"Processed {int(processed / total * 100)}% ({processed}/{total})"
+                f" questions. Overall duration: {round(time.time() - tm)}s",
+                end="\r",
+            )
+        print(
+            f"Processed {int(processed / total * 100)}% ({processed}/{total})"
+            f" questions. Overall duration: {round(time.time() - tm)}s",
+        )
