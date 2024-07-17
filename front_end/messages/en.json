@@ -564,5 +564,6 @@
   "groupVariable": "Group Variable",
   "showFullForecast": "...show full forecast",
   "closeFullForecast": "close full forecast",
-  "noComments": "no comments"
+  "noComments": "no comments",
+  "confirmPageLeaveMessage": "Are you sure you want to leave this page?"
 }

@@ -39,7 +39,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, site_ids=None, **options):
         site_ids = [int(x) for x in site_ids.split(",")]
-
         with connection.cursor() as cursor:
             cursor.execute("DROP SCHEMA public CASCADE;")
             cursor.execute("CREATE SCHEMA public;")
@@ -69,7 +68,6 @@ class Command(BaseCommand):
         print("Migrated comments")
         migrate_permissions()
         print("Migrated permissions")
-
         # scoring
         score_questions()
         print("Scored questions")
@@ -81,7 +79,6 @@ class Command(BaseCommand):
         print("Populated global leaderboards")
         populate_project_leaderboards()
         print("Populated project leaderboards")
-
         print("Running post-migrate commands")
         post_migrate_calculate_divergence()
         run_compute_movement()
