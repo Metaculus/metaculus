@@ -62,6 +62,7 @@ def prediction_difference_for_sorting(
 ) -> float:
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
+    p1, p2 = np.array(p1), np.array(p2)
     # Uses Jeffrey's Divergence
     if question.type in ["binary", "multiple_choice"]:
         return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
