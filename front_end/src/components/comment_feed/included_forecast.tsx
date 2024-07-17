@@ -28,7 +28,7 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
   if (forecast.question_type == "binary") {
     return (
       <div className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark">
-        {`${forecast.probability_yes * 100}%`}
+        {`${Math.round(forecast.probability_yes * 1000) / 10}%`}
       </div>
     );
   }
