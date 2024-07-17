@@ -20,8 +20,7 @@ type Props = {
 };
 
 const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
-  const { username, rank, contribution_count, score, medal, excluded } =
-    rowEntry;
+  const { user, rank, contribution_count, score, medal, excluded } = rowEntry;
 
   return (
     <tr
@@ -56,7 +55,7 @@ const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
           href={href}
           className="flex items-center truncate px-4 py-2.5 no-underline"
         >
-          {username}
+          {user.username}
         </Link>
       </td>
       <td className="hidden w-24 p-0 font-mono text-base leading-4 @md:!table-cell">
