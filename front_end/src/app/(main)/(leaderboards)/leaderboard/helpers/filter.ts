@@ -1,10 +1,3 @@
-import {
-  addDays,
-  format,
-  isWithinInterval,
-  startOfDay,
-  startOfYear,
-} from "date-fns";
 import { useTranslations } from "next-intl";
 
 import { SearchParams } from "@/types/navigation";
@@ -92,33 +85,15 @@ export function getLeaderboardTimeInterval(
   year: string,
   duration: string
 ): { startTime: string; endTime: string } {
-  const yearNumber = Number(year);
-  const durationNumber = Number(duration);
-  const dateFormat = "yyyy-MM-dd";
-
-  if (durationNumber === 1) {
-    const startDate = startOfYear(new Date(year));
-    const end = startOfYear(new Date(`${yearNumber + 1}`));
-
-    return {
-      startTime: format(startDate, dateFormat),
-      endTime: format(end, dateFormat),
-    };
-  }
-
-  const start = startOfYear(new Date(`${yearNumber - durationNumber + 1}`));
-  const end = startOfYear(new Date(`${yearNumber + 1}`));
-
   return {
-    startTime: format(start, dateFormat),
-    endTime: format(end, dateFormat),
+    startTime: year + "-01-01",
+    endTime: `${Number(year) + Number(duration)}` + "-01-01",
   };
 }
 
 export function mapCategoryKeyToLeaderboardType(
   categoryKey: CategoryKey,
-  startTime: string,
-  endTime: string
+  start_year: number
 ): LeaderboardType | null {
   switch (categoryKey) {
     case "comments":
@@ -128,14 +103,7 @@ export function mapCategoryKeyToLeaderboardType(
     case "baseline":
       return "baseline_global";
     case "peer": {
-      const isLegacy = !isWithinInterval(
-        addDays(startOfDay(new Date("2024")), 1),
-        {
-          start: new Date(startTime),
-          end: new Date(endTime),
-        }
-      );
-      return isLegacy ? "peer_global_legacy" : "peer_global";
+      return start_year < 2024 ? "peer_global_legacy" : "peer_global";
     }
     default:
       return null;
