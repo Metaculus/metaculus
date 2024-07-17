@@ -38,7 +38,13 @@ class LeaderboardApi {
       }
 
       const url = `/leaderboards/project/${projectId}/${params.toString() ? `?${params.toString()}` : ""}`;
-      return await get<LeaderboardDetails>(url);
+      const response = await get<LeaderboardDetails>(url);
+      // TODO: add pagination, but for now just return 20 entries
+      const leaderboardDetails: LeaderboardDetails = {
+        ...response,
+        entries: response.entries.slice(0, 20),
+      };
+      return leaderboardDetails;
     } catch (err) {
       return handleRequestError(err, () => {
         console.error("Error getting project leaderboard:", err);
