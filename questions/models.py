@@ -87,7 +87,7 @@ class Question(TimeStampedModel):
 
     # Annotated fields
     forecasts_count: int = 0
-    user_forecasts: list = None
+    user_forecasts: list = []
 
     def __str__(self):
         return f"{self.type} {self.title}"
