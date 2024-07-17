@@ -6,6 +6,8 @@ from scoring.models import Score
 def score_questions(qty: int | None = None):
     questions = Question.objects.filter(
         resolution__isnull=False,
+    ).exclude(
+        resolution__in=["ambiguous", "annulled"],
     )
     if qty:
         questions = questions.order_by("?")[:qty]

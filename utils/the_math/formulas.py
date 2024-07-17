@@ -78,6 +78,10 @@ def unscaled_location_to_scaled_location(
 def scaled_location_to_unscaled_location(
     scaled_location: float, question: Question
 ) -> float:
+    if question.type == "binary":
+        return scaled_location
+    if question.type == "multiple_choice":
+        return scaled_location
     zero_point, range_max, range_min = question.zero_point, question.max, question.min
     if zero_point:
         deriv_ratio = (range_max - zero_point) / max(
