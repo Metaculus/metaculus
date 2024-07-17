@@ -66,8 +66,8 @@ def prediction_difference_for_sorting(
     # Uses Jeffrey's Divergence
     if question.type in ["binary", "multiple_choice"]:
         return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
-    cdf1 = np.array([1 - p1, p1])
-    cdf2 = np.array([1 - p2, p2])
+    cdf1 = np.array([1 - np.array(p1), p1])
+    cdf2 = np.array([1 - np.array(p2), p2])
     divergences = np.sum((cdf1 - cdf2) * np.log2(cdf1 / cdf2), axis=0)
     return float(np.trapz(divergences, x=np.linspace(0, 1, len(p1))))
 
