@@ -48,7 +48,6 @@ export type MedalCategory = {
 
 export type LeaderboardEntry = {
   user: User;
-  user_id: number;
   score: number;
   rank: number | null;
   excluded: boolean;

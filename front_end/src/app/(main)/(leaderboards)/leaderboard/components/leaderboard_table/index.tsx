@@ -10,7 +10,7 @@ import {
 import { useBreakpoint } from "@/hooks/tailwind";
 import { CategoryKey, LeaderboardDetails, MedalsPath } from "@/types/scoring";
 
-import LeaderboardRow, { UserLeaderboardRow } from "./leaderboard_row";
+import LeaderboardRow, { UserLeaderboardRow } from "./table_row";
 import { RANKING_CATEGORIES } from "../../../ranking_categories";
 import {
   LEADERBOARD_CATEGORY_FILTER,
