@@ -45,6 +45,7 @@ import {
   embeddedQuestionDescriptor,
   EmbedQuestionAction,
 } from "./embedded_question";
+
 import "./editor.css";
 
 type EditorMode = "write" | "read";
@@ -67,22 +68,8 @@ const MarkdownEditor: FC<Props> = ({
   mode = "read",
   onChange = console.log,
   contentEditableClassName,
-  shouldConfirmLeave = false,
 }) => {
   const { theme } = useAppTheme();
-
-  useEffect(() => {
-    function beforeUnload(e: BeforeUnloadEvent) {
-      if (!shouldConfirmLeave) return;
-      e.preventDefault();
-    }
-
-    window.addEventListener("beforeunload", beforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", beforeUnload);
-    };
-  }, [shouldConfirmLeave]);
 
   const editorRef = useRef<MDXEditorMethods>(null);
 
