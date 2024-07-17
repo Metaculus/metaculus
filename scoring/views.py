@@ -47,7 +47,7 @@ def global_leaderboard(
     leaderboard = leaderboards.first()
     # serialize
     leaderboard_data = LeaderboardSerializer(leaderboard).data
-    entries = list(leaderboard.entries.order_by("rank"))
+    entries = leaderboard.entries.order_by("rank").select_related("user")
     if len(entries) == 0:
         entries = update_project_leaderboard(leaderboard.project, leaderboard)
     user = request.user
