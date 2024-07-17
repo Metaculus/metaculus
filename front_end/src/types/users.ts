@@ -1,13 +1,17 @@
 import { MedalType } from "./scoring";
 
-export type UserProfile = {
+export type User = {
   id: number;
   username: string;
+  is_bot?: boolean;
+  is_staff?: boolean;
+};
+
+export type UserProfile = User & {
   date_joined: string;
   bio: string;
   website: string;
   formerly_known_as?: string;
-  is_bot: boolean;
   twitter?: string;
   linkedin?: string;
   facebook?: string;

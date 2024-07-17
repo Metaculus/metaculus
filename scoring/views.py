@@ -5,6 +5,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from users.models import User
+
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.views import get_projects_qs, get_project_permission_for_user
@@ -14,8 +16,7 @@ from scoring.serializers import (
     LeaderboardEntrySerializer,
     ContributionSerializer,
 )
-from scoring.utils import get_contributions
-from users.models import User
+from scoring.utils import get_contributions, hydrate_take
 
 
 @api_view(["GET"])
@@ -55,7 +56,6 @@ def global_leaderboard(
         if entry.user == user:
             leaderboard_data["userEntry"] = LeaderboardEntrySerializer(entry).data
             break
-
     return Response(leaderboard_data)
 
 
@@ -96,6 +96,7 @@ def project_leaderboard(
     # serialize
     leaderboard_data = LeaderboardSerializer(leaderboard).data
     entries = leaderboard.entries.order_by("rank").select_related("user")
+    entries = hydrate_take(entries)
     user = request.user
 
     if not user.is_staff:
@@ -171,3 +172,4 @@ def medal_contributions(
         "leaderboard": LeaderboardSerializer(leaderboard).data,
         "user_id": user_id,
     }
+    return Response(return_data)
