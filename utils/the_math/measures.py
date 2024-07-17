@@ -93,6 +93,11 @@ def prediction_difference_for_display(
         question,
     )
     diffs = np.array(p1) - np.array(p2)
-    total = np.trapz(np.abs(diffs), x=x_locations)
-    asymmetric = -np.trapz(diffs, x=x_locations)
-    return [(float(total), float(asymmetric))]
+    total = float(np.trapz(np.abs(diffs), x=x_locations))
+    asymmetric = float(-np.trapz(diffs, x=x_locations))
+    return [
+        (
+            total if not np.isnan(total) else None,
+            asymmetric if not np.isnan(asymmetric) else None,
+        )
+    ]
