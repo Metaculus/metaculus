@@ -4,7 +4,7 @@ import { CurrentUser, UserProfile } from "@/types/users";
 import { get, handleRequestError, patch, post } from "@/utils/fetch";
 
 class ProfileApi {
-  static async getMyProfile() {
+  static async getMyProfile(): Promise<CurrentUser | null> {
     const token = getServerSession();
 
     if (!token) {
