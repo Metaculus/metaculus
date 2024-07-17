@@ -66,7 +66,7 @@ def build_question_forecasts(question: Question) -> dict:
         forecasts_data["latest_cdf"] = None
         forecasts_data["latest_pmf"] = (
             None
-            if len(forecasts_data[option]) == 0
+            if len(list(forecasts_data.values())[0]) == 0
             else [
                 forecasts_data[option][-1]["value_mean"] / 100
                 for option in question.options
@@ -106,7 +106,9 @@ def build_question_forecasts(question: Question) -> dict:
     return forecasts_data
 
 
-def build_question_forecasts_for_user(question: Question, user_forecasts: list[Forecast]) -> dict:
+def build_question_forecasts_for_user(
+    question: Question, user_forecasts: list[Forecast]
+) -> dict:
     """
     Builds forecasts of a specific user
     """
