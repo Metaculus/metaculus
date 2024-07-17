@@ -257,7 +257,11 @@ def serialize_post_many(
         qs = qs.annotate_user_vote(current_user)
 
     if with_cp:
-        qs = qs.prefetch_forecasts()
+        # Clear auto-defer of the forecasts list field
+        qs = qs.defer(None)
+
+        if current_user:
+            qs = qs.prefetch_user_forecasts(current_user.id)
 
     # Restore the original ordering
     objects = list(qs.all())
