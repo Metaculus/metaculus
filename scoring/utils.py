@@ -20,7 +20,7 @@ def score_question(
     spot_forecast_time: datetime | None = None,
     score_types: list[str] | None = None,
 ):
-    resolution_bucket = string_location_to_bucket_index(question, resolution)
+    resolution_bucket = string_location_to_bucket_index(resolution, question)
     score_types = score_types or Score.ScoreTypes.choices
     for score_type in score_types:
         seen = set()
@@ -121,10 +121,16 @@ def update_project_leaderboard(
 
     # assign ranks (and medals if finalized)
     new_entries.sort(key=lambda entry: entry.score, reverse=True)
-    excluded_users = MedalExclusionRecord.objects.filter(
-        Q(end_time__isnull=True) | Q(end_time__gte=leaderboard.start_time),
-        start_time__lte=leaderboard.finalize_time,
-    ).values_list("user", flat=True)
+    exclusion_records = MedalExclusionRecord.objects.all()
+    if leaderboard.start_time:
+        exclusion_records = exclusion_records.filter(
+            Q(end_time__isnull=True) | Q(end_time__gte=leaderboard.start_time)
+        )
+    if leaderboard.finalize_time:
+        exclusion_records = exclusion_records.filter(
+            start_time__lte=leaderboard.finalize_time
+        )
+    excluded_users = exclusion_records.values_list("user", flat=True)
     # medals
     golds = silvers = bronzes = 0
     if leaderboard.finalize_time and (timezone.now() > leaderboard.finalize_time):
