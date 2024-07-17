@@ -175,6 +175,7 @@ def serialize_question(
     """
 
     serialized_data = QuestionSerializer(question).data
+    # TODO: this is slow, optimize!
     serialized_data["post_id"] = question.get_post().id
 
     if with_cp:
