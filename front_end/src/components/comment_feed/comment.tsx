@@ -1,12 +1,14 @@
 "use client";
 
-import { faReply } from "@fortawesome/free-solid-svg-icons";
+import { faChevronRight, faReply } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classNames from "classnames";
 import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import { softDeleteComment, editComment } from "@/app/(main)/questions/actions";
+import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentVoter from "@/components/comment_feed/comment_voter";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
@@ -20,12 +22,6 @@ const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
   ssr: false,
 });
 
-type Props = {
-  comment: CommentType;
-  url: string;
-  permissions: CommentPermissions;
-};
-
 const copyToClipboard = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text);
@@ -34,10 +30,93 @@ const copyToClipboard = async (text: string) => {
   }
 };
 
-const Comment: FC<Props> = ({ comment, url, permissions }) => {
+type CommentChildrenTreeProps = {
+  commentChildren: CommentType[];
+  url: string;
+  permissions: CommentPermissions;
+  expandedChildren?: boolean;
+  treeDepth: number;
+};
+
+const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
+  commentChildren,
+  url,
+  permissions,
+  expandedChildren = false,
+  treeDepth,
+}) => {
+  const t = useTranslations();
+  const [childrenExpanded, setChildrenExpanded] = useState(
+    expandedChildren && treeDepth < 5
+  );
+
+  return (
+    <>
+      <Button
+        variant="link"
+        size="sm"
+        className="mt-2 w-full"
+        onClick={() => {
+          setChildrenExpanded(!childrenExpanded);
+        }}
+      >
+        <FontAwesomeIcon
+          icon={faChevronRight}
+          className={classNames("inline-block transition-transform", {
+            "-rotate-90": childrenExpanded,
+          })}
+        />
+        <span className="flex-1 text-left">
+          {/* TODO change these translation strings to be one cohesive string */}
+          {childrenExpanded ? t("hide") : t("show")}{" "}
+          {t("replyWithCount", { count: commentChildren.length })}
+        </span>
+      </Button>
+      <div
+        className={classNames("relative", treeDepth < 5 ? "mt-3 pl-4" : null)}
+      >
+        {treeDepth < 5 && (
+          <div
+            className="absolute inset-y-0 -left-2 w-4 cursor-pointer after:absolute after:inset-y-0 after:left-2 after:block after:w-px after:border-l after:border-gray-600 after:content-[''] after:dark:border-gray-600-dark"
+            onClick={() => {
+              setChildrenExpanded(!childrenExpanded);
+            }}
+          />
+        )}
+        {childrenExpanded &&
+          commentChildren.map((child: CommentType) => (
+            <Comment
+              key={child.id}
+              comment={child}
+              url={url}
+              permissions={permissions}
+              treeDepth={treeDepth}
+            />
+          ))}
+      </div>
+    </>
+  );
+};
+
+type CommentProps = {
+  comment: CommentType;
+  url: string;
+  permissions: CommentPermissions;
+  onProfile?: boolean;
+  treeDepth: number;
+};
+
+const Comment: FC<CommentProps> = ({
+  comment,
+  url,
+  permissions,
+  onProfile = false,
+  treeDepth,
+}) => {
   const locale = useLocale();
   const t = useTranslations();
-  const [commentMode, setCommentMode] = useState<"read" | "write">("read");
+  const [isEditing, setIsEditing] = useState(false);
+  const [isReplying, setIsReplying] = useState(false);
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
 
   const { user } = useAuth();
@@ -53,7 +132,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
       id: "edit",
       name: t("edit"),
       onClick: () => {
-        setCommentMode("write");
+        setIsEditing(true);
       },
     },
     {
@@ -64,7 +143,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
       },
     },
     {
-      hidden: !user?.id,
+      //hidden: !user?.id,
       id: "report",
       name: t("report"),
       onClick: () => {
@@ -104,7 +183,14 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
           {t("commentDeleted")}
         </div>
 
-        {/* comment children tree goes here */}
+        {comment.children.length > 0 && (
+          <CommentChildrenTree
+            commentChildren={comment.children}
+            url={url}
+            permissions={permissions}
+            treeDepth={treeDepth + 1}
+          />
+        )}
       </div>
     );
   }
@@ -144,7 +230,7 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
         */}
       </div>
 
-      {comment.parent && (
+      {comment.parent && onProfile && (
         <div>
           <a
             href={`/questions/${comment.parent.on_post}/#comment-${comment.parent.id}`}
@@ -156,16 +242,16 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
       <div className="break-anywhere">
         <MarkdownEditor
           markdown={commentMarkdown}
-          mode={commentMode}
+          mode={isEditing ? "write" : "read"}
           onChange={(text) => {
             setCommentMarkdown(text);
           }}
         />
       </div>
-      {commentMode === "write" && (
+      {isEditing && (
         <Button
           onClick={() => {
-            setCommentMode("read");
+            setIsEditing(false);
             editComment({
               id: comment.id,
               text: commentMarkdown,
@@ -186,106 +272,31 @@ const Comment: FC<Props> = ({ comment, url, permissions }) => {
                 userVote: comment.user_vote ?? null,
               }}
             />
-            <Button variant="text">
-              <FontAwesomeIcon icon={faReply} />
-              {t("reply")}
-            </Button>
+            {!onProfile && (
+              <Button onClick={() => setIsReplying(true)} variant="text">
+                <FontAwesomeIcon icon={faReply} />
+                {t("reply")}
+              </Button>
+            )}
           </div>
 
           <DropdownMenu items={menuItems} />
         </div>
       </div>
 
-      {/*isReplying && (
-        <form
-          id={`reply-to-comment-${comment.parent ?? comment.id}`}
-          onSubmit={handleSubmit(handleReply)}
-        >
-          <div ref={replyRef}>
-            <TextAreaWithMentions
-              ref={replyInputRef}
-              value={getValues("comment_text")}
-              data={tribute}
-              onChange={({ target }) => {
-                setValue("comment_text", target.value, {
-                  shouldValidate: true,
-                });
-                // This fixes a bug where the focus jumps to the end
-                // when writing somewhere in the middle of the textarea
-                // TODO: Find a better way to fix this bug
-                setHelper(target.value);
-              }}
-              autoFocus
-            />
-            {replyPreview && (
-              <div
-                className="comment__html bg-gray-200 dark:bg-gray-200-dark mt-3 p-2 font-serif text-base leading-tight break-anywhere dark:font-light"
-                dangerouslySetInnerHTML={{ __html: replyPreview }}
-              />
-            )}
-            <div className="my-2 flex items-center justify-end gap-2">
-              <Button
-                disabled={!isValid}
-                onClick={getReplyPreview}
-                type="button"
-              >
-                {t(replyPreview ? "updatePreviewButton" : "previewButton")}
-              </Button>
-              <Button
-                variant="primary"
-                disabled={!isValid || isSubmitting}
-                type="submit"
-              >
-                {t("postButton")}
-              </Button>
-            </div>
-          </div>
-        </form>
-      )*/}
-
-      {/*Object.entries(errors).map(([key, error]) => (
-        <p
-          key={key}
-          className="text-red-500 dark:text-red-500-dark my-1 text-sm leading-4"
-        >
-          {error.message}
-        </p>
-      ))*/}
-
-      {/*
-      {comment.children?.length > 0 && (
-        <div className="relative ml-4 mt-3 pl-4" ref={childrenRef}>
-          <Button
-            variant="link"
-            size="sm"
-            className="w-full"
-            onClick={toggleReplies}
-          >
-            <FontAwesomeIcon
-              icon={icon({ name: "caret-right", style: "solid" })}
-              className={clsx("inline-block transition-transform", {
-                "rotate-90": childrenExpanded,
-              })}
-            />
-            <span className="flex-1 text-left">
-              {childrenExpanded ? t("hide") : t("show")}{" "}
-              {t("replyWithCount", { count: comment.children.length })}
-            </span>
-          </Button>
-          <div
-            className="absolute inset-y-0 -left-2 w-4 cursor-pointer after:absolute after:inset-y-0 after:left-2 after:block after:w-px after:border-l after:border-gray-600 after:content-[''] after:dark:border-gray-600-dark"
-            onClick={toggleReplies}
-          />
-          {childrenExpanded && (
-            <div className="mt-0">
-              {comment.children.map((child) => (
-                <Comment key={child.id} comment={child} />
-              ))}
-            </div>
-          )}
-        </div>
+      {isReplying && (
+        <CommentEditor parentId={comment.id} postId={comment.on_post} />
       )}
-      */}
+
+      {comment.children.length > 0 && (
+        <CommentChildrenTree
+          commentChildren={comment.children}
+          url={url}
+          permissions={permissions}
+          expandedChildren={!onProfile}
+          treeDepth={treeDepth + 1}
+        />
+      )}
     </div>
   );
 };
