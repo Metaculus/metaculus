@@ -6,14 +6,16 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { FC, Suspense } from "react";
 import invariant from "ts-invariant";
 
-import AwaitedProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/projectLeaderboard";
+import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import HtmlContent from "@/components/html_content";
 import AwaitedPostsFeed from "@/components/posts_feed";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import SectionToggle from "@/components/ui/section_toggle";
 import { PostsParams } from "@/services/posts";
+import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
@@ -34,6 +36,8 @@ export default async function TournamentSlug({
   const tournament = await ProjectsApi.getSlugTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
 
+  const currentUser = await ProfileApi.getMyProfile();
+
   const questionFilters = generateFiltersFromSearchParams(searchParams);
   const pageFilters: PostsParams = {
     ...questionFilters,
@@ -47,14 +51,14 @@ export default async function TournamentSlug({
 
   const t = await getTranslations();
   const locale = await getLocale();
-  const title =
-    tournament.type === TournamentType.QuestionSeries
-      ? t("QuestionSeries")
-      : t("Tournament");
-  const questionsTitle =
-    tournament.type === TournamentType.QuestionSeries
-      ? t("SeriesContents")
-      : t("questions");
+  const isQuestionSeries = tournament.type === TournamentType.QuestionSeries;
+  const title = isQuestionSeries ? t("QuestionSeries") : t("Tournament");
+  const questionsTitle = isQuestionSeries
+    ? t("SeriesContents")
+    : t("questions");
+  const leaderboardTitle = isQuestionSeries
+    ? t("openLeaderboard")
+    : t("leaderboard");
 
   return (
     <main className="mx-auto mb-16 mt-4 min-h-min w-full max-w-[780px] flex-auto px-0">
@@ -111,8 +115,14 @@ export default async function TournamentSlug({
             />
           </div>
           <HtmlContent content={tournament.description} />
+
+          <ProjectLeaderboard
+            projectId={tournament.id}
+            userId={currentUser?.id}
+            isQuestionSeries={isQuestionSeries}
+          />
         </div>
-        <div>{<AwaitedProjectLeaderboard projectId={tournament.id} />}</div>
+
         {[ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
           tournament.user_permission
         ) && (
