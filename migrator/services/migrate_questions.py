@@ -57,7 +57,7 @@ def create_question(question: dict, **kwargs) -> Question:
         open_lower_bound = possibilities.get("high", None) == "tail"
     elif question["option_labels"] is not None:
         question_type = "multiple_choice"
-        options = question["option_labels"]
+        options = list(set(question["option_labels"]))
     else:
         return None
 
