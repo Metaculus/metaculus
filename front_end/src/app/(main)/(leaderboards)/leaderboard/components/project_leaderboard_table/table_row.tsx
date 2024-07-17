@@ -12,9 +12,8 @@ type Props = {
 };
 
 const TableRow: FC<Props> = ({ rowEntry, userId }) => {
-  const { user_id, medal, rank, username, score, contribution_count } =
-    rowEntry;
-  const highlight = user_id === userId;
+  const { user, medal, rank, score, contribution_count } = rowEntry;
+  const highlight = user.id === userId;
 
   return (
     <tr className="h-8">
@@ -27,7 +26,7 @@ const TableRow: FC<Props> = ({ rowEntry, userId }) => {
         {rank}
       </Td>
       <Td className="sticky left-0 text-left" highlight={highlight}>
-        <Link href={`/accounts/profile/${user_id}/`}>{username}</Link>
+        <Link href={`/accounts/profile/${user.id}/`}>{user.username}</Link>
       </Td>
       <Td className="text-right" highlight={highlight}>
         {score.toFixed(2)}
