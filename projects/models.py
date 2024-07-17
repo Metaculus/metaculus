@@ -1,8 +1,7 @@
-from datetime import datetime, timezone as dt_timezone
 from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.db.models.query import QuerySet
 from django.db.models.functions import Coalesce
 from django.utils import timezone as django_timezone
