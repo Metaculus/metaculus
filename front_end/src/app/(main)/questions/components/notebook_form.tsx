@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import Button from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/form_field";
+import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { Category, PostWithForecasts } from "@/types/post";
 import { Tournament } from "@/types/projects";
 
@@ -48,6 +49,7 @@ const NotebookForm: React.FC<Props> = ({
   news_type,
 }) => {
   const [markdown, setMarkdown] = useState("");
+  const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
   const t = useTranslations();
   const control = useForm({
     resolver: zodResolver(notebookSchema),
@@ -55,11 +57,17 @@ const NotebookForm: React.FC<Props> = ({
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
+  const [isCategoriesDirty, setIsCategoriesDirty] = useState(false);
+
   const defaultProject = post
     ? post.projects.default_project
     : tournament_id
       ? [...tournaments, siteMain].filter((x) => x.id === tournament_id)[0]
       : siteMain;
+  const isFormDirty =
+    !!Object.keys(control.formState.dirtyFields).length ||
+    isMarkdownDirty ||
+    isCategoriesDirty;
 
   const router = useRouter();
 
@@ -92,6 +100,8 @@ const NotebookForm: React.FC<Props> = ({
   const baseTextareaStyles = "border border-gray-500 rounded dark:bg-blue-950";
   const inputLabelStyles = "text-sm font-bold text-gray-600 dark:text-gray-400";
   const inputDescriptionStyles = "text-xs text-gray-700 dark:text-gray-300";
+
+  useConfirmPageLeave(isFormDirty);
 
   return (
     <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -167,7 +177,11 @@ const NotebookForm: React.FC<Props> = ({
         <div className="rounded border border-gray-300 dark:border-gray-600/60">
           <MarkdownEditor
             markdown={markdown}
-            onChange={setMarkdown}
+            shouldConfirmLeave={isMarkdownDirty}
+            onChange={(value) => {
+              setMarkdown(value);
+              setIsMarkdownDirty(true);
+            }}
             mode="write"
           />
         </div>
@@ -179,6 +193,7 @@ const NotebookForm: React.FC<Props> = ({
               categories={categoriesList}
               onChange={(categories) => {
                 setCategoriesList(categories);
+                setIsCategoriesDirty(true);
               }}
             ></CategoryPicker>
           </div>
