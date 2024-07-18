@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from dataclasses import dataclass
 
 from django.db import models
-from django.db.models.query import QuerySet
+from django.db.models.query import QuerySet, Q
 
 from users.models import User
 from projects.models import Project
@@ -102,8 +102,14 @@ class Leaderboard(TimeStampedModel):
         if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
             raise ValueError("Comment insight leaderboards do not have questions")
         elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
-            # TODO: support Question Writing filtering
-            return list(questions.none())
+            return list(
+                questions.filter(
+                    Q(post__published_at__lt=self.end_time)
+                    | Q(group__post__published_at__lt=self.end_time),
+                    Q(actual_resolve_time__gte=self.start_time)
+                    | Q(actual_resolve_time__isnull=True),
+                ).distinct()
+            )
 
         if self.start_time and self.end_time:
             # global leaderboard
