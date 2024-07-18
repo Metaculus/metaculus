@@ -104,8 +104,8 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         {!isEditing && (
           <Button
             className="p-2"
-            onClick={() => {
-              createComment({
+            onClick={async () => {
+              const newComment = await createComment({
                 parent: parentId,
                 text: markdown,
                 on_post: postId,
