@@ -13,7 +13,6 @@ import AwaitedPostsFeed from "@/components/posts_feed";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import SectionToggle from "@/components/ui/section_toggle";
 import { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
@@ -119,6 +118,7 @@ export default async function TournamentSlug({
           <ProjectLeaderboard
             projectId={tournament.id}
             userId={currentUser?.id}
+            prizePool={tournament.prize_pool}
             isQuestionSeries={isQuestionSeries}
           />
         </div>
