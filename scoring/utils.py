@@ -208,10 +208,11 @@ def get_contributions(
     ]
     # add unpopulated contributions for other questions
     scored_question = {score.question for score in scores}
-    for question in questions:
-        if question in scored_question:
-            continue
-        contributions.append(Contribution(score=None, coverage=None, question=question))
+    contributions += [
+        Contribution(score=None, coverage=None, question=question)
+        for question in questions
+        if question not in scored_question
+    ]
 
     return contributions
 
