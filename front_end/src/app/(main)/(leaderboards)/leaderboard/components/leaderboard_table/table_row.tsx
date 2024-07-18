@@ -20,7 +20,7 @@ type Props = {
 };
 
 const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
-  const { user, rank, contribution_count, score, medal, excluded } = rowEntry;
+  const { user, rank, contribution_count, score, medal } = rowEntry;
 
   return (
     <tr
@@ -32,7 +32,7 @@ const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
         },
         {
           "bg-purple-200 hover:bg-purple-300 dark:bg-purple-200-dark hover:dark:bg-purple-300-dark":
-            !isUserRow && excluded,
+            !isUserRow && !!user.is_staff,
         }
       )}
     >

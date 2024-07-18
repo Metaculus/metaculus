@@ -56,6 +56,8 @@ export type LeaderboardEntry = {
   coverage: number;
   contribution_count: number;
   calculated_on: string;
+  take?: number;
+  percent_prize?: number;
 };
 
 export enum MedalProjectType {
@@ -78,16 +80,15 @@ export type MedalEntry = LeaderboardEntry & {
 
 export type LeaderboardDetails = {
   project_id: number;
-  type: string;
-  leaderboard_type: LeaderboardType;
-  name: string;
-  slug: string;
+  project_type: MedalProjectType;
+  project_name: string;
+  score_type: LeaderboardType;
+  name: string | null;
+  start_time: string;
+  end_time: string | null;
+  finalize_time: string;
   entries: LeaderboardEntry[];
   userEntry?: LeaderboardEntry;
-  prize_pool: number;
-  start_date: string;
-  close_date: string;
-  is_ongoing: boolean;
 };
 
 export type CategoryKey = (typeof LEADERBOARD_CATEGORIES)[number];

@@ -1,3 +1,4 @@
+import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -8,11 +9,23 @@ import TableHeader from "./table_header";
 
 type Props = {
   leaderboardDetails: LeaderboardDetails;
+  prizePool: number;
   userId?: number;
 };
 
-const ProjectLeaderboardTable: FC<Props> = ({ leaderboardDetails, userId }) => {
+const ProjectLeaderboardTable: FC<Props> = ({
+  leaderboardDetails,
+  prizePool,
+  userId,
+}) => {
   const t = useTranslations();
+
+  const withTake = leaderboardDetails.entries.some(
+    (entry) => !isNil(entry.take)
+  );
+  const withPrize = leaderboardDetails.entries.some(
+    (entry) => !isNil(entry.percent_prize)
+  );
 
   return (
     <table className="mb-0 w-full border-separate whitespace-nowrap">
@@ -25,12 +38,29 @@ const ProjectLeaderboardTable: FC<Props> = ({ leaderboardDetails, userId }) => {
             {t("forecaster")}
           </TableHeader>
           <TableHeader className="text-right">{t("totalScore")}</TableHeader>
-          <TableHeader className="text-right">Contributions</TableHeader>
+          {withTake && (
+            <TableHeader className="text-right">{t("take")}</TableHeader>
+          )}
+          {withPrize && (
+            <>
+              <TableHeader className="text-right">
+                {t("percentPrize")}
+              </TableHeader>
+              <TableHeader className=" text-right">{t("prize")}</TableHeader>
+            </>
+          )}
         </tr>
       </thead>
       <tbody>
         {leaderboardDetails.entries.map((entry) => (
-          <TableRow key={entry.user.id} rowEntry={entry} userId={userId} />
+          <TableRow
+            key={entry.user.id}
+            rowEntry={entry}
+            userId={userId}
+            withTake={withTake}
+            withPrize={withPrize}
+            prizePool={prizePool}
+          />
         ))}
       </tbody>
     </table>
