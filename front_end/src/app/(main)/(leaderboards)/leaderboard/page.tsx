@@ -9,12 +9,12 @@ import { CategoryKey, LeaderboardFilters } from "@/types/scoring";
 import LeaderboardCategoriesTabBar from "./components/categories_tab_bar";
 import GlobalLeaderboard from "./components/global_leaderboard";
 import LeaderboardHeader from "./components/leaderboard_header";
+import { extractLeaderboardFiltersFromParams } from "./helpers/filter";
+import { LeaderboardMobileTabBarProvider } from "./mobile_tab_bar_context";
 import {
-  extractLeaderboardFiltersFromParams,
   getLeaderboardTimeInterval,
   mapCategoryKeyToLeaderboardType,
-} from "./helpers/filter";
-import { LeaderboardMobileTabBarProvider } from "./mobile_tab_bar_context";
+} from "../helpers/filters";
 
 export default function GlobalLeaderboards({
   searchParams,
@@ -33,8 +33,7 @@ export default function GlobalLeaderboards({
     const categoryKey = categoryKeys[0];
     const leaderboardType = mapCategoryKeyToLeaderboardType(
       categoryKey,
-      timeInterval.startTime,
-      timeInterval.endTime
+      Number(year)
     );
     if (!leaderboardType) return null;
 
@@ -87,8 +86,7 @@ export default function GlobalLeaderboards({
           {categoryKeys.map((categoryKey) => {
             const leaderboardType = mapCategoryKeyToLeaderboardType(
               categoryKey,
-              timeInterval.startTime,
-              timeInterval.endTime
+              Number(year)
             );
             if (!leaderboardType) return null;
 
