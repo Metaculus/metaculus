@@ -19,7 +19,7 @@ import {
 } from "@/app/(main)/accounts/schemas";
 import CalibrationChart from "@/app/(main)/charts/calibration_chart";
 import Button from "@/components/ui/button";
-import { FormError, Input, Textarea } from "@/components/ui/form_field";
+import { FormError, Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { MedalType } from "@/types/scoring";
 import { UserProfile } from "@/types/users";
@@ -39,7 +39,7 @@ const UserInfo: FC<UserInfoProps> = ({
 }) => {
   const t = useTranslations();
   const { setUser } = useAuth();
-  const [isEdit, setIsEdit] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const { register } = useForm<UpdateProfileSchema>({
     resolver: zodResolver(updateProfileSchema),
   });
@@ -53,7 +53,7 @@ const UserInfo: FC<UserInfoProps> = ({
     }
 
     setUser(state.user);
-    setIsEdit(false);
+    setEditMode(false);
   }, [state?.user]);
 
   return (
@@ -63,13 +63,13 @@ const UserInfo: FC<UserInfoProps> = ({
         <h2 className="my-4 text-2xl font-bold">{t("profile")}</h2>
         {isCurrentUser && (
           <>
-            {isEdit && (
+            {editMode && (
               <Button variant="primary" type="submit">
                 {t("submit")}
               </Button>
             )}
-            {!isEdit && (
-              <Button variant="link" onClick={() => setIsEdit(true)}>
+            {!editMode && (
+              <Button variant="link" onClick={() => setEditMode(true)}>
                 {t("edit")}
               </Button>
             )}
@@ -112,7 +112,7 @@ const UserInfo: FC<UserInfoProps> = ({
           {t("bio")}
         </div>
         <div className="flex content-center justify-between px-1 py-4">
-          {isEdit ? (
+          {editMode ? (
             <>
               <Textarea
                 style={{ height: "150px" }}
@@ -133,7 +133,7 @@ const UserInfo: FC<UserInfoProps> = ({
       <div className="m-2 bg-blue-500 p-4">
         <SocialMediaSection
           user={profile}
-          editMode={isEdit}
+          editMode={editMode}
           register={register}
           state={state}
         />
