@@ -95,7 +95,7 @@ class Leaderboard(TimeStampedModel):
                 | models.Q(group__post__projects=self.project)
                 | models.Q(post__default_project=self.project)
                 | models.Q(group__post__default_project=self.project)
-            )
+            ).distinct()
         else:
             questions = Question.objects.all()
 
