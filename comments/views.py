@@ -9,7 +9,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from comments.models import Comment, CommentVote, CommentDiff
-from comments.serializers import CommentWriteSerializer, serialize_comment_many
+from comments.serializers import CommentWriteSerializer, serialize_comment, serialize_comment_many
 from comments.services import create_comment
 from posts.services import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -96,9 +96,9 @@ def comment_create_api_view(request: Request):
         else None
     )
 
-    create_comment(**serializer.validated_data, included_forecast=forecast, user=user)
+    new_comment = create_comment(**serializer.validated_data, included_forecast=forecast, user=user)
 
-    return Response({}, status=status.HTTP_201_CREATED)
+    return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)
 
 
 @api_view(["POST"])
