@@ -39,7 +39,7 @@ const UserInfo: FC<UserInfoProps> = ({
 }) => {
   const t = useTranslations();
   const { setUser } = useAuth();
-  const [isEdit, setIsEdit] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const { register } = useForm<UpdateProfileSchema>({
     resolver: zodResolver(updateProfileSchema),
   });
@@ -53,66 +53,34 @@ const UserInfo: FC<UserInfoProps> = ({
     }
 
     setUser(state.user);
-    setIsEdit(false);
+    setEditMode(false);
   }, [state?.user]);
 
   return (
     <form action={formAction}>
-      <hr className="m-0" />
-      <div className="flex items-center justify-between">
-        <h2 className="my-4 text-2xl font-bold">{t("profile")}</h2>
+      <div className="block flex justify-between">
+        <div></div>
         {isCurrentUser && (
           <>
-            {isEdit && (
+            {editMode && (
               <Button variant="primary" type="submit">
                 {t("submit")}
               </Button>
             )}
-            {!isEdit && (
-              <Button variant="link" onClick={() => setIsEdit(true)}>
+            {!editMode && (
+              <Button variant="link" onClick={() => setEditMode(true)}>
                 {t("edit")}
               </Button>
             )}
           </>
         )}
       </div>
-      <div>
-        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900 dark:bg-gray-100-dark dark:text-gray-900-dark">
-          {t("username")}
-        </div>
-        <div className="flex content-center justify-between px-1 py-4">
-          <div className="flex items-center text-sm">{profile.username}</div>
-          {isCurrentUser && <ChangeUsername />}
-        </div>
-      </div>
-      {profile.username && (
-        <div>
-          <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900 dark:bg-gray-100-dark dark:text-gray-900-dark">
-            {t("formerlyKnownAs")}
-          </div>
-          <div className="flex content-center justify-between px-1 py-4">
-            <div className="flex items-center text-sm">{profile.username}</div>
-          </div>
-        </div>
-      )}
-      <div>
-        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900 dark:bg-gray-100-dark dark:text-gray-900-dark">
-          {t("Member Since")}
-        </div>
-        <div className="flex content-center justify-between px-1 py-4">
-          <div className="flex items-center text-sm">
-            <time dateTime={profile.date_joined}>
-              {format(parseISO(profile.date_joined), "LLLL d, yyyy")}
-            </time>
-          </div>
-        </div>
-      </div>
-      <div>
-        <div className="bg-gray-100 p-1 text-sm font-medium leading-4 text-gray-900 dark:bg-gray-100-dark dark:text-gray-900-dark">
+      <div className="">
+        <div className="text-xl font-extralight uppercase text-gray-300">
           {t("bio")}
         </div>
         <div className="flex content-center justify-between px-1 py-4">
-          {isEdit ? (
+          {editMode ? (
             <>
               <Textarea
                 style={{ height: "150px" }}
@@ -130,19 +98,68 @@ const UserInfo: FC<UserInfoProps> = ({
           )}
         </div>
       </div>
-      <div className="m-2 bg-blue-500 p-4">
-        <SocialMediaSection
-          user={profile}
-          editMode={isEdit}
-          register={register}
-          state={state}
-        />
+      <div className="m-2 flex flex-row justify-between p-4">
+        <div className="ml-2 mr-2">
+          <div className="font-gray-500 font-light uppercase">
+            {t("location")}
+          </div>
+          <div>{profile.occupation}</div>
+          {editMode && (
+            <Input
+              type="text"
+              {...register("occupation")}
+              defaultValue={profile.occupation}
+            ></Input>
+          )}
+        </div>
+        <div className="ml-2 mr-2">
+          <div className="font-gray-500 font-light uppercase">
+            {t("occupation")}
+          </div>
+          <div>{profile.location}</div>
+          {editMode && (
+            <Input
+              type="text"
+              {...register("location")}
+              defaultValue={profile.location}
+            ></Input>
+          )}
+        </div>
+        <div className="ml-2 mr-2">
+          <div className="font-gray-500 font-light uppercase">{t("links")}</div>
+          <SocialMediaSection
+            user={profile}
+            editMode={editMode}
+            register={register}
+            state={state}
+          />
+        </div>
       </div>
       <FormError errors={state?.errors} name={"non_field_errors"} />
-      {MedalsComponent}
-      {profile.calibration_curve && (
-        <CalibrationChart data={profile.calibration_curve} />
-      )}
+      <div className="flex flex-row">
+        <div className="ml-2 mr-2 w-1/3">{MedalsComponent}</div>
+        <div className="ml-2 mr-2 flex w-2/3 flex-col">
+          <div className="flex flex-row gap-x-2">
+            <div className="flex w-1/3 flex-col p-3 text-center dark:bg-blue-800">
+              <p>{profile.nr_forecasts}</p>
+              <p>{t("predictions")}</p>
+            </div>
+            <div className="flex w-1/3 flex-col p-3 text-center dark:bg-blue-800">
+              <p>{profile.nr_comments}</p>
+              <p>{t("comments")}</p>
+            </div>
+            <div className="flex w-1/3 flex-col p-3 text-center dark:bg-blue-800">
+              <p>{format(new Date(profile.date_joined), "MM-yyyy")}</p>
+              <p>{t("Member Since")}</p>
+            </div>
+          </div>
+          <div>
+            {profile.calibration_curve && (
+              <CalibrationChart data={profile.calibration_curve} />
+            )}
+          </div>
+        </div>
+      </div>
     </form>
   );
 };

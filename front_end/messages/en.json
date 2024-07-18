@@ -386,6 +386,8 @@
   "average": "Average",
   "score": "Score",
   "totalScore": "Total Score",
+  "weightedAverageScore": "Weighted Average Score",
+  "hIndex": "H-Index",
   "upvotes": "Upvotes",
   "forecasters": "Forecasters",
   "forecaster": "Forecaster",
@@ -416,7 +418,7 @@
   "absoluteAccuracy": "Absolute Accuracy",
   "rank": "Rank",
   "outOfRank": "out of {total}",
-  "comments": "comments",
+  "comments": "Comments",
   "questions": "Questions",
   "viewMore": "View more...",
   "randomQuestion": "Random Question",
@@ -489,6 +491,7 @@
   "Archive": "Archive",
   "prizePool": "prize pool",
   "prize": "Prize",
+  "percentPrize": "% Prize",
   "questionCount": "{count, plural, =1 {# Question} other {# Questions} }",
   "closesOn": "Closes <strong></strong>",
   "closedOn": "Closed <strong></strong>",
@@ -569,5 +572,10 @@
   "showFullForecast": "...show full forecast",
   "closeFullForecast": "close full forecast",
   "noComments": "no comments",
-  "confirmPageLeaveMessage": "Are you sure you want to leave this page?"
+  "overview": "Overview",
+  "links": "links",
+  "location": "location",
+  "occupation": "occupation",
+  "confirmPageLeaveMessage": "Are you sure you want to leave this page?",
+  "take": "Take"
 }

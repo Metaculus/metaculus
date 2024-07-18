@@ -1,5 +1,28 @@
-import { LeaderboardDetails, MedalEntry } from "@/types/scoring";
+import {
+  ContributionDetails,
+  LeaderboardDetails,
+  LeaderboardType,
+  MedalEntry,
+} from "@/types/scoring";
 import { get, handleRequestError } from "@/utils/fetch";
+import { encodeQueryParams } from "@/utils/navigation";
+
+export type ProjectContributionsParams = {
+  type: "project";
+  userId: number;
+  projectId: number;
+};
+export type GlobalContributionsParams = {
+  type: "global";
+  userId: number;
+  startTime: string;
+  endTime: string;
+  leaderboardType: LeaderboardType;
+};
+type ContributionsRequestParams = { userId: number } & (
+  | ProjectContributionsParams
+  | GlobalContributionsParams
+);
 
 class LeaderboardApi {
   static async getGlobalLeaderboard(
@@ -55,6 +78,16 @@ class LeaderboardApi {
 
   static async getUserMedals(userId: number) {
     return await get<MedalEntry[]>(`/medals?userId=${userId}`);
+  }
+
+  static async getContributions(
+    params: ContributionsRequestParams
+  ): Promise<ContributionDetails> {
+    const { type, ...requestParams } = params;
+    const encodedParams = encodeQueryParams(requestParams);
+    return await get<ContributionDetails>(
+      `/medals/contributions${encodedParams}`
+    );
   }
 }
 

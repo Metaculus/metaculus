@@ -7,11 +7,12 @@ import { CategoryKey, LeaderboardEntry } from "@/types/scoring";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import MedalIcon from "../../../components/medal_icon";
+import { CONTRIBUTIONS_USER_FILTER } from "../../../contributions/search_params";
 import {
-  LEADERBOARD_CATEGORY_FILTER,
-  LEADERBOARD_DURATION_FILTER,
-  LEADERBOARD_YEAR_FILTER,
-} from "../../filters";
+  SCORING_CATEGORY_FILTER,
+  SCORING_DURATION_FILTER,
+  SCORING_YEAR_FILTER,
+} from "../../../search_params";
 
 type Props = {
   rowEntry: LeaderboardEntry;
@@ -20,7 +21,7 @@ type Props = {
 };
 
 const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
-  const { user, rank, contribution_count, score, medal, excluded } = rowEntry;
+  const { user, rank, contribution_count, score, medal } = rowEntry;
 
   return (
     <tr
@@ -32,7 +33,7 @@ const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
         },
         {
           "bg-purple-200 hover:bg-purple-300 dark:bg-purple-200-dark hover:dark:bg-purple-300-dark":
-            !isUserRow && excluded,
+            !isUserRow && !!user.is_staff,
         }
       )}
     >
@@ -99,10 +100,9 @@ export const UserLeaderboardRow: FC<UserLeaderboardRowProps> = ({
   // in this category
   if (!userEntry) return null;
 
-  // TODO: implement contributions route
   const userHref = userEntry.medal
     ? "/medals"
-    : `/contributions/?${LEADERBOARD_CATEGORY_FILTER}=${category}&${LEADERBOARD_YEAR_FILTER}=${year}&${LEADERBOARD_DURATION_FILTER}=${duration}`;
+    : `/contributions/?${SCORING_CATEGORY_FILTER}=${category}&${CONTRIBUTIONS_USER_FILTER}=${userEntry.user.id}&${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
 
   return <LeaderboardRow rowEntry={userEntry} href={userHref} isUserRow />;
 };

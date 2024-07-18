@@ -26,6 +26,10 @@ export type UserProfile = User & {
   profile_picture?: string;
   calibration_curve?: any;
   score_histogram?: any;
+  first_name?: string;
+  last_name?: string;
+  nr_forecasts?: number;
+  nr_comments?: number;
 };
 
 export type CurrentUser = UserProfile & {

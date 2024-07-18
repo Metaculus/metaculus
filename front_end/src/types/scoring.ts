@@ -15,14 +15,6 @@ export type LeaderboardType =
   | "comment_insight"
   | "question_writing";
 
-export type Score = {
-  userId: number;
-  question: Question;
-  score: number;
-  coverage: number;
-  score_type: ScoreType;
-};
-
 export enum MedalsPath {
   Leaderboard = "leaderboard",
   Profile = "profile",
@@ -34,6 +26,7 @@ export type Medal = {
   type: MedalType;
   projectType: MedalProjectType;
   duration: number;
+  year: number;
   rank: number;
   totalEntries: number;
   name: string;
@@ -56,6 +49,8 @@ export type LeaderboardEntry = {
   coverage: number;
   contribution_count: number;
   calculated_on: string;
+  take?: number;
+  percent_prize?: number;
 };
 
 export enum MedalProjectType {
@@ -76,18 +71,20 @@ export type MedalEntry = LeaderboardEntry & {
   total_entries: number;
 };
 
-export type LeaderboardDetails = {
+type BaseLeaderboardDetails = {
   project_id: number;
-  type: string;
-  leaderboard_type: LeaderboardType;
-  name: string;
-  slug: string;
+  project_type: MedalProjectType;
+  project_name: string;
+  score_type: LeaderboardType;
+  name: string | null;
+  start_time: string;
+  end_time: string | null;
+  finalize_time: string;
+};
+
+export type LeaderboardDetails = BaseLeaderboardDetails & {
   entries: LeaderboardEntry[];
   userEntry?: LeaderboardEntry;
-  prize_pool: number;
-  start_date: string;
-  close_date: string;
-  is_ongoing: boolean;
 };
 
 export type CategoryKey = (typeof LEADERBOARD_CATEGORIES)[number];
@@ -102,4 +99,16 @@ export type LeaderboardFilters = {
   duration: string;
   periods: LeaderboardFilter[];
   year: string;
+};
+
+export type Contribution = {
+  score: number;
+  coverage: number;
+  question_title: string;
+  question_id: number;
+};
+export type ContributionDetails = {
+  contributions: Contribution[];
+  leaderboard: BaseLeaderboardDetails;
+  user_id: string;
 };
