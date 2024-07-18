@@ -33,7 +33,3 @@ export const LEADERBOARD_YEAR_OPTIONS = LEADERBOARD_YEARS.map((opt) => {
   const [year, duration] = opt.split(",");
   return { year, duration };
 });
-
-export const LEADERBOARD_CATEGORY_FILTER = "category";
-export const LEADERBOARD_YEAR_FILTER = "year";
-export const LEADERBOARD_DURATION_FILTER = "duration";
