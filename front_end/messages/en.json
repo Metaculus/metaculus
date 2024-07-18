@@ -565,5 +565,8 @@
   "showFullForecast": "...show full forecast",
   "closeFullForecast": "close full forecast",
   "noComments": "no comments",
-  "overview": "Overview"
+  "overview": "Overview",
+  "links": "links",
+  "location": "location",
+  "occupation": "occupation"
 }
