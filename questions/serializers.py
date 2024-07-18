@@ -1,15 +1,19 @@
-from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from datetime import datetime, timezone as dt_timezone
 
 from django.utils import timezone
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
+from questions.models import Forecast
 from users.models import User
-from utils.the_math.measures import prediction_difference_for_display
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
+from utils.the_math.measures import prediction_difference_for_display
 from .constants import ResolutionType
 from .models import Question, Conditional, GroupOfQuestions
-from .services import build_question_forecasts, build_question_forecasts_for_user
-from questions.models import Forecast
+from .services import (
+    build_question_forecasts_for_user,
+    get_forecast_initial_dict,
+)
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -175,24 +179,34 @@ def serialize_question(
     """
 
     serialized_data = QuestionSerializer(question).data
+    # TODO: this is slow, optimize!
     serialized_data["post_id"] = question.get_post().id
 
     if with_cp:
-        if question.cp_reveal_time is None or question.cp_reveal_time > timezone.now():
-            serialized_data["forecasts"] = build_question_forecasts(question, True)
-        else:
-            serialized_data["forecasts"] = build_question_forecasts(question)
+        forecasts = question.composed_forecasts
+
+        if (
+            question.cp_reveal_time is None
+            or question.cp_reveal_time > timezone.now()
+            or not forecasts
+        ):
+            serialized_data["forecasts"] = get_forecast_initial_dict(question)
+
+        serialized_data["forecasts"] = forecasts
 
         if current_user and not current_user.is_anonymous:
             serialized_data["my_forecasts"] = build_question_forecasts_for_user(
-                question, current_user
+                question, question.user_forecasts
             )
 
             last_forecast = (
-                question.forecast_set.filter(author=current_user)
-                .order_by("start_time")
-                .last()
+                sorted(
+                    question.user_forecasts, key=lambda x: x.start_time, reverse=True
+                )[0]
+                if question.user_forecasts
+                else None
             )
+
             if last_forecast:
                 if question.type in ["binary", "multiple_choice"]:
                     cp_prediction_values = serialized_data["forecasts"]["latest_pmf"]

@@ -7,8 +7,8 @@ import Tooltip from "@/components/ui/tooltip";
 import LeaderboardApi from "@/services/leaderboard";
 
 import MedalIcon from "../../components/medal_icon";
-import { LEADERBOARD_CATEGORY_FILTER } from "../../leaderboard/filters";
 import { RANKING_CATEGORIES } from "../../ranking_categories";
+import { SCORING_CATEGORY_FILTER } from "../../search_params";
 import { getMedalCategories } from "../helpers/medal_categories";
 import { getMedalDisplayTitle } from "../helpers/medal_title";
 
@@ -38,7 +38,7 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
               href={
                 category.name === "tournament"
                   ? "/tournaments"
-                  : `/leaderboard/?${LEADERBOARD_CATEGORY_FILTER}=${category.name}`
+                  : `/leaderboard/?${SCORING_CATEGORY_FILTER}=${category.name}`
               }
               className="flex items-center justify-center gap-3 self-stretch px-5 py-4 text-lg font-medium text-blue-800 no-underline dark:text-blue-800-dark"
             >
