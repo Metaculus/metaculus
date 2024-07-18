@@ -386,6 +386,8 @@
   "average": "Average",
   "score": "Score",
   "totalScore": "Total Score",
+  "weightedAverageScore": "Weighted Average Score",
+  "hIndex": "H-Index",
   "upvotes": "Upvotes",
   "forecasters": "Forecasters",
   "forecaster": "Forecaster",
