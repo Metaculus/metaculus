@@ -174,8 +174,8 @@ def update_project_leaderboard(
 
 @dataclass
 class Contribution:
-    score: float
-    coverage: float
+    score: float | None
+    coverage: float | None
     question: Question | None = None
     comment: Comment | None = None
 
@@ -190,19 +190,31 @@ def get_contributions(
     ]:
         # TODO
         return []
+    questions = leaderboard.get_questions()
+    if leaderboard.score_type == "global_leaderboard":
+        # There are so many questions in global leaderboards that we don't
+        # need to make unpopulated contributions for questions that have not
+        # been resolved.
+        questions = [q for q in questions if q.resolution is not None]
     scores = Score.objects.filter(
-        question__in=leaderboard.get_questions(),
+        question__in=questions,
         user=user,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
-    return [
-        Contribution(
-            score=score.score,
-            coverage=score.coverage,
-            question=score.question,
-        )
-        for score in scores
+    # User has scores on some questions
+    contributions = [
+        Contribution(score=s.score, coverage=s.coverage, question=s.question)
+        for s in scores
     ]
+    # add unpopulated contributions for other questions
+    scored_question = {score.question for score in scores}
+    contributions += [
+        Contribution(score=None, coverage=None, question=question)
+        for question in questions
+        if question not in scored_question
+    ]
+
+    return contributions
 
 
 def hydrate_take(
