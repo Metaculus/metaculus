@@ -101,3 +101,13 @@ def prediction_difference_for_display(
             asymmetric if not np.isnan(asymmetric) else None,
         )
     ]
+
+
+def decimal_h_index(scores):
+    sorted_scores = sorted(list(scores), reverse=True)
+    base = sum(x >= i + 1 for i, x in enumerate(sorted_scores))
+    fraction_scores = sorted_scores[: base + 1]
+    numerator = sum(min(base + 1, f) for f in fraction_scores) - base**2
+    denominator = (base + 1) ** 2 - base**2
+    fraction = round(numerator / denominator, 2)
+    return base + fraction

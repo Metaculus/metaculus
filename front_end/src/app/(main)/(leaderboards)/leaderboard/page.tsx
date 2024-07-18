@@ -33,7 +33,7 @@ export default function GlobalLeaderboards({
     const categoryKey = categoryKeys[0];
     const leaderboardType = mapCategoryKeyToLeaderboardType(
       categoryKey,
-      Number(year)
+      Number(year) + Number(duration)
     );
     if (!leaderboardType) return null;
 
@@ -86,7 +86,7 @@ export default function GlobalLeaderboards({
           {categoryKeys.map((categoryKey) => {
             const leaderboardType = mapCategoryKeyToLeaderboardType(
               categoryKey,
-              Number(year)
+              Number(year) + Number(duration)
             );
             if (!leaderboardType) return null;
 
