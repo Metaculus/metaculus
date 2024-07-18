@@ -72,7 +72,7 @@ export default async function Medals({
 
       <hr className="m-5 border-t border-gray-300 dark:border-gray-300-dark sm:m-6" />
 
-      <MedalCategories medalEntries={userMedals} />
+      <MedalCategories medalEntries={userMedals} userId={userId} />
     </main>
   );
 }

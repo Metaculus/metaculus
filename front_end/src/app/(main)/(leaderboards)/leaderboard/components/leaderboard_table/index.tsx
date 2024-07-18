@@ -13,10 +13,10 @@ import { CategoryKey, LeaderboardDetails, MedalsPath } from "@/types/scoring";
 import LeaderboardRow, { UserLeaderboardRow } from "./table_row";
 import { RANKING_CATEGORIES } from "../../../ranking_categories";
 import {
-  LEADERBOARD_CATEGORY_FILTER,
-  LEADERBOARD_DURATION_FILTER,
-  LEADERBOARD_YEAR_FILTER,
-} from "../../filters";
+  SCORING_CATEGORY_FILTER,
+  SCORING_DURATION_FILTER,
+  SCORING_YEAR_FILTER,
+} from "../../../search_params";
 import useLeaderboardMobileTabBar from "../../mobile_tab_bar_context";
 
 type Props = {
@@ -38,7 +38,7 @@ const LeaderboardTable: FC<Props> = ({
   const { activeCategoryKey } = useLeaderboardMobileTabBar();
   const isLargeScreen = useBreakpoint("md");
 
-  const categoryUrl = `/leaderboard/?${LEADERBOARD_CATEGORY_FILTER}=${category}&${LEADERBOARD_YEAR_FILTER}=${year}&${LEADERBOARD_DURATION_FILTER}=${duration}`;
+  const categoryUrl = `/leaderboard/?${SCORING_CATEGORY_FILTER}=${category}&${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
 
   const userEntry = leaderboardDetails.userEntry ?? null;
   const entriesToDisplay = cardSized
