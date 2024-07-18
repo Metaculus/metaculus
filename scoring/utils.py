@@ -201,24 +201,17 @@ def get_contributions(
         user=user,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
-    contributions = []
+    # User has scores on some questions
+    contributions = [
+        Contribution(score=s.score, coverage=s.coverage, question=s.question)
+        for s in scores
+    ]
+    # add unpopulated contributions for other questions
+    scored_question = {score.question for score in scores}
     for question in questions:
-        scored = False
-        for score in scores:
-            if score.question == question:
-                scored = True
-                contributions.append(
-                    Contribution(
-                        score=score.score,
-                        coverage=score.coverage,
-                        question=question,
-                    )
-                )
-                break
-        if not scored:
-            contributions.append(
-                Contribution(score=None, coverage=None, question=question)
-            )
+        if question in scored_question:
+            continue
+        contributions.append(Contribution(score=None, coverage=None, question=question))
 
     return contributions
 
