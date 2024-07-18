@@ -24,6 +24,8 @@ export type UserProfile = {
   score_histogram?: any;
   first_name?: string;
   last_name?: string;
+  nr_forecasts?: number;
+  nr_comments?: number;
 };
 
 export type CurrentUser = UserProfile & {
