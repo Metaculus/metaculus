@@ -33,6 +33,7 @@ const NotebookTile: FC<Props> = ({ notebook }) => {
           alt=""
           width={300}
           height={300}
+          quality={100}
           className="h-24 min-w-44 max-w-44 rounded object-cover"
         />
       ) : (
@@ -40,6 +41,7 @@ const NotebookTile: FC<Props> = ({ notebook }) => {
           src={imagePlaceholder}
           alt=""
           className="h-24 min-w-44 max-w-44 rounded object-cover"
+          quality={100}
         />
       )}
     </div>

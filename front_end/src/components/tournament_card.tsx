@@ -42,6 +42,7 @@ const TournamentCard: FC<Props> = ({
           className="absolute h-full w-full"
           alt=""
           placeholder={"blur"}
+          quality={100}
         />
         {!!headerImageSrc && (
           <Image
@@ -50,6 +51,7 @@ const TournamentCard: FC<Props> = ({
             fill
             className="size-full object-cover object-center"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            quality={100}
           />
         )}
       </div>
