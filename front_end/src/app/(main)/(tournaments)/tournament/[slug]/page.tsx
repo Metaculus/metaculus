@@ -86,6 +86,7 @@ export default async function TournamentSlug({
               priority
               sizes="(max-width: 1200px) 100vw, 780px"
               className="size-full object-cover object-center"
+              quality={100}
             />
           </div>
         )}
