@@ -10,6 +10,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProfileApi from "@/services/profile";
 import { SearchParams } from "@/types/navigation";
 
+import ChangeUsername from "../components/change_username";
 import TrackRecord from "../components/track_record";
 
 export default async function Profile({
@@ -34,7 +35,12 @@ export default async function Profile({
   return (
     <main className="mx-auto mt-4 min-h-min w-full max-w-3xl flex-auto rounded bg-gray-200 p-0 p-4 dark:bg-gray-200-dark">
       <div className="m-4 flex flex-col rounded bg-gray-0 p-0 p-4 dark:bg-gray-0-dark">
-        <h1 className="text-2xl">{profile.username}</h1>
+        <div>
+          <h1 className="inline text-2xl">{profile.username}</h1>
+          <span className="ml-4 inline">
+            {isCurrentUser && <ChangeUsername />}
+          </span>
+        </div>
         <h2 className="mb-4 mt-1 text-lg font-light text-gray-200">
           {profile.first_name} {profile.last_name}
         </h2>
