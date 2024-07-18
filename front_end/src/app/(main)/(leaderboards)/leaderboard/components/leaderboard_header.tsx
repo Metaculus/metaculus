@@ -10,11 +10,11 @@ import { LeaderboardFilters } from "@/types/scoring";
 
 import { RANKING_CATEGORIES } from "../../ranking_categories";
 import {
-  LEADERBOARD_CATEGORY_FILTER,
-  LEADERBOARD_DURATION_FILTER,
-  LEADERBOARD_YEAR_FILTER,
-  LEADERBOARD_YEAR_OPTIONS,
-} from "../filters";
+  SCORING_CATEGORY_FILTER,
+  SCORING_DURATION_FILTER,
+  SCORING_YEAR_FILTER,
+} from "../../search_params";
+import { LEADERBOARD_YEAR_OPTIONS } from "../filters";
 
 type Props = {
   filters: LeaderboardFilters;
@@ -28,20 +28,16 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
 
   const handleDurationChange = (value: string) => {
     const withNavigation = false;
-    setParam(LEADERBOARD_CATEGORY_FILTER, category, withNavigation);
-    setParam(
-      LEADERBOARD_YEAR_FILTER,
-      nextValidYear(year, value),
-      withNavigation
-    );
-    setParam(LEADERBOARD_DURATION_FILTER, value, withNavigation);
+    setParam(SCORING_CATEGORY_FILTER, category, withNavigation);
+    setParam(SCORING_YEAR_FILTER, nextValidYear(year, value), withNavigation);
+    setParam(SCORING_DURATION_FILTER, value, withNavigation);
     navigateToSearchParams();
   };
   const handlePeriodChange = (value: string) => {
     const withNavigation = false;
-    setParam(LEADERBOARD_CATEGORY_FILTER, category, withNavigation);
-    setParam(LEADERBOARD_YEAR_FILTER, value, withNavigation);
-    setParam(LEADERBOARD_DURATION_FILTER, duration, withNavigation);
+    setParam(SCORING_CATEGORY_FILTER, category, withNavigation);
+    setParam(SCORING_YEAR_FILTER, value, withNavigation);
+    setParam(SCORING_DURATION_FILTER, duration, withNavigation);
     navigateToSearchParams();
   };
 
