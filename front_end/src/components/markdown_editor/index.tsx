@@ -13,7 +13,6 @@ import {
   JsxComponentDescriptor,
   jsxPlugin,
   linkDialogPlugin,
-  linkPlugin,
   listsPlugin,
   markdownShortcutPlugin,
   MDXEditor,
@@ -35,6 +34,7 @@ import {
   EmbedMathJaxAction,
   mathJaxDescriptor,
 } from "@/components/markdown_editor/embedded_math_jax";
+import { linkPlugin } from "@/components/markdown_editor/plugins/link";
 import useAppTheme from "@/hooks/use_app_theme";
 
 import {
