@@ -12,9 +12,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from projects.models import Project
+from comments.models import Comment
 from questions.models import Forecast
-from scoring.models import Leaderboard, LeaderboardEntry
 
 from .models import User
 from .serializers import (
@@ -25,26 +24,18 @@ from .serializers import (
     UserFilterSerializer,
 )
 from .services import get_users
-from utils.the_math.measures import weighted_percentile_2d
 
-
-@api_view(["GET"])
-def current_user_api_view(request):
-    return Response(UserPrivateSerializer(request.user).data)
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def user_profile_api_view(request, pk: int):
+def get_serialized_user(request, user, Serializer):
     qs = User.objects.all()
-    user = get_object_or_404(qs, pk=pk)
-    ser = UserPublicSerializer(user).data
+    ser = Serializer(user).data
 
     forecasts = Forecast.objects.filter(
         author=user,
         question__type="binary",
         question__resolution__in=["no", "yes"],
-    )
+    ).all()
+    ser["nr_forecasts"] = len(forecasts)
+    ser["nr_comments"] = Comment.objects.filter(author=user).count()
     values = []
     weights = []
     resolutions = []
@@ -96,7 +87,19 @@ def user_profile_api_view(request, pk: int):
         {"x_start": 0.6, "x_end": 0.8, "y": 0.03},
         {"x_start": 0.8, "x_end": 1, "y": 0.02},
     ]
-    return Response(ser)
+    return ser
+
+@api_view(["GET"])
+def current_user_api_view(request):
+    return Response(get_serialized_user(request, request.user, UserPrivateSerializer))
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def user_profile_api_view(request, pk: int):
+    qs = User.objects.all()
+    user = get_object_or_404(qs, pk=pk)
+    return Response(get_serialized_user(request, user, UserPublicSerializer))
 
 
 @api_view(["GET"])
