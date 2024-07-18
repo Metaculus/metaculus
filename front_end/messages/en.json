@@ -489,6 +489,7 @@
   "Archive": "Archive",
   "prizePool": "prize pool",
   "prize": "Prize",
+  "percentPrize": "% Prize",
   "questionCount": "{count, plural, =1 {# Question} other {# Questions} }",
   "closesOn": "Closes <strong></strong>",
   "closedOn": "Closed <strong></strong>",
@@ -569,5 +570,6 @@
   "showFullForecast": "...show full forecast",
   "closeFullForecast": "close full forecast",
   "noComments": "no comments",
-  "confirmPageLeaveMessage": "Are you sure you want to leave this page?"
+  "confirmPageLeaveMessage": "Are you sure you want to leave this page?",
+  "take": "Take"
 }

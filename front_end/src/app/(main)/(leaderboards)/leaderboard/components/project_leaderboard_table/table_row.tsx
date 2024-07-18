@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { isNil } from "lodash";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
@@ -8,11 +9,21 @@ import MedalIcon from "../../../components/medal_icon";
 
 type Props = {
   rowEntry: LeaderboardEntry;
+  withTake: boolean;
+  withPrize: boolean;
+  prizePool: number;
   userId?: number;
 };
 
-const TableRow: FC<Props> = ({ rowEntry, userId }) => {
-  const { user, medal, rank, score, contribution_count } = rowEntry;
+const TableRow: FC<Props> = ({
+  rowEntry,
+  withTake,
+  withPrize,
+  userId,
+  prizePool,
+}) => {
+  const { user, medal, rank, score, contribution_count, take, percent_prize } =
+    rowEntry;
   const highlight = user.id === userId;
 
   return (
@@ -31,9 +42,21 @@ const TableRow: FC<Props> = ({ rowEntry, userId }) => {
       <Td className="text-right" highlight={highlight}>
         {score.toFixed(2)}
       </Td>
-      <Td className="text-right" highlight={highlight}>
-        {contribution_count}
-      </Td>
+      {withTake && (
+        <Td className="text-right" highlight={highlight}>
+          {take?.toFixed(2)}
+        </Td>
+      )}
+      {withPrize && (
+        <>
+          <Td className="text-right" highlight={highlight}>
+            {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}
+          </Td>
+          <Td className="text-right" highlight={highlight}>
+            {getUserPrize(prizePool, percent_prize)}
+          </Td>
+        </>
+      )}
     </tr>
   );
 };
@@ -56,5 +79,12 @@ const Td: FC<
     {children}
   </td>
 );
+
+const getUserPrize = (prizePool: number, percentPrize?: number): string => {
+  if (isNil(percentPrize)) return "-";
+
+  const prize = prizePool * percentPrize;
+  return prize >= 10 ? "$" + prize.toFixed(0) : "-";
+};
 
 export default TableRow;
