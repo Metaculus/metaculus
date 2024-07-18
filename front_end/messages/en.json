@@ -414,7 +414,7 @@
   "absoluteAccuracy": "Absolute Accuracy",
   "rank": "Rank",
   "outOfRank": "out of {total}",
-  "comments": "comments",
+  "comments": "Comments",
   "questions": "Questions",
   "viewMore": "View more...",
   "randomQuestion": "Random Question",
@@ -564,5 +564,6 @@
   "groupVariable": "Group Variable",
   "showFullForecast": "...show full forecast",
   "closeFullForecast": "close full forecast",
-  "noComments": "no comments"
+  "noComments": "no comments",
+  "overview": "Overview"
 }
