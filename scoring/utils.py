@@ -121,16 +121,23 @@ def update_project_leaderboard(
 
     # assign ranks (and medals if finalized)
     new_entries.sort(key=lambda entry: entry.score, reverse=True)
-    if not leaderboard.start_time or not leaderboard.finalize_time:
-        excluded_users = {}
-    else:
-        excluded_users = MedalExclusionRecord.objects.filter(
-            Q(Q(end_time__isnull=True) | Q(start_time__isnull=True)) | Q(end_time__gte=leaderboard.start_time),
-            start_time__lte=leaderboard.finalize_time,
-        ).values_list("user", flat=True)
+    exclusion_records = MedalExclusionRecord.objects.all()
+    if leaderboard.start_time:
+        exclusion_records = exclusion_records.filter(
+            Q(end_time__isnull=True) | Q(end_time__gte=leaderboard.start_time)
+        )
+    if leaderboard.finalize_time:
+        exclusion_records = exclusion_records.filter(
+            start_time__lte=leaderboard.finalize_time
+        )
+    excluded_users = exclusion_records.values_list("user", flat=True)
     # medals
     golds = silvers = bronzes = 0
-    if leaderboard.finalize_time and (timezone.now() > leaderboard.finalize_time):
+    if (
+        (leaderboard.project.type != "question_series")
+        and leaderboard.finalize_time
+        and (timezone.now() > leaderboard.finalize_time)
+    ):
         entry_count = len(new_entries)
         golds = max(0.01 * entry_count, 1)
         silvers = max(0.01 * entry_count, 1)
@@ -196,3 +203,22 @@ def get_contributions(
         )
         for score in scores
     ]
+
+
+def hydrate_take(
+    leaderboard_entries: list[LeaderboardEntry] | QuerySet[LeaderboardEntry],
+) -> list[LeaderboardEntry] | QuerySet[LeaderboardEntry]:
+    total_take = 0
+    for entry in leaderboard_entries:
+        if entry.excluded:
+            setattr(entry, "take", 0)
+        else:
+            take = max(entry.score, 0) ** 2
+            setattr(entry, "take", take)
+            total_take += take
+    for entry in leaderboard_entries:
+        if total_take == 0:
+            setattr(entry, "percent_prize", 0)
+        else:
+            setattr(entry, "percent_prize", entry.take / total_take)
+    return leaderboard_entries

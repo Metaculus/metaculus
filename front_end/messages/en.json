@@ -385,8 +385,10 @@
   "total": "Total",
   "average": "Average",
   "score": "Score",
+  "totalScore": "Total Score",
   "upvotes": "Upvotes",
   "forecasters": "Forecasters",
+  "forecaster": "Forecaster",
   "comment": "Comment",
   "questionType": "Question Type",
   "questionStatus": "Question Status",
@@ -486,6 +488,8 @@
   "QuestionSeries": "Question Series",
   "Archive": "Archive",
   "prizePool": "prize pool",
+  "prize": "Prize",
+  "percentPrize": "% Prize",
   "questionCount": "{count, plural, =1 {# Question} other {# Questions} }",
   "closesOn": "Closes <strong></strong>",
   "closedOn": "Closed <strong></strong>",
@@ -558,6 +562,7 @@
   "medals": "Medals",
   "noMedals": "No medals yet",
   "leaderboard": "Leaderboard",
+  "openLeaderboard": "Open Leaderboard",
   "namesPrediction": "<name>{username}'s</name> Prediction",
   "includeMyForecast": "include your latest forecast in this comment",
   "privateComment": "private comment",
@@ -568,5 +573,7 @@
   "overview": "Overview",
   "links": "links",
   "location": "location",
-  "occupation": "occupation"
+  "occupation": "occupation",
+  "confirmPageLeaveMessage": "Are you sure you want to leave this page?",
+  "take": "Take"
 }

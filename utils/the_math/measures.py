@@ -62,6 +62,7 @@ def prediction_difference_for_sorting(
 ) -> float:
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
+    p1, p2 = np.array(p1), np.array(p2)
     # Uses Jeffrey's Divergence
     if question.type in ["binary", "multiple_choice"]:
         return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
@@ -92,6 +93,11 @@ def prediction_difference_for_display(
         question,
     )
     diffs = np.array(p1) - np.array(p2)
-    total = np.trapz(np.abs(diffs), x=x_locations)
-    asymmetric = -np.trapz(diffs, x=x_locations)
-    return [(float(total), float(asymmetric))]
+    total = float(np.trapz(np.abs(diffs), x=x_locations))
+    asymmetric = float(-np.trapz(diffs, x=x_locations))
+    return [
+        (
+            total if not np.isnan(total) else None,
+            asymmetric if not np.isnan(asymmetric) else None,
+        )
+    ]

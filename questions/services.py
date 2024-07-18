@@ -16,30 +16,35 @@ from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import percent_point_function
 
 
-def build_question_forecasts(question: Question, empty: bool = False) -> dict:
+def get_forecast_initial_dict(question: Question) -> dict:
+    data = {
+        "timestamps": [],
+        "nr_forecasters": [],
+    }
+
+    if question.type == "multiple_choice":
+        for option in question.options:
+            data[option] = []
+    else:
+        data.update(
+            {
+                "values_mean": [],
+                "values_max": [],
+                "values_min": [],
+                "my_forecasts": None,
+                "latest_pmf": [],
+                "latest_cdf": [],
+            }
+        )
+
+    return data
+
+
+def build_question_forecasts(question: Question) -> dict:
     """
     Enriches questions with the forecasts object.
     """
-    if question.type == "multiple_choice":
-        forecasts_data = {
-            "timestamps": [],
-            "nr_forecasters": [],
-        }
-        for option in question.options:
-            forecasts_data[option] = []
-    else:
-        forecasts_data = {
-            "timestamps": [],
-            "values_mean": [],
-            "values_max": [],
-            "values_min": [],
-            "nr_forecasters": [],
-            "my_forecasts": None,
-            "latest_pmf": [],
-            "latest_cdf": [],
-        }
-    if empty:
-        return forecasts_data
+    forecasts_data = get_forecast_initial_dict(question)
 
     if question.type == "multiple_choice":
         cps = compute_multiple_choice_plotable_cp(question, 100)
@@ -61,7 +66,7 @@ def build_question_forecasts(question: Question, empty: bool = False) -> dict:
         forecasts_data["latest_cdf"] = None
         forecasts_data["latest_pmf"] = (
             None
-            if len(forecasts_data[option]) == 0
+            if len(list(forecasts_data.values())[0]) == 0
             else [
                 forecasts_data[option][-1]["value_mean"] / 100
                 for option in question.options
@@ -81,9 +86,9 @@ def build_question_forecasts(question: Question, empty: bool = False) -> dict:
             )
         elif question.type in ["numeric", "date"]:
             cps, cdf = compute_continuous_plotable_cp(question, 100)
-            forecasts_data["latest_cdf"] = cdf
+            forecasts_data["latest_cdf"] = list(cdf) if cdf is not None else None
             if cdf is not None and len(cdf) >= 2:
-                forecasts_data["latest_pmf"] = np.diff(cdf, prepend=0)
+                forecasts_data["latest_pmf"] = list(np.diff(cdf, prepend=0))
             else:
                 forecasts_data["latest_pmf"] = []
         else:
@@ -101,7 +106,9 @@ def build_question_forecasts(question: Question, empty: bool = False) -> dict:
     return forecasts_data
 
 
-def build_question_forecasts_for_user(question: Question, user: User) -> dict:
+def build_question_forecasts_for_user(
+    question: Question, user_forecasts: list[Forecast]
+) -> dict:
     """
     Builds forecasts of a specific user
     """
@@ -111,12 +118,10 @@ def build_question_forecasts_for_user(question: Question, user: User) -> dict:
         "timestamps": [],
         "slider_values": None,
     }
+    user_forecasts = sorted(user_forecasts, key=lambda x: x.start_time)
 
     # values_choice_1
-    # TODO: fix N+1
-    for forecast in (
-        question.forecast_set.filter(author=user).order_by("start_time").all()
-    ):
+    for forecast in user_forecasts:
         forecasts_data["slider_values"] = forecast.slider_values
         forecasts_data["timestamps"].append(forecast.start_time.timestamp())
         if question.type == "multiple_choice":
@@ -319,7 +324,9 @@ def create_forecast(
 
     # Run async tasks
     from posts.tasks import run_compute_sorting_divergence
+    from questions.tasks import run_build_question_forecasts
 
     run_compute_sorting_divergence.send(post.id)
+    run_build_question_forecasts.send(question.id)
 
     return forecast

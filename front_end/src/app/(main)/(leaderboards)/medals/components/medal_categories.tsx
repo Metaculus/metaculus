@@ -5,14 +5,20 @@ import { FC } from "react";
 import { MedalEntry } from "@/types/scoring";
 
 import MedalCard from "./medal_card";
+import { CONTRIBUTIONS_USER_FILTER } from "../../contributions/search_params";
 import { RANKING_CATEGORIES } from "../../ranking_categories";
+import {
+  SCORING_CATEGORY_FILTER,
+  SCORING_YEAR_FILTER,
+} from "../../search_params";
 import { getMedalCategories } from "../helpers/medal_categories";
 
 type Props = {
   medalEntries: MedalEntry[];
+  userId: number;
 };
 
-const MedalCategories: FC<Props> = ({ medalEntries }) => {
+const MedalCategories: FC<Props> = ({ medalEntries, userId }) => {
   const t = useTranslations();
 
   const categories = getMedalCategories(medalEntries);
@@ -39,7 +45,7 @@ const MedalCategories: FC<Props> = ({ medalEntries }) => {
                 href={
                   category.name === "tournament"
                     ? `/tournament/${categoryMedal.projectId}`
-                    : "#" // TODO: handle contributions route
+                    : `/contributions/?${SCORING_CATEGORY_FILTER}=${category.name}&${CONTRIBUTIONS_USER_FILTER}=${userId}&${SCORING_YEAR_FILTER}=${categoryMedal.year}&duration=${categoryMedal.duration}`
                 }
               />
             ))}
