@@ -50,6 +50,20 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
     expandedChildren && treeDepth < 5
   );
 
+  function getTreeSize(commentChildren: CommentType[]): number {
+    let totalChildren = 0;
+    commentChildren.forEach((comment) => {
+      if (comment.children.length === 0) {
+        // count just this parent comment itself
+        totalChildren += 1;
+      } else {
+        // count the parent comment, and its children
+        totalChildren += getTreeSize(comment.children) + 1;
+      }
+    });
+    return totalChildren;
+  }
+
   return (
     <>
       <Button
@@ -69,7 +83,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
         <span className="flex-1 text-left">
           {/* TODO change these translation strings to be one cohesive string */}
           {childrenExpanded ? t("hide") : t("show")}{" "}
-          {t("replyWithCount", { count: commentChildren.length })}
+          {t("replyWithCount", { count: getTreeSize(commentChildren) })}
         </span>
       </Button>
       <div
@@ -197,6 +211,7 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`}>
+      {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
       {comment.included_forecast && (
         <IncludedForecast
           author={comment.author.username}
