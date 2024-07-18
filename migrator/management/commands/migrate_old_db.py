@@ -68,6 +68,7 @@ class Command(BaseCommand):
         print("Migrated comments")
         migrate_permissions()
         print("Migrated permissions")
+
         # scoring
         score_questions()
         print("Scored questions")

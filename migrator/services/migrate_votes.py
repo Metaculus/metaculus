@@ -7,6 +7,7 @@ def create_vote(vote_obj, direction: int):
         user_id=vote_obj["user_id"],
         post_id=vote_obj["question_id"],
         direction=direction,
+        created_at=vote_obj["created_at"],
     )
 
 
