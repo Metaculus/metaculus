@@ -1,10 +1,3 @@
-import {
-  addDays,
-  format,
-  isWithinInterval,
-  startOfDay,
-  startOfYear,
-} from "date-fns";
 import { useTranslations } from "next-intl";
 
 import { SearchParams } from "@/types/navigation";
@@ -12,14 +5,16 @@ import {
   CategoryKey,
   LeaderboardFilter,
   LeaderboardFilters,
-  LeaderboardType,
 } from "@/types/scoring";
 
+import { getPeriodLabel } from "../../helpers/filters";
+import {
+  SCORING_CATEGORY_FILTER,
+  SCORING_DURATION_FILTER,
+  SCORING_YEAR_FILTER,
+} from "../../search_params";
 import {
   DEFAULT_LEADERBOARD_CATEGORY,
-  LEADERBOARD_CATEGORY_FILTER,
-  LEADERBOARD_DURATION_FILTER,
-  LEADERBOARD_YEAR_FILTER,
   LEADERBOARD_YEAR_OPTIONS,
 } from "../filters";
 
@@ -29,17 +24,10 @@ const getLeaderboardTimePeriodFilters = (
   return LEADERBOARD_YEAR_OPTIONS.filter((opt) => opt.duration === duration)
     .map((opt) => opt.year)
     .sort()
-    .map((year) =>
-      duration === "1"
-        ? {
-            label: year,
-            value: year,
-          }
-        : {
-            label: `${Number(year) - (Number(duration) - 1)} - ${year}`,
-            value: year,
-          }
-    );
+    .map((year) => ({
+      label: getPeriodLabel(year, duration),
+      value: year,
+    }));
 };
 
 const getLeaderboardDurationFilters = (
@@ -62,82 +50,28 @@ export function extractLeaderboardFiltersFromParams(
   params: SearchParams,
   t: ReturnType<typeof useTranslations>
 ): LeaderboardFilters {
-  const category = (params[LEADERBOARD_CATEGORY_FILTER] ??
+  const category = (params[SCORING_CATEGORY_FILTER] ??
     DEFAULT_LEADERBOARD_CATEGORY) as CategoryKey;
 
   const durations = getLeaderboardDurationFilters(t);
   let duration: string = durations[0].value;
   if (
-    params[LEADERBOARD_DURATION_FILTER] &&
-    typeof params[LEADERBOARD_DURATION_FILTER] === "string" &&
-    !isNaN(Number(params[LEADERBOARD_DURATION_FILTER]))
+    params[SCORING_DURATION_FILTER] &&
+    typeof params[SCORING_DURATION_FILTER] === "string" &&
+    !isNaN(Number(params[SCORING_DURATION_FILTER]))
   ) {
-    duration = params[LEADERBOARD_DURATION_FILTER];
+    duration = params[SCORING_DURATION_FILTER];
   }
 
   const periods = getLeaderboardTimePeriodFilters(duration);
   let year: string = periods[periods.length - 1].value;
   if (
-    params[LEADERBOARD_YEAR_FILTER] &&
-    typeof params[LEADERBOARD_YEAR_FILTER] === "string" &&
-    !isNaN(Number(params[LEADERBOARD_YEAR_FILTER]))
+    params[SCORING_YEAR_FILTER] &&
+    typeof params[SCORING_YEAR_FILTER] === "string" &&
+    !isNaN(Number(params[SCORING_YEAR_FILTER]))
   ) {
-    year = params[LEADERBOARD_YEAR_FILTER];
+    year = params[SCORING_YEAR_FILTER];
   }
 
   return { category, durations, duration, periods, year };
-}
-
-export function getLeaderboardTimeInterval(
-  year: string,
-  duration: string
-): { startTime: string; endTime: string } {
-  const yearNumber = Number(year);
-  const durationNumber = Number(duration);
-  const dateFormat = "yyyy-MM-dd";
-
-  if (durationNumber === 1) {
-    const startDate = startOfYear(new Date(year));
-    const end = startOfYear(new Date(`${yearNumber + 1}`));
-
-    return {
-      startTime: format(startDate, dateFormat),
-      endTime: format(end, dateFormat),
-    };
-  }
-
-  const start = startOfYear(new Date(`${yearNumber - durationNumber + 1}`));
-  const end = startOfYear(new Date(`${yearNumber + 1}`));
-
-  return {
-    startTime: format(start, dateFormat),
-    endTime: format(end, dateFormat),
-  };
-}
-
-export function mapCategoryKeyToLeaderboardType(
-  categoryKey: CategoryKey,
-  startTime: string,
-  endTime: string
-): LeaderboardType | null {
-  switch (categoryKey) {
-    case "comments":
-      return "comment_insight";
-    case "questionWriting":
-      return "question_writing";
-    case "baseline":
-      return "baseline_global";
-    case "peer": {
-      const isLegacy = !isWithinInterval(
-        addDays(startOfDay(new Date("2024")), 1),
-        {
-          start: new Date(startTime),
-          end: new Date(endTime),
-        }
-      );
-      return isLegacy ? "peer_global_legacy" : "peer_global";
-    }
-    default:
-      return null;
-  }
 }

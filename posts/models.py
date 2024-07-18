@@ -10,6 +10,7 @@ from django.db.models import (
     F,
     Max,
     Min,
+    Prefetch,
 )
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
@@ -26,14 +27,28 @@ class PostQuerySet(models.QuerySet):
     def prefetch_projects(self):
         return self.prefetch_related("projects")
 
-    def prefetch_forecasts(self):
+    def prefetch_user_forecasts(self, user_id: int):
         return self.prefetch_related(
-            "question__forecast_set",
-            # Conditional
-            "conditional__question_yes__forecast_set",
-            "conditional__question_no__forecast_set",
-            # Group Of Questions
-            "group_of_questions__questions__forecast_set",
+            Prefetch(
+                "question__forecast_set",
+                queryset=Forecast.objects.filter(author_id=user_id),
+                to_attr="user_forecasts",
+            ),
+            Prefetch(
+                "conditional__question_yes__forecast_set",
+                queryset=Forecast.objects.filter(author_id=user_id),
+                to_attr="user_forecasts",
+            ),
+            Prefetch(
+                "conditional__question_no__forecast_set",
+                queryset=Forecast.objects.filter(author_id=user_id),
+                to_attr="user_forecasts",
+            ),
+            Prefetch(
+                "group_of_questions__questions__forecast_set",
+                queryset=Forecast.objects.filter(author_id=user_id),
+                to_attr="user_forecasts",
+            ),
         )
 
     def prefetch_questions(self):

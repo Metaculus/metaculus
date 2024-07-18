@@ -1,5 +1,3 @@
-import json
-import math
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -9,19 +7,16 @@ from rest_framework.response import Response
 
 from users.models import User
 
-from comments.serializers import UserCommentSerializer
-
 from projects.models import Project
-from projects.views import get_projects_qs, get_project_permission_for_user
 from projects.permissions import ObjectPermission
-
+from projects.views import get_projects_qs, get_project_permission_for_user
 from scoring.models import Leaderboard, LeaderboardEntry
 from scoring.serializers import (
     LeaderboardSerializer,
     LeaderboardEntrySerializer,
     ContributionSerializer,
 )
-from scoring.utils import update_project_leaderboard, get_contributions
+from scoring.utils import get_contributions, hydrate_take
 
 
 @api_view(["GET"])
@@ -47,25 +42,20 @@ def global_leaderboard(
     leaderboard = leaderboards.first()
     # serialize
     leaderboard_data = LeaderboardSerializer(leaderboard).data
-    entries = list(leaderboard.entries.order_by("rank"))
-    if len(entries) == 0:
-        entries = update_project_leaderboard(leaderboard.project, leaderboard)
+
     user = request.user
-    leader_entries = [
-        e
-        for e in entries
-        if e.rank and e.rank <= len(entries) * 0.05
-        if (not e.excluded or user.is_staff)
-    ]
-    leaderboard_data["entries"] = LeaderboardEntrySerializer(
-        leader_entries, many=True
-    ).data
+    entries = leaderboard.entries.select_related("user").order_by("rank")
+    entries = entries.filter(rank__lte=entries.count() * 0.05)
+
+    if not user.is_staff:
+        entries = entries.filter(excluded=False)
+
+    leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     # add user entry
     for entry in entries:
         if entry.user == user:
             leaderboard_data["userEntry"] = LeaderboardEntrySerializer(entry).data
             break
-
     return Response(leaderboard_data)
 
 
@@ -105,14 +95,14 @@ def project_leaderboard(
 
     # serialize
     leaderboard_data = LeaderboardSerializer(leaderboard).data
-    entries = list(leaderboard.entries.order_by("rank"))
-    if len(entries) == 0:
-        entries = update_project_leaderboard(project, leaderboard)
+    entries = leaderboard.entries.order_by("rank").select_related("user")
+    entries = hydrate_take(entries)
     user = request.user
-    leader_entries = [e for e in entries if (not e.excluded or user.is_staff)]
-    leaderboard_data["entries"] = LeaderboardEntrySerializer(
-        leader_entries, many=True
-    ).data
+
+    if not user.is_staff:
+        entries = entries.filter(excluded=False)
+
+    leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     # add user entry
     for entry in entries:
         if entry.user == user:
@@ -182,3 +172,4 @@ def medal_contributions(
         "leaderboard": LeaderboardSerializer(leaderboard).data,
         "user_id": user_id,
     }
+    return Response(return_data)

@@ -82,6 +82,7 @@ class Command(BaseCommand):
         print("Running post-migrate commands")
         post_migrate_calculate_divergence()
         run_compute_movement()
+        call_command("build_forecasts")
 
         # Reset sql sequences
         reset_sequence()
