@@ -59,8 +59,8 @@ class LeaderboardSerializer(serializers.Serializer):
 
 
 class ContributionSerializer(serializers.Serializer):
-    score = serializers.FloatField(required=False)
-    coverage = serializers.FloatField(required=False)
+    score = serializers.FloatField()
+    coverage = serializers.FloatField()
     question_type = serializers.CharField(source="question.type", required=False)
     question_resolution = serializers.CharField(
         source="question.resolution", required=False
