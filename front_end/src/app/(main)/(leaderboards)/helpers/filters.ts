@@ -24,7 +24,7 @@ export function mapCategoryKeyToLeaderboardType(
     case "baseline":
       return "baseline_global";
     case "peer": {
-      return end_year < 2024 ? "peer_global_legacy" : "peer_global";
+      return end_year <= 2024 ? "peer_global_legacy" : "peer_global";
     }
     default:
       return null;
