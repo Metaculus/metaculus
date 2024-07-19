@@ -108,9 +108,7 @@ const UserInfo: FC<UserInfoProps> = ({
                 defaultValue={profile.location}
               ></Input>
             ) : (
-              <div className="text-base font-light">
-                {profile.location}location
-              </div>
+              <div className="text-base font-light">{profile.location}</div>
             )}
           </div>
           <div className="flex w-full flex-col gap-1">
@@ -125,9 +123,7 @@ const UserInfo: FC<UserInfoProps> = ({
                 defaultValue={profile.occupation}
               ></Input>
             ) : (
-              <div className="text-base font-light">
-                {profile.occupation}occupation
-              </div>
+              <div className="text-base font-light">{profile.occupation}</div>
             )}
           </div>
           <div className="flex w-full flex-col gap-1">

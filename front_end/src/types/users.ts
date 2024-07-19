@@ -30,6 +30,12 @@ export type UserProfile = User & {
   last_name?: string;
   nr_forecasts?: number;
   nr_comments?: number;
+  avg_score?: number;
+  questions_predicted_scored?: number;
+  questions_predicted?: number;
+  question_authored?: number;
+  notebooks_authored?: number;
+  comments_authored?: number;
 };
 
 export type CurrentUser = UserProfile & {
