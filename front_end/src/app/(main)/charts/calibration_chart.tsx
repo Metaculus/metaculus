@@ -11,6 +11,7 @@ import {
 
 const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
   const calibrationData = data;
+  console.log(calibrationData);
   return (
     <VictoryChart domain={{ x: [0, 1], y: [0, 1] }}>
       <VictoryScatter
