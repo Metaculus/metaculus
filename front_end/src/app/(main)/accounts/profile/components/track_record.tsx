@@ -11,7 +11,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
 
   return (
     <div>
-      <div className="m-4 flex flex-col rounded bg-gray-0 p-0 p-4 dark:bg-gray-0-dark">
+      <div className="flex flex-col gap-6 rounded bg-white p-6 dark:bg-blue-900">
         {profile.calibration_curve && (
           <CalibrationChart data={profile.calibration_curve} />
         )}
