@@ -13,7 +13,7 @@ import {
 } from "react";
 
 import { QuestionType } from "@/types/question";
-import { CategoryKey, Contribution } from "@/types/scoring";
+import { CategoryKey, Contribution, LeaderboardEntry } from "@/types/scoring";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 type SortingColumn = "score" | "title" | "type";
@@ -21,10 +21,15 @@ type SortingDirection = "asc" | "desc";
 
 type Props = {
   category: CategoryKey;
+  leaderboardEntry: LeaderboardEntry;
   contributions: Contribution[];
 };
 
-const ContributionsTable: FC<Props> = ({ category, contributions }) => {
+const ContributionsTable: FC<Props> = ({
+  category,
+  leaderboardEntry,
+  contributions,
+}) => {
   const t = useTranslations();
 
   const [sortingColumn, setSortingColumn] = useState<SortingColumn>("score");
@@ -49,12 +54,12 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
               : (b.score ?? 0) - (a.score ?? 0);
           case "title":
             return sortingDirection === "asc"
-              ? a.question_title.localeCompare(b.question_title)
-              : b.question_title.localeCompare(a.question_title);
+              ? a.question_title!.localeCompare(b.question_title!)
+              : b.question_title!.localeCompare(a.question_title!);
           case "type":
             return sortingDirection === "asc"
-              ? a.question_type.localeCompare(b.question_type)
-              : b.question_type.localeCompare(a.question_type);
+              ? a.question_type!.localeCompare(b.question_type!)
+              : b.question_type!.localeCompare(a.question_type!);
           default:
             return 0;
         }
@@ -62,10 +67,7 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
     [contributions, sortingColumn, sortingDirection]
   );
 
-  const totalScore = useMemo(
-    () => contributions.reduce((acc, el) => acc + (el.score ?? 0), 0),
-    [contributions]
-  );
+  const totalScore = leaderboardEntry.score ?? 0;
 
   const isQuestionCategory = ["peer", "baseline"].includes(category);
   const isNonQuestionCategory = ["comments", "questionWriting"].includes(
@@ -164,7 +166,7 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
                 "flex items-center justify-center px-0 py-1.5 font-mono text-sm font-medium leading-4",
                 {
                   "dark:text-conditionals-green-700-dark text-conditional-green-700":
-                    getIsResolved(contribution) &&
+                    (getIsResolved(contribution) || category === "comments") &&
                     (contribution.score ?? 0) > 0,
                   "text-result-negative dark:text-result-negative-dark":
                     getIsResolved(contribution) &&
@@ -175,27 +177,36 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
               {getScoreLabel(contribution)}
             </td>
             <td className="truncate px-4 py-1.5 text-sm font-medium leading-4">
-              {["peer", "baseline", "questionWriting"].includes(category) && (
+              {["peer", "baseline"].includes(category) && (
                 <Link
                   className="no-underline"
-                  href={`/questions/${contribution.question_id}`}
+                  href={`/questions/${contribution.question_id!}`}
                 >
-                  {contribution.question_title}
+                  {contribution.question_title!}
                 </Link>
               )}
-              {/*TODO: change to actual comment contribution once BE support it*/}
+              {category === "questionWriting" && (
+                <Link
+                  className="no-underline"
+                  /* TODO: change to actual comment url once BE support it */
+                  href={`/questions/${contribution.post_id!}`}
+                >
+                  {contribution.post_title!}
+                </Link>
+              )}
               {category === "comments" && (
                 <Link
                   className="no-underline"
-                  href={`/questions/${contribution.question_id}`}
+                  /* TODO: change to actual comment url once BE support it */
+                  href={`/questions/${contribution.post_id!}/#comment-${contribution.comment_id}`}
                 >
-                  {contribution.question_title}
+                  {contribution.comment_text}
                 </Link>
               )}
             </td>
             {isQuestionCategory && (
               <td className="flex items-center gap-2 self-stretch px-4 py-1.5 text-sm font-medium leading-4 text-blue-700 dark:text-blue-700-dark max-sm:hidden">
-                {getQuestionTypeLabel(contribution.question_type)}
+                {getQuestionTypeLabel(contribution.question_type!)}
               </td>
             )}
           </tr>

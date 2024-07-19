@@ -1,4 +1,5 @@
 import { differenceInYears } from "date-fns";
+import { number } from "zod";
 
 import {
   CategoryKey,
@@ -111,7 +112,8 @@ const getMedalFromEntry = (medalEntry: MedalEntry): Medal | null => {
   return {
     rank: medalEntry.rank,
     type: medalEntry.medal,
-    year: new Date(medalEntry.start_time).getFullYear(),
+    // year: new Date(medalEntry.start_time).getFullYear(),
+    year: Number(medalEntry.start_time.split("-")[0]),
     duration: differenceInYears(
       new Date(medalEntry.end_time),
       new Date(medalEntry.start_time)

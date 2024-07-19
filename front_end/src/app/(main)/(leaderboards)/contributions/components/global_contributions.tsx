@@ -30,6 +30,7 @@ const GlobalContributions: FC<Props> = async ({
   return (
     <ContributionsTable
       category={category}
+      leaderboardEntry={contributionsDetails.leaderboard_entry}
       contributions={contributionsDetails.contributions}
     />
   );
