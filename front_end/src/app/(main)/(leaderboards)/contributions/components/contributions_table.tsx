@@ -191,7 +191,7 @@ const ContributionsTable: FC<Props> = ({
                   /* TODO: change to actual comment url once BE support it */
                   href={`/questions/${contribution.post_id!}`}
                 >
-                  {contribution.comment_text}
+                  {contribution.post_title!}
                 </Link>
               )}
               {category === "comments" && (
