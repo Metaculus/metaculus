@@ -236,6 +236,11 @@ class PostQuerySet(models.QuerySet):
         )
 
 
+class PostManager(models.Manager.from_queryset(PostQuerySet)):
+    def get_queryset(self):
+        return super().get_queryset().defer("embedded_vector")
+
+
 class Notebook(TimeStampedModel):
     class NotebookType(models.TextChoices):
         DISCUSSION = "discussion"
@@ -287,8 +292,7 @@ class Post(TimeStampedModel):
     resolved = models.BooleanField(default=False)
 
     embedded_vector = VectorField(
-        #dimensions=2048,
-        help_text="Vector embeddings (clip-vit-large-patch14) of the file content",
+        help_text="Vector embeddings of the Post content",
         null=True,
         blank=True,
     )
@@ -431,7 +435,7 @@ class Post(TimeStampedModel):
         self.forecasts_count = self.forecasts.count()
         self.save(update_fields=["forecasts_count"])
 
-    objects = models.Manager.from_queryset(PostQuerySet)()
+    objects = PostManager()
 
     # Annotated fields
     nr_forecasters: int = 0
