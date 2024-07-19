@@ -21,6 +21,7 @@ import { PostWithForecasts } from "@/types/post";
 
 import EmbeddedQuestionCard from "./embedded_question_card";
 import createEditorComponent from "../createJsxComponent";
+import useLexicalBackspaceNodeRemove from "../hooks/use_backspace_node_remove";
 
 type Props = {
   id: number;
@@ -44,8 +45,15 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
     void loadPost();
   }, [id]);
 
+  const { ref, getReferenceProps } =
+    useLexicalBackspaceNodeRemove<HTMLDivElement>(!isReadOnly);
+
   return (
-    <div className="mx-auto mt-2 w-[400px]">
+    <div
+      ref={ref}
+      className="mx-auto mt-2 w-[400px] ring-blue-500 focus:outline-none focus:ring-2 dark:ring-blue-500-dark"
+      {...getReferenceProps()}
+    >
       {isLoading ? (
         <LoadingIndicator />
       ) : postData ? (

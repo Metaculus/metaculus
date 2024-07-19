@@ -13,7 +13,7 @@ Lorem ipsum dolor sit amet, consectetur adipisicing elit. Alias deserunt dicta e
 
 ## Math
 
-\\(e=mc^2\\)
+Inline formula: \\(e=mc^2\\)
 
 \\[e=mc^2\\]
 
