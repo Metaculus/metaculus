@@ -6,6 +6,15 @@ This is a very hectic work in progress, please do not expect things to make perf
 ### Install
 `poetry install`
 
+## Install pgvector database extension
+https://github.com/pgvector/pgvector
+
+### Ubuntu:
+- Make sure you're using `postgresql-server-dev-15` package
+
+### Mac:
+https://github.com/pgvector/pgvector?tab=readme-ov-file#installation-notes---linux-and-mac
+
 ### Migration of the old database
 1. Create a postgres database called `metaculus`
 2. Configure old db connection using `OLD_DATABASE_URL` env var to wherever you have your old metaculus database
