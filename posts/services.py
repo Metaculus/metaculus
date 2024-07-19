@@ -9,7 +9,6 @@ from sql_util.aggregates import SubqueryAggregate
 
 from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
-from posts.tasks import run_post_indexing
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
@@ -74,12 +73,6 @@ def get_posts_feed(
 
     # Filter by permission level
     qs = qs.filter_permission(user=user, permission=permission)
-
-    # Search
-    if search:
-        qs = perform_post_search(search)
-        # Force ordering by vector distance
-        order_by = "embed_distance"
 
     # Author usernames
     if usernames:
@@ -169,6 +162,12 @@ def get_posts_feed(
     # Performing query override
     # Before running order_by
     qs = Post.objects.filter(pk__in=qs.distinct("id"))
+
+    # Search
+    if search:
+        qs = perform_post_search(qs, search)
+        # Force ordering by vector distance
+        order_by = "embed_distance"
 
     # Ordering
     if order_by:
@@ -268,6 +267,8 @@ def create_post(
     obj.projects.add(*(meta_projects + main_projects))
 
     # Run async tasks
+    from .tasks import run_post_indexing
+
     run_post_indexing.send(obj.id)
 
     return obj
@@ -391,10 +392,10 @@ def compute_hotness():
     qs.update(hotness=F("hotness_value"))
 
 
-def perform_post_search(search_text: str):
+def perform_post_search(qs, search_text: str):
     vector = generate_text_embed_vector(search_text)
 
-    qs = Post.objects.annotate(
+    qs = qs.annotate(
         embed_distance=CosineDistance("embedded_vector", vector)
     )
 
