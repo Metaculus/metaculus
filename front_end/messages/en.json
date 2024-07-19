@@ -576,5 +576,9 @@
   "occupation": "occupation",
   "take": "Take",
   "confirmPageLeaveMessage": "Are you sure you want to leave this page?",
-  "deletedAuthor": "deleted author"
+  "deletedAuthor": "deleted author",
+  "myScore": "My Score",
+  "scoringTerminology": "Scoring Terminology",
+  "pearScoreInfo": "Your <link>Peer Score</link> on that question. If you see no score, then either the question has yet to resolve or you haven’t predicted it (or both!).",
+  "totalPeerScoreInfo": "The sum of your <link>Peer Scores</link> on all questions in the tournament (but only those that close before the end of the tournament)."
 }
