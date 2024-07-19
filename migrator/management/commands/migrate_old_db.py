@@ -2,7 +2,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
 
-from migrator.services.migrate_comments import migrate_comments
+from migrator.services.migrate_comments import migrate_comments, migrate_comment_votes
 from migrator.services.migrate_forecasts import migrate_forecasts
 from migrator.services.migrate_leaderboards import (
     create_global_leaderboards,
@@ -66,8 +66,11 @@ class Command(BaseCommand):
         print("Migrated votes")
         migrate_comments()
         print("Migrated comments")
+        migrate_comment_votes()
+        print("Migrated comment votes")
         migrate_permissions()
         print("Migrated permissions")
+
         # scoring
         score_questions()
         print("Scored questions")

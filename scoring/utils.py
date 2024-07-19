@@ -7,11 +7,13 @@ from django.db.models import QuerySet, Q
 
 from comments.models import Comment
 from users.models import User
+from posts.models import Post
 from projects.models import Project
 from questions.models import Question
 from scoring.models import Score, LeaderboardEntry, Leaderboard, MedalExclusionRecord
 from scoring.score_math import evaluate_question
 from utils.the_math.formulas import string_location_to_bucket_index
+from utils.the_math.measures import decimal_h_index
 
 
 def score_question(
@@ -56,7 +58,7 @@ def generate_scoring_leaderboard_entries(
         question__in=questions,
         score_type=Leaderboard.ScoreTypes.get_base_score(score_type),
     )
-    user_entries: dict[User, LeaderboardEntry] = {}
+    user_entries: dict[int, LeaderboardEntry] = {}
     now = timezone.now()
     for score in scores:
         user_id = score.user_id
@@ -80,6 +82,55 @@ def generate_scoring_leaderboard_entries(
     return sorted(user_entries.values(), key=lambda entry: entry.score, reverse=True)
 
 
+def generate_question_writing_leaderboard_entries(
+    questions: list[Question],
+    leaderboard: Leaderboard,
+) -> list[LeaderboardEntry]:
+    now = timezone.now()
+
+    forecaster_ids_for_post: dict[Post, set[int]] = {}
+    for question in questions:
+        forecasts_during_period = question.forecast_set.filter(
+            start_time__gte=leaderboard.start_time,
+            start_time__lte=min(
+                [
+                    leaderboard.end_time,
+                    question.actual_close_time or question.scheduled_close_time,
+                    question.actual_resolve_time or question.scheduled_resolve_time,
+                ]
+            ),
+        )
+        forecasters = set([forecast.author_id for forecast in forecasts_during_period])
+        post = question.get_post()
+        if post not in forecaster_ids_for_post:
+            forecaster_ids_for_post[post] = set()
+        forecaster_ids_for_post[post].update(forecasters)
+
+    scores_for_author: dict[User, list[float]] = {}
+    for post, forecaster_ids in forecaster_ids_for_post.items():
+        # TODO: support coauthorship
+        author = post.author
+        if author not in scores_for_author:
+            scores_for_author[author] = []
+        # we use the h-index by number of forecasters divided by 10
+        scores_for_author[author].append(len(forecaster_ids) / 10)
+
+    user_entries: dict[User, LeaderboardEntry] = {}
+    for user, scores in scores_for_author.items():
+        if user not in user_entries:
+            user_entries[user] = LeaderboardEntry(
+                user_id=user.id,
+                score=0,
+                contribution_count=0,
+                calculated_on=now,
+            )
+        score = decimal_h_index(scores)
+        user_entries[user].score = score
+        user_entries[user].contribution_count = len(scores)
+    results = [entry for entry in user_entries.values() if entry.score > 0]
+    return sorted(results, key=lambda entry: entry.score, reverse=True)
+
+
 def generate_project_leaderboard(
     project: Project,
     leaderboard: Leaderboard | None = None,
@@ -92,12 +143,14 @@ def generate_project_leaderboard(
 
     leaderboard.project = project
 
-    if leaderboard.score_type in [
-        Leaderboard.ScoreTypes.COMMENT_INSIGHT,
-        Leaderboard.ScoreTypes.QUESTION_WRITING,
-    ]:
+    if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
         # TODO
         return []
+    if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
+        return generate_question_writing_leaderboard_entries(
+            leaderboard.get_questions(),
+            leaderboard,
+        )
     # We have a scoring based leaderboard
     return generate_scoring_leaderboard_entries(
         leaderboard.get_questions(), leaderboard.score_type
@@ -174,9 +227,10 @@ def update_project_leaderboard(
 
 @dataclass
 class Contribution:
-    score: float
-    coverage: float
+    score: float | None
+    coverage: float | None = None
     question: Question | None = None
+    post: Post | None = None
     comment: Comment | None = None
 
 
@@ -184,25 +238,67 @@ def get_contributions(
     user: User,
     leaderboard: Leaderboard,
 ) -> list[Contribution]:
-    if leaderboard.score_type in [
-        Leaderboard.ScoreTypes.COMMENT_INSIGHT,
-        Leaderboard.ScoreTypes.QUESTION_WRITING,
-    ]:
+    if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
         # TODO
         return []
+    questions = leaderboard.get_questions()
+    if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
+        forecaster_ids_for_post: dict[Post, set[int]] = {}
+        for question in questions:
+            post: Post = question.get_post()
+            if post.author != user:
+                continue
+            forecasts_during_period = question.forecast_set.all()
+            if leaderboard.start_time:
+                forecasts_during_period = forecasts_during_period.filter(
+                    start_time__gte=leaderboard.start_time
+                )
+            if leaderboard.end_time:
+                forecasts_during_period = forecasts_during_period.filter(
+                    start_time__lte=leaderboard.end_time
+                )
+            forecasters = set(
+                [forecast.author_id for forecast in forecasts_during_period]
+            )
+            if post not in forecaster_ids_for_post:
+                forecaster_ids_for_post[post] = set()
+            forecaster_ids_for_post[post].update(forecasters)
+        contributions: list[Contribution] = []
+        for post, forecaster_ids in forecaster_ids_for_post.items():
+
+            contribution = Contribution(
+                score=len(forecaster_ids),
+                post=post,
+            )
+            contributions.append(contribution)
+        h_index = decimal_h_index([c.score / 10 for c in contributions])
+        contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
+        return contributions[: int(h_index) + 1]
+
+    if leaderboard.score_type == "global_leaderboard":
+        # There are so many questions in global leaderboards that we don't
+        # need to make unpopulated contributions for questions that have not
+        # been resolved.
+        questions = [q for q in questions if q.resolution is not None]
     scores = Score.objects.filter(
-        question__in=leaderboard.get_questions(),
+        question__in=questions,
         user=user,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
-    return [
-        Contribution(
-            score=score.score,
-            coverage=score.coverage,
-            question=score.question,
-        )
-        for score in scores
+    # User has scores on some questions
+    contributions = [
+        Contribution(score=s.score, coverage=s.coverage, question=s.question)
+        for s in scores
     ]
+    # add unpopulated contributions for other questions
+    scored_question = {score.question for score in scores}
+    contributions += [
+        Contribution(score=None, coverage=None, question=question)
+        for question in questions
+        if question not in scored_question
+    ]
+
+    return contributions
 
 
 def hydrate_take(

@@ -45,7 +45,7 @@ def global_leaderboard(
 
     user = request.user
     entries = leaderboard.entries.select_related("user").order_by("rank")
-    entries = entries.filter(rank__lte=entries.count() * 0.05)
+    entries = entries.filter(rank__lte=max(3, entries.count() * 0.05))
 
     if not user.is_staff:
         entries = entries.filter(excluded=False)
@@ -96,12 +96,13 @@ def project_leaderboard(
     # serialize
     leaderboard_data = LeaderboardSerializer(leaderboard).data
     entries = leaderboard.entries.order_by("rank").select_related("user")
-    entries = hydrate_take(entries)
     user = request.user
 
     if not user.is_staff:
         entries = entries.filter(excluded=False)
 
+    entries = hydrate_take(entries)  # NOTE: don't query after this as the
+    # manual annotations will be lost
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     # add user entry
     for entry in entries:
