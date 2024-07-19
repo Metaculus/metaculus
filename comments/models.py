@@ -1,11 +1,13 @@
 from django.db import models
-from django.db.models import Sum, OuterRef, Subquery
+from django.db.models import Sum, OuterRef, Subquery, QuerySet
 
 from sql_util.aggregates import SubqueryAggregate
 from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast
 from users.models import User
+
+from utils.models import TimeStampedModel
 
 
 class CommentQuerySet(models.QuerySet):
@@ -37,11 +39,12 @@ class CommentQuerySet(models.QuerySet):
     #    return self.annotate(children=Comment.objects.filter(parent=self))
 
 
-class Comment(models.Model):
+class Comment(TimeStampedModel):
+    comment_votes: QuerySet["CommentVote"]
+
     author = models.ForeignKey(User, models.CASCADE)
     parent = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True)
     # auto_now_add=True must be disabled when the migration is run
-    created_at = models.DateTimeField(auto_now_add=True, editable=False)
     is_soft_deleted = models.BooleanField(null=True)
     text = models.TextField()
     on_post = models.ForeignKey(
@@ -64,24 +67,22 @@ class Comment(models.Model):
     objects = models.Manager.from_queryset(CommentQuerySet)()
 
 
-class CommentDiff(models.Model):
+class CommentDiff(TimeStampedModel):
     comment = models.ForeignKey(Comment, models.CASCADE)
     author = models.ForeignKey(User, models.CASCADE)
-    edited_at = models.DateTimeField(auto_now_add=True, editable=False)
     text_diff = models.TextField()
 
 
-class CommentVote(models.Model):
+class CommentVote(TimeStampedModel):
     class VoteDirection(models.IntegerChoices):
         UP = 1
         DOWN = -1
 
-    user = models.ForeignKey(User, models.CASCADE, related_name="comment_vote")
+    user = models.ForeignKey(User, models.CASCADE, related_name="comment_votes")
     comment = models.ForeignKey(Comment, models.CASCADE, related_name="comment_votes")
     direction = models.SmallIntegerField(choices=VoteDirection.choices)
     # auto_now_add=True must be disabled when the migration is run
     # we may need to migrate edited_at to be the created_at field?  who knows.  i guess as long as it's before 2024 then it doesn't matter?  urgh
-    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
