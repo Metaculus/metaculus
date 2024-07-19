@@ -7,6 +7,10 @@
   --baseBorder: theme("colors.gray.500.DEFAULT");
 }
 
+.mdxeditor-toolbar {
+  @apply sticky top-12;
+}
+
 .markdown-editor.dark-theme {
   --baseBg: theme("colors.blue.100.dark");
   --basePageBg: theme("colors.gray.0.dark");

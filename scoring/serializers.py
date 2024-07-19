@@ -61,6 +61,10 @@ class LeaderboardSerializer(serializers.Serializer):
 class ContributionSerializer(serializers.Serializer):
     score = serializers.FloatField()
     coverage = serializers.FloatField()
+    question_type = serializers.CharField(source="question.type", required=False)
+    question_resolution = serializers.CharField(
+        source="question.resolution", required=False
+    )
     question_title = serializers.CharField(source="question.title", required=False)
     question_id = serializers.IntegerField(source="question.id", required=False)
     comment_text = serializers.CharField(source="comment.text", required=False)

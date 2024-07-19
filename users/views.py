@@ -1,7 +1,6 @@
-from collections import Counter
 from datetime import timedelta
-import numpy as np
 
+import numpy as np
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.decorators import api_view, permission_classes
@@ -14,7 +13,6 @@ from rest_framework.response import Response
 
 from comments.models import Comment
 from questions.models import Forecast
-
 from .models import User
 from .serializers import (
     UserPrivateSerializer,
@@ -25,15 +23,20 @@ from .serializers import (
 )
 from .services import get_users
 
+
 def get_serialized_user(request, user, Serializer):
-    qs = User.objects.all()
     ser = Serializer(user).data
 
-    forecasts = Forecast.objects.filter(
-        author=user,
-        question__type="binary",
-        question__resolution__in=["no", "yes"],
-    ).all()
+    forecasts = (
+        Forecast.objects.filter(
+            author=user,
+            question__type="binary",
+            question__resolution__in=["no", "yes"],
+        )
+        .prefetch_related("question")
+        .all()
+    )
+
     ser["nr_forecasts"] = len(forecasts)
     ser["nr_comments"] = Comment.objects.filter(author=user).count()
     values = []
@@ -89,6 +92,7 @@ def get_serialized_user(request, user, Serializer):
         {"x_start": 0.8, "x_end": 1, "y": 0.02},
     ]
     return ser
+
 
 @api_view(["GET"])
 def current_user_api_view(request):

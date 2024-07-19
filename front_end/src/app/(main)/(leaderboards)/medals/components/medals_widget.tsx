@@ -23,7 +23,7 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
   const categories = getMedalCategories(userMedals, true);
 
   return (
-    <section className="border-y border-gray-500 pb-6 dark:border-gray-500-dark">
+    <section className="border-t border-gray-500 pb-6 dark:border-gray-500-dark">
       <h2 className="mb-5">{t("medals")}</h2>
       <div className="grid grid-cols-1 items-center gap-3 self-stretch sm:grid-cols-2">
         {categories?.map((category, index) => (
