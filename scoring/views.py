@@ -166,9 +166,14 @@ def medal_contributions(
         return Response(status=status.HTTP_404_NOT_FOUND)
     leaderboard = leaderboard.first()
 
+    from datetime import datetime
+
+    now = datetime.now()
     contributions = get_contributions(user, leaderboard)
+    leaderboard_entry = leaderboard.entries.filter(user=user).first()
 
     return_data = {
+        "leaderboard_entry": LeaderboardEntrySerializer(leaderboard_entry).data,
         "contributions": ContributionSerializer(contributions, many=True).data,
         "leaderboard": LeaderboardSerializer(leaderboard).data,
         "user_id": user_id,
