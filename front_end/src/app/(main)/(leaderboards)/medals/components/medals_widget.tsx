@@ -23,24 +23,30 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
   const categories = getMedalCategories(userMedals, true);
 
   return (
-    <section className="border-t border-gray-500 pb-6 dark:border-gray-500-dark">
-      <h2 className="mb-5">{t("medals")}</h2>
-      <div className="grid grid-cols-1 items-center gap-3 self-stretch sm:grid-cols-2">
+    <section className="mt-4 rounded bg-white p-6 dark:bg-blue-900">
+      <div className="mb-5 flex w-full flex-row items-center justify-between">
+        <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
+          {t("medals")}
+        </h3>
+        <a
+          className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+          href={`/medals?user=${profileId}`}
+        >
+          View All
+        </a>
+      </div>
+      <div className="flex w-full flex-col items-center gap-3">
         {categories?.map((category, index) => (
           <div
             key={index}
             className={classNames(
-              "flex flex-col items-center justify-center rounded border border-gray-300 dark:border-gray-300-dark",
+              "flex w-full flex-col items-center justify-center rounded border border-gray-300 dark:border-gray-300-dark",
               { "sm:col-span-2": category.name === "tournament" }
             )}
           >
             <Link
-              href={
-                category.name === "tournament"
-                  ? "/tournaments"
-                  : `/leaderboard/?${SCORING_CATEGORY_FILTER}=${category.name}`
-              }
-              className="flex items-center justify-center gap-3 self-stretch px-5 py-4 text-lg font-medium text-blue-800 no-underline dark:text-blue-800-dark"
+              href={`/medals?user=${profileId}`}
+              className="flex w-full items-center justify-center gap-3 self-stretch px-5 py-4 text-lg font-medium text-blue-800 no-underline dark:text-blue-800-dark"
             >
               <span>{t(RANKING_CATEGORIES[category.name].translationKey)}</span>
             </Link>
