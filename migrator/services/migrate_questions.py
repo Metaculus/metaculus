@@ -1,20 +1,19 @@
 import json
 import re
 from collections import defaultdict
-from datetime import datetime
 
 import django
 import html2text
 from dateutil.parser import parse as date_parse
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from questions.constants import ResolutionType
 
 from migrator.utils import paginated_query
 from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
+from questions.constants import ResolutionType
 from questions.models import Question, Conditional, GroupOfQuestions, Forecast
 from utils.the_math.formulas import unscaled_location_to_string_location
 
@@ -117,25 +116,8 @@ def create_question(question: dict, **kwargs) -> Question:
 def create_post(question: dict, **kwargs) -> Post:
     curation_status = Post.CurationStatus.DRAFT
 
-    if (
-        question["approved_by_id"]
-        or (
-            question["approved_time"]
-            and question["approved_time"] < django.utils.timezone.now()
-        )
-        or (
-            question["publish_time"]
-            and question["publish_time"] < django.utils.timezone.now()
-        )
-    ):
+    if question["mod_status"] == "ACTIVE":
         curation_status = Post.CurationStatus.APPROVED
-    """if question["resolve_time"] < django.utils.timezone.now() and (
-        (
-            question["approved_time"]
-            and question["approved_time"] < django.utils.timezone.now()
-        )
-        or question["approved_by_id"]
-    ):"""
     if question["mod_status"] == "PENDING":
         curation_status = Post.CurationStatus.PENDING
     if question["mod_status"] == "REJECTED":
