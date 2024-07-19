@@ -33,24 +33,28 @@ export default async function Profile({
   }
   const mode = searchParams.mode || "overview";
   return (
-    <main className="mx-auto mt-4 min-h-min w-full max-w-3xl flex-auto rounded bg-gray-200 p-0 p-4 dark:bg-gray-200-dark">
-      <div className="m-4 flex flex-col rounded bg-gray-0 p-0 p-4 dark:bg-gray-0-dark">
-        <div>
-          <h1 className="inline text-2xl">{profile.username}</h1>
-          <span className="ml-4 inline">
-            {isCurrentUser && <ChangeUsername />}
+    <main className="mx-auto my-4 flex min-h-min w-full max-w-5xl flex-col gap-4 px-3 lg:px-0">
+      <div className="flex flex-col gap-4 rounded bg-white p-6 dark:bg-blue-900">
+        <div className="flex flex-col">
+          <h1 className="mt-0 inline text-4xl">{profile.username}</h1>
+          {isCurrentUser && (
+            <span className="inline">
+              <ChangeUsername />
+            </span>
+          )}
+          <span className="text-lg font-light text-gray-500">
+            {profile.first_name} {profile.last_name}
           </span>
         </div>
-        <h2 className="mb-4 mt-1 text-lg font-light text-gray-200">
-          {profile.first_name} {profile.last_name}
-        </h2>
-        <div className="mb-4 text-xs">
+        <div className="flex flex-row text-sm font-medium">
           <Link href={`/accounts/profile/${id}?mode=overview`}>
             <button
               dir="ltr"
               className={
-                "m-0 rounded-s-3xl border p-2 font-light hover:bg-gray-400 " +
-                (mode === "overview" ? "bg-gray-400" : "")
+                "m-0 rounded-s-3xl border border-e-0 px-3 py-2 font-light dark:border-blue-950 " +
+                (mode === "overview"
+                  ? " bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200 "
+                  : " bg-blue-100 hover:bg-blue-200 dark:bg-blue-950 hover:dark:bg-blue-800 ")
               }
             >
               {t("overview")}
@@ -59,8 +63,10 @@ export default async function Profile({
           <Link href={`/accounts/profile/${id}?mode=track_record`}>
             <button
               className={
-                "m-0 border p-2 font-light hover:bg-gray-400 " +
-                (mode === "track_record" ? "bg-gray-400" : "")
+                "m-0 border px-3 py-2 font-light dark:border-blue-950 " +
+                (mode === "track_record"
+                  ? " bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200 "
+                  : " bg-white hover:bg-blue-200 dark:bg-blue-950 hover:dark:bg-blue-800")
               }
             >
               {t("Track Record")}
@@ -70,8 +76,10 @@ export default async function Profile({
             <button
               dir="rtl"
               className={
-                "m-0 rounded-s-3xl border p-2 font-light hover:bg-gray-400 " +
-                (mode === "comments" ? "bg-gray-400" : "")
+                "m-0 rounded-s-3xl border border-e-0 px-3 py-2 font-light dark:border-blue-950 " +
+                (mode === "comments"
+                  ? " bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200 "
+                  : " bg-white hover:bg-blue-200 dark:bg-blue-950 hover:dark:bg-blue-800")
               }
             >
               {t("comments")}
@@ -80,7 +88,7 @@ export default async function Profile({
         </div>
       </div>
       {mode === "overview" && (
-        <div className="m-4 flex flex-col rounded bg-gray-0 p-0 p-4 dark:bg-gray-0-dark">
+        <div className="flex flex-col gap-4 rounded">
           <UserInfo
             profile={profile}
             isCurrentUser={isCurrentUser}
@@ -96,7 +104,7 @@ export default async function Profile({
       )}
       {mode === "track_record" && <TrackRecord profile={profile} />}
       {mode === "comments" && (
-        <div className="m-4 flex flex-col rounded bg-gray-0 p-0 p-4 dark:bg-gray-0-dark">
+        <div className="flex flex-col rounded bg-white">
           <CommentFeed profileId={profile.id} />
         </div>
       )}

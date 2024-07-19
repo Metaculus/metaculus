@@ -63,8 +63,8 @@ def get_serialized_user(request, user, Serializer):
     for p_min, p_max in [(x / 20, x / 20 + 0.05) for x in range(20)]:
         res = []
         ws = []
-        user_lower_quartile = p_min
-        user_upper_quartile = p_min + 0.2
+        user_lower_quartile = max(p_min, 0)
+        user_upper_quartile = min(p_min + 0.1, 1)
 
         for value, weight, resolution in zip(values, weights, resolutions):
             if p_min <= value < p_max:
@@ -74,12 +74,13 @@ def get_serialized_user(request, user, Serializer):
             user_middle_quartile = np.average(res, weights=ws)
         else:
             user_middle_quartile = None
+        print(p_min + 0.05)
         calibration_curve.append(
             {
                 "user_lower_quartile": user_lower_quartile,
                 "user_middle_quartile": user_middle_quartile,
                 "user_upper_quartile": user_upper_quartile,
-                "perfect_calibration": p_min + 0.1,
+                "perfect_calibration": p_min + 0.05,
             }
         )
 
