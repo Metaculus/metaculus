@@ -2,9 +2,11 @@ import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { getTranslations } from "next-intl/server";
+import { FC, PropsWithChildren, Suspense } from "react";
 
 import Button from "@/components/ui/button";
+import ProfileApi from "@/services/profile";
 import { CategoryKey } from "@/types/scoring";
 
 import { getPeriodLabel } from "../../helpers/filters";
@@ -41,9 +43,9 @@ const ContributionsHero: FC<Props> = ({ year, duration, category, userId }) => {
           </Link>
         </nav>
         <div className="flex items-center justify-center gap-3">
-          <h1 className="m-0 text-2xl font-bold text-blue-900 dark:text-blue-900-dark sm:text-4xl">
-            {t("user")}
-          </h1>
+          <Suspense fallback={<UserHeader>{t("user")}</UserHeader>}>
+            <AwaitedUserHeader userId={userId} />
+          </Suspense>
           <Button variant="primary" href={`/accounts/profile/${userId}`}>
             {t("viewProfile")}
           </Button>
@@ -69,5 +71,18 @@ const ContributionsHero: FC<Props> = ({ year, duration, category, userId }) => {
     </section>
   );
 };
+
+const AwaitedUserHeader: FC<{ userId: number }> = async ({ userId }) => {
+  const t = await getTranslations();
+  const profile = await ProfileApi.getProfileById(userId);
+
+  return <UserHeader>{profile.username ?? t("user")}</UserHeader>;
+};
+
+const UserHeader: FC<PropsWithChildren> = ({ children }) => (
+  <h1 className="m-0 text-2xl font-bold text-blue-900 dark:text-blue-900-dark sm:text-4xl">
+    {children}
+  </h1>
+);
 
 export default ContributionsHero;
