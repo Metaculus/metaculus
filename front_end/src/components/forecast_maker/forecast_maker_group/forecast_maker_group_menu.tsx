@@ -45,7 +45,7 @@ const ForecastMakerGroupControls: FC<Props> = ({
             : []),
           {
             id: "copyLink",
-            name: t("copyLinkButton"),
+            name: t("copyLink"),
             onClick: () => {
               copyToClipboard(
                 `${window.location.origin}${window.location.pathname}?sub-question=${question.id}`

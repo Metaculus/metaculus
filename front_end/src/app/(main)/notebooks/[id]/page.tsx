@@ -43,6 +43,7 @@ export default async function IndividualNotebook({
         src={imagePlaceholder}
         alt=""
         placeholder={"blur"}
+        quality={100}
       />
       <h1
         id={NOTEBOOK_TITLE}

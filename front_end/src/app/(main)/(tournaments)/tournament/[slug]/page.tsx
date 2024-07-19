@@ -6,6 +6,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { FC, Suspense } from "react";
 import invariant from "ts-invariant";
 
+import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import HtmlContent from "@/components/html_content";
@@ -86,6 +87,7 @@ export default async function TournamentSlug({
               priority
               sizes="(max-width: 1200px) 100vw, 780px"
               className="size-full object-cover object-center"
+              quality={100}
             />
           </div>
         )}
@@ -121,6 +123,12 @@ export default async function TournamentSlug({
             prizePool={tournament.prize_pool}
             isQuestionSeries={isQuestionSeries}
           />
+          {currentUser && (
+            <ProjectContributions
+              projectId={tournament.id}
+              userId={currentUser.id}
+            />
+          )}
         </div>
 
         {[ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(

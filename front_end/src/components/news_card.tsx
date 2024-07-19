@@ -38,6 +38,7 @@ const NewsCard: FC<Props> = ({ post }) => {
             alt=""
             width={300}
             height={300}
+            quality={100}
             className="w-full object-cover max-sm:h-40 max-sm:rounded-t sm:w-60 sm:rounded-r"
           />
         ) : (
