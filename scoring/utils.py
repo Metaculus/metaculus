@@ -52,11 +52,11 @@ def score_question(
 
 def generate_scoring_leaderboard_entries(
     questions: list[Question],
-    score_type: Leaderboard.ScoreTypes,
+    leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
     scores: QuerySet[Score] = Score.objects.filter(
         question__in=questions,
-        score_type=Leaderboard.ScoreTypes.get_base_score(score_type),
+        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
     user_entries: dict[int, LeaderboardEntry] = {}
     now = timezone.now()
@@ -73,13 +73,52 @@ def generate_scoring_leaderboard_entries(
         user_entries[user_id].score += score.score
         user_entries[user_id].coverage += score.coverage
         user_entries[user_id].contribution_count += 1
-    if score_type == Leaderboard.ScoreTypes.PEER_GLOBAL:
+    if leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL:
         for entry in user_entries.values():
             entry.score /= max(30, entry.coverage)
-    elif score_type == Leaderboard.ScoreTypes.PEER_GLOBAL_LEGACY:
+    elif leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL_LEGACY:
         for entry in user_entries.values():
             entry.score /= max(40, entry.contribution_count)
     return sorted(user_entries.values(), key=lambda entry: entry.score, reverse=True)
+
+
+def generate_comment_insight_leaderboard_entries(
+    leaderboard: Leaderboard,
+) -> list[LeaderboardEntry]:
+    now = timezone.now()
+
+    posts = Post.objects.filter(
+        Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
+    )
+    comments = Comment.objects.filter(
+        on_post__in=posts,
+        comment_votes__isnull=False,
+    ).distinct()
+
+    scores_for_author: dict[User, list[int]] = defaultdict(list)
+    for comment in comments:
+        votes = comment.comment_votes.filter(
+            created_at__gte=leaderboard.start_time,
+            created_at__lte=leaderboard.end_time,
+        )
+        score = sum([vote.direction for vote in votes])
+        if score > 0:
+            scores_for_author[comment.author].append(score)
+
+    user_entries: dict[User, LeaderboardEntry] = {}
+    for user, scores in scores_for_author.items():
+        if user not in user_entries:
+            user_entries[user] = LeaderboardEntry(
+                user_id=user.id,
+                score=0,
+                contribution_count=0,
+                calculated_on=now,
+            )
+        score = decimal_h_index(scores)
+        user_entries[user].score = score
+        user_entries[user].contribution_count = len(scores)
+    results = [entry for entry in user_entries.values() if entry.score > 0]
+    return sorted(results, key=lambda entry: entry.score, reverse=True)
 
 
 def generate_question_writing_leaderboard_entries(
@@ -88,7 +127,7 @@ def generate_question_writing_leaderboard_entries(
 ) -> list[LeaderboardEntry]:
     now = timezone.now()
 
-    forecaster_ids_for_post: dict[Post, set[int]] = {}
+    forecaster_ids_for_post: dict[Post, set[int]] = defaultdict(set)
     for question in questions:
         forecasts_during_period = question.forecast_set.filter(
             start_time__gte=leaderboard.start_time,
@@ -102,16 +141,12 @@ def generate_question_writing_leaderboard_entries(
         )
         forecasters = set([forecast.author_id for forecast in forecasts_during_period])
         post = question.get_post()
-        if post not in forecaster_ids_for_post:
-            forecaster_ids_for_post[post] = set()
         forecaster_ids_for_post[post].update(forecasters)
 
-    scores_for_author: dict[User, list[float]] = {}
+    scores_for_author: dict[User, list[float]] = defaultdict(list)
     for post, forecaster_ids in forecaster_ids_for_post.items():
         # TODO: support coauthorship
         author = post.author
-        if author not in scores_for_author:
-            scores_for_author[author] = []
         # we use the h-index by number of forecasters divided by 10
         scores_for_author[author].append(len(forecaster_ids) / 10)
 
@@ -134,6 +169,7 @@ def generate_question_writing_leaderboard_entries(
 def generate_project_leaderboard(
     project: Project,
     leaderboard: Leaderboard | None = None,
+    questions: QuerySet[Question] | list[Question] | None = None,
 ) -> list[LeaderboardEntry]:
     """Calculates (does not save) LeaderboardEntries for a project."""
 
@@ -144,17 +180,12 @@ def generate_project_leaderboard(
     leaderboard.project = project
 
     if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
-        # TODO
-        return []
+        return generate_comment_insight_leaderboard_entries(leaderboard)
+    questions = questions or leaderboard.get_questions()
     if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
-        return generate_question_writing_leaderboard_entries(
-            leaderboard.get_questions(),
-            leaderboard,
-        )
+        return generate_question_writing_leaderboard_entries(questions, leaderboard)
     # We have a scoring based leaderboard
-    return generate_scoring_leaderboard_entries(
-        leaderboard.get_questions(), leaderboard.score_type
-    )
+    return generate_scoring_leaderboard_entries(questions, leaderboard)
 
 
 def update_project_leaderboard(
@@ -239,8 +270,32 @@ def get_contributions(
     leaderboard: Leaderboard,
 ) -> list[Contribution]:
     if leaderboard.score_type == Leaderboard.ScoreTypes.COMMENT_INSIGHT:
-        # TODO
-        return []
+        public_posts = Post.objects.filter(
+            Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
+        )
+        comments = Comment.objects.filter(
+            on_post__in=public_posts,
+            author=user,
+            created_at__lte=leaderboard.end_time,
+            comment_votes__isnull=False,
+        ).distinct()
+        contributions: list[Contribution] = []
+        for comment in comments:
+            votes = comment.comment_votes.filter(
+                created_at__gte=leaderboard.start_time,
+                created_at__lte=leaderboard.end_time,
+            )
+            score = sum([vote.direction for vote in votes])
+            contribution = Contribution(
+                score=score,
+                post=comment.on_post,
+                comment=comment,
+            )
+            contributions.append(contribution)
+        h_index = decimal_h_index([c.score for c in contributions])
+        contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
+        min_score = contributions[int(h_index)].score
+        return [c for c in contributions if c.score >= min_score]
     questions = leaderboard.get_questions()
     if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
         forecaster_ids_for_post: dict[Post, set[int]] = {}
