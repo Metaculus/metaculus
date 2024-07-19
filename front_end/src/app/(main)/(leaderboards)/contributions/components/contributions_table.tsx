@@ -45,8 +45,8 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
         switch (sortingColumn) {
           case "score":
             return sortingDirection === "asc"
-              ? a.score - b.score
-              : b.score - a.score;
+              ? (a.score ?? 0) - (b.score ?? 0)
+              : (b.score ?? 0) - (a.score ?? 0);
           case "title":
             return sortingDirection === "asc"
               ? a.question_title.localeCompare(b.question_title)
@@ -63,7 +63,7 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
   );
 
   const totalScore = useMemo(
-    () => contributions.reduce((acc, el) => acc + el.score, 0),
+    () => contributions.reduce((acc, el) => acc + (el.score ?? 0), 0),
     [contributions]
   );
 
@@ -164,9 +164,11 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
                 "flex items-center justify-center px-0 py-1.5 font-mono text-sm font-medium leading-4",
                 {
                   "dark:text-conditionals-green-700-dark text-conditional-green-700":
-                    getIsResolved(contribution) && contribution.score > 0,
+                    getIsResolved(contribution) &&
+                    (contribution.score ?? 0) > 0,
                   "text-result-negative dark:text-result-negative-dark":
-                    getIsResolved(contribution) && contribution.score < 0,
+                    getIsResolved(contribution) &&
+                    (contribution.score ?? 0) < 0,
                 }
               )}
             >
