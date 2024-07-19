@@ -116,8 +116,13 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
       {shownComments.map((comment: CommentType) => (
         <div key={comment.id}>
           <hr className="my-4" />
-
-          <Comment comment={comment} url={url} permissions={permissions} />
+          <Comment
+            onProfile={profileId ? true : false}
+            comment={comment}
+            url={url}
+            permissions={permissions}
+            treeDepth={0}
+          />
         </div>
       ))}
       {isLoading && <LoadingIndicator className="mx-auto my-8 w-24" />}

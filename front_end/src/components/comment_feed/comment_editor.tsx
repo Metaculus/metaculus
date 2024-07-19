@@ -21,12 +21,14 @@ interface CommentEditorProps {
   text?: string;
   isPrivate?: boolean;
   postId?: number;
+  parentId?: number;
 }
 
 const CommentEditor: React.FC<CommentEditorProps> = ({
   text,
   isPrivate,
   postId,
+  parentId,
 }) => {
   const t = useTranslations();
 
@@ -102,9 +104,9 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
         {!isEditing && (
           <Button
             className="p-2"
-            onClick={() => {
-              createComment({
-                parent: undefined,
+            onClick={async () => {
+              const newComment = await createComment({
+                parent: parentId,
                 text: markdown,
                 on_post: postId,
                 included_forecast: hasIncludedForecast,

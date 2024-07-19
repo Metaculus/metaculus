@@ -21,7 +21,7 @@ class ProfileApi {
     }
   }
 
-  static async getProfileById(id: number) {
+  static async getProfileById(id: number): Promise<CurrentUser> {
     try {
       return await get<CurrentUser>(`/users/${id}`);
     } catch (err) {
