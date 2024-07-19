@@ -100,8 +100,16 @@ class Leaderboard(TimeStampedModel):
             questions = Question.objects.all()
 
         if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
-            raise ValueError("Comment insight leaderboards do not have questions")
+            # post must be published
+            return list(
+                questions.filter(
+                    Q(post__published_at__lt=self.end_time)
+                    | Q(group__post__published_at__lt=self.end_time)
+                ).distinct()
+            )
         elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
+            # post must be published, and can't be resolved before the start_time
+            # of the leaderboard
             return list(
                 questions.filter(
                     Q(post__published_at__lt=self.end_time)
