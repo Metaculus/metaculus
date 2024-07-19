@@ -12,10 +12,13 @@ import {
   usePublisher,
 } from "@mdxeditor/editor";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
+import classNames from "classnames";
 import React, { FC } from "react";
 
 import createEditorComponent from "@/components/markdown_editor/createJsxComponent";
 import Button from "@/components/ui/button";
+
+import useLexicalBackspaceNodeRemove from "../hooks/use_backspace_node_remove";
 
 type MathJaxRendererProps = {
   content: string;
@@ -25,22 +28,28 @@ const EmbeddedMathJax: React.FC<MathJaxRendererProps> = ({ content }) => {
   const isReadOnly = useCellValue(readOnly$);
   const deleteMathJax = useLexicalNodeRemove();
 
+  const isInline = content.startsWith("\\(") && content.endsWith("\\)");
+
+  const { ref, getReferenceProps } =
+    useLexicalBackspaceNodeRemove<HTMLDivElement>(!isReadOnly);
+
   return (
-    <div className="flex flex-col">
+    <div
+      ref={ref}
+      className={classNames(
+        "items-center justify-center ring-blue-500 focus:outline-none focus:ring-2 dark:ring-blue-500-dark",
+        isInline ? "inline-flex" : "flex w-full"
+      )}
+      {...getReferenceProps()}
+    >
+      <MathJaxContext>
+        <MathJax>{content}</MathJax>
+      </MathJaxContext>
       {!isReadOnly && (
-        <Button
-          onClick={deleteMathJax}
-          className="self-end"
-          presentationType="icon"
-          variant="text"
-        >
+        <Button onClick={deleteMathJax} presentationType="icon" variant="text">
           <FontAwesomeIcon icon={faXmark} />
         </Button>
       )}
-
-      <MathJaxContext>
-        <MathJax dynamic>{content}</MathJax>
-      </MathJaxContext>
     </div>
   );
 };
@@ -73,7 +82,7 @@ export const EmbedMathJaxAction: FC = () => {
 export const mathJaxDescriptor: JsxComponentDescriptor = {
   name: EmbeddedMathJax.name,
   props: [{ name: "content", type: "string", required: true }],
-  kind: "flow",
+  kind: "text",
   hasChildren: false,
   Editor: createEditorComponent(EmbeddedMathJax),
 };
