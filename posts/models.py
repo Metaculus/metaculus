@@ -13,6 +13,7 @@ from django.db.models import (
     Prefetch,
 )
 from django.utils import timezone
+from pgvector.django import VectorField
 from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
@@ -284,6 +285,13 @@ class Post(TimeStampedModel):
     scheduled_resolve_time = models.DateTimeField(null=True, blank=True)
     actual_close_time = models.DateTimeField(null=True, blank=True)
     resolved = models.BooleanField(default=False)
+
+    embedded_vector = VectorField(
+        #dimensions=2048,
+        help_text="Vector embeddings (clip-vit-large-patch14) of the file content",
+        null=True,
+        blank=True,
+    )
 
     def set_scheduled_close_time(self):
         if self.question:

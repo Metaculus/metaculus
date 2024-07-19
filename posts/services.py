@@ -3,11 +3,13 @@ from datetime import timedelta
 from django.db.models import Q, Count, Sum, Value, Case, When, F
 from django.db.models.functions import Coalesce
 from django.utils import timezone
+from pgvector.django import CosineDistance
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
 from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
+from posts.tasks import run_post_indexing
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
@@ -19,6 +21,7 @@ from questions.services import (
 from users.models import User
 from utils.dtypes import flatten
 from utils.models import build_order_by
+from utils.openai import generate_text_embed_vector
 from utils.serializers import parse_order_by
 from utils.the_math.community_prediction import get_cp_at_time
 from utils.the_math.measures import (
@@ -74,9 +77,9 @@ def get_posts_feed(
 
     # Search
     if search:
-        qs = qs.filter(
-            Q(title__icontains=search) | Q(author__username__icontains=search)
-        )
+        qs = perform_post_search(search)
+        # Force ordering by vector distance
+        order_by = "embed_distance"
 
     # Author usernames
     if usernames:
@@ -264,6 +267,9 @@ def create_post(
     # Adding projects
     obj.projects.add(*(meta_projects + main_projects))
 
+    # Run async tasks
+    run_post_indexing.send(obj.id)
+
     return obj
 
 
@@ -383,3 +389,13 @@ def compute_hotness():
     )
 
     qs.update(hotness=F("hotness_value"))
+
+
+def perform_post_search(search_text: str):
+    vector = generate_text_embed_vector(search_text)
+
+    qs = Post.objects.annotate(
+        embed_distance=CosineDistance("embedded_vector", vector)
+    )
+
+    return qs
