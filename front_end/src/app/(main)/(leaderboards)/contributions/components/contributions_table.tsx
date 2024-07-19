@@ -12,10 +12,11 @@ import {
   useState,
 } from "react";
 
+import { QuestionType } from "@/types/question";
 import { CategoryKey, Contribution } from "@/types/scoring";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
-type SortingColumn = "score" | "title";
+type SortingColumn = "score" | "title" | "type";
 type SortingDirection = "asc" | "desc";
 
 type Props = {
@@ -50,6 +51,10 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
             return sortingDirection === "asc"
               ? a.question_title.localeCompare(b.question_title)
               : b.question_title.localeCompare(a.question_title);
+          case "type":
+            return sortingDirection === "asc"
+              ? a.question_type.localeCompare(b.question_type)
+              : b.question_type.localeCompare(a.question_type);
           default:
             return 0;
         }
@@ -66,6 +71,30 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
   const isNonQuestionCategory = ["comments", "questionWriting"].includes(
     category
   );
+
+  const getScoreLabel = (contribution: Contribution) => {
+    if (isNonQuestionCategory) {
+      return contribution.score;
+    }
+
+    return getIsResolved(contribution) && !!contribution.score
+      ? Number(contribution.score).toFixed(3)
+      : "-";
+  };
+
+  const getQuestionTypeLabel = (type: QuestionType) => {
+    switch (type) {
+      case QuestionType.Binary:
+        return t("binary");
+      case QuestionType.Numeric:
+      case QuestionType.Date:
+        return t("continuous");
+      case QuestionType.MultipleChoice:
+        return t("multipleChoice");
+      default:
+        return type;
+    }
+  };
 
   return (
     <table className="table w-full table-fixed rounded border border-gray-300 dark:border-gray-300-dark">
@@ -99,7 +128,7 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
             {category === "comments" && t("upvotes")}
             {category === "questionWriting" && t("forecasters")}
             {sortingColumn === "score" && (
-              <SortArrow isDesc={sortingDirection === "asc"} />
+              <SortArrow isAsc={sortingDirection === "asc"} />
             )}
           </HeaderTd>
           <HeaderTd
@@ -108,12 +137,18 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
           >
             {category === "comments" ? t("comment") : t("question")}
             {sortingColumn === "title" && (
-              <SortArrow isDesc={sortingDirection === "asc"} />
+              <SortArrow isAsc={sortingDirection === "asc"} />
             )}
           </HeaderTd>
           {isQuestionCategory && (
-            <HeaderTd className="w-40 max-sm:hidden">
+            <HeaderTd
+              className="w-40 max-sm:hidden"
+              onClick={() => handleSortChange("type")}
+            >
               {t("questionType")}
+              {sortingColumn === "type" && (
+                <SortArrow isAsc={sortingDirection === "asc"} />
+              )}
             </HeaderTd>
           )}
         </tr>
@@ -129,15 +164,13 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
                 "flex items-center justify-center px-0 py-1.5 font-mono text-sm font-medium leading-4",
                 {
                   "dark:text-conditionals-green-700-dark text-conditional-green-700":
-                    contribution.score > 0,
+                    getIsResolved(contribution) && contribution.score > 0,
                   "text-result-negative dark:text-result-negative-dark":
-                    contribution.score < 0,
+                    getIsResolved(contribution) && contribution.score < 0,
                 }
               )}
             >
-              {isNonQuestionCategory
-                ? contribution.score
-                : Number(contribution.score).toFixed(3)}
+              {getScoreLabel(contribution)}
             </td>
             <td className="truncate px-4 py-1.5 text-sm font-medium leading-4">
               {["peer", "baseline", "questionWriting"].includes(category) && (
@@ -160,11 +193,7 @@ const ContributionsTable: FC<Props> = ({ category, contributions }) => {
             </td>
             {isQuestionCategory && (
               <td className="flex items-center gap-2 self-stretch px-4 py-1.5 text-sm font-medium leading-4 text-blue-700 dark:text-blue-700-dark max-sm:hidden">
-                {/*TODO: show question type once BE support it*/}
-                {/*<span className="w-4 text-sm leading-none text-blue-600 dark:text-blue-600-dark">*/}
-                {/*  {questionTypeIcons[contribution.type]}*/}
-                {/*</span>*/}
-                {/*{questionTypeLabels[contribution.type]}*/}
+                {getQuestionTypeLabel(contribution.question_type)}
               </td>
             )}
           </tr>
@@ -205,13 +234,17 @@ const HeaderTd: FC<
   </td>
 );
 
-const SortArrow: FC<{ isDesc: boolean }> = ({ isDesc }) => (
+const SortArrow: FC<{ isAsc: boolean }> = ({ isAsc }) => (
   <FontAwesomeIcon
     icon={faCaretDown}
     className={classNames("ml-2", {
-      "rotate-180": isDesc,
+      "rotate-180": isAsc,
     })}
   />
 );
+
+const getIsResolved = (contribution: Contribution) =>
+  !!contribution.question_resolution &&
+  contribution.question_resolution !== "no";
 
 export default ContributionsTable;
