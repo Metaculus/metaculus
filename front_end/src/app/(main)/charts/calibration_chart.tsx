@@ -11,7 +11,6 @@ import {
 
 const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
   const calibrationData = data;
-  console.log(calibrationData);
   return (
     <VictoryChart domain={{ x: [0, 1], y: [0, 1] }}>
       <VictoryScatter
@@ -45,7 +44,7 @@ const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
       />
       {/* Confidence interval area */}
       <VictoryBar
-        barRatio={1.4}
+        barRatio={1.1}
         data={calibrationData.map((d: any, index: number) => {
           return {
             x: (index + 0.5) / calibrationData.length,
