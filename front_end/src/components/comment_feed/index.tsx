@@ -54,19 +54,13 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
     void fetchComments();
   }, [postId, profileId]);
 
-  let url = "";
-
   let permissions: CommentPermissions = CommentPermissions.VIEWER;
-  if (postId) {
-    url += `/questions/${postId}`;
-    if (
-      postPermissions === ProjectPermissions.ADMIN ||
-      postPermissions === ProjectPermissions.CURATOR
-    ) {
-      permissions = CommentPermissions.CURATOR;
-    }
-  } else if (profileId) {
-    url += `/accounts/profile/${profileId}`;
+  if (
+    postId &&
+    (postPermissions === ProjectPermissions.ADMIN ||
+      postPermissions === ProjectPermissions.CURATOR)
+  ) {
+    permissions = CommentPermissions.CURATOR;
   }
 
   useEffect(() => {
@@ -119,7 +113,6 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
           <Comment
             onProfile={profileId ? true : false}
             comment={comment}
-            url={url}
             permissions={permissions}
             treeDepth={0}
           />
