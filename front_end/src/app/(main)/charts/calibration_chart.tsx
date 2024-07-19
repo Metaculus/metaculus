@@ -31,7 +31,7 @@ const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
         }}
       />
       <VictoryBar
-        barRatio={1.4}
+        barRatio={1.1}
         data={calibrationData.map((d: any, index: number) => {
           const y = d.perfect_calibration;
           return {
