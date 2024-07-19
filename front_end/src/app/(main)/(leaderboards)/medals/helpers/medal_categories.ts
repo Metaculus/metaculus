@@ -111,8 +111,7 @@ const getMedalFromEntry = (medalEntry: MedalEntry): Medal | null => {
   return {
     rank: medalEntry.rank,
     type: medalEntry.medal,
-    // end_time on BE represents the first day of the next year within the interval
-    year: new Date(medalEntry.end_time).getFullYear() - 1,
+    year: new Date(medalEntry.start_time).getFullYear(),
     duration: differenceInYears(
       new Date(medalEntry.end_time),
       new Date(medalEntry.start_time)
