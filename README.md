@@ -15,6 +15,16 @@ https://github.com/pgvector/pgvector
 ### Mac:
 https://github.com/pgvector/pgvector?tab=readme-ov-file#installation-notes---linux-and-mac
 
+- Find out your `pg_config` path.
+  A few common paths on Mac are:
+  EDB installer - /Library/PostgreSQL/15/bin/pg_config
+  Homebrew (arm64) - /opt/homebrew/opt/postgresql@15/bin/pg_config
+  Homebrew (x86-64) - /usr/local/opt/postgresql@15/bin/pg_config
+- `export PG_CONFIG=path/to/pg_config`
+- `make`
+- `sudo --preserve-env=PG_CONFIG make install`
+- And run this sql against your db: `CREATE EXTENSION vector;`
+
 ### Migration of the old database
 1. Create a postgres database called `metaculus`
 2. Configure old db connection using `OLD_DATABASE_URL` env var to wherever you have your old metaculus database
