@@ -51,7 +51,10 @@ export type MultipleChoiceForecast = BaseForecast & {
     value_min: number;
   }>;
 };
-
+export type Bounds = {
+  belowLower: number;
+  aboveUpper: number;
+};
 export type Quartiles = {
   median: number;
   lower25: number;
@@ -94,8 +97,8 @@ export type Question = {
 export type QuestionWithNumericForecasts = Question & {
   type: QuestionType.Numeric | QuestionType.Date | QuestionType.Binary;
   forecasts: NumericForecast;
-  open_upper_bound?: boolean;
   open_lower_bound?: boolean;
+  open_upper_bound?: boolean;
 };
 export type QuestionWithMultipleChoiceForecasts = Question & {
   type: QuestionType.MultipleChoice;
