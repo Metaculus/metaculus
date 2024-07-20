@@ -53,8 +53,8 @@ def create_question(question: dict, **kwargs) -> Question:
         deriv_ratio = possibilities["scale"].get("deriv_ratio", 1)
         if deriv_ratio != 1:
             zero_point = (deriv_ratio * min - max_val) / (deriv_ratio - 1)
-        open_upper_bound = possibilities.get("low", None) == "tail"
-        open_lower_bound = possibilities.get("high", None) == "tail"
+        open_lower_bound = possibilities.get("low", None) == "tail"
+        open_upper_bound = possibilities.get("high", None) == "tail"
     elif question["option_labels"] is not None:
         question_type = "multiple_choice"
         options = question["option_labels"]

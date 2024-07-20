@@ -84,7 +84,13 @@ const NumericAreaChart: FC<Props> = ({
           }}
           domain={{
             x: [0 * (max - min), 1 * (max - min)],
-            y: [0, 1.2 * Math.max(...data.map((x) => x.pmf).flat())],
+            y: [
+              0,
+              1.2 *
+                Math.max(
+                  ...data.map((x) => x.pmf.slice(1, x.pmf.length - 1)).flat()
+                ),
+            ],
           }}
         >
           {charts.map((chart, index) => (
