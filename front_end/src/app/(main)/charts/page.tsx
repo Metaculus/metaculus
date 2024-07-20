@@ -16,7 +16,7 @@ export default function Questions() {
   });
   const [sliderValue, setSliderValue] = useState(50);
 
-  const dataset = binWeightsFromSliders(0.4, 0.7, 0.8);
+  const dataset = binWeightsFromSliders(0.4, 0.7, 0.8, false, true);
   const quantiles = computeQuartilesFromCDF(dataset.cdf);
 
   return (
