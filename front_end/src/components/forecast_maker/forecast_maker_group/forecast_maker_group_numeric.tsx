@@ -105,7 +105,12 @@ const ForecastMakerGroupNumeric: FC<Props> = ({
           if (option.id === optionId) {
             return {
               ...option,
-              userQuartiles: getUserQuartiles(forecast, weights),
+              userQuartiles: getUserQuartiles(
+                forecast,
+                weights,
+                option.question.open_lower_bound,
+                option.question.open_upper_bound
+              ),
               userForecast: forecast,
               userWeights: weights,
               isDirty: true,
@@ -156,7 +161,12 @@ const ForecastMakerGroupNumeric: FC<Props> = ({
 
           return {
             ...prevOption,
-            userQuartiles: getUserQuartiles(prevForecast, prevWeights),
+            userQuartiles: getUserQuartiles(
+              prevForecast,
+              prevWeights,
+              prevOption.question.open_lower_bound,
+              prevOption.question.open_upper_bound
+            ),
             userForecast: getSliderValue(prevForecast),
             userWeights: getWeightsValue(prevWeights),
             isDirty: false,
@@ -178,12 +188,16 @@ const ForecastMakerGroupNumeric: FC<Props> = ({
     setIsSubmitting(true);
     const responses = await createForecasts(
       postId,
-      questionsToSubmit.map(({ id, userForecast, userWeights }) => {
+      questionsToSubmit.map(({ question, userForecast, userWeights }) => {
         return {
-          questionId: id,
+          questionId: question.id,
           forecastData: {
-            continuousCdf: getNumericForecastDataset(userForecast, userWeights)
-              .cdf,
+            continuousCdf: getNumericForecastDataset(
+              userForecast,
+              userWeights,
+              question.open_lower_bound!,
+              question.open_upper_bound!
+            ).cdf,
             probabilityYesPerCategory: null,
             probabilityYes: null,
           },
@@ -210,6 +224,17 @@ const ForecastMakerGroupNumeric: FC<Props> = ({
     }
   }, [postId, questionsToSubmit]);
 
+  const userCdf: number[] | undefined =
+    activeGroupOption &&
+    getNumericForecastDataset(
+      activeGroupOption?.userForecast,
+      activeGroupOption?.userWeights,
+      activeGroupOption?.question.open_lower_bound!,
+      activeGroupOption?.question.open_upper_bound!
+    ).cdf;
+  const communityCdf: number[] | undefined =
+    activeGroupOption?.question.forecasts.latest_cdf;
+
   return (
     <>
       <GroupForecastTable
@@ -220,7 +245,9 @@ const ForecastMakerGroupNumeric: FC<Props> = ({
       {groupOptions.map((option) => {
         const dataset = getNumericForecastDataset(
           option.userForecast,
-          option.userWeights
+          option.userWeights,
+          option.question.open_lower_bound!,
+          option.question.open_upper_bound!
         );
 
         return (
@@ -306,7 +333,19 @@ const ForecastMakerGroupNumeric: FC<Props> = ({
       )}
       {!!activeGroupOption && (
         <NumericForecastTable
+          userBounds={
+            userCdf && {
+              belowLower: userCdf[0],
+              aboveUpper: 1 - userCdf[userCdf.length - 1],
+            }
+          }
           userQuartiles={activeGroupOption.userQuartiles ?? undefined}
+          communityBounds={
+            communityCdf && {
+              belowLower: communityCdf[0],
+              aboveUpper: 1 - communityCdf[communityCdf.length - 1],
+            }
+          }
           communityQuartiles={activeGroupOption.communityQuartiles}
           withUserQuartiles={activeGroupOption.resolution === null}
         />
@@ -344,7 +383,12 @@ function generateGroupOptions(
         id: q.id,
         name: extractQuestionGroupName(q.title),
         question: q,
-        userQuartiles: getUserQuartiles(prevForecast, prevWeights),
+        userQuartiles: getUserQuartiles(
+          prevForecast,
+          prevWeights,
+          q.open_lower_bound,
+          q.open_upper_bound
+        ),
         userForecast: getSliderValue(prevForecast),
         userWeights: getWeightsValue(prevWeights),
         communityQuartiles: computeQuartilesFromCDF(q.forecasts.latest_cdf),
@@ -365,12 +409,27 @@ function generateGroupOptions(
     });
 }
 
-function getUserQuartiles(forecast?: MultiSliderValue[], weight?: number[]) {
-  if (!forecast || !weight) {
+function getUserQuartiles(
+  forecast?: MultiSliderValue[],
+  weight?: number[],
+  openLower?: boolean,
+  openUpper?: boolean
+) {
+  if (
+    !forecast ||
+    !weight ||
+    typeof openLower === "undefined" ||
+    typeof openUpper === "undefined"
+  ) {
     return null;
   }
 
-  const dataset = getNumericForecastDataset(forecast, weight);
+  const dataset = getNumericForecastDataset(
+    forecast,
+    weight,
+    openLower,
+    openUpper
+  );
   return computeQuartilesFromCDF(dataset.cdf);
 }
 

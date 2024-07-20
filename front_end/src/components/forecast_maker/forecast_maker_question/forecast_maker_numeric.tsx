@@ -47,9 +47,18 @@ const ForecastMakerNumeric: FC<Props> = ({
   );
 
   const dataset = useMemo(
-    () => getNumericForecastDataset(forecast, weights),
+    () =>
+      getNumericForecastDataset(
+        forecast,
+        weights,
+        question.open_lower_bound!,
+        question.open_upper_bound!
+      ),
     [forecast, weights]
   );
+
+  const userCdf: number[] = dataset.cdf;
+  const communityCdf: number[] = question.forecasts.latest_cdf;
 
   return (
     <>
@@ -90,7 +99,7 @@ const ForecastMakerNumeric: FC<Props> = ({
                 await createForecast(
                   question.id,
                   {
-                    continuousCdf: dataset.cdf,
+                    continuousCdf: userCdf,
                     probabilityYes: null,
                     probabilityYesPerCategory: null,
                   },
@@ -106,10 +115,16 @@ const ForecastMakerNumeric: FC<Props> = ({
           </div>
         )}
         <NumericForecastTable
-          userQuartiles={computeQuartilesFromCDF(dataset.cdf)}
-          communityQuartiles={computeQuartilesFromCDF(
-            question.forecasts.latest_cdf
-          )}
+          userBounds={{
+            belowLower: userCdf[0],
+            aboveUpper: 1 - userCdf[userCdf.length - 1],
+          }}
+          userQuartiles={computeQuartilesFromCDF(userCdf)}
+          communityBounds={{
+            belowLower: communityCdf[0],
+            aboveUpper: 1 - communityCdf[communityCdf.length - 1],
+          }}
+          communityQuartiles={computeQuartilesFromCDF(communityCdf)}
         />
       </div>
       {canResolve && (

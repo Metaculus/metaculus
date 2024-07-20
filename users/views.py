@@ -74,8 +74,12 @@ def get_serialized_user(request, user, Serializer):
     ser["avg_score"] = np.average(scores)
     ser["questions_predicted_scored"] = len(questions_predicted_socred)
     ser["questions_predicted"] = len(questions_predicted)
-    ser["question_authored"] = Post.objects.filter(author=user, notebook__isnull=True).count()
-    ser["notebooks_authored"] = Post.objects.filter(author=user, notebook__isnull=False).count()
+    ser["question_authored"] = Post.objects.filter(
+        author=user, notebook__isnull=True
+    ).count()
+    ser["notebooks_authored"] = Post.objects.filter(
+        author=user, notebook__isnull=False
+    ).count()
     ser["comments_authored"] = Comment.objects.filter(author=user).count()
 
     calibration_curve = []
@@ -93,7 +97,6 @@ def get_serialized_user(request, user, Serializer):
             user_middle_quartile = np.average(res, weights=ws)
         else:
             user_middle_quartile = None
-        print(p_min + 0.05)
         calibration_curve.append(
             {
                 "user_lower_quartile": user_lower_quartile,
