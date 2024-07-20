@@ -64,7 +64,9 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
       name: t("Yes"),
       value: getTableValue(
         prevYesForecastValue?.forecast,
-        prevYesForecastValue?.weights
+        prevYesForecastValue?.weights,
+        question_yes.open_lower_bound,
+        question_yes.open_upper_bound
       ),
       sliderForecast: getSliderValue(prevYesForecastValue?.forecast),
       weights: getWeightsValue(prevYesForecastValue?.weights),
@@ -76,7 +78,9 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
       name: t("No"),
       value: getTableValue(
         prevNoForecastValue?.forecast,
-        prevNoForecastValue?.weights
+        prevNoForecastValue?.weights,
+        question_no.open_lower_bound,
+        question_no.open_upper_bound
       ),
       sliderForecast: getSliderValue(prevNoForecastValue?.forecast),
       weights: getWeightsValue(prevNoForecastValue?.weights),
@@ -158,7 +162,12 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
           if (option.id === optionId) {
             return {
               ...option,
-              value: getTableValue(option.sliderForecast, option.weights),
+              value: getTableValue(
+                option.sliderForecast,
+                option.weights,
+                option.question.open_lower_bound,
+                option.question.open_upper_bound
+              ),
               isDirty: true,
               sliderForecast: forecast,
               weights,
@@ -200,7 +209,9 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
             ...prevChoice,
             value: getTableValue(
               prevYesForecastValue?.forecast,
-              prevYesForecastValue?.weights
+              prevYesForecastValue?.weights,
+              question_yes.open_lower_bound,
+              question_yes.open_upper_bound
             ),
             sliderForecast: getSliderValue(prevYesForecastValue?.forecast),
             weights: getWeightsValue(prevYesForecastValue?.weights),
@@ -211,7 +222,9 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
             ...prevChoice,
             value: getTableValue(
               prevNoForecastValue?.forecast,
-              prevNoForecastValue?.weights
+              prevNoForecastValue?.weights,
+              question_no.open_lower_bound,
+              question_no.open_upper_bound
             ),
             sliderForecast: getSliderValue(prevNoForecastValue?.forecast),
             weights: getWeightsValue(prevNoForecastValue?.weights),
@@ -241,10 +254,15 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
     setIsSubmitting(true);
     const responses = await createForecasts(
       postId,
-      questionsToSubmit.map(({ id, sliderForecast, weights }) => ({
-        questionId: id,
+      questionsToSubmit.map(({ question, sliderForecast, weights }) => ({
+        questionId: question.id,
         forecastData: {
-          continuousCdf: getNumericForecastDataset(sliderForecast, weights).cdf,
+          continuousCdf: getNumericForecastDataset(
+            sliderForecast,
+            weights,
+            question.open_lower_bound!,
+            question.open_upper_bound!
+          ).cdf,
           probabilityYesPerCategory: null,
           probabilityYes: null,
         },
@@ -269,6 +287,17 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
       setSubmitErrors(errors);
     }
   };
+
+  const userCdf: number[] | undefined =
+    activeOptionData &&
+    getNumericForecastDataset(
+      activeOptionData.sliderForecast,
+      activeOptionData.weights,
+      activeOptionData.question.open_lower_bound!,
+      activeOptionData.question.open_upper_bound!
+    ).cdf;
+  const communityCdf: number[] | undefined =
+    activeOptionData?.question.forecasts.latest_cdf;
 
   return (
     <>
@@ -296,7 +325,9 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
             weights={option.weights}
             dataset={getNumericForecastDataset(
               option.sliderForecast,
-              option.weights
+              option.weights,
+              option.question.open_lower_bound!,
+              option.question.open_upper_bound!
             )}
             onChange={(forecast, weight) =>
               handleChange(option.id, forecast, weight)
@@ -365,15 +396,22 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
       ))}
       {!!activeOptionData && (
         <NumericForecastTable
-          userQuartiles={
-            getUserQuartiles(
-              activeOptionData.sliderForecast,
-              activeOptionData.weights
-            ) ?? undefined
+          userBounds={
+            userCdf && {
+              belowLower: userCdf![0],
+              aboveUpper: 1 - userCdf![userCdf!.length - 1],
+            }
           }
-          communityQuartiles={getCommunityQuartiles(
-            activeOptionData.question.forecasts.latest_cdf
-          )}
+          userQuartiles={userCdf && computeQuartilesFromCDF(userCdf)}
+          communityBounds={
+            communityCdf && {
+              belowLower: communityCdf![0],
+              aboveUpper: 1 - communityCdf![communityCdf!.length - 1],
+            }
+          }
+          communityQuartiles={
+            communityCdf && computeQuartilesFromCDF(communityCdf)
+          }
         />
       )}
     </>
@@ -382,22 +420,35 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
 
 function getUserQuartiles(
   forecast?: MultiSliderValue[],
-  weights?: number[]
+  weights?: number[],
+  openLower?: boolean,
+  openUpper?: boolean
 ): Quartiles | null {
-  if (!forecast || !weights) {
+  if (
+    !forecast ||
+    !weights ||
+    typeof openLower === "undefined" ||
+    typeof openUpper === "undefined"
+  ) {
     return null;
   }
 
-  const dataset = getNumericForecastDataset(forecast, weights);
+  const dataset = getNumericForecastDataset(
+    forecast,
+    weights,
+    openLower,
+    openUpper
+  );
   return computeQuartilesFromCDF(dataset.cdf);
 }
 
-function getCommunityQuartiles(cdf: number[]): Quartiles {
-  return computeQuartilesFromCDF(cdf);
-}
-
-function getTableValue(forecast?: MultiSliderValue[], weight?: number[]) {
-  const quartiles = getUserQuartiles(forecast, weight);
+function getTableValue(
+  forecast?: MultiSliderValue[],
+  weight?: number[],
+  openLower?: boolean,
+  openUpper?: boolean
+) {
+  const quartiles = getUserQuartiles(forecast, weight, openLower, openUpper);
   return quartiles?.median ?? null;
 }
 
