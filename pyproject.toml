@@ -35,6 +35,7 @@ jinja2 = "^3.1.4"
 apscheduler = "^3.10.4"
 openai = "^1.36.0"
 pgvector = "^0.3.2"
+tiktoken = "^0.7.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"

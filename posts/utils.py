@@ -1,7 +1,12 @@
 import logging
 
+import numpy as np
+
 from posts.models import Post
-from utils.openai import generate_text_embed_vector
+from utils.openai import (
+    generate_text_embed_vector,
+    chunked_tokens,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +44,16 @@ def generate_post_content_for_embedded_vectorization(post: Post):
 
 def update_post_search_embedded_vector(post: Post):
     content = generate_post_content_for_embedded_vectorization(post)
-    vector = generate_text_embed_vector(content)
+    chunk_embeddings = []
+
+    # Step 1: generate embedding chunks
+    for chunk in chunked_tokens(content):
+        chunk_embeddings.append(generate_text_embed_vector(chunk))
+
+    # Step 2: weight them
+    vector = np.average(
+        chunk_embeddings, axis=0, weights=[len(ch) for ch in chunk_embeddings]
+    )
 
     post.embedded_vector = vector
     post.save()
