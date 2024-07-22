@@ -1,7 +1,8 @@
 import { LEADERBOARD_CATEGORIES } from "@/app/(main)/(leaderboards)/leaderboard/filters";
+import { Resolution } from "@/types/post";
 import { User } from "@/types/users";
 
-import { Question } from "./question";
+import { QuestionType } from "./question";
 
 export type ScoreType = "peer" | "spot_peer" | "baseline" | "spot_baseline";
 
@@ -102,12 +103,19 @@ export type LeaderboardFilters = {
 };
 
 export type Contribution = {
-  score: number;
-  coverage: number;
-  question_title: string;
-  question_id: number;
+  score: number | null;
+  coverage: number | null;
+  question_type?: QuestionType;
+  question_resolution?: Resolution | "string";
+  question_title?: string;
+  question_id?: number;
+  post_title?: string;
+  post_id?: number;
+  comment_text?: string;
+  comment_id?: number;
 };
 export type ContributionDetails = {
+  leaderboard_entry: LeaderboardEntry;
   contributions: Contribution[];
   leaderboard: BaseLeaderboardDetails;
   user_id: string;

@@ -11,6 +11,7 @@ from django.db.models import (
     Max,
     Min,
     Prefetch,
+    QuerySet,
 )
 from django.utils import timezone
 from pgvector.django import VectorField
@@ -254,6 +255,8 @@ class Notebook(TimeStampedModel):
 
 
 class Post(TimeStampedModel):
+    votes: QuerySet["Vote"]
+
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
         DRAFT = "draft"

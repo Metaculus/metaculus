@@ -12,7 +12,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from comments.models import Comment
+from posts.models import Post
 from questions.models import Forecast
+from scoring.models import Score
 from .models import User
 from .serializers import (
     UserPrivateSerializer,
@@ -42,8 +44,18 @@ def get_serialized_user(request, user, Serializer):
     values = []
     weights = []
     resolutions = []
+    scores = []
+    questions_predicted = []
+    questions_predicted_socred = []
     for forecast in forecasts:
         question = forecast.question
+        if question.id not in questions_predicted:
+            questions_predicted.append(question.id)
+            score = Score.objects.filter(user=user, question=question).first()
+            if score:
+                scores.append(score.score)
+                questions_predicted_socred.append(question.id)
+
         forecast_horizon_start = question.open_time.timestamp()
         actual_close_time = question.forecast_scoring_ends.timestamp()
         forecast_horizon_end = question.actual_close_time.timestamp()
@@ -59,26 +71,38 @@ def get_serialized_user(request, user, Serializer):
         weights.append(weight)
         resolutions.append(int(question.resolution == "yes"))
 
+    ser["avg_score"] = np.average(scores)
+    ser["questions_predicted_scored"] = len(questions_predicted_socred)
+    ser["questions_predicted"] = len(questions_predicted)
+    ser["question_authored"] = Post.objects.filter(
+        author=user, notebook__isnull=True
+    ).count()
+    ser["notebooks_authored"] = Post.objects.filter(
+        author=user, notebook__isnull=False
+    ).count()
+    ser["comments_authored"] = Comment.objects.filter(author=user).count()
+
     calibration_curve = []
     for p_min, p_max in [(x / 20, x / 20 + 0.05) for x in range(20)]:
         res = []
         ws = []
+        user_lower_quartile = max(p_min, 0)
+        user_upper_quartile = min(p_min + 0.1, 1)
+
         for value, weight, resolution in zip(values, weights, resolutions):
             if p_min <= value < p_max:
                 res.append(resolution)
                 ws.append(weight)
         if res:
-            user_lower_quartile = None
             user_middle_quartile = np.average(res, weights=ws)
-            user_upper_quartile = None
         else:
-            user_lower_quartile = user_middle_quartile = user_upper_quartile = None
+            user_middle_quartile = None
         calibration_curve.append(
             {
                 "user_lower_quartile": user_lower_quartile,
                 "user_middle_quartile": user_middle_quartile,
                 "user_upper_quartile": user_upper_quartile,
-                "perfect_calibration": p_min + 0.1,
+                "perfect_calibration": p_min + 0.05,
             }
         )
 

@@ -13,7 +13,11 @@ import {
 import ResolutionIcon from "@/components/icons/resolution";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import RadioButton from "@/components/ui/radio_button";
-import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  Bounds,
+  Quartiles,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 
 export type ConditionalTableOption = {
   id: number;

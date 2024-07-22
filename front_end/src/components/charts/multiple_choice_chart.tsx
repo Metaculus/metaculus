@@ -3,6 +3,7 @@ import { merge } from "lodash";
 import React, { FC, memo, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
+  DomainTuple,
   LineSegment,
   VictoryArea,
   VictoryAxis,
@@ -33,7 +34,6 @@ import {
   generateNumericDomain,
   generatePercentageYScale,
   generateTimestampXScale,
-  zoomChartData,
   zoomTimestamps,
 } from "@/utils/charts";
 
@@ -79,7 +79,7 @@ const MultipleChoiceChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
-  const { xScale, yScale, graphs } = useMemo(
+  const { xScale, yScale, graphs, xDomain } = useMemo(
     () =>
       buildChartData({
         timestamps,
@@ -167,6 +167,7 @@ const MultipleChoiceChart: FC<Props> = ({
             },
           ]}
           containerComponent={onCursorChange ? CursorContainer : undefined}
+          domain={{ x: xDomain }}
         >
           {graphs.map(({ line, color, active, highlighted }, index) => (
             <VictoryLine
@@ -226,6 +227,7 @@ export type ChoiceGraph = {
 };
 type ChartData = BaseChartData & {
   graphs: ChoiceGraph[];
+  xDomain: DomainTuple;
 };
 
 function buildChartData({
@@ -241,6 +243,8 @@ function buildChartData({
   height: number;
   zoom: TimelineChartZoomOption;
 }): ChartData {
+  const xDomain = generateNumericDomain(zoomTimestamps(timestamps, zoom));
+
   const graphs: ChoiceGraph[] = choiceItems.map(
     ({
       choice,
@@ -253,35 +257,23 @@ function buildChartData({
       timestamps: choiceTimestamps,
     }) => {
       const actualTimestamps = choiceTimestamps ?? timestamps;
-      const {
-        timestamps: zoomedTimestamps,
-        valuesDictionary: {
-          values: zoomedValues,
-          minValues: zoomedMinValues,
-          maxValues: zoomedMaxValues,
-        },
-      } = zoomChartData(actualTimestamps, zoom, {
-        values,
-        minValues,
-        maxValues,
-      });
 
       const item: ChoiceGraph = {
         choice,
         color,
-        line: zoomedTimestamps.map((timestamp, timestampIndex) => ({
+        line: actualTimestamps.map((timestamp, timestampIndex) => ({
           x: timestamp,
-          y: zoomedValues[timestampIndex] ?? 0,
+          y: values[timestampIndex] ?? 0,
         })),
         active,
         highlighted,
       };
 
-      if (zoomedMinValues && zoomedMaxValues) {
-        item.area = zoomedTimestamps.map((timestamp, timestampIndex) => ({
+      if (minValues && maxValues) {
+        item.area = actualTimestamps.map((timestamp, timestampIndex) => ({
           x: timestamp,
-          y: zoomedMaxValues[timestampIndex] ?? 0,
-          y0: zoomedMinValues[timestampIndex] ?? 0,
+          y: maxValues[timestampIndex] ?? 0,
+          y0: minValues[timestampIndex] ?? 0,
         }));
       }
 
@@ -289,12 +281,11 @@ function buildChartData({
     }
   );
 
-  const xDomain = generateNumericDomain(zoomTimestamps(timestamps, zoom));
-
   return {
     xScale: generateTimestampXScale(xDomain, width),
     yScale: generatePercentageYScale(height),
     graphs: graphs,
+    xDomain,
   };
 }
 
