@@ -36,7 +36,7 @@ class Command(BaseCommand):
         )
         total = len(post_ids)
 
-        num_processes = 3
+        num_processes = 10
         chunk_size = total // num_processes
 
         tm = time.time()
