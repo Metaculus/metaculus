@@ -30,7 +30,7 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
         </h3>
         <a
           className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-          href={`/medals?user=${profileId}`}
+          href={`/accounts/profile/${profileId}?mode=medals`}
         >
           View All
         </a>
@@ -40,7 +40,7 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
           <div
             key={index}
             className={classNames(
-              "flex w-full flex-col items-center justify-center rounded border border-gray-300 dark:border-gray-300-dark",
+              "flex w-full flex-col items-center justify-center rounded border border-gray-300 bg-white dark:border-gray-300-dark dark:bg-blue-950",
               { "sm:col-span-2": category.name === "tournament" }
             )}
           >
