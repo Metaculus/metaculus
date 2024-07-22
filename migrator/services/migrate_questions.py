@@ -1,7 +1,6 @@
 import json
 import re
 from collections import defaultdict
-from datetime import datetime
 
 import django
 import html2text
@@ -118,24 +117,10 @@ def create_post(question: dict, **kwargs) -> Post:
     curation_status = Post.CurationStatus.DRAFT
 
     if (
-        question["approved_by_id"]
-        or (
-            question["approved_time"]
-            and question["approved_time"] < django.utils.timezone.now()
-        )
-        or (
-            question["publish_time"]
-            and question["publish_time"] < django.utils.timezone.now()
-        )
+        question["mod_status"] == "ACTIVE"
+        and question["publish_time"] <= django.utils.timezone.now()
     ):
         curation_status = Post.CurationStatus.APPROVED
-    """if question["resolve_time"] < django.utils.timezone.now() and (
-        (
-            question["approved_time"]
-            and question["approved_time"] < django.utils.timezone.now()
-        )
-        or question["approved_by_id"]
-    ):"""
     if question["mod_status"] == "PENDING":
         curation_status = Post.CurationStatus.PENDING
     if question["mod_status"] == "REJECTED":
