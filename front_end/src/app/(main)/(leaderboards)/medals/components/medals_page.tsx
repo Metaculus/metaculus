@@ -26,11 +26,11 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
   function getMedalClassName(medalType: MedalType): string {
     switch (medalType) {
       case "gold":
-        return "border-yellow-500 dark:border-yellow-500/50 shadow-yellow-500/15 dark:shadow-yellow-500/10";
+        return "shadow-yellow-500/15 dark:shadow-yellow-500/5";
       case "silver":
-        return "border-gray-500/50 shadow-gray-500/15 dark:shadow-gray-500/8";
+        return "shadow-gray-500/15 dark:shadow-gray-500/5";
       case "bronze":
-        return "border-orange-600/50 shadow-orange-500/15 dark:shadow-orange-500/8";
+        return "shadow-orange-500/15 dark:shadow-orange-500/5";
       default:
         return "";
     }
@@ -51,13 +51,13 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
                 {t(RANKING_CATEGORIES[category.name].translationKey)}
               </span>
             </div>
-            <div className="flex min-h-[65px] flex-col content-center items-center justify-center gap-3 self-stretch rounded-b border-t border-gray-300 bg-blue-100 p-4 dark:border-gray-300-dark dark:bg-blue-100-dark  md:flex-row md:flex-wrap">
+            <div className="flex min-h-[65px] flex-col content-center items-center justify-center gap-3 self-stretch rounded-b border-t border-gray-300 bg-gradient-to-b from-blue-200 to-blue-100 p-4 dark:border-gray-300-dark dark:from-blue-900 dark:to-blue-900 md:flex-row md:flex-wrap">
               {!!category.medals.length ? (
                 category.medals.map((medal, index) => {
                   return (
                     <div
                       key={index}
-                      className={`flex w-full flex-row items-center gap-3 rounded-lg border bg-white px-3 py-3 shadow-xl dark:bg-blue-950 md:w-fit md:flex-col md:px-8 md:py-4 ${getMedalClassName(medal.type)}`}
+                      className={`flex w-full min-w-[210px] flex-row items-center gap-3 rounded-lg bg-white px-3 py-3 shadow-xl dark:bg-blue-950 md:w-fit md:flex-col md:px-8 md:py-4 ${getMedalClassName(medal.type)}`}
                     >
                       <div className="min-w-6">
                         <MedalIcon
