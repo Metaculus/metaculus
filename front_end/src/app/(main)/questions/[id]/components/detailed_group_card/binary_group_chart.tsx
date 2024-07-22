@@ -179,7 +179,9 @@ function getQuestionTooltipLabel(
   values: number[],
   cursorTimestamp: number
 ) {
-  const hasValue = cursorTimestamp < Math.max(...timestamps);
+  const hasValue =
+    cursorTimestamp >= Math.min(...timestamps) &&
+    cursorTimestamp <= Math.max(...timestamps);
   if (!hasValue) {
     return getForecastPctDisplayValue(null);
   }
