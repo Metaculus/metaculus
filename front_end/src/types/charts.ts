@@ -9,6 +9,7 @@ export type TickFormat = (
 export type Scale = {
   ticks: number[];
   tickFormat: TickFormat;
+  cursorFormat?: TickFormat;
 };
 
 export type BaseChartData = {
