@@ -40,7 +40,7 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
           <div
             key={index}
             className={classNames(
-              "flex w-full flex-col items-center justify-center rounded border border-gray-300 bg-white dark:border-gray-300-dark dark:bg-blue-950",
+              "flex w-full flex-col items-center justify-center rounded border border-gray-300 bg-white dark:border-gray-300-dark dark:bg-blue-950/50",
               { "sm:col-span-2": category.name === "tournament" }
             )}
           >
