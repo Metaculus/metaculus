@@ -28,6 +28,7 @@ type Props = {
   yLabel?: string;
   withTooltip?: boolean;
   extraTheme?: VictoryThemeDefinition;
+  pointSize?: number;
 };
 
 const FanChart: FC<Props> = ({
@@ -36,6 +37,7 @@ const FanChart: FC<Props> = ({
   yLabel,
   withTooltip = false,
   extraTheme,
+  pointSize,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -52,6 +54,7 @@ const FanChart: FC<Props> = ({
     () => buildChartData(options),
     [options]
   );
+  const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
 
   const tooltipItems = useMemo(
     () =>
@@ -127,6 +130,8 @@ const FanChart: FC<Props> = ({
               },
             }}
           />
+          <VictoryAxis dependentAxis label={yLabel} />
+          <VictoryAxis tickFormat={(_, index) => labels[index]} />
           <VictoryScatter
             data={points.map((point) => ({
               ...point,
@@ -147,10 +152,10 @@ const FanChart: FC<Props> = ({
                   datum.resolved ? 1 : activePoint === datum.x ? 0.3 : 0,
               },
             }}
-            dataComponent={<FanPoint activePoint={activePoint} />}
+            dataComponent={
+              <FanPoint activePoint={activePoint} pointSize={pointSize} />
+            }
           />
-          <VictoryAxis dependentAxis label={yLabel} />
-          <VictoryAxis />
         </VictoryChart>
       )}
     </div>
@@ -184,6 +189,64 @@ function buildChartData(options: FanOption[]) {
     area,
     points,
   };
+}
+
+function calculateCharWidth(fontSize: number): number {
+  const element = document.createElement("span");
+  element.style.visibility = "hidden";
+  element.style.position = "absolute";
+  element.style.whiteSpace = "nowrap";
+  element.style.fontSize = `${fontSize}px`;
+  const sampleText =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  element.textContent = sampleText;
+
+  document.body.appendChild(element);
+  const charWidth = element.offsetWidth / sampleText.length;
+  document.body.removeChild(element);
+
+  return charWidth;
+}
+
+function adjustLabelsForDisplay(
+  options: FanOption[],
+  chartWidth: number,
+  theme: VictoryThemeDefinition
+) {
+  const labelMargin = 5;
+
+  let charWidth: number;
+  const tickLabelStyle = theme.axis?.style?.tickLabels;
+  if (
+    !Array.isArray(tickLabelStyle) &&
+    typeof tickLabelStyle?.fontSize === "number"
+  ) {
+    charWidth = calculateCharWidth(tickLabelStyle.fontSize);
+  } else {
+    charWidth = calculateCharWidth(9);
+  }
+
+  const labels = options.map((option) => option.name);
+  const maxLabelLength = Math.max(...labels.map((label) => label.length));
+  const maxLabelWidth = maxLabelLength * charWidth + labelMargin;
+  let availableSpacePerLabel = chartWidth / labels.length;
+
+  if (maxLabelWidth < availableSpacePerLabel) {
+    return labels;
+  }
+
+  let step = 1;
+  let visibleLabelsCount = labels.length;
+
+  while (maxLabelWidth >= availableSpacePerLabel && step < labels.length) {
+    visibleLabelsCount = Math.ceil(labels.length / step);
+    availableSpacePerLabel = chartWidth / visibleLabelsCount;
+    step++;
+  }
+
+  return options.map((option, index) =>
+    index % step === 0 ? option.name : ""
+  );
 }
 
 export default FanChart;

@@ -43,6 +43,8 @@ import {
   zoomTimestamps,
 } from "@/utils/charts";
 
+import XTickLabel from "./primitives/x_tick_label";
+
 type Props = {
   dataset: NumericForecast;
   defaultZoom?: TimelineChartZoomOption;
@@ -106,7 +108,7 @@ const NumericChart: FC<Props> = ({
         if (datum) {
           return datum.x === defaultCursor
             ? "now"
-            : `${xScale.tickFormat(datum.x)}`;
+            : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
         }
       }}
       cursorComponent={
@@ -207,6 +209,12 @@ const NumericChart: FC<Props> = ({
           <VictoryAxis
             tickValues={xScale.ticks}
             tickFormat={isCursorActive ? () => "" : xScale.tickFormat}
+            tickLabelComponent={
+              <XTickLabel
+                chartWidth={chartWidth}
+                withCursor={!!onCursorChange}
+              />
+            }
           />
         </VictoryChart>
       )}
