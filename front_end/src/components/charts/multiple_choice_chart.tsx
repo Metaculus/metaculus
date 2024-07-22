@@ -39,6 +39,7 @@ import {
 
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
+import XTickLabel from "./primitives/x_tick_label";
 
 type Props = {
   timestamps: number[];
@@ -115,7 +116,7 @@ const MultipleChoiceChart: FC<Props> = ({
         if (datum) {
           return datum.x === defaultCursor
             ? "now"
-            : `${xScale.tickFormat(datum.x)}`;
+            : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
         }
       }}
       cursorComponent={
@@ -210,6 +211,12 @@ const MultipleChoiceChart: FC<Props> = ({
           <VictoryAxis
             tickValues={xScale.ticks}
             tickFormat={isCursorActive ? () => "" : xScale.tickFormat}
+            tickLabelComponent={
+              <XTickLabel
+                chartWidth={chartWidth}
+                withCursor={!!onCursorChange}
+              />
+            }
           />
         </VictoryChart>
       )}

@@ -6,13 +6,12 @@ import { Point } from "victory";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 
-const SIZE = 10;
-
 type Props = ComponentProps<typeof Point> & {
   activePoint: string | null;
+  pointSize?: number;
 };
 
-const FanPoint: FC<Props> = ({ x, y, datum, activePoint }) => {
+const FanPoint: FC<Props> = ({ x, y, datum, activePoint, pointSize = 10 }) => {
   const { getThemeColor } = useAppTheme();
 
   const resolvedColor = getThemeColor(METAC_COLORS.purple["800"]);
@@ -22,7 +21,7 @@ const FanPoint: FC<Props> = ({ x, y, datum, activePoint }) => {
   const resolved = datum?.resolved;
   const active = datum?.x === activePoint;
 
-  const innerSize = SIZE - 2;
+  const innerSize = pointSize - 2;
 
   if (isNil(x) || isNil(y)) {
     return null;
@@ -32,10 +31,10 @@ const FanPoint: FC<Props> = ({ x, y, datum, activePoint }) => {
     return (
       <g transform={`rotate(45, ${x}, ${y})`}>
         <rect
-          width={SIZE}
-          height={SIZE}
-          x={x - SIZE / 2}
-          y={y - SIZE / 2}
+          width={pointSize}
+          height={pointSize}
+          x={x - pointSize / 2}
+          y={y - pointSize / 2}
           fill={backgroundColor}
           stroke={resolvedColor}
           strokeWidth={6}
@@ -56,10 +55,10 @@ const FanPoint: FC<Props> = ({ x, y, datum, activePoint }) => {
 
   return (
     <rect
-      width={10}
-      height={10}
-      x={x - 5}
-      y={y - 5}
+      width={pointSize}
+      height={pointSize}
+      x={x - pointSize / 2}
+      y={y - pointSize / 2}
       fill={color}
       stroke={color}
       strokeWidth={6}
