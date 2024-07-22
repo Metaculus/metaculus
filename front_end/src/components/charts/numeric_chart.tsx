@@ -40,7 +40,7 @@ import {
   generateNumericYScale,
   generatePercentageYScale,
   generateTimestampXScale,
-  zoomChartData,
+  zoomTimestamps,
 } from "@/utils/charts";
 
 type Props = {
@@ -82,7 +82,7 @@ const NumericChart: FC<Props> = ({
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState(defaultZoom);
-  const { line, area, yDomain, xScale, yScale, points } = useMemo(
+  const { line, area, yDomain, xDomain, xScale, yScale, points } = useMemo(
     () => buildChartData({ dataset, width: chartWidth, height, type, zoom }),
     [dataset, chartWidth, height, type, zoom]
   );
@@ -142,7 +142,7 @@ const NumericChart: FC<Props> = ({
     >
       {shouldDisplayChart && (
         <VictoryChart
-          domain={{ y: yDomain }}
+          domain={{ y: yDomain, x: xDomain }}
           width={chartWidth}
           height={height}
           theme={actualTheme}
@@ -219,6 +219,7 @@ type ChartData = BaseChartData & {
   area: Area;
   points: Line;
   yDomain: DomainTuple;
+  xDomain: DomainTuple;
 };
 
 function buildChartData({
@@ -234,38 +235,28 @@ function buildChartData({
   type: NumericChartType;
   zoom: TimelineChartZoomOption;
 }): ChartData {
-  const { timestamps: zoomedTimestamps, valuesDictionary: zoomedValues } =
-    zoomChartData(dataset.timestamps, zoom, {
-      valuesMean: dataset.values_mean,
-      valuesMin: dataset.values_min,
-      valuesMax: dataset.values_max,
-    });
+  const { timestamps, values_mean, values_min, values_max, my_forecasts } =
+    dataset;
 
-  const line = zoomedTimestamps.map((timestamp, index) => ({
+  const line = timestamps.map((timestamp, index) => ({
     x: timestamp,
-    y: zoomedValues.valuesMean[index],
+    y: values_mean[index],
   }));
-  const area = zoomedTimestamps.map((timestamp, index) => ({
+  const area = timestamps.map((timestamp, index) => ({
     x: timestamp,
-    y0: zoomedValues.valuesMin[index],
-    y: zoomedValues.valuesMax[index],
+    y0: values_min[index],
+    y: values_max[index],
   }));
 
   let points: Line = [];
-  if (dataset.my_forecasts !== null) {
-    const {
-      timestamps: myForecastTimestamps,
-      valuesDictionary: { valuesMean: myForecastsValuesMean },
-    } = zoomChartData(dataset.my_forecasts.timestamps, zoom, {
-      valuesMean: dataset.my_forecasts.values_mean,
-    });
-    points = myForecastTimestamps.map((timestamp, index) => ({
+  if (my_forecasts !== null) {
+    points = my_forecasts.timestamps.map((timestamp, index) => ({
       x: timestamp,
-      y: myForecastsValuesMean[index],
+      y: my_forecasts.values_mean[index],
     }));
   }
 
-  const xDomain = generateNumericDomain(zoomedTimestamps);
+  const xDomain = generateNumericDomain(zoomTimestamps(timestamps, zoom));
   const xScale = generateTimestampXScale(xDomain, width);
 
   let yDomain: Tuple<number>;
@@ -294,6 +285,7 @@ function buildChartData({
     line,
     area,
     yDomain,
+    xDomain,
     xScale,
     yScale,
     points,
