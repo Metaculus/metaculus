@@ -28,6 +28,14 @@ def process_posts(post_ids, worker_idx):
 class Command(BaseCommand):
     help = "Generates search embeds"
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--num_processes",
+            type=int,
+            default=10,
+            help="Number of processes to use for processing (default: 10)",
+        )
+
     def handle(self, *args, **options):
         post_ids = list(
             Post.objects.filter(embedded_vector__isnull=True)
@@ -36,10 +44,13 @@ class Command(BaseCommand):
         )
         total = len(post_ids)
 
-        num_processes = 10
+        num_processes = options["num_processes"]
         chunk_size = total // num_processes
 
         tm = time.time()
+
+        if not chunk_size:
+            return
 
         # Split post_ids into chunks for each process
         post_id_chunks = [
