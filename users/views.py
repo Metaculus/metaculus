@@ -71,7 +71,8 @@ def get_serialized_user(request, user, Serializer):
         weights.append(weight)
         resolutions.append(int(question.resolution == "yes"))
 
-    ser["avg_score"] = np.average(scores)
+    avg_score = np.average(scores)
+    ser["avg_score"] = None if np.isnan(avg_score) else avg_score
     ser["questions_predicted_scored"] = len(questions_predicted_socred)
     ser["questions_predicted"] = len(questions_predicted)
     ser["question_authored"] = Post.objects.filter(
