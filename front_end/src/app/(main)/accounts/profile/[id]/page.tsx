@@ -64,7 +64,7 @@ export default async function Profile({
           <Link href={`/accounts/profile/${id}?mode=track_record`}>
             <button
               className={
-                "m-0 h-full border px-3 py-2 font-light dark:border-blue-950  max-[340px]:w-min max-[340px]:px-2 md:w-auto " +
+                "m-0 h-full border px-3 py-2 font-light dark:border-blue-950  max-[340px]:w-min max-[340px]:px-2 md:w-fit " +
                 (mode === "track_record"
                   ? " bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200 "
                   : " bg-white hover:bg-blue-200 dark:bg-blue-950 hover:dark:bg-blue-800")
