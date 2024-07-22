@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
+import MedalsPage from "@/app/(main)/(leaderboards)/medals/components/medals_page";
 import MedalsWidget from "@/app/(main)/(leaderboards)/medals/components/medals_widget";
 import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
 import CommentFeed from "@/components/comment_feed";
@@ -46,12 +47,12 @@ export default async function Profile({
             {profile.first_name} {profile.last_name}
           </span>
         </div>
-        <div className="flex flex-row text-sm font-medium">
+        <div className="flex flex-row text-xs font-medium md:text-sm">
           <Link href={`/accounts/profile/${id}?mode=overview`}>
             <button
               dir="ltr"
               className={
-                "m-0 rounded-s-3xl border border-e-0 px-3 py-2 font-light dark:border-blue-950 " +
+                "m-0 h-full rounded-s-3xl border border-e-0 px-2 py-1.5 font-light dark:border-blue-950 max-[340px]:px-2 md:px-3 md:py-2 " +
                 (mode === "overview"
                   ? " bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200 "
                   : " bg-blue-100 hover:bg-blue-200 dark:bg-blue-950 hover:dark:bg-blue-800 ")
@@ -63,7 +64,7 @@ export default async function Profile({
           <Link href={`/accounts/profile/${id}?mode=track_record`}>
             <button
               className={
-                "m-0 border px-3 py-2 font-light dark:border-blue-950 " +
+                "m-0 h-full border px-3 py-2 font-light dark:border-blue-950  max-[340px]:w-min max-[340px]:px-2 md:w-fit " +
                 (mode === "track_record"
                   ? " bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200 "
                   : " bg-white hover:bg-blue-200 dark:bg-blue-950 hover:dark:bg-blue-800")
@@ -72,11 +73,23 @@ export default async function Profile({
               {t("Track Record")}
             </button>
           </Link>
+          <Link href={`/accounts/profile/${id}?mode=medals`}>
+            <button
+              className={
+                "m-0 h-full border border-s-0 px-3 py-2  font-light dark:border-blue-950 max-[340px]:px-2 " +
+                (mode === "medals"
+                  ? " bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200 "
+                  : " bg-white hover:bg-blue-200 dark:bg-blue-950 hover:dark:bg-blue-800")
+              }
+            >
+              {t("Medals")}
+            </button>
+          </Link>
           <Link href={`/accounts/profile/${id}?mode=comments`}>
             <button
               dir="rtl"
               className={
-                "m-0 rounded-s-3xl border border-e-0 px-3 py-2 font-light dark:border-blue-950 " +
+                "m-0 h-full rounded-s-3xl border border-e-0  px-3 py-2 font-light dark:border-blue-950 max-[340px]:px-2 " +
                 (mode === "comments"
                   ? " bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200 "
                   : " bg-white hover:bg-blue-200 dark:bg-blue-950 hover:dark:bg-blue-800")
@@ -103,6 +116,11 @@ export default async function Profile({
         </div>
       )}
       {mode === "track_record" && <TrackRecord profile={profile} />}
+      {mode === "medals" && (
+        <div>
+          <MedalsPage profileId={profile.id} />
+        </div>
+      )}
       {mode === "comments" && (
         <div className="flex flex-col rounded bg-white">
           <CommentFeed profileId={profile.id} />
