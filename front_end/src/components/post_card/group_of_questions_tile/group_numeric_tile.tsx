@@ -35,6 +35,7 @@ const GroupNumericTile: FC<Props> = ({ questions, curationStatus }) => {
       <FanChart
         options={getFanOptionsFromNumericGroup(questions)}
         height={CHART_HEIGHT}
+        pointSize={8}
       />
     </div>
   );
