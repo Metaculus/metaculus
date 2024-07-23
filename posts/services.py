@@ -175,6 +175,8 @@ def get_posts_feed(
         if not order_by:
             # Force ordering by search rank
             order_by = "-rank"
+        else:
+            qs = qs.filter(rank__gte=0.3)
 
     # Ordering
     if order_by:
