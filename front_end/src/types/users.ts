@@ -1,13 +1,10 @@
-import { MedalType } from "./scoring";
-
 export type User = {
   id: number;
   username: string;
   is_bot?: boolean;
   is_staff?: boolean;
-};
-
-export type UserProfile = User & {
+  first_name?: string;
+  last_name?: string;
   date_joined: string;
   bio: string;
   website: string;
@@ -24,10 +21,11 @@ export type UserProfile = User & {
   occupation?: string;
   location?: string;
   profile_picture?: string;
+};
+
+export type UserProfile = User & {
   calibration_curve?: any;
   score_histogram?: any;
-  first_name?: string;
-  last_name?: string;
   nr_forecasts?: number;
   nr_comments?: number;
   avg_score?: number;
@@ -38,7 +36,7 @@ export type UserProfile = User & {
   comments_authored?: number;
 };
 
-export type CurrentUser = UserProfile & {
+export type CurrentUser = User & {
   email: string;
   is_superuser: boolean;
 };
