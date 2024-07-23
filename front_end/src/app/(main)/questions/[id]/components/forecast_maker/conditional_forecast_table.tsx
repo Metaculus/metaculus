@@ -3,11 +3,15 @@ import { faAnglesRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Radio, RadioGroup } from "@headlessui/react";
 import classNames from "classnames";
+import Link from "next/link";
 import { FC } from "react";
 
 import RadioButton from "@/components/ui/radio_button";
 import { Question, QuestionWithForecasts } from "@/types/question";
-import { getConditionalQuestionTitle } from "@/utils/questions";
+import {
+  getConditionalQuestionTitle,
+  getConditionTitle,
+} from "@/utils/questions";
 
 export type ConditionalTableOption = {
   id: number;
@@ -17,7 +21,9 @@ export type ConditionalTableOption = {
 };
 
 type Props = {
+  postTitle: string;
   condition: QuestionWithForecasts;
+  conditionChild: QuestionWithForecasts;
   childQuestion: Question;
   value: number | null;
   options: ConditionalTableOption[];
@@ -26,7 +32,9 @@ type Props = {
 };
 
 const ConditionalForecastTable: FC<Props> = ({
+  postTitle,
   condition,
+  conditionChild,
   childQuestion,
   options,
   value,
@@ -39,12 +47,22 @@ const ConditionalForecastTable: FC<Props> = ({
         <tr>
           <th className="px-2 py-3 text-left align-top">
             <h4 className="m-0 text-base font-bold leading-5">
-              {condition.title}
+              <Link
+                href={`/questions/${condition.id}`}
+                className="no-underline"
+              >
+                {getConditionTitle(postTitle, condition)}
+              </Link>
             </h4>
           </th>
           <th className="border-l py-3 pl-4 pr-2 text-left align-top">
             <h4 className="m-0 text-base font-bold leading-5">
-              {getConditionalQuestionTitle(childQuestion)}
+              <Link
+                href={`/questions/${conditionChild.id}`}
+                className="no-underline"
+              >
+                {getConditionalQuestionTitle(childQuestion)}
+              </Link>
             </h4>
           </th>
         </tr>

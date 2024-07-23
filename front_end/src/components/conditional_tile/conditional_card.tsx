@@ -1,19 +1,24 @@
 import classNames from "classnames";
+import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
+
+import { Href } from "@/types/navigation";
 
 type Props = {
   title: string;
   label?: string;
   resolved?: boolean;
+  href?: Href;
 };
 
 const ConditionalCard: FC<PropsWithChildren<Props>> = ({
   title,
   label,
   resolved,
+  href,
   children,
 }) => {
-  return (
+  const CardContent = (
     <div
       className={classNames(
         "ConditionalSummary-card flex min-h-20 flex-col gap-2 border p-3",
@@ -31,6 +36,16 @@ const ConditionalCard: FC<PropsWithChildren<Props>> = ({
       {children}
     </div>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="no-underline">
+        {CardContent}
+      </Link>
+    );
+  }
+
+  return CardContent;
 };
 
 export default ConditionalCard;

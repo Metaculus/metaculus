@@ -101,6 +101,7 @@ const ForecastCard: FC<Props> = ({
     if (post.conditional) {
       return (
         <ConditionalTile
+          postTitle={post.title}
           conditional={post.conditional}
           curationStatus={post.status}
           chartTheme={chartTheme}
