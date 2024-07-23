@@ -1,8 +1,6 @@
-import { parseISO } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import ForecastMakerConditionalNumeric from "@/components/forecast_maker/forecast_maker_conditional/forecast_maker_conditional_numeric";
 import { PostConditional } from "@/types/post";
 import {
   QuestionType,
@@ -11,6 +9,8 @@ import {
 } from "@/types/question";
 
 import ForecastMakerConditionalBinary from "./forecast_maker_conditional_binary";
+import ForecastMakerConditionalNumeric from "./forecast_maker_conditional_numeric";
+import ForecastMakerContainer from "../container";
 
 type Props = {
   postId: number;
@@ -27,7 +27,7 @@ const ForecastMakerConditional: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const { question_yes, question_no } = conditional;
+  const { condition, condition_child, question_yes, question_no } = conditional;
   if (question_yes.type !== question_no.type) {
     return null;
   }
@@ -73,12 +73,25 @@ const ForecastMakerConditional: FC<Props> = ({
   };
 
   return (
-    <section className="bg-blue-200 p-3 dark:bg-blue-200-dark">
-      <h3 className="m-0 text-base font-normal leading-5">
-        {t("MakePrediction")}
-      </h3>
-      <div className="mt-3">{renderForecastMaker()}</div>
-    </section>
+    <ForecastMakerContainer
+      title={t("MakePrediction")}
+      resolutionCriteria={[
+        {
+          title: t("parentResolutionCriteria"),
+          content: condition.resolution_criteria_description,
+          questionTitle: condition.title,
+          finePrint: condition.fine_print,
+        },
+        {
+          title: t("childResolutionCriteria"),
+          content: condition_child.resolution_criteria_description,
+          questionTitle: condition_child.title,
+          finePrint: condition_child.fine_print,
+        },
+      ]}
+    >
+      {renderForecastMaker()}
+    </ForecastMakerContainer>
   );
 };
 

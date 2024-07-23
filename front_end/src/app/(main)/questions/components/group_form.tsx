@@ -5,10 +5,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { forEach } from "lodash";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { title } from "process";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -157,7 +155,7 @@ const GroupForm: React.FC<Props> = ({
       return;
     }
     const questionToDelete: number[] = [];
-    if (post?.group_of_questions.questions) {
+    if (post?.group_of_questions?.questions) {
       forEach(post?.group_of_questions.questions, (sq, index) => {
         if (!subQuestions.map((x) => x.id).includes(sq.id)) {
           questionToDelete.push(sq.id);
@@ -337,7 +335,7 @@ const GroupForm: React.FC<Props> = ({
           <Input
             {...control.register("group_variable")}
             errors={control.formState.errors.group_variable}
-            defaultValue={post?.group_of_questions.group_variable}
+            defaultValue={post?.group_of_questions?.group_variable}
             className={baseInputStyles}
           />
           <span className={inputDescriptionStyles}>

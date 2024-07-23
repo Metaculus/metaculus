@@ -1,8 +1,4 @@
-import dynamic from "next/dynamic";
-
-const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
-  ssr: false,
-});
+import MarkdownEditor from "@/components/markdown_editor";
 
 const markdown = `
 # Heading 1

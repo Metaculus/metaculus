@@ -158,6 +158,8 @@
   "commentTooLateToUnvoteError": "Cannot undo votes on comments from previous calendar years",
   "hide": "Hide",
   "show": "Show",
+  "showMore": "Show More",
+  "showLess": "Show Less",
   "reply_one": "reply",
   "reply_few": "replies",
   "reply_other": "replies",
@@ -581,5 +583,13 @@
   "myScore": "My Score",
   "scoringTerminology": "Scoring Terminology",
   "pearScoreInfo": "Your <link>Peer Score</link> on that question. If you see no score, then either the question has yet to resolve or you haven’t predicted it (or both!).",
-  "totalPeerScoreInfo": "The sum of your <link>Peer Scores</link> on all questions in the tournament (but only those that close before the end of the tournament)."
+  "totalPeerScoreInfo": "The sum of your <link>Peer Scores</link> on all questions in the tournament (but only those that close before the end of the tournament).",
+  "backgroundInfo": "Background Info",
+  "parentBackgroundInfo": "Parent Question Background Info",
+  "childBackgroundInfo": "Child Question Background Info",
+  "expand": "Expand",
+  "collapse": "Collapse",
+  "resolutionCriteria": "Resolution Criteria",
+  "parentResolutionCriteria": "Parent Resolution Criteria",
+  "childResolutionCriteria": "Child Resolution Criteria"
 }

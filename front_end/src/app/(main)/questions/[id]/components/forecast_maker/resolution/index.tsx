@@ -2,11 +2,12 @@
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import QuestionResolutionModal from "@/components/forecast_maker/resolution/resolution_modal";
 import Button from "@/components/ui/button";
 import { ProjectPermissions } from "@/types/post";
 import { Question } from "@/types/question";
 import { canResolveQuestion } from "@/utils/questions";
+
+import QuestionResolutionModal from "./resolution_modal";
 
 type Props = {
   question: Question;

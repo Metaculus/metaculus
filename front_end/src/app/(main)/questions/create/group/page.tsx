@@ -1,6 +1,3 @@
-import { all } from "mathjs";
-import { useSearchParams } from "next/navigation";
-
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { PostWithForecasts } from "@/types/post";
@@ -25,7 +22,7 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
       // @ts-ignore
       subtype={
         post
-          ? post.group_of_questions.questions[0].type
+          ? post.group_of_questions?.questions[0]?.type
           : searchParams["subtype"]
       }
       post={post}
