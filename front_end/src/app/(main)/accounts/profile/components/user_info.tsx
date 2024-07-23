@@ -84,7 +84,8 @@ const UserInfo: FC<UserInfoProps> = ({
     profile.manifold ||
     profile.infer ||
     profile.hypermind;
-
+  const keyStatStyles =
+    "flex w-1/3 flex-col min-h-[90px] justify-center gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950";
   return (
     <form action={formAction}>
       {hasContent && (
@@ -216,7 +217,7 @@ const UserInfo: FC<UserInfoProps> = ({
             </div>
             <h3 className="mb-5 mt-0 pt-0 text-gray-700 dark:text-gray-300"></h3>
             <div className="flex flex-row gap-4">
-              <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+              <div className={keyStatStyles}>
                 <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
                   {profile.nr_forecasts}
                 </span>
@@ -224,7 +225,7 @@ const UserInfo: FC<UserInfoProps> = ({
                   {t("predictions")}
                 </span>
               </div>
-              <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+              <div className={keyStatStyles}>
                 <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
                   {profile.nr_comments}
                 </span>
@@ -232,7 +233,7 @@ const UserInfo: FC<UserInfoProps> = ({
                   {t("comments")}
                 </span>
               </div>
-              <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+              <div className={keyStatStyles}>
                 <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
                   {format(new Date(profile.date_joined), "MM-yyyy")}
                 </span>
@@ -256,7 +257,10 @@ const UserInfo: FC<UserInfoProps> = ({
             </div>
             <div className="flex flex-col items-center gap-1">
               {profile.calibration_curve && (
-                <CalibrationChart data={profile.calibration_curve} />
+                <CalibrationChart
+                  data={profile.calibration_curve}
+                  showIntervals={false}
+                />
               )}
               <div className="flex flex-col items-center space-y-3 divide-y divide-gray-300 dark:divide-gray-700">
                 <div className="flex flex-row gap-6">
