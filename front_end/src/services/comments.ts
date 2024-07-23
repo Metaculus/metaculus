@@ -6,6 +6,7 @@ export type getCommentsParams = {
   post?: number;
   author?: number;
   parent_isnull?: boolean;
+  page?: number;
 };
 
 export type CreateCommentParams = {
@@ -28,15 +29,24 @@ export type VoteCommentParams = {
   user: number;
 };
 
+export type PaginatedResponse<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
+
 class CommentsApi {
   static async getComments(
     url: string = "/comments",
     params?: getCommentsParams
-  ): Promise<CommentType[]> {
+  ): Promise<PaginatedResponse<CommentType>> {
     const queryParams = encodeQueryParams(params ?? {});
     try {
-      const response = await get<CommentType[]>(`${url}${queryParams}`);
-      return response.map((comment) => {
+      const response = await get<PaginatedResponse<CommentType>>(
+        `${url}${queryParams}`
+      );
+      response.results = response.results.map((comment) => {
         if (comment.included_forecast) {
           comment.included_forecast.start_time = new Date(
             comment.included_forecast.start_time
@@ -44,10 +54,11 @@ class CommentsApi {
         }
         return comment;
       });
+      return response;
     } catch (err) {
       return handleRequestError(err, () => {
         console.error("Error getting comments:", err);
-        return [];
+        return { count: 0, next: null, previous: null, results: [] };
       });
     }
   }
