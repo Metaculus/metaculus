@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="post",
-            name="embedded_vector",
+            name="embedding_vector",
             field=pgvector.django.vector.VectorField(
                 blank=True,
                 help_text="Vector embeddings (clip-vit-large-patch14) of the file content",

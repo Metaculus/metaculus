@@ -2,7 +2,7 @@ from itertools import islice
 
 import tiktoken
 from django.conf import settings
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 
 EMBEDDING_MODEL = "text-embedding-3-large"
 EMBEDDING_CTX_LENGTH = 8191
@@ -13,8 +13,19 @@ def get_openai_client():
     return OpenAI(api_key=settings.OPENAI_API_KEY)
 
 
+def get_openai_client_async():
+    return AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+
+
 def generate_text_embed_vector(text: str):
     response = get_openai_client().embeddings.create(input=text, model=EMBEDDING_MODEL)
+    vector = response.data[0].embedding
+
+    return vector
+
+
+async def generate_text_embed_vector_async(text: str):
+    response = await get_openai_client_async().embeddings.create(input=text, model=EMBEDDING_MODEL)
     vector = response.data[0].embedding
 
     return vector

@@ -6,7 +6,7 @@ import django
 from django.core.management.base import BaseCommand
 
 from posts.models import Post
-from posts.utils import update_post_search_embedded_vector
+from posts.utils import update_post_search_embedding_vector
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ def process_posts(post_ids, worker_idx):
         Post.objects.filter(id__in=post_ids).iterator(chunk_size=100)
     ):
         try:
-            update_post_search_embedded_vector(post)
+            update_post_search_embedding_vector(post)
             if idx % 10 == 0:
                 print(
                     f"[W{worker_idx}] Processed total {idx} of {len(post_ids)} records"
@@ -32,13 +32,13 @@ class Command(BaseCommand):
         parser.add_argument(
             "--num_processes",
             type=int,
-            default=10,
+            default=1,
             help="Number of processes to use for processing (default: 10)",
         )
 
     def handle(self, *args, **options):
         post_ids = list(
-            Post.objects.filter(embedded_vector__isnull=True)
+            Post.objects.filter(embedding_vector__isnull=True)
             .order_by("-id")
             .values_list("id", flat=True)
         )

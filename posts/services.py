@@ -1,6 +1,8 @@
+import asyncio
+import logging
 from datetime import timedelta
 
-from django.db.models import Q, Count, Sum, Value, Case, When, F
+from django.db.models import Q, Count, Sum, Value, Case, When, F, FloatField
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from pgvector.django import CosineDistance
@@ -20,12 +22,15 @@ from questions.services import (
 from users.models import User
 from utils.dtypes import flatten
 from utils.models import build_order_by
-from utils.openai import generate_text_embed_vector
+from utils.openai import generate_text_embed_vector_async
 from utils.serializers import parse_order_by
+from utils.serper_google import get_google_search_results
 from utils.the_math.community_prediction import get_cp_at_time
 from utils.the_math.measures import (
     prediction_difference_for_sorting,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def add_categories(categories: list[int], post: Post):
@@ -167,7 +172,7 @@ def get_posts_feed(
     if search:
         qs = perform_post_search(qs, search)
         # Force ordering by vector distance
-        order_by = "embed_distance"
+        order_by = "-rank"
 
     # Ordering
     if order_by:
@@ -393,10 +398,44 @@ def compute_hotness():
 
 
 def perform_post_search(qs, search_text: str):
-    vector = generate_text_embed_vector(search_text)
+    embedding_vector, semantic_scores_by_id = asyncio.run(
+        gather_search_results(search_text)
+    )
 
+    semantic_whens = [
+       When(id=key, then=Value(val)) for key, val in semantic_scores_by_id.items()
+    ]
+
+    # Annotating embedding vector distance
     qs = qs.annotate(
-        embed_distance=CosineDistance("embedded_vector", vector)
+        rank=Case(
+            *semantic_whens,
+            default=1-CosineDistance("embedding_vector", embedding_vector),
+            output_field=FloatField(),
+        )
     )
 
     return qs
+
+
+async def gather_search_results(
+    search_text: str,
+) -> tuple[list[float], dict[int, float]]:
+    return await asyncio.gather(
+        generate_text_embed_vector_async(search_text),
+        perform_google_search(search_text),
+    )
+
+
+async def perform_google_search(
+    search_text: str,
+) -> dict[int, float]:
+    """
+    Returns a dict of question IDs to Google scores.
+    """
+    try:
+        return await get_google_search_results(
+            search_query=search_text,
+        )
+    except Exception:
+        logger.exception("Failed to perform google search")

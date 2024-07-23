@@ -5,7 +5,7 @@ from django.db.models import Q
 
 from posts.models import Post, PostUserSnapshot
 from posts.services import compute_sorting_divergence, compute_movement
-from posts.utils import update_post_search_embedded_vector
+from posts.utils import update_post_search_embedding_vector
 
 logger = logging.getLogger(__name__)
 
@@ -78,4 +78,4 @@ def run_compute_movement():
 
 @dramatiq.actor
 def run_post_indexing(post_id):
-    update_post_search_embedded_vector(Post.objects.get(pk=post_id))
+    update_post_search_embedding_vector(Post.objects.get(pk=post_id))

@@ -11,7 +11,7 @@ from utils.openai import (
 logger = logging.getLogger(__name__)
 
 
-def generate_post_content_for_embedded_vectorization(post: Post):
+def generate_post_content_for_embedding_vectorization(post: Post):
     """
     Generates a composed Post content to be indexed by openai
     """
@@ -42,8 +42,8 @@ def generate_post_content_for_embedded_vectorization(post: Post):
     return "\n\n".join([x for x in post_chunks if x])
 
 
-def update_post_search_embedded_vector(post: Post):
-    content = generate_post_content_for_embedded_vectorization(post)
+def update_post_search_embedding_vector(post: Post):
+    content = generate_post_content_for_embedding_vectorization(post)
     chunk_embeddings = []
 
     # Step 1: generate embedding chunks
@@ -55,5 +55,5 @@ def update_post_search_embedded_vector(post: Post):
         chunk_embeddings, axis=0, weights=[len(ch) for ch in chunk_embeddings]
     )
 
-    post.embedded_vector = vector
+    post.embedding_vector = vector
     post.save()

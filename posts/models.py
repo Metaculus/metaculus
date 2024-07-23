@@ -239,7 +239,7 @@ class PostQuerySet(models.QuerySet):
 
 class PostManager(models.Manager.from_queryset(PostQuerySet)):
     def get_queryset(self):
-        return super().get_queryset().defer("embedded_vector")
+        return super().get_queryset().defer("embedding_vector")
 
 
 class Notebook(TimeStampedModel):
@@ -294,7 +294,7 @@ class Post(TimeStampedModel):
     actual_close_time = models.DateTimeField(null=True, blank=True)
     resolved = models.BooleanField(default=False)
 
-    embedded_vector = VectorField(
+    embedding_vector = VectorField(
         help_text="Vector embeddings of the Post content",
         null=True,
         blank=True,
