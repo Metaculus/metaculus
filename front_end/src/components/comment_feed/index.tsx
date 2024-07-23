@@ -152,6 +152,14 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
           />
         </div>
       ))}
+      {shownComments.length === 0 && !isLoading && (
+        <>
+          <hr className="my-4" />
+          <div className="text-center italic text-gray-700 dark:text-gray-700-dark">
+            {t("noComments")}
+          </div>
+        </>
+      )}
       {isLoading && <LoadingIndicator className="mx-auto my-8 w-24" />}
       {nextPage && (
         <div className="flex items-center justify-center">
@@ -159,14 +167,6 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
             {t("loadMoreComments")}
           </Button>
         </div>
-      )}
-      {comments.length == 0 && !isLoading && (
-        <>
-          <hr className="my-4" />
-          <div className="text-center italic text-gray-700 dark:text-gray-700-dark">
-            {t("noComments")}
-          </div>
-        </>
       )}
     </section>
   );

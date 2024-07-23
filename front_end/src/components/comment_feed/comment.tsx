@@ -97,12 +97,14 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
         )}
         {childrenExpanded &&
           commentChildren.map((child: CommentType) => (
-            <Comment
-              key={child.id}
-              comment={child}
-              permissions={permissions}
-              treeDepth={treeDepth}
-            />
+            <div key={child.id}>
+              <hr className="my-4" />
+              <Comment
+                comment={child}
+                permissions={permissions}
+                treeDepth={treeDepth}
+              />
+            </div>
           ))}
       </div>
     </>
