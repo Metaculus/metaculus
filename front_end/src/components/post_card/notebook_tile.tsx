@@ -1,15 +1,12 @@
 "use client";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import { FC } from "react";
 
 import imagePlaceholder from "@/app/assets/images/tournament.webp";
+import MarkdownEditor from "@/components/markdown_editor";
 import useContainerSize from "@/hooks/use_container_size";
 import { Notebook } from "@/types/post";
 import { getNotebookSummary } from "@/utils/questions";
-const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
-  ssr: false,
-});
 
 type Props = {
   notebook: Notebook;

@@ -4,11 +4,6 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
-import ConditionalForecastTable, {
-  ConditionalTableOption,
-} from "@/components/forecast_maker/conditional_forecast_table";
-import NumericSlider from "@/components/forecast_maker/numeric_slider";
-import NumericForecastTable from "@/components/forecast_maker/numeric_table";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
@@ -23,6 +18,12 @@ import {
   normalizeWeights,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
+
+import ConditionalForecastTable, {
+  ConditionalTableOption,
+} from "../conditional_forecast_table";
+import NumericSlider from "../numeric_slider";
+import NumericForecastTable from "../numeric_table";
 
 type Props = {
   postId: number;
@@ -242,6 +243,10 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
     prevYesForecastValue?.weights,
     questionNoId,
     questionYesId,
+    question_no.open_lower_bound,
+    question_no.open_upper_bound,
+    question_yes.open_lower_bound,
+    question_yes.open_upper_bound,
   ]);
 
   const handlePredictSubmit = async () => {

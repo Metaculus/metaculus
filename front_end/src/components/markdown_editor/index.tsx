@@ -25,7 +25,8 @@ import {
   UndoRedo,
 } from "@mdxeditor/editor";
 import classNames from "classnames";
-import React, { FC, useEffect, useMemo, useRef } from "react";
+import dynamic from "next/dynamic";
+import React, { FC, useMemo, useRef } from "react";
 
 import "@mdxeditor/editor/style.css";
 
@@ -164,4 +165,6 @@ const MarkdownEditor: FC<Props> = ({
   );
 };
 
-export default MarkdownEditor;
+export default dynamic(() => Promise.resolve(MarkdownEditor), {
+  ssr: false,
+});

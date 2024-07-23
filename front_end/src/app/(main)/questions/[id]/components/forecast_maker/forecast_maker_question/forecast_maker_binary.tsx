@@ -2,10 +2,8 @@
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
-import { boolean } from "zod";
 
 import { createForecast } from "@/app/(main)/questions/actions";
-import QuestionResolutionButton from "@/components/forecast_maker/resolution";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
@@ -16,6 +14,8 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
+import ForecastMakerContainer from "../container";
+import QuestionResolutionButton from "../resolution";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -76,10 +76,7 @@ const ForecastMakerBinary: FC<Props> = ({
   };
 
   return (
-    <section className="bg-blue-200 p-3 dark:bg-blue-200-dark">
-      <h3 className="m-0 text-base font-normal leading-5">
-        {t("MakePrediction")}
-      </h3>
+    <>
       <BinarySlider
         forecast={forecast}
         onChange={setForecast}
@@ -108,7 +105,7 @@ const ForecastMakerBinary: FC<Props> = ({
         )}
       </div>
       <FormError errors={submitError} />
-    </section>
+    </>
   );
 };
 

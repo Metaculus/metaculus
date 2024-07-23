@@ -60,6 +60,8 @@ const ChangeUsernameModal: FC<SignInModalType> = ({
 
     setUser(state.user);
     onClose(true);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state?.user]);
 
   return (

@@ -8,12 +8,6 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import NumericPickerChart from "@/components/charts/numeric_area_chart";
-import ForecastMakerGroupControls from "@/components/forecast_maker/forecast_maker_group/forecast_maker_group_menu";
-import GroupForecastTable, {
-  ConditionalTableOption,
-} from "@/components/forecast_maker/group_forecast_table";
-import NumericSlider from "@/components/forecast_maker/numeric_slider";
-import NumericForecastTable from "@/components/forecast_maker/numeric_table";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
@@ -29,6 +23,13 @@ import {
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { extractQuestionGroupName } from "@/utils/questions";
+
+import ForecastMakerGroupControls from "./forecast_maker_group_menu";
+import GroupForecastTable, {
+  ConditionalTableOption,
+} from "../group_forecast_table";
+import NumericSlider from "../numeric_slider";
+import NumericForecastTable from "../numeric_table";
 
 type Props = {
   postId: number;

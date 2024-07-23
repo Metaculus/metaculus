@@ -1,15 +1,19 @@
 import { FC } from "react";
 
-import ForecastMakerGroup from "@/components/forecast_maker/forecast_maker_group";
-import { PostConditional, ProjectPermissions } from "@/types/post";
+import {
+  PostConditional,
+  PostGroupOfQuestions,
+  ProjectPermissions,
+} from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 
 import ForecastMakerConditional from "./forecast_maker_conditional";
+import ForecastMakerGroup from "./forecast_maker_group";
 import QuestionForecastMaker from "./forecast_maker_question";
 
 type Props = {
   postId: number;
-  groupOfQuestions?: { id: number; questions: QuestionWithForecasts[] };
+  groupOfQuestions?: PostGroupOfQuestions<QuestionWithForecasts>;
   conditional?: PostConditional<QuestionWithForecasts>;
   question?: QuestionWithForecasts;
   permission?: ProjectPermissions;
@@ -30,6 +34,8 @@ const ForecastMaker: FC<Props> = ({
     return (
       <ForecastMakerGroup
         postId={postId}
+        resolutionCriteria={groupOfQuestions.resolution_criteria_description}
+        finePrint={groupOfQuestions.fine_print}
         questions={groupOfQuestions.questions}
         permission={permission}
         canPredict={canPredict}

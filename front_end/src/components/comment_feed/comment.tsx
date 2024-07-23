@@ -3,13 +3,13 @@
 import { faChevronRight, faReply } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
-import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import { softDeleteComment, editComment } from "@/app/(main)/questions/actions";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentVoter from "@/components/comment_feed/comment_voter";
+import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
@@ -17,10 +17,6 @@ import { CommentPermissions, CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
 
 import IncludedForecast from "./included_forecast";
-
-const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
-  ssr: false,
-});
 
 const copyToClipboard = async (text: string) => {
   try {

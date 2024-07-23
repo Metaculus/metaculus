@@ -1,14 +1,10 @@
 "use client";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
-const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
-  ssr: false,
-});
-import imagePlaceholder from "@/app/assets/images/tournament.webp";
+import MarkdownEditor from "@/components/markdown_editor";
 import CircleDivider from "@/components/ui/circle_divider";
 import useContainerSize from "@/hooks/use_container_size";
 import { PostWithNotebook } from "@/types/post";
