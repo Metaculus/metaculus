@@ -38,6 +38,7 @@ const PostCard: FC<Props> = ({ post }) => {
           )}
           {!!post.conditional && (
             <ConditionalTile
+              postTitle={post.title}
               conditional={post.conditional}
               curationStatus={post.status}
             />

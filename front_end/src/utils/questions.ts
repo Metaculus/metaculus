@@ -57,6 +57,18 @@ export function canResolveQuestion(
   );
 }
 
+export function getConditionTitle(
+  postTitle: string,
+  condition: Question
+): string {
+  const titleCandidate = postTitle.split("→")[0];
+  if (titleCandidate) {
+    return titleCandidate.trim();
+  }
+
+  return condition.title;
+}
+
 export function getConditionalQuestionTitle(question: Question): string {
   const titleCandidate = question.title.split("→")[1];
   if (titleCandidate) {

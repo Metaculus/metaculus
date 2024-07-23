@@ -13,6 +13,7 @@ import QuestionForecastMaker from "./forecast_maker_question";
 
 type Props = {
   postId: number;
+  postTitle: string;
   groupOfQuestions?: PostGroupOfQuestions<QuestionWithForecasts>;
   conditional?: PostConditional<QuestionWithForecasts>;
   question?: QuestionWithForecasts;
@@ -23,6 +24,7 @@ type Props = {
 
 const ForecastMaker: FC<Props> = ({
   postId,
+  postTitle,
   conditional,
   question,
   groupOfQuestions,
@@ -48,6 +50,7 @@ const ForecastMaker: FC<Props> = ({
     return (
       <ForecastMakerConditional
         postId={postId}
+        postTitle={postTitle}
         conditional={conditional}
         canPredict={canPredict}
         canResolve={canResolve}
