@@ -121,7 +121,7 @@ export function generateFiltersFromSearchParams(
   } else if (defaultOrderBy) {
     filters.order_by = defaultOrderBy;
 
-    if (!filters.statuses) {
+    if (!filters.statuses && !filters.search) {
       filters.statuses = [PostStatus.OPEN];
     }
   }
