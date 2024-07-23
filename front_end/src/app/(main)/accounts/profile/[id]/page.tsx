@@ -25,12 +25,17 @@ export default async function Profile({
   const isCurrentUser = currentUser?.id === +id;
   const t = await getTranslations();
 
-  const profile = isCurrentUser
-    ? currentUser
-    : await ProfileApi.getProfileById(id);
+  let profile = await ProfileApi.getProfileById(id);
 
   if (!profile) {
     return notFound();
+  }
+
+  if (isCurrentUser) {
+    profile = {
+      ...profile,
+      ...currentUser,
+    };
   }
   const mode = searchParams.mode || "overview";
   return (
