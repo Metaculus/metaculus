@@ -14,7 +14,10 @@ import {
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import useAppTheme from "@/hooks/use_app_theme";
 
-const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
+const CalibrationChart: React.FC<{ data: any; showIntervals?: boolean }> = ({
+  data,
+  showIntervals = true,
+}) => {
   const calibrationData = data;
 
   const { theme, getThemeColor } = useAppTheme();
@@ -80,17 +83,19 @@ const CalibrationChart: React.FC<{ data: any }> = ({ data }) => {
           style={{ data: { fill: "darkgray", opacity: 1 } }}
         />
         {/* Confidence interval area */}
-        <VictoryBar
-          barRatio={1.1}
-          data={calibrationData.map((d: any, index: number) => {
-            return {
-              x: (index + 0.5) / calibrationData.length,
-              y0: d.user_lower_quartile,
-              y: d.user_upper_quartile,
-            };
-          })}
-          style={{ data: { fill: "lightgray", opacity: 0.5 } }}
-        />
+        {showIntervals && (
+          <VictoryBar
+            barRatio={1.1}
+            data={calibrationData.map((d: any, index: number) => {
+              return {
+                x: (index + 0.5) / calibrationData.length,
+                y0: d.user_lower_quartile,
+                y: d.user_upper_quartile,
+              };
+            })}
+            style={{ data: { fill: "lightgray", opacity: 0.5 } }}
+          />
+        )}
       </VictoryChart>
     </div>
   );
