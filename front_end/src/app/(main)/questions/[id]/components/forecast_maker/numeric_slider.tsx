@@ -8,7 +8,6 @@ import MultiSlider, {
 } from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
 import { QuestionWithNumericForecasts } from "@/types/question";
-import { getIsForecastEmpty } from "@/utils/forecasts";
 
 type Props = {
   forecast: MultiSliderValue[];

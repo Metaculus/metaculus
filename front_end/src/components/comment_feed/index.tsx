@@ -27,10 +27,6 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchComments();
-  }, []);
-
-  useEffect(() => {
     setShownComments(
       comments.filter((comment) =>
         feedSection === "public" ? !comment.is_private : comment.is_private
@@ -38,21 +34,25 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
     );
   }, [comments, feedSection]);
 
-  const fetchComments = async (url: string = "/comments") => {
-    try {
-      setIsLoading(true);
-      const response = await getComments(url, {
-        post: postId,
-        author: profileId,
-        parent_isnull: postId ? true : false,
-      });
-      setComments(() => [...(response ? (response as CommentType[]) : [])]);
-      setIsLoading(false);
-    } catch (err) {
-      console.error("Error fetching comments:", err);
-    } finally {
-    }
-  };
+  useEffect(() => {
+    const fetchComments = async (url: string = "/comments") => {
+      try {
+        setIsLoading(true);
+        const response = await getComments(url, {
+          post: postId,
+          author: profileId,
+          parent_isnull: !!postId,
+        });
+        setComments(() => [...(response ? (response as CommentType[]) : [])]);
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error fetching comments:", err);
+      } finally {
+      }
+    };
+
+    void fetchComments();
+  }, [postId, profileId]);
 
   let url = "";
 

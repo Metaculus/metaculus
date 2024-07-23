@@ -74,6 +74,15 @@ export type PostConditional<QT> = {
   question_no: QT;
 };
 
+export type PostGroupOfQuestions<QT> = {
+  id: number;
+  description: string;
+  resolution_criteria_description: string;
+  fine_print: string;
+  group_variable: string;
+  questions: QT[];
+};
+
 export type Notebook = {
   id: number;
   created_at: string;
@@ -104,14 +113,7 @@ export type Post<QT = Question> = {
   author_id: number;
   question?: QT;
   conditional?: PostConditional<QT>;
-  group_of_questions: {
-    id: number;
-    description: string;
-    resolution_criteria_description: string;
-    fine_print: string;
-    group_variable: string;
-    questions: QT[];
-  };
+  group_of_questions?: PostGroupOfQuestions<QT>;
   notebook?: Notebook;
   curation_status: PostStatus;
   status: PostStatus;

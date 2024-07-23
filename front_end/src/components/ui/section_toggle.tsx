@@ -11,16 +11,18 @@ import { FC, PropsWithChildren } from "react";
 
 type Props = {
   title?: string;
+  defaultOpen?: boolean;
   className?: string;
 };
 
 const SectionToggle: FC<PropsWithChildren<Props>> = ({
   title,
+  defaultOpen,
   className,
   children,
 }) => {
   return (
-    <Disclosure>
+    <Disclosure defaultOpen={defaultOpen}>
       <DisclosureButton
         className={classNames(
           "my-4 flex w-full items-center gap-2.5 bg-blue-200 p-1 text-sm leading-4 text-gray-900 dark:bg-blue-200-dark dark:text-gray-900-dark",

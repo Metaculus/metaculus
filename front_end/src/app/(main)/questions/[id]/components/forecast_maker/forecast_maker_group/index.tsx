@@ -10,9 +10,12 @@ import {
 
 import ForecastMakerGroupBinary from "./forecast_maker_group_binary";
 import ForecastMakerGroupNumeric from "./forecast_maker_group_numeric";
+import ForecastMakerContainer from "../container";
 
 type Props = {
   postId: number;
+  resolutionCriteria: string | null;
+  finePrint: string;
   questions: QuestionWithForecasts[];
   permission?: ProjectPermissions;
   canPredict: boolean;
@@ -21,6 +24,8 @@ type Props = {
 
 const ForecastMakerGroup: FC<Props> = ({
   postId,
+  resolutionCriteria,
+  finePrint,
   questions,
   permission,
   canResolve,
@@ -63,12 +68,18 @@ const ForecastMakerGroup: FC<Props> = ({
   };
 
   return (
-    <section className="bg-blue-200 p-3 dark:bg-blue-200-dark">
-      <h3 className="m-0 text-base font-normal leading-5">
-        {t("MakePrediction")}
-      </h3>
-      <div className="mt-3">{renderForecastMaker()}</div>
-    </section>
+    <ForecastMakerContainer
+      title={t("MakePrediction")}
+      resolutionCriteria={[
+        {
+          title: t("resolutionCriteria"),
+          content: resolutionCriteria,
+          finePrint,
+        },
+      ]}
+    >
+      {renderForecastMaker()}
+    </ForecastMakerContainer>
   );
 };
 

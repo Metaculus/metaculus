@@ -6,9 +6,6 @@ import { FC, useCallback, useMemo, useState } from "react";
 import React from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
-import BinarySlider, {
-  BINARY_FORECAST_PRECISION,
-} from "@/components/forecast_maker/binary_slider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
@@ -18,6 +15,7 @@ import { PostConditional } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
+import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";

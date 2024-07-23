@@ -2,10 +2,8 @@
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
+import ForecastMakerContainer from "@/app/(main)/questions/[id]/components/forecast_maker/container";
 import { createForecast } from "@/app/(main)/questions/actions";
-import NumericSlider from "@/components/forecast_maker/numeric_slider";
-import NumericForecastTable from "@/components/forecast_maker/numeric_table";
-import QuestionResolutionButton from "@/components/forecast_maker/resolution";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import { ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
@@ -15,6 +13,10 @@ import {
   normalizeWeights,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
+
+import NumericSlider from "../numeric_slider";
+import NumericForecastTable from "../numeric_table";
+import QuestionResolutionButton from "../resolution";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -54,7 +56,7 @@ const ForecastMakerNumeric: FC<Props> = ({
         question.open_lower_bound!,
         question.open_upper_bound!
       ),
-    [forecast, weights]
+    [forecast, question.open_lower_bound, question.open_upper_bound, weights]
   );
 
   const userCdf: number[] = dataset.cdf;
