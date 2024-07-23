@@ -23,7 +23,7 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
   const categories = getMedalCategories(userMedals, true);
 
   return (
-    <section className="mt-4 rounded bg-white p-6 dark:bg-blue-900">
+    <section className="rounded bg-white p-6 dark:bg-blue-900">
       <div className="mb-5 flex w-full flex-row items-center justify-between">
         <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
           {t("medals")}
