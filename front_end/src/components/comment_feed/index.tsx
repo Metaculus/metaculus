@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 
 import { markPostAsRead } from "@/app/(main)/questions/actions";
 import { getComments } from "@/app/(main)/questions/actions";
@@ -42,44 +42,50 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
     void fetchComments();
   }, [postId, profileId]);
 
-  const fetchComments = async (url: string = "/comments") => {
-    try {
-      setIsLoading(true);
-      const response = await getComments(url, {
-        post: postId,
-        author: profileId,
-        parent_isnull: !!postId,
-        page: nextPage,
-      });
-      if ("errors" in response) {
-        console.error("Error fetching comments:", response.errors);
-        setCommentTotal(0);
-      } else {
-        setCommentTotal(0);
-        /* this is wrong 
+  const fetchComments = useCallback(
+    async (url: string = "/comments") => {
+      try {
+        setIsLoading(true);
+        const response = await getComments(url, {
+          post: postId,
+          author: profileId,
+          parent_isnull: !!postId,
+          page: nextPage,
+        });
+        if ("errors" in response) {
+          console.error("Error fetching comments:", response.errors);
+          setCommentTotal(0);
+        } else {
+          setCommentTotal(0);
+          /* this is wrong 
           if (response.count) {
             setCommentTotal(response.count);
           }
         */
-        if (nextPage && nextPage > 1) {
-          setComments((prevComments) => [...prevComments, ...response.results]);
-        } else {
-          setComments(response.results);
+          if (nextPage && nextPage > 1) {
+            setComments((prevComments) => [
+              ...prevComments,
+              ...response.results,
+            ]);
+          } else {
+            setComments(response.results);
+          }
+          if (response.next) {
+            const nextPageNumber = new URL(response.next).searchParams.get(
+              "page"
+            );
+            setNextPage(nextPageNumber ? Number(nextPageNumber) : undefined);
+          } else {
+            setNextPage(undefined);
+          }
         }
-        if (response.next) {
-          const nextPageNumber = new URL(response.next).searchParams.get(
-            "page"
-          );
-          setNextPage(nextPageNumber ? Number(nextPageNumber) : undefined);
-        } else {
-          setNextPage(undefined);
-        }
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error fetching comments:", err);
       }
-      setIsLoading(false);
-    } catch (err) {
-      console.error("Error fetching comments:", err);
-    }
-  };
+    },
+    [postId, profileId, nextPage]
+  );
 
   let permissions: CommentPermissions = CommentPermissions.VIEWER;
   if (
