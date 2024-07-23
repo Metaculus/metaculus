@@ -49,7 +49,7 @@ const NumericSlider: FC<Props> = ({
       />
       {forecast.map((x, index) => {
         return (
-          <div key={index}>
+          <div className="px-2.5" key={index}>
             <MultiSlider
               key={`multi-slider-${index}`}
               min={0}

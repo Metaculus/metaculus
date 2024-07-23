@@ -1,9 +1,8 @@
 "use client";
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { forEach, round } from "lodash";
+import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import percentRound from "percent-round";
 import { FC, useCallback, useMemo, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
