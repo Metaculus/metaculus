@@ -84,7 +84,7 @@ const LeaderboardTable: FC<Props> = ({
               <LeaderboardRow
                 key={`ranking-row-${category}-${entry.user.id}`}
                 rowEntry={entry}
-                href={`/medals?${MEDALS_USER_FILTER}=${entry.user.id}&${MEDALS_PATH_FILTER}=${MedalsPath.Leaderboard}`}
+                href={`/accounts/profile/${entry.user.id}?mode=medals`}
               />
             ))
           ) : (
