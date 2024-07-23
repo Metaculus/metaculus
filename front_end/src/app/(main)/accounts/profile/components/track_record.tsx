@@ -9,13 +9,40 @@ import { UserProfile } from "@/types/users";
 
 const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
   const t = useTranslations();
+  const keyStatStyles =
+    "flex w-1/3 flex-col min-h-[100px] justify-center gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950";
 
   return (
-    <div>
-      <div className="flex flex-col gap-6 rounded bg-white p-6 dark:bg-blue-900">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col rounded bg-white p-6 dark:bg-blue-900">
+        <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
+          Calibration Curve
+        </h3>
         {profile.calibration_curve && (
           <CalibrationChart data={profile.calibration_curve} />
         )}
+        <div className="flex flex-col items-center space-y-3 divide-y divide-gray-300 dark:divide-gray-700">
+          <div className="flex flex-row gap-6">
+            <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
+              <span className="block h-4 w-7 bg-gray-500/30"></span>confidence
+              interval
+            </div>
+            <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
+              <span className="block h-1 w-7 bg-gray-500"></span>perfect
+              calibration
+            </div>
+            <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
+              <span className="block size-2 rotate-45 bg-[#ffa500]"></span>
+              user&apos;s calibration
+            </div>
+          </div>
+          <span className="pt-3 text-center text-sm text-gray-600 dark:text-gray-400">
+            If the diamonds are close to the grey lines, the predictions are
+            well-calibrated at that confidence level. If the diamonds are closer
+            to the 50% than the diamonds, the predictions were underconfident,
+            and vice-versa.
+          </span>
+        </div>
       </div>
 
       <div className="flex flex-col rounded bg-white p-6 dark:bg-blue-900 ">
@@ -26,7 +53,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
         </div>
         <h3 className="mb-5 mt-0 pt-0 text-gray-700 dark:text-gray-300"></h3>
         <div className="flex flex-row gap-4">
-          <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+          <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
               {profile.avg_score
                 ? Math.round(profile.avg_score * 100) / 100
@@ -36,7 +63,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
               AVG SCORE
             </span>
           </div>
-          <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+          <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
               {profile.nr_forecasts}
             </span>
@@ -44,7 +71,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
               PREDICTIONS
             </span>
           </div>
-          <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+          <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
               {profile.questions_predicted}
             </span>
@@ -52,7 +79,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
               QUESTIONS PREDICTED
             </span>
           </div>
-          <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+          <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
               {profile.questions_predicted_scored}
             </span>
@@ -71,7 +98,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
         </div>
         <h3 className="mb-5 mt-0 pt-0 text-gray-700 dark:text-gray-300"></h3>
         <div className="flex flex-row gap-4">
-          <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+          <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
               {profile.question_authored}
             </span>
@@ -79,7 +106,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
               QUESTIONS AUTHORED
             </span>
           </div>
-          <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+          <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
               {0}
             </span>
@@ -87,7 +114,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
               PREDICTIONS ON AUTHORED QUESTIONS
             </span>
           </div>
-          <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+          <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
               {profile.notebooks_authored}
             </span>
@@ -95,7 +122,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
               NOTEBOOKS AUTHORED
             </span>
           </div>
-          <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+          <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
               {profile.comments_authored}
             </span>
