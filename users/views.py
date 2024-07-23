@@ -47,12 +47,19 @@ def get_serialized_user(request, user, Serializer):
     scores = []
     questions_predicted = []
     questions_predicted_socred = []
+
+    question_score_map = {
+        score.question_id: score
+        for score in Score.objects.filter(
+            user=user, score_type=Score.ScoreTypes.BASELINE
+        )
+    }
+
     for forecast in forecasts:
         question = forecast.question
         if question.id not in questions_predicted:
             questions_predicted.append(question.id)
-            score = Score.objects.filter(user=user, question=question).first()
-            if score:
+            if score := question_score_map.get(question.id):
                 scores.append(score.score)
                 questions_predicted_socred.append(question.id)
 
@@ -120,7 +127,12 @@ def get_serialized_user(request, user, Serializer):
 
 @api_view(["GET"])
 def current_user_api_view(request):
-    return Response(get_serialized_user(request, request.user, UserPrivateSerializer))
+    """
+    A lightweight profile data of the current user
+    Should contain minimum profile data without heavy calcs
+    """
+
+    return Response(UserPrivateSerializer(request.user).data)
 
 
 @api_view(["GET"])
