@@ -40,17 +40,17 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
           <div
             key={index}
             className={classNames(
-              "flex w-full flex-col items-center justify-center rounded border border-gray-300 bg-white dark:border-gray-300-dark dark:bg-blue-950/50",
+              "flex w-full flex-col items-center justify-center rounded  bg-blue-100 dark:bg-blue-950/50",
               { "sm:col-span-2": category.name === "tournament" }
             )}
           >
             <Link
               href={`/accounts/profile/${profileId}?mode=medals`}
-              className="flex w-full items-center justify-center gap-3 self-stretch px-5 py-4 text-lg font-medium text-blue-800 no-underline dark:text-blue-800-dark"
+              className="flex w-full items-center justify-center gap-3 self-stretch px-5 py-3 text-lg font-medium text-blue-800 no-underline dark:text-blue-800-dark"
             >
               <span>{t(RANKING_CATEGORIES[category.name].translationKey)}</span>
             </Link>
-            <div className="flex min-h-[65px] flex-wrap content-center items-center justify-center gap-[13px] self-stretch border-t border-gray-300 bg-blue-100 p-4 dark:border-gray-300-dark dark:bg-blue-100-dark">
+            <div className="flex flex-wrap content-center items-center justify-center gap-[13px] self-stretch rounded-b bg-blue-200 p-3 dark:bg-blue-100-dark">
               {!!category.medals.length ? (
                 category.medals.map((medal, index) => {
                   const TooltipContent = (
@@ -74,7 +74,7 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
                       key={index}
                     >
                       <a href={`/accounts/profile/${profileId}?mode=medals`}>
-                        <MedalIcon type={medal.type} className="size-8" />
+                        <MedalIcon type={medal.type} className="size-6" />
                       </a>
                     </Tooltip>
                   );
