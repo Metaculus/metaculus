@@ -6,14 +6,8 @@ import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
-import PostDropdownMenu from "@/app/(main)/questions/[id]/components/question_dropdown_menu";
-import QuestionEmbedButton from "@/app/(main)/questions/[id]/components/question_embed_button";
-import QuestionEmbedModal from "@/app/(main)/questions/[id]/components/question_embed_modal";
-import ShareQuestionMenu from "@/app/(main)/questions/[id]/components/share_question_menu";
-import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
-import ForecastMaker from "@/components/forecast_maker";
 import Button from "@/components/ui/button";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import PostsApi from "@/services/posts";
@@ -21,9 +15,16 @@ import { SearchParams } from "@/types/navigation";
 import { Post, PostStatus, ProjectPermissions } from "@/types/post";
 import { getConditionalQuestionTitle } from "@/utils/questions";
 
+import BackgroundInfo from "../components/background_info";
 import DetailedGroupCard from "../components/detailed_group_card";
 import DetailedQuestionCard from "../components/detailed_question_card";
+import ForecastMaker from "../components/forecast_maker";
 import Modbox from "../components/modbox";
+import PostDropdownMenu from "../components/question_dropdown_menu";
+import QuestionEmbedButton from "../components/question_embed_button";
+import QuestionEmbedModal from "../components/question_embed_modal";
+import ShareQuestionMenu from "../components/share_question_menu";
+import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 
 type Props = {
   params: { id: number; slug: string[] };
@@ -112,8 +113,10 @@ export default async function IndividualQuestion({
             </div>
             {!!postData.conditional && (
               <ConditionalTile
+                postTitle={postData.title}
                 conditional={postData.conditional}
                 curationStatus={postData.status}
+                withNavigation
               />
             )}
             {!!postData.group_of_questions && (
@@ -127,6 +130,7 @@ export default async function IndividualQuestion({
             )}
             <ForecastMaker
               postId={postData.id}
+              postTitle={postData.title}
               permission={postData.user_permission}
               question={postData.question}
               conditional={postData.conditional}
@@ -185,6 +189,7 @@ export default async function IndividualQuestion({
                 </div>
               </div>
             </div>
+            <BackgroundInfo post={postData} />
             <CommentFeed
               postId={postData.id}
               postPermissions={postData.user_permission}

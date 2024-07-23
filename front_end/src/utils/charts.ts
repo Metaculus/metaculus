@@ -55,20 +55,21 @@ export function generateTimestampXScale(
   const oneMinute = 60 * 1000;
   const oneHour = 60 * oneMinute;
   const oneDay = 24 * oneHour;
-  const oneWeek = 7 * oneDay;
-  const threeWeeks = oneWeek * 3;
   const oneMonth = 30 * oneDay;
+  const halfYear = 6 * oneMonth;
   const oneYear = 365 * oneDay;
 
   let ticks;
   let format;
+  let cursorFormat;
   const start = fromUnixTime(xDomain[0]);
   const end = fromUnixTime(xDomain[1]);
   const timeRange = differenceInMilliseconds(end, start);
   const maxTicks = Math.floor(width / 80);
   if (timeRange < oneHour) {
     ticks = d3.timeMinute.range(start, end);
-    format = d3.timeFormat("%H:%M");
+    format = d3.timeFormat("%_I:%M %p");
+    cursorFormat = d3.timeFormat("%_I:%M %p, %b %d");
   } else if (timeRange < oneDay) {
     const every30Minutes = d3.timeMinute.every(30);
     if (every30Minutes) {
@@ -76,19 +77,25 @@ export function generateTimestampXScale(
     } else {
       ticks = d3.timeHour.range(start, end);
     }
-    format = d3.timeFormat("%H:%M");
-  } else if (timeRange < threeWeeks) {
+    format = d3.timeFormat("%_I:%M %p");
+    cursorFormat = d3.timeFormat("%_I:%M %p, %b %d");
+  } else if (timeRange < halfYear) {
     ticks = d3.timeDay.range(start, end);
     format = d3.timeFormat("%b %d");
-  } else if (timeRange < oneMonth) {
-    ticks = d3.timeWeek.range(start, end);
-    format = d3.timeFormat("%b %d");
+    cursorFormat = d3.timeFormat("%b %d, %Y");
   } else if (timeRange < oneYear) {
     ticks = d3.timeMonth.range(start, end);
-    format = d3.timeFormat("%b %Y");
+    format = d3.timeFormat("%b %d");
+    cursorFormat = d3.timeFormat("%b %d, %Y");
   } else {
-    ticks = d3.timeYear.range(start, end);
-    format = d3.timeFormat("%Y");
+    ticks = d3.timeMonth.range(start, end);
+    format = (date: Date) => {
+      const isFirstMonthOfYear = date.getMonth() === 0;
+      return isFirstMonthOfYear
+        ? d3.timeFormat("%Y")(date)
+        : d3.timeFormat("%b %e")(date);
+    };
+    cursorFormat = d3.timeFormat("%b %d, %Y");
   }
 
   return {
@@ -102,12 +109,9 @@ export function generateTimestampXScale(
         return "";
       }
 
-      if (ticks && index >= ticks.length - 2) {
-        return "";
-      }
-
       return format(fromUnixTime(x));
     },
+    cursorFormat: (x: number) => cursorFormat(fromUnixTime(x)),
   };
 }
 

@@ -4,11 +4,6 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
-import ConditionalForecastTable, {
-  ConditionalTableOption,
-} from "@/components/forecast_maker/conditional_forecast_table";
-import NumericSlider from "@/components/forecast_maker/numeric_slider";
-import NumericForecastTable from "@/components/forecast_maker/numeric_table";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
@@ -24,8 +19,15 @@ import {
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
+import ConditionalForecastTable, {
+  ConditionalTableOption,
+} from "../conditional_forecast_table";
+import NumericSlider from "../numeric_slider";
+import NumericForecastTable from "../numeric_table";
+
 type Props = {
   postId: number;
+  postTitle: string;
   conditional: PostConditional<QuestionWithNumericForecasts>;
   prevYesForecast?: any;
   prevNoForecast?: any;
@@ -34,6 +36,7 @@ type Props = {
 
 const ForecastMakerConditionalNumeric: FC<Props> = ({
   postId,
+  postTitle,
   conditional,
   prevYesForecast,
   prevNoForecast,
@@ -43,7 +46,7 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
-  const { question_yes, question_no } = conditional;
+  const { condition, condition_child, question_yes, question_no } = conditional;
   const questionYesId = question_yes.id;
   const questionNoId = question_no.id;
 
@@ -242,6 +245,10 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
     prevYesForecastValue?.weights,
     questionNoId,
     questionYesId,
+    question_no.open_lower_bound,
+    question_no.open_upper_bound,
+    question_yes.open_lower_bound,
+    question_yes.open_upper_bound,
   ]);
 
   const handlePredictSubmit = async () => {
@@ -302,8 +309,10 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
   return (
     <>
       <ConditionalForecastTable
-        condition={conditional.condition}
-        childQuestion={conditional.question_yes}
+        postTitle={postTitle}
+        condition={condition}
+        conditionChild={condition_child}
+        childQuestion={question_yes}
         options={questionOptions}
         value={activeTableOption}
         onChange={setActiveTableOption}

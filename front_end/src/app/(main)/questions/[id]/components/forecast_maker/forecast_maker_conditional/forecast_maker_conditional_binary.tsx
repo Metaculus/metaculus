@@ -6,9 +6,6 @@ import { FC, useCallback, useMemo, useState } from "react";
 import React from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
-import BinarySlider, {
-  BINARY_FORECAST_PRECISION,
-} from "@/components/forecast_maker/binary_slider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
@@ -18,12 +15,14 @@ import { PostConditional } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
+import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";
 
 type Props = {
   postId: number;
+  postTitle: string;
   conditional: PostConditional<QuestionWithNumericForecasts>;
   prevYesForecast?: any;
   prevNoForecast?: any;
@@ -32,6 +31,7 @@ type Props = {
 
 const ForecastMakerConditionalBinary: FC<Props> = ({
   postId,
+  postTitle,
   conditional,
   prevYesForecast,
   prevNoForecast,
@@ -44,7 +44,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const prevYesForecastValue = extractPrevBinaryForecastValue(prevYesForecast);
   const prevNoForecastValue = extractPrevBinaryForecastValue(prevNoForecast);
 
-  const { question_yes, question_no } = conditional;
+  const { condition, condition_child, question_yes, question_no } = conditional;
   const questionYesId = question_yes.id;
   const questionNoId = question_no.id;
 
@@ -227,7 +227,9 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   return (
     <>
       <ConditionalForecastTable
-        condition={conditional.condition}
+        postTitle={postTitle}
+        condition={condition}
+        conditionChild={condition_child}
         childQuestion={conditional.question_yes}
         options={questionOptions}
         value={activeTableOption}

@@ -3,13 +3,13 @@
 import { faChevronRight, faReply } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
-import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
 import { softDeleteComment, editComment } from "@/app/(main)/questions/actions";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentVoter from "@/components/comment_feed/comment_voter";
+import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
@@ -17,10 +17,6 @@ import { CommentPermissions, CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
 
 import IncludedForecast from "./included_forecast";
-
-const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
-  ssr: false,
-});
 
 const copyToClipboard = async (text: string) => {
   try {
@@ -32,7 +28,6 @@ const copyToClipboard = async (text: string) => {
 
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
-  url: string;
   permissions: CommentPermissions;
   expandedChildren?: boolean;
   treeDepth: number;
@@ -40,7 +35,6 @@ type CommentChildrenTreeProps = {
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   commentChildren,
-  url,
   permissions,
   expandedChildren = false,
   treeDepth,
@@ -54,10 +48,10 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
     let totalChildren = 0;
     commentChildren.forEach((comment) => {
       if (comment.children.length === 0) {
-        // count just this parent comment itself
+        // count just this parent comment with no children
         totalChildren += 1;
       } else {
-        // count the parent comment, and its children
+        // count this comment plus its children
         totalChildren += getTreeSize(comment.children) + 1;
       }
     });
@@ -91,7 +85,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
       >
         {treeDepth < 5 && (
           <div
-            className="absolute inset-y-0 -left-2 w-4 cursor-pointer after:absolute after:inset-y-0 after:left-2 after:block after:w-px after:border-l after:border-gray-600 after:content-[''] after:dark:border-gray-600-dark"
+            className="absolute inset-y-0 -left-2 w-4 cursor-pointer after:absolute after:inset-y-0 after:left-2 after:block after:w-px after:border-l after:border-gray-600 after:content-[''] after:hover:border-gray-800 after:dark:border-gray-600-dark after:hover:dark:border-gray-800-dark"
             onClick={() => {
               setChildrenExpanded(!childrenExpanded);
             }}
@@ -102,7 +96,6 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
             <Comment
               key={child.id}
               comment={child}
-              url={url}
               permissions={permissions}
               treeDepth={treeDepth}
             />
@@ -114,7 +107,6 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
 
 type CommentProps = {
   comment: CommentType;
-  url: string;
   permissions: CommentPermissions;
   onProfile?: boolean;
   treeDepth: number;
@@ -122,7 +114,6 @@ type CommentProps = {
 
 const Comment: FC<CommentProps> = ({
   comment,
-  url,
   permissions,
   onProfile = false,
   treeDepth,
@@ -153,7 +144,7 @@ const Comment: FC<CommentProps> = ({
       id: "copyLink",
       name: t("copyLink"),
       onClick: () => {
-        copyToClipboard(`${url}#comment-${comment.id}`);
+        copyToClipboard(`${window.location.href}#comment-${comment.id}`);
       },
     },
     {
@@ -200,7 +191,6 @@ const Comment: FC<CommentProps> = ({
         {comment.children.length > 0 && (
           <CommentChildrenTree
             commentChildren={comment.children}
-            url={url}
             permissions={permissions}
             treeDepth={treeDepth + 1}
           />
@@ -306,7 +296,6 @@ const Comment: FC<CommentProps> = ({
       {comment.children.length > 0 && (
         <CommentChildrenTree
           commentChildren={comment.children}
-          url={url}
           permissions={permissions}
           expandedChildren={!onProfile}
           treeDepth={treeDepth + 1}

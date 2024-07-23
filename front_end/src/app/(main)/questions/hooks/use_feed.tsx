@@ -37,7 +37,7 @@ const useFeed = () => {
     }
 
     return FeedType.HOME;
-  }, [authorUsernames, guessedById, selectedTopic, user]);
+  }, [authorUsernames, guessedById, postStatus, selectedTopic, user]);
 
   // TODO: cleanup status when BE supports pending status
   const clearInReview = useCallback(() => {

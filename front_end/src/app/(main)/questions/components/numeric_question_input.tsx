@@ -95,6 +95,8 @@ const NumericQuestionInput: React.FC<{
       openLowerBound,
       zeroPoint
     );
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [min, max, openUpperBound, openLowerBound, zeroPoint]);
 
   return (

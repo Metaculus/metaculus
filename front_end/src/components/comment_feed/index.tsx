@@ -12,6 +12,8 @@ import { useAuth } from "@/contexts/auth_context";
 import { CommentPermissions, CommentType } from "@/types/comment";
 import { ProjectPermissions } from "@/types/post";
 
+import Button from "../ui/button";
+
 type Props = {
   postId?: number;
   postPermissions?: ProjectPermissions;
@@ -23,12 +25,10 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
   const { user } = useAuth();
   const [feedSection, setFeedSection] = useState("public");
   const [comments, setComments] = useState<CommentType[]>([]);
+  const [commentTotal, setCommentTotal] = useState<number | "?">("?");
   const [shownComments, setShownComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchComments();
-  }, []);
+  const [nextPage, setNextPage] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     setShownComments(
@@ -38,35 +38,56 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
     );
   }, [comments, feedSection]);
 
+  useEffect(() => {
+    void fetchComments();
+  }, [postId, profileId]);
+
   const fetchComments = async (url: string = "/comments") => {
     try {
       setIsLoading(true);
       const response = await getComments(url, {
         post: postId,
         author: profileId,
-        parent_isnull: postId ? true : false,
+        parent_isnull: !!postId,
+        page: nextPage,
       });
-      setComments(() => [...(response ? (response as CommentType[]) : [])]);
+      if ("errors" in response) {
+        console.error("Error fetching comments:", response.errors);
+        setCommentTotal(0);
+      } else {
+        setCommentTotal(0);
+        /* this is wrong 
+          if (response.count) {
+            setCommentTotal(response.count);
+          }
+        */
+        if (nextPage && nextPage > 1) {
+          setComments((prevComments) => [...prevComments, ...response.results]);
+        } else {
+          setComments(response.results);
+        }
+        if (response.next) {
+          const nextPageNumber = new URL(response.next).searchParams.get(
+            "page"
+          );
+          setNextPage(nextPageNumber ? Number(nextPageNumber) : undefined);
+        } else {
+          setNextPage(undefined);
+        }
+      }
       setIsLoading(false);
     } catch (err) {
       console.error("Error fetching comments:", err);
-    } finally {
     }
   };
 
-  let url = "";
-
   let permissions: CommentPermissions = CommentPermissions.VIEWER;
-  if (postId) {
-    url += `/questions/${postId}`;
-    if (
-      postPermissions === ProjectPermissions.ADMIN ||
-      postPermissions === ProjectPermissions.CURATOR
-    ) {
-      permissions = CommentPermissions.CURATOR;
-    }
-  } else if (profileId) {
-    url += `/accounts/profile/${profileId}`;
+  if (
+    postId &&
+    (postPermissions === ProjectPermissions.ADMIN ||
+      postPermissions === ProjectPermissions.CURATOR)
+  ) {
+    permissions = CommentPermissions.CURATOR;
   }
 
   useEffect(() => {
@@ -96,9 +117,9 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
   return (
     <section>
       <hr className="my-4" />
-      <div className="my-4 flex flex-row gap-4">
+      <div className="my-4 flex flex-row items-center gap-4">
         <h2
-          className="mb-1 mt-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
+          className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
           id="comment-section"
         >
           {t("comments")}
@@ -111,6 +132,7 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
           }}
           variant="tertiary"
         />
+        <span> {commentTotal} comments </span>
       </div>
       {postId && <CommentEditor postId={postId} />}
       {shownComments.map((comment: CommentType) => (
@@ -119,13 +141,19 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
           <Comment
             onProfile={profileId ? true : false}
             comment={comment}
-            url={url}
             permissions={permissions}
             treeDepth={0}
           />
         </div>
       ))}
       {isLoading && <LoadingIndicator className="mx-auto my-8 w-24" />}
+      {nextPage && (
+        <div className="flex items-center justify-center">
+          <Button onClick={() => fetchComments()} disabled={isLoading}>
+            {t("loadMoreComments")}
+          </Button>
+        </div>
+      )}
       {comments.length == 0 && !isLoading && (
         <>
           <hr className="my-4" />

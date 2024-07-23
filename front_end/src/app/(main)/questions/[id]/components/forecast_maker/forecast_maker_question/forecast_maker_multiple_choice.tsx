@@ -7,7 +7,6 @@ import percentRound from "percent-round";
 import { FC, useCallback, useMemo, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
-import QuestionResolutionButton from "@/components/forecast_maker/resolution";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
@@ -26,7 +25,9 @@ import {
   BINARY_MAX_VALUE,
   BINARY_MIN_VALUE,
 } from "../binary_slider";
+import ForecastMakerContainer from "../container";
 import ForecastChoiceOption from "../forecast_choice_option";
+import QuestionResolutionButton from "../resolution";
 
 type ChoiceOption = {
   name: string;
@@ -164,11 +165,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   };
 
   return (
-    <section className="bg-blue-200 p-3 dark:bg-blue-200-dark">
-      <h3 className="m-0 text-base font-normal leading-5">
-        {t("MakePrediction")}
-      </h3>
-      <table className="mt-3 border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
+    <>
+      <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
         <thead>
           <tr>
             <th className="bg-blue-100 p-2 text-left text-xs font-bold dark:bg-blue-100-dark">
@@ -258,7 +256,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       <div className="flex flex-col items-center justify-center">
         <QuestionResolutionButton question={question} permission={permission} />
       </div>
-    </section>
+    </>
   );
 };
 

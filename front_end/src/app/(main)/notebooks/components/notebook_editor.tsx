@@ -2,16 +2,13 @@
 
 import { Field, Input, Label } from "@headlessui/react";
 import classNames from "classnames";
-import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import React, { useState } from "react";
 
 import { updateNotebook } from "@/app/(main)/questions/actions";
+import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { PostWithNotebook } from "@/types/post";
-const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
-  ssr: false,
-});
 
 interface NotebookEditorProps {
   postData: PostWithNotebook;
