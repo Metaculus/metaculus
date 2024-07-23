@@ -1,7 +1,7 @@
 "use client";
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { round } from "lodash";
+import { forEach, round } from "lodash";
 import { useTranslations } from "next-intl";
 import percentRound from "percent-round";
 import { FC, useCallback, useMemo, useState } from "react";
@@ -120,8 +120,30 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const rescaleForecasts = () => {
     if (!forecastHasValues || !forecastsSum === null) return;
 
-    const newForecasts = percentRound(
-      choicesForecasts.map((choice) => choice.forecast!)
+    // Due to floating point arithmetic, the sum may be slightly off. We fix
+    // this by adjusting the max prediction to guarantee the sum is 1.
+    let adjustIndex = 0;
+    let maxValue = 0;
+    const newForecasts = choicesForecasts.map((choice, index) => {
+      const value = round(
+        Math.max(round((100 * choice.forecast!) / forecastsSum!, 1), 0.1),
+        1
+      );
+      if (value > maxValue) {
+        adjustIndex = index;
+        maxValue = value;
+      }
+      return value;
+    });
+
+    newForecasts[adjustIndex] = Math.max(
+      round(
+        newForecasts[adjustIndex] +
+          100 -
+          newForecasts.reduce((acc, value) => acc + value, 0),
+        1
+      ),
+      0.1
     );
 
     setChoicesForecasts((prev) =>
