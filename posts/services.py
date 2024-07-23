@@ -171,8 +171,10 @@ def get_posts_feed(
     # Search
     if search:
         qs = perform_post_search(qs, search)
-        # Force ordering by vector distance
-        order_by = "-rank"
+
+        if not order_by:
+            # Force ordering by search rank
+            order_by = "-rank"
 
     # Ordering
     if order_by:
@@ -404,14 +406,14 @@ def perform_post_search(qs, search_text: str):
     semantic_scores_by_id = semantic_scores_by_id or {}
 
     semantic_whens = [
-       When(id=key, then=Value(val)) for key, val in semantic_scores_by_id.items()
+        When(id=key, then=Value(val)) for key, val in semantic_scores_by_id.items()
     ]
 
     # Annotating embedding vector distance
     qs = qs.annotate(
         rank=Case(
             *semantic_whens,
-            default=1-CosineDistance("embedding_vector", embedding_vector),
+            default=1 - CosineDistance("embedding_vector", embedding_vector),
             output_field=FloatField(),
         )
     )
