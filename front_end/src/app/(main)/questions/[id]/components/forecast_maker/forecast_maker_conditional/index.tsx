@@ -14,6 +14,7 @@ import ForecastMakerContainer from "../container";
 
 type Props = {
   postId: number;
+  postTitle: string;
   conditional: PostConditional<QuestionWithForecasts>;
   canPredict: boolean;
   canResolve: boolean;
@@ -21,6 +22,7 @@ type Props = {
 
 const ForecastMakerConditional: FC<Props> = ({
   postId,
+  postTitle,
   conditional,
   canPredict,
   canResolve,
@@ -38,6 +40,7 @@ const ForecastMakerConditional: FC<Props> = ({
         return (
           <ForecastMakerConditionalBinary
             postId={postId}
+            postTitle={postTitle}
             conditional={
               conditional as PostConditional<QuestionWithNumericForecasts>
             }
@@ -55,6 +58,7 @@ const ForecastMakerConditional: FC<Props> = ({
         return (
           <ForecastMakerConditionalNumeric
             postId={postId}
+            postTitle={postTitle}
             conditional={
               conditional as PostConditional<QuestionWithNumericForecasts>
             }
