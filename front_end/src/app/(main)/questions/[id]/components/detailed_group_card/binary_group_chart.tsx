@@ -150,7 +150,7 @@ const BinaryGroupChart: FC<Props> = ({
         />
       </div>
 
-      <div className="mb-4 mt-3">
+      <div className="mt-3">
         <ChoicesLegend
           choices={choiceItems}
           onChoiceChange={handleChoiceChange}

@@ -54,7 +54,7 @@ const UserInfo: FC<UserInfoProps> = ({
 
     setUser(state.user);
     setEditMode(false);
-  }, [state?.user]);
+  }, [setUser, state?.user]);
 
   return (
     <form action={formAction}>

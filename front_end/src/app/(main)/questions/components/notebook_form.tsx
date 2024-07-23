@@ -1,13 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/form_field";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
@@ -18,10 +18,6 @@ import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import ProjectPicker from "./project_picker";
 import { createQuestionPost, updatePost } from "../actions";
-
-const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
-  ssr: false,
-});
 
 const notebookSchema = z.object({
   title: z.string().min(4).max(200),

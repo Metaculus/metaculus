@@ -1,8 +1,9 @@
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
-import ForecastTextInput from "@/components/forecast_maker/forecast_text_input";
 import Slider from "@/components/sliders/slider";
+
+import ForecastTextInput from "./forecast_text_input";
 
 const DEFAULT_SLIDER_VALUE = 50;
 export const BINARY_FORECAST_PRECISION = 3;

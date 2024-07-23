@@ -36,7 +36,7 @@ const MembersInvite: FC<Props> = ({ projectId, members }) => {
   useEffect(() => {
     setIsSubmitting(false);
     reset();
-  }, [members]);
+  }, [members, reset]);
 
   const onSubmit = useCallback(
     async ({ usernames }: FormData) => {

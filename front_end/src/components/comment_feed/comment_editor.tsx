@@ -1,21 +1,15 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import React, { useState } from "react";
 
 import { createComment } from "@/app/(main)/questions/actions";
+import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
-
-import IncludedForecast from "./included_forecast";
-
-const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
-  ssr: false,
-});
 
 interface CommentEditorProps {
   text?: string;

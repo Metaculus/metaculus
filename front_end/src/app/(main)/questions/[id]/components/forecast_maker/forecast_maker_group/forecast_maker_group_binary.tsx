@@ -13,7 +13,6 @@ import React, {
 } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
-import ForecastMakerGroupControls from "@/components/forecast_maker/forecast_maker_group/forecast_maker_group_menu";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
@@ -26,6 +25,7 @@ import { ThemeColor } from "@/types/theme";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 import { extractQuestionGroupName } from "@/utils/questions";
 
+import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import {
   BINARY_FORECAST_PRECISION,
   BINARY_MAX_VALUE,
