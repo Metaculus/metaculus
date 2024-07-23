@@ -56,93 +56,153 @@ const UserInfo: FC<UserInfoProps> = ({
     setEditMode(false);
   }, [setUser, state?.user]);
 
+  const hasContent =
+    profile.bio ||
+    profile.location ||
+    profile.occupation ||
+    profile.website ||
+    profile.twitter ||
+    profile.linkedin ||
+    profile.facebook ||
+    profile.github ||
+    profile.good_judgement_open ||
+    profile.kalshi ||
+    profile.manifold ||
+    profile.infer ||
+    profile.hypermind;
+
+  const hasDetailsContent =
+    profile.location ||
+    profile.occupation ||
+    profile.website ||
+    profile.twitter ||
+    profile.linkedin ||
+    profile.facebook ||
+    profile.github ||
+    profile.good_judgement_open ||
+    profile.kalshi ||
+    profile.manifold ||
+    profile.infer ||
+    profile.hypermind;
+  const keyStatStyles =
+    "flex w-1/3 flex-col min-h-[90px] justify-center gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950";
   return (
     <form action={formAction}>
-      <div className="flex flex-col gap-6 rounded bg-white p-6 dark:bg-blue-900">
-        {isCurrentUser && (
-          <div className="flex flex-col">
-            {editMode && (
-              <Button variant="primary" type="submit">
-                {t("submit")}
-              </Button>
-            )}
-            {!editMode && (
-              <Button variant="link" onClick={() => setEditMode(true)}>
-                {t("edit")}
-              </Button>
-            )}
-          </div>
-        )}
-        <div className="flex flex-col gap-2">
-          <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
-            {t("bio")}
-          </div>
-          <div className="flex content-center justify-between">
-            {editMode ? (
-              <>
-                <Textarea
-                  style={{ height: "150px" }}
-                  className="w-full rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic dark:border-gray-700-dark"
-                  placeholder={t("profileBioPlaceholder")}
-                  defaultValue={profile.bio}
-                  {...register("bio")}
-                />
-                <FormError errors={state?.errors} name={"bio"} />
-              </>
-            ) : (
-              <div className="flex items-center whitespace-pre-line text-base font-light">
-                {profile.bio}
+      {hasContent && (
+        <div
+          className={`flex flex-col ${hasDetailsContent ? "gap-6" : ""} rounded bg-white p-6 dark:bg-blue-900`}
+        >
+          {isCurrentUser && (
+            <div className="flex flex-col">
+              {editMode && (
+                <Button variant="primary" type="submit">
+                  {t("submit")}
+                </Button>
+              )}
+              {!editMode && (
+                <Button variant="link" onClick={() => setEditMode(true)}>
+                  {t("edit")}
+                </Button>
+              )}
+            </div>
+          )}
+          {profile.bio && (
+            <div className="flex flex-col gap-2">
+              <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
+                {t("bio")}
               </div>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-row justify-between">
-          <div className="flex w-full flex-col gap-1">
-            <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
-              {t("location")}
+              <div className="flex content-center justify-between">
+                {editMode ? (
+                  <>
+                    <Textarea
+                      style={{ height: "150px" }}
+                      className="w-full rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic dark:border-gray-700-dark"
+                      placeholder={t("profileBioPlaceholder")}
+                      defaultValue={profile.bio}
+                      {...register("bio")}
+                    />
+                    <FormError errors={state?.errors} name={"bio"} />
+                  </>
+                ) : (
+                  <div className="flex items-center whitespace-pre-line text-base font-light">
+                    {profile.bio}
+                  </div>
+                )}
+              </div>
             </div>
-            {editMode ? (
-              <Input
-                type="text"
-                {...register("location")}
-                defaultValue={profile.location}
-              ></Input>
-            ) : (
-              <div className="text-base font-light">{profile.location}</div>
-            )}
-          </div>
-          <div className="flex w-full flex-col gap-1">
-            <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
-              {t("occupation")}
-            </div>
+          )}
+          {hasDetailsContent && (
+            <div className="flex flex-row justify-between">
+              {profile.location && (
+                <div className="flex w-full flex-col gap-1">
+                  <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
+                    {t("location")}
+                  </div>
+                  {editMode ? (
+                    <Input
+                      type="text"
+                      {...register("location")}
+                      defaultValue={profile.location}
+                    />
+                  ) : (
+                    <div className="text-base font-light">
+                      {profile.location}
+                    </div>
+                  )}
+                </div>
+              )}
 
-            {editMode ? (
-              <Input
-                type="text"
-                {...register("occupation")}
-                defaultValue={profile.occupation}
-              ></Input>
-            ) : (
-              <div className="text-base font-light">{profile.occupation}</div>
-            )}
-          </div>
-          <div className="flex w-full flex-col gap-1">
-            <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
-              {t("links")}
+              {profile.occupation && (
+                <div className="flex w-full flex-col gap-1">
+                  <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
+                    {t("occupation")}
+                  </div>
+                  {editMode ? (
+                    <Input
+                      type="text"
+                      {...register("occupation")}
+                      defaultValue={profile.occupation}
+                    />
+                  ) : (
+                    <div className="text-base font-light">
+                      {profile.occupation}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(profile.website ||
+                profile.twitter ||
+                profile.linkedin ||
+                profile.facebook ||
+                profile.github ||
+                profile.good_judgement_open ||
+                profile.kalshi ||
+                profile.manifold ||
+                profile.infer ||
+                profile.hypermind) && (
+                <div className="flex w-full flex-col gap-1">
+                  <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
+                    {t("links")}
+                  </div>
+                  <SocialMediaSection
+                    user={profile}
+                    editMode={editMode}
+                    register={register}
+                    state={state}
+                  />
+                </div>
+              )}
             </div>
-            <SocialMediaSection
-              user={profile}
-              editMode={editMode}
-              register={register}
-              state={state}
-            />
-          </div>
+          )}
         </div>
-      </div>
+      )}
       <FormError errors={state?.errors} name={"non_field_errors"} />
-      <div className="flex flex-col gap-4 md:flex-row">
+      <div
+        className={`flex flex-col gap-4 md:flex-row ${hasContent ? "md:mt-4" : ""}`}
+      >
         <div className="w-full md:w-1/3">{MedalsComponent}</div>
-        <div className="mt-0 flex w-full flex-col gap-4 md:mt-4 md:w-2/3">
+        <div className="mt-0 flex w-full flex-col gap-4 md:w-2/3">
           <div className="flex flex-col rounded bg-white p-6 dark:bg-blue-900 ">
             <div className="flex w-full flex-row items-center justify-between">
               <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
@@ -157,7 +217,7 @@ const UserInfo: FC<UserInfoProps> = ({
             </div>
             <h3 className="mb-5 mt-0 pt-0 text-gray-700 dark:text-gray-300"></h3>
             <div className="flex flex-row gap-4">
-              <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+              <div className={keyStatStyles}>
                 <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
                   {profile.nr_forecasts}
                 </span>
@@ -165,7 +225,7 @@ const UserInfo: FC<UserInfoProps> = ({
                   {t("predictions")}
                 </span>
               </div>
-              <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+              <div className={keyStatStyles}>
                 <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
                   {profile.nr_comments}
                 </span>
@@ -173,7 +233,7 @@ const UserInfo: FC<UserInfoProps> = ({
                   {t("comments")}
                 </span>
               </div>
-              <div className="flex w-1/3 flex-col gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950">
+              <div className={keyStatStyles}>
                 <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
                   {format(new Date(profile.date_joined), "MM-yyyy")}
                 </span>
@@ -197,7 +257,10 @@ const UserInfo: FC<UserInfoProps> = ({
             </div>
             <div className="flex flex-col items-center gap-1">
               {profile.calibration_curve && (
-                <CalibrationChart data={profile.calibration_curve} />
+                <CalibrationChart
+                  data={profile.calibration_curve}
+                  showIntervals={false}
+                />
               )}
               <div className="flex flex-col items-center space-y-3 divide-y divide-gray-300 dark:divide-gray-700">
                 <div className="flex flex-row gap-6">
