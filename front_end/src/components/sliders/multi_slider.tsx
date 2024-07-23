@@ -106,34 +106,36 @@ const MultiSlider: FC<Props> = ({
   };
 
   return (
-    <Slider
-      min={min}
-      max={max}
-      step={step}
-      value={controlledValue}
-      range
-      onChange={(value) => handleValueChange(value as ControlledValue)}
-      onChangeComplete={() => {
-        persistedPositionOrigin.current = undefined;
-      }}
-      pushable={true}
-      allowCross={allowCross}
-      draggableTrack={false}
-      handleRender={(origin, props) => {
-        return (
-          <SliderThumb
-            {...origin.props}
-            active={props.index === 1}
-            onMouseDown={() => {
-              handlePressIn(props.index);
-            }}
-            onTouchStartCapture={() => {
-              handlePressIn(props.index);
-            }}
-          />
-        );
-      }}
-    />
+    <div className="px-2.5">
+      <Slider
+        min={min}
+        max={max}
+        step={step}
+        value={controlledValue}
+        range
+        onChange={(value) => handleValueChange(value as ControlledValue)}
+        onChangeComplete={() => {
+          persistedPositionOrigin.current = undefined;
+        }}
+        pushable={true}
+        allowCross={allowCross}
+        draggableTrack={false}
+        handleRender={(origin, props) => {
+          return (
+            <SliderThumb
+              {...origin.props}
+              active={props.index === 1}
+              onMouseDown={() => {
+                handlePressIn(props.index);
+              }}
+              onTouchStartCapture={() => {
+                handlePressIn(props.index);
+              }}
+            />
+          );
+        }}
+      />
+    </div>
   );
 };
 
