@@ -26,7 +26,7 @@ import {
   POST_TYPE_FILTER,
   POST_UPVOTED_BY_FILTER,
 } from "@/constants/posts_feed";
-import { PostsParams } from "@/services/posts";
+import Posts, { PostsParams } from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
 import {
   ForecastType,
@@ -120,6 +120,10 @@ export function generateFiltersFromSearchParams(
     filters.order_by = searchParams[POST_ORDER_BY_FILTER];
   } else if (defaultOrderBy) {
     filters.order_by = defaultOrderBy;
+
+    if (!filters.statuses) {
+      filters.statuses = [PostStatus.OPEN];
+    }
   }
 
   return filters;
