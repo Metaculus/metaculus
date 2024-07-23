@@ -22,6 +22,7 @@ import ConditionalForecastTable, {
 
 type Props = {
   postId: number;
+  postTitle: string;
   conditional: PostConditional<QuestionWithNumericForecasts>;
   prevYesForecast?: any;
   prevNoForecast?: any;
@@ -30,6 +31,7 @@ type Props = {
 
 const ForecastMakerConditionalBinary: FC<Props> = ({
   postId,
+  postTitle,
   conditional,
   prevYesForecast,
   prevNoForecast,
@@ -42,7 +44,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const prevYesForecastValue = extractPrevBinaryForecastValue(prevYesForecast);
   const prevNoForecastValue = extractPrevBinaryForecastValue(prevNoForecast);
 
-  const { question_yes, question_no } = conditional;
+  const { condition, condition_child, question_yes, question_no } = conditional;
   const questionYesId = question_yes.id;
   const questionNoId = question_no.id;
 
@@ -225,7 +227,9 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   return (
     <>
       <ConditionalForecastTable
-        condition={conditional.condition}
+        postTitle={postTitle}
+        condition={condition}
+        conditionChild={condition_child}
         childQuestion={conditional.question_yes}
         options={questionOptions}
         value={activeTableOption}

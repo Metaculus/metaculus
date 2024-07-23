@@ -5,7 +5,10 @@ import { VictoryThemeDefinition } from "victory";
 
 import { PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
-import { getConditionalQuestionTitle } from "@/utils/questions";
+import {
+  getConditionalQuestionTitle,
+  getConditionTitle,
+} from "@/utils/questions";
 
 import ConditionalCard from "./conditional_card";
 import ConditionalChart from "./conditional_chart";
@@ -13,19 +16,23 @@ import Arrow from "./icons/Arrow";
 import DisabledArrow from "./icons/DisabledArrow";
 
 type Props = {
+  postTitle: string;
   conditional: PostConditional<QuestionWithForecasts>;
   curationStatus: PostStatus;
+  withNavigation?: boolean;
   chartTheme?: VictoryThemeDefinition;
 };
 
 const ConditionalTile: FC<Props> = ({
+  postTitle,
   conditional,
   curationStatus,
+  withNavigation,
   chartTheme,
 }) => {
   const t = useTranslations();
 
-  const { condition, question_yes, question_no } = conditional;
+  const { condition, condition_child, question_yes, question_no } = conditional;
   const isEmbedded = !!chartTheme;
 
   const parentSuccessfullyResolved =
@@ -55,8 +62,9 @@ const ConditionalTile: FC<Props> = ({
       >
         <ConditionalCard
           label="Condition"
-          title={condition.title}
+          title={getConditionTitle(postTitle, condition)}
           resolved={parentSuccessfullyResolved}
+          href={withNavigation ? `/questions/${condition.id}` : undefined}
         />
       </div>
       <div
@@ -87,7 +95,10 @@ const ConditionalTile: FC<Props> = ({
           { "row-span-2 md:row-auto": !isEmbedded }
         )}
       >
-        <ConditionalCard title={getConditionalQuestionTitle(question_yes)}>
+        <ConditionalCard
+          title={getConditionalQuestionTitle(question_yes)}
+          href={withNavigation ? `/questions/${condition_child.id}` : undefined}
+        >
           <ConditionalChart
             parentResolved={parentSuccessfullyResolved}
             question={question_yes}
@@ -96,7 +107,10 @@ const ConditionalTile: FC<Props> = ({
             chartTheme={chartTheme}
           />
         </ConditionalCard>
-        <ConditionalCard title={getConditionalQuestionTitle(question_no)}>
+        <ConditionalCard
+          title={getConditionalQuestionTitle(question_no)}
+          href={withNavigation ? `/questions/${condition_child.id}` : undefined}
+        >
           <ConditionalChart
             parentResolved={parentSuccessfullyResolved}
             question={question_no}

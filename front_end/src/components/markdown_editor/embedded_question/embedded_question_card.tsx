@@ -21,14 +21,16 @@ type Props = {
 
 const EmbeddedQuestionCard: FC<Props> = ({ postData }) => {
   const renderChart = () => {
-    const { question, group_of_questions, conditional } = postData;
+    const { title, question, group_of_questions, conditional } = postData;
 
     if (conditional) {
       return (
         <div className="p-3">
           <ConditionalTile
+            postTitle={title}
             conditional={conditional}
             curationStatus={postData.curation_status}
+            withNavigation
           />
         </div>
       );

@@ -27,6 +27,7 @@ import NumericForecastTable from "../numeric_table";
 
 type Props = {
   postId: number;
+  postTitle: string;
   conditional: PostConditional<QuestionWithNumericForecasts>;
   prevYesForecast?: any;
   prevNoForecast?: any;
@@ -35,6 +36,7 @@ type Props = {
 
 const ForecastMakerConditionalNumeric: FC<Props> = ({
   postId,
+  postTitle,
   conditional,
   prevYesForecast,
   prevNoForecast,
@@ -44,7 +46,7 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
-  const { question_yes, question_no } = conditional;
+  const { condition, condition_child, question_yes, question_no } = conditional;
   const questionYesId = question_yes.id;
   const questionNoId = question_no.id;
 
@@ -307,8 +309,10 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
   return (
     <>
       <ConditionalForecastTable
-        condition={conditional.condition}
-        childQuestion={conditional.question_yes}
+        postTitle={postTitle}
+        condition={condition}
+        conditionChild={condition_child}
+        childQuestion={question_yes}
         options={questionOptions}
         value={activeTableOption}
         onChange={setActiveTableOption}
