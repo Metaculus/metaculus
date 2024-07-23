@@ -401,6 +401,7 @@ def perform_post_search(qs, search_text: str):
     embedding_vector, semantic_scores_by_id = asyncio.run(
         gather_search_results(search_text)
     )
+    semantic_scores_by_id = semantic_scores_by_id or {}
 
     semantic_whens = [
        When(id=key, then=Value(val)) for key, val in semantic_scores_by_id.items()
