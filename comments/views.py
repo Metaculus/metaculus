@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 
 from comments.models import Comment, CommentVote, CommentDiff
 from comments.serializers import CommentWriteSerializer, serialize_comment, serialize_comment_many
@@ -15,11 +16,12 @@ from posts.services import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 
 
+class CommentPagination(PageNumberPagination):
+    page_size = 10
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def comments_list_api_view(request: Request):
-    # TODO: add pagination?
-    # complex to do with multiple nesting levels
     comments = Comment.objects
 
     parent_param = serializers.CharField(allow_null=True).run_validation(
@@ -46,18 +48,18 @@ def comments_list_api_view(request: Request):
     else:
         comments = comments.filter(Q(is_private=False) | Q(author=request.user))
 
-    # for testing, show a max of 20 comments
-    comments = comments.all()[:20]
-
     # comments = [
     #    c
     #    for c in comments.all()
     #    if ObjectPermission.can_view(get_comment_permission_for_user(c, request.user))
     # ]
 
-    data = serialize_comment_many(comments, request.user)
+    paginator = CommentPagination()
+    paginated_comments = paginator.paginate_queryset(comments, request)
 
-    return Response(data)
+    data = serialize_comment_many(paginated_comments, request.user)
+
+    return paginator.get_paginated_response(data)
 
 
 @api_view(["POST"])

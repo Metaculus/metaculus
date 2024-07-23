@@ -591,5 +591,6 @@
   "collapse": "Collapse",
   "resolutionCriteria": "Resolution Criteria",
   "parentResolutionCriteria": "Parent Resolution Criteria",
-  "childResolutionCriteria": "Child Resolution Criteria"
+  "childResolutionCriteria": "Child Resolution Criteria",
+  "loadMoreComments": "Load more comments"
 }
