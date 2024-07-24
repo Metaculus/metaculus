@@ -283,7 +283,8 @@ def resolve_question(question: Question, resolution, actual_resolve_time: dateti
     post.update_pseudo_materialized_fields()
     post.save()
 
-    resolve_post(post)
+    if post.resolved:
+        resolve_post(post)
 
 
 def close_question(question: Question):

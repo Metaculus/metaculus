@@ -219,6 +219,8 @@ def compute_hotness():
 def resolve_post(post: Post):
     post.set_resolved()
 
+    run_notify_post_status_change.send(post, PostSubscription.PostStatusChange.RESOLVE)
+
 
 def close_post(post: Post):
     post.set_actual_close_time()
