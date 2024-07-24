@@ -20,10 +20,9 @@ import DetailedGroupCard from "../components/detailed_group_card";
 import DetailedQuestionCard from "../components/detailed_question_card";
 import ForecastMaker from "../components/forecast_maker";
 import Modbox from "../components/modbox";
-import PostDropdownMenu from "../components/question_dropdown_menu";
-import QuestionEmbedButton from "../components/question_embed_button";
 import QuestionEmbedModal from "../components/question_embed_modal";
-import ShareQuestionMenu from "../components/share_question_menu";
+import Sidebar from "../components/sidebar";
+import ShareQuestionMenu from "../components/sidebar/share_question_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 
 type Props = {
@@ -83,6 +82,8 @@ export default async function IndividualQuestion({
     postData.user_permission === ProjectPermissions.CURATOR ||
     postData.user_permission === ProjectPermissions.CREATOR;
 
+  const questionTitle = getQuestionTitle(postData);
+
   return (
     <EmbedModalContextProvider>
       <main className="mx-auto flex w-full max-w-max flex-col py-4">
@@ -92,7 +93,7 @@ export default async function IndividualQuestion({
           </span>
           {allowModifications && <Modbox post={postData} />}
           <div className="ml-auto flex h-9 flex-row text-gray-700 dark:text-gray-700-dark lg:hidden">
-            <ShareQuestionMenu questionTitle={getQuestionTitle(postData)} />
+            <ShareQuestionMenu questionTitle={questionTitle} />
             <Button
               variant="secondary"
               className="!rounded border-0"
@@ -154,83 +155,26 @@ export default async function IndividualQuestion({
                 postData.status === PostStatus.APPROVED
               }
             />
-            <div className="my-4 flex flex-col items-start gap-4 self-stretch border-t border-gray-300 pt-4 @container dark:border-gray-300-dark lg:hidden">
-              {/*TODO: make a reusable component for this*/}
-              <div className="flex flex-col self-stretch">
-                <div className="flex flex-row justify-between">
-                  <span>Status:</span>
-                  <span>{postData.status}</span>
-                </div>
-                <div className="flex flex-row justify-between">
-                  <span>Author:</span>
-                  <a href={`/accounts/profile/${postData.author_id}`}>
-                    {postData.author_username}
-                  </a>
-                </div>
-                <div className="flex flex-row justify-between">
-                  <span>Opened:</span>
-                  <span>
-                    {postData.published_at && postData.published_at.slice(0, 7)}
-                  </span>
-                </div>
-                <div className="flex flex-row justify-between">
-                  <span>Closed:</span>
-                  <span>
-                    {postData.scheduled_close_time &&
-                      postData.scheduled_close_time.slice(0, 7)}
-                  </span>
-                </div>
-                <div className="flex flex-row justify-between">
-                  <span>Resolved:</span>
-                  <span>
-                    {postData.scheduled_resolve_time &&
-                      postData.scheduled_resolve_time.slice(0, 7)}
-                  </span>
-                </div>
-              </div>
-            </div>
             <BackgroundInfo post={postData} />
+
+            <Sidebar
+              postData={postData}
+              allowModifications={allowModifications}
+              layout="mobile"
+              questionTitle={questionTitle}
+            />
+
             <CommentFeed
               postId={postData.id}
               postPermissions={postData.user_permission}
             />
           </div>
-          <div className="hidden w-80 shrink-0 border border-transparent bg-gray-0 p-4 text-gray-700 dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-700-dark lg:block">
-            <div className="mb-4 flex w-full items-center justify-between gap-2 border-b border-gray-300 pb-4 dark:border-gray-300-dark">
-              <QuestionEmbedButton />
-              <div className="flex gap-2">
-                <ShareQuestionMenu questionTitle={getQuestionTitle(postData)} />
-                <PostDropdownMenu post={postData} />
-              </div>
-            </div>
-            {/*TODO: make a reusable component for this*/}
-            <div className="flex flex-col border-b border-gray-300 pb-4 dark:border-gray-300-dark">
-              <div className="flex flex-row justify-between">
-                <span>Status:</span>
-                <span>{postData.status}</span>
-              </div>
-              <div className="flex flex-row justify-between">
-                <span>Author:</span>
-                <a href={`/accounts/profile/${postData.author_id}`}>
-                  {postData.author_username}
-                </a>
-              </div>
-              <div className="flex flex-row justify-between">
-                <span>Opened:</span>
-                <span>
-                  {postData.published_at && postData.published_at.slice(0, 7)}
-                </span>
-              </div>
-              <div className="flex flex-row justify-between">
-                <span>Closed:</span>
-                <span>{postData.scheduled_close_time.slice(0, 7)}</span>
-              </div>
-              <div className="flex flex-row justify-between">
-                <span>Resolved:</span>
-                <span>{postData.scheduled_resolve_time.slice(0, 7)}</span>
-              </div>
-            </div>
-          </div>
+
+          <Sidebar
+            postData={postData}
+            allowModifications={allowModifications}
+            questionTitle={questionTitle}
+          />
         </div>
       </main>
 
