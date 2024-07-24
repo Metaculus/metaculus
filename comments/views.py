@@ -16,8 +16,18 @@ from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 
 
-class CommentPagination(PageNumberPagination):
+class CustomCommentPagination(PageNumberPagination):
     page_size = 10
+
+    def get_paginated_response(self, data):
+        return Response({
+            'count': self.page.paginator.count,
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'results': data,
+            'total_count': self.total_count
+        })
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -54,7 +64,8 @@ def comments_list_api_view(request: Request):
     #    if ObjectPermission.can_view(get_comment_permission_for_user(c, request.user))
     # ]
 
-    paginator = CommentPagination()
+    paginator = CustomCommentPagination()
+    paginator.total_count = comments.count()
     paginated_comments = paginator.paginate_queryset(comments, request)
 
     data = serialize_comment_many(paginated_comments, request.user)
