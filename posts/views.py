@@ -18,12 +18,12 @@ from posts.serializers import (
     serialize_post_many,
     serialize_post,
 )
-from posts.services.feed import (
-    get_posts_feed,
+from posts.services.common import (
     create_post,
     get_post_permission_for_user,
     add_categories,
 )
+from posts.services.feed import get_posts_feed
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Question
