@@ -1,11 +1,9 @@
-import asyncio
 import logging
 from datetime import timedelta
 
-from django.db.models import Q, Count, Sum, Value, Case, When, F, FloatField
+from django.db.models import Q, Count, Sum, Value, Case, When, F
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from pgvector.django import CosineDistance
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
@@ -20,10 +18,6 @@ from questions.services import (
 )
 from users.models import User
 from utils.dtypes import flatten
-from utils.models import build_order_by
-from utils.openai import generate_text_embed_vector_async
-from utils.serializers import parse_order_by
-from utils.serper_google import get_google_search_results
 from utils.the_math.community_prediction import get_cp_at_time
 from utils.the_math.measures import (
     prediction_difference_for_sorting,
@@ -43,177 +37,6 @@ def add_categories(categories: list[int], post: Post):
             raise ValidationError(f"Category with id {category_id} does not exist")
         post.projects.add(Project.objects.get(pk=category_id))
     post.save()
-
-
-def get_posts_feed(
-    qs: Post.objects = None,
-    user: User = None,
-    search: str = None,
-    topic: Project = None,
-    tags: list[Project] = None,
-    categories: list[Project] = None,
-    tournaments: list[Project] = None,
-    forecast_type: list[str] = None,
-    statuses: list[str] = None,
-    order_by: str = None,
-    access: PostFilterSerializer.Access = None,
-    permission: str = ObjectPermission.VIEWER,
-    ids: list[int] = None,
-    public_figure: Project = None,
-    news_type: Project = None,
-    notebook_type: Notebook.NotebookType = None,
-    usernames: list[str] = None,
-    forecaster_id: int = None,
-) -> Post.objects:
-    """
-    Applies filtering on the Questions QuerySet
-
-    TODO: implement "New Comments" ordering
-    """
-
-    # If ids provided
-    if ids:
-        qs = qs.filter(id__in=ids)
-
-    # Filter by permission level
-    qs = qs.filter_permission(user=user, permission=permission)
-
-    # Author usernames
-    if usernames:
-        qs = qs.filter(author__username__in=usernames)
-
-    # Filters
-    if topic:
-        qs = qs.filter(projects=topic)
-
-    if tags:
-        qs = qs.filter(projects__in=tags)
-
-    if categories:
-        qs = qs.filter(projects__in=categories)
-
-    if notebook_type:
-        qs = qs.filter(notebook__isnull=False).filter(notebook__type=notebook_type)
-
-    if news_type:
-        qs = qs.filter(projects=news_type)
-
-    if public_figure:
-        qs = qs.filter(projects=public_figure)
-
-    # TODO: ensure projects filtering logic is correct
-    #   I assume it might not work exactly as before
-    if tournaments:
-        qs = qs.filter(Q(projects__in=tournaments) | Q(default_project__in=tournaments))
-
-    forecast_type = forecast_type or []
-    forecast_type_q = Q()
-
-    for f_type in forecast_type:
-        match f_type:
-            case "notebook":
-                forecast_type_q |= Q(notebook__isnull=False)
-            case "conditional":
-                forecast_type_q |= Q(conditional__isnull=False)
-            case "group_of_questions":
-                forecast_type_q |= Q(group_of_questions__isnull=False)
-            case _:
-                forecast_type_q |= Q(question__type__in=forecast_type)
-
-    qs = qs.filter(forecast_type_q)
-
-    statuses = statuses or []
-
-    q = Q()
-    for status in statuses:
-        if status in ["pending", "rejected", "deleted"]:
-            q |= Q(curation_status=status)
-        if status == "upcoming":
-            q |= Q(
-                Q(curation_status=Post.CurationStatus.APPROVED)
-                & (Q(published_at__gte=timezone.now()) | Q(published_at__isnull=True))
-            )
-        if status == "draft":
-            q |= Q(curation_status=status, author=user)
-        if status == "closed":
-            q |= Q(actual_close_time__isnull=False)
-        if status == "resolved":
-            q |= Q(resolved=True, curation_status=Post.CurationStatus.APPROVED)
-
-        if status == "open":
-            q |= Q(
-                Q(published_at__lte=timezone.now())
-                & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Q(
-                    Q(actual_close_time__isnull=True)
-                    | Q(actual_close_time__gte=timezone.now())
-                ),
-            )
-
-    qs = qs.filter(q)
-
-    if forecaster_id:
-        qs = qs.annotate_user_last_forecasts_date(forecaster_id).filter(
-            user_last_forecasts_date__isnull=False
-        )
-
-    # Filter by access
-    if access == PostFilterSerializer.Access.PRIVATE:
-        qs = qs.filter_private()
-    if access == PostFilterSerializer.Access.PUBLIC:
-        qs = qs.filter_public()
-
-    # Performing query override
-    # Before running order_by
-    qs = Post.objects.filter(pk__in=qs.distinct("id"))
-
-    # Search
-    if search:
-        qs = perform_post_search(qs, search)
-
-        if not order_by:
-            # Force ordering by search rank
-            order_by = "-rank"
-        else:
-            qs = qs.filter(rank__gte=0.3)
-
-    # Ordering
-    if order_by:
-        order_desc, order_type = parse_order_by(order_by)
-
-        if order_type == PostFilterSerializer.Order.VOTES:
-            qs = qs.annotate_vote_score()
-        if order_type == PostFilterSerializer.Order.COMMENT_COUNT:
-            qs = qs.annotate_comment_count()
-        if (
-            forecaster_id
-            and order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE
-        ):
-            qs = qs.annotate_user_last_forecasts_date(forecaster_id)
-        if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
-            qs = qs.annotate_unread_comment_count(user_id=user.id)
-        if order_type == PostFilterSerializer.Order.SCORE:
-            if not forecaster_id:
-                raise ValidationError(
-                    "Can not order by score without forecaster_id provided"
-                )
-
-            qs = qs.annotate_score(forecaster_id, desc=order_desc)
-        if order_type == PostFilterSerializer.Order.WEEKLY_MOVEMENT:
-            order_type = "movement"
-        if order_type == PostFilterSerializer.Order.DIVERGENCE:
-            if not forecaster_id:
-                raise ValidationError(
-                    "Can not order by score without forecaster_id provided"
-                )
-
-            qs = qs.annotate_divergence(forecaster_id)
-
-        qs = qs.order_by(build_order_by(order_type, order_desc))
-    else:
-        qs = qs.order_by("-created_at")
-
-    return qs
 
 
 def create_post(
@@ -406,48 +229,3 @@ def resolve_post(post: Post):
 
 def close_post(post: Post):
     post.set_actual_close_time()
-
-
-def perform_post_search(qs, search_text: str):
-    embedding_vector, semantic_scores_by_id = asyncio.run(
-        gather_search_results(search_text)
-    )
-    semantic_scores_by_id = semantic_scores_by_id or {}
-
-    semantic_whens = [
-        When(id=key, then=Value(val)) for key, val in semantic_scores_by_id.items()
-    ]
-
-    # Annotating embedding vector distance
-    qs = qs.annotate(
-        rank=Case(
-            *semantic_whens,
-            default=1 - CosineDistance("embedding_vector", embedding_vector),
-            output_field=FloatField(),
-        )
-    )
-
-    return qs
-
-
-async def gather_search_results(
-    search_text: str,
-) -> tuple[list[float], dict[int, float]]:
-    return await asyncio.gather(
-        generate_text_embed_vector_async(search_text),
-        perform_google_search(search_text),
-    )
-
-
-async def perform_google_search(
-    search_text: str,
-) -> dict[int, float]:
-    """
-    Returns a dict of question IDs to Google scores.
-    """
-    try:
-        return await get_google_search_results(
-            search_query=search_text,
-        )
-    except Exception:
-        logger.exception("Failed to perform google search")

@@ -5,7 +5,6 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from posts.models import PostUserSnapshot
-from posts.services.common import close_post, resolve_post
 from questions.constants import ResolutionType
 from questions.models import Question, GroupOfQuestions, Conditional, Forecast
 from users.models import User
@@ -283,6 +282,8 @@ def resolve_question(question: Question, resolution, actual_resolve_time: dateti
     post.update_pseudo_materialized_fields()
     post.save()
 
+    from posts.services.common import resolve_post
+
     resolve_post(post)
 
 
@@ -297,6 +298,8 @@ def close_question(question: Question):
     post.save()
 
     if post.actual_close_time:
+        from posts.services.common import close_post
+
         close_post(post)
 
 

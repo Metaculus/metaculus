@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name="embedding_vector",
             field=pgvector.django.vector.VectorField(
                 blank=True,
-                help_text="Vector embeddings (clip-vit-large-patch14) of the file content",
+                help_text="Vector embeddings of the Post content",
                 null=True,
             ),
         ),
