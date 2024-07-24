@@ -18,7 +18,7 @@ from posts.serializers import (
     serialize_post_many,
     serialize_post,
 )
-from posts.services import (
+from posts.services.feed import (
     get_posts_feed,
     create_post,
     get_post_permission_for_user,

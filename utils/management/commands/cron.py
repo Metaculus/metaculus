@@ -8,7 +8,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_dramatiq.tasks import delete_old_tasks
 
-from posts.services import compute_hotness
+from posts.services.feed import compute_hotness
 from posts.tasks import run_compute_movement
 
 logger = logging.getLogger(__name__)
