@@ -1,6 +1,7 @@
 "use client";
 import { faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
@@ -20,7 +21,7 @@ type Props = {
 
 const ShareQuestionMenu: FC<Props> = ({ questionTitle }) => {
   const isLargeScreen = useBreakpoint("md");
-
+  const t = useTranslations();
   const { updateIsOpen } = useEmbedModalContext();
   const copyUrl = useCopyUrl();
   const copyImageUrl = useMetaImageUrl("twitter:image");
@@ -57,14 +58,14 @@ const ShareQuestionMenu: FC<Props> = ({ questionTitle }) => {
           ? [
               {
                 id: "image",
-                name: "Image",
+                name: t("image"),
                 link: copyImageUrl,
               },
             ]
           : []),
         {
           id: "copy_link",
-          name: "Copy link",
+          name: t("copyLink"),
           onClick: copyUrl,
         },
       ]}
