@@ -90,7 +90,7 @@ const UserInfo: FC<UserInfoProps> = ({
     <form action={formAction}>
       {hasContent && (
         <div
-          className={`flex flex-col ${hasDetailsContent ? "gap-6" : ""} mb-4 rounded bg-white p-6 dark:bg-blue-900`}
+          className={`flex flex-col ${hasDetailsContent ? "gap-4" : ""} mb-4 rounded bg-white p-6 dark:bg-blue-900`}
         >
           {isCurrentUser && (
             <div className="flex flex-col">
@@ -107,7 +107,7 @@ const UserInfo: FC<UserInfoProps> = ({
             </div>
           )}
           {profile.bio && (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
                 {t("bio")}
               </div>
