@@ -26,11 +26,11 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
   function getMedalClassName(medalType: MedalType): string {
     switch (medalType) {
       case "gold":
-        return "bg-gradient-to-b from-[#F6D84D]/30 from-0% to-30% to-white dark:to-blue-950/75";
+        return "bg-gradient-to-b from-[#F6D84D]/0 md:from-[#F6D84D]/30 from-0% to-30% to-white dark:to-blue-950/75";
       case "silver":
-        return "bg-gradient-to-b from-[#A7B1C0]/15 dark:from-[#A7B1C0]/25 from-0% to-30% to-white dark:to-blue-950/75";
+        return "bg-gradient-to-b from-[#A7B1C0]/0 md:from-[#A7B1C0]/15 dark:from-[#A7B1C0]/25 from-0% to-30% to-white dark:to-blue-950/75";
       case "bronze":
-        return "bg-gradient-to-b from-[#F09B59]/20 from-0% to-30% to-white dark:to-blue-950/75";
+        return "bg-gradient-to-b from-[#F09B59]/0 md:from-[#F09B59]/20 from-0% to-30% to-white dark:to-blue-950/75";
       default:
         return "";
     }
