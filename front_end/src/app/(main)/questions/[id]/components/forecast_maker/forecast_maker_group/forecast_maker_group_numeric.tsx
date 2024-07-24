@@ -255,7 +255,7 @@ const ForecastMakerGroupNumeric: FC<Props> = ({
           <div
             key={option.id}
             className={classNames(
-              "mt-10",
+              "mt-3",
               option.id !== activeTableOption && "hidden"
             )}
           >
@@ -264,7 +264,7 @@ const ForecastMakerGroupNumeric: FC<Props> = ({
                 height={300}
                 min={option.question.min}
                 max={option.question.max}
-                type={option.question.type}
+                dataType={option.question.type}
                 data={[
                   {
                     pmf: option.question.forecasts.latest_pmf,

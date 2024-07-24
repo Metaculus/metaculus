@@ -3,6 +3,7 @@ import { format, fromUnixTime } from "date-fns";
 import { merge } from "lodash";
 import React, { FC, useMemo } from "react";
 import {
+  Tuple,
   VictoryArea,
   VictoryAxis,
   VictoryChart,
@@ -19,6 +20,7 @@ import { QuestionType } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 type NumericAreaColor = "orange" | "green";
+export type AreaGraphType = "pmf" | "cdf";
 
 type Props = {
   min: number;
@@ -28,7 +30,8 @@ type Props = {
     cdf: number[];
     color: NumericAreaColor;
   }[];
-  type?: QuestionType;
+  graphType?: AreaGraphType;
+  dataType?: QuestionType;
   height?: number;
   extraTheme?: VictoryThemeDefinition;
 };
@@ -37,7 +40,8 @@ const NumericAreaChart: FC<Props> = ({
   min,
   max,
   data,
-  type = QuestionType.Numeric,
+  graphType = "pmf",
+  dataType = QuestionType.Numeric,
   height = 150,
   extraTheme,
 }) => {
@@ -55,15 +59,43 @@ const NumericAreaChart: FC<Props> = ({
       data.reduce<NumericPredictionGraph[]>(
         (acc, el) => [
           ...acc,
-          generateNumericAreaGraph({ pmf: el.pmf, cdf: el.cdf, min, max }),
+          generateNumericAreaGraph({
+            pmf: el.pmf,
+            cdf: el.cdf,
+            min,
+            max,
+            graphType,
+          }),
         ],
         []
       ),
-    [data, max, min]
+    [data, max, min, graphType]
+  );
+  const { xDomain, yDomain } = useMemo<{
+    xDomain: Tuple<number>;
+    yDomain: Tuple<number>;
+  }>(
+    () => ({
+      xDomain: [0, max - min],
+      yDomain: [
+        0,
+        1.2 *
+          Math.max(
+            ...data
+              .map((x) =>
+                graphType === "cdf"
+                  ? x.cdf.slice(1, x.pmf.length - 1)
+                  : x.pmf.slice(1, x.pmf.length - 1)
+              )
+              .flat()
+          ),
+      ],
+    }),
+    [data, graphType, max, min]
   );
   const { ticks, tickFormat } = useMemo(
-    () => generateNumericAreaTicks(min, max, type, chartWidth),
-    [chartWidth, max, min, type]
+    () => generateNumericAreaTicks(min, max, dataType, chartWidth),
+    [chartWidth, max, min, dataType]
   );
 
   // TODO: find a nice way to display the out of bounds weights as numbers
@@ -82,16 +114,7 @@ const NumericAreaChart: FC<Props> = ({
             bottom: 20,
             right: 10,
           }}
-          domain={{
-            x: [0 * (max - min), 1 * (max - min)],
-            y: [
-              0,
-              1.2 *
-                Math.max(
-                  ...data.map((x) => x.pmf.slice(1, x.pmf.length - 1)).flat()
-                ),
-            ],
-          }}
+          domain={{ x: xDomain, y: yDomain }}
         >
           {charts.map((chart, index) => (
             <VictoryArea
@@ -161,17 +184,28 @@ function generateNumericAreaGraph(data: {
   cdf: number[];
   min: number;
   max: number;
+  graphType: AreaGraphType;
 }): NumericPredictionGraph {
-  const { min, max, pmf, cdf } = data;
+  const { min, max, pmf, cdf, graphType } = data;
 
   const graph: Line = [];
-  pmf.forEach((value, index) => {
-    if (index === 0 || index === pmf.length - 1) {
-      // first and last bins are probabilty mass out of bounds
-      return;
-    }
-    graph.push({ x: (index * (max - min)) / pmf.length, y: value });
-  });
+  if (graphType === "cdf") {
+    cdf.forEach((value, index) => {
+      if (index === 0 || index === cdf.length - 1) {
+        // first and last bins are probabilty mass out of bounds
+        return;
+      }
+      graph.push({ x: (index * (max - min)) / cdf.length, y: value });
+    });
+  } else {
+    pmf.forEach((value, index) => {
+      if (index === 0 || index === pmf.length - 1) {
+        // first and last bins are probabilty mass out of bounds
+        return;
+      }
+      graph.push({ x: (index * (max - min)) / pmf.length, y: value });
+    });
+  }
 
   const verticalLines: Line = [];
   const quantiles = computeQuartilesFromCDF(cdf);
