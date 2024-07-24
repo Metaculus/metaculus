@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
 from django.utils import timezone
 
-from posts.services import get_post_permission_for_user
+from posts.services.feed import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers import validate_question_resolution
