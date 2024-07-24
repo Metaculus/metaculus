@@ -3,8 +3,9 @@ import logging
 import dramatiq
 from django.db.models import Q
 
-from posts.models import Post, PostUserSnapshot
+from posts.models import Post, PostUserSnapshot, PostSubscription
 from posts.services.feed import compute_sorting_divergence, compute_movement
+from posts.services.subscriptions import notify_date, notify_post_status_change
 
 logger = logging.getLogger(__name__)
 
@@ -73,3 +74,13 @@ def run_compute_movement():
 
         if not idx % 100:
             logger.info(f"Processed {idx + 1}/{total}. ")
+
+
+@dramatiq.actor
+def run_subscription_notify_date():
+    notify_date()
+
+
+@dramatiq.actor
+def run_notify_post_status_change(post_id, event: PostSubscription.PostStatusChange):
+    notify_post_status_change(Post.objects.get(pk=post_id), event)

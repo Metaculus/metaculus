@@ -68,3 +68,7 @@ def create_comment(
     PostUserSnapshot.update_viewed_at(on_post, user)
 
     return obj
+
+
+def get_post_comments_count(post: Post):
+    return post.comments.filter(is_private=False).exclude(is_soft_deleted=True).count()

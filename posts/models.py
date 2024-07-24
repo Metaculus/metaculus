@@ -468,6 +468,32 @@ class RelatedPost(TimeStampedModel):
     )
 
 
+class PostSubscription(TimeStampedModel):
+    class SubscriptionType(models.TextChoices):
+        CP_CHANGE = "cp_change"
+        NEW_COMMENTS = "new_comments"
+        MILESTONE = "milestone"
+        STATUS_CHANGE = "status_change"
+        SPECIFIC_TIME = "specific_time"
+
+    class PostStatusChange(models.TextChoices):
+        OPEN = "open"
+        CLOSE = "close"
+        RESOLVE = "resolve"
+
+    user = models.ForeignKey(User, models.CASCADE, related_name="subscriptions")
+    post = models.ForeignKey(Post, models.CASCADE, related_name="subscriptions")
+
+    type = models.CharField(choices=SubscriptionType.choices, db_index=True)
+    last_sent_at = models.DateTimeField(default=None, db_index=True)
+
+    next_trigger_value = models.FloatField(null=True, db_index=True)
+    next_trigger_datetime = models.DateTimeField(null=True, db_index=True)
+
+    def update_last_sent_at(self):
+        self.last_sent_at = timezone.now()
+
+
 class PostUserSnapshot(models.Model):
     user = models.ForeignKey(User, models.CASCADE, related_name="post_snapshots")
     post = models.ForeignKey(Post, models.CASCADE, related_name="snapshots")
