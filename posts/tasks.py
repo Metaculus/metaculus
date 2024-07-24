@@ -4,7 +4,7 @@ import dramatiq
 from django.db.models import Q
 
 from posts.models import Post, PostUserSnapshot
-from posts.services import compute_sorting_divergence, compute_movement
+from posts.services.common import compute_sorting_divergence, compute_movement
 from posts.utils import update_post_search_embedding_vector
 
 logger = logging.getLogger(__name__)

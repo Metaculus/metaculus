@@ -1,6 +1,7 @@
 "use client";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 
 import { markPostAsRead } from "@/app/(main)/questions/actions";
 import { getComments } from "@/app/(main)/questions/actions";
@@ -42,44 +43,50 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
     void fetchComments();
   }, [postId, profileId]);
 
-  const fetchComments = async (url: string = "/comments") => {
-    try {
-      setIsLoading(true);
-      const response = await getComments(url, {
-        post: postId,
-        author: profileId,
-        parent_isnull: !!postId,
-        page: nextPage,
-      });
-      if ("errors" in response) {
-        console.error("Error fetching comments:", response.errors);
-        setCommentTotal(0);
-      } else {
-        setCommentTotal(0);
-        /* this is wrong 
+  const fetchComments = useCallback(
+    async (url: string = "/comments") => {
+      try {
+        setIsLoading(true);
+        const response = await getComments(url, {
+          post: postId,
+          author: profileId,
+          parent_isnull: !!postId,
+          page: nextPage,
+        });
+        if ("errors" in response) {
+          console.error("Error fetching comments:", response.errors);
+          setCommentTotal(0);
+        } else {
+          setCommentTotal(0);
+          /* this is wrong 
           if (response.count) {
             setCommentTotal(response.count);
           }
         */
-        if (nextPage && nextPage > 1) {
-          setComments((prevComments) => [...prevComments, ...response.results]);
-        } else {
-          setComments(response.results);
+          if (nextPage && nextPage > 1) {
+            setComments((prevComments) => [
+              ...prevComments,
+              ...response.results,
+            ]);
+          } else {
+            setComments(response.results);
+          }
+          if (response.next) {
+            const nextPageNumber = new URL(response.next).searchParams.get(
+              "page"
+            );
+            setNextPage(nextPageNumber ? Number(nextPageNumber) : undefined);
+          } else {
+            setNextPage(undefined);
+          }
         }
-        if (response.next) {
-          const nextPageNumber = new URL(response.next).searchParams.get(
-            "page"
-          );
-          setNextPage(nextPageNumber ? Number(nextPageNumber) : undefined);
-        } else {
-          setNextPage(undefined);
-        }
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error fetching comments:", err);
       }
-      setIsLoading(false);
-    } catch (err) {
-      console.error("Error fetching comments:", err);
-    }
-  };
+    },
+    [postId, profileId, nextPage]
+  );
 
   let permissions: CommentPermissions = CommentPermissions.VIEWER;
   if (
@@ -113,10 +120,11 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
       label: t("private"),
     },
   ];
+  const isInProfile = !!profileId;
 
   return (
     <section>
-      <hr className="my-4" />
+      <hr className="my-4 border-blue-400 dark:border-blue-700" />
       <div className="my-4 flex flex-row items-center gap-4">
         <h2
           className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
@@ -124,28 +132,48 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
         >
           {t("comments")}
         </h2>
-        <ButtonGroup
-          value={feedSection}
-          buttons={feedOptions}
-          onChange={(selection) => {
-            setFeedSection(selection);
-          }}
-          variant="tertiary"
-        />
+        {!isInProfile && (
+          <ButtonGroup
+            value={feedSection}
+            buttons={feedOptions}
+            onChange={(selection) => {
+              setFeedSection(selection);
+            }}
+            variant="tertiary"
+          />
+        )}
         <span> {commentTotal} comments </span>
       </div>
       {postId && <CommentEditor postId={postId} />}
       {shownComments.map((comment: CommentType) => (
         <div key={comment.id}>
-          <hr className="my-4" />
+          <hr className="my-4 border-blue-400 dark:border-blue-700" />
+          {isInProfile && (
+            <h3 className="mb-2 text-lg font-semibold">
+              <Link
+                href="#"
+                className="text-blue-700 no-underline hover:text-blue-800 dark:text-blue-400 hover:dark:text-blue-300"
+              >
+                Question Title Comes Here
+              </Link>
+            </h3>
+          )}
           <Comment
-            onProfile={profileId ? true : false}
+            onProfile={isInProfile}
             comment={comment}
             permissions={permissions}
             treeDepth={0}
           />
         </div>
       ))}
+      {shownComments.length === 0 && !isLoading && (
+        <>
+          <hr className="my-4" />
+          <div className="text-center italic text-gray-700 dark:text-gray-700-dark">
+            {t("noComments")}
+          </div>
+        </>
+      )}
       {isLoading && <LoadingIndicator className="mx-auto my-8 w-24" />}
       {nextPage && (
         <div className="flex items-center justify-center">
@@ -153,14 +181,6 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
             {t("loadMoreComments")}
           </Button>
         </div>
-      )}
-      {comments.length == 0 && !isLoading && (
-        <>
-          <hr className="my-4" />
-          <div className="text-center italic text-gray-700 dark:text-gray-700-dark">
-            {t("noComments")}
-          </div>
-        </>
       )}
     </section>
   );

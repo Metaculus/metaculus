@@ -1,3 +1,5 @@
+import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from "@headlessui/react";
 import classNames from "classnames";
 import Link from "next/link";
@@ -23,6 +25,7 @@ type Props = {
   onClick?: () => void;
   href?: string;
   label?: string;
+  xMark?: boolean;
 };
 
 const Chip: FC<PropsWithChildren<Props>> = ({
@@ -34,6 +37,7 @@ const Chip: FC<PropsWithChildren<Props>> = ({
   className,
   label,
   children,
+  xMark = false,
 }) => {
   return (
     <div
@@ -58,8 +62,9 @@ const Chip: FC<PropsWithChildren<Props>> = ({
         href={href!}
         onClick={onClick}
         className={classNames(
-          "inline-flex items-center justify-center rounded-l rounded-r border-inherit font-medium no-underline",
+          "inline-flex items-center justify-center rounded-l border-inherit font-medium no-underline",
           {
+            "rounded-r": xMark === false,
             "gap-1 p-1 text-xs leading-3": size === "xs",
             "gap-1 p-1.5 text-sm leading-4": size === "sm",
             "gap-1.5 p-1.5 text-base leading-5": size === "md",
@@ -148,6 +153,12 @@ const Chip: FC<PropsWithChildren<Props>> = ({
           </div>
         )}
       </Button>
+
+      {xMark && (
+        <Button className="flex items-center justify-center rounded-r bg-blue-400 p-1.5 text-blue-800 hover:bg-blue-500 dark:bg-blue-400-dark dark:text-blue-800-dark hover:dark:bg-blue-500-dark">
+          <FontAwesomeIcon icon={faXmarkCircle} />
+        </Button>
+      )}
     </div>
   );
 };

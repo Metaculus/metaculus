@@ -41,6 +41,12 @@ export type Category = {
   description: string;
 };
 
+export type Tag = {
+  id: number;
+  name: string;
+  slug: string;
+};
+
 export type Topic = {
   id: number;
   name: string;
@@ -99,6 +105,7 @@ export type Post<QT = Question> = {
     category: Category[];
     topic: Topic[];
     default_project: Tournament;
+    tag: Tag[];
   };
   title: string;
   url_title: string;
@@ -118,6 +125,7 @@ export type Post<QT = Question> = {
   notebook?: Notebook;
   curation_status: PostStatus;
   status: PostStatus;
+  resolved: boolean;
   user_permission: ProjectPermissions;
   comment_count?: number;
   forecasts_count?: number;

@@ -1,6 +1,10 @@
 "use client";
 
-import { faChevronRight, faReply } from "@fortawesome/free-solid-svg-icons";
+import {
+  faXmark,
+  faChevronRight,
+  faReply,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
@@ -93,12 +97,14 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
         )}
         {childrenExpanded &&
           commentChildren.map((child: CommentType) => (
-            <Comment
-              key={child.id}
-              comment={child}
-              permissions={permissions}
-              treeDepth={treeDepth}
-            />
+            <div key={child.id}>
+              <hr className="my-4" />
+              <Comment
+                comment={child}
+                permissions={permissions}
+                treeDepth={treeDepth}
+              />
+            </div>
           ))}
       </div>
     </>
@@ -277,12 +283,24 @@ const Comment: FC<CommentProps> = ({
                 userVote: comment.user_vote ?? null,
               }}
             />
-            {!onProfile && (
-              <Button onClick={() => setIsReplying(true)} variant="text">
-                <FontAwesomeIcon icon={faReply} />
-                {t("reply")}
-              </Button>
-            )}
+            {!onProfile &&
+              (isReplying ? (
+                <Button
+                  className="ml-auto p-2"
+                  variant="text"
+                  onClick={() => {
+                    setIsReplying(false);
+                  }}
+                >
+                  <FontAwesomeIcon icon={faXmark} />
+                  Cancel
+                </Button>
+              ) : (
+                <Button onClick={() => setIsReplying(true)} variant="text">
+                  <FontAwesomeIcon icon={faReply} />
+                  {t("reply")}
+                </Button>
+              ))}
           </div>
 
           <DropdownMenu items={menuItems} />

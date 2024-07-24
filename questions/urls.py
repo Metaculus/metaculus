@@ -11,4 +11,5 @@ urlpatterns = [
     path(
         "questions/<int:pk>/resolve/", views.resolve_api_view, name="question-resolve"
     ),
+    path("questions/<int:pk>/close/", views.close_api_view, name="question-close"),
 ]

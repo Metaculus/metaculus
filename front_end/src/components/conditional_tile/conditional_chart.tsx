@@ -99,7 +99,7 @@ const ConditionalChart: FC<Props> = ({
                 },
               ]}
               extraTheme={chartTheme}
-              type={question.type}
+              dataType={question.type}
             />
           </div>
           {resolved && (

@@ -6,6 +6,7 @@ import classNames from "classnames";
 import Link from "next/link";
 import { FC } from "react";
 
+import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import RadioButton from "@/components/ui/radio_button";
 import { Question, QuestionWithForecasts } from "@/types/question";
 import {
@@ -41,26 +42,29 @@ const ConditionalForecastTable: FC<Props> = ({
   onChange,
   formatForecastValue,
 }) => {
+  const conditionHref =
+    condition.id === condition.post_id
+      ? `/questions/${condition.id}`
+      : `/questions/${condition.post_id}?${SLUG_POST_SUB_QUESTION_ID}=${condition.id}`;
+  const childHref =
+    conditionChild.id === conditionChild.post_id
+      ? `/questions/${conditionChild.id}`
+      : `/questions/${conditionChild.post_id}?${SLUG_POST_SUB_QUESTION_ID}=${conditionChild.id}`;
+
   return (
     <table className="w-full table-fixed border-separate overflow-hidden rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
       <thead>
         <tr>
           <th className="px-2 py-3 text-left align-top">
             <h4 className="m-0 text-base font-bold leading-5">
-              <Link
-                href={`/questions/${condition.id}`}
-                className="no-underline"
-              >
+              <Link href={conditionHref} className="no-underline">
                 {getConditionTitle(postTitle, condition)}
               </Link>
             </h4>
           </th>
           <th className="border-l py-3 pl-4 pr-2 text-left align-top">
             <h4 className="m-0 text-base font-bold leading-5">
-              <Link
-                href={`/questions/${conditionChild.id}`}
-                className="no-underline"
-              >
+              <Link href={childHref} className="no-underline">
                 {getConditionalQuestionTitle(childQuestion)}
               </Link>
             </h4>

@@ -10,7 +10,6 @@ from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
 from posts.models import Notebook, Post
-from posts.serializers import PostFilterSerializer
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
@@ -399,6 +398,14 @@ def compute_hotness():
     )
 
     qs.update(hotness=F("hotness_value"))
+
+
+def resolve_post(post: Post):
+    post.set_resolved()
+
+
+def close_post(post: Post):
+    post.set_actual_close_time()
 
 
 def perform_post_search(qs, search_text: str):
