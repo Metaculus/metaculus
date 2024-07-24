@@ -31,6 +31,7 @@ export type VoteCommentParams = {
 
 export type PaginatedResponse<T> = {
   count: number;
+  total_count: number;
   next: string | null;
   previous: string | null;
   results: T[];
@@ -58,7 +59,13 @@ class CommentsApi {
     } catch (err) {
       return handleRequestError(err, () => {
         console.error("Error getting comments:", err);
-        return { count: 0, next: null, previous: null, results: [] };
+        return {
+          total_count: 0,
+          count: 0,
+          next: null,
+          previous: null,
+          results: [],
+        };
       });
     }
   }
