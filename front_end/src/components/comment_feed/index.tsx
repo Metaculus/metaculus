@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
@@ -119,10 +120,11 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
       label: t("private"),
     },
   ];
+  const isInProfile = !!profileId;
 
   return (
     <section>
-      <hr className="my-4" />
+      <hr className="my-4 border-blue-400 dark:border-blue-700" />
       <div className="my-4 flex flex-row items-center gap-4">
         <h2
           className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
@@ -130,22 +132,34 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
         >
           {t("comments")}
         </h2>
-        <ButtonGroup
-          value={feedSection}
-          buttons={feedOptions}
-          onChange={(selection) => {
-            setFeedSection(selection);
-          }}
-          variant="tertiary"
-        />
+        {!isInProfile && (
+          <ButtonGroup
+            value={feedSection}
+            buttons={feedOptions}
+            onChange={(selection) => {
+              setFeedSection(selection);
+            }}
+            variant="tertiary"
+          />
+        )}
         <span> {commentTotal} comments </span>
       </div>
       {postId && <CommentEditor postId={postId} />}
       {shownComments.map((comment: CommentType) => (
         <div key={comment.id}>
-          <hr className="my-4" />
+          <hr className="my-4 border-blue-400 dark:border-blue-700" />
+          {isInProfile && (
+            <h3 className="mb-2 text-lg font-semibold">
+              <Link
+                href="#"
+                className="text-blue-700 no-underline hover:text-blue-800 dark:text-blue-400 hover:dark:text-blue-300"
+              >
+                Question Title Comes Here
+              </Link>
+            </h3>
+          )}
           <Comment
-            onProfile={profileId ? true : false}
+            onProfile={isInProfile}
             comment={comment}
             permissions={permissions}
             treeDepth={0}
