@@ -213,3 +213,7 @@ def compute_hotness():
     )
 
     qs.update(hotness=F("hotness_value"))
+
+
+def close_post(post: Post):
+    post.set_actual_close_time()
