@@ -117,33 +117,34 @@ const ForecastMakerNumeric: FC<Props> = ({
       />
 
       <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-        {canPredict && user ? (
-          <>
-            <Button
-              variant="secondary"
-              type="reset"
-              onClick={handleAddComponent}
-            >
-              {t("addComponentButton")}
-            </Button>
+        {canPredict &&
+          (user ? (
+            <>
+              <Button
+                variant="secondary"
+                type="reset"
+                onClick={handleAddComponent}
+              >
+                {t("addComponentButton")}
+              </Button>
+              <Button
+                variant="primary"
+                type="submit"
+                onClick={handlePredictSubmit}
+                disabled={!submitIsAllowed}
+              >
+                {t("saveButton")}
+              </Button>
+            </>
+          ) : (
             <Button
               variant="primary"
-              type="submit"
-              onClick={handlePredictSubmit}
-              disabled={!submitIsAllowed}
+              type="button"
+              onClick={() => setCurrentModal({ type: "signup" })}
             >
-              {t("saveButton")}
+              {t("signUpButton")}
             </Button>
-          </>
-        ) : (
-          <Button
-            variant="primary"
-            type="button"
-            onClick={() => setCurrentModal({ type: "signup" })}
-          >
-            {t("signUpButton")}
-          </Button>
-        )}
+          ))}
       </div>
 
       <NumericForecastTable
