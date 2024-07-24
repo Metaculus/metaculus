@@ -2,7 +2,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 
-from ...services.feed import compute_hotness
+from ...services.common import compute_hotness
 
 logger = logging.getLogger(__name__)
 
