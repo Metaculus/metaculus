@@ -4,7 +4,7 @@ import dramatiq
 from django.db.models import Q
 
 from posts.models import Post, PostUserSnapshot, PostSubscription
-from posts.services.feed import compute_sorting_divergence, compute_movement
+from posts.services.common import compute_sorting_divergence, compute_movement
 from posts.services.subscriptions import notify_date, notify_post_status_change
 
 logger = logging.getLogger(__name__)

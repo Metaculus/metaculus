@@ -12,7 +12,7 @@ from rest_framework.pagination import PageNumberPagination
 from comments.models import Comment, CommentVote, CommentDiff
 from comments.serializers import CommentWriteSerializer, serialize_comment, serialize_comment_many
 from comments.services import create_comment
-from posts.services.feed import get_post_permission_for_user
+from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 
 

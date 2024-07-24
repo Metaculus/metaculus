@@ -324,7 +324,7 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
         <div
           key={option.id}
           className={classNames(
-            "mt-10",
+            "mt-3",
             option.id !== activeTableOption && "hidden"
           )}
         >

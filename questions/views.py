@@ -1,15 +1,15 @@
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
-from django.utils import timezone
 
-from posts.services.feed import get_post_permission_for_user
+from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers import validate_question_resolution
-from questions.services import resolve_question, create_forecast
+from questions.services import resolve_question, create_forecast, close_question
 
 
 @api_view(["POST"])
@@ -25,6 +25,19 @@ def resolve_api_view(request, pk: int):
         request.data.get("actual_resolve_time")
     )
     resolve_question(question, resolution, actual_resolve_time)
+
+    return Response({"post_id": question.get_post().pk})
+
+
+@api_view(["POST"])
+def close_api_view(request, pk: int):
+    question = get_object_or_404(Question.objects.all(), pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(question.get_post(), user=request.user)
+    ObjectPermission.can_close(permission, raise_exception=True)
+
+    close_question(question)
 
     return Response({"post_id": question.get_post().pk})
 
