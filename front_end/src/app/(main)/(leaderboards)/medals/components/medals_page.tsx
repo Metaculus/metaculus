@@ -26,18 +26,18 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
   function getMedalClassName(medalType: MedalType): string {
     switch (medalType) {
       case "gold":
-        return "bg-gradient-to-b from-[#F6D84D]/30 from-0% to-30% to-white dark:to-blue-950/75";
+        return "bg-gradient-to-b from-[#F6D84D]/0 md:from-[#F6D84D]/30 from-0% to-30% to-white dark:to-blue-950/75";
       case "silver":
-        return "bg-gradient-to-b from-[#A7B1C0]/15 dark:from-[#A7B1C0]/25 from-0% to-30% to-white dark:to-blue-950/75";
+        return "bg-gradient-to-b from-[#A7B1C0]/0 md:from-[#A7B1C0]/15 dark:from-[#A7B1C0]/25 from-0% to-30% to-white dark:to-blue-950/75";
       case "bronze":
-        return "bg-gradient-to-b from-[#F09B59]/20 from-0% to-30% to-white dark:to-blue-950/75";
+        return "bg-gradient-to-b from-[#F09B59]/0 md:from-[#F09B59]/20 from-0% to-30% to-white dark:to-blue-950/75";
       default:
         return "";
     }
   }
   return (
     <section>
-      <div className="flex w-full flex-col items-center gap-3">
+      <div className="flex w-full flex-col items-center gap-4">
         {categories?.map((category, index) => (
           <div
             key={index}
@@ -46,12 +46,12 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
               { "sm:col-span-2": category.name === "tournament" }
             )}
           >
-            <div className="flex w-full items-center justify-center gap-3 self-stretch rounded-t bg-gradient-to-b from-white to-blue-100 px-5 py-4 pb-0 dark:from-blue-950 dark:to-blue-900">
+            <div className="flex w-full items-center justify-center gap-3 self-stretch rounded-t bg-gradient-to-b from-white to-blue-100 px-5 py-4 pb-0 dark:from-blue-900/75 dark:to-blue-900/75">
               <span className="text-xl font-medium text-blue-800 dark:text-blue-800-dark">
                 {t(RANKING_CATEGORIES[category.name].translationKey)}
               </span>
             </div>
-            <div className="flex min-h-[65px] flex-col content-center items-center justify-center gap-3 self-stretch rounded-b bg-blue-100 p-4 dark:bg-blue-900 md:flex-row md:flex-wrap">
+            <div className="flex min-h-[65px] flex-col content-center items-center justify-center gap-3 self-stretch rounded-b bg-blue-100 p-4 dark:bg-blue-900/75 md:flex-row md:flex-wrap">
               {!!category.medals.length ? (
                 category.medals.map((medal, index) => {
                   return (
