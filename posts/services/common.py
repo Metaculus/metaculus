@@ -98,7 +98,7 @@ def create_post(
     obj.projects.add(*(meta_projects + main_projects))
 
     # Run async tasks
-    from .tasks import run_post_indexing
+    from ..tasks import run_post_indexing
 
     run_post_indexing.send(obj.id)
 
