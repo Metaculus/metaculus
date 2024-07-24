@@ -1,7 +1,6 @@
 "use client";
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { use } from "ast-types";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo } from "react";
 
