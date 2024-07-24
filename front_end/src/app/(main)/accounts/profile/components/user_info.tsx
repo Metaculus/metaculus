@@ -90,7 +90,7 @@ const UserInfo: FC<UserInfoProps> = ({
     <form action={formAction}>
       {hasContent && (
         <div
-          className={`flex flex-col ${hasDetailsContent ? "gap-6" : ""} rounded bg-white p-6 dark:bg-blue-900`}
+          className={`flex flex-col ${hasDetailsContent ? "gap-6" : ""} mb-4 rounded bg-white p-6 dark:bg-blue-900`}
         >
           {isCurrentUser && (
             <div className="flex flex-col">
@@ -198,9 +198,7 @@ const UserInfo: FC<UserInfoProps> = ({
         </div>
       )}
       <FormError errors={state?.errors} name={"non_field_errors"} />
-      <div
-        className={`flex flex-col gap-4 md:flex-row ${hasContent ? "md:mt-4" : ""}`}
-      >
+      <div className={`flex flex-col gap-4 md:flex-row`}>
         <div className="w-full md:w-1/3">{MedalsComponent}</div>
         <div className="mt-0 flex w-full flex-col gap-4 md:w-2/3">
           <div className="flex flex-col rounded bg-white p-6 dark:bg-blue-900 ">
