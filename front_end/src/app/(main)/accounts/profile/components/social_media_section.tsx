@@ -49,7 +49,11 @@ const SocialMediaSection: FC<{
           <div key={index} className="flex flex-col">
             {link && (
               <Link href={link} target="#blank">
-                <FontAwesomeIcon icon={icon} size="lg"></FontAwesomeIcon>
+                <FontAwesomeIcon
+                  icon={icon}
+                  size="lg"
+                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
+                ></FontAwesomeIcon>
               </Link>
             )}
             {editMode && (

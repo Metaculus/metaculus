@@ -40,15 +40,17 @@ export default async function Profile({
   const mode = searchParams.mode || "overview";
   return (
     <main className="mx-auto my-4 flex min-h-min w-full max-w-5xl flex-col gap-4 px-3 lg:px-0">
-      <div className="flex flex-col gap-4 rounded bg-white p-6 dark:bg-blue-900">
+      <div className="flex flex-col gap-4 rounded bg-white p-4 dark:bg-blue-900 md:p-6">
         <div className="flex flex-col">
-          <h1 className="mt-0 inline text-4xl">{profile.username}</h1>
+          <h1 className="mt-0 inline text-3xl md:text-4xl">
+            {profile.username}
+          </h1>
           {isCurrentUser && (
             <span className="inline">
               <ChangeUsername />
             </span>
           )}
-          <span className="text-lg font-light text-gray-500">
+          <span className="text-base font-light text-gray-500 md:text-lg">
             {profile.first_name} {profile.last_name}
           </span>
         </div>
@@ -127,7 +129,7 @@ export default async function Profile({
         </div>
       )}
       {mode === "comments" && (
-        <div className="flex flex-col rounded bg-white">
+        <div className="flex flex-col rounded bg-white px-4 py-1 dark:bg-blue-900 md:px-6 md:py-2">
           <CommentFeed profileId={profile.id} />
         </div>
       )}
