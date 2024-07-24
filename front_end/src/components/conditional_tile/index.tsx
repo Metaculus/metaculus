@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 import { VictoryThemeDefinition } from "victory";
 
+import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import { PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 import {
@@ -35,6 +36,15 @@ const ConditionalTile: FC<Props> = ({
   const { condition, condition_child, question_yes, question_no } = conditional;
   const isEmbedded = !!chartTheme;
 
+  const conditionHref =
+    condition.id === condition.post_id
+      ? `/questions/${condition.id}`
+      : `/questions/${condition.post_id}?${SLUG_POST_SUB_QUESTION_ID}=${condition.id}`;
+  const conditionChildHref =
+    condition_child.id === condition_child.post_id
+      ? `/questions/${condition_child.id}`
+      : `/questions/${condition_child.post_id}?${SLUG_POST_SUB_QUESTION_ID}=${condition_child.id}`;
+
   const parentSuccessfullyResolved =
     curationStatus === PostStatus.RESOLVED &&
     condition.resolution !== null &&
@@ -64,7 +74,7 @@ const ConditionalTile: FC<Props> = ({
           label="Condition"
           title={getConditionTitle(postTitle, condition)}
           resolved={parentSuccessfullyResolved}
-          href={withNavigation ? `/questions/${condition.id}` : undefined}
+          href={withNavigation ? conditionHref : undefined}
         />
       </div>
       <div
@@ -97,7 +107,7 @@ const ConditionalTile: FC<Props> = ({
       >
         <ConditionalCard
           title={getConditionalQuestionTitle(question_yes)}
-          href={withNavigation ? `/questions/${condition_child.id}` : undefined}
+          href={withNavigation ? conditionChildHref : undefined}
         >
           <ConditionalChart
             parentResolved={parentSuccessfullyResolved}
