@@ -24,11 +24,13 @@ type Props = {
 const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const [feedSection, setFeedSection] = useState("public");
+  const [feedSection, setFeedSection] = useState<"public" | "private">(
+    "public"
+  );
   const [comments, setComments] = useState<CommentType[]>([]);
-  const [commentTotal, setCommentTotal] = useState<number | "?">("?");
+  const [totalCount, setTotalCount] = useState<number | "?">("?");
   const [shownComments, setShownComments] = useState<CommentType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [nextPage, setNextPage] = useState<number | undefined>(undefined);
 
   useEffect(() => {
@@ -55,14 +57,8 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
         });
         if ("errors" in response) {
           console.error("Error fetching comments:", response.errors);
-          setCommentTotal(0);
         } else {
-          setCommentTotal(0);
-          /* this is wrong 
-          if (response.count) {
-            setCommentTotal(response.count);
-          }
-        */
+          setTotalCount(response.total_count);
           if (nextPage && nextPage > 1) {
             setComments((prevComments) => [
               ...prevComments,
@@ -110,7 +106,7 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
     }
   }, [postId, user?.id]);
 
-  const feedOptions: GroupButton<string>[] = [
+  const feedOptions: GroupButton<"public" | "private">[] = [
     {
       value: "public",
       label: t("public"),
@@ -120,7 +116,6 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
       label: t("private"),
     },
   ];
-  const isInProfile = !!profileId;
 
   return (
     <section>
@@ -132,23 +127,22 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
         >
           {t("comments")}
         </h2>
-        {!isInProfile && (
-          <ButtonGroup
-            value={feedSection}
-            buttons={feedOptions}
-            onChange={(selection) => {
-              setFeedSection(selection);
-            }}
-            variant="tertiary"
-          />
-        )}
         <span> {commentTotal} comments </span>
+        {profileId && (<ButtonGroup
+          value={feedSection}
+          buttons={feedOptions}
+          onChange={(selection) => {
+            setFeedSection(selection);
+          }}
+          variant="tertiary"
+        />)}
+        <span>{totalCount} comments</span>
       </div>
       {postId && <CommentEditor postId={postId} />}
       {shownComments.map((comment: CommentType) => (
         <div key={comment.id}>
           <hr className="my-4 border-blue-400 dark:border-blue-700" />
-          {isInProfile && (
+          {profileId && (
             <h3 className="mb-2 text-lg font-semibold">
               <Link
                 href="#"
@@ -159,7 +153,7 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
             </h3>
           )}
           <Comment
-            onProfile={isInProfile}
+            onProfile={profileId!!}
             comment={comment}
             permissions={permissions}
             treeDepth={0}
