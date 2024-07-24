@@ -90,7 +90,7 @@ const UserInfo: FC<UserInfoProps> = ({
     <form action={formAction}>
       {hasContent && (
         <div
-          className={`flex flex-col ${hasDetailsContent ? "gap-6" : ""} rounded bg-white p-6 dark:bg-blue-900`}
+          className={`flex flex-col ${hasDetailsContent ? "gap-4" : ""} mb-4 rounded bg-white p-4 dark:bg-blue-900 md:p-6`}
         >
           {isCurrentUser && (
             <div className="flex flex-col">
@@ -107,7 +107,7 @@ const UserInfo: FC<UserInfoProps> = ({
             </div>
           )}
           {profile.bio && (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
                 {t("bio")}
               </div>
@@ -198,12 +198,10 @@ const UserInfo: FC<UserInfoProps> = ({
         </div>
       )}
       <FormError errors={state?.errors} name={"non_field_errors"} />
-      <div
-        className={`flex flex-col gap-4 md:flex-row ${hasContent ? "md:mt-4" : ""}`}
-      >
+      <div className={`flex flex-col flex-col-reverse gap-4 md:flex-row`}>
         <div className="w-full md:w-1/3">{MedalsComponent}</div>
         <div className="mt-0 flex w-full flex-col gap-4 md:w-2/3">
-          <div className="flex flex-col rounded bg-white p-6 dark:bg-blue-900 ">
+          <div className="flex flex-col rounded bg-white p-4 dark:bg-blue-900 md:p-6 ">
             <div className="flex w-full flex-row items-center justify-between">
               <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
                 Key Stats
@@ -216,9 +214,9 @@ const UserInfo: FC<UserInfoProps> = ({
               </a>
             </div>
             <h3 className="mb-5 mt-0 pt-0 text-gray-700 dark:text-gray-300"></h3>
-            <div className="flex flex-row gap-4">
+            <div className="flex flex-row gap-2 md:gap-4">
               <div className={keyStatStyles}>
-                <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
+                <span className="text-xl font-normal text-gray-800 dark:text-gray-200 md:text-2xl">
                   {profile.nr_forecasts}
                 </span>
                 <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
@@ -226,7 +224,7 @@ const UserInfo: FC<UserInfoProps> = ({
                 </span>
               </div>
               <div className={keyStatStyles}>
-                <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
+                <span className="text-xl font-normal text-gray-800 dark:text-gray-200 md:text-2xl">
                   {profile.nr_comments}
                 </span>
                 <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
@@ -234,7 +232,7 @@ const UserInfo: FC<UserInfoProps> = ({
                 </span>
               </div>
               <div className={keyStatStyles}>
-                <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
+                <span className="text-xl font-normal text-gray-800 dark:text-gray-200 md:text-2xl">
                   {format(new Date(profile.date_joined), "MM-yyyy")}
                 </span>
                 <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
@@ -243,7 +241,7 @@ const UserInfo: FC<UserInfoProps> = ({
               </div>
             </div>
           </div>
-          <div className="flex flex-col rounded bg-white p-6 dark:bg-blue-900">
+          <div className="flex flex-col rounded bg-white p-4 dark:bg-blue-900 md:p-6">
             <div className="flex w-full flex-row items-center justify-between">
               <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
                 Calibration Curve
@@ -263,7 +261,7 @@ const UserInfo: FC<UserInfoProps> = ({
                 />
               )}
               <div className="flex flex-col items-center space-y-3 divide-y divide-gray-300 dark:divide-gray-700">
-                <div className="flex flex-row gap-6">
+                <div className="flex flex-row gap-4 md:p-6">
                   <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
                     <span className="block h-1 w-7 bg-gray-500"></span>perfect
                     calibration

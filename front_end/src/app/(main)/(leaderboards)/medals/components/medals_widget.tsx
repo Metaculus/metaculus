@@ -23,7 +23,7 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
   const categories = getMedalCategories(userMedals, true);
 
   return (
-    <section className="rounded bg-white p-6 dark:bg-blue-900">
+    <section className="rounded bg-white p-4 dark:bg-blue-900 md:p-6">
       <div className="mb-5 flex w-full flex-row items-center justify-between">
         <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
           {t("medals")}
@@ -35,7 +35,7 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
           View All
         </a>
       </div>
-      <div className="flex w-full flex-col items-center gap-3">
+      <div className="flex w-full flex-col items-center gap-2 md:gap-3">
         {categories?.map((category, index) => (
           <div
             key={index}
@@ -46,11 +46,11 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
           >
             <Link
               href={`/accounts/profile/${profileId}?mode=medals`}
-              className="flex w-full items-center justify-center gap-3 self-stretch px-5 py-3 text-lg font-medium text-blue-800 no-underline dark:text-blue-800-dark"
+              className="flex w-full items-center justify-center gap-3 self-stretch px-5 py-1.5 text-base font-medium text-blue-800 no-underline dark:text-blue-800-dark md:py-3 md:text-lg"
             >
               <span>{t(RANKING_CATEGORIES[category.name].translationKey)}</span>
             </Link>
-            <div className="flex flex-wrap content-center items-center justify-center gap-[13px] self-stretch rounded-b bg-blue-200 p-3 dark:bg-blue-100-dark">
+            <div className="flex flex-wrap content-center items-center justify-center gap-[8px] self-stretch rounded-b bg-blue-200 px-3 py-2 dark:bg-blue-100-dark md:gap-[13px] md:py-3">
               {!!category.medals.length ? (
                 category.medals.map((medal, index) => {
                   const TooltipContent = (
