@@ -1,10 +1,12 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC, useMemo, useState } from "react";
+import React, { FC, useMemo, useState } from "react";
 
-import ForecastMakerContainer from "@/app/(main)/questions/[id]/components/forecast_maker/container";
 import { createForecast } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
+import Button from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth_context";
+import { useModal } from "@/contexts/modal_context";
 import { ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import {
@@ -33,6 +35,14 @@ const ForecastMakerNumeric: FC<Props> = ({
   canPredict,
   canResolve,
 }) => {
+  const { user } = useAuth();
+  const { setCurrentModal } = useModal();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+
+  const submitIsAllowed = !isSubmitting && isDirty;
+
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
   const t = useTranslations();
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
@@ -62,6 +72,36 @@ const ForecastMakerNumeric: FC<Props> = ({
   const userCdf: number[] = dataset.cdf;
   const communityCdf: number[] = question.forecasts.latest_cdf;
 
+  const handleAddComponent = () => {
+    setForecast([
+      ...forecast,
+      {
+        left: 0.4,
+        right: 0.6,
+        center: 0.5,
+      },
+    ]);
+    setWeights(normalizeWeights([...weights, 1]));
+  };
+
+  const handlePredictSubmit = async () => {
+    setIsSubmitting(true);
+    await createForecast(
+      question.id,
+      {
+        continuousCdf: userCdf,
+        probabilityYes: null,
+        probabilityYesPerCategory: null,
+      },
+      {
+        forecast: forecast,
+        weights: weights,
+      }
+    );
+    setIsDirty(false);
+    setIsSubmitting(false);
+  };
+
   return (
     <>
       <NumericSlider
@@ -71,64 +111,53 @@ const ForecastMakerNumeric: FC<Props> = ({
         onChange={(forecast, weight) => {
           setForecast(forecast);
           setWeights(weight);
+          setIsDirty(true);
         }}
         question={question}
       />
 
-      <div className="p-6 text-center">
-        {canPredict && (
-          <div className="mb-4">
-            <button
-              className="mr-2 rounded-lg bg-gray-600 px-4 py-2 text-white"
-              onClick={() => {
-                setForecast([
-                  ...forecast,
-                  {
-                    left: 0.4,
-                    right: 0.6,
-                    center: 0.5,
-                  },
-                ]);
-                setWeights(normalizeWeights([...weights, 1]));
-              }}
+      <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
+        {canPredict && user ? (
+          <>
+            <Button
+              variant="secondary"
+              type="reset"
+              onClick={handleAddComponent}
             >
-              Add Component
-            </button>
-
-            <button
-              className="rounded-lg bg-blue-300 px-4 py-2 text-gray-800"
-              onClick={async () => {
-                await createForecast(
-                  question.id,
-                  {
-                    continuousCdf: userCdf,
-                    probabilityYes: null,
-                    probabilityYesPerCategory: null,
-                  },
-                  {
-                    forecast: forecast,
-                    weights: weights,
-                  }
-                );
-              }}
+              {t("addComponentButton")}
+            </Button>
+            <Button
+              variant="primary"
+              type="submit"
+              onClick={handlePredictSubmit}
+              disabled={!submitIsAllowed}
             >
-              {t("MakePrediction")}
-            </button>
-          </div>
+              {t("saveButton")}
+            </Button>
+          </>
+        ) : (
+          <Button
+            variant="primary"
+            type="button"
+            onClick={() => setCurrentModal({ type: "signup" })}
+          >
+            {t("signUpButton")}
+          </Button>
         )}
-        <NumericForecastTable
-          userBounds={{
-            belowLower: userCdf[0],
-            aboveUpper: 1 - userCdf[userCdf.length - 1],
-          }}
-          userQuartiles={computeQuartilesFromCDF(userCdf)}
-          communityBounds={{
-            belowLower: communityCdf[0],
-            aboveUpper: 1 - communityCdf[communityCdf.length - 1],
-          }}
-          communityQuartiles={computeQuartilesFromCDF(communityCdf)}
-        />
       </div>
+
+      <NumericForecastTable
+        userBounds={{
+          belowLower: userCdf[0],
+          aboveUpper: 1 - userCdf[userCdf.length - 1],
+        }}
+        userQuartiles={computeQuartilesFromCDF(userCdf)}
+        communityBounds={{
+          belowLower: communityCdf[0],
+          aboveUpper: 1 - communityCdf[communityCdf.length - 1],
+        }}
+        communityQuartiles={computeQuartilesFromCDF(communityCdf)}
+      />
       {canResolve && (
         <div className="flex flex-col items-center justify-center">
           <QuestionResolutionButton

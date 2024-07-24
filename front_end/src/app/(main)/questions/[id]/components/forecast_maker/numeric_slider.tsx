@@ -1,12 +1,17 @@
+"use client";
 import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC } from "react";
+import { useTranslations } from "next-intl";
+import { FC, useState } from "react";
 
-import NumericAreaChart from "@/components/charts/numeric_area_chart";
+import NumericAreaChart, {
+  AreaGraphType,
+} from "@/components/charts/numeric_area_chart";
 import MultiSlider, {
   MultiSliderValue,
 } from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
+import InlineSelect from "@/components/ui/inline_select";
 import { QuestionWithNumericForecasts } from "@/types/question";
 
 type Props = {
@@ -27,13 +32,26 @@ const NumericSlider: FC<Props> = ({
   onChange,
   question,
 }) => {
+  const t = useTranslations();
+  const [graphType, setGraphType] = useState<AreaGraphType>("pmf");
+
   return (
     <div>
+      <InlineSelect<AreaGraphType>
+        options={[
+          { label: t("pdfLabel"), value: "pmf" },
+          { label: t("cdfLabel"), value: "cdf" },
+        ]}
+        defaultValue={graphType}
+        className="appearance-none border-none !p-0 text-sm"
+        onChange={(e) => setGraphType(e.target.value as AreaGraphType)}
+      />
       <NumericAreaChart
         height={300}
         min={question.min}
         max={question.max}
-        type={question.type}
+        dataType={question.type}
+        graphType={graphType}
         data={[
           {
             pmf: question.forecasts.latest_pmf,
