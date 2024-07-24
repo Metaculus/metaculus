@@ -5,7 +5,12 @@ from django.db.models import Q
 
 from posts.models import Post, PostUserSnapshot, PostSubscription
 from posts.services.common import compute_sorting_divergence, compute_movement
-from posts.services.subscriptions import notify_date, notify_post_status_change
+from posts.services.subscriptions import (
+    notify_date,
+    notify_post_status_change,
+    notify_new_comments,
+    notify_milestone,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -82,5 +87,18 @@ def run_subscription_notify_date():
 
 
 @dramatiq.actor
-def run_notify_post_status_change(post_id, event: PostSubscription.PostStatusChange):
+def run_notify_post_status_change(
+    post_id: int, event: PostSubscription.PostStatusChange
+):
     notify_post_status_change(Post.objects.get(pk=post_id), event)
+
+
+@dramatiq.actor
+def run_notify_new_comments(post_id: int):
+    notify_new_comments(Post.objects.get(pk=post_id))
+
+
+@dramatiq.actor
+def run_notify_milestone():
+    for post in Post.objects.filter_active():
+        notify_milestone(post)

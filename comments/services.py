@@ -1,5 +1,6 @@
 from comments.models import Comment
 from posts.models import Post, PostUserSnapshot
+from posts.tasks import run_notify_new_comments
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
@@ -66,6 +67,10 @@ def create_comment(
 
     # Update comments read cache counter
     PostUserSnapshot.update_viewed_at(on_post, user)
+
+    # Send related notifications
+    if on_post:
+        run_notify_new_comments.send(on_post.id)
 
     return obj
 

@@ -76,14 +76,21 @@ class Command(BaseCommand):
         scheduler.add_job(
             close_old_connections(compute_hotness),
             trigger=CronTrigger.from_crontab("15 * * * *"),  # Every Hour at :15
-            id="posts_run_compute_movement",
+            id="posts_compute_hotness",
             max_instances=1,
             replace_existing=True,
         )
         scheduler.add_job(
-            close_old_connections(run_subscription_notify_date),
-            trigger=CronTrigger.from_crontab("15 * * * *"),  # Every Hour at :15
-            id="posts_run_compute_movement",
+            close_old_connections(run_subscription_notify_date.send),
+            trigger=CronTrigger.from_crontab("30 * * * *"),  # Every Hour at :30
+            id="subscription_run_subscription_notify_date",
+            max_instances=1,
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            close_old_connections(run_subscription_notify_date.send),
+            trigger=CronTrigger.from_crontab("0 12 * * *"),  # Every Day at 12 PM
+            id="subscription_run_subscription_notify_date",
             max_instances=1,
             replace_existing=True,
         )

@@ -27,8 +27,6 @@ def notify_new_comments(post: Post):
     Subscription handler to notify about new comments of the post
 
     Trigger: comment creation
-
-    # TODO: Connect to the trigger function (create_comment) and make async!
     """
 
     comments_count = get_post_comments_count(post)
@@ -83,8 +81,6 @@ def notify_milestone(post: Post):
     Notify about new milestones of the post
 
     Please note: this function is not idempotent and should be triggered once per day only!
-
-    # TODO: add a cron job for this
     """
 
     lifespan_pct = get_post_lifespan_pct(post)
