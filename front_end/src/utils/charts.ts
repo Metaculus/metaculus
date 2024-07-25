@@ -3,7 +3,6 @@ import {
   differenceInMilliseconds,
   fromUnixTime,
   getUnixTime,
-  isAfter,
   subDays,
   subMonths,
 } from "date-fns";
@@ -24,6 +23,7 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
+import { abbreviatedNumber } from "@/utils/number_formatters";
 import { extractQuestionGroupName } from "@/utils/questions";
 
 export function getNumericChartTypeFromQuestion(
@@ -41,11 +41,28 @@ export function getNumericChartTypeFromQuestion(
   }
 }
 
-export function generateNumericDomain(values: number[]): Tuple<number> {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+export function generateNumericDomain(
+  timestamps: number[],
+  zoom: TimelineChartZoomOption
+): Tuple<number> {
+  const latestTimestamp = Math.max(...timestamps);
+  const latestDate = fromUnixTime(latestTimestamp);
+  let startDate: Date;
+  switch (zoom) {
+    case TimelineChartZoomOption.OneDay:
+      startDate = subDays(latestDate, 1);
+      break;
+    case TimelineChartZoomOption.OneWeek:
+      startDate = subDays(latestDate, 7);
+      break;
+    case TimelineChartZoomOption.TwoMonths:
+      startDate = subMonths(latestDate, 2);
+      break;
+    default:
+      startDate = fromUnixTime(Math.min(...timestamps));
+  }
 
-  return [min, max];
+  return [getUnixTime(startDate), latestTimestamp];
 }
 
 export function generateTimestampXScale(
@@ -138,7 +155,10 @@ export function generateNumericYScale(yDomain: Tuple<number>): Scale {
     (a, b) => a - b
   );
 
-  return { ticks, tickFormat: (y) => (majorTicks.has(y) ? y.toString() : "") };
+  return {
+    ticks,
+    tickFormat: (y) => (majorTicks.has(y) ? abbreviatedNumber(y) : ""),
+  };
 }
 
 export function generateDateYScale(yDomain: Tuple<number>): Scale {
@@ -333,30 +353,3 @@ export const getChartZoomOptions = () =>
     label: zoomOption,
     value: zoomOption,
   }));
-
-export function zoomTimestamps(
-  timestamps: number[],
-  zoom: TimelineChartZoomOption
-): number[] {
-  const latestTimestamp = Math.max(...timestamps);
-  const latestDate = fromUnixTime(latestTimestamp);
-  let filterDate: Date;
-
-  switch (zoom) {
-    case TimelineChartZoomOption.OneDay:
-      filterDate = subDays(latestDate, 1);
-      break;
-    case TimelineChartZoomOption.OneWeek:
-      filterDate = subDays(latestDate, 7);
-      break;
-    case TimelineChartZoomOption.TwoMonths:
-      filterDate = subMonths(latestDate, 2);
-      break;
-    default:
-      return timestamps;
-  }
-
-  return timestamps.filter((timestamp) =>
-    isAfter(fromUnixTime(timestamp), filterDate)
-  );
-}

@@ -27,7 +27,7 @@ const InlineSelect = <T extends string>(
           className="h-2.5 w-2.5"
         >
           <path
-            fill="#000000"
+            className="fill-gray-1000 dark:fill-gray-1000-dark"
             d="M5.00008 6.00002L0.75708 1.75702L2.17208 0.343018L5.00008 3.17202L7.82808 0.343018L9.24308 1.75702L5.00008 6.00002Z"
           />
         </svg>
