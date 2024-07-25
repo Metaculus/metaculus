@@ -23,8 +23,9 @@ type NumericAreaColor = "orange" | "green";
 export type AreaGraphType = "pmf" | "cdf";
 
 type Props = {
-  min: number;
-  max: number;
+  rangeMin: number;
+  rangeMax: number;
+  zeroPoint: number | null;
   data: {
     pmf: number[];
     cdf: number[];
@@ -37,8 +38,9 @@ type Props = {
 };
 
 const NumericAreaChart: FC<Props> = ({
-  min,
-  max,
+  rangeMin,
+  rangeMax,
+  zeroPoint,
   data,
   graphType = "pmf",
   dataType = QuestionType.Numeric,
@@ -62,21 +64,21 @@ const NumericAreaChart: FC<Props> = ({
           generateNumericAreaGraph({
             pmf: el.pmf,
             cdf: el.cdf,
-            min,
-            max,
+            rangeMin,
+            rangeMax,
             graphType,
           }),
         ],
         []
       ),
-    [data, max, min, graphType]
+    [data, rangeMax, rangeMin, graphType]
   );
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
     yDomain: Tuple<number>;
   }>(
     () => ({
-      xDomain: [0, max - min],
+      xDomain: [0, rangeMax - rangeMin],
       yDomain: [
         0,
         1.2 *
@@ -91,11 +93,18 @@ const NumericAreaChart: FC<Props> = ({
           ),
       ],
     }),
-    [data, graphType, max, min]
+    [data, graphType, rangeMax, rangeMin]
   );
   const { ticks, tickFormat } = useMemo(
-    () => generateNumericAreaTicks(min, max, dataType, chartWidth),
-    [chartWidth, max, min, dataType]
+    () =>
+      generateNumericAreaTicks(
+        rangeMin,
+        rangeMax,
+        zeroPoint,
+        dataType,
+        chartWidth
+      ),
+    [rangeMin, rangeMax, zeroPoint, dataType, chartWidth]
   );
 
   // TODO: find a nice way to display the out of bounds weights as numbers
@@ -182,11 +191,11 @@ type NumericPredictionGraph = {
 function generateNumericAreaGraph(data: {
   pmf: number[];
   cdf: number[];
-  min: number;
-  max: number;
+  rangeMin: number;
+  rangeMax: number;
   graphType: AreaGraphType;
 }): NumericPredictionGraph {
-  const { min, max, pmf, cdf, graphType } = data;
+  const { rangeMin, rangeMax, pmf, cdf, graphType } = data;
 
   const graph: Line = [];
   if (graphType === "cdf") {
@@ -195,7 +204,7 @@ function generateNumericAreaGraph(data: {
         // first and last bins are probabilty mass out of bounds
         return;
       }
-      graph.push({ x: (index * (max - min)) / cdf.length, y: value });
+      graph.push({ x: (index * (rangeMax - rangeMin)) / cdf.length, y: value });
     });
   } else {
     pmf.forEach((value, index) => {
@@ -203,7 +212,7 @@ function generateNumericAreaGraph(data: {
         // first and last bins are probabilty mass out of bounds
         return;
       }
-      graph.push({ x: (index * (max - min)) / pmf.length, y: value });
+      graph.push({ x: (index * (rangeMax - rangeMin)) / pmf.length, y: value });
     });
   }
 
@@ -211,15 +220,15 @@ function generateNumericAreaGraph(data: {
   const quantiles = computeQuartilesFromCDF(cdf);
   verticalLines.push(
     {
-      x: quantiles.lower25 * (max - min),
+      x: quantiles.lower25 * (rangeMax - rangeMin),
       y: graph[Math.min(198, Math.round(quantiles.lower25 * 200))]?.y ?? 0,
     },
     {
-      x: quantiles.median * (max - min),
+      x: quantiles.median * (rangeMax - rangeMin),
       y: graph[Math.min(198, Math.round(quantiles.median * 200))]?.y ?? 0,
     },
     {
-      x: quantiles.upper75 * (max - min),
+      x: quantiles.upper75 * (rangeMax - rangeMin),
       y: graph[Math.min(198, Math.round(quantiles.upper75 * 200))]?.y ?? 0,
     }
   );
@@ -232,8 +241,9 @@ function generateNumericAreaGraph(data: {
 
 // @TODO Luke can you fix the ticks
 function generateNumericAreaTicks(
-  min: number,
-  max: number,
+  rangeMin: number,
+  rangeMax: number,
+  zeroPoint: number | null,
   type: QuestionType,
   chartWidth: number
 ) {
@@ -241,12 +251,12 @@ function generateNumericAreaTicks(
   const maxMajorTicks = Math.floor(chartWidth / minPixelPerTick);
   const minorTicksPerMajor = 9;
 
-  const range = max - min;
+  const range = rangeMax - rangeMin;
   const majorStep = range / maxMajorTicks;
 
   let majorTicks = Array.from(
     { length: maxMajorTicks + 1 },
-    (_, i) => min + i * majorStep
+    (_, i) => rangeMin + i * majorStep
   );
   majorTicks = majorTicks.map((x) => Number(x.toFixed(0)));
 
