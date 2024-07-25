@@ -40,7 +40,6 @@ import {
   generateNumericYScale,
   generatePercentageYScale,
   generateTimestampXScale,
-  zoomTimestamps,
 } from "@/utils/charts";
 
 import XTickLabel from "./primitives/x_tick_label";
@@ -264,7 +263,7 @@ function buildChartData({
     }));
   }
 
-  const xDomain = generateNumericDomain(zoomTimestamps(timestamps, zoom));
+  const xDomain = generateNumericDomain(timestamps, zoom);
   const xScale = generateTimestampXScale(xDomain, width);
 
   let yDomain: Tuple<number>;
