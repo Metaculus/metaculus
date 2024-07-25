@@ -132,6 +132,29 @@ export function generateTimestampXScale(
   };
 }
 
+/**
+ * scales an internal loction within a range of 0 to 1 to a location
+ * within a range of rangeMin to rangeMax, taking into account any logarithmic
+ * scaling determined by zeroPoint
+ */
+export function scaleInternalLocation(
+  x: number,
+  rangeMin: number,
+  rangeMax: number,
+  zeroPoint: number | null
+) {
+  let scaled_location = null;
+  if (zeroPoint !== null) {
+    const deriv_ratio = (rangeMax - zeroPoint) / (rangeMin - zeroPoint);
+    scaled_location =
+      rangeMin +
+      ((rangeMax - rangeMin) * (deriv_ratio ** x - 1)) / (deriv_ratio - 1);
+  } else {
+    scaled_location = rangeMin + (rangeMax - rangeMin) * x;
+  }
+  return scaled_location;
+}
+
 export function generateNumericYScale(yDomain: Tuple<number>): Scale {
   const [min, max] = yDomain;
   const range = max - min;

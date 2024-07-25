@@ -17,7 +17,9 @@ import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { Line } from "@/types/charts";
 import { QuestionType } from "@/types/question";
+import { scaleInternalLocation } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
+import { abbreviatedNumber } from "@/utils/number_formatters";
 
 type NumericAreaColor = "orange" | "green";
 export type AreaGraphType = "pmf" | "cdf";
@@ -64,8 +66,6 @@ const NumericAreaChart: FC<Props> = ({
           generateNumericAreaGraph({
             pmf: el.pmf,
             cdf: el.cdf,
-            rangeMin,
-            rangeMax,
             graphType,
           }),
         ],
@@ -78,7 +78,7 @@ const NumericAreaChart: FC<Props> = ({
     yDomain: Tuple<number>;
   }>(
     () => ({
-      xDomain: [0, rangeMax - rangeMin],
+      xDomain: [0, 1],
       yDomain: [
         0,
         1.2 *
@@ -93,7 +93,7 @@ const NumericAreaChart: FC<Props> = ({
           ),
       ],
     }),
-    [data, graphType, rangeMax, rangeMin]
+    [data, graphType]
   );
   const { ticks, tickFormat } = useMemo(
     () =>
@@ -191,20 +191,14 @@ type NumericPredictionGraph = {
 function generateNumericAreaGraph(data: {
   pmf: number[];
   cdf: number[];
-  rangeMin: number;
-  rangeMax: number;
   graphType: AreaGraphType;
 }): NumericPredictionGraph {
-  const { rangeMin, rangeMax, pmf, cdf, graphType } = data;
+  const { pmf, cdf, graphType } = data;
 
   const graph: Line = [];
   if (graphType === "cdf") {
     cdf.forEach((value, index) => {
-      if (index === 0 || index === cdf.length - 1) {
-        // first and last bins are probabilty mass out of bounds
-        return;
-      }
-      graph.push({ x: (index * (rangeMax - rangeMin)) / cdf.length, y: value });
+      graph.push({ x: index / (cdf.length - 1), y: value });
     });
   } else {
     pmf.forEach((value, index) => {
@@ -212,7 +206,7 @@ function generateNumericAreaGraph(data: {
         // first and last bins are probabilty mass out of bounds
         return;
       }
-      graph.push({ x: (index * (rangeMax - rangeMin)) / pmf.length, y: value });
+      graph.push({ x: (index - 0.5) / (pmf.length - 2), y: value });
     });
   }
 
@@ -220,15 +214,15 @@ function generateNumericAreaGraph(data: {
   const quantiles = computeQuartilesFromCDF(cdf);
   verticalLines.push(
     {
-      x: quantiles.lower25 * (rangeMax - rangeMin),
+      x: quantiles.lower25,
       y: graph[Math.min(198, Math.round(quantiles.lower25 * 200))]?.y ?? 0,
     },
     {
-      x: quantiles.median * (rangeMax - rangeMin),
+      x: quantiles.median,
       y: graph[Math.min(198, Math.round(quantiles.median * 200))]?.y ?? 0,
     },
     {
-      x: quantiles.upper75 * (rangeMax - rangeMin),
+      x: quantiles.upper75,
       y: graph[Math.min(198, Math.round(quantiles.upper75 * 200))]?.y ?? 0,
     }
   );
@@ -239,7 +233,6 @@ function generateNumericAreaGraph(data: {
   };
 }
 
-// @TODO Luke can you fix the ticks
 function generateNumericAreaTicks(
   rangeMin: number,
   rangeMax: number,
@@ -251,15 +244,10 @@ function generateNumericAreaTicks(
   const maxMajorTicks = Math.floor(chartWidth / minPixelPerTick);
   const minorTicksPerMajor = 9;
 
-  const range = rangeMax - rangeMin;
-  const majorStep = range / maxMajorTicks;
-
   let majorTicks = Array.from(
     { length: maxMajorTicks + 1 },
-    (_, i) => rangeMin + i * majorStep
+    (_, i) => i / maxMajorTicks
   );
-  majorTicks = majorTicks.map((x) => Number(x.toFixed(0)));
-
   const ticks = [];
   for (let i = 0; i < majorTicks.length - 1; i++) {
     ticks.push(majorTicks[i]);
@@ -275,16 +263,16 @@ function generateNumericAreaTicks(
     ticks,
     tickFormat: (x: number) => {
       if (majorTicks.includes(x)) {
-        switch (type) {
-          case QuestionType.Date:
-            return format(fromUnixTime(x), "yyyy-MM");
-          default:
-            if (x > 10000) {
-              return Math.round(x / 1000).toString() + "k";
-            } else if (x < 0) {
-              return (Math.round(x * 10000) / 10000).toString();
-            }
-            return (Math.round(x * 1000) / 1000).toString();
+        const scaled_location = scaleInternalLocation(
+          x,
+          rangeMin,
+          rangeMax,
+          zeroPoint
+        );
+        if (type === QuestionType.Date) {
+          return format(fromUnixTime(scaled_location), "yyyy-MM");
+        } else {
+          return abbreviatedNumber(scaled_location);
         }
       }
 
