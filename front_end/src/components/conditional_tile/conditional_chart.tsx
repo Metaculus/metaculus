@@ -30,7 +30,7 @@ const ConditionalChart: FC<Props> = ({
 
   switch (question.type) {
     case QuestionType.Binary: {
-      const pctCandidate = question.forecasts?.values_mean?.at(-1);
+      const pctCandidate = question.forecasts?.medians?.at(-1);
       const pct = pctCandidate ? Math.round(pctCandidate * 100) : null;
 
       return (
@@ -73,7 +73,7 @@ const ConditionalChart: FC<Props> = ({
         return <div className="text-center text-xs">No data yet</div>;
       }
 
-      const prediction = question.forecasts.values_mean.at(-1);
+      const prediction = question.forecasts.medians.at(-1);
       const formattedPrediction = prediction
         ? formatPrediction(prediction, question.type)
         : "";
@@ -89,8 +89,8 @@ const ConditionalChart: FC<Props> = ({
             </div>
             <NumericAreaChart
               height={40}
-              rangeMin={question.min}
-              rangeMax={question.max}
+              rangeMin={question.range_min}
+              rangeMax={question.range_max}
               zeroPoint={question.zero_point}
               data={[
                 {

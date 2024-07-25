@@ -48,8 +48,8 @@ const NumericSlider: FC<Props> = ({
       />
       <NumericAreaChart
         height={300}
-        rangeMin={question.min}
-        rangeMax={question.max}
+        rangeMin={question.range_min}
+        rangeMax={question.range_max}
         zeroPoint={question.zero_point}
         dataType={question.type}
         graphType={graphType}
@@ -71,8 +71,6 @@ const NumericSlider: FC<Props> = ({
           <div className="px-2.5" key={index}>
             <MultiSlider
               key={`multi-slider-${index}`}
-              min={0}
-              max={1}
               value={forecast[index]}
               step={0.00001}
               clampStep={0.035}
@@ -96,8 +94,8 @@ const NumericSlider: FC<Props> = ({
                 <div className="inline w-3/4">
                   <Slider
                     key={`slider-${index}`}
-                    min={0}
-                    max={1}
+                    inputMin={0}
+                    inputMax={1}
                     step={0.00001}
                     defaultValue={weights[index]}
                     round={true}

@@ -60,7 +60,7 @@ export function extractPrevNumericForecastValue(prevForecast: any): {
   forecast?: MultiSliderValue[];
   weights?: number[];
 } {
-  if (typeof prevForecast !== "object") {
+  if (typeof prevForecast !== "object" || prevForecast === null) {
     return {};
   }
 

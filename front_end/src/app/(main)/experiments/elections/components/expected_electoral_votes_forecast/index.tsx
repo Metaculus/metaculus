@@ -132,8 +132,8 @@ function getForecastData(
       color: "#E0152B",
     },
   ];
-  const democratPrediction = democratQuestion.forecasts.values_mean.at(-1);
-  const republicanPrediction = republicanQuestion.forecasts.values_mean.at(-1);
+  const democratPrediction = democratQuestion.forecasts.medians.at(-1);
+  const republicanPrediction = republicanQuestion.forecasts.medians.at(-1);
 
   return {
     candles,
