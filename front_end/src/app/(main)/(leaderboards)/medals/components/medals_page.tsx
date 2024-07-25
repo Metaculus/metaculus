@@ -26,11 +26,11 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
   function getMedalClassName(medalType: MedalType): string {
     switch (medalType) {
       case "gold":
-        return "bg-gradient-to-b from-[#F6D84D]/0 md:from-[#F6D84D]/30 from-0% to-30% to-white dark:to-blue-950/75";
+        return "bg-blue-700/5 dark:bg-blue-950 md:bg-white md:bg-gradient-to-b from-[#F6D84D]/0 dark:from-blue-950 dark:to-blue-950 md:from-[#F6D84D]/30 dark:md:from-[#F6D84D]/20 from-0% to-30% to-white md:dark:to-blue-950/75";
       case "silver":
-        return "bg-gradient-to-b from-[#A7B1C0]/0 md:from-[#A7B1C0]/15 dark:from-[#A7B1C0]/25 from-0% to-30% to-white dark:to-blue-950/75";
+        return "bg-blue-700/5 dark:bg-blue-950 md:bg-white md:bg-gradient-to-b from-[#A7B1C0]/0 dark:from-blue-950 dark:to-blue-950 md:from-[#A7B1C0]/15 dark:md:from-[#A7B1C0]/15 dark:from-[#A7B1C0]/25 from-0% to-30% to-white md:dark:to-blue-950/75";
       case "bronze":
-        return "bg-gradient-to-b from-[#F09B59]/0 md:from-[#F09B59]/20 from-0% to-30% to-white dark:to-blue-950/75";
+        return "bg-blue-700/5 dark:bg-blue-950 md:bg-white md:bg-gradient-to-b from-[#F09B59]/0 dark:from-blue-950 dark:to-blue-950 md:from-[#F09B59]/20 dark:md:from-[#F09B59]/20 from-0% to-30% to-white md:dark:to-blue-950/75";
       default:
         return "";
     }
@@ -46,21 +46,21 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
               { "sm:col-span-2": category.name === "tournament" }
             )}
           >
-            <div className="flex w-full items-center justify-center gap-3 self-stretch rounded-t bg-gradient-to-b from-white to-blue-100 px-5 py-4 pb-0 dark:from-blue-900/75 dark:to-blue-900/75">
-              <span className="text-xl font-medium text-blue-800 dark:text-blue-800-dark">
+            <div className="flex w-full items-center justify-center gap-3 self-stretch rounded-t bg-gradient-to-b from-white to-blue-100 px-5 py-2.5 pb-2 dark:from-blue-900/75 dark:to-blue-900/75 md:py-4 md:pb-4">
+              <span className="lext-lg font-medium text-blue-800 dark:text-blue-200 md:text-xl">
                 {t(RANKING_CATEGORIES[category.name].translationKey)}
               </span>
             </div>
-            <div className="flex min-h-[65px] flex-col content-center items-center justify-center gap-3 self-stretch rounded-b bg-blue-100 p-4 dark:bg-blue-900/75 md:flex-row md:flex-wrap">
+            <div className="flex min-h-[65px] flex-col content-center items-center justify-center gap-3 self-stretch rounded-b bg-blue-100 p-4 pt-0 dark:bg-blue-900/75 md:flex-row md:flex-wrap md:pt-4">
               {!!category.medals.length ? (
                 category.medals.map((medal, index) => {
                   return (
                     <div
                       key={index}
-                      className={`relative flex w-full min-w-[210px] flex-row items-center gap-3 overflow-hidden rounded-lg px-3 py-3 shadow-lg shadow-blue-500/30 dark:bg-blue-900 dark:shadow-black/25 md:w-fit md:flex-col md:px-8 md:py-4 ${getMedalClassName(medal.type)}`}
+                      className={`relative flex w-full min-w-[210px] flex-row items-center gap-3 overflow-hidden rounded-lg px-3 py-3 shadow-none shadow-blue-500/30 dark:bg-blue-900 dark:shadow-black/25 md:w-fit md:flex-col md:px-8 md:py-4 md:shadow-lg ${getMedalClassName(medal.type)}`}
                     >
-                      <div className="z-2 absolute left-[-64px] top-[-40px] size-32 rounded-full bg-white blur-xl dark:bg-blue-950"></div>
-                      <div className="z-2 absolute right-[-64px] top-[-40px] size-32 rounded-full bg-white blur-xl dark:bg-blue-950"></div>
+                      <div className="z-2 absolute left-[-64px] top-[-40px] hidden size-32 rounded-full bg-white blur-xl dark:bg-blue-950 md:block"></div>
+                      <div className="z-2 absolute right-[-64px] top-[-40px] hidden size-32 rounded-full bg-white blur-xl dark:bg-blue-950 md:block"></div>
                       <div className="z-5 relative min-w-6">
                         <MedalIcon
                           type={medal.type}
