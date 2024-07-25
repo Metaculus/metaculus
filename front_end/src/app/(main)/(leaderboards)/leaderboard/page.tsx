@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import { Fragment, Suspense } from "react";
+import { FC, Fragment, Suspense } from "react";
 
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { SearchParams } from "@/types/navigation";
@@ -40,11 +40,7 @@ export default function GlobalLeaderboards({
     return (
       <main className="mb-12 flex w-full flex-col items-center gap-3 p-2 sm:mb-24">
         <LeaderboardHeader filters={filters} />
-
-        <Suspense
-          key={JSON.stringify(filters)}
-          fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}
-        >
+        <Suspense key={JSON.stringify(filters)} fallback={<Skeleton />}>
           <GlobalLeaderboard
             leaderboardType={leaderboardType}
             startTime={timeInterval.startTime}
@@ -94,7 +90,7 @@ export default function GlobalLeaderboards({
               <Fragment key={categoryKey}>
                 <Suspense
                   key={JSON.stringify(searchParams)}
-                  fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}
+                  fallback={<Skeleton />}
                 >
                   <GlobalLeaderboard
                     leaderboardType={leaderboardType}
@@ -116,6 +112,22 @@ export default function GlobalLeaderboards({
     </LeaderboardMobileTabBarProvider>
   );
 }
+
+const Skeleton: FC<{ className?: string }> = ({ className }) => (
+  <div
+    className={classNames(
+      "w-full max-w-3xl animate-pulse rounded bg-gray-0 p-4 shadow-md dark:bg-gray-0-dark",
+      className
+    )}
+  >
+    <div className="mb-2 h-8 w-full rounded bg-gray-300 dark:bg-gray-300-dark"></div>
+    <div className="mb-2 h-11 w-full rounded bg-gray-300 dark:bg-gray-300-dark"></div>
+    <div className="mb-2 h-11 w-full rounded bg-gray-300 dark:bg-gray-300-dark"></div>
+    <div className="mb-2 h-11 w-full rounded bg-gray-300 dark:bg-gray-300-dark"></div>
+    <div className="mb-2 h-11 w-full rounded bg-gray-300 dark:bg-gray-300-dark"></div>
+    <div className="mb-2 h-11 w-full rounded bg-gray-300 dark:bg-gray-300-dark"></div>
+  </div>
+);
 
 function getPageCategoryKeys(filters: LeaderboardFilters): CategoryKey[] {
   if (filters.category === "all") {

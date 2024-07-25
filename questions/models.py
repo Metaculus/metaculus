@@ -87,7 +87,9 @@ class Question(TimeStampedModel):
 
     # Annotated fields
     forecasts_count: int = 0
-    user_forecasts: list = []
+    # Should not have a default value
+    # because custom Prefetch construction can't override it
+    user_forecasts: list
 
     def __str__(self):
         return f"{self.type} {self.title}"
