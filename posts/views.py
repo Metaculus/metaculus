@@ -1,16 +1,20 @@
 from django.core.files.storage import default_storage
-from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
-from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from posts.models import Post, Vote, PostUserSnapshot, PostActivityBoost, PostSubscription
+from posts.models import (
+    Post,
+    Vote,
+    PostUserSnapshot,
+    PostActivityBoost,
+)
 from posts.serializers import (
     NotebookSerializer,
     PostFilterSerializer,
@@ -293,7 +297,7 @@ def activity_boost_api_view(request, pk):
     )
 
 
-@api_view(["POST"])
+@api_view(["POST", "PUT"])
 def post_subscriptions_create(request, pk):
     """
     Create bulk subscriptions for the post
@@ -305,34 +309,54 @@ def post_subscriptions_create(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
+    existing_subscriptions = post.subscriptions.filter(user=request.user)
+
     # Validating data
     validated_data = []
+    keep_types = set()
 
     for data in serializers.ListField().run_validation(request.data):
-        serializer = get_subscription_serializer_by_type(data.get("type"))(data=data)
-        serializer.is_valid(raise_exception=True)
-        validated_data.append(serializer.validated_data)
+        subscription_type = data.get("type")
 
-    subscriptions = []
+        serializer = get_subscription_serializer_by_type(subscription_type)(data=data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        # Check changed
+        # Check whether subscription was changed
+        existing_subscription = next(
+            (sub for sub in existing_subscriptions if sub.type == subscription_type),
+            None,
+        )
+        create = not existing_subscription
+
+        if existing_subscription:
+            for key, value in data.items():
+                if getattr(existing_subscription, key) != value:
+                    # Notification was changed, so we want to re-create it
+                    create = True
+                    break
+
+        if create:
+            validated_data.append(data)
+        else:
+            keep_types.add(subscription_type)
+
+    # Deleting subscriptions
+    existing_subscriptions.exclude(type__in=keep_types).delete()
 
     for data in validated_data:
-        subscription_type = data.pop("type")
-
-        try:
-            sub = create_subscription(
-                subscription_type=subscription_type,
-                post=post,
-                user=request.user,
-                **data,
-            )
-            subscriptions.append(sub)
-        except IntegrityError:
-            raise ValidationError(f"Duplicate subscription {subscription_type}")
+        create_subscription(
+            subscription_type=data.pop("type"),
+            post=post,
+            user=request.user,
+            **data,
+        )
 
     return Response(
         [
             get_subscription_serializer_by_type(sub.type)(sub).data
-            for sub in subscriptions
+            for sub in existing_subscriptions.all()
         ],
         status=status.HTTP_201_CREATED,
     )
