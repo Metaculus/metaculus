@@ -22,18 +22,19 @@ const INITIAL_NUM_OF_TAGS = 10;
 const SidebarQuestionTags: FC<Props> = ({ tagData, allowModifications }) => {
   const t = useTranslations();
 
+  const { category, tag: _tag } = tagData;
+  const tag = _tag ?? [];
+
   const [showAllTags, setShowAllTags] = useState(
-    tagData.tag.length < INITIAL_NUM_OF_TAGS
+    (tag.length ?? 0) < INITIAL_NUM_OF_TAGS
   );
 
-  const tagsToShow = showAllTags
-    ? tagData.tag
-    : tagData.tag.slice(0, INITIAL_NUM_OF_TAGS);
+  const tagsToShow = showAllTags ? tag : tag.slice(0, INITIAL_NUM_OF_TAGS);
 
   return (
     <div className="flex flex-col items-center justify-center gap-4 self-stretch border-t border-gray-300 @lg:border-0 dark:border-gray-300-dark">
       <div className="mt-4 flex flex-wrap content-start items-start gap-2.5 self-stretch @lg:m-0">
-        {tagData.category.map((element) => (
+        {category.map((element) => (
           <Chip
             color="olive"
             key={element.id}
