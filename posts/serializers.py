@@ -22,7 +22,7 @@ from questions.serializers import (
     GroupOfQuestionsWriteSerializer,
 )
 from users.models import User
-from .models import Notebook, Post
+from .models import Notebook, Post, PostSubscription
 
 
 class NotebookSerializer(serializers.ModelSerializer):
@@ -194,6 +194,7 @@ def serialize_post(
     post: Post,
     with_cp: bool = False,
     current_user: User = None,
+    with_subscriptions: bool = False,
 ) -> dict:
     serialized_data = PostSerializer(post).data
 
@@ -234,6 +235,13 @@ def serialize_post(
     # Forecasters
     serialized_data["nr_forecasters"] = post.nr_forecasters
 
+    # Subscriptions
+    if with_subscriptions and current_user:
+        serialized_data["subscriptions"] = [
+            get_subscription_serializer_by_type(sub.type)(sub).data
+            for sub in post.user_subscriptions
+        ]
+
     serialized_data["forecasts_count"] = post.forecasts_count
     return serialized_data
 
@@ -242,6 +250,7 @@ def serialize_post_many(
     data: Union[Post.objects, list[Post]],
     with_cp: bool = False,
     current_user: User = None,
+    with_subscriptions: bool = False,
 ) -> list[dict]:
     ids = [p.pk for p in data]
     qs = Post.objects.filter(pk__in=ids)
@@ -263,11 +272,75 @@ def serialize_post_many(
         if current_user:
             qs = qs.prefetch_user_forecasts(current_user.id)
 
+    if with_subscriptions and current_user:
+        qs = qs.prefetch_user_subscriptions(user=current_user)
+
     # Restore the original ordering
     objects = list(qs.all())
     objects.sort(key=lambda obj: ids.index(obj.id))
 
     return [
-        serialize_post(post, with_cp=with_cp, current_user=current_user)
+        serialize_post(
+            post,
+            with_cp=with_cp,
+            current_user=current_user,
+            with_subscriptions=with_subscriptions,
+        )
         for post in objects
     ]
+
+
+class SubscriptionNewCommentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PostSubscription
+        fields = (
+            "type",
+            "comments_frequency",
+        )
+
+
+class SubscriptionMilestoneSerializer(serializers.ModelSerializer):
+    milestone_step = serializers.FloatField(min_value=0, max_value=1)
+
+    class Meta:
+        model = PostSubscription
+        fields = (
+            "type",
+            "milestone_step",
+        )
+
+
+class SubscriptionStatusChangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PostSubscription
+        fields = ("type",)
+
+
+class SubscriptionSpecificTimeSerializer(serializers.ModelSerializer):
+    recurrence_interval = serializers.DurationField(required=True)
+
+    class Meta:
+        model = PostSubscription
+        fields = ("type", "next_trigger_datetime", "recurrence_interval")
+
+    def validate_next_trigger_datetime(self, value):
+        if value <= timezone.now():
+            raise ValidationError("Can not be in the past")
+
+        return value
+
+
+def get_subscription_serializer_by_type(
+    subscription_type: PostSubscription.SubscriptionType,
+) -> type[serializers.Serializer]:
+    serializers_map = {
+        PostSubscription.SubscriptionType.NEW_COMMENTS: SubscriptionNewCommentsSerializer,
+        PostSubscription.SubscriptionType.MILESTONE: SubscriptionMilestoneSerializer,
+        PostSubscription.SubscriptionType.STATUS_CHANGE: SubscriptionStatusChangeSerializer,
+        PostSubscription.SubscriptionType.SPECIFIC_TIME: SubscriptionSpecificTimeSerializer,
+    }
+
+    if not subscription_type in serializers_map:
+        raise ValidationError("Wrong subscription type")
+
+    return serializers_map[subscription_type]

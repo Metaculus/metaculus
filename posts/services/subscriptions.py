@@ -1,7 +1,8 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.db.models import Q
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from comments.services import get_post_comments_count
 from notifications.services import (
@@ -12,6 +13,13 @@ from notifications.services import (
     NotificationPostSpecificTime,
 )
 from posts.models import Post, PostSubscription
+from users.models import User
+
+
+def notify_post_cp_change(post: Post):
+    """
+    TODO: implement
+    """
 
 
 def generate_next_trigger_value_for_new_comments(post: Post, frequency: int) -> int:
@@ -35,10 +43,10 @@ def notify_new_comments(post: Post):
         type=PostSubscription.SubscriptionType.NEW_COMMENTS,
         next_trigger_value__lte=comments_count,
     ).select_related("user")
-    # TODO: replace with real subscription config!
-    frequency = 1
 
     for subscription in subscriptions:
+        frequency = subscription.comments_frequency
+
         user = subscription.user
 
         NotificationNewComments.send(
@@ -73,6 +81,7 @@ def get_next_post_milestone(post: Post, step: float):
     Generate next percentage milestone for a post notification
     """
 
+    # TODO: check float conversions e.g 0.2 * 3.0 == 0.60000001
     return ((get_post_lifespan_pct(post) // step) + 1) * step
 
 
@@ -102,11 +111,8 @@ def notify_milestone(post: Post):
             ),
         )
 
-        # TODO: replace with real subscription config!
-        step = 0.2
-
         subscription.update_last_sent_at()
-        next_trigger_value = get_next_post_milestone(post, step)
+        next_trigger_value = get_next_post_milestone(post, subscription.milestone_step)
         subscription.next_trigger_value = (
             next_trigger_value if next_trigger_value <= 100 else None
         )
@@ -143,7 +149,7 @@ def notify_date():
 
     subscriptions = (
         PostSubscription.objects.filter(
-            type=PostSubscription.SubscriptionType.MILESTONE,
+            type=PostSubscription.SubscriptionType.SPECIFIC_TIME,
             next_trigger_datetime_lte=timezone.now(),
         )
         .filter(
@@ -161,14 +167,118 @@ def notify_date():
             ),
         )
 
-        # TODO: add recurrence_interval field
-        recurrence_interval = timedelta(days=7)
-
-        if recurrence_interval:
+        if subscription.recurrence_interval:
             # This protects us from cases when we missed notifications job run for 2+ iterations
             # So this job won't send any duplicate reminders
             while subscription.next_trigger_datetime <= timezone.now():
-                subscription.next_trigger_datetime += recurrence_interval
+                subscription.next_trigger_datetime += subscription.recurrence_interval
 
         subscription.update_last_sent_at()
         subscription.save()
+
+
+#
+# Subscription factories
+#
+
+
+def create_subscription_new_comments(
+    user: User = None, post: Post = None, comments_frequency: int = None
+) -> PostSubscription:
+    obj = PostSubscription.objects.create(
+        user=user,
+        post=post,
+        type=PostSubscription.SubscriptionType.NEW_COMMENTS,
+        comments_frequency=comments_frequency,
+        next_trigger_value=generate_next_trigger_value_for_new_comments(
+            post, comments_frequency
+        ),
+    )
+
+    obj.full_clean()
+    obj.save()
+
+    return obj
+
+
+def create_subscription_cp_change(
+    user: User = None, post: Post = None
+) -> PostSubscription:
+    obj = PostSubscription.objects.create(
+        user=user,
+        post=post,
+        # TODO: add extra params
+    )
+
+    obj.full_clean()
+    obj.save()
+
+    return obj
+
+
+def create_subscription_milestone(
+    user: User = None, post: Post = None, milestone_step: float = None
+) -> PostSubscription:
+    obj = PostSubscription.objects.create(
+        user=user,
+        post=post,
+        type=PostSubscription.SubscriptionType.MILESTONE,
+        milestone_step=milestone_step,
+        next_trigger_value=get_next_post_milestone(post, milestone_step),
+    )
+
+    obj.full_clean()
+    obj.save()
+
+    return obj
+
+
+def create_subscription_status_change(user: User, post: Post):
+    obj = PostSubscription.objects.create(
+        user=user, post=post, type=PostSubscription.SubscriptionType.STATUS_CHANGE
+    )
+
+    obj.full_clean()
+    obj.save()
+
+    return obj
+
+
+def create_subscription_specific_time(
+    user: User,
+    post: Post,
+    next_trigger_datetime: datetime = None,
+    recurrence_interval: timedelta = None,
+):
+    obj = PostSubscription.objects.create(
+        user=user,
+        post=post,
+        type=PostSubscription.SubscriptionType.SPECIFIC_TIME,
+        recurrence_interval=recurrence_interval,
+        next_trigger_datetime=next_trigger_datetime,
+    )
+
+    obj.full_clean()
+    obj.save()
+
+    return obj
+
+
+def create_subscription(
+    subscription_type: PostSubscription.SubscriptionType,
+    user: User,
+    post: Post,
+    **kwargs,
+):
+    factories_map = {
+        PostSubscription.SubscriptionType.NEW_COMMENTS: create_subscription_new_comments,
+        PostSubscription.SubscriptionType.STATUS_CHANGE: create_subscription_status_change,
+        PostSubscription.SubscriptionType.MILESTONE: create_subscription_milestone,
+        PostSubscription.SubscriptionType.SPECIFIC_TIME: create_subscription_specific_time,
+        PostSubscription.SubscriptionType.CP_CHANGE: create_subscription_cp_change,
+    }
+
+    if f := factories_map.get(subscription_type):
+        return f(user=user, post=post, **kwargs)
+
+    raise ValidationError("Wrong subscription type")

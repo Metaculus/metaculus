@@ -1,6 +1,5 @@
 from django.db import models
 
-from notifications.services import NOTIFICATION_TYPE_REGISTRY
 from utils.models import TimeStampedModel
 
 
@@ -13,7 +12,7 @@ class Notification(TimeStampedModel):
     # TODO: add 1h email sender service
     """
 
-    type = models.CharField(choices=[cls.type for cls in NOTIFICATION_TYPE_REGISTRY])
+    type = models.CharField(db_index=True)
     # Recipient of the notification
     recipient = models.ForeignKey(
         "users.User", models.CASCADE, related_name="notifications"

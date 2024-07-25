@@ -64,6 +64,15 @@ class PostQuerySet(models.QuerySet):
             "group_of_questions__questions",
         )
 
+    def prefetch_user_subscriptions(self, user: User):
+        return self.prefetch_related(
+            Prefetch(
+                "subscriptions",
+                queryset=PostSubscription.objects.filter(user=user),
+                to_attr="user_subscriptions",
+            )
+        )
+
     def annotate_user_last_forecasts_date(self, author_id: int):
         """
         Annotate last forecast date for user
@@ -436,6 +445,7 @@ class Post(TimeStampedModel):
     comment_count: int = 0
     user_last_forecasts_date = None
     divergence: int = None
+    user_subscriptions: list["PostSubscription"] = []
 
     def __str__(self):
         return self.title
@@ -485,13 +495,26 @@ class PostSubscription(TimeStampedModel):
     post = models.ForeignKey(Post, models.CASCADE, related_name="subscriptions")
 
     type = models.CharField(choices=SubscriptionType.choices, db_index=True)
-    last_sent_at = models.DateTimeField(default=None, db_index=True)
+    last_sent_at = models.DateTimeField(null=True, db_index=True, blank=True)
 
-    next_trigger_value = models.FloatField(null=True, db_index=True)
-    next_trigger_datetime = models.DateTimeField(null=True, db_index=True)
+    next_trigger_value = models.FloatField(null=True, db_index=True, blank=True)
+    next_trigger_datetime = models.DateTimeField(null=True, db_index=True, blank=True)
+
+    # Notification-specific fields
+    comments_frequency = models.PositiveSmallIntegerField(null=True, blank=True)
+    recurrence_interval = models.DurationField(null=True, blank=True)
+    # 0.1 -> 1
+    milestone_step = models.FloatField(null=True, blank=True)
 
     def update_last_sent_at(self):
         self.last_sent_at = timezone.now()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="postsubscription_unique_type_user_post", fields=["type", "user_id", "post_id"]
+            )
+        ]
 
 
 class PostUserSnapshot(models.Model):
