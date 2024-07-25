@@ -32,9 +32,9 @@ const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
     );
 
     return {
-      min: forecast.values_min[index],
-      max: forecast.values_max[index],
-      mean: forecast.values_mean[index],
+      q1: forecast.q1s[index],
+      q3: forecast.q3s[index],
+      median: forecast.medians[index],
       forecastersNr: forecast.nr_forecasters[index],
       timestamp: forecast.timestamps[index],
     };
@@ -42,9 +42,9 @@ const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
     cursorTimestamp,
     forecast.nr_forecasters,
     forecast.timestamps,
-    forecast.values_max,
-    forecast.values_mean,
-    forecast.values_min,
+    forecast.q3s,
+    forecast.medians,
+    forecast.q1s,
   ]);
 
   const handleCursorChange = useCallback((value: number) => {
@@ -81,7 +81,7 @@ const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
         />
         <CursorDetailItem
           title={t("communityPredictionLabel")}
-          text={formatPrediction(cursorData.mean, questionType)}
+          text={formatPrediction(cursorData.median, questionType)}
           variant="prediction"
         />
       </div>
