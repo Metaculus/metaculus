@@ -48,8 +48,8 @@ const NumericSlider: FC<Props> = ({
       />
       <NumericAreaChart
         height={300}
-        rangeMin={question.min}
-        rangeMax={question.max}
+        rangeMin={question.range_min}
+        rangeMax={question.range_max}
         zeroPoint={question.zero_point}
         dataType={question.type}
         graphType={graphType}
