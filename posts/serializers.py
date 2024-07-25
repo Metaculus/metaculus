@@ -196,6 +196,9 @@ def serialize_post(
     current_user: User = None,
     with_subscriptions: bool = False,
 ) -> dict:
+    current_user = (
+        current_user if current_user and not current_user.is_anonymous else None
+    )
     serialized_data = PostSerializer(post).data
 
     if post.question:
@@ -252,6 +255,9 @@ def serialize_post_many(
     current_user: User = None,
     with_subscriptions: bool = False,
 ) -> list[dict]:
+    current_user = (
+        current_user if current_user and not current_user.is_anonymous else None
+    )
     ids = [p.pk for p in data]
     qs = Post.objects.filter(pk__in=ids)
 
@@ -262,7 +268,7 @@ def serialize_post_many(
         .prefetch_questions()
         .annotate_comment_count()
     )
-    if current_user and not current_user.is_anonymous:
+    if current_user:
         qs = qs.annotate_user_vote(current_user)
 
     if with_cp:
