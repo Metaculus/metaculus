@@ -89,7 +89,7 @@ export type Question = {
   label: string | null;
   nr_forecasters: number;
   author_username: string;
-  zero_point: number;
+  zero_point: number | null;
   post_id?: number;
   display_divergences?: number[][];
 };
