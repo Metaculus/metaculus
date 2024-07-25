@@ -445,7 +445,6 @@ class Post(TimeStampedModel):
     comment_count: int = 0
     user_last_forecasts_date = None
     divergence: int = None
-    user_subscriptions: list["PostSubscription"] = []
 
     def __str__(self):
         return self.title
