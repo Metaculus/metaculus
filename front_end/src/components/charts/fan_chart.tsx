@@ -192,6 +192,10 @@ function buildChartData(options: FanOption[]) {
 }
 
 function calculateCharWidth(fontSize: number): number {
+  if (typeof document === "undefined") {
+    return 0;
+  }
+
   const element = document.createElement("span");
   element.style.visibility = "hidden";
   element.style.position = "absolute";
@@ -227,6 +231,10 @@ function adjustLabelsForDisplay(
   }
 
   const labels = options.map((option) => option.name);
+  if (!charWidth) {
+    return labels;
+  }
+
   const maxLabelLength = Math.max(...labels.map((label) => label.length));
   const maxLabelWidth = maxLabelLength * charWidth + labelMargin;
   let availableSpacePerLabel = chartWidth / labels.length;
