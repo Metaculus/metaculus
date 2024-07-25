@@ -34,7 +34,6 @@ import {
   generateNumericDomain,
   generatePercentageYScale,
   generateTimestampXScale,
-  zoomTimestamps,
 } from "@/utils/charts";
 
 import ChartContainer from "./primitives/chart_container";
@@ -250,7 +249,7 @@ function buildChartData({
   height: number;
   zoom: TimelineChartZoomOption;
 }): ChartData {
-  const xDomain = generateNumericDomain(zoomTimestamps(timestamps, zoom));
+  const xDomain = generateNumericDomain(timestamps, zoom);
 
   const graphs: ChoiceGraph[] = choiceItems.map(
     ({
