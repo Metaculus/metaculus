@@ -185,7 +185,7 @@ const getStateByItems = (
       return area;
     }
 
-    const prediction = questionData.forecasts.values_mean.at(-1);
+    const prediction = questionData.forecasts.medians.at(-1);
     if (!prediction) {
       return area;
     }
@@ -226,8 +226,8 @@ function getDemocratRepublicanPrediction({
     return null;
   }
 
-  const rawDemocratPrediction = demQuestion.forecasts.values_mean.at(-1);
-  const rawRepublicanPrediction = repQuestion.forecasts.values_mean.at(-1);
+  const rawDemocratPrediction = demQuestion.forecasts.medians.at(-1);
+  const rawRepublicanPrediction = repQuestion.forecasts.medians.at(-1);
 
   return {
     democratPrediction: rawDemocratPrediction

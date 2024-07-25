@@ -36,7 +36,7 @@ const ForecastMakerBinary: FC<Props> = ({
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
-  const communityForecast = question.forecasts.values_mean.at(-1);
+  const communityForecast = question.forecasts.medians.at(-1);
 
   const prevForecastValue = extractPrevBinaryForecastValue(prevForecast);
   const [forecast, setForecast] = useState<number | null>(prevForecastValue);

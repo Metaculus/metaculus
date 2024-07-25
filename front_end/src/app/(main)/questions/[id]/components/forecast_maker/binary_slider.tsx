@@ -62,8 +62,8 @@ const BinarySlider: FC<Props> = ({
     <>
       <div className="mx-6 mt-8 h-16">
         <Slider
-          min={BINARY_MIN_VALUE}
-          max={BINARY_MAX_VALUE}
+          inputMin={BINARY_MIN_VALUE}
+          inputMax={BINARY_MAX_VALUE}
           defaultValue={forecast ?? DEFAULT_SLIDER_VALUE}
           onChange={handleSliderForecastChange}
           step={1}

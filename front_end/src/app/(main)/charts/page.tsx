@@ -29,8 +29,6 @@ export default function Questions() {
       </Link>
       Multi slider:
       <MultiSlider
-        min={10}
-        max={300}
         value={multiSliderValue}
         step={1}
         clampStep={10}
@@ -38,8 +36,8 @@ export default function Questions() {
       />
       Slider:
       <Slider
-        min={0}
-        max={100}
+        inputMin={0}
+        inputMax={100}
         step={0.1}
         defaultValue={sliderValue}
         onChange={setSliderValue}

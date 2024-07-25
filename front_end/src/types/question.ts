@@ -31,24 +31,24 @@ export type BaseForecast = {
   nr_forecasters: number[];
   my_forecasts: {
     timestamps: number[];
-    values_mean: number[];
+    medians: number[];
     slider_values: any | null;
   } | null;
 };
 
 export type NumericForecast = BaseForecast & {
-  values_mean: number[];
-  values_max: number[];
-  values_min: number[];
+  medians: number[];
+  q3s: number[];
+  q1s: number[];
   latest_pmf: number[];
   latest_cdf: number[];
 };
 
 export type MultipleChoiceForecast = BaseForecast & {
   [value_choice_n: string]: Array<{
-    value_mean: number;
-    value_max: number;
-    value_min: number;
+    median: number;
+    q3: number;
+    q1: number;
   }>;
 };
 export type Bounds = {
@@ -68,8 +68,8 @@ export type ExtendedQuartiles = Quartiles & {
 export type Question = {
   id: number;
   title: string;
-  min: number;
-  max: number;
+  range_min: number;
+  range_max: number;
   description: string;
   created_at: string;
   updated_at: string;

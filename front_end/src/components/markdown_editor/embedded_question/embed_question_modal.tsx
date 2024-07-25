@@ -120,7 +120,7 @@ const QuestionCard: FC<{ post: Post; onClick?: () => void }> = ({
 const PredictionInfo: FC<{ question: QuestionWithNumericForecasts }> = ({
   question,
 }) => {
-  const prediction = question.forecasts.values_mean.at(-1);
+  const prediction = question.forecasts.medians.at(-1);
 
   return (
     <div className="flex flex-row gap-2">
