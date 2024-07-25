@@ -89,8 +89,9 @@ const ConditionalChart: FC<Props> = ({
             </div>
             <NumericAreaChart
               height={40}
-              min={question.min}
-              max={question.max}
+              rangeMin={question.min}
+              rangeMax={question.max}
+              zeroPoint={question.zero_point}
               data={[
                 {
                   pmf: question.forecasts.latest_pmf,
