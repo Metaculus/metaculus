@@ -105,7 +105,7 @@ export type Post<QT = Question> = {
     category: Category[];
     topic: Topic[];
     default_project: Tournament;
-    tag: Tag[];
+    tag?: Tag[];
   };
   title: string;
   url_title: string;
