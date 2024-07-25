@@ -8,8 +8,8 @@ import "./slider.css";
 import SliderThumb from "@/components/sliders/primitives/thumb";
 
 type Props = {
-  min: number;
-  max: number;
+  inputMin: number;
+  inputMax: number;
   defaultValue: number;
   onChange: (value: number) => void;
   step: number;
@@ -22,8 +22,8 @@ type Props = {
 
 const Slider: FC<Props> = ({
   defaultValue,
-  min,
-  max,
+  inputMin,
+  inputMax,
   onChange,
   step,
   arrowStep,
@@ -45,13 +45,13 @@ const Slider: FC<Props> = ({
     <RcSlider
       className="group h-9 w-full"
       value={controlledValue}
-      min={min}
-      max={max}
+      min={inputMin}
+      max={inputMax}
       step={controlledStep}
       marks={marks}
       onChange={(_value) => {
         const value = _value as number;
-        const roundedValue = dynamicRound(value, step, min, max);
+        const roundedValue = dynamicRound(value, step, inputMin, inputMax);
         setControlledValue(roundedValue);
         onChange(roundedValue);
       }}
@@ -74,14 +74,14 @@ const Slider: FC<Props> = ({
               ? (direction) => {
                   const newValue = clamp(
                     controlledValue + (arrowStep ?? step) * direction,
-                    min,
-                    max
+                    inputMin,
+                    inputMax
                   );
                   const roundedValue = dynamicRound(
                     newValue,
                     arrowStep ?? step,
-                    min,
-                    max
+                    inputMin,
+                    inputMax
                   );
                   setControlledValue(roundedValue);
                   onChange(roundedValue);
@@ -95,7 +95,12 @@ const Slider: FC<Props> = ({
   );
 };
 
-function dynamicRound(num: number, step: number, min: number, max: number) {
+function dynamicRound(
+  num: number,
+  step: number,
+  inputMin: number,
+  inputMax: number
+) {
   const stepString = step.toString();
   const split = stepString.split(".");
   let decimalPlaces = 0;
@@ -103,7 +108,7 @@ function dynamicRound(num: number, step: number, min: number, max: number) {
     decimalPlaces = split[1].length;
   }
   const multiplier = Math.pow(10, decimalPlaces);
-  return clamp(Math.round(num * multiplier) / multiplier, min, max);
+  return clamp(Math.round(num * multiplier) / multiplier, inputMin, inputMax);
 }
 
 export default Slider;

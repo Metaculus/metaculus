@@ -15,8 +15,8 @@ type Props<T> = {
   choiceColor: ThemeColor;
   id: T;
   choiceName: string;
-  min: number;
-  max: number;
+  inputMin: number;
+  inputMax: number;
   defaultSliderValue: number;
   forecastValue: number | null;
   communityForecast?: number | null;
@@ -28,8 +28,8 @@ type Props<T> = {
 
 const ForecastChoiceOption = <T = string,>({
   communityForecast,
-  min,
-  max,
+  inputMin,
+  inputMax,
   id,
   choiceName,
   choiceColor,
@@ -71,8 +71,8 @@ const ForecastChoiceOption = <T = string,>({
   const SliderElement = (
     <div className="ml-5 mr-7">
       <Slider
-        min={min}
-        max={max}
+        inputMin={inputMin}
+        inputMax={inputMax}
         defaultValue={forecastValue ?? defaultSliderValue}
         onChange={handleSliderForecastChange}
         step={1}
@@ -118,8 +118,8 @@ const ForecastChoiceOption = <T = string,>({
             onChange={handleInputChange}
             onForecastChange={handleInputForecastChange}
             isDirty={isDirty}
-            minValue={min}
-            maxValue={max}
+            minValue={inputMin}
+            maxValue={inputMax}
             value={inputValue}
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}

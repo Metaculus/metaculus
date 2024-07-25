@@ -156,19 +156,19 @@ export function scaleInternalLocation(
 }
 
 export function generateNumericYScale(yDomain: Tuple<number>): Scale {
-  const [min, max] = yDomain;
-  const range = max - min;
+  const [rangeMin, rangeMax] = yDomain;
+  const range = rangeMax - rangeMin;
 
   const majorStep = range / 4;
   const minorStep = majorStep / 5;
 
   const majorTicks = new Set<number>();
-  for (let i = min; i <= max; i += majorStep) {
+  for (let i = rangeMin; i <= rangeMax; i += majorStep) {
     majorTicks.add(Math.round(i));
   }
 
   const minorTicks = new Set<number>();
-  for (let i = min; i <= max; i += minorStep) {
+  for (let i = rangeMin; i <= rangeMax; i += minorStep) {
     if (!majorTicks.has(Math.round(i))) {
       minorTicks.add(Math.round(i));
     }
@@ -279,7 +279,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   } = dataset;
   return Object.entries(choices).map(([choice, values], index) => ({
     choice,
-    values: values.map((x: { value_mean: number }) => x.value_mean),
+    values: values.map((x: { median: number }) => x.median),
     color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
     active: !!activeCount ? index <= activeCount - 1 : true,
     highlighted: false,
@@ -300,8 +300,8 @@ export function generateChoiceItemsFromBinaryGroup(
 
   const sortedQuestions = sortPredictionDesc
     ? [...questions].sort((a, b) => {
-        const aMean = a.forecasts.values_mean.at(-1) ?? 0;
-        const bMean = b.forecasts.values_mean.at(-1) ?? 0;
+        const aMean = a.forecasts.medians.at(-1) ?? 0;
+        const bMean = b.forecasts.medians.at(-1) ?? 0;
         return bMean - aMean;
       })
     : questions;
@@ -316,11 +316,11 @@ export function generateChoiceItemsFromBinaryGroup(
 
     return {
       choice: extractQuestionGroupName(q.title),
-      values: q.forecasts.values_mean,
+      values: q.forecasts.medians,
       ...(withMinMax
         ? {
-            minValues: q.forecasts.values_min,
-            maxValues: q.forecasts.values_max,
+            minValues: q.forecasts.q1s,
+            maxValues: q.forecasts.q3s,
           }
         : {}),
       timestamps: q.forecasts.timestamps,

@@ -221,8 +221,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               choiceName={choice.name}
               choiceColor={choice.color}
               communityForecast={choice.communityForecast}
-              min={BINARY_MIN_VALUE}
-              max={BINARY_MAX_VALUE}
+              inputMin={BINARY_MIN_VALUE}
+              inputMax={BINARY_MAX_VALUE}
               onChange={handleForecastChange}
               isDirty={isDirty}
             />
@@ -296,7 +296,7 @@ function generateChoiceOptions(
   return Object.entries(choices).map(([choice, values], index) => ({
     name: choice,
     color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-    communityForecast: values ? values.at(-1)?.value_mean : null,
+    communityForecast: values ? values.at(-1)?.median : null,
     forecast: getDefaultForecast(index, defaultForecasts),
   }));
 }

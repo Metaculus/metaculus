@@ -21,7 +21,7 @@ const QuestionNumericTile: FC<Props> = ({
   defaultChartZoom,
 }) => {
   const prediction =
-    question.forecasts.values_mean[question.forecasts.values_mean.length - 1];
+    question.forecasts.medians[question.forecasts.medians.length - 1];
 
   return (
     <div className="flex justify-between">
