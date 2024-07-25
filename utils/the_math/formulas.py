@@ -29,9 +29,9 @@ def string_location_to_scaled_location(
         return float(question.options.index(string_location))
     # continuous
     if string_location == "below_lower_bound":
-        return question.min - 1.0
+        return question.range_min - 1.0
     if string_location == "above_upper_bound":
-        return question.max + 1.0
+        return question.range_max + 1.0
     if question.type == "date":
         return datetime.fromisoformat(string_location).timestamp()
     # question.type == "numeric"
@@ -46,9 +46,9 @@ def scaled_location_to_string_location(
     if question.type == "multiple_choice":
         return question.options[int(scaled_location)]
     # continuous
-    if scaled_location < question.min:
+    if scaled_location < question.range_min:
         return "below_lower_bound"
-    if scaled_location > question.max:
+    if scaled_location > question.range_max:
         return "above_upper_bound"
     if question.type == "date":
         return datetime.fromtimestamp(scaled_location, tz=timezone.utc).isoformat()
@@ -64,7 +64,11 @@ def unscaled_location_to_scaled_location(
     if question.type == "multiple_choice":
         return unscaled_location
     # continuous
-    zero_point, range_max, range_min = question.zero_point, question.max, question.min
+    zero_point, range_max, range_min = (
+        question.zero_point,
+        question.range_max,
+        question.range_min,
+    )
     if zero_point:
         deriv_ratio = (range_max - zero_point) / max(
             (range_min - zero_point), 0.0000001
@@ -82,7 +86,11 @@ def scaled_location_to_unscaled_location(
         return scaled_location
     if question.type == "multiple_choice":
         return scaled_location
-    zero_point, range_max, range_min = question.zero_point, question.max, question.min
+    zero_point, range_max, range_min = (
+        question.zero_point,
+        question.range_max,
+        question.range_min,
+    )
     if zero_point:
         deriv_ratio = (range_max - zero_point) / max(
             (range_min - zero_point), 0.0000001
