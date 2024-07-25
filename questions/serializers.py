@@ -22,8 +22,8 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
-            "min",
-            "max",
+            "range_min",
+            "range_max",
             "description",
             "created_at",
             "open_time",
@@ -58,8 +58,8 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "type",
             "possibilities",
             "resolution",
-            "max",
-            "min",
+            "range_max",
+            "range_min",
             "zero_point",
             "open_upper_bound",
             "open_lower_bound",
@@ -140,8 +140,8 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
 
 class ForecastSerializer(serializers.ModelSerializer):
     quartiles = serializers.SerializerMethodField()
-    range_min = serializers.FloatField(source="question.min")
-    range_max = serializers.FloatField(source="question.max")
+    range_min = serializers.FloatField(source="question.range_min")
+    range_max = serializers.FloatField(source="question.range_max")
     zero_point = serializers.FloatField(source="question.zero_point")
     options = serializers.ListField(
         child=serializers.CharField(), source="question.options"
@@ -303,12 +303,12 @@ def validate_question_resolution(question: Question, resolution: str) -> str:
     # Continuous question
     if question.type == Question.QuestionType.NUMERIC:
         resolution = serializers.FloatField().run_validation(resolution)
-        range_min = question.min
-        range_max = question.max
+        range_min = question.range_min
+        range_max = question.range_max
     else:  # question.type == Question.QuestionType.DATE
         resolution = serializers.DateTimeField().run_validation(resolution)
-        range_min = datetime.fromtimestamp(question.min, tz=dt_timezone.utc)
-        range_max = datetime.fromtimestamp(question.max, tz=dt_timezone.utc)
+        range_min = datetime.fromtimestamp(question.range_min, tz=dt_timezone.utc)
+        range_max = datetime.fromtimestamp(question.range_max, tz=dt_timezone.utc)
 
     if resolution > range_max and not question.open_upper_bound:
         raise ValidationError(
