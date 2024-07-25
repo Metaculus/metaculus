@@ -1,7 +1,8 @@
-import { FC } from "react";
+import { FC, Suspense } from "react";
 
 import { PostWithForecasts } from "@/types/post";
 
+import NewsMatch from "./news_match";
 import PostDropdownMenu from "./question_dropdown_menu";
 import ShareQuestionMenu from "./share_question_menu";
 import SidebarQuestionInfo from "./sidebar_question_info";
@@ -23,12 +24,23 @@ const Sidebar: FC<Props> = ({
 }) => {
   if (layout === "mobile") {
     return (
-      <div className="my-4 flex flex-col items-start gap-4 self-stretch border-t border-gray-300 pt-4 @container dark:border-gray-300-dark lg:hidden">
-        <SidebarQuestionInfo postData={postData} />
-        <SidebarQuestionTags
-          tagData={postData.projects}
-          allowModifications={allowModifications}
-        />
+      <div className="lg:hidden">
+        <div className="flex flex-col items-start gap-4 self-stretch border-t border-gray-300 pt-4 @container dark:border-gray-300-dark">
+          <SidebarQuestionInfo postData={postData} />
+          <SidebarQuestionTags
+            tagData={postData.projects}
+            allowModifications={allowModifications}
+          />
+        </div>
+
+        <Suspense fallback={null}>
+          <div className="flex w-full flex-col items-start gap-4 self-stretch">
+            <NewsMatch
+              allowModifications={allowModifications}
+              questionId={postData.id}
+            />
+          </div>
+        </Suspense>
       </div>
     );
   }
@@ -51,6 +63,13 @@ const Sidebar: FC<Props> = ({
           allowModifications={allowModifications}
         />
       </div>
+
+      <Suspense fallback={null}>
+        <NewsMatch
+          allowModifications={allowModifications}
+          questionId={postData.id}
+        />
+      </Suspense>
     </div>
   );
 };
