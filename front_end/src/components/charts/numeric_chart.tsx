@@ -242,24 +242,23 @@ function buildChartData({
   type: NumericChartType;
   zoom: TimelineChartZoomOption;
 }): ChartData {
-  const { timestamps, values_mean, values_min, values_max, my_forecasts } =
-    dataset;
+  const { timestamps, medians, q1s, q3s, my_forecasts } = dataset;
 
   const line = timestamps.map((timestamp, index) => ({
     x: timestamp,
-    y: values_mean[index],
+    y: medians[index],
   }));
   const area = timestamps.map((timestamp, index) => ({
     x: timestamp,
-    y0: values_min[index],
-    y: values_max[index],
+    y0: q1s[index],
+    y: q3s[index],
   }));
 
   let points: Line = [];
   if (my_forecasts !== null) {
     points = my_forecasts.timestamps.map((timestamp, index) => ({
       x: timestamp,
-      y: my_forecasts.values_mean[index],
+      y: my_forecasts.medians[index],
     }));
   }
 
@@ -275,15 +274,15 @@ function buildChartData({
       break;
     }
     case "date": {
-      const minYValue = Math.min(...dataset.values_min);
-      const maxYValue = Math.max(...dataset.values_max);
+      const minYValue = Math.min(...dataset.q1s);
+      const maxYValue = Math.max(...dataset.q3s);
       yDomain = [minYValue, maxYValue];
       yScale = generateDateYScale(yDomain);
       break;
     }
     default:
-      const minYValue = Math.floor(Math.min(...dataset.values_min) * 0.95); // 5% padding
-      const maxYValue = Math.ceil(Math.max(...dataset.values_max) * 1.05); // 5% padding
+      const minYValue = Math.floor(Math.min(...dataset.q1s) * 0.95); // 5% padding
+      const maxYValue = Math.ceil(Math.max(...dataset.q3s) * 1.05); // 5% padding
       yDomain = [minYValue, maxYValue];
       yScale = generateNumericYScale(yDomain);
   }

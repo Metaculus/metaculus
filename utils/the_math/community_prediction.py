@@ -25,9 +25,9 @@ from utils.the_math.measures import weighted_percentile_2d
 
 class CommunityPrediction:
     forecast_values: list[float]
-    lower: float
-    upper: float
-    middle: float
+    q1: float
+    q3: float
+    median: float
 
 
 def compute_cp_discrete(
@@ -129,9 +129,9 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
 
 @dataclass
 class GraphCP:
-    middle: float
-    lower: float
-    upper: float
+    median: float
+    q1: float
+    q3: float
     nr_forecasters: int
     at_datetime: datetime
 
@@ -172,9 +172,9 @@ def compute_binary_plotable_cp(
         weights = generate_recency_weights(len(entry.predictions))
         cps.append(
             GraphCP(
-                middle=compute_cp_discrete(entry.predictions, weights, 50.0)[1],
-                upper=compute_cp_discrete(entry.predictions, weights, 75.0)[1],
-                lower=compute_cp_discrete(entry.predictions, weights, 25.0)[1],
+                median=compute_cp_discrete(entry.predictions, weights, 50.0)[1],
+                q3=compute_cp_discrete(entry.predictions, weights, 75.0)[1],
+                q1=compute_cp_discrete(entry.predictions, weights, 25.0)[1],
                 nr_forecasters=len(entry.predictions),
                 at_datetime=entry.at_datetime,
             )
@@ -191,15 +191,15 @@ def compute_multiple_choice_plotable_cp(
     cps = []
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
-        middles = compute_cp_discrete(entry.predictions, weights, 50.0)
-        uppers = compute_cp_discrete(entry.predictions, weights, 75.0)
+        medians = compute_cp_discrete(entry.predictions, weights, 50.0)
+        q3s = compute_cp_discrete(entry.predictions, weights, 75.0)
         downers = compute_cp_discrete(entry.predictions, weights, 25.0)
         cps.append(
             {
                 v: GraphCP(
-                    middle=middles[i],
-                    upper=uppers[i],
-                    lower=downers[i],
+                    median=medians[i],
+                    q3=q3s[i],
+                    q1=downers[i],
                     nr_forecasters=len(entry.predictions),
                     at_datetime=entry.at_datetime,
                 )
@@ -220,13 +220,13 @@ def compute_continuous_plotable_cp(
     for entry in forecast_history:
         weights = generate_recency_weights(len(entry.predictions))
         cdf = compute_cp_continuous(entry.predictions, weights)
-        lower, middle, upper = get_scaled_quartiles_from_cdf(cdf, question)
+        q1, median, q3 = get_scaled_quartiles_from_cdf(cdf, question)
 
         cps.append(
             GraphCP(
-                lower=lower,
-                middle=middle,
-                upper=upper,
+                q1=q1,
+                median=median,
+                q3=q3,
                 nr_forecasters=len(entry.predictions),
                 at_datetime=entry.at_datetime,
             )

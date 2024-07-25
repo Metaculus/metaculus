@@ -60,14 +60,14 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       name: t("Yes"),
       value: prevYesForecastValue,
       isDirty: false,
-      communitiesForecast: question_yes.forecasts.values_mean.at(-1),
+      communitiesForecast: question_yes.forecasts.medians.at(-1),
     },
     {
       id: questionNoId,
       name: t("No"),
       value: prevNoForecastValue,
       isDirty: false,
-      communitiesForecast: question_no.forecasts.values_mean.at(-1),
+      communitiesForecast: question_no.forecasts.medians.at(-1),
     },
   ]);
   const [activeTableOption, setActiveTableOption] = useState(
