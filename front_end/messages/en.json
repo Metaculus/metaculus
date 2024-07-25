@@ -602,5 +602,7 @@
   "resolutionCriteria": "Resolution Criteria",
   "parentResolutionCriteria": "Parent Resolution Criteria",
   "childResolutionCriteria": "Child Resolution Criteria",
-  "loadMoreComments": "Load more comments"
+  "loadMoreComments": "Load more comments",
+  "followButton": "Follow",
+  "followingButton": "Following"
 }

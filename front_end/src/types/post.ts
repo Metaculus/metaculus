@@ -129,6 +129,7 @@ export type Post<QT = Question> = {
   user_permission: ProjectPermissions;
   comment_count?: number;
   forecasts_count?: number;
+  subscriptions?: PostSubscription[];
 };
 
 export type PostWithNotebook = Omit<Post, "notebook"> & {
@@ -136,3 +137,37 @@ export type PostWithNotebook = Omit<Post, "notebook"> & {
 };
 
 export type PostWithForecasts = Post<QuestionWithForecasts>;
+
+export enum PostSubscriptionType {
+  CP_CHANGE = "cp_change",
+  NEW_COMMENTS = "new_comments",
+  MILESTONE = "milestone",
+  STATUS_CHANGE = "status_change",
+  SPECIFIC_TIME = "specific_time",
+}
+
+export type PostSubscription =
+  | PostSubscriptionNewComments
+  | PostSubscriptionMilestone
+  | PostSubscriptionStatusChange
+  | PostSubscriptionSpecificTime;
+
+export type PostSubscriptionNewComments = {
+  type: PostSubscriptionType.NEW_COMMENTS;
+  comments_frequency: number;
+};
+
+export type PostSubscriptionMilestone = {
+  type: PostSubscriptionType.MILESTONE;
+  milestone_step: number;
+};
+
+export type PostSubscriptionStatusChange = {
+  type: PostSubscriptionType.STATUS_CHANGE;
+};
+
+export type PostSubscriptionSpecificTime = {
+  type: PostSubscriptionType.SPECIFIC_TIME;
+  next_trigger_datetime: string;
+  recurrence_interval: string;
+};
