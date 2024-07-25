@@ -51,7 +51,7 @@ def create_question(question: dict, **kwargs) -> Question:
             range_min = date_parse(possibilities["scale"]["min"]).timestamp()
         deriv_ratio = possibilities["scale"].get("deriv_ratio", 1)
         if deriv_ratio != 1:
-            zero_point = (deriv_ratio * min - range_max) / (deriv_ratio - 1)
+            zero_point = (deriv_ratio * range_min - range_max) / (deriv_ratio - 1)
         open_lower_bound = possibilities.get("low", None) == "tail"
         open_upper_bound = possibilities.get("high", None) == "tail"
     elif question["option_labels"] is not None:
@@ -63,7 +63,7 @@ def create_question(question: dict, **kwargs) -> Question:
     new_question = Question(
         id=question["id"],
         title=question["title"],
-        max=range_max,
+        range_max=range_max,
         range_min=range_min,
         open_upper_bound=open_upper_bound,
         open_lower_bound=open_lower_bound,
