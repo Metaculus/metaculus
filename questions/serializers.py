@@ -194,9 +194,13 @@ def serialize_question(
 
         serialized_data["forecasts"] = forecasts
 
-        if current_user and not current_user.is_anonymous:
-            serialized_data["my_forecasts"] = build_question_forecasts_for_user(
-                question, question.user_forecasts
+        if (
+            current_user
+            and not current_user.is_anonymous
+            and hasattr(question, "user_forecasts")
+        ):
+            serialized_data["forecasts"]["my_forecasts"] = (
+                build_question_forecasts_for_user(question, question.user_forecasts)
             )
 
             last_forecast = (
