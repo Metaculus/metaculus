@@ -25,7 +25,7 @@ const GroupNumericTile: FC<Props> = ({ questions, curationStatus }) => {
           {predictionQuestion.fanName}:
         </span>
         <PredictionChip
-          prediction={predictionQuestion.forecasts.values_mean.at(-1)}
+          prediction={predictionQuestion.forecasts.medians.at(-1)}
           resolution={predictionQuestion.resolution}
           nr_forecasters={predictionQuestion.nr_forecasters}
           status={curationStatus}

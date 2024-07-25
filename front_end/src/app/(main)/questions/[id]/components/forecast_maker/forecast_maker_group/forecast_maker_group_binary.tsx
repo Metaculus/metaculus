@@ -199,8 +199,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               choiceName={questionOption.name}
               choiceColor={questionOption.color}
               communityForecast={questionOption.communityForecast}
-              min={BINARY_MIN_VALUE}
-              max={BINARY_MAX_VALUE}
+              inputMin={BINARY_MIN_VALUE}
+              inputMax={BINARY_MAX_VALUE}
               onChange={handleForecastChange}
               isDirty={questionOption.isDirty}
               isRowDirty={questionOption.isDirty}
@@ -256,7 +256,7 @@ function generateChoiceOptions(
     return {
       id: question.id,
       name: extractQuestionGroupName(question.title),
-      communityForecast: question.forecasts.values_mean.at(-1) ?? null,
+      communityForecast: question.forecasts.medians.at(-1) ?? null,
       forecast: prevForecastValuesMap[question.id] ?? null,
       isDirty: false,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],

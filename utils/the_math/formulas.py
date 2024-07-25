@@ -143,13 +143,9 @@ def string_location_to_bucket_index(string_location: str, question: Question) ->
 def get_scaled_quartiles_from_cdf(cdf: list[float], question: Question):
     from utils.the_math.measures import percent_point_function
 
-    lower = unscaled_location_to_scaled_location(
-        percent_point_function(cdf, 25), question
-    )
-    middle = unscaled_location_to_scaled_location(
+    q1 = unscaled_location_to_scaled_location(percent_point_function(cdf, 25), question)
+    median = unscaled_location_to_scaled_location(
         percent_point_function(cdf, 50), question
     )
-    upper = unscaled_location_to_scaled_location(
-        percent_point_function(cdf, 75), question
-    )
-    return [lower, middle, upper]
+    q3 = unscaled_location_to_scaled_location(percent_point_function(cdf, 75), question)
+    return [q1, median, q3]

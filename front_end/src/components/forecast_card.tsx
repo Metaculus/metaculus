@@ -165,8 +165,8 @@ const ForecastCard: FC<Props> = ({
 
           const prediction =
             cursorIndex !== null && cursorIndex !== -1
-              ? question.forecasts.values_mean[cursorIndex]
-              : question.forecasts.values_mean.at(-1) ?? undefined;
+              ? question.forecasts.medians[cursorIndex]
+              : question.forecasts.medians.at(-1) ?? undefined;
 
           return (
             <PredictionChip
