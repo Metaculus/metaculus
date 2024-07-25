@@ -86,8 +86,8 @@ def prediction_difference_for_display(
     # total earth mover's distance, assymmetric earth mover's distance
     x_locations = unscaled_location_to_scaled_location(
         np.linspace(
-            question.min,
-            question.max,
+            question.range_min,
+            question.range_max,
             len(p1),
         ),
         question,

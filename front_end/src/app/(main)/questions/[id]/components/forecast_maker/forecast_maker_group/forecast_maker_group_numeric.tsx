@@ -262,8 +262,8 @@ const ForecastMakerGroupNumeric: FC<Props> = ({
             {option.resolution ? (
               <NumericPickerChart
                 height={300}
-                rangeMin={option.question.min}
-                rangeMax={option.question.max}
+                rangeMin={option.question.range_min}
+                rangeMax={option.question.range_max}
                 zeroPoint={option.question.zero_point}
                 dataType={option.question.type}
                 data={[

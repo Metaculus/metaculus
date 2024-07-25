@@ -367,8 +367,8 @@ const QuestionForm: React.FC<Props> = ({
             questionType === QuestionType.Numeric) && (
             <NumericQuestionInput
               questionType={questionType}
-              defaultMin={post?.question?.min}
-              defaultMax={post?.question?.max}
+              defaultMin={post?.question?.range_min}
+              defaultMax={post?.question?.range_max}
               // @ts-ignore
               defaultOpenLowerBound={post?.question?.open_lower_bound}
               // @ts-ignore
@@ -379,14 +379,14 @@ const QuestionForm: React.FC<Props> = ({
                 post?.user_permission == ProjectPermissions.ADMIN || !post
               }
               onChange={(
-                min,
-                max,
+                rangeMin,
+                rangeMax,
                 openLowerBound,
                 openUpperBound,
                 zeroPoint
               ) => {
-                control.setValue("min", min);
-                control.setValue("max", max);
+                control.setValue("rangeMin", rangeMin);
+                control.setValue("rangeMax", rangeMax);
                 control.setValue("open_lower_bound", openLowerBound);
                 control.setValue("open_upper_bound", openUpperBound);
                 control.setValue("zero_point", zeroPoint);

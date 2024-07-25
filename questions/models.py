@@ -57,8 +57,8 @@ class Question(TimeStampedModel):
     actual_close_time = models.DateTimeField(db_index=True, null=True, blank=True)
     cp_reveal_time = models.DateTimeField(null=True, blank=True)
 
-    max = models.FloatField(null=True, blank=True)
-    min = models.FloatField(null=True, blank=True)
+    range_max = models.FloatField(null=True, blank=True)
+    range_min = models.FloatField(null=True, blank=True)
     zero_point = models.FloatField(null=True, blank=True)
 
     open_upper_bound = models.BooleanField(null=True, blank=True)
