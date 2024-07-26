@@ -237,10 +237,12 @@ def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
     )
 
 
-def get_cp_summary(
+def get_cp_history(
     question: Question,
     aggregation_method: AggregationMethod = AggregationMethod.RECENCY_WEIGHTED,
     reset_cache: bool = False,
+    minimize: bool = True,
+    include_stats: bool = True,
 ) -> list[AggregationEntry]:
 
     full_summary: list[AggregationEntry] = []
@@ -252,12 +254,13 @@ def get_cp_summary(
         else:
             weights = None
         new_entry = calculate_aggregation_entry(
-            forecast_set, question.type, weights, include_stats=True
+            forecast_set, question.type, weights, include_stats=include_stats
         )
         if full_summary:
             # terminate previous entry
             full_summary[-1].end_time = new_entry.start_time
         full_summary.append(new_entry)
 
-    minimized_summary = minimize_forecast_history(full_summary)
-    return minimized_summary
+    if minimize:
+        return minimize_forecast_history(full_summary)
+    return full_summary

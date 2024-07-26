@@ -259,6 +259,7 @@ class Notebook(TimeStampedModel):
 
 class Post(TimeStampedModel):
     votes: QuerySet["Vote"]
+    subscriptions: QuerySet["PostSubscription"]
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -504,7 +505,7 @@ class PostSubscription(TimeStampedModel):
     recurrence_interval = models.DurationField(null=True, blank=True)
     # 0. -> 1.
     milestone_step = models.FloatField(null=True, blank=True)
-    # 0. -> 1.
+    # >= 0.
     cp_threshold = models.FloatField(null=True, blank=True)
 
     def update_last_sent_at(self):
@@ -513,7 +514,8 @@ class PostSubscription(TimeStampedModel):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                name="postsubscription_unique_type_user_post", fields=["type", "user_id", "post_id"]
+                name="postsubscription_unique_type_user_post",
+                fields=["type", "user_id", "post_id"],
             )
         ]
 

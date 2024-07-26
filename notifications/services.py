@@ -70,9 +70,19 @@ class NotificationPostSpecificTime(NotificationTypeBase):
         post: NotificationPostParams
 
 
+class NotificationPostCPChange(NotificationTypeBase):
+    type = "post_cp_change"
+
+    @dataclass
+    class ParamsType:
+        post: NotificationPostParams
+        cp_difference: list[tuple[float, float]]
+
+
 NOTIFICATION_TYPE_REGISTRY = [
     NotificationNewComments,
     NotificationPostMilestone,
     NotificationPostStatusChange,
     NotificationPostSpecificTime,
+    NotificationPostCPChange,
 ]

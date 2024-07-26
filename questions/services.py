@@ -9,7 +9,7 @@ from posts.models import PostUserSnapshot
 from questions.constants import ResolutionType
 from questions.models import Question, GroupOfQuestions, Conditional, Forecast
 from users.models import User
-from utils.the_math.community_prediction import get_cp_summary
+from utils.the_math.community_prediction import get_cp_history
 from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import percent_point_function
 
@@ -44,7 +44,7 @@ def build_question_forecasts(question: Question) -> dict:
     """
     forecasts_data = get_forecast_initial_dict(question)
 
-    aggregation_history = get_cp_summary(question)
+    aggregation_history = get_cp_history(question)
     if question.type == "multiple_choice":
         options = cast(list[str], question.options)
         for entry in aggregation_history:
