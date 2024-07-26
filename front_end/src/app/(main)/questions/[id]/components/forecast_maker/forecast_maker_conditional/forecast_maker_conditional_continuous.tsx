@@ -22,7 +22,7 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";
-import NumericSlider from "../numeric_slider";
+import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
 
 type Props = {
@@ -34,7 +34,7 @@ type Props = {
   canPredict: boolean;
 };
 
-const ForecastMakerConditionalNumeric: FC<Props> = ({
+const ForecastMakerConditionalContinuous: FC<Props> = ({
   postId,
   postTitle,
   conditional,
@@ -328,7 +328,7 @@ const ForecastMakerConditionalNumeric: FC<Props> = ({
             option.id !== activeTableOption && "hidden"
           )}
         >
-          <NumericSlider
+          <ContinuousSlider
             question={option.question}
             forecast={option.sliderForecast}
             weights={option.weights}
@@ -477,4 +477,4 @@ function getWeightsValue(weights?: number[]) {
   return weights ?? [1];
 }
 
-export default ForecastMakerConditionalNumeric;
+export default ForecastMakerConditionalContinuous;

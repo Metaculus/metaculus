@@ -9,7 +9,7 @@ import {
 } from "@/types/question";
 
 import ForecastMakerConditionalBinary from "./forecast_maker_conditional_binary";
-import ForecastMakerConditionalNumeric from "./forecast_maker_conditional_numeric";
+import ForecastMakerConditionalContinuous from "./forecast_maker_conditional_continuous";
 import ForecastMakerContainer from "../container";
 
 type Props = {
@@ -56,7 +56,7 @@ const ForecastMakerConditional: FC<Props> = ({
       case QuestionType.Date:
       case QuestionType.Numeric:
         return (
-          <ForecastMakerConditionalNumeric
+          <ForecastMakerConditionalContinuous
             postId={postId}
             postTitle={postTitle}
             conditional={
