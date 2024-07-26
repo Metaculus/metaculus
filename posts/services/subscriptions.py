@@ -35,6 +35,9 @@ def notify_new_comments(post: Post):
     Subscription handler to notify about new comments of the post
 
     Trigger: comment creation
+    TODO: currently, we calculate comments count delta including current user's comments
+        So if user subscribed to "each 1st new comment" and posts something,
+        we'll notify them about their own comment created
     """
 
     comments_count = get_post_comments_count(post)
