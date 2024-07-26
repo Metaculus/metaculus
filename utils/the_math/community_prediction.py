@@ -11,71 +11,171 @@ Normalise to 1 over all outcomes.
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Optional
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Q, TextChoices
 
 import numpy as np
 
 from django.db.models import QuerySet
-from questions.models import Forecast, Question
+from questions.models import Forecast, Question, CDF_SIZE
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
-from utils.the_math.measures import weighted_percentile_2d
+from utils.the_math.measures import weighted_percentile_2d, percent_point_function
+from utils.typing import (
+    ForecastValues,
+    ForecastsValues,
+    Weights,
+    Percentiles,
+)
 
 
-class CommunityPrediction:
-    forecast_values: list[float]
-    q1: float
-    q3: float
-    median: float
+class AggregationMethod(TextChoices):
+    RECENCY_WEIGHTED = "recency_weighted"
+    UNWEIGHTED = "unweighted"
 
 
-def compute_cp_discrete(
-    forecast_values: list[list[float]],
-    weights: list[float] | None = None,
-    percentile: float = 50.0,
-):
-    return weighted_percentile_2d(
-        forecast_values, weights=weights, percentile=percentile
-    ).tolist()
+@dataclass
+class AggregationEntry:
+    forecast_values: ForecastValues | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    num_forecasters: int | None = None
+    q1s: Percentiles | None = None
+    medians: Percentiles | None = None
+    q3s: Percentiles | None = None
+
+    @property
+    def continuous_cdf(self) -> list[float] | None:
+        if not len(self.forecast_values):
+            raise ValueError("No forecast values")
+        if len(self.forecast_values) == CDF_SIZE:
+            return self.forecast_values
+
+    @property
+    def probability_yes(self) -> float | None:
+        if not len(self.forecast_values):
+            raise ValueError("No forecast values")
+        if len(self.forecast_values) == 2:
+            return self.forecast_values[1]
+
+    @property
+    def probability_yes_per_category(self) -> list[float] | None:
+        if not len(self.forecast_values):
+            raise ValueError("No forecast values")
+        if len(self.forecast_values) > 2:
+            return self.forecast_values
+
+    def get_prediction_values(self) -> list[float]:
+        if not len(self.forecast_values):
+            raise ValueError("No forecast values")
+        return self.forecast_values
+
+    def get_pmf(self) -> ForecastValues:
+        if not len(self.forecast_values):
+            raise ValueError("No forecast values")
+        if (cdf := self.continuous_cdf) is not None:
+            pmf = [cdf[0]]
+            for i in range(1, len(cdf)):
+                pmf.append(cdf[i] - cdf[i - 1])
+            return pmf
+        return self.forecast_values
+
+
+def compute_discrete_forecast_values(
+    forecasts_values: ForecastsValues,
+    weights: Weights | None = None,
+    percentile: float | Percentiles = 50.0,
+) -> ForecastsValues:
+    forecasts_values = np.array(forecasts_values)
+    if isinstance(percentile, float):
+        percentile = [percentile]
+    if forecasts_values.shape[1] == 2:
+        return weighted_percentile_2d(
+            forecasts_values, weights=weights, percentiles=percentile
+        )
     # TODO: this needs to be normalized for MC, but special care needs to be taken
     # if the percentile isn't 50 (namely it needs to be normalized based off the values
     # at the median)
+    return weighted_percentile_2d(
+        forecasts_values, weights=weights, percentiles=percentile
+    )
 
 
 def compute_cp_continuous(
-    forecast_values: list[list[float]],
-    weights: list[float] | None = None,
-):
-    # max_len = max([len(x) for x in forecast_values])
-    # for i in range(len(forecast_values)):
-    #    if len(forecast_values[i]) < max_len:
-    #        forecast_values[i].extend([0] * int(max_len - len(forecast_values[i])))
+    forecast_values: ForecastsValues,
+    weights: Weights | None = None,
+) -> ForecastValues:
     return np.average(forecast_values, axis=0, weights=weights)
 
 
-def get_cp_at_time(question: Question, time: datetime) -> list[float] | None:
+@dataclass
+class ForecastSet:
+    forecasts_values: ForecastsValues
+    timestep: datetime
+
+
+def calculate_aggregation_entry(
+    forecast_set: ForecastSet,
+    question_type: str,
+    weights: Weights,
+    include_stats: bool = False,
+) -> AggregationEntry:
+    if question_type in ["binary", "multiple_choice"]:
+        aggregation = AggregationEntry(
+            forecast_values=compute_discrete_forecast_values(
+                forecast_set.forecasts_values, weights, 50.0
+            )[0]
+        )
+    else:
+        aggregation = AggregationEntry(
+            forecast_values=compute_cp_continuous(
+                forecast_set.forecasts_values, weights
+            )
+        )
+    if include_stats:
+        aggregation.start_time = forecast_set.timestep
+        aggregation.num_forecasters = len(forecast_set.forecasts_values)
+        if question_type in ["binary", "multiple_choice"]:
+            aggregation.q1s, aggregation.medians, aggregation.q3s = (
+                compute_discrete_forecast_values(
+                    forecast_set.forecasts_values, weights, [25.0, 50.0, 75.0]
+                )
+            )
+        else:
+            aggregation.q1s, aggregation.medians, aggregation.q3s = (
+                percent_point_function(aggregation.forecast_values, [25.0, 50.0, 75.0])
+            )
+    return aggregation
+
+
+def get_aggregation_at_time(
+    question: Question,
+    time: datetime,
+    include_stats: bool = False,
+    aggregation_method: AggregationMethod = AggregationMethod.RECENCY_WEIGHTED,
+) -> AggregationEntry | None:
+    """set include_stats to True if you want to include num_forecasters, q1s, medians,
+    and q3s"""
     forecasts = question.forecast_set.filter(
         Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
     )
     if forecasts.count() == 0:
         return None
-    forecast_values = [forecast.get_prediction_values() for forecast in forecasts]
-    weights = generate_recency_weights(len(forecast_values))
-    if question.type in ["binary", "multiple_choice"]:
-        return compute_cp_discrete(forecast_values, weights, 50.0)
-    else:
-        return compute_cp_continuous(forecast_values, weights)
+    forecast_set = ForecastSet(
+        [forecast.get_prediction_values() for forecast in forecasts],
+        timestep=time,
+    )
+    weights = (
+        None
+        if aggregation_method == AggregationMethod.UNWEIGHTED
+        else generate_recency_weights(len(forecast_set.forecasts_values))
+    )
+    return calculate_aggregation_entry(
+        forecast_set, question.type, weights, include_stats
+    )
 
 
-@dataclass
-class ForecastHistoryEntry:
-    predictions: list[list[float]]
-    at_datetime: datetime
-
-
-def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
-    forecasts: QuerySet[Forecast] = question.forecast_set.all()
+def get_user_forecast_history(question: Question) -> list[ForecastSet]:
+    forecasts = question.forecast_set.all()
     timesteps: set[datetime] = set()
     for forecast in forecasts:
         timesteps.add(forecast.start_time)
@@ -85,15 +185,9 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
     reversed_sorted_timesteps = sorted(timesteps, reverse=True)
     if len(reversed_sorted_timesteps) == 0:
         return []
-    cache_key = f"forecast_history-{question.id}"
-    cached_history = cache.get(cache_key)
-    if cached_history:
-        history = cached_history["history"]
-        last_timestep = cached_history["last_timestep"]
-    else:
-        history = []
-        last_timestep = None
 
+    history = []
+    last_timestep = None
     for timestep in reversed_sorted_timesteps:
         if last_timestep and timestep <= last_timestep:
             break
@@ -105,52 +199,34 @@ def get_forecast_history(question: Question) -> list[ForecastHistoryEntry]:
         ]
         if len(active_forecasts) < 1:
             continue
-        fhe = ForecastHistoryEntry(
+        forecast_set = ForecastSet(
             [forecast.get_prediction_values() for forecast in active_forecasts],
             timestep,
         )
-        history.append(fhe)
-
-    if (
-        not last_timestep
-        or reversed_sorted_timesteps[0] - last_timestep > timedelta(hours=12)
-    ) and reversed_sorted_timesteps:
-        cache.set(
-            cache_key,
-            {
-                "history": history,
-                "last_timestep": reversed_sorted_timesteps[0],
-            },
-            timeout=None,
-        )
+        history.append(forecast_set)
 
     return list(reversed(history))
 
 
-@dataclass
-class GraphCP:
-    median: float
-    q1: float
-    q3: float
-    nr_forecasters: int
-    at_datetime: datetime
+def minimize_forecast_history(
+    forecast_history: list[AggregationEntry],
+    max_length: int = 100,
+) -> list[AggregationEntry]:
+    if len(forecast_history) < max_length:
+        return forecast_history
 
-
-def truncate_forecast_history(
-    forecast_history: list[ForecastHistoryEntry], max_length: int
-) -> list[ForecastHistoryEntry]:
-    # @TODO Luke should we be doing this ? I think so, plotting 4-5k datapoints is also going to make the FE very slow and nobody scrolls through that many *BUT* we should probably truncate at even timestamps
-    if len(forecast_history) > max_length:
-        forecast_history = (
-            forecast_history[:5]
-            + [
-                x
-                for i, x in enumerate(forecast_history[5:-5])
-                if i % max(1, int(len(forecast_history) / max_length - 10)) == 0
-            ]
-            + forecast_history[-5:]
+    intervals = []
+    for i in range(0, len(forecast_history) - 2):
+        intervals.append(
+            forecast_history[i + 2].start_time - forecast_history[i].start_time,
         )
-    return forecast_history
+    shortest_accepted_interval = sorted(intervals, reverse=True)[max_length - 2]
+    minimized = [forecast_history[0]]
+    for i, entry in enumerate(forecast_history[1:-1]):
+        if intervals[i] > shortest_accepted_interval:
+            minimized.append(entry)
+    minimized.append(forecast_history[-1])
+    return minimized
 
 
 def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
@@ -161,74 +237,27 @@ def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
     )
 
 
-def compute_binary_plotable_cp(
-    question: Question, max_length: Optional[int] = None
-) -> list[GraphCP]:
-    forecast_history = get_forecast_history(question)
-    if max_length:
-        forecast_history = truncate_forecast_history(forecast_history, max_length)
-    cps = []
-    for entry in forecast_history:
-        weights = generate_recency_weights(len(entry.predictions))
-        cps.append(
-            GraphCP(
-                median=compute_cp_discrete(entry.predictions, weights, 50.0)[1],
-                q3=compute_cp_discrete(entry.predictions, weights, 75.0)[1],
-                q1=compute_cp_discrete(entry.predictions, weights, 25.0)[1],
-                nr_forecasters=len(entry.predictions),
-                at_datetime=entry.at_datetime,
-            )
+def get_cp_summary(
+    question: Question,
+    aggregation_method: AggregationMethod = AggregationMethod.RECENCY_WEIGHTED,
+    reset_cache: bool = False,
+) -> list[AggregationEntry]:
+
+    full_summary: list[AggregationEntry] = []
+
+    user_forecast_history = get_user_forecast_history(question)
+    for forecast_set in user_forecast_history:
+        if aggregation_method == AggregationMethod.RECENCY_WEIGHTED:
+            weights = generate_recency_weights(len(forecast_set.forecasts_values))
+        else:
+            weights = None
+        new_entry = calculate_aggregation_entry(
+            forecast_set, question.type, weights, include_stats=True
         )
-    return cps
+        if full_summary:
+            # terminate previous entry
+            full_summary[-1].end_time = new_entry.start_time
+        full_summary.append(new_entry)
 
-
-def compute_multiple_choice_plotable_cp(
-    question: Question, max_length: Optional[int] = None
-) -> list[dict[str, GraphCP]]:
-    forecast_history = get_forecast_history(question)
-    if max_length:
-        forecast_history = truncate_forecast_history(forecast_history, max_length)
-    cps = []
-    for entry in forecast_history:
-        weights = generate_recency_weights(len(entry.predictions))
-        medians = compute_cp_discrete(entry.predictions, weights, 50.0)
-        q3s = compute_cp_discrete(entry.predictions, weights, 75.0)
-        downers = compute_cp_discrete(entry.predictions, weights, 25.0)
-        cps.append(
-            {
-                v: GraphCP(
-                    median=medians[i],
-                    q3=q3s[i],
-                    q1=downers[i],
-                    nr_forecasters=len(entry.predictions),
-                    at_datetime=entry.at_datetime,
-                )
-                for i, v in enumerate(question.options)
-            }
-        )
-    return cps
-
-
-def compute_continuous_plotable_cp(
-    question: Question, max_length: Optional[int] = None
-) -> int:
-    forecast_history = get_forecast_history(question)
-    if max_length:
-        forecast_history = truncate_forecast_history(forecast_history, max_length)
-    cps = []
-    cdf = None
-    for entry in forecast_history:
-        weights = generate_recency_weights(len(entry.predictions))
-        cdf = compute_cp_continuous(entry.predictions, weights)
-        q1, median, q3 = get_scaled_quartiles_from_cdf(cdf, question)
-
-        cps.append(
-            GraphCP(
-                q1=q1,
-                median=median,
-                q3=q3,
-                nr_forecasters=len(entry.predictions),
-                at_datetime=entry.at_datetime,
-            )
-        )
-    return cps, cdf
+    minimized_summary = minimize_forecast_history(full_summary)
+    return minimized_summary
