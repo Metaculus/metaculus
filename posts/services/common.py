@@ -17,7 +17,7 @@ from questions.services import (
 )
 from users.models import User
 from utils.dtypes import flatten
-from utils.the_math.community_prediction import get_cp_at_time
+from utils.the_math.community_prediction import get_aggregation_at_time
 from utils.the_math.measures import (
     prediction_difference_for_sorting,
 )
@@ -115,8 +115,8 @@ def compute_movement(post: Post) -> float | None:
     questions = post.get_questions()
     movement = None
     for question in questions:
-        cp_now = get_cp_at_time(question, timezone.now())
-        cp_previous = get_cp_at_time(
+        cp_now = get_aggregation_at_time(question, timezone.now())
+        cp_previous = get_aggregation_at_time(
             question, timezone.now() - timezone.timedelta(days=7)
         )
         if cp_now is None or cp_previous is None:
@@ -133,7 +133,7 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
     questions = post.get_questions()
     now = timezone.now()
     for question in questions:
-        cp = get_cp_at_time(question, now)
+        cp = get_aggregation_at_time(question, now)
         if cp is None:
             continue
 
