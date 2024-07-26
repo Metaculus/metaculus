@@ -58,6 +58,14 @@ def comments_list_api_view(request: Request):
     else:
         comments = comments.filter(Q(is_private=False) | Q(author=request.user))
 
+    comments = comments.annotate_vote_score()
+
+    sort_param = serializers.CharField(allow_null=True).run_validation(
+        request.query_params.get("sort")
+    )
+    if sort_param:
+        comments = comments.order_by(sort_param)
+
     # comments = [
     #    c
     #    for c in comments.all()
