@@ -1,5 +1,5 @@
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
-import { Post, PostWithForecasts } from "@/types/post";
+import { Post, PostSubscription, PostWithForecasts } from "@/types/post";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, handleRequestError, post, put } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
@@ -118,6 +118,16 @@ class PostsApi {
 
   static async changePostActivityBoost(postId: number, score: number) {
     return post<{ score_total: number }>(`/posts/${postId}/boost`, { score });
+  }
+
+  static async updateSubscriptions(
+    postId: number,
+    subscriptions: PostSubscription[]
+  ) {
+    return post<PostSubscription[], PostSubscription[]>(
+      `/posts/${postId}/subscriptions`,
+      subscriptions
+    );
   }
 }
 
