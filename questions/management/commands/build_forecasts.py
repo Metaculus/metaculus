@@ -22,12 +22,12 @@ class Command(BaseCommand):
 
         for question in qs.iterator(chunk_size=100):
 
-            # try:
-            run_build_question_forecasts(question.id)
-            # except Exception:
-            #     logger.exception(
-            #         "Failed to generate forecast for question %s", question.id
-            #     )
+            try:
+                run_build_question_forecasts(question.id)
+            except Exception:
+                logger.exception(
+                    "Failed to generate forecast for question %s", question.id
+                )
 
             processed += 1
             print(
