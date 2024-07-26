@@ -11,15 +11,82 @@ from notifications.services import (
     NotificationPostMilestone,
     NotificationPostStatusChange,
     NotificationPostSpecificTime,
+    NotificationPostCPChange,
 )
 from posts.models import Post, PostSubscription
+from questions.models import Question
 from users.models import User
+from utils.the_math.community_prediction import get_cp_history
+from utils.the_math.measures import (
+    map_difference_to_threshold,
+    prediction_difference_for_sorting,
+    prediction_difference_for_display,
+)
 
 
 def notify_post_cp_change(post: Post):
     """
-    TODO: implement
+    TODO: write description and check over
     """
+
+    subscriptions = post.subscriptions.filter(
+        type=PostSubscription.SubscriptionType.CP_CHANGE,
+        next_trigger_value__lte=post.cp,
+    ).select_related("user")
+    questions = Question.objects.filter(Q(post=post) | Q(group__post=post))
+    forecast_history = {
+        question: get_cp_history(
+            question,
+            aggregation_method="recency_weighted",
+            minimize=False,
+            include_stats=False,
+        )
+        for question in questions
+    }
+
+    for subscription in subscriptions:
+        last_sent = subscription.last_sent_at
+        if not last_sent:
+            subscription.update_last_sent_at()
+            subscription.save()
+            continue
+        max_sorting_diff = None
+        display_diff = None
+        for question, entries in forecast_history.items():
+            for entry in entries:
+                if entry.start_time <= last_sent and (
+                    entry.end_time is None or entry.end_time > last_sent
+                ):
+                    old_forecast_values = entry.forecast_values
+                    current_forecast_values = entries[-1].forecast_values
+                    difference = prediction_difference_for_sorting(
+                        old_forecast_values, current_forecast_values, question=question
+                    )
+                    if max_sorting_diff is None or difference > max_sorting_diff:
+                        max_sorting_diff = difference
+                        display_diff = prediction_difference_for_display(
+                            old_forecast_values,
+                            current_forecast_values,
+                            question=question,
+                        )
+                break
+        if not max_sorting_diff:
+            continue
+        sorting_difference = map_difference_to_threshold(max_sorting_diff)
+        if sorting_difference < subscription.cp_threshold:
+            continue
+
+        # we have to send a notification
+        NotificationPostCPChange.send(
+            subscription.user,
+            NotificationPostCPChange.ParamsType(
+                post=NotificationPostParams.from_post(post),
+                cp_difference=display_diff,
+            ),
+        )
+
+        subscription.update_last_sent_at()
+        subscription.save()
 
 
 def generate_next_trigger_value_for_new_comments(post: Post, frequency: int) -> int:
@@ -214,7 +281,7 @@ def create_subscription_cp_change(
         post=post,
         type=PostSubscription.SubscriptionType.CP_CHANGE,
         cp_threshold=cp_threshold,
-        # TODO: add extra logic
+        last_sent_at=timezone.now(),
     )
 
     obj.full_clean()
