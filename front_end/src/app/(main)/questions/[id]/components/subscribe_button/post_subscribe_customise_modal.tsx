@@ -7,8 +7,13 @@ import SubscriptionSectionMilestone from "@/app/(main)/questions/[id]/components
 import SubscriptionSectionNewComments from "@/app/(main)/questions/[id]/components/subscribe_button/subscription_types_customisation/subscription_new_comments";
 import SubscriptionSectionSpecificTime from "@/app/(main)/questions/[id]/components/subscribe_button/subscription_types_customisation/subscription_specific_time";
 import { SubscriptionSectionProps } from "@/app/(main)/questions/[id]/components/subscribe_button/subscription_types_customisation/types";
-import { getDefaultSubscriptionProps } from "@/app/(main)/questions/[id]/components/subscribe_button/utils";
+import {
+  getDefaultSubscriptionProps,
+  getInitialSubscriptions,
+} from "@/app/(main)/questions/[id]/components/subscribe_button/utils";
+import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
+import Button from "@/components/ui/button";
 import {
   Post,
   PostSubscription,
@@ -37,6 +42,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   const [subscriptions, setSubscriptions] = useState<PostSubscription[]>(
     () => _subscriptions
   );
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSwitchSubscription = useCallback(
     (checked: boolean, subscriptionType: PostSubscriptionType) => {
@@ -77,7 +83,17 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
     [subscriptions]
   );
 
-  // TODO: useMemo
+  const handleSubscriptionsSave = useCallback(async () => {
+    // Subscribe to default notifications set
+    setIsLoading(true);
+    try {
+      await changePostSubscriptions(post.id, subscriptions);
+      onClose(true);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [onClose, post.id, subscriptions]);
+
   const subscriptionTypes = [
     {
       type: PostSubscriptionType.NEW_COMMENTS,
@@ -155,6 +171,20 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
               )}
             </section>
           ))}
+        </div>
+        <div className="flex w-full justify-end">
+          <div className="flex w-fit gap-2">
+            <Button variant="secondary" disabled={isLoading}>
+              {t("unfollowButton")}
+            </Button>
+            <Button
+              variant="primary"
+              disabled={isLoading}
+              onClick={handleSubscriptionsSave}
+            >
+              {t("saveButton")}
+            </Button>
+          </div>
         </div>
       </div>
     </BaseModal>
