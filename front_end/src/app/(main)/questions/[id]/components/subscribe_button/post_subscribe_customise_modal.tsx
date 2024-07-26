@@ -80,6 +80,17 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
     [subscriptions]
   );
 
+  const handleUnfollow = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await changePostSubscriptions(post.id, []);
+    } finally {
+      setIsLoading(false);
+    }
+
+    onClose(true);
+  }, [onClose, post.id]);
+
   const handleSubscriptionsSave = useCallback(async () => {
     // Subscribe to default notifications set
     setIsLoading(true);
@@ -176,7 +187,11 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
         </div>
         <div className="flex w-full justify-end">
           <div className="flex w-fit gap-2">
-            <Button variant="secondary" disabled={isLoading}>
+            <Button
+              variant="secondary"
+              disabled={isLoading}
+              onClick={handleUnfollow}
+            >
               {t("unfollowButton")}
             </Button>
             <Button

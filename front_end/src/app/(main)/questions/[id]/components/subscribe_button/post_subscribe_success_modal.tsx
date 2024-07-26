@@ -11,14 +11,15 @@ type Props = {
   isOpen: boolean;
   onClose: (open: boolean) => void;
   post: Post;
-  subscriptions: PostSubscription[];
+  // Triggered on "customise" button click
+  onCustomiseClick: () => void;
 };
 
 const PostSubscribeSuccessModal: FC<Props> = ({
   isOpen,
   onClose,
   post,
-  subscriptions,
+  onCustomiseClick,
 }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +49,11 @@ const PostSubscribeSuccessModal: FC<Props> = ({
         </p>
         <div className="flex w-full justify-end">
           <div className="flex w-fit gap-2">
-            <Button variant="link" disabled={isLoading}>
+            <Button
+              variant="link"
+              disabled={isLoading}
+              onClick={onCustomiseClick}
+            >
               {t("customiseButton")}
             </Button>
             <Button

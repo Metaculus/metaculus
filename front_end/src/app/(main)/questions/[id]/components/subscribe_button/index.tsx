@@ -19,11 +19,13 @@ type Props = {
   post: Post;
 };
 
+type FollowModalType = "success" | "customisation";
+
 const PostSubscribeButton: FC<Props> = ({ post }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-  const [modalOpen, setModalOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState<FollowModalType | undefined>();
   const [postSubscriptions, setPostSubscriptions] = useState<
     PostSubscription[]
   >(post.subscriptions || []);
@@ -49,7 +51,8 @@ const PostSubscribeButton: FC<Props> = ({ post }) => {
 
         // Click on this button automatically subscribes user to the default notifications
         setPostSubscriptions(response);
-        setModalOpen(true);
+        // Open success modal
+        setActiveModal("success");
       } finally {
         setIsLoading(false);
       }
@@ -62,7 +65,7 @@ const PostSubscribeButton: FC<Props> = ({ post }) => {
         <Button
           variant="primary"
           disabled={isLoading}
-          onClick={() => setModalOpen(true)}
+          onClick={() => setActiveModal("customisation")}
         >
           <FontAwesomeIcon icon={faBell} />
           {t("followingButton")}
@@ -74,17 +77,19 @@ const PostSubscribeButton: FC<Props> = ({ post }) => {
         </Button>
       )}
       <PostSubscribeSuccessModal
-        isOpen={modalOpen}
+        isOpen={activeModal === "success"}
         onClose={() => {
-          setModalOpen(false);
+          setActiveModal(undefined);
         }}
         post={post}
-        subscriptions={postSubscriptions}
+        onCustomiseClick={() => setActiveModal("customisation")}
       />
 
       <PostSubscribeCustomizeModal
-        isOpen={true}
-        onClose={() => {}}
+        isOpen={activeModal === "customisation"}
+        onClose={() => {
+          setActiveModal(undefined);
+        }}
         post={post}
         subscriptions={postSubscriptions}
       />
