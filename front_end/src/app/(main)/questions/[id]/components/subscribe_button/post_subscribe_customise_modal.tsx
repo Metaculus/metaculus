@@ -132,38 +132,41 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
         />
       ),
     },
+    {
+      type: PostSubscriptionType.STATUS_CHANGE,
+      title: "Status changes",
+    },
   ];
 
   return (
     <BaseModal
-      label="You’re now following this question!"
+      label="Customize notifications"
       isOpen={isOpen}
       onClose={onClose}
     >
       <div className="max-w-xl">
         <p className="text-base leading-tight">
-          You’ll be notified of new comments, changes to the Community
-          Prediction, every time 20% of the question lifetime has passed, and
-          when the question opens, closes, or resolves.
+          Configure email notifications when important updates happen.
         </p>
-        <div className="mt-8 flex flex-col gap-4 pb-4">
+        <div className="mt-8 flex flex-col gap-4 pb-16">
           {subscriptionTypes.map(({ type, title, render }, idx) => (
             <section key={`subscription-${type}`}>
               <div className="flex items-center gap-4">
-                <h4 className="m-0">{title}</h4>
                 <Switch
                   checked={checkSubscriptionEnabled(type)}
                   onChange={(checked) =>
                     handleSwitchSubscription(checked, type)
                   }
                 />
+                <h4 className="m-0">{title}</h4>
               </div>
               {checkSubscriptionEnabled(type) && (
                 <>
                   <div>
-                    {render(subscriptions.find((sub) => sub.type === type)!)}
+                    {render &&
+                      render(subscriptions.find((sub) => sub.type === type)!)}
                   </div>
-                  {idx < subscriptionTypes.length - 1 && (
+                  {render && idx < subscriptionTypes.length - 1 && (
                     <hr className="mb-4 mt-8 border-gray-400 dark:border-gray-400-dark" />
                   )}
                 </>
