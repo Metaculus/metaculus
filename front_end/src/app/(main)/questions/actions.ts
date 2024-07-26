@@ -12,7 +12,7 @@ import PostsApi, { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import QuestionsApi from "@/services/questions";
 import { FetchError } from "@/types/fetch";
-import { PostStatus } from "@/types/post";
+import { PostStatus, PostSubscription } from "@/types/post";
 import { ForecastData } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
@@ -273,4 +273,15 @@ export async function searchUsers(query: string) {
 
 export async function changePostActivityBoost(postId: number, score: number) {
   return await PostsApi.changePostActivityBoost(postId, score);
+}
+
+export async function changePostSubscriptions(
+  postId: number,
+  subscriptions: PostSubscription[]
+) {
+  const response = await PostsApi.updateSubscriptions(postId, subscriptions);
+
+  revalidatePath(`/questions/${postId}`);
+
+  return response;
 }
