@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import NumericAreaChart from "@/components/charts/numeric_area_chart";
+import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
 import PredictionChip from "@/components/prediction_chip";
 import ProgressBar from "@/components/ui/progress_bar";
 import { PostStatus } from "@/types/post";
@@ -87,7 +87,7 @@ const ConditionalChart: FC<Props> = ({
               </div>
               <span>{formattedPrediction}</span>
             </div>
-            <NumericAreaChart
+            <ContinuousAreaChart
               height={40}
               rangeMin={question.range_min}
               rangeMax={question.range_max}
@@ -96,7 +96,7 @@ const ConditionalChart: FC<Props> = ({
                 {
                   pmf: question.forecasts.latest_pmf,
                   cdf: question.forecasts.latest_cdf,
-                  color: "green",
+                  type: "community",
                 },
               ]}
               extraTheme={chartTheme}

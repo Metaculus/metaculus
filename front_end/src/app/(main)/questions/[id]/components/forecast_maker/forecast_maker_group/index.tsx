@@ -9,7 +9,7 @@ import {
 } from "@/types/question";
 
 import ForecastMakerGroupBinary from "./forecast_maker_group_binary";
-import ForecastMakerGroupNumeric from "./forecast_maker_group_numeric";
+import ForecastMakerGroupContinuous from "./forecast_maker_group_continuous";
 import ForecastMakerContainer from "../container";
 
 type Props = {
@@ -54,7 +54,7 @@ const ForecastMakerGroup: FC<Props> = ({
       case QuestionType.Numeric:
       case QuestionType.Date:
         return (
-          <ForecastMakerGroupNumeric
+          <ForecastMakerGroupContinuous
             postId={postId}
             questions={questions as QuestionWithNumericForecasts[]}
             permission={permission}
