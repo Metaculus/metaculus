@@ -14,7 +14,7 @@ type Props = {
   subscriptions: PostSubscription[];
 };
 
-const PostSubscribeConfigurationModal: FC<Props> = ({
+const PostSubscribeSuccessModal: FC<Props> = ({
   isOpen,
   onClose,
   post,
@@ -46,21 +46,23 @@ const PostSubscribeConfigurationModal: FC<Props> = ({
           Prediction, every time 20% of the question lifetime has passed, and
           when the question opens, closes, or resolves.
         </p>
-        <div className="flex w-fit gap-2">
-          <Button
-            variant="secondary"
-            disabled={isLoading}
-            onClick={handleUnfollow}
-          >
-            {t("unfollowButton")}
-          </Button>
-          <Button variant="link" disabled={isLoading}>
-            {t("customiseButton")}
-          </Button>
+        <div className="flex w-full justify-end">
+          <div className="flex w-fit gap-2">
+            <Button variant="link" disabled={isLoading}>
+              {t("customiseButton")}
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={isLoading}
+              onClick={handleUnfollow}
+            >
+              {t("unfollowButton")}
+            </Button>
+          </div>
         </div>
       </div>
     </BaseModal>
   );
 };
 
-export default PostSubscribeConfigurationModal;
+export default PostSubscribeSuccessModal;

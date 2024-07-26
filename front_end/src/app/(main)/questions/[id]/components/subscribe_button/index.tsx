@@ -5,13 +5,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
-import PostSubscribeConfigurationModal from "@/app/(main)/questions/[id]/components/subscribe_button/post_subscribe_configuration_modal";
-import { getDefaultSubscriptions } from "@/app/(main)/questions/[id]/components/subscribe_button/utils";
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { Post, PostSubscription } from "@/types/post";
+
+import PostSubscribeCustomizeModal from "./post_subscribe_customise_modal";
+import PostSubscribeSuccessModal from "./post_subscribe_success_modal";
+import { getInitialSubscriptions } from "./utils";
 
 type Props = {
   post: Post;
@@ -42,7 +44,7 @@ const PostSubscribeButton: FC<Props> = ({ post }) => {
       try {
         const response = await changePostSubscriptions(
           post.id,
-          getDefaultSubscriptions()
+          getInitialSubscriptions()
         );
 
         // Click on this button automatically subscribes user to the default notifications
@@ -71,11 +73,18 @@ const PostSubscribeButton: FC<Props> = ({ post }) => {
           {t("followButton")}
         </Button>
       )}
-      <PostSubscribeConfigurationModal
+      <PostSubscribeSuccessModal
         isOpen={modalOpen}
         onClose={() => {
           setModalOpen(false);
         }}
+        post={post}
+        subscriptions={postSubscriptions}
+      />
+
+      <PostSubscribeCustomizeModal
+        isOpen={true}
+        onClose={() => {}}
         post={post}
         subscriptions={postSubscriptions}
       />
