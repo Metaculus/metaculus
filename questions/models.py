@@ -9,6 +9,8 @@ from sql_util.aggregates import SubqueryAggregate
 from users.models import User
 from utils.models import TimeStampedModel
 
+CDF_SIZE = 201
+
 
 class QuestionQuerySet(models.QuerySet):
     def annotate_forecasts_count(self):
@@ -194,7 +196,7 @@ class Forecast(models.Model):
     continuous_cdf = ArrayField(
         models.FloatField(),
         null=True,
-        size=201,
+        size=CDF_SIZE,
     )
 
     probability_yes = models.FloatField(null=True)
