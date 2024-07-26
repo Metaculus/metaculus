@@ -13,12 +13,7 @@ import * as z from "zod";
 
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
-import {
-  Category,
-  PostStatus,
-  PostWithForecasts,
-  ProjectPermissions,
-} from "@/types/post";
+import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 
@@ -27,6 +22,7 @@ import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
 import ProjectPicker from "./project_picker";
 import { createQuestionPost, updatePost } from "../actions";
+import { getQuestionStatus } from "../helpers/getQuestionStatus";
 
 type PostCreationData = {
   group_of_questions: any;
@@ -66,13 +62,7 @@ const GroupForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
-  const isLive =
-    post?.curation_status == PostStatus.APPROVED ||
-    post?.curation_status == PostStatus.OPEN;
-  const isDone =
-    post?.curation_status == PostStatus.RESOLVED ||
-    post?.curation_status == PostStatus.CLOSED ||
-    post?.curation_status == PostStatus.DELETED;
+  const { isLive, isDone } = getQuestionStatus(post);
 
   const defaultProject = post
     ? post.projects.default_project
