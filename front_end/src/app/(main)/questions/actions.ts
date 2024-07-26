@@ -279,5 +279,9 @@ export async function changePostSubscriptions(
   postId: number,
   subscriptions: PostSubscription[]
 ) {
-  return await PostsApi.updateSubscriptions(postId, subscriptions);
+  const response = await PostsApi.updateSubscriptions(postId, subscriptions);
+
+  revalidatePath(`/questions/${postId}`);
+
+  return response;
 }
