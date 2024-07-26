@@ -2,15 +2,16 @@
 
 import pgvector.django.vector
 from django.db import migrations
+from pgvector.django import VectorExtension
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ("posts", "0015_embeds_vector"),
+        ("posts", "0016_postsubscription_cp_threshold_and_more"),
     ]
 
     operations = [
+        VectorExtension(),
         migrations.AddField(
             model_name="post",
             name="embedding_vector",
