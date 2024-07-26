@@ -97,6 +97,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
       title: "Comments",
       render: (subscription: PostSubscription) => (
         <SubscriptionSectionNewComments
+          post={post}
           subscription={subscription as PostSubscriptionNewComments}
           onChange={(name, value) =>
             handleSubscriptionChange(subscription.type, name, value)
@@ -109,6 +110,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
       title: "Milestones",
       render: (subscription: PostSubscription) => (
         <SubscriptionSectionMilestone
+          post={post}
           subscription={subscription as PostSubscriptionMilestone}
           onChange={(name, value) =>
             handleSubscriptionChange(subscription.type, name, value)
@@ -121,6 +123,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
       title: "Specific time",
       render: (subscription: PostSubscription) => (
         <SubscriptionSectionSpecificTime
+          post={post}
           subscription={subscription as PostSubscriptionSpecificTime}
           onChange={(name, value) => {
             console.log("CHANGED: ", subscription.type, name, value);

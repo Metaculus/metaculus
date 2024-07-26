@@ -1,10 +1,12 @@
 import { formatInTimeZone } from "date-fns-tz";
+import { useLocale } from "next-intl";
 import { FC, useMemo } from "react";
 
 import DatetimeUtc from "@/components/ui/datetime_utc";
-import Listbox, { SelectOption } from "@/components/ui/listbox";
+import { SelectOption } from "@/components/ui/listbox";
 import Select from "@/components/ui/select";
 import { PostSubscriptionSpecificTime } from "@/types/post";
+import { formatDate } from "@/utils/date_formatters";
 
 import { SubscriptionSectionProps } from "./types";
 
@@ -17,7 +19,9 @@ const RECURRENCE_INTERVAL_OPTIONS: SelectOption<string>[] = [
 
 const SubscriptionSectionSpecificTime: FC<
   SubscriptionSectionProps<PostSubscriptionSpecificTime>
-> = ({ subscription, onChange }) => {
+> = ({ subscription, onChange, post }) => {
+  const locale = useLocale();
+
   const currentDateTime = useMemo(
     () => formatInTimeZone(new Date(), "UTC", "yyyy-MM-dd'T'HH:mm:ss'Z'"),
     []
@@ -28,10 +32,10 @@ const SubscriptionSectionSpecificTime: FC<
       <p>Notify me on: </p>
       <div>
         <DatetimeUtc
-          placeholder="date when forecasts will open"
           min={currentDateTime}
           onChange={(dt) => onChange("next_trigger_datetime", dt)}
           defaultValue={subscription.next_trigger_datetime}
+          className="!rounded-none"
         />
         <Select
           defaultValue={subscription.recurrence_interval}
@@ -40,6 +44,13 @@ const SubscriptionSectionSpecificTime: FC<
           className="ml-2 border-0"
         />
       </div>
+      <p className="mt-4 opacity-70">
+        Reminder: this question opened on{" "}
+        {post.published_at && formatDate(locale, new Date(post.published_at))}{" "}
+        and closes on{" "}
+        {post.scheduled_close_time &&
+          formatDate(locale, new Date(post.scheduled_close_time))}
+      </p>
     </div>
   );
 };
