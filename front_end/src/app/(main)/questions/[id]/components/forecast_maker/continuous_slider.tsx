@@ -4,15 +4,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import NumericAreaChart, {
-  AreaGraphType,
-} from "@/components/charts/numeric_area_chart";
 import MultiSlider, {
   MultiSliderValue,
 } from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
 import InlineSelect from "@/components/ui/inline_select";
+import { ContinuousAreaGraphType } from "@/types/charts";
 import { QuestionWithNumericForecasts } from "@/types/question";
+
+import ContinuousPredictionChart from "./continuous_prediction_chart";
 
 type Props = {
   forecast: MultiSliderValue[];
@@ -25,7 +25,7 @@ type Props = {
   question: QuestionWithNumericForecasts;
 };
 
-const NumericSlider: FC<Props> = ({
+const ContinuousSlider: FC<Props> = ({
   forecast,
   weights,
   dataset,
@@ -33,38 +33,25 @@ const NumericSlider: FC<Props> = ({
   question,
 }) => {
   const t = useTranslations();
-  const [graphType, setGraphType] = useState<AreaGraphType>("pmf");
+  const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
 
   return (
     <div>
-      <InlineSelect<AreaGraphType>
+      <InlineSelect<ContinuousAreaGraphType>
         options={[
           { label: t("pdfLabel"), value: "pmf" },
           { label: t("cdfLabel"), value: "cdf" },
         ]}
         defaultValue={graphType}
         className="appearance-none border-none !p-0 text-sm"
-        onChange={(e) => setGraphType(e.target.value as AreaGraphType)}
+        onChange={(e) =>
+          setGraphType(e.target.value as ContinuousAreaGraphType)
+        }
       />
-      <NumericAreaChart
-        height={300}
-        rangeMin={question.range_min}
-        rangeMax={question.range_max}
-        zeroPoint={question.zero_point}
-        dataType={question.type}
+      <ContinuousPredictionChart
+        dataset={dataset}
         graphType={graphType}
-        data={[
-          {
-            pmf: question.forecasts.latest_pmf,
-            cdf: question.forecasts.latest_cdf,
-            color: "green",
-          },
-          {
-            pmf: dataset.pmf,
-            cdf: dataset.cdf,
-            color: "orange",
-          },
-        ]}
+        question={question}
       />
       {forecast.map((x, index) => {
         return (
@@ -137,4 +124,4 @@ function normWeights(weights: number[]) {
   return weights.map((x) => x / weights.reduce((a, b) => a + b));
 }
 
-export default NumericSlider;
+export default ContinuousSlider;
