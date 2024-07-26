@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import cast
 
 import numpy as np
 from django.utils import timezone
@@ -8,11 +9,7 @@ from posts.models import PostUserSnapshot
 from questions.constants import ResolutionType
 from questions.models import Question, GroupOfQuestions, Conditional, Forecast
 from users.models import User
-from utils.the_math.community_prediction import (
-    compute_multiple_choice_plotable_cp,
-    compute_binary_plotable_cp,
-    compute_continuous_plotable_cp,
-)
+from utils.the_math.community_prediction import get_cp_summary
 from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import percent_point_function
 
@@ -47,62 +44,58 @@ def build_question_forecasts(question: Question) -> dict:
     """
     forecasts_data = get_forecast_initial_dict(question)
 
+    aggregation_history = get_cp_summary(question)
     if question.type == "multiple_choice":
-        cps = compute_multiple_choice_plotable_cp(question, 100)
-        for cp_dict in cps:
-            for option, cp in cp_dict.items():
+        options = cast(list[str], question.options)
+        for entry in aggregation_history:
+            for i, option in enumerate(options):
                 forecasts_data[option].append(
                     {
-                        "median": cp.median,
-                        "q3": cp.q3,
-                        "q1": cp.q1,
+                        "median": entry.medians[i],
+                        "q3": entry.q3s[i],
+                        "q1": entry.q1s[i],
                     }
                 )
-            forecasts_data["timestamps"].append(
-                list(cp_dict.values())[0].at_datetime.timestamp()
-            )
-            forecasts_data["nr_forecasters"].append(
-                list(cp_dict.values())[0].nr_forecasters
-            )
+            forecasts_data["timestamps"].append(entry.start_time.timestamp())
+            forecasts_data["nr_forecasters"].append(entry.num_forecasters)
         forecasts_data["latest_cdf"] = None
         forecasts_data["latest_pmf"] = (
-            None
-            if len(list(forecasts_data.values())[0]) == 0
-            else [
-                forecasts_data[option][-1]["median"] / 100
-                for option in question.options
-            ]
+            None if not aggregation_history else list(aggregation_history[-1].get_pmf())
         )
-    else:
-        if question.type == "binary":
-            cps = compute_binary_plotable_cp(question, 100)
-            forecasts_data["latest_cdf"] = None
-            forecasts_data["latest_pmf"] = (
-                None
-                if len(cps) == 0
-                else [
-                    1 - cps[-1].median / 100,
-                    cps[-1].median / 100,
-                ]
-            )
-        elif question.type in ["numeric", "date"]:
-            cps, cdf = compute_continuous_plotable_cp(question, 100)
-            forecasts_data["latest_cdf"] = list(cdf) if cdf is not None else None
-            if cdf is not None and len(cdf) >= 2:
-                forecasts_data["latest_pmf"] = list(np.diff(cdf, prepend=0))
-            else:
-                forecasts_data["latest_pmf"] = []
-        else:
-            raise Exception(f"Unknown question type: {question.type}")
-        if cps is None or len(cps) == 0:
+    elif question.type == "binary":
+        forecasts_data["latest_cdf"] = None
+        forecasts_data["latest_pmf"] = (
+            None if not aggregation_history else list(aggregation_history[-1].get_pmf())
+        )
+        if not aggregation_history:
             return forecasts_data
 
-        for cp in cps:
-            forecasts_data["timestamps"].append(cp.at_datetime.timestamp())
-            forecasts_data["medians"].append(cp.median)
-            forecasts_data["q3s"].append(cp.q3)
-            forecasts_data["q1s"].append(cp.q1)
-            forecasts_data["nr_forecasters"].append(cp.nr_forecasters)
+        for entry in aggregation_history:
+            forecasts_data["timestamps"].append(entry.start_time.timestamp())
+            forecasts_data["medians"].append(entry.medians[1])
+            forecasts_data["q3s"].append(entry.q3s[1])
+            forecasts_data["q1s"].append(entry.q1s[1])
+            forecasts_data["nr_forecasters"].append(entry.num_forecasters)
+    elif question.type in ["numeric", "date"]:
+        forecasts_data["latest_cdf"] = (
+            []
+            if not aggregation_history
+            else list(aggregation_history[-1].continuous_cdf)
+        )
+        forecasts_data["latest_pmf"] = (
+            [] if not aggregation_history else list(aggregation_history[-1].get_pmf())
+        )
+        if not aggregation_history:
+            return forecasts_data
+
+        for entry in aggregation_history:
+            forecasts_data["timestamps"].append(entry.start_time.timestamp())
+            forecasts_data["medians"].append(entry.medians)
+            forecasts_data["q3s"].append(entry.q3s)
+            forecasts_data["q1s"].append(entry.q1s)
+            forecasts_data["nr_forecasters"].append(entry.num_forecasters)
+    else:
+        raise Exception(f"Unknown question type: {question.type}")
 
     return forecasts_data
 
@@ -131,9 +124,7 @@ def build_question_forecasts_for_user(
             forecasts_data["medians"].append(forecast.probability_yes)
         elif question.type in ["numeric", "date"]:
             forecasts_data["medians"].append(
-                unscaled_location_to_scaled_location(
-                    percent_point_function(forecast.continuous_cdf, 50), question
-                )
+                percent_point_function(forecast.continuous_cdf, 50), question
             )
 
     return forecasts_data
