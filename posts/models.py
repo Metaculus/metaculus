@@ -64,6 +64,15 @@ class PostQuerySet(models.QuerySet):
             "group_of_questions__questions",
         )
 
+    def prefetch_user_subscriptions(self, user: User):
+        return self.prefetch_related(
+            Prefetch(
+                "subscriptions",
+                queryset=PostSubscription.objects.filter(user=user),
+                to_attr="user_subscriptions",
+            )
+        )
+
     def annotate_user_last_forecasts_date(self, author_id: int):
         """
         Annotate last forecast date for user
@@ -466,6 +475,47 @@ class RelatedPost(TimeStampedModel):
     post2 = models.ForeignKey(
         Post, models.CASCADE, related_name="related_posts_as_post2"
     )
+
+
+class PostSubscription(TimeStampedModel):
+    class SubscriptionType(models.TextChoices):
+        CP_CHANGE = "cp_change"
+        NEW_COMMENTS = "new_comments"
+        MILESTONE = "milestone"
+        STATUS_CHANGE = "status_change"
+        SPECIFIC_TIME = "specific_time"
+
+    class PostStatusChange(models.TextChoices):
+        OPEN = "open"
+        CLOSE = "close"
+        RESOLVE = "resolve"
+
+    user = models.ForeignKey(User, models.CASCADE, related_name="subscriptions")
+    post = models.ForeignKey(Post, models.CASCADE, related_name="subscriptions")
+
+    type = models.CharField(choices=SubscriptionType.choices, db_index=True)
+    last_sent_at = models.DateTimeField(null=True, db_index=True, blank=True)
+
+    next_trigger_value = models.FloatField(null=True, db_index=True, blank=True)
+    next_trigger_datetime = models.DateTimeField(null=True, db_index=True, blank=True)
+
+    # Notification-specific fields
+    comments_frequency = models.PositiveSmallIntegerField(null=True, blank=True)
+    recurrence_interval = models.DurationField(null=True, blank=True)
+    # 0. -> 1.
+    milestone_step = models.FloatField(null=True, blank=True)
+    # 0. -> 1.
+    cp_threshold = models.FloatField(null=True, blank=True)
+
+    def update_last_sent_at(self):
+        self.last_sent_at = timezone.now()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="postsubscription_unique_type_user_post", fields=["type", "user_id", "post_id"]
+            )
+        ]
 
 
 class PostUserSnapshot(models.Model):
