@@ -11,12 +11,13 @@ export const getDefaultSubscriptionProps = () =>
     [PostSubscriptionType.NEW_COMMENTS]: {
       comments_frequency: 10,
     },
-    // TODO: enable this implicitly!!!
     [PostSubscriptionType.STATUS_CHANGE]: {},
     [PostSubscriptionType.MILESTONE]: {
       milestone_step: 0.2,
     },
-    [PostSubscriptionType.CP_CHANGE]: {},
+    [PostSubscriptionType.CP_CHANGE]: {
+      cp_threshold: 0.2,
+    },
     [PostSubscriptionType.SPECIFIC_TIME]: {
       next_trigger_datetime: formatInTimeZone(
         addWeeks(new Date(), 1),
@@ -33,14 +34,18 @@ export const getDefaultSubscriptionProps = () =>
 export const getInitialSubscriptions = (): PostSubscription[] => [
   {
     type: PostSubscriptionType.NEW_COMMENTS,
-    // TODO: check with Sylvain
-    comments_frequency: 10,
+    ...getDefaultSubscriptionProps()[PostSubscriptionType.NEW_COMMENTS],
   },
   {
     type: PostSubscriptionType.STATUS_CHANGE,
+    ...getDefaultSubscriptionProps()[PostSubscriptionType.STATUS_CHANGE],
   },
   {
     type: PostSubscriptionType.MILESTONE,
-    milestone_step: 0.2,
+    ...getDefaultSubscriptionProps()[PostSubscriptionType.MILESTONE],
+  },
+  {
+    type: PostSubscriptionType.CP_CHANGE,
+    ...getDefaultSubscriptionProps()[PostSubscriptionType.CP_CHANGE],
   },
 ];

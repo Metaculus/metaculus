@@ -3,32 +3,32 @@ import { FC, useCallback } from "react";
 
 import { SubscriptionSectionProps } from "@/app/(main)/questions/[id]/components/subscribe_button/subscription_types_customisation/types";
 import RadioButton from "@/components/ui/radio_button";
-import { PostSubscriptionNewComments } from "@/types/post";
+import { PostSubscriptionCPCHange } from "@/types/post";
 
 const COMMENTS_FREQUENCY_OPTIONS = [
   {
-    name: "every comment",
-    id: 1,
+    name: "small changes (50% → 60%)",
+    id: 0.1,
   },
   {
-    name: "every 3 comments",
-    id: 3,
+    name: "medium changes (50% → 70%)",
+    id: 0.2,
   },
   {
-    name: "every 10 comments",
-    id: 10,
+    name: "large changes (50% → 80%)",
+    id: 0.3,
   },
 ];
 
-const SubscriptionSectionNewComments: FC<
-  SubscriptionSectionProps<PostSubscriptionNewComments>
+const SubscriptionSectionCPChange: FC<
+  SubscriptionSectionProps<PostSubscriptionCPCHange>
 > = ({ subscription, onChange }) => {
   return (
     <div>
-      <p>Notify me: </p>
+      <p>Notify me for: </p>
       <RadioGroup
-        value={subscription.comments_frequency}
-        onChange={(value) => onChange("comments_frequency", value)}
+        value={subscription.cp_threshold}
+        onChange={(value) => onChange("cp_threshold", value)}
         as="ul"
       >
         {COMMENTS_FREQUENCY_OPTIONS.map((option, optionIdx) => (
@@ -45,4 +45,4 @@ const SubscriptionSectionNewComments: FC<
   );
 };
 
-export default SubscriptionSectionNewComments;
+export default SubscriptionSectionCPChange;

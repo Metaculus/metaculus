@@ -150,7 +150,8 @@ export type PostSubscription =
   | PostSubscriptionNewComments
   | PostSubscriptionMilestone
   | PostSubscriptionStatusChange
-  | PostSubscriptionSpecificTime;
+  | PostSubscriptionSpecificTime
+  | PostSubscriptionCPCHange;
 
 export type PostSubscriptionNewComments = {
   type: PostSubscriptionType.NEW_COMMENTS;
@@ -164,6 +165,11 @@ export type PostSubscriptionMilestone = {
 
 export type PostSubscriptionStatusChange = {
   type: PostSubscriptionType.STATUS_CHANGE;
+};
+
+export type PostSubscriptionCPCHange = {
+  type: PostSubscriptionType.CP_CHANGE;
+  cp_threshold: number;
 };
 
 export type PostSubscriptionSpecificTime = {
