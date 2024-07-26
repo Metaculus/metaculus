@@ -323,7 +323,7 @@ class SubscriptionStatusChangeSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionSpecificTimeSerializer(serializers.ModelSerializer):
-    recurrence_interval = serializers.DurationField(required=True)
+    recurrence_interval = serializers.DurationField(required=False, allow_null=True)
 
     class Meta:
         model = PostSubscription
@@ -332,6 +332,12 @@ class SubscriptionSpecificTimeSerializer(serializers.ModelSerializer):
     def validate_next_trigger_datetime(self, value):
         if value <= timezone.now():
             raise ValidationError("Can not be in the past")
+
+        return value
+
+    def validate_recurrence_interval(self, value):
+        if not value:
+            return
 
         return value
 
