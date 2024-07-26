@@ -6,12 +6,13 @@ import {
   subDays,
   subMonths,
 } from "date-fns";
-import { uniq } from "lodash";
+import { findLastIndex, uniq } from "lodash";
 import { Tuple } from "victory";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
   FanOption,
+  Line,
   NumericChartType,
   Scale,
   TimelineChartZoomOption,
@@ -376,3 +377,14 @@ export const getChartZoomOptions = () =>
     label: zoomOption,
     value: zoomOption,
   }));
+
+export const interpolateYValue = (xValue: number, line: Line) => {
+  const i = findLastIndex(line, (point) => point.x <= xValue);
+  const p1 = line[i];
+  const p2 = line[i + 1];
+
+  if (!p1 || !p2) return 0;
+
+  const t = (xValue - p1.x) / (p2.x - p1.x);
+  return p1.y + t * (p2.y - p1.y);
+};

@@ -6,8 +6,8 @@ import { ProjectPermissions } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 
 import ForecastMakerBinary from "./forecast_maker_binary";
+import ForecastMakerContinuous from "./forecast_maker_continuous";
 import ForecastMakerMultipleChoice from "./forecast_maker_multiple_choice";
-import ForecastMakerNumeric from "./forecast_maker_numeric";
 import ForecastMakerContainer from "../container";
 
 type Props = {
@@ -30,7 +30,7 @@ const QuestionForecastMaker: FC<Props> = ({
       case QuestionType.Numeric:
       case QuestionType.Date:
         return (
-          <ForecastMakerNumeric
+          <ForecastMakerContinuous
             question={question}
             permission={permission}
             prevForecast={question.forecasts.my_forecasts?.slider_values}
