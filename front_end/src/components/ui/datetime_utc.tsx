@@ -6,6 +6,8 @@ import React, {
   useState,
 } from "react";
 
+import { Input } from "@/components/ui/form_field";
+
 interface DatetimeUtcProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "onChange"> {
   defaultValue?: string;
@@ -46,7 +48,7 @@ const DatetimeUtc: React.FC<DatetimeUtcProps> = ({
   };
 
   return (
-    <input
+    <Input
       type="datetime-local"
       defaultValue={localValue}
       onChange={handleChange}
