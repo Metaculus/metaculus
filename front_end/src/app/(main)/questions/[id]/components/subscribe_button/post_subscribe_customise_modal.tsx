@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
@@ -31,15 +31,19 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   isOpen,
   onClose,
   post,
-  subscriptions: _subscriptions,
+  subscriptions: initialSubscriptions,
 }) => {
   // TODO: add localization everywhere!!!
   const t = useTranslations();
 
   const [subscriptions, setSubscriptions] = useState<PostSubscription[]>(
-    () => _subscriptions
+    () => initialSubscriptions
   );
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setSubscriptions(initialSubscriptions || []);
+  }, [initialSubscriptions]);
 
   const handleSwitchSubscription = useCallback(
     (checked: boolean, subscriptionType: PostSubscriptionType) => {
@@ -151,7 +155,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
 
   return (
     <BaseModal
-      label="Customize notifications"
+      label="Customise notifications"
       isOpen={isOpen}
       onClose={onClose}
     >

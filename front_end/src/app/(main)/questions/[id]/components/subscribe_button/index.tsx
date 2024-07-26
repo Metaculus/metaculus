@@ -28,7 +28,7 @@ const PostSubscribeButton: FC<Props> = ({ post }) => {
   const [activeModal, setActiveModal] = useState<FollowModalType | undefined>();
   const [postSubscriptions, setPostSubscriptions] = useState<
     PostSubscription[]
-  >(post.subscriptions || []);
+  >(() => post.subscriptions || []);
   const [isLoading, setIsLoading] = useState(false);
 
   // Catch post.subscriptions updates coming from `revalidatePath`
