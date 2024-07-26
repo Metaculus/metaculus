@@ -41,7 +41,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_children(self, comment: Comment):
         children = Comment.objects.filter(parent=comment)
-        return CommentSerializer(children, many=True).data
+        return serialize_comment_many(children, self.context.get('current_user'))
 
 
 class CommentWriteSerializer(serializers.ModelSerializer):
@@ -66,8 +66,9 @@ class CommentWriteSerializer(serializers.ModelSerializer):
 
 def serialize_comment(
     comment: Comment,
+    current_user: User | None = None,
 ) -> dict:
-    serialized_data = CommentSerializer(comment).data
+    serialized_data = CommentSerializer(comment, context={"current_user": current_user }).data
 
     # Permissions
     # serialized_data["user_permission"] = post.user_permission
@@ -95,4 +96,4 @@ def serialize_comment_many(
     if current_user and not current_user.is_anonymous:
         qs = qs.annotate_user_vote(current_user)
 
-    return [serialize_comment(comment) for comment in qs.all()]
+    return [serialize_comment(comment, current_user) for comment in qs.all()]

@@ -1,5 +1,6 @@
 from django.db import models
-from django.db.models import Sum, OuterRef, Subquery, QuerySet
+from django.db.models import Sum, OuterRef, Subquery, QuerySet, IntegerField
+from django.db.models.functions import Coalesce
 
 from sql_util.aggregates import SubqueryAggregate
 from posts.models import Post
@@ -13,7 +14,11 @@ from utils.models import TimeStampedModel
 class CommentQuerySet(models.QuerySet):
     def annotate_vote_score(self):
         return self.annotate(
-            vote_score=SubqueryAggregate("comment_votes__direction", aggregate=Sum)
+            vote_score=Coalesce(
+                SubqueryAggregate("comment_votes__direction", aggregate=Sum),
+                0,
+                output_field=IntegerField()
+            )
         )
 
     def annotate_user_vote(self, user: User):

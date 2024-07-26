@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 
 import { softDeleteComment, editComment } from "@/app/(main)/questions/actions";
 import CommentEditor from "@/components/comment_feed/comment_editor";
@@ -21,6 +21,8 @@ import { CommentPermissions, CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";
 
 import IncludedForecast from "./included_forecast";
+
+import { SortOption, sortComments } from ".";
 
 const copyToClipboard = async (text: string) => {
   try {
@@ -35,6 +37,7 @@ type CommentChildrenTreeProps = {
   permissions: CommentPermissions;
   expandedChildren?: boolean;
   treeDepth: number;
+  sort: SortOption;
 };
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
@@ -42,11 +45,16 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   permissions,
   expandedChildren = false,
   treeDepth,
+  sort,
 }) => {
   const t = useTranslations();
   const [childrenExpanded, setChildrenExpanded] = useState(
     expandedChildren && treeDepth < 5
   );
+
+  useEffect(() => {
+    sortComments(commentChildren, sort);
+  }, [commentChildren, sort]);
 
   function getTreeSize(commentChildren: CommentType[]): number {
     let totalChildren = 0;
@@ -103,6 +111,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
                 comment={child}
                 permissions={permissions}
                 treeDepth={treeDepth}
+                sort={sort}
               />
             </div>
           ))}
@@ -116,6 +125,7 @@ type CommentProps = {
   permissions: CommentPermissions;
   onProfile?: boolean;
   treeDepth: number;
+  sort: SortOption;
 };
 
 const Comment: FC<CommentProps> = ({
@@ -123,6 +133,7 @@ const Comment: FC<CommentProps> = ({
   permissions,
   onProfile = false,
   treeDepth,
+  sort,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -199,6 +210,7 @@ const Comment: FC<CommentProps> = ({
             commentChildren={comment.children}
             permissions={permissions}
             treeDepth={treeDepth + 1}
+            sort={sort}
           />
         )}
       </div>
@@ -317,6 +329,7 @@ const Comment: FC<CommentProps> = ({
           permissions={permissions}
           expandedChildren={!onProfile}
           treeDepth={treeDepth + 1}
+          sort={sort}
         />
       )}
     </div>
