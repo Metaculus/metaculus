@@ -7,6 +7,7 @@ import {
   VictoryArea,
   VictoryAxis,
   VictoryChart,
+  VictoryCursorContainer,
   VictoryLine,
   VictoryThemeDefinition,
 } from "victory";
@@ -15,31 +16,47 @@ import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
-import { Line } from "@/types/charts";
+import {
+  ContinuousAreaGraphType,
+  Line,
+  ContinuousAreaHoverState,
+  ContinuousAreaType,
+} from "@/types/charts";
 import { QuestionType } from "@/types/question";
-import { scaleInternalLocation } from "@/utils/charts";
+import { interpolateYValue, scaleInternalLocation } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
+import LineCursorPoints from "./primitives/line_cursor_points";
+
 type NumericAreaColor = "orange" | "green";
-export type AreaGraphType = "pmf" | "cdf";
+const CHART_COLOR_MAP: Record<ContinuousAreaType, NumericAreaColor> = {
+  community: "green",
+  user: "orange",
+};
+
+export type NumericAreaGraphInput = Array<{
+  pmf: number[];
+  cdf: number[];
+  type: ContinuousAreaType;
+}>;
+
+const BOTTOM_PADDING = 20;
+const HORIZONTAL_PADDING = 10;
 
 type Props = {
   rangeMin: number;
   rangeMax: number;
   zeroPoint: number | null;
-  data: {
-    pmf: number[];
-    cdf: number[];
-    color: NumericAreaColor;
-  }[];
-  graphType?: AreaGraphType;
+  data: NumericAreaGraphInput;
+  graphType?: ContinuousAreaGraphType;
   dataType?: QuestionType;
   height?: number;
   extraTheme?: VictoryThemeDefinition;
+  onCursorChange?: (value: ContinuousAreaHoverState | null) => void;
 };
 
-const NumericAreaChart: FC<Props> = ({
+const ContinuousAreaChart: FC<Props> = ({
   rangeMin,
   rangeMax,
   zeroPoint,
@@ -48,6 +65,7 @@ const NumericAreaChart: FC<Props> = ({
   dataType = QuestionType.Numeric,
   height = 150,
   extraTheme,
+  onCursorChange,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -67,11 +85,12 @@ const NumericAreaChart: FC<Props> = ({
             pmf: el.pmf,
             cdf: el.cdf,
             graphType,
+            type: el.type,
           }),
         ],
         []
       ),
-    [data, rangeMax, rangeMin, graphType]
+    [data, graphType]
   );
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
@@ -111,6 +130,52 @@ const NumericAreaChart: FC<Props> = ({
   // const massBelowBounds = dataset[0];
   // const massAboveBounds = dataset[dataset.length - 1];
 
+  const CursorContainer = (
+    <VictoryCursorContainer
+      cursorLabel={"label"}
+      style={{
+        strokeWidth: 0,
+      }}
+      cursorLabelComponent={
+        <LineCursorPoints
+          chartData={charts.map((chart) => ({
+            line: chart.graphLine,
+            color: getThemeColor(
+              chart.color === "orange"
+                ? METAC_COLORS.orange["800"]
+                : METAC_COLORS.olive["700"]
+            ),
+            type: chart.type,
+          }))}
+          yDomain={yDomain}
+          chartHeight={height - BOTTOM_PADDING}
+        />
+      }
+      onCursorChange={(props: { x: number } | null) => {
+        if (!props) {
+          onCursorChange?.(null);
+          return;
+        }
+
+        const hoverState = charts.reduce<ContinuousAreaHoverState>(
+          (acc, el) => {
+            acc.yData[el.type] = interpolateYValue(props?.x, el.graphLine);
+            return acc;
+          },
+          {
+            x: props.x,
+            yData: {
+              community: 0,
+              user: 0,
+            },
+          }
+        );
+
+        onCursorChange?.(hoverState);
+      }}
+    />
+  );
+
   return (
     <div ref={chartContainerRef} className="h-full w-full" style={{ height }}>
       {!!chartWidth && (
@@ -119,11 +184,12 @@ const NumericAreaChart: FC<Props> = ({
           height={height}
           theme={actualTheme}
           padding={{
-            left: 10,
-            bottom: 20,
-            right: 10,
+            left: HORIZONTAL_PADDING,
+            bottom: BOTTOM_PADDING,
+            right: HORIZONTAL_PADDING,
           }}
           domain={{ x: xDomain, y: yDomain }}
+          containerComponent={onCursorChange ? CursorContainer : undefined}
         >
           {charts.map((chart, index) => (
             <VictoryArea
@@ -132,9 +198,9 @@ const NumericAreaChart: FC<Props> = ({
               style={{
                 data: {
                   fill:
-                    data[index].color === "orange"
-                      ? getThemeColor(METAC_COLORS.orange["300"])
-                      : getThemeColor(METAC_COLORS.green["200"]),
+                    chart.color === "orange"
+                      ? getThemeColor(METAC_COLORS.orange["700"])
+                      : getThemeColor(METAC_COLORS.olive["500"]),
                   opacity: 0.3,
                 },
               }}
@@ -147,11 +213,10 @@ const NumericAreaChart: FC<Props> = ({
               style={{
                 data: {
                   stroke:
-                    data[index].color === "orange"
-                      ? getThemeColor(METAC_COLORS.orange["500"])
-                      : getThemeColor(METAC_COLORS.green["500"]),
-                  strokeDasharray:
-                    data[index].color === "orange" ? "2,2" : undefined,
+                    chart.color === "orange"
+                      ? getThemeColor(METAC_COLORS.orange["800"])
+                      : getThemeColor(METAC_COLORS.olive["700"]),
+                  strokeDasharray: chart.color === "orange" ? "2,2" : undefined,
                 },
               }}
             />
@@ -168,10 +233,10 @@ const NumericAreaChart: FC<Props> = ({
                 style={{
                   data: {
                     stroke:
-                      data[k].color === "orange"
-                        ? getThemeColor(METAC_COLORS.orange["500"])
-                        : getThemeColor(METAC_COLORS.green["500"]),
-                    strokeDasharray: "2,2",
+                      chart.color === "orange"
+                        ? getThemeColor(METAC_COLORS.orange["800"])
+                        : getThemeColor(METAC_COLORS.olive["700"]),
+                    strokeDasharray: "2,1",
                   },
                 }}
               />
@@ -186,14 +251,17 @@ const NumericAreaChart: FC<Props> = ({
 type NumericPredictionGraph = {
   graphLine: Line;
   verticalLines: Line;
+  color: NumericAreaColor;
+  type: ContinuousAreaType;
 };
 
 function generateNumericAreaGraph(data: {
   pmf: number[];
   cdf: number[];
-  graphType: AreaGraphType;
+  graphType: ContinuousAreaGraphType;
+  type: ContinuousAreaType;
 }): NumericPredictionGraph {
-  const { pmf, cdf, graphType } = data;
+  const { pmf, cdf, graphType, type } = data;
 
   const graph: Line = [];
   if (graphType === "cdf") {
@@ -230,6 +298,8 @@ function generateNumericAreaGraph(data: {
   return {
     graphLine: graph,
     verticalLines,
+    color: CHART_COLOR_MAP[type],
+    type,
   };
 }
 
@@ -281,4 +351,4 @@ function generateNumericAreaTicks(
   };
 }
 
-export default React.memo(NumericAreaChart);
+export default React.memo(ContinuousAreaChart);

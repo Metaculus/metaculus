@@ -34,3 +34,12 @@ export enum TimelineChartZoomOption {
   TwoMonths = "2m",
   All = "all",
 }
+
+export type ContinuousAreaType = "community" | "user";
+
+export type ContinuousAreaHoverState = {
+  x: number;
+  yData: Record<ContinuousAreaType, number>;
+};
+
+export type ContinuousAreaGraphType = "pmf" | "cdf";
