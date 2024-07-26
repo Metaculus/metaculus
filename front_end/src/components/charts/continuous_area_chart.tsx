@@ -7,6 +7,7 @@ import {
   VictoryArea,
   VictoryAxis,
   VictoryChart,
+  VictoryCursorContainer,
   VictoryLine,
   VictoryThemeDefinition,
 } from "victory";
@@ -15,35 +16,56 @@ import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
-import { Line } from "@/types/charts";
+import {
+  ContinuousAreaGraphType,
+  Line,
+  ContinuousAreaHoverState,
+  ContinuousAreaType,
+} from "@/types/charts";
 import { QuestionType } from "@/types/question";
+import { interpolateYValue, scaleInternalLocation } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
+import { abbreviatedNumber } from "@/utils/number_formatters";
+
+import LineCursorPoints from "./primitives/line_cursor_points";
 
 type NumericAreaColor = "orange" | "green";
-export type AreaGraphType = "pmf" | "cdf";
+const CHART_COLOR_MAP: Record<ContinuousAreaType, NumericAreaColor> = {
+  community: "green",
+  user: "orange",
+};
+
+export type NumericAreaGraphInput = Array<{
+  pmf: number[];
+  cdf: number[];
+  type: ContinuousAreaType;
+}>;
+
+const BOTTOM_PADDING = 20;
+const HORIZONTAL_PADDING = 10;
 
 type Props = {
-  min: number;
-  max: number;
-  data: {
-    pmf: number[];
-    cdf: number[];
-    color: NumericAreaColor;
-  }[];
-  graphType?: AreaGraphType;
+  rangeMin: number;
+  rangeMax: number;
+  zeroPoint: number | null;
+  data: NumericAreaGraphInput;
+  graphType?: ContinuousAreaGraphType;
   dataType?: QuestionType;
   height?: number;
   extraTheme?: VictoryThemeDefinition;
+  onCursorChange?: (value: ContinuousAreaHoverState | null) => void;
 };
 
-const NumericAreaChart: FC<Props> = ({
-  min,
-  max,
+const ContinuousAreaChart: FC<Props> = ({
+  rangeMin,
+  rangeMax,
+  zeroPoint,
   data,
   graphType = "pmf",
   dataType = QuestionType.Numeric,
   height = 150,
   extraTheme,
+  onCursorChange,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -62,21 +84,20 @@ const NumericAreaChart: FC<Props> = ({
           generateNumericAreaGraph({
             pmf: el.pmf,
             cdf: el.cdf,
-            min,
-            max,
             graphType,
+            type: el.type,
           }),
         ],
         []
       ),
-    [data, max, min, graphType]
+    [data, graphType]
   );
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
     yDomain: Tuple<number>;
   }>(
     () => ({
-      xDomain: [0, max - min],
+      xDomain: [0, 1],
       yDomain: [
         0,
         1.2 *
@@ -91,16 +112,69 @@ const NumericAreaChart: FC<Props> = ({
           ),
       ],
     }),
-    [data, graphType, max, min]
+    [data, graphType]
   );
   const { ticks, tickFormat } = useMemo(
-    () => generateNumericAreaTicks(min, max, dataType, chartWidth),
-    [chartWidth, max, min, dataType]
+    () =>
+      generateNumericAreaTicks(
+        rangeMin,
+        rangeMax,
+        zeroPoint,
+        dataType,
+        chartWidth
+      ),
+    [rangeMin, rangeMax, zeroPoint, dataType, chartWidth]
   );
 
   // TODO: find a nice way to display the out of bounds weights as numbers
   // const massBelowBounds = dataset[0];
   // const massAboveBounds = dataset[dataset.length - 1];
+
+  const CursorContainer = (
+    <VictoryCursorContainer
+      cursorLabel={"label"}
+      style={{
+        strokeWidth: 0,
+      }}
+      cursorLabelComponent={
+        <LineCursorPoints
+          chartData={charts.map((chart) => ({
+            line: chart.graphLine,
+            color: getThemeColor(
+              chart.color === "orange"
+                ? METAC_COLORS.orange["800"]
+                : METAC_COLORS.olive["700"]
+            ),
+            type: chart.type,
+          }))}
+          yDomain={yDomain}
+          chartHeight={height - BOTTOM_PADDING}
+        />
+      }
+      onCursorChange={(props: { x: number } | null) => {
+        if (!props) {
+          onCursorChange?.(null);
+          return;
+        }
+
+        const hoverState = charts.reduce<ContinuousAreaHoverState>(
+          (acc, el) => {
+            acc.yData[el.type] = interpolateYValue(props?.x, el.graphLine);
+            return acc;
+          },
+          {
+            x: props.x,
+            yData: {
+              community: 0,
+              user: 0,
+            },
+          }
+        );
+
+        onCursorChange?.(hoverState);
+      }}
+    />
+  );
 
   return (
     <div ref={chartContainerRef} className="h-full w-full" style={{ height }}>
@@ -110,11 +184,12 @@ const NumericAreaChart: FC<Props> = ({
           height={height}
           theme={actualTheme}
           padding={{
-            left: 10,
-            bottom: 20,
-            right: 10,
+            left: HORIZONTAL_PADDING,
+            bottom: BOTTOM_PADDING,
+            right: HORIZONTAL_PADDING,
           }}
           domain={{ x: xDomain, y: yDomain }}
+          containerComponent={onCursorChange ? CursorContainer : undefined}
         >
           {charts.map((chart, index) => (
             <VictoryArea
@@ -123,9 +198,9 @@ const NumericAreaChart: FC<Props> = ({
               style={{
                 data: {
                   fill:
-                    data[index].color === "orange"
-                      ? getThemeColor(METAC_COLORS.orange["300"])
-                      : getThemeColor(METAC_COLORS.green["200"]),
+                    chart.color === "orange"
+                      ? getThemeColor(METAC_COLORS.orange["700"])
+                      : getThemeColor(METAC_COLORS.olive["500"]),
                   opacity: 0.3,
                 },
               }}
@@ -138,11 +213,10 @@ const NumericAreaChart: FC<Props> = ({
               style={{
                 data: {
                   stroke:
-                    data[index].color === "orange"
-                      ? getThemeColor(METAC_COLORS.orange["500"])
-                      : getThemeColor(METAC_COLORS.green["500"]),
-                  strokeDasharray:
-                    data[index].color === "orange" ? "2,2" : undefined,
+                    chart.color === "orange"
+                      ? getThemeColor(METAC_COLORS.orange["800"])
+                      : getThemeColor(METAC_COLORS.olive["700"]),
+                  strokeDasharray: chart.color === "orange" ? "2,2" : undefined,
                 },
               }}
             />
@@ -159,10 +233,10 @@ const NumericAreaChart: FC<Props> = ({
                 style={{
                   data: {
                     stroke:
-                      data[k].color === "orange"
-                        ? getThemeColor(METAC_COLORS.orange["500"])
-                        : getThemeColor(METAC_COLORS.green["500"]),
-                    strokeDasharray: "2,2",
+                      chart.color === "orange"
+                        ? getThemeColor(METAC_COLORS.orange["800"])
+                        : getThemeColor(METAC_COLORS.olive["700"]),
+                    strokeDasharray: "2,1",
                   },
                 }}
               />
@@ -177,25 +251,22 @@ const NumericAreaChart: FC<Props> = ({
 type NumericPredictionGraph = {
   graphLine: Line;
   verticalLines: Line;
+  color: NumericAreaColor;
+  type: ContinuousAreaType;
 };
 
 function generateNumericAreaGraph(data: {
   pmf: number[];
   cdf: number[];
-  min: number;
-  max: number;
-  graphType: AreaGraphType;
+  graphType: ContinuousAreaGraphType;
+  type: ContinuousAreaType;
 }): NumericPredictionGraph {
-  const { min, max, pmf, cdf, graphType } = data;
+  const { pmf, cdf, graphType, type } = data;
 
   const graph: Line = [];
   if (graphType === "cdf") {
     cdf.forEach((value, index) => {
-      if (index === 0 || index === cdf.length - 1) {
-        // first and last bins are probabilty mass out of bounds
-        return;
-      }
-      graph.push({ x: (index * (max - min)) / cdf.length, y: value });
+      graph.push({ x: index / (cdf.length - 1), y: value });
     });
   } else {
     pmf.forEach((value, index) => {
@@ -203,7 +274,7 @@ function generateNumericAreaGraph(data: {
         // first and last bins are probabilty mass out of bounds
         return;
       }
-      graph.push({ x: (index * (max - min)) / pmf.length, y: value });
+      graph.push({ x: (index - 0.5) / (pmf.length - 2), y: value });
     });
   }
 
@@ -211,15 +282,15 @@ function generateNumericAreaGraph(data: {
   const quantiles = computeQuartilesFromCDF(cdf);
   verticalLines.push(
     {
-      x: quantiles.lower25 * (max - min),
+      x: quantiles.lower25,
       y: graph[Math.min(198, Math.round(quantiles.lower25 * 200))]?.y ?? 0,
     },
     {
-      x: quantiles.median * (max - min),
+      x: quantiles.median,
       y: graph[Math.min(198, Math.round(quantiles.median * 200))]?.y ?? 0,
     },
     {
-      x: quantiles.upper75 * (max - min),
+      x: quantiles.upper75,
       y: graph[Math.min(198, Math.round(quantiles.upper75 * 200))]?.y ?? 0,
     }
   );
@@ -227,13 +298,15 @@ function generateNumericAreaGraph(data: {
   return {
     graphLine: graph,
     verticalLines,
+    color: CHART_COLOR_MAP[type],
+    type,
   };
 }
 
-// @TODO Luke can you fix the ticks
 function generateNumericAreaTicks(
-  min: number,
-  max: number,
+  rangeMin: number,
+  rangeMax: number,
+  zeroPoint: number | null,
   type: QuestionType,
   chartWidth: number
 ) {
@@ -241,15 +314,10 @@ function generateNumericAreaTicks(
   const maxMajorTicks = Math.floor(chartWidth / minPixelPerTick);
   const minorTicksPerMajor = 9;
 
-  const range = max - min;
-  const majorStep = range / maxMajorTicks;
-
   let majorTicks = Array.from(
     { length: maxMajorTicks + 1 },
-    (_, i) => min + i * majorStep
+    (_, i) => i / maxMajorTicks
   );
-  majorTicks = majorTicks.map((x) => Number(x.toFixed(0)));
-
   const ticks = [];
   for (let i = 0; i < majorTicks.length - 1; i++) {
     ticks.push(majorTicks[i]);
@@ -265,16 +333,16 @@ function generateNumericAreaTicks(
     ticks,
     tickFormat: (x: number) => {
       if (majorTicks.includes(x)) {
-        switch (type) {
-          case QuestionType.Date:
-            return format(fromUnixTime(x), "yyyy-MM");
-          default:
-            if (x > 10000) {
-              return Math.round(x / 1000).toString() + "k";
-            } else if (x < 0) {
-              return (Math.round(x * 10000) / 10000).toString();
-            }
-            return (Math.round(x * 1000) / 1000).toString();
+        const scaled_location = scaleInternalLocation(
+          x,
+          rangeMin,
+          rangeMax,
+          zeroPoint
+        );
+        if (type === QuestionType.Date) {
+          return format(fromUnixTime(scaled_location), "yyyy-MM");
+        } else {
+          return abbreviatedNumber(scaled_location);
         }
       }
 
@@ -283,4 +351,4 @@ function generateNumericAreaTicks(
   };
 }
 
-export default React.memo(NumericAreaChart);
+export default React.memo(ContinuousAreaChart);

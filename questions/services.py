@@ -29,9 +29,9 @@ def get_forecast_initial_dict(question: Question) -> dict:
     else:
         data.update(
             {
-                "values_mean": [],
-                "values_max": [],
-                "values_min": [],
+                "medians": [],
+                "q3s": [],
+                "q1s": [],
                 "my_forecasts": None,
                 "latest_pmf": [],
                 "latest_cdf": [],
@@ -53,9 +53,9 @@ def build_question_forecasts(question: Question) -> dict:
             for option, cp in cp_dict.items():
                 forecasts_data[option].append(
                     {
-                        "value_mean": cp.middle,
-                        "value_max": cp.upper,
-                        "value_min": cp.lower,
+                        "median": cp.median,
+                        "q3": cp.q3,
+                        "q1": cp.q1,
                     }
                 )
             forecasts_data["timestamps"].append(
@@ -69,7 +69,7 @@ def build_question_forecasts(question: Question) -> dict:
             None
             if len(list(forecasts_data.values())[0]) == 0
             else [
-                forecasts_data[option][-1]["value_mean"] / 100
+                forecasts_data[option][-1]["median"] / 100
                 for option in question.options
             ]
         )
@@ -81,8 +81,8 @@ def build_question_forecasts(question: Question) -> dict:
                 None
                 if len(cps) == 0
                 else [
-                    1 - cps[-1].middle / 100,
-                    cps[-1].middle / 100,
+                    1 - cps[-1].median / 100,
+                    cps[-1].median / 100,
                 ]
             )
         elif question.type in ["numeric", "date"]:
@@ -99,9 +99,9 @@ def build_question_forecasts(question: Question) -> dict:
 
         for cp in cps:
             forecasts_data["timestamps"].append(cp.at_datetime.timestamp())
-            forecasts_data["values_mean"].append(cp.middle)
-            forecasts_data["values_max"].append(cp.upper)
-            forecasts_data["values_min"].append(cp.lower)
+            forecasts_data["medians"].append(cp.median)
+            forecasts_data["q3s"].append(cp.q3)
+            forecasts_data["q1s"].append(cp.q1)
             forecasts_data["nr_forecasters"].append(cp.nr_forecasters)
 
     return forecasts_data
@@ -115,7 +115,7 @@ def build_question_forecasts_for_user(
     """
 
     forecasts_data = {
-        "values_mean": [],
+        "medians": [],
         "timestamps": [],
         "slider_values": None,
     }
@@ -126,11 +126,11 @@ def build_question_forecasts_for_user(
         forecasts_data["slider_values"] = forecast.slider_values
         forecasts_data["timestamps"].append(forecast.start_time.timestamp())
         if question.type == "multiple_choice":
-            forecasts_data["values_mean"].append(0)
+            forecasts_data["medians"].append(0)
         elif question.type == "binary":
-            forecasts_data["values_mean"].append(forecast.probability_yes)
+            forecasts_data["medians"].append(forecast.probability_yes)
         elif question.type in ["numeric", "date"]:
-            forecasts_data["values_mean"].append(
+            forecasts_data["medians"].append(
                 unscaled_location_to_scaled_location(
                     percent_point_function(forecast.continuous_cdf, 50), question
                 )
@@ -173,8 +173,8 @@ def clone_question(question: Question, title: str = None):
         type=question.type,
         possibilities=question.possibilities,
         resolution=question.resolution,
-        max=question.max,
-        min=question.min,
+        range_max=question.range_max,
+        range_min=question.range_min,
         zero_point=question.zero_point,
         open_upper_bound=question.open_upper_bound,
         open_lower_bound=question.open_lower_bound,

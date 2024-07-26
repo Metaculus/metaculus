@@ -7,7 +7,6 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
-import NumericPickerChart from "@/components/charts/numeric_area_chart";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
@@ -25,10 +24,11 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 import { extractQuestionGroupName } from "@/utils/questions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
+import ContinuousPredictionChart from "../continuous_prediction_chart";
+import ContinuousSlider from "../continuous_slider";
 import GroupForecastTable, {
   ConditionalTableOption,
 } from "../group_forecast_table";
-import NumericSlider from "../numeric_slider";
 import NumericForecastTable from "../numeric_table";
 
 type Props = {
@@ -39,7 +39,7 @@ type Props = {
   canResolve: boolean;
 };
 
-const ForecastMakerGroupNumeric: FC<Props> = ({
+const ForecastMakerGroupContinuous: FC<Props> = ({
   postId,
   questions,
   permission,
@@ -260,26 +260,13 @@ const ForecastMakerGroupNumeric: FC<Props> = ({
             )}
           >
             {option.resolution ? (
-              <NumericPickerChart
-                height={300}
-                min={option.question.min}
-                max={option.question.max}
-                dataType={option.question.type}
-                data={[
-                  {
-                    pmf: option.question.forecasts.latest_pmf,
-                    cdf: option.question.forecasts.latest_cdf,
-                    color: "green",
-                  },
-                  {
-                    pmf: dataset.pmf,
-                    cdf: dataset.cdf,
-                    color: "orange",
-                  },
-                ]}
+              <ContinuousPredictionChart
+                dataset={dataset}
+                question={option.question}
+                graphType="pmf"
               />
             ) : (
-              <NumericSlider
+              <ContinuousSlider
                 question={option.question}
                 forecast={option.userForecast}
                 weights={option.userWeights}
@@ -450,4 +437,4 @@ function getWeightsValue(weights?: number[]) {
   return weights ?? [1];
 }
 
-export default ForecastMakerGroupNumeric;
+export default ForecastMakerGroupContinuous;

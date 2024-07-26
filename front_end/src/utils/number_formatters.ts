@@ -1,11 +1,5 @@
 import { almostEqual } from "@/utils/math";
 
-export function betterNegative(val: number, precision: number) {
-  var num = Math.abs(val).toFixed(precision || 0);
-  var sign = val === 0 ? "" : val > 0 ? "" : "\u2212";
-  return sign + num;
-}
-
 export function formatSigFig(
   val: number | string,
   sigfigs: number,
@@ -20,7 +14,8 @@ export function formatSigFig(
   for (k = 0, p = 1; k < sigfigs - leadingDigits; k++, p *= 10) {
     if (!trailingZeros && almostEqual(Math.round(p * val), p * val)) break;
   }
-  return betterNegative(val, k);
+  val = val.toFixed(k || 0);
+  return val;
 }
 
 export function abbreviatedNumber(

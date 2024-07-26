@@ -16,7 +16,7 @@ import {
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
-import NumericSlider from "../numeric_slider";
+import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
 import QuestionResolutionButton from "../resolution";
 
@@ -28,7 +28,7 @@ type Props = {
   canResolve: boolean;
 };
 
-const ForecastMakerNumeric: FC<Props> = ({
+const ForecastMakerContinuous: FC<Props> = ({
   question,
   permission,
   prevForecast,
@@ -104,7 +104,7 @@ const ForecastMakerNumeric: FC<Props> = ({
 
   return (
     <>
-      <NumericSlider
+      <ContinuousSlider
         forecast={forecast}
         weights={weights}
         dataset={dataset}
@@ -171,4 +171,4 @@ const ForecastMakerNumeric: FC<Props> = ({
   );
 };
 
-export default ForecastMakerNumeric;
+export default ForecastMakerContinuous;

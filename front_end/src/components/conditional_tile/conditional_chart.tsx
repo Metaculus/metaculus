@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import NumericAreaChart from "@/components/charts/numeric_area_chart";
+import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
 import PredictionChip from "@/components/prediction_chip";
 import ProgressBar from "@/components/ui/progress_bar";
 import { PostStatus } from "@/types/post";
@@ -30,7 +30,7 @@ const ConditionalChart: FC<Props> = ({
 
   switch (question.type) {
     case QuestionType.Binary: {
-      const pctCandidate = question.forecasts?.values_mean?.at(-1);
+      const pctCandidate = question.forecasts?.medians?.at(-1);
       const pct = pctCandidate ? Math.round(pctCandidate * 100) : null;
 
       return (
@@ -73,7 +73,7 @@ const ConditionalChart: FC<Props> = ({
         return <div className="text-center text-xs">No data yet</div>;
       }
 
-      const prediction = question.forecasts.values_mean.at(-1);
+      const prediction = question.forecasts.medians.at(-1);
       const formattedPrediction = prediction
         ? formatPrediction(prediction, question.type)
         : "";
@@ -87,15 +87,16 @@ const ConditionalChart: FC<Props> = ({
               </div>
               <span>{formattedPrediction}</span>
             </div>
-            <NumericAreaChart
+            <ContinuousAreaChart
               height={40}
-              min={question.min}
-              max={question.max}
+              rangeMin={question.range_min}
+              rangeMax={question.range_max}
+              zeroPoint={question.zero_point}
               data={[
                 {
                   pmf: question.forecasts.latest_pmf,
                   cdf: question.forecasts.latest_cdf,
-                  color: "green",
+                  type: "community",
                 },
               ]}
               extraTheme={chartTheme}

@@ -29,8 +29,8 @@ class TestPostCreate:
                     "type": "numeric",
                     "possibilities": {"type": "binary"},
                     "resolution": "1.0",
-                    "min": 1,
-                    "max": 100,
+                    "range_min": 1,
+                    "range_max": 100,
                     "open_upper_bound": True,
                     "scheduled_close_time": "2024-05-01T00:00:00Z",
                     "scheduled_resolve_time": "2024-05-02T00:00:00Z",
@@ -45,8 +45,8 @@ class TestPostCreate:
         assert response.data["author_id"] == user1.id
         assert response.data["question"]["title"] == "Question Post"
         assert response.data["question"]["type"] == "numeric"
-        assert response.data["question"]["min"] == 1
-        assert response.data["question"]["max"] == 100
+        assert response.data["question"]["range_min"] == 1
+        assert response.data["question"]["range_max"] == 100
         assert (
             response.data["scheduled_resolve_time"]
             == response.data["question"]["scheduled_resolve_time"]
@@ -156,8 +156,8 @@ class TestPostCreate:
                     "type": "numeric",
                     "possibilities": {"type": "binary"},
                     "resolution": "1.0",
-                    "min": 1,
-                    "max": 100,
+                    "range_min": 1,
+                    "range_max": 100,
                     "open_upper_bound": True,
                     "scheduled_close_time": "2024-05-01T00:00:00Z",
                     "scheduled_resolve_time": "2024-05-02T00:00:00Z",

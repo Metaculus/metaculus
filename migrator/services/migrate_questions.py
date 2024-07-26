@@ -24,8 +24,8 @@ def has_resolution(resolution):
 
 def create_question(question: dict, **kwargs) -> Question:
     possibilities = json.loads(question["possibilities"])
-    max_val = None
-    min = None
+    range_max = None
+    range_min = None
     open_upper_bound = None
     open_lower_bound = None
     options = None
@@ -38,20 +38,20 @@ def create_question(question: dict, **kwargs) -> Question:
         if possibilities.get("format", None) == "num":
             question_type = "numeric"
             if isinstance(possibilities["scale"]["max"], list):
-                max_val = possibilities["scale"]["max"][0]
+                range_max = possibilities["scale"]["max"][0]
             else:
-                max_val = possibilities["scale"]["max"]
+                range_max = possibilities["scale"]["max"]
             if isinstance(possibilities["scale"]["min"], list):
-                min = possibilities["scale"]["min"][0]
+                range_min = possibilities["scale"]["min"][0]
             else:
-                min = possibilities["scale"]["min"]
+                range_min = possibilities["scale"]["min"]
         else:
             question_type = "date"
-            max_val = date_parse(possibilities["scale"]["max"]).timestamp()
-            min = date_parse(possibilities["scale"]["min"]).timestamp()
+            range_max = date_parse(possibilities["scale"]["max"]).timestamp()
+            range_min = date_parse(possibilities["scale"]["min"]).timestamp()
         deriv_ratio = possibilities["scale"].get("deriv_ratio", 1)
         if deriv_ratio != 1:
-            zero_point = (deriv_ratio * min - max_val) / (deriv_ratio - 1)
+            zero_point = (deriv_ratio * range_min - range_max) / (deriv_ratio - 1)
         open_lower_bound = possibilities.get("low", None) == "tail"
         open_upper_bound = possibilities.get("high", None) == "tail"
     elif question["option_labels"] is not None:
@@ -63,8 +63,8 @@ def create_question(question: dict, **kwargs) -> Question:
     new_question = Question(
         id=question["id"],
         title=question["title"],
-        max=max_val,
-        min=min,
+        range_max=range_max,
+        range_min=range_min,
         open_upper_bound=open_upper_bound,
         open_lower_bound=open_lower_bound,
         options=options,

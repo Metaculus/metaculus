@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
-from posts.models import Notebook, Post
+from posts.models import Notebook, Post, PostSubscription
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
@@ -22,6 +22,7 @@ from utils.the_math.community_prediction import get_cp_at_time
 from utils.the_math.measures import (
     prediction_difference_for_sorting,
 )
+from ..tasks import run_notify_post_status_change
 
 logger = logging.getLogger(__name__)
 
@@ -226,6 +227,12 @@ def compute_hotness():
 def resolve_post(post: Post):
     post.set_resolved()
 
+    run_notify_post_status_change.send(
+        post.id, PostSubscription.PostStatusChange.RESOLVE
+    )
+
 
 def close_post(post: Post):
     post.set_actual_close_time()
+
+    run_notify_post_status_change.send(post.id, PostSubscription.PostStatusChange.CLOSE)
