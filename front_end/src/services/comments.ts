@@ -1,3 +1,4 @@
+import { SortOption } from "@/components/comment_feed";
 import { CommentType } from "@/types/comment";
 import { get, handleRequestError, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
@@ -7,6 +8,7 @@ export type getCommentsParams = {
   author?: number;
   parent_isnull?: boolean;
   page?: number;
+  sort?: SortOption;
 };
 
 export type CreateCommentParams = {
@@ -53,6 +55,7 @@ class CommentsApi {
             comment.included_forecast.start_time
           );
         }
+        comment.created_at = new Date(comment.created_at);
         return comment;
       });
       return response;

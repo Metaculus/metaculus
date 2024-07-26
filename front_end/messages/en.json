@@ -175,8 +175,8 @@
   "now": "now",
   "weight": "weight",
   "communityWeighting": "community <a href=\"/help/faq/#community-prediction\">weighting</a>:",
-  "communityWeightingRecent": "recent",
-  "communityWeightingUniform": "uniform",
+  "recent": "recent",
+  "uniform": "uniform",
   "medianPredictionLabel": "Median",
   "meanPredictionLabel": "Mean",
   "scoreIfNo": "Score if No",
@@ -630,5 +630,6 @@
   "followModalCommunityPredictionChanges": "Community Prediction changes",
   "followModalMilestones": "Milestones",
   "followModalSpecificTime": "Specific time",
-  "followModalStatusChanges": "Status changes"
+  "followModalStatusChanges": "Status changes",
+  "best": "best"
 }
