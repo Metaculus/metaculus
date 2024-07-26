@@ -9,12 +9,14 @@ import Switch from "@/components/ui/switch";
 import {
   Post,
   PostSubscription,
+  PostSubscriptionCPCHange,
   PostSubscriptionMilestone,
   PostSubscriptionNewComments,
   PostSubscriptionSpecificTime,
   PostSubscriptionType,
 } from "@/types/post";
 
+import SubscriptionSectionCPChange from "./subscription_types_customisation/subscription_cp_change";
 import SubscriptionSectionMilestone from "./subscription_types_customisation/subscription_milestone";
 import SubscriptionSectionNewComments from "./subscription_types_customisation/subscription_new_comments";
 import SubscriptionSectionSpecificTime from "./subscription_types_customisation/subscription_specific_time";
@@ -107,6 +109,19 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   }, [onClose, post.id, subscriptions]);
 
   const subscriptionTypes = [
+    {
+      type: PostSubscriptionType.CP_CHANGE,
+      title: "Community Prediction changes",
+      render: (subscription: PostSubscription) => (
+        <SubscriptionSectionCPChange
+          post={post}
+          subscription={subscription as PostSubscriptionCPCHange}
+          onChange={(name, value) =>
+            handleSubscriptionChange(subscription.type, name, value)
+          }
+        />
+      ),
+    },
     {
       type: PostSubscriptionType.NEW_COMMENTS,
       title: "Comments",
