@@ -1,7 +1,7 @@
 import { formatInTimeZone } from "date-fns-tz";
 import { FC, useMemo } from "react";
 
-import { Input } from "@/components/ui/form_field";
+import DatetimeUtc from "@/components/ui/datetime_utc";
 import Listbox, { SelectOption } from "@/components/ui/listbox";
 import Select from "@/components/ui/select";
 import { PostSubscriptionSpecificTime } from "@/types/post";
@@ -22,22 +22,21 @@ const SubscriptionSectionSpecificTime: FC<
     () => formatInTimeZone(new Date(), "UTC", "yyyy-MM-dd'T'HH:mm:ss'Z'"),
     []
   );
-  // TODO: deal with UTC!!!
 
   return (
     <div>
       <p>Notify me on: </p>
       <div>
-        <Input
+        <DatetimeUtc
           type="datetime-local"
           placeholder="date when forecasts will open"
           className="bg-transparent pl-1"
           min={currentDateTime}
-          onChange={(e) => onChange("next_trigger_datetime", e.target.value)}
+          onChange={(dt) => onChange("next_trigger_datetime", dt)}
           defaultValue={subscription.next_trigger_datetime}
         />
         <Select
-          value={subscription.recurrence_interval}
+          defaultValue={subscription.recurrence_interval}
           onChange={(e) => onChange("recurrence_interval", e.target.value)}
           options={RECURRENCE_INTERVAL_OPTIONS}
         />

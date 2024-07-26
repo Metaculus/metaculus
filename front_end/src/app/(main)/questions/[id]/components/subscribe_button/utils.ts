@@ -1,4 +1,4 @@
-import { addWeeks, format } from "date-fns";
+import { addWeeks } from "date-fns";
 import { formatInTimeZone } from "date-fns-tz";
 
 import { PostSubscription, PostSubscriptionType } from "@/types/post";
@@ -18,9 +18,10 @@ export const getDefaultSubscriptionProps = () =>
     },
     [PostSubscriptionType.CP_CHANGE]: {},
     [PostSubscriptionType.SPECIFIC_TIME]: {
-      next_trigger_datetime: format(
+      next_trigger_datetime: formatInTimeZone(
         addWeeks(new Date(), 1),
-        "yyyy-MM-dd'T'HH:mm:ss"
+        "UTC",
+        "yyyy-MM-dd'T'HH:mm:ss'Z'"
       ),
       recurrence_interval: "",
     },
