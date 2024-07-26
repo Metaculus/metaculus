@@ -28,9 +28,7 @@ const SubscriptionSectionSpecificTime: FC<
       <p>Notify me on: </p>
       <div>
         <DatetimeUtc
-          type="datetime-local"
           placeholder="date when forecasts will open"
-          className="bg-transparent pl-1"
           min={currentDateTime}
           onChange={(dt) => onChange("next_trigger_datetime", dt)}
           defaultValue={subscription.next_trigger_datetime}
@@ -39,6 +37,7 @@ const SubscriptionSectionSpecificTime: FC<
           defaultValue={subscription.recurrence_interval}
           onChange={(e) => onChange("recurrence_interval", e.target.value)}
           options={RECURRENCE_INTERVAL_OPTIONS}
+          className="ml-2 border-0"
         />
       </div>
     </div>
