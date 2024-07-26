@@ -202,12 +202,16 @@ def create_subscription_new_comments(
 
 
 def create_subscription_cp_change(
-    user: User = None, post: Post = None
-) -> PostSubscription:
+    user: User,
+    post: Post,
+    cp_threshold: timedelta = None,
+):
     obj = PostSubscription.objects.create(
         user=user,
         post=post,
-        # TODO: add extra params
+        type=PostSubscription.SubscriptionType.CP_CHANGE,
+        cp_threshold=cp_threshold,
+        # TODO: add extra logic
     )
 
     obj.full_clean()

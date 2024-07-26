@@ -316,6 +316,17 @@ class SubscriptionMilestoneSerializer(serializers.ModelSerializer):
         )
 
 
+class SubscriptionCPChangeSerializer(serializers.ModelSerializer):
+    cp_threshold = serializers.FloatField(min_value=0, max_value=1)
+
+    class Meta:
+        model = PostSubscription
+        fields = (
+            "type",
+            "cp_threshold",
+        )
+
+
 class SubscriptionStatusChangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostSubscription
@@ -350,9 +361,10 @@ def get_subscription_serializer_by_type(
         PostSubscription.SubscriptionType.MILESTONE: SubscriptionMilestoneSerializer,
         PostSubscription.SubscriptionType.STATUS_CHANGE: SubscriptionStatusChangeSerializer,
         PostSubscription.SubscriptionType.SPECIFIC_TIME: SubscriptionSpecificTimeSerializer,
+        PostSubscription.SubscriptionType.CP_CHANGE: SubscriptionCPChangeSerializer,
     }
 
-    if not subscription_type in serializers_map:
+    if subscription_type not in serializers_map:
         raise ValidationError("Wrong subscription type")
 
     return serializers_map[subscription_type]

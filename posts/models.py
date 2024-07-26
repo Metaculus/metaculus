@@ -502,8 +502,10 @@ class PostSubscription(TimeStampedModel):
     # Notification-specific fields
     comments_frequency = models.PositiveSmallIntegerField(null=True, blank=True)
     recurrence_interval = models.DurationField(null=True, blank=True)
-    # 0.1 -> 1
+    # 0. -> 1.
     milestone_step = models.FloatField(null=True, blank=True)
+    # 0. -> 1.
+    cp_threshold = models.FloatField(null=True, blank=True)
 
     def update_last_sent_at(self):
         self.last_sent_at = timezone.now()
