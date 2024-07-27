@@ -4,7 +4,7 @@ import NumericChart from "@/components/charts/numeric_chart";
 import PredictionChip from "@/components/prediction_chip";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
 import { getNumericChartTypeFromQuestion } from "@/utils/charts";
 
 const HEIGHT = 100;
@@ -38,7 +38,13 @@ const QuestionNumericTile: FC<Props> = ({
         <NumericChart
           dataset={question.forecasts}
           height={HEIGHT}
-          questionType={getNumericChartTypeFromQuestion(question.type)}
+          questionType={
+            getNumericChartTypeFromQuestion(question.type) ??
+            QuestionType.Numeric
+          }
+          rangeMin={question.range_min}
+          rangeMax={question.range_max}
+          zeroPoint={question.zero_point}
           defaultZoom={defaultChartZoom}
         />
       </div>

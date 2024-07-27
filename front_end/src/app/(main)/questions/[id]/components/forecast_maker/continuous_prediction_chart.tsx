@@ -10,7 +10,7 @@ import {
   ContinuousAreaHoverState,
 } from "@/types/charts";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
-import { scaleInternalLocation } from "@/utils/charts";
+import { getDisplayValue } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
@@ -37,18 +37,7 @@ const ContinuousPredictionChart: FC<Props> = ({
   const cursorDisplayData = useMemo(() => {
     if (!hoverState) return null;
 
-    let xLabel: string;
-    const scaledLocation = scaleInternalLocation(
-      hoverState.x,
-      question.range_min,
-      question.range_max,
-      question.zero_point
-    );
-    if (question.type === QuestionType.Date) {
-      xLabel = format(fromUnixTime(scaledLocation), "yyyy-MM");
-    } else {
-      xLabel = abbreviatedNumber(scaledLocation);
-    }
+    const xLabel = getDisplayValue(hoverState.x, question);
 
     return {
       xLabel,
@@ -102,15 +91,15 @@ const ContinuousPredictionChart: FC<Props> = ({
     <>
       <ContinuousAreaChart
         height={300}
-        rangeMin={question.range_min}
-        rangeMax={question.range_max}
+        rangeMin={question.range_min!}
+        rangeMax={question.range_max!}
         zeroPoint={question.zero_point}
         questionType={question.type}
         graphType={graphType}
         data={data}
         onCursorChange={handleCursorChange}
       />
-      <div className="my-2 flex justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
+      <div className="my-2 flex min-h-4 justify-center gap-2 text-xs text-gray-600 dark:text-gray-600-dark">
         {cursorDisplayData && (
           <>
             <span>
@@ -118,7 +107,7 @@ const ContinuousPredictionChart: FC<Props> = ({
               <strong className="text-gray-900 dark:text-gray-900-dark">
                 {cursorDisplayData.xLabel}
               </strong>{" "}
-              ):
+              {"):"}
             </span>
             <span>
               <strong className="text-gray-900 dark:text-gray-900-dark">
