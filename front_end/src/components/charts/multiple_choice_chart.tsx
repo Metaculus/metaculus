@@ -136,7 +136,6 @@ const MultipleChoiceChart: FC<Props> = ({
       }}
     />
   );
-
   return (
     <ChartContainer
       ref={chartContainerRef}

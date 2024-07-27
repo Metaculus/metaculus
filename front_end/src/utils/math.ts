@@ -116,25 +116,25 @@ export function computeQuartilesFromCDF(
   cdf: number[],
   extendedQuartiles?: boolean
 ): Quartiles | ExtendedQuartiles {
-  function findQuantile(cdf: number[], quantile: number) {
+  function findPercentile(cdf: number[], percentile: number) {
     if (cdf === null) {
       cdf = [];
     }
     for (let i = 0; i < cdf.length; i++) {
-      if (cdf[i] >= quantile) {
+      if (cdf[i] >= percentile / 100) {
         return i / (cdf.length - 1);
       }
     }
     return 1;
   }
 
-  const median = findQuantile(cdf, 0.5);
-  const lower25 = findQuantile(cdf, 0.25);
-  const upper75 = findQuantile(cdf, 0.75);
+  const median = findPercentile(cdf, 50);
+  const lower25 = findPercentile(cdf, 25);
+  const upper75 = findPercentile(cdf, 75);
 
   if (extendedQuartiles) {
-    const lower10 = findQuantile(cdf, 0.1);
-    const upper90 = findQuantile(cdf, 0.9);
+    const lower10 = findPercentile(cdf, 10);
+    const upper90 = findPercentile(cdf, 90);
     return {
       median: median,
       lower25: lower25,
