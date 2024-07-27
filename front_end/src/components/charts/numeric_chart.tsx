@@ -52,7 +52,7 @@ type Props = {
   height?: number;
   onCursorChange?: (value: number) => void;
   onChartReady?: () => void;
-  type?: NumericChartType;
+  questionType?: NumericChartType;
   extraTheme?: VictoryThemeDefinition;
 };
 
@@ -64,7 +64,7 @@ const NumericChart: FC<Props> = ({
   height = 150,
   onCursorChange,
   onChartReady,
-  type = "numeric",
+  questionType = "numeric",
   extraTheme,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
@@ -84,8 +84,15 @@ const NumericChart: FC<Props> = ({
 
   const [zoom, setZoom] = useState(defaultZoom);
   const { line, area, yDomain, xDomain, xScale, yScale, points } = useMemo(
-    () => buildChartData({ dataset, width: chartWidth, height, type, zoom }),
-    [dataset, chartWidth, height, type, zoom]
+    () =>
+      buildChartData({
+        dataset,
+        width: chartWidth,
+        height,
+        questionType,
+        zoom,
+      }),
+    [dataset, chartWidth, height, questionType, zoom]
   );
 
   const prevWidth = usePrevious(chartWidth);
@@ -230,7 +237,7 @@ type ChartData = BaseChartData & {
 };
 
 function buildChartData({
-  type,
+  questionType,
   height,
   dataset,
   width,
@@ -239,7 +246,7 @@ function buildChartData({
   dataset: NumericForecast;
   width: number;
   height: number;
-  type: NumericChartType;
+  questionType: NumericChartType;
   zoom: TimelineChartZoomOption;
 }): ChartData {
   const { timestamps, medians, q1s, q3s, my_forecasts } = dataset;
@@ -267,7 +274,7 @@ function buildChartData({
 
   let yDomain: Tuple<number>;
   let yScale: Scale;
-  switch (type) {
+  switch (questionType) {
     case "binary": {
       yDomain = [0, 1];
       yScale = generatePercentageYScale(height);

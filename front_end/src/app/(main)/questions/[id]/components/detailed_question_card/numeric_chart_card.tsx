@@ -67,7 +67,7 @@ const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
         onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}
-        type={getNumericChartTypeFromQuestion(questionType)}
+        questionType={getNumericChartTypeFromQuestion(questionType)}
         defaultZoom={
           user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths
         }

@@ -120,7 +120,7 @@ const ForecastCard: FC<Props> = ({
             <NumericChart
               dataset={question.forecasts}
               height={chartHeight}
-              type={getNumericChartTypeFromQuestion(question.type)}
+              questionType={getNumericChartTypeFromQuestion(question.type)}
               onCursorChange={nonInteractive ? undefined : setCursorValue}
               extraTheme={chartTheme}
               defaultZoom={defaultChartZoom}
