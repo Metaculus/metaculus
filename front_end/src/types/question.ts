@@ -68,8 +68,8 @@ export type ExtendedQuartiles = Quartiles & {
 export type Question = {
   id: number;
   title: string;
-  range_min: number;
-  range_max: number;
+  range_min: number | null;
+  range_max: number | null;
   description: string;
   created_at: string;
   updated_at: string;
