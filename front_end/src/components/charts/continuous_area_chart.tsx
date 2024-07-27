@@ -1,4 +1,5 @@
 "use client";
+import { log } from "console";
 import { format, fromUnixTime } from "date-fns";
 import { merge } from "lodash";
 import React, { FC, useMemo } from "react";
@@ -11,6 +12,7 @@ import {
   VictoryLine,
   VictoryThemeDefinition,
 } from "victory";
+import { z } from "zod";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
@@ -23,19 +25,19 @@ import {
   ContinuousAreaType,
 } from "@/types/charts";
 import { QuestionType } from "@/types/question";
-import { interpolateYValue, scaleInternalLocation } from "@/utils/charts";
+import { interpolateYValue, getDisplayValue } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
 
-type NumericAreaColor = "orange" | "green";
-const CHART_COLOR_MAP: Record<ContinuousAreaType, NumericAreaColor> = {
+type ContinuousAreaColor = "orange" | "green";
+const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
   community: "green",
   user: "orange",
 };
 
-export type NumericAreaGraphInput = Array<{
+export type ContinuousAreaGraphInput = Array<{
   pmf: number[];
   cdf: number[];
   type: ContinuousAreaType;
@@ -48,9 +50,9 @@ type Props = {
   rangeMin: number;
   rangeMax: number;
   zeroPoint: number | null;
-  data: NumericAreaGraphInput;
+  data: ContinuousAreaGraphInput;
   graphType?: ContinuousAreaGraphType;
-  dataType?: QuestionType;
+  questionType?: QuestionType;
   height?: number;
   extraTheme?: VictoryThemeDefinition;
   onCursorChange?: (value: ContinuousAreaHoverState | null) => void;
@@ -62,7 +64,7 @@ const ContinuousAreaChart: FC<Props> = ({
   zeroPoint,
   data,
   graphType = "pmf",
-  dataType = QuestionType.Numeric,
+  questionType = QuestionType.Numeric,
   height = 150,
   extraTheme,
   onCursorChange,
@@ -120,10 +122,10 @@ const ContinuousAreaChart: FC<Props> = ({
         rangeMin,
         rangeMax,
         zeroPoint,
-        dataType,
+        questionType,
         chartWidth
       ),
-    [rangeMin, rangeMax, zeroPoint, dataType, chartWidth]
+    [rangeMin, rangeMax, zeroPoint, questionType, chartWidth]
   );
 
   // TODO: find a nice way to display the out of bounds weights as numbers
@@ -221,7 +223,11 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           ))}
-          <VictoryAxis tickValues={ticks} tickFormat={tickFormat} />
+          <VictoryAxis
+            tickValues={ticks}
+            tickFormat={tickFormat}
+            style={{ ticks: { strokeWidth: 1 } }}
+          />
           {charts.map((chart, k) =>
             chart.verticalLines.map((line, index) => (
               <VictoryLine
@@ -251,7 +257,7 @@ const ContinuousAreaChart: FC<Props> = ({
 type NumericPredictionGraph = {
   graphLine: Line;
   verticalLines: Line;
-  color: NumericAreaColor;
+  color: ContinuousAreaColor;
   type: ContinuousAreaType;
 };
 
@@ -307,7 +313,7 @@ function generateNumericAreaTicks(
   rangeMin: number,
   rangeMax: number,
   zeroPoint: number | null,
-  type: QuestionType,
+  questionType: QuestionType,
   chartWidth: number
 ) {
   const minPixelPerTick = 50;
@@ -331,19 +337,15 @@ function generateNumericAreaTicks(
 
   return {
     ticks,
-    tickFormat: (x: number) => {
-      if (majorTicks.includes(x)) {
-        const scaled_location = scaleInternalLocation(
-          x,
+    tickFormat: (value: number) => {
+      if (majorTicks.includes(value)) {
+        return getDisplayValue(
+          value,
+          questionType,
           rangeMin,
           rangeMax,
           zeroPoint
         );
-        if (type === QuestionType.Date) {
-          return format(fromUnixTime(scaled_location), "yyyy-MM");
-        } else {
-          return abbreviatedNumber(scaled_location);
-        }
       }
 
       return "";
