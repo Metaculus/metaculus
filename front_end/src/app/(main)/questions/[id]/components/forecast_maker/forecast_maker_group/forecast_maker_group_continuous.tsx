@@ -321,6 +321,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       )}
       {!!activeGroupOption && (
         <NumericForecastTable
+          question={activeGroupOption.question}
           userBounds={
             userCdf && {
               belowLower: userCdf[0],

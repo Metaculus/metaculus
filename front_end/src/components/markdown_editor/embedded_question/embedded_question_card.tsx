@@ -86,6 +86,9 @@ const EmbeddedQuestionCard: FC<Props> = ({ postData }) => {
             <NumericChart
               dataset={question.forecasts}
               questionType={question.type}
+              rangeMin={question.range_min}
+              rangeMax={question.range_max}
+              zeroPoint={question.zero_point}
               height={CHART_HEIGHT}
             />
           );

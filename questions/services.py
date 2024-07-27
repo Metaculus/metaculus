@@ -124,7 +124,7 @@ def build_question_forecasts_for_user(
             forecasts_data["medians"].append(forecast.probability_yes)
         elif question.type in ["numeric", "date"]:
             forecasts_data["medians"].append(
-                percent_point_function(forecast.continuous_cdf, 50), question
+                percent_point_function(forecast.continuous_cdf, 50)
             )
 
     return forecasts_data

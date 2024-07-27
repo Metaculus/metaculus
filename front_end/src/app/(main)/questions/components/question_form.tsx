@@ -367,8 +367,8 @@ const QuestionForm: React.FC<Props> = ({
             questionType === QuestionType.Numeric) && (
             <NumericQuestionInput
               questionType={questionType}
-              defaultMin={post?.question?.range_min}
-              defaultMax={post?.question?.range_max}
+              defaultMin={post?.question?.range_min!}
+              defaultMax={post?.question?.range_max!}
               // @ts-ignore
               defaultOpenLowerBound={post?.question?.open_lower_bound}
               // @ts-ignore
