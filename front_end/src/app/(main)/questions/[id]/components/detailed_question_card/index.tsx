@@ -28,6 +28,9 @@ const DetailedQuestionCard: FC<Props> = ({ question }) => {
           <NumericChartCard
             forecast={question.forecasts}
             questionType={question.type}
+            rangeMin={question.range_min}
+            rangeMax={question.range_max}
+            zeroPoint={question.zero_point}
           />
         </DetailsQuestionCardErrorBoundary>
       );

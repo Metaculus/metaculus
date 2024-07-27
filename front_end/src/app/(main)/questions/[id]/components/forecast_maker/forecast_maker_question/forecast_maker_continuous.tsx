@@ -148,6 +148,7 @@ const ForecastMakerContinuous: FC<Props> = ({
       </div>
 
       <NumericForecastTable
+        question={question}
         userBounds={{
           belowLower: userCdf[0],
           aboveUpper: 1 - userCdf[userCdf.length - 1],
