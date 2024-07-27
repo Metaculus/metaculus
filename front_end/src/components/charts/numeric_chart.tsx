@@ -1,5 +1,6 @@
 "use client";
 
+import { format, fromUnixTime } from "date-fns";
 import { merge } from "lodash";
 import React, { FC, useEffect, useMemo, useState } from "react";
 import {
@@ -29,18 +30,16 @@ import {
   Area,
   BaseChartData,
   Line,
-  NumericChartType,
   Scale,
   TimelineChartZoomOption,
 } from "@/types/charts";
-import { NumericForecast } from "@/types/question";
+import { NumericForecast, QuestionType } from "@/types/question";
 import {
-  generateDateYScale,
   generateNumericDomain,
-  generateNumericYScale,
-  generatePercentageYScale,
   generateTimestampXScale,
+  getDisplayValue,
 } from "@/utils/charts";
+import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import XTickLabel from "./primitives/x_tick_label";
 
@@ -52,7 +51,10 @@ type Props = {
   height?: number;
   onCursorChange?: (value: number) => void;
   onChartReady?: () => void;
-  type?: NumericChartType;
+  questionType: QuestionType;
+  rangeMin: number | null;
+  rangeMax: number | null;
+  zeroPoint: number | null;
   extraTheme?: VictoryThemeDefinition;
 };
 
@@ -64,7 +66,10 @@ const NumericChart: FC<Props> = ({
   height = 150,
   onCursorChange,
   onChartReady,
-  type = "numeric",
+  questionType,
+  rangeMin,
+  rangeMax,
+  zeroPoint,
   extraTheme,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
@@ -84,8 +89,27 @@ const NumericChart: FC<Props> = ({
 
   const [zoom, setZoom] = useState(defaultZoom);
   const { line, area, yDomain, xDomain, xScale, yScale, points } = useMemo(
-    () => buildChartData({ dataset, width: chartWidth, height, type, zoom }),
-    [dataset, chartWidth, height, type, zoom]
+    () =>
+      buildChartData({
+        questionType,
+        rangeMin,
+        rangeMax,
+        zeroPoint,
+        height,
+        dataset,
+        width: chartWidth,
+        zoom,
+      }),
+    [
+      questionType,
+      rangeMin,
+      rangeMax,
+      zeroPoint,
+      height,
+      dataset,
+      chartWidth,
+      zoom,
+    ]
   );
 
   const prevWidth = usePrevious(chartWidth);
@@ -230,16 +254,22 @@ type ChartData = BaseChartData & {
 };
 
 function buildChartData({
-  type,
+  questionType,
+  rangeMin,
+  rangeMax,
+  zeroPoint,
   height,
   dataset,
   width,
   zoom,
 }: {
+  questionType: QuestionType;
+  rangeMin: number | null;
+  rangeMax: number | null;
+  zeroPoint: number | null;
+  height: number;
   dataset: NumericForecast;
   width: number;
-  height: number;
-  type: NumericChartType;
   zoom: TimelineChartZoomOption;
 }): ChartData {
   const { timestamps, medians, q1s, q3s, my_forecasts } = dataset;
@@ -265,27 +295,40 @@ function buildChartData({
   const xDomain = generateNumericDomain(timestamps, zoom);
   const xScale = generateTimestampXScale(xDomain, width);
 
-  let yDomain: Tuple<number>;
-  let yScale: Scale;
-  switch (type) {
-    case "binary": {
-      yDomain = [0, 1];
-      yScale = generatePercentageYScale(height);
-      break;
-    }
-    case "date": {
-      const minYValue = Math.min(...dataset.q1s);
-      const maxYValue = Math.max(...dataset.q3s);
-      yDomain = [minYValue, maxYValue];
-      yScale = generateDateYScale(yDomain);
-      break;
-    }
-    default:
-      const minYValue = Math.floor(Math.min(...dataset.q1s) * 0.95); // 5% padding
-      const maxYValue = Math.ceil(Math.max(...dataset.q3s) * 1.05); // 5% padding
-      yDomain = [minYValue, maxYValue];
-      yScale = generateNumericYScale(yDomain);
+  const yDomain: Tuple<number> = [0, 1];
+
+  const desiredMajorTicks = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
+  const minorTicksPerMajor = 9;
+  const desiredMajorTickDistance = 20;
+
+  const maxMajorTicks = Math.floor(height / desiredMajorTickDistance);
+
+  let majorTicks = desiredMajorTicks;
+  if (maxMajorTicks < desiredMajorTicks.length) {
+    // adjust major ticks on small height
+    const step = 1 / (maxMajorTicks - 1);
+    majorTicks = Array.from({ length: maxMajorTicks }, (_, i) => i * step);
   }
+  const ticks = [];
+  for (let i = 0; i < majorTicks.length - 1; i++) {
+    ticks.push(majorTicks[i]);
+    const step = (majorTicks[i + 1] - majorTicks[i]) / (minorTicksPerMajor + 1);
+    for (let j = 1; j <= minorTicksPerMajor; j++) {
+      ticks.push(majorTicks[i] + step * j);
+    }
+  }
+  ticks.push(majorTicks[majorTicks.length - 1]);
+
+  const tickFormat = (value: number): string => {
+    if (!majorTicks.includes(value)) {
+      return "";
+    }
+    return getDisplayValue(value, questionType, rangeMin, rangeMax, zeroPoint);
+  };
+  const yScale: Scale = {
+    ticks,
+    tickFormat,
+  };
 
   return {
     line,

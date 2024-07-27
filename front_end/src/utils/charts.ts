@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import {
+  format,
   differenceInMilliseconds,
   fromUnixTime,
   getUnixTime,
@@ -22,6 +23,7 @@ import {
   MultipleChoiceForecast,
   QuestionType,
   QuestionWithNumericForecasts,
+  Question,
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -29,14 +31,14 @@ import { extractQuestionGroupName } from "@/utils/questions";
 
 export function getNumericChartTypeFromQuestion(
   type: QuestionType
-): NumericChartType | undefined {
+): QuestionType | undefined {
   switch (type) {
     case QuestionType.Numeric:
-      return "numeric";
+      return QuestionType.Numeric;
     case QuestionType.Date:
-      return "date";
+      return QuestionType.Date;
     case QuestionType.Binary:
-      return "binary";
+      return QuestionType.Binary;
     default:
       return undefined;
   }
@@ -156,79 +158,65 @@ export function scaleInternalLocation(
   return scaled_location;
 }
 
-export function generateNumericYScale(yDomain: Tuple<number>): Scale {
-  const [rangeMin, rangeMax] = yDomain;
-  const range = rangeMax - rangeMin;
+/**
+ * Returns the display value of an internal location given the
+ * details of the question
+ *
+ * Accepts a Question or the individual parameters of a Question
+ */
+export function getDisplayValue(
+  value: number | undefined,
+  question: Question
+): string;
+export function getDisplayValue(
+  value: number | undefined,
+  questionType: QuestionType,
+  rangeMin?: number | null,
+  rangeMax?: number | null,
+  zeroPoint?: number | null
+): string;
+export function getDisplayValue(
+  value: number | undefined,
+  questionOrQuestionType: Question | QuestionType,
+  rangeMin?: number | null,
+  rangeMax?: number | null,
+  zeroPoint?: number | null
+): string {
+  let qType: string;
+  let rMin: number | null;
+  let rMax: number | null;
+  let zPoint: number | null;
 
-  const majorStep = range / 4;
-  const minorStep = majorStep / 5;
-
-  const majorTicks = new Set<number>();
-  for (let i = rangeMin; i <= rangeMax; i += majorStep) {
-    majorTicks.add(Math.round(i));
-  }
-
-  const minorTicks = new Set<number>();
-  for (let i = rangeMin; i <= rangeMax; i += minorStep) {
-    if (!majorTicks.has(Math.round(i))) {
-      minorTicks.add(Math.round(i));
-    }
-  }
-
-  const ticks = [...Array.from(majorTicks), ...Array.from(minorTicks)].sort(
-    (a, b) => a - b
-  );
-
-  return {
-    ticks,
-    tickFormat: (y) => (majorTicks.has(y) ? abbreviatedNumber(y) : ""),
-  };
-}
-
-export function generateDateYScale(yDomain: Tuple<number>): Scale {
-  const totalTicks = 20;
-  const majorTickStep = 5;
-
-  const oneHour = 60 * 60 * 1000;
-  const oneDay = 24 * oneHour;
-  const oneYear = 365 * oneDay;
-
-  const start = fromUnixTime(yDomain[0]);
-  const end = fromUnixTime(yDomain[1]);
-  const range = differenceInMilliseconds(end, start);
-
-  let format;
-  if (range < oneDay) {
-    format = d3.timeFormat("%H:%M");
-  } else if (range < oneYear) {
-    format = d3.timeFormat("%b %d");
+  if (typeof questionOrQuestionType === "object") {
+    // Handle the case where the input is a Question object
+    qType = questionOrQuestionType.type;
+    rMin = questionOrQuestionType.range_min;
+    rMax = questionOrQuestionType.range_max;
+    zPoint = questionOrQuestionType.zero_point;
   } else {
-    format = d3.timeFormat("%Y");
+    // Handle the case where the input is individual parameters
+    qType = questionOrQuestionType;
+    rMin = rangeMin ?? 0;
+    rMax = rangeMax ?? 1;
+    zPoint = zeroPoint ?? null;
   }
 
-  const timeScale = d3.scaleTime().domain([start, end]).nice(totalTicks);
-  const ticks = timeScale.ticks(totalTicks);
-
-  const majorTicks = new Set<number>();
-  const minorTicks = new Set<number>();
-  ticks.forEach((tick, index) => {
-    if (index % majorTickStep === 0) {
-      majorTicks.add(getUnixTime(tick));
-    } else {
-      minorTicks.add(getUnixTime(tick));
-    }
-  });
-
-  return {
-    ticks: ticks.map((tick) => getUnixTime(tick)),
-    tickFormat: (y: number) => {
-      if (majorTicks.has(y)) {
-        return format(fromUnixTime(y));
-      } else {
-        return "";
-      }
-    },
-  };
+  if (value === undefined) {
+    return "...";
+  }
+  const scaledValue = scaleInternalLocation(
+    value,
+    rMin ?? 0,
+    rMax ?? 1,
+    zPoint
+  );
+  if (qType === QuestionType.Date) {
+    return format(fromUnixTime(scaledValue), "yyyy-MM");
+  } else if (qType === QuestionType.Numeric) {
+    return abbreviatedNumber(scaledValue);
+  } else {
+    return `${Math.round(scaledValue * 100)}%`;
+  }
 }
 
 export function generatePercentageYScale(containerHeight: number): Scale {
