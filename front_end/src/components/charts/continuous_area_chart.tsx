@@ -25,7 +25,7 @@ import {
   ContinuousAreaType,
 } from "@/types/charts";
 import { QuestionType } from "@/types/question";
-import { interpolateYValue, scaleInternalLocation } from "@/utils/charts";
+import { interpolateYValue, getDisplayValue } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
@@ -337,19 +337,15 @@ function generateNumericAreaTicks(
 
   return {
     ticks,
-    tickFormat: (x: number) => {
-      if (majorTicks.includes(x)) {
-        const scaled_location = scaleInternalLocation(
-          x,
+    tickFormat: (value: number) => {
+      if (majorTicks.includes(value)) {
+        return getDisplayValue(
+          value,
+          questionType,
           rangeMin,
           rangeMax,
           zeroPoint
         );
-        if (questionType === QuestionType.Date) {
-          return format(fromUnixTime(scaled_location), "yyyy-MM");
-        } else {
-          return abbreviatedNumber(scaled_location);
-        }
       }
 
       return "";

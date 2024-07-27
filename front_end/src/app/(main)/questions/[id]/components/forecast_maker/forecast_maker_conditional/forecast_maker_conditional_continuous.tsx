@@ -405,6 +405,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       ))}
       {!!activeOptionData && (
         <NumericForecastTable
+          question={activeOptionData.question}
           userBounds={
             userCdf && {
               belowLower: userCdf![0],

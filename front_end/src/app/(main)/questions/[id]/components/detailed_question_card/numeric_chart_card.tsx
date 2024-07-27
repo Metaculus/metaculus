@@ -15,9 +15,18 @@ import CursorDetailItem from "./numeric_cursor_item";
 type Props = {
   forecast: NumericForecast;
   questionType: QuestionType;
+  rangeMin: number | null;
+  rangeMax: number | null;
+  zeroPoint: number | null;
 };
 
-const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
+const NumericChartCard: FC<Props> = ({
+  forecast,
+  questionType,
+  rangeMin,
+  rangeMax,
+  zeroPoint,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
 
@@ -67,7 +76,10 @@ const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
         onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}
-        questionType={getNumericChartTypeFromQuestion(questionType)}
+        questionType={questionType}
+        rangeMin={rangeMin}
+        rangeMax={rangeMax}
+        zeroPoint={zeroPoint}
         defaultZoom={
           user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths
         }
