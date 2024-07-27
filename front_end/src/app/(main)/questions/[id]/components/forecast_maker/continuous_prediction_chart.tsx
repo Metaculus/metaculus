@@ -2,8 +2,8 @@ import { format, fromUnixTime } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useMemo, useState } from "react";
 
-import NumericAreaChart, {
-  NumericAreaGraphInput,
+import ContinuousAreaChart, {
+  ContinuousAreaGraphInput,
 } from "@/components/charts/continuous_area_chart";
 import {
   ContinuousAreaGraphType,
@@ -54,11 +54,11 @@ const ContinuousPredictionChart: FC<Props> = ({
       xLabel,
       yUserLabel:
         graphType === "pmf"
-          ? hoverState.yData.user.toFixed(3)
+          ? (hoverState.yData.user * 200).toFixed(3)
           : getForecastPctDisplayValue(hoverState.yData.user),
       yCommunityLabel:
         graphType === "pmf"
-          ? hoverState.yData.community.toFixed(3)
+          ? (hoverState.yData.community * 200).toFixed(3)
           : getForecastPctDisplayValue(hoverState.yData.community),
     };
   }, [
@@ -77,7 +77,7 @@ const ContinuousPredictionChart: FC<Props> = ({
     []
   );
 
-  const data: NumericAreaGraphInput = useMemo(
+  const data: ContinuousAreaGraphInput = useMemo(
     () => [
       {
         pmf: question.forecasts.latest_pmf,
@@ -100,12 +100,12 @@ const ContinuousPredictionChart: FC<Props> = ({
 
   return (
     <>
-      <NumericAreaChart
+      <ContinuousAreaChart
         height={300}
         rangeMin={question.range_min}
         rangeMax={question.range_max}
         zeroPoint={question.zero_point}
-        dataType={question.type}
+        questionType={question.type}
         graphType={graphType}
         data={data}
         onCursorChange={handleCursorChange}
