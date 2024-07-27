@@ -38,7 +38,7 @@ const QuestionNumericTile: FC<Props> = ({
         <NumericChart
           dataset={question.forecasts}
           height={HEIGHT}
-          type={getNumericChartTypeFromQuestion(question.type)}
+          questionType={getNumericChartTypeFromQuestion(question.type)}
           defaultZoom={defaultChartZoom}
         />
       </div>
