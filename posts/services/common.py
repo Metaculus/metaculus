@@ -22,6 +22,7 @@ from utils.the_math.community_prediction import get_aggregation_at_time
 from utils.the_math.measures import (
     prediction_difference_for_sorting,
 )
+from .subscriptions import notify_post_status_change
 from ..tasks import run_notify_post_status_change
 
 logger = logging.getLogger(__name__)
@@ -239,6 +240,4 @@ def handle_post_open(post: Post):
     """
 
     # Handle post subscriptions
-    from .subscriptions import notify_post_status_change
-
     notify_post_status_change(post, PostSubscription.PostStatusChange.OPEN)
