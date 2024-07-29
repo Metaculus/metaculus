@@ -1,50 +1,56 @@
 import Link from "next/link";
 import { FC } from "react";
 
+import PostStatus from "@/components/post_status";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionType } from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
+import { getPredictionQuestion } from "@/utils/questions";
+import { extractPostStatus } from "@/utils/questions";
 
 import SimilarPredictionChip from "./similar_question_prediction_chip";
-import QuestionStatus from "./similar_question_status";
 
 type Props = {
-  question: PostWithForecasts;
+  post: PostWithForecasts;
 };
 
-const QuestionCard: FC<Props> = ({ question }) => {
+const SimilarQuestionCard: FC<Props> = ({ post }) => {
+  const statusData = extractPostStatus(post);
+
   return (
-    <Link href={`/questions/${question.id}`} className="w-full no-underline">
-      <div className="QuestionCard border-metac-blue-500 dark:border-metac-blue-600 gap-2 rounded border px-4 py-3">
+    <Link href={`/questions/${post.id}`} className="w-full no-underline">
+      <div className="gap-2 rounded border border-blue-500 px-4 py-3 dark:border-blue-600">
         <div className="flex flex-col gap-1.5">
-          <h4 className="text-metac-gray-800 dark:text-metac-gray-800-dark my-0">
-            {question.title}
+          <h4 className="my-0 text-gray-800 dark:text-gray-800-dark">
+            {post.title}
           </h4>
-          {!!question.question &&
-            question.question.type === QuestionType.Binary && (
-              <div className="flex flex-row gap-2">
-                <SimilarPredictionChip
-                  question={question.question}
-                  curationStatus={question.status}
-                />
-              </div>
+
+          <div className="flex flex-row gap-2">
+            {!!post.question && (
+              <SimilarPredictionChip
+                question={post.question as QuestionWithNumericForecasts}
+              />
             )}
-          {/* TODO: add user prediction chip after BE changes
-            {question.hasPlayerPrediction() && (
-              <div className="text-orange-700 dark:text-orange-400 flex flex-row gap-0.5 text-xs font-medium">
-                <FontAwesomeIcon
-                  icon={icon({ name: "user", style: "regular" })}
-                  className="QuestionCard-prediction-icon text-orange-800 dark:text-orange-800-dark"
-                />
-                <Prediction
-                  tlist={question.predictionFormatter.formatPrediction(
-                    userPrediction
-                  )}
-                />
-              </div>
+            {!!post.group_of_questions && (
+              <SimilarPredictionChip
+                isGroup
+                question={getPredictionQuestion(
+                  post.group_of_questions
+                    .questions as QuestionWithNumericForecasts[],
+                  post.curation_status
+                )}
+              />
             )}
-         */}
+          </div>
           <div>
-            <QuestionStatus question={question} />
+            {!!statusData && (
+              <PostStatus
+                id={post.id}
+                status={statusData.status}
+                actualCloseTime={statusData.actualCloseTime}
+                resolvedAt={statusData.resolvedAt}
+                post={post}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -52,4 +58,4 @@ const QuestionCard: FC<Props> = ({ question }) => {
   );
 };
 
-export default QuestionCard;
+export default SimilarQuestionCard;

@@ -3,28 +3,39 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { FC } from "react";
 
-import { PostStatus } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
-import { formatPrediction } from "@/utils/forecasts";
+import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
+import { formatPrediction, getIsForecastEmpty } from "@/utils/forecasts";
 
 type Props = {
   question: QuestionWithNumericForecasts;
-  curationStatus: PostStatus;
+  isGroup?: boolean;
   className?: string;
 };
 
 const SimilarPredictionChip: FC<Props> = ({
   question,
-  curationStatus,
+  isGroup = false,
   className,
 }) => {
+  if (
+    ![QuestionType.Numeric, QuestionType.Date, QuestionType.Binary].includes(
+      question.type
+    )
+  ) {
+    return null;
+  } else if (
+    isGroup &&
+    ![QuestionType.Numeric, QuestionType.Date].includes(question.type)
+  ) {
+    return null;
+  }
+  const isForecastEmpty = getIsForecastEmpty(question.forecasts);
+  if (isForecastEmpty) return null;
+
   const prediction =
     question.forecasts.medians[question.forecasts.medians.length - 1];
 
-  if (
-    curationStatus == PostStatus.APPROVED ||
-    curationStatus == PostStatus.OPEN
-  ) {
+  {
     return (
       <span
         className={classNames(
@@ -39,8 +50,6 @@ const SimilarPredictionChip: FC<Props> = ({
       </span>
     );
   }
-
-  return null;
 };
 
 export default SimilarPredictionChip;

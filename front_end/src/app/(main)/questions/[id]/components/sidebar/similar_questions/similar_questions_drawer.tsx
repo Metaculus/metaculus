@@ -24,7 +24,7 @@ const SimilarQuestionsDrawer: FC<Props> = ({ questions }) => {
           {questions
             .slice(0, questionsDisplayLimit)
             .map((question: PostWithForecasts) => (
-              <SimilarQuestion key={question.id} question={question} />
+              <SimilarQuestion key={question.id} post={question} />
             ))}
           <div className="flex flex-col items-center justify-between @md:flex-row">
             {questions.length > questionsDisplayLimit ? (

@@ -16,13 +16,13 @@ import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { QuestionType } from "@/types/question";
+import { getQuestionStatus } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
 import ProjectPicker from "./project_picker";
 import { createQuestionPost, updatePost } from "../actions";
-import { getQuestionStatus } from "../helpers/getQuestionStatus";
 
 type PostCreationData = {
   group_of_questions: any;

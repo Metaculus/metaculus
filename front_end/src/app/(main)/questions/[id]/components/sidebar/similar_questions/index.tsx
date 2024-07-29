@@ -1,6 +1,7 @@
 import { FC } from "react";
 
 import PostsApi from "@/services/posts";
+import { QuestionOrder } from "@/types/question";
 
 import SimilarQuestionsDrawer from "./similar_questions_drawer";
 
@@ -8,18 +9,14 @@ type Props = {
   ids: number[];
 };
 
-export async function fetchMorePosts(ids: number[]) {
+const SimilarQuestions: FC<Props> = async ({ ids }) => {
   const response = await PostsApi.getPostsWithCP({
     ids,
-    order_by: "-forecasts_count",
+    order_by: QuestionOrder.PredictionCountDesc,
   });
-  return response.results;
-}
+  const { results: questions } = response;
 
-const SimilarQuestions: FC<Props> = async ({ ids }) => {
-  const questions = await fetchMorePosts(ids);
-
-  if (questions.length === 0) return null;
+  if (!questions.length) return null;
 
   return <SimilarQuestionsDrawer questions={questions} />;
 };
