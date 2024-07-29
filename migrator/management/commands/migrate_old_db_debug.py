@@ -1,7 +1,7 @@
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
-from posts.tasks import run_compute_movement
+from posts.jobs import job_compute_movement
 from ...utils import reset_sequence
 
 
@@ -11,7 +11,7 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
-        run_compute_movement()
+        job_compute_movement()
         call_command("build_forecasts")
 
         # Reset sql sequences
