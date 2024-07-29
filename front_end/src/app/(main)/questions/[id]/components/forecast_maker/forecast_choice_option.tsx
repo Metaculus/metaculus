@@ -94,6 +94,7 @@ const ForecastChoiceOption = <T = string,>({
             : undefined
         }
         disabled={disabled}
+        styles={disabled ? { handle: { display: "none" } } : {}}
       />
     </div>
   );

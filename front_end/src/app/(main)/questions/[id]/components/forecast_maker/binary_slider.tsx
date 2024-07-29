@@ -81,6 +81,7 @@ const BinarySlider: FC<Props> = ({
               : undefined
           }
           disabled={disabled}
+          styles={disabled ? { handle: { cursor: "default" } } : {}}
         />
       </div>
       <div className="mb-3 block text-center">

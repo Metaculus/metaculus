@@ -210,9 +210,10 @@ const ForecastMakerGroupBinary: FC<Props> = ({
           ))}
         </tbody>
       </table>
-      <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-        {canPredict &&
-          (user ? (
+      {canPredict && (
+        <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
+          (
+          {user ? (
             <>
               <Button
                 variant="secondary"
@@ -239,8 +240,10 @@ const ForecastMakerGroupBinary: FC<Props> = ({
             >
               {t("signUpButton")}
             </Button>
-          ))}
-      </div>
+          )}
+          )
+        </div>
+      )}
       {submitErrors.map((errResponse, index) => (
         <FormError key={`error-${index}`} errors={errResponse} />
       ))}
