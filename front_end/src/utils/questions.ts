@@ -1,6 +1,13 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import { Post, ProjectPermissions } from "@/types/post";
-import { Question } from "@/types/question";
+import { differenceInMilliseconds } from "date-fns";
+
+import {
+  Post,
+  ProjectPermissions,
+  PostStatus,
+  PostWithForecasts,
+} from "@/types/post";
+import { Question, QuestionWithNumericForecasts } from "@/types/question";
 
 export function extractQuestionGroupName(title: string) {
   const match = title.match(/\((.*?)\)/);
@@ -76,4 +83,38 @@ export function getConditionalQuestionTitle(question: Question): string {
   }
 
   return question.title;
+}
+
+export function getQuestionStatus(post: PostWithForecasts | null) {
+  const isLive =
+    post?.curation_status == PostStatus.APPROVED ||
+    post?.curation_status == PostStatus.OPEN;
+  const isDone =
+    post?.curation_status == PostStatus.RESOLVED ||
+    post?.curation_status == PostStatus.CLOSED ||
+    post?.curation_status == PostStatus.DELETED;
+
+  return { isLive, isDone };
+}
+
+export function getPredictionQuestion(
+  questions: QuestionWithNumericForecasts[],
+  curationStatus: PostStatus
+) {
+  const sortedQuestions = questions
+    .map((q) => ({
+      ...q,
+      resolvedAt: new Date(q.scheduled_resolve_time),
+      fanName: extractQuestionGroupName(q.title),
+    }))
+    .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));
+
+  if (curationStatus === PostStatus.RESOLVED) {
+    return sortedQuestions[sortedQuestions.length - 1];
+  }
+
+  return (
+    sortedQuestions.find((q) => q.resolution === null) ??
+    sortedQuestions[sortedQuestions.length - 1]
+  );
 }
