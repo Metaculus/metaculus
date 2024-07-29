@@ -6,24 +6,9 @@ This is a very hectic work in progress, please do not expect things to make perf
 ### Install
 `poetry install`
 
-## Install pgvector database extension
-https://github.com/pgvector/pgvector
-
-### Ubuntu:
-- Make sure you're using `postgresql-server-dev-15` package
-
-### Mac:
-https://github.com/pgvector/pgvector?tab=readme-ov-file#installation-notes---linux-and-mac
-
-- Find out your `pg_config` path.
-  A few common paths on Mac are:
-  EDB installer - /Library/PostgreSQL/15/bin/pg_config
-  Homebrew (arm64) - /opt/homebrew/opt/postgresql@15/bin/pg_config
-  Homebrew (x86-64) - /usr/local/opt/postgresql@15/bin/pg_config
-- `export PG_CONFIG=path/to/pg_config`
-- `make`
-- `sudo --preserve-env=PG_CONFIG make install`
-- And run this sql against your db: `CREATE EXTENSION vector;`
+### Install pgvector database extension
+1. Install pgvector: https://github.com/pgvector/pgvector
+2. Connect to the psql and enable psql extension: `CREATE EXTENSION vector;`
 
 ### Migration of the old database
 1. Create a postgres database called `metaculus`
