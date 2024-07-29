@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
@@ -35,7 +35,6 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   post,
   subscriptions: initialSubscriptions,
 }) => {
-  // TODO: add localization everywhere!!!
   const t = useTranslations();
 
   const [subscriptions, setSubscriptions] = useState<PostSubscription[]>(
@@ -108,75 +107,78 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
     }
   }, [onClose, post.id, subscriptions]);
 
-  const subscriptionTypes = [
-    {
-      type: PostSubscriptionType.CP_CHANGE,
-      title: "Community Prediction changes",
-      render: (subscription: PostSubscription) => (
-        <SubscriptionSectionCPChange
-          post={post}
-          subscription={subscription as PostSubscriptionCPCHange}
-          onChange={(name, value) =>
-            handleSubscriptionChange(subscription.type, name, value)
-          }
-        />
-      ),
-    },
-    {
-      type: PostSubscriptionType.NEW_COMMENTS,
-      title: "Comments",
-      render: (subscription: PostSubscription) => (
-        <SubscriptionSectionNewComments
-          post={post}
-          subscription={subscription as PostSubscriptionNewComments}
-          onChange={(name, value) =>
-            handleSubscriptionChange(subscription.type, name, value)
-          }
-        />
-      ),
-    },
-    {
-      type: PostSubscriptionType.MILESTONE,
-      title: "Milestones",
-      render: (subscription: PostSubscription) => (
-        <SubscriptionSectionMilestone
-          post={post}
-          subscription={subscription as PostSubscriptionMilestone}
-          onChange={(name, value) =>
-            handleSubscriptionChange(subscription.type, name, value)
-          }
-        />
-      ),
-    },
-    {
-      type: PostSubscriptionType.SPECIFIC_TIME,
-      title: "Specific time",
-      render: (subscription: PostSubscription) => (
-        <SubscriptionSectionSpecificTime
-          post={post}
-          subscription={subscription as PostSubscriptionSpecificTime}
-          onChange={(name, value) => {
-            console.log("CHANGED: ", subscription.type, name, value);
-            handleSubscriptionChange(subscription.type, name, value);
-          }}
-        />
-      ),
-    },
-    {
-      type: PostSubscriptionType.STATUS_CHANGE,
-      title: "Status changes",
-    },
-  ];
+  const subscriptionTypes = useMemo(
+    () => [
+      {
+        type: PostSubscriptionType.CP_CHANGE,
+        title: t("followModalCommunityPredictionChanges"),
+        render: (subscription: PostSubscription) => (
+          <SubscriptionSectionCPChange
+            post={post}
+            subscription={subscription as PostSubscriptionCPCHange}
+            onChange={(name, value) =>
+              handleSubscriptionChange(subscription.type, name, value)
+            }
+          />
+        ),
+      },
+      {
+        type: PostSubscriptionType.NEW_COMMENTS,
+        title: t("comments"),
+        render: (subscription: PostSubscription) => (
+          <SubscriptionSectionNewComments
+            post={post}
+            subscription={subscription as PostSubscriptionNewComments}
+            onChange={(name, value) =>
+              handleSubscriptionChange(subscription.type, name, value)
+            }
+          />
+        ),
+      },
+      {
+        type: PostSubscriptionType.MILESTONE,
+        title: t("followModalMilestones"),
+        render: (subscription: PostSubscription) => (
+          <SubscriptionSectionMilestone
+            post={post}
+            subscription={subscription as PostSubscriptionMilestone}
+            onChange={(name, value) =>
+              handleSubscriptionChange(subscription.type, name, value)
+            }
+          />
+        ),
+      },
+      {
+        type: PostSubscriptionType.SPECIFIC_TIME,
+        title: t("followModalSpecificTime"),
+        render: (subscription: PostSubscription) => (
+          <SubscriptionSectionSpecificTime
+            post={post}
+            subscription={subscription as PostSubscriptionSpecificTime}
+            onChange={(name, value) => {
+              console.log("CHANGED: ", subscription.type, name, value);
+              handleSubscriptionChange(subscription.type, name, value);
+            }}
+          />
+        ),
+      },
+      {
+        type: PostSubscriptionType.STATUS_CHANGE,
+        title: t("followModalStatusChanges"),
+      },
+    ],
+    [handleSubscriptionChange, post, t]
+  );
 
   return (
     <BaseModal
-      label="Customise notifications"
+      label={t("followModalCustomiseNotifications")}
       isOpen={isOpen}
       onClose={onClose}
     >
       <div className="max-w-xl">
         <p className="text-base leading-tight">
-          Configure email notifications when important updates happen.
+          {t("followModalCustomiseNotificationsParagraph")}
         </p>
         <div className="mt-8 flex flex-col gap-4 pb-16">
           {subscriptionTypes.map(({ type, title, render }, idx) => (
@@ -211,7 +213,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
               disabled={isLoading}
               onClick={handleUnfollow}
             >
-              {t("unfollowButton")}
+              {t("followModalUnfollowButton")}
             </Button>
             <Button
               variant="primary"

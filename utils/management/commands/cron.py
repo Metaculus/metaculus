@@ -8,8 +8,13 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_dramatiq.tasks import delete_old_tasks
 
+from posts.jobs import (
+    job_compute_movement,
+    job_subscription_notify_date,
+    job_subscription_notify_milestone,
+    job_check_post_open_event,
+)
 from posts.services.common import compute_hotness
-from posts.tasks import run_compute_movement, run_subscription_notify_date
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -67,9 +72,9 @@ class Command(BaseCommand):
         # Post Jobs
         #
         scheduler.add_job(
-            close_old_connections(run_compute_movement.send),
+            close_old_connections(job_compute_movement.send),
             trigger=CronTrigger.from_crontab("0 * * * *"),  # Every Hour
-            id="posts_run_compute_movement",
+            id="posts_job_compute_movement",
             max_instances=1,
             replace_existing=True,
         )
@@ -81,16 +86,23 @@ class Command(BaseCommand):
             replace_existing=True,
         )
         scheduler.add_job(
-            close_old_connections(run_subscription_notify_date.send),
+            close_old_connections(job_subscription_notify_date.send),
             trigger=CronTrigger.from_crontab("30 * * * *"),  # Every Hour at :30
-            id="subscription_run_subscription_notify_date",
+            id="posts_job_subscription_notify_date",
             max_instances=1,
             replace_existing=True,
         )
         scheduler.add_job(
-            close_old_connections(run_subscription_notify_date.send),
+            close_old_connections(job_subscription_notify_milestone.send),
             trigger=CronTrigger.from_crontab("0 12 * * *"),  # Every Day at 12 PM
-            id="subscription_run_subscription_notify_date",
+            id="posts_job_subscription_notify_milestone",
+            max_instances=1,
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            close_old_connections(job_check_post_open_event.send),
+            trigger=CronTrigger.from_crontab("45 * * * *"),  # Every Hour at :45
+            id="posts_job_check_post_open_event",
             max_instances=1,
             replace_existing=True,
         )

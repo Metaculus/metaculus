@@ -252,6 +252,7 @@ DRAMATIQ_BROKER = {
         "django_dramatiq.middleware.AdminMiddleware",
     ],
 }
+DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 
 CACHES = {
     "default": {

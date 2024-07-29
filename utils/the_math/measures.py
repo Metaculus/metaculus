@@ -3,18 +3,26 @@ import numpy as np
 from questions.models import Question
 from utils.the_math.formulas import unscaled_location_to_scaled_location
 
+from utils.typing import (
+    ForecastValues,
+    ForecastsValues,
+    Weights,
+    Percentiles,
+)
+
 
 def weighted_percentile_2d(
-    values: list[list[float]] | np.ndarray,
-    weights: list[float] | np.ndarray | None = None,
-    percentile: float = 50.0,
-) -> np.ndarray:
+    values: ForecastsValues,
+    weights: Weights | None = None,
+    percentiles: Percentiles | None = None,
+) -> Percentiles:
     values = np.array(values)
     if weights is None:
         ordered_weights = np.ones_like(values)
     else:
         weights = np.array(weights)
         ordered_weights = weights[values.argsort(axis=0)]
+    percentiles = np.array(percentiles or [50.0])
 
     sorted_values = values.copy()  # avoid side effects
     sorted_values.sort(axis=0)
@@ -23,42 +31,59 @@ def weighted_percentile_2d(
     normalized_cumulative_weights = np.cumsum(ordered_weights, axis=0) / np.sum(
         ordered_weights, axis=0
     )
-    # find the index which corresponds to the values whose weight surrounds the value
-    # percentile (most of the time left_index == right_index)
-    right_indexes = np.argmax(
-        normalized_cumulative_weights > (percentile / 100.0), axis=0
-    )
-    left_indexes = np.argmax(
-        normalized_cumulative_weights >= (percentile / 100.0), axis=0
-    )
-    # return the median of these values
-    column_indicies = np.arange(values.shape[1])
-    return 0.5 * (
-        sorted_values[left_indexes, column_indicies]
-        + sorted_values[right_indexes, column_indicies]
-    )
+    weighted_percentiles = []
+    for percentile in percentiles:
+        # find the index which corresponds to the values whose weight surrounds the value
+        # percentile (most of the time left_index == right_index)
+        right_indexes = np.argmax(
+            normalized_cumulative_weights > (percentile / 100.0), axis=0
+        )
+        left_indexes = np.argmax(
+            normalized_cumulative_weights >= (percentile / 100.0), axis=0
+        )
+        # return the median of these values
+        column_indicies = np.arange(values.shape[1])
+        weighted_percentiles.append(
+            0.5
+            * (
+                sorted_values[left_indexes, column_indicies]
+                + sorted_values[right_indexes, column_indicies]
+            )
+        )
+    return np.array(weighted_percentiles)
 
 
-def percent_point_function(cdf: list[float], percent: float) -> float:
-    # percent is a float between 0 and 100
-    if percent < cdf[0] * 100:
-        return 0.0
-    if percent > cdf[-1] * 100:
-        return 1.0
-    length = len(cdf)
-    for i in range(length - 1):
-        left = cdf[i] * 100
-        if left == percent:
-            return i / (length - 1)
-        right = cdf[i + 1] * 100
-        if left < percent < right:
-            # linear interpolation
-            return (i + (percent - left) / (right - left)) / (length - 1)
-    return 1.0
+def percent_point_function(
+    cdf: ForecastValues, percentiles: Percentiles | float | int
+) -> Percentiles:
+    if return_float := isinstance(percentiles, float | int):
+        percentiles = [percentiles]
+    ppf_values = []
+    for percent in percentiles:
+        # percent is a float between 0 and 100
+        if percent < cdf[0] * 100:
+            ppf_values.append(0.0)
+        elif percent >= cdf[-1] * 100:
+            ppf_values.append(1.0)
+        else:
+            length = len(cdf)
+            for i in range(length - 1):
+                left = cdf[i] * 100
+                if left == percent:
+                    ppf_values.append(i / (length - 1))
+                    break
+                right = cdf[i + 1] * 100
+                if left < percent < right:
+                    # linear interpolation
+                    ppf_values.append(
+                        (i + (percent - left) / (right - left)) / (length - 1)
+                    )
+                    break
+    return np.array(ppf_values[0] if return_float else ppf_values)
 
 
 def prediction_difference_for_sorting(
-    p1: list[float], p2: list[float], question: Question
+    p1: ForecastValues, p2: ForecastValues, question: Question
 ) -> float:
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
@@ -73,7 +98,7 @@ def prediction_difference_for_sorting(
 
 
 def prediction_difference_for_display(
-    p1: list[float], p2: list[float], question: Question
+    p1: ForecastValues, p2: ForecastValues, question: Question
 ) -> list[tuple[float, float]]:
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
@@ -103,7 +128,7 @@ def prediction_difference_for_display(
     ]
 
 
-def decimal_h_index(scores):
+def decimal_h_index(scores) -> float:
     sorted_scores = sorted(list(scores), reverse=True)
     base = sum(x >= i + 1 for i, x in enumerate(sorted_scores))
     fraction_scores = sorted_scores[: base + 1]

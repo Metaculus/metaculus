@@ -3,6 +3,8 @@ import numpy as np
 
 from questions.models import Question
 
+from utils.typing import ForecastValues, ForecastsValues, Weights, Percentiles
+
 # string_location <> scaled_location <> unscaled_location <> bucket_index
 # string_location: the human-readable representation of the location
 # scaled_location: the location in actual scale
@@ -148,7 +150,7 @@ def string_location_to_bucket_index(string_location: str, question: Question) ->
     return unscaled_location_to_bucket_index(unscaled_location, question)
 
 
-def get_scaled_quartiles_from_cdf(cdf: list[float], question: Question):
+def get_scaled_quartiles_from_cdf(cdf: ForecastValues, question: Question):
     from utils.the_math.measures import percent_point_function
 
     q1 = unscaled_location_to_scaled_location(percent_point_function(cdf, 25), question)
