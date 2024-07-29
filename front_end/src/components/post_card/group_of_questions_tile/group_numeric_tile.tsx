@@ -1,4 +1,3 @@
-import { differenceInMilliseconds } from "date-fns";
 import { FC } from "react";
 
 import FanChart from "@/components/charts/fan_chart";
@@ -6,7 +5,7 @@ import PredictionChip from "@/components/prediction_chip";
 import { PostStatus } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getFanOptionsFromNumericGroup } from "@/utils/charts";
-import { extractQuestionGroupName } from "@/utils/questions";
+import { getPredictionQuestion } from "@/utils/questions";
 
 const CHART_HEIGHT = 100;
 
@@ -40,27 +39,5 @@ const GroupNumericTile: FC<Props> = ({ questions, curationStatus }) => {
     </div>
   );
 };
-
-function getPredictionQuestion(
-  questions: QuestionWithNumericForecasts[],
-  curationStatus: PostStatus
-) {
-  const sortedQuestions = questions
-    .map((q) => ({
-      ...q,
-      resolvedAt: new Date(q.scheduled_resolve_time),
-      fanName: extractQuestionGroupName(q.title),
-    }))
-    .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));
-
-  if (curationStatus === PostStatus.RESOLVED) {
-    return sortedQuestions[sortedQuestions.length - 1];
-  }
-
-  return (
-    sortedQuestions.find((q) => q.resolution === null) ??
-    sortedQuestions[sortedQuestions.length - 1]
-  );
-}
 
 export default GroupNumericTile;
