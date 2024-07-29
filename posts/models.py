@@ -427,6 +427,10 @@ class Post(TimeStampedModel):
         default=0, editable=False, db_index=True
     )
 
+    # Indicates whether we triggered "handle_post_open" event
+    # And guarantees idempotency of "on post open" evens
+    published_at_triggered = models.BooleanField(default=False)
+
     def update_forecasts_count(self):
         """
         Update forecasts count cache
