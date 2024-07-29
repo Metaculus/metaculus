@@ -205,6 +205,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isDirty={questionOption.isDirty}
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
+              disabled={!canPredict}
             />
           ))}
         </tbody>

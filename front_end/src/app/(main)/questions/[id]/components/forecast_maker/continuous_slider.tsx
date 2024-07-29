@@ -23,6 +23,7 @@ type Props = {
   };
   onChange: (forecast: MultiSliderValue[], weights: number[]) => void;
   question: QuestionWithNumericForecasts;
+  disabled?: boolean;
 };
 
 const ContinuousSlider: FC<Props> = ({
@@ -31,6 +32,7 @@ const ContinuousSlider: FC<Props> = ({
   dataset,
   onChange,
   question,
+  disabled = false,
 }) => {
   const t = useTranslations();
   const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
@@ -57,6 +59,7 @@ const ContinuousSlider: FC<Props> = ({
         return (
           <div className="px-2.5" key={index}>
             <MultiSlider
+              disabled={disabled}
               key={`multi-slider-${index}`}
               value={forecast[index]}
               step={0.00001}
@@ -94,6 +97,7 @@ const ContinuousSlider: FC<Props> = ({
                       ]);
                       onChange(forecast, newWeights);
                     }}
+                    disabled={disabled}
                   />
                 </div>
                 <FontAwesomeIcon

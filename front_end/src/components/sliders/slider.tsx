@@ -18,6 +18,7 @@ type Props = {
   shouldSyncWithDefault?: boolean;
   arrowClassName?: string;
   marks?: Record<number, ReactNode>;
+  disabled?: boolean;
 };
 
 const Slider: FC<Props> = ({
@@ -31,6 +32,7 @@ const Slider: FC<Props> = ({
   shouldSyncWithDefault,
   arrowClassName,
   marks,
+  disabled = false,
 }) => {
   const [controlledValue, setControlledValue] = useState(defaultValue);
   const [controlledStep, setControlledStep] = useState(step);
@@ -55,6 +57,7 @@ const Slider: FC<Props> = ({
         setControlledValue(roundedValue);
         onChange(roundedValue);
       }}
+      disabled={disabled}
       handleRender={(origin) => (
         <SliderThumb
           {...origin.props}
@@ -63,14 +66,14 @@ const Slider: FC<Props> = ({
           }}
           active={!round}
           onArrowClickIn={
-            arrowStep
+            arrowStep && !disabled
               ? () => {
                   setControlledStep(arrowStep ?? step);
                 }
               : undefined
           }
           onArrowClickOut={
-            arrowStep
+            arrowStep && !disabled
               ? (direction) => {
                   const newValue = clamp(
                     controlledValue + (arrowStep ?? step) * direction,

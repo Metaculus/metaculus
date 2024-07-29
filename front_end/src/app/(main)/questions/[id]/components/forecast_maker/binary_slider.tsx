@@ -16,6 +16,7 @@ type Props = {
   isDirty: boolean;
   onBecomeDirty?: () => void;
   communityForecast?: number | null;
+  disabled?: boolean;
 };
 
 const BinarySlider: FC<Props> = ({
@@ -24,6 +25,7 @@ const BinarySlider: FC<Props> = ({
   isDirty,
   communityForecast,
   onBecomeDirty,
+  disabled = false,
 }) => {
   const inputDisplayValue = forecast ? forecast.toString() + "%" : "—";
   const [inputValue, setInputValue] = useState(inputDisplayValue);
@@ -78,6 +80,7 @@ const BinarySlider: FC<Props> = ({
                 }
               : undefined
           }
+          disabled={disabled}
         />
       </div>
       <div className="mb-3 block text-center">
@@ -90,6 +93,7 @@ const BinarySlider: FC<Props> = ({
           isDirty={isDirty}
           onFocus={() => setIsInputFocused(true)}
           onBlur={() => setIsInputFocused(false)}
+          disabled={disabled}
         />
       </div>
     </>

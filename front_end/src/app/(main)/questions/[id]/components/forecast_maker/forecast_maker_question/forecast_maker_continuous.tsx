@@ -114,6 +114,7 @@ const ForecastMakerContinuous: FC<Props> = ({
           setIsDirty(true);
         }}
         question={question}
+        disabled={!canPredict}
       />
 
       <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">

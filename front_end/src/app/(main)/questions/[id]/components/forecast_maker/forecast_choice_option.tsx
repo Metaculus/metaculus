@@ -24,6 +24,7 @@ type Props<T> = {
   isDirty: boolean;
   isRowDirty?: boolean;
   menu?: ReactNode;
+  disabled?: boolean;
 };
 
 const ForecastChoiceOption = <T = string,>({
@@ -39,6 +40,7 @@ const ForecastChoiceOption = <T = string,>({
   isDirty,
   isRowDirty,
   menu,
+  disabled = false,
 }: Props<T>) => {
   const inputDisplayValue = forecastValue
     ? forecastValue?.toString() + "%"
@@ -91,6 +93,7 @@ const ForecastChoiceOption = <T = string,>({
               }
             : undefined
         }
+        disabled={disabled}
       />
     </div>
   );
@@ -123,6 +126,7 @@ const ForecastChoiceOption = <T = string,>({
             value={inputValue}
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
+            disabled={disabled}
           />
         </td>
         <td className="hidden w-full border-t border-gray-300 p-2 dark:border-gray-300-dark sm:table-cell">
