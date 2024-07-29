@@ -6,6 +6,10 @@ This is a very hectic work in progress, please do not expect things to make perf
 ### Install
 `poetry install`
 
+### Install pgvector database extension
+1. Install pgvector: https://github.com/pgvector/pgvector
+2. Connect to the psql and enable psql extension: `CREATE EXTENSION vector;`
+
 ### Migration of the old database
 1. Create a postgres database called `metaculus`
 2. Configure old db connection using `OLD_DATABASE_URL` env var to wherever you have your old metaculus database
