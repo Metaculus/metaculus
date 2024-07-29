@@ -78,6 +78,24 @@ def run_compute_movement():
 
 
 @dramatiq.actor
+def job_check_post_open():
+    """
+    A cron job checking for newly opened posts
+    """
+    from posts.services.common import handle_post_open
+
+    for post in Post.objects.filter_active(published_at_triggered=False):
+        try:
+            handle_post_open(post)
+        except Exception:
+            logger.exception("Failed to handle post open")
+        finally:
+            # Mark as triggered
+            post.published_at_triggered = True
+            post.save()
+
+
+@dramatiq.actor
 def run_subscription_notify_date():
     from posts.services.subscriptions import notify_date
 

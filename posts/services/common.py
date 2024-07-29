@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 from django.db.models import Q, Count, Sum, Value, Case, When, F
@@ -22,6 +23,8 @@ from utils.the_math.measures import (
     prediction_difference_for_sorting,
 )
 from ..tasks import run_notify_post_status_change
+
+logger = logging.getLogger(__name__)
 
 
 def add_categories(categories: list[int], post: Post):
@@ -228,3 +231,14 @@ def close_post(post: Post):
     post.set_actual_close_time()
 
     run_notify_post_status_change.send(post.id, PostSubscription.PostStatusChange.CLOSE)
+
+
+def handle_post_open(post: Post):
+    """
+    A specific handler is triggered once it's opened
+    """
+
+    # Handle post subscriptions
+    from .subscriptions import notify_post_status_change
+
+    notify_post_status_change(post, PostSubscription.PostStatusChange.OPEN)

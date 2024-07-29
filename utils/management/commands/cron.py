@@ -12,7 +12,7 @@ from posts.services.common import compute_hotness
 from posts.tasks import (
     run_compute_movement,
     run_subscription_notify_date,
-    run_notify_milestone,
+    run_notify_milestone, job_check_post_open,
 )
 
 logger = logging.getLogger(__name__)
@@ -95,6 +95,13 @@ class Command(BaseCommand):
             close_old_connections(run_notify_milestone.send),
             trigger=CronTrigger.from_crontab("0 12 * * *"),  # Every Day at 12 PM
             id="subscription_run_notify_milestone",
+            max_instances=1,
+            replace_existing=True,
+        )
+        scheduler.add_job(
+            close_old_connections(job_check_post_open.send),
+            trigger=CronTrigger.from_crontab("45 * * * *"),  # Every Hour at :45
+            id="subscription_job_check_post_open",
             max_instances=1,
             replace_existing=True,
         )
