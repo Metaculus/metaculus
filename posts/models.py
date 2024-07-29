@@ -14,6 +14,7 @@ from django.db.models import (
     QuerySet,
 )
 from django.utils import timezone
+from pgvector.django import VectorField
 from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
@@ -245,6 +246,11 @@ class PostQuerySet(models.QuerySet):
         )
 
 
+class PostManager(models.Manager.from_queryset(PostQuerySet)):
+    def get_queryset(self):
+        return super().get_queryset().defer("embedding_vector")
+
+
 class Notebook(TimeStampedModel):
     class NotebookType(models.TextChoices):
         DISCUSSION = "discussion"
@@ -296,6 +302,12 @@ class Post(TimeStampedModel):
     scheduled_resolve_time = models.DateTimeField(null=True, blank=True)
     actual_close_time = models.DateTimeField(null=True, blank=True)
     resolved = models.BooleanField(default=False)
+
+    embedding_vector = VectorField(
+        help_text="Vector embeddings of the Post content",
+        null=True,
+        blank=True,
+    )
 
     def set_scheduled_close_time(self):
         if self.question:
@@ -439,7 +451,7 @@ class Post(TimeStampedModel):
         self.forecasts_count = self.forecasts.count()
         self.save(update_fields=["forecasts_count"])
 
-    objects = models.Manager.from_queryset(PostQuerySet)()
+    objects = PostManager()
 
     # Annotated fields
     nr_forecasters: int = 0

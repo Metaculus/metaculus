@@ -99,6 +99,11 @@ def create_post(
     # Adding projects
     obj.projects.add(*(meta_projects + main_projects))
 
+    # Run async tasks
+    from ..tasks import run_post_indexing
+
+    run_post_indexing.send(obj.id)
+
     return obj
 
 

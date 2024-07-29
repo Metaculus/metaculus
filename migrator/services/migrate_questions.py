@@ -7,13 +7,13 @@ import html2text
 from dateutil.parser import parse as date_parse
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from questions.constants import ResolutionType
 
 from migrator.utils import paginated_query
 from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
+from questions.constants import ResolutionType
 from questions.models import Question, Conditional, GroupOfQuestions, Forecast
 from utils.the_math.formulas import unscaled_location_to_string_location
 
