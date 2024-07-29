@@ -6,7 +6,7 @@ import django
 from django.core.management.base import BaseCommand
 
 from posts.models import Post
-from posts.utils import update_post_search_embedding_vector
+from posts.services.search import update_post_search_embedding_vector
 
 logger = logging.getLogger(__name__)
 
