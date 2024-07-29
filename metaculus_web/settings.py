@@ -290,6 +290,12 @@ TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY")
 # If none -> not restricted
 ALPHA_ACCESS_TOKEN = os.environ.get("ALPHA_ACCESS_TOKEN")
 
+# OpenAI configuration
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+
+# Serper Google API key
+SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
+
 ALLOWED_HOSTS = []
 CSRF_TRUSTED_ORIGINS = [FRONTEND_BASE_URL]
 INTERNAL_IPS = ["127.0.0.1"]

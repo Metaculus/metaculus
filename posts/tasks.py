@@ -3,6 +3,7 @@ import logging
 import dramatiq
 
 from posts.models import Post, PostUserSnapshot, PostSubscription
+from posts.services.search import update_post_search_embedding_vector
 
 logger = logging.getLogger(__name__)
 
@@ -56,3 +57,8 @@ def run_notify_new_comments(post_id: int):
     from posts.services.subscriptions import notify_new_comments
 
     notify_new_comments(Post.objects.get(pk=post_id))
+
+
+@dramatiq.actor
+def run_post_indexing(post_id):
+    update_post_search_embedding_vector(Post.objects.get(pk=post_id))
