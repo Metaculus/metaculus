@@ -13,7 +13,10 @@ import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
 import { Post, PostStatus, ProjectPermissions } from "@/types/post";
-import { getConditionalQuestionTitle } from "@/utils/questions";
+import {
+  extractPostStatus,
+  getConditionalQuestionTitle,
+} from "@/utils/questions";
 
 import BackgroundInfo from "../components/background_info";
 import DetailedGroupCard from "../components/detailed_group_card";
@@ -21,6 +24,7 @@ import DetailedQuestionCard from "../components/detailed_question_card";
 import ForecastMaker from "../components/forecast_maker";
 import Modbox from "../components/modbox";
 import QuestionEmbedModal from "../components/question_embed_modal";
+import QuestionHeaderInfo from "../components/question_header_info";
 import Sidebar from "../components/sidebar";
 import ShareQuestionMenu from "../components/sidebar/share_question_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
@@ -112,6 +116,9 @@ export default async function IndividualQuestion({
                 </h1>
               )}
             </div>
+
+            <QuestionHeaderInfo post={postData} />
+
             {!!postData.conditional && (
               <ConditionalTile
                 postTitle={postData.title}
