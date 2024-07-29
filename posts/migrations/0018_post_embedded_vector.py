@@ -7,7 +7,7 @@ from pgvector.django import VectorExtension
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("posts", "0016_postsubscription_cp_threshold_and_more"),
+        ("posts", "0017_post_published_at_triggered"),
     ]
 
     operations = [
