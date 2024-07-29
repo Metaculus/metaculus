@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
+from posts.services.search import perform_post_search
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from users.models import User
@@ -43,12 +44,6 @@ def get_posts_feed(
 
     # Filter by permission level
     qs = qs.filter_permission(user=user, permission=permission)
-
-    # Search
-    if search:
-        qs = qs.filter(
-            Q(title__icontains=search) | Q(author__username__icontains=search)
-        )
 
     # Author usernames
     if usernames:
@@ -138,6 +133,16 @@ def get_posts_feed(
     # Performing query override
     # Before running order_by
     qs = Post.objects.filter(pk__in=qs.distinct("id"))
+
+    # Search
+    if search:
+        qs = perform_post_search(qs, search)
+
+        if not order_by:
+            # Force ordering by search rank
+            order_by = "-rank"
+        else:
+            qs = qs.filter(rank__gte=0.3)
 
     # Ordering
     if order_by:
