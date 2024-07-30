@@ -6,18 +6,18 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questions', '0012_question_composed_forecasts'),
+        ("questions", "0012_question_composed_forecasts"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='question',
-            old_name='max',
-            new_name='range_max',
+            model_name="question",
+            old_name="max",
+            new_name="range_max",
         ),
         migrations.RenameField(
-            model_name='question',
-            old_name='min',
-            new_name='range_min',
+            model_name="question",
+            old_name="min",
+            new_name="range_min",
         ),
     ]
