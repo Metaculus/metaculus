@@ -18,7 +18,7 @@ class Command(BaseCommand):
         processed = 0
         tm = time.time()
 
-        print(f"Found {total} questions with forecasts")
+        print(f"Building CP. Found {total} questions with forecasts to process.")
 
         for question in qs.iterator(chunk_size=100):
 
@@ -32,10 +32,10 @@ class Command(BaseCommand):
             processed += 1
             print(
                 f"Processed {int(processed / total * 100)}% ({processed}/{total})"
-                f" questions. Overall duration: {round(time.time() - tm)}s",
+                f" questions. Duration: {round(time.time() - tm)}s",
                 end="\r",
             )
         print(
             f"Processed {int(processed / total * 100)}% ({processed}/{total})"
-            f" questions. Overall duration: {round(time.time() - tm)}s",
+            f" questions. Duration: {round(time.time() - tm)}s",
         )

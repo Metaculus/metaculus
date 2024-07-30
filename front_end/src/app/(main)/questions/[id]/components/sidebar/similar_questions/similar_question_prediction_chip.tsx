@@ -4,7 +4,8 @@ import classNames from "classnames";
 import { FC } from "react";
 
 import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
-import { formatPrediction, getIsForecastEmpty } from "@/utils/forecasts";
+import { getDisplayValue } from "@/utils/charts";
+import { getIsForecastEmpty } from "@/utils/forecasts";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -44,9 +45,7 @@ const SimilarPredictionChip: FC<Props> = ({
         )}
       >
         <FontAwesomeIcon icon={faUserGroup} className="!w-[13px]" />
-        <span>
-          {prediction ? formatPrediction(prediction, question.type) : ""}
-        </span>
+        <span>{prediction ? getDisplayValue(prediction, question) : ""}</span>
       </span>
     );
   }
