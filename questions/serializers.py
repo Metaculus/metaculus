@@ -1,6 +1,5 @@
 from datetime import datetime, timezone as dt_timezone
 
-from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -183,16 +182,9 @@ def serialize_question(
     serialized_data["post_id"] = question.get_post().id
 
     if with_cp:
-        forecasts = question.composed_forecasts
-
-        if (
-            question.cp_reveal_time is None
-            or question.cp_reveal_time > timezone.now()
-            or not forecasts
-        ):
-            serialized_data["forecasts"] = get_forecast_initial_dict(question)
-
-        serialized_data["forecasts"] = forecasts
+        serialized_data["forecasts"] = (
+            question.composed_forecasts or get_forecast_initial_dict(question)
+        )
 
         if (
             current_user
