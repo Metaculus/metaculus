@@ -218,6 +218,7 @@ def create_subscription_cp_change(
         type=PostSubscription.SubscriptionType.CP_CHANGE,
         cp_threshold=cp_threshold,
         # TODO: add extra logic
+        # TODO: adjust `migrator.services.migrate_subscriptions.migrate_cp_change` in the old db migrator script!
     )
 
     obj.full_clean()

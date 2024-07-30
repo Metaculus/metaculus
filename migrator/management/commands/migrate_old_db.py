@@ -13,6 +13,7 @@ from migrator.services.migrate_permissions import migrate_permissions
 from migrator.services.migrate_projects import migrate_projects
 from migrator.services.migrate_questions import migrate_questions
 from migrator.services.migrate_scoring import score_questions
+from migrator.services.migrate_subscriptions import migrate_subscriptions
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
 from migrator.services.post_migrate import post_migrate_calculate_divergence
@@ -70,6 +71,8 @@ class Command(BaseCommand):
         print("Migrated comment votes")
         migrate_permissions()
         print("Migrated permissions")
+        migrate_subscriptions(site_ids=site_ids)
+        print("Migrated post subscriptions")
 
         # scoring
         score_questions()
