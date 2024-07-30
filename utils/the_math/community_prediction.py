@@ -220,7 +220,10 @@ def minimize_forecast_history(
         intervals.append(
             forecast_history[i + 2].start_time - forecast_history[i].start_time,
         )
-    shortest_accepted_interval = sorted(intervals, reverse=True)[max_length - 2]
+    if intervals:
+        shortest_accepted_interval = sorted(intervals, reverse=True)[
+            max_length - 2 if max_length > 2 else 0
+        ]
     minimized = [forecast_history[0]]
     for i, entry in enumerate(forecast_history[1:-1]):
         if intervals[i] > shortest_accepted_interval:

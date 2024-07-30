@@ -17,7 +17,7 @@ class CommentQuerySet(models.QuerySet):
             vote_score=Coalesce(
                 SubqueryAggregate("comment_votes__direction", aggregate=Sum),
                 0,
-                output_field=IntegerField()
+                output_field=IntegerField(),
             )
         )
 
