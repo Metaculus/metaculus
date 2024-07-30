@@ -1,6 +1,8 @@
 // TODO: BE should probably return a field, that can be used as chart title
 import { differenceInMilliseconds } from "date-fns";
 
+import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
+import { UserChoiceItem } from "@/types/choices";
 import {
   Post,
   ProjectPermissions,
@@ -118,3 +120,17 @@ export function getPredictionQuestion(
     sortedQuestions[sortedQuestions.length - 1]
   );
 }
+
+export const generateUserForecasts = (
+  questions: QuestionWithNumericForecasts[]
+): UserChoiceItem[] => {
+  return questions.map((question, index) => {
+    const userForecast = question.forecasts.my_forecasts;
+    return {
+      choice: extractQuestionGroupName(question.title),
+      values: userForecast?.medians,
+      timestamps: userForecast?.timestamps,
+      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+    };
+  });
+};
