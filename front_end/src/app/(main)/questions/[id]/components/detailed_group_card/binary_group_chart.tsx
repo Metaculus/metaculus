@@ -16,6 +16,7 @@ import {
   generateChoiceItemsFromBinaryGroup,
 } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
+import { generateUserForecasts } from "@/utils/questions";
 
 import ChoicesLegend from "../choices_legend";
 import ChoicesTooltip from "../choices_tooltip";
@@ -45,7 +46,6 @@ const BinaryGroupChart: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => {
     setIsChartReady(true);
@@ -54,7 +54,7 @@ const BinaryGroupChart: FC<Props> = ({
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(questions, preselectedQuestionId)
   );
-
+  const userForecasts = generateUserForecasts(questions);
   const timestampsCount = timestamps.length;
   const prevTimestampsCount = usePrevious(timestampsCount);
   // sync BE driven data with local state
@@ -147,6 +147,7 @@ const BinaryGroupChart: FC<Props> = ({
               : TimelineChartZoomOption.TwoMonths
           }
           withZoomPicker
+          userForecasts={userForecasts}
         />
       </div>
 
