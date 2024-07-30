@@ -528,6 +528,8 @@ def migrate_post_user_snapshots():
             PostUserSnapshot.objects.bulk_create(snapshots)
             snapshots = []
 
+    PostUserSnapshot.objects.bulk_create(snapshots)
+
 
 def migrate_post_snapshots_forecasts():
     # Subquery to get the latest forecast for each user per post
@@ -573,3 +575,5 @@ def migrate_post_snapshots_forecasts():
 
         if not (processed % 25_000):
             print(f"Updated PostUserSnapshot.last_forecast_date: {processed}")
+
+    PostUserSnapshot.objects.bulk_update(bulk_update, fields=["last_forecast_date"])

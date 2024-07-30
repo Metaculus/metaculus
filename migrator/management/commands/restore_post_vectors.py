@@ -41,3 +41,5 @@ class Command(BaseCommand):
 
                     Post.objects.bulk_update(batch, fields=["embedding_vector"])
                     batch = []
+
+        Post.objects.bulk_update(batch, fields=["embedding_vector"])
