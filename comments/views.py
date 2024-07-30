@@ -10,7 +10,11 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
 from comments.models import Comment, CommentVote, CommentDiff
-from comments.serializers import CommentWriteSerializer, serialize_comment, serialize_comment_many
+from comments.serializers import (
+    CommentWriteSerializer,
+    serialize_comment,
+    serialize_comment_many,
+)
 from comments.services import create_comment
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
@@ -20,13 +24,15 @@ class CustomCommentPagination(PageNumberPagination):
     page_size = 10
 
     def get_paginated_response(self, data):
-        return Response({
-            'count': self.page.paginator.count,
-            'next': self.get_next_link(),
-            'previous': self.get_previous_link(),
-            'results': data,
-            'total_count': self.total_count
-        })
+        return Response(
+            {
+                "count": self.page.paginator.count,
+                "next": self.get_next_link(),
+                "previous": self.get_previous_link(),
+                "results": data,
+                "total_count": self.total_count,
+            }
+        )
 
 
 @api_view(["GET"])
@@ -117,7 +123,9 @@ def comment_create_api_view(request: Request):
         else None
     )
 
-    new_comment = create_comment(**serializer.validated_data, included_forecast=forecast, user=user)
+    new_comment = create_comment(
+        **serializer.validated_data, included_forecast=forecast, user=user
+    )
 
     return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)
 

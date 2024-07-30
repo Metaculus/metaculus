@@ -130,9 +130,7 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         )
 
         if raise_exception and not can:
-            raise PermissionDenied(
-                "You do not have permission to close this question"
-            )
+            raise PermissionDenied("You do not have permission to close this question")
 
         return can
 

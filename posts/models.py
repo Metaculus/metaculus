@@ -529,7 +529,8 @@ class PostSubscription(TimeStampedModel):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                name="postsubscription_unique_type_user_post", fields=["type", "user_id", "post_id"]
+                name="postsubscription_unique_type_user_post",
+                fields=["type", "user_id", "post_id"],
             )
         ]
 
