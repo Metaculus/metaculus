@@ -14,6 +14,7 @@ type Props = {
   className?: string;
   onFocus?: () => void;
   onBlur?: () => void;
+  disabled?: boolean;
 };
 
 const ForecastTextInput: FC<Props> = ({
@@ -26,6 +27,7 @@ const ForecastTextInput: FC<Props> = ({
   className,
   onFocus,
   onBlur,
+  disabled = false,
 }) => {
   const handleBlur = () => {
     if (!Number.isNaN(parseFloat(value)) && !value.endsWith("%")) {
@@ -69,6 +71,7 @@ const ForecastTextInput: FC<Props> = ({
         event.target.select();
         onFocus?.();
       }}
+      disabled={disabled}
     />
   );
 };

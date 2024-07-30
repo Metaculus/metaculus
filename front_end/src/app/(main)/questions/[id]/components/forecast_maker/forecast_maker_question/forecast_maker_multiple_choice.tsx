@@ -225,6 +225,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               inputMax={BINARY_MAX_VALUE}
               onChange={handleForecastChange}
               isDirty={isDirty}
+              disabled={!canPredict}
             />
           ))}
         </tbody>
