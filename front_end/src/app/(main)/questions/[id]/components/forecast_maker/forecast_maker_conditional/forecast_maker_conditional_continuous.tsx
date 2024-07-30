@@ -341,12 +341,15 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             onChange={(forecast, weight) =>
               handleChange(option.id, forecast, weight)
             }
+            disabled={!canPredict}
           />
         </div>
       ))}
-      <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-        {canPredict &&
-          (user ? (
+
+      {canPredict && (
+        <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
+          (
+          {user ? (
             <>
               <Button
                 variant="secondary"
@@ -398,8 +401,10 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             >
               {t("signUpButton")}
             </Button>
-          ))}
-      </div>
+          )}
+          )
+        </div>
+      )}
       {submitErrors.map((errResponse, index) => (
         <FormError key={`error-${index}`} errors={errResponse} />
       ))}
