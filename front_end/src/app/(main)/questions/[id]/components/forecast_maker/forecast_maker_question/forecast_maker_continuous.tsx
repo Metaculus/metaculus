@@ -119,7 +119,6 @@ const ForecastMakerContinuous: FC<Props> = ({
 
       {canPredict && (
         <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-          (
           {user ? (
             <>
               <Button
@@ -147,7 +146,6 @@ const ForecastMakerContinuous: FC<Props> = ({
               {t("signUpButton")}
             </Button>
           )}
-          )
         </div>
       )}
 
