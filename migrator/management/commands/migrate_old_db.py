@@ -55,6 +55,7 @@ class Command(BaseCommand):
             },
         )
 
+        # main model migration
         migrate_users()
         print("Migrated users")
         migrate_questions(site_ids=site_ids)
@@ -85,9 +86,13 @@ class Command(BaseCommand):
         print("Populated global leaderboards")
         populate_project_leaderboards()
         print("Populated project leaderboards")
-        print("Running post-migrate commands")
+
+        # stats on questions
+        print("Running calculate divergence")
         post_migrate_calculate_divergence()
+        print("Running calculate movement")
         job_compute_movement()
+        print("Running build forecasts")
         call_command("build_forecasts")
 
         # Reset sql sequences
