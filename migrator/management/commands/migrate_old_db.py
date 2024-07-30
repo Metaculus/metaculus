@@ -87,7 +87,7 @@ class Command(BaseCommand):
         populate_project_leaderboards()
         print("Populated project leaderboards")
 
-        # question stats
+        # stats on questions
         print("Running calculate divergence")
         post_migrate_calculate_divergence()
         print("Running calculate movement")
