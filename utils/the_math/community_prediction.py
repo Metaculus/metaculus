@@ -212,7 +212,7 @@ def minimize_forecast_history(
     forecast_history: list[AggregationEntry],
     max_length: int = 100,
 ) -> list[AggregationEntry]:
-    if len(forecast_history) < max_length:
+    if len(forecast_history) <= max_length:
         return forecast_history
 
     intervals = []
@@ -221,9 +221,7 @@ def minimize_forecast_history(
             forecast_history[i + 2].start_time - forecast_history[i].start_time,
         )
     if intervals:
-        shortest_accepted_interval = sorted(intervals, reverse=True)[
-            max_length - 2 if max_length > 2 else 0
-        ]
+        shortest_accepted_interval = sorted(intervals, reverse=True)[max_length - 2]
     minimized = [forecast_history[0]]
     for i, entry in enumerate(forecast_history[1:-1]):
         if intervals[i] > shortest_accepted_interval:
