@@ -102,7 +102,7 @@ export type Notebook = {
 export type Post<QT = Question> = {
   id: number;
   projects: {
-    category: Category[];
+    category?: Category[];
     topic: Topic[];
     default_project: Tournament;
     tag?: Tag[];

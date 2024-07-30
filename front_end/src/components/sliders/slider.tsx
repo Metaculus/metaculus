@@ -1,7 +1,8 @@
 "use client";
 import { clamp } from "lodash";
 import RcSlider from "rc-slider";
-import { FC, ReactNode, useEffect, useState } from "react";
+import { SemanticName } from "rc-slider/lib/interface";
+import { CSSProperties, FC, ReactNode, useEffect, useState } from "react";
 
 import "./slider.css";
 
@@ -18,6 +19,8 @@ type Props = {
   shouldSyncWithDefault?: boolean;
   arrowClassName?: string;
   marks?: Record<number, ReactNode>;
+  disabled?: boolean;
+  styles?: Partial<Record<SemanticName, CSSProperties>>;
 };
 
 const Slider: FC<Props> = ({
@@ -31,6 +34,8 @@ const Slider: FC<Props> = ({
   shouldSyncWithDefault,
   arrowClassName,
   marks,
+  disabled = false,
+  styles,
 }) => {
   const [controlledValue, setControlledValue] = useState(defaultValue);
   const [controlledStep, setControlledStep] = useState(step);
@@ -55,6 +60,8 @@ const Slider: FC<Props> = ({
         setControlledValue(roundedValue);
         onChange(roundedValue);
       }}
+      styles={styles}
+      disabled={disabled}
       handleRender={(origin) => (
         <SliderThumb
           {...origin.props}
@@ -63,14 +70,14 @@ const Slider: FC<Props> = ({
           }}
           active={!round}
           onArrowClickIn={
-            arrowStep
+            arrowStep && !disabled
               ? () => {
                   setControlledStep(arrowStep ?? step);
                 }
               : undefined
           }
           onArrowClickOut={
-            arrowStep
+            arrowStep && !disabled
               ? (direction) => {
                   const newValue = clamp(
                     controlledValue + (arrowStep ?? step) * direction,
