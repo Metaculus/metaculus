@@ -11,6 +11,13 @@ export type ChoiceItem = {
   highlighted: boolean;
 };
 
+export type UserChoiceItem = {
+  choice: string;
+  timestamps?: number[];
+  values?: number[];
+  color: ThemeColor;
+};
+
 export type ChoiceTooltipItem = {
   color: ThemeColor;
   choiceLabel: string;

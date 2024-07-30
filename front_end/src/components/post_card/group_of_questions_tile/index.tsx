@@ -15,6 +15,7 @@ import {
   generateChoiceItemsFromBinaryGroup,
   getGroupQuestionsTimestamps,
 } from "@/utils/charts";
+import { generateUserForecasts } from "@/utils/questions";
 
 type Props = {
   questions: QuestionWithForecasts[];
@@ -49,6 +50,9 @@ const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
               ? TimelineChartZoomOption.All
               : TimelineChartZoomOption.TwoMonths
           }
+          userForecasts={generateUserForecasts(
+            questions as QuestionWithNumericForecasts[]
+          )}
         />
       );
     }

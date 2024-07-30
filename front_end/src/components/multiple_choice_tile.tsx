@@ -8,7 +8,7 @@ import { VictoryThemeDefinition } from "victory";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import ChoiceIcon from "@/components/choice_icon";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { ChoiceItem } from "@/types/choices";
+import { ChoiceItem, UserChoiceItem } from "@/types/choices";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
 type Props = {
@@ -19,6 +19,7 @@ type Props = {
   withZoomPicker?: boolean;
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
+  userForecasts?: UserChoiceItem[];
 };
 
 const MultipleChoiceTile: FC<Props> = ({
@@ -29,6 +30,7 @@ const MultipleChoiceTile: FC<Props> = ({
   withZoomPicker,
   chartHeight = 100,
   chartTheme,
+  userForecasts,
 }) => {
   const t = useTranslations();
 
@@ -78,6 +80,7 @@ const MultipleChoiceTile: FC<Props> = ({
         extraTheme={chartTheme}
         defaultZoom={defaultChartZoom}
         withZoomPicker={withZoomPicker}
+        userForecasts={userForecasts}
       />
     </div>
   );
