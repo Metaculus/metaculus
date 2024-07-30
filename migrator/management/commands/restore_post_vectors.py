@@ -35,7 +35,11 @@ class Command(BaseCommand):
                 batch.append(post)
 
                 if idx % chunk_size == 0:
-                    logger.info(f"[Post Vectors Import] Imported {idx + 1}/{qs.count()}")
+                    logger.info(
+                        f"[Post Vectors Import] Imported {idx + 1}/{qs.count()}"
+                    )
 
                     Post.objects.bulk_update(batch, fields=["embedding_vector"])
                     batch = []
+
+        Post.objects.bulk_update(batch, fields=["embedding_vector"])
