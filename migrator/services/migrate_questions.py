@@ -261,8 +261,8 @@ def migrate_questions__composite(site_ids: list[int] = None):
         # Handle published_at_triggered field
         # To ensure we won't send Open notifications for old posts
         if (
-            p.published_at and
-            p.published_at <= timezone.now()
+            p.published_at
+            and p.published_at <= timezone.now()
             and p.curation_status == Post.CurationStatus.APPROVED
             and (not p.actual_close_time or p.actual_close_time >= timezone.now())
         ):

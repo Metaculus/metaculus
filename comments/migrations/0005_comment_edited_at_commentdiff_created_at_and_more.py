@@ -7,38 +7,50 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('comments', '0004_commentvote_commentvote_votes_unique_user_comment'),
+        ("comments", "0004_commentvote_commentvote_votes_unique_user_comment"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='comment',
-            name='edited_at',
-            field=models.DateTimeField(default=django.utils.timezone.now, editable=False, null=True),
+            model_name="comment",
+            name="edited_at",
+            field=models.DateTimeField(
+                default=django.utils.timezone.now, editable=False, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='commentdiff',
-            name='created_at',
-            field=models.DateTimeField(default=django.utils.timezone.now, editable=False),
+            model_name="commentdiff",
+            name="created_at",
+            field=models.DateTimeField(
+                default=django.utils.timezone.now, editable=False
+            ),
         ),
         migrations.AddField(
-            model_name='commentvote',
-            name='edited_at',
-            field=models.DateTimeField(default=django.utils.timezone.now, editable=False, null=True),
+            model_name="commentvote",
+            name="edited_at",
+            field=models.DateTimeField(
+                default=django.utils.timezone.now, editable=False, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='comment',
-            name='created_at',
-            field=models.DateTimeField(default=django.utils.timezone.now, editable=False),
+            model_name="comment",
+            name="created_at",
+            field=models.DateTimeField(
+                default=django.utils.timezone.now, editable=False
+            ),
         ),
         migrations.AlterField(
-            model_name='commentdiff',
-            name='edited_at',
-            field=models.DateTimeField(default=django.utils.timezone.now, editable=False, null=True),
+            model_name="commentdiff",
+            name="edited_at",
+            field=models.DateTimeField(
+                default=django.utils.timezone.now, editable=False, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='commentvote',
-            name='created_at',
-            field=models.DateTimeField(default=django.utils.timezone.now, editable=False),
+            model_name="commentvote",
+            name="created_at",
+            field=models.DateTimeField(
+                default=django.utils.timezone.now, editable=False
+            ),
         ),
     ]
