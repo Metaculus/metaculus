@@ -22,8 +22,9 @@ const INITIAL_NUM_OF_TAGS = 10;
 const SidebarQuestionTags: FC<Props> = ({ tagData, allowModifications }) => {
   const t = useTranslations();
 
-  const { category, tag: _tag } = tagData;
+  const { category: _category, tag: _tag } = tagData;
   const tag = _tag ?? [];
+  const category = _category ?? [];
 
   const [showAllTags, setShowAllTags] = useState(
     (tag.length ?? 0) < INITIAL_NUM_OF_TAGS

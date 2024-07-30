@@ -20,6 +20,7 @@ type Props = {
   clampStep?: number;
   onChange: (value: MultiSliderValue) => void;
   shouldSyncWithDefault?: boolean;
+  disabled?: boolean;
 };
 
 const MultiSlider: FC<Props> = ({
@@ -28,6 +29,7 @@ const MultiSlider: FC<Props> = ({
   clampStep = 0,
   onChange,
   shouldSyncWithDefault,
+  disabled = false,
 }) => {
   const [controlledValue, setControlledValue] = useState<ControlledValue>([
     value.left,
@@ -108,6 +110,7 @@ const MultiSlider: FC<Props> = ({
       step={step}
       value={controlledValue}
       range
+      disabled={disabled}
       onChange={(value) => handleValueChange(value as ControlledValue)}
       onChangeComplete={() => {
         persistedPositionOrigin.current = undefined;

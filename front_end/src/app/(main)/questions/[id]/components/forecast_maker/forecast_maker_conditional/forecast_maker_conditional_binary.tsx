@@ -250,6 +250,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
             isDirty={option.isDirty}
             onBecomeDirty={() => handleBecomeDirty(option.id)}
             communityForecast={option.communitiesForecast}
+            disabled={!canPredict}
           />
         </div>
       ))}
