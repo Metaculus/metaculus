@@ -176,7 +176,7 @@ const ForecastCard: FC<Props> = ({
 
           return (
             <PredictionChip
-              questionType={question.type}
+              question={question}
               status={post.status}
               prediction={prediction}
               resolution={question.resolution}
