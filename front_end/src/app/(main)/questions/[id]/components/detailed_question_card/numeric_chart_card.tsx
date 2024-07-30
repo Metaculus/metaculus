@@ -7,8 +7,7 @@ import NumericChart from "@/components/charts/numeric_chart";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { NumericForecast, QuestionType } from "@/types/question";
-import { getNumericChartTypeFromQuestion } from "@/utils/charts";
-import { formatPrediction } from "@/utils/forecasts";
+import { getDisplayValue } from "@/utils/charts";
 
 import CursorDetailItem from "./numeric_cursor_item";
 
@@ -93,7 +92,7 @@ const NumericChartCard: FC<Props> = ({
         />
         <CursorDetailItem
           title={t("communityPredictionLabel")}
-          text={formatPrediction(cursorData.median, questionType)}
+          text={getDisplayValue(cursorData.median, questionType, rangeMin, rangeMax, zeroPoint)}
           variant="prediction"
         />
       </div>
