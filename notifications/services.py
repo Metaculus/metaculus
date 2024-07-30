@@ -34,6 +34,14 @@ class NotificationTypeBase(Generic[T]):
 
         return notification
 
+    @classmethod
+    def send_group(cls, notifications: list[Notification]) -> str:
+        """
+        Send group of notifications of the same type
+        """
+
+        raise NotImplementedError()
+
 
 class NotificationNewComments(NotificationTypeBase):
     type = "post_new_comments"
@@ -76,3 +84,11 @@ NOTIFICATION_TYPE_REGISTRY = [
     NotificationPostStatusChange,
     NotificationPostSpecificTime,
 ]
+
+
+def get_notification_handler_by_type(
+    notification_type: str,
+) -> type[NotificationTypeBase]:
+    return next(
+        cls for cls in NOTIFICATION_TYPE_REGISTRY if cls.type == notification_type
+    )

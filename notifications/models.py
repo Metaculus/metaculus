@@ -20,3 +20,8 @@ class Notification(TimeStampedModel):
 
     params = models.JSONField()
     read_at = models.DateTimeField(null=True, db_index=True)
+
+    email_sent = models.BooleanField(default=False, db_index=True)
+
+    def mark_as_sent(self):
+        self.email_sent = True
