@@ -157,7 +157,7 @@ def get_aggregation_at_time(
     and q3s"""
     forecasts = question.forecast_set.filter(
         Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
-    )
+    ).order_by("-start_time")
     if forecasts.count() == 0:
         return None
     forecast_set = ForecastSet(
@@ -197,6 +197,7 @@ def get_user_forecast_history(question: Question) -> list[ForecastSet]:
             if f.start_time <= timestep
             and (f.end_time is None or f.end_time > timestep)
         ]
+        active_forecasts = sorted(active_forecasts, key=lambda f: f.start_time)
         if len(active_forecasts) < 1:
             continue
         forecast_set = ForecastSet(
@@ -210,24 +211,40 @@ def get_user_forecast_history(question: Question) -> list[ForecastSet]:
 
 def minimize_forecast_history(
     forecast_history: list[AggregationEntry],
-    max_length: int = 100,
 ) -> list[AggregationEntry]:
-    if len(forecast_history) <= max_length:
-        return forecast_history
+    # this is a pretty cheap algorithm that generates a minimized forecast history
+    # by taking the middle forecast of the list, then the middle of the two halves,
+    # then the middle of the four quarters, etc. 7 times, generating a maximum list
+    # of 128 forecasts close evenly spaced.
 
-    intervals = []
-    for i in range(0, len(forecast_history) - 2):
-        intervals.append(
-            forecast_history[i + 2].start_time - forecast_history[i].start_time,
-        )
-    if intervals:
-        shortest_accepted_interval = sorted(intervals, reverse=True)[max_length - 2]
-    minimized = [forecast_history[0]]
-    for i, entry in enumerate(forecast_history[1:-1]):
-        if intervals[i] > shortest_accepted_interval:
-            minimized.append(entry)
-    minimized.append(forecast_history[-1])
-    return minimized
+    def find_index_of_middle(forecasts: list[AggregationEntry]) -> int:
+        if len(forecasts) < 3:
+            return 0
+        t0 = forecasts[0].start_time
+        t2 = forecasts[-1].start_time
+        t1 = t0 + (t2 - t0) / 2
+        for i, forecast in enumerate(forecasts):
+            if forecast.start_time > t1:
+                if forecast.start_time - t1 < t1 - forecasts[i - 1].start_time:
+                    return i
+                return i - 1
+
+    minimized = []
+    # depth of 7 for ~100 forecasts
+    working_lists = [forecast_history]
+    for _ in range(7):
+        new_working_lists = []
+        for working_list in working_lists:
+            middle_index = find_index_of_middle(working_list)
+            if middle_index == 0:
+                minimized.append(working_list[0])
+                continue
+            minimized.append(working_list[middle_index])
+            new_working_lists.append(working_list[:middle_index])
+            new_working_lists.append(working_list[middle_index + 1 :])
+        working_lists = new_working_lists
+
+    return sorted(minimized, key=lambda x: x.start_time)
 
 
 def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
