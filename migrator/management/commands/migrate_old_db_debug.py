@@ -1,8 +1,7 @@
-from django.core.management import call_command
 from django.core.management.base import BaseCommand
+from django.db import connection
 
-from posts.jobs import job_compute_movement
-from ...utils import reset_sequence
+from ...services.migrate_subscriptions import migrate_subscriptions
 
 
 class Command(BaseCommand):
@@ -11,8 +10,8 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
-        job_compute_movement()
-        call_command("build_forecasts")
+        site_ids = [1]
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM posts_postsubscription;")
 
-        # Reset sql sequences
-        reset_sequence()
+        migrate_subscriptions(site_ids)
