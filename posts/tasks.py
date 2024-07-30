@@ -16,7 +16,7 @@ def run_compute_sorting_divergence(post_id):
     """
     from posts.services.common import compute_sorting_divergence
 
-    logger.info(f"Running run_compute_sorting_divergence for post_id {post_id}")
+    print(f"Running run_compute_sorting_divergence for post_id {post_id}")
 
     post = Post.objects.get(pk=post_id)
 
@@ -37,7 +37,7 @@ def run_compute_sorting_divergence(post_id):
 
     PostUserSnapshot.objects.bulk_update(bulk_update, fields=["divergence"])
 
-    logger.info(
+    print(
         f"Finished run_compute_sorting_divergence for post_id {post_id}. "
         f"Updated {len(bulk_update)} user snapshots"
     )
