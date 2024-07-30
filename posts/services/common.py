@@ -130,7 +130,11 @@ def compute_movement(post: Post) -> float | None:
         )
         if cp_now is None or cp_previous is None:
             continue
-        difference = prediction_difference_for_sorting(cp_now, cp_previous, question)
+        difference = prediction_difference_for_sorting(
+            cp_now.get_prediction_values(),
+            cp_previous.get_prediction_values(),
+            question,
+        )
         if (movement is None) or (abs(difference) > abs(movement)):
             movement = difference
     return movement
@@ -152,7 +156,9 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
         )
         for forecast in active_forecasts:
             difference = prediction_difference_for_sorting(
-                forecast.get_prediction_values(), cp, question
+                forecast.get_prediction_values(),
+                cp.get_prediction_values(),
+                question,
             )
             if (forecast.author_id not in user_divergences) or (
                 abs(user_divergences[forecast.author_id]) < abs(difference)
