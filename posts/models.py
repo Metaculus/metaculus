@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import (
     Sum,
@@ -518,8 +519,9 @@ class PostSubscription(TimeStampedModel):
     # Notification-specific fields
     comments_frequency = models.PositiveSmallIntegerField(null=True, blank=True)
     recurrence_interval = models.DurationField(null=True, blank=True)
-    # 0. -> 1.
-    milestone_step = models.FloatField(null=True, blank=True)
+    milestone_step = models.FloatField(
+        null=True, blank=True, validators=[MinValueValidator(0), MaxValueValidator(1)]
+    )
     # 0. -> 1.
     cp_threshold = models.FloatField(null=True, blank=True)
 

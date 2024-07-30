@@ -73,7 +73,3 @@ def create_comment(
         run_notify_new_comments.send(on_post.id)
 
     return obj
-
-
-def get_post_comments_count(post: Post):
-    return post.comments.filter(is_private=False).exclude(is_soft_deleted=True).count()
