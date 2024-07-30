@@ -12,6 +12,7 @@ import {
   VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
+  VictoryScatter,
   VictoryThemeDefinition,
 } from "victory";
 
@@ -27,7 +28,7 @@ import {
   TickFormat,
   TimelineChartZoomOption,
 } from "@/types/charts";
-import { ChoiceItem } from "@/types/choices";
+import { ChoiceItem, UserChoiceItem } from "@/types/choices";
 import { ThemeColor } from "@/types/theme";
 import {
   findClosestTimestamp,
@@ -50,6 +51,7 @@ type Props = {
   onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
   extraTheme?: VictoryThemeDefinition;
+  userForecasts?: UserChoiceItem[];
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -62,6 +64,7 @@ const MultipleChoiceChart: FC<Props> = ({
   onCursorChange,
   onChartReady,
   extraTheme,
+  userForecasts,
 }) => {
   const {
     ref: chartContainerRef,
@@ -194,6 +197,26 @@ const MultipleChoiceChart: FC<Props> = ({
               />
             ) : null
           )}
+
+          {userForecasts?.map((question) => {
+            return (
+              <VictoryScatter
+                key={question.choice}
+                data={question.values?.map((value, index) => ({
+                  y: value,
+                  x: question.timestamps?.[index],
+                }))}
+                style={{
+                  data: {
+                    stroke: getThemeColor(question.color),
+                    fill: "none",
+                    strokeWidth: 2,
+                  },
+                }}
+              />
+            );
+          })}
+
           <VictoryAxis
             dependentAxis
             tickValues={yScale.ticks}
