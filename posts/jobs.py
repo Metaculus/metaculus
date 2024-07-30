@@ -74,3 +74,5 @@ def job_compute_movement():
 
         if not idx % 100:
             logger.info(f"Processed {idx + 1}/{total}. ")
+
+    Post.objects.bulk_update(posts, fields=["movement"])
