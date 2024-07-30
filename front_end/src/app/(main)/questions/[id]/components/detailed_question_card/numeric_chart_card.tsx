@@ -92,7 +92,13 @@ const NumericChartCard: FC<Props> = ({
         />
         <CursorDetailItem
           title={t("communityPredictionLabel")}
-          text={getDisplayValue(cursorData.median, questionType, rangeMin, rangeMax, zeroPoint)}
+          text={getDisplayValue(
+            cursorData.median,
+            questionType,
+            rangeMin,
+            rangeMax,
+            zeroPoint
+          )}
           variant="prediction"
         />
       </div>
