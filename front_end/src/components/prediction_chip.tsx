@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
 import { PostStatus } from "@/types/post";
-import { QuestionType } from "@/types/question";
-import { formatPrediction } from "@/utils/forecasts";
+import { Question, QuestionType } from "@/types/question";
+import { getDisplayValue } from "@/utils/charts";
 
 function fmt_for_chip(
   resolution: number | string | null | undefined,
@@ -43,7 +43,7 @@ function fmt_for_chip(
 type Size = "compact" | "large";
 
 type Props = {
-  questionType: QuestionType;
+  question: Question;
   status: PostStatus;
   nr_forecasters?: number;
   prediction: number | undefined;
@@ -54,7 +54,7 @@ type Props = {
 };
 
 const PredictionChip: FC<Props> = ({
-  questionType,
+  question,
   status,
   nr_forecasters,
   prediction,
@@ -65,8 +65,8 @@ const PredictionChip: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const fmted_resolution = fmt_for_chip(resolution, questionType);
-  const fmted_prediction = fmt_for_chip(prediction, questionType);
+  const fmted_resolution = fmt_for_chip(resolution, question.type);
+  const fmted_prediction = fmt_for_chip(prediction, question.type);
 
   switch (status) {
     case PostStatus.PENDING:
@@ -136,7 +136,7 @@ const PredictionChip: FC<Props> = ({
             )}
           >
             <FontAwesomeIcon icon={faUserGroup} size="xs" />
-            {prediction ? formatPrediction(prediction, questionType) : ""}
+            {prediction ? getDisplayValue(prediction, question) : ""}
           </Chip>
           {!!nr_forecasters && (
             <p>
