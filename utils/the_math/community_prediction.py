@@ -26,7 +26,7 @@ from utils.typing import (
     Weights,
     Percentiles,
 )
- 
+
 
 class AggregationMethod(TextChoices):
     RECENCY_WEIGHTED = "recency_weighted"
@@ -156,7 +156,9 @@ def calculate_aggregation_entry(
             aggregation.q1s, aggregation.medians, aggregation.q3s = (
                 percent_point_function(aggregation.forecast_values, [25.0, 50.0, 75.0])
             )
-        aggregation.means = np.mean(forecast_set.forecasts_values, axis=0)
+        aggregation.means = np.average(
+            forecast_set.forecasts_values, weights=weights, axis=0
+        )
     if histogram and question_type == "binary":
         aggregation.histogram = get_histogram(
             [f[1] for f in forecast_set.forecasts_values], weights
