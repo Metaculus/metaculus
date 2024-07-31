@@ -22,7 +22,7 @@ from questions.serializers import (
     GroupOfQuestionsWriteSerializer,
 )
 from users.models import User
-from .models import Notebook, Post, PostSubscription
+from .models import Notebook, Post, PostSubscription, RelatedPost
 
 
 class NotebookSerializer(serializers.ModelSerializer):
@@ -35,6 +35,7 @@ class PostSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
+    related_posts = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -56,6 +57,7 @@ class PostSerializer(serializers.ModelSerializer):
             "scheduled_close_time",
             "scheduled_resolve_time",
             "maybe_try_to_resolve_at",
+            "related_posts",
         )
 
     def get_projects(self, obj: Post):
@@ -63,6 +65,12 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_author_username(self, obj: Post):
         return obj.author.username
+
+    def get_related_posts(self, obj: Post) -> list[int]:
+        related_posts = [
+            x.post2.id for x in RelatedPost.objects.filter(post1=obj).all()
+        ]
+        return related_posts
 
     def get_status(self, obj: Post):
         if obj.resolved:
