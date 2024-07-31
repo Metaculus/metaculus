@@ -22,6 +22,7 @@ import BackgroundInfo from "../components/background_info";
 import DetailedGroupCard from "../components/detailed_group_card";
 import DetailedQuestionCard from "../components/detailed_question_card";
 import ForecastMaker from "../components/forecast_maker";
+import HistogramDrawer from "../components/histogram";
 import Modbox from "../components/modbox";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
@@ -163,6 +164,9 @@ export default async function IndividualQuestion({
               }
             />
             <BackgroundInfo post={postData} />
+            {postData.question && postData.question.type === "binary" && (
+              <HistogramDrawer question={postData.question} />
+            )}
 
             <Sidebar
               postData={postData}
