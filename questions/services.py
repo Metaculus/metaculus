@@ -26,12 +26,13 @@ def get_forecast_initial_dict(question: Question) -> dict:
     else:
         data.update(
             {
-                "medians": [],
-                "q3s": [],
-                "q1s": [],
                 "my_forecasts": None,
                 "latest_pmf": [],
                 "latest_cdf": [],
+                "q1s": [],
+                "medians": [],
+                "q3s": [],
+                "means": [],
             }
         )
 
@@ -45,6 +46,7 @@ def build_question_forecasts(question: Question) -> dict:
     forecasts_data = get_forecast_initial_dict(question)
 
     aggregation_history = get_cp_summary(question)
+    latest_entry = aggregation_history[-1] if aggregation_history else None
     if question.type == "multiple_choice":
         options = cast(list[str], question.options)
         for entry in aggregation_history:
@@ -60,30 +62,34 @@ def build_question_forecasts(question: Question) -> dict:
             forecasts_data["nr_forecasters"].append(entry.num_forecasters)
         forecasts_data["latest_cdf"] = None
         forecasts_data["latest_pmf"] = (
-            None if not aggregation_history else list(aggregation_history[-1].get_pmf())
+            None if not latest_entry else list(latest_entry.get_pmf())
         )
     elif question.type == "binary":
         forecasts_data["latest_cdf"] = None
         forecasts_data["latest_pmf"] = (
-            None if not aggregation_history else list(aggregation_history[-1].get_pmf())
+            None if not latest_entry else list(latest_entry.get_pmf())
+        )
+        forecasts_data["histogram"] = (
+            None
+            if (not latest_entry or latest_entry.histogram is None)
+            else latest_entry.histogram.tolist()
         )
         if not aggregation_history:
             return forecasts_data
 
         for entry in aggregation_history:
             forecasts_data["timestamps"].append(entry.start_time.timestamp())
+            forecasts_data["q1s"].append(entry.q1s[1])
             forecasts_data["medians"].append(entry.medians[1])
             forecasts_data["q3s"].append(entry.q3s[1])
-            forecasts_data["q1s"].append(entry.q1s[1])
+            forecasts_data["means"].append(entry.means[1])
             forecasts_data["nr_forecasters"].append(entry.num_forecasters)
     elif question.type in ["numeric", "date"]:
         forecasts_data["latest_cdf"] = (
-            []
-            if not aggregation_history
-            else list(aggregation_history[-1].continuous_cdf)
+            [] if not aggregation_history else list(latest_entry.continuous_cdf)
         )
         forecasts_data["latest_pmf"] = (
-            [] if not aggregation_history else list(aggregation_history[-1].get_pmf())
+            [] if not aggregation_history else list(latest_entry.get_pmf())
         )
         if not aggregation_history:
             return forecasts_data
