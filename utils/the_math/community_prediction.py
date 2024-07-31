@@ -211,11 +211,15 @@ def get_user_forecast_history(question: Question) -> list[ForecastSet]:
 
 def minimize_forecast_history(
     forecast_history: list[AggregationEntry],
+    max_size: int = 128,
 ) -> list[AggregationEntry]:
+    if len(forecast_history) <= max_size:
+        return forecast_history
+
     # this is a pretty cheap algorithm that generates a minimized forecast history
-    # by taking the middle forecast of the list, then the middle of the two halves,
-    # then the middle of the four quarters, etc. 7 times, generating a maximum list
-    # of 128 forecasts close evenly spaced.
+    # by taking the middle (wrt start_time) forecast of the list, then the middle
+    # of the two halves, then the middle of the four quarters, etc. 7 times,
+    # generating a maximum list of 128 forecasts close evenly spaced.
 
     def find_index_of_middle(forecasts: list[AggregationEntry]) -> int:
         if len(forecasts) < 3:
@@ -230,9 +234,8 @@ def minimize_forecast_history(
                 return i - 1
 
     minimized = []
-    # depth of 7 for ~100 forecasts
-    working_lists = [forecast_history] if forecast_history else []
-    for _ in range(7):
+    working_lists = [forecast_history]
+    for _ in range(np.ceil(np.log2(max_size))):
         new_working_lists = []
         for working_list in working_lists:
             middle_index = find_index_of_middle(working_list)
