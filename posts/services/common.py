@@ -196,7 +196,7 @@ def compute_hotness():
             * 5
         )
         + (
-            # nb comments in last week * 10
+            # nr comments for last week * 10
             Coalesce(
                 SubqueryAggregate(
                     "comments__id",

@@ -19,6 +19,7 @@ from migrator.services.migrate_votes import migrate_votes
 from migrator.services.post_migrate import post_migrate_calculate_divergence
 from migrator.utils import reset_sequence
 from posts.jobs import job_compute_movement
+from posts.services.common import compute_hotness
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from scoring.models import populate_medal_exclusion_records
@@ -94,6 +95,8 @@ class Command(BaseCommand):
         job_compute_movement()
         print("Running build forecasts")
         call_command("build_forecasts")
+        print("Running compute hotness")
+        compute_hotness()
 
         # Reset sql sequences
         reset_sequence()
