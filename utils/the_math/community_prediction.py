@@ -231,7 +231,7 @@ def minimize_forecast_history(
 
     minimized = []
     # depth of 7 for ~100 forecasts
-    working_lists = [forecast_history]
+    working_lists = [forecast_history] if forecast_history else []
     for _ in range(7):
         new_working_lists = []
         for working_list in working_lists:
