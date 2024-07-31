@@ -1,6 +1,5 @@
 import logging
 
-from django.core.management import call_command
 from django.db.models import Q
 
 from posts.models import Post
@@ -33,11 +32,3 @@ def post_migrate_calculate_divergence():
             print(f"Processed {idx + 1}/{posts_total} posts")
 
     print("Finished calculate_divergence")
-
-
-def post_migrate_movements():
-    print("Running compute_movement")
-
-    call_command("compute_movement")
-
-    print("Finished compute_movement")
