@@ -24,6 +24,7 @@ export enum QuestionOrder {
   ResolveTimeAsc = "scheduled_resolve_time",
   HotDesc = "-hotness",
   HotAsc = "hotness",
+  RankDesc = "-rank",
 }
 
 export type BaseForecast = {
