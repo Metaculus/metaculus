@@ -130,6 +130,7 @@ export type Post<QT = Question> = {
   comment_count?: number;
   forecasts_count?: number;
   subscriptions?: PostSubscription[];
+  related_posts?: number[];
 };
 
 export type PostWithNotebook = Omit<Post, "notebook"> & {
