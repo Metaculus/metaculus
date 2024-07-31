@@ -1,11 +1,10 @@
 from dataclasses import dataclass, asdict
-from typing import TypeVar, Generic
 
 from notifications.models import Notification
 from posts.models import Post, PostSubscription
 from users.models import User
-
-T = TypeVar("T", bound=dataclass)
+from utils.dtypes import dataclass_from_dict
+from utils.email import send_email_with_template
 
 
 @dataclass
@@ -18,8 +17,9 @@ class NotificationPostParams:
         return NotificationPostParams(post_id=post.id, post_title=post.title)
 
 
-class NotificationTypeBase(Generic[T]):
+class NotificationTypeBase:
     type: str
+    email_template: str = None
 
     @dataclass
     class ParamsType:
@@ -35,12 +35,43 @@ class NotificationTypeBase(Generic[T]):
         return notification
 
     @classmethod
-    def send_group(cls, notifications: list[Notification]) -> str:
+    def generate_subject_group(cls, recipient: User, params: list[ParamsType]):
+        """
+        Generates subject for group emails
+        """
+
+        raise NotImplementedError()
+
+    @classmethod
+    def send_email_group(cls, recipient: User, params: list[ParamsType]):
+        """
+        Sends group emails
+        """
+
+        if cls.email_template:
+            return send_email_with_template(
+                recipient.email,
+                cls.generate_subject_group(recipient, params),
+                cls.email_template,
+                context={"recipient": recipient, "params": params},
+            )
+
+    @classmethod
+    def send_group(cls, notifications: list[Notification]):
         """
         Send group of notifications of the same type
         """
 
-        raise NotImplementedError()
+        if not notifications:
+            raise ValueError("Notification list cannot be empty")
+
+        recipient = notifications[0].recipient
+
+        # Sending emails
+        cls.send_email_group(
+            recipient=recipient,
+            params=[dataclass_from_dict(cls.ParamsType, n) for n in notifications],
+        )
 
 
 class NotificationNewComments(NotificationTypeBase):
