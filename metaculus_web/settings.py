@@ -321,3 +321,8 @@ LOGGING = {
         },
     },
 }
+
+SHELL_PLUS_IMPORTS = [
+    "import numpy as np",
+    "from datetime import datetime, timedelta, timezone as dt_timezone",
+]
