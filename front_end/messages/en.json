@@ -599,6 +599,7 @@
   "backgroundInfo": "Background Info",
   "parentBackgroundInfo": "Parent Question Background Info",
   "childBackgroundInfo": "Child Question Background Info",
+  "histogram": "Histogram",
   "expand": "Expand",
   "collapse": "Collapse",
   "resolutionCriteria": "Resolution Criteria",
