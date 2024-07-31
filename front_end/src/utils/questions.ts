@@ -9,7 +9,11 @@ import {
   PostStatus,
   PostWithForecasts,
 } from "@/types/post";
-import { Question, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  MultipleChoiceForecast,
+  Question,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 
 export function extractQuestionGroupName(title: string) {
   const match = title.match(/\((.*?)\)/);
@@ -134,3 +138,33 @@ export const generateUserForecasts = (
     };
   });
 };
+
+export function sortGroupPredictionOptions(
+  questions: QuestionWithNumericForecasts[]
+) {
+  return [...questions].sort((a, b) => {
+    const aMean = a.forecasts.medians.at(-1) ?? 0;
+    const bMean = b.forecasts.medians.at(-1) ?? 0;
+    return bMean - aMean;
+  });
+}
+
+export function sortMultipleChoicePredictions(dataset: MultipleChoiceForecast) {
+  const {
+    timestamps,
+    nr_forecasters,
+    my_forecasts,
+    latest_pmf,
+    latest_cdf,
+    ...choices
+  } = dataset;
+
+  const choicesArray = Object.entries(choices).sort(
+    ([_aChoice, aValue], [_bChoice, bValue]) => {
+      const aMean = aValue.at(-1)?.median ?? 0;
+      const bMean = bValue.at(-1)?.median ?? 0;
+      return bMean - aMean;
+    }
+  );
+  return choicesArray;
+}

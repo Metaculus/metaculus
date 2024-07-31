@@ -18,6 +18,7 @@ import {
   QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
+import { sortMultipleChoicePredictions } from "@/utils/questions";
 
 import {
   BINARY_FORECAST_PRECISION,
@@ -286,15 +287,9 @@ function generateChoiceOptions(
   dataset: MultipleChoiceForecast,
   defaultForecasts?: number[]
 ): ChoiceOption[] {
-  const {
-    timestamps,
-    nr_forecasters,
-    my_forecasts,
-    latest_pmf,
-    latest_cdf,
-    ...choices
-  } = dataset;
-  return Object.entries(choices).map(([choice, values], index) => ({
+  const sortedPredictions = sortMultipleChoicePredictions(dataset);
+
+  return sortedPredictions.map(([choice, values], index) => ({
     name: choice,
     color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
     communityForecast: values ? values.at(-1)?.median : null,
