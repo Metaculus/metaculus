@@ -41,8 +41,10 @@ export type NumericForecast = BaseForecast & {
   medians: number[];
   q3s: number[];
   q1s: number[];
+  means: number[];
   latest_pmf: number[];
   latest_cdf: number[];
+  histogram?: number[];
 };
 
 export type MultipleChoiceForecast = BaseForecast & {
