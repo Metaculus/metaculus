@@ -14,7 +14,7 @@
             can also manage your notification settings on your Metaculus settings page.
           {% endblocktrans %}
         {% endif %}
-      <p>
+      </p>
     </mj-text>
   </mj-column>
 </mj-section>
