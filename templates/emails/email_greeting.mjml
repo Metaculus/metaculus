@@ -1,0 +1,10 @@
+<mj-section background-color="#ffffff" padding-top="0px">
+  <mj-column>
+  <mj-text >
+      {% blocktrans %}
+      Happy Predicting,<br/>
+      The Metaculus Team
+      {% endblocktrans %}
+    </mj-text>
+  </mj-column>
+</mj-section>

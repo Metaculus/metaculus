@@ -718,6 +718,23 @@ async-dramatiq = ["django-dramatiq (>=0.4.0)"]
 async-rq = ["django-rq (>=0.6.0)"]
 
 [[package]]
+name = "django-mjml"
+version = "1.2"
+description = "Use MJML in Django templates"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "django-mjml-1.2.tar.gz", hash = "sha256:5a8a670614602016bac11470a0499b77c451768af32ed253983c80597bb2f449"},
+    {file = "django_mjml-1.2-py3-none-any.whl", hash = "sha256:6ede759763f46f74fb0f9346e9b10d282bb88599c077aaa11939cfb67e3b2845"},
+]
+
+[package.dependencies]
+django = ">=2.2,<5.1"
+
+[package.extras]
+requests = ["requests (>=2.24)"]
+
+[[package]]
 name = "django-redis"
 version = "5.4.0"
 description = "Full featured redis cache backend for Django."
@@ -2577,4 +2594,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.12.3"
-content-hash = "d206cc142d3f8e7730ce77e2dcea38acd1eb99a135e914fe029e972e07b6fca0"
+content-hash = "6ad9ec800c032c58ad58908dfaeb28b26f66ad2ca054250cadbf4faab8473fae"
