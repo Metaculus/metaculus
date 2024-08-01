@@ -16,7 +16,9 @@ def job_send_notification_groups():
     grouped_notifications = defaultdict(lambda: defaultdict(list))
 
     # Grouping notifications
-    for notifications in Notification.objects.filter(email_sent=False):
+    for notifications in Notification.objects.filter(
+        email_sent=False, read_at__isnull=True
+    ):
         grouped_notifications[notifications.recipient][notifications.type].append(
             notifications
         )
