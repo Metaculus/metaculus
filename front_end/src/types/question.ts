@@ -115,5 +115,5 @@ export type QuestionWithForecasts =
 export type ForecastData = {
   continuousCdf: number[] | null;
   probabilityYes: number | null;
-  probabilityYesPerCategory: number[] | null;
+  probabilityYesPerCategory: Record<string, number> | null;
 };
