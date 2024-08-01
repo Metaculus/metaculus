@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
-from django.db.models import Q, Count, F, OuterRef, Value
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import Q, F, OuterRef, Case, When, Value, IntegerField
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -15,6 +16,7 @@ from notifications.services import (
 )
 from posts.models import Post, PostSubscription
 from users.models import User
+from utils.models import ArrayLength
 
 
 def notify_post_cp_change(post: Post):
@@ -35,13 +37,13 @@ def notify_new_comments(post: Post):
             type=PostSubscription.SubscriptionType.NEW_COMMENTS,
         )
         .annotate(
-            new_comments_count=SubqueryAggregate(
+            new_comment_ids=SubqueryAggregate(
                 "post__comments__id",
                 filter=Q(
                     (
                         Q(
                             created_at__gte=Coalesce(
-                                OuterRef("last_sent_at"), Value("1970-01-01")
+                                OuterRef("last_sent_at"), OuterRef("created_at")
                             )
                         )
                     )
@@ -49,8 +51,13 @@ def notify_new_comments(post: Post):
                     & Q(is_soft_deleted=False)
                     & Q(is_private=False)
                 ),
-                aggregate=Count,
-            )
+                aggregate=ArrayAgg,
+            ),
+            new_comments_count=Case(
+                When(new_comment_ids__isnull=True, then=Value(0)),
+                default=ArrayLength("new_comment_ids"),
+                output_field=IntegerField(),
+            ),
         )
         .filter(new_comments_count__gte=F("comments_frequency"))
         .select_related("user")
@@ -63,7 +70,8 @@ def notify_new_comments(post: Post):
             user,
             NotificationNewComments.ParamsType(
                 post=NotificationPostParams.from_post(post),
-                new_comments=subscription.new_comments_count,
+                new_comments_count=subscription.new_comments_count,
+                new_comment_ids=subscription.new_comment_ids,
             ),
         )
 

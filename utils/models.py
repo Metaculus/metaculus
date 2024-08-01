@@ -37,3 +37,7 @@ def build_order_by(value: str, is_desc: bool):
     q = F(value)
 
     return q.desc(nulls_last=True) if is_desc else q.asc(nulls_last=True)
+
+
+class ArrayLength(models.Func):
+    function = "CARDINALITY"
