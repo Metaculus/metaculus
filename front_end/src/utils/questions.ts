@@ -1,5 +1,6 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import { differenceInMilliseconds } from "date-fns";
+import { differenceInMilliseconds, parseISO } from "date-fns";
+import { isNil } from "lodash";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
@@ -67,6 +68,20 @@ export function canResolveQuestion(
     !question.resolution &&
     permission &&
     [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(permission)
+  );
+}
+
+export function canPredictQuestion(post: PostWithForecasts) {
+  return (
+    post.user_permission !== ProjectPermissions.VIEWER &&
+    (post.question
+      ? post.question.open_time
+        ? parseISO(post.question.open_time) < new Date()
+        : false
+      : true) &&
+    !isNil(post.published_at) &&
+    parseISO(post.published_at) <= new Date() &&
+    post.status === PostStatus.APPROVED
   );
 }
 

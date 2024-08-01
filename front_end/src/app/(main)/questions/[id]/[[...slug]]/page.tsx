@@ -20,7 +20,10 @@ import {
   PostConditional,
 } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
-import { getConditionalQuestionTitle } from "@/utils/questions";
+import {
+  getConditionalQuestionTitle,
+  canPredictQuestion,
+} from "@/utils/questions";
 
 import BackgroundInfo from "../components/background_info";
 import DetailedGroupCard from "../components/detailed_group_card";
@@ -148,17 +151,7 @@ export default async function IndividualQuestion({
               question={postData.question}
               conditional={postData.conditional}
               groupOfQuestions={postData.group_of_questions}
-              canPredict={
-                postData.user_permission !== ProjectPermissions.VIEWER &&
-                (postData.question
-                  ? postData.question.open_time
-                    ? parseISO(postData.question.open_time) < new Date()
-                    : false
-                  : true) &&
-                !isNil(postData.published_at) &&
-                parseISO(postData.published_at) <= new Date() &&
-                postData.status === PostStatus.APPROVED
-              }
+              canPredict={canPredictQuestion(postData)}
               canResolve={
                 (postData.user_permission === ProjectPermissions.CURATOR ||
                   postData.user_permission === ProjectPermissions.ADMIN) &&
