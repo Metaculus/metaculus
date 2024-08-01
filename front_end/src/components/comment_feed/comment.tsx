@@ -10,7 +10,11 @@ import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState, useEffect } from "react";
 
-import { softDeleteComment, editComment } from "@/app/(main)/questions/actions";
+import {
+  softDeleteComment,
+  editComment,
+  createForecast,
+} from "@/app/(main)/questions/actions";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentVoter from "@/components/comment_feed/comment_voter";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -23,6 +27,16 @@ import { formatDate } from "@/utils/date_formatters";
 import IncludedForecast from "./included_forecast";
 
 import { SortOption, sortComments } from ".";
+import { CmmOverlay, CmmToggleButton } from "./comment_cmm";
+import {
+  PostStatus,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
+import { parseISO } from "date-fns";
+import { isNil } from "lodash";
+import { QuestionType } from "@/types/question";
+import { canPredictQuestion } from "@/utils/questions";
 
 const copyToClipboard = async (text: string) => {
   try {
@@ -126,6 +140,7 @@ type CommentProps = {
   onProfile?: boolean;
   treeDepth: number;
   sort: SortOption;
+  postData?: PostWithForecasts;
 };
 
 const Comment: FC<CommentProps> = ({
@@ -134,6 +149,7 @@ const Comment: FC<CommentProps> = ({
   onProfile = false,
   treeDepth,
   sort,
+  postData,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -146,7 +162,71 @@ const Comment: FC<CommentProps> = ({
     permissions = CommentPermissions.CREATOR;
   }
 
+  const userCanPredict = postData && canPredictQuestion(postData);
+  const userForecast =
+    postData?.question?.forecasts.my_forecasts?.slider_values ?? 0.5;
+
+  const [cmmState, setCmmState] = useState({
+    count: comment.changed_my_mind.count,
+    isCmmEnabled: comment.changed_my_mind.for_this_user,
+    isModalOpen: false,
+  });
+  const isCmmButtonVisible =
+    user?.id !== comment.author && !!postData?.question;
+  const isCmmButtonDisabled = !user || !userCanPredict;
+
+  // TODO: find a better way to dedect whether on mobile or not. For now we need to know in JS
+  // too and can't use tw classes
+  const isMobileScreen = window.innerWidth < 640;
+
+  const updateForecast = async (value: number) => {
+    const response = await createForecast(
+      postData?.question?.id ?? 0,
+      {
+        continuousCdf: null,
+        probabilityYes: value,
+        probabilityYesPerCategory: null,
+      },
+      value
+    );
+
+    if ("errors" in response) {
+      throw response.errors;
+    }
+
+    setCmmState({ ...cmmState, isModalOpen: false });
+  };
+
+  const onCMMToggled = (enabled: boolean) => {
+    const countInc = cmmState.isCmmEnabled == enabled ? 0 : enabled ? 1 : -1;
+    setCmmState({
+      ...cmmState,
+      isCmmEnabled: enabled,
+      count: cmmState.count + countInc,
+      isModalOpen:
+        !cmmState.isModalOpen &&
+        !cmmState.isCmmEnabled &&
+        cmmState.isCmmEnabled != enabled,
+    });
+  };
+
   const menuItems: MenuItemProps[] = [
+    {
+      hidden: !isMobileScreen || !isCmmButtonVisible,
+      id: "cmm",
+      element: (
+        <CmmToggleButton
+          comment_id={comment.id}
+          disabled={isCmmButtonDisabled}
+          onCMMToggled={onCMMToggled}
+          cmmEnabled={cmmState.isCmmEnabled}
+          count={cmmState.count}
+        />
+      ),
+      onClick: () => {
+        return null; // handled by the button element
+      },
+    },
     {
       // hidden:
       //     permissions !== CommentPermissions.CREATOR &&
@@ -219,6 +299,23 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`}>
+      <CmmOverlay
+        showForecastingUI={postData?.question?.type === QuestionType.Binary}
+        forecast={100 * userForecast}
+        updateForecast={updateForecast}
+        onClickScrollLink={() => {
+          setCmmState({ ...cmmState, isModalOpen: false });
+          const section = document.getElementById("prediction-section");
+          if (section) {
+            section.scrollIntoView({ behavior: "smooth" });
+          }
+        }}
+        isOpen={cmmState.isModalOpen}
+        onClose={() => {
+          setCmmState({ ...cmmState, isModalOpen: false });
+        }}
+      />
+
       {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
       {comment.included_forecast && (
         <IncludedForecast
@@ -295,6 +392,17 @@ const Comment: FC<CommentProps> = ({
                 userVote: comment.user_vote ?? null,
               }}
             />
+
+            {isCmmButtonVisible && !isMobileScreen && (
+              <CmmToggleButton
+                comment_id={comment.id}
+                disabled={isCmmButtonDisabled}
+                onCMMToggled={onCMMToggled}
+                cmmEnabled={cmmState.isCmmEnabled}
+                count={cmmState.count}
+              />
+            )}
+
             {!onProfile &&
               (isReplying ? (
                 <Button

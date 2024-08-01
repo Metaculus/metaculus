@@ -14,7 +14,7 @@ import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { CommentPermissions, CommentType } from "@/types/comment";
-import { ProjectPermissions } from "@/types/post";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 
 import Button from "../ui/button";
 
@@ -36,12 +36,12 @@ export function sortComments(comments: CommentType[], sort: SortOption) {
 }
 
 type Props = {
-  postId?: number;
+  postData?: PostWithForecasts;
   postPermissions?: ProjectPermissions;
   profileId?: number;
 };
 
-const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
+const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
   const t = useTranslations();
   const { user } = useAuth();
 
@@ -52,6 +52,7 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
   const [shownComments, setShownComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [nextPage, setNextPage] = useState<number>(1);
+  const postId = postData?.id
 
   function handleSortChange(newSort: SortOption) {
     if (newSort === sort) {
@@ -217,6 +218,7 @@ const CommentFeed: FC<Props> = ({ postId, postPermissions, profileId }) => {
             permissions={permissions}
             treeDepth={0}
             sort={sort}
+            postData={postData}
           />
         </div>
       ))}

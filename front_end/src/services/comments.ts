@@ -1,4 +1,3 @@
-import { SortOption } from "@/components/comment_feed";
 import { CommentType } from "@/types/comment";
 import { get, handleRequestError, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
@@ -8,7 +7,6 @@ export type getCommentsParams = {
   author?: number;
   parent_isnull?: boolean;
   page?: number;
-  sort?: SortOption;
 };
 
 export type CreateCommentParams = {
@@ -31,9 +29,13 @@ export type VoteCommentParams = {
   user: number;
 };
 
+export type ToggleCMMCommentParams = {
+  id: number;
+  enabled: boolean;
+};
+
 export type PaginatedResponse<T> = {
   count: number;
-  total_count: number;
   next: string | null;
   previous: string | null;
   results: T[];
@@ -55,20 +57,13 @@ class CommentsApi {
             comment.included_forecast.start_time
           );
         }
-        comment.created_at = new Date(comment.created_at);
         return comment;
       });
       return response;
     } catch (err) {
       return handleRequestError(err, () => {
         console.error("Error getting comments:", err);
-        return {
-          total_count: 0,
-          count: 0,
-          next: null,
-          previous: null,
-          results: [],
-        };
+        return { count: 0, next: null, previous: null, results: [] };
       });
     }
   }
@@ -131,6 +126,24 @@ class CommentsApi {
       });
     }
   }
+
+
+static async toggleCMMComment(
+  params: ToggleCMMCommentParams
+): Promise<Response | null> {
+  try {
+    return await post<null, ToggleCMMCommentParams>(
+      `/comments/${params.id}/toggle_cmm`,
+      params
+    );
+  } catch (err) {
+    return handleRequestError(err, () => {
+      console.error("Error toggling CMM on comment:", err);
+      return null;
+    });
+  }
 }
+}
+
 
 export default CommentsApi;
