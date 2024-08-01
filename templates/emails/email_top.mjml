@@ -1,5 +1,6 @@
 <mj-section background-color="#ffffff">
-  <mj-column>
-    <mj-image title="Metaculus Logo" alt="Metaculus Logo" align="left" width="60px" src="{{static_url_scheme|default:'https'}}:{% static 'metaculus_logo.png'%}"></mj-image>
-  </mj-column>
+    <mj-column>
+        <mj-image title="Metaculus Logo" alt="Metaculus Logo" align="left" width="60px"
+                  src="{{static_url_scheme|default:'https'}}:{% static 'metaculus_logo.png'%}"/>
+    </mj-column>
 </mj-section>
