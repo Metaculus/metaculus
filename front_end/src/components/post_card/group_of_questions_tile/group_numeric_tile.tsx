@@ -24,11 +24,11 @@ const GroupNumericTile: FC<Props> = ({ questions, curationStatus }) => {
           {predictionQuestion.fanName}:
         </span>
         <PredictionChip
+          question={predictionQuestion}
           prediction={predictionQuestion.forecasts.medians.at(-1)}
           resolution={predictionQuestion.resolution}
           nr_forecasters={predictionQuestion.nr_forecasters}
           status={curationStatus}
-          questionType={predictionQuestion.type}
         />
       </div>
       <FanChart

@@ -10,7 +10,7 @@ import PostsApi from "@/services/posts";
 import { StateByForecastItem } from "@/types/experiments";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { formatPrediction } from "@/utils/forecasts";
+import { getDisplayValue } from "@/utils/charts";
 import { extractQuestionGroupName } from "@/utils/questions";
 
 import MiddleVotesArrow from "./middle_votes_arrow";
@@ -231,10 +231,10 @@ function getDemocratRepublicanPrediction({
 
   return {
     democratPrediction: rawDemocratPrediction
-      ? formatPrediction(rawDemocratPrediction, demQuestion.type)
+      ? getDisplayValue(rawDemocratPrediction, demQuestion)
       : null,
     republicanPrediction: rawRepublicanPrediction
-      ? formatPrediction(rawRepublicanPrediction, repQuestion.type)
+      ? getDisplayValue(rawRepublicanPrediction, repQuestion)
       : null,
   };
 }

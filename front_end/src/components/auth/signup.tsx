@@ -3,9 +3,10 @@
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import React, { FC, useEffect, useTransition } from "react";
+import React, { FC, useEffect, useRef, useTransition } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
@@ -17,25 +18,26 @@ import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
-import useTurnstileWidget from "@/hooks/use_turnstile";
 
 type SignInModalType = {
   isOpen: boolean;
   onClose: (isOpen: boolean) => void;
 };
 
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
 const SignUpModal: FC<SignInModalType> = ({
   isOpen,
   onClose,
 }: SignInModalType) => {
   const t = useTranslations();
-  const { turnstileWidget, turnstileToken, turnstileResetWidget } =
-    useTurnstileWidget();
   const [isPending, startTransition] = useTransition();
   const { setCurrentModal } = useModal();
   const { register, watch, setValue } = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
   });
+  const turnstileRef = useRef<TurnstileInstance | undefined>();
+
   const [state, formAction] = useFormState<SignUpActionState, FormData>(
     signUpAction,
     null
@@ -45,15 +47,15 @@ const SignUpModal: FC<SignInModalType> = ({
       return;
     }
 
-    turnstileResetWidget();
-
     if (!("errors" in state)) {
       setCurrentModal({
         type: "signupSuccess",
         data: { email: watch("email"), username: watch("username") },
       });
+    } else {
+      turnstileRef.current?.reset();
     }
-  }, [turnstileResetWidget, setCurrentModal, watch, state]);
+  }, [setCurrentModal, watch, state]);
 
   return (
     <BaseModal
@@ -133,14 +135,17 @@ const SignUpModal: FC<SignInModalType> = ({
               >
                 {t("createAnAccount")}
               </Button>
-              <input
-                type="hidden"
-                defaultValue={turnstileToken}
-                {...register("turnstileToken")}
-              />
               <FormError errors={state?.errors} />
             </div>
-            {turnstileWidget}
+            {TURNSTILE_SITE_KEY && (
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={TURNSTILE_SITE_KEY}
+                options={{
+                  responseFieldName: "turnstileToken",
+                }}
+              />
+            )}
           </form>
           <div className="sm:w-80 sm:pl-4">
             <ul className="hidden leading-tight sm:block">

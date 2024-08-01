@@ -1,0 +1,72 @@
+{% comment %}
+  This tag will include the raw content inside it at the beginning of the resulting file.
+  Read more about the file-start here: https://documentation.mjml.io/#mj-raw
+{% endcomment %}
+<mj-raw position="file-start">
+  {% load i18n %}
+  {% load static %}
+</mj-raw>
+
+<mj-head>
+  <mj-font name="Diatype" href="{% static 'fonts/metac_fonts.css' %}" />
+  <mj-breakpoint width="420px" />
+
+
+  {% comment %}
+    We use two different mj-style elements. One is set to inline the styling directly into the html
+    attributes, which makes the final HTML more portable.
+    And the other is used to override some styling on smaller screens, by using a media query,
+    and !important (for overriding the inline style). This may not work on all e-mail clients,
+    so make sure the default values are reasonable.
+  {% endcomment %}
+
+  <mj-style inline="inline">
+    .quote-text {
+      font-style: italic;
+      background-color:rgba(239, 244, 244, 1);
+      padding:12px 16px;
+      font-size: 18px;
+      border-radius:8px;
+      margin-inline-start: 0px;
+      margin-inline-end: 0px;
+      margin: 18px 0px;
+    }
+
+    a {
+      color: rgba(47, 65, 85, 1);
+      font-weight: bold;
+      text-decoration: underline;
+    }
+
+    .primary-button a {
+      width: 100%;
+    }
+
+    .question_graph_img {
+      border:none;
+      display:block;
+      outline:none;
+      width:100%;
+      height: auto;
+    }
+  </mj-style>
+
+  <mj-style>
+    @media only screen and (max-width: 420px) {
+      .general-text div {
+        font-size: 14px !important;
+        line-height: 20px !important;
+      }
+    }
+  </mj-style>
+
+
+  <mj-attributes>
+    <mj-all font-family="Diatype Variable, Diatype, Arial, sans-serif" font-size="16px" > </mj-all>
+    <mj-text css-class="general-text" color="rgba(22, 28, 34, 1)" line-height="24px"/>
+    <mj-body background-color="rgb(239, 244, 244)"/>
+    <mj-section background-color="rgb(255, 255, 255)" padding-top="10px" padding-bottom="0px" />
+    <mj-class css-class="primary-button" name="primary-button" inner-padding="15px 0px" font-weight="700" font-size="18px" font-family="Diatype Variable, Diatype, Arial, sans-serif" color="rgba(0, 0, 0, 1)" width="100%" background-color="rgba(159, 209, 159, 1)" border-radius="27px"/>
+    <mj-class name="secondary-button" inner-padding="8px 13px" font-weight="500" font-size="13px" font-family="Diatype Variable" color="#2d2e2e" border="1px solid #555" background-color="rgba(255, 255, 255, 1)" border-radius="27px"/>
+  </mj-attributes>
+</mj-head>

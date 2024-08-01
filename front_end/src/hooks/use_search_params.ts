@@ -1,6 +1,6 @@
 import {
-  useRouter,
   usePathname,
+  useRouter,
   useSearchParams as usePageSearchParams,
 } from "next/navigation";
 import { useCallback, useMemo } from "react";
@@ -29,9 +29,9 @@ const useSearchParams = () => {
       params.delete(name);
 
       if (Array.isArray(val)) {
-        val.map((value) => params.append(name, encodeURIComponent(value)));
+        val.map((value) => params.append(name, value));
       } else {
-        params.append(name, encodeURIComponent(val));
+        params.append(name, val);
       }
 
       if (!withNavigation) {
@@ -75,9 +75,9 @@ const useSearchParams = () => {
       oldParams.forEach((name) => params.delete(name));
       newParams.forEach(({ name, value }) => {
         if (Array.isArray(value)) {
-          value.map((val) => params.append(name, encodeURIComponent(val)));
+          value.map((val) => params.append(name, val));
         } else {
-          params.append(name, encodeURIComponent(value));
+          params.append(name, value);
         }
       });
 

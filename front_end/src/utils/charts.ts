@@ -27,7 +27,10 @@ import {
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
-import { extractQuestionGroupName } from "@/utils/questions";
+import {
+  extractQuestionGroupName,
+  sortMultipleChoicePredictions,
+} from "@/utils/questions";
 
 export function getNumericChartTypeFromQuestion(
   type: QuestionType
@@ -65,7 +68,10 @@ export function generateNumericDomain(
       startDate = fromUnixTime(Math.min(...timestamps));
   }
 
-  return [getUnixTime(startDate), latestTimestamp];
+  return [
+    Math.max(Math.min(...timestamps), getUnixTime(startDate)),
+    latestTimestamp,
+  ];
 }
 
 export function generateTimestampXScale(
@@ -257,16 +263,9 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   }
 ): ChoiceItem[] {
   const { activeCount } = config ?? {};
+  const sortedPredictions = sortMultipleChoicePredictions(dataset);
 
-  const {
-    timestamps,
-    nr_forecasters,
-    my_forecasts,
-    latest_pmf,
-    latest_cdf,
-    ...choices
-  } = dataset;
-  return Object.entries(choices).map(([choice, values], index) => ({
+  return sortedPredictions.map(([choice, values], index) => ({
     choice,
     values: values.map((x: { median: number }) => x.median),
     color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
@@ -281,21 +280,11 @@ export function generateChoiceItemsFromBinaryGroup(
     withMinMax?: boolean;
     activeCount?: number;
     preselectedQuestionId?: number;
-    sortPredictionDesc?: boolean;
   }
 ): ChoiceItem[] {
-  const { withMinMax, activeCount, preselectedQuestionId, sortPredictionDesc } =
-    config ?? {};
+  const { withMinMax, activeCount, preselectedQuestionId } = config ?? {};
 
-  const sortedQuestions = sortPredictionDesc
-    ? [...questions].sort((a, b) => {
-        const aMean = a.forecasts.medians.at(-1) ?? 0;
-        const bMean = b.forecasts.medians.at(-1) ?? 0;
-        return bMean - aMean;
-      })
-    : questions;
-
-  return sortedQuestions.map((q, index) => {
+  return questions.map((q, index) => {
     let active = true;
     if (preselectedQuestionId !== undefined) {
       active = q.id === preselectedQuestionId;

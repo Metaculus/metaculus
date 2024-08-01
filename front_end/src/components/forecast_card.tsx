@@ -19,6 +19,7 @@ import {
   getGroupQuestionsTimestamps,
   getNumericChartTypeFromQuestion,
 } from "@/utils/charts";
+import { sortGroupPredictionOptions } from "@/utils/questions";
 
 type Props = {
   post: PostWithForecasts;
@@ -75,13 +76,13 @@ const ForecastCard: FC<Props> = ({
         }
         case QuestionType.Binary:
           const visibleChoicesCount = 3;
-          const timestamps = getGroupQuestionsTimestamps(
+          const sortedQuestions = sortGroupPredictionOptions(
             questions as QuestionWithNumericForecasts[]
           );
-          const choices = generateChoiceItemsFromBinaryGroup(
-            questions as QuestionWithNumericForecasts[],
-            { activeCount: visibleChoicesCount, sortPredictionDesc: true }
-          );
+          const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
+          const choices = generateChoiceItemsFromBinaryGroup(sortedQuestions, {
+            activeCount: visibleChoicesCount,
+          });
           return (
             <MultipleChoiceTile
               choices={choices}
@@ -176,7 +177,7 @@ const ForecastCard: FC<Props> = ({
 
           return (
             <PredictionChip
-              questionType={question.type}
+              question={question}
               status={post.status}
               prediction={prediction}
               resolution={question.resolution}

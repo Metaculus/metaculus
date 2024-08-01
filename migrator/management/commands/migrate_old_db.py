@@ -19,9 +19,11 @@ from migrator.services.migrate_votes import migrate_votes
 from migrator.services.post_migrate import post_migrate_calculate_divergence
 from migrator.utils import reset_sequence
 from posts.jobs import job_compute_movement
+from posts.services.common import compute_hotness
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from scoring.models import populate_medal_exclusion_records
+from utils.find_related_posts import populated_all_related_posts
 
 
 class Command(BaseCommand):
@@ -55,6 +57,7 @@ class Command(BaseCommand):
             },
         )
 
+        # main model migration
         migrate_users()
         print("Migrated users")
         migrate_questions(site_ids=site_ids)
@@ -85,10 +88,18 @@ class Command(BaseCommand):
         print("Populated global leaderboards")
         populate_project_leaderboards()
         print("Populated project leaderboards")
-        print("Running post-migrate commands")
+
+        # stats on questions
+        print("Running calculate divergence")
         post_migrate_calculate_divergence()
+        print("Running calculate movement")
         job_compute_movement()
+        print("Running build forecasts")
         call_command("build_forecasts")
+        print("Running compute hotness")
+        compute_hotness()
+        print("Finding related posts")
+        populated_all_related_posts()
 
         # Reset sql sequences
         reset_sequence()
