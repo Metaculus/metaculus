@@ -45,7 +45,7 @@ export default function DropdownMenu({
         className="absolute right-0 z-50 mt-1 flex origin-top-right flex-col overflow-y-auto rounded border border-gray-500 bg-gray-0 text-sm drop-shadow-lg dark:border-gray-500-dark dark:bg-gray-0-dark"
       >
         {items
-          .filter((x) => x.hidden !== false)
+          .filter((x) => x.hidden !== true)
           .map((item) => (
             <MenuItem as={Fragment} key={item.id}>
               {({}) =>
