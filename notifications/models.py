@@ -8,8 +8,6 @@ class Notification(TimeStampedModel):
     Platform notifications.
     Will be used to display in-app notifications AND for sending batch emails once per hour
     (stack notifications of the same type)
-
-    # TODO: add 1h email sender service
     """
 
     type = models.CharField(db_index=True)
