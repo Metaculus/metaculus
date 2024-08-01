@@ -1,0 +1,28 @@
+<mj-table container-background-color="#eff4f4">
+  <tr>
+    <th style="font-weight: bold; padding: 4px 2px 4px 0; text-align: left">Option</th>
+    {% if show_cp %}
+      {% if options.0.old_cp %}
+        <th style="font-weight: bold; padding: 4px 2px; text-align: right">Community then</th>
+      {% endif %}
+      <th style="font-weight: bold; padding: 4px 2px; text-align: right">Community now</th>
+    {% endif %}
+    {% if options.0.user_prediction %}
+      <th style="font-weight: bold; padding: 4px 0 4px 2px; text-align: right">Your last prediction</th>
+    {% endif %}
+  </tr>
+  {% for option in options %}
+    <tr>
+      <td style="padding: 4px 2px 4px 0; text-align: left">{{ option.label }}</td>
+      {% if show_cp %}
+        {% if option.old_cp %}
+          <td style="padding: 4px 2px; text-align: right">{{ option.old_cp }}</td>
+        {% endif %}
+        <td style="padding: 4px 2px; text-align: right">{{ option.new_cp }}</td>
+      {% endif %}
+      {% if option.user_prediction %}
+        <td style="padding: 4px 0 4px 2px; text-align: right">{{ option.user_prediction }}</td>
+      {% endif %}
+    </tr>
+  {% endfor %}
+</mj-table>
