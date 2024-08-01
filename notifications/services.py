@@ -94,6 +94,7 @@ class NotificationPostStatusChange(NotificationTypeBase):
 
 class NotificationPostSpecificTime(NotificationTypeBase):
     type = "post_specific_time"
+    email_template = "emails/post_specific_time.html"
 
     @dataclass
     class ParamsType:

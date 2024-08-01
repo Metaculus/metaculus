@@ -20,3 +20,7 @@ def build_frontend_password_reset_url(user_id: int, token: str):
     return build_frontend_url(
         f"/accounts/reset?{urlencode({'user_id': user_id, 'token': token})}"
     )
+
+
+def build_question_graph_image_url(question_id: int):
+    return build_frontend_url(f"/questions/{question_id}/api/generate-preview")
