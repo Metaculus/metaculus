@@ -13,10 +13,8 @@ import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
 import { Post, PostStatus, ProjectPermissions } from "@/types/post";
-import {
-  extractPostStatus,
-  getConditionalQuestionTitle,
-} from "@/utils/questions";
+import { QuestionType } from "@/types/question";
+import { getConditionalQuestionTitle } from "@/utils/questions";
 
 import BackgroundInfo from "../components/background_info";
 import DetailedGroupCard from "../components/detailed_group_card";
@@ -164,9 +162,10 @@ export default async function IndividualQuestion({
               }
             />
             <BackgroundInfo post={postData} />
-            {postData.question && postData.question.type === "binary" && (
-              <HistogramDrawer question={postData.question} />
-            )}
+            {!!postData.question &&
+              postData.question.type === QuestionType.Binary && (
+                <HistogramDrawer question={postData.question} />
+              )}
 
             <Sidebar
               postData={postData}
