@@ -21,6 +21,10 @@ export type CommentType = {
   vote_score?: number;
   user_vote: VoteDirection;
   children: CommentType[];
+  changed_my_mind: {
+    for_this_user: boolean;
+     count: number;
+  }
 };
 
 export type ForecastType = {

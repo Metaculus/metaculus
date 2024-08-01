@@ -1,7 +1,7 @@
 "use client";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
@@ -44,6 +44,10 @@ const ForecastMakerBinary: FC<Props> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
+
+  useEffect(() => {
+    setForecast(prevForecastValue);
+  }, [prevForecast]);
 
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);

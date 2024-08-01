@@ -136,7 +136,7 @@ export default async function IndividualNotebook({
               {t("comments")}
             </h2>
             <CommentFeed
-              postId={postData.id}
+              postData={postData}
               postPermissions={postData.user_permission}
             />
           </div>
