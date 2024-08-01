@@ -6,6 +6,7 @@ import { FC, useCallback, useEffect, useState, ReactNode } from "react";
 import ChoiceIcon from "@/components/choice_icon";
 import Slider from "@/components/sliders/slider";
 import useAppTheme from "@/hooks/use_app_theme";
+import { Resolution } from "@/types/post";
 import { ThemeColor } from "@/types/theme";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
@@ -25,6 +26,7 @@ type Props<T> = {
   isRowDirty?: boolean;
   menu?: ReactNode;
   disabled?: boolean;
+  resolution?: Resolution | null;
 };
 
 const ForecastChoiceOption = <T = string,>({
@@ -41,6 +43,7 @@ const ForecastChoiceOption = <T = string,>({
   isRowDirty,
   menu,
   disabled = false,
+  resolution,
 }: Props<T>) => {
   const inputDisplayValue = forecastValue
     ? forecastValue?.toString() + "%"
@@ -104,6 +107,8 @@ const ForecastChoiceOption = <T = string,>({
       <tr
         className={classNames({
           "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
+          "bg-gradient-to-r from-purple-200 to-gray-0 bg-fixed dark:from-purple-200-dark dark:to-gray-0-dark":
+            resolution === choiceName,
         })}
       >
         <th className="w-full border-t border-gray-300 p-2 text-left text-sm font-bold leading-6 dark:border-gray-300-dark sm:w-auto sm:min-w-[10rem] sm:text-base">
