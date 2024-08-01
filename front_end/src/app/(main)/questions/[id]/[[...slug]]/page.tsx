@@ -8,19 +8,25 @@ import { getTranslations } from "next-intl/server";
 
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
+import ConditionalTimeline from "@/components/conditional_timeline";
 import Button from "@/components/ui/button";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
-import { Post, PostStatus, ProjectPermissions } from "@/types/post";
-import { QuestionType } from "@/types/question";
+import {
+  Post,
+  PostStatus,
+  ProjectPermissions,
+  PostConditional,
+} from "@/types/post";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { getConditionalQuestionTitle } from "@/utils/questions";
 
 import BackgroundInfo from "../components/background_info";
 import DetailedGroupCard from "../components/detailed_group_card";
 import DetailedQuestionCard from "../components/detailed_question_card";
 import ForecastMaker from "../components/forecast_maker";
-import HistogramDrawer from "../components/histogram";
+import HistogramDrawer from "../components/histogram_drawer";
 import Modbox from "../components/modbox";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
@@ -118,13 +124,8 @@ export default async function IndividualQuestion({
 
             <QuestionHeaderInfo post={postData} />
 
-            {!!postData.conditional && (
-              <ConditionalTile
-                postTitle={postData.title}
-                conditional={postData.conditional}
-                curationStatus={postData.status}
-                withNavigation
-              />
+            {!!postData.question && (
+              <DetailedQuestionCard question={postData.question} />
             )}
             {!!postData.group_of_questions && (
               <DetailedGroupCard
@@ -132,8 +133,13 @@ export default async function IndividualQuestion({
                 preselectedQuestionId={preselectedGroupQuestionId}
               />
             )}
-            {!!postData.question && (
-              <DetailedQuestionCard question={postData.question} />
+            {!!postData.conditional && (
+              <ConditionalTile
+                postTitle={postData.title}
+                conditional={postData.conditional}
+                curationStatus={postData.status}
+                withNavigation
+              />
             )}
             <ForecastMaker
               postId={postData.id}
@@ -161,12 +167,15 @@ export default async function IndividualQuestion({
                 postData.status === PostStatus.APPROVED
               }
             />
+            {!!postData.conditional && (
+              <ConditionalTimeline
+                conditional={
+                  postData.conditional as PostConditional<QuestionWithNumericForecasts>
+                }
+              />
+            )}
             <BackgroundInfo post={postData} />
-            {!!postData.question &&
-              postData.question.type === QuestionType.Binary && (
-                <HistogramDrawer question={postData.question} />
-              )}
-
+            <HistogramDrawer post={postData} />
             <Sidebar
               postData={postData}
               allowModifications={allowModifications}
