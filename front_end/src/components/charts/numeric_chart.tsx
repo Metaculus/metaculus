@@ -33,13 +33,14 @@ import {
   Scale,
   TimelineChartZoomOption,
 } from "@/types/charts";
+import { Resolution } from "@/types/post";
 import { NumericForecast, QuestionType } from "@/types/question";
 import {
   generateNumericDomain,
   generateTimestampXScale,
   getDisplayValue,
+  scaleResolutionLocation,
 } from "@/utils/charts";
-import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import XTickLabel from "./primitives/x_tick_label";
 
@@ -56,6 +57,8 @@ type Props = {
   rangeMax: number | null;
   zeroPoint: number | null;
   extraTheme?: VictoryThemeDefinition;
+  resolution?: Resolution | null;
+  derivRatio?: number;
 };
 
 const NumericChart: FC<Props> = ({
@@ -71,6 +74,8 @@ const NumericChart: FC<Props> = ({
   rangeMax,
   zeroPoint,
   extraTheme,
+  resolution,
+  derivRatio,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -218,6 +223,27 @@ const NumericChart: FC<Props> = ({
               },
             }}
           />
+
+          {resolution && (
+            <VictoryScatter
+              data={getResolutionData({
+                questionType,
+                resolution,
+                dataset,
+                rangeMin,
+                rangeMax,
+                derivRatio,
+              })}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.purple["800"]),
+                  fill: "none",
+                  strokeWidth: 2.5,
+                },
+              }}
+            />
+          )}
+
           <VictoryAxis
             dependentAxis
             style={{
@@ -339,6 +365,77 @@ function buildChartData({
     yScale,
     points,
   };
+}
+
+function getResolutionData({
+  questionType,
+  resolution,
+  dataset,
+  rangeMin,
+  rangeMax,
+  derivRatio,
+}: {
+  questionType: QuestionType;
+  resolution: Resolution;
+  rangeMin: number | null;
+  rangeMax: number | null;
+  dataset: NumericForecast;
+  derivRatio?: number;
+}) {
+  switch (questionType) {
+    case QuestionType.Binary: {
+      // format data for binary question
+      return [
+        {
+          y: resolution === "no" ? rangeMin ?? 0 : rangeMax ?? 1,
+          x: dataset.timestamps.at(-1),
+          symbol: "diamond",
+          size: 4,
+        },
+      ];
+    }
+    case QuestionType.Numeric: {
+      // format data for numerical question
+      const scaledResolution = scaleResolutionLocation(
+        Number(resolution),
+        rangeMin ?? 0,
+        rangeMax ?? 1,
+        derivRatio
+      );
+
+      console.log(scaledResolution);
+      return [
+        {
+          y: scaledResolution,
+          x: dataset.timestamps.at(-1),
+          symbol: "diamond",
+          size: 4,
+        },
+      ];
+    }
+    case QuestionType.Date: {
+      // format data for date question
+      const dateTimestamp = new Date(resolution).getTime() / 1000;
+      const scaledResolution = scaleResolutionLocation(
+        dateTimestamp,
+        rangeMin ?? 0,
+        rangeMax ?? 1,
+        derivRatio
+      );
+      console.log(dateTimestamp);
+      console.log(scaledResolution);
+      return [
+        {
+          y: scaledResolution,
+          x: dataset.timestamps.at(-1),
+          symbol: "diamond",
+          size: 4,
+        },
+      ];
+    }
+    default:
+      return;
+  }
 }
 
 export default React.memo(NumericChart);

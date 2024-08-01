@@ -13,6 +13,7 @@ import {
 import ResolutionIcon from "@/components/icons/resolution";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import RadioButton from "@/components/ui/radio_button";
+import { Resolution } from "@/types/post";
 import {
   Bounds,
   Quartiles,
@@ -28,7 +29,7 @@ export type ConditionalTableOption = {
   userQuartiles: Quartiles | null;
   communityQuartiles: Quartiles;
   isDirty: boolean;
-  resolution: string | null;
+  resolution: Resolution | null;
   menu?: ReactNode;
 };
 

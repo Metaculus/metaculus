@@ -46,6 +46,8 @@ const QuestionNumericTile: FC<Props> = ({
           rangeMax={question.range_max}
           zeroPoint={question.zero_point}
           defaultZoom={defaultChartZoom}
+          resolution={question.resolution}
+          derivRatio={question.possibilities.scale?.deriv_ratio}
         />
       </div>
     </div>

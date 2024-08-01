@@ -164,6 +164,24 @@ export function scaleInternalLocation(
   return scaled_location;
 }
 
+export function scaleResolutionLocation(
+  resolution: number,
+  rangeMin: number,
+  rangeMax: number,
+  derivRatio?: number
+) {
+  let scaledResolution = null;
+  if (derivRatio && derivRatio > 1) {
+    scaledResolution =
+      Math.log(
+        ((resolution - rangeMin) * (derivRatio - 1)) / (rangeMax - rangeMin) + 1
+      ) / Math.log(derivRatio);
+  } else {
+    scaledResolution = (resolution - rangeMin) / (rangeMax - rangeMin);
+  }
+  return scaledResolution;
+}
+
 /**
  * Returns the display value of an internal location given the
  * details of the question
