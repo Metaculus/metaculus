@@ -23,8 +23,8 @@ export type CommentType = {
   children: CommentType[];
   changed_my_mind: {
     for_this_user: boolean;
-     count: number;
-  }
+    count: number;
+  };
 };
 
 export type ForecastType = {
