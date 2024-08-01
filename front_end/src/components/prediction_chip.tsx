@@ -1,30 +1,35 @@
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
-import { PostStatus } from "@/types/post";
+import { PostStatus, Resolution } from "@/types/post";
 import { Question, QuestionType } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
+import { formatDate } from "@/utils/date_formatters";
 
 function fmt_for_chip(
   resolution: number | string | null | undefined,
-  questionType: QuestionType
+  questionType: QuestionType,
+  locale: string
 ) {
   let fmted_resolution = null;
+
   resolution = String(resolution);
+
   if (resolution === "null" || resolution === "undefined") {
     fmted_resolution = "Annulled";
   } else if (["yes", "no"].includes(resolution)) {
     fmted_resolution = resolution.charAt(0).toUpperCase() + resolution.slice(1);
   } else if (questionType === QuestionType.Date) {
-    if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
-      fmted_resolution = String(new Date(Number(resolution) * 1000)).split(
-        "T"
-      )[0];
+    if (resolution === "ambiguous") {
+      // should we have this workaround?
+      fmted_resolution = resolution;
+    } else if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
+      fmted_resolution = formatDate(locale, new Date(Number(resolution)));
     } else {
-      fmted_resolution = resolution.split("T")[0];
+      fmted_resolution = formatDate(locale, new Date(resolution));
     }
   } else if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
     fmted_resolution = parseFloat(Number(resolution).toPrecision(3));
@@ -47,7 +52,7 @@ type Props = {
   status: PostStatus;
   nr_forecasters?: number;
   prediction: number | undefined;
-  resolution: string | null;
+  resolution: Resolution | null;
   size?: Size;
   className?: string;
   chipClassName?: string;
@@ -64,9 +69,9 @@ const PredictionChip: FC<Props> = ({
   size,
 }) => {
   const t = useTranslations();
-
-  const fmted_resolution = fmt_for_chip(resolution, question.type);
-  const fmted_prediction = fmt_for_chip(prediction, question.type);
+  const locale = useLocale();
+  const fmted_resolution = fmt_for_chip(resolution, question.type, locale);
+  const fmted_prediction = fmt_for_chip(prediction, question.type, locale);
 
   switch (status) {
     case PostStatus.PENDING:
