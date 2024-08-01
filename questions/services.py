@@ -323,9 +323,11 @@ def create_forecast(
         prev_forecasts.end_time = now
         prev_forecasts.save()
 
-    probability_yes_per_category_arr = []
-    for option in question.options:
-        probability_yes_per_category_arr.append(probability_yes_per_category[option])
+    probability_yes_per_category_arr = None
+    if question.options:
+        probability_yes_per_category_arr = []
+        for option in question.options:
+            probability_yes_per_category_arr.append(probability_yes_per_category[option])
 
     forecast = Forecast.objects.create(
         question=question,
