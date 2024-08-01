@@ -71,7 +71,8 @@ class NotificationNewComments(NotificationTypeBase):
     @dataclass
     class ParamsType:
         post: NotificationPostParams
-        new_comments: int
+        new_comments_count: int
+        new_comment_ids: list[int]
 
 
 class NotificationPostMilestone(NotificationTypeBase):
