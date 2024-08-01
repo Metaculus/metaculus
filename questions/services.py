@@ -307,7 +307,7 @@ def create_forecast(
     user: User = None,
     continuous_cdf: list[float] = None,
     probability_yes: float = None,
-    probability_yes_per_category: list[float] = None,
+    probability_yes_per_category: dict[str, float] = None,
     slider_values=None,
     **kwargs,
 ):
@@ -323,6 +323,10 @@ def create_forecast(
         prev_forecasts.end_time = now
         prev_forecasts.save()
 
+    probability_yes_per_category_arr = []
+    for option in question.options:
+        probability_yes_per_category_arr.append(probability_yes_per_category[option])
+
     forecast = Forecast.objects.create(
         question=question,
         author=user,
@@ -330,7 +334,7 @@ def create_forecast(
         end_time=None,
         continuous_cdf=continuous_cdf,
         probability_yes=probability_yes,
-        probability_yes_per_category=probability_yes_per_category,
+        probability_yes_per_category=probability_yes_per_category_arr,
         distribution_components=None,
         slider_values=slider_values,
         post=post,

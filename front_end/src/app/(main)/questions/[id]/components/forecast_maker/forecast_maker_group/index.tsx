@@ -7,6 +7,7 @@ import {
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { sortGroupPredictionOptions } from "@/utils/questions";
 
 import ForecastMakerGroupBinary from "./forecast_maker_group_binary";
 import ForecastMakerGroupContinuous from "./forecast_maker_group_continuous";
@@ -42,10 +43,13 @@ const ForecastMakerGroup: FC<Props> = ({
 
     switch (tileType) {
       case QuestionType.Binary:
+        const sortedQuestions = sortGroupPredictionOptions(
+          questions as QuestionWithNumericForecasts[]
+        );
         return (
           <ForecastMakerGroupBinary
             postId={postId}
-            questions={questions as QuestionWithNumericForecasts[]}
+            questions={sortedQuestions}
             permission={permission}
             canResolve={canResolve}
             canPredict={canPredict}
