@@ -114,6 +114,7 @@ class NotificationNewComments(NotificationTypeBase):
 
             data.append(
                 {
+                    "has_mention": has_mention,
                     "author_username": comment.author.username,
                     "preview_text": preview_text,
                     "url": build_post_comment_url(
@@ -126,26 +127,38 @@ class NotificationNewComments(NotificationTypeBase):
 
     @classmethod
     def get_email_context_group(cls, notifications: list[Notification]):
-        # TODO: GROUP BY NOTIFICATIONS OF THE SAME POST_ID!!!
         # TODO: add [...read_more...]
-        notifications_data = []
         recipient = notifications[0].recipient
 
+        post_notifications = {}
+
         for notification in notifications:
+            post_id = notification.params["post"]["post_id"]
             preview_comments, has_mention = cls.get_comments(
                 recipient.username, notification.params["new_comment_ids"]
             )
 
-            notifications_data.append(
-                {
+            if not post_notifications.get(post_id):
+                post_notifications[post_id] = {
                     **notification.params,
-                    "comments": preview_comments,
-                    "has_mention": has_mention,
+                    "comments": [],
+                    "has_mention": False,
                 }
+
+            post_notifications[post_id]["comments"] += preview_comments
+            if has_mention:
+                post_notifications[post_id]["has_mention"] = True
+
+            post_notifications[post_id]["comments"] = sorted(
+                post_notifications[post_id]["comments"],
+                key=lambda x: x["has_mention"],
+                reverse=True,
             )
 
         # Comments with mention go first
-        notifications_data = sorted(notifications_data, key=lambda x: x["has_mention"], reverse=True)
+        notifications_data = sorted(
+            post_notifications.values(), key=lambda x: x["has_mention"], reverse=True
+        )
 
         return {"recipient": recipient, "notifications": notifications_data}
 
