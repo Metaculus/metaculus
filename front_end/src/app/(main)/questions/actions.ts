@@ -272,7 +272,6 @@ export async function toggleCMMComment(cmmParam: ToggleCMMCommentParams) {
   }
 }
 
-
 export async function searchUsers(query: string) {
   try {
     return await ProfileApi.searchUsers(query);

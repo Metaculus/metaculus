@@ -52,7 +52,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
   const [shownComments, setShownComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [nextPage, setNextPage] = useState<number>(1);
-  const postId = postData?.id
+  const postId = postData?.id;
 
   function handleSortChange(newSort: SortOption) {
     if (newSort === sort) {
