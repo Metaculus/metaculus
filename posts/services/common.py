@@ -235,14 +235,14 @@ def resolve_post(post: Post):
     post.set_resolved()
 
     run_notify_post_status_change.send(
-        post.id, PostSubscription.PostStatusChange.RESOLVE
+        post.id, PostSubscription.PostStatusChange.RESOLVED
     )
 
 
 def close_post(post: Post):
     post.set_actual_close_time()
 
-    run_notify_post_status_change.send(post.id, PostSubscription.PostStatusChange.CLOSE)
+    run_notify_post_status_change.send(post.id, PostSubscription.PostStatusChange.CLOSED)
 
 
 def handle_post_open(post: Post):

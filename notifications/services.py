@@ -85,6 +85,7 @@ class NotificationPostMilestone(NotificationTypeBase):
 
 class NotificationPostStatusChange(NotificationTypeBase):
     type = "post_status_change"
+    email_template = "emails/post_status_change.html"
 
     @dataclass
     class ParamsType:
