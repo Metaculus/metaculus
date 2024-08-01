@@ -15,7 +15,10 @@ import {
   generateChoiceItemsFromBinaryGroup,
   getGroupQuestionsTimestamps,
 } from "@/utils/charts";
-import { generateUserForecasts, sortGroupPredictionOptions } from "@/utils/questions";
+import {
+  generateUserForecasts,
+  sortGroupPredictionOptions,
+} from "@/utils/questions";
 
 type Props = {
   questions: QuestionWithForecasts[];

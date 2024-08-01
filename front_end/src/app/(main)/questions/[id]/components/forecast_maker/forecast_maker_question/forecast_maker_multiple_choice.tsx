@@ -165,9 +165,14 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
     if (!isForecastValid) return;
 
-    const forecastValue = choicesForecasts.map((el) =>
-      round(el.forecast! / 100, BINARY_FORECAST_PRECISION)
-    );
+    const forecastValue: Record<string, number> = {};
+
+    choicesForecasts.forEach((el) => {
+      forecastValue[el.name] = round(
+        el.forecast! / 100,
+        BINARY_FORECAST_PRECISION
+      );
+    });
 
     setIsSubmitting(true);
     const response = await createForecast(
