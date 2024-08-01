@@ -1,18 +1,19 @@
 "use client";
 
-import React, { useState, forwardRef, FC } from "react";
-import clsx from "clsx";
-import { toggleCMMComment } from "@/app/(main)/questions/actions";
-import Button from "@/components/ui/button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronLeft,
   faChevronRight,
   faCaretUp,
 } from "@fortawesome/free-solid-svg-icons";
-import ForecastTextInput from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_text_input";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import clsx from "clsx";
 import { useTranslations } from "next-intl";
+import React, { useState, forwardRef, FC } from "react";
+
+import ForecastTextInput from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_text_input";
+import { toggleCMMComment } from "@/app/(main)/questions/actions";
+import Button from "@/components/ui/button";
+
 import BaseModal from "../base_modal";
 
 export const BINARY_MIN_VALUE = 0.001;
@@ -147,7 +148,7 @@ interface CmmOverlayProps {
   isOpen: boolean;
   onClose: () => void;
 }
-export const CmmOverlay: FC<CmmOverlayProps> = ({
+const CmmOverlay: FC<CmmOverlayProps> = ({
   forecast,
   updateForecast,
   onClickScrollLink,
@@ -182,10 +183,7 @@ interface CmmToggleButtonProps {
   count: number;
 }
 
-export const CmmToggleButton = forwardRef<
-  HTMLButtonElement,
-  CmmToggleButtonProps
->(
+const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
   (
     {
       comment_id,
@@ -248,3 +246,7 @@ export const CmmToggleButton = forwardRef<
     );
   }
 );
+
+CmmToggleButton.displayName = "CmmToggleButton";
+
+export { CmmToggleButton, CmmOverlay };

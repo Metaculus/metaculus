@@ -127,23 +127,21 @@ class CommentsApi {
     }
   }
 
-
-static async toggleCMMComment(
-  params: ToggleCMMCommentParams
-): Promise<Response | null> {
-  try {
-    return await post<null, ToggleCMMCommentParams>(
-      `/comments/${params.id}/toggle_cmm`,
-      params
-    );
-  } catch (err) {
-    return handleRequestError(err, () => {
-      console.error("Error toggling CMM on comment:", err);
-      return null;
-    });
+  static async toggleCMMComment(
+    params: ToggleCMMCommentParams
+  ): Promise<Response | null> {
+    try {
+      return await post<null, ToggleCMMCommentParams>(
+        `/comments/${params.id}/toggle_cmm`,
+        params
+      );
+    } catch (err) {
+      return handleRequestError(err, () => {
+        console.error("Error toggling CMM on comment:", err);
+        return null;
+      });
+    }
   }
 }
-}
-
 
 export default CommentsApi;
