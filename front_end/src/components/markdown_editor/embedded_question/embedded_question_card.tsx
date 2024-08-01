@@ -12,6 +12,7 @@ import {
   getFanOptionsFromNumericGroup,
   getGroupQuestionsTimestamps,
 } from "@/utils/charts";
+import { sortGroupPredictionOptions } from "@/utils/questions";
 
 const CHART_HEIGHT = 150;
 
@@ -46,13 +47,13 @@ const EmbeddedQuestionCard: FC<Props> = ({ postData }) => {
 
       switch (groupType) {
         case QuestionType.Binary: {
-          const timestamps = getGroupQuestionsTimestamps(
+          const sortedQuestions = sortGroupPredictionOptions(
             questions as QuestionWithNumericForecasts[]
           );
-          const choices = generateChoiceItemsFromBinaryGroup(
-            questions as QuestionWithNumericForecasts[],
-            { activeCount: 3, sortPredictionDesc: true }
-          );
+          const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
+          const choices = generateChoiceItemsFromBinaryGroup(sortedQuestions, {
+            activeCount: 3,
+          });
 
           return (
             <MultipleChoiceChart
