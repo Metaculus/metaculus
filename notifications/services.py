@@ -43,34 +43,25 @@ class NotificationTypeBase:
         raise NotImplementedError()
 
     @classmethod
-    def send_email_group(cls, recipient: User, params: list[ParamsType]):
+    def send_email_group(cls, notifications: list[Notification]):
         """
         Sends group emails
         """
 
-        if cls.email_template:
-            return send_email_with_template(
-                recipient.email,
-                cls.generate_subject_group(recipient, params),
-                cls.email_template,
-                context={"recipient": recipient, "params": params},
-            )
-
-    @classmethod
-    def send_group(cls, notifications: list[Notification]):
-        """
-        Send group of notifications of the same type
-        """
+        if not cls.email_template:
+            return
 
         if not notifications:
             raise ValueError("Notification list cannot be empty")
 
         recipient = notifications[0].recipient
+        params = [dataclass_from_dict(cls.ParamsType, n) for n in notifications]
 
-        # Sending emails
-        cls.send_email_group(
-            recipient=recipient,
-            params=[dataclass_from_dict(cls.ParamsType, n) for n in notifications],
+        return send_email_with_template(
+            recipient.email,
+            cls.generate_subject_group(recipient, params),
+            cls.email_template,
+            context={"recipient": recipient, "params": params},
         )
 
 
