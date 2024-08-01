@@ -121,10 +121,10 @@ export default async function IndividualQuestion({
             <div className="my-0 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2 lg:mt-4">
               {!postData.conditional && (
                 <>
-                  <h1 className="ng-binding m-0 text-xl leading-tight sm:text-3xl">
+                  <h1 className="m-0 text-xl leading-tight sm:text-3xl">
                     {postData.title}
                   </h1>
-                  {postData.resolved && (
+                  {postData.resolved && !!postData.question && (
                     <QuestionResolutionStatus post={postData} />
                   )}
                 </>

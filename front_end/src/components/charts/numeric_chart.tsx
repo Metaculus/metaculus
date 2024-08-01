@@ -403,7 +403,6 @@ function getResolutionData({
         derivRatio
       );
 
-      console.log(scaledResolution);
       return [
         {
           y: scaledResolution,
@@ -422,8 +421,7 @@ function getResolutionData({
         rangeMax ?? 1,
         derivRatio
       );
-      console.log(dateTimestamp);
-      console.log(scaledResolution);
+
       return [
         {
           y: scaledResolution,

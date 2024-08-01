@@ -13,8 +13,11 @@ import {
 import {
   MultipleChoiceForecast,
   Question,
+  QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+
+import { formatDate } from "./date_formatters";
 
 export function extractQuestionGroupName(title: string) {
   const match = title.match(/\((.*?)\)/);
@@ -182,4 +185,41 @@ export function sortMultipleChoicePredictions(dataset: MultipleChoiceForecast) {
     }
   );
   return choicesArray;
+}
+
+export function formateResolution(
+  resolution: number | string | null | undefined,
+  questionType: QuestionType,
+  locale: string
+) {
+  let fmted_resolution = null;
+
+  resolution = String(resolution);
+
+  if (resolution === "null" || resolution === "undefined") {
+    fmted_resolution = "Annulled";
+  } else if (["yes", "no"].includes(resolution)) {
+    fmted_resolution = resolution.charAt(0).toUpperCase() + resolution.slice(1);
+  } else if (questionType === QuestionType.Date) {
+    if (resolution === "ambiguous") {
+      fmted_resolution = resolution;
+    } else if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
+      fmted_resolution = formatDate(locale, new Date(Number(resolution)));
+    } else {
+      fmted_resolution = formatDate(locale, new Date(resolution));
+    }
+  } else if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
+    fmted_resolution = parseFloat(Number(resolution).toPrecision(3));
+    if (fmted_resolution > 1000) {
+      fmted_resolution = (fmted_resolution / 1000).toFixed(2) + "k";
+    } else if (fmted_resolution > 100) {
+      fmted_resolution = fmted_resolution.toFixed(0);
+    } else {
+      fmted_resolution = fmted_resolution.toFixed(2);
+    }
+    fmted_resolution = String(fmted_resolution);
+  } else if (questionType === QuestionType.MultipleChoice) {
+    fmted_resolution = resolution;
+  }
+  return fmted_resolution;
 }
