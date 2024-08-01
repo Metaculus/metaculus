@@ -7,5 +7,5 @@ logger = logging.getLogger(__name__)
 
 
 @dramatiq.actor
-def actor_send_mail(*args, **kwargs):
+def send_email_async(*args, **kwargs):
     send_mail(*args, **kwargs)

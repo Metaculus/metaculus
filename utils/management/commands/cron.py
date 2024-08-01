@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_dramatiq.tasks import delete_old_tasks
 
+from notifications.jobs import job_send_notification_groups
 from posts.jobs import (
     job_compute_movement,
     job_subscription_notify_date,
@@ -103,6 +104,17 @@ class Command(BaseCommand):
             close_old_connections(job_check_post_open_event.send),
             trigger=CronTrigger.from_crontab("45 * * * *"),  # Every Hour at :45
             id="posts_job_check_post_open_event",
+            max_instances=1,
+            replace_existing=True,
+        )
+
+        #
+        # Notification jobs
+        #
+        scheduler.add_job(
+            close_old_connections(job_send_notification_groups.send),
+            trigger=CronTrigger.from_crontab("0 * * * *"),  # Every Hour at :00
+            id="notifications_job_send_notification_groups",
             max_instances=1,
             replace_existing=True,
         )

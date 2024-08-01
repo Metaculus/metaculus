@@ -15,7 +15,7 @@ def process_mj_includes(mjml_content, base_path):
     Recursively processes all <mj-include> tags
     """
 
-    include_pattern = re.compile(r'<mj-include path="([^"]+)" />')
+    include_pattern = re.compile(r'<mj-include path=["\']([^"\']+)["\']\s*/?>')
 
     def replace_match(match):
         include_path = os.path.join(base_path, match.group(1))
@@ -48,8 +48,6 @@ class Command(BaseCommand):
         return template_dirs
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS("Starting MJML to HTML conversion..."))
-
         for templates_path in self.get_template_paths():
             if not os.path.exists(templates_path):
                 continue
@@ -58,8 +56,6 @@ class Command(BaseCommand):
                 for file in files:
                     if file.endswith(".mjml"):
                         self.convert_mjml_to_html(os.path.join(root, file))
-
-        self.stdout.write(self.style.SUCCESS("Conversion completed successfully!"))
 
     def convert_mjml_to_html(self, mjml_file_path):
         with open(mjml_file_path, "r") as mjml_file:
