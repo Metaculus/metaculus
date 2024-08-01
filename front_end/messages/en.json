@@ -632,5 +632,8 @@
   "followModalMilestones": "Milestones",
   "followModalSpecificTime": "Specific time",
   "followModalStatusChanges": "Status changes",
-  "best": "best"
+  "best": "best",
+  "cmmButton":"Changed my mind",
+  "cmmUpdateButton":"Update",
+  "cmmUpdatePredictionLink": "Update your prediction?"
 }

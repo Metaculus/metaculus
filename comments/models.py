@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Sum, OuterRef, Subquery, QuerySet, IntegerField
+from django.db.models import Sum, OuterRef, Subquery, QuerySet, IntegerField, BooleanField, Count, Exists, Value
 from django.db.models.functions import Coalesce
 
 from sql_util.aggregates import SubqueryAggregate
@@ -39,6 +39,22 @@ class CommentQuerySet(models.QuerySet):
 
     def annotate_included_forecast(self):
         return self.prefetch_related("included_forecast")
+
+    def annotate_cmm_info(self, user):
+        changed_my_mind_count = Count("changedmymindentry")
+        user_has_changed_my_mind = Value(False, output_field=BooleanField())
+
+        if user and user.is_authenticated:
+            # Check if the current user has marked the comment with changed my mind
+            user_has_changed_my_mind = Exists(
+                ChangedMyMindEntry.objects.filter(comment=OuterRef("pk"), user=user)
+            )
+
+        self = self.annotate(
+            changed_my_mind_count=changed_my_mind_count,
+            user_has_changed_my_mind=user_has_changed_my_mind,
+        )
+        return self
 
     # def annotate_children(self):
     #    return self.annotate(children=Comment.objects.filter(parent=self))
@@ -95,3 +111,16 @@ class CommentVote(TimeStampedModel):
                 name="votes_unique_user_comment", fields=["user_id", "comment_id"]
             ),
         ]
+
+
+class ChangedMyMindEntry(TimeStampedModel):
+    """
+    Entry saved whenever an user marks a comment to have changed their mind
+    """
+
+    user = models.ForeignKey(User, models.CASCADE)
+    comment = models.ForeignKey(Comment, models.CASCADE)
+    forecast = models.ForeignKey(Forecast, models.CASCADE, null=True, blank=True)
+
+    class Meta:
+        unique_together = ("user", "comment")
