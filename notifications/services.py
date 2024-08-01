@@ -76,11 +76,15 @@ class NotificationNewComments(NotificationTypeBase):
 
 class NotificationPostMilestone(NotificationTypeBase):
     type = "post_milestone"
+    email_template = "emails/post_milestone.html"
 
     @dataclass
     class ParamsType:
         post: NotificationPostParams
         lifespan_pct: float
+
+        def format_lifespan_pct(self):
+            return round(self.lifespan_pct * 100, 2)
 
 
 class NotificationPostStatusChange(NotificationTypeBase):
