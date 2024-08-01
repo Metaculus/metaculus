@@ -76,6 +76,9 @@ python manage.py rundramatiq
 Env Configuration:
 - `REDIS_URL`
 
+## Email templates
+Compile MJML templates: `python manage.py mjml_compose`
+
 ## Restricted dev access
 To enable restricted Dev access, you need to add `ALPHA_ACCESS_TOKEN=<token>` to the bot BE & FE env variables.
 Then, be will validate all requests using `x-alpha-auth-token` from request headers
