@@ -151,17 +151,24 @@
                   <tbody>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">Hello {{ username }},</div>
+                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">Hello {{recipient.username}},</div>
                       </td>
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} We have received a request to reset the password associated with your account. To sign in and choose a new password, <a href="{{ reset_link }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">click here</a>. If you did not make this request, you can safely ignore this email. {% endblocktrans %} <p style="font-size: 80%;"> {% blocktrans %} Alternatively, copy and paste the following link into a browser to reset your password: {% endblocktrans %} <br>
-                            {{ reset_link }}
-                          </p>
+                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans with count=params|length %} These {{count}} questions have reached a milestone in their lifetime: {% endblocktrans %}</div>
+                      </td>
+                    </tr> {% for notification in params %} <tr>
+                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);"><a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
+                            {{ notification.post.post_title }}
+                          </a>
+                          <a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
+                            <img class="question_graph_img" src="{% build_question_graph_image_url notification.post.post_id %}" style="border: none; display: block; outline: none; width: 100%; height: auto;" height="auto">
+                          </a> {% blocktrans with lifespan_pct=notification.format_lifespan_pct %} Has reached <b>{{ lifespan_pct }}%</b> of its lifetime. {% endblocktrans %}
                         </div>
                       </td>
-                    </tr>
+                    </tr> {% endfor %}
                   </tbody>
                 </table>
               </div>
@@ -184,6 +191,32 @@
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                         <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} Happy Predicting,<br> The Metaculus Team {% endblocktrans %}</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!--[if mso | IE]></td></tr></table><![endif]-->
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!--[if mso | IE]></td></tr></table><table align="center" border="0" cellpadding="0" cellspacing="0" class="subscribe-session-outlook" role="presentation" style="width:600px;" width="600" bgcolor="#ffffff" ><tr><td style="line-height:0px;font-size:0px;mso-line-height-rule:exactly;"><![endif]-->
+    <div class="subscribe-session" style="background:#ffffff;background-color:#ffffff;margin:0px auto;max-width:600px;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;background-color:#ffffff;width:100%;">
+        <tbody>
+          <tr>
+            <td style="direction:ltr;font-size:0px;padding:20px 0;padding-bottom:0px;padding-top:10px;text-align:center;">
+              <!--[if mso | IE]><table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td class="" style="vertical-align:top;width:600px;" ><![endif]-->
+              <div class="mj-column-per-100 mj-outlook-group-fix" style="font-size:0px;text-align:left;direction:ltr;display:inline-block;vertical-align:top;width:100%;">
+                <table border="0" cellpadding="0" cellspacing="0" role="presentation" style="vertical-align:top;" width="100%">
+                  <tbody>
+                    <tr>
+                      <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
+                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
+                          <p style="font-size:85%; color:#aaaaaa;"> {% blocktrans %} If you no longer wish to receive this type of email, you can <a href="%tag_unsubscribe_url%" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">unsubscribe here</a>. You can also manage your notification settings on your Metaculus <a href="{{ FRONTEND_BASE_URL }}/accounts/settings/" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">settings page</a>. {% endblocktrans %} </p>
+                        </div>
                       </td>
                     </tr>
                   </tbody>

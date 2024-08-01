@@ -38,6 +38,7 @@ pgvector = "^0.3.2"
 tiktoken = "^0.7.0"
 aiohttp = "^3.9.5"
 django-mjml = "^1.2"
+markdown = "^3.6"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"

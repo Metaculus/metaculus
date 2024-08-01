@@ -5,6 +5,7 @@
 <mj-raw position="file-start">
   {% load i18n %}
   {% load static %}
+  {% load urls %}
 </mj-raw>
 
 <mj-head>

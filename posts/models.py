@@ -15,6 +15,7 @@ from django.db.models import (
     QuerySet,
 )
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from pgvector.django import VectorField
 from sql_util.aggregates import SubqueryAggregate
 
@@ -503,9 +504,9 @@ class PostSubscription(TimeStampedModel):
         SPECIFIC_TIME = "specific_time"
 
     class PostStatusChange(models.TextChoices):
-        OPEN = "open"
-        CLOSE = "close"
-        RESOLVE = "resolve"
+        OPEN = "open", _("Open")
+        CLOSED = "closed", _("Closed")
+        RESOLVED = "resolved", _("Resolved")
 
     user = models.ForeignKey(User, models.CASCADE, related_name="subscriptions")
     post = models.ForeignKey(Post, models.CASCADE, related_name="subscriptions")
