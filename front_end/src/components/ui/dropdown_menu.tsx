@@ -13,6 +13,7 @@ export type MenuItemProps = {
   link?: string;
   openNewTab?: boolean;
   hidden?: boolean;
+  element?: React.ReactElement;
 };
 
 interface DropdownMenuProps extends React.PropsWithChildren {
@@ -62,6 +63,8 @@ export default function DropdownMenu({
                   >
                     {item.name}
                   </a>
+                ) : item.element ? (
+                  item.element
                 ) : (
                   <button
                     className={clsx(
