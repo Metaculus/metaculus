@@ -1,0 +1,28 @@
+<mjml>
+  <mj-include path="./email_styles.mjml" />
+
+  <mj-body>
+    <mj-include path="./email_top.mjml" />
+
+    <mj-section>
+      <mj-column>
+        <mj-text>
+          <p class="title">
+            {% blocktrans %}
+              Title
+            {% endblocktrans %}
+          </p>
+        </mj-text>
+
+        <mj-text>
+          {% blocktrans %}
+              Body
+            {% endblocktrans %}
+        </mj-text>
+      </mj-column>
+
+    </mj-section>
+    <mj-include path="./email_greeting.mjml" />
+    <mj-include path="./email_unsubscribe.mjml" />
+  </mj-body>
+</mjml>
