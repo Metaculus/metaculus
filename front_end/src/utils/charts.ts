@@ -68,7 +68,10 @@ export function generateNumericDomain(
       startDate = fromUnixTime(Math.min(...timestamps));
   }
 
-  return [getUnixTime(startDate), latestTimestamp];
+  return [
+    Math.max(Math.min(...timestamps), getUnixTime(startDate)),
+    latestTimestamp,
+  ];
 }
 
 export function generateTimestampXScale(
