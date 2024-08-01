@@ -177,7 +177,7 @@ export default async function IndividualQuestion({
             />
 
             <CommentFeed
-              postId={postData.id}
+              postData={postData}
               postPermissions={postData.user_permission}
             />
           </div>

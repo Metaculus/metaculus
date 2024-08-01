@@ -24,6 +24,7 @@
     "@kodingdotninja/use-tailwind-breakpoint": "^1.0.0",
     "@marsidev/react-turnstile": "^0.7.2",
     "@mdxeditor/editor": "^3.4.2",
+    "@radix-ui/react-popover": "^1.1.1",
     "@tailwindcss/container-queries": "^0.1.1",
     "axios": "^1.7.2",
     "better-react-mathjax": "^2.0.3",
