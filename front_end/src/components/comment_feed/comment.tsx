@@ -7,6 +7,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
+import { parseISO } from "date-fns";
+import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState, useEffect } from "react";
 
@@ -22,21 +24,19 @@ import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { CommentPermissions, CommentType } from "@/types/comment";
-import { formatDate } from "@/utils/date_formatters";
-
-import IncludedForecast from "./included_forecast";
-
-import { SortOption, sortComments } from ".";
-import { CmmOverlay, CmmToggleButton } from "./comment_cmm";
 import {
   PostStatus,
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
-import { parseISO } from "date-fns";
-import { isNil } from "lodash";
 import { QuestionType } from "@/types/question";
+import { formatDate } from "@/utils/date_formatters";
 import { canPredictQuestion } from "@/utils/questions";
+
+import { CmmOverlay, CmmToggleButton } from "./comment_cmm";
+import IncludedForecast from "./included_forecast";
+
+import { SortOption, sortComments } from ".";
 
 const copyToClipboard = async (text: string) => {
   try {
