@@ -24,6 +24,7 @@ export enum QuestionOrder {
   ResolveTimeAsc = "scheduled_resolve_time",
   HotDesc = "-hotness",
   HotAsc = "hotness",
+  RankDesc = "-rank",
 }
 
 export type BaseForecast = {
@@ -40,8 +41,10 @@ export type NumericForecast = BaseForecast & {
   medians: number[];
   q3s: number[];
   q1s: number[];
+  means: number[];
   latest_pmf: number[];
   latest_cdf: number[];
+  histogram?: number[];
 };
 
 export type MultipleChoiceForecast = BaseForecast & {
@@ -68,8 +71,8 @@ export type ExtendedQuartiles = Quartiles & {
 export type Question = {
   id: number;
   title: string;
-  range_min: number;
-  range_max: number;
+  range_min: number | null;
+  range_max: number | null;
   description: string;
   created_at: string;
   updated_at: string;
@@ -82,7 +85,17 @@ export type Question = {
   forecast_scoring_ends?: string;
   type: QuestionType;
   options?: string[];
-  possibilities: string; // TODO: update type
+  possibilities: {
+    format?: string;
+    high?: string;
+    low?: string;
+    type?: string;
+    scale?: {
+      max: number;
+      min: number;
+      deriv_ratio: number;
+    };
+  }; // TODO: update type
   resolution: Resolution | null;
   fine_print: string | null;
   resolution_criteria_description: string | null;
@@ -112,5 +125,5 @@ export type QuestionWithForecasts =
 export type ForecastData = {
   continuousCdf: number[] | null;
   probabilityYes: number | null;
-  probabilityYesPerCategory: number[] | null;
+  probabilityYesPerCategory: Record<string, number> | null;
 };

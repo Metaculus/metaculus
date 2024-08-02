@@ -101,6 +101,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "utils.context_processors.common_context",
             ],
         },
     },
@@ -231,7 +232,7 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Frontend configuration
-FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000")
+FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000").rstrip("/")
 
 # Redis endpoint
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
@@ -252,6 +253,7 @@ DRAMATIQ_BROKER = {
         "django_dramatiq.middleware.AdminMiddleware",
     ],
 }
+DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 
 CACHES = {
     "default": {
@@ -274,6 +276,12 @@ STORAGES = {
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 
+ITN_DB_MACHINE_SSH_ADDR = os.environ.get("ITN_DB_MACHINE_SSH_ADDR")
+ITN_DB_MACHINE_SSH_USER = os.environ.get("ITN_DB_MACHINE_SSH_USER")
+ITN_DB_MACHINE_SSH_KEY = os.environ.get("ITN_DB_MACHINE_SSH_KEY")
+ITN_DB_USER = os.environ.get("ITN_DB_USER")
+ITN_DB_PASSWORD = os.environ.get("ITN_DB_PASSWORD")
+
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
@@ -288,6 +296,12 @@ TURNSTILE_SECRET_KEY = os.environ.get("TURNSTILE_SECRET_KEY")
 # Restricted DEV access
 # If none -> not restricted
 ALPHA_ACCESS_TOKEN = os.environ.get("ALPHA_ACCESS_TOKEN")
+
+# OpenAI configuration
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+
+# Serper Google API key
+SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
 
 ALLOWED_HOSTS = []
 CSRF_TRUSTED_ORIGINS = [FRONTEND_BASE_URL]
@@ -312,5 +326,14 @@ LOGGING = {
             "level": "INFO",
             "handlers": ["console"],
         },
+        "dramatiq": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+        },
     },
 }
+
+SHELL_PLUS_IMPORTS = [
+    "import numpy as np",
+    "from datetime import datetime, timedelta, timezone as dt_timezone",
+]

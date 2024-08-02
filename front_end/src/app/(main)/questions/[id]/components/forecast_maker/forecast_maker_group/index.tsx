@@ -1,33 +1,32 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { ProjectPermissions } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import {
   QuestionType,
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { sortGroupPredictionOptions } from "@/utils/questions";
 
 import ForecastMakerGroupBinary from "./forecast_maker_group_binary";
 import ForecastMakerGroupContinuous from "./forecast_maker_group_continuous";
 import ForecastMakerContainer from "../container";
 
 type Props = {
-  postId: number;
   resolutionCriteria: string | null;
   finePrint: string;
   questions: QuestionWithForecasts[];
-  permission?: ProjectPermissions;
+  post: PostWithForecasts;
   canPredict: boolean;
   canResolve: boolean;
 };
 
 const ForecastMakerGroup: FC<Props> = ({
-  postId,
+  post,
   resolutionCriteria,
   finePrint,
   questions,
-  permission,
   canResolve,
   canPredict,
 }) => {
@@ -42,11 +41,13 @@ const ForecastMakerGroup: FC<Props> = ({
 
     switch (tileType) {
       case QuestionType.Binary:
+        const sortedQuestions = sortGroupPredictionOptions(
+          questions as QuestionWithNumericForecasts[]
+        );
         return (
           <ForecastMakerGroupBinary
-            postId={postId}
-            questions={questions as QuestionWithNumericForecasts[]}
-            permission={permission}
+            post={post}
+            questions={sortedQuestions}
             canResolve={canResolve}
             canPredict={canPredict}
           />
@@ -55,9 +56,8 @@ const ForecastMakerGroup: FC<Props> = ({
       case QuestionType.Date:
         return (
           <ForecastMakerGroupContinuous
-            postId={postId}
+            post={post}
             questions={questions as QuestionWithNumericForecasts[]}
-            permission={permission}
             canResolve={canResolve}
             canPredict={canPredict}
           />

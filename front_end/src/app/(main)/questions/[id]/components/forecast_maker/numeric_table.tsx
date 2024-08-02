@@ -1,8 +1,10 @@
 import React, { FC } from "react";
 
-import { Bounds, Quartiles } from "@/types/question";
+import { Bounds, Quartiles, Question } from "@/types/question";
+import { getDisplayValue } from "@/utils/charts";
 
 type Props = {
+  question: Question;
   userBounds?: Bounds;
   userQuartiles?: Quartiles;
   communityBounds?: Bounds;
@@ -11,6 +13,7 @@ type Props = {
 };
 
 const NumericForecastTable: FC<Props> = ({
+  question,
   userBounds,
   userQuartiles,
   communityBounds,
@@ -43,31 +46,23 @@ const NumericForecastTable: FC<Props> = ({
         {withUserQuartiles && (
           <div className="w-full text-center">
             <div>{(userBounds!.belowLower * 100).toFixed(1)}%</div>
-            <div>{getDisplayValue(userQuartiles?.lower25)}</div>
-            <div>{getDisplayValue(userQuartiles?.median)}</div>
-            <div>{getDisplayValue(userQuartiles?.upper75)}</div>
+            <div>{getDisplayValue(userQuartiles?.lower25, question)}</div>
+            <div>{getDisplayValue(userQuartiles?.median, question)}</div>
+            <div>{getDisplayValue(userQuartiles?.upper75, question)}</div>
             <div>{(userBounds!.aboveUpper * 100).toFixed(1)}%</div>
           </div>
         )}
 
         <div className="w-full text-center">
           <div>{(communityBounds!.belowLower * 100).toFixed(1)}%</div>
-          <div>{getDisplayValue(communityQuartiles?.lower25)}</div>
-          <div>{getDisplayValue(communityQuartiles?.median)}</div>
-          <div>{getDisplayValue(communityQuartiles?.upper75)}</div>
+          <div>{getDisplayValue(communityQuartiles?.lower25, question)}</div>
+          <div>{getDisplayValue(communityQuartiles?.median, question)}</div>
+          <div>{getDisplayValue(communityQuartiles?.upper75, question)}</div>
           <div>{(communityBounds!.aboveUpper * 100).toFixed(1)}%</div>
         </div>
       </div>
     </>
   );
 };
-
-function getDisplayValue(value: number | undefined) {
-  if (value === undefined) {
-    return "...";
-  }
-
-  return `${Math.round(value * 1000) / 100}`;
-}
 
 export default NumericForecastTable;

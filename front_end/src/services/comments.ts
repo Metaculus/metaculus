@@ -7,6 +7,7 @@ export type getCommentsParams = {
   author?: number;
   parent_isnull?: boolean;
   page?: number;
+  sort?: string;
 };
 
 export type CreateCommentParams = {
@@ -29,11 +30,17 @@ export type VoteCommentParams = {
   user: number;
 };
 
+export type ToggleCMMCommentParams = {
+  id: number;
+  enabled: boolean;
+};
+
 export type PaginatedResponse<T> = {
   count: number;
   next: string | null;
   previous: string | null;
   results: T[];
+  total_count: number;
 };
 
 class CommentsApi {
@@ -117,6 +124,22 @@ class CommentsApi {
     } catch (err) {
       return handleRequestError(err, () => {
         console.error("Error voting comment:", err);
+        return null;
+      });
+    }
+  }
+
+  static async toggleCMMComment(
+    params: ToggleCMMCommentParams
+  ): Promise<Response | null> {
+    try {
+      return await post<null, ToggleCMMCommentParams>(
+        `/comments/${params.id}/toggle_cmm`,
+        params
+      );
+    } catch (err) {
+      return handleRequestError(err, () => {
+        console.error("Error toggling CMM on comment:", err);
         return null;
       });
     }

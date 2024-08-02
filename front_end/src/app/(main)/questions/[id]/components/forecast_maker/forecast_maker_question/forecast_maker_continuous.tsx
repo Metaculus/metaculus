@@ -114,11 +114,12 @@ const ForecastMakerContinuous: FC<Props> = ({
           setIsDirty(true);
         }}
         question={question}
+        disabled={!canPredict}
       />
 
-      <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-        {canPredict &&
-          (user ? (
+      {canPredict && (
+        <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
+          {user ? (
             <>
               <Button
                 variant="secondary"
@@ -144,10 +145,12 @@ const ForecastMakerContinuous: FC<Props> = ({
             >
               {t("signUpButton")}
             </Button>
-          ))}
-      </div>
+          )}
+        </div>
+      )}
 
       <NumericForecastTable
+        question={question}
         userBounds={{
           belowLower: userCdf[0],
           aboveUpper: 1 - userCdf[userCdf.length - 1],

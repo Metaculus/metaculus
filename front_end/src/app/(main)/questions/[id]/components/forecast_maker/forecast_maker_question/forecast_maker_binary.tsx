@@ -1,7 +1,7 @@
 "use client";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 
 import { createForecast } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
@@ -14,7 +14,6 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
-import ForecastMakerContainer from "../container";
 import QuestionResolutionButton from "../resolution";
 
 type Props = {
@@ -45,6 +44,10 @@ const ForecastMakerBinary: FC<Props> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
+
+  useEffect(() => {
+    setForecast(prevForecastValue);
+  }, [prevForecast]);
 
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
@@ -85,6 +88,7 @@ const ForecastMakerBinary: FC<Props> = ({
         onBecomeDirty={() => {
           setIsForecastDirty(true);
         }}
+        disabled={!canPredict}
       />
       <div className="flex flex-col items-center justify-center">
         {canPredict && (

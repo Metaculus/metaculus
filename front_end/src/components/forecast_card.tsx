@@ -19,6 +19,7 @@ import {
   getGroupQuestionsTimestamps,
   getNumericChartTypeFromQuestion,
 } from "@/utils/charts";
+import { sortGroupPredictionOptions } from "@/utils/questions";
 
 type Props = {
   post: PostWithForecasts;
@@ -75,13 +76,13 @@ const ForecastCard: FC<Props> = ({
         }
         case QuestionType.Binary:
           const visibleChoicesCount = 3;
-          const timestamps = getGroupQuestionsTimestamps(
+          const sortedQuestions = sortGroupPredictionOptions(
             questions as QuestionWithNumericForecasts[]
           );
-          const choices = generateChoiceItemsFromBinaryGroup(
-            questions as QuestionWithNumericForecasts[],
-            { activeCount: visibleChoicesCount, sortPredictionDesc: true }
-          );
+          const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
+          const choices = generateChoiceItemsFromBinaryGroup(sortedQuestions, {
+            activeCount: visibleChoicesCount,
+          });
           return (
             <MultipleChoiceTile
               choices={choices}
@@ -120,7 +121,13 @@ const ForecastCard: FC<Props> = ({
             <NumericChart
               dataset={question.forecasts}
               height={chartHeight}
-              type={getNumericChartTypeFromQuestion(question.type)}
+              questionType={
+                getNumericChartTypeFromQuestion(question.type) ??
+                QuestionType.Numeric
+              }
+              rangeMin={question.range_min}
+              rangeMax={question.range_max}
+              zeroPoint={question.zero_point}
               onCursorChange={nonInteractive ? undefined : setCursorValue}
               extraTheme={chartTheme}
               defaultZoom={defaultChartZoom}
@@ -130,8 +137,10 @@ const ForecastCard: FC<Props> = ({
         case QuestionType.MultipleChoice:
           const visibleChoicesCount = 3;
           const choices = generateChoiceItemsFromMultipleChoiceForecast(
-            question.forecasts,
-            { activeCount: visibleChoicesCount }
+            question,
+            {
+              activeCount: visibleChoicesCount,
+            }
           );
           return (
             <MultipleChoiceTile
@@ -142,6 +151,7 @@ const ForecastCard: FC<Props> = ({
               chartTheme={chartTheme}
               defaultChartZoom={defaultChartZoom}
               withZoomPicker={withZoomPicker}
+              question={question}
             />
           );
         default:
@@ -170,10 +180,9 @@ const ForecastCard: FC<Props> = ({
 
           return (
             <PredictionChip
-              questionType={question.type}
+              question={question}
               status={post.status}
               prediction={prediction}
-              resolution={question.resolution}
               className="ForecastCard-prediction"
             />
           );

@@ -1,4 +1,5 @@
 import { Radio, RadioGroup } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import RadioButton from "@/components/ui/radio_button";
@@ -27,10 +28,12 @@ const MILESTONE_STEP_OPTIONS = [
 
 const SubscriptionSectionMilestone: FC<
   SubscriptionSectionProps<PostSubscriptionMilestone>
-> = ({ subscription, onChange }) => {
+> = ({ subscription, onChange, post }) => {
+  const t = useTranslations();
+
   return (
     <div>
-      <p>Notify me every: </p>
+      <p>{t("followModalNotifyMeEvery")}: </p>
       <RadioGroup
         value={subscription.milestone_step}
         onChange={(value) => onChange("milestone_step", value)}
@@ -46,6 +49,11 @@ const SubscriptionSectionMilestone: FC<
           </Radio>
         ))}
       </RadioGroup>
+      <p>
+        {post.group_of_questions
+          ? t("followModalMilestoneLifetimeParagraphGroup")
+          : t("followModalMilestoneLifetimeParagraphQuestion")}
+      </p>
     </div>
   );
 };

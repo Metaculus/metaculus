@@ -29,17 +29,16 @@ import {
   Area,
   BaseChartData,
   Line,
-  NumericChartType,
   Scale,
   TimelineChartZoomOption,
 } from "@/types/charts";
-import { NumericForecast } from "@/types/question";
+import { Resolution } from "@/types/post";
+import { NumericForecast, QuestionType } from "@/types/question";
 import {
-  generateDateYScale,
   generateNumericDomain,
-  generateNumericYScale,
-  generatePercentageYScale,
   generateTimestampXScale,
+  getDisplayValue,
+  scaleResolutionLocation,
 } from "@/utils/charts";
 
 import XTickLabel from "./primitives/x_tick_label";
@@ -52,8 +51,13 @@ type Props = {
   height?: number;
   onCursorChange?: (value: number) => void;
   onChartReady?: () => void;
-  type?: NumericChartType;
+  questionType: QuestionType;
+  rangeMin: number | null;
+  rangeMax: number | null;
+  zeroPoint: number | null;
   extraTheme?: VictoryThemeDefinition;
+  resolution?: Resolution | null;
+  derivRatio?: number;
 };
 
 const NumericChart: FC<Props> = ({
@@ -64,8 +68,13 @@ const NumericChart: FC<Props> = ({
   height = 150,
   onCursorChange,
   onChartReady,
-  type = "numeric",
+  questionType,
+  rangeMin,
+  rangeMax,
+  zeroPoint,
   extraTheme,
+  resolution,
+  derivRatio,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -84,8 +93,27 @@ const NumericChart: FC<Props> = ({
 
   const [zoom, setZoom] = useState(defaultZoom);
   const { line, area, yDomain, xDomain, xScale, yScale, points } = useMemo(
-    () => buildChartData({ dataset, width: chartWidth, height, type, zoom }),
-    [dataset, chartWidth, height, type, zoom]
+    () =>
+      buildChartData({
+        questionType,
+        rangeMin,
+        rangeMax,
+        zeroPoint,
+        height,
+        dataset,
+        width: chartWidth,
+        zoom,
+      }),
+    [
+      questionType,
+      rangeMin,
+      rangeMax,
+      zeroPoint,
+      height,
+      dataset,
+      chartWidth,
+      zoom,
+    ]
   );
 
   const prevWidth = usePrevious(chartWidth);
@@ -194,6 +222,27 @@ const NumericChart: FC<Props> = ({
               },
             }}
           />
+
+          {resolution && (
+            <VictoryScatter
+              data={getResolutionData({
+                questionType,
+                resolution,
+                dataset,
+                rangeMin,
+                rangeMax,
+                derivRatio,
+              })}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.purple["800"]),
+                  fill: "none",
+                  strokeWidth: 2.5,
+                },
+              }}
+            />
+          )}
+
           <VictoryAxis
             dependentAxis
             style={{
@@ -230,16 +279,22 @@ type ChartData = BaseChartData & {
 };
 
 function buildChartData({
-  type,
+  questionType,
+  rangeMin,
+  rangeMax,
+  zeroPoint,
   height,
   dataset,
   width,
   zoom,
 }: {
+  questionType: QuestionType;
+  rangeMin: number | null;
+  rangeMax: number | null;
+  zeroPoint: number | null;
+  height: number;
   dataset: NumericForecast;
   width: number;
-  height: number;
-  type: NumericChartType;
   zoom: TimelineChartZoomOption;
 }): ChartData {
   const { timestamps, medians, q1s, q3s, my_forecasts } = dataset;
@@ -265,27 +320,40 @@ function buildChartData({
   const xDomain = generateNumericDomain(timestamps, zoom);
   const xScale = generateTimestampXScale(xDomain, width);
 
-  let yDomain: Tuple<number>;
-  let yScale: Scale;
-  switch (type) {
-    case "binary": {
-      yDomain = [0, 1];
-      yScale = generatePercentageYScale(height);
-      break;
-    }
-    case "date": {
-      const minYValue = Math.min(...dataset.q1s);
-      const maxYValue = Math.max(...dataset.q3s);
-      yDomain = [minYValue, maxYValue];
-      yScale = generateDateYScale(yDomain);
-      break;
-    }
-    default:
-      const minYValue = Math.floor(Math.min(...dataset.q1s) * 0.95); // 5% padding
-      const maxYValue = Math.ceil(Math.max(...dataset.q3s) * 1.05); // 5% padding
-      yDomain = [minYValue, maxYValue];
-      yScale = generateNumericYScale(yDomain);
+  const yDomain: Tuple<number> = [0, 1];
+
+  const desiredMajorTicks = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
+  const minorTicksPerMajor = 9;
+  const desiredMajorTickDistance = 20;
+
+  const maxMajorTicks = Math.floor(height / desiredMajorTickDistance);
+
+  let majorTicks = desiredMajorTicks;
+  if (maxMajorTicks < desiredMajorTicks.length) {
+    // adjust major ticks on small height
+    const step = 1 / (maxMajorTicks - 1);
+    majorTicks = Array.from({ length: maxMajorTicks }, (_, i) => i * step);
   }
+  const ticks = [];
+  for (let i = 0; i < majorTicks.length - 1; i++) {
+    ticks.push(majorTicks[i]);
+    const step = (majorTicks[i + 1] - majorTicks[i]) / (minorTicksPerMajor + 1);
+    for (let j = 1; j <= minorTicksPerMajor; j++) {
+      ticks.push(majorTicks[i] + step * j);
+    }
+  }
+  ticks.push(majorTicks[majorTicks.length - 1]);
+
+  const tickFormat = (value: number): string => {
+    if (!majorTicks.includes(value)) {
+      return "";
+    }
+    return getDisplayValue(value, questionType, rangeMin, rangeMax, zeroPoint);
+  };
+  const yScale: Scale = {
+    ticks,
+    tickFormat,
+  };
 
   return {
     line,
@@ -296,6 +364,75 @@ function buildChartData({
     yScale,
     points,
   };
+}
+
+function getResolutionData({
+  questionType,
+  resolution,
+  dataset,
+  rangeMin,
+  rangeMax,
+  derivRatio,
+}: {
+  questionType: QuestionType;
+  resolution: Resolution;
+  rangeMin: number | null;
+  rangeMax: number | null;
+  dataset: NumericForecast;
+  derivRatio?: number;
+}) {
+  switch (questionType) {
+    case QuestionType.Binary: {
+      // format data for binary question
+      return [
+        {
+          y: resolution === "no" ? rangeMin ?? 0 : rangeMax ?? 1,
+          x: dataset.timestamps.at(-1),
+          symbol: "diamond",
+          size: 4,
+        },
+      ];
+    }
+    case QuestionType.Numeric: {
+      // format data for numerical question
+      const scaledResolution = scaleResolutionLocation(
+        Number(resolution),
+        rangeMin ?? 0,
+        rangeMax ?? 1,
+        derivRatio
+      );
+
+      return [
+        {
+          y: scaledResolution,
+          x: dataset.timestamps.at(-1),
+          symbol: "diamond",
+          size: 4,
+        },
+      ];
+    }
+    case QuestionType.Date: {
+      // format data for date question
+      const dateTimestamp = new Date(resolution).getTime() / 1000;
+      const scaledResolution = scaleResolutionLocation(
+        dateTimestamp,
+        rangeMin ?? 0,
+        rangeMax ?? 1,
+        derivRatio
+      );
+
+      return [
+        {
+          y: scaledResolution,
+          x: dataset.timestamps.at(-1),
+          symbol: "diamond",
+          size: 4,
+        },
+      ];
+    }
+    default:
+      return;
+  }
 }
 
 export default React.memo(NumericChart);
