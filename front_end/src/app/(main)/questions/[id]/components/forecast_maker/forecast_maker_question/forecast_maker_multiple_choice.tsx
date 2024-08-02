@@ -228,6 +228,10 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               onChange={handleForecastChange}
               isDirty={isDirty}
               disabled={!canPredict}
+              optionResolution={{
+                type: "question",
+                resolution: question.resolution,
+              }}
             />
           ))}
         </tbody>
