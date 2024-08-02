@@ -93,7 +93,9 @@ def prediction_difference_for_sorting(
         return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
     cdf1 = np.array([1 - np.array(p1), p1])
     cdf2 = np.array([1 - np.array(p2), p2])
-    divergences = np.sum((cdf1 - cdf2) * np.log2(cdf1 / cdf2), axis=0)
+    divergences = np.sum(
+        (cdf1 - cdf2) * np.log2(cdf1 / cdf2), axis=0, where=np.abs(cdf1 - cdf2) > 1e-7
+    )
     return float(np.trapz(divergences, x=np.linspace(0, 1, len(p1))))
 
 

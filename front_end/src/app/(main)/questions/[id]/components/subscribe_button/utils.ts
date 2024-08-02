@@ -16,7 +16,7 @@ export const getDefaultSubscriptionProps = () =>
       milestone_step: 0.2,
     },
     [PostSubscriptionType.CP_CHANGE]: {
-      cp_threshold: 0.2,
+      cp_change_threshold: 0.25,
     },
     [PostSubscriptionType.SPECIFIC_TIME]: {
       next_trigger_datetime: formatInTimeZone(
