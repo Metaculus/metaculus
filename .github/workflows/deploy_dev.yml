@@ -19,7 +19,7 @@ jobs:
 
     - name: Run deployment script on dev server
       run: |
-        ssh -o StrictHostKeyChecking=no ubuntu@100.24.4.6 << 'EOF'
+        ssh -o StrictHostKeyChecking=no ubuntu@107.20.216.39 << 'EOF'
         bash -il << 'ENDBASH'
         echo "Starting interactive shell"
         chmod +x /home/ubuntu/rewrite/deploy.sh

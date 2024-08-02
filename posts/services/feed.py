@@ -115,7 +115,8 @@ def get_posts_feed(
                 & Q(
                     Q(actual_close_time__isnull=True)
                     | Q(actual_close_time__gte=timezone.now())
-                ),
+                )
+                & Q(resolved=False),
             )
 
     qs = qs.filter(q)
