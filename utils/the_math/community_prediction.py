@@ -290,7 +290,7 @@ def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
     )
 
 
-def get_cp_summary(
+def get_cp_history(
     question: Question,
     aggregation_method: AggregationMethod = AggregationMethod.RECENCY_WEIGHTED,
     minimize: bool = True,
