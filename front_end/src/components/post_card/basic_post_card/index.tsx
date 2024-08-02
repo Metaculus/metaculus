@@ -1,11 +1,11 @@
 "use client";
 import classNames from "classnames";
 import Link from "next/link";
-import { FC, PropsWithChildren, useMemo } from "react";
+import { FC, PropsWithChildren } from "react";
 
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
-import { extractPostStatus } from "@/utils/questions";
+import { extractPostResolution } from "@/utils/questions";
 
 import CommentStatus from "./comment_status";
 import PostVoter from "./post_voter";
@@ -28,7 +28,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   children,
 }) => {
   const { id, title } = post;
-  const statusData = extractPostStatus(post);
+  const resolutionData = extractPostResolution(post);
 
   return (
     <div
@@ -61,15 +61,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
             />
           </div>
 
-          {!!statusData && (
-            <PostStatus
-              id={post.id}
-              status={statusData.status}
-              actualCloseTime={statusData.actualCloseTime}
-              resolvedAt={statusData.resolvedAt}
-              post={post}
-            />
-          )}
+          <PostStatus post={post} resolution={resolutionData} />
         </div>
       </div>
     </div>
