@@ -13,13 +13,18 @@ import React, {
 } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
+import PostStatusComponent from "@/components/post_status";
 import Button from "@/components/ui/button";
 import { FormError } from "@/components/ui/form_field";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
-import { ProjectPermissions } from "@/types/post";
+import {
+  PostWithForecasts,
+  ProjectPermissions,
+  Resolution,
+} from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
@@ -38,29 +43,30 @@ type QuestionOption = {
   name: string;
   communityForecast: number | null;
   forecast: number | null;
+  resolution: Resolution | null;
   isDirty: boolean;
   color: ThemeColor;
   menu: ReactNode;
 };
 
 type Props = {
-  postId: number;
+  post: PostWithForecasts;
   questions: QuestionWithNumericForecasts[];
-  permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
 };
 
 const ForecastMakerGroupBinary: FC<Props> = ({
-  postId,
+  post,
   questions,
-  permission,
   canPredict,
   canResolve,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
+
+  const { id: postId, user_permission: permission } = post;
 
   const prevForecastValuesMap = useMemo(
     () =>
@@ -77,6 +83,13 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   );
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
     generateChoiceOptions(questions, prevForecastValuesMap)
+  );
+  const [highlightedQuestionId, setHighlightedQuestionId] = useState<
+    number | undefined
+  >(questionOptions.at(0)?.id);
+  const highlightedQuestion = useMemo(
+    () => questions.find((q) => q.id === highlightedQuestionId),
+    [questions, highlightedQuestionId]
   );
 
   useEffect(() => {
@@ -194,6 +207,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
             <ForecastChoiceOption
               key={questionOption.id}
               id={questionOption.id}
+              highlightedOptionId={highlightedQuestionId}
+              onOptionClick={setHighlightedQuestionId}
               forecastValue={questionOption.forecast}
               defaultSliderValue={50}
               choiceName={questionOption.name}
@@ -206,13 +221,24 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
               disabled={!canPredict}
+              optionResolution={{
+                resolution: questionOption.resolution,
+                type: "group_question",
+              }}
             />
           ))}
         </tbody>
       </table>
+      {!!highlightedQuestion?.resolution && (
+        <div className="flex flex-row items-center justify-center gap-1.5 truncate py-2 text-gray-900 dark:text-gray-900-dark">
+          <PostStatusComponent
+            post={post}
+            resolution={highlightedQuestion.resolution}
+          />
+        </div>
+      )}
       {canPredict && (
         <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-          (
           {user ? (
             <>
               <Button
@@ -241,7 +267,6 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               {t("signUpButton")}
             </Button>
           )}
-          )
         </div>
       )}
       {submitErrors.map((errResponse, index) => (
@@ -262,6 +287,7 @@ function generateChoiceOptions(
       name: extractQuestionGroupName(question.title),
       communityForecast: question.forecasts.medians.at(-1) ?? null,
       forecast: prevForecastValuesMap[question.id] ?? null,
+      resolution: question.resolution,
       isDirty: false,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       menu: (

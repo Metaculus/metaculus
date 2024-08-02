@@ -1,5 +1,6 @@
 "use client";
-import { merge } from "lodash";
+import { fromUnixTime } from "date-fns";
+import { isNil, merge } from "lodash";
 import React, { FC, memo, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
@@ -197,6 +198,30 @@ const MultipleChoiceChart: FC<Props> = ({
               />
             ) : null
           )}
+          {graphs.map(({ color, active, resolutionPoint }, index) => {
+            if (!resolutionPoint || !active) return null;
+
+            return (
+              <VictoryScatter
+                key={`multiple-choice-resolution-${index}`}
+                data={[
+                  {
+                    x: resolutionPoint?.x,
+                    y: resolutionPoint?.y,
+                    symbol: "diamond",
+                    size: 4,
+                  },
+                ]}
+                style={{
+                  data: {
+                    stroke: getThemeColor(color),
+                    fill: "none",
+                    strokeWidth: 2.5,
+                  },
+                }}
+              />
+            );
+          })}
 
           {userForecasts?.map((question) => {
             return (
@@ -248,6 +273,10 @@ const MultipleChoiceChart: FC<Props> = ({
 export type ChoiceGraph = {
   line: Line;
   area?: Area;
+  resolutionPoint?: {
+    x?: number;
+    y: number;
+  };
   choice: string;
   color: ThemeColor;
   active: boolean;
@@ -283,6 +312,9 @@ function buildChartData({
       active,
       highlighted,
       timestamps: choiceTimestamps,
+      resolution,
+      rangeMin,
+      rangeMax,
     }) => {
       const actualTimestamps = choiceTimestamps ?? timestamps;
 
@@ -303,6 +335,24 @@ function buildChartData({
           y: maxValues[timestampIndex] ?? 0,
           y0: minValues[timestampIndex] ?? 0,
         }));
+      }
+
+      if (!isNil(resolution)) {
+        if (resolution === choice) {
+          // multiple choice case
+          item.resolutionPoint = {
+            x: actualTimestamps.at(-1),
+            y: rangeMax ?? 1,
+          };
+        }
+
+        if (resolution === "yes" || resolution === "no") {
+          // binary group case
+          item.resolutionPoint = {
+            x: actualTimestamps.at(-1),
+            y: resolution === "no" ? rangeMin ?? 0 : rangeMax ?? 1,
+          };
+        }
       }
 
       return item;

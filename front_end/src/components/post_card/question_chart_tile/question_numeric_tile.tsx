@@ -29,8 +29,6 @@ const QuestionNumericTile: FC<Props> = ({
         <PredictionChip
           question={question}
           prediction={prediction}
-          resolution={question.resolution}
-          nr_forecasters={question.nr_forecasters}
           status={curationStatus}
         />
       </div>
@@ -46,6 +44,8 @@ const QuestionNumericTile: FC<Props> = ({
           rangeMax={question.range_max}
           zeroPoint={question.zero_point}
           defaultZoom={defaultChartZoom}
+          resolution={question.resolution}
+          derivRatio={question.possibilities.scale?.deriv_ratio}
         />
       </div>
     </div>

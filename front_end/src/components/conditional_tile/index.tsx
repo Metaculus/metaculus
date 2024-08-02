@@ -4,6 +4,7 @@ import { FC } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
+import PredictionChip from "@/components/prediction_chip";
 import { PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 import {
@@ -47,20 +48,21 @@ const ConditionalTile: FC<Props> = ({
 
   const parentSuccessfullyResolved =
     curationStatus === PostStatus.RESOLVED &&
-    condition.resolution !== null &&
-    condition.resolution === "yes";
+    (condition.resolution === "yes" || condition.resolution === "no");
   const yesHappened =
     condition.resolution !== null &&
     condition.resolution === question_yes.resolution;
   const yesDisabled =
     condition.resolution !== null &&
-    condition.resolution !== question_yes.resolution;
+    (question_yes.resolution === "annulled" ||
+      question_yes.resolution === "ambiguous");
   const noHappened =
     condition.resolution !== null &&
     condition.resolution === question_no.resolution;
   const noDisabled =
     condition.resolution !== null &&
-    condition.resolution !== question_no.resolution;
+    (question_no.resolution === "annulled" ||
+      question_no.resolution === "ambiguous");
 
   return (
     <div className="ConditionalSummary grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
@@ -75,7 +77,15 @@ const ConditionalTile: FC<Props> = ({
           title={getConditionTitle(postTitle, condition)}
           resolved={parentSuccessfullyResolved}
           href={withNavigation ? conditionHref : undefined}
-        />
+        >
+          {parentSuccessfullyResolved && (
+            <PredictionChip
+              question={condition}
+              status={curationStatus}
+              size="compact"
+            />
+          )}
+        </ConditionalCard>
       </div>
       <div
         className={classNames(

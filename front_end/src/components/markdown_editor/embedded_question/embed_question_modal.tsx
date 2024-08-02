@@ -13,7 +13,7 @@ import useDebounce from "@/hooks/use_debounce";
 import { Post, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { formatPrediction } from "@/utils/forecasts";
-import { extractPostStatus } from "@/utils/questions";
+import { extractPostResolution } from "@/utils/questions";
 
 type Props = {
   isOpen: boolean;
@@ -82,7 +82,7 @@ const QuestionCard: FC<{ post: Post; onClick?: () => void }> = ({
   post,
   onClick,
 }) => {
-  const statusData = extractPostStatus(post);
+  const resolutionData = extractPostResolution(post);
   const withForecastData =
     !!post.question &&
     (post.question.type === QuestionType.Binary ||
@@ -103,15 +103,7 @@ const QuestionCard: FC<{ post: Post; onClick?: () => void }> = ({
             question={post.question as QuestionWithNumericForecasts}
           />
         )}
-        {!!statusData && (
-          <PostStatus
-            id={post.id}
-            status={statusData.status}
-            actualCloseTime={statusData.actualCloseTime}
-            resolvedAt={statusData.resolvedAt}
-            post={post}
-          />
-        )}
+        <PostStatus post={post} resolution={resolutionData} />
       </div>
     </div>
   );
