@@ -486,15 +486,6 @@ class Post(TimeStampedModel):
             return []
 
 
-class RelatedPost(TimeStampedModel):
-    post1 = models.ForeignKey(
-        Post, models.CASCADE, related_name="related_posts_as_post1"
-    )
-    post2 = models.ForeignKey(
-        Post, models.CASCADE, related_name="related_posts_as_post2"
-    )
-
-
 class PostSubscription(TimeStampedModel):
     class SubscriptionType(models.TextChoices):
         CP_CHANGE = "cp_change"
