@@ -20,10 +20,10 @@ import {
 } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import {
-  MultipleChoiceForecast,
   QuestionType,
   QuestionWithNumericForecasts,
   Question,
+  QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -275,12 +275,13 @@ export function generatePercentageYScale(containerHeight: number): Scale {
 }
 
 export function generateChoiceItemsFromMultipleChoiceForecast(
-  dataset: MultipleChoiceForecast,
+  question: QuestionWithMultipleChoiceForecasts,
   config?: {
     activeCount?: number;
   }
 ): ChoiceItem[] {
   const { activeCount } = config ?? {};
+  const { forecasts: dataset, range_min, range_max, resolution } = question;
   const sortedPredictions = sortMultipleChoicePredictions(dataset);
 
   return sortedPredictions.map(([choice, values], index) => ({
@@ -289,6 +290,14 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
     color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
     active: !!activeCount ? index <= activeCount - 1 : true,
     highlighted: false,
+    resolution,
+    displayedResolution: resolution
+      ? choice === resolution
+        ? "Yes"
+        : "No"
+      : undefined,
+    rangeMin: range_min,
+    rangeMax: range_max,
   }));
 }
 
@@ -323,6 +332,9 @@ export function generateChoiceItemsFromBinaryGroup(
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       active,
       highlighted: q.id === preselectedQuestionId,
+      resolution: q.resolution,
+      rangeMin: q.range_min,
+      rangeMax: q.range_max,
     };
   });
 }

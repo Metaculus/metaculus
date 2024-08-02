@@ -7,16 +7,14 @@ import { FC, PropsWithChildren } from "react";
 import { PostStatus, Resolution } from "@/types/post";
 import { Question } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
-import { formateResolution } from "@/utils/questions";
+import { formatResolution } from "@/utils/questions";
 
 type Size = "compact" | "large";
 
 type Props = {
   question: Question;
   status: PostStatus;
-  nr_forecasters?: number;
-  prediction: number | undefined;
-  resolution: Resolution | null;
+  prediction?: number;
   size?: Size;
   className?: string;
   chipClassName?: string;
@@ -25,17 +23,19 @@ type Props = {
 const PredictionChip: FC<Props> = ({
   question,
   status,
-  nr_forecasters,
   prediction,
-  resolution,
   className,
   chipClassName,
   size,
 }) => {
   const t = useTranslations();
   const locale = useLocale();
-  const fmted_resolution = formateResolution(resolution, question.type, locale);
-  const fmted_prediction = formateResolution(prediction, question.type, locale);
+
+  const { resolution, nr_forecasters } = question;
+
+  const fmted_resolution = formatResolution(resolution, question.type, locale);
+
+  const fmted_prediction = formatResolution(prediction, question.type, locale);
 
   switch (status) {
     case PostStatus.PENDING:

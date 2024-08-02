@@ -22,8 +22,6 @@ const QuestionResolutionStatus: FC<Props> = ({ post }) => {
           prediction={
             question.forecasts.medians[question.forecasts.medians.length - 1]
           }
-          resolution={question.resolution}
-          nr_forecasters={question.nr_forecasters}
           status={post.status}
           className="items-end"
         />

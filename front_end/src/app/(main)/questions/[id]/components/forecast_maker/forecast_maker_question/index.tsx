@@ -4,7 +4,7 @@ import { FC } from "react";
 
 import { ProjectPermissions } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { formateResolution } from "@/utils/questions";
+import { formatResolution } from "@/utils/questions";
 
 import ForecastMakerBinary from "./forecast_maker_binary";
 import ForecastMakerContinuous from "./forecast_maker_continuous";
@@ -126,7 +126,7 @@ const QuestionResolutionText = ({
       resolutionText = t("resolutionDescriptionContinuous");
   }
 
-  const formattedResolution = formateResolution(
+  const formattedResolution = formatResolution(
     question.resolution,
     question.type,
     locale

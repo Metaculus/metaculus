@@ -39,7 +39,7 @@ const DetailedQuestionCard: FC<Props> = ({ question }) => {
     case QuestionType.MultipleChoice:
       return (
         <DetailsQuestionCardErrorBoundary>
-          <MultipleChoiceChartCard forecast={question.forecasts} />
+          <MultipleChoiceChartCard question={question} />
         </DetailsQuestionCardErrorBoundary>
       );
     default:

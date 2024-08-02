@@ -4,8 +4,10 @@ import { FC } from "react";
 import PostStatus from "@/components/post_status";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
-import { getPredictionQuestion } from "@/utils/questions";
-import { extractPostStatus } from "@/utils/questions";
+import {
+  extractPostResolution,
+  getPredictionQuestion,
+} from "@/utils/questions";
 
 import SimilarPredictionChip from "./similar_question_prediction_chip";
 
@@ -14,7 +16,7 @@ type Props = {
 };
 
 const SimilarQuestionCard: FC<Props> = ({ post }) => {
-  const statusData = extractPostStatus(post);
+  const resolutionData = extractPostResolution(post);
 
   return (
     <Link href={`/questions/${post.id}`} className="w-full no-underline">
@@ -42,15 +44,7 @@ const SimilarQuestionCard: FC<Props> = ({ post }) => {
             )}
           </div>
           <div>
-            {!!statusData && (
-              <PostStatus
-                id={post.id}
-                status={statusData.status}
-                actualCloseTime={statusData.actualCloseTime}
-                resolvedAt={statusData.resolvedAt}
-                post={post}
-              />
-            )}
+            <PostStatus post={post} resolution={resolutionData} />
           </div>
         </div>
       </div>

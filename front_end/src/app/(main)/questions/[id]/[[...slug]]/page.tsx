@@ -150,22 +150,7 @@ export default async function IndividualQuestion({
                 withNavigation
               />
             )}
-            <ForecastMaker
-              postId={postData.id}
-              postTitle={postData.title}
-              permission={postData.user_permission}
-              question={postData.question}
-              conditional={postData.conditional}
-              groupOfQuestions={postData.group_of_questions}
-              canPredict={canPredictQuestion(postData)}
-              canResolve={
-                (postData.user_permission === ProjectPermissions.CURATOR ||
-                  postData.user_permission === ProjectPermissions.ADMIN) &&
-                !isNil(postData.published_at) &&
-                parseISO(postData.published_at) <= new Date() &&
-                postData.status === PostStatus.APPROVED
-              }
-            />
+            <ForecastMaker post={postData} />
             {!!postData.conditional && (
               <ConditionalTimeline
                 conditional={

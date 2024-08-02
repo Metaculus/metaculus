@@ -3,7 +3,7 @@ import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { differenceInMilliseconds } from "date-fns";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
@@ -13,7 +13,7 @@ import { FormError } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
-import { ProjectPermissions } from "@/types/post";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import {
   extractPrevNumericForecastValue,
@@ -21,7 +21,7 @@ import {
   normalizeWeights,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
-import { extractQuestionGroupName } from "@/utils/questions";
+import { extractQuestionGroupName, formatResolution } from "@/utils/questions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import ContinuousPredictionChart from "../continuous_prediction_chart";
@@ -32,23 +32,24 @@ import GroupForecastTable, {
 import NumericForecastTable from "../numeric_table";
 
 type Props = {
-  postId: number;
+  post: PostWithForecasts;
   questions: QuestionWithNumericForecasts[];
-  permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
 };
 
 const ForecastMakerGroupContinuous: FC<Props> = ({
-  postId,
+  post,
   questions,
-  permission,
   canPredict,
   canResolve,
 }) => {
   const t = useTranslations();
+  const locale = useLocale();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
+
+  const { id: postId, user_permission: permission } = post;
 
   const prevForecastValuesMap = useMemo(
     () =>
@@ -83,6 +84,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     () => groupOptions.find((o) => o.id === activeTableOption),
     [groupOptions, activeTableOption]
   );
+  console.log("activeGroupOption", activeGroupOption);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
@@ -259,24 +261,16 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               option.id !== activeTableOption && "hidden"
             )}
           >
-            {option.resolution ? (
-              <ContinuousPredictionChart
-                dataset={dataset}
-                question={option.question}
-                graphType="pmf"
-              />
-            ) : (
-              <ContinuousSlider
-                question={option.question}
-                forecast={option.userForecast}
-                weights={option.userWeights}
-                dataset={dataset}
-                onChange={(forecast, weight) =>
-                  handleChange(option.id, forecast, weight)
-                }
-                disabled={!canPredict}
-              />
-            )}
+            <ContinuousSlider
+              question={option.question}
+              forecast={option.userForecast}
+              weights={option.userWeights}
+              dataset={dataset}
+              onChange={(forecast, weight) =>
+                handleChange(option.id, forecast, weight)
+              }
+              disabled={!canPredict}
+            />
           </div>
         );
       })}
@@ -321,24 +315,41 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         </div>
       )}
       {!!activeGroupOption && (
-        <NumericForecastTable
-          question={activeGroupOption.question}
-          userBounds={
-            userCdf && {
-              belowLower: userCdf[0],
-              aboveUpper: 1 - userCdf[userCdf.length - 1],
+        <>
+          <NumericForecastTable
+            question={activeGroupOption.question}
+            userBounds={
+              userCdf && {
+                belowLower: userCdf[0],
+                aboveUpper: 1 - userCdf[userCdf.length - 1],
+              }
             }
-          }
-          userQuartiles={activeGroupOption.userQuartiles ?? undefined}
-          communityBounds={
-            communityCdf && {
-              belowLower: communityCdf[0],
-              aboveUpper: 1 - communityCdf[communityCdf.length - 1],
+            userQuartiles={activeGroupOption.userQuartiles ?? undefined}
+            communityBounds={
+              communityCdf && {
+                belowLower: communityCdf[0],
+                aboveUpper: 1 - communityCdf[communityCdf.length - 1],
+              }
             }
-          }
-          communityQuartiles={activeGroupOption.communityQuartiles}
-          withUserQuartiles={activeGroupOption.resolution === null}
-        />
+            communityQuartiles={activeGroupOption.communityQuartiles}
+            withUserQuartiles={activeGroupOption.resolution === null}
+          />
+
+          {!!activeGroupOption.resolution && (
+            <div className="mb-3 text-gray-600 dark:text-gray-600-dark">
+              <p className="my-1 flex justify-center gap-1 text-base">
+                {t("resolutionDescriptionContinuous")}
+                <strong className="text-purple-800 dark:text-purple-800-dark">
+                  {formatResolution(
+                    activeGroupOption.resolution,
+                    activeGroupOption.question.type,
+                    locale
+                  )}
+                </strong>
+              </p>
+            </div>
+          )}
+        </>
       )}
       {submitErrors.map((errResponse, index) => (
         <FormError key={`error-${index}`} errors={errResponse} />

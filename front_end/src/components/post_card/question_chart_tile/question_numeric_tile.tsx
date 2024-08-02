@@ -29,8 +29,6 @@ const QuestionNumericTile: FC<Props> = ({
         <PredictionChip
           question={question}
           prediction={prediction}
-          resolution={question.resolution}
-          nr_forecasters={question.nr_forecasters}
           status={curationStatus}
         />
       </div>
