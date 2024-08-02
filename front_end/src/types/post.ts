@@ -146,6 +146,12 @@ export enum PostSubscriptionType {
   SPECIFIC_TIME = "specific_time",
 }
 
+export enum CPChangeThreshold {
+  LARGE = 0.6,
+  MEDIUM = 0.25,
+  SMALL = 0.05,
+}
+
 export type PostSubscription =
   | PostSubscriptionNewComments
   | PostSubscriptionMilestone
@@ -169,7 +175,7 @@ export type PostSubscriptionStatusChange = {
 
 export type PostSubscriptionCPCHange = {
   type: PostSubscriptionType.CP_CHANGE;
-  cp_threshold: number;
+  cp_change_threshold: CPChangeThreshold;
 };
 
 export type PostSubscriptionSpecificTime = {

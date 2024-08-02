@@ -82,22 +82,6 @@ def percent_point_function(
     return np.array(ppf_values[0] if return_float else ppf_values)
 
 
-def map_difference_to_threshold(difference: float) -> float:
-    """Jeffreys distance isn't directly translatable to a difference
-    in probabilities, so this function very approximately maps a jeffreys
-    difference to a difference in probabilities
-    For instance, a 10% difference in probabilities centered around 50% (45% vs 55%),
-    has a jeffrey's distance of 0.0579. Empirically, we can map data like this
-     to the quadratic:
-        p_dif = 7.5 * j_dif^2 + 0.5*j_dif
-    This is the inverse of that function.
-
-    Used to evaluate the size of the difference between two forecasts is for
-    notification purposes
-    """
-    return 1 / 30 * (np.sqrt(120 * difference + 1) + 1)
-
-
 def prediction_difference_for_sorting(
     p1: ForecastValues, p2: ForecastValues, question: Question
 ) -> float:
@@ -109,7 +93,9 @@ def prediction_difference_for_sorting(
         return sum([(p - q) * np.log2(p / q) for p, q in zip(p1, p2)])
     cdf1 = np.array([1 - np.array(p1), p1])
     cdf2 = np.array([1 - np.array(p2), p2])
-    divergences = np.sum((cdf1 - cdf2) * np.log2(cdf1 / cdf2), axis=0)
+    divergences = np.sum(
+        (cdf1 - cdf2) * np.log2(cdf1 / cdf2), axis=0, where=np.abs(cdf1 - cdf2) > 1e-7
+    )
     return float(np.trapz(divergences, x=np.linspace(0, 1, len(p1))))
 
 
