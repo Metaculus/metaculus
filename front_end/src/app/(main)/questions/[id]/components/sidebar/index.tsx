@@ -46,9 +46,7 @@ const Sidebar: FC<Props> = ({
         </Suspense>
 
         <Suspense fallback={null}>
-          <SimilarQuestions
-            ids={postData.related_posts ? postData.related_posts : []}
-          />
+          <SimilarQuestions post_id={postData.id} />
         </Suspense>
       </div>
     );
@@ -84,9 +82,7 @@ const Sidebar: FC<Props> = ({
       </Suspense>
 
       <Suspense fallback={null}>
-        <SimilarQuestions
-          ids={postData.related_posts ? postData.related_posts : []}
-        />
+        <SimilarQuestions post_id={postData.id} />
       </Suspense>
     </div>
   );
