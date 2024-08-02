@@ -85,7 +85,17 @@ export type Question = {
   forecast_scoring_ends?: string;
   type: QuestionType;
   options?: string[];
-  possibilities: string; // TODO: update type
+  possibilities: {
+    format?: string;
+    high?: string;
+    low?: string;
+    type?: string;
+    scale?: {
+      max: number;
+      min: number;
+      deriv_ratio: number;
+    };
+  }; // TODO: update type
   resolution: Resolution | null;
   fine_print: string | null;
   resolution_criteria_description: string | null;

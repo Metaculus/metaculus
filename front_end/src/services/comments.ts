@@ -7,6 +7,7 @@ export type getCommentsParams = {
   author?: number;
   parent_isnull?: boolean;
   page?: number;
+  sort?: string;
 };
 
 export type CreateCommentParams = {

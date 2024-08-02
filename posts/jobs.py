@@ -31,7 +31,7 @@ def job_check_post_open_event():
     """
     from posts.services.common import handle_post_open
 
-    for post in Post.objects.filter_active(published_at_triggered=False):
+    for post in Post.objects.filter_active().filter(published_at_triggered=False):
         try:
             handle_post_open(post)
         except Exception:
