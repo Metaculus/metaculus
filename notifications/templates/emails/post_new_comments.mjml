@@ -22,8 +22,9 @@
 
                 <mj-text>
                     <a href="{% post_url notification.post.post_id notification.post.post_title %}">
-                        {{ notification.post.post_title }}, {{ notification.new_comments_count }}
+                        {{ notification.post.post_title }}
                     </a>
+                    - {{ notification.comments_count }}
 
                     <ul>
                         {% for comment in notification.comments %}

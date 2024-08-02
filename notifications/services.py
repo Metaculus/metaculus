@@ -196,8 +196,10 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
 
         for notification in notifications:
             # Comments with user mentions go first
-            read_more_count = len(notification["comments"]) - comments_to_display
+            comments_count = len(notification["comments"])
+            read_more_count = comments_count - comments_to_display
 
+            notification["comments_count"] = comments_count
             notification["read_more_count"] = (
                 read_more_count if read_more_count > 0 else 0
             )
