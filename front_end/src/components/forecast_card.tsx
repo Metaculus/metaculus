@@ -137,8 +137,10 @@ const ForecastCard: FC<Props> = ({
         case QuestionType.MultipleChoice:
           const visibleChoicesCount = 3;
           const choices = generateChoiceItemsFromMultipleChoiceForecast(
-            question.forecasts,
-            { activeCount: visibleChoicesCount }
+            question,
+            {
+              activeCount: visibleChoicesCount,
+            }
           );
           return (
             <MultipleChoiceTile
@@ -149,6 +151,7 @@ const ForecastCard: FC<Props> = ({
               chartTheme={chartTheme}
               defaultChartZoom={defaultChartZoom}
               withZoomPicker={withZoomPicker}
+              question={question}
             />
           );
         default:
@@ -180,7 +183,6 @@ const ForecastCard: FC<Props> = ({
               question={question}
               status={post.status}
               prediction={prediction}
-              resolution={question.resolution}
               className="ForecastCard-prediction"
             />
           );

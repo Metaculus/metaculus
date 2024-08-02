@@ -11,7 +11,7 @@ import usePrevious from "@/hooks/use_previous";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
-import { MultipleChoiceForecast } from "@/types/question";
+import { QuestionWithMultipleChoiceForecasts } from "@/types/question";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
@@ -19,18 +19,20 @@ import ChoicesTooltip from "../choices_tooltip";
 
 const MAX_VISIBLE_CHECKBOXES = 6;
 
-const generateList = (forecast: MultipleChoiceForecast) =>
-  generateChoiceItemsFromMultipleChoiceForecast(forecast, {
+const generateList = (question: QuestionWithMultipleChoiceForecasts) =>
+  generateChoiceItemsFromMultipleChoiceForecast(question, {
     activeCount: MAX_VISIBLE_CHECKBOXES,
   });
 
 type Props = {
-  forecast: MultipleChoiceForecast;
+  question: QuestionWithMultipleChoiceForecasts;
 };
 
-const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
+const MultipleChoiceChartCard: FC<Props> = ({ question }) => {
   const t = useTranslations();
   const { user } = useAuth();
+
+  const { forecasts } = question;
 
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => {
@@ -38,28 +40,28 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
   }, []);
 
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
-    generateList(forecast)
+    generateList(question)
   );
 
-  const timestampsCount = forecast.timestamps.length;
+  const timestampsCount = forecasts.timestamps.length;
   const prevTimestampsCount = usePrevious(timestampsCount);
   // sync BE driven data with local state
   useEffect(() => {
     if (prevTimestampsCount && prevTimestampsCount !== timestampsCount) {
-      setChoiceItems(generateList(forecast));
+      setChoiceItems(generateList(question));
     }
-  }, [forecast, prevTimestampsCount, timestampsCount]);
+  }, [prevTimestampsCount, question, timestampsCount]);
 
   const [cursorTimestamp, tooltipDate, handleCursorChange] = useTimestampCursor(
-    forecast.timestamps
+    forecasts.timestamps
   );
 
   const cursorIndex = useMemo(
     () =>
-      forecast.timestamps.findIndex(
+      forecasts.timestamps.findIndex(
         (timestamp) => timestamp === cursorTimestamp
       ),
-    [cursorTimestamp, forecast.timestamps]
+    [cursorTimestamp, forecasts.timestamps]
   );
 
   const tooltipChoices = useMemo<ChoiceTooltipItem[]>(
@@ -124,12 +126,12 @@ const MultipleChoiceChartCard: FC<Props> = ({ forecast }) => {
         </h3>
         <div className="ml-auto dark:text-white">
           {t("totalForecastersLabel")}{" "}
-          <strong>{forecast.nr_forecasters[cursorIndex]}</strong>
+          <strong>{forecasts.nr_forecasters[cursorIndex]}</strong>
         </div>
       </div>
       <div ref={refs.setReference} {...getReferenceProps()}>
         <MultipleChoiceChart
-          timestamps={forecast.timestamps}
+          timestamps={forecasts.timestamps}
           choiceItems={choiceItems}
           yLabel={t("communityPredictionLabel")}
           onChartReady={handleChartReady}

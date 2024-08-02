@@ -1,7 +1,11 @@
 import { differenceInMilliseconds } from "date-fns";
 import { FC, useEffect, useRef } from "react";
 
-import { PostStatus } from "@/types/post";
+import { PostStatus, Resolution } from "@/types/post";
+import {
+  isSuccessfullyResolved,
+  isUnsuccessfullyResolved,
+} from "@/utils/questions";
 
 const CLOCK_RADIUS = 10;
 
@@ -9,17 +13,21 @@ type Props = {
   status: PostStatus;
   published_at: string;
   actual_close_time: string;
+  resolution: Resolution | null;
 };
 
 const PostStatusIcon: FC<Props> = ({
   status,
   actual_close_time,
   published_at,
+  resolution,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
+  const resolvedBadly = isUnsuccessfullyResolved(resolution);
+  const resolvedWell = isSuccessfullyResolved(resolution);
   const showClock =
-    status === PostStatus.CLOSED || status === PostStatus.RESOLVED;
+    status !== PostStatus.RESOLVED && status !== PostStatus.DELETED;
 
   useEffect(() => {
     if (!svgRef.current || !showClock) return;
@@ -66,6 +74,54 @@ const PostStatusIcon: FC<Props> = ({
           <path d="" className="fill-mint-500" />
           <circle className="stroke-blue-700 stroke-1" />
           <line x1="0" y1="0" className="stroke-blue-700 stroke-1" />
+        </>
+      );
+    }
+
+    if (resolvedWell) {
+      return (
+        <>
+          <circle
+            r="10"
+            strokeWidth="1"
+            className="stroke-blue-700 dark:stroke-blue-700-dark"
+          />
+          <path
+            d="M 0 -5 L 5 0 L 0 5 L -5 0 Z"
+            fill="none"
+            strokeWidth="2.5"
+            className="stroke-purple-800 dark:stroke-purple-800-dark"
+          />
+        </>
+      );
+    }
+
+    if (resolvedBadly) {
+      return (
+        <>
+          <circle
+            r="10"
+            strokeWidth="1"
+            className="stroke-blue-700 dark:stroke-blue-700-dark"
+          />
+          <line
+            x1="-4"
+            y1="-4"
+            x2="4"
+            y2="4"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            className="stroke-purple-800 dark:stroke-purple-800-dark"
+          />
+          <line
+            x1="4"
+            y1="-4"
+            x2="-4"
+            y2="4"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            className="stroke-purple-800 dark:stroke-purple-800-dark"
+          />
         </>
       );
     }

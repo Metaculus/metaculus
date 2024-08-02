@@ -1,6 +1,6 @@
 import { Radio, RadioGroup } from "@headlessui/react";
 import classNames from "classnames";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   DetailedHTMLProps,
   FC,
@@ -13,11 +13,13 @@ import {
 import ResolutionIcon from "@/components/icons/resolution";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import RadioButton from "@/components/ui/radio_button";
+import { Resolution } from "@/types/post";
 import {
   Bounds,
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { formatResolution } from "@/utils/questions";
 
 export type ConditionalTableOption = {
   id: number;
@@ -28,7 +30,7 @@ export type ConditionalTableOption = {
   userQuartiles: Quartiles | null;
   communityQuartiles: Quartiles;
   isDirty: boolean;
-  resolution: string | null;
+  resolution: Resolution | null;
   menu?: ReactNode;
 };
 
@@ -40,6 +42,7 @@ type Props = {
 
 const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
   const t = useTranslations();
+  const locale = useLocale();
 
   const { resolvedOptions, pendingOptions } = useMemo(
     () => ({
@@ -88,7 +91,11 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
                     <div className="flex w-full items-center justify-center">
                       <ResolutionIcon />
                       <span className="text-purple-800 dark:text-purple-800-dark">
-                        {option.resolution}
+                        {formatResolution(
+                          option.resolution,
+                          option.question.type,
+                          locale
+                        )}
                       </span>
                     </div>
                     <div>{option.menu}</div>
