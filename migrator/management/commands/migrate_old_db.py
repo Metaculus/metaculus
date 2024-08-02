@@ -73,8 +73,11 @@ class Command(BaseCommand):
         print("Migrated comment votes")
         migrate_permissions()
         print("Migrated permissions")
-        migrate_subscriptions(site_ids=site_ids)
-        print("Migrated post subscriptions")
+
+        # TODO: enable on prod release!
+        print("\033[93mPost Subscriptions/Following migration is disabled!\033[93m")
+        # migrate_subscriptions(site_ids=site_ids)
+        # print("Migrated post subscriptions")
 
         # scoring
         score_questions()
