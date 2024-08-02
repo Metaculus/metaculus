@@ -39,6 +39,8 @@ tiktoken = "^0.7.0"
 aiohttp = "^3.9.5"
 django-mjml = "^1.2"
 markdown = "^3.6"
+sshtunnel = "^0.4.0"
+pymysql = "^1.1.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"
