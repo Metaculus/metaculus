@@ -84,7 +84,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     () => groupOptions.find((o) => o.id === activeTableOption),
     [groupOptions, activeTableOption]
   );
-  console.log("activeGroupOption", activeGroupOption);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);

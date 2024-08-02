@@ -35,6 +35,7 @@ import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
 import QuestionResolutionStatus from "../components/question_resolution_status";
 import Sidebar from "../components/sidebar";
+import PostDropdownMenu from "../components/sidebar/question_dropdown_menu";
 import ShareQuestionMenu from "../components/sidebar/share_question_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 
@@ -107,13 +108,7 @@ export default async function IndividualQuestion({
           {allowModifications && <Modbox post={postData} />}
           <div className="ml-auto flex h-9 flex-row text-gray-700 dark:text-gray-700-dark lg:hidden">
             <ShareQuestionMenu questionTitle={questionTitle} />
-            <Button
-              variant="secondary"
-              className="!rounded border-0"
-              presentationType="icon"
-            >
-              <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
-            </Button>
+            <PostDropdownMenu post={postData} />
           </div>
         </div>
         <div className="flex w-full items-start gap-4">
