@@ -114,11 +114,6 @@ def notify_post_cp_change(post: Post):
 
     for subscription in subscriptions:
         last_sent = subscription.last_sent_at
-        if not last_sent:
-            subscription.update_last_sent_at()
-            subscription.save()
-            continue
-
         max_sorting_diff = None
         display_diff = None
         question_data: list[CPChangeData] = []
