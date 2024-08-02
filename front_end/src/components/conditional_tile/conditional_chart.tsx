@@ -58,9 +58,7 @@ const ConditionalChart: FC<Props> = ({
             <PredictionChip
               question={question}
               status={parentStatus}
-              nr_forecasters={question.nr_forecasters}
               prediction={pctCandidate}
-              resolution={question.resolution}
               size="compact"
             />
           )}
@@ -107,9 +105,7 @@ const ConditionalChart: FC<Props> = ({
             <PredictionChip
               question={question}
               status={parentStatus}
-              nr_forecasters={question.nr_forecasters}
               prediction={prediction}
-              resolution={question.resolution}
               size="compact"
             />
           )}

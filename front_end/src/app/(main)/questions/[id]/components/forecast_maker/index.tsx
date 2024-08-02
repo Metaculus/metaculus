@@ -1,45 +1,44 @@
+import { parseISO } from "date-fns";
+import { isNil } from "lodash";
 import { FC } from "react";
 
 import {
-  PostConditional,
-  PostGroupOfQuestions,
+  PostStatus,
+  PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
-import { QuestionWithForecasts } from "@/types/question";
+import { canPredictQuestion } from "@/utils/questions";
 
 import ForecastMakerConditional from "./forecast_maker_conditional";
 import ForecastMakerGroup from "./forecast_maker_group";
 import QuestionForecastMaker from "./forecast_maker_question";
 
 type Props = {
-  postId: number;
-  postTitle: string;
-  groupOfQuestions?: PostGroupOfQuestions<QuestionWithForecasts>;
-  conditional?: PostConditional<QuestionWithForecasts>;
-  question?: QuestionWithForecasts;
-  permission?: ProjectPermissions;
-  canPredict: boolean;
-  canResolve: boolean;
+  post: PostWithForecasts;
 };
 
-const ForecastMaker: FC<Props> = ({
-  postId,
-  postTitle,
-  conditional,
-  question,
-  groupOfQuestions,
-  permission,
-  canPredict,
-  canResolve,
-}) => {
+const ForecastMaker: FC<Props> = ({ post }) => {
+  const {
+    group_of_questions: groupOfQuestions,
+    conditional,
+    question,
+    user_permission: permission,
+  } = post;
+  const canPredict = canPredictQuestion(post);
+  const canResolve =
+    (post.user_permission === ProjectPermissions.CURATOR ||
+      post.user_permission === ProjectPermissions.ADMIN) &&
+    !isNil(post.published_at) &&
+    parseISO(post.published_at) <= new Date() &&
+    post.status === PostStatus.APPROVED;
+
   if (groupOfQuestions) {
     return (
       <ForecastMakerGroup
-        postId={postId}
+        post={post}
         resolutionCriteria={groupOfQuestions.resolution_criteria_description}
         finePrint={groupOfQuestions.fine_print}
         questions={groupOfQuestions.questions}
-        permission={permission}
         canPredict={canPredict}
         canResolve={canResolve}
       />
@@ -49,8 +48,7 @@ const ForecastMaker: FC<Props> = ({
   if (conditional) {
     return (
       <ForecastMakerConditional
-        postId={postId}
-        postTitle={postTitle}
+        post={post}
         conditional={conditional}
         canPredict={canPredict}
         canResolve={canResolve}
