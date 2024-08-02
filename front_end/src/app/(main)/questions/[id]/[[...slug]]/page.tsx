@@ -33,7 +33,9 @@ import HistogramDrawer from "../components/histogram_drawer";
 import Modbox from "../components/modbox";
 import QuestionEmbedModal from "../components/question_embed_modal";
 import QuestionHeaderInfo from "../components/question_header_info";
+import QuestionResolutionStatus from "../components/question_resolution_status";
 import Sidebar from "../components/sidebar";
+import PostDropdownMenu from "../components/sidebar/question_dropdown_menu";
 import ShareQuestionMenu from "../components/sidebar/share_question_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 
@@ -106,22 +108,21 @@ export default async function IndividualQuestion({
           {allowModifications && <Modbox post={postData} />}
           <div className="ml-auto flex h-9 flex-row text-gray-700 dark:text-gray-700-dark lg:hidden">
             <ShareQuestionMenu questionTitle={questionTitle} />
-            <Button
-              variant="secondary"
-              className="!rounded border-0"
-              presentationType="icon"
-            >
-              <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
-            </Button>
+            <PostDropdownMenu post={postData} />
           </div>
         </div>
         <div className="flex w-full items-start gap-4">
           <div className="w-[48rem] max-w-full border-transparent bg-gray-0 px-3 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
             <div className="my-0 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2 lg:mt-4">
               {!postData.conditional && (
-                <h1 className="ng-binding m-0 text-xl leading-tight sm:text-3xl">
-                  {postData.title}
-                </h1>
+                <>
+                  <h1 className="m-0 text-xl leading-tight sm:text-3xl">
+                    {postData.title}
+                  </h1>
+                  {postData.resolved && !!postData.question && (
+                    <QuestionResolutionStatus post={postData} />
+                  )}
+                </>
               )}
             </div>
 
@@ -144,22 +145,7 @@ export default async function IndividualQuestion({
                 withNavigation
               />
             )}
-            <ForecastMaker
-              postId={postData.id}
-              postTitle={postData.title}
-              permission={postData.user_permission}
-              question={postData.question}
-              conditional={postData.conditional}
-              groupOfQuestions={postData.group_of_questions}
-              canPredict={canPredictQuestion(postData)}
-              canResolve={
-                (postData.user_permission === ProjectPermissions.CURATOR ||
-                  postData.user_permission === ProjectPermissions.ADMIN) &&
-                !isNil(postData.published_at) &&
-                parseISO(postData.published_at) <= new Date() &&
-                postData.status === PostStatus.APPROVED
-              }
-            />
+            <ForecastMaker post={postData} />
             {!!postData.conditional && (
               <ConditionalTimeline
                 conditional={

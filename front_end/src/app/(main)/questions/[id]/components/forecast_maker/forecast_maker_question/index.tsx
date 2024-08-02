@@ -1,9 +1,10 @@
 import { parseISO } from "date-fns";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { ProjectPermissions } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { formatResolution } from "@/utils/questions";
 
 import ForecastMakerBinary from "./forecast_maker_binary";
 import ForecastMakerContinuous from "./forecast_maker_continuous";
@@ -30,45 +31,54 @@ const QuestionForecastMaker: FC<Props> = ({
       case QuestionType.Numeric:
       case QuestionType.Date:
         return (
-          <ForecastMakerContinuous
-            question={question}
-            permission={permission}
-            prevForecast={question.forecasts.my_forecasts?.slider_values}
-            canPredict={
-              canPredict &&
-              question.open_time !== undefined &&
-              parseISO(question.open_time) < new Date()
-            }
-            canResolve={canResolve}
-          />
+          <>
+            <ForecastMakerContinuous
+              question={question}
+              permission={permission}
+              prevForecast={question.forecasts.my_forecasts?.slider_values}
+              canPredict={
+                canPredict &&
+                question.open_time !== undefined &&
+                parseISO(question.open_time) < new Date()
+              }
+              canResolve={canResolve}
+            />
+            <QuestionResolutionText question={question} />
+          </>
         );
       case QuestionType.Binary:
         return (
-          <ForecastMakerBinary
-            question={question}
-            permission={permission}
-            prevForecast={question.forecasts.my_forecasts?.slider_values}
-            canPredict={
-              canPredict &&
-              question.open_time !== undefined &&
-              parseISO(question.open_time) < new Date()
-            }
-            canResolve={canResolve}
-          />
+          <>
+            <ForecastMakerBinary
+              question={question}
+              permission={permission}
+              prevForecast={question.forecasts.my_forecasts?.slider_values}
+              canPredict={
+                canPredict &&
+                question.open_time !== undefined &&
+                parseISO(question.open_time) < new Date()
+              }
+              canResolve={canResolve}
+            />
+            <QuestionResolutionText question={question} />
+          </>
         );
       case QuestionType.MultipleChoice:
         return (
-          <ForecastMakerMultipleChoice
-            question={question}
-            permission={permission}
-            prevForecast={question.forecasts.my_forecasts?.slider_values}
-            canPredict={
-              canPredict &&
-              question.open_time !== undefined &&
-              parseISO(question.open_time) < new Date()
-            }
-            canResolve={canResolve}
-          />
+          <>
+            <ForecastMakerMultipleChoice
+              question={question}
+              permission={permission}
+              prevForecast={question.forecasts.my_forecasts?.slider_values}
+              canPredict={
+                canPredict &&
+                question.open_time !== undefined &&
+                parseISO(question.open_time) < new Date()
+              }
+              canResolve={canResolve}
+            />
+            <QuestionResolutionText question={question} />
+          </>
         );
       default:
         return null;
@@ -88,6 +98,49 @@ const QuestionForecastMaker: FC<Props> = ({
     >
       {renderForecastMaker()}
     </ForecastMakerContainer>
+  );
+};
+
+const QuestionResolutionText = ({
+  question,
+}: {
+  question: QuestionWithForecasts;
+}) => {
+  const t = useTranslations();
+  const locale = useLocale();
+
+  if (!question.resolution) {
+    return null;
+  }
+
+  let resolutionText = "";
+  switch (question.type) {
+    case QuestionType.Binary:
+      resolutionText = t("resolutionDescriptionBinary");
+      break;
+    case QuestionType.MultipleChoice:
+      resolutionText = t("resolutionDescriptionMultipleChoice");
+      break;
+    case QuestionType.Date:
+    case QuestionType.Numeric:
+      resolutionText = t("resolutionDescriptionContinuous");
+  }
+
+  const formattedResolution = formatResolution(
+    question.resolution,
+    question.type,
+    locale
+  );
+
+  return (
+    <div className="mb-3 text-gray-600 dark:text-gray-600-dark">
+      <p className="my-1 flex justify-center gap-1 text-base">
+        {resolutionText}
+        <strong className="text-purple-800 dark:text-purple-800-dark">
+          {formattedResolution}
+        </strong>
+      </p>
+    </div>
   );
 };
 
