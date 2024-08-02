@@ -320,6 +320,10 @@ LOGGING = {
             "level": "INFO",
             "handlers": ["console"],
         },
+        "dramatiq": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+        },
     },
 }
 
