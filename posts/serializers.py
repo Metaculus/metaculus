@@ -318,13 +318,13 @@ class SubscriptionMilestoneSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionCPChangeSerializer(serializers.ModelSerializer):
-    cp_threshold = serializers.FloatField(min_value=0, max_value=1)
+    cp_change_threshold = serializers.FloatField(min_value=0, max_value=1)
 
     class Meta:
         model = PostSubscription
         fields = (
             "type",
-            "cp_threshold",
+            "cp_change_threshold",
         )
 
 
