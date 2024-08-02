@@ -67,7 +67,7 @@ def migrate_cp_change(old_reminder: dict) -> PostSubscription:
         post_id=old_reminder["question_id"],
         created_at=old_reminder["created_time"],
         # Initially, we had only one threshold option
-        cp_threshold=0.1,
+        cp_change_threshold=0.25,
     )
 
 

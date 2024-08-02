@@ -267,6 +267,7 @@ class Notebook(TimeStampedModel):
 
 class Post(TimeStampedModel):
     votes: QuerySet["Vote"]
+    subscriptions: QuerySet["PostSubscription"]
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -515,7 +516,7 @@ class PostSubscription(TimeStampedModel):
         null=True, blank=True, validators=[MinValueValidator(0), MaxValueValidator(1)]
     )
     # 0. -> 1.
-    cp_threshold = models.FloatField(null=True, blank=True)
+    cp_change_threshold = models.FloatField(null=True, blank=True)
 
     def update_last_sent_at(self):
         self.last_sent_at = timezone.now()
