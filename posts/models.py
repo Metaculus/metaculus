@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import (
     Sum,
@@ -14,6 +15,8 @@ from django.db.models import (
     QuerySet,
 )
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from pgvector.django import VectorField
 from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
@@ -245,6 +248,11 @@ class PostQuerySet(models.QuerySet):
         )
 
 
+class PostManager(models.Manager.from_queryset(PostQuerySet)):
+    def get_queryset(self):
+        return super().get_queryset().defer("embedding_vector")
+
+
 class Notebook(TimeStampedModel):
     class NotebookType(models.TextChoices):
         DISCUSSION = "discussion"
@@ -297,6 +305,12 @@ class Post(TimeStampedModel):
     scheduled_resolve_time = models.DateTimeField(null=True, blank=True)
     actual_close_time = models.DateTimeField(null=True, blank=True)
     resolved = models.BooleanField(default=False)
+
+    embedding_vector = VectorField(
+        help_text="Vector embeddings of the Post content",
+        null=True,
+        blank=True,
+    )
 
     def set_scheduled_close_time(self):
         if self.question:
@@ -428,6 +442,10 @@ class Post(TimeStampedModel):
         default=0, editable=False, db_index=True
     )
 
+    # Indicates whether we triggered "handle_post_open" event
+    # And guarantees idempotency of "on post open" evens
+    published_at_triggered = models.BooleanField(default=False)
+
     def update_forecasts_count(self):
         """
         Update forecasts count cache
@@ -436,7 +454,7 @@ class Post(TimeStampedModel):
         self.forecasts_count = self.forecasts.count()
         self.save(update_fields=["forecasts_count"])
 
-    objects = models.Manager.from_queryset(PostQuerySet)()
+    objects = PostManager()
 
     # Annotated fields
     nr_forecasters: int = 0
@@ -469,15 +487,6 @@ class Post(TimeStampedModel):
             return []
 
 
-class RelatedPost(TimeStampedModel):
-    post1 = models.ForeignKey(
-        Post, models.CASCADE, related_name="related_posts_as_post1"
-    )
-    post2 = models.ForeignKey(
-        Post, models.CASCADE, related_name="related_posts_as_post2"
-    )
-
-
 class PostSubscription(TimeStampedModel):
     class SubscriptionType(models.TextChoices):
         CP_CHANGE = "cp_change"
@@ -487,9 +496,9 @@ class PostSubscription(TimeStampedModel):
         SPECIFIC_TIME = "specific_time"
 
     class PostStatusChange(models.TextChoices):
-        OPEN = "open"
-        CLOSE = "close"
-        RESOLVE = "resolve"
+        OPEN = "open", _("Open")
+        CLOSED = "closed", _("Closed")
+        RESOLVED = "resolved", _("Resolved")
 
     user = models.ForeignKey(User, models.CASCADE, related_name="subscriptions")
     post = models.ForeignKey(Post, models.CASCADE, related_name="subscriptions")
@@ -503,9 +512,10 @@ class PostSubscription(TimeStampedModel):
     # Notification-specific fields
     comments_frequency = models.PositiveSmallIntegerField(null=True, blank=True)
     recurrence_interval = models.DurationField(null=True, blank=True)
+    milestone_step = models.FloatField(
+        null=True, blank=True, validators=[MinValueValidator(0), MaxValueValidator(1)]
+    )
     # 0. -> 1.
-    milestone_step = models.FloatField(null=True, blank=True)
-    # >= 0.
     cp_threshold = models.FloatField(null=True, blank=True)
 
     def update_last_sent_at(self):

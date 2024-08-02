@@ -7,6 +7,7 @@ import CommentsApi, {
   EditCommentParams,
   VoteCommentParams,
   CreateCommentParams,
+  ToggleCMMCommentParams,
 } from "@/services/comments";
 import PostsApi, { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
@@ -250,6 +251,18 @@ export async function createComment(commentData: CreateCommentParams) {
 export async function voteComment(voteData: VoteCommentParams) {
   try {
     return await CommentsApi.voteComment(voteData);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
+export async function toggleCMMComment(cmmParam: ToggleCMMCommentParams) {
+  try {
+    return await CommentsApi.toggleCMMComment(cmmParam);
   } catch (err) {
     const error = err as FetchError;
 

@@ -4,20 +4,36 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
-from comments.models import Comment, CommentVote, CommentDiff
-from comments.serializers import CommentWriteSerializer, serialize_comment, serialize_comment_many
+from comments.models import ChangedMyMindEntry, Comment, CommentVote, CommentDiff
+from comments.serializers import (
+    CommentWriteSerializer,
+    serialize_comment,
+    serialize_comment_many,
+)
 from comments.services import create_comment
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 
 
-class CommentPagination(PageNumberPagination):
+class CustomCommentPagination(PageNumberPagination):
     page_size = 10
+
+    def get_paginated_response(self, data):
+        return Response(
+            {
+                "count": self.page.paginator.count,
+                "next": self.get_next_link(),
+                "previous": self.get_previous_link(),
+                "results": data,
+                "total_count": self.total_count,
+            }
+        )
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -48,13 +64,22 @@ def comments_list_api_view(request: Request):
     else:
         comments = comments.filter(Q(is_private=False) | Q(author=request.user))
 
+    comments = comments.annotate_vote_score()
+
+    sort_param = serializers.CharField(allow_null=True).run_validation(
+        request.query_params.get("sort")
+    )
+    if sort_param:
+        comments = comments.order_by(sort_param)
+
     # comments = [
     #    c
     #    for c in comments.all()
     #    if ObjectPermission.can_view(get_comment_permission_for_user(c, request.user))
     # ]
 
-    paginator = CommentPagination()
+    paginator = CustomCommentPagination()
+    paginator.total_count = comments.count()
     paginated_comments = paginator.paginate_queryset(comments, request)
 
     data = serialize_comment_many(paginated_comments, request.user)
@@ -98,7 +123,9 @@ def comment_create_api_view(request: Request):
         else None
     )
 
-    new_comment = create_comment(**serializer.validated_data, included_forecast=forecast, user=user)
+    new_comment = create_comment(
+        **serializer.validated_data, included_forecast=forecast, user=user
+    )
 
     return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)
 
@@ -144,4 +171,27 @@ def comment_vote_api_view(request: Request, pk: int):
 
     return Response(
         {"score": Comment.objects.annotate_vote_score().get(pk=comment.pk).vote_score}
+    )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def comment_toggle_cmm_view(request, pk=int):
+    enabled = request.data.get("enabled", False)
+    comment = get_object_or_404(Comment, pk=pk)
+    user = request.user
+    cmm = ChangedMyMindEntry.objects.filter(user=user, comment=comment)
+
+    if not enabled and cmm.exists():
+        cmm.delete()
+
+        return Response(status=status.HTTP_200_OK)
+
+    if not cmm.exists():
+        cmm = ChangedMyMindEntry.objects.create(user=user, comment=comment)
+        return Response(status=status.HTTP_200_OK)
+
+    return Response(
+        {"error": "Already set as changed my mind"},
+        status=status.HTTP_400_BAD_REQUEST,
     )

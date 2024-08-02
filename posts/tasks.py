@@ -1,9 +1,9 @@
 import logging
 
 import dramatiq
-from django.db.models import Q
 
 from posts.models import Post, PostUserSnapshot, PostSubscription
+from posts.services.search import update_post_search_embedding_vector
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ def run_compute_sorting_divergence(post_id):
     """
     from posts.services.common import compute_sorting_divergence
 
-    logger.info(f"Running run_compute_sorting_divergence for post_id {post_id}")
+    print(f"Running run_compute_sorting_divergence for post_id {post_id}")
 
     post = Post.objects.get(pk=post_id)
 
@@ -37,51 +37,10 @@ def run_compute_sorting_divergence(post_id):
 
     PostUserSnapshot.objects.bulk_update(bulk_update, fields=["divergence"])
 
-    logger.info(
+    print(
         f"Finished run_compute_sorting_divergence for post_id {post_id}. "
         f"Updated {len(bulk_update)} user snapshots"
     )
-
-
-@dramatiq.actor
-def run_compute_movement():
-    from posts.services.common import compute_movement
-
-    qs = (
-        Post.objects.filter_active()
-        .filter(
-            Q(question__isnull=False)
-            | Q(group_of_questions__isnull=False)
-            | Q(conditional__isnull=False)
-        )
-        .prefetch_questions()
-    )
-    total = qs.count()
-
-    posts = []
-
-    for idx, post in enumerate(qs.iterator(100)):
-        try:
-            post.movement = compute_movement(post)
-        except:
-            logger.exception(f"Error during compute_movement for post_id {post.id}")
-            continue
-
-        posts.append(post)
-
-        if len(posts) >= 100:
-            Post.objects.bulk_update(posts, fields=["movement"])
-            posts = []
-
-        if not idx % 100:
-            logger.info(f"Processed {idx + 1}/{total}. ")
-
-
-@dramatiq.actor
-def run_subscription_notify_date():
-    from posts.services.subscriptions import notify_date
-
-    notify_date()
 
 
 @dramatiq.actor
@@ -101,8 +60,5 @@ def run_notify_new_comments(post_id: int):
 
 
 @dramatiq.actor
-def run_notify_milestone():
-    from posts.services.subscriptions import notify_milestone
-
-    for post in Post.objects.filter_active():
-        notify_milestone(post)
+def run_post_indexing(post_id):
+    update_post_search_embedding_vector(Post.objects.get(pk=post_id))

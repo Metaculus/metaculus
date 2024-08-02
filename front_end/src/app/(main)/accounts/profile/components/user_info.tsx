@@ -56,41 +56,13 @@ const UserInfo: FC<UserInfoProps> = ({
     setEditMode(false);
   }, [setUser, state?.user]);
 
-  const hasContent =
-    profile.bio ||
-    profile.location ||
-    profile.occupation ||
-    profile.website ||
-    profile.twitter ||
-    profile.linkedin ||
-    profile.facebook ||
-    profile.github ||
-    profile.good_judgement_open ||
-    profile.kalshi ||
-    profile.manifold ||
-    profile.infer ||
-    profile.hypermind;
-
-  const hasDetailsContent =
-    profile.location ||
-    profile.occupation ||
-    profile.website ||
-    profile.twitter ||
-    profile.linkedin ||
-    profile.facebook ||
-    profile.github ||
-    profile.good_judgement_open ||
-    profile.kalshi ||
-    profile.manifold ||
-    profile.infer ||
-    profile.hypermind;
   const keyStatStyles =
     "flex w-1/3 flex-col min-h-[90px] justify-center gap-1.5 rounded bg-blue-200 p-3 text-center dark:bg-blue-950";
   return (
     <form action={formAction}>
-      {hasContent && (
+      {
         <div
-          className={`flex flex-col ${hasDetailsContent ? "gap-4" : ""} mb-4 rounded bg-white p-4 dark:bg-blue-900 md:p-6`}
+          className={`mb-4 flex flex-col gap-4 rounded bg-white p-4 dark:bg-blue-900 md:p-6`}
         >
           {isCurrentUser && (
             <div className="flex flex-col">
@@ -106,7 +78,7 @@ const UserInfo: FC<UserInfoProps> = ({
               )}
             </div>
           )}
-          {profile.bio && (
+          {(profile.bio || editMode) && (
             <div className="flex flex-col gap-1">
               <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
                 {t("bio")}
@@ -131,9 +103,9 @@ const UserInfo: FC<UserInfoProps> = ({
               </div>
             </div>
           )}
-          {hasDetailsContent && (
+          {
             <div className="flex flex-row justify-between">
-              {profile.location && (
+              {(profile.location || editMode) && (
                 <div className="flex w-full flex-col gap-1">
                   <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
                     {t("location")}
@@ -152,7 +124,7 @@ const UserInfo: FC<UserInfoProps> = ({
                 </div>
               )}
 
-              {profile.occupation && (
+              {(profile.occupation || editMode) && (
                 <div className="flex w-full flex-col gap-1">
                   <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
                     {t("occupation")}
@@ -180,7 +152,8 @@ const UserInfo: FC<UserInfoProps> = ({
                 profile.kalshi ||
                 profile.manifold ||
                 profile.infer ||
-                profile.hypermind) && (
+                profile.hypermind ||
+                editMode) && (
                 <div className="flex w-full flex-col gap-1">
                   <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
                     {t("links")}
@@ -194,9 +167,9 @@ const UserInfo: FC<UserInfoProps> = ({
                 </div>
               )}
             </div>
-          )}
+          }
         </div>
-      )}
+      }
       <FormError errors={state?.errors} name={"non_field_errors"} />
       <div className={`flex flex-col flex-col-reverse gap-4 md:flex-row`}>
         <div className="w-full md:w-1/3">{MedalsComponent}</div>

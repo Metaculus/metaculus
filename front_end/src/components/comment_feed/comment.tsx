@@ -7,10 +7,16 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
+import { parseISO } from "date-fns";
+import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 
-import { softDeleteComment, editComment } from "@/app/(main)/questions/actions";
+import {
+  softDeleteComment,
+  editComment,
+  createForecast,
+} from "@/app/(main)/questions/actions";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentVoter from "@/components/comment_feed/comment_voter";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -18,9 +24,19 @@ import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { CommentPermissions, CommentType } from "@/types/comment";
+import {
+  PostStatus,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
+import { QuestionType } from "@/types/question";
 import { formatDate } from "@/utils/date_formatters";
+import { canPredictQuestion } from "@/utils/questions";
 
+import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
+
+import { SortOption, sortComments } from ".";
 
 const copyToClipboard = async (text: string) => {
   try {
@@ -35,6 +51,7 @@ type CommentChildrenTreeProps = {
   permissions: CommentPermissions;
   expandedChildren?: boolean;
   treeDepth: number;
+  sort: SortOption;
 };
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
@@ -42,11 +59,16 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   permissions,
   expandedChildren = false,
   treeDepth,
+  sort,
 }) => {
   const t = useTranslations();
   const [childrenExpanded, setChildrenExpanded] = useState(
     expandedChildren && treeDepth < 5
   );
+
+  useEffect(() => {
+    sortComments(commentChildren, sort);
+  }, [commentChildren, sort]);
 
   function getTreeSize(commentChildren: CommentType[]): number {
     let totalChildren = 0;
@@ -103,6 +125,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
                 comment={child}
                 permissions={permissions}
                 treeDepth={treeDepth}
+                sort={sort}
               />
             </div>
           ))}
@@ -116,6 +139,8 @@ type CommentProps = {
   permissions: CommentPermissions;
   onProfile?: boolean;
   treeDepth: number;
+  sort: SortOption;
+  postData?: PostWithForecasts;
 };
 
 const Comment: FC<CommentProps> = ({
@@ -123,6 +148,8 @@ const Comment: FC<CommentProps> = ({
   permissions,
   onProfile = false,
   treeDepth,
+  sort,
+  postData,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -135,7 +162,56 @@ const Comment: FC<CommentProps> = ({
     permissions = CommentPermissions.CREATOR;
   }
 
+  const userCanPredict = postData && canPredictQuestion(postData);
+  const userForecast =
+    postData?.question?.forecasts.my_forecasts?.slider_values ?? 0.5;
+
+  const isCmmButtonVisible =
+    user?.id !== comment.author && !!postData?.question;
+  const isCmmButtonDisabled = !user || !userCanPredict;
+
+  // TODO: find a better way to dedect whether on mobile or not. For now we need to know in JS
+  // too and can't use tw classes
+  const isMobileScreen = window.innerWidth < 640;
+
+  const cmmContext = useCmmContext(
+    comment.changed_my_mind.count,
+    comment.changed_my_mind.for_this_user
+  );
+
+  const updateForecast = async (value: number) => {
+    const response = await createForecast(
+      postData?.question?.id ?? 0,
+      {
+        continuousCdf: null,
+        probabilityYes: value,
+        probabilityYesPerCategory: null,
+      },
+      value
+    );
+
+    if ("errors" in response) {
+      throw response.errors;
+    }
+  };
+
   const menuItems: MenuItemProps[] = [
+    {
+      hidden: !isMobileScreen || !isCmmButtonVisible,
+      id: "cmm",
+      element: (
+        <div>
+          <CmmToggleButton
+            cmmContext={cmmContext}
+            comment_id={comment.id}
+            disabled={isCmmButtonDisabled}
+          />
+        </div>
+      ),
+      onClick: () => {
+        return null; // handled by the button element
+      },
+    },
     {
       // hidden:
       //     permissions !== CommentPermissions.CREATOR &&
@@ -199,6 +275,7 @@ const Comment: FC<CommentProps> = ({
             commentChildren={comment.children}
             permissions={permissions}
             treeDepth={treeDepth + 1}
+            sort={sort}
           />
         )}
       </div>
@@ -207,6 +284,20 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`}>
+      <CmmOverlay
+        forecast={100 * userForecast}
+        updateForecast={updateForecast}
+        showForecastingUI={postData?.question?.type === QuestionType.Binary}
+        onClickScrollLink={() => {
+          cmmContext.setIsOverlayOpen(false);
+          const section = document.getElementById("prediction-section");
+          if (section) {
+            section.scrollIntoView({ behavior: "smooth" });
+          }
+        }}
+        cmmContext={cmmContext}
+      />
+
       {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
       {comment.included_forecast && (
         <IncludedForecast
@@ -283,6 +374,16 @@ const Comment: FC<CommentProps> = ({
                 userVote: comment.user_vote ?? null,
               }}
             />
+
+            {isCmmButtonVisible && !isMobileScreen && (
+              <CmmToggleButton
+                cmmContext={cmmContext}
+                comment_id={comment.id}
+                disabled={isCmmButtonDisabled}
+                ref={cmmContext.setAnchorRef}
+              />
+            )}
+
             {!onProfile &&
               (isReplying ? (
                 <Button
@@ -303,7 +404,9 @@ const Comment: FC<CommentProps> = ({
               ))}
           </div>
 
-          <DropdownMenu items={menuItems} />
+          <div ref={isMobileScreen ? cmmContext.setAnchorRef : null}>
+            <DropdownMenu items={menuItems} />
+          </div>
         </div>
       </div>
 
@@ -317,6 +420,7 @@ const Comment: FC<CommentProps> = ({
           permissions={permissions}
           expandedChildren={!onProfile}
           treeDepth={treeDepth + 1}
+          sort={sort}
         />
       )}
     </div>

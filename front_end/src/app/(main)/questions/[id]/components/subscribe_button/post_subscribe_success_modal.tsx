@@ -5,7 +5,7 @@ import { FC, useCallback, useState } from "react";
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
-import { Post, PostSubscription } from "@/types/post";
+import { Post } from "@/types/post";
 
 type Props = {
   isOpen: boolean;
@@ -37,15 +37,19 @@ const PostSubscribeSuccessModal: FC<Props> = ({
 
   return (
     <BaseModal
-      label="You’re now following this question!"
+      label={
+        post.group_of_questions
+          ? t("followModalYouAreFollowingThisGroup")
+          : t("followModalYouAreFollowingThisQuestion")
+      }
       isOpen={isOpen}
       onClose={onClose}
     >
       <div className="max-w-xl">
         <p className="text-base leading-tight">
-          You’ll be notified of new comments, changes to the Community
-          Prediction, every time 20% of the question lifetime has passed, and
-          when the question opens, closes, or resolves.
+          {post.group_of_questions
+            ? t("followModalSuccessMessageDefaultNotificationGroup")
+            : t("followModalSuccessMessageDefaultNotificationQuestion")}
         </p>
         <div className="flex w-full justify-end">
           <div className="flex w-fit gap-2">
@@ -61,7 +65,7 @@ const PostSubscribeSuccessModal: FC<Props> = ({
               disabled={isLoading}
               onClick={handleUnfollow}
             >
-              {t("unfollowButton")}
+              {t("followModalUnfollowButton")}
             </Button>
           </div>
         </div>

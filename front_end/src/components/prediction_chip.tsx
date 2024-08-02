@@ -1,72 +1,45 @@
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
-import { PostStatus } from "@/types/post";
-import { QuestionType } from "@/types/question";
-import { formatPrediction } from "@/utils/forecasts";
-
-function fmt_for_chip(
-  resolution: number | string | null | undefined,
-  questionType: QuestionType
-) {
-  let fmted_resolution = null;
-  resolution = String(resolution);
-  if (resolution === "null" || resolution === "undefined") {
-    fmted_resolution = "Annulled";
-  } else if (["yes", "no"].includes(resolution)) {
-    fmted_resolution = resolution.charAt(0).toUpperCase() + resolution.slice(1);
-  } else if (questionType === QuestionType.Date) {
-    if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
-      fmted_resolution = String(new Date(Number(resolution) * 1000)).split(
-        "T"
-      )[0];
-    } else {
-      fmted_resolution = resolution.split("T")[0];
-    }
-  } else if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
-    fmted_resolution = parseFloat(Number(resolution).toPrecision(3));
-    if (fmted_resolution > 1000) {
-      fmted_resolution = (fmted_resolution / 1000).toFixed(2) + "k";
-    } else if (fmted_resolution > 100) {
-      fmted_resolution = fmted_resolution.toFixed(0);
-    } else {
-      fmted_resolution = fmted_resolution.toFixed(2);
-    }
-    fmted_resolution = String(fmted_resolution);
-  }
-  return fmted_resolution;
-}
+import { PostStatus, Resolution } from "@/types/post";
+import { Question } from "@/types/question";
+import { getDisplayValue } from "@/utils/charts";
+import { formatResolution } from "@/utils/questions";
 
 type Size = "compact" | "large";
 
 type Props = {
-  questionType: QuestionType;
+  question: Question;
   status: PostStatus;
-  nr_forecasters?: number;
-  prediction: number | undefined;
-  resolution: string | null;
+  prediction?: number;
   size?: Size;
   className?: string;
   chipClassName?: string;
 };
 
 const PredictionChip: FC<Props> = ({
-  questionType,
+  question,
   status,
-  nr_forecasters,
   prediction,
-  resolution,
   className,
   chipClassName,
   size,
 }) => {
   const t = useTranslations();
+  const locale = useLocale();
 
-  const fmted_resolution = fmt_for_chip(resolution, questionType);
-  const fmted_prediction = fmt_for_chip(prediction, questionType);
+  const { resolution, nr_forecasters } = question;
+
+  const formattedResolution = formatResolution(
+    resolution,
+    question.type,
+    locale
+  );
+
+  const fmted_prediction = formatResolution(prediction, question.type, locale);
 
   switch (status) {
     case PostStatus.PENDING:
@@ -91,11 +64,13 @@ const PredictionChip: FC<Props> = ({
           <Chip
             size={size}
             className={classNames(
-              "bg-purple-800 dark:bg-purple-800-dark",
+              resolution === "annulled" || resolution === "ambiguous"
+                ? "border border-purple-800 text-purple-800 dark:border-purple-800-dark dark:text-purple-800-dark"
+                : "bg-purple-800 dark:bg-purple-800-dark",
               chipClassName
             )}
           >
-            {fmted_resolution}
+            {formattedResolution}
           </Chip>
           {size !== "compact" && !!nr_forecasters && (
             <p>
@@ -136,7 +111,7 @@ const PredictionChip: FC<Props> = ({
             )}
           >
             <FontAwesomeIcon icon={faUserGroup} size="xs" />
-            {prediction ? formatPrediction(prediction, questionType) : ""}
+            {prediction ? getDisplayValue(prediction, question) : ""}
           </Chip>
           {!!nr_forecasters && (
             <p>

@@ -1,5 +1,6 @@
 "use client";
-import { merge } from "lodash";
+import { fromUnixTime } from "date-fns";
+import { isNil, merge } from "lodash";
 import React, { FC, memo, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
@@ -12,6 +13,7 @@ import {
   VictoryLabel,
   VictoryLabelProps,
   VictoryLine,
+  VictoryScatter,
   VictoryThemeDefinition,
 } from "victory";
 
@@ -27,7 +29,7 @@ import {
   TickFormat,
   TimelineChartZoomOption,
 } from "@/types/charts";
-import { ChoiceItem } from "@/types/choices";
+import { ChoiceItem, UserChoiceItem } from "@/types/choices";
 import { ThemeColor } from "@/types/theme";
 import {
   findClosestTimestamp,
@@ -50,6 +52,7 @@ type Props = {
   onCursorChange?: (value: number, format: TickFormat) => void;
   onChartReady?: () => void;
   extraTheme?: VictoryThemeDefinition;
+  userForecasts?: UserChoiceItem[];
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -62,6 +65,7 @@ const MultipleChoiceChart: FC<Props> = ({
   onCursorChange,
   onChartReady,
   extraTheme,
+  userForecasts,
 }) => {
   const {
     ref: chartContainerRef,
@@ -136,7 +140,6 @@ const MultipleChoiceChart: FC<Props> = ({
       }}
     />
   );
-
   return (
     <ChartContainer
       ref={chartContainerRef}
@@ -195,6 +198,50 @@ const MultipleChoiceChart: FC<Props> = ({
               />
             ) : null
           )}
+          {graphs.map(({ color, active, resolutionPoint }, index) => {
+            if (!resolutionPoint || !active) return null;
+
+            return (
+              <VictoryScatter
+                key={`multiple-choice-resolution-${index}`}
+                data={[
+                  {
+                    x: resolutionPoint?.x,
+                    y: resolutionPoint?.y,
+                    symbol: "diamond",
+                    size: 4,
+                  },
+                ]}
+                style={{
+                  data: {
+                    stroke: getThemeColor(color),
+                    fill: "none",
+                    strokeWidth: 2.5,
+                  },
+                }}
+              />
+            );
+          })}
+
+          {userForecasts?.map((question) => {
+            return (
+              <VictoryScatter
+                key={question.choice}
+                data={question.values?.map((value, index) => ({
+                  y: value,
+                  x: question.timestamps?.[index],
+                }))}
+                style={{
+                  data: {
+                    stroke: getThemeColor(question.color),
+                    fill: "none",
+                    strokeWidth: 2,
+                  },
+                }}
+              />
+            );
+          })}
+
           <VictoryAxis
             dependentAxis
             tickValues={yScale.ticks}
@@ -226,6 +273,10 @@ const MultipleChoiceChart: FC<Props> = ({
 export type ChoiceGraph = {
   line: Line;
   area?: Area;
+  resolutionPoint?: {
+    x?: number;
+    y: number;
+  };
   choice: string;
   color: ThemeColor;
   active: boolean;
@@ -261,6 +312,9 @@ function buildChartData({
       active,
       highlighted,
       timestamps: choiceTimestamps,
+      resolution,
+      rangeMin,
+      rangeMax,
     }) => {
       const actualTimestamps = choiceTimestamps ?? timestamps;
 
@@ -281,6 +335,24 @@ function buildChartData({
           y: maxValues[timestampIndex] ?? 0,
           y0: minValues[timestampIndex] ?? 0,
         }));
+      }
+
+      if (!isNil(resolution)) {
+        if (resolution === choice) {
+          // multiple choice case
+          item.resolutionPoint = {
+            x: actualTimestamps.at(-1),
+            y: rangeMax ?? 1,
+          };
+        }
+
+        if (resolution === "yes" || resolution === "no") {
+          // binary group case
+          item.resolutionPoint = {
+            x: actualTimestamps.at(-1),
+            y: resolution === "no" ? rangeMin ?? 0 : rangeMax ?? 1,
+          };
+        }
       }
 
       return item;

@@ -7,6 +7,7 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
+import { sortGroupPredictionOptions } from "@/utils/questions";
 
 import BinaryGroupChart from "./binary_group_chart";
 
@@ -24,13 +25,14 @@ const DetailedGroupCard: FC<Props> = ({ questions, preselectedQuestionId }) => {
 
   switch (groupType) {
     case QuestionType.Binary: {
-      const timestamps = getGroupQuestionsTimestamps(
+      const sortedQuestions = sortGroupPredictionOptions(
         questions as QuestionWithNumericForecasts[]
       );
+      const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
 
       return (
         <BinaryGroupChart
-          questions={questions as QuestionWithNumericForecasts[]}
+          questions={sortedQuestions}
           timestamps={timestamps}
           preselectedQuestionId={preselectedQuestionId}
         />
