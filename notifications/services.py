@@ -4,6 +4,7 @@ from comments.models import Comment
 from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
 from posts.models import Post, PostSubscription
+from questions.models import Question
 from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
@@ -18,6 +19,26 @@ class NotificationPostParams:
     @classmethod
     def from_post(cls, post: Post):
         return NotificationPostParams(post_id=post.id, post_title=post.title)
+
+
+@dataclass
+class CPChangeData:
+    question: Question
+    cp_median: float | None = None
+    # binary / MC only
+    absolute_difference: float | None = None
+    odds_ratio: float | None = None
+    user_forecast: float | None = None
+    # MC only
+    label: str | None = None
+    # Continuous Only
+    cp_q1: float | None = None
+    cp_q3: float | None = None
+    earth_movers_diff: float | None = None
+    assymetry: float | None = None
+    user_q1: float | None = None
+    user_median: float | None = None
+    user_q3: float | None = None
 
 
 class NotificationTypeBase:
@@ -209,7 +230,7 @@ class NotificationPostCPChange(NotificationTypeBase):
     @dataclass
     class ParamsType:
         post: NotificationPostParams
-        cp_difference: list[tuple[float, float]]
+        question_data: list[CPChangeData]
 
 
 NOTIFICATION_TYPE_REGISTRY = [
