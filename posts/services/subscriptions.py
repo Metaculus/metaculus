@@ -13,16 +13,160 @@ from notifications.services import (
     NotificationPostMilestone,
     NotificationPostStatusChange,
     NotificationPostSpecificTime,
+    NotificationPostCPChange,
+    CPChangeData,
 )
 from posts.models import Post, PostSubscription
+from questions.models import Question, Forecast
 from users.models import User
+from utils.the_math.community_prediction import get_cp_history, AggregationEntry
+from utils.the_math.formulas import (
+    unscaled_location_to_scaled_location,
+    get_scaled_quartiles_from_cdf,
+)
+from utils.the_math.measures import (
+    prediction_difference_for_sorting,
+    prediction_difference_for_display,
+)
 from utils.models import ArrayLength
+
+
+def _get_question_data_for_cp_change_notification(
+    question: Question,
+    current_entry: AggregationEntry,
+    display_diff: list[tuple[float, float]],
+    user_forecast: Forecast | None,
+) -> list[CPChangeData]:
+    question_data: list[CPChangeData] = []
+    if question.type == "binary":
+        data = CPChangeData(question)
+        data.cp_median = current_entry.medians[1] if current_entry.medians else None
+        data.absolute_difference = display_diff[0][0]
+        data.odds_ratio = display_diff[0][1]
+        data.user_forecast = user_forecast.probability_yes if user_forecast else None
+        question_data.append(data)
+    elif question.type == "multiple_choice":
+        for i, label in enumerate(question.options):
+            data = CPChangeData(question, None)
+            data.label = label
+            data.cp_median = (
+                current_entry.medians[i] if current_entry.medians is not None else None
+            )
+            data.absolute_difference = display_diff[i][0]
+            data.odds_ratio = display_diff[i][1]
+            data.user_forecast = (
+                user_forecast.probability_yes_per_category[i] if user_forecast else None
+            )
+            question_data.append(data)
+    else:  # continuous
+        data = CPChangeData(question)
+        median = current_entry.medians[0] if current_entry.medians else None
+        q1 = current_entry.q1s[0] if current_entry.q1s else None
+        data.cp_q1 = (
+            unscaled_location_to_scaled_location(q1, question)
+            if q1 is not None
+            else None
+        )
+        data.cp_median = (
+            unscaled_location_to_scaled_location(median, question)
+            if median is not None
+            else None
+        )
+        q3 = current_entry.q3s[0] if current_entry.q3s else None
+        data.cp_q3 = (
+            unscaled_location_to_scaled_location(q3, question)
+            if q3 is not None
+            else None
+        )
+        data.earth_movers_diff = display_diff[0]
+        data.assymetry = display_diff[1]
+        user_q1, user_median, user_q3 = None, None, None
+        if user_forecast:
+            user_q1, user_median, user_q3 = get_scaled_quartiles_from_cdf(
+                user_forecast.continuous_cdf, question
+            )
+        data.user_q1 = user_q1
+        data.user_median = user_median
+        data.user_q3 = user_q3
+        question_data.append(data)
+    return question_data
 
 
 def notify_post_cp_change(post: Post):
     """
-    TODO: implement
+    TODO: write description and check over
     """
+
+    subscriptions = post.subscriptions.filter(
+        type=PostSubscription.SubscriptionType.CP_CHANGE,
+        next_trigger_value__lte=post.cp,
+    ).select_related("user")
+    questions = Question.objects.filter(Q(post=post) | Q(group__post=post))
+    forecast_history = {
+        question: get_cp_history(
+            question,
+            aggregation_method="recency_weighted",
+            minimize=False,
+            include_stats=True,
+        )
+        for question in questions
+    }
+
+    for subscription in subscriptions:
+        last_sent = subscription.last_sent_at
+        max_sorting_diff = None
+        display_diff = None
+        question_data: list[CPChangeData] = []
+        for question, forecast_summary in forecast_history.items():
+            entry: AggregationEntry | None = None
+            for entry in forecast_summary:
+                if entry.start_time <= last_sent and (
+                    entry.end_time is None or entry.end_time > last_sent
+                ):
+                    break
+            if entry is None:
+                continue
+            old_forecast_values = entry.forecast_values
+            current_entry = forecast_summary[-1]
+            current_forecast_values = current_entry.forecast_values
+            difference = prediction_difference_for_sorting(
+                old_forecast_values,
+                current_forecast_values,
+                question=question,
+            )
+            if max_sorting_diff is None or difference > max_sorting_diff:
+                max_sorting_diff = difference
+                display_diff = prediction_difference_for_display(
+                    old_forecast_values,
+                    current_forecast_values,
+                    question=question,
+                )
+            user_pred: Forecast = (
+                question.forecasts.filter(
+                    user=subscription.user,
+                )
+                .order_by("-start_time")
+                .first()
+            )
+            question_data += _get_question_data_for_cp_change_notification(
+                question,
+                current_entry,
+                display_diff,
+                user_pred,
+            )
+        if not max_sorting_diff or not (
+            max_sorting_diff < subscription.cp_change_threshold
+        ):
+            continue
+
+        # we have to send a notification
+        NotificationPostCPChange.send(
+            subscription.user,
+            NotificationPostCPChange.ParamsType(post, question_data),
+        )
+
+        subscription.update_last_sent_at()
+        subscription.save()
 
 
 def notify_new_comments(post: Post):
@@ -218,14 +362,14 @@ def create_subscription_new_comments(
 def create_subscription_cp_change(
     user: User,
     post: Post,
-    cp_threshold: timedelta = None,
+    cp_change_threshold: float = 0.25,
 ):
     obj = PostSubscription.objects.create(
         user=user,
         post=post,
         type=PostSubscription.SubscriptionType.CP_CHANGE,
-        cp_threshold=cp_threshold,
-        # TODO: add extra logic
+        cp_change_threshold=cp_change_threshold,
+        last_sent_at=timezone.now(),
         # TODO: adjust `migrator.services.migrate_subscriptions.migrate_cp_change` in the old db migrator script!
     )
 
