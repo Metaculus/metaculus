@@ -54,6 +54,7 @@ const ContinuousSlider: FC<Props> = ({
         dataset={dataset}
         graphType={graphType}
         question={question}
+        readOnly={disabled}
       />
       {!disabled &&
         forecast.map((x, index) => {

@@ -98,7 +98,7 @@ const EmbeddedQuestionCard: FC<Props> = ({ postData }) => {
             <MultipleChoiceChart
               timestamps={question.forecasts.timestamps}
               choiceItems={generateChoiceItemsFromMultipleChoiceForecast(
-                question.forecasts,
+                question,
                 { activeCount: 3 }
               )}
               height={CHART_HEIGHT}

@@ -1,6 +1,6 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import { differenceInMilliseconds, parseISO } from "date-fns";
-import { isNil } from "lodash";
+import { differenceInMilliseconds, isValid, parseISO } from "date-fns";
+import { capitalize, isNil } from "lodash";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
@@ -9,26 +9,36 @@ import {
   ProjectPermissions,
   PostStatus,
   PostWithForecasts,
+  Resolution,
 } from "@/types/post";
 import {
   MultipleChoiceForecast,
   Question,
+  QuestionType,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { abbreviatedNumber } from "@/utils/number_formatters";
+
+import { formatDate } from "./date_formatters";
 
 export function extractQuestionGroupName(title: string) {
   const match = title.match(/\((.*?)\)/);
   return match ? match[1] : title;
 }
 
-export function extractPostStatus(post: Post) {
-  if (post.scheduled_close_time && post.scheduled_resolve_time) {
-    return {
-      status: post.curation_status,
-      actualCloseTime: post.scheduled_close_time,
-      resolvedAt: post.scheduled_resolve_time,
-    };
+export function extractPostResolution(post: Post): Resolution | null {
+  if (post.question) {
+    return post.question.resolution;
   }
+
+  if (post.group_of_questions) {
+    return post.group_of_questions?.questions[0]?.resolution;
+  }
+
+  if (post.conditional) {
+    return post.conditional.condition.resolution;
+  }
+
   return null;
 }
 
@@ -69,6 +79,65 @@ export function canResolveQuestion(
     permission &&
     [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(permission)
   );
+}
+
+export function isResolved(resolution: Resolution | null): boolean {
+  return !isNil(resolution);
+}
+
+export function isUnsuccessfullyResolved(
+  resolution: Resolution | null
+): boolean {
+  return resolution === "annulled" || resolution === "ambiguous";
+}
+
+export function isSuccessfullyResolved(resolution: Resolution | null) {
+  return isResolved(resolution) && !isUnsuccessfullyResolved(resolution);
+}
+
+export function formatResolution(
+  resolution: number | string | null | undefined,
+  questionType: QuestionType,
+  locale: string
+) {
+  resolution = String(resolution);
+
+  if (resolution === "null" || resolution === "undefined") {
+    return "Annulled";
+  }
+
+  if (["yes", "no"].includes(resolution)) {
+    return capitalize(resolution);
+  }
+
+  if (resolution === "ambiguous" || resolution === "annulled") {
+    return capitalize(resolution);
+  }
+
+  if (questionType === QuestionType.Date) {
+    if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
+      const date = new Date(Number(resolution));
+
+      return isValid(date)
+        ? formatDate(locale, new Date(Number(resolution)))
+        : resolution;
+    }
+
+    const date = new Date(resolution);
+    return isValid(date)
+      ? formatDate(locale, new Date(resolution))
+      : resolution;
+  }
+
+  if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
+    return abbreviatedNumber(Number(resolution));
+  }
+
+  if (questionType === QuestionType.MultipleChoice) {
+    return resolution;
+  }
+
+  return resolution;
 }
 
 export function canPredictQuestion(post: PostWithForecasts) {

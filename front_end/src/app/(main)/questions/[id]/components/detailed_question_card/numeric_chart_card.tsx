@@ -6,6 +6,7 @@ import React, { FC, useCallback, useMemo, useState } from "react";
 import NumericChart from "@/components/charts/numeric_chart";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
+import { Resolution } from "@/types/post";
 import { NumericForecast, QuestionType } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 
@@ -17,6 +18,8 @@ type Props = {
   rangeMin: number | null;
   rangeMax: number | null;
   zeroPoint: number | null;
+  resolution?: Resolution | null;
+  derivRatio?: number;
 };
 
 const NumericChartCard: FC<Props> = ({
@@ -25,6 +28,8 @@ const NumericChartCard: FC<Props> = ({
   rangeMin,
   rangeMax,
   zeroPoint,
+  resolution,
+  derivRatio,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -72,6 +77,7 @@ const NumericChartCard: FC<Props> = ({
     >
       <NumericChart
         dataset={forecast}
+        resolution={resolution}
         onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}
@@ -79,6 +85,7 @@ const NumericChartCard: FC<Props> = ({
         rangeMin={rangeMin}
         rangeMax={rangeMax}
         zeroPoint={zeroPoint}
+        derivRatio={derivRatio}
         defaultZoom={
           user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths
         }
