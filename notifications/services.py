@@ -1,5 +1,7 @@
 from dataclasses import dataclass, asdict
 
+from django.utils.translation import gettext_lazy as _
+
 from comments.models import Comment
 from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
@@ -120,6 +122,14 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
         new_comment_ids: list[int]
 
     @classmethod
+    def generate_subject_group(cls, recipient: User):
+        """
+        Generates subject for group emails
+        """
+
+        return _("Questions have new comments")
+
+    @classmethod
     def get_comments(cls, recipient_username, new_comment_ids: list[int]):
         """
         Extracts comments list from new_comment_ids
@@ -223,6 +233,14 @@ class NotificationPostMilestone(
         def format_lifespan_pct(self):
             return round(self.lifespan_pct * 100, 2)
 
+    @classmethod
+    def generate_subject_group(cls, recipient: User):
+        """
+        Generates subject for group emails
+        """
+
+        return _("Lifetime update for questions")
+
 
 class NotificationPostStatusChange(
     NotificationTypeSimilarPostsMixin, NotificationTypeBase
@@ -235,6 +253,14 @@ class NotificationPostStatusChange(
         post: NotificationPostParams
         event: PostSubscription.PostStatusChange
 
+    @classmethod
+    def generate_subject_group(cls, recipient: User):
+        """
+        Generates subject for group emails
+        """
+
+        return _("Questions have changed status")
+
 
 class NotificationPostSpecificTime(
     NotificationTypeSimilarPostsMixin, NotificationTypeBase
@@ -245,6 +271,14 @@ class NotificationPostSpecificTime(
     @dataclass
     class ParamsType:
         post: NotificationPostParams
+
+    @classmethod
+    def generate_subject_group(cls, recipient: User):
+        """
+        Generates subject for group emails
+        """
+
+        return _("Questions reminder")
 
 
 NOTIFICATION_TYPE_REGISTRY = [
