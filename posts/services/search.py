@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 import numpy as np
-from django.db.models import Value, Case, When, FloatField
+from django.db.models import Value, Case, When, FloatField, QuerySet
 from pgvector.django import CosineDistance
 
 from posts.models import Post
@@ -107,3 +107,11 @@ async def perform_google_search(
         )
     except Exception:
         logger.exception("Failed to perform google search")
+
+
+def qs_filter_similar_posts(qs: QuerySet[Post], post: Post):
+    return (
+        qs.annotate(rank=1 - CosineDistance("embedding_vector", post.embedding_vector))
+        .filter(rank__isnull=False)
+        .exclude(pk=post.pk)
+    )
