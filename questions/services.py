@@ -9,7 +9,7 @@ from posts.models import PostUserSnapshot
 from questions.constants import ResolutionType
 from questions.models import Question, GroupOfQuestions, Conditional, Forecast
 from users.models import User
-from utils.the_math.community_prediction import get_cp_history
+from utils.the_math.community_prediction import get_cp_summary
 from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import percent_point_function
 
@@ -26,12 +26,13 @@ def get_forecast_initial_dict(question: Question) -> dict:
     else:
         data.update(
             {
-                "medians": [],
-                "q3s": [],
-                "q1s": [],
                 "my_forecasts": None,
                 "latest_pmf": [],
                 "latest_cdf": [],
+                "q1s": [],
+                "medians": [],
+                "q3s": [],
+                "means": [],
             }
         )
 
@@ -44,7 +45,8 @@ def build_question_forecasts(question: Question) -> dict:
     """
     forecasts_data = get_forecast_initial_dict(question)
 
-    aggregation_history = get_cp_history(question)
+    aggregation_history = get_cp_summary(question)
+    latest_entry = aggregation_history[-1] if aggregation_history else None
     if question.type == "multiple_choice":
         options = cast(list[str], question.options)
         for entry in aggregation_history:
@@ -60,30 +62,34 @@ def build_question_forecasts(question: Question) -> dict:
             forecasts_data["nr_forecasters"].append(entry.num_forecasters)
         forecasts_data["latest_cdf"] = None
         forecasts_data["latest_pmf"] = (
-            None if not aggregation_history else list(aggregation_history[-1].get_pmf())
+            None if not latest_entry else list(latest_entry.get_pmf())
         )
     elif question.type == "binary":
         forecasts_data["latest_cdf"] = None
         forecasts_data["latest_pmf"] = (
-            None if not aggregation_history else list(aggregation_history[-1].get_pmf())
+            None if not latest_entry else list(latest_entry.get_pmf())
+        )
+        forecasts_data["histogram"] = (
+            None
+            if (not latest_entry or latest_entry.histogram is None)
+            else latest_entry.histogram.tolist()
         )
         if not aggregation_history:
             return forecasts_data
 
         for entry in aggregation_history:
             forecasts_data["timestamps"].append(entry.start_time.timestamp())
+            forecasts_data["q1s"].append(entry.q1s[1])
             forecasts_data["medians"].append(entry.medians[1])
             forecasts_data["q3s"].append(entry.q3s[1])
-            forecasts_data["q1s"].append(entry.q1s[1])
+            forecasts_data["means"].append(entry.means[1])
             forecasts_data["nr_forecasters"].append(entry.num_forecasters)
     elif question.type in ["numeric", "date"]:
         forecasts_data["latest_cdf"] = (
-            []
-            if not aggregation_history
-            else list(aggregation_history[-1].continuous_cdf)
+            [] if not aggregation_history else list(latest_entry.continuous_cdf)
         )
         forecasts_data["latest_pmf"] = (
-            [] if not aggregation_history else list(aggregation_history[-1].get_pmf())
+            [] if not aggregation_history else list(latest_entry.get_pmf())
         )
         if not aggregation_history:
             return forecasts_data
@@ -124,7 +130,7 @@ def build_question_forecasts_for_user(
             forecasts_data["medians"].append(forecast.probability_yes)
         elif question.type in ["numeric", "date"]:
             forecasts_data["medians"].append(
-                percent_point_function(forecast.continuous_cdf, 50), question
+                percent_point_function(forecast.continuous_cdf, 50)
             )
 
     return forecasts_data
@@ -301,7 +307,7 @@ def create_forecast(
     user: User = None,
     continuous_cdf: list[float] = None,
     probability_yes: float = None,
-    probability_yes_per_category: list[float] = None,
+    probability_yes_per_category: dict[str, float] = None,
     slider_values=None,
     **kwargs,
 ):
@@ -317,6 +323,14 @@ def create_forecast(
         prev_forecasts.end_time = now
         prev_forecasts.save()
 
+    probability_yes_per_category_arr = None
+    if question.options:
+        probability_yes_per_category_arr = []
+        for option in question.options:
+            probability_yes_per_category_arr.append(
+                probability_yes_per_category[option]
+            )
+
     forecast = Forecast.objects.create(
         question=question,
         author=user,
@@ -324,7 +338,7 @@ def create_forecast(
         end_time=None,
         continuous_cdf=continuous_cdf,
         probability_yes=probability_yes,
-        probability_yes_per_category=probability_yes_per_category,
+        probability_yes_per_category=probability_yes_per_category_arr,
         distribution_components=None,
         slider_values=slider_values,
         post=post,

@@ -144,6 +144,7 @@ class PostFilterSerializer(serializers.Serializer):
     public_figure = serializers.CharField(required=False)
     usernames = serializers.ListField(child=serializers.CharField(), required=False)
     forecaster_id = serializers.IntegerField(required=False, allow_null=True)
+    similar_to_post_id = serializers.IntegerField(required=False, allow_null=True)
 
     search = serializers.CharField(required=False, allow_null=True)
 

@@ -15,6 +15,10 @@ import {
   generateChoiceItemsFromBinaryGroup,
   getGroupQuestionsTimestamps,
 } from "@/utils/charts";
+import {
+  generateUserForecasts,
+  sortGroupPredictionOptions,
+} from "@/utils/questions";
 
 type Props = {
   questions: QuestionWithForecasts[];
@@ -32,13 +36,13 @@ const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
   switch (tileType) {
     case QuestionType.Binary: {
       const visibleChoicesCount = 3;
-      const timestamps = getGroupQuestionsTimestamps(
+      const sortedQuestions = sortGroupPredictionOptions(
         questions as QuestionWithNumericForecasts[]
       );
-      const choices = generateChoiceItemsFromBinaryGroup(
-        questions as QuestionWithNumericForecasts[],
-        { activeCount: visibleChoicesCount, sortPredictionDesc: true }
-      );
+      const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
+      const choices = generateChoiceItemsFromBinaryGroup(sortedQuestions, {
+        activeCount: visibleChoicesCount,
+      });
       return (
         <MultipleChoiceTile
           choices={choices}
@@ -49,6 +53,9 @@ const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
               ? TimelineChartZoomOption.All
               : TimelineChartZoomOption.TwoMonths
           }
+          userForecasts={generateUserForecasts(
+            questions as QuestionWithNumericForecasts[]
+          )}
         />
       );
     }

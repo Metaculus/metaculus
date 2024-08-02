@@ -6,18 +6,31 @@ import React, { FC, useCallback, useMemo, useState } from "react";
 import NumericChart from "@/components/charts/numeric_chart";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
+import { Resolution } from "@/types/post";
 import { NumericForecast, QuestionType } from "@/types/question";
-import { getNumericChartTypeFromQuestion } from "@/utils/charts";
-import { formatPrediction } from "@/utils/forecasts";
+import { getDisplayValue } from "@/utils/charts";
 
 import CursorDetailItem from "./numeric_cursor_item";
 
 type Props = {
   forecast: NumericForecast;
   questionType: QuestionType;
+  rangeMin: number | null;
+  rangeMax: number | null;
+  zeroPoint: number | null;
+  resolution?: Resolution | null;
+  derivRatio?: number;
 };
 
-const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
+const NumericChartCard: FC<Props> = ({
+  forecast,
+  questionType,
+  rangeMin,
+  rangeMax,
+  zeroPoint,
+  resolution,
+  derivRatio,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
 
@@ -64,10 +77,15 @@ const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
     >
       <NumericChart
         dataset={forecast}
+        resolution={resolution}
         onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}
-        type={getNumericChartTypeFromQuestion(questionType)}
+        questionType={questionType}
+        rangeMin={rangeMin}
+        rangeMax={rangeMax}
+        zeroPoint={zeroPoint}
+        derivRatio={derivRatio}
         defaultZoom={
           user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths
         }
@@ -81,7 +99,13 @@ const NumericChartCard: FC<Props> = ({ forecast, questionType }) => {
         />
         <CursorDetailItem
           title={t("communityPredictionLabel")}
-          text={formatPrediction(cursorData.median, questionType)}
+          text={getDisplayValue(
+            cursorData.median,
+            questionType,
+            rangeMin,
+            rangeMax,
+            zeroPoint
+          )}
           variant="prediction"
         />
       </div>

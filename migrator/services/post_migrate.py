@@ -1,8 +1,11 @@
-from django.core.management import call_command
+import logging
+
 from django.db.models import Q
 
 from posts.models import Post
 from posts.tasks import run_compute_sorting_divergence
+
+logger = logging.getLogger(__name__)
 
 
 def post_migrate_calculate_divergence():
@@ -20,17 +23,12 @@ def post_migrate_calculate_divergence():
     posts_total = posts.count()
 
     for idx, post in enumerate(posts.iterator(chunk_size=100)):
-        run_compute_sorting_divergence(post.id)
+        try:
+            run_compute_sorting_divergence(post.id)
+        except Exception:
+            logger.exception(f"Error running calculate_divergence for post {post.id}")
 
         if not idx % 250:
             print(f"Processed {idx + 1}/{posts_total} posts")
 
     print("Finished calculate_divergence")
-
-
-def post_migrate_movements():
-    print("Running compute_movement")
-
-    call_command("compute_movement")
-
-    print("Finished compute_movement")

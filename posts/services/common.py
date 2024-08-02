@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 from django.db.models import Q, Count, Sum, Value, Case, When, F
@@ -21,7 +22,10 @@ from utils.the_math.community_prediction import get_aggregation_at_time
 from utils.the_math.measures import (
     prediction_difference_for_sorting,
 )
+from .subscriptions import notify_post_status_change
 from ..tasks import run_notify_post_status_change
+
+logger = logging.getLogger(__name__)
 
 
 def add_categories(categories: list[int], post: Post):
@@ -95,6 +99,11 @@ def create_post(
     # Adding projects
     obj.projects.add(*(meta_projects + main_projects))
 
+    # Run async tasks
+    from ..tasks import run_post_indexing
+
+    run_post_indexing.send(obj.id)
+
     return obj
 
 
@@ -121,7 +130,11 @@ def compute_movement(post: Post) -> float | None:
         )
         if cp_now is None or cp_previous is None:
             continue
-        difference = prediction_difference_for_sorting(cp_now, cp_previous, question)
+        difference = prediction_difference_for_sorting(
+            cp_now.get_prediction_values(),
+            cp_previous.get_prediction_values(),
+            question,
+        )
         if (movement is None) or (abs(difference) > abs(movement)):
             movement = difference
     return movement
@@ -143,7 +156,9 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
         )
         for forecast in active_forecasts:
             difference = prediction_difference_for_sorting(
-                forecast.get_prediction_values(), cp, question
+                forecast.get_prediction_values(),
+                cp.get_prediction_values(),
+                question,
             )
             if (forecast.author_id not in user_divergences) or (
                 abs(user_divergences[forecast.author_id]) < abs(difference)
@@ -181,7 +196,7 @@ def compute_hotness():
             * 5
         )
         + (
-            # nb comments in last week * 10
+            # nr comments for last week * 10
             Coalesce(
                 SubqueryAggregate(
                     "comments__id",
@@ -220,11 +235,20 @@ def resolve_post(post: Post):
     post.set_resolved()
 
     run_notify_post_status_change.send(
-        post.id, PostSubscription.PostStatusChange.RESOLVE
+        post.id, PostSubscription.PostStatusChange.RESOLVED
     )
 
 
 def close_post(post: Post):
     post.set_actual_close_time()
 
-    run_notify_post_status_change.send(post.id, PostSubscription.PostStatusChange.CLOSE)
+    run_notify_post_status_change.send(post.id, PostSubscription.PostStatusChange.CLOSED)
+
+
+def handle_post_open(post: Post):
+    """
+    A specific handler is triggered once it's opened
+    """
+
+    # Handle post subscriptions
+    notify_post_status_change(post, PostSubscription.PostStatusChange.OPEN)

@@ -56,11 +56,9 @@ const ConditionalChart: FC<Props> = ({
           />
           {resolved && (
             <PredictionChip
-              questionType={question.type}
+              question={question}
               status={parentStatus}
-              nr_forecasters={question.nr_forecasters}
               prediction={pctCandidate}
-              resolution={question.resolution}
               size="compact"
             />
           )}
@@ -89,8 +87,8 @@ const ConditionalChart: FC<Props> = ({
             </div>
             <ContinuousAreaChart
               height={40}
-              rangeMin={question.range_min}
-              rangeMax={question.range_max}
+              rangeMin={question.range_min!}
+              rangeMax={question.range_max!}
               zeroPoint={question.zero_point}
               data={[
                 {
@@ -100,16 +98,14 @@ const ConditionalChart: FC<Props> = ({
                 },
               ]}
               extraTheme={chartTheme}
-              dataType={question.type}
+              questionType={question.type}
             />
           </div>
           {resolved && (
             <PredictionChip
-              questionType={question.type}
+              question={question}
               status={parentStatus}
-              nr_forecasters={question.nr_forecasters}
               prediction={prediction}
-              resolution={question.resolution}
               size="compact"
             />
           )}

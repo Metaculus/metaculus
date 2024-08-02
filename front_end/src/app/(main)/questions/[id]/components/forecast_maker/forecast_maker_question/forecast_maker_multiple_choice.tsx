@@ -18,13 +18,14 @@ import {
   QuestionWithMultipleChoiceForecasts,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
+import { extractPrevMultipleChoicesForecastValue } from "@/utils/forecasts";
+import { sortMultipleChoicePredictions } from "@/utils/questions";
 
 import {
   BINARY_FORECAST_PRECISION,
   BINARY_MAX_VALUE,
   BINARY_MIN_VALUE,
 } from "../binary_slider";
-import ForecastMakerContainer from "../container";
 import ForecastChoiceOption from "../forecast_choice_option";
 import QuestionResolutionButton from "../resolution";
 
@@ -55,10 +56,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const { setCurrentModal } = useModal();
 
   const prevForecastValue =
-    Array.isArray(prevForecast) &&
-    prevForecast.every((el) => typeof el === "number")
-      ? (prevForecast as number[])
-      : undefined;
+    extractPrevMultipleChoicesForecastValue(prevForecast);
 
   const [isDirty, setIsDirty] = useState(false);
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
@@ -88,7 +86,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     setChoicesForecasts((prev) =>
       prev.map((prevChoice, index) => ({
         ...prevChoice,
-        forecast: getDefaultForecast(index, prevForecastValue),
+        forecast: getDefaultForecast(prevChoice.name, prevForecastValue),
       }))
     );
   }, [prevForecastValue]);
@@ -164,9 +162,13 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
     if (!isForecastValid) return;
 
-    const forecastValue = choicesForecasts.map((el) =>
-      round(el.forecast! / 100, BINARY_FORECAST_PRECISION)
-    );
+    const forecastValue: Record<string, number> = {};
+    choicesForecasts.forEach((el) => {
+      forecastValue[el.name] = round(
+        el.forecast! / 100,
+        BINARY_FORECAST_PRECISION
+      );
+    });
 
     setIsSubmitting(true);
     const response = await createForecast(
@@ -225,6 +227,11 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               inputMax={BINARY_MAX_VALUE}
               onChange={handleForecastChange}
               isDirty={isDirty}
+              disabled={!canPredict}
+              optionResolution={{
+                type: "question",
+                resolution: question.resolution,
+              }}
             />
           ))}
         </tbody>
@@ -283,26 +290,23 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 
 function generateChoiceOptions(
   dataset: MultipleChoiceForecast,
-  defaultForecasts?: number[]
+  defaultForecasts: Record<string, number> | null
 ): ChoiceOption[] {
-  const {
-    timestamps,
-    nr_forecasters,
-    my_forecasts,
-    latest_pmf,
-    latest_cdf,
-    ...choices
-  } = dataset;
-  return Object.entries(choices).map(([choice, values], index) => ({
+  const sortedPredictions = sortMultipleChoicePredictions(dataset);
+
+  return sortedPredictions.map(([choice, values], index) => ({
     name: choice,
     color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
     communityForecast: values ? values.at(-1)?.median : null,
-    forecast: getDefaultForecast(index, defaultForecasts),
+    forecast: getDefaultForecast(choice, defaultForecasts),
   }));
 }
 
-function getDefaultForecast(index: number, defaultForecasts?: number[]) {
-  const defaultForecast = defaultForecasts?.[index];
+function getDefaultForecast(
+  option: string,
+  defaultForecasts: Record<string, number> | null
+) {
+  const defaultForecast = defaultForecasts?.[option];
   return defaultForecast ? round(defaultForecast * 100, 1) : null;
 }
 

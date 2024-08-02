@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta
 
-from django.db.models import Q
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import Q, F, OuterRef, Case, When, Value, IntegerField
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
+from sql_util.aggregates import SubqueryAggregate
 
-from comments.services import get_post_comments_count
 from notifications.services import (
     NotificationNewComments,
     NotificationPostParams,
@@ -22,6 +24,7 @@ from utils.the_math.measures import (
     prediction_difference_for_sorting,
     prediction_difference_for_display,
 )
+from utils.models import ArrayLength
 
 
 def notify_post_cp_change(post: Post):
@@ -89,45 +92,56 @@ def notify_post_cp_change(post: Post):
         subscription.save()
 
 
-def generate_next_trigger_value_for_new_comments(post: Post, frequency: int) -> int:
-    """
-    Generates next trigger value for the new comments
-    """
-
-    return get_post_comments_count(post) + frequency
-
-
 def notify_new_comments(post: Post):
     """
     Subscription handler to notify about new comments of the post
 
     Trigger: comment creation
-    TODO: currently, we calculate comments count delta including current user's comments
-        So if user subscribed to "each 1st new comment" and posts something,
-        we'll notify them about their own comment created
     """
 
-    comments_count = get_post_comments_count(post)
-
-    subscriptions = post.subscriptions.filter(
-        type=PostSubscription.SubscriptionType.NEW_COMMENTS,
-        next_trigger_value__lte=comments_count,
-    ).select_related("user")
+    subscriptions = (
+        post.subscriptions.filter(
+            type=PostSubscription.SubscriptionType.NEW_COMMENTS,
+        )
+        .annotate(
+            new_comment_ids=SubqueryAggregate(
+                "post__comments__id",
+                filter=Q(
+                    (
+                        Q(
+                            created_at__gte=Coalesce(
+                                OuterRef("last_sent_at"), OuterRef("created_at")
+                            )
+                        )
+                    )
+                    & ~Q(author=OuterRef("user"))
+                    & Q(is_soft_deleted=False)
+                    & Q(is_private=False)
+                ),
+                aggregate=ArrayAgg,
+            ),
+            new_comments_count=Case(
+                When(new_comment_ids__isnull=True, then=Value(0)),
+                default=ArrayLength("new_comment_ids"),
+                output_field=IntegerField(),
+            ),
+        )
+        .filter(new_comments_count__gte=F("comments_frequency"))
+        .select_related("user")
+    )
 
     for subscription in subscriptions:
-        frequency = subscription.comments_frequency
-
         user = subscription.user
 
         NotificationNewComments.send(
             user,
             NotificationNewComments.ParamsType(
                 post=NotificationPostParams.from_post(post),
-                new_comments=frequency,
+                new_comments_count=subscription.new_comments_count,
+                new_comment_ids=subscription.new_comment_ids,
             ),
         )
 
-        subscription.next_trigger_value = comments_count + frequency
         subscription.update_last_sent_at()
         subscription.save()
 
@@ -260,9 +274,6 @@ def create_subscription_new_comments(
         post=post,
         type=PostSubscription.SubscriptionType.NEW_COMMENTS,
         comments_frequency=comments_frequency,
-        next_trigger_value=generate_next_trigger_value_for_new_comments(
-            post, comments_frequency
-        ),
     )
 
     obj.full_clean()
@@ -282,6 +293,7 @@ def create_subscription_cp_change(
         type=PostSubscription.SubscriptionType.CP_CHANGE,
         cp_threshold=cp_threshold,
         last_sent_at=timezone.now(),
+        # TODO: adjust `migrator.services.migrate_subscriptions.migrate_cp_change` in the old db migrator script!
     )
 
     obj.full_clean()

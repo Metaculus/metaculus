@@ -53,16 +53,16 @@ const QuestionChartTile: FC<Props> = ({
     case QuestionType.MultipleChoice: {
       const visibleChoicesCount = 3;
 
-      const choices = generateChoiceItemsFromMultipleChoiceForecast(
-        question.forecasts,
-        { activeCount: visibleChoicesCount }
-      );
+      const choices = generateChoiceItemsFromMultipleChoiceForecast(question, {
+        activeCount: visibleChoicesCount,
+      });
       return (
         <MultipleChoiceTile
           timestamps={question.forecasts.timestamps}
           choices={choices}
           visibleChoicesCount={visibleChoicesCount}
           defaultChartZoom={defaultChartZoom}
+          question={question}
         />
       );
     }

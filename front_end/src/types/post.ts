@@ -7,7 +7,7 @@ import { VoteDirection } from "@/types/votes";
 
 import { Tournament } from "./projects";
 
-export type Resolution = "yes" | "no";
+export type Resolution = "yes" | "no" | number | string;
 
 export enum PostForecastType {
   Conditional = "conditional",
@@ -102,7 +102,7 @@ export type Notebook = {
 export type Post<QT = Question> = {
   id: number;
   projects: {
-    category: Category[];
+    category?: Category[];
     topic: Topic[];
     default_project: Tournament;
     tag?: Tag[];

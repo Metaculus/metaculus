@@ -12,6 +12,7 @@ class CommentSerializer(serializers.ModelSerializer):
     author = BaseUserSerializer()
     parent = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()
+    changed_my_mind = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Comment
@@ -27,6 +28,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "is_private",
             "vote_score",
             "children",
+            "changed_my_mind",
         )
 
     def get_parent(self, comment: Comment):
@@ -41,7 +43,22 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_children(self, comment: Comment):
         children = Comment.objects.filter(parent=comment)
-        return CommentSerializer(children, many=True).data
+        return serialize_comment_many(children, self.context.get("current_user"))
+
+    def get_changed_my_mind(self, comment:Comment) -> dict[str, bool | int]:
+        changed_my_mind_count = 0
+        user_has_changed_my_mind = False
+
+        if hasattr(comment, "changed_my_mind_count") and hasattr(
+            comment, "user_has_changed_my_mind"
+        ):
+            changed_my_mind_count = comment.changed_my_mind_count
+            user_has_changed_my_mind = comment.user_has_changed_my_mind
+
+        return {
+            "count": changed_my_mind_count,
+            "for_this_user": user_has_changed_my_mind,
+        }
 
 
 class CommentWriteSerializer(serializers.ModelSerializer):
@@ -66,8 +83,11 @@ class CommentWriteSerializer(serializers.ModelSerializer):
 
 def serialize_comment(
     comment: Comment,
+    current_user: User | None = None,
 ) -> dict:
-    serialized_data = CommentSerializer(comment).data
+    serialized_data = CommentSerializer(
+        comment, context={"current_user": current_user}
+    ).data
 
     # Permissions
     # serialized_data["user_permission"] = post.user_permission
@@ -95,4 +115,6 @@ def serialize_comment_many(
     if current_user and not current_user.is_anonymous:
         qs = qs.annotate_user_vote(current_user)
 
-    return [serialize_comment(comment) for comment in qs.all()]
+    qs = qs.annotate_cmm_info(current_user)
+
+    return [serialize_comment(comment, current_user) for comment in qs.all()]

@@ -19,6 +19,7 @@ const ForecastMakerContainer: FC<PropsWithChildren<Props>> = ({
 }) => {
   return (
     <section
+      id="prediction-section"
       className={classNames(
         "my-4 bg-blue-200 p-3 dark:bg-blue-200-dark",
         className
