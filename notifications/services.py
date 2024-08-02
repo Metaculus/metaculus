@@ -127,10 +127,9 @@ class NotificationNewComments(NotificationTypeBase):
 
     @classmethod
     def get_email_context_group(cls, notifications: list[Notification]):
-        # TODO: add [...read_more...]
+        comments_to_display = 8
         recipient = notifications[0].recipient
-
-        post_notifications = {}
+        post_notifications_map = {}
 
         for notification in notifications:
             post_id = notification.params["post"]["post_id"]
@@ -138,26 +137,35 @@ class NotificationNewComments(NotificationTypeBase):
                 recipient.username, notification.params["new_comment_ids"]
             )
 
-            if not post_notifications.get(post_id):
-                post_notifications[post_id] = {
+            if not post_notifications_map.get(post_id):
+                post_notifications_map[post_id] = {
                     **notification.params,
                     "comments": [],
                     "has_mention": False,
                 }
 
-            post_notifications[post_id]["comments"] += preview_comments
+            post_notifications_map[post_id]["comments"] += preview_comments
             if has_mention:
-                post_notifications[post_id]["has_mention"] = True
+                post_notifications_map[post_id]["has_mention"] = True
 
-            post_notifications[post_id]["comments"] = sorted(
-                post_notifications[post_id]["comments"],
+        notifications = list(post_notifications_map.values())
+
+        for notification in notifications:
+            # Comments with user mentions go first
+            read_more_count = len(notification["comments"]) - comments_to_display
+
+            notification["read_more_count"] = (
+                read_more_count if read_more_count > 0 else 0
+            )
+            notification["comments"] = sorted(
+                notification["comments"],
                 key=lambda x: x["has_mention"],
                 reverse=True,
-            )
+            )[:comments_to_display]
 
         # Comments with mention go first
         notifications_data = sorted(
-            post_notifications.values(), key=lambda x: x["has_mention"], reverse=True
+            notifications, key=lambda x: x["has_mention"], reverse=True
         )
 
         return {"recipient": recipient, "notifications": notifications_data}
