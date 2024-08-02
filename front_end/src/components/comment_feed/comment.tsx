@@ -33,7 +33,7 @@ import { QuestionType } from "@/types/question";
 import { formatDate } from "@/utils/date_formatters";
 import { canPredictQuestion } from "@/utils/questions";
 
-import { CmmOverlay, CmmToggleButton } from "./comment_cmm";
+import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
 import IncludedForecast from "./included_forecast";
 
 import { SortOption, sortComments } from ".";
@@ -166,11 +166,6 @@ const Comment: FC<CommentProps> = ({
   const userForecast =
     postData?.question?.forecasts.my_forecasts?.slider_values ?? 0.5;
 
-  const [cmmState, setCmmState] = useState({
-    count: comment.changed_my_mind.count,
-    isCmmEnabled: comment.changed_my_mind.for_this_user,
-    isModalOpen: false,
-  });
   const isCmmButtonVisible =
     user?.id !== comment.author && !!postData?.question;
   const isCmmButtonDisabled = !user || !userCanPredict;
@@ -178,6 +173,11 @@ const Comment: FC<CommentProps> = ({
   // TODO: find a better way to dedect whether on mobile or not. For now we need to know in JS
   // too and can't use tw classes
   const isMobileScreen = window.innerWidth < 640;
+
+  const cmmContext = useCmmContext(
+    comment.changed_my_mind.count,
+    comment.changed_my_mind.for_this_user
+  );
 
   const updateForecast = async (value: number) => {
     const response = await createForecast(
@@ -193,21 +193,6 @@ const Comment: FC<CommentProps> = ({
     if ("errors" in response) {
       throw response.errors;
     }
-
-    setCmmState({ ...cmmState, isModalOpen: false });
-  };
-
-  const onCMMToggled = (enabled: boolean) => {
-    const countInc = cmmState.isCmmEnabled == enabled ? 0 : enabled ? 1 : -1;
-    setCmmState({
-      ...cmmState,
-      isCmmEnabled: enabled,
-      count: cmmState.count + countInc,
-      isModalOpen:
-        !cmmState.isModalOpen &&
-        !cmmState.isCmmEnabled &&
-        cmmState.isCmmEnabled != enabled,
-    });
   };
 
   const menuItems: MenuItemProps[] = [
@@ -215,13 +200,13 @@ const Comment: FC<CommentProps> = ({
       hidden: !isMobileScreen || !isCmmButtonVisible,
       id: "cmm",
       element: (
-        <CmmToggleButton
-          comment_id={comment.id}
-          disabled={isCmmButtonDisabled}
-          onCMMToggled={onCMMToggled}
-          cmmEnabled={cmmState.isCmmEnabled}
-          count={cmmState.count}
-        />
+        <div>
+          <CmmToggleButton
+            cmmContext={cmmContext}
+            comment_id={comment.id}
+            disabled={isCmmButtonDisabled}
+          />
+        </div>
       ),
       onClick: () => {
         return null; // handled by the button element
@@ -300,20 +285,17 @@ const Comment: FC<CommentProps> = ({
   return (
     <div id={`comment-${comment.id}`}>
       <CmmOverlay
-        showForecastingUI={postData?.question?.type === QuestionType.Binary}
         forecast={100 * userForecast}
         updateForecast={updateForecast}
+        showForecastingUI={postData?.question?.type === QuestionType.Binary}
         onClickScrollLink={() => {
-          setCmmState({ ...cmmState, isModalOpen: false });
+          cmmContext.setIsOverlayOpen(false);
           const section = document.getElementById("prediction-section");
           if (section) {
             section.scrollIntoView({ behavior: "smooth" });
           }
         }}
-        isOpen={cmmState.isModalOpen}
-        onClose={() => {
-          setCmmState({ ...cmmState, isModalOpen: false });
-        }}
+        cmmContext={cmmContext}
       />
 
       {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
@@ -395,11 +377,10 @@ const Comment: FC<CommentProps> = ({
 
             {isCmmButtonVisible && !isMobileScreen && (
               <CmmToggleButton
+                cmmContext={cmmContext}
                 comment_id={comment.id}
                 disabled={isCmmButtonDisabled}
-                onCMMToggled={onCMMToggled}
-                cmmEnabled={cmmState.isCmmEnabled}
-                count={cmmState.count}
+                ref={cmmContext.setAnchorRef}
               />
             )}
 
@@ -423,7 +404,9 @@ const Comment: FC<CommentProps> = ({
               ))}
           </div>
 
-          <DropdownMenu items={menuItems} />
+          <div ref={isMobileScreen ? cmmContext.setAnchorRef : null}>
+            <DropdownMenu items={menuItems} />
+          </div>
         </div>
       </div>
 
