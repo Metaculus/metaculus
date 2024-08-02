@@ -1,0 +1,21 @@
+<mj-section background-color="#ffffff" padding-top="0px">
+    <mj-column>
+        <mj-text>
+            {% blocktrans %}
+            <h4>Here are some other questions you may be interested in:</h4>
+            {% endblocktrans %}
+        </mj-text>
+        <mj-text>
+            {% for post in similar_posts %}
+            <div style="margin-bottom: 8px">
+                <a href="{% post_url post.id post.title %}">
+                    {{ post.title }}
+                </a>
+                <a href="{% post_url post.id post.title %}">
+                    <img class="question_graph_img" src='{% build_question_graph_image_url post.id %}'/>
+                </a>
+            </div>
+            {% endfor %}
+        </mj-text>
+    </mj-column>
+</mj-section>
