@@ -33,7 +33,11 @@ const PredictionChip: FC<Props> = ({
 
   const { resolution, nr_forecasters } = question;
 
-  const fmted_resolution = formatResolution(resolution, question.type, locale);
+  const formattedResolution = formatResolution(
+    resolution,
+    question.type,
+    locale
+  );
 
   const fmted_prediction = formatResolution(prediction, question.type, locale);
 
@@ -60,11 +64,13 @@ const PredictionChip: FC<Props> = ({
           <Chip
             size={size}
             className={classNames(
-              "bg-purple-800 dark:bg-purple-800-dark",
+              resolution === "annulled" || resolution === "ambiguous"
+                ? "border border-purple-800 text-purple-800 dark:border-purple-800-dark dark:text-purple-800-dark"
+                : "bg-purple-800 dark:bg-purple-800-dark",
               chipClassName
             )}
           >
-            {fmted_resolution}
+            {formattedResolution}
           </Chip>
           {size !== "compact" && !!nr_forecasters && (
             <p>
