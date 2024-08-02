@@ -91,7 +91,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
       if ("errors" in response) {
         console.error("Error fetching comments:", response.errors);
       } else {
-        setTotalCount(response.total_count);
+        setTotalCount(response.count);
 
         const sortedComments = response.results;
         sortComments(sortedComments, commentSort);
