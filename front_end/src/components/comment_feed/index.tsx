@@ -86,7 +86,6 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         /* if we're on a post, fetch only parent comments with children annotated.  if this is a profile, fetch only the author's comments, including parents and children */
         parent_isnull: !!postId,
         page: page,
-        sort: commentSort,
       });
       if ("errors" in response) {
         console.error("Error fetching comments:", response.errors);

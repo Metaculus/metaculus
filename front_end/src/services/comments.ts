@@ -39,6 +39,7 @@ export type PaginatedResponse<T> = {
   next: string | null;
   previous: string | null;
   results: T[];
+  total_count: number;
 };
 
 class CommentsApi {

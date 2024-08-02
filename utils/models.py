@@ -38,6 +38,16 @@ def build_order_by(value: str, is_desc: bool):
 
     return q.desc(nulls_last=True) if is_desc else q.asc(nulls_last=True)
 
+class ITNArticles(TimeStampedModel):
+    title = models.CharField(null=False)
+    summary = models.CharField(null=True)
+    url = models.CharField(null=False)
+    publication = models.CharField(null=False)
+    img_url = models.CharField(null=False)
+    aid = models.BigIntegerField()
+    cluster_id = models.BigIntegerField()
+
+
 
 class ArrayLength(models.Func):
     function = "CARDINALITY"
