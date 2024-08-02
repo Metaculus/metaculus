@@ -167,8 +167,8 @@
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
                         <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);"><a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
-                            {{ notification.post.post_title }}, {{ notification.new_comments_count }}
-                          </a>
+                            {{ notification.post.post_title }}
+                          </a> - {{ notification.comments_count }}
                           <ul> {% for comment in notification.comments %} <li>
                               <span>@{{ comment.author_username }}:</span> “{{ comment.preview_text | safe }}” <a href="{{ comment.url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">(link)</a>
                             </li> {% endfor %} {% if notification.read_more_count %} <a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;"> And {{ notification.read_more_count }} more </a> {% endif %} </ul>
