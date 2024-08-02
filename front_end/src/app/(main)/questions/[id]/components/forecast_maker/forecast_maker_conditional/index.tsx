@@ -1,7 +1,7 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { PostConditional } from "@/types/post";
+import { PostConditional, PostWithForecasts } from "@/types/post";
 import {
   QuestionType,
   QuestionWithForecasts,
@@ -13,22 +13,21 @@ import ForecastMakerConditionalContinuous from "./forecast_maker_conditional_con
 import ForecastMakerContainer from "../container";
 
 type Props = {
-  postId: number;
-  postTitle: string;
+  post: PostWithForecasts;
   conditional: PostConditional<QuestionWithForecasts>;
   canPredict: boolean;
   canResolve: boolean;
 };
 
 const ForecastMakerConditional: FC<Props> = ({
-  postId,
-  postTitle,
+  post,
   conditional,
   canPredict,
   canResolve,
 }) => {
   const t = useTranslations();
 
+  const { id: postId, title: postTitle } = post;
   const { condition, condition_child, question_yes, question_no } = conditional;
   if (question_yes.type !== question_no.type) {
     return null;

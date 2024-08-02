@@ -1,0 +1,36 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+
+                <mj-text>
+                    Hello {{recipient.username}},
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans with count=params|length %}
+                    These {{count}} questions have changed status:
+                    {% endblocktrans %}
+
+                    <ul>
+                        {% for notification in params %}
+                        <li>
+                            <a href="{% post_url notification.post.post_id notification.post.post_title %}">
+                                {{ notification.post.post_title }}
+                            </a>
+                            is now {{notification.event}}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </mj-text>
+
+            </mj-column>
+        </mj-section>
+        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
+        <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>
+    </mj-body>
+</mjml>

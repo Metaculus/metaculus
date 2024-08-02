@@ -8,6 +8,8 @@ import PostDropdownMenu from "./question_dropdown_menu";
 import ShareQuestionMenu from "./share_question_menu";
 import SidebarQuestionInfo from "./sidebar_question_info";
 import SidebarQuestionTags from "./sidebar_question_tags";
+import SimilarQuestions from "./similar_questions";
+import { MOCK_QUESTIONS_IDS } from "./similar_questions/MOCK_QUESTIONS_IDS";
 import QuestionEmbedButton from "../question_embed_button";
 
 type Props = {
@@ -42,6 +44,10 @@ const Sidebar: FC<Props> = ({
             />
           </div>
         </Suspense>
+
+        <Suspense fallback={null}>
+          <SimilarQuestions post_id={postData.id} />
+        </Suspense>
       </div>
     );
   }
@@ -73,6 +79,10 @@ const Sidebar: FC<Props> = ({
           allowModifications={allowModifications}
           questionId={postData.id}
         />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <SimilarQuestions post_id={postData.id} />
       </Suspense>
     </div>
   );

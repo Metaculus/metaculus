@@ -7,13 +7,13 @@ import html2text
 from dateutil.parser import parse as date_parse
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from questions.constants import ResolutionType
 
 from migrator.utils import paginated_query
 from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
+from questions.constants import ResolutionType
 from questions.models import Question, Conditional, GroupOfQuestions, Forecast
 from utils.the_math.formulas import unscaled_location_to_string_location
 
@@ -257,6 +257,17 @@ def migrate_questions__composite(site_ids: list[int] = None):
         q.save()
     for p in all_posts:
         p.update_pseudo_materialized_fields()
+
+        # Handle published_at_triggered field
+        # To ensure we won't send Open notifications for old posts
+        if (
+            p.published_at
+            and p.published_at <= timezone.now()
+            and p.curation_status == Post.CurationStatus.APPROVED
+            and (not p.actual_close_time or p.actual_close_time >= timezone.now())
+        ):
+            p.published_at_triggered = True
+
         p.save()
 
 
@@ -517,6 +528,8 @@ def migrate_post_user_snapshots():
             PostUserSnapshot.objects.bulk_create(snapshots)
             snapshots = []
 
+    PostUserSnapshot.objects.bulk_create(snapshots)
+
 
 def migrate_post_snapshots_forecasts():
     # Subquery to get the latest forecast for each user per post
@@ -562,3 +575,5 @@ def migrate_post_snapshots_forecasts():
 
         if not (processed % 25_000):
             print(f"Updated PostUserSnapshot.last_forecast_date: {processed}")
+
+    PostUserSnapshot.objects.bulk_update(bulk_update, fields=["last_forecast_date"])

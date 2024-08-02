@@ -21,7 +21,7 @@ class QuestionQuerySet(models.QuerySet):
 
 class QuestionManager(models.Manager.from_queryset(QuestionQuerySet)):
     def get_queryset(self):
-        return super().get_queryset().defer("composed_forecasts")
+        return super().get_queryset()
 
 
 class Question(TimeStampedModel):

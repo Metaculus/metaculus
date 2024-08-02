@@ -1,0 +1,53 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+
+                <mj-text>
+                    Hello {{recipient.username}},
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans with count=notifications|length %}
+                    There are new comments on these {{ count }} questions:
+                    {% endblocktrans %}
+                </mj-text>
+                <mj-text>
+                    {% for notification in notifications %}
+                </mj-text>
+
+                <mj-text>
+                    <a href="{% post_url notification.post.post_id notification.post.post_title %}">
+                        {{ notification.post.post_title }}, {{ notification.new_comments_count }}
+                    </a>
+
+                    <ul>
+                        {% for comment in notification.comments %}
+                        <li>
+                            <span>@{{ comment.author_username }}:</span>
+                            “{{ comment.preview_text | safe }}”
+                            <a href="{{ comment.url }}">(link)</a>
+                        </li>
+                        {% endfor %}
+                        {% if notification.read_more_count %}
+                        <a href="{% post_url notification.post.post_id notification.post.post_title %}">
+                            And {{ notification.read_more_count }} more
+                        </a>
+                        {% endif %}
+                    </ul>
+                </mj-text>
+
+                <mj-text>
+                    {% endfor %}
+                </mj-text>
+
+            </mj-column>
+        </mj-section>
+        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
+        <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>
+    </mj-body>
+</mjml>
