@@ -41,7 +41,6 @@ from questions.serializers import (
 )
 from questions.services import clone_question, create_question
 from utils.files import UserUploadedImage, generate_filename
-from utils.find_related_posts import find_related_posts
 
 
 @api_view(["GET"])
@@ -94,7 +93,6 @@ def post_create_api_view(request):
     serializer = PostWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=request.user)
-    find_related_posts(post)
     if "categories" in request.data:
         add_categories(request.data["categories"], post)
     if request.data.get("news_type", None):

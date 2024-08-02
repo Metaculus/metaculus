@@ -4,8 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
-from posts.services.search import perform_post_search
-from posts.services.similarity import qs_filter_similar_posts
+from posts.services.search import perform_post_search, qs_filter_similar_posts
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from users.models import User
