@@ -111,9 +111,12 @@ class Command(BaseCommand):
         #
         # Notification jobs
         #
+        # TODO: uncomment this after proper testing
         scheduler.add_job(
             close_old_connections(job_send_notification_groups.send),
-            trigger=CronTrigger.from_crontab("0 * * * *"),  # Every Hour at :00
+            # trigger=CronTrigger.from_crontab("0 * * * *"),  # Every Hour at :00
+            # TODO: DISABLE!!!!
+            trigger=CronTrigger.from_crontab("*/2 * * * *"),  # Every Hour at :00
             id="notifications_job_send_notification_groups",
             max_instances=1,
             replace_existing=True,

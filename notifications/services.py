@@ -1,10 +1,13 @@
 from dataclasses import dataclass, asdict
 
+from django.utils.translation import gettext_lazy as _
+
 from comments.models import Comment
 from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
 from posts.models import Post, PostSubscription
 from questions.models import Question
+from posts.services.search import get_similar_posts_for_multiple_posts
 from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
@@ -70,7 +73,9 @@ class NotificationTypeBase:
     def get_email_context_group(cls, notifications: list[Notification]):
         return {
             "recipient": notifications[0].recipient,
-            "params": [dataclass_from_dict(cls.ParamsType, n) for n in notifications],
+            "params": [
+                dataclass_from_dict(cls.ParamsType, n.params) for n in notifications
+            ],
         }
 
     @classmethod
@@ -96,7 +101,38 @@ class NotificationTypeBase:
         )
 
 
-class NotificationNewComments(NotificationTypeBase):
+class NotificationTypeSimilarPostsMixin:
+    """
+    Generates similar posts for notification
+    """
+
+    @classmethod
+    def get_similar_posts(cls, post_ids: list[int]):
+        similar_posts = []
+        posts = Post.objects.filter(pk__in=post_ids).only("id", "title")
+
+        if posts:
+            similar_posts = [
+                {
+                    "id": p.pk,
+                    "title": p.title,
+                }
+                for p in get_similar_posts_for_multiple_posts(posts)[:4]
+            ]
+
+        return similar_posts
+
+    @classmethod
+    def get_email_context_group(cls, notifications: list[Notification]):
+        params = super().get_email_context_group(notifications)
+
+        post_ids = [n.params.get("post", {}).get("post_id") for n in notifications]
+        similar_posts = cls.get_similar_posts([p for p in post_ids if p])
+
+        return {**params, "similar_posts": similar_posts}
+
+
+class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTypeBase):
     type = "post_new_comments"
     email_template = "emails/post_new_comments.html"
 
@@ -105,6 +141,14 @@ class NotificationNewComments(NotificationTypeBase):
         post: NotificationPostParams
         new_comments_count: int
         new_comment_ids: list[int]
+
+    @classmethod
+    def generate_subject_group(cls, recipient: User):
+        """
+        Generates subject for group emails
+        """
+
+        return _("Questions have new comments")
 
     @classmethod
     def get_comments(cls, recipient_username, new_comment_ids: list[int]):
@@ -173,8 +217,10 @@ class NotificationNewComments(NotificationTypeBase):
 
         for notification in notifications:
             # Comments with user mentions go first
-            read_more_count = len(notification["comments"]) - comments_to_display
+            comments_count = len(notification["comments"])
+            read_more_count = comments_count - comments_to_display
 
+            notification["comments_count"] = comments_count
             notification["read_more_count"] = (
                 read_more_count if read_more_count > 0 else 0
             )
@@ -189,10 +235,16 @@ class NotificationNewComments(NotificationTypeBase):
             notifications, key=lambda x: x["has_mention"], reverse=True
         )
 
-        return {"recipient": recipient, "notifications": notifications_data}
+        return {
+            "recipient": recipient,
+            "notifications": notifications_data,
+            "similar_posts": cls.get_similar_posts(list(post_notifications_map.keys())),
+        }
 
 
-class NotificationPostMilestone(NotificationTypeBase):
+class NotificationPostMilestone(
+    NotificationTypeSimilarPostsMixin, NotificationTypeBase
+):
     type = "post_milestone"
     email_template = "emails/post_milestone.html"
 
@@ -204,8 +256,18 @@ class NotificationPostMilestone(NotificationTypeBase):
         def format_lifespan_pct(self):
             return round(self.lifespan_pct * 100, 2)
 
+    @classmethod
+    def generate_subject_group(cls, recipient: User):
+        """
+        Generates subject for group emails
+        """
 
-class NotificationPostStatusChange(NotificationTypeBase):
+        return _("Lifetime update for questions")
+
+
+class NotificationPostStatusChange(
+    NotificationTypeSimilarPostsMixin, NotificationTypeBase
+):
     type = "post_status_change"
     email_template = "emails/post_status_change.html"
 
@@ -214,14 +276,32 @@ class NotificationPostStatusChange(NotificationTypeBase):
         post: NotificationPostParams
         event: PostSubscription.PostStatusChange
 
+    @classmethod
+    def generate_subject_group(cls, recipient: User):
+        """
+        Generates subject for group emails
+        """
 
-class NotificationPostSpecificTime(NotificationTypeBase):
+        return _("Questions have changed status")
+
+
+class NotificationPostSpecificTime(
+    NotificationTypeSimilarPostsMixin, NotificationTypeBase
+):
     type = "post_specific_time"
     email_template = "emails/post_specific_time.html"
 
     @dataclass
     class ParamsType:
         post: NotificationPostParams
+
+    @classmethod
+    def generate_subject_group(cls, recipient: User):
+        """
+        Generates subject for group emails
+        """
+
+        return _("Questions reminder")
 
 
 class NotificationPostCPChange(NotificationTypeBase):
