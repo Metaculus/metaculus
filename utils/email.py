@@ -18,7 +18,7 @@ def send_email_with_template(
     plain_message = strip_tags(convert_to_html_content)
 
     send_email_async.send(
-        subject=subject,
+        subject=str(subject),
         message=plain_message,
         from_email=settings.EMAIL_HOST_USER,
         recipient_list=[to],
