@@ -1,9 +1,12 @@
+import logging
 from collections import defaultdict
 
 import dramatiq
 
 from notifications.models import Notification
 from notifications.services import get_notification_handler_by_type
+
+logger = logging.getLogger(__name__)
 
 
 @dramatiq.actor
@@ -29,10 +32,12 @@ def job_send_notification_groups():
             handler_cls = get_notification_handler_by_type(notification_type)
 
             # Send group of notifications
-            # TODO: uncomment this after proper testing
-            # handler_cls.send_email_group(notifications)
+            try:
+                handler_cls.send_email_group(notifications)
 
-            # Mark as sent
-            for notification in notifications:
-                notification.mark_as_sent()
-                notification.save()
+                # Mark as sent
+                for notification in notifications:
+                    notification.mark_as_sent()
+                    notification.save()
+            except Exception:
+                logger.exception("Error while processing notification")
