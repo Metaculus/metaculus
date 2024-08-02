@@ -23,7 +23,6 @@ from posts.services.common import compute_hotness
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from scoring.models import populate_medal_exclusion_records
-from utils.find_related_posts import populated_all_related_posts
 
 
 class Command(BaseCommand):
@@ -98,8 +97,6 @@ class Command(BaseCommand):
         call_command("build_forecasts")
         print("Running compute hotness")
         compute_hotness()
-        print("Finding related posts")
-        populated_all_related_posts()
 
         # Reset sql sequences
         reset_sequence()

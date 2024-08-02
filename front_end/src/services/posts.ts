@@ -25,6 +25,7 @@ export type PostsParams = PaginationParams & {
   news_type?: string;
   public_figure?: number;
   notebook_type?: string;
+  similar_to_post_id?: number;
 };
 
 class PostsApi {
