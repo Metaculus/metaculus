@@ -28,10 +28,16 @@
                     <ul>
                         {% for comment in notification.comments %}
                         <li>
-                            @{{ comment.author_username }}: “{{ comment.preview_text | safe }}”
+                            <span>@{{ comment.author_username }}:</span>
+                            “{{ comment.preview_text | safe }}”
                             <a href="{{ comment.url }}">(link)</a>
                         </li>
                         {% endfor %}
+                        {% if notification.read_more_count %}
+                        <a href="{% post_url notification.post.post_id notification.post.post_title %}">
+                            And {{ notification.read_more_count }} more
+                        </a>
+                        {% endif %}
                     </ul>
                 </mj-text>
 
