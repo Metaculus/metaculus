@@ -109,9 +109,31 @@ async def perform_google_search(
         logger.exception("Failed to perform google search")
 
 
+def _qs_filter_similar_posts(qs: QuerySet[Post], embedding_vector):
+    return qs.annotate(
+        rank=1 - CosineDistance("embedding_vector", embedding_vector)
+    ).filter(rank__isnull=False)
+
+
 def qs_filter_similar_posts(qs: QuerySet[Post], post: Post):
+    return _qs_filter_similar_posts(qs, post.embedding_vector).exclude(pk=post.pk)
+
+
+def get_similar_posts_for_multiple_posts(posts: list[Post]):
+    """
+    Generates similar posts for multiple posts.
+    """
+
+    vector = np.average(
+        [ch.embedding_vector for ch in posts],
+        axis=0,
+        weights=[len(ch.embedding_vector) for ch in posts],
+    )
+
     return (
-        qs.annotate(rank=1 - CosineDistance("embedding_vector", post.embedding_vector))
-        .filter(rank__isnull=False)
-        .exclude(pk=post.pk)
+        _qs_filter_similar_posts(
+            Post.objects.filter_permission().filter_active(), vector
+        )
+        .exclude(pk__in=[p.pk for p in posts])
+        .order_by("-rank")
     )
