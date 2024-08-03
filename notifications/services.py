@@ -333,7 +333,7 @@ class NotificationPredictedQuestionResolved(NotificationTypeBase):
         question: NotificationQuestionParams
 
         resolution: str
-        predictions_count: int
+        forecasts_count: int
         coverage: float
         peer_score: float = 0
         baseline_score: float = 0

@@ -32,7 +32,7 @@
 
                     {% blocktrans with coverage=notification.format_coverage peer_score=notification.format_peer_score baseline_score=notification.format_baseline_score %}
                     Just resolved to {{notification.resolution}}.
-                    You made {{notification.predictions_count}} predictions,
+                    You made {{notification.forecasts_count}} predictions,
                     covering {{coverage}}% of the question lifetime.
                     You received a Peer score of {{peer_score}} and a baseline score of {{baseline_score}}.
                     {% endblocktrans %}

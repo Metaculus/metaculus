@@ -1,4 +1,6 @@
 import dramatiq
+from django.db.models import Q, OuterRef, Count
+from sql_util.aggregates import SubqueryAggregate
 
 from notifications.services import (
     NotificationPredictedQuestionResolved,
@@ -40,7 +42,11 @@ def resolve_question_and_send_notifications(question_id: int):
         question.resolution,
         score_types=[Score.ScoreTypes.PEER, Score.ScoreTypes.BASELINE],
     )
-    scores = question.scores.select_related("user")
+    scores = question.scores.annotate(
+        forecasts_count=SubqueryAggregate(
+            "question__forecast_set", filter=Q(author=OuterRef("user")), aggregate=Count
+        )
+    ).select_related("user")
     user_notification_params = {}
 
     # Send notifications
@@ -51,8 +57,7 @@ def resolve_question_and_send_notifications(question_id: int):
                     post=NotificationPostParams.from_post(post),
                     question=NotificationQuestionParams.from_question(question),
                     resolution=question.resolution,
-                    # TODO: annotate predictions_count
-                    predictions_count=0,
+                    forecasts_count=question.forecasts_count,
                     coverage=score.coverage,
                 )
             )
