@@ -24,11 +24,7 @@ def run_build_question_forecasts(question_id: int):
     forecasts = build_question_forecasts(question)
 
     question.composed_forecasts = forecasts
-
-    try:
-        question.save()
-    except:
-        raise
+    question.save()
 
 
 @dramatiq.actor
@@ -44,7 +40,7 @@ def resolve_question_and_send_notifications(question_id: int):
     )
     scores = question.scores.annotate(
         forecasts_count=SubqueryAggregate(
-            "question__forecast_set", filter=Q(author=OuterRef("user")), aggregate=Count
+            "question__forecast", filter=Q(author=OuterRef("user")), aggregate=Count
         )
     ).select_related("user")
     user_notification_params = {}
@@ -57,7 +53,7 @@ def resolve_question_and_send_notifications(question_id: int):
                     post=NotificationPostParams.from_post(post),
                     question=NotificationQuestionParams.from_question(question),
                     resolution=question.resolution,
-                    forecasts_count=question.forecasts_count,
+                    forecasts_count=score.forecasts_count,
                     coverage=score.coverage,
                 )
             )
