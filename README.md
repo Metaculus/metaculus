@@ -11,14 +11,14 @@ This is the codebase for the rewrite main [Metaculus website](https://metaculus.
 - Install poetry and python 3.12
 - Install node
 - Install [pgvector](https://github.com/pgvector/pgvector) database extension
-## 1. Setup Backend
+### 1. Setup Backend
 `poetry install`
 `poetry run python manage.py mjml_compose`
 
 ### 2. Setup test database
 TODO: Test db doesn't exist yet
 
-## 3. Setup Frontend
+### 3. Setup Frontend
 `cd front_end && npm install`
 `cd front_end && npm run dev`
 
