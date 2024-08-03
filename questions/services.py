@@ -1,7 +1,8 @@
+import logging
 from datetime import datetime
 from typing import cast
 
-import numpy as np
+from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -10,8 +11,9 @@ from questions.constants import ResolutionType
 from questions.models import Question, GroupOfQuestions, Conditional, Forecast
 from users.models import User
 from utils.the_math.community_prediction import get_cp_history
-from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.the_math.measures import percent_point_function
+
+logger = logging.getLogger(__name__)
 
 
 def get_forecast_initial_dict(question: Question) -> dict:
@@ -211,6 +213,7 @@ def create_conditional(
     return obj
 
 
+@transaction.atomic()
 def resolve_question(question: Question, resolution, actual_resolve_time: datetime):
     question.resolution = resolution
     question.resolution_set_time = timezone.now()
@@ -279,10 +282,18 @@ def resolve_question(question: Question, resolution, actual_resolve_time: dateti
     post.update_pseudo_materialized_fields()
     post.save()
 
+    # Calculate scores + notify forecasters
+    from questions.tasks import resolve_question_and_send_notifications
+
+    resolve_question_and_send_notifications.send(question.id)
+
     if post.resolved:
         from posts.services.common import resolve_post
 
-        resolve_post(post)
+        try:
+            resolve_post(post)
+        except Exception:
+            logger.exception("Error during post resolving")
 
 
 def close_question(question: Question):
