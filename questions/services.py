@@ -9,7 +9,6 @@ from rest_framework.exceptions import ValidationError
 from posts.models import PostUserSnapshot
 from questions.constants import ResolutionType
 from questions.models import Question, GroupOfQuestions, Conditional, Forecast
-from questions.tasks import resolve_question_and_send_notifications
 from users.models import User
 from utils.the_math.community_prediction import get_cp_history
 from utils.the_math.measures import percent_point_function
@@ -284,6 +283,8 @@ def resolve_question(question: Question, resolution, actual_resolve_time: dateti
     post.save()
 
     # Calculate scores + notify forecasters
+    from questions.tasks import resolve_question_and_send_notifications
+
     resolve_question_and_send_notifications.send(question.id)
 
     if post.resolved:
