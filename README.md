@@ -4,14 +4,45 @@ This is the codebase for the rewrite main [Metaculus website](https://metaculus.
 
 [Feel free to suggest changes and report bugs](https://github.com/Metaculus/metaculus/issues)
 # Setup dev env
+
+### 0. Setup environment
+- Install Postgres
+- Install redis
+- Install poetry and python 3.12
+- Install node
+- Install [pgvector](https://github.com/pgvector/pgvector) database extension
 ## 1. Setup Backend
-### Install
 `poetry install`
+`poetry run python manage.py mjml_compose`
 
-### Install postgres
-### Install redis
+### 2. Setup test database
+TODO: Test db doesn't exist yet
 
-### Install [pgvector](https://github.com/pgvector/pgvector) database extension
+## 3. Setup Frontend
+`cd front_end && npm install`
+`cd front_end && npm run dev`
+
+### 4. Cache & Async Tasks
+`python manage.py rundramatiq`
+
+### 5. Run tests
+`@TODO`
+
+
+## Misc
+- We use Husky to run linter and typescript checks before committing (see `front_end/.husky`).
+- To enable restricted Dev access, you need to add `ALPHA_ACCESS_TOKEN=<token>` as an env variable for both the BE and the FE (both the FE server & the env where the FE is compiled, which should be the same in most cases)
+
+
+### Email
+We use Django Anymail to integrate various email providers through a single library, simplifying our email management
+By default, we use the Mailgun provider.
+
+Env Configuration:
+- `MAILGUN_API_KEY`
+- `EMAIL_HOST_USER`
+
+### How to install PG vectors
 
 #### Ubuntu
 1. `sudo apt install postgresql-15-pgvector`\
@@ -33,47 +64,5 @@ A few common paths on Mac are:
 7. Connect to psql and enable extension: `CREATE EXTENSION vector;`
 
 Other installations and detailed instructions - https://github.com/pgvector/pgvector
-Compile MJML templates: `python manage.py mjml_compose`
-
-`poetry run python manage.py`
-
-## 2. Setup test database
-TODO: Test db doesn't exist yet
-
-## 3. Setup Frontend
-
-### Install
-
-```bash
-cd front_end && npm install
-```
-
-### Run
-```bash
-cd front_end && npm run dev
-```
-
-
-## 4. Cache & Async Tasks
-Start dramatiq worker:
-```
-python manage.py rundramatiq
-```
-
-## 5. Run tests
-
-
-# Misc
-- We use Husky to run linter and typescript checks before committing (see `front_end/.husky`).
-- To enable restricted Dev access, you need to add `ALPHA_ACCESS_TOKEN=<token>` as an env variable for both the BE and the FE (both the FE server & the env where the FE is compiled, which should be the same in most cases)
-
-
-## Email
-We use Django Anymail to integrate various email providers through a single library, simplifying our email management
-By default, we use the Mailgun provider.
-
-Env Configuration:
-- `MAILGUN_API_KEY`
-- `EMAIL_HOST_USER`
 
 
