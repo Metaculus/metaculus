@@ -6,8 +6,8 @@ from comments.models import Comment
 from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
 from posts.models import Post, PostSubscription
-from questions.models import Question
 from posts.services.search import get_similar_posts_for_multiple_posts
+from questions.models import Question
 from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
@@ -311,6 +311,41 @@ class NotificationPostCPChange(NotificationTypeBase):
     class ParamsType:
         post: NotificationPostParams
         question_data: list[CPChangeData]
+
+
+@dataclass
+class NotificationQuestionParams:
+    id: int
+    title: str
+
+    @classmethod
+    def from_question(cls, question: Question):
+        return cls(id=question.id, title=question.title)
+
+
+class NotificationPredictedQuestionResolved(NotificationTypeBase):
+    type = "predicted_question_resolved"
+    email_template = "predicted_question_resolved.html"
+
+    @dataclass
+    class ParamsType:
+        post: NotificationPostParams
+        question: NotificationQuestionParams
+
+        resolution: str
+        predictions_count: int
+        coverage: float
+        peer_score: float = 0
+        baseline_score: float = 0
+
+        def format_coverage(self):
+            return round(self.coverage * 100, 1)
+
+        def format_peer_score(self):
+            return round(self.peer_score, 1)
+
+        def format_baseline_score(self):
+            return round(self.baseline_score, 1)
 
 
 NOTIFICATION_TYPE_REGISTRY = [
