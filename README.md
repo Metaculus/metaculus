@@ -1,10 +1,15 @@
-# Metaculus Rewrite
+![Metaculus logo-blue on transparent](https://github.com/user-attachments/assets/70edc5dd-f334-4d56-91a3-82b117572c30)
 
-This is a very hectic work in progress, please do not expect things to make perfect sense until around June the 1st!
+This is the codebase for the rewrite main [Metaculus website](https://metaculus.com), it's expected to be live by the start of September.
 
-## Setup Backend
+[Feel free to suggest changes and report bugs](https://github.com/Metaculus/metaculus/issues)
+# Setup dev env
+## 1. Setup Backend
 ### Install
 `poetry install`
+
+### Install postgres
+### Install redis
 
 ### Install [pgvector](https://github.com/pgvector/pgvector) database extension
 
@@ -28,17 +33,14 @@ A few common paths on Mac are:
 7. Connect to psql and enable extension: `CREATE EXTENSION vector;`
 
 Other installations and detailed instructions - https://github.com/pgvector/pgvector
+Compile MJML templates: `python manage.py mjml_compose`
 
-### Migration of the old database
-1. Create a postgres database called `metaculus`
-2. Configure old db connection using `OLD_DATABASE_URL` env var to wherever you have your old metaculus database
-3. Run `poetry run python manage.py migrate_old_db`
-
-
-### Run
 `poetry run python manage.py`
 
-## Setup Frontend
+## 2. Setup test database
+TODO: Test db doesn't exist yet
+
+## 3. Setup Frontend
 
 ### Install
 
@@ -51,11 +53,19 @@ cd front_end && npm install
 cd front_end && npm run dev
 ```
 
-## Frontend pre-commit hooks
 
-We use husky to run linter and typescript checks before commiting (see `front_end/.husky`).
+## 4. Cache & Async Tasks
+Start dramatiq worker:
+```
+python manage.py rundramatiq
+```
 
-If you want to skip this, you can use the `--no-verify` flag when commiting.
+## 5. Run tests
+
+
+# Misc
+- We use Husky to run linter and typescript checks before committing (see `front_end/.husky`).
+- To enable restricted Dev access, you need to add `ALPHA_ACCESS_TOKEN=<token>` as an env variable for both the BE and the FE (both the FE server & the env where the FE is compiled, which should be the same in most cases)
 
 
 ## Email
@@ -67,18 +77,3 @@ Env Configuration:
 - `EMAIL_HOST_USER`
 
 
-## Cache & Async Tasks
-Start dramatiq worker:
-```
-python manage.py rundramatiq
-``` 
-
-Env Configuration:
-- `REDIS_URL`
-
-## Email templates
-Compile MJML templates: `python manage.py mjml_compose`
-
-## Restricted dev access
-To enable restricted Dev access, you need to add `ALPHA_ACCESS_TOKEN=<token>` to the bot BE & FE env variables.
-Then, be will validate all requests using `x-alpha-auth-token` from request headers
