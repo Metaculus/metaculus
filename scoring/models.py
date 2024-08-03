@@ -1,12 +1,11 @@
 from datetime import datetime, timezone
-from dataclasses import dataclass
 
 from django.db import models
 from django.db.models.query import QuerySet, Q
 
-from users.models import User
 from projects.models import Project
 from questions.models import Question
+from users.models import User
 from utils.models import TimeStampedModel
 
 
@@ -24,7 +23,9 @@ class Score(TimeStampedModel):
     user_id: int
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    question = models.ForeignKey(
+        Question, on_delete=models.CASCADE, related_name="scores"
+    )
     score = models.FloatField()
     coverage = models.FloatField(default=0)
 
