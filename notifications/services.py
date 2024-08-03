@@ -325,7 +325,7 @@ class NotificationQuestionParams:
 
 class NotificationPredictedQuestionResolved(NotificationTypeBase):
     type = "predicted_question_resolved"
-    email_template = "predicted_question_resolved.html"
+    email_template = "emails/predicted_question_resolved.html"
 
     @dataclass
     class ParamsType:
@@ -347,11 +347,20 @@ class NotificationPredictedQuestionResolved(NotificationTypeBase):
         def format_baseline_score(self):
             return round(self.baseline_score, 1)
 
+    @classmethod
+    def generate_subject_group(cls, recipient: User):
+        """
+        Generates subject for group emails
+        """
+
+        return _("Predicted questions have been resolved")
+
 
 NOTIFICATION_TYPE_REGISTRY = [
     NotificationNewComments,
     NotificationPostMilestone,
     NotificationPostStatusChange,
+    NotificationPredictedQuestionResolved,
     NotificationPostSpecificTime,
     NotificationPostCPChange,
 ]
