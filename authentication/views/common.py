@@ -24,6 +24,8 @@ from authentication.services import (
 from users.models import User
 from users.serializers import UserPrivateSerializer
 from utils.cloudflare import validate_turnstile_from_request
+from projects.models import ProjectUserPermission
+from projects.permissions import ObjectPermission
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +59,8 @@ def signup_api_view(request):
     password = serializer.validated_data["password"]
     is_bot = serializer.validated_data.get("is_bot", False)
 
+    project = serializer.validated_data.get("add_to_project", None)
+
     user = User.objects.create_user(
         username=username,
         email=email,
@@ -64,6 +68,11 @@ def signup_api_view(request):
         is_active=False,
         is_bot=is_bot,
     )
+
+    if project is not None:
+        ProjectUserPermission.objects.create(
+            user=user, project=project, permission=ObjectPermission.FORECASTER
+        )
 
     send_activation_email(user)
 
