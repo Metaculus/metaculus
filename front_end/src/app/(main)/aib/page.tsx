@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 
-import BotRegistration from "./botRegistration";
+import { SignupForm } from "@/components/auth/signup";
+import BaseModal from "@/components/base_modal";
+import Button from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth_context";
+
 import Dates from "./dates";
 import Description from "./description";
 import Hero from "./hero";
 import Prize from "./prize";
-import { useAuth } from "@/contexts/auth_context";
-import Button from "@/components/ui/button";
-import BaseModal from "@/components/base_modal";
 
 export default function AiBenchmarkingTournamentPage() {
   const { user } = useAuth();
@@ -18,6 +21,7 @@ export default function AiBenchmarkingTournamentPage() {
   const isUserBot = isUserAuthenticated && user.is_bot;
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenmodalOpen, setTokenModalOpen] = useState(false);
+  const t = useTranslations();
   return (
     <div className="text-metac-blue-700 dark:text-metac-blue-700-dark dark:bg-metac-blue-800 dark:from-metac-blue-600/50 dark:via-metac-blue-800/30 dark:to-metac-blue-500/30 mx-auto h-auto w-full flex-auto items-stretch bg-gradient-to-tl from-blue-300/30 via-blue-100/30 to-blue-400/30 px-4 py-4">
       <div className="flex size-full flex-col items-center gap-3">
@@ -139,7 +143,32 @@ export default function AiBenchmarkingTournamentPage() {
           </div>
         </div>
         <BaseModal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
-          <BotRegistration />
+          <div className="flex max-h-full max-w-xl flex-col items-center">
+            <h1 className="text-metac-blue-800 dark:text-metac-blue-800-dark mx-auto mt-2 text-center">
+              Create a Bot Account
+            </h1>
+            <p className="mx-auto text-center leading-normal opacity-75">
+              If you already created a bot account before, close this modal and
+              log in as you would to a regular Metaculus account.
+            </p>
+            <div className="sm:w-80 sm:pr-4">
+              <SignupForm forceIsBot={false} />
+            </div>
+            <div className="text-metac-gray-700 dark:text-metac-gray-700-dark mt-6 text-balance px-4 text-center leading-normal text-gray-700 opacity-75 dark:text-gray-700-dark">
+              {t.rich("registrationTerms", {
+                terms: (chunks) => (
+                  <Link target="_blank" href={"/terms-of-use/"}>
+                    {chunks}
+                  </Link>
+                ),
+                privacy: (chunks) => (
+                  <Link target="_blank" href={"/privacy-policy/"}>
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </div>
+          </div>
         </BaseModal>
         <BaseModal
           isOpen={tokenmodalOpen}
