@@ -1,4 +1,4 @@
-import { icon } from "@fortawesome/fontawesome-svg-core/import.macro";
+import { faChevronCircleRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import PromptDemo from "./promptDemo";
@@ -15,7 +15,7 @@ export default function DemoWrapper() {
             AI Benchmarking
           </a>{" "}
           <FontAwesomeIcon
-            icon={icon({ name: "chevron-right", style: "solid" })}
+            icon={faChevronCircleRight}
             className="self-center px-3 text-xl opacity-50"
           />{" "}
           <span className="whitespace-nowrap">Forecasting Demo</span>
