@@ -30,7 +30,7 @@ urlpatterns = [
         name="project-subscribe",
     ),
     path(
-        "projects/<int:pk>/subscribe",
+        "projects/<int:pk>/unsubscribe",
         views.project_unsubscribe_api_view,
         name="project-unsubscribe",
     ),

@@ -76,6 +76,7 @@ def subscribe_project(project: Project, user: User) -> ProjectSubscription:
         project=project,
         user=user,
     )
+    obj.save()
 
     return obj
 

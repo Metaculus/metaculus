@@ -216,7 +216,7 @@ def project_members_manage_api_view(request: Request, project_id: int, user_id: 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(["GET"])
+@api_view(["POST"])
 def project_subscribe_api_view(request: Request, pk: str):
     qs = get_projects_qs(user=request.user)
     project = get_object_or_404(qs, pk=pk)
@@ -226,7 +226,7 @@ def project_subscribe_api_view(request: Request, pk: str):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(["GET"])
+@api_view(["POST"])
 def project_unsubscribe_api_view(request: Request, pk: str):
     qs = get_projects_qs(user=request.user)
     project = get_object_or_404(qs, pk=pk)
