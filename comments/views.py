@@ -4,10 +4,10 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 
 from comments.models import ChangedMyMindEntry, Comment, CommentVote, CommentDiff
 from comments.serializers import (
@@ -15,7 +15,7 @@ from comments.serializers import (
     serialize_comment,
     serialize_comment_many,
 )
-from comments.services import create_comment
+from comments.services.common import create_comment
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 
