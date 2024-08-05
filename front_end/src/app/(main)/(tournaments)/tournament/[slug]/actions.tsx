@@ -62,3 +62,11 @@ export async function updateMember(
     };
   }
 }
+
+export async function subscribeProject(projectId: number) {
+  return ProjectsApi.subscribe(projectId);
+}
+
+export async function unsubscribeProject(projectId: number) {
+  return ProjectsApi.unsubscribe(projectId);
+}

@@ -63,4 +63,5 @@ export type Tournament = {
   posts_count: number;
   user_permission: ProjectPermissions;
   default_permission: ProjectPermissions;
+  is_subscribed?: boolean;
 };
