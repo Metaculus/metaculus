@@ -1,6 +1,6 @@
 from django.db import IntegrityError
 
-from projects.models import Project, ProjectUserPermission
+from projects.models import Project, ProjectUserPermission, ProjectSubscription
 from projects.permissions import ObjectPermission
 from users.models import User
 
@@ -67,3 +67,18 @@ def invite_user_to_project(
     except IntegrityError:
         # User was already invited
         return
+
+
+def subscribe_project(project: Project, user: User) -> ProjectSubscription:
+    # TODO: data migration!!!
+
+    obj = ProjectSubscription(
+        project=project,
+        user=user,
+    )
+
+    return obj
+
+
+def unsubscribe_project(project: Project, user: User) -> ProjectSubscription:
+    ProjectSubscription.objects.filter(project=project, user=user).delete()

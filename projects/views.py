@@ -21,6 +21,8 @@ from projects.services import (
     get_projects_qs,
     get_project_permission_for_user,
     invite_user_to_project,
+    subscribe_project,
+    unsubscribe_project,
 )
 from users.services import get_users_by_usernames
 
@@ -207,5 +209,25 @@ def project_members_manage_api_view(request: Request, project_id: int, user_id: 
 
         member.permission = permission
         member.save(update_fields=["permission"])
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET"])
+def project_subscribe_api_view(request: Request, pk: str):
+    qs = get_projects_qs(user=request.user)
+    project = get_object_or_404(qs, pk=pk)
+
+    subscribe_project(project=project, user=request.user)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["GET"])
+def project_unsubscribe_api_view(request: Request, pk: str):
+    qs = get_projects_qs(user=request.user)
+    project = get_object_or_404(qs, pk=pk)
+
+    unsubscribe_project(project=project, user=request.user)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
