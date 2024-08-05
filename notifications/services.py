@@ -1,5 +1,6 @@
 from dataclasses import dataclass, asdict
 
+from dateutil.parser import parse as date_parse
 from django.utils.translation import gettext_lazy as _
 
 from comments.models import Comment
@@ -18,25 +19,40 @@ from utils.frontend import build_post_comment_url
 class NotificationPostParams:
     post_id: int
     post_title: str
+    post_type: str
 
     @classmethod
     def from_post(cls, post: Post):
-        return NotificationPostParams(post_id=post.id, post_title=post.title)
+        return NotificationPostParams(
+            post_id=post.id,
+            post_title=post.title,
+            post_type=(
+                "question"
+                if post.question_id
+                else (
+                    "conditional"
+                    if post.conditional_id
+                    else "group_of_questions" if post.group_of_questions_id else None
+                )
+            ),
+        )
 
 
 @dataclass
 class NotificationQuestionParams:
     id: int
     title: str
+    type: str
 
     @classmethod
     def from_question(cls, question: Question):
-        return cls(id=question.id, title=question.title)
+        return cls(id=question.id, title=question.title, type=question.type)
 
 
 @dataclass
 class CPChangeData:
     question: NotificationQuestionParams
+    forecast_date: str | None = None
     cp_median: float | None = None
     # binary / MC only
     absolute_difference: float | None = None
@@ -52,6 +68,17 @@ class CPChangeData:
     user_q1: float | None = None
     user_median: float | None = None
     user_q3: float | None = None
+
+    # TODO: add direction label:
+    #   Binary: gone up | gone down
+    #   Continuous: gone up | gone down | contracted | expanded for continuous
+
+    # TODO: how to get a {change value} for continuous?
+    # TODO: add "Movement" for group, conditional, or multiple choice
+    # TODO: add "User Last Prediction" for group, conditional, or multiple choice
+
+    def format_forecast_date(self):
+        return date_parse(self.forecast_date)
 
 
 class NotificationTypeBase:

@@ -44,7 +44,11 @@ def _get_question_data_for_cp_change_notification(
         data.cp_median = current_entry.medians[1] if current_entry.medians else None
         data.absolute_difference = display_diff[0][0]
         data.odds_ratio = display_diff[0][1]
-        data.user_forecast = user_forecast.probability_yes if user_forecast else None
+
+        if user_forecast:
+            data.user_forecast = user_forecast.probability_yes
+            data.forecast_date = user_forecast.start_time.isoformat()
+
         question_data.append(data)
     elif question.type == "multiple_choice":
         for i, label in enumerate(question.options):
@@ -165,7 +169,9 @@ def notify_post_cp_change(post: Post):
         # we have to send a notification
         NotificationPostCPChange.send(
             subscription.user,
-            NotificationPostCPChange.ParamsType(post, question_data),
+            NotificationPostCPChange.ParamsType(
+                post=NotificationPostParams.from_post(post), question_data=question_data
+            ),
         )
 
         subscription.update_last_sent_at()
