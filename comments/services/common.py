@@ -1,10 +1,11 @@
 from comments.models import Comment
 from posts.models import Post, PostUserSnapshot
-from posts.tasks import run_notify_new_comments
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
 from users.models import User
+
+from ..tasks import run_on_post_comment_create
 
 
 def get_comment_permission_for_user(
@@ -70,6 +71,6 @@ def create_comment(
 
     # Send related notifications
     if on_post:
-        run_notify_new_comments.send(on_post.id)
+        run_on_post_comment_create.send(obj.id)
 
     return obj

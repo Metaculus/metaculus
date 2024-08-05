@@ -53,12 +53,5 @@ def run_notify_post_status_change(
 
 
 @dramatiq.actor
-def run_notify_new_comments(post_id: int):
-    from posts.services.subscriptions import notify_new_comments
-
-    notify_new_comments(Post.objects.get(pk=post_id))
-
-
-@dramatiq.actor
 def run_post_indexing(post_id):
     update_post_search_embedding_vector(Post.objects.get(pk=post_id))
