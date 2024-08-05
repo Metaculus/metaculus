@@ -7,7 +7,7 @@ export default function DemoWrapper() {
   return (
     <div className="mx-auto flex size-full max-w-[1680px] flex-col items-center">
       <div className="flex w-full flex-col">
-        <h1 className="text-center text-3xl text-metac-blue-800 dark:text-metac-blue-800-dark">
+        <h1 className="text-center text-3xl text-blue-800 dark:text-blue-800-dark">
           <a
             href="/aib/"
             className="font-light no-underline opacity-50 hover:opacity-100"
@@ -20,16 +20,16 @@ export default function DemoWrapper() {
           />{" "}
           <span className="whitespace-nowrap">Forecasting Demo</span>
         </h1>
-        <p className="text-center text-base text-metac-blue-800 dark:text-metac-blue-800-dark">
+        <p className="text-center text-base text-blue-800 dark:text-blue-800-dark">
           Discover how AI predicts the future by experimenting with prompts on
           Metaculus questions.
         </p>
       </div>
       {/* <div className="my-2 flex w-full max-w-3xl flex-col">
-        <p className="my-0 flex w-full flex-row items-center gap-3 self-center bg-metac-purple-400/40 px-4 py-3 text-left text-sm text-metac-blue-800 dark:bg-metac-purple-400-dark/40 dark:text-metac-blue-800-dark">
+        <p className="my-0 flex w-full flex-row items-center gap-3 self-center bg-purple-400/40 px-4 py-3 text-left text-sm text-blue-800 dark:bg-purple-400-dark/40 dark:text-blue-800-dark">
           <FontAwesomeIcon
             icon={icon({ name: "info-circle", style: "light" })}
-            className="self-center text-lg text-metac-purple-700 dark:text-metac-purple-700-dark"
+            className="self-center text-lg text-purple-700 dark:text-purple-700-dark"
           />
           <div>
             When you&apos;re ready to take your bot to the next level, check out
@@ -51,7 +51,7 @@ export default function DemoWrapper() {
               <span className="text-center text-sm">
                 This token is useful only if you&apos;re building a custom bot.
               </span>
-              <div className="flex flex-row gap-2 rounded border border-metac-blue-500 bg-metac-blue-400 p-2 dark:border-metac-blue-500-dark dark:bg-metac-blue-400-dark">
+              <div className="flex flex-row gap-2 rounded border border-blue-500 bg-blue-400 p-2 dark:border-blue-500-dark dark:bg-blue-400-dark">
                 <span>{window.metacData.metaculus_token}</span>
               </div>
             </div>
