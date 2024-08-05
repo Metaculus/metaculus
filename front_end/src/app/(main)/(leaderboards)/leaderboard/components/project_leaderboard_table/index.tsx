@@ -1,24 +1,42 @@
+"use client";
 import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useMemo, useState } from "react";
 
-import TableRow from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard_table/table_row";
+import Button from "@/components/ui/button";
 import { LeaderboardDetails } from "@/types/scoring";
 
 import TableHeader from "./table_header";
+import TableRow from "./table_row";
 
 type Props = {
   leaderboardDetails: LeaderboardDetails;
   prizePool: number;
   userId?: number;
+  paginationStep?: number;
 };
 
 const ProjectLeaderboardTable: FC<Props> = ({
   leaderboardDetails,
   prizePool,
   userId,
+  paginationStep = 5,
 }) => {
   const t = useTranslations();
+
+  const [step, setStep] = useState(paginationStep);
+  const leaderboardEntries = useMemo(() => {
+    return isNil(step)
+      ? leaderboardDetails.entries
+      : leaderboardDetails.entries.slice(0, step);
+  }, [leaderboardDetails.entries, step]);
+
+  const hasMore = !isNil(step)
+    ? leaderboardDetails.entries.length > step
+    : false;
+  const handleLoadMoreClick = () => {
+    setStep((prev) => (isNil(prev) ? prev : prev * 10));
+  };
 
   const withTake = leaderboardDetails.entries.some(
     (entry) => !isNil(entry.take)
@@ -28,42 +46,53 @@ const ProjectLeaderboardTable: FC<Props> = ({
   );
 
   return (
-    <table className="mb-0 w-full border-separate whitespace-nowrap">
-      <thead>
-        <tr className="h-8">
-          <TableHeader className="sticky left-0 text-left">
-            {t("rank")}
-          </TableHeader>
-          <TableHeader className="sticky left-0 text-left">
-            {t("forecaster")}
-          </TableHeader>
-          <TableHeader className="text-right">{t("totalScore")}</TableHeader>
-          {withTake && (
-            <TableHeader className="text-right">{t("take")}</TableHeader>
-          )}
-          {withPrize && (
-            <>
-              <TableHeader className="text-right">
-                {t("percentPrize")}
-              </TableHeader>
-              <TableHeader className=" text-right">{t("prize")}</TableHeader>
-            </>
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {leaderboardDetails.entries.map((entry) => (
-          <TableRow
-            key={entry.user.id}
-            rowEntry={entry}
-            userId={userId}
-            withTake={withTake}
-            withPrize={withPrize}
-            prizePool={prizePool}
-          />
-        ))}
-      </tbody>
-    </table>
+    <>
+      <table className="mb-0 w-full border-separate whitespace-nowrap">
+        <thead>
+          <tr className="h-8">
+            <TableHeader className="sticky left-0 text-left">
+              {t("rank")}
+            </TableHeader>
+            <TableHeader className="sticky left-0 text-left">
+              {t("forecaster")}
+            </TableHeader>
+            <TableHeader className="text-right">{t("totalScore")}</TableHeader>
+            {withTake && (
+              <TableHeader className="text-right">{t("take")}</TableHeader>
+            )}
+            {withPrize && (
+              <>
+                <TableHeader className="text-right">
+                  {t("percentPrize")}
+                </TableHeader>
+                <TableHeader className=" text-right">{t("prize")}</TableHeader>
+              </>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {leaderboardEntries.map((entry) => (
+            <TableRow
+              key={entry.user.id}
+              rowEntry={entry}
+              userId={userId}
+              withTake={withTake}
+              withPrize={withPrize}
+              prizePool={prizePool}
+            />
+          ))}
+        </tbody>
+      </table>
+      {hasMore && (
+        <Button
+          className="mx-auto my-1 !flex"
+          variant="tertiary"
+          onClick={handleLoadMoreClick}
+        >
+          Load More
+        </Button>
+      )}
+    </>
   );
 };
 

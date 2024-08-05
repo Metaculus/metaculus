@@ -27,6 +27,7 @@ const ProjectLeaderboard: FC<Props> = async ({
     projectId,
     leaderboardType
   );
+
   if (!leaderboardDetails || !leaderboardDetails.entries.length) {
     return null;
   }
