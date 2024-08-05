@@ -1,7 +1,7 @@
-from comments.services import create_comment
 from notifications.models import Notification
 from notifications.services import NotificationNewComments, NotificationPostParams
 from tests.fixtures import *  # noqa
+from tests.test_comments.factories import factory_comment
 from tests.test_notifications.factories import factory_notification
 from tests.test_posts.factories import factory_post
 
@@ -14,8 +14,8 @@ class TestNotificationNewComments:
         post_2 = factory_post(author=user1)
 
         # Post #1 Notifications
-        post_1_duplicated_comment = create_comment(
-            user=user2, on_post=post_1, text=f"Comment 2"
+        post_1_duplicated_comment = factory_comment(
+            author=user2, on_post=post_1, text=f"Comment 2"
         )
 
         factory_notification(
@@ -25,7 +25,7 @@ class TestNotificationNewComments:
                 post=NotificationPostParams.from_post(post_1),
                 new_comments_count=0,
                 new_comment_ids=[
-                    create_comment(user=user2, on_post=post_1, text=f"Comment 1").pk,
+                    factory_comment(author=user2, on_post=post_1, text=f"Comment 1").pk,
                     post_1_duplicated_comment.pk,
                 ],
             ),
@@ -37,8 +37,8 @@ class TestNotificationNewComments:
                 post=NotificationPostParams.from_post(post_1),
                 new_comments_count=0,
                 new_comment_ids=[
-                    create_comment(
-                        user=user2,
+                    factory_comment(
+                        author=user2,
                         on_post=post_1,
                         text=(
                             "It is a long established fact that a reader will be distracted by the readable content of "
@@ -56,8 +56,8 @@ class TestNotificationNewComments:
                 post=NotificationPostParams.from_post(post_1),
                 new_comments_count=0,
                 new_comment_ids=[
-                    create_comment(user=user2, on_post=post_1, text=f"Comment 3").pk,
-                    create_comment(user=user2, on_post=post_1, text=f"Comment 4").pk,
+                    factory_comment(author=user2, on_post=post_1, text=f"Comment 3").pk,
+                    factory_comment(author=user2, on_post=post_1, text=f"Comment 4").pk,
                     post_1_duplicated_comment.pk,
                 ],
             ),
@@ -71,8 +71,8 @@ class TestNotificationNewComments:
                 post=NotificationPostParams.from_post(post_2),
                 new_comments_count=0,
                 new_comment_ids=[
-                    create_comment(user=user2, on_post=post_1, text=f"Comment 2.1").pk,
-                    create_comment(user=user2, on_post=post_1, text=f"Comment 2.2").pk,
+                    factory_comment(author=user2, on_post=post_1, text=f"Comment 2.1").pk,
+                    factory_comment(author=user2, on_post=post_1, text=f"Comment 2.2").pk,
                 ],
             ),
         )
