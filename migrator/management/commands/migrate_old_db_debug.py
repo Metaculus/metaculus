@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.db import connection
 
-from ...services.migrate_subscriptions import migrate_subscriptions
+from migrator.services.migrate_subscriptions import migrate_subscriptions
 
 
 class Command(BaseCommand):
@@ -13,5 +13,6 @@ class Command(BaseCommand):
         site_ids = [1]
         with connection.cursor() as cursor:
             cursor.execute("DELETE FROM posts_postsubscription;")
+            cursor.execute("DELETE FROM projects_projectsubscription;")
 
         migrate_subscriptions(site_ids)
