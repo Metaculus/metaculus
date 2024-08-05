@@ -69,9 +69,6 @@ export default async function IndividualQuestion({
   searchParams,
 }: Props) {
   const postData = await PostsApi.getPost(params.id);
-  if (!postData) {
-    return notFound();
-  }
 
   if (postData.notebook) {
     return redirect(`/notebooks/${postData.id}`);
