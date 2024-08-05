@@ -3,13 +3,25 @@ from rest_framework import serializers
 
 from users.models import User
 from users.serializers import validate_username
+from projects.models import Project
 
 
 class SignupSerializer(serializers.ModelSerializer):
+    add_to_project = serializers.IntegerField(required=False)
+
     class Meta:
         model = User
-        fields = ("username", "email", "password", "is_bot")
+        fields = ("username", "email", "password", "is_bot", "add_to_project")
         extra_kwargs = {"email": {"required": True}}
+
+    def validate_add_to_project(self, value):
+        try:
+            return Project.objects.get(pk=value)
+
+        except Project.DoesNotExist:
+            raise serializers.ValidationError(
+                "Project to add the user to doesn't exist"
+            )
 
     def validate_email(self, value):
         if User.objects.filter(email__iexact=value).exists():
