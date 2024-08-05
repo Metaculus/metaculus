@@ -1,8 +1,6 @@
-import { isNil } from "lodash";
 import { NextRequest, NextResponse } from "next/server";
 
 import AuthApi from "@/services/auth";
-import ProfileApi from "@/services/profile";
 import {
   COOKIE_NAME_TOKEN,
   getAlphaTokenSession,
@@ -14,10 +12,10 @@ import { getAlphaAccessToken } from "@/utils/alpha_access";
 export async function middleware(request: NextRequest) {
   let deleteCookieToken = false;
 
-  const serverSession = getServerSession();
-
   // Run for pages only
   if (request.nextUrl.pathname.match("/((?!static|.*\\..*|_next).*)")) {
+    const serverSession = getServerSession();
+
     if (serverSession) {
       // Verify auth token
       try {
@@ -86,18 +84,6 @@ export async function middleware(request: NextRequest) {
 
   if (deleteCookieToken) {
     response.cookies.delete(COOKIE_NAME_TOKEN);
-  }
-
-  const isDebugModeEnabled = request.cookies.get("isDebugModeEnabled");
-  if (serverSession) {
-    if (isNil(isDebugModeEnabled)) {
-      const profile = await ProfileApi.getMyProfile();
-
-      const isDebugMode = profile ? profile.is_superuser : false;
-      response.cookies.set("isDebugModeEnabled", isDebugMode.toString());
-    }
-  } else {
-    response.cookies.delete("isDebugModeEnabled");
   }
 
   return response;

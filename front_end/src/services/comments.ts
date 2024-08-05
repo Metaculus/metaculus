@@ -1,5 +1,5 @@
 import { CommentType } from "@/types/comment";
-import { get, handleRequestError, post } from "@/utils/fetch";
+import { get, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type getCommentsParams = {
@@ -49,100 +49,58 @@ class CommentsApi {
     params?: getCommentsParams
   ): Promise<PaginatedResponse<CommentType>> {
     const queryParams = encodeQueryParams(params ?? {});
-    try {
-      const response = await get<PaginatedResponse<CommentType>>(
-        `${url}${queryParams}`
-      );
-      response.results = response.results.map((comment) => {
-        if (comment.included_forecast) {
-          comment.included_forecast.start_time = new Date(
-            comment.included_forecast.start_time
-          );
-        }
-        return comment;
-      });
-      return response;
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error getting comments:", err);
-        return { count: 0, next: null, previous: null, results: [] };
-      });
-    }
+    const response = await get<PaginatedResponse<CommentType>>(
+      `${url}${queryParams}`
+    );
+    response.results = response.results.map((comment) => {
+      if (comment.included_forecast) {
+        comment.included_forecast.start_time = new Date(
+          comment.included_forecast.start_time
+        );
+      }
+      return comment;
+    });
+    return response;
   }
 
   static async softDeleteComment(id: number): Promise<Response | null> {
-    try {
-      return await post<null, null>(`/comments/${id}/delete`, null);
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error deleting comment:", err);
-        return null;
-      });
-    }
+    return await post<null, null>(`/comments/${id}/delete`, null);
   }
 
   static async editComment(
     commentData: EditCommentParams
   ): Promise<Response | null> {
-    try {
-      return await post<null, EditCommentParams>(
-        `/comments/${commentData.id}/edit`,
-        commentData
-      );
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error editing comment:", err);
-        return null;
-      });
-    }
+    return await post<null, EditCommentParams>(
+      `/comments/${commentData.id}/edit`,
+      commentData
+    );
   }
 
   static async createComment(
     commentData: CreateCommentParams
   ): Promise<Response | null> {
-    try {
-      return await post<null, CreateCommentParams>(
-        `/comments/create`,
-        commentData
-      );
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error creating comment:", err);
-        return null;
-      });
-    }
+    return await post<null, CreateCommentParams>(
+      `/comments/create`,
+      commentData
+    );
   }
 
   static async voteComment(
     voteData: VoteCommentParams
   ): Promise<Response | null> {
-    try {
-      return await post<null, VoteCommentParams>(
-        `/comments/${voteData.id}/vote`,
-        voteData
-      );
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error voting comment:", err);
-        return null;
-      });
-    }
+    return await post<null, VoteCommentParams>(
+      `/comments/${voteData.id}/vote`,
+      voteData
+    );
   }
 
   static async toggleCMMComment(
     params: ToggleCMMCommentParams
   ): Promise<Response | null> {
-    try {
-      return await post<null, ToggleCMMCommentParams>(
-        `/comments/${params.id}/toggle_cmm`,
-        params
-      );
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error toggling CMM on comment:", err);
-        return null;
-      });
-    }
+    return await post<null, ToggleCMMCommentParams>(
+      `/comments/${params.id}/toggle_cmm`,
+      params
+    );
   }
 }
 

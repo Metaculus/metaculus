@@ -29,7 +29,7 @@ export default async function IndividualNotebook({
 }) {
   const postData = await PostsApi.getPost(params.id);
 
-  if (!postData || !postData.notebook) {
+  if (!postData.notebook) {
     return notFound();
   }
 

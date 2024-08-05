@@ -1,7 +1,7 @@
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
 import { Post, PostSubscription, PostWithForecasts } from "@/types/post";
 import { VoteDirection, VoteResponse } from "@/types/votes";
-import { get, handleRequestError, post, put } from "@/utils/fetch";
+import { get, post, put } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type PostsParams = PaginationParams & {
@@ -29,30 +29,16 @@ export type PostsParams = PaginationParams & {
 };
 
 class PostsApi {
-  static async getPost(id: number): Promise<PostWithForecasts | null> {
-    try {
-      return await get<PostWithForecasts>(
-        `/posts/${id}${encodeQueryParams({ with_cp: true })}`
-      );
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error getting post:", err);
-        return null;
-      });
-    }
+  static async getPost(id: number): Promise<PostWithForecasts> {
+    return await get<PostWithForecasts>(
+      `/posts/${id}${encodeQueryParams({ with_cp: true })}`
+    );
   }
 
   static async getPosts(params?: PostsParams): Promise<Post[]> {
     const queryParams = encodeQueryParams(params ?? {});
-    try {
-      const data = await get<PaginatedPayload<Post>>(`/posts${queryParams}`);
-      return data.results;
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error getting posts:", err);
-        return [];
-      });
-    }
+    const data = await get<PaginatedPayload<Post>>(`/posts${queryParams}`);
+    return data.results;
   }
 
   static async getPostsWithCP(
@@ -63,43 +49,17 @@ class PostsApi {
       with_cp: true,
     });
 
-    try {
-      return await get<PaginatedPayload<PostWithForecasts>>(
-        `/posts${queryParams}`
-      );
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error getting posts:", err);
-        return { count: 0, results: [], next: null, previous: null };
-      });
-    }
+    return await get<PaginatedPayload<PostWithForecasts>>(
+      `/posts${queryParams}`
+    );
   }
 
-  static async createQuestionPost(
-    body: any
-  ): Promise<PostWithForecasts | null> {
-    try {
-      return await post<PostWithForecasts>(`/posts/create/`, body);
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error creating post:", err);
-        return null;
-      });
-    }
+  static async createQuestionPost(body: any): Promise<PostWithForecasts> {
+    return await post<PostWithForecasts>(`/posts/create/`, body);
   }
 
-  static async updatePost(
-    id: number,
-    body: any
-  ): Promise<PostWithForecasts | null> {
-    try {
-      return await put<any, PostWithForecasts>(`/posts/${id}/update/`, body);
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error updating post:", err);
-        return null;
-      });
-    }
+  static async updatePost(id: number, body: any): Promise<PostWithForecasts> {
+    return await put<any, PostWithForecasts>(`/posts/${id}/update/`, body);
   }
 
   static async votePost(

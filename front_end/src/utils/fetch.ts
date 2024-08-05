@@ -1,6 +1,4 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { NextResponse } from "next/server";
+import { notFound } from "next/navigation";
 
 import { getAlphaTokenSession, getServerSession } from "@/services/session";
 import {
@@ -9,6 +7,25 @@ import {
   FetchError,
   FetchOptions,
 } from "@/types/fetch";
+
+class ApiError extends Error {
+  public digest: string;
+
+  constructor(message: string) {
+    super(message);
+    // workaround Next.js removes error information on prod
+    // this workaround will be used only for REST API errors, which shouldn't provide any sensitive information in the message
+    // https://nextjs.org/docs/app/building-your-application/routing/error-handling#securing-sensitive-error-information
+    // https://github.com/vercel/next.js/discussions/49506#discussioncomment-10120012
+    this.digest = message;
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
+
+    this.name = this.constructor.name;
+  }
+}
 
 /**
  * Util for converting Django errors to the standardized way
@@ -25,6 +42,10 @@ const normalizeApiErrors = ({
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
+    if (response.status === 404) {
+      return notFound();
+    }
+
     let errorData: ApiErrorResponse;
 
     try {
@@ -38,9 +59,10 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     // Converting Django errors
     const data: ErrorResponse = normalizeApiErrors(errorData);
 
-    const error: FetchError = new Error("An error occurred");
+    const error: FetchError = new ApiError(data.message ?? "An error occurred");
     error.response = response;
     error.data = data;
+
     throw error;
   }
 
@@ -163,19 +185,5 @@ const del = async <T>(url: string, options: FetchOptions = {}): Promise<T> => {
 };
 
 export { get, post, put, del, patch };
-
-/**
- * Enforce error throw for admins to navigate to the error page
- */
-export function handleRequestError(error: unknown, callback: () => any): any {
-  const isDebugModeEnabled =
-    cookies().get("isDebugModeEnabled")?.value === "true";
-
-  if (isDebugModeEnabled) {
-    throw error;
-  }
-
-  return callback();
-}
 
 export default appFetch;
