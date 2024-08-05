@@ -73,21 +73,21 @@ function BotRegistration() {
   return (
     <>
       <div className="px-4">
-        <h1 className="mx-auto mt-2 text-center text-metac-blue-800 dark:text-metac-blue-800-dark">
+        <h1 className="mx-auto mt-2 text-center text-blue-800 dark:text-blue-800-dark">
           Create a Bot Account
         </h1>
         <p className="mx-auto text-center leading-normal opacity-75">
           If you already created a bot account before, close this modal and log
           in as you would to a regular Metaculus account.
         </p>
-        <div className="mx-auto flex flex-col text-metac-gray-900 dark:text-metac-gray-900-dark sm:flex-row">
+        <div className="mx-auto flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">
           <form
-            className="mx-auto mt-4 flex w-full flex-col gap-4 border-metac-gray-300 dark:border-metac-gray-700-dark sm:w-80 sm:pr-4"
+            className="mx-auto mt-4 flex w-full flex-col gap-4 border-gray-300 dark:border-gray-700-dark sm:w-80 sm:pr-4"
             onSubmit={handleSubmit(onSubmit)}
           >
             <input
               autoComplete="username"
-              className="block w-full rounded border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
               placeholder={t("registrationUsernamePlaceholder")}
               type="text"
               {...register("username", {
@@ -109,14 +109,14 @@ function BotRegistration() {
               })}
             />
             {errors.username && (
-              <div className="text-xs text-metac-red-500 dark:text-metac-red-500-dark">
+              <div className="text-xs text-red-500 dark:text-red-500-dark">
                 {errors.username.message}
               </div>
             )}
             <div>
               <input
                 autoComplete="new-password"
-                className="block w-full rounded-t border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
+                className="block w-full rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
                 placeholder={t("passwordPlaceholder")}
                 type="password"
                 {...register("password", {
@@ -139,7 +139,7 @@ function BotRegistration() {
               />
               <input
                 autoComplete="new-password"
-                className="block w-full rounded-b border-x border-b border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
+                className="block w-full rounded-b border-x border-b border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
                 placeholder={t("registrationVerifyPasswordPlaceholder")}
                 type="password"
                 {...register("passwordAgain", {
@@ -149,17 +149,17 @@ function BotRegistration() {
               />
             </div>
             {errors.password && (
-              <div className="text-xs text-metac-red-500 dark:text-metac-red-500-dark">
+              <div className="text-xs text-red-500 dark:text-red-500-dark">
                 {errors.password.message}
               </div>
             )}
             {errors.passwordAgain && (
-              <div className="text-xs text-metac-red-500 dark:text-metac-red-500-dark">
+              <div className="text-xs text-red-500 dark:text-red-500-dark">
                 {errors.passwordAgain.message}
               </div>
             )}
             <input
-              className="block w-full rounded border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
               placeholder={t("registrationEmailPlaceholder")}
               type="email"
               {...register("email", {
@@ -181,7 +181,7 @@ function BotRegistration() {
               })}
             />
             {errors.email && (
-              <div className="text-xs text-metac-red-500 dark:text-metac-red-500-dark">
+              <div className="text-xs text-red-500 dark:text-red-500-dark">
                 {errors.email.message}
               </div>
             )}
@@ -197,7 +197,7 @@ function BotRegistration() {
           </form>
         </div>
 
-        <div className="mt-6 text-balance px-4 text-center leading-normal text-metac-gray-700 opacity-75 dark:text-metac-gray-700-dark">
+        <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 opacity-75 dark:text-gray-700-dark">
 
 {/*           
           <Trans
