@@ -7,7 +7,7 @@ import {
   TournamentMember,
 } from "@/types/projects";
 import { LeaderboardDetails } from "@/types/scoring";
-import { del, get, handleRequestError, patch, post } from "@/utils/fetch";
+import { del, get, patch, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type TagsParams = {
@@ -16,78 +16,45 @@ export type TagsParams = {
 
 class ProjectsApi {
   static async getTopics(): Promise<Topic[]> {
-    try {
-      return await get<Topic[]>("/projects/topics");
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error getting topics:", err);
-        return [];
-      });
-    }
+    return await get<Topic[]>("/projects/topics");
   }
 
   static async getCategories(): Promise<Category[]> {
-    try {
-      return await get<Category[]>("/projects/categories");
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error getting categories:", err);
-        return [];
-      });
-    }
+    return await get<Category[]>("/projects/categories");
   }
 
   static async getTags(params?: TagsParams): Promise<Tag[]> {
     const queryParams = encodeQueryParams(params ?? {});
 
-    try {
-      return await get<Tag[]>(`/projects/tags${queryParams}`);
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error getting tags:", err);
-        return [];
-      });
-    }
+    return await get<Tag[]>(`/projects/tags${queryParams}`);
   }
 
   static async getSiteMain(): Promise<Tournament> {
-    try {
-      return await get<Tournament>("/projects/site_main");
-    } catch (err) {
-      throw new Error("Error getting main site");
-    }
+    return await get<Tournament>("/projects/site_main");
   }
 
   static async getTournaments(): Promise<Tournament[]> {
-    try {
-      return await get<Tournament[]>("/projects/tournaments");
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error getting tournaments:", err);
-        return [];
-      });
-    }
+    return await get<Tournament[]>("/projects/tournaments");
   }
 
   static async getSlugTournament(slug: string): Promise<Tournament | null> {
-    try {
-      return await get<Tournament>(`/projects/tournaments/${slug}`);
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error getting tournament:", err);
-        return null;
-      });
-    }
+    return await get<Tournament>(`/projects/tournaments/${slug}`);
   }
 
   static async getProjectLeaderboard(
     projectId: number,
     leaderboardType: string | null = null
   ): Promise<LeaderboardDetails> {
-    // @ts-ignore
-    return get<LeaderboardDetails>(`/projects/${projectId}/leaderboard/`, {
-      ...(leaderboardType ? { leaderboard_type: leaderboardType } : {}),
-    });
+    const queryParams = encodeQueryParams(
+      leaderboardType
+        ? {
+            leaderboardType,
+          }
+        : {}
+    );
+    return get<LeaderboardDetails>(
+      `/projects/${projectId}/leaderboard${queryParams}`
+    );
   }
 
   static async inviteUsers(

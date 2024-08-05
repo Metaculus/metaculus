@@ -4,7 +4,7 @@ import {
   LeaderboardType,
   MedalEntry,
 } from "@/types/scoring";
-import { get, handleRequestError } from "@/utils/fetch";
+import { get } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type ProjectContributionsParams = {
@@ -50,30 +50,23 @@ class LeaderboardApi {
     leaderboardType: string | null = null,
     leaderboardName: string | null = null
   ): Promise<LeaderboardDetails | null> {
-    try {
-      // TODO: make paginated
-      const params = new URLSearchParams();
-      if (leaderboardType) {
-        params.append("leaderboardType", leaderboardType);
-      }
-      if (leaderboardName) {
-        params.append("leaderboardName", leaderboardName);
-      }
-
-      const url = `/leaderboards/project/${projectId}/${params.toString() ? `?${params.toString()}` : ""}`;
-      const response = await get<LeaderboardDetails>(url);
-      // TODO: add pagination, but for now just return 20 entries
-      const leaderboardDetails: LeaderboardDetails = {
-        ...response,
-        entries: response.entries.slice(0, 20),
-      };
-      return leaderboardDetails;
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error getting project leaderboard:", err);
-        return null;
-      });
+    // TODO: make paginated
+    const params = new URLSearchParams();
+    if (leaderboardType) {
+      params.append("leaderboardType", leaderboardType);
     }
+    if (leaderboardName) {
+      params.append("leaderboardName", leaderboardName);
+    }
+
+    const url = `/leaderboards/project/${projectId}/${params.toString() ? `?${params.toString()}` : ""}`;
+    const response = await get<LeaderboardDetails>(url);
+    // TODO: add pagination, but for now just return 20 entries
+    const leaderboardDetails: LeaderboardDetails = {
+      ...response,
+      entries: response.entries.slice(0, 20),
+    };
+    return leaderboardDetails;
   }
 
   static async getUserMedals(userId: number) {

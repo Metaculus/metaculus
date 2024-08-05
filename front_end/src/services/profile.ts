@@ -1,7 +1,7 @@
 import { getServerSession } from "@/services/session";
 import { PaginatedPayload } from "@/types/fetch";
 import { CurrentUser, UserProfile } from "@/types/users";
-import { get, handleRequestError, patch, post } from "@/utils/fetch";
+import { get, patch, post } from "@/utils/fetch";
 
 class ProfileApi {
   static async getMyProfile(): Promise<CurrentUser | null> {
@@ -11,25 +11,11 @@ class ProfileApi {
       return null;
     }
 
-    try {
-      return await get<CurrentUser>("/users/me");
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error getting current user:", err);
-        return null;
-      });
-    }
+    return await get<CurrentUser>("/users/me");
   }
 
   static async getProfileById(id: number): Promise<CurrentUser> {
-    try {
-      return await get<CurrentUser>(`/users/${id}`);
-    } catch (err) {
-      return handleRequestError(err, () => {
-        console.error("Error getting user profile:", err);
-        return null;
-      });
-    }
+    return await get<CurrentUser>(`/users/${id}`);
   }
 
   static async changeUsername(username: string) {
