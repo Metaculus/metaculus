@@ -25,8 +25,18 @@ class NotificationPostParams:
 
 
 @dataclass
+class NotificationQuestionParams:
+    id: int
+    title: str
+
+    @classmethod
+    def from_question(cls, question: Question):
+        return cls(id=question.id, title=question.title)
+
+
+@dataclass
 class CPChangeData:
-    question: Question
+    question: NotificationQuestionParams
     cp_median: float | None = None
     # binary / MC only
     absolute_difference: float | None = None
@@ -325,16 +335,6 @@ class NotificationPostCPChange(NotificationTypeBase):
     class ParamsType:
         post: NotificationPostParams
         question_data: list[CPChangeData]
-
-
-@dataclass
-class NotificationQuestionParams:
-    id: int
-    title: str
-
-    @classmethod
-    def from_question(cls, question: Question):
-        return cls(id=question.id, title=question.title)
 
 
 class NotificationPredictedQuestionResolved(NotificationTypeBase):

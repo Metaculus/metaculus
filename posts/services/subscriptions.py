@@ -15,10 +15,12 @@ from notifications.services import (
     NotificationPostSpecificTime,
     NotificationPostCPChange,
     CPChangeData,
+    NotificationQuestionParams,
 )
 from posts.models import Post, PostSubscription
 from questions.models import Question, Forecast
 from users.models import User
+from utils.models import ArrayLength
 from utils.the_math.community_prediction import get_cp_history, AggregationEntry
 from utils.the_math.formulas import (
     unscaled_location_to_scaled_location,
@@ -28,7 +30,6 @@ from utils.the_math.measures import (
     prediction_difference_for_sorting,
     prediction_difference_for_display,
 )
-from utils.models import ArrayLength
 
 
 def _get_question_data_for_cp_change_notification(
@@ -39,7 +40,7 @@ def _get_question_data_for_cp_change_notification(
 ) -> list[CPChangeData]:
     question_data: list[CPChangeData] = []
     if question.type == "binary":
-        data = CPChangeData(question)
+        data = CPChangeData(question=NotificationQuestionParams.from_question(question))
         data.cp_median = current_entry.medians[1] if current_entry.medians else None
         data.absolute_difference = display_diff[0][0]
         data.odds_ratio = display_diff[0][1]
@@ -47,7 +48,9 @@ def _get_question_data_for_cp_change_notification(
         question_data.append(data)
     elif question.type == "multiple_choice":
         for i, label in enumerate(question.options):
-            data = CPChangeData(question, None)
+            data = CPChangeData(
+                question=NotificationQuestionParams.from_question(question)
+            )
             data.label = label
             data.cp_median = (
                 current_entry.medians[i] if current_entry.medians is not None else None
@@ -59,7 +62,7 @@ def _get_question_data_for_cp_change_notification(
             )
             question_data.append(data)
     else:  # continuous
-        data = CPChangeData(question)
+        data = CPChangeData(question=NotificationQuestionParams.from_question(question))
         median = current_entry.medians[0] if current_entry.medians else None
         q1 = current_entry.q1s[0] if current_entry.q1s else None
         data.cp_q1 = (
