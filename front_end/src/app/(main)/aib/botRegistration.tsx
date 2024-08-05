@@ -1,10 +1,14 @@
+"use client"
+
+import Button from "@/components/ui/button";
+import ButtonGroup from "@/components/ui/button_group";
 import { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslations } from "next-intl";
 
-import { http } from "../../http";
-import { modals } from "../../modalData";
-import Button from "../Button";
+// import { http } from "../../http";
+// import { modals } from "../../modalData";
+// import Button from "../Button";
 
 const MIN_USER_LEN = 1;
 const MAX_USER_LEN = 200;
@@ -22,7 +26,7 @@ interface IFormInput {
 }
 
 function BotRegistration() {
-  const { t } = useTranslation();
+  const t = useTranslations();
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
@@ -194,13 +198,15 @@ function BotRegistration() {
         </div>
 
         <div className="mt-6 text-balance px-4 text-center leading-normal text-metac-gray-700 opacity-75 dark:text-metac-gray-700-dark">
+
+{/*           
           <Trans
             i18nKey="registrationTerms"
             components={{
               terms: <a target="_blank" href="/terms-of-use/" />,
               privacy: <a target="_blank" href="/privacy-policy/" />,
             }}
-          />
+          /> */}
         </div>
       </div>
     </>
