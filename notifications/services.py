@@ -151,7 +151,7 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
         return _("Questions have new comments")
 
     @classmethod
-    def get_comments(cls, recipient_username, new_comment_ids: list[int]):
+    def _generate_previews(cls, recipient_username, new_comment_ids: list[int]):
         """
         Extracts comments list from new_comment_ids
         """
@@ -188,57 +188,71 @@ class NotificationNewComments(NotificationTypeSimilarPostsMixin, NotificationTyp
                 }
             )
 
+        # Comments with mention go first
+        data = sorted(data, key=lambda x: x["has_mention"], reverse=True)
+
         return data, post_has_mention
+
+    @classmethod
+    def _merge_notifications_params(
+        cls, notifications: list[Notification]
+    ) -> dict[int, dict]:
+        """
+        Merges notifications' params of the same post_id
+        """
+
+        post_notifications = {}
+
+        for notification in notifications:
+            post_id = notification.params["post"]["post_id"]
+            if not post_notifications.get(post_id):
+                post_notifications[post_id] = {
+                    "post": notification.params["post"],
+                    "new_comment_ids": [],
+                }
+
+            post_notifications[post_id]["new_comment_ids"] += notification.params[
+                "new_comment_ids"
+            ]
+
+        return post_notifications
 
     @classmethod
     def get_email_context_group(cls, notifications: list[Notification]):
         comments_to_display = 8
         recipient = notifications[0].recipient
-        post_notifications_map = {}
+        serialized_notifications = []
 
-        for notification in notifications:
-            post_id = notification.params["post"]["post_id"]
-            preview_comments, has_mention = cls.get_comments(
-                recipient.username, notification.params["new_comment_ids"]
+        for post_id, params in cls._merge_notifications_params(notifications).items():
+            preview_comments, has_mention = cls._generate_previews(
+                recipient.username, params["new_comment_ids"]
             )
 
-            if not post_notifications_map.get(post_id):
-                post_notifications_map[post_id] = {
-                    **notification.params,
-                    "comments": [],
-                    "has_mention": False,
-                }
-
-            post_notifications_map[post_id]["comments"] += preview_comments
-            if has_mention:
-                post_notifications_map[post_id]["has_mention"] = True
-
-        notifications = list(post_notifications_map.values())
-
-        for notification in notifications:
-            # Comments with user mentions go first
-            comments_count = len(notification["comments"])
+            # Limit total comments
+            comments_count = len(preview_comments)
             read_more_count = comments_count - comments_to_display
 
-            notification["comments_count"] = comments_count
-            notification["read_more_count"] = (
-                read_more_count if read_more_count > 0 else 0
+            serialized_notifications.append(
+                {
+                    **params,
+                    "comments": preview_comments[:comments_to_display],
+                    "has_mention": has_mention,
+                    "comments_count": comments_count,
+                    "read_more_count": read_more_count if read_more_count > 0 else 0,
+                }
             )
-            notification["comments"] = sorted(
-                notification["comments"],
-                key=lambda x: x["has_mention"],
-                reverse=True,
-            )[:comments_to_display]
 
         # Comments with mention go first
-        notifications_data = sorted(
-            notifications, key=lambda x: x["has_mention"], reverse=True
+        serialized_notifications = sorted(
+            serialized_notifications, key=lambda x: x["has_mention"], reverse=True
         )
 
         return {
             "recipient": recipient,
-            "notifications": notifications_data,
-            "similar_posts": cls.get_similar_posts(list(post_notifications_map.keys())),
+            "notifications": serialized_notifications,
+            "similar_posts": cls.get_similar_posts(
+                [x["post"]["post_id"] for x in serialized_notifications]
+            ),
         }
 
 

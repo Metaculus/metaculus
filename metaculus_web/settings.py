@@ -232,7 +232,9 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Frontend configuration
-FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000").rstrip("/")
+FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000").rstrip(
+    "/"
+)
 
 # Redis endpoint
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
@@ -253,6 +255,12 @@ DRAMATIQ_BROKER = {
         "django_dramatiq.middleware.AdminMiddleware",
     ],
 }
+# Setting StubBroker broker for unit tests environment
+# Integration tests should run as the real env
+if ENV == "testing":
+    DRAMATIQ_BROKER.update(
+        {"BROKER": "dramatiq.brokers.stub.StubBroker", "OPTIONS": {}}
+    )
 DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 
 CACHES = {
