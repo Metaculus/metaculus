@@ -1,5 +1,6 @@
+"use client";
+
 import { useState } from "react";
-import { icon } from "@fortawesome/fontawesome-svg-core/import.macro";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import BotRegistration from "./botRegistration";
@@ -13,13 +14,13 @@ import BaseModal from "@/components/base_modal";
 
 export default function AiBenchmarkingTournamentPage() {
   const { user } = useAuth();
-  const isUserAuthenticated = user.isAuthenticated;
-  const isUserBot = isUserAuthenticated && user.forecaster_type === "BOT";
+  const isUserAuthenticated = !!user;
+  const isUserBot = isUserAuthenticated && user.is_bot;
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenmodalOpen, setTokenModalOpen] = useState(false);
   return (
     <>
-      <div className="flex size-full flex-col items-center gap-3">
+      <div className="from-metac-blue-100 to-metac-blue-200 dark:from-metac-blue-100-dark dark:to-metac-blue-200-dark flex size-full flex-col items-center gap-3 bg-gradient-to-b from-20% to-50% p-4">
         <div className="flex w-full flex-col gap-3 md:flex-row">
           <div className="flex w-full flex-col gap-3 md:w-1/3">
             <Hero />
@@ -72,7 +73,7 @@ export default function AiBenchmarkingTournamentPage() {
                   type="submit"
                   size="lg"
                   className="border-none"
-                  onClick={() => user.logout()}
+                  onClick={() => (window.location.href = "/accounts/signout")}
                 >
                   Log Out
                 </Button>
@@ -115,7 +116,7 @@ export default function AiBenchmarkingTournamentPage() {
                 className="hover:bg-metac-blue-500/40 dark:bg-metac-blue-100-dark dark:hover:bg-metac-blue-600/40 flex h-fit w-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all md:p-5 lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
               >
                 <FontAwesomeIcon
-                  icon={icon({ name: "file-lines", style: "light" })}
+                  icon={"file"}
                   className="text-metac-blue-700 dark:text-metac-blue-700-dark self-center text-3xl md:text-2xl lg:self-start min-[1920px]:text-5xl"
                 />
                 <span className="block self-center text-center text-base no-underline md:text-xl lg:self-start lg:text-left min-[1920px]:text-3xl">
@@ -127,7 +128,7 @@ export default function AiBenchmarkingTournamentPage() {
                 className="hover:bg-metac-blue-500/40 dark:bg-metac-blue-100-dark dark:hover:bg-metac-blue-600/40 flex h-fit w-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all md:p-5 lg:h-full lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
               >
                 <FontAwesomeIcon
-                  icon={icon({ name: "question-circle", style: "light" })}
+                  icon={"circle-question"}
                   className="text-metac-blue-700 dark:text-metac-blue-700-dark self-center text-3xl md:text-2xl lg:self-start min-[1920px]:text-5xl"
                 />
                 <span className="block self-center text-center text-base no-underline md:text-xl lg:self-start lg:text-left min-[1920px]:text-3xl">
@@ -137,12 +138,11 @@ export default function AiBenchmarkingTournamentPage() {
             </div>
           </div>
         </div>
-        <BaseModal open={modalOpen} onClose={() => setModalOpen(false)}>
+        <BaseModal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
           <BotRegistration />
         </BaseModal>
         <BaseModal
-          className="max-w-xl"
-          open={tokenmodalOpen}
+          isOpen={tokenmodalOpen}
           onClose={() => setTokenModalOpen(false)}
         >
           <div className="flex w-full flex-col items-center gap-3 p-4">
@@ -151,7 +151,7 @@ export default function AiBenchmarkingTournamentPage() {
               API.
             </span>
             <div className="border-metac-blue-500 bg-metac-blue-400 dark:border-metac-blue-500-dark dark:bg-metac-blue-400-dark flex flex-row gap-2 rounded border p-2 text-base">
-              <span>{window.metacData.metaculus_token}</span>
+              <span>{"window.metacData.metaculus_token"}</span>
             </div>
           </div>
         </BaseModal>
