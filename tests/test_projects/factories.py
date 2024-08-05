@@ -1,7 +1,8 @@
 from django_dynamic_fixture import G
 
-from projects.models import Project
+from projects.models import Project, ProjectSubscription
 from projects.permissions import ObjectPermission
+from users.models import User
 from utils.dtypes import setdefaults_not_null
 
 
@@ -10,11 +11,13 @@ def factory_project(
     default_permission: ObjectPermission | None = ObjectPermission.FORECASTER,
     # user_id -> permission
     override_permissions: dict[int, ObjectPermission] = None,
+    subscribers: list[User] = None,
     **kwargs
 ) -> Project:
     kwargs["default_permission"] = default_permission
     kwargs["type"] = kwargs.get("type", Project.ProjectTypes.CATEGORY)
     override_permissions = override_permissions or {}
+    subscribers = subscribers or []
 
     project = G(
         Project,
@@ -27,5 +30,8 @@ def factory_project(
         project.override_permissions.through.objects.create(
             user_id=user_id, project=project, permission=permission
         )
+
+    for user in subscribers:
+        ProjectSubscription.objects.create(project=project, user=user)
 
     return project

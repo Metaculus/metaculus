@@ -24,4 +24,14 @@ urlpatterns = [
         views.project_members_manage_api_view,
         name="project-members-manage",
     ),
+    path(
+        "projects/<int:pk>/subscribe",
+        views.project_subscribe_api_view,
+        name="project-subscribe",
+    ),
+    path(
+        "projects/<int:pk>/unsubscribe",
+        views.project_unsubscribe_api_view,
+        name="project-unsubscribe",
+    ),
 ]
