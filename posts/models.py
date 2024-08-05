@@ -490,8 +490,9 @@ class Post(TimeStampedModel):
         self, user: User, permission: ObjectPermission = ObjectPermission.VIEWER
     ):
         # TODO: optimize this
+
         return (
-            self.objects.filter_permission(user=user, permission=permission)
+            self.__class__.objects.filter_permission(user=user, permission=permission)
             .filter(pk=self.pk)
             .exists()
         )

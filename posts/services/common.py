@@ -10,7 +10,10 @@ from sql_util.aggregates import SubqueryAggregate
 from posts.models import Notebook, Post, PostSubscription
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services import get_site_main_project
+from projects.services import (
+    get_site_main_project,
+    notify_project_subscriptions_post_open,
+)
 from questions.services import (
     create_question,
     create_conditional,
@@ -242,7 +245,9 @@ def resolve_post(post: Post):
 def close_post(post: Post):
     post.set_actual_close_time()
 
-    run_notify_post_status_change.send(post.id, PostSubscription.PostStatusChange.CLOSED)
+    run_notify_post_status_change.send(
+        post.id, PostSubscription.PostStatusChange.CLOSED
+    )
 
 
 def handle_post_open(post: Post):
@@ -252,3 +257,6 @@ def handle_post_open(post: Post):
 
     # Handle post subscriptions
     notify_post_status_change(post, PostSubscription.PostStatusChange.OPEN)
+
+    # Handle post on followed projects subscriptions
+    notify_project_subscriptions_post_open(post)
