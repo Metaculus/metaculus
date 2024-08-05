@@ -26,9 +26,10 @@ type SignInModalType = {
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
-const SignupForm: FC<{ forceIsBot?: boolean | "ask" }> = ({
-  forceIsBot = "ask",
-}) => {
+const SignupForm: FC<{
+  forceIsBot?: boolean | "ask";
+  addToProject?: number;
+}> = ({ forceIsBot = "ask", addToProject }) => {
   const t = useTranslations();
   const [isPending, startTransition] = useTransition();
   const { setCurrentModal } = useModal();
@@ -111,6 +112,13 @@ const SignupForm: FC<{ forceIsBot?: boolean | "ask" }> = ({
       )}
       <FormError errors={state?.errors} name="isBot" />
       <input type="hidden" {...register("isBot")} />
+      {addToProject && (
+        <input
+          type="hidden"
+          {...register("addToProject")}
+          value={addToProject}
+        />
+      )}
       <div>
         <Button
           variant="primary"

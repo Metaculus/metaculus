@@ -55,14 +55,21 @@ class AuthApi {
     username: string,
     password: string,
     is_bot: boolean,
-    turnstileHeaders: Record<string, any>
+    turnstileHeaders: Record<string, any>,
+    add_to_project?: number
   ) {
     return post<
       null,
-      { email: string; username: string; password: string; is_bot: boolean }
+      {
+        email: string;
+        username: string;
+        password: string;
+        is_bot: boolean;
+        add_to_project?: number;
+      }
     >(
       "/auth/signup",
-      { email, username, password, is_bot },
+      { email, username, password, is_bot, add_to_project },
       { headers: turnstileHeaders }
     );
   }
