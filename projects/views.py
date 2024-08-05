@@ -143,6 +143,9 @@ def tournament_by_slug_api_view(request: Request, slug: str):
     data = TournamentSerializer(obj).data
     data = enrich_posts_count(obj, data)
 
+    if request.user.is_authenticated:
+        data["is_subscribed"] = obj.subscriptions.filter(user=request.user).exists()
+
     return Response(data)
 
 
