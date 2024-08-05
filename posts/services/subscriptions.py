@@ -283,8 +283,6 @@ def notify_milestone(post: Post):
 def notify_post_status_change(post: Post, event: PostSubscription.PostStatusChange):
     """
     Notify about post status change
-
-    TODO: connect to the post triggers
     """
 
     subscriptions = post.subscriptions.filter(

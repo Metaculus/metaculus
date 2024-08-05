@@ -2,16 +2,14 @@ from typing import TYPE_CHECKING
 
 from django.db import models
 from django.db.models import Count
-from django.db.models.query import QuerySet
 from django.db.models.functions import Coalesce
+from django.db.models.query import QuerySet
 from django.utils import timezone as django_timezone
 
 from projects.permissions import ObjectPermission
+from questions.models import Question
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
-
-from questions.models import Question
-
 
 if TYPE_CHECKING:
     from scoring.models import Leaderboard
@@ -217,4 +215,21 @@ class ProjectUserPermission(TimeStampedModel):
                 name="projectuserpermission_unique_user_id_project_id",
                 fields=["user_id", "project_id"],
             ),
+        ]
+
+
+class ProjectSubscription(TimeStampedModel):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="project_subscriptions"
+    )
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="subscriptions"
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="projectsubscription_unique_user_project",
+                fields=["user_id", "project_id"],
+            )
         ]

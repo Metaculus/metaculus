@@ -8,6 +8,7 @@ import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
+import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import HtmlContent from "@/components/html_content";
 import AwaitedPostsFeed from "@/components/posts_feed";
@@ -95,25 +96,33 @@ export default async function TournamentSlug({
           <div className="pb-2">
             <h1>{tournament.name}</h1>
           </div>
-          <div className="flex flex-wrap gap-9 py-4">
-            {tournament.prize_pool !== null && (
+          <div className="flex flex-row items-center justify-between">
+            <div className="flex flex-wrap gap-9 py-4">
+              {tournament.prize_pool !== null && (
+                <TournamentStat
+                  title={t("prizePool")}
+                  text={"$" + Number(tournament.prize_pool).toLocaleString()}
+                />
+              )}
               <TournamentStat
-                title={t("prizePool")}
-                text={"$" + Number(tournament.prize_pool).toLocaleString()}
+                title={t("StartDate")}
+                text={formatDate(locale, new Date(tournament.start_date))}
               />
-            )}
-            <TournamentStat
-              title={t("StartDate")}
-              text={formatDate(locale, new Date(tournament.start_date))}
-            />
-            <TournamentStat
-              title={t("EndDate")}
-              text={formatDate(locale, new Date(tournament.close_date))}
-            />
-            <TournamentStat
-              title={t("questions")}
-              text={tournament.posts_count.toString()}
-            />
+              <TournamentStat
+                title={t("EndDate")}
+                text={formatDate(locale, new Date(tournament.close_date))}
+              />
+              <TournamentStat
+                title={t("questions")}
+                text={tournament.posts_count.toString()}
+              />
+            </div>
+            <div>
+              <TournamentSubscribeButton
+                user={currentUser}
+                tournament={tournament}
+              />
+            </div>
           </div>
           <HtmlContent content={tournament.description} />
 
