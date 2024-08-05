@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from posts.models import PostSubscription, Post
+from projects.models import ProjectSubscription, Project
 from questions.models import Question
 from ..utils import paginated_query
 
@@ -71,7 +72,7 @@ def migrate_cp_change(old_reminder: dict) -> PostSubscription:
     )
 
 
-def migrate_subscriptions(site_ids: list[int]):
+def migrate_post_subscriptions(site_ids: list[int]):
     subscriptions = []
     post_ids = Post.objects.values_list("id", flat=True)
     non_existing_posts = 0
@@ -114,7 +115,7 @@ def migrate_subscriptions(site_ids: list[int]):
         subscriptions_with_dups += 1
 
         if len(subscriptions) == 500:
-            print(f"Processed {idx} subscriptions", end="\r")
+            print(f"Processed {idx} post subscriptions", end="\r")
 
             PostSubscription.objects.bulk_create(subscriptions, ignore_conflicts=True)
             subscriptions = []
@@ -127,3 +128,41 @@ def migrate_subscriptions(site_ids: list[int]):
         f"for the same User<>Post<>Type"
     )
     print(f"Created {PostSubscription.objects.count()} post subscriptions")
+
+
+def migrate_tournament_subscriptions():
+    subscriptions = []
+    project_ids = Project.objects.values_list("id", flat=True)
+
+    for idx, old_subscription in enumerate(
+        paginated_query("SELECT * FROM metac_project_userprojectfollow")
+    ):
+        project_id = old_subscription["project_id"]
+
+        # Old Project ids stay the same
+        if project_id not in project_ids:
+            continue
+
+        subscriptions.append(
+            ProjectSubscription(
+                user_id=old_subscription["user_id"],
+                project_id=project_id,
+                created_at=old_subscription["timestamp"],
+            )
+        )
+
+        if len(subscriptions) == 500:
+            print(f"Processed {idx} project subscriptions", end="\r")
+
+            ProjectSubscription.objects.bulk_create(
+                subscriptions, ignore_conflicts=True
+            )
+            subscriptions = []
+
+    ProjectSubscription.objects.bulk_create(subscriptions, ignore_conflicts=True)
+    print(f"Created {ProjectSubscription.objects.count()} post subscriptions")
+
+
+def migrate_subscriptions(site_ids: list[int]):
+    migrate_post_subscriptions(site_ids)
+    migrate_tournament_subscriptions()

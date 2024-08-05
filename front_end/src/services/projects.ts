@@ -1,4 +1,4 @@
-import { ProjectPermissions } from "@/types/post";
+import { PostSubscription, ProjectPermissions } from "@/types/post";
 import {
   Category,
   Tag,
@@ -89,6 +89,14 @@ class ProjectsApi {
       `/projects/${projectId}/members/${userId}`,
       payload
     );
+  }
+
+  static async subscribe(projectId: number) {
+    return post(`/projects/${projectId}/subscribe`, {});
+  }
+
+  static async unsubscribe(projectId: number) {
+    return post(`/projects/${projectId}/unsubscribe`, {});
   }
 }
 
