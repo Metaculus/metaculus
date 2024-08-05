@@ -317,7 +317,8 @@ function buildChartData({
     }));
   }
 
-  const xDomain = generateNumericDomain(timestamps, zoom);
+  const domainTimestamps = [...timestamps, ...(my_forecasts?.timestamps ?? [])];
+  const xDomain = generateNumericDomain(domainTimestamps, zoom);
   const xScale = generateTimestampXScale(xDomain, width);
 
   const yDomain: Tuple<number> = [0, 1];
