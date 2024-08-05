@@ -1,5 +1,11 @@
 from django.db import IntegrityError
 
+from notifications.services import (
+    NotificationPostStatusChange,
+    NotificationPostParams,
+    NotificationProjectParams,
+)
+from posts.models import Post, PostSubscription
 from projects.models import Project, ProjectUserPermission, ProjectSubscription
 from projects.permissions import ObjectPermission
 from users.models import User
@@ -83,3 +89,27 @@ def subscribe_project(project: Project, user: User) -> ProjectSubscription:
 
 def unsubscribe_project(project: Project, user: User) -> ProjectSubscription:
     ProjectSubscription.objects.filter(project=project, user=user).delete()
+
+
+def notify_project_subscriptions_post_open(post: Post):
+    # TODO: connect
+    # TODO: deduplicate. 1 post in 2+ projects and user subscribes to 2+ projects
+    subscriptions = ProjectSubscription.objects.filter(
+        project__posts=post
+    ).prefetch_related("project", "user")
+
+    # Ensure post is available for users
+    for subscription in subscriptions:
+        # Filter out private questions
+        if not post.check_permission(subscription.user):
+            continue
+
+        # TODO: ensure we don't duplicate OPEN statuses in email
+        NotificationPostStatusChange.send(
+            subscription.user,
+            NotificationPostStatusChange.ParamsType(
+                post=NotificationPostParams.from_post(post),
+                event=PostSubscription.PostStatusChange.OPEN,
+                project=NotificationProjectParams.from_project(subscription.project),
+            ),
+        )
