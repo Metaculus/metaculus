@@ -331,13 +331,13 @@ class NotificationPostStatusChange(
 
         for param in params_map.values():
             if param.project:
-                if not from_projects.get(param.project.id):
-                    from_projects[param.project.id] = {
-                        **param.project,
+                project_id = param.project.id
+                if not from_projects.get(project_id):
+                    from_projects[project_id] = {
+                        "project": param.project,
                         "notifications": [],
                     }
-
-                from_projects[param.project.id]["notifications"].append(param)
+                from_projects[project_id]["notifications"].append(param)
             else:
                 from_posts.append(param)
 

@@ -13,13 +13,13 @@
 
                 <mj-text>
                     {% if params.from_projects %}
-                        {% for project in params.from_projects %}
+                        {% for item in params.from_projects %}
                             <p>
-                                {% blocktrans with project_name=project.name %}
+                                {% blocktrans with project_name=item.project.name %}
                                 In <b>{{project_name}}</b>:
                                 {% endblocktrans %}
                             </p>
-                            {% for notification in project.notifications %}
+                            {% for notification in item.notifications %}
                             <li>
                                 <a href="{% post_url notification.post.post_id notification.post.post_title %}">
                                     {{ notification.post.post_title }}
@@ -28,28 +28,32 @@
                             </li>
                             {% endfor %}
                         {% endfor %}
-
-                        <p>
-                            {% blocktrans %}
-                            In the rest of Metaculus:
-                            {% endblocktrans %}
-                        </p>
-                    {% else %}
-                        {% blocktrans with count=params|length %}
-                        These {{count}} questions have changed status:
-                        {% endblocktrans %}
                     {% endif %}
 
-                    <ul>
-                        {% for notification in params.from_posts %}
-                        <li>
-                            <a href="{% post_url notification.post.post_id notification.post.post_title %}">
-                                {{ notification.post.post_title }}
-                            </a>
-                            is now {{notification.event}}
-                        </li>
-                        {% endfor %}
-                    </ul>
+                    {% if params.from_posts %}
+                        {% if params.from_projects %}
+                            <p>
+                                {% blocktrans %}
+                                In the rest of Metaculus:
+                                {% endblocktrans %}
+                            </p>
+                        {% else %}
+                            {% blocktrans with count=params.from_posts|length %}
+                            These {{count}} questions have changed status:
+                            {% endblocktrans %}
+                        {% endif %}
+
+                        <ul>
+                            {% for notification in params.from_posts %}
+                            <li>
+                                <a href="{% post_url notification.post.post_id notification.post.post_title %}">
+                                    {{ notification.post.post_title }}
+                                </a>
+                                is now {{notification.event}}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                 </mj-text>
 
             </mj-column>
