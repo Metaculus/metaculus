@@ -81,7 +81,7 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
 
   return (
     <>
-      <form className="flex size-full flex-col divide-x-0 divide-y divide-metac-blue-400 rounded bg-white/75 dark:divide-metac-blue-400-dark/50 dark:bg-black/30 lg:flex-row lg:divide-x lg:divide-y-0">
+      <form className="flex size-full flex-col divide-x-0 divide-y divide-blue-400 rounded bg-white/75 dark:divide-blue-400-dark/50 dark:bg-black/30 lg:flex-row lg:divide-x lg:divide-y-0">
         <div className="flex w-full flex-col gap-6 p-6 lg:max-w-[300px]">
           <div className="flex w-full flex-col gap-1.5">
             <h3 className="m-0 text-base">View Question List</h3>
@@ -97,12 +97,12 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
           <div className="flex w-full flex-col gap-1.5">
             <label
               htmlFor="maxQuestions"
-              className="m-0 text-base font-bold text-metac-gray-800 dark:text-metac-gray-800-dark"
+              className="m-0 text-base font-bold text-gray-800 dark:text-gray-800-dark"
             >
               Set Number of Questions to Forecast
             </label>
             <input
-              className="block w-full rounded border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
               type="number"
               id="maxQuestions"
               value={maxQuestions}
@@ -116,12 +116,12 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
           <div className="flex w-full flex-col gap-1.5">
             <label
               htmlFor="questionIds"
-              className="m-0 text-base font-bold text-metac-gray-800 dark:text-metac-gray-800-dark"
+              className="m-0 text-base font-bold text-gray-800 dark:text-gray-800-dark"
             >
               Enter Question ID&apos;s (Optional)
             </label>
             <input
-              className="block w-full rounded border border-metac-gray-700 bg-inherit px-3 py-2 dark:border-metac-gray-700-dark"
+              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
               type="text"
               id="questionIds"
               value={questionIds}
@@ -136,7 +136,7 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
             <span>
               <FontAwesomeIcon
                 icon={icon({ name: "info-circle", style: "solid" })}
-                className="mr-2 text-lg text-metac-blue-700 opacity-50 dark:text-metac-blue-700-dark"
+                className="mr-2 text-lg text-blue-700 opacity-50 dark:text-blue-700-dark"
               />
               <span className="inline bg-green-500/35 dark:bg-green-700/75 dark:text-white">
                 Green-highlighted text
@@ -161,13 +161,13 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
           <div className="flex w-full flex-col gap-5">
             <label
               htmlFor="prompt"
-              className="m-0 text-base font-bold text-metac-gray-800 dark:text-metac-gray-800-dark"
+              className="m-0 text-base font-bold text-gray-800 dark:text-gray-800-dark"
             >
               Fine-tune Your Prompt
             </label>
 
             <div
-              className="block min-h-[440px] w-full rounded border border-metac-blue-400 bg-white p-3 text-base hover:border-metac-blue-500 dark:border-metac-blue-400-dark/50 dark:bg-metac-blue-200-dark hover:dark:border-metac-blue-500"
+              className="block min-h-[440px] w-full rounded border border-blue-400 bg-white p-3 text-base hover:border-blue-500 dark:border-blue-400-dark/50 dark:bg-blue-200-dark hover:dark:border-blue-500"
               id="prompt"
             >
               <HighlightWithinTextarea
@@ -217,7 +217,7 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
             <button
               type="button"
               onClick={handleForecast}
-              className="w-full gap-3 rounded-full border border-metac-blue-500 bg-metac-gray-0 px-5 py-2 text-lg font-medium leading-7 text-metac-blue-700 no-underline hover:border-metac-blue-600 hover:bg-metac-blue-100 active:border-metac-blue-600 active:bg-metac-blue-200 disabled:border-metac-blue-500 disabled:bg-metac-gray-0 dark:border-metac-blue-500-dark dark:bg-metac-gray-0-dark dark:text-metac-blue-700-dark dark:hover:border-metac-blue-600-dark dark:hover:bg-metac-blue-100-dark dark:active:border-metac-blue-600-dark dark:active:bg-metac-blue-200-dark disabled:dark:border-metac-blue-500-dark disabled:dark:bg-metac-gray-0-dark"
+              className="w-full gap-3 rounded-full border border-blue-500 bg-gray-0 px-5 py-2 text-lg font-medium leading-7 text-blue-700 no-underline hover:border-blue-600 hover:bg-blue-100 active:border-blue-600 active:bg-blue-200 disabled:border-blue-500 disabled:bg-gray-0 dark:border-blue-500-dark dark:bg-gray-0-dark dark:text-blue-700-dark dark:hover:border-blue-600-dark dark:hover:bg-blue-100-dark dark:active:border-blue-600-dark dark:active:bg-blue-200-dark disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark"
               disabled={isLoading}
             >
               {isLoading ? "Loading..." : "Forecast"}
@@ -233,7 +233,7 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
                   {" "}
                   <FontAwesomeIcon
                     icon={icon({ name: "spinner", style: "solid" })}
-                    className="animate-spin self-center text-3xl text-metac-blue-700 opacity-50 dark:text-metac-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-5xl"
+                    className="animate-spin self-center text-3xl text-blue-700 opacity-50 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-5xl"
                   />
                 </div>
               ) : (
@@ -241,9 +241,9 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
                 responses.map((response, index) => (
                   <div
                     key={index}
-                    className="mx-auto w-full max-w-2xl rounded-md border border-gray-300 bg-gray-50 bg-metac-purple-400/20 p-4 dark:border-gray-700 dark:bg-metac-purple-400-dark/20"
+                    className="mx-auto w-full max-w-2xl rounded-md border border-gray-300 bg-gray-50 bg-purple-400/20 p-4 dark:border-gray-700 dark:bg-purple-400-dark/20"
                   >
-                    <h2 className="mb-4 mt-0 text-xl font-bold text-metac-blue-800 dark:text-metac-blue-800-dark">
+                    <h2 className="mb-4 mt-0 text-xl font-bold text-blue-800 dark:text-blue-800-dark">
                       <a
                         className="no-underline"
                         href={`/questions/${response.question_id}/`}
@@ -261,7 +261,7 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
                       <p>
                         <strong>Prediction:</strong> {response.prediction}
                       </p>
-                      <h3 className="my-0 text-lg font-bold text-metac-blue-800 dark:text-metac-blue-800-dark">
+                      <h3 className="my-0 text-lg font-bold text-blue-800 dark:text-blue-800-dark">
                         <a
                           className="no-underline"
                           href={`/questions/${response.question_id}/`}
@@ -269,7 +269,7 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
                           rel="noreferrer"
                         >
                           Last Community Prediction:{" "}
-                          <span className="ml-1.5 rounded-full bg-metac-olive-600 px-2 py-1.5 text-white dark:bg-metac-olive-600-dark dark:text-metac-olive-100-dark">
+                          <span className="ml-1.5 rounded-full bg-olive-600 px-2 py-1.5 text-white dark:bg-olive-600-dark dark:text-olive-100-dark">
                             {response.last_cp
                               ? (response.last_cp * 100).toFixed(0) + "%"
                               : "n/a"}
@@ -277,7 +277,7 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
                         </a>
                       </h3>
                       <hr className="opacity-35" />
-                      <h3 className="text-lg font-bold text-metac-blue-800 dark:text-metac-blue-800-dark">
+                      <h3 className="text-lg font-bold text-blue-800 dark:text-blue-800-dark">
                         Prompt sent to ChatGPT
                       </h3>
                       <pre>

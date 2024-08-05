@@ -1,7 +1,7 @@
 function Description() {
   return (
-    <div className="flex w-full flex-col items-start gap-4 rounded bg-white p-4 dark:bg-metac-blue-100-dark md:w-2/3 md:gap-6 md:p-8 min-[1920px]:gap-12 min-[1920px]:p-16">
-      <ul className="w-full list-none space-y-2 divide-y divide-metac-blue-400 text-lg font-normal leading-relaxed text-metac-blue-700 dark:divide-metac-blue-400-dark/40 dark:text-metac-blue-700-dark md:space-y-3 md:text-lg md:font-light lg:text-lg lg:leading-normal xl:text-xl min-[1920px]:space-y-4 min-[1920px]:text-3xl">
+    <div className="flex w-full flex-col items-start gap-4 rounded bg-white p-4 dark:bg-blue-100-dark md:w-2/3 md:gap-6 md:p-8 min-[1920px]:gap-12 min-[1920px]:p-16">
+      <ul className="w-full list-none space-y-2 divide-y divide-blue-400 text-lg font-normal leading-relaxed text-blue-700 dark:divide-blue-400-dark/40 dark:text-blue-700-dark md:space-y-3 md:text-lg md:font-light lg:text-lg lg:leading-normal xl:text-xl min-[1920px]:space-y-4 min-[1920px]:text-3xl">
         <li>
           First of its kind bot forecasting tournament with{" "}
           <span className="font-bold">$30,000</span> in prizes for bot makers in
