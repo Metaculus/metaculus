@@ -103,18 +103,6 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                   >
                     Show My Token
                   </Button>
-                  {isUserAuthenticated && isUserBot && (
-                    <a href="/aib/demo">
-                      <Button
-                        variant="secondary"
-                        type="submit"
-                        size="md"
-                        className="border-none"
-                      >
-                        Forecasting Demo
-                      </Button>
-                    </a>
-                  )}
                 </div>
               </div>
             )}
