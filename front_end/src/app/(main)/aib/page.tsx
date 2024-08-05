@@ -19,8 +19,8 @@ export default function AiBenchmarkingTournamentPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenmodalOpen, setTokenModalOpen] = useState(false);
   return (
-    <>
-      <div className="from-blue-100 to-blue-200 dark:from-blue-100-dark dark:to-blue-200-dark flex size-full flex-col items-center gap-3 bg-gradient-to-b from-20% to-50% p-4">
+    <div className="text-metac-blue-700 dark:text-metac-blue-700-dark dark:bg-metac-blue-800 dark:from-metac-blue-600/50 dark:via-metac-blue-800/30 dark:to-metac-blue-500/30 mx-auto h-auto w-full flex-auto items-stretch bg-gradient-to-tl from-blue-300/30 via-blue-100/30 to-blue-400/30 px-4 py-4">
+      <div className="flex size-full flex-col items-center gap-3">
         <div className="flex w-full flex-col gap-3 md:flex-row">
           <div className="flex w-full flex-col gap-3 md:w-1/3">
             <Hero />
@@ -41,7 +41,7 @@ export default function AiBenchmarkingTournamentPage() {
           <Description />
           <div className="flex h-auto w-full flex-col gap-3 md:w-1/3">
             {!isUserAuthenticated && (
-              <div className="bg-blue-800 dark:bg-blue-800-dark dark:text-blue-900 flex h-auto w-full grow flex-col items-center justify-center gap-2 rounded p-8 text-white lg:px-12">
+              <div className="flex h-auto w-full grow flex-col items-center justify-center gap-2 rounded bg-blue-800 p-8 text-white dark:bg-blue-800-dark dark:text-blue-900 lg:px-12">
                 <span className="text-center text-xl uppercase tracking-wide opacity-50 min-[1920px]:text-2xl">
                   Getting Started
                 </span>
@@ -60,7 +60,7 @@ export default function AiBenchmarkingTournamentPage() {
               </div>
             )}
             {isUserAuthenticated && !isUserBot && (
-              <div className="bg-blue-800 dark:bg-blue-800-dark dark:text-blue-900 flex h-auto w-full grow flex-col items-center justify-center gap-2 rounded p-8 text-white lg:px-12">
+              <div className="flex h-auto w-full grow flex-col items-center justify-center gap-2 rounded bg-blue-800 p-8 text-white dark:bg-blue-800-dark dark:text-blue-900 lg:px-12">
                 <span className="text-center text-xl uppercase tracking-wide opacity-50 min-[1920px]:text-2xl">
                   Getting Started
                 </span>
@@ -80,7 +80,7 @@ export default function AiBenchmarkingTournamentPage() {
               </div>
             )}
             {isUserAuthenticated && isUserBot && (
-              <div className="bg-blue-800 dark:bg-blue-800-dark dark:text-blue-900 flex h-auto w-full grow flex-col items-center justify-center gap-2 rounded p-8 text-white lg:px-12 min-[1920px]:gap-6">
+              <div className="flex h-auto w-full grow flex-col items-center justify-center gap-2 rounded bg-blue-800 p-8 text-white dark:bg-blue-800-dark dark:text-blue-900 lg:px-12 min-[1920px]:gap-6">
                 <span className="mb-4 text-center text-2xl min-[1920px]:text-3xl">
                   Your bot is successfully registered for the tournament.
                 </span>
@@ -113,11 +113,11 @@ export default function AiBenchmarkingTournamentPage() {
             <div className="flex flex-row gap-3">
               <a
                 href="/project/aibq3/"
-                className="hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 flex h-fit w-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all md:p-5 lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
+                className="flex h-fit w-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
               >
                 <FontAwesomeIcon
                   icon={"file"}
-                  className="text-blue-700 dark:text-blue-700-dark self-center text-3xl md:text-2xl lg:self-start min-[1920px]:text-5xl"
+                  className="self-center text-3xl text-blue-700 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-5xl"
                 />
                 <span className="block self-center text-center text-base no-underline md:text-xl lg:self-start lg:text-left min-[1920px]:text-3xl">
                   Tournament Page
@@ -125,11 +125,11 @@ export default function AiBenchmarkingTournamentPage() {
               </a>
               <a
                 href="https://www.metaculus.com/notebooks/25525/-announcing-the-ai-forecasting-benchmark-series--july-8-120k-in-prizes/"
-                className="hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 flex h-fit w-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all md:p-5 lg:h-full lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
+                className="flex h-fit w-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:h-full lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
               >
                 <FontAwesomeIcon
                   icon={"circle-question"}
-                  className="text-blue-700 dark:text-blue-700-dark self-center text-3xl md:text-2xl lg:self-start min-[1920px]:text-5xl"
+                  className="self-center text-3xl text-blue-700 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-5xl"
                 />
                 <span className="block self-center text-center text-base no-underline md:text-xl lg:self-start lg:text-left min-[1920px]:text-3xl">
                   How it works
@@ -150,12 +150,12 @@ export default function AiBenchmarkingTournamentPage() {
               Your token is needed for your bot to interact with the Metaculus
               API.
             </span>
-            <div className="border-blue-500 bg-blue-400 dark:border-blue-500-dark dark:bg-blue-400-dark flex flex-row gap-2 rounded border p-2 text-base">
+            <div className="flex flex-row gap-2 rounded border border-blue-500 bg-blue-400 p-2 text-base dark:border-blue-500-dark dark:bg-blue-400-dark">
               <span>{"window.metacData.metaculus_token"}</span>
             </div>
           </div>
         </BaseModal>
       </div>
-    </>
+    </div>
   );
 }
