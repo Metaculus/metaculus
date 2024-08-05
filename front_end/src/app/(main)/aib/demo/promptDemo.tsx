@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { icon } from "@fortawesome/fontawesome-svg-core/import.macro";
+import { faCircleInfo, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useState } from "react";
 import { HighlightWithinTextarea } from "react-highlight-within-textarea";
 import ReactMarkdown from "react-markdown";
 
-import { http } from "../../http";
+//import { http } from "../../http";
 
 // import Checkbox from "../Checkbox";
 
@@ -23,7 +23,7 @@ function PromptDemo() {
   const [questionIds, setQuestionIds] = useState("");
   const [maxQuestions, setMaxQuestions] = useState(1);
   const [prompt, setPrompt] =
-    useState(`You are a professional forecaster interviewing for a job. 
+    useState(`You are a professional forecaster interviewing for a job.
 
 Your interview question is:
 {title}
@@ -69,7 +69,7 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
           const result = await http.post("/gpt-forecast/", requestBody);
           const data = await result.json();
           return { id, ...data };
-        }),
+        })
       );
       setResponses(results);
     } catch (error) {
@@ -108,7 +108,7 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
               value={maxQuestions}
               onChange={(e) =>
                 setMaxQuestions(
-                  Math.min(Math.max(parseInt(e.target.value, 10), 1), 5),
+                  Math.min(Math.max(parseInt(e.target.value, 10), 1), 5)
                 )
               }
             />
@@ -135,7 +135,7 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
           <div className="flex w-full flex-col gap-1.5 text-base">
             <span>
               <FontAwesomeIcon
-                icon={icon({ name: "info-circle", style: "solid" })}
+                icon={faCircleInfo}
                 className="mr-2 text-lg text-blue-700 opacity-50 dark:text-blue-700-dark"
               />
               <span className="inline bg-green-500/35 dark:bg-green-700/75 dark:text-white">
@@ -232,7 +232,7 @@ You write your rationale and give your final answer as: "Probability: ZZ%", 0-10
                 <div className="mx-auto size-full">
                   {" "}
                   <FontAwesomeIcon
-                    icon={icon({ name: "spinner", style: "solid" })}
+                    icon={faSpinner}
                     className="animate-spin self-center text-3xl text-blue-700 opacity-50 dark:text-blue-700-dark md:text-2xl lg:self-start min-[1920px]:text-5xl"
                   />
                 </div>
