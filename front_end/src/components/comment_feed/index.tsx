@@ -175,7 +175,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
       <div className="my-4 flex flex-row items-center gap-4">
         <h2
           className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
-          id="comment-section"
+          id="comments"
         >
           {t("comments")}
         </h2>
