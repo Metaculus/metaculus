@@ -2,6 +2,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from tests.fixtures import *  # noqa
 from tests.test_projects.factories import factory_project
+from tests.test_users.factories import factory_user
 
 
 def test_annotate_user_permission(user1, user2, user_admin):
@@ -47,3 +48,43 @@ def test_filter_permission(user1, user2):
     assert set(
         Project.objects.filter_permission(user=user2).values_list("id", flat=True)
     ) == {project_3.pk}
+
+
+def test_get_users_for_permission(user1, user2):
+    factory_user()
+
+    project = factory_project(
+        default_permission=None,
+        override_permissions={
+            user1.pk: ObjectPermission.FORECASTER,
+            user2.pk: ObjectPermission.ADMIN,
+        },
+    )
+
+    assert set(
+        project.get_users_for_permission(ObjectPermission.VIEWER).values_list(
+            "id", flat=True
+        )
+    ) == {user1.pk, user2.pk}
+
+    assert set(
+        project.get_users_for_permission(ObjectPermission.ADMIN).values_list(
+            "id", flat=True
+        )
+    ) == {user2.pk}
+
+    # Case #2
+    project = factory_project(
+        default_permission=ObjectPermission.FORECASTER,
+        override_permissions={
+            user2.pk: ObjectPermission.ADMIN,
+        },
+    )
+
+    assert project.get_users_for_permission(ObjectPermission.VIEWER).count() > 2
+    assert project.get_users_for_permission(ObjectPermission.FORECASTER).count() > 2
+    assert set(
+        project.get_users_for_permission(ObjectPermission.ADMIN).values_list(
+            "id", flat=True
+        )
+    ) == {user2.pk}

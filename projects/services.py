@@ -97,16 +97,18 @@ def notify_project_subscriptions_post_open(post: Post):
         ProjectSubscription.objects.filter(
             Q(project__posts=post) | Q(project__default_posts=post)
         )
+        .filter(
+            # Ensure notify users that have access to the question
+            user__in=post.default_project.get_users_for_permission(
+                ObjectPermission.VIEWER
+            )
+        )
         .prefetch_related("project", "user")
         .distinct("user")
     )
 
     # Ensure post is available for users
     for subscription in subscriptions:
-        # Filter out private questions
-        if not post.check_permission(subscription.user):
-            continue
-
         NotificationPostStatusChange.send(
             subscription.user,
             NotificationPostStatusChange.ParamsType(
