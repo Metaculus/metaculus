@@ -411,7 +411,14 @@ const Comment: FC<CommentProps> = ({
       </div>
 
       {isReplying && (
-        <CommentEditor parentId={comment.id} postId={comment.on_post} />
+        <CommentEditor
+          parentId={comment.id}
+          postId={comment.on_post}
+          onSubmit={(newComment: CommentType) => {
+            addNewChildrenComment(comment, newComment);
+            setIsReplying(false);
+          }}
+        />
       )}
 
       {comment.children.length > 0 && (
@@ -426,5 +433,15 @@ const Comment: FC<CommentProps> = ({
     </div>
   );
 };
+
+function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
+  if (comment.id === newComment.parent?.id) {
+    comment.children.push(newComment);
+    return;
+  }
+  comment.children.map((nestedComment) => {
+    addNewChildrenComment(nestedComment, newComment);
+  });
+}
 
 export default Comment;

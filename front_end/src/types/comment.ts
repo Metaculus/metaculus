@@ -13,7 +13,7 @@ export type CommentType = {
       username: string;
     };
   };
-  created_at: Date;
+  created_at: string;
   is_soft_deleted: boolean;
   text: string;
   included_forecast?: ForecastType;
