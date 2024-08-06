@@ -97,7 +97,6 @@ const SignUpModal: FC<SignInModalType> = ({
                 className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
                 placeholder={t("passwordPlaceholder")}
                 type="password"
-                errors={state?.errors}
                 {...register("password")}
               />
               <Input
@@ -135,7 +134,10 @@ const SignUpModal: FC<SignInModalType> = ({
               >
                 {t("createAnAccount")}
               </Button>
-              <FormError errors={state?.errors} />
+              <FormError
+                errors={state?.errors}
+                name={TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
+              />
             </div>
             {TURNSTILE_SITE_KEY && (
               <Turnstile
