@@ -10,7 +10,9 @@ def remove_markdown(text: str) -> str:
     return strip_tags(markdown(text))
 
 
-def generate_email_comment_preview_text(text: str, username: str) -> tuple[str, bool]:
+def generate_email_comment_preview_text(
+    text: str, username: str = None
+) -> tuple[str, bool]:
     """
     Generate a preview of email comment text with mention highlighting.
     """
@@ -24,10 +26,13 @@ def generate_email_comment_preview_text(text: str, username: str) -> tuple[str, 
 
     # Find all matches and check for the username mention
     matches = list(re.finditer(USERNAME_PATTERN, text))
-    mention = f"@{username}"
-    mention_match = next(
-        (match for match in matches if match.group(1) == username), None
-    )
+    mention_match = None
+
+    if username:
+        mention = f"@{username}"
+        mention_match = next(
+            (match for match in matches if match.group(1) == username), None
+        )
 
     if not mention_match:
         # No mention found, truncate text if necessary
