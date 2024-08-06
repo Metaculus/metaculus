@@ -1,6 +1,7 @@
 "use client";
 import { faShareNodes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
@@ -14,33 +15,31 @@ import {
 import { useBreakpoint } from "@/hooks/tailwind";
 
 const ShareElectionsMenu: FC = () => {
+  const t = useTranslations();
   const isLargeScreen = useBreakpoint("md");
 
   const { updateIsOpen } = useEmbedModalContext();
-  const copyUrl = useCopyUrl();
-  const shareOnTwitterLink = useShareOnTwitterLink(
-    "Metaculus 2024 US Presidential Election Forecast Map"
-  );
-  const shareOnFacebookLink = useShareOnFacebookLink();
 
   return (
     <DropdownMenu
       items={[
         {
           id: "copy_link",
-          name: "Copy link",
-          onClick: copyUrl,
+          name: t("copyLink"),
+          onClick: useCopyUrl(),
         },
         {
           id: "share_fb",
-          name: "Share on Facebook",
-          link: shareOnFacebookLink,
+          name: t("shareOnFacebook"),
+          link: useShareOnFacebookLink(),
           openNewTab: true,
         },
         {
           id: "share_twitter",
-          name: "Share on Twitter ",
-          link: shareOnTwitterLink,
+          name: t("shareOnTwitter"),
+          link: useShareOnTwitterLink(
+            "Metaculus 2024 US Presidential Election Forecast Map"
+          ),
           openNewTab: true,
         },
         ...(isLargeScreen
@@ -48,7 +47,7 @@ const ShareElectionsMenu: FC = () => {
           : [
               {
                 id: "embed_menu",
-                name: "Embed",
+                name: t("embed"),
                 onClick: () => updateIsOpen(true),
               },
             ]),
@@ -59,7 +58,7 @@ const ShareElectionsMenu: FC = () => {
         variant="tertiary"
       >
         <FontAwesomeIcon icon={faShareNodes} />
-        Share
+        {t("share")}
       </Button>
     </DropdownMenu>
   );
