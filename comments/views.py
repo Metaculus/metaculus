@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from comments.constants import CommentReportType
 from comments.models import ChangedMyMindEntry, Comment, CommentVote, CommentDiff
 from comments.serializers import (
     CommentWriteSerializer,
@@ -16,6 +17,7 @@ from comments.serializers import (
     serialize_comment_many,
 )
 from comments.services.common import create_comment
+from notifications.services import NotificationCommentReport, NotificationPostParams
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 
@@ -195,3 +197,28 @@ def comment_toggle_cmm_view(request, pk=int):
         {"error": "Already set as changed my mind"},
         status=status.HTTP_400_BAD_REQUEST,
     )
+
+
+@api_view(["POST"])
+def comment_report_api_view(request, pk=int):
+    comment = get_object_or_404(Comment, pk=pk)
+    post = comment.on_post
+
+    reason = serializers.ChoiceField(choices=CommentReportType.choices).run_validation(
+        request.data.get("reason")
+    )
+
+    if post:
+        staff = post.default_project.get_users_for_permission(ObjectPermission.CURATOR)
+
+        for user in staff:
+            NotificationCommentReport.send(
+                user,
+                NotificationCommentReport.ParamsType(
+                    post=NotificationPostParams.from_post(post),
+                    comment_id=comment.id,
+                    reason=reason,
+                ),
+            )
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
