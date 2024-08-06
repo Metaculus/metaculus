@@ -2,6 +2,7 @@ import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import ElectionsEmbedModal from "@/app/(main)/experiments/elections/components/elections_embed_modal";
@@ -30,6 +31,7 @@ const StateByForecast: FC<Props> = async ({
   republicanPostId,
   isEmbed,
 }) => {
+  const t = await getTranslations();
   const post = await PostsApi.getPost(questionGroupId);
   if (!post?.group_of_questions) {
     return null;
@@ -63,21 +65,17 @@ const StateByForecast: FC<Props> = async ({
           />
           <div className="flex w-full justify-between">
             {democratPrediction && (
-              <div className="svgTextDemocrat">
-                {`Democrat`}
+              <div className="capitalize">
+                {t("democrat")}
                 <br />
-                <span className="svgTextSubtitle">
-                  {democratPrediction} votes
-                </span>
+                {t("numVotes", { num: democratPrediction })}
               </div>
             )}
             {republicanPrediction && (
-              <div className="svgTextRepublican">
-                {`Republican`}
+              <div className="capitalize">
+                {t("republican")}
                 <br />
-                <span className="svgTextSubtitle mt-1">
-                  {republicanPrediction} votes
-                </span>
+                {t("numVotes", { num: republicanPrediction })}
               </div>
             )}
           </div>
@@ -95,9 +93,9 @@ const StateByForecast: FC<Props> = async ({
           className="col-start-2 row-span-1 row-start-1 flex items-center gap-2 text-lg text-gray-700 no-underline hover:text-gray-900 dark:text-gray-700-dark hover:dark:text-gray-900-dark md:col-start-1"
           href={`/questions/${post.id}`}
         >
-          <span>State-by-state Forecasts</span>
+          {t("stateByStateForecasts")}
           <Button
-            aria-label="Republican Electoral Vote"
+            aria-label={t("republicanElectoralVote")}
             variant="tertiary"
             presentationType="icon"
             size="sm"
@@ -115,34 +113,20 @@ const StateByForecast: FC<Props> = async ({
 
       <StateByForecastCharts items={stateByItems} />
 
-      <div className="mt-2 flex w-full flex-col gap-2 self-center text-left font-sans font-light md:mt-8 lg:gap-7">
-        <div className="w-full  border-b border-blue-400 dark:border-blue-400-dark" />
+      <hr className="border-blue-400 dark:border-blue-400-dark" />
 
-        <div className="flex flex-col gap-4">
-          <div className="text-sm leading-5 text-gray-600 dark:text-gray-600-dark">
-            <span className="font-semibold">
-              Currently, our map focuses only on the battleground states
-              outlined{" "}
-              <Link
-                href={`/questions/${post.id}`}
-                className="hover:text-blue-800 dark:hover:text-blue-800-dark"
-              >
-                in this question
-              </Link>
-              .
-            </span>{" "}
-            We marked some states “Safe Democrat” or “Safe Republican” based on
-            historical election data. If you believe we should include forecasts
-            for more states, let us know!
-          </div>
-
-          <div className="text-sm leading-5 text-gray-600 dark:text-gray-600-dark">
-            <span className="font-semibold">Regarding Maine and Nebraska:</span>{" "}
-            We’re aware of their unique approach to electoral vote distribution
-            and are working to incorporate this in our upcoming updates. Stay
-            tuned!
-          </div>
-        </div>
+      <div className="font-sans text-sm font-light leading-5 text-gray-600 dark:text-gray-600-dark">
+        {t.rich("electionHubDisclaimer", {
+          bold: (chunks) => <span className="font-semibold">{chunks}</span>,
+          link: (chunks) => (
+            <Link
+              href={`/questions/${post.id}`}
+              className="font-semibold hover:text-blue-800 dark:hover:text-blue-800-dark"
+            >
+              {chunks}
+            </Link>
+          ),
+        })}
       </div>
     </div>
   );
