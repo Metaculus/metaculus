@@ -311,7 +311,10 @@ function getDefaultForecast(
 }
 
 function sumForecasts(choiceOptions: ChoiceOption[]) {
-  return choiceOptions.reduce((acc, { forecast }) => acc + Number(forecast), 0);
+  return choiceOptions.reduce((acc, { forecast }) => {
+    // Handle JS math of float numbers
+    return (acc * 10 + Number(forecast) * 10) / 10;
+  }, 0);
 }
 
 function getForecastPctString(number: number | null) {
