@@ -105,7 +105,7 @@ const SignInModal: FC<SignInModalType> = ({
           {t("forgotPasswordLink")}
         </Button>
         <hr className="mb-3 mt-1 border-gray-300 dark:border-gray-300-dark" />
-        <SocialButtons type="sigin" />
+        <SocialButtons type="signin" />
       </div>
     </BaseModal>
   );
