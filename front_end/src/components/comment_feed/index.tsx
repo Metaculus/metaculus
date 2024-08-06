@@ -25,7 +25,7 @@ export function sortComments(comments: CommentType[], sort: SortOption) {
   comments.sort((a, b) => {
     switch (sort) {
       case "-created_at":
-        return Number(b.created_at) - Number(a.created_at);
+        return Number(new Date(b.created_at)) - Number(new Date(a.created_at));
       case "-vote_score":
         return (b.vote_score ?? 0) - (a.vote_score ?? 0);
       default:
@@ -197,7 +197,12 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         </DropdownMenu>
         <span>{totalCount} comments</span>
       </div>
-      {postId && <CommentEditor postId={postId} />}
+      {postId && (
+        <CommentEditor
+          postId={postId}
+          onSubmit={() => fetchComments("/comments", sort, 1, false)}
+        />
+      )}
       {shownComments.map((comment: CommentType) => (
         <div key={comment.id}>
           <hr className="my-4 border-blue-400 dark:border-blue-700" />
