@@ -1,10 +1,10 @@
 from comments.models import Comment
 from notifications.services import NotificationNewComments, NotificationPostParams
-from ..utils import comment_text_extract_user_mentions
+from ..utils import comment_extract_user_mentions
 
 
 def notify_mentioned_users(comment: Comment):
-    users = comment_text_extract_user_mentions(comment.text).values()
+    users = comment_extract_user_mentions(comment).exclude(pk=comment.author_id)
 
     for user in users:
         NotificationNewComments.send(

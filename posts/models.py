@@ -486,16 +486,8 @@ class Post(TimeStampedModel):
         else:
             return []
 
-    def check_permission(
-        self, user: User, permission: ObjectPermission = ObjectPermission.VIEWER
-    ):
-        # TODO: optimize this
-
-        return (
-            self.__class__.objects.filter_permission(user=user, permission=permission)
-            .filter(pk=self.pk)
-            .exists()
-        )
+    def get_forecasters(self) -> QuerySet["User"]:
+        return User.objects.filter(forecast__post=self).distinct()
 
 
 class PostSubscription(TimeStampedModel):

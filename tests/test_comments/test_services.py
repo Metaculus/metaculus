@@ -5,6 +5,9 @@ from projects.permissions import ObjectPermission
 from tests.fixtures import *  # noqa
 from tests.test_posts.factories import factory_post
 from tests.test_projects.factories import factory_project
+from tests.test_questions.factories import factory_forecast
+from tests.test_questions.fixtures import *  # noqa
+from tests.test_users.factories import factory_user
 
 
 @pytest.fixture()
@@ -44,3 +47,46 @@ def test_create_comment__mentioned_users(
 
     assert notification.params["post"]["post_id"] == post.id
     assert notification.params["new_comment_ids"] == [comment.id]
+
+
+@pytest.mark.parametrize(
+    "mention,username",
+    [
+        ["@predictors", "user_predictor"],
+        ["@admins", "user_admin"],
+        ["@moderators", "user_curator"],
+        ["@curators", "user_curator"],
+    ],
+)
+def test_create_comment__mentioned_groups(
+    await_queue, transactional_db, question_binary, mention, username
+):
+    user_admin = factory_user(username="user_admin")
+    user_curator = factory_user(username="user_curator")
+    user_predictor = factory_user(username="user_predictor")
+
+    post = factory_post(
+        default_project=factory_project(
+            # Private Projects
+            default_permission=ObjectPermission.FORECASTER,
+            override_permissions={
+                user_admin.pk: ObjectPermission.ADMIN,
+                user_curator.pk: ObjectPermission.CURATOR,
+            },
+        ),
+        curation_status=Post.CurationStatus.APPROVED,
+        question=question_binary,
+    )
+
+    # Forecasters
+    factory_forecast(author=user_predictor, question=question_binary)
+    create_comment(
+        user=factory_user(), on_post=post, text=f"Comment to mention {mention}"
+    )
+
+    await_queue()
+
+    assert Notification.objects.count() == 1
+    assert Notification.objects.filter(
+        recipient__username=username, type="post_new_comments"
+    ).exists()

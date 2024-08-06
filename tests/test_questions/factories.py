@@ -33,7 +33,7 @@ def create_conditional(
     )
 
 
-def create_forecast(*, author: User = None, question: Question = None, **kwargs):
+def factory_forecast(*, author: User = None, question: Question = None, **kwargs):
     f = G(
         Forecast,
         **setdefaults_not_null(
