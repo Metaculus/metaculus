@@ -650,6 +650,11 @@
   "share": "share",
   "270VotesToWin": "270 votes to win",
   "expectedElectoralVotes": "Expected Electoral Votes",
+  "electoralVotes": "Electoral Votes",
   "0Votes": "0 Votes",
-  "538Votes": "538 Votes"
+  "538Votes": "538 Votes",
+  "electionHubDescription": "Explore Metaculus forecasts for the 2024 US presidential election",
+  "2024USElectionHub": "2024 US <blue>Election Hub</blue>",
+  "safeParty": "Safe {party}",
+  "partyWinProbability": "{party} Win Probability ↗"
 }
