@@ -202,8 +202,10 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SEC
 
 # Email configuration
 # https://anymail.dev/
+MAILGUN_API_KEY = os.environ.get("MAILGUN_API_KEY")
+MAILGUN_SUBDOMAIN = os.environ.get("MAILGUN_SUBDOMAIN")
 ANYMAIL = {
-    "MAILGUN_API_KEY": os.environ.get("MAILGUN_API_KEY"),
+    "MAILGUN_API_KEY": MAILGUN_API_KEY,
 }
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 EMAIL_HOST_USER = os.environ.get(
