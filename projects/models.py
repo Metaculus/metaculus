@@ -199,6 +199,44 @@ class Project(TimeStampedModel):
         ):
             return self.close_date > django_timezone.now() if self.close_date else True
 
+    def _get_users_for_permissions(
+        self, permissions: list[ObjectPermission]
+    ) -> QuerySet["User"]:
+        qs = User.objects.all()
+
+        if self.default_permission in permissions:
+            return qs
+
+        return qs.filter(
+            projectuserpermission__project=self,
+            projectuserpermission__permission__in=permissions,
+        )
+
+    def get_users_for_permission(
+        self, permission: ObjectPermission
+    ) -> QuerySet["User"]:
+        """
+        Returns a QuerySet of users that have given permission level OR greater for the given project
+        """
+
+        return self._get_users_for_permissions(
+            ObjectPermission.get_included_permissions(permission)
+        )
+
+    def get_admins(self) -> QuerySet["User"]:
+        """
+        Returns admins only
+        """
+
+        return self._get_users_for_permissions([ObjectPermission.ADMIN])
+
+    def get_curators(self) -> QuerySet["User"]:
+        """
+        Returns curators/mods only
+        """
+
+        return self._get_users_for_permissions([ObjectPermission.CURATOR])
+
 
 class ProjectUserPermission(TimeStampedModel):
     """
