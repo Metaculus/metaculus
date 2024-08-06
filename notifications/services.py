@@ -2,6 +2,7 @@ from dataclasses import dataclass, asdict
 
 from django.utils.translation import gettext_lazy as _
 
+from comments.constants import CommentReportType
 from comments.models import Comment
 from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
@@ -370,6 +371,56 @@ class NotificationPostSpecificTime(
         """
 
         return _("Questions reminder")
+
+
+class NotificationCommentReport(NotificationTypeBase):
+    type = "comment_report"
+    email_template = "emails/comment_report.html"
+
+    @dataclass
+    class ParamsType:
+        post: NotificationPostParams
+        comment_id: int
+        reason: CommentReportType
+
+    @classmethod
+    def generate_subject_group(cls, recipient: User):
+        return _("Comment reports")
+
+    @classmethod
+    def get_email_context_group(cls, notifications: list[Notification]):
+        serialized_notifications = []
+        comments_map = {
+            c.id: c for c in Comment.objects.filter(pk__in=[n for n in notifications])
+        }
+
+        params = []
+
+        for notification in notifications:
+            comment = comments_map.get(notification.params["comment_id"])
+
+            if not comment:
+                continue
+
+            preview_text, has_mention = generate_email_comment_preview_text(
+                comment.text
+            )
+
+            params.append(
+                {
+                    **notification.params,
+                    "author_username": comment.author.username,
+                    "preview_text": preview_text,
+                    "url": build_post_comment_url(
+                        comment.on_post_id, comment.on_post.title, comment.id
+                    ),
+                }
+            )
+
+        return {
+            "recipient": notifications[0].recipient,
+            "params": serialized_notifications,
+        }
 
 
 class NotificationPostCPChange(NotificationTypeBase):
