@@ -57,7 +57,7 @@ const ExpectedElectoralVotesForecast: FC<Props> = async ({
           )}
         />
         <div className="mb-3 flex w-full items-center justify-center gap-2 pl-5 text-base text-[#0252A5] dark:text-[#A7C3DC]">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 capitalize">
             <span className="font-bold">{democratPrediction}</span>
             {t("democrat")}
           </div>
@@ -78,7 +78,7 @@ const ExpectedElectoralVotesForecast: FC<Props> = async ({
       {!!candles && <ExperimentCandleBarGraph candles={candles} />}
 
       <div className="relative mt-3 flex w-full items-center justify-center gap-2 pl-5 text-base text-[#E0152B] dark:text-[#E7858F]">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 capitalize">
           <span className="font-bold">{republicanPrediction}</span>
           {t("republican")}
         </div>
