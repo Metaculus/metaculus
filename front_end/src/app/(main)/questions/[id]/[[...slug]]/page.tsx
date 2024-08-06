@@ -97,7 +97,7 @@ export default async function IndividualQuestion({
 
   return (
     <EmbedModalContextProvider>
-      <main className="mx-auto flex w-full max-w-max flex-col py-4">
+      <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4">
         <div className="flex items-start gap-3 bg-gray-0 px-3 pt-3 dark:bg-gray-0-dark xs:px-4 lg:bg-transparent lg:p-0 lg:dark:bg-transparent">
           <span className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
             {typeLabel}
