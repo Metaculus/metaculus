@@ -389,9 +389,11 @@ class NotificationCommentReport(NotificationTypeBase):
 
     @classmethod
     def get_email_context_group(cls, notifications: list[Notification]):
-        serialized_notifications = []
         comments_map = {
-            c.id: c for c in Comment.objects.filter(pk__in=[n for n in notifications])
+            c.id: c
+            for c in Comment.objects.filter(
+                pk__in=[n.params["comment_id"] for n in notifications]
+            )
         }
 
         params = []
@@ -419,7 +421,7 @@ class NotificationCommentReport(NotificationTypeBase):
 
         return {
             "recipient": notifications[0].recipient,
-            "params": serialized_notifications,
+            "params": params,
         }
 
 
@@ -482,6 +484,7 @@ NOTIFICATION_TYPE_REGISTRY = [
     NotificationPredictedQuestionResolved,
     NotificationPostSpecificTime,
     NotificationPostCPChange,
+    NotificationCommentReport,
 ]
 
 

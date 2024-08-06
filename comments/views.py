@@ -220,3 +220,5 @@ def comment_report_api_view(request, pk=int):
                     reason=reason,
                 ),
             )
+
+    return Response(status=status.HTTP_204_NO_CONTENT)

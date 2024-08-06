@@ -25,7 +25,7 @@
                             “{{ comment.preview_text }}”.
                             <a href="{{ comment.url }}">(link)</a>
                             <br/>
-                            <span>Reason: {{ comment.reason }}</span>
+                            <span><b>Reason:</b> {{ comment.reason }}</span>
                         </li>
                         {% endfor %}
                     </ul>

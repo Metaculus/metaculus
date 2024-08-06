@@ -165,7 +165,7 @@
                           <ul> {% for comment in params %} <li>
                               <span>@{{ comment.author_username }}:</span> “{{ comment.preview_text }}”. <a href="{{ comment.url }}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">(link)</a>
                               <br>
-                              <span>Reason: {{ comment.reason }}</span>
+                              <span><b>Reason:</b> {{ comment.reason }}</span>
                             </li> {% endfor %} </ul>
                         </div>
                       </td>
