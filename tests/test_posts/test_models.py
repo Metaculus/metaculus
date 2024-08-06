@@ -1,6 +1,5 @@
 import datetime
 
-import pytest
 from freezegun import freeze_time
 
 from posts.models import Post
@@ -9,7 +8,7 @@ from tests.fixtures import *  # noqa
 from tests.test_comments.factories import factory_comment
 from tests.test_posts.factories import factory_post, factory_post_snapshot
 from tests.test_projects.factories import factory_project
-from tests.test_questions.factories import create_forecast
+from tests.test_questions.factories import factory_forecast
 from tests.test_questions.fixtures import *  # noqa
 from tests.test_users.factories import factory_user
 
@@ -18,17 +17,17 @@ class TestPostQuerySetAnnotatePredictionsCount:
     def test_question(self, question_binary, user1):
         post = factory_post(author=user1, question=question_binary)
 
-        create_forecast(question=question_binary, author=user1)
-        create_forecast(question=question_binary, author=user1)
+        factory_forecast(question=question_binary, author=user1)
+        factory_forecast(question=question_binary, author=user1)
 
         assert Post.objects.filter(pk=post.id).first().forecasts_count == 2
 
     def test_conditional_questions(self, conditional_1, user1):
         post = factory_post(author=user1, conditional=conditional_1)
 
-        create_forecast(question=conditional_1.question_yes, author=user1)
-        create_forecast(question=conditional_1.question_no, author=user1)
-        create_forecast(question=conditional_1.question_no, author=user1)
+        factory_forecast(question=conditional_1.question_yes, author=user1)
+        factory_forecast(question=conditional_1.question_no, author=user1)
+        factory_forecast(question=conditional_1.question_no, author=user1)
 
         assert Post.objects.filter(pk=post.id).first().forecasts_count == 3
 
@@ -41,12 +40,12 @@ class TestPostQuerySetAnnotatePredictionsCount:
         post1 = factory_post(author=user1, conditional=conditional_1)
         post2 = factory_post(author=user1, question=question_binary)
 
-        create_forecast(question=conditional_1.question_yes, author=user1)
-        create_forecast(question=conditional_1.question_no, author=user1)
-        create_forecast(question=conditional_1.question_no, author=user1)
+        factory_forecast(question=conditional_1.question_yes, author=user1)
+        factory_forecast(question=conditional_1.question_no, author=user1)
+        factory_forecast(question=conditional_1.question_no, author=user1)
 
-        create_forecast(question=question_binary, author=user1)
-        create_forecast(question=question_binary, author=user1)
+        factory_forecast(question=question_binary, author=user1)
+        factory_forecast(question=question_binary, author=user1)
 
         qs = Post.objects.all()
 
@@ -270,12 +269,12 @@ def test_annotate_weekly_movement(user1, conditional_1):
     post = factory_post(author=user1, conditional=conditional_1)
 
     for _ in range(2):
-        create_forecast(
+        factory_forecast(
             question=conditional_1.question_yes,
             author=user1,
             start_time=datetime.datetime(2024, 7, 8),
         )
-        create_forecast(
+        factory_forecast(
             question=conditional_1.question_no,
             author=user1,
             start_time=datetime.datetime(2024, 7, 7),
@@ -283,7 +282,7 @@ def test_annotate_weekly_movement(user1, conditional_1):
 
     # Previous month
     for idx in range(4):
-        create_forecast(
+        factory_forecast(
             question=conditional_1.question_no,
             author=user1,
             start_time=datetime.datetime(2024, 6, idx + 1),

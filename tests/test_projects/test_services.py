@@ -46,3 +46,29 @@ def test_notify_project_subscriptions_post_open_notification(user1, user2):
     assert notification.params["event"] == "open"
     assert notification.params["project"]
     assert notification.params["post"]
+
+
+def test_notify_project_subscriptions_post_open__private_question(user1, user2):
+    project_default_private = factory_project(
+        default_permission=None,
+        override_permissions={user1.pk: ObjectPermission.FORECASTER},
+    )
+    project_public = factory_project(
+        subscribers=[user1, user2], default_permission=ObjectPermission.FORECASTER
+    )
+
+    post = factory_post(
+        author=factory_user(),
+        default_project=project_default_private,
+        curation_status=Post.CurationStatus.APPROVED,
+        projects=[project_public],
+    )
+
+    # Post is located in 2 projects
+    notify_project_subscriptions_post_open(post)
+
+    assert set(
+        Notification.objects.filter(type="post_status_change").values_list(
+            "recipient_id", flat=True
+        )
+    ) == {user1.pk}
