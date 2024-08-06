@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FC, MouseEvent, useEffect, useState } from "react";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
@@ -21,6 +22,7 @@ const StateHoverCard: FC<Props> = ({
   onMouseEnter,
   onMouseLeave,
 }) => {
+  const t = useTranslations();
   const isLargeScreen = useBreakpoint("md");
   const [positionStyles, setPositionStyles] = useState({
     left: `${x - 75}px`,
@@ -38,7 +40,7 @@ const StateHoverCard: FC<Props> = ({
 
   if (!mapArea) return null;
   const favouritePartyName =
-    mapArea.democratProbability > 0.5 ? "Democrat" : "Republican";
+    mapArea.democratProbability > 0.5 ? t("democrat") : t("republican");
 
   const favouriteProbability =
     mapArea.democratProbability < 0.5
@@ -50,7 +52,7 @@ const StateHoverCard: FC<Props> = ({
       ? "text-[#0052a5] dark:text-[#A7C3DC]"
       : mapArea.democratProbability < 0.5
         ? "text-[#e0162b] dark:text-[#E7858F]"
-        : "text-black  dark:text-white";
+        : "text-black dark:text-white";
 
   return (
     <div
@@ -94,7 +96,7 @@ const StateHoverCard: FC<Props> = ({
                   partyPartyTextClassNames
                 )}
               >
-                {`Safe ${favouritePartyName}`}
+                {t("safeParty", { party: favouritePartyName })}
               </div>
             )}
           </div>
@@ -104,13 +106,11 @@ const StateHoverCard: FC<Props> = ({
             </div>
             <div
               className={classNames(
-                "text-left text-sm font-medium leading-4",
+                "w-min text-left text-sm font-medium leading-4",
                 partyPartyTextClassNames
               )}
             >
-              Electoral
-              <br />
-              Votes
+              {t("electoralVotes")}
             </div>
           </div>
         </div>
@@ -121,7 +121,7 @@ const StateHoverCard: FC<Props> = ({
               className="text-left text-blue-800 hover:text-blue-900 dark:text-blue-800-dark dark:hover:text-blue-900-dark"
               href={`/questions/${mapArea.link.groupId}?${SLUG_POST_SUB_QUESTION_ID}=${mapArea.link.questionId}`}
             >
-              {favouritePartyName} Win Probability ↗
+              {t("partyWinProbability", { party: favouritePartyName })}
             </Link>
           </div>
         )}
@@ -133,16 +133,16 @@ const StateHoverCard: FC<Props> = ({
             <div className="text-left text-lg font-medium leading-6 text-gray-700 dark:text-gray-700-dark">
               {mapArea.forecastersNumber}
             </div>
-            <div className="text-xs font-medium leading-3 text-gray-500 dark:text-gray-500-dark">
-              Forecasters
+            <div className="text-xs font-medium capitalize leading-3 text-gray-500 dark:text-gray-500-dark">
+              {t("forecasters")}
             </div>
           </div>
           <div className="flex flex-col items-start gap-0.5">
             <div className="text-left text-lg font-medium leading-6 text-gray-700 dark:text-gray-700-dark">
               {mapArea.forecastsNumber}
             </div>
-            <div className="text-xs font-medium leading-3 text-gray-500 dark:text-gray-500-dark">
-              Predictions
+            <div className="text-xs font-medium capitalize leading-3 text-gray-500 dark:text-gray-500-dark">
+              {t("predictions")}
             </div>
           </div>
         </div>
