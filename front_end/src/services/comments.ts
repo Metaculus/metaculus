@@ -78,8 +78,8 @@ class CommentsApi {
 
   static async createComment(
     commentData: CreateCommentParams
-  ): Promise<Response | null> {
-    return await post<null, CreateCommentParams>(
+  ): Promise<CommentType> {
+    return await post<CommentType, CreateCommentParams>(
       `/comments/create`,
       commentData
     );
