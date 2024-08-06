@@ -11,6 +11,8 @@ forbidden_usernames = [
     "metaculus",
     "admin",
     "admins",
+    "curator",
+    "curators",
 ]
 
 
