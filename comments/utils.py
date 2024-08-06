@@ -23,10 +23,6 @@ def comment_extract_user_mentions(comment: Comment) -> QuerySet["User"]:
     query = Q()
     for mention in unique_mentions:
         # Check static mentions
-        if mention == "admin":
-            query |= Q()
-
-        query |= Q(username__iexact=mention)
         if mention == "admins":
             query |= Q(pk__in=comment.on_post.default_project.get_admins())
         elif mention in ("moderators", "curators"):
