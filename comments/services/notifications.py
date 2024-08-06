@@ -4,7 +4,7 @@ from ..utils import comment_extract_user_mentions
 
 
 def notify_mentioned_users(comment: Comment):
-    users = comment_extract_user_mentions(comment)
+    users = comment_extract_user_mentions(comment).exclude(pk=comment.author_id)
 
     for user in users:
         NotificationNewComments.send(
