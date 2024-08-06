@@ -18,6 +18,7 @@ import {
   createForecast,
 } from "@/app/(main)/questions/actions";
 import CommentEditor from "@/components/comment_feed/comment_editor";
+import CommentReportModal from "@/components/comment_feed/comment_report_modal";
 import CommentVoter from "@/components/comment_feed/comment_voter";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
@@ -156,6 +157,7 @@ const Comment: FC<CommentProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const { user } = useAuth();
   if (user?.id === comment.author.id) {
@@ -230,12 +232,10 @@ const Comment: FC<CommentProps> = ({
       },
     },
     {
-      //hidden: !user?.id,
+      hidden: !user?.id,
       id: "report",
       name: t("report"),
-      onClick: () => {
-        return null; //setReportModalOpen(true)
-      },
+      onClick: () => setIsReportModalOpen(true),
     },
     {
       // hidden: permissions !== CommentPermissions.CURATOR,
@@ -430,6 +430,11 @@ const Comment: FC<CommentProps> = ({
           sort={sort}
         />
       )}
+      <CommentReportModal
+        comment={comment}
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+      />
     </div>
   );
 };
