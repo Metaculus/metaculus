@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import EmbedModal from "@/components/embed_modal";
@@ -7,6 +8,7 @@ import useEmbedModalContext from "@/contexts/embed_modal_context";
 import { useEmbedUrl } from "@/hooks/share";
 
 const ElectionsEmbedModal: FC = () => {
+  const t = useTranslations();
   const { isOpen, updateIsOpen } = useEmbedModalContext();
 
   const embedUrl = useEmbedUrl("/embed/elections");
@@ -25,7 +27,7 @@ const ElectionsEmbedModal: FC = () => {
           updateIsOpen(true);
         }}
       >
-        Embed
+        {t("embed")}
       </Button>
 
       <EmbedModal
