@@ -2,20 +2,20 @@
 
 import { faTwitter } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { setCookie } from "cookies-next";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { useModal } from "@/contexts/modal_context";
 import useSearchParams from "@/hooks/use_search_params";
-import { encodeQueryParams } from "@/utils/navigation";
 
 const Footer: FC = () => {
   const router = useRouter();
   const { params } = useSearchParams();
   const pathname = usePathname();
   const t = useTranslations();
+  const { setCurrentModal } = useModal();
 
   return (
     <footer className="dark relative mx-auto my-0 flex w-full flex-wrap justify-center bg-blue-900 px-0 pb-0 pt-2 text-white">
@@ -61,7 +61,7 @@ const Footer: FC = () => {
         <div className="mr-3">
           <ul>
             <li className="my-2">
-              <button ng-click="modals.setActive('contact-us')">
+              <button onClick={() => setCurrentModal({ type: "contactUs" })}>
                 {t("Contact")}
               </button>
             </li>
