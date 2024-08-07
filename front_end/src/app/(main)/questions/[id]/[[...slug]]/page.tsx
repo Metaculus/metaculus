@@ -87,7 +87,7 @@ export default async function IndividualQuestion({
   } else if (postData.question) {
     typeLabel = t("question");
   } else {
-    typeLabel = t("searchOptionNotebook");
+    typeLabel = t("notebook");
   }
 
   const allowModifications =
