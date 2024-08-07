@@ -4,6 +4,7 @@ import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import ProjectsApi from "@/services/projects";
 import { encodeQueryParams } from "@/utils/navigation";
 
+import EngageBlock from "./components/engage_block";
 import FocusAreaLink, { FocusAreaItem } from "./components/focus_area_link";
 import HomeSearch from "./components/home_search";
 import FocusAreaAiIcon from "./components/icons/focus_area_ai";
@@ -115,6 +116,8 @@ export default async function Home() {
             ))}
           </div>
         </div>
+
+        <EngageBlock />
       </div>
 
       {/*Temporary spacer to apply valid gradient for carousel edges*/}

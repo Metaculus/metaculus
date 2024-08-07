@@ -8,6 +8,7 @@ type Props<T> = {
   name?: string;
   options: (SelectOption<T> & {
     disabled?: boolean;
+    className?: string;
   })[];
   className?: string;
   defaultValue?: T;
@@ -32,6 +33,7 @@ const Select = <T extends string>(
           value={option.value as unknown as string}
           key={option.value as unknown as string}
           disabled={option.disabled}
+          className={option.className}
         >
           {option.label}
         </option>
