@@ -70,12 +70,17 @@ class CPChangeData:
     user_q3: float | None = None
 
     # TODO: add direction label:
-    #   Binary: gone up | gone down
+    #   Binary: gone up | gone down:
+    #       A: take from absolute_difference (negative/positive)
     #   Continuous: gone up | gone down | contracted | expanded for continuous
+    #       A: Luke will add separate attrs
 
     # TODO: how to get a {change value} for continuous?
+    #       A: Luke will add this value
     # TODO: add "Movement" for group, conditional, or multiple choice
-    # TODO: add "User Last Prediction" for group, conditional, or multiple choice
+    #       A: Luke will add separate attrs
+    # TODO: add "User Last Prediction" for group, conditional, or multiple choice.
+    #       A: take the `user_median` and discuss with Syl
 
     def format_forecast_date(self):
         return date_parse(self.forecast_date)
