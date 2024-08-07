@@ -657,5 +657,9 @@
   "electionHubDescription": "Explore Metaculus forecasts for the 2024 US presidential election",
   "2024USElectionHub": "2024 US <blue>Election Hub</blue>",
   "safeParty": "Safe {party}",
-  "partyWinProbability": "{party} Win Probability ↗"
+  "partyWinProbability": "{party} Win Probability ↗",
+  "settingsSubscriptions": "Subscriptions",
+  "settingsEmailNotifications": "Email Notifications",
+  "settingsMentionsInComments": "Mentions in comments",
+  "settingsQuestionResolution": "Resolved Questions"
 }
