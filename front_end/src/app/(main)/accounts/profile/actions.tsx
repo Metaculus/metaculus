@@ -50,11 +50,18 @@ export type UpdateProfileState = {
   user?: CurrentUser;
 } | null;
 
-export async function updateProfileAction(
+export async function updateProfileFormAction(
   prevState: UpdateProfileState,
   formData: FormData
 ): Promise<UpdateProfileState> {
   const validatedFields = updateProfileSchema.safeParse(
+    Object.fromEntries(formData.entries())
+  );
+
+  console.log(
+    "formData",
+    formData,
+    validatedFields,
     Object.fromEntries(formData.entries())
   );
 
@@ -78,4 +85,14 @@ export async function updateProfileAction(
       errors: error.data,
     };
   }
+}
+
+export async function updateProfileAction(
+  profile: Partial<Pick<CurrentUser, "unsubscribed_mailing_tags">>
+) {
+  const response = await ProfileApi.updateProfile(profile);
+
+  revalidatePath("/");
+
+  return response;
 }
