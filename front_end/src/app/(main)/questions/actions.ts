@@ -3,12 +3,12 @@
 import { revalidatePath } from "next/cache";
 
 import CommentsApi, {
-  getCommentsParams,
-  EditCommentParams,
-  VoteCommentParams,
-  CreateCommentParams,
-  ToggleCMMCommentParams,
   CommentReportReason,
+  CreateCommentParams,
+  EditCommentParams,
+  getCommentsParams,
+  ToggleCMMCommentParams,
+  VoteCommentParams,
 } from "@/services/comments";
 import PostsApi, { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
