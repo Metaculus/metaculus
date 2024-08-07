@@ -38,11 +38,17 @@ def resolve_question_and_send_notifications(question_id: int):
         question.resolution,
         score_types=[Score.ScoreTypes.PEER, Score.ScoreTypes.BASELINE],
     )
-    scores = question.scores.annotate(
-        forecasts_count=SubqueryAggregate(
-            "question__forecast", filter=Q(author=OuterRef("user")), aggregate=Count
+    scores = (
+        question.scores.annotate(
+            forecasts_count=SubqueryAggregate(
+                "question__forecast", filter=Q(author=OuterRef("user")), aggregate=Count
+            )
         )
-    ).select_related("user")
+        # Exclude users with disabled notifications
+        .exclude(
+            user__unsubscribed_mailing_tags__contains=["question_resolution"]
+        ).select_related("user")
+    )
     user_notification_params = {}
 
     # Send notifications

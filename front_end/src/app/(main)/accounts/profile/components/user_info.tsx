@@ -1,18 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
-import MedalIcon from "@/app/(main)/(leaderboards)/components/medal_icon";
 import {
-  updateProfileAction,
+  updateProfileFormAction,
   UpdateProfileState,
 } from "@/app/(main)/accounts/profile/actions";
-import ChangeUsername from "@/app/(main)/accounts/profile/components/change_username";
 import {
   UpdateProfileSchema,
   updateProfileSchema,
@@ -21,7 +19,6 @@ import CalibrationChart from "@/app/(main)/charts/calibration_chart";
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
-import { MedalType } from "@/types/scoring";
 import { UserProfile } from "@/types/users";
 
 import SocialMediaSection from "./social_media_section";
@@ -44,7 +41,7 @@ const UserInfo: FC<UserInfoProps> = ({
     resolver: zodResolver(updateProfileSchema),
   });
   const [state, formAction] = useFormState<UpdateProfileState, FormData>(
-    updateProfileAction,
+    updateProfileFormAction,
     null
   );
   useEffect(() => {
