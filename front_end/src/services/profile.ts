@@ -1,5 +1,6 @@
 import { getServerSession } from "@/services/session";
 import { PaginatedPayload } from "@/types/fetch";
+import { SubscriptionEmailType } from "@/types/notifications";
 import { CurrentUser, UserProfile } from "@/types/users";
 import { get, patch, post } from "@/utils/fetch";
 
@@ -24,7 +25,11 @@ class ProfileApi {
     });
   }
 
-  static async updateProfile(props: { bio?: string; website?: string }) {
+  static async updateProfile(props: {
+    bio?: string;
+    website?: string;
+    unsubscribed_mailing_tags?: SubscriptionEmailType[];
+  }) {
     return patch<CurrentUser, typeof props>("/users/me/update", props);
   }
 

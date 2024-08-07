@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { SubscriptionEmailType } from "@/types/notifications";
+
 export const signInSchema = z.object({
   login: z.string().min(1, { message: "Email/Username is required" }),
   password: z.string().min(1, { message: "Password is required" }),
@@ -50,7 +52,7 @@ export type ChangeUsernameSchema = z.infer<typeof changeUsernameSchema>;
 
 export const updateProfileSchema = z.object({
   bio: z.string().optional(),
-  website: z.string(),
+  website: z.string().optional(),
   first_name: z.string().optional(),
   last_name: z.string().optional(),
   twitter: z.string().optional(),
