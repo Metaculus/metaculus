@@ -96,7 +96,7 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose }) => {
 
           <Textarea
             className="mt-4 block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-            placeholder={t("Your message...")}
+            placeholder={t("yourMessage")}
             rows={5}
             errors={errors.message}
             {...register("message")}
