@@ -18,6 +18,7 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
+import comments
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -28,6 +29,7 @@ urlpatterns = [
     path("api/", include("questions.urls")),
     path("api/", include("comments.urls")),
     path("api/", include("scoring.urls")),
+    path("api2/", include(comments.urls.old_api)),
 ]
 
 if settings.DEBUG:
