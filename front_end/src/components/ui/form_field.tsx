@@ -18,6 +18,7 @@ export interface InputProps
 export interface TextAreaProps
   extends React.InputHTMLAttributes<HTMLTextAreaElement> {
   errors?: ErrorResponse;
+  rows?: number;
 }
 
 export interface SelectProps
