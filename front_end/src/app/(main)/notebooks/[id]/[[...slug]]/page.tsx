@@ -25,7 +25,7 @@ import { estimateReadingTime } from "@/utils/questions";
 export default async function IndividualNotebook({
   params,
 }: {
-  params: { id: number };
+  params: { id: number; slug: string[] };
 }) {
   const postData = await PostsApi.getPost(params.id);
 

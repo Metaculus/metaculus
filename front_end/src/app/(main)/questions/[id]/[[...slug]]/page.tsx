@@ -71,7 +71,9 @@ export default async function IndividualQuestion({
   const postData = await PostsApi.getPost(params.id);
 
   if (postData.notebook) {
-    return redirect(`/notebooks/${postData.id}`);
+    return redirect(
+      `/notebooks/${postData.id}${params.slug ? `/${params.slug}` : ""}`
+    );
   }
   const preselectedGroupQuestionId =
     extractPreselectedGroupQuestionId(searchParams);
