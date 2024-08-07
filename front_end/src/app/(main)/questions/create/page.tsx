@@ -1,6 +1,3 @@
-// page.tsx
-
-import Link from "next/link";
 import React from "react";
 
 import { SearchParams } from "@/types/navigation";
@@ -24,29 +21,27 @@ const Creator: React.FC<{ searchParams: SearchParams }> = ({
   };
 
   return (
-    <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
-      <div className="mb-4 flex flex-col gap-2 md:gap-3">
+    <div className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 text-gray-700 dark:bg-gray-0-dark dark:text-gray-700-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
+      <div className="text-sm md:text-base">
         <h1 className="text-2xl font-medium md:text-3xl">Create New Content</h1>
-        <span className="text-sm text-gray-600 dark:text-gray-300 md:text-base">
+        <p>
           Check out our{" "}
           <a
             href="/question-writing"
-            className="text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            className="text-blue-700 hover:text-blue-800 dark:text-blue-700-dark dark:hover:text-blue-800-dark"
           >
             question writing guide
           </a>{" "}
           for tips. Good questions are approved faster, and get more
           predictions.
-        </span>
-        <span className="text-sm text-gray-600 dark:text-gray-300 md:text-base">
+        </p>
+        <p>
           We have high standards for question quality. We also favor questions
           on our core topic areas or that we otherwise judge valuable. We may
           not publish questions that are not a good fit.
-        </span>
+        </p>
       </div>
-      <p className="text-lg font-light text-gray-700 dark:text-gray-300">
-        Single Question
-      </p>
+      <h2 className="mt-0 text-lg font-light">Single Question</h2>
       <div className="flex w-full flex-wrap gap-3 md:flex-row md:flex-nowrap md:gap-4">
         <div className="flex w-full flex-col gap-3 md:gap-4">
           <QuestionTypePicker
@@ -76,9 +71,7 @@ const Creator: React.FC<{ searchParams: SearchParams }> = ({
         </div>
       </div>
 
-      <p className="text-lg  font-light text-gray-600 dark:text-gray-200">
-        Question Group
-      </p>
+      <h2 className="text-lg font-light">Question Group</h2>
       <div className="flex w-full flex-wrap gap-3 md:flex-row md:flex-nowrap md:gap-4">
         <div className="flex w-full flex-col gap-3 md:gap-4">
           <QuestionTypePicker
@@ -106,17 +99,13 @@ const Creator: React.FC<{ searchParams: SearchParams }> = ({
         </div>
       </div>
 
-      <p className="text-lg  font-light text-gray-600 dark:text-gray-200">
-        Posts
-      </p>
+      <h2 className="text-lg font-light">Posts</h2>
       <div className="flex w-full flex-wrap md:flex-row md:flex-nowrap">
-        <div className="w-full flex-row">
-          <QuestionTypePicker
-            url={createHref("/questions/create/notebook")}
-            questionType="Notebook"
-            questionExample="A text-based content that is not a question"
-          />
-        </div>
+        <QuestionTypePicker
+          url={createHref("/questions/create/notebook")}
+          questionType="Notebook"
+          questionExample="text-based content that is not a question"
+        />
       </div>
     </div>
   );
