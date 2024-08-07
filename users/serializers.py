@@ -64,27 +64,9 @@ class UserPrivateSerializer(UserPublicSerializer):
     class Meta:
         model = User
         fields = UserPublicSerializer.Meta.fields + (
-            "first_name",
-            "last_name",
             "email",
-            "formerly_known_as",
             "is_superuser",
-            "bio",
-            "website",
-            "formerly_known_as",
-            "is_bot",
-            "twitter",
-            "linkedin",
-            "facebook",
-            "github",
-            "good_judgement_open",
-            "kalshi",
-            "manifold",
-            "infer",
-            "hypermind",
-            "occupation",
-            "location",
-            "profile_picture",
+            "unsubscribed_mailing_tags",
         )
 
 
@@ -109,6 +91,7 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
             "occupation",
             "location",
             "profile_picture",
+            "unsubscribed_mailing_tags",
         )
 
 
