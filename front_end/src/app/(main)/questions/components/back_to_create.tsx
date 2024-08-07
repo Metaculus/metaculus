@@ -17,21 +17,19 @@ const BacktoCreate: React.FC<BacktoCreateProps> = ({
   currentPage,
 }) => {
   return (
-    <div className="mb-2 mb-4 ml-0 mr-0 mt-4 flex flex-row items-center gap-3 text-gray-700 dark:text-gray-200">
+    <div className="mx-0 my-4 flex flex-row items-center gap-3 text-xl text-gray-700 dark:text-gray-700-dark xs:text-2xl md:text-3xl">
       <Link
         href={backHref}
-        className="text-2xl font-medium text-blue-500 no-underline hover:text-blue-600 max-[360px]:text-xl md:text-3xl"
+        className="font-medium capitalize text-blue-700 no-underline hover:text-blue-800 dark:text-blue-700-dark hover:dark:text-blue-800-dark"
       >
         {backText}
       </Link>
       <FontAwesomeIcon
-        size="lg"
+        size="sm"
         icon={faChevronRight}
-        className="text-blue-500 opacity-75 max-[360px]:text-sm"
+        className="text-blue-600 dark:text-blue-600-dark"
       />
-      <span className="text-2xl font-light max-[360px]:text-xl md:text-3xl">
-        {currentPage}
-      </span>
+      <span className="font-light capitalize">{currentPage}</span>
     </div>
   );
 };

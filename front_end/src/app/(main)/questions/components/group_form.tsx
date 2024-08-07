@@ -290,7 +290,7 @@ const GroupForm: React.FC<Props> = ({
           </span>
         </div>
         <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>{t("Short Title")}</span>
+          <span className={inputLabelStyles}>{t("shortTitle")}</span>
           <Input
             {...control.register("url_title")}
             errors={control.formState.errors.url_title}
