@@ -26,7 +26,7 @@ const OPEN_STATUS_FILTERS = [
   QuestionOrder.PublishTimeDesc,
   QuestionOrder.WeeklyMovementDesc,
   QuestionOrder.LastPredictionTimeDesc,
-  QuestionOrder.DivergenceDesc,
+  QuestionOrder.DivergenceAsc,
   QuestionOrder.HotAsc,
   QuestionOrder.CloseTimeAsc,
   QuestionOrder.ScoreDesc,
@@ -39,7 +39,7 @@ const RESOLVED_STATUS_FILTERS = [
 const FORECASTER_ID_FILTERS = [
   QuestionOrder.LastPredictionTimeAsc,
   QuestionOrder.LastPredictionTimeDesc,
-  QuestionOrder.DivergenceDesc,
+  QuestionOrder.DivergenceAsc,
 ];
 
 const TournamentFilters: FC<Props> = ({ categories, tags }) => {
