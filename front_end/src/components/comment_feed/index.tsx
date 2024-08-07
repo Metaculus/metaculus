@@ -13,7 +13,7 @@ import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
-import { CommentPermissions, CommentType } from "@/types/comment";
+import { AuthorType, CommentPermissions, CommentType } from "@/types/comment";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 
 import Button from "../ui/button";
@@ -35,6 +35,34 @@ export function sortComments(comments: CommentType[], sort: SortOption) {
   });
 }
 
+function getCommentsAuthors(
+  comments: CommentType[],
+  authors: Partial<AuthorType>[]
+) {
+  comments.forEach((comment) => {
+    if (authors.findIndex((author) => author.id === comment.author.id) === -1) {
+      authors.push({
+        id: comment.author.id,
+        username: comment.author.username,
+      });
+    }
+    if (!!comment.children.length) {
+      getCommentsAuthors(comment.children, authors);
+    }
+  });
+  return authors;
+}
+
+function getSortedCommentsAuthors(
+  comments: CommentType[],
+  authors: Partial<AuthorType>[]
+) {
+  const authorsArray = getCommentsAuthors(comments, authors);
+  return authorsArray.sort((a, b) =>
+    a.username!.localeCompare(b.username!, "en", { sensitivity: "base" })
+  );
+}
+
 type Props = {
   postData?: PostWithForecasts;
   postPermissions?: ProjectPermissions;
@@ -53,6 +81,9 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [nextPage, setNextPage] = useState<number>(1);
   const postId = postData?.id;
+
+  const autocompleteUsers = getSortedCommentsAuthors(comments, []);
+  console.log(autocompleteUsers);
 
   function handleSortChange(newSort: SortOption) {
     if (newSort === sort) {
@@ -86,14 +117,16 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         /* if we're on a post, fetch only parent comments with children annotated.  if this is a profile, fetch only the author's comments, including parents and children */
         parent_isnull: !!postId,
         page: page,
+        sort: commentSort,
       });
+
       if ("errors" in response) {
         console.error("Error fetching comments:", response.errors);
       } else {
         setTotalCount(response.count);
 
         const sortedComments = response.results;
-        sortComments(sortedComments, commentSort);
+        // sortComments(sortedComments, commentSort);
 
         if (keepComments && page && page > 1) {
           setComments((prevComments) => [...prevComments, ...sortedComments]);
@@ -106,7 +139,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
           );
           setNextPage(nextPageNumber ? Number(nextPageNumber) : 1);
         } else {
-          setNextPage(1);
+          setNextPage(0);
         }
       }
       setIsLoading(false);

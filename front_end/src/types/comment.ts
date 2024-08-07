@@ -1,9 +1,16 @@
 import { QuestionType } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
+export type AuthorType = {
+  id: number;
+  is_bot: boolean;
+  is_staff: boolean;
+  username: string;
+};
+
 export type CommentType = {
   id: number;
-  author: any; //create author type
+  author: AuthorType; // double-check this type
   on_post: number;
   parent?: {
     id: number;
