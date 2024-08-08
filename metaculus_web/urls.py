@@ -19,6 +19,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 import comments
+import posts
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -30,6 +31,7 @@ urlpatterns = [
     path("api/", include("comments.urls")),
     path("api/", include("scoring.urls")),
     path("api2/", include(comments.urls.old_api)),
+    path("api2/", include(posts.urls.old_api)),
 ]
 
 if settings.DEBUG:
