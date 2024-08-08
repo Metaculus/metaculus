@@ -155,6 +155,7 @@ const Comment: FC<CommentProps> = ({
   const locale = useLocale();
   const t = useTranslations();
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isReplying, setIsReplying] = useState(false);
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -243,12 +244,17 @@ const Comment: FC<CommentProps> = ({
       name: t("delete"),
       onClick: async () => {
         // setDeleteModalOpen(true),
-        softDeleteComment(comment.id);
+        const response = softDeleteComment(comment.id);
+        if ("errors" in response) {
+          console.error("Error deleting comment:", response.errors);
+        } else {
+          setIsDeleted(true);
+        }
       },
     },
   ];
 
-  if (comment.is_soft_deleted) {
+  if (isDeleted) {
     return (
       <div id={`comment-${comment.id}`}>
         {comment.included_forecast && (
@@ -352,13 +358,17 @@ const Comment: FC<CommentProps> = ({
       </div>
       {isEditing && (
         <Button
-          onClick={() => {
-            setIsEditing(false);
-            editComment({
+          onClick={async () => {
+            const response = await editComment({
               id: comment.id,
               text: commentMarkdown,
               author: user!.id,
             });
+            if (response && "errors" in response) {
+              console.error("Error deleting comment:", response.errors);
+            } else {
+              setIsEditing(false);
+            }
           }}
         >
           {t("save")}
