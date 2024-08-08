@@ -1,7 +1,7 @@
 from comments.models import Comment, CommentVote
-from questions.models import Forecast
 from migrator.utils import paginated_query
 from posts.models import Post
+from questions.models import Forecast
 
 
 def create_comment_vote(vote_obj):
@@ -35,6 +35,8 @@ def create_comment(comment_obj: dict) -> Comment:
         id=comment_obj["id"],
         author_id=comment_obj["author_id"],
         parent_id=comment_obj["parent_id"],
+        # Originally, metaculus had only 1 level of nesting
+        root_id=comment_obj["parent_id"],
         created_at=comment_obj["created_time"],
         is_soft_deleted=comment_obj["deleted"],
         text=comment_obj["comment_text"],
@@ -63,6 +65,8 @@ def migrate_comment_votes():
 
 def migrate_comments():
     comments = []
+    post_ids = Post.objects.values_list("id", flat=True)
+
     for comment in paginated_query(
         """
         SELECT c.*
@@ -72,8 +76,7 @@ def migrate_comments():
         order by c.id
         ;"""
     ):
-        # probably would be faster in sql but ran into issues
-        if Post.objects.filter(id=comment["question_id"]).exists():
+        if comment["question_id"] in post_ids:
             comments.append(create_comment(comment))
 
     Comment.objects.bulk_create(comments)
