@@ -1,13 +1,22 @@
 from django.db import models
-from django.db.models import Sum, OuterRef, Subquery, QuerySet, IntegerField, BooleanField, Count, Exists, Value
+from django.db.models import (
+    Sum,
+    OuterRef,
+    Subquery,
+    QuerySet,
+    IntegerField,
+    BooleanField,
+    Count,
+    Exists,
+    Value,
+)
 from django.db.models.functions import Coalesce
-
 from sql_util.aggregates import SubqueryAggregate
+
 from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast
 from users.models import User
-
 from utils.models import TimeStampedModel
 
 
@@ -64,7 +73,21 @@ class Comment(TimeStampedModel):
     comment_votes: QuerySet["CommentVote"]
 
     author = models.ForeignKey(User, models.CASCADE)
-    parent = models.ForeignKey("self", on_delete=models.SET_NULL, null=True, blank=True)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="child_comments",
+    )
+    # Thread root comment id
+    root = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="thread_comments",
+    )
     # auto_now_add=True must be disabled when the migration is run
     is_soft_deleted = models.BooleanField(null=True)
     text = models.TextField()
@@ -87,6 +110,12 @@ class Comment(TimeStampedModel):
 
     objects = models.Manager.from_queryset(CommentQuerySet)()
 
+    def save(self, **kwargs):
+        if self.parent:
+            self.root = self.root or self.parent
+
+        return super().save(**kwargs)
+
 
 class CommentDiff(TimeStampedModel):
     comment = models.ForeignKey(Comment, models.CASCADE)
@@ -102,6 +131,7 @@ class CommentVote(TimeStampedModel):
     user = models.ForeignKey(User, models.CASCADE, related_name="comment_votes")
     comment = models.ForeignKey(Comment, models.CASCADE, related_name="comment_votes")
     direction = models.SmallIntegerField(choices=VoteDirection.choices)
+
     # auto_now_add=True must be disabled when the migration is run
     # we may need to migrate edited_at to be the created_at field?  who knows.  i guess as long as it's before 2024 then it doesn't matter?  urgh
 

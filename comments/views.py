@@ -22,6 +22,14 @@ from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 
 
+# TODO: order by comment_id!!! (for comment link)
+# TODO: exclude comment_id!! (for comment link pagination)
+# TODO: private comments for current user only
+# TODO: root comment id
+# TODO: data migration
+# TODO: populate root_id on comment creation
+
+
 class CustomCommentPagination(PageNumberPagination):
     page_size = 10
 
