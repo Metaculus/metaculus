@@ -112,7 +112,7 @@ class Comment(TimeStampedModel):
 
     def save(self, **kwargs):
         if self.parent:
-            self.root = self.root or self.parent
+            self.root = self.root or self.parent.root or self.parent
 
         return super().save(**kwargs)
 
