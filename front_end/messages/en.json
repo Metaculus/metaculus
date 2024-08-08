@@ -706,6 +706,9 @@
   "shortTitleExplanation": "This should be a shorter version of the Long Title, used where there is less space to display a title. It should end with a question mark. Examples: \"NASA 2022 spacesuit contract winner?\" or \"EU GDP from 2025 to 2035?\"",
   "backgroundInformation": "Background Information",
   "backgroundInfoExplanation": "Provide background information for your question in a factual and unbiased tone. Links should be added to relevant and helpful resources using <link>markdown syntax</link>: <markdown>[Link title](https://link-url.com)</markdown>.",
+  "resolutionCriteriaExplanation": "A good question will almost always resolve unambiguously. If you have a data source by which the question will resolve, link to it here. If there is some simple math that will need to be done to resolve this question, define the equation in markdown: <markdown>\\[ y = ax^2+b \\]</markdown>.",
   "closingDate": "closing date",
-  "resolvingDate": "resolving date"
+  "resolvingDate": "resolving date",
+  "choicesSeparatedBy": "Choices (separated by ,)",
+  "projects": "projects"
 }
