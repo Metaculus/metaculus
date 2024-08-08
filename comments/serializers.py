@@ -1,5 +1,6 @@
-from rest_framework import serializers
 from django.db.models.query import QuerySet
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment
 from posts.models import Post
@@ -8,10 +9,22 @@ from users.models import User
 from users.serializers import BaseUserSerializer
 
 
+class CommentFilterSerializer(serializers.Serializer):
+    parent_isnull = serializers.BooleanField(required=False, allow_null=True)
+    post = serializers.IntegerField(required=False, allow_null=True)
+    author = serializers.IntegerField(required=False, allow_null=True)
+    sort = serializers.CharField(required=False, allow_null=True)
+    focus_comment_id = serializers.IntegerField(required=False, allow_null=True)
+
+    def validate_post(self, value: int):
+        try:
+            return Post.objects.get(pk=value)
+        except Post.DoesNotExist:
+            raise ValidationError("Post Does not exist")
+
+
 class CommentSerializer(serializers.ModelSerializer):
     author = BaseUserSerializer()
-    parent = serializers.SerializerMethodField()
-    children = serializers.SerializerMethodField()
     changed_my_mind = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -19,7 +32,8 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "author",
-            "parent",
+            "parent_id",
+            "root_id",
             "created_at",
             "is_soft_deleted",
             "text",
@@ -27,25 +41,10 @@ class CommentSerializer(serializers.ModelSerializer):
             "included_forecast",
             "is_private",
             "vote_score",
-            "children",
             "changed_my_mind",
         )
 
-    def get_parent(self, comment: Comment):
-        if comment.parent:
-            parent = comment.parent
-            return {
-                "id": parent.id,
-                "on_post": parent.on_post.id,
-                "author": BaseUserSerializer(parent.author).data,
-            }
-        return None
-
-    def get_children(self, comment: Comment):
-        children = Comment.objects.filter(parent=comment)
-        return serialize_comment_many(children, self.context.get("current_user"))
-
-    def get_changed_my_mind(self, comment:Comment) -> dict[str, bool | int]:
+    def get_changed_my_mind(self, comment: Comment) -> dict[str, bool | int]:
         changed_my_mind_count = 0
         user_has_changed_my_mind = False
 
@@ -107,6 +106,8 @@ def serialize_comment_many(
     comments: QuerySet[Comment] | list[Comment],
     current_user: User | None = None,
 ) -> list[dict]:
+    # Get original ordering of the comments
+    ids = [p.pk for p in comments]
     qs = Comment.objects.filter(pk__in=[c.pk for c in comments])
 
     qs = qs.select_related("included_forecast")
@@ -117,4 +118,8 @@ def serialize_comment_many(
 
     qs = qs.annotate_cmm_info(current_user)
 
-    return [serialize_comment(comment, current_user) for comment in qs.all()]
+    # Restore the original ordering
+    objects = list(qs.all())
+    objects.sort(key=lambda obj: ids.index(obj.id))
+
+    return [serialize_comment(comment, current_user) for comment in objects]
