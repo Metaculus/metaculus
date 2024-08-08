@@ -110,7 +110,7 @@ const Header: FC = () => {
             {" "}
             <NavLink
               href={`/questions/create/`}
-              className="mr-2 flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
+              className="mr-2 flex h-full items-center p-3 capitalize no-underline hover:bg-blue-200-dark"
               activeClassName="bg-blue-300-dark"
             >
               + {t("create")}
