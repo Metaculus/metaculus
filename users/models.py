@@ -41,7 +41,7 @@ class User(TimeStampedModel, AbstractUser):
 
     # Subscription settings
     unsubscribed_mailing_tags = ArrayField(
-        models.CharField(max_length=200), blank=True, default=[]
+        models.CharField(max_length=200), blank=True, default=list
     )
 
     objects = UserManager()
