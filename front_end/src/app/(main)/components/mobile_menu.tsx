@@ -90,7 +90,7 @@ const MenuLink: FC<
       as={href ? (regularLink ? "a" : Link) : "button"}
       {...(href ? { href } : {})}
       onClick={onClick}
-      className="flex size-full items-center justify-center px-4 py-1.5 no-underline hover:bg-blue-400-dark"
+      className="flex size-full items-center justify-center px-4 py-1.5 capitalize no-underline hover:bg-blue-400-dark"
     >
       {children}
     </MenuItem>
