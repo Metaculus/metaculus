@@ -14,8 +14,9 @@ class CommentFilterSerializer(serializers.Serializer):
     post = serializers.IntegerField(required=False, allow_null=True)
     author = serializers.IntegerField(required=False, allow_null=True)
     sort = serializers.CharField(required=False, allow_null=True)
+    focus_comment_id = serializers.IntegerField(required=False, allow_null=True)
 
-    def validate_post(self, value: str):
+    def validate_post(self, value: int):
         try:
             return Post.objects.get(pk=value)
         except Post.DoesNotExist:
@@ -105,6 +106,8 @@ def serialize_comment_many(
     comments: QuerySet[Comment] | list[Comment],
     current_user: User | None = None,
 ) -> list[dict]:
+    # Get original ordering of the comments
+    ids = [p.pk for p in comments]
     qs = Comment.objects.filter(pk__in=[c.pk for c in comments])
 
     qs = qs.select_related("included_forecast")
@@ -115,4 +118,8 @@ def serialize_comment_many(
 
     qs = qs.annotate_cmm_info(current_user)
 
-    return [serialize_comment(comment, current_user) for comment in qs.all()]
+    # Restore the original ordering
+    objects = list(qs.all())
+    objects.sort(key=lambda obj: ids.index(obj.id))
+
+    return [serialize_comment(comment, current_user) for comment in objects]

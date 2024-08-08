@@ -1,12 +1,15 @@
-from django.db.models import Q
+from django.db.models import Q, Case, When, Value, IntegerField
 
 
 def get_comments_feed(
-    qs, user, parent_isnull=None, post=None, author=None, sort=None
+    qs,
+    user,
+    parent_isnull=None,
+    post=None,
+    author=None,
+    sort=None,
+    focus_comment_id: int = None,
 ):
-    # TODO: ensure user has access to all feed comments!!!
-    # TODO: validate on_post_id!!!!
-
     if parent_isnull is not None:
         qs = qs.filter(parent=None)
 
@@ -23,7 +26,38 @@ def get_comments_feed(
 
     qs = qs.annotate_vote_score()
 
+    order_by_args = []
+
+    # TODO: add final permissions/private_comments validation
+    #   To filter out comments user does not have access to!
+    #   So we wouldn't need to validate post_id/focus_comment_id separately
+
+    if focus_comment_id is not None:
+        focus_comment = qs.filter(id=focus_comment_id).first()
+
+        if focus_comment:
+            fc_q = Q(pk=focus_comment_id)
+
+            # If child comment, fetch all other children + root comment
+            if focus_comment.root_id:
+                fc_q |= Q(pk=focus_comment.root_id) | Q(root_id=focus_comment.root_id)
+            else:
+                # Fetch all children
+                fc_q |= Q(root_id=focus_comment_id)
+
+            qs = qs.annotate(
+                is_focused_comment=Case(
+                    When(fc_q, then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                )
+            )
+            order_by_args.append("-is_focused_comment")
+
     if sort:
-        qs = qs.order_by(sort)
+        order_by_args.append(sort)
+
+    if order_by_args:
+        qs = qs.order_by(*order_by_args)
 
     return qs

@@ -1,5 +1,6 @@
 import difflib
 
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
@@ -26,6 +27,7 @@ from projects.permissions import ObjectPermission
 # TODO: find by comment_id + entire thread!!! (for comment link)
 # TODO: exclude comment_id!! (for comment link pagination)
 
+
 class RootCommentsPagination(LimitOffsetPagination):
     """
     Paginates by Root comments and includes all child comments
@@ -39,11 +41,14 @@ class RootCommentsPagination(LimitOffsetPagination):
 
         root_qs = queryset.filter(root__isnull=True)
 
-        # Will return only root params
-        paginated_data = super().paginate_queryset(root_qs, request, view=view)
+        # Fetches only root comments
+        root_objects = super().paginate_queryset(root_qs, request, view=view)
 
-        # Enrich with all children
-        paginated_data += list(queryset.filter(root__in=paginated_data))
+        # Re-apply filter to the original queryset
+        # To keep original ordering
+        paginated_data = list(
+            queryset.filter(Q(root__in=root_objects) | Q(pk__in=[x.pk for x in root_objects]))
+        )
 
         return paginated_data
 
