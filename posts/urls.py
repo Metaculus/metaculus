@@ -18,3 +18,8 @@ urlpatterns = [
     path("posts/<int:pk>/update/", views.post_update_api_view, name="update-question"),
     path("posts/<int:pk>/delete/", views.post_delete_api_view, name="delete-question"),
 ]
+
+
+old_api = [
+    path("questions/", views.posts_list_oldapi_view, name="oldapi-post-list")
+]
