@@ -86,6 +86,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         /* if we're on a post, fetch only parent comments with children annotated.  if this is a profile, fetch only the author's comments, including parents and children */
         parent_isnull: !!postId,
         page: page,
+        sort: commentSort,
       });
       if ("errors" in response) {
         console.error("Error fetching comments:", response.errors);
@@ -93,8 +94,6 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         setTotalCount(response.count);
 
         const sortedComments = response.results;
-        sortComments(sortedComments, commentSort);
-
         if (keepComments && page && page > 1) {
           setComments((prevComments) => [...prevComments, ...sortedComments]);
         } else {
@@ -106,7 +105,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
           );
           setNextPage(nextPageNumber ? Number(nextPageNumber) : 1);
         } else {
-          setNextPage(1);
+          setNextPage(0);
         }
       }
       setIsLoading(false);
@@ -235,7 +234,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         </>
       )}
       {isLoading && <LoadingIndicator className="mx-auto my-8 w-24" />}
-      {nextPage && (
+      {!!nextPage && (
         <div className="flex items-center justify-center">
           <Button onClick={() => fetchComments()} disabled={isLoading}>
             {t("loadMoreComments")}
