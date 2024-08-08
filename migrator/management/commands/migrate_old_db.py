@@ -79,7 +79,7 @@ class Command(BaseCommand):
         print("Migrated user notification preferences")
 
         # TODO: enable on prod release!
-        print("\033[93mPost Subscriptions/Following migration is disabled!\033[93m")
+        print("\033[93mPost Subscriptions/Following migration is disabled!\033[0m")
         # migrate_subscriptions(site_ids=site_ids)
         # print("Migrated post subscriptions")
 
