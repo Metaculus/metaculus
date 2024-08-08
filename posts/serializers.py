@@ -191,6 +191,26 @@ class PostFilterSerializer(serializers.Serializer):
         return
 
 
+class OldQuestionFilterSerializer(PostFilterSerializer):
+    status = serializers.MultipleChoiceField(
+        choices=["open", "closed"],
+        required=False,
+    )
+    project = serializers.IntegerField(required=False)
+
+    def validate_project(self, value):
+        return validate_tournaments(lookup_values=[str(value)])
+
+    def validate_order_by(self, value: str):
+        order_by = value.lstrip("-")
+        if order_by == "hotness":
+            return "activity"
+        if order_by in self.Order:
+            return value
+
+        return
+
+
 def serialize_post(
     post: Post,
     with_cp: bool = False,
