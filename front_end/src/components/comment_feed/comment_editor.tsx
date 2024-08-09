@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import React, { useState } from "react";
+import { FC, useState } from "react";
 
 import { createComment } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
@@ -10,19 +10,22 @@ import Checkbox from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { CommentType } from "@/types/comment";
 
 interface CommentEditorProps {
   text?: string;
   isPrivate?: boolean;
   postId?: number;
   parentId?: number;
+  onSubmit?: (newComment: CommentType) => void;
 }
 
-const CommentEditor: React.FC<CommentEditorProps> = ({
+const CommentEditor: FC<CommentEditorProps> = ({
   text,
   isPrivate,
   postId,
   parentId,
+  onSubmit,
 }) => {
   const t = useTranslations();
 
@@ -33,6 +36,26 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
 
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
+
+  const handleSubmit = async () => {
+    const newComment = await createComment({
+      parent: parentId,
+      text: markdown,
+      on_post: postId,
+      included_forecast: hasIncludedForecast,
+      is_private: isPrivateComment,
+    });
+
+    if ("errors" in newComment) {
+      return;
+    }
+
+    setIsEditing(true);
+    setIsPrivateComment(isPrivate ?? false);
+    setHasIncludedForecast(false);
+    setMarkdown("");
+    onSubmit && onSubmit(newComment);
+  };
 
   if (user == null)
     return (
@@ -96,18 +119,7 @@ const CommentEditor: React.FC<CommentEditorProps> = ({
           {isEditing ? t("preview") : t("edit")}
         </Button>
         {!isEditing && (
-          <Button
-            className="p-2"
-            onClick={async () => {
-              const newComment = await createComment({
-                parent: parentId,
-                text: markdown,
-                on_post: postId,
-                included_forecast: hasIncludedForecast,
-                is_private: isPrivateComment,
-              });
-            }}
-          >
+          <Button className="p-2" onClick={handleSubmit}>
             {t("submit")}
           </Button>
         )}

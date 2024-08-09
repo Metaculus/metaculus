@@ -42,8 +42,8 @@ def _get_question_data_for_cp_change_notification(
     if question.type == "binary":
         data = CPChangeData(question=NotificationQuestionParams.from_question(question))
         data.cp_median = current_entry.medians[1] if current_entry.medians else None
-        data.absolute_difference = display_diff[0][0]
-        data.odds_ratio = display_diff[0][1]
+        data.cp_change_label = "goneUp" if display_diff[0][0] > 0 else "goneDown"
+        data.cp_change_value = abs(display_diff[0][0])
 
         if user_forecast:
             data.user_forecast = user_forecast.probability_yes
@@ -59,8 +59,8 @@ def _get_question_data_for_cp_change_notification(
             data.cp_median = (
                 current_entry.medians[i] if current_entry.medians is not None else None
             )
-            data.absolute_difference = display_diff[i][0]
-            data.odds_ratio = display_diff[i][1]
+            data.cp_change_label = "goneUp" if display_diff[i][0] > 0 else "goneDown"
+            data.cp_change_value = abs(display_diff[i][0])
             data.user_forecast = (
                 user_forecast.probability_yes_per_category[i] if user_forecast else None
             )
@@ -85,8 +85,17 @@ def _get_question_data_for_cp_change_notification(
             if q3 is not None
             else None
         )
-        data.earth_movers_diff = display_diff[0]
-        data.assymetry = display_diff[1]
+        earth_movers_distance, assymetric = display_diff
+        symmetric = earth_movers_distance - abs(assymetric)
+        if abs(assymetric) > symmetric:
+            # gone up / down
+            data.cp_change_label = "goneUp" if assymetric > 0 else "goneDown"
+            data.cp_change_value = abs(assymetric)
+        else:
+            # expanded / contracted
+            # TODO: figure out how to perform this check
+            data.cp_change_label = "expanded" if True else "contracted"
+            data.cp_change_value = symmetric
         user_q1, user_median, user_q3 = None, None, None
         if user_forecast:
             user_q1, user_median, user_q3 = get_scaled_quartiles_from_cdf(
@@ -292,8 +301,6 @@ def notify_milestone(post: Post):
 def notify_post_status_change(post: Post, event: PostSubscription.PostStatusChange):
     """
     Notify about post status change
-
-    TODO: connect to the post triggers
     """
 
     subscriptions = post.subscriptions.filter(

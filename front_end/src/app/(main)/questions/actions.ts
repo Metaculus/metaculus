@@ -3,11 +3,12 @@
 import { revalidatePath } from "next/cache";
 
 import CommentsApi, {
-  getCommentsParams,
-  EditCommentParams,
-  VoteCommentParams,
+  CommentReportReason,
   CreateCommentParams,
+  EditCommentParams,
+  getCommentsParams,
   ToggleCMMCommentParams,
+  VoteCommentParams,
 } from "@/services/comments";
 import PostsApi, { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
@@ -270,6 +271,13 @@ export async function toggleCMMComment(cmmParam: ToggleCMMCommentParams) {
       errors: error.data,
     };
   }
+}
+
+export async function reportComment(
+  commentId: number,
+  reason: CommentReportReason
+) {
+  return await CommentsApi.report(commentId, reason);
 }
 
 export async function searchUsers(query: string) {

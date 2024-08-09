@@ -1,23 +1,48 @@
+import re
+
 from django.utils.html import strip_tags
 from markdown import markdown
+
+from comments.utils import USERNAME_PATTERN
 
 
 def remove_markdown(text: str) -> str:
     return strip_tags(markdown(text))
 
 
-def generate_email_comment_preview_text(text: str, username: str) -> tuple[str, bool]:
+def generate_email_comment_preview_text(
+    text: str, username: str = None
+) -> tuple[str, bool]:
+    """
+    Generate a preview of email comment text with mention highlighting.
+    """
+
     placeholder = "..."
     max_chars = 80
     text = remove_markdown(text)
-    mention = f"@{username}"
-    idx = text.find(mention)
 
-    if idx == -1:
-        return (text[:max_chars] + placeholder if len(text) > 80 else text), False
+    # Replace all matches with @username format
+    text = re.sub(USERNAME_PATTERN, r"@\1", text)
 
-    start = max(0, idx - int(max_chars / 2))
-    end = min(len(text), idx + int(max_chars / 2) + len(mention))
+    # Find all matches and check for the username mention
+    matches = list(re.finditer(USERNAME_PATTERN, text))
+    mention_match = None
+
+    if username:
+        mention = f"@{username}"
+        mention_match = next(
+            (match for match in matches if match.group(1) == username), None
+        )
+
+    if not mention_match:
+        # No mention found, truncate text if necessary
+        preview_text = text[:max_chars] + placeholder if len(text) > max_chars else text
+        return preview_text, False
+
+    # Mention found, create preview around the mention
+    idx = mention_match.start()
+    start = max(0, idx - max_chars // 2)
+    end = min(len(text), idx + max_chars // 2 + len(mention))
 
     preview = text[start:end]
     if start > 0:
@@ -25,7 +50,7 @@ def generate_email_comment_preview_text(text: str, username: str) -> tuple[str, 
     if end < len(text):
         preview += placeholder
 
-    # Replace with bold
-    preview = preview.replace(mention, f"<b>{mention}</b>")
+    # Highlight the mention in the preview
+    preview = re.sub(re.escape(mention), f"<b>{mention}</b>", preview)
 
     return preview, True

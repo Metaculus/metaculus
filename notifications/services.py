@@ -3,11 +3,13 @@ from dataclasses import dataclass, asdict
 from dateutil.parser import parse as date_parse
 from django.utils.translation import gettext_lazy as _
 
+from comments.constants import CommentReportType
 from comments.models import Comment
 from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
 from posts.models import Post, PostSubscription
 from posts.services.search import get_similar_posts_for_multiple_posts
+from projects.models import Project
 from questions.models import Question
 from users.models import User
 from utils.dtypes import dataclass_from_dict
@@ -50,12 +52,24 @@ class NotificationQuestionParams:
 
 
 @dataclass
+class NotificationProjectParams:
+    id: int
+    name: str
+    slug: str
+
+    @classmethod
+    def from_project(cls, project: Project):
+        return cls(id=project.id, slug=project.slug, name=project.name)
+
+
+@dataclass
 class CPChangeData:
     question: NotificationQuestionParams
     forecast_date: str | None = None
     cp_median: float | None = None
+    cp_change_label: str | None = None
+    cp_change_value: float | None = None
     # binary / MC only
-    absolute_difference: float | None = None
     odds_ratio: float | None = None
     user_forecast: float | None = None
     # MC only
@@ -63,24 +77,9 @@ class CPChangeData:
     # Continuous Only
     cp_q1: float | None = None
     cp_q3: float | None = None
-    earth_movers_diff: float | None = None
-    assymetry: float | None = None
     user_q1: float | None = None
     user_median: float | None = None
     user_q3: float | None = None
-
-    # TODO: add direction label:
-    #   Binary: gone up | gone down:
-    #       A: take from absolute_difference (negative/positive)
-    #   Continuous: gone up | gone down | contracted | expanded for continuous
-    #       A: Luke will add separate attrs
-
-    # TODO: how to get a {change value} for continuous?
-    #       A: Luke will add this value
-    # TODO: add "Movement" for group, conditional, or multiple choice
-    #       A: Luke will add separate attrs
-    # TODO: add "User Last Prediction" for group, conditional, or multiple choice.
-    #       A: take the `user_median` and discuss with Syl
 
     def format_forecast_date(self):
         return date_parse(self.forecast_date)
@@ -331,6 +330,7 @@ class NotificationPostStatusChange(
     class ParamsType:
         post: NotificationPostParams
         event: PostSubscription.PostStatusChange
+        project: NotificationProjectParams = None
 
     @classmethod
     def generate_subject_group(cls, recipient: User):
@@ -339,6 +339,47 @@ class NotificationPostStatusChange(
         """
 
         return _("Questions have changed status")
+
+    @classmethod
+    def get_email_context_group(cls, notifications: list[Notification]):
+        # Deduplicate Posts
+        # There could be some cases when we have post open notification
+        # from both post subscriptions and tournament ones.
+        params_map = {}
+
+        for notification in notifications:
+            obj = dataclass_from_dict(cls.ParamsType, notification.params)
+            key = f"{obj.post.post_id}-{obj.event}"
+
+            if not params_map.get(key) or obj.project:
+                params_map[key] = obj
+
+        # Step #2: group by tournaments
+        from_projects = {}
+        from_posts = []
+
+        for param in params_map.values():
+            if param.project:
+                project_id = param.project.id
+                if not from_projects.get(project_id):
+                    from_projects[project_id] = {
+                        "project": param.project,
+                        "notifications": [],
+                    }
+                from_projects[project_id]["notifications"].append(param)
+            else:
+                from_posts.append(param)
+
+        return {
+            "recipient": notifications[0].recipient,
+            "params": {
+                "from_projects": list(from_projects.values()),
+                "from_posts": from_posts,
+            },
+            "similar_posts": cls.get_similar_posts(
+                [x.post.post_id for x in params_map.values()]
+            ),
+        }
 
 
 class NotificationPostSpecificTime(
@@ -358,6 +399,58 @@ class NotificationPostSpecificTime(
         """
 
         return _("Questions reminder")
+
+
+class NotificationCommentReport(NotificationTypeBase):
+    type = "comment_report"
+    email_template = "emails/comment_report.html"
+
+    @dataclass
+    class ParamsType:
+        post: NotificationPostParams
+        comment_id: int
+        reason: CommentReportType
+
+    @classmethod
+    def generate_subject_group(cls, recipient: User):
+        return _("Comment reports")
+
+    @classmethod
+    def get_email_context_group(cls, notifications: list[Notification]):
+        comments_map = {
+            c.id: c
+            for c in Comment.objects.filter(
+                pk__in=[n.params["comment_id"] for n in notifications]
+            )
+        }
+
+        params = []
+
+        for notification in notifications:
+            comment = comments_map.get(notification.params["comment_id"])
+
+            if not comment:
+                continue
+
+            preview_text, has_mention = generate_email_comment_preview_text(
+                comment.text
+            )
+
+            params.append(
+                {
+                    **notification.params,
+                    "author_username": comment.author.username,
+                    "preview_text": preview_text,
+                    "url": build_post_comment_url(
+                        comment.on_post_id, comment.on_post.title, comment.id
+                    ),
+                }
+            )
+
+        return {
+            "recipient": notifications[0].recipient,
+            "params": params,
+        }
 
 
 class NotificationPostCPChange(NotificationTypeBase):
@@ -409,6 +502,7 @@ NOTIFICATION_TYPE_REGISTRY = [
     NotificationPredictedQuestionResolved,
     NotificationPostSpecificTime,
     NotificationPostCPChange,
+    NotificationCommentReport,
 ]
 
 

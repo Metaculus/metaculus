@@ -18,6 +18,7 @@ import {
   createForecast,
 } from "@/app/(main)/questions/actions";
 import CommentEditor from "@/components/comment_feed/comment_editor";
+import CommentReportModal from "@/components/comment_feed/comment_report_modal";
 import CommentVoter from "@/components/comment_feed/comment_voter";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
@@ -154,8 +155,10 @@ const Comment: FC<CommentProps> = ({
   const locale = useLocale();
   const t = useTranslations();
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isReplying, setIsReplying] = useState(false);
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const { user } = useAuth();
   if (user?.id === comment.author.id) {
@@ -230,12 +233,10 @@ const Comment: FC<CommentProps> = ({
       },
     },
     {
-      //hidden: !user?.id,
+      hidden: !user?.id,
       id: "report",
       name: t("report"),
-      onClick: () => {
-        return null; //setReportModalOpen(true)
-      },
+      onClick: () => setIsReportModalOpen(true),
     },
     {
       // hidden: permissions !== CommentPermissions.CURATOR,
@@ -243,12 +244,17 @@ const Comment: FC<CommentProps> = ({
       name: t("delete"),
       onClick: async () => {
         // setDeleteModalOpen(true),
-        softDeleteComment(comment.id);
+        const response = softDeleteComment(comment.id);
+        if ("errors" in response) {
+          console.error("Error deleting comment:", response.errors);
+        } else {
+          setIsDeleted(true);
+        }
       },
     },
   ];
 
-  if (comment.is_soft_deleted) {
+  if (isDeleted) {
     return (
       <div id={`comment-${comment.id}`}>
         {comment.included_forecast && (
@@ -352,13 +358,17 @@ const Comment: FC<CommentProps> = ({
       </div>
       {isEditing && (
         <Button
-          onClick={() => {
-            setIsEditing(false);
-            editComment({
+          onClick={async () => {
+            const response = await editComment({
               id: comment.id,
               text: commentMarkdown,
               author: user!.id,
             });
+            if (response && "errors" in response) {
+              console.error("Error deleting comment:", response.errors);
+            } else {
+              setIsEditing(false);
+            }
           }}
         >
           {t("save")}
@@ -411,7 +421,14 @@ const Comment: FC<CommentProps> = ({
       </div>
 
       {isReplying && (
-        <CommentEditor parentId={comment.id} postId={comment.on_post} />
+        <CommentEditor
+          parentId={comment.id}
+          postId={comment.on_post}
+          onSubmit={(newComment: CommentType) => {
+            addNewChildrenComment(comment, newComment);
+            setIsReplying(false);
+          }}
+        />
       )}
 
       {comment.children.length > 0 && (
@@ -423,8 +440,23 @@ const Comment: FC<CommentProps> = ({
           sort={sort}
         />
       )}
+      <CommentReportModal
+        comment={comment}
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+      />
     </div>
   );
 };
+
+function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
+  if (comment.id === newComment.parent?.id) {
+    comment.children.push(newComment);
+    return;
+  }
+  comment.children.map((nestedComment) => {
+    addNewChildrenComment(nestedComment, newComment);
+  });
+}
 
 export default Comment;

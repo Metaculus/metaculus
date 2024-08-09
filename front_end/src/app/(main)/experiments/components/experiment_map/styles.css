@@ -11,6 +11,6 @@
 }
 
 .hoveredMapArea {
-  @apply stroke-blue-900 stroke-3 dark:stroke-blue-900;
+  @apply stroke-blue-900 stroke-3 dark:stroke-blue-900-dark;
   transition: stroke-width 0.2s ease;
 }

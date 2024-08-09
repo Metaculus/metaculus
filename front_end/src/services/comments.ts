@@ -43,6 +43,8 @@ export type PaginatedResponse<T> = {
   total_count: number;
 };
 
+export type CommentReportReason = "spam" | "violation";
+
 class CommentsApi {
   static async getComments(
     url: string = "/comments",
@@ -78,8 +80,8 @@ class CommentsApi {
 
   static async createComment(
     commentData: CreateCommentParams
-  ): Promise<Response | null> {
-    return await post<null, CreateCommentParams>(
+  ): Promise<CommentType> {
+    return await post<CommentType, CreateCommentParams>(
       `/comments/create`,
       commentData
     );
@@ -101,6 +103,10 @@ class CommentsApi {
       `/comments/${params.id}/toggle_cmm`,
       params
     );
+  }
+
+  static async report(commentId: number, reason: CommentReportReason) {
+    return post(`/comments/${commentId}/report`, { reason });
   }
 }
 

@@ -4,33 +4,60 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from comments.constants import CommentReportType
 from comments.models import ChangedMyMindEntry, Comment, CommentVote, CommentDiff
 from comments.serializers import (
     CommentWriteSerializer,
     serialize_comment,
     serialize_comment_many,
+    CommentFilterSerializer,
 )
 from comments.services.common import create_comment
+from comments.services.feed import get_comments_feed
+from notifications.services import NotificationCommentReport, NotificationPostParams
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 
 
-class CustomCommentPagination(PageNumberPagination):
-    page_size = 10
+class RootCommentsPagination(LimitOffsetPagination):
+    """
+    Paginates by Root comments and includes all child comments
+    """
+
+    total_count: int
+
+    def paginate_queryset(self, queryset, request, view=None):
+        # All comments from the queryset
+        self.total_count = self.get_count(queryset)
+
+        root_qs = queryset.filter(root__isnull=True)
+
+        # Fetches only root comments
+        root_objects = super().paginate_queryset(root_qs, request, view=view)
+
+        # Re-apply filter to the original queryset
+        # To keep original ordering
+        paginated_data = list(
+            queryset.filter(
+                Q(root__in=root_objects) | Q(pk__in=[x.pk for x in root_objects])
+            )
+        )
+
+        return paginated_data
 
     def get_paginated_response(self, data):
         return Response(
             {
-                "count": self.page.paginator.count,
+                "total_count": self.total_count,
+                "count": self.count,
                 "next": self.get_next_link(),
                 "previous": self.get_previous_link(),
                 "results": data,
-                "total_count": self.total_count,
             }
         )
 
@@ -38,47 +65,25 @@ class CustomCommentPagination(PageNumberPagination):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def comments_list_api_view(request: Request):
-    comments = Comment.objects
+    comments = Comment.objects.all()
+    use_root_comments_pagination = serializers.BooleanField(
+        allow_null=True
+    ).run_validation(request.query_params.get("use_root_comments_pagination"))
 
-    parent_param = serializers.CharField(allow_null=True).run_validation(
-        request.query_params.get("parent_isnull")
+    # Validate query parameters using the serializer
+    filters_serializer = CommentFilterSerializer(data=request.query_params)
+    filters_serializer.is_valid(raise_exception=True)
+
+    validated_data = filters_serializer.validated_data
+
+    # Filter the queryset using the service function
+    comments = get_comments_feed(comments, user=request.user, **validated_data)
+
+    paginator = (
+        RootCommentsPagination()
+        if use_root_comments_pagination
+        else LimitOffsetPagination()
     )
-    if parent_param:
-        comments = comments.filter(parent=None)
-
-    post_param = serializers.CharField(allow_null=True).run_validation(
-        request.query_params.get("post")
-    )
-    if post_param:
-        comments = comments.filter(on_post=post_param)
-
-    author_param = serializers.CharField(allow_null=True).run_validation(
-        request.query_params.get("author")
-    )
-    if author_param:
-        comments = comments.filter(author_id=author_param)
-
-    # filter out private comments, unless they were written by the request user
-    if request.user.is_anonymous:
-        comments = comments.filter(is_private=False)
-    else:
-        comments = comments.filter(Q(is_private=False) | Q(author=request.user))
-
-    comments = comments.annotate_vote_score()
-
-    sort_param = serializers.CharField(allow_null=True).run_validation(
-        request.query_params.get("sort")
-    )
-    if sort_param:
-        comments = comments.order_by(sort_param)
-
-    # comments = [
-    #    c
-    #    for c in comments.all()
-    #    if ObjectPermission.can_view(get_comment_permission_for_user(c, request.user))
-    # ]
-
-    paginator = CustomCommentPagination()
     paginator.total_count = comments.count()
     paginated_comments = paginator.paginate_queryset(comments, request)
 
@@ -195,3 +200,28 @@ def comment_toggle_cmm_view(request, pk=int):
         {"error": "Already set as changed my mind"},
         status=status.HTTP_400_BAD_REQUEST,
     )
+
+
+@api_view(["POST"])
+def comment_report_api_view(request, pk=int):
+    comment = get_object_or_404(Comment, pk=pk)
+    post = comment.on_post
+
+    reason = serializers.ChoiceField(choices=CommentReportType.choices).run_validation(
+        request.data.get("reason")
+    )
+
+    if post:
+        staff = post.default_project.get_users_for_permission(ObjectPermission.CURATOR)
+
+        for user in staff:
+            NotificationCommentReport.send(
+                user,
+                NotificationCommentReport.ParamsType(
+                    post=NotificationPostParams.from_post(post),
+                    comment_id=comment.id,
+                    reason=reason,
+                ),
+            )
+
+    return Response(status=status.HTTP_204_NO_CONTENT)

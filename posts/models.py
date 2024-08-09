@@ -486,6 +486,9 @@ class Post(TimeStampedModel):
         else:
             return []
 
+    def get_forecasters(self) -> QuerySet["User"]:
+        return User.objects.filter(forecast__post=self).distinct()
+
 
 class PostSubscription(TimeStampedModel):
     class SubscriptionType(models.TextChoices):

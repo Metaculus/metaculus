@@ -10,7 +10,7 @@ import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 
 type SocialButtonsType = {
-  type: "sigin" | "signup";
+  type: "signin" | "signup";
 };
 
 const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
@@ -33,7 +33,7 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
                 >
                   <Google className="mr-2 flex-none" />
                   <span className="flex-1 whitespace-nowrap text-center">
-                    {type == "sigin"
+                    {type == "signin"
                       ? t("loginGoogle")
                       : t("registrationGoogle")}
                   </span>
@@ -53,7 +53,7 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
                     className="mr-2 flex-none text-[#1877F2]"
                   />
                   <span className="flex-1 whitespace-nowrap text-center">
-                    {type == "sigin" ? t("loginFB") : t("registrationFB")}
+                    {type == "signin" ? t("loginFB") : t("registrationFB")}
                   </span>
                 </Button>
               );

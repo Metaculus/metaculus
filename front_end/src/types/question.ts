@@ -13,7 +13,7 @@ export enum QuestionOrder {
   PublishTimeDesc = "-published_at",
   LastPredictionTimeAsc = "user_last_forecasts_date",
   LastPredictionTimeDesc = "-user_last_forecasts_date",
-  DivergenceDesc = "-divergence",
+  DivergenceAsc = "divergence",
   VotesDesc = "-vote_score",
   CommentCountDesc = "-comment_count",
   UnreadCommentCountDesc = "-unread_comment_count",

@@ -25,7 +25,7 @@ export function sortComments(comments: CommentType[], sort: SortOption) {
   comments.sort((a, b) => {
     switch (sort) {
       case "-created_at":
-        return Number(b.created_at) - Number(a.created_at);
+        return Number(new Date(b.created_at)) - Number(new Date(a.created_at));
       case "-vote_score":
         return (b.vote_score ?? 0) - (a.vote_score ?? 0);
       default:
@@ -86,6 +86,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         /* if we're on a post, fetch only parent comments with children annotated.  if this is a profile, fetch only the author's comments, including parents and children */
         parent_isnull: !!postId,
         page: page,
+        sort: commentSort,
       });
       if ("errors" in response) {
         console.error("Error fetching comments:", response.errors);
@@ -93,8 +94,6 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         setTotalCount(response.count);
 
         const sortedComments = response.results;
-        sortComments(sortedComments, commentSort);
-
         if (keepComments && page && page > 1) {
           setComments((prevComments) => [...prevComments, ...sortedComments]);
         } else {
@@ -106,7 +105,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
           );
           setNextPage(nextPageNumber ? Number(nextPageNumber) : 1);
         } else {
-          setNextPage(1);
+          setNextPage(0);
         }
       }
       setIsLoading(false);
@@ -175,7 +174,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
       <div className="my-4 flex flex-row items-center gap-4">
         <h2
           className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
-          id="comment-section"
+          id="comments"
         >
           {t("comments")}
         </h2>
@@ -197,7 +196,12 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         </DropdownMenu>
         <span>{totalCount} comments</span>
       </div>
-      {postId && <CommentEditor postId={postId} />}
+      {postId && (
+        <CommentEditor
+          postId={postId}
+          onSubmit={() => fetchComments("/comments", sort, 1, false)}
+        />
+      )}
       {shownComments.map((comment: CommentType) => (
         <div key={comment.id}>
           <hr className="my-4 border-blue-400 dark:border-blue-700" />
@@ -230,7 +234,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         </>
       )}
       {isLoading && <LoadingIndicator className="mx-auto my-8 w-24" />}
-      {nextPage && (
+      {!!nextPage && (
         <div className="flex items-center justify-center">
           <Button onClick={() => fetchComments()} disabled={isLoading}>
             {t("loadMoreComments")}

@@ -1,10 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import classNames from "classnames";
 import { format } from "date-fns";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { FC, PropsWithChildren } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -66,6 +69,55 @@ const dateQuestionSchema = continuousQuestionSchema.merge(
 
 const multipleChoiceQuestionSchema = baseQuestionSchema;
 
+type MarkdownProps = {
+  className?: string;
+};
+
+const MarkdownText: FC<PropsWithChildren<MarkdownProps>> = ({
+  className,
+  children,
+}) => {
+  return (
+    <span
+      className={classNames(
+        "rounded-sm bg-blue-400 px-1 pb-0.5 pt-0 font-mono text-xs text-gray-1000 dark:bg-blue-400-dark dark:text-gray-1000-dark",
+        className
+      )}
+    >
+      {children}
+    </span>
+  );
+};
+
+type InputContainerProps = {
+  labelText?: string;
+  explanation?: any;
+  className?: string;
+};
+
+const InputContainer: FC<PropsWithChildren<InputContainerProps>> = ({
+  labelText,
+  explanation,
+  className,
+  children,
+}) => {
+  return (
+    <div className={classNames("flex flex-col gap-1.5", className)}>
+      {labelText && (
+        <span className="text-sm font-bold capitalize text-gray-600 dark:text-gray-600-dark">
+          {labelText}
+        </span>
+      )}
+      {children}
+      {explanation && (
+        <span className="text-xs text-gray-700 dark:text-gray-700-dark">
+          {explanation}
+        </span>
+      )}
+    </div>
+  );
+};
+
 type Props = {
   questionType: string;
   tournament_id?: number;
@@ -76,7 +128,7 @@ type Props = {
   siteMain: Tournament;
 };
 
-const QuestionForm: React.FC<Props> = ({
+const QuestionForm: FC<Props> = ({
   questionType,
   mode,
   allCategories,
@@ -104,24 +156,20 @@ const QuestionForm: React.FC<Props> = ({
     { title: string; description: string }
   > = {
     binary: {
-      title: "Binary Question",
-      description:
-        'Binary questions are generally of the form "Will X happen?" They either resolve as Yes or No.',
+      title: t("binaryQuestion"),
+      description: t("binaryQuestionDescription"),
     },
     multiple_choice: {
-      title: "Multiple Choice",
-      description:
-        'Multiple choice questions are generally of the form "Which of the following will happen?" or "Which option is correct?"',
+      title: t("multipleChoice"),
+      description: t("multipleChoiceDescription"),
     },
     date: {
-      title: "Date Range",
-      description:
-        "A date question asks when something will happen. Its resolution will typically fall within a specified range.",
+      title: t("dateRange"),
+      description: t("dateRangeDescription"),
     },
     numeric: {
-      title: "Numeric Range",
-      description:
-        "A numeric question asks about the value of an unknown future quantity. Its resolution will typically fall within a specified range.",
+      title: t("numericRange"),
+      description: t("numericRangeDescription"),
     },
   };
 
@@ -147,7 +195,7 @@ const QuestionForm: React.FC<Props> = ({
       categories: categoriesList.map((x) => x.id),
       question: data,
     };
-    if (mode == "edit" && post) {
+    if (mode === "edit" && post) {
       const resp = await updatePost(post.id, post_data);
       router.push(`/questions/${resp.post?.id}`);
     } else {
@@ -185,25 +233,21 @@ const QuestionForm: React.FC<Props> = ({
     control.setValue("type", questionType);
   }
 
-  const inputContainerStyles = "flex flex-col gap-1.5";
   const baseInputStyles =
-    "px-3 py-2 text-base border border-gray-500 rounded dark:bg-blue-950";
-  const baseTextareaStyles = "border border-gray-500 rounded dark:bg-blue-950";
-  const inputLabelStyles = "text-sm font-bold text-gray-600 dark:text-gray-400";
-  const inputDescriptionStyles = "text-xs text-gray-700 dark:text-gray-300";
-  const markdownStyles =
-    "text-xs font-mono pb-0.5 pt-0 px-1 rounded-sm bg-blue-400 dark:bg-yellow-500/25";
+    "px-3 py-2 text-base border border-gray-500 dark:border-gray-500-dark rounded dark:bg-blue-50-dark";
+  const baseTextareaStyles =
+    "border border-gray-500 dark:border-gray-500-dark rounded dark:bg-blue-50-dark";
 
   return (
-    <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
+    <div className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
-        backText="Create"
+        backText={t("create")}
         backHref="/questions/create"
         currentPage={formattedQuestionType}
       />
-      <p className="mt-0 text-sm text-gray-600 dark:text-gray-300 md:mt-1 md:text-base">
+      <span className="text-sm text-gray-700 dark:text-gray-700-dark md:mt-1 md:text-base">
         {questionDescription}
-      </p>
+      </span>
       <form
         onSubmit={async (e) => {
           if (!control.getValues("default_project_id")) {
@@ -220,20 +264,18 @@ const QuestionForm: React.FC<Props> = ({
             }
           )(e);
         }}
-        onChange={async (e) => {
+        onChange={async () => {
           const data = control.getValues();
           data["type"] = questionType;
         }}
-        className="mt-4 flex flex w-[540px] w-full flex-col space-y-4 rounded"
+        className="mt-4 flex w-[540px] w-full flex-col space-y-4 rounded"
       >
         {post && (
-          <div>
-            <a href={`/admin/posts/post/${post.id}/change`}>
-              View in django admin
-            </a>
-          </div>
+          <a href={`/admin/posts/post/${post.id}/change`}>
+            {t("viewInDjangoAdmin")}
+          </a>
         )}
-        <div className={inputContainerStyles}>
+        <InputContainer labelText={t("projects")}>
           <ProjectPicker
             tournaments={tournaments}
             siteMain={siteMain}
@@ -242,72 +284,62 @@ const QuestionForm: React.FC<Props> = ({
               control.setValue("default_project_id", project.id);
             }}
           />
-        </div>
+        </InputContainer>
 
         <FormError
           errors={control.formState.errors}
-          className="text-red-500-dark"
+          className="text-red-500 dark:text-red-500-dark"
           {...control.register("type")}
         />
         <div className="flex flex-col gap-6">
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>Long Title</span>
+          <InputContainer
+            labelText={t("longTitle")}
+            explanation={t("longTitleExplanation")}
+          >
             <Textarea
               {...control.register("title")}
               errors={control.formState.errors.title}
               defaultValue={post?.title}
-              className={`${baseTextareaStyles} min-h-[148px] p-5 text-xl font-normal`}
+              className={`${baseTextareaStyles} min-h-32 p-5 text-xl font-normal`}
             />
-            <span className={inputDescriptionStyles}>
-              This should be a shorter version of the question text, used where
-              there is less space to display a title. It should end with a
-              question mark. Examples: &quot;NASA 2022 spacesuit contract
-              winner?&quot; or &quot;EU GDP from 2025 to 2035?&quot;.
-            </span>
-          </div>
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>{t("Short Title")}</span>
+          </InputContainer>
+          <InputContainer
+            labelText={t("shortTitle")}
+            explanation={t("shortTitleExplanation")}
+          >
             <Input
               {...control.register("url_title")}
               errors={control.formState.errors.url_title}
               defaultValue={post?.url_title}
               className={baseInputStyles}
             />
-            <span className={inputDescriptionStyles}>
-              This should be a shorter version of the Long Title, used where
-              there is less space to display a title. Examples: &quot;NASA 2022
-              Spacesuit Contract Winner&quot; ; &quot;EU GDP From 2025 to
-              2035&quot;.
-            </span>
-          </div>
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>Background Information</span>
+          </InputContainer>
+          <InputContainer
+            labelText={t("backgroundInformation")}
+            explanation={t.rich("backgroundInfoExplanation", {
+              link: (chunks) => <Link href="/help/markdown">{chunks}</Link>,
+              markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
+            })}
+          >
             <Textarea
               {...control.register("description")}
               errors={control.formState.errors.description}
-              className={`${baseTextareaStyles} h-[120px] w-full p-3 text-sm`}
+              className={`${baseTextareaStyles} h-32 w-full p-3 text-sm`}
               defaultValue={post?.question?.description}
             />
-            <span className={inputDescriptionStyles}>
-              Provide background information for your question in a factual and
-              unbiased tone. Links should be added to relevant and helpful
-              resources using markdown syntax:{" "}
-              <span className={markdownStyles}>
-                [Link title](https://link-url.com)
-              </span>
-              .
-            </span>
-          </div>
+          </InputContainer>
           <div className="flex w-full flex-col gap-4 md:flex-row">
-            <div className="flex w-full flex-col gap-2">
-              <span className={inputLabelStyles}>Closing Date</span>
+            <InputContainer
+              labelText={t("closingDate")}
+              className="w-full gap-2"
+            >
               <Input
                 readOnly={isLive}
                 type="datetime-local"
                 className={baseInputStyles}
                 {...control.register("scheduled_close_time", {
                   setValueAs: (value: string) => {
-                    if (value == "" || value == null || value == undefined) {
+                    if (value === "" || value == null) {
                       return null;
                     }
                     return new Date(value);
@@ -323,16 +355,18 @@ const QuestionForm: React.FC<Props> = ({
                     : undefined
                 }
               />
-            </div>
-            <div className="flex w-full flex-col gap-2">
-              <span className={inputLabelStyles}>Resolving Date</span>
+            </InputContainer>
+            <InputContainer
+              labelText={t("resolvingDate")}
+              className="w-full gap-2"
+            >
               <Input
                 readOnly={isLive}
                 type="datetime-local"
                 className={baseInputStyles}
                 {...control.register("scheduled_resolve_time", {
                   setValueAs: (value: string) => {
-                    if (value == "" || value == null || value == undefined) {
+                    if (value === "" || value == null) {
                       return null;
                     }
                     return new Date(value);
@@ -348,7 +382,7 @@ const QuestionForm: React.FC<Props> = ({
                     : undefined
                 }
               />
-            </div>
+            </InputContainer>
           </div>
           {(questionType === QuestionType.Date ||
             questionType === QuestionType.Numeric) && (
@@ -363,7 +397,7 @@ const QuestionForm: React.FC<Props> = ({
               defaultZeroPoint={post?.question?.zero_point}
               isLive={isLive}
               canSeeLogarithmic={
-                post?.user_permission == ProjectPermissions.ADMIN || !post
+                post?.user_permission === ProjectPermissions.ADMIN || !post
               }
               onChange={(
                 rangeMin,
@@ -381,21 +415,17 @@ const QuestionForm: React.FC<Props> = ({
             />
           )}
 
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>Categories</span>
+          <InputContainer labelText={t("categories")}>
             <CategoryPicker
               allCategories={allCategories}
               categories={categoriesList}
               onChange={(categories) => {
                 setCategoriesList(categories);
               }}
-            ></CategoryPicker>
-          </div>
-          {questionType == "multiple_choice" && (
-            <div className={inputContainerStyles}>
-              <span className={inputLabelStyles}>
-                Multiple Choice (separate by ,)
-              </span>
+            />
+          </InputContainer>
+          {questionType === "multiple_choice" && (
+            <InputContainer labelText={t("choicesSeparatedBy")}>
               <Input
                 readOnly={isLive}
                 type="text"
@@ -411,69 +441,62 @@ const QuestionForm: React.FC<Props> = ({
               />
               {optionsList && (
                 <div className="flex flex-col">
-                  {optionsList.map((option: string, opt_index: number) => {
-                    return (
-                      <Input
-                        readOnly={isLive}
-                        key={opt_index}
-                        className="m-2 w-min min-w-[120px] border p-2 text-xs"
-                        value={option}
-                        onChange={(e) => {
-                          setOptionsList(
-                            optionsList.map((opt, index) => {
-                              if (index == opt_index) {
-                                return e.target.value;
-                              }
-                              return opt;
-                            })
-                          );
-                        }}
-                      ></Input>
-                    );
-                  })}
+                  {optionsList.map((option: string, opt_index: number) => (
+                    <Input
+                      readOnly={isLive}
+                      key={opt_index}
+                      className="m-2 w-min min-w-32 border p-2 text-xs"
+                      value={option}
+                      onChange={(e) => {
+                        setOptionsList(
+                          optionsList.map((opt, index) => {
+                            if (index === opt_index) {
+                              return e.target.value;
+                            }
+                            return opt;
+                          })
+                        );
+                      }}
+                    />
+                  ))}
                 </div>
               )}
-            </div>
+            </InputContainer>
           )}
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>Resolution Criteria</span>
+          <InputContainer
+            labelText={t("resolutionCriteria")}
+            explanation={t.rich("resolutionCriteriaExplanation", {
+              markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
+            })}
+          >
             <Textarea
               {...control.register("resolution_criteria_description")}
               errors={control.formState.errors.resolution_criteria_description}
-              className={`${baseTextareaStyles} h-[120px] w-full p-3 text-sm`}
+              className={`${baseTextareaStyles} h-32 w-full p-3 text-sm`}
               defaultValue={
                 post?.question?.resolution_criteria_description
                   ? post?.question?.resolution_criteria_description
                   : undefined
               }
             />
-            <span className={inputDescriptionStyles}>
-              A good question will almost always resolve unambiguously. If you
-              have a data source by which the question will resolve, link to it
-              here. If there is some simple math that will need to be done to
-              resolve this question, define the equation in markdown:{" "}
-              <span className={markdownStyles}>\[ y = ax^2+b \]</span>.
-            </span>
-          </div>
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>Fine Print</span>
+          </InputContainer>
+          <InputContainer
+            labelText={t("finePrint")}
+            explanation={t("finePrintDescription")}
+          >
             <Textarea
               {...control.register("fine_print")}
               errors={control.formState.errors.fine_print}
-              className={`${baseTextareaStyles} h-[120px] w-full p-3 text-sm`}
+              className={`${baseTextareaStyles} h-32 w-full p-3 text-sm`}
               defaultValue={
                 post?.question?.fine_print
                   ? post?.question?.fine_print
                   : undefined
               }
             />
-            <span className={inputDescriptionStyles}>
-              Use the fine print for any sort of lawyerly details which
-              don&apos;t need to be prominently displayed. This is optional.
-            </span>
-          </div>
-          <Button type="submit">
-            {mode == "create" ? "Create Question" : "Edit Question"}
+          </InputContainer>
+          <Button type="submit" className="w-max capitalize">
+            {mode === "create" ? t("createQuestion") : t("editQuestion")}
           </Button>
         </div>
       </form>

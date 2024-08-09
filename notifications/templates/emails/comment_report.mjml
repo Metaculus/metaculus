@@ -1,0 +1,39 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+
+                <mj-text>
+                    Hello {{recipient.username}},
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans with count=params|length %}
+                    The following {{count}} comments were reported:
+                    {% endblocktrans %}
+                </mj-text>
+
+                <mj-text>
+                    <ul>
+                        {% for comment in params %}
+                        <li>
+                            <span>@{{ comment.author_username }}:</span>
+                            “{{ comment.preview_text }}”.
+                            <a href="{{ comment.url }}">(link)</a>
+                            <br/>
+                            <span><b>Reason:</b> {{ comment.reason }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </mj-text>
+
+            </mj-column>
+        </mj-section>
+        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
+        <mj-include path="../../../templates/emails/email_unsubscribe.mjml"/>
+    </mj-body>
+</mjml>

@@ -2,16 +2,14 @@ from typing import TYPE_CHECKING
 
 from django.db import models
 from django.db.models import Count
-from django.db.models.query import QuerySet
 from django.db.models.functions import Coalesce
+from django.db.models.query import QuerySet
 from django.utils import timezone as django_timezone
 
 from projects.permissions import ObjectPermission
+from questions.models import Question
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
-
-from questions.models import Question
-
 
 if TYPE_CHECKING:
     from scoring.models import Leaderboard
@@ -201,6 +199,44 @@ class Project(TimeStampedModel):
         ):
             return self.close_date > django_timezone.now() if self.close_date else True
 
+    def _get_users_for_permissions(
+        self, permissions: list[ObjectPermission]
+    ) -> QuerySet["User"]:
+        qs = User.objects.all()
+
+        if self.default_permission in permissions:
+            return qs
+
+        return qs.filter(
+            projectuserpermission__project=self,
+            projectuserpermission__permission__in=permissions,
+        )
+
+    def get_users_for_permission(
+        self, permission: ObjectPermission
+    ) -> QuerySet["User"]:
+        """
+        Returns a QuerySet of users that have given permission level OR greater for the given project
+        """
+
+        return self._get_users_for_permissions(
+            ObjectPermission.get_included_permissions(permission)
+        )
+
+    def get_admins(self) -> QuerySet["User"]:
+        """
+        Returns admins only
+        """
+
+        return self._get_users_for_permissions([ObjectPermission.ADMIN])
+
+    def get_curators(self) -> QuerySet["User"]:
+        """
+        Returns curators/mods only
+        """
+
+        return self._get_users_for_permissions([ObjectPermission.CURATOR])
+
 
 class ProjectUserPermission(TimeStampedModel):
     """
@@ -217,4 +253,21 @@ class ProjectUserPermission(TimeStampedModel):
                 name="projectuserpermission_unique_user_id_project_id",
                 fields=["user_id", "project_id"],
             ),
+        ]
+
+
+class ProjectSubscription(TimeStampedModel):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="project_subscriptions"
+    )
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="subscriptions"
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="projectsubscription_unique_user_project",
+                fields=["user_id", "project_id"],
+            )
         ]

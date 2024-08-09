@@ -2,6 +2,7 @@ from datetime import timedelta, datetime
 
 import dateutil.parser
 from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 
@@ -37,6 +38,11 @@ class User(TimeStampedModel, AbstractUser):
 
     # @Hlib TODO: Can you add profile picture + update logic for profile picture images ? (Not urgent)
     profile_picture = models.ImageField(null=True, blank=True, default=None)
+
+    # Subscription settings
+    unsubscribed_mailing_tags = ArrayField(
+        models.CharField(max_length=200), blank=True, default=list
+    )
 
     objects = UserManager()
 

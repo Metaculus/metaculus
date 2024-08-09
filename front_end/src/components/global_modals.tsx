@@ -8,6 +8,8 @@ import SignInModal from "@/components/auth/signin";
 import SignUpModal, { SignUpModalSuccess } from "@/components/auth/signup";
 import { useModal } from "@/contexts/modal_context";
 
+import ContactUsModal from "./contact_us_modal";
+
 const GlobalModals: FC = () => {
   const { currentModal, setCurrentModal } = useModal();
   const onClose = () => setCurrentModal(null);
@@ -28,6 +30,10 @@ const GlobalModals: FC = () => {
       />
       <ResetPasswordConfirmModal
         isOpen={currentModal?.type === "resetPasswordConfirm"}
+        onClose={onClose}
+      />
+      <ContactUsModal
+        isOpen={currentModal?.type === "contactUs"}
         onClose={onClose}
       />
     </>

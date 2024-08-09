@@ -1,33 +1,37 @@
 import { z } from "zod";
 
+import { SubscriptionEmailType } from "@/types/notifications";
+
 export const signInSchema = z.object({
   login: z.string().min(1, { message: "Email/Username is required" }),
   password: z.string().min(1, { message: "Password is required" }),
 });
 export type SignInSchema = z.infer<typeof signInSchema>;
 
-export const signUpSchema = z
-  .object({
+export const signUpSchema = z.intersection(
+  z.object({
     username: z.string().min(1, { message: "Username is required" }),
-    password: z.string().min(1, { message: "Password is required" }),
-    passwordAgain: z.string().min(1, { message: "Password is required" }),
-    email: z.string().min(1, { message: "Password is required" }),
+    email: z.string().min(1, { message: "Email is required" }),
     isBot: z
       .string()
       .toLowerCase()
       .transform((x) => x === "true")
       .pipe(z.boolean()),
-    turnstileToken: z.string(),
-  })
-  .superRefine(({ passwordAgain, password }, ctx) => {
-    if (passwordAgain !== password) {
-      ctx.addIssue({
-        code: "custom",
-        message: "The passwords did not match",
-        path: ["passwordAgain"],
-      });
-    }
-  });
+    turnstileToken: z.string({
+      required_error: "Trunstile token is required",
+    }),
+  }),
+  z
+    .object({
+      password: z.string().min(1, { message: "Password is required" }),
+      passwordAgain: z.string().min(1, { message: "Password is required" }),
+    })
+    .refine((data) => data.passwordAgain === data.password, {
+      message: "The passwords did not match",
+      path: ["passwordAgain"],
+    })
+);
+
 export type SignUpSchema = z.infer<typeof signUpSchema>;
 
 export const changeUsernameSchema = z
@@ -38,7 +42,7 @@ export const changeUsernameSchema = z
   .superRefine(({ username, usernameConfirm }, ctx) => {
     if (usernameConfirm !== username) {
       ctx.addIssue({
-        code: "custom",
+        code: z.ZodIssueCode.custom,
         message: "Usernames do not match",
         path: ["usernameConfirm"],
       });
@@ -48,7 +52,7 @@ export type ChangeUsernameSchema = z.infer<typeof changeUsernameSchema>;
 
 export const updateProfileSchema = z.object({
   bio: z.string().optional(),
-  website: z.string(),
+  website: z.string().optional(),
   first_name: z.string().optional(),
   last_name: z.string().optional(),
   twitter: z.string().optional(),
@@ -84,7 +88,7 @@ export const passwordResetConfirmSchema = z
   .superRefine(({ passwordAgain, password }, ctx) => {
     if (passwordAgain !== password) {
       ctx.addIssue({
-        code: "custom",
+        code: z.ZodIssueCode.custom,
         message: "The passwords did not match",
         path: ["passwordAgain"],
       });
