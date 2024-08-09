@@ -313,3 +313,14 @@ def validate_question_resolution(question: Question, resolution: str) -> str:
             f"Received {resolution}"
         )
     return str(resolution)
+
+
+class OldForecastWriteSerializer(serializers.Serializer):
+    prediction = serializers.FloatField(required=True)
+
+    def validate_prediction(self, value):
+        if value < 0.001 or value > 0.999:
+            raise serializers.ValidationError(
+                "Probability value should be between 0.001 and 0.999"
+            )
+        return value
