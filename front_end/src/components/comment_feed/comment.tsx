@@ -170,7 +170,7 @@ const Comment: FC<CommentProps> = ({
     postData?.question?.forecasts.my_forecasts?.slider_values ?? 0.5;
 
   const isCmmButtonVisible =
-    user?.id !== comment.author && !!postData?.question;
+    user?.id !== comment.author.id && !!postData?.question;
   const isCmmButtonDisabled = !user || !userCanPredict;
 
   // TODO: find a better way to dedect whether on mobile or not. For now we need to know in JS
@@ -338,7 +338,8 @@ const Comment: FC<CommentProps> = ({
         */}
       </div>
 
-      {comment.parent && onProfile && (
+      {/* TODO: fix TS error */}
+      {/* {comment.parent && onProfile && (
         <div>
           <a
             href={`/questions/${comment.parent.on_post}/#comment-${comment.parent.id}`}
@@ -346,7 +347,8 @@ const Comment: FC<CommentProps> = ({
             ➞ {t("inReplyTo")} {comment.parent.author.username}
           </a>
         </div>
-      )}
+      )} */}
+
       <div className="break-anywhere">
         <MarkdownEditor
           markdown={commentMarkdown}
@@ -450,7 +452,7 @@ const Comment: FC<CommentProps> = ({
 };
 
 function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
-  if (comment.id === newComment.parent?.id) {
+  if (comment.id === newComment.parent_id) {
     comment.children.push(newComment);
     return;
   }

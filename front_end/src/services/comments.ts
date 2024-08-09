@@ -1,4 +1,4 @@
-import { CommentType } from "@/types/comment";
+import { BECommentType, CommentType } from "@/types/comment";
 import { get, post } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
@@ -6,8 +6,11 @@ export type getCommentsParams = {
   post?: number;
   author?: number;
   parent_isnull?: boolean;
-  page?: number;
+  limit?: number;
+  offset?: number;
   sort?: string;
+  use_root_comments_pagination?: boolean;
+  focus_comment_id?: string;
 };
 
 export type CreateCommentParams = {
@@ -80,8 +83,8 @@ class CommentsApi {
 
   static async createComment(
     commentData: CreateCommentParams
-  ): Promise<CommentType> {
-    return await post<CommentType, CreateCommentParams>(
+  ): Promise<BECommentType> {
+    return await post<BECommentType, CreateCommentParams>(
       `/comments/create`,
       commentData
     );

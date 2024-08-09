@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { CommentType } from "@/types/comment";
+import { parseComment } from "@/utils/comments";
 
 interface CommentEditorProps {
   text?: string;
@@ -54,7 +55,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
     setIsPrivateComment(isPrivate ?? false);
     setHasIncludedForecast(false);
     setMarkdown("");
-    onSubmit && onSubmit(newComment);
+    onSubmit && onSubmit(parseComment(newComment));
   };
 
   if (user == null)
