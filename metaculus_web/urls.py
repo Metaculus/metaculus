@@ -25,6 +25,7 @@ import posts
 import questions
 
 urlpatterns = [
+    path("admin/fab-management/", include("fab_management.urls")),
     path("admin/", admin.site.urls),
     path("api/", include("users.urls")),
     path("api/", include("authentication.urls")),
