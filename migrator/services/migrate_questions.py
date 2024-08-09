@@ -69,6 +69,7 @@ def create_question(question: dict, **kwargs) -> Question:
         open_lower_bound=open_lower_bound,
         options=options,
         description=question["description"],
+        resolution_criteria_description=question["resolution_criteria"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
         open_time=question["publish_time"],
@@ -163,21 +164,22 @@ def migrate_questions__simple(site_ids: list[int] = None):
     site_ids = site_ids or []
 
     for old_question in paginated_query(
-        """SELECT q.*, ARRAY_AGG(o.label ORDER BY o.id) AS option_labels
-                    FROM metac_question_question q
-                    JOIN (SELECT q.*
-                          FROM metac_question_question q
-                                   JOIN
-                               metac_project_questionprojectpermissions pqp ON q.id = pqp.question_id
-                                   JOIN
-                               metac_project_project pp ON pqp.project_id = pp.id
-                          WHERE pp.site_id IN %s
-                            AND q.type NOT IN ('conditional_group', 'group', 'notebook', 'discussion', 'claim')
-                            AND q.group_id IS NULL
-                          GROUP BY q.id) q0 on q0.id = q.id
-                             LEFT JOIN
-                         metac_question_option o ON q.id = o.question_id
-                    GROUP BY q.id;""",
+        """
+        SELECT q.*, ARRAY_AGG(o.label ORDER BY o.id) AS option_labels
+            FROM metac_question_question q
+            JOIN (SELECT q.*
+                FROM metac_question_question q
+                        JOIN
+                    metac_project_questionprojectpermissions pqp ON q.id = pqp.question_id
+                        JOIN
+                    metac_project_project pp ON pqp.project_id = pp.id
+                WHERE pp.site_id IN %s
+                AND q.type NOT IN ('conditional_group', 'group', 'notebook', 'discussion', 'claim')
+                AND q.group_id IS NULL
+                GROUP BY q.id) q0 on q0.id = q.id
+                    LEFT JOIN
+                metac_question_option o ON q.id = o.question_id
+            GROUP BY q.id;""",
         [tuple(site_ids)],
     ):
         question = create_question(old_question)

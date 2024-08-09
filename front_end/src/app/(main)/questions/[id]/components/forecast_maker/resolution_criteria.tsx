@@ -34,7 +34,7 @@ const ResolutionCriteria: FC<ResolutionCriteriaData> = ({
       <div className="content prediction-section-resolution-criteria">
         {!!content && <MarkdownEditor markdown={content} />}
         {!!finePrint && (
-          <div>
+          <>
             <h3 className="text-base font-normal leading-5 opacity-70">
               {t("finePrint")}
             </h3>
@@ -42,7 +42,7 @@ const ResolutionCriteria: FC<ResolutionCriteriaData> = ({
               markdown={finePrint}
               contentEditableClassName="!font-sans opacity-70"
             />
-          </div>
+          </>
         )}
       </div>
     </ExpandableContent>
