@@ -21,5 +21,6 @@ urlpatterns = [
 
 
 old_api = [
-    path("questions/", views.posts_list_oldapi_view, name="oldapi-post-list")
+    path("questions/", views.posts_list_oldapi_view, name="oldapi-post-list"),
+    path("questions/<int:pk>/", views.post_detail_oldapi_view, name="oldapi-post-list")
 ]
