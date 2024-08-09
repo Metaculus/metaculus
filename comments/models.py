@@ -65,8 +65,16 @@ class CommentQuerySet(models.QuerySet):
         )
         return self
 
-    # def annotate_children(self):
-    #    return self.annotate(children=Comment.objects.filter(parent=self))
+    def filter_by_user_permission(self, user):
+        """
+        Filters comments under posts that are available for the user
+        """
+
+        return self.filter(
+            on_post__in=Post.objects.annotate_user_permission(user).filter(
+                user_permission__isnull=False
+            )
+        )
 
 
 class Comment(TimeStampedModel):
