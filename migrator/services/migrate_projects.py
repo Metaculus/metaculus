@@ -66,9 +66,17 @@ def create_project(project_obj: dict) -> Project:
             # Old project.default_question_permissions was not working
             # And project visibility was determined by `is_public` attr
             default_permission=(
-                ObjectPermission.FORECASTER if project_obj["public"] else None
+                ObjectPermission.FORECASTER
+                if (project_obj["public"] and project_obj["id"] != 3349)
+                else None
             ),
         )
+
+        if project_obj["id"] == 3349:
+            # the FAB project (id == 3349), was probably the only project using the default_question_permissions
+            # to make the project visible to everyone, but predictable only by the users added to the project
+            project.default_permission = ObjectPermission.VIEWER
+
     project.save()
     if leaderboard_score_type:
         project.primary_leaderboard = Leaderboard.objects.create(

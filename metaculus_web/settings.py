@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "scoring",
     "comments",
     "notifications",
+    "fab_management",
 ]
 
 MIDDLEWARE = [
@@ -317,6 +318,10 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 # Serper Google API key
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
+
+
+GOOGLE_CREDEBTIALS_FAB_SHEET_B64 = os.environ.get("GOOGLE_CREDEBTIALS_FAB_SHEET_B64")
+
 
 ALLOWED_HOSTS = []
 CSRF_TRUSTED_ORIGINS = [FRONTEND_BASE_URL]
