@@ -1,4 +1,5 @@
 from django.db.models.query import QuerySet
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -26,6 +27,7 @@ class CommentFilterSerializer(serializers.Serializer):
 class CommentSerializer(serializers.ModelSerializer):
     author = BaseUserSerializer()
     changed_my_mind = serializers.SerializerMethodField(read_only=True)
+    text = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
@@ -58,6 +60,9 @@ class CommentSerializer(serializers.ModelSerializer):
             "count": changed_my_mind_count,
             "for_this_user": user_has_changed_my_mind,
         }
+
+    def get_text(self, value: Comment):
+        return _("deleted") if value.is_soft_deleted else value.text
 
 
 class CommentWriteSerializer(serializers.ModelSerializer):
@@ -110,7 +115,7 @@ def serialize_comment_many(
     ids = [p.pk for p in comments]
     qs = Comment.objects.filter(pk__in=[c.pk for c in comments])
 
-    qs = qs.select_related("included_forecast")
+    qs = qs.select_related("included_forecast", "author")
     qs = qs.annotate_vote_score()
 
     if current_user and not current_user.is_anonymous:
