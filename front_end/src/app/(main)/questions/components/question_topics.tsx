@@ -169,7 +169,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
           <hr className="mb-0 mt-0"></hr>
           {user && (
             <TopicItem
-              text={t("Pending")}
+              text={t("inReview")}
               emoji={<FontAwesomeIcon icon={faFileClipboard} />}
               onClick={() => switchFeed(FeedType.IN_REVIEW)}
               isActive={currentFeed === FeedType.IN_REVIEW}
