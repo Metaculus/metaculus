@@ -135,6 +135,24 @@ def posts_list_oldapi_view(request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+def post_detail_oldapi_view(request: Request, pk):
+    qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
+    posts = serialize_post_many(
+        qs, current_user=request.user, with_cp=True, with_subscriptions=True
+    )
+
+    if not posts:
+        raise NotFound("Post not found")
+
+    post = posts[0]
+    if post.get("question") is not None:
+        post["description"] = post["question"].get("description")
+
+    return Response(posts[0])
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def post_detail(request: Request, pk):
     qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
     posts = serialize_post_many(
