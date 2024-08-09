@@ -85,6 +85,25 @@ const BinaryGroupChart: FC<Props> = ({
     [choiceItems, cursorTimestamp, timestamps]
   );
 
+  const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(
+    () =>
+      userForecasts.map(
+        ({ choice, values, color, timestamps: optionTimestamps }) => {
+          return {
+            choiceLabel: choice,
+            color,
+            valueLabel: getQuestionTooltipLabel(
+              optionTimestamps ?? timestamps,
+              values ?? [],
+              cursorTimestamp,
+              true
+            ),
+          };
+        }
+      ),
+    [userForecasts, cursorTimestamp, timestamps]
+  );
+
   const {
     isActive: isTooltipActive,
     getReferenceProps,
@@ -168,7 +187,11 @@ const BinaryGroupChart: FC<Props> = ({
           style={floatingStyles}
           {...getFloatingProps()}
         >
-          <ChoicesTooltip date={tooltipDate} choices={tooltipChoices} />
+          <ChoicesTooltip
+            date={tooltipDate}
+            choices={tooltipChoices}
+            userChoices={tooltipUserChoices}
+          />
         </div>
       )}
     </div>
@@ -178,15 +201,25 @@ const BinaryGroupChart: FC<Props> = ({
 function getQuestionTooltipLabel(
   timestamps: number[],
   values: number[],
-  cursorTimestamp: number
+  cursorTimestamp: number,
+  isUserPrediction: boolean = false
 ) {
-  const hasValue =
-    cursorTimestamp >= Math.min(...timestamps) &&
-    cursorTimestamp <= Math.max(...timestamps);
+  const hasValue = isUserPrediction
+    ? cursorTimestamp >= Math.min(...timestamps)
+    : cursorTimestamp >= Math.min(...timestamps) &&
+      cursorTimestamp <= Math.max(...timestamps);
   if (!hasValue) {
     return getForecastPctDisplayValue(null);
   }
-
+  if (isUserPrediction) {
+    let closestTimestampIndex = 0;
+    timestamps.forEach((timestamp, index) => {
+      if (cursorTimestamp >= timestamp) {
+        closestTimestampIndex = index;
+      }
+    });
+    return getForecastPctDisplayValue(values[closestTimestampIndex]);
+  }
   const closestTimestamp = findClosestTimestamp(timestamps, cursorTimestamp);
   const cursorIndex = timestamps.findIndex(
     (timestamp) => timestamp === closestTimestamp
