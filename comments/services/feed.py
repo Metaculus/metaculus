@@ -3,13 +3,15 @@ from django.db.models import Q, Case, When, Value, IntegerField
 
 def get_comments_feed(
     qs,
-    user,
+    user=None,
     parent_isnull=None,
     post=None,
     author=None,
     sort=None,
     focus_comment_id: int = None,
 ):
+    user = user if user and user.is_authenticated else None
+
     if parent_isnull is not None:
         qs = qs.filter(parent=None)
 
@@ -19,18 +21,17 @@ def get_comments_feed(
     if author is not None:
         qs = qs.filter(author_id=author)
 
-    if user.is_anonymous:
-        qs = qs.filter(is_private=False)
-    else:
+    if user:
         qs = qs.filter(Q(is_private=False) | Q(author=user))
+    else:
+        qs = qs.filter(is_private=False)
 
     qs = qs.annotate_vote_score()
 
     order_by_args = []
 
-    # TODO: add final permissions/private_comments validation
-    #   To filter out comments user does not have access to!
-    #   So we wouldn't need to validate post_id/focus_comment_id separately
+    # Filter comments located under Posts current user is allowed to see
+    qs = qs.filter_by_user_permission(user=user)
 
     if focus_comment_id is not None:
         focus_comment = qs.filter(id=focus_comment_id).first()
