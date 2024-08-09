@@ -13,8 +13,13 @@ import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
-import { CommentPermissions, CommentType } from "@/types/comment";
+import {
+  BECommentType,
+  CommentPermissions,
+  CommentType,
+} from "@/types/comment";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { parseComment } from "@/utils/comments";
 
 import Button from "../ui/button";
 
@@ -35,11 +40,36 @@ export function sortComments(comments: CommentType[], sort: SortOption) {
   });
 }
 
+function parseCommentsArray(beComments: BECommentType[]): CommentType[] {
+  const commentMap = new Map<number, CommentType>();
+
+  beComments.forEach((comment) => {
+    commentMap.set(comment.id, parseComment(comment));
+  });
+
+  const rootComments: CommentType[] = [];
+
+  beComments.forEach((comment) => {
+    if (comment.parent_id === null) {
+      rootComments.push(commentMap.get(comment.id)!);
+    } else {
+      const parentComment = commentMap.get(comment.parent_id);
+      if (parentComment) {
+        parentComment.children.push(commentMap.get(comment.id)!);
+      }
+    }
+  });
+
+  return rootComments;
+}
+
 type Props = {
   postData?: PostWithForecasts;
   postPermissions?: ProjectPermissions;
   profileId?: number;
 };
+
+const COMMENTS_PER_PAGE = 10;
 
 const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
   const t = useTranslations();
@@ -51,17 +81,17 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
   const [totalCount, setTotalCount] = useState<number | "?">("?");
   const [shownComments, setShownComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [nextPage, setNextPage] = useState<number>(1);
+  const [offset, setOffset] = useState<number>(0);
   const postId = postData?.id;
 
   function handleSortChange(newSort: SortOption) {
     if (newSort === sort) {
       return null;
     }
-    setNextPage(1);
+    setOffset(COMMENTS_PER_PAGE);
     setSort(newSort);
     setComments([]);
-    fetchComments("/comments", newSort, 1, false);
+    fetchComments("/comments", newSort, 0, false);
   }
 
   useEffect(() => {
@@ -75,8 +105,9 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
   const fetchComments = async (
     url: string = "/comments",
     commentSort: SortOption = sort,
-    page = nextPage,
-    keepComments = true
+    offset: number = 0,
+    keepComments = true,
+    focus_comment_id?: string
   ) => {
     try {
       setIsLoading(true);
@@ -84,28 +115,32 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         post: postId,
         author: profileId,
         /* if we're on a post, fetch only parent comments with children annotated.  if this is a profile, fetch only the author's comments, including parents and children */
-        parent_isnull: !!postId,
-        page: page,
         sort: commentSort,
+        limit: COMMENTS_PER_PAGE,
+        offset: offset,
+        use_root_comments_pagination: true,
+        focus_comment_id,
       });
       if ("errors" in response) {
         console.error("Error fetching comments:", response.errors);
       } else {
-        setTotalCount(response.count);
+        setTotalCount(response.total_count);
 
-        const sortedComments = response.results;
-        if (keepComments && page && page > 1) {
+        const sortedComments = parseCommentsArray(
+          response.results as unknown as BECommentType[]
+        );
+        if (keepComments && offset > 0) {
           setComments((prevComments) => [...prevComments, ...sortedComments]);
         } else {
           setComments(sortedComments);
         }
         if (response.next) {
-          const nextPageNumber = new URL(response.next).searchParams.get(
-            "page"
+          const nextOffset = new URL(response.next).searchParams.get("offset");
+          setOffset(
+            nextOffset ? Number(nextOffset) : (prev) => prev + COMMENTS_PER_PAGE
           );
-          setNextPage(nextPageNumber ? Number(nextPageNumber) : 1);
         } else {
-          setNextPage(0);
+          setOffset(-1);
         }
       }
       setIsLoading(false);
@@ -115,7 +150,23 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
   };
 
   useEffect(() => {
-    void fetchComments();
+    const fetchCommentsAndFocus = async () => {
+      if (window.location.hash) {
+        const focus_comment_id = window.location.hash.split("-")[1];
+
+        await fetchComments("/comments", sort, 0, false, focus_comment_id);
+        const questionBlock = document.getElementById(
+          window.location.hash.slice(1) // remove # symbol
+        );
+        questionBlock?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      } else {
+        void fetchComments();
+      }
+    };
+    fetchCommentsAndFocus();
   }, []);
 
   let permissions: CommentPermissions = CommentPermissions.VIEWER;
@@ -199,7 +250,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
       {postId && (
         <CommentEditor
           postId={postId}
-          onSubmit={() => fetchComments("/comments", sort, 1, false)}
+          onSubmit={() => fetchComments("/comments", sort, 0, false)}
         />
       )}
       {shownComments.map((comment: CommentType) => (
@@ -234,9 +285,12 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         </>
       )}
       {isLoading && <LoadingIndicator className="mx-auto my-8 w-24" />}
-      {!!nextPage && (
+      {offset !== -1 && (
         <div className="flex items-center justify-center">
-          <Button onClick={() => fetchComments()} disabled={isLoading}>
+          <Button
+            onClick={() => fetchComments("/comments", sort, offset, true)}
+            disabled={isLoading}
+          >
             {t("loadMoreComments")}
           </Button>
         </div>
