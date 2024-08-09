@@ -13,3 +13,10 @@ urlpatterns = [
     ),
     path("questions/<int:pk>/close/", views.close_api_view, name="question-close"),
 ]
+old_api = [
+    path(
+        "questions/<int:pk>/predict/",
+        views.create_binary_forecast_oldapi_view,
+        name="oldapi-create-forecast",
+    )
+]
