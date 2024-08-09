@@ -24,6 +24,7 @@ import {
   QuestionWithNumericForecasts,
   Question,
   QuestionWithMultipleChoiceForecasts,
+  NumericForecast,
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -230,6 +231,64 @@ export function getDisplayValue(
   }
   const scaledValue = scaleInternalLocation(
     value,
+    rMin ?? 0,
+    rMax ?? 1,
+    zPoint
+  );
+  if (qType === QuestionType.Date) {
+    return format(fromUnixTime(scaledValue), "yyyy-MM");
+  } else if (qType === QuestionType.Numeric) {
+    return abbreviatedNumber(scaledValue);
+  } else {
+    return `${Math.round(scaledValue * 100)}%`;
+  }
+}
+
+export function getDisplayUserValue(
+  forecast: NumericForecast,
+  value: number | undefined,
+  valueTimestamp: number,
+  questionOrQuestionType: Question | QuestionType,
+  rangeMin?: number | null,
+  rangeMax?: number | null,
+  zeroPoint?: number | null
+): string {
+  let qType: string;
+  let rMin: number | null;
+  let rMax: number | null;
+  let zPoint: number | null;
+
+  const userForecasts = forecast.my_forecasts;
+  let closestUserForecastIndex = -1;
+  userForecasts?.timestamps.forEach((timestamp, index) => {
+    if (timestamp <= valueTimestamp) {
+      closestUserForecastIndex = index;
+    }
+  });
+  if (closestUserForecastIndex === -1) {
+    return "?";
+  }
+  const closestUserForecast = userForecasts!.medians[closestUserForecastIndex];
+
+  if (typeof questionOrQuestionType === "object") {
+    // Handle the case where the input is a Question object
+    qType = questionOrQuestionType.type;
+    rMin = questionOrQuestionType.range_min;
+    rMax = questionOrQuestionType.range_max;
+    zPoint = questionOrQuestionType.zero_point;
+  } else {
+    // Handle the case where the input is individual parameters
+    qType = questionOrQuestionType;
+    rMin = rangeMin ?? 0;
+    rMax = rangeMax ?? 1;
+    zPoint = zeroPoint ?? null;
+  }
+
+  if (value === undefined) {
+    return "...";
+  }
+  const scaledValue = scaleInternalLocation(
+    closestUserForecast,
     rMin ?? 0,
     rMax ?? 1,
     zPoint

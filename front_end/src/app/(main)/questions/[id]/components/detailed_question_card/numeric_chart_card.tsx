@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { Resolution } from "@/types/post";
 import { NumericForecast, QuestionType } from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
+import { getDisplayUserValue, getDisplayValue } from "@/utils/charts";
 
 import CursorDetailItem from "./numeric_cursor_item";
 
@@ -92,7 +92,12 @@ const NumericChartCard: FC<Props> = ({
         withZoomPicker
       />
 
-      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 dark:text-white xs:gap-x-8 sm:mx-8 sm:gap-x-4 sm:gap-y-0">
+      <div
+        className={classNames(
+          "my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
+          { "sm:grid-cols-3": !!forecast.my_forecasts?.medians.length }
+        )}
+      >
         <CursorDetailItem
           title={t("totalForecastersLabel")}
           text={cursorData.forecastersNr.toString()}
@@ -108,6 +113,21 @@ const NumericChartCard: FC<Props> = ({
           )}
           variant="prediction"
         />
+        {!!forecast.my_forecasts?.medians.length && (
+          <CursorDetailItem
+            title={t("myPredictionLabel")}
+            text={getDisplayUserValue(
+              forecast,
+              cursorData.median,
+              cursorData.timestamp,
+              questionType,
+              rangeMin,
+              rangeMax,
+              zeroPoint
+            )}
+            variant="my-prediction"
+          />
+        )}
       </div>
     </div>
   );
