@@ -35,6 +35,7 @@ from utils.the_math.measures import (
 def _get_question_data_for_cp_change_notification(
     question: Question,
     current_entry: AggregationEntry,
+    previous_entry: AggregationEntry,
     display_diff: list[tuple[float, float]],
     user_forecast: Forecast | None,
 ) -> list[CPChangeData]:
@@ -93,8 +94,32 @@ def _get_question_data_for_cp_change_notification(
             data.cp_change_value = abs(assymetric)
         else:
             # expanded / contracted
-            # TODO: figure out how to perform this check
-            data.cp_change_label = "expanded" if True else "contracted"
+            old_q1 = previous_entry.q1s[0] if previous_entry.q1s else None
+            old_q1_scaled = (
+                unscaled_location_to_scaled_location(old_q1, question)
+                if old_q1 is not None
+                else None
+            )
+            old_q3 = previous_entry.q3s[0] if previous_entry.q3s else None
+            old_q3_scaled = (
+                unscaled_location_to_scaled_location(old_q3, question)
+                if old_q3 is not None
+                else None
+            )
+            if (
+                old_q1_scaled is not None
+                and old_q3_scaled is not None
+                and data.cp_q1 is not None
+                and data.cp_q3 is not None
+            ):
+                old_range = old_q3_scaled - old_q1_scaled
+                new_range = data.cp_q3 - data.cp_q1
+                if new_range > old_range:
+                    data.cp_change_label = "expanded"
+                else:
+                    data.cp_change_label = "contracted"
+            else:
+                data.cp_change_label = "changed"  # Failsafe
             data.cp_change_value = symmetric
         user_q1, user_median, user_q3 = None, None, None
         if user_forecast:
@@ -167,6 +192,7 @@ def notify_post_cp_change(post: Post):
             question_data += _get_question_data_for_cp_change_notification(
                 question,
                 current_entry,
+                entry,
                 display_diff,
                 user_pred,
             )
