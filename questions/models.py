@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
@@ -16,6 +16,12 @@ class QuestionQuerySet(models.QuerySet):
     def annotate_forecasts_count(self):
         return self.annotate(
             forecasts_count=SubqueryAggregate("forecast", aggregate=Count)
+        )
+
+    def filter_public(self):
+        return self.filter(
+            Q(post__default_project__default_permission__isnull=False)
+            | Q(group__post__default_project__default_permission__isnull=False)
         )
 
 
