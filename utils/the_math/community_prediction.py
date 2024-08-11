@@ -9,16 +9,15 @@ Transform back to probabilities.
 Normalise to 1 over all outcomes.
 """
 
+from bisect import bisect_left, bisect_right
+from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from django.core.cache import cache
-from django.db.models import Q, TextChoices
+from datetime import datetime
 
 import numpy as np
+from django.db.models import Q, TextChoices
 
-from django.db.models import QuerySet
-from questions.models import Forecast, Question, CDF_SIZE
-from utils.the_math.formulas import get_scaled_quartiles_from_cdf
+from questions.models import Question, CDF_SIZE
 from utils.the_math.measures import weighted_percentile_2d, percent_point_function
 from utils.typing import (
     ForecastValues,
@@ -199,39 +198,35 @@ def get_aggregation_at_time(
     return aggregation_entry
 
 
+def filter_between_dates(timestamps, start_time, end_time=None):
+    # Use bisect to find the start & end indexes
+    start_index = bisect_left(timestamps, start_time)
+    end_index = bisect_right(timestamps, end_time) - 1 if end_time else len(timestamps)
+
+    return timestamps[start_index:end_index]
+
+
 def get_user_forecast_history(question: Question) -> list[ForecastSet]:
-    forecasts = question.forecast_set.all()
-    timesteps: set[datetime] = set()
+    forecasts = question.forecast_set.order_by("start_time").all()
+    timestamps = set()
     for forecast in forecasts:
-        timesteps.add(forecast.start_time)
+        timestamps.add(forecast.start_time)
         if forecast.end_time:
-            timesteps.add(forecast.end_time)
+            timestamps.add(forecast.end_time)
 
-    reversed_sorted_timesteps = sorted(timesteps, reverse=True)
-    if len(reversed_sorted_timesteps) == 0:
-        return []
+    timestamps = sorted(timestamps)
+    output = defaultdict(list)
 
-    history = []
-    last_timestep = None
-    for timestep in reversed_sorted_timesteps:
-        if last_timestep and timestep <= last_timestep:
-            break
-        active_forecasts = [
-            f
-            for f in forecasts
-            if f.start_time <= timestep
-            and (f.end_time is None or f.end_time > timestep)
-        ]
-        active_forecasts = sorted(active_forecasts, key=lambda f: f.start_time)
-        if len(active_forecasts) < 1:
-            continue
-        forecast_set = ForecastSet(
-            [forecast.get_prediction_values() for forecast in active_forecasts],
-            timestep,
+    for forecast in forecasts:
+        # Find active timestamps
+        forecast_timestamps = filter_between_dates(
+            timestamps, forecast.start_time, forecast.end_time
         )
-        history.append(forecast_set)
 
-    return list(reversed(history))
+        for timestamp in forecast_timestamps:
+            output[timestamp].append(forecast.get_prediction_values())
+
+    return [ForecastSet(output[key], key) for key in sorted(output.keys())]
 
 
 def minimize_forecast_history(
@@ -296,7 +291,6 @@ def get_cp_history(
     minimize: bool = True,
     include_stats: bool = True,
 ) -> list[AggregationEntry]:
-
     full_summary: list[AggregationEntry] = []
 
     user_forecast_history = get_user_forecast_history(question)
