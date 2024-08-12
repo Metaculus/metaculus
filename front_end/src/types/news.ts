@@ -1,3 +1,5 @@
+import { VoteDirection } from "@/types/votes";
+
 type NewsArticleMedia = {
   favicon: string | null;
   icon: string | null;
@@ -13,5 +15,5 @@ export type NewsArticle = {
   media: NewsArticleMedia;
   title: string;
   url: string;
-  user_vote: 1 | -1 | null;
+  user_vote: VoteDirection;
 };
