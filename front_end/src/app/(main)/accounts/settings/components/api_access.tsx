@@ -12,11 +12,11 @@ const ApiAccess: FC<Props> = ({ token }) => {
   const t = useTranslations();
 
   return (
-    <div>
-      <hr className="m-0" />
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">{t("apiAccess")}</h2>
-      </div>
+    <section>
+      <h2 className="mx-[-4px] mb-5 mt-3 border-t border-gray-500 px-1 pt-4 text-2xl font-bold">
+        {t("apiAccess")}
+      </h2>
+
       <div className="text-sm">
         <p>
           {t("apiAcessText")}
@@ -25,7 +25,7 @@ const ApiAccess: FC<Props> = ({ token }) => {
         <span>{t("yourAPITokenIs")}</span>
         <pre>{token}</pre>
       </div>
-    </div>
+    </section>
   );
 };
 
