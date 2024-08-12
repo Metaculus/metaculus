@@ -9,7 +9,6 @@ import ShareQuestionMenu from "./share_question_menu";
 import SidebarQuestionInfo from "./sidebar_question_info";
 import SidebarQuestionTags from "./sidebar_question_tags";
 import SimilarQuestions from "./similar_questions";
-import { MOCK_QUESTIONS_IDS } from "./similar_questions/MOCK_QUESTIONS_IDS";
 import QuestionEmbedButton from "../question_embed_button";
 
 type Props = {

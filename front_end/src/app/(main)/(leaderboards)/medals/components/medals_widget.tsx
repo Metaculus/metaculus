@@ -53,7 +53,7 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
             <div className="flex flex-wrap content-center items-center justify-center gap-[8px] self-stretch rounded-b bg-blue-200 px-3 py-2 dark:bg-blue-100-dark md:gap-[13px] md:py-3">
               {!!category.medals.length ? (
                 category.medals.map((medal, index) => {
-                  const TooltipContent = (
+                  const tooltipContent = (
                     <div className="flex flex-col items-center self-stretch">
                       <span className="text-sm font-bold text-gray-800 dark:text-gray-800-dark">
                         {getMedalDisplayTitle(medal)}
@@ -70,7 +70,7 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
                     <Tooltip
                       showDelayMs={200}
                       placement={"bottom"}
-                      TooltipContent={TooltipContent}
+                      tooltipContent={tooltipContent}
                       key={index}
                     >
                       <a href={`/accounts/profile/${profileId}?mode=medals`}>
