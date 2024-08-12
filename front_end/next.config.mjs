@@ -2,9 +2,8 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin();
 
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
-
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
@@ -32,7 +31,7 @@ const nextConfig = {
       },
     ],
   },
-  rewrites: () => ([
+  rewrites: () => [
     // Django Admin rewrites
     {
       source: "/admin/:path*",
@@ -43,7 +42,11 @@ const nextConfig = {
       source: "/static/admin/:path*",
       destination: `${API_BASE_URL}/static/admin/:path*`,
     },
-  ]),
+    {
+      source: "/static/debug_toolbar/:path*",
+      destination: `${API_BASE_URL}/static/debug_toolbar/:path*`,
+    },
+  ],
 };
 
 export default withNextIntl(nextConfig);
