@@ -13,17 +13,15 @@ function Description() {
         </li>
         <li className="pt-3 min-[1920px]:pt-5">{t("FABdesc3")}</li>
         <li className="pt-3 min-[1920px]:pt-5">
-          {t("FABRules.title")}:
+          {t("FABRulesTitle")}:
           <ul className="list-disc pl-8 text-base">
-            <li>{t("FABRules.rule1")}</li>
-            <li>{t("FABRules.rule2")}</li>
-            <li>{t("FABRules.rule3")}</li>
-            <li>{t("FABRules.rule4")}</li>
+            <li>{t("FABRulesRule1")}</li>
+            <li>{t("FABRulesRule2")}</li>
+            <li>{t("FABRulesRule3")}</li>
+            <li>{t("FABRulesRule4")}</li>
           </ul>
         </li>
-        <li className="pt-3 min-[1920px]:pt-5">
-          {t("FABdesc4")}
-        </li>
+        <li className="pt-3 min-[1920px]:pt-5">{t("FABdesc4")}</li>
       </ul>
     </div>
   );

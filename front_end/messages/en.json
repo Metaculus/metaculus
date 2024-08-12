@@ -723,13 +723,11 @@
   "FABdesc1": "First of its kind bot forecasting tournament with <bold>$30,000</bold> in prizes for bot makers in Q3.",
   "FABdesc2": "250-500 binary questions including from the <bold>Quarterly Cup</bold>",
   "FABdesc3": "Questions will be open for 24 hours while the community prediction is still hidden to prevent copying.",
-  "FABRules": {
-    "title": "Basic rules",
-    "rule1": "No human in the loop",
-    "rule2": "Bots must leave comments that show its reasoning",
-    "rule3": "1 bot per user / AI lab",
-    "rule4": "Bot makers must provide either code or a description of their bot"
-  },
+  "FABRulesTitle": "Basic rules",
+  "FABRulesRule1": "No human in the loop",
+  "FABRulesRule2": "Bots must leave comments that show its reasoning",
+  "FABRulesRule3": "1 bot per user / AI lab",
+  "FABRulesRule4": "Bot makers must provide either code or a description of their bot",
   "FABdesc4": "We will benchmark bot performance against the Metaculus community & Pro forecasters.",
   "FABHeroTitle": "AI Forecasting",
   "FABHeroSubtitle": "Benchmark Series",
