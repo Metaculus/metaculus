@@ -10,6 +10,7 @@ def middleware_alpha_access_check(get_response):
         # the view (and later middleware) are called.
         if (
             not request.path.startswith("/admin/")
+            and not request.path.startswith("/static/")
             and settings.ALPHA_ACCESS_TOKEN
             and settings.ALPHA_ACCESS_TOKEN != request.headers.get("x-alpha-auth-token")
         ):
