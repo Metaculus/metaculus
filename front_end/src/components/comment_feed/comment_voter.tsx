@@ -29,7 +29,7 @@ const CommentVoter: FC<Props> = ({ voteData, className }) => {
       return;
     }
 
-    const newDirection = userVote === direction ? null : direction;
+    const newDirection = userVote === direction ? 0 : direction;
     const response = await voteComment({
       id: voteData.commentId,
       vote: newDirection,
