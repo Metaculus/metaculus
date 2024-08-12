@@ -26,6 +26,7 @@ npm run build;
 cd ..;
 
 poetry run python3 manage.py migrate;
+poetry run python3 manage.py collectstatic;
 
 export ALPHA_ACCESS_TOKEN="the open source rewrite";
 
