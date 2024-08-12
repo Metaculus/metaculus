@@ -29,7 +29,7 @@ const NewsArticleVoteButtons: FC<Props> = ({
       className="flex-col gap-0.5"
       onVoteUp={() => voteSubmit(1)}
       onVoteDown={() => voteSubmit(-1)}
-      userVote={article.user_vote ?? 0}
+      userVote={article.user_vote}
     />
   );
 };
