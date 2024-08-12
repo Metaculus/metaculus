@@ -16,8 +16,10 @@ Including another URLconf
 """
 
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+
 import comments
 import posts
 import questions
@@ -34,7 +36,7 @@ urlpatterns = [
     path("api2/", include(comments.urls.old_api)),
     path("api2/", include(posts.urls.old_api)),
     path("api2/", include(questions.urls.old_api)),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
     urlpatterns += [
