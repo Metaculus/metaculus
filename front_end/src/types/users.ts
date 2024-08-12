@@ -1,5 +1,7 @@
 import { SubscriptionEmailType } from "@/types/notifications";
 
+import { ProfilePreferencesType } from "./preferences";
+
 export type User = {
   id: number;
   username: string;
@@ -42,4 +44,5 @@ export type CurrentUser = User & {
   email: string;
   is_superuser: boolean;
   unsubscribed_mailing_tags: SubscriptionEmailType[];
+  unsubscribed_preferences_tags: ProfilePreferencesType[];
 };
