@@ -70,6 +70,11 @@ export async function signUpAction(
     };
   }
 
+  let addToProject;
+  if (validatedFields.data.addToProject) {
+    addToProject = parseInt(validatedFields.data.addToProject);
+  }
+
   try {
     const response = await AuthApi.signUp(
       validatedFields.data.email,
@@ -79,7 +84,8 @@ export async function signUpAction(
       {
         "cf-turnstile-response": validatedFields.data.turnstileToken,
         "CF-Connecting-IP": headersList.get("CF-Connecting-IP"),
-      }
+      },
+      addToProject
     );
 
     return {};

@@ -8,9 +8,12 @@ import { ChoiceTooltipItem } from "@/types/choices";
 type Props = {
   date: string;
   choices: ChoiceTooltipItem[];
+  userChoices?: ChoiceTooltipItem[];
 };
 
-const ChoicesTooltip: FC<Props> = ({ date, choices }) => {
+const ChoicesTooltip: FC<Props> = ({ date, choices, userChoices }) => {
+  const containUserChoices =
+    userChoices && !userChoices.every((choice) => choice.valueLabel === "?");
   return (
     <table>
       <tbody>
@@ -25,6 +28,11 @@ const ChoicesTooltip: FC<Props> = ({ date, choices }) => {
               className="align-middle text-olive-700 dark:text-olive-700-dark"
             />
           </td>
+          {containUserChoices && (
+            <td className="px-1.5 py-1 text-center text-xs font-bold text-orange-800 dark:text-orange-800-dark">
+              Me
+            </td>
+          )}
         </tr>
         {choices.map(({ color, choiceLabel, valueLabel }, idx) => (
           <tr key={`choice-tooltip-row-${choiceLabel}-${idx}`}>
@@ -35,6 +43,11 @@ const ChoicesTooltip: FC<Props> = ({ date, choices }) => {
               {choiceLabel}
             </th>
             <td className="px-1.5 py-1 text-right text-sm">{valueLabel}</td>
+            {containUserChoices && (
+              <td className="px-1.5 py-1 text-right text-sm">
+                {userChoices![idx].valueLabel}
+              </td>
+            )}
           </tr>
         ))}
       </tbody>

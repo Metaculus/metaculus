@@ -1,6 +1,9 @@
+from comments.models import Comment
+from comments.services.feed import get_comments_feed
 from tests.fixtures import *  # noqa
 from tests.test_comments.factories import factory_comment
 from tests.test_posts.factories import factory_post
+from tests.test_projects.factories import factory_project
 
 
 class TestPagination:
@@ -125,3 +128,32 @@ class TestPagination:
             comments["c3"].pk,
             comments["c1"].pk,
         ]
+
+
+def test_get_comments_feed_permissions(user1, user2):
+    private_post = factory_post(
+        author=user2,
+        default_project=factory_project(default_permission=None),
+    )
+    post = factory_post(author=user2)
+
+    c1 = factory_comment(author=user2, on_post=private_post, text="Comment 1")
+    c2 = factory_comment(author=user2, on_post=post, is_private=True, text="Comment 2")
+    c3 = factory_comment(author=user2, on_post=post, text="Comment 3")
+
+    c_deleted = factory_comment(author=user2, on_post=post, is_soft_deleted=True)
+
+    assert {c.pk for c in get_comments_feed(Comment.objects.all())} == {
+        c_deleted.pk,
+        c3.pk,
+    }
+    assert {c.pk for c in get_comments_feed(Comment.objects.all(), user=user1)} == {
+        c_deleted.pk,
+        c3.pk,
+    }
+    assert {c.pk for c in get_comments_feed(Comment.objects.all(), user=user2)} == {
+        c1.pk,
+        c2.pk,
+        c3.pk,
+        c_deleted.pk,
+    }

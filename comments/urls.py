@@ -3,7 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("comments", views.comments_list_api_view, name="comment-list"),
+    path("comments/", views.comments_list_api_view, name="comment-list"),
     path(
         "comments/<int:pk>/delete", views.comment_delete_api_view, name="comment-delete"
     ),
@@ -18,4 +18,9 @@ urlpatterns = [
         "comments/<int:pk>/report", views.comment_report_api_view, name="comment-report"
     ),
     path("comments/create", views.comment_create_api_view, name="comment-create"),
+]
+
+
+old_api = [
+    path("comments/", views.comment_create_oldapi_view, name="oldapi-comment-create")
 ]
