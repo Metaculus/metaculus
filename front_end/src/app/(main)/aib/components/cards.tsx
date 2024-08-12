@@ -1,6 +1,6 @@
+import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
-import clsx from "clsx";
 
 function Dates() {
   const t = useTranslations();
@@ -32,7 +32,7 @@ const Card: FC<{ className: string; heading1: string; heading2: string }> = ({
 }) => {
   return (
     <div
-      className={clsx(
+      className={classNames(
         "flex size-full min-h-[90px] grow flex-row items-center justify-center lg:h-auto lg:min-h-[180px]",
         className
       )}
