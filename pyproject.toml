@@ -39,8 +39,8 @@ aiohttp = "^3.10.2"
 django-mjml = "^1.2"
 markdown = "^3.6"
 sshtunnel = "^0.4.0"
-pymysql = "^1.1.1"
 python-dotenv = "^1.0.1"
+mysql-connector-python = "^9.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"
