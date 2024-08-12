@@ -18,6 +18,7 @@ from posts.models import (
 from posts.serializers import (
     NotebookSerializer,
     PostFilterSerializer,
+    OldQuestionFilterSerializer,
     PostSerializer,
     PostWriteSerializer,
     serialize_post_many,
@@ -69,6 +70,85 @@ def posts_list_api_view(request):
     )
 
     return paginator.get_paginated_response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def posts_list_oldapi_view(request):
+    """
+    We shared this request example with FAB participants:
+    url_qparams = {
+        "limit": count,
+        "offset": offset,
+        "has_group": "false",
+        "order_by": "-activity",
+        "forecast_type": "binary",
+        "project": tournament_id,
+        "status": "open",
+        "type": "forecast",
+        "include_description": "true",
+    }
+    url = f"{api_info.base_url}/questions/"
+    response = requests.get(
+        url, headers={"Authorization": f"Token {api_info.token}"}, params=url_qparams
+    )
+
+    But we don't want to support all these parameters, and the ones relevant are:
+    - order_by
+    - status
+    - project
+    - forecast_type - we ignore this, but assume it's binary - FAB only supports binary for now.
+    """
+
+    paginator = LimitOffsetPagination()
+    qs = Post.objects.all()
+
+    # Apply filtering
+    filters_serializer = OldQuestionFilterSerializer(data=request.query_params)
+    filters_serializer.is_valid(raise_exception=True)
+    status = filters_serializer.validated_data.get("status", None)
+    projects = filters_serializer.validated_data.get("project", None)
+    order_by = filters_serializer.validated_data.get("order_by", None)
+
+    qs = get_posts_feed(
+        qs,
+        user=request.user,
+        tournaments=projects,
+        statuses=status,
+        order_by=order_by,
+        forecast_type=["binary"],
+    )
+    # Paginating queryset
+    posts = paginator.paginate_queryset(qs, request)
+
+    data = serialize_post_many(
+        posts,
+        with_cp=True,
+        current_user=request.user,
+    )
+
+    # Given we limit the feed to binary questions, we expect each post to have a question with a description
+    data = [{**d, "description": d["question"]["description"]} for d in data]
+
+    return paginator.get_paginated_response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def post_detail_oldapi_view(request: Request, pk):
+    qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
+    posts = serialize_post_many(
+        qs, current_user=request.user, with_cp=True, with_subscriptions=True
+    )
+
+    if not posts:
+        raise NotFound("Post not found")
+
+    post = posts[0]
+    if post.get("question") is not None:
+        post["description"] = post["question"].get("description")
+
+    return Response(posts[0])
 
 
 @api_view(["GET"])

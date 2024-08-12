@@ -1,15 +1,21 @@
 from django.utils import timezone
+from django.http import Http404
+
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
-
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
-from questions.serializers import validate_question_resolution
+from questions.serializers import (
+    validate_question_resolution,
+    OldForecastWriteSerializer,
+)
 from questions.services import resolve_question, create_forecast, close_question
+
+from posts.models import Post
 
 
 @api_view(["POST"])
@@ -57,5 +63,32 @@ def create_forecast_api_view(request, pk: int):
         )
 
     create_forecast(question=question, user=request.user, **request.data)
+
+    return Response({}, status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+def create_binary_forecast_oldapi_view(request, pk: int):
+    post = get_object_or_404(Post.objects.all(), pk=pk)
+    question = post.question
+    if question is None:
+        raise Http404(f"Question with id {pk} not foiund.")
+
+    # Check permissions
+    permission = get_post_permission_for_user(question.get_post(), user=request.user)
+    ObjectPermission.can_forecast(permission, raise_exception=True)
+
+    if not question.open_time or question.open_time > timezone.now():
+        return Response(
+            {"error": "You cannot forecast on this question yet !"},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    serializer = OldForecastWriteSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    probability = serializer.validated_data.get("probability")
+
+    create_forecast(question=question, user=request.user, probability_yes=probability)
 
     return Response({}, status=status.HTTP_201_CREATED)

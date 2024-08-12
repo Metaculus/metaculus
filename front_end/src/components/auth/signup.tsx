@@ -26,10 +26,10 @@ type SignInModalType = {
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
-const SignUpModal: FC<SignInModalType> = ({
-  isOpen,
-  onClose,
-}: SignInModalType) => {
+const SignupForm: FC<{
+  forceIsBot?: boolean | "ask";
+  addToProject?: number;
+}> = ({ forceIsBot = "ask", addToProject }) => {
   const t = useTranslations();
   const [isPending, startTransition] = useTransition();
   const { setCurrentModal } = useModal();
@@ -55,7 +55,103 @@ const SignUpModal: FC<SignInModalType> = ({
     } else {
       turnstileRef.current?.reset();
     }
-  }, [setCurrentModal, watch, state]);
+
+    forceIsBot !== "ask" && setValue("isBot", forceIsBot);
+  }, [setCurrentModal, watch, state, forceIsBot]);
+
+  return (
+    <form
+      action={(data) => {
+        startTransition(() => {
+          formAction(data);
+        });
+      }}
+      className="flex flex-col gap-4 "
+    >
+      <Input
+        autoComplete="username"
+        className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+        placeholder={t("registrationUsernamePlaceholder")}
+        type="text"
+        errors={state?.errors}
+        {...register("username")}
+      />
+      <div>
+        <Input
+          autoComplete="new-password"
+          className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          placeholder={t("passwordPlaceholder")}
+          type="password"
+          {...register("password")}
+        />
+        <Input
+          autoComplete="new-password"
+          className="block w-full rounded-b rounded-t-none border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          placeholder={t("registrationVerifyPasswordPlaceholder")}
+          type="password"
+          errors={state?.errors}
+          {...register("passwordAgain")}
+        />
+      </div>
+      <Input
+        className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+        placeholder={t("registrationEmailPlaceholder")}
+        type="email"
+        errors={state?.errors}
+        {...register("email")}
+      />
+      {forceIsBot === undefined && (
+        <Checkbox
+          checked={watch("isBot")}
+          onChange={(is_bot) => {
+            setValue("isBot", is_bot);
+          }}
+          label="Sign up as Bot"
+          className="p-1.5"
+        />
+      )}
+      <FormError errors={state?.errors} name="isBot" />
+      <input type="hidden" {...register("isBot")} />
+      {addToProject && (
+        <input
+          type="hidden"
+          {...register("addToProject")}
+          value={addToProject}
+        />
+      )}
+      <div>
+        <Button
+          variant="primary"
+          className="w-full"
+          type="submit"
+          disabled={isPending}
+        >
+          {t("createAnAccount")}
+        </Button>
+        <FormError
+          errors={state?.errors}
+          name={TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
+        />
+      </div>
+      {TURNSTILE_SITE_KEY && (
+        <Turnstile
+          ref={turnstileRef}
+          siteKey={TURNSTILE_SITE_KEY}
+          options={{
+            responseFieldName: "turnstileToken",
+          }}
+        />
+      )}
+    </form>
+  );
+};
+
+const SignUpModal: FC<SignInModalType> = ({
+  isOpen,
+  onClose,
+}: SignInModalType) => {
+  const t = useTranslations();
+  const { setCurrentModal } = useModal();
 
   return (
     <BaseModal
@@ -75,80 +171,9 @@ const SignUpModal: FC<SignInModalType> = ({
           </Button>
         </div>
         <div className="flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">
-          <form
-            action={(data) => {
-              startTransition(() => {
-                formAction(data);
-              });
-            }}
-            className="flex flex-col gap-4 border-gray-300 dark:border-gray-700-dark sm:w-80 sm:border-r sm:pr-4"
-          >
-            <Input
-              autoComplete="username"
-              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-              placeholder={t("registrationUsernamePlaceholder")}
-              type="text"
-              errors={state?.errors}
-              {...register("username")}
-            />
-            <div>
-              <Input
-                autoComplete="new-password"
-                className="block w-full rounded-b-none rounded-t border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-                placeholder={t("passwordPlaceholder")}
-                type="password"
-                {...register("password")}
-              />
-              <Input
-                autoComplete="new-password"
-                className="block w-full rounded-b rounded-t-none border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-                placeholder={t("registrationVerifyPasswordPlaceholder")}
-                type="password"
-                errors={state?.errors}
-                {...register("passwordAgain")}
-              />
-            </div>
-            <Input
-              className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-              placeholder={t("registrationEmailPlaceholder")}
-              type="email"
-              errors={state?.errors}
-              {...register("email")}
-            />
-            <Checkbox
-              checked={watch("isBot")}
-              onChange={(is_bot) => {
-                setValue("isBot", is_bot);
-              }}
-              label="Sign up as Bot"
-              className="p-1.5"
-            />
-            <FormError errors={state?.errors} name="isBot" />
-            <input type="hidden" {...register("isBot")} />
-            <div>
-              <Button
-                variant="primary"
-                className="w-full"
-                type="submit"
-                disabled={isPending}
-              >
-                {t("createAnAccount")}
-              </Button>
-              <FormError
-                errors={state?.errors}
-                name={TURNSTILE_SITE_KEY ? "" : "turnstileToken"}
-              />
-            </div>
-            {TURNSTILE_SITE_KEY && (
-              <Turnstile
-                ref={turnstileRef}
-                siteKey={TURNSTILE_SITE_KEY}
-                options={{
-                  responseFieldName: "turnstileToken",
-                }}
-              />
-            )}
-          </form>
+          <div className="border-gray-300 dark:border-gray-700-dark sm:w-80 sm:border-r sm:pr-4">
+            <SignupForm />
+          </div>
           <div className="sm:w-80 sm:pl-4">
             <ul className="hidden leading-tight sm:block">
               <li className="mb-3 flex">
@@ -249,3 +274,5 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
 };
 
 export default SignUpModal;
+
+export { SignupForm };

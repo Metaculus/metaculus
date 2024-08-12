@@ -1,18 +1,37 @@
 import { QuestionType } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
+export type AuthorType = {
+  id: number;
+  username: string;
+  is_bot: boolean;
+  is_staff: boolean;
+};
+
+export type BECommentType = {
+  id: number;
+  author: AuthorType;
+  on_post: number;
+  root_id: number | null;
+  parent_id: number | null;
+  created_at: string;
+  is_soft_deleted: boolean;
+  text: string;
+  included_forecast?: ForecastType;
+  is_private: boolean;
+  vote_score?: number;
+  user_vote: VoteDirection;
+  changed_my_mind: {
+    for_this_user: boolean;
+    count: number;
+  };
+};
+
 export type CommentType = {
   id: number;
-  author: any; //create author type
+  author: AuthorType;
   on_post: number;
-  parent?: {
-    id: number;
-    on_post: number;
-    author: {
-      id: number;
-      username: string;
-    };
-  };
+  parent_id: number | null;
   created_at: string;
   is_soft_deleted: boolean;
   text: string;
