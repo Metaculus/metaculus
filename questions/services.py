@@ -6,7 +6,8 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from posts.models import PostUserSnapshot
+from posts.models import PostUserSnapshot, PostSubscription
+from posts.services.subscriptions import create_subscription_cp_change
 from questions.constants import ResolutionType
 from questions.models import Question, GroupOfQuestions, Conditional, Forecast
 from users.models import User
@@ -359,6 +360,16 @@ def create_forecast(
     # Update cache
     PostUserSnapshot.update_last_forecast_date(question.get_post(), user)
     post.update_forecasts_count()
+
+    # Auto-subscribe user to CP changes
+    if not post.subscriptions.filter(
+        user=user,
+        type=PostSubscription.SubscriptionType.CP_CHANGE,
+        is_managed_by_user=False,
+    ).exists():
+        create_subscription_cp_change(
+            user=user, post=post, cp_change_threshold=0.1, is_managed_by_user=False
+        )
 
     # Run async tasks
     from posts.tasks import run_compute_sorting_divergence

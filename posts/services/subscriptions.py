@@ -7,6 +7,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
+from notifications.constants import MailingTags
 from notifications.services import (
     NotificationNewComments,
     NotificationPostParams,
@@ -201,11 +202,18 @@ def notify_post_cp_change(post: Post):
         ):
             continue
 
-        # we have to send a notification
         NotificationPostCPChange.send(
             subscription.user,
             NotificationPostCPChange.ParamsType(
-                post=NotificationPostParams.from_post(post), question_data=question_data
+                post=NotificationPostParams.from_post(post),
+                question_data=question_data,
+            ),
+            # Send notifications to the users that subscribed to the post CP changes
+            # Or we automatically subscribed them for "Forecasted Questions CP change"
+            mailing_tag=(
+                None
+                if subscription.is_managed_by_user
+                else MailingTags.FORECASTED_CP_CHANGE
             ),
         )
 
@@ -405,6 +413,7 @@ def create_subscription_cp_change(
     user: User,
     post: Post,
     cp_change_threshold: float = 0.25,
+    is_managed_by_user=True,
 ):
     obj = PostSubscription.objects.create(
         user=user,
@@ -412,6 +421,7 @@ def create_subscription_cp_change(
         type=PostSubscription.SubscriptionType.CP_CHANGE,
         cp_change_threshold=cp_change_threshold,
         last_sent_at=timezone.now(),
+        is_managed_by_user=is_managed_by_user,
         # TODO: adjust `migrator.services.migrate_subscriptions.migrate_cp_change` in the old db migrator script!
     )
 

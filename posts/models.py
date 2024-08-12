@@ -267,7 +267,6 @@ class Notebook(TimeStampedModel):
 
 class Post(TimeStampedModel):
     votes: QuerySet["Vote"]
-    subscriptions: QuerySet["PostSubscription"]
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -520,6 +519,11 @@ class PostSubscription(TimeStampedModel):
     )
     # 0. -> 1.
     cp_change_threshold = models.FloatField(null=True, blank=True)
+
+    # Whether this is auto-subscription not managed by user
+    # and is not visible as part of Post following
+    # E.g. global CP change of your predicted questions
+    is_managed_by_user = models.BooleanField(default=True)
 
     def update_last_sent_at(self):
         self.last_sent_at = timezone.now()

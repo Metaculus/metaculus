@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 from comments.constants import CommentReportType
 from comments.models import Comment
+from notifications.constants import MailingTags
 from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
 from posts.models import Post, PostSubscription
@@ -94,8 +95,12 @@ class NotificationTypeBase:
         pass
 
     @classmethod
-    def send(cls, recipient: User, params: ParamsType):
-        # Create notification object
+    def send(cls, recipient: User, params: ParamsType, mailing_tag: MailingTags = None):
+        # Skip notification sending if it was ignored
+        if mailing_tag and mailing_tag in recipient.unsubscribed_mailing_tags:
+            return
+
+            # Create notification object
         notification = Notification.objects.create(
             type=cls.type, recipient=recipient, params=asdict(params)
         )
