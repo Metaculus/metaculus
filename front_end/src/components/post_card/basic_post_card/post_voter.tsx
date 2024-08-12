@@ -23,7 +23,7 @@ const PostVoter: FC<Props> = ({ className, post }) => {
       return;
     }
 
-    const newDirection = vote.user_vote === direction ? null : direction;
+    const newDirection = vote.user_vote === direction ? 0 : direction;
     const response = await votePost(post.id, newDirection);
     if ("score" in response) {
       setVote({ user_vote: newDirection, score: response.score });
