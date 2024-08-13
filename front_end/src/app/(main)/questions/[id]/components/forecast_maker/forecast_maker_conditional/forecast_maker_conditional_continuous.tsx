@@ -427,6 +427,12 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           communityQuartiles={
             communityCdf && computeQuartilesFromCDF(communityCdf)
           }
+          isDirty={activeOptionData.isDirty}
+          hasUserForecast={
+            activeTableOption === questionYesId
+              ? !!prevYesForecast
+              : !!prevNoForecast
+          }
         />
       )}
     </>
