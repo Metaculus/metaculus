@@ -33,6 +33,8 @@ urlpatterns = [
     path("api/", include("questions.urls")),
     path("api/", include("comments.urls")),
     path("api/", include("scoring.urls")),
+    path("api/", include("misc.urls")),
+    # Backward compatibility endpoints
     path("api2/", include(comments.urls.old_api)),
     path("api2/", include(posts.urls.old_api)),
     path("api2/", include(questions.urls.old_api)),
