@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from misc.services.itn import get_post_get_similar_articles
 from posts.models import (
     Post,
     Vote,
@@ -24,6 +25,7 @@ from posts.serializers import (
     serialize_post_many,
     serialize_post,
     get_subscription_serializer_by_type,
+    PostRelatedArticleSerializer,
 )
 from posts.services.common import (
     create_post,
@@ -440,3 +442,18 @@ def post_subscriptions_create(request, pk):
         ],
         status=status.HTTP_201_CREATED,
     )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def post_related_news_api_view(request: Request, pk):
+    post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    # Retrieve cached articles
+    articles = get_post_get_similar_articles(post)
+
+    return Response(PostRelatedArticleSerializer(articles, many=True).data)

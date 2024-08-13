@@ -5,6 +5,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from misc.models import ITNArticle
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers import (
@@ -389,3 +390,9 @@ def get_subscription_serializer_by_type(
         raise ValidationError("Wrong subscription type")
 
     return serializers_map[subscription_type]
+
+
+class PostRelatedArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ITNArticle
+        fields = "__all__"
