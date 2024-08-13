@@ -10,6 +10,8 @@ type Props = {
   communityBounds?: Bounds;
   communityQuartiles?: Quartiles;
   withUserQuartiles?: boolean;
+  hasUserForecast?: boolean;
+  isDirty?: boolean;
 };
 
 const NumericForecastTable: FC<Props> = ({
@@ -19,6 +21,8 @@ const NumericForecastTable: FC<Props> = ({
   communityBounds,
   communityQuartiles,
   withUserQuartiles = true,
+  hasUserForecast,
+  isDirty,
 }) => {
   return (
     <>
@@ -45,11 +49,21 @@ const NumericForecastTable: FC<Props> = ({
         </div>
         {withUserQuartiles && (
           <div className="w-full text-center">
-            <div>{(userBounds!.belowLower * 100).toFixed(1)}%</div>
-            <div>{getDisplayValue(userQuartiles?.lower25, question)}</div>
-            <div>{getDisplayValue(userQuartiles?.median, question)}</div>
-            <div>{getDisplayValue(userQuartiles?.upper75, question)}</div>
-            <div>{(userBounds!.aboveUpper * 100).toFixed(1)}%</div>
+            {isDirty || hasUserForecast ? (
+              <>
+                <div>{(userBounds!.belowLower * 100).toFixed(1)}%</div>
+                <div>{getDisplayValue(userQuartiles?.lower25, question)}</div>
+                <div>{getDisplayValue(userQuartiles?.median, question)}</div>
+                <div>{getDisplayValue(userQuartiles?.upper75, question)}</div>
+                <div>{(userBounds!.aboveUpper * 100).toFixed(1)}%</div>
+              </>
+            ) : (
+              <>
+                {[...Array(5)].map((_, i) => {
+                  return <div key={i}>...</div>;
+                })}
+              </>
+            )}
           </div>
         )}
 
