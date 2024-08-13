@@ -395,4 +395,11 @@ def get_subscription_serializer_by_type(
 class PostRelatedArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ITNArticle
-        fields = "__all__"
+        fields = (
+            "id",
+            "title",
+            "url",
+            "favicon_url",
+            "created_at",
+            "media_label"
+        )

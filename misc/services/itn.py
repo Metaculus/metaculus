@@ -66,12 +66,12 @@ def sync_itn_news():
         for article in paginate_cursor(
             cursor,
             """
-            SELECT a.aID, a.title, t.text, a.url, a.imgurl, m.favicon, a.timestamp
-            FROM itaculus.articles a
-            JOIN fulltext.articletext t ON a.aid = t.aid
-            LEFT JOIN itaculus.media m on m.label = a.medianame
-            WHERE a.timestamp >= %s
-            """,
+                SELECT a.aID, a.title, t.text, a.url, a.imgurl, m.favicon, a.timestamp, a.medianame, m.name as media_label
+                FROM itaculus.articles a
+                JOIN fulltext.articletext t ON a.aid = t.aid
+                LEFT JOIN itaculus.media m on m.label = a.medianame
+                WHERE a.timestamp >= %s
+                """,
             [last_fetch_date],
             itersize=itersize,
         ):
@@ -84,6 +84,8 @@ def sync_itn_news():
                     img_url=article["imgurl"],
                     favicon_url=article["favicon"],
                     created_at=article["timestamp"],
+                    media_name=article["medianame"],
+                    media_label=article["media_label"],
                 )
             )
 
