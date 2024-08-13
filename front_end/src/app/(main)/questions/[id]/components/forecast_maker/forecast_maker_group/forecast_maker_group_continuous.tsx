@@ -332,6 +332,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             }
             communityQuartiles={activeGroupOption.communityQuartiles}
             withUserQuartiles={activeGroupOption.resolution === null}
+            isDirty={activeGroupOption.isDirty}
+            hasUserForecast={
+              !!prevForecastValuesMap[activeTableOption!].forecast
+            }
           />
 
           {!!activeGroupOption.resolution && (
