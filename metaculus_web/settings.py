@@ -58,7 +58,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     # first-party:
     "migrator",
-    "utils",
+    "misc",
     "authentication",
     "users",
     "posts",
@@ -144,7 +144,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    "EXCEPTION_HANDLER": "utils.views.custom_exception_handler",
+    "EXCEPTION_HANDLER": "utils.exceptions.custom_exception_handler",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 20,
 }
@@ -211,6 +211,10 @@ EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg.metaculus.com>"
 )
+EMAIL_SENDER_NO_REPLY = os.environ.get(
+    "EMAIL_SENDER_NO_REPLY", "Metaculus NoReply <no-reply@mg2.metaculus.com>"
+)
+EMAIL_FEEDBACK = os.environ.get("EMAIL_FEEDBACK", "feedback@metaculus.com")
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
