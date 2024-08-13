@@ -15,7 +15,7 @@ from django.utils import timezone
 from pgvector.django import CosineDistance
 from sshtunnel import SSHTunnelForwarder
 
-from misc.models import ITNArticle, PostITNArticle
+from misc.models import ITNArticle
 from posts.models import Post
 from utils.cache import cache_get_or_set
 from utils.db import paginate_cursor
@@ -66,12 +66,12 @@ def sync_itn_news():
         for article in paginate_cursor(
             cursor,
             """
-                                                                                                                                                                                                                    SELECT a.aID, a.title, t.text, a.url, a.imgurl, m.favicon, a.timestamp
-                                                                                                                                                                                                                    FROM itaculus.articles a
-                                                                                                                                                                                                                    JOIN fulltext.articletext t ON a.aid = t.aid
-                                                                                                                                                                                                                    LEFT JOIN itaculus.media m on m.label = a.medianame
-                                                                                                                                                                                                                    WHERE a.timestamp >= %s
-                                                                                                                                                                                                                    """,
+            SELECT a.aID, a.title, t.text, a.url, a.imgurl, m.favicon, a.timestamp
+            FROM itaculus.articles a
+            JOIN fulltext.articletext t ON a.aid = t.aid
+            LEFT JOIN itaculus.media m on m.label = a.medianame
+            WHERE a.timestamp >= %s
+            """,
             [last_fetch_date],
             itersize=itersize,
         ):
@@ -144,46 +144,6 @@ def qs_annotate_rank(qs: Union[Post.objects, ITNArticle.objects]):
         .filter(rank__isnull=False)
         .order_by("-rank")
     )
-
-
-def generate_post_article_relations(qs: Post.objects):
-    """
-    Find similar articles for posts
-    """
-
-    m2m_bunch = []
-    itersize = 500
-
-    for idx, post in enumerate(qs):
-        articles = qs_annotate_rank(
-            ITNArticle.objects.annotate(
-                nr_days_old=ExpressionWrapper(
-                    Func(
-                        Now() - F("created_at"),
-                        function="EXTRACT",
-                        template="%(function)s(DAY FROM %(expressions)s)",
-                    ),
-                    output_field=IntegerField(),
-                ),
-                distance=CosineDistance("embedding_vector", post.embedding_vector),
-            )
-        )[:9]
-
-        for article in articles:
-            m2m_bunch.append(
-                PostITNArticle(article=article, post=post, distance=article.distance)
-            )
-
-            if len(m2m_bunch) >= itersize:
-                PostITNArticle.objects.bulk_create(m2m_bunch, ignore_conflicts=True)
-                m2m_bunch = []
-
-        if idx % itersize == 0:
-            print(f"Processed {idx + 1} Post<>ItnArticle m2m relations", end="\r")
-
-    PostITNArticle.objects.bulk_create(m2m_bunch, ignore_conflicts=True)
-
-    return qs
 
 
 def get_post_get_similar_articles_qs(post: Post):
