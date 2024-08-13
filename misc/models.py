@@ -7,11 +7,13 @@ from utils.models import TimeStampedModel
 
 class ITNArticle(TimeStampedModel):
     aid = models.BigIntegerField(unique=True)
-    title = models.CharField(null=False)
-    text = models.CharField(null=True)
-    url = models.CharField(null=False)
-    img_url = models.CharField(null=False)
-    favicon_url = models.CharField()
+    title = models.CharField()
+    text = models.CharField()
+    url = models.CharField()
+    img_url = models.CharField(default="")
+    favicon_url = models.CharField(default="")
+    media_name = models.CharField(default="")
+    media_label = models.CharField(default="")
 
     embedding_vector = VectorField(
         help_text="Vector embeddings of the ITN Article content",
