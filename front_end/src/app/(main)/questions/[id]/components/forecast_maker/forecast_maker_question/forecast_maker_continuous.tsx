@@ -161,6 +161,8 @@ const ForecastMakerContinuous: FC<Props> = ({
           aboveUpper: 1 - communityCdf[communityCdf.length - 1],
         }}
         communityQuartiles={computeQuartilesFromCDF(communityCdf)}
+        isDirty={isDirty}
+        hasUserForecast={!!prevForecastValue.forecast}
       />
       {canResolve && (
         <div className="flex flex-col items-center justify-center">
