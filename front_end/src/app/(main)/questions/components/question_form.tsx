@@ -13,6 +13,7 @@ import * as z from "zod";
 
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
+import { useAuth } from "@/contexts/auth_context";
 import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { QuestionType } from "@/types/question";
@@ -137,6 +138,7 @@ const QuestionForm: FC<Props> = ({
   tournament_id = null,
   post = null,
 }) => {
+  const { user } = useAuth();
   const router = useRouter();
   const t = useTranslations();
   const { isLive, isDone } = getQuestionStatus(post);
@@ -270,7 +272,7 @@ const QuestionForm: FC<Props> = ({
         }}
         className="mt-4 flex w-[540px] w-full flex-col space-y-4 rounded"
       >
-        {post && (
+        {post && user?.is_superuser && (
           <a href={`/admin/posts/post/${post.id}/change`}>
             {t("viewInDjangoAdmin")}
           </a>
