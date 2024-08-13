@@ -44,11 +44,11 @@ const ContinuousPredictionChart: FC<Props> = ({
       yUserLabel: readOnly
         ? null
         : graphType === "pmf"
-          ? (hoverState.yData.user * 200).toFixed(3)
+          ? (hoverState.yData.user * 200).toFixed(3) // should it be multiplied by 100 ?
           : getForecastPctDisplayValue(hoverState.yData.user),
       yCommunityLabel:
         graphType === "pmf"
-          ? (hoverState.yData.community * 200).toFixed(3)
+          ? (hoverState.yData.community * 200).toFixed(3) // should it be multiplied by 100 ?
           : getForecastPctDisplayValue(hoverState.yData.community),
     };
   }, [graphType, hoverState, question, readOnly]);
