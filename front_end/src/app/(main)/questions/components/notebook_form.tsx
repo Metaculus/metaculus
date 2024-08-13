@@ -10,6 +10,7 @@ import { z } from "zod";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/form_field";
+import { useAuth } from "@/contexts/auth_context";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { Category, PostWithForecasts } from "@/types/post";
 import { Tournament } from "@/types/projects";
@@ -44,6 +45,7 @@ const NotebookForm: React.FC<Props> = ({
   siteMain,
   news_type,
 }) => {
+  const { user } = useAuth();
   const [markdown, setMarkdown] = useState("");
   const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
   const t = useTranslations();
@@ -123,7 +125,7 @@ const NotebookForm: React.FC<Props> = ({
           )(e);
         }}
       >
-        {post && (
+        {post && user?.is_superuser && (
           <div>
             <a href={`/admin/posts/post/${post.id}/change`}>
               View in django admin
