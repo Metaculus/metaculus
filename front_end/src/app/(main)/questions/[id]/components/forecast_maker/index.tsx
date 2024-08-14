@@ -63,6 +63,7 @@ const ForecastMaker: FC<Props> = ({ post }) => {
         permission={permission}
         canPredict={canPredict}
         canResolve={canResolve}
+        postId={post.id}
       />
     );
   }

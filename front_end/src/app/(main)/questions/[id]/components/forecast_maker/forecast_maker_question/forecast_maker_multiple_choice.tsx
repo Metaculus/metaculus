@@ -3,11 +3,11 @@ import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useMemo, useState } from "react";
+import React, { FC, useCallback, useMemo, useState } from "react";
 
-import { createForecast } from "@/app/(main)/questions/actions";
+import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
-import { FormError } from "@/components/ui/form_field";
+import { FormErrorMessage } from "@/components/ui/form_field";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
@@ -37,6 +37,7 @@ type ChoiceOption = {
 };
 
 type Props = {
+  postId: number;
   question: QuestionWithMultipleChoiceForecasts;
   prevForecast?: any;
   permission?: ProjectPermissions;
@@ -45,6 +46,7 @@ type Props = {
 };
 
 const ForecastMakerMultipleChoice: FC<Props> = ({
+  postId,
   question,
   permission,
   prevForecast,
@@ -171,18 +173,20 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     });
 
     setIsSubmitting(true);
-    const response = await createForecast(
-      question.id,
+    const response = await createForecasts(postId, [
       {
-        continuousCdf: null,
-        probabilityYes: null,
-        probabilityYesPerCategory: forecastValue,
+        questionId: question.id,
+        forecastData: {
+          continuousCdf: null,
+          probabilityYes: null,
+          probabilityYesPerCategory: forecastValue,
+        },
+        sliderValues: forecastValue,
       },
-      forecastValue
-    );
+    ]);
     setIsDirty(false);
-    if ("errors" in response) {
-      setSubmitError(response.errors);
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors[0]);
     }
     setIsSubmitting(false);
   };
@@ -279,7 +283,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
             </Button>
           </div>
         )}
-        <FormError errors={submitError} />
+        <FormErrorMessage errors={submitError} />
       </div>
       <div className="flex flex-col items-center justify-center">
         <QuestionResolutionButton question={question} permission={permission} />
