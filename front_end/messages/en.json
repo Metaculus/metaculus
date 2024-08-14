@@ -705,6 +705,7 @@
   "questionGroup": "question group",
   "singleQuestion": "single question",
   "createNewContent": "create new content",
+  "onlyRegisterUserCanCreate": "Only registered users can create new questions. <link1>Sign in</link1> or <link2>register</link2> a new account now!",
   "createQuestionDescription1": "Check out our <link1>question writing guide</link1> for tips. Good questions are approved faster, and get more predictions.  If you just have an idea, or don't want to fill out the whole submission form, post your idea in our <link2>suggestion thread</link2>.",
   "createQuestionDescription2": "We have high standards for question quality. We also favor questions on our core topic areas or that we otherwise judge valuable. We may not publish questions that are not a good fit.",
   "binaryQuestionDescription": "Binary questions are generally of the form \"Will X happen?\" They either resolve as Yes or No.",
