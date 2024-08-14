@@ -37,7 +37,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "possibilities",
             "resolution",
             "zero_point",
-            "resolution_criteria_description",
+            "resolution_criteria",
             "fine_print",
             "label",
             "open_upper_bound",
@@ -65,7 +65,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "options",
             "scheduled_resolve_time",
             "scheduled_close_time",
-            "resolution_criteria_description",
+            "resolution_criteria",
             "fine_print",
         )
 
@@ -117,7 +117,7 @@ class GroupOfQuestionsSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "description",
-            "resolution_criteria_description",
+            "resolution_criteria",
             "fine_print",
             "group_variable",
         )
@@ -131,7 +131,7 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
         fields = (
             "questions",
             "fine_print",
-            "resolution_criteria_description",
+            "resolution_criteria",
             "description",
             "group_variable",
         )
