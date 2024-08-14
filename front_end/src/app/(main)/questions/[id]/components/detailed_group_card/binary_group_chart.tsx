@@ -54,7 +54,7 @@ const BinaryGroupChart: FC<Props> = ({
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(questions, preselectedQuestionId)
   );
-  const userForecasts = generateUserForecasts(questions);
+  const userForecasts = user ? generateUserForecasts(questions) : undefined;
   const timestampsCount = timestamps.length;
   const prevTimestampsCount = usePrevious(timestampsCount);
   // sync BE driven data with local state
@@ -87,20 +87,22 @@ const BinaryGroupChart: FC<Props> = ({
 
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(
     () =>
-      userForecasts.map(
-        ({ choice, values, color, timestamps: optionTimestamps }) => {
-          return {
-            choiceLabel: choice,
-            color,
-            valueLabel: getQuestionTooltipLabel(
-              optionTimestamps ?? timestamps,
-              values ?? [],
-              cursorTimestamp,
-              true
-            ),
-          };
-        }
-      ),
+      userForecasts === undefined
+        ? []
+        : userForecasts?.map(
+            ({ choice, values, color, timestamps: optionTimestamps }) => {
+              return {
+                choiceLabel: choice,
+                color,
+                valueLabel: getQuestionTooltipLabel(
+                  optionTimestamps ?? timestamps,
+                  values ?? [],
+                  cursorTimestamp,
+                  true
+                ),
+              };
+            }
+          ),
     [userForecasts, cursorTimestamp, timestamps]
   );
 
