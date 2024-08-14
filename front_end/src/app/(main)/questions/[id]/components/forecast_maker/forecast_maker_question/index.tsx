@@ -96,7 +96,7 @@ const QuestionForecastMaker: FC<Props> = ({
       resolutionCriteria={[
         {
           title: t("resolutionCriteria"),
-          content: question.resolution_criteria_description,
+          content: question.resolution_criteria,
           finePrint: question.fine_print,
         },
       ]}
