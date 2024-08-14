@@ -1,12 +1,11 @@
 import logging
 import time
-from multiprocessing import Pool, Manager
 
-import django
 from django.core.management.base import BaseCommand
 
 from posts.models import Post
 from posts.services.search import update_post_search_embedding_vector
+from utils.management import parallel_command_executor
 
 logger = logging.getLogger(__name__)
 
@@ -42,29 +41,13 @@ class Command(BaseCommand):
             .order_by("-id")
             .values_list("id", flat=True)
         )
-        total = len(post_ids)
-
-        num_processes = options["num_processes"]
-        chunk_size = total // num_processes
 
         tm = time.time()
 
-        if not chunk_size:
-            return
+        parallel_command_executor(
+            post_ids, process_posts, num_processes=options["num_processes"]
+        )
 
-        # Split post_ids into chunks for each process
-        post_id_chunks = [
-            post_ids[i : i + chunk_size] for i in range(0, total, chunk_size)
-        ]
-
-        with Manager() as manager:
-            with Pool(processes=num_processes, initializer=django.setup) as pool:
-                pool.starmap(
-                    process_posts,
-                    [
-                        (chunk, worker_idx)
-                        for worker_idx, chunk in enumerate(post_id_chunks)
-                    ],
-                )
-
-        print(f"\nCompleted processing {total} records in {round(time.time() - tm)}s")
+        print(
+            f"\nCompleted processing {len(post_ids)} records in {round(time.time() - tm)}s"
+        )
