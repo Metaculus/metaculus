@@ -30,7 +30,7 @@ class Command(BaseCommand):
             qs = ITNArticle.objects.all()
 
             for idx, article in enumerate(qs.iterator(chunk_size=chunk_size)):
-                article.embedding_vector = mapping.get(article.id)
+                article.embedding_vector = mapping.get(article.aid)
 
                 batch.append(article)
 
