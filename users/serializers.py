@@ -66,6 +66,7 @@ class UserPrivateSerializer(UserPublicSerializer):
         fields = UserPublicSerializer.Meta.fields + (
             "email",
             "is_superuser",
+            "is_staff",
             "unsubscribed_mailing_tags",
         )
 

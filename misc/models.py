@@ -20,6 +20,7 @@ class ITNArticle(TimeStampedModel):
         null=True,
         blank=True,
     )
+    is_removed = models.BooleanField(default=False)
 
 
 # TODO: index new posts

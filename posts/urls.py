@@ -8,9 +8,9 @@ urlpatterns = [
     path("posts/<int:pk>/", views.post_detail, name="post-detail"),
     path("posts/<int:pk>/boost", views.activity_boost_api_view, name="post-boost"),
     path(
-        "posts/<int:pk>/related-news",
-        views.post_related_news_api_view,
-        name="post-related-news",
+        "posts/<int:pk>/related-articles/",
+        views.post_related_articles_api_view,
+        name="post-related-articles",
     ),
     path(
         "posts/<int:pk>/subscriptions",

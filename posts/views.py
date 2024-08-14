@@ -446,7 +446,7 @@ def post_subscriptions_create(request, pk):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def post_related_news_api_view(request: Request, pk):
+def post_related_articles_api_view(request: Request, pk):
     post = get_object_or_404(Post, pk=pk)
 
     # Check permissions

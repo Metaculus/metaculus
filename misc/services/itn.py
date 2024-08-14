@@ -4,11 +4,11 @@ import os
 import stat
 import tempfile
 from datetime import timedelta
-from typing import Union
 
 import mysql.connector
 import numpy as np
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import F, ExpressionWrapper, Func, IntegerField
 from django.db.models.functions import Now
 from django.utils import timezone
@@ -19,7 +19,6 @@ from misc.models import ITNArticle
 from posts.models import Post
 from utils.cache import cache_get_or_set
 from utils.db import paginate_cursor
-from utils.management import parallel_command_executor
 from utils.openai import chunked_tokens, generate_text_embed_vector
 
 logger = logging.getLogger(__name__)
@@ -66,12 +65,12 @@ def sync_itn_news():
         for article in paginate_cursor(
             cursor,
             """
-                SELECT a.aID, a.title, t.text, a.url, a.imgurl, m.favicon, a.timestamp, a.medianame, m.name as media_label
-                FROM itaculus.articles a
-                JOIN fulltext.articletext t ON a.aid = t.aid
-                LEFT JOIN itaculus.media m on m.label = a.medianame
-                WHERE a.timestamp >= %s
-                """,
+                                                SELECT a.aID, a.title, t.text, a.url, a.imgurl, m.favicon, a.timestamp, a.medianame, m.name as media_label
+                                                FROM itaculus.articles a
+                                                JOIN fulltext.articletext t ON a.aid = t.aid
+                                                LEFT JOIN itaculus.media m on m.label = a.medianame
+                                                WHERE a.timestamp >= %s
+                                                """,
             [last_fetch_date],
             itersize=itersize,
         ):
@@ -115,41 +114,8 @@ def update_article_embedding_vector(obj: ITNArticle):
     obj.save()
 
 
-def generate_embedding_vectors__worker(ids, worker_idx):
-    for idx, article in enumerate(
-        ITNArticle.objects.filter(id__in=ids).iterator(chunk_size=100)
-    ):
-        try:
-            update_article_embedding_vector(article)
-            if idx % 10 == 0:
-                print(f"[W{worker_idx}] Processed total {idx} of {len(ids)} records")
-        except Exception:
-            logger.exception("Error during generation of the vector")
-
-
-def generate_embedding_vectors():
-    article_ids = list(
-        ITNArticle.objects.filter(embedding_vector__isnull=True).values_list(
-            "id", flat=True
-        )
-    )
-
-    # TODO: decrease  num workers
-    parallel_command_executor(
-        article_ids, generate_embedding_vectors__worker, num_processes=20
-    )
-
-
-def qs_annotate_rank(qs: Union[Post.objects, ITNArticle.objects]):
-    return (
-        qs.annotate(rank=(1 - F("distance") - (F("nr_days_old") / 600)))
-        .filter(rank__isnull=False)
-        .order_by("-rank")
-    )
-
-
 def get_post_get_similar_articles_qs(post: Post):
-    return qs_annotate_rank(
+    return (
         ITNArticle.objects.annotate(
             nr_days_old=ExpressionWrapper(
                 Func(
@@ -161,13 +127,32 @@ def get_post_get_similar_articles_qs(post: Post):
             ),
             distance=CosineDistance("embedding_vector", post.embedding_vector),
         )
+        .annotate(rank=(1 - F("distance") - (F("nr_days_old") / 600)))
+        # Exclude removed posts
+        .filter(is_removed=False)
+        .filter(rank__isnull=False)
+        .order_by("-rank")
     )
 
 
+def get_post_articles_cache(post_id: str):
+    return f"post_similar_itn_article_ids:v1:{post_id}"
+
+
 def get_post_get_similar_articles(post: Post):
-    return cache_get_or_set(
-        f"post_similar_itn_articles:v1:{post.pk}",
+    articles = cache_get_or_set(
+        get_post_articles_cache(post.pk),
         lambda: get_post_get_similar_articles_qs(post)[:9],
         # 12h
         timeout=3600 * 12,
     )
+
+    return articles
+
+
+def remove_article(article: ITNArticle):
+    article.is_removed = True
+    article.save()
+
+    # Drop cache
+    cache.delete_pattern(get_post_articles_cache("*"))
