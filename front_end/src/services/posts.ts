@@ -1,4 +1,5 @@
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
+import { NewsArticle } from "@/types/news";
 import { Post, PostSubscription, PostWithForecasts } from "@/types/post";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post, put } from "@/utils/fetch";
@@ -89,6 +90,10 @@ class PostsApi {
       `/posts/${postId}/subscriptions`,
       subscriptions
     );
+  }
+
+  static async getRelatedNews(postId: number) {
+    return get<NewsArticle[]>(`/posts/${postId}/related-news`);
   }
 }
 
