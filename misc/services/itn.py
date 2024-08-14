@@ -23,6 +23,12 @@ from utils.openai import chunked_tokens, generate_text_embed_vector
 
 logger = logging.getLogger(__name__)
 
+BLOCKED_MEDIAS = [
+    # Purpose: russian foreign intelligence agency
+    # https://en.wikipedia.org/wiki/New_Eastern_Outlook
+    "neweasternoutlook",
+]
+
 
 @contextlib.contextmanager
 def itn_db():
@@ -65,14 +71,14 @@ def sync_itn_news():
     with itn_db() as cursor:
         for article in paginate_cursor(
             cursor,
-            """
-            SELECT a.aID, a.title, t.text, a.url, a.imgurl, m.favicon, a.timestamp, a.medianame, m.name as media_label
-            FROM itaculus.articles a
-            JOIN fulltext.articletext t ON a.aid = t.aid
-            LEFT JOIN itaculus.media m on m.label = a.medianame
-            WHERE a.timestamp >= %s
-            """,
-            [last_fetch_date],
+            f"""
+           SELECT a.aID, a.title, t.text, a.url, a.imgurl, m.favicon, a.timestamp, a.medianame, m.name as media_label
+           FROM itaculus.articles a
+           JOIN fulltext.articletext t ON a.aid = t.aid
+           LEFT JOIN itaculus.media m on m.label = a.medianame
+           WHERE a.timestamp >= %s and a.medianame not in ({','.join(['%s'] * len(BLOCKED_MEDIAS))})
+           """,
+            [last_fetch_date, *BLOCKED_MEDIAS],
             itersize=itersize,
         ):
             bunch.append(
