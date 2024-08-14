@@ -15,7 +15,7 @@ import React, {
 import { createForecasts } from "@/app/(main)/questions/actions";
 import PostStatusComponent from "@/components/post_status";
 import Button from "@/components/ui/button";
-import { FormError } from "@/components/ui/form_field";
+import { FormErrorMessage } from "@/components/ui/form_field";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
@@ -141,7 +141,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     }
 
     setIsSubmitting(true);
-    const responses = await createForecasts(
+    const response = await createForecasts(
       postId,
       questionsToSubmit.map((q) => {
         const forecastValue = round(
@@ -166,9 +166,9 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     setIsSubmitting(false);
 
     const errors: ErrorResponse[] = [];
-    for (const response of responses) {
-      if ("errors" in response && !!response.errors) {
-        errors.push(response.errors);
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
       }
     }
     if (errors.length) {
@@ -270,7 +270,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         </div>
       )}
       {submitErrors.map((errResponse, index) => (
-        <FormError key={`error-${index}`} errors={errResponse} />
+        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
       ))}
     </>
   );
