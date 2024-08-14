@@ -8,6 +8,11 @@ urlpatterns = [
     path("posts/<int:pk>/", views.post_detail, name="post-detail"),
     path("posts/<int:pk>/boost", views.activity_boost_api_view, name="post-boost"),
     path(
+        "posts/<int:pk>/related-articles/",
+        views.post_related_articles_api_view,
+        name="post-related-articles",
+    ),
+    path(
         "posts/<int:pk>/subscriptions",
         views.post_subscriptions_create,
         name="post-subscriptions",
@@ -19,8 +24,7 @@ urlpatterns = [
     path("posts/<int:pk>/delete/", views.post_delete_api_view, name="delete-question"),
 ]
 
-
 old_api = [
     path("questions/", views.posts_list_oldapi_view, name="oldapi-post-list"),
-    path("questions/<int:pk>/", views.post_detail_oldapi_view, name="oldapi-post-list")
+    path("questions/<int:pk>/", views.post_detail_oldapi_view, name="oldapi-post-list"),
 ]
