@@ -10,6 +10,7 @@ import {
   POST_CATEGORIES_FILTER,
   POST_TAGS_FILTER,
 } from "@/constants/posts_feed";
+import { useModal } from "@/contexts/modal_context";
 import { PostWithForecasts } from "@/types/post";
 
 type Props = {
@@ -21,6 +22,7 @@ const INITIAL_NUM_OF_TAGS = 10;
 
 const SidebarQuestionTags: FC<Props> = ({ tagData, allowModifications }) => {
   const t = useTranslations();
+  const { setCurrentModal } = useModal();
 
   const { category: _category, tag: _tag } = tagData;
   const tag = _tag ?? [];
@@ -67,7 +69,11 @@ const SidebarQuestionTags: FC<Props> = ({ tagData, allowModifications }) => {
         </Button>
       )}
 
-      <Button size="sm" variant="tertiary" onClick={() => {}}>
+      <Button
+        size="sm"
+        variant="tertiary"
+        onClick={() => setCurrentModal({ type: "contactUs" })}
+      >
         <FontAwesomeIcon icon={faCircleQuestion} />
         {t("submitTagsFeedback")}
       </Button>
