@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
+import { removeRelatedArticle } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { NewsArticle } from "@/types/news";
@@ -15,19 +16,18 @@ import { formatDate } from "@/utils/date_formatters";
 type Props = {
   article: NewsArticle;
   questionId: number;
-  allowModifications?: boolean;
 };
 
-const NewsMatchArticle: FC<Props> = ({ article, allowModifications }) => {
+const NewsMatchArticle: FC<Props> = ({ article }) => {
   const { user } = useAuth();
   const locale = useLocale();
   const t = useTranslations();
+  const allowModifications = user?.is_staff;
 
   const [articleRemoved, setArticleRemoved] = useState(false);
 
   async function blacklistArticle() {
-    const response = await Promise.resolve({ ok: true });
-    if (!response.ok) return;
+    await removeRelatedArticle(article.id);
     setArticleRemoved(true);
   }
 

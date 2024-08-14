@@ -93,7 +93,11 @@ class PostsApi {
   }
 
   static async getRelatedNews(postId: number) {
-    return get<NewsArticle[]>(`/posts/${postId}/related-news`);
+    return get<NewsArticle[]>(`/posts/${postId}/related-articles/`);
+  }
+
+  static async removeRelatedArticle(articleId: number) {
+    return post(`/itn-articles/${articleId}/remove`, {});
   }
 }
 

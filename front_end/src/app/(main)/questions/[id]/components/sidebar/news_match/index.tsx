@@ -6,7 +6,6 @@ import NewsMatchDrawer from "./news_match_drawer";
 
 interface Props {
   questionId: number;
-  allowModifications?: boolean;
 }
 
 const fetchArticles = async (postId: number) => {
@@ -14,16 +13,10 @@ const fetchArticles = async (postId: number) => {
   return await PostsApi.getRelatedNews(postId);
 };
 
-const NewsMatch: FC<Props> = async ({ questionId, allowModifications }) => {
+const NewsMatch: FC<Props> = async ({ questionId }) => {
   const articles = await fetchArticles(questionId);
 
-  return (
-    <NewsMatchDrawer
-      articles={articles}
-      questionId={questionId}
-      allowModifications={allowModifications}
-    />
-  );
+  return <NewsMatchDrawer articles={articles} questionId={questionId} />;
 };
 
 export default NewsMatch;

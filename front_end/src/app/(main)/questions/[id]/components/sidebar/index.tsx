@@ -37,10 +37,7 @@ const Sidebar: FC<Props> = ({
 
         <Suspense fallback={null}>
           <div className="flex w-full flex-col items-start gap-4 self-stretch">
-            <NewsMatch
-              allowModifications={allowModifications}
-              questionId={postData.id}
-            />
+            <NewsMatch questionId={postData.id} />
           </div>
         </Suspense>
 
@@ -74,10 +71,7 @@ const Sidebar: FC<Props> = ({
       </div>
 
       <Suspense fallback={null}>
-        <NewsMatch
-          allowModifications={allowModifications}
-          questionId={postData.id}
-        />
+        <NewsMatch questionId={postData.id} />
       </Suspense>
 
       <Suspense fallback={null}>
