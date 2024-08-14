@@ -54,6 +54,7 @@ def itn_db():
 
 
 def sync_itn_news():
+    articles_count = ITNArticle.objects.count()
     last_fetch_date = ITNArticle.objects.order_by("-created_at").values_list(
         "created_at", flat=True
     ).first() or timezone.now() - timedelta(days=7)
@@ -65,12 +66,12 @@ def sync_itn_news():
         for article in paginate_cursor(
             cursor,
             """
-                                                SELECT a.aID, a.title, t.text, a.url, a.imgurl, m.favicon, a.timestamp, a.medianame, m.name as media_label
-                                                FROM itaculus.articles a
-                                                JOIN fulltext.articletext t ON a.aid = t.aid
-                                                LEFT JOIN itaculus.media m on m.label = a.medianame
-                                                WHERE a.timestamp >= %s
-                                                """,
+            SELECT a.aID, a.title, t.text, a.url, a.imgurl, m.favicon, a.timestamp, a.medianame, m.name as media_label
+            FROM itaculus.articles a
+            JOIN fulltext.articletext t ON a.aid = t.aid
+            LEFT JOIN itaculus.media m on m.label = a.medianame
+            WHERE a.timestamp >= %s
+            """,
             [last_fetch_date],
             itersize=itersize,
         ):
@@ -92,9 +93,12 @@ def sync_itn_news():
                 ITNArticle.objects.bulk_create(bunch, ignore_conflicts=True)
                 bunch = []
 
-                print("Processed 500 articles")
+                print("Synced 500 articles", end="\r")
 
     ITNArticle.objects.bulk_create(bunch, ignore_conflicts=True)
+
+    articles_count = ITNArticle.objects.count() - articles_count
+    logger.info(f"Synced {articles_count} ITN articles")
 
 
 def update_article_embedding_vector(obj: ITNArticle):
