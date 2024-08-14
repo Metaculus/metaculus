@@ -12,6 +12,7 @@ import ForecastMakerMultipleChoice from "./forecast_maker_multiple_choice";
 import ForecastMakerContainer from "../container";
 
 type Props = {
+  postId: number;
   question: QuestionWithForecasts;
   permission?: ProjectPermissions;
   canPredict: boolean;
@@ -23,6 +24,7 @@ const QuestionForecastMaker: FC<Props> = ({
   permission,
   canPredict,
   canResolve,
+  postId,
 }) => {
   const t = useTranslations();
 
@@ -33,6 +35,7 @@ const QuestionForecastMaker: FC<Props> = ({
         return (
           <>
             <ForecastMakerContinuous
+              postId={postId}
               question={question}
               permission={permission}
               prevForecast={question.forecasts.my_forecasts?.slider_values}
@@ -50,6 +53,7 @@ const QuestionForecastMaker: FC<Props> = ({
         return (
           <>
             <ForecastMakerBinary
+              postId={postId}
               question={question}
               permission={permission}
               prevForecast={question.forecasts.my_forecasts?.slider_values}
@@ -67,6 +71,7 @@ const QuestionForecastMaker: FC<Props> = ({
         return (
           <>
             <ForecastMakerMultipleChoice
+              postId={postId}
               question={question}
               permission={permission}
               prevForecast={question.forecasts.my_forecasts?.slider_values}
