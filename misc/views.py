@@ -38,7 +38,7 @@ def remove_article_api_view(request, pk):
 
     article = get_object_or_404(ITNArticle, pk=pk)
 
-    if not request.user.is_superuser:
+    if not request.user.is_superuser or not request.user.is_staff:
         raise PermissionDenied("You do not have permission to perform this action")
 
     remove_article(article)
