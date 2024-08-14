@@ -1,11 +1,11 @@
 "use client";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 
-import { createForecast } from "@/app/(main)/questions/actions";
+import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
-import { FormError } from "@/components/ui/form_field";
+import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
@@ -17,6 +17,7 @@ import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import QuestionResolutionButton from "../resolution";
 
 type Props = {
+  postId: number;
   question: QuestionWithNumericForecasts;
   prevForecast?: any;
   permission?: ProjectPermissions;
@@ -25,6 +26,7 @@ type Props = {
 };
 
 const ForecastMakerBinary: FC<Props> = ({
+  postId,
   question,
   prevForecast,
   permission,
@@ -62,18 +64,21 @@ const ForecastMakerBinary: FC<Props> = ({
     const forecastValue = round(forecast / 100, BINARY_FORECAST_PRECISION);
 
     setIsSubmitting(true);
-    const response = await createForecast(
-      question.id,
+    const response = await createForecasts(postId, [
       {
-        continuousCdf: null,
-        probabilityYes: forecastValue,
-        probabilityYesPerCategory: null,
+        questionId: question.id,
+        forecastData: {
+          continuousCdf: null,
+          probabilityYes: forecastValue,
+          probabilityYesPerCategory: null,
+        },
+        sliderValues: forecastValue,
       },
-      forecastValue
-    );
+    ]);
     setIsForecastDirty(false);
-    if ("errors" in response) {
-      setSubmitError(response.errors);
+
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors[0]);
     }
     setIsSubmitting(false);
   };
@@ -108,7 +113,7 @@ const ForecastMakerBinary: FC<Props> = ({
           />
         )}
       </div>
-      <FormError errors={submitError} />
+      <FormErrorMessage errors={submitError} />
     </>
   );
 };

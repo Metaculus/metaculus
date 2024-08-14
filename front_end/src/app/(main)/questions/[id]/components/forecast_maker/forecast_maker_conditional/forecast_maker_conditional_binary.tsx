@@ -2,12 +2,11 @@
 import classNames from "classnames";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useMemo, useState } from "react";
-import React from "react";
+import React, { FC, useCallback, useMemo, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
-import { FormError } from "@/components/ui/form_field";
+import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
@@ -192,7 +191,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     }
 
     setIsSubmitting(true);
-    const responses = await createForecasts(
+    const response = await createForecasts(
       postId,
       questionsToSubmit.map((q) => {
         const forecastValue = round(q.value! / 100, BINARY_FORECAST_PRECISION);
@@ -214,9 +213,9 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     setIsSubmitting(false);
 
     const errors: ErrorResponse[] = [];
-    for (const response of responses) {
-      if ("errors" in response && !!response.errors) {
-        errors.push(response.errors);
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
       }
     }
     if (errors.length) {
@@ -302,7 +301,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
           ))}
       </div>
       {submitErrors.map((errResponse, index) => (
-        <FormError key={`error-${index}`} errors={errResponse} />
+        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
       ))}
     </>
   );

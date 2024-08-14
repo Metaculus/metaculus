@@ -7,6 +7,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from posts.models import PostUserSnapshot
+from projects.permissions import ObjectPermission
 from questions.constants import ResolutionType
 from questions.models import Question, GroupOfQuestions, Conditional, Forecast
 from users.models import User
@@ -361,10 +362,33 @@ def create_forecast(
     post.update_forecasts_count()
 
     # Run async tasks
-    from posts.tasks import run_compute_sorting_divergence
     from questions.tasks import run_build_question_forecasts
 
-    run_compute_sorting_divergence.send(post.id)
     run_build_question_forecasts.send(question.id)
 
     return forecast
+
+
+def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
+    from posts.services.common import get_post_permission_for_user
+    from posts.tasks import run_compute_sorting_divergence
+
+    posts = set()
+
+    for forecast in forecasts:
+        question = forecast.pop("question")
+        post = question.get_post()
+        posts.add(post)
+
+        # Check permissions
+        permission = get_post_permission_for_user(post, user=user)
+        ObjectPermission.can_forecast(permission, raise_exception=True)
+
+        if not question.open_time or question.open_time > timezone.now():
+            raise ValidationError("You cannot forecast on this question yet!")
+
+        create_forecast(question=question, user=user, **forecast)
+
+    # Running forecast post triggers
+    for post in posts:
+        run_compute_sorting_divergence.send(post.id)
