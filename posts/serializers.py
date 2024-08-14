@@ -228,6 +228,7 @@ def serialize_post(
             post.question,
             with_cp=with_cp,
             current_user=current_user,
+            post=post
         )
 
     if post.conditional:
@@ -235,7 +236,7 @@ def serialize_post(
             post.conditional,
             with_cp=with_cp,
             current_user=current_user,
-            post_id=post.id,
+            post=post,
         )
 
     if post.group_of_questions:
@@ -243,7 +244,7 @@ def serialize_post(
             post.group_of_questions,
             with_cp=with_cp,
             current_user=current_user,
-            post_id=post.id,
+            post=post,
         )
 
     if post.notebook:
@@ -289,6 +290,7 @@ def serialize_post_many(
         .prefetch_projects()
         .prefetch_questions()
         .annotate_comment_count()
+        .select_related("author")
     )
     if current_user:
         qs = qs.annotate_user_vote(current_user)
