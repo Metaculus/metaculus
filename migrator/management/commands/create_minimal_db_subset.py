@@ -10,7 +10,13 @@ from posts.models import Notebook, Post
 from posts.services.feed import get_posts_feed
 from projects.models import Project
 from projects.services import get_site_main_project
-from questions.models import Conditional, Forecast, GroupOfQuestions, Question
+from questions.models import (
+    Conditional,
+    Forecast,
+    GroupOfQuestions,
+    Question,
+    AggregateForecast,
+)
 from users.models import User
 
 
@@ -257,7 +263,7 @@ class Command(BaseCommand):
                     Q(on_post__in=posts_qs) | Q(on_project__in=projects_qs)
                 )
                 .distinct()
-                .order_by("pk")[:50]
+                .order_by("pk")[:200]
             )
         )
 
@@ -270,11 +276,12 @@ class Command(BaseCommand):
         forecasts_qs = Forecast.objects.filter(
             post__in=posts_qs,
             author__in=[u.id for u in all_users],
-            comment__in=comments_qs,
         ).distinct()
 
         # Copy now the forecasts and the comments
         self.copy_objects(forecasts_qs)
+
+        self.copy_objects(AggregateForecast.objects.filter(question__post__in=posts_qs))
 
         self.copy_objects(comments_qs)
 
