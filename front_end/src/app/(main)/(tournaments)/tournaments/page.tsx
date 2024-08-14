@@ -63,8 +63,6 @@ export default async function Tournaments() {
 }
 
 function extractTournamentLists(tournaments: Tournament[]) {
-  const now = new Date();
-
   const activeTournaments: Tournament[] = [];
   const archivedTournaments: Tournament[] = [];
   const questionSeries: Tournament[] = [];

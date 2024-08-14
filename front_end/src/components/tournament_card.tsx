@@ -1,12 +1,14 @@
 import { faCalendar } from "@fortawesome/free-regular-svg-icons";
 import { faAward } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { isAfter } from "date-fns";
 import Image from "next/image";
 import Link, { LinkProps } from "next/link";
-import { useTranslations } from "next-intl";
-import { FC, ReactElement, ReactNodeArray } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { FC } from "react";
 
 import tournamentPlaceholder from "@/app/assets/images/tournament.webp";
+import { formatDate } from "@/utils/date_formatters";
 
 type Props = {
   href: LinkProps["href"];
@@ -14,7 +16,7 @@ type Props = {
   name: string;
   questionsCount: number;
   closeDate: string;
-  closeDateFormatter?: (date: Date) => string | ReactElement | ReactNodeArray;
+  showCloseDate: boolean;
   prizePool?: string | null;
   withCount?: boolean;
 };
@@ -26,10 +28,30 @@ const TournamentCard: FC<Props> = ({
   prizePool,
   questionsCount,
   closeDate,
-  closeDateFormatter,
+  showCloseDate,
   withCount = true,
 }) => {
   const t = useTranslations();
+  const locale = useLocale();
+
+  function closeDateFormatter(date: Date) {
+    const now = new Date();
+    const formattedDate = formatDate(locale, date);
+
+    if (isAfter(now, date)) {
+      return t.rich("closedOn", {
+        strong: () => (
+          <strong className="whitespace-nowrap">{formattedDate}</strong>
+        ),
+      });
+    }
+
+    return t.rich("closesOn", {
+      strong: () => (
+        <strong className="whitespace-nowrap">{formattedDate}</strong>
+      ),
+    });
+  }
 
   return (
     <Link
@@ -65,12 +87,12 @@ const TournamentCard: FC<Props> = ({
               transform={{ size: 18 }}
             />
             <span className="align-middle">
-              <strong>${Number(prizePool).toLocaleString()}</strong>
+              <strong>${Number(prizePool).toLocaleString(locale)}</strong>
               <span className="whitespace-nowrap"> {t("prizePool")}</span>
             </span>
           </div>
         )}
-        {!!closeDateFormatter && (
+        {!!showCloseDate && (
           <div className="mt-2">
             <FontAwesomeIcon
               icon={faCalendar}
