@@ -8,7 +8,7 @@ import ConditionalTimeline from "@/components/conditional_timeline";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
-import { Post, ProjectPermissions, PostConditional } from "@/types/post";
+import { Post, PostConditional, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getConditionalQuestionTitle } from "@/utils/questions";
 

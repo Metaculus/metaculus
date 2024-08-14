@@ -262,6 +262,10 @@ export async function changePostActivityBoost(postId: number, score: number) {
   return await PostsApi.changePostActivityBoost(postId, score);
 }
 
+export async function removeRelatedArticle(articleId: number) {
+  return await PostsApi.removeRelatedArticle(articleId);
+}
+
 export async function changePostSubscriptions(
   postId: number,
   subscriptions: PostSubscription[]
