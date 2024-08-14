@@ -28,7 +28,7 @@ def generate_post_content_for_embedding_vectorization(post: Post):
         chunks = [
             question.title,
             question.description,
-            question.resolution_criteria_description,
+            question.resolution_criteria,
             question.fine_print,
         ]
         question_chunks.append("\n".join([x for x in chunks if x]))
