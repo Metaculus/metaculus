@@ -15,11 +15,7 @@ interface Props {
   articles: NewsArticle[];
 }
 
-const NewsMatchDrawer: FC<Props> = ({
-  questionId,
-  allowModifications,
-  articles,
-}) => {
+const NewsMatchDrawer: FC<Props> = ({ questionId, articles }) => {
   const t = useTranslations();
   const [articleDisplayLimit, setArticleDisplayLimit] = useState(3);
 
@@ -31,7 +27,6 @@ const NewsMatchDrawer: FC<Props> = ({
             key={article.id}
             article={article}
             questionId={questionId}
-            allowModifications={allowModifications}
           />
         ))}
         <div className="flex flex-col items-center justify-between @md:flex-row">
