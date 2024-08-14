@@ -35,7 +35,7 @@ class Question(TimeStampedModel):
     title = models.CharField(max_length=2000)
 
     description = models.TextField(blank=True)
-    resolution_criteria_description = models.TextField(blank=True)
+    resolution_criteria = models.TextField(blank=True)
     fine_print = models.TextField(blank=True)
 
     label = models.TextField(blank=True, null=True)
@@ -175,7 +175,7 @@ class Conditional(TimeStampedModel):
 
 class GroupOfQuestions(TimeStampedModel):
     description = models.TextField(blank=True)
-    resolution_criteria_description = models.TextField(blank=True, null=True)
+    resolution_criteria = models.TextField(blank=True, null=True)
     fine_print = models.TextField(blank=True, null=True)
 
     group_variable = models.TextField(blank=True, null=True)
