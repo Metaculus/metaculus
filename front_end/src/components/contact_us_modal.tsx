@@ -23,6 +23,7 @@ type ContactUsSchema = z.infer<typeof contactUsSchema>;
 type Props = {
   isOpen: boolean;
   onClose: (isOpen: boolean) => void;
+  defaultSubject?: string;
 };
 
 const subjects = [
@@ -32,9 +33,10 @@ const subjects = [
   "Feature request",
   "Press request",
   "Other",
+  "Tag Feedback",
 ];
 
-const ContactUsModal: FC<Props> = ({ isOpen, onClose }) => {
+const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
@@ -46,7 +48,7 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose }) => {
     handleSubmit,
   } = useForm<ContactUsSchema>({
     defaultValues: {
-      subject: "",
+      subject: defaultSubject ? defaultSubject : "",
       email: user?.email,
     },
     resolver: zodResolver(contactUsSchema),
