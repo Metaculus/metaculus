@@ -1,6 +1,6 @@
 "use client";
-import { differenceInMilliseconds, isAfter } from "date-fns";
-import { useLocale, useTranslations } from "next-intl";
+import { differenceInMilliseconds } from "date-fns";
+import { useTranslations } from "next-intl";
 import { FC, useEffect, useMemo, useState } from "react";
 
 import TournamentCard from "@/components/tournament_card";
@@ -11,7 +11,6 @@ import {
   TournamentsSortBy,
   TournamentType,
 } from "@/types/projects";
-import { formatDate } from "@/utils/date_formatters";
 
 import {
   TOURNAMENTS_SEARCH,
@@ -34,7 +33,6 @@ const TournamentsList: FC<Props> = ({
   withEmptyState,
 }) => {
   const t = useTranslations();
-  const locale = useLocale();
   const { params } = useSearchParams();
 
   const searchString = params.get(TOURNAMENTS_SEARCH) ?? "";
@@ -52,25 +50,6 @@ const TournamentsList: FC<Props> = ({
   useEffect(() => {
     setDisplayItemsCount(initialCardsCount ?? cardsPerPage);
   }, [cardsPerPage, filteredItems.length, initialCardsCount]);
-
-  const closeDateFormatter = (date: Date) => {
-    const now = new Date();
-    const formattedDate = formatDate(locale, date);
-
-    if (isAfter(now, date)) {
-      return t.rich("closedOn", {
-        strong: () => (
-          <strong className="whitespace-nowrap">{formattedDate}</strong>
-        ),
-      });
-    }
-
-    return t.rich("closesOn", {
-      strong: () => (
-        <strong className="whitespace-nowrap">{formattedDate}</strong>
-      ),
-    });
-  };
 
   if (!withEmptyState && filteredItems.length === 0) {
     return null;
@@ -97,11 +76,7 @@ const TournamentsList: FC<Props> = ({
               questionsCount={item.posts_count}
               prizePool={item.prize_pool}
               closeDate={item.close_date}
-              closeDateFormatter={
-                item.type !== TournamentType.QuestionSeries
-                  ? closeDateFormatter
-                  : undefined
-              }
+              showCloseDate={item.type !== TournamentType.QuestionSeries}
             />
           ))}
         </div>

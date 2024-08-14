@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 
 import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import ProjectsApi from "@/services/projects";
@@ -12,7 +13,9 @@ import FocusAreaBiosecurityIcon from "./components/icons/focus_area_biosecurity"
 import FocusAreaClimateIcon from "./components/icons/focus_area_climate";
 import FocusAreaNuclearIcon from "./components/icons/focus_area_nuclear";
 import QuestionCarousel from "./components/questions_carousel";
+import ResearchAndUpdatesBlock from "./components/research_and_updates";
 import TopicLink from "./components/topic_link";
+import TournamentsBlock from "./components/tournaments_block";
 
 // TODO: probable makes sense to receive this info from the BE
 const FOCUS_AREAS: FocusAreaItem[] = [
@@ -49,7 +52,6 @@ const FOCUS_AREAS: FocusAreaItem[] = [
 export default async function Home() {
   const t = await getTranslations();
   const topics = await ProjectsApi.getTopics();
-
   const hotTopics = topics.filter((t) => t.section === "hot_topics");
 
   return (
@@ -117,11 +119,21 @@ export default async function Home() {
           </div>
         </div>
 
+        <Suspense>
+          <TournamentsBlock
+            postSlugs={[
+              "forecasting-Our-World-in-Data",
+              "biosecurity-tournament",
+              "ukraine-conflict",
+              "keep-virginia-safe-ii",
+            ]}
+          />
+        </Suspense>
+        <Suspense>
+          <ResearchAndUpdatesBlock postIds={[16708, 14965, 15007]} />
+        </Suspense>
         <EngageBlock />
       </div>
-
-      {/*Temporary spacer to apply valid gradient for carousel edges*/}
-      <div className="h-[200vh]" />
     </main>
   );
 }
