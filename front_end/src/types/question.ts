@@ -98,7 +98,7 @@ export type Question = {
   }; // TODO: update type
   resolution: Resolution | null;
   fine_print: string | null;
-  resolution_criteria_description: string | null;
+  resolution_criteria: string | null;
   label: string | null;
   nr_forecasters: number;
   author_username: string;
