@@ -51,12 +51,19 @@ def close_api_view(request, pk: int):
 
 @api_view(["POST"])
 def bulk_create_forecasts_api_view(request):
-    serializer = ForecastWriteSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+    serializer = ForecastWriteSerializer(data=request.data, many=True)
+    serializer.is_valid()
+
+    if serializer.errors:
+        raise ValidationError({"errors": serializer.errors})
+
+    if not serializer.validated_data:
+        raise ValidationError("At least one forecast is required")
 
     posts = list({x["question"].get_post() for x in serializer.validated_data})
+
     if len(posts) != 1:
-        raise ValidationError({"All questions must belong to the same post"})
+        raise ValidationError("All questions must belong to the same post")
 
     post = posts[0]
 
@@ -65,7 +72,7 @@ def bulk_create_forecasts_api_view(request):
     ObjectPermission.can_forecast(permission, raise_exception=True)
 
     for question_data in serializer.validated_data:
-        question = question_data["question"]
+        question = question_data.pop("question")
 
         if not question.open_time or question.open_time > timezone.now():
             return Response(
@@ -73,7 +80,7 @@ def bulk_create_forecasts_api_view(request):
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
-        create_forecast(question=question, user=request.user, **request.data)
+        create_forecast(question=question, user=request.user, **question_data)
 
     return Response({}, status=status.HTTP_201_CREATED)
 

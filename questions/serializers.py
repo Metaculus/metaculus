@@ -183,6 +183,13 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Forecast
+        fields = (
+            "question",
+            "continuous_cdf",
+            "probability_yes",
+            "probability_yes_per_category",
+            "slider_values",
+        )
 
     def validate_question(self, value):
         return Question.objects.get(pk=value)
