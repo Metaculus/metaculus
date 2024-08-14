@@ -1,3 +1,4 @@
+import gzip
 import json
 import logging
 
@@ -21,25 +22,29 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, vectors_path: str = None, **options):
-        with open(vectors_path) as f:
-            mapping = json.load(f)
-            mapping = {int(k): v for k, v in mapping.items()}
+        with gzip.open(vectors_path, "rt") as f:
+            json_data = f.read()
 
-            batch = []
-            chunk_size = 100
-            qs = ITNArticle.objects.all()
+            # Convert the JSON string back to a Python object
+            mapping = json.loads(json_data)
 
-            for idx, article in enumerate(qs.iterator(chunk_size=chunk_size)):
-                article.embedding_vector = mapping.get(article.aid)
+        mapping = {int(k): v for k, v in mapping.items()}
 
-                batch.append(article)
+        batch = []
+        chunk_size = 100
+        qs = ITNArticle.objects.all()
 
-                if idx % chunk_size == 0:
-                    logger.info(
-                        f"[ITNArticle Vectors Import] Imported {idx + 1}/{qs.count()}"
-                    )
+        for idx, article in enumerate(qs.iterator(chunk_size=chunk_size)):
+            article.embedding_vector = mapping.get(article.aid)
 
-                    ITNArticle.objects.bulk_update(batch, fields=["embedding_vector"])
-                    batch = []
+            batch.append(article)
+
+            if idx % chunk_size == 0:
+                logger.info(
+                    f"[ITNArticle Vectors Import] Imported {idx + 1}/{qs.count()}"
+                )
+
+                ITNArticle.objects.bulk_update(batch, fields=["embedding_vector"])
+                batch = []
 
         ITNArticle.objects.bulk_update(batch, fields=["embedding_vector"])
