@@ -53,9 +53,13 @@ const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
               ? TimelineChartZoomOption.All
               : TimelineChartZoomOption.TwoMonths
           }
-          userForecasts={generateUserForecasts(
-            questions as QuestionWithNumericForecasts[]
-          )}
+          userForecasts={
+            user
+              ? generateUserForecasts(
+                  questions as QuestionWithNumericForecasts[]
+                )
+              : undefined
+          }
         />
       );
     }
