@@ -69,7 +69,8 @@ def create_question(question: dict, **kwargs) -> Question:
         open_lower_bound=open_lower_bound,
         options=options,
         description=question["description"],
-        resolution_criteria_description=question["resolution_criteria"],
+        resolution_criteria=question["resolution_criteria"],
+        fine_print=question["fine_print"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
         open_time=question["publish_time"],
@@ -294,7 +295,7 @@ def migrate_questions__groups(root_questions: list[dict]):
                     id=root_question["id"],
                     description=root_question["description"],
                     group_variable=root_question["group_label"],
-                    resolution_criteria_description=root_question[
+                    resolution_criteria=root_question[
                         "resolution_criteria"
                     ],
                     fine_print=root_question["fine_print"],
