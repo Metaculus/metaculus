@@ -168,6 +168,33 @@ class ForecastSerializer(serializers.ModelSerializer):
             return get_scaled_quartiles_from_cdf(forecast.continuous_cdf, question)
 
 
+class ForecastWriteSerializer(serializers.ModelSerializer):
+    question = serializers.IntegerField()
+    continuous_cdf = serializers.ListField(
+        child=serializers.FloatField(),
+        allow_null=True,
+        required=False,
+    )
+    probability_yes = serializers.FloatField(allow_null=True, required=False)
+    probability_yes_per_category = serializers.DictField(
+        child=serializers.FloatField(), allow_null=True, required=False
+    )
+    slider_values = serializers.JSONField(allow_null=True, required=False)
+
+    class Meta:
+        model = Forecast
+        fields = (
+            "question",
+            "continuous_cdf",
+            "probability_yes",
+            "probability_yes_per_category",
+            "slider_values",
+        )
+
+    def validate_question(self, value):
+        return Question.objects.get(pk=value)
+
+
 def serialize_question(
     question: Question,
     with_cp: bool = False,

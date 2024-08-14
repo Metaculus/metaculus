@@ -12,10 +12,9 @@ import CommentsApi, {
 } from "@/services/comments";
 import PostsApi, { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
-import QuestionsApi from "@/services/questions";
+import QuestionsApi, { ForecastPayload } from "@/services/questions";
 import { FetchError } from "@/types/fetch";
 import { PostStatus, PostSubscription } from "@/types/post";
-import { ForecastData } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
 export async function fetchMorePosts(
@@ -78,52 +77,19 @@ export async function updatePost(postId: number, body: any) {
   };
 }
 
-export async function createForecast(
-  questionId: number,
-  forecastData: ForecastData,
-  sliderValues: any
+export async function createForecasts(
+  postId: number,
+  forecasts: ForecastPayload[]
 ) {
   try {
-    const response = await QuestionsApi.createForecast(
-      questionId,
-      forecastData,
-      sliderValues
-    );
-    revalidatePath(`/questions/${questionId}`);
+    const response = await QuestionsApi.createForecasts(forecasts);
+    revalidatePath(`/questions/${postId}`);
 
     return response;
   } catch (err) {
     const error = err as FetchError;
 
-    return {
-      errors: error.data,
-    };
-  }
-}
-
-export async function createForecasts(
-  postId: number,
-  forecasts: Array<{
-    questionId: number;
-    forecastData: ForecastData;
-    sliderValues: any;
-  }>
-) {
-  try {
-    const promises = forecasts.map(
-      ({ questionId, forecastData, sliderValues }) =>
-        createForecast(questionId, forecastData, sliderValues)
-    );
-
-    const responses = await Promise.all(promises);
-
-    revalidatePath(`/questions/${postId}`);
-
-    return responses;
-  } catch (err) {
-    const error = err as FetchError;
-
-    return [error];
+    return error.data;
   }
 }
 
