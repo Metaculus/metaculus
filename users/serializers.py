@@ -52,8 +52,8 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "occupation",
             "location",
             "profile_picture",
-            "first_name",
-            "last_name",
+            # "first_name", @TODO: Only display these two if the user agrees based on a flag
+            # "last_name",
         )
 
     def get_formerly_known_as(self, obj: User):
