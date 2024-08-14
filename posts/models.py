@@ -29,7 +29,7 @@ from utils.models import TimeStampedModel
 
 class PostQuerySet(models.QuerySet):
     def prefetch_projects(self):
-        return self.prefetch_related("projects")
+        return self.prefetch_related("projects").select_related("default_project")
 
     def prefetch_user_forecasts(self, user_id: int):
         return self.prefetch_related(
