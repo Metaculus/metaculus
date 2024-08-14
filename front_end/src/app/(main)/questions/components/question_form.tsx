@@ -37,7 +37,7 @@ const baseQuestionSchema = z.object({
   title: z.string().min(4).max(200),
   url_title: z.string().min(4).max(60),
   description: z.string().min(4),
-  resolution_criteria_description: z.string().min(1),
+  resolution_criteria: z.string().min(1),
   fine_print: z.string(),
   scheduled_close_time: z.date(),
   scheduled_resolve_time: z.date(),
@@ -472,12 +472,12 @@ const QuestionForm: FC<Props> = ({
             })}
           >
             <Textarea
-              {...control.register("resolution_criteria_description")}
-              errors={control.formState.errors.resolution_criteria_description}
+              {...control.register("resolution_criteria")}
+              errors={control.formState.errors.resolution_criteria}
               className={`${baseTextareaStyles} h-32 w-full p-3 text-sm`}
               defaultValue={
-                post?.question?.resolution_criteria_description
-                  ? post?.question?.resolution_criteria_description
+                post?.question?.resolution_criteria
+                  ? post?.question?.resolution_criteria
                   : undefined
               }
             />
