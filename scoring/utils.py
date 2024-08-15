@@ -129,7 +129,7 @@ def generate_question_writing_leaderboard_entries(
 
     forecaster_ids_for_post: dict[Post, set[int]] = defaultdict(set)
     for question in questions:
-        forecasts_during_period = question.forecast_set.filter(
+        forecasts_during_period = question.user_forecasts.filter(
             start_time__gte=leaderboard.start_time,
             start_time__lte=min(
                 [
@@ -303,7 +303,7 @@ def get_contributions(
             post: Post = question.get_post()
             if post.author != user:
                 continue
-            forecasts_during_period = question.forecast_set.all()
+            forecasts_during_period = question.user_forecasts.all()
             if leaderboard.start_time:
                 forecasts_during_period = forecasts_during_period.filter(
                     start_time__gte=leaderboard.start_time
