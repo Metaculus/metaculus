@@ -19,7 +19,7 @@ from notifications.services import (
     NotificationQuestionParams,
 )
 from posts.models import Post, PostSubscription
-from questions.models import Question, Forecast
+from questions.models import Question, Forecast, AggregateForecast
 from users.models import User
 from utils.models import ArrayLength
 from utils.the_math.community_prediction import AggregationEntry
@@ -146,7 +146,11 @@ def notify_post_cp_change(post: Post):
         Q(post=post) | Q(group__post=post)
     ).prefetch_related("forecast_set")
     forecast_history = {
-        question: AggregationEntry.from_question(question) for question in questions
+        question: AggregateForecast.objects.filter(
+            question=question,
+            method=AggregateForecast.AggregationMethod.RECENCY_WEIGHTED,
+        )
+        for question in questions
     }
 
     for subscription in subscriptions:
@@ -155,7 +159,7 @@ def notify_post_cp_change(post: Post):
         display_diff = None
         question_data: list[CPChangeData] = []
         for question, forecast_summary in forecast_history.items():
-            entry: AggregationEntry | None = None
+            entry: AggregateForecast | None = None
             for entry in forecast_summary:
                 if entry.start_time <= last_sent and (
                     entry.end_time is None or entry.end_time > last_sent
