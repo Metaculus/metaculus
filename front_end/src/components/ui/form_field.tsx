@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import * as React from "react";
-import { FC, useEffect } from "react";
+import { FC, useEffect, useMemo } from "react";
 
 import { ErrorResponse } from "@/types/fetch";
 
@@ -48,7 +48,7 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
   /**
    * If null => display only if no other things
    * */
-  const [errorText, setErrorText] = React.useState<string | undefined>();
+  const [errorText, setErrorText] = React.useState<any>();
   useEffect(() => {
     if (errors) {
       if (errors.message) {
@@ -59,27 +59,41 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
           ["message", "non_field_errors"].includes(k)
         )
       ) {
-        setErrorText(extractError(errors?.non_field_errors || errors?.message));
+        setErrorText(errors?.non_field_errors || errors?.message);
       } else if (name && name in errors) {
-        setErrorText(extractError(errors[name]));
+        setErrorText(errors[name]);
       } else {
         setErrorText(undefined);
       }
     }
   }, [errors, name]);
+  return <FormErrorMessage errors={errorText} className={className} />;
+};
+
+export const FormErrorMessage: FC<{ errors: any; className?: string }> = ({
+  errors,
+  className,
+}) => {
+  const message = useMemo(
+    () => (errors ? extractError(errors) : null),
+    [errors]
+  );
+
   return (
-    <div>
-      {errorText && (
-        <span
-          className={classNames(
-            "text-xs text-red-500 dark:text-red-500-dark",
-            className
-          )}
-        >
-          {errorText}
-        </span>
+    <>
+      {message && (
+        <div>
+          <span
+            className={classNames(
+              "text-xs text-red-500 dark:text-red-500-dark",
+              className
+            )}
+          >
+            {message}
+          </span>
+        </div>
       )}
-    </div>
+    </>
   );
 };
 

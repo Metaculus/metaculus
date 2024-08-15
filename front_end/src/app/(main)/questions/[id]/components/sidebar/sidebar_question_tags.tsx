@@ -1,6 +1,7 @@
 "use client";
 import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
@@ -10,17 +11,26 @@ import {
   POST_CATEGORIES_FILTER,
   POST_TAGS_FILTER,
 } from "@/constants/posts_feed";
+import { useModal } from "@/contexts/modal_context";
 import { PostWithForecasts } from "@/types/post";
 
+import { removePostFromProject } from "../../../actions";
+
 type Props = {
+  postId: number;
   tagData: PostWithForecasts["projects"];
   allowModifications: boolean;
 };
 
 const INITIAL_NUM_OF_TAGS = 10;
 
-const SidebarQuestionTags: FC<Props> = ({ tagData, allowModifications }) => {
+const SidebarQuestionTags: FC<Props> = ({
+  postId,
+  tagData,
+  allowModifications,
+}) => {
   const t = useTranslations();
+  const { setCurrentModal } = useModal();
 
   const { category: _category, tag: _tag } = tagData;
   const tag = _tag ?? [];
@@ -31,6 +41,7 @@ const SidebarQuestionTags: FC<Props> = ({ tagData, allowModifications }) => {
   );
 
   const tagsToShow = showAllTags ? tag : tag.slice(0, INITIAL_NUM_OF_TAGS);
+  const router = useRouter();
 
   return (
     <div className="flex flex-col items-center justify-center gap-4 self-stretch border-t border-gray-300 @lg:border-0 dark:border-gray-300-dark">
@@ -51,6 +62,10 @@ const SidebarQuestionTags: FC<Props> = ({ tagData, allowModifications }) => {
             href={`/questions/?${POST_TAGS_FILTER}=${element.slug}`}
             color="blue"
             xMark={allowModifications}
+            onXMarkClick={async () => {
+              await removePostFromProject(postId, element.id);
+              router.refresh();
+            }}
           >
             {element.name}
           </Chip>
@@ -67,7 +82,11 @@ const SidebarQuestionTags: FC<Props> = ({ tagData, allowModifications }) => {
         </Button>
       )}
 
-      <Button size="sm" variant="tertiary" onClick={() => {}}>
+      <Button
+        size="sm"
+        variant="tertiary"
+        onClick={() => setCurrentModal({ type: "contactUs" })}
+      >
         <FontAwesomeIcon icon={faCircleQuestion} />
         {t("submitTagsFeedback")}
       </Button>

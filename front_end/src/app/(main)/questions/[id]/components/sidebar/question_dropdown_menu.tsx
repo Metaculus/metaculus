@@ -56,17 +56,15 @@ const PostDropdownMenu: FC<Props> = ({ post }) => {
 
   if (items.length) {
     return (
-      <div className="flex gap-1">
-        <DropdownMenu items={items}>
-          <Button
-            variant="secondary"
-            className="!rounded border-0"
-            presentationType="icon"
-          >
-            <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
-          </Button>
-        </DropdownMenu>
-      </div>
+      <DropdownMenu items={items}>
+        <Button
+          variant="secondary"
+          className="!rounded border-0"
+          presentationType="icon"
+        >
+          <FontAwesomeIcon icon={faEllipsis} className="text-lg" />
+        </Button>
+      </DropdownMenu>
     );
   }
 };

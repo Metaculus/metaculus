@@ -1,0 +1,70 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{% comment %} <link rel="stylesheet" href="{% static 'metaculus/main.css' %}"/>
+<link rel="stylesheet" href="{% static 'fonts/metac_fonts.css' %}"/> {% endcomment %}
+<script src="//unpkg.com/alpinejs" defer></script>
+<script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+
+{% block title %}FAB Management Page{% endblock %}
+
+{% block content %}
+<h1>FAB Management Page</h1>
+
+<form method="post" x-data="{ form_loading: false, actionName: ''}" @submit="form_loading = true">
+    {% csrf_token %}
+    <div class="flex flex-col gap-2">
+        <input type="hidden" name="action_name" x-model="actionName">
+
+        <div class="mt-4">
+            <h2 class="text-xl my-2">Tournament ID</h2>
+            <label for="tournament_id">Tournament ID</label>
+            <input type="number" id="tournament_id" name="tournament_id" value="{{tournament_id}}">
+        </div>
+
+        {% if tournament_id is not None%}
+            <div class="mt-6">
+                <h2 class="text-xl my-2">Private comments </h2>
+                <p class="text-sm text-gray-600 my-1"> Publish all private notes as comments on all questions with CP visible from this tournament.</p>
+                <button class="bg-slate-900 text-white p-1 rounded disabled:bg-slate-300" type="submit" @click="actionName = 'publish_comments'" :disabled="form_loading"> Publish private notes</button>
+            </div>
+
+            <div>
+                <h2 class="text-xl  mt-5 mb-2">Questions submission</h2>
+                <label for="doc_id">Google doc/spreadsheet ID</label>
+                <input type="text" id="doc_id" name="doc_id" value="18NzOWV4lSe0gwr8uN4hKlth-4x3CUYRBVjNnT4iVgzo">
+            </div>
+
+            <div>
+                <label for="sheet_name">Sheet name</label>
+                <input type="text" id="sheet_name" name="sheet_name" value="playground">
+            </div>
+
+            <div>
+                <label for="rows_range">Rows range</label>
+                <input type="text" id="rows_range" name="rows_range" value="{{rows_range}}">
+            </div>
+
+            <div class="flex max-w-xl justify-between">
+                <button class="bg-slate-900 text-white p-1 rounded disabled:bg-slate-300" type="submit" name="submit_questions" @click="actionName = 'submit_dry'" :disabled="form_loading" >Dry run</button>
+                <button class="bg-slate-900 text-white p-1 rounded disabled:bg-slate-300" type="submit" name="submit_questions"  @click="actionName = 'submit'" :disabled="form_loading"> Submit </button>
+            </div>
+        {% endif%}
+    </div>
+</form>
+
+{% comment %} {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li style="margin:0px 0px">
+            <pre style="margin:0px 0px">
+                {{ message }}
+            </pre>
+        </li>
+        {% endfor %}
+    </ul>
+{% endif %} {% endcomment %}
+{% endblock %}

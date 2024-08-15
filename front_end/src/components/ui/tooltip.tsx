@@ -17,14 +17,14 @@ import classNames from "classnames";
 import { FC, PropsWithChildren, ReactNode, useState } from "react";
 
 type Props = {
-  TooltipContent: ReactNode;
+  tooltipContent: ReactNode;
   className?: string;
   showDelayMs?: number;
   placement?: Placement;
 };
 
 const Tooltip: FC<PropsWithChildren<Props>> = ({
-  TooltipContent,
+  tooltipContent,
   showDelayMs,
   placement,
   className,
@@ -71,7 +71,7 @@ const Tooltip: FC<PropsWithChildren<Props>> = ({
           style={floatingStyles}
           {...getFloatingProps()}
         >
-          {TooltipContent}
+          {tooltipContent}
         </div>
       )}
     </>

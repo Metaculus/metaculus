@@ -2,6 +2,7 @@
 
 import { faCircleQuestion, faFile } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState, FC } from "react";
@@ -14,7 +15,6 @@ import { useAuth } from "@/contexts/auth_context";
 import { Dates, Prize } from "./cards";
 import Description from "./description";
 import Hero from "./hero";
-import Image from "next/image";
 
 const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
   token,
@@ -27,7 +27,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
   const t = useTranslations();
 
   return (
-    <div className="text-blue-700 dark:text-blue-700-dark dark:bg-blue-800 dark:from-blue-600/50 dark:via-blue-800/30 dark:to-blue-500/30 mx-auto h-auto w-full flex-auto items-stretch bg-gradient-to-tl from-blue-300/30 via-blue-100/30 to-blue-400/30 px-4 py-4">
+    <div className="mx-auto h-auto w-full flex-auto items-stretch bg-gradient-to-tl from-blue-300/30 via-blue-100/30 to-blue-400/30 px-4 py-4 text-blue-700 dark:bg-blue-800 dark:from-blue-600/50 dark:via-blue-800/30 dark:to-blue-500/30 dark:text-blue-700-dark">
       <div className="flex size-full flex-col items-center gap-3">
         <div className="flex w-full flex-col gap-3 md:flex-row">
           <div className="flex w-full flex-col gap-3 md:w-1/3">
@@ -141,7 +141,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
         </div>
         <BaseModal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
           <div className="flex max-h-full max-w-xl flex-col items-center">
-            <h1 className="text-blue-800 dark:text-blue-800-dark mx-auto mt-2 text-center">
+            <h1 className="mx-auto mt-2 text-center text-blue-800 dark:text-blue-800-dark">
               {t("FABCreateBotAccount")}
             </h1>
             <p className="mx-auto text-center leading-normal opacity-75">
@@ -154,7 +154,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
               */}
               <SignupForm forceIsBot={false} addToProject={3349} />
             </div>
-            <div className="text-gray-700 dark:text-gray-700-dark mt-6 text-balance px-4 text-center leading-normal text-gray-700 opacity-75 dark:text-gray-700-dark">
+            <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 text-gray-700 opacity-75 dark:text-gray-700-dark dark:text-gray-700-dark">
               {t.rich("registrationTerms", {
                 terms: (chunks) => (
                   <Link target="_blank" href={"/terms-of-use/"}>

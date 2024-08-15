@@ -259,7 +259,7 @@ def evaluate_question(
     actual_close_time = question.forecast_scoring_ends.timestamp()
     forecast_horizon_end = question.actual_close_time.timestamp()
 
-    forecasts = question.forecast_set.all()
+    forecasts = question.user_forecasts.all()
 
     score_types = Score.ScoreTypes
     match score_type:

@@ -52,6 +52,9 @@ const MobileMenu: FC = () => {
                 {t("profile")}
               </MenuLink>
               <MenuLink href={"/accounts/settings/"}>{t("Settings")}</MenuLink>
+              {user.is_superuser && (
+                <MenuLink href={"/admin"}>{t("Admin")}</MenuLink>
+              )}
               <MenuLink href="/accounts/signout" regularLink>
                 {t("Logout")}
               </MenuLink>
