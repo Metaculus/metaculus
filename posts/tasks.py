@@ -2,45 +2,24 @@ import logging
 
 import dramatiq
 
-from posts.models import Post, PostUserSnapshot, PostSubscription
+from posts.models import Post, PostSubscription
 from posts.services.search import update_post_search_embedding_vector
 
 logger = logging.getLogger(__name__)
 
 
 @dramatiq.actor
-def run_compute_sorting_divergence(post_id):
+def run_on_post_forecast(post_id):
     """
-    TODO: ensure tasks of this group are executed consequent and keep the FIFO order
-        and implement a cancellation of previous task with the same type
+    Run async actions on post forecast
     """
-    from posts.services.common import compute_sorting_divergence
-
-    print(f"Running run_compute_sorting_divergence for post_id {post_id}")
+    from posts.services.common import (
+        compute_post_sorting_divergence_and_update_snapshots,
+    )
 
     post = Post.objects.get(pk=post_id)
 
-    divergence = compute_sorting_divergence(post)
-
-    snapshots = PostUserSnapshot.objects.filter(
-        post=post, user_id__in=divergence.keys()
-    )
-
-    bulk_update = []
-
-    for user_snapshot in snapshots:
-        div = divergence.get(user_snapshot.user_id)
-
-        if div is not None:
-            user_snapshot.divergence = div
-            bulk_update.append(user_snapshot)
-
-    PostUserSnapshot.objects.bulk_update(bulk_update, fields=["divergence"])
-
-    print(
-        f"Finished run_compute_sorting_divergence for post_id {post_id}. "
-        f"Updated {len(bulk_update)} user snapshots"
-    )
+    compute_post_sorting_divergence_and_update_snapshots(post)
 
 
 @dramatiq.actor
