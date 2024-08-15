@@ -6,13 +6,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('posts', '0020_delete_relatedpost'),
+        ("posts", "0020_delete_relatedpost"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='postsubscription',
-            old_name='cp_threshold',
-            new_name='cp_change_threshold',
+            model_name="postsubscription",
+            old_name="cp_threshold",
+            new_name="cp_change_threshold",
         ),
     ]
