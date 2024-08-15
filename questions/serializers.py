@@ -204,7 +204,7 @@ class MyForecastSerializer(serializers.ModelSerializer):
         if forecast.continuous_cdf is not None:
             return percent_point_function(forecast.continuous_cdf, [25, 50, 75])
 
-    def get_forecast_value(self, forecast: Forecast):
+    def get_forecast_values(self, forecast: Forecast):
         if self.context.get("include_forecast_values", True):
             return forecast.get_prediction_values()
 
@@ -293,9 +293,9 @@ def serialize_question(
         if (
             current_user
             and not current_user.is_anonymous
-            and hasattr(question, "user_forecasts")
+            and hasattr(question, "request_user_forecasts")
         ):
-            user_forecasts = question.user_forecasts
+            user_forecasts = question.request_user_forecasts
             serialized_data["my_forecasts"] = MyForecastSerializer(
                 user_forecasts[:-1],
                 context={"include_forecast_values": False},
@@ -308,14 +308,18 @@ def serialize_question(
                     ).data
                 )
             serialized_data["forecasts"]["my_forecasts"] = (
-                build_question_forecasts_for_user(question, question.user_forecasts)
+                build_question_forecasts_for_user(
+                    question, question.request_user_forecasts
+                )
             )
 
             last_forecast = (
                 sorted(
-                    question.user_forecasts, key=lambda x: x.start_time, reverse=True
+                    question.request_user_forecasts,
+                    key=lambda x: x.start_time,
+                    reverse=True,
                 )[0]
-                if question.user_forecasts
+                if question.request_user_forecasts
                 else None
             )
 
