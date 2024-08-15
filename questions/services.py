@@ -21,6 +21,7 @@ def get_forecast_initial_dict(question: Question) -> dict:
     data = {
         "timestamps": [],
         "nr_forecasters": [],
+        "forecast_values": [],
     }
 
     if question.type == "multiple_choice":
@@ -45,6 +46,48 @@ def get_forecast_initial_dict(question: Question) -> dict:
 def build_question_forecasts(question: Question) -> dict:
     """
     Enriches questions with the forecasts object.
+
+    format:
+        Binary:
+        {
+            "latest_cdf": None,
+            "latest_pmf": [float], # the most up to date pmf
+            "timestamps": [float], # timestamps in seconds
+            "nr_forecasters": [int], # for each timestep
+            "forecast_values": [list[float]], # for each timestep
+            "q1s": [float], # for each timestep
+            "medians": [float], # for each timestep
+            "q3s": [float], # for each timestep
+        }
+        MC:
+        {
+            "latest_cdf": None,
+            "latest_pmf": [float], # the most up to date pmf
+            "timestamps": [float], # timestamps in seconds
+            "nr_forecasters": [int], # for each timestep
+            "forecast_values": [list[float]], # for each timestep
+            "option1": [
+                {
+                    "median": float,
+                    "q3": float,
+                    "q1": float
+                }, # for each timestep
+                ...
+            ],
+            "option2": [...],
+            ...
+        }
+        Numeric / Date:
+        {
+            "latest_cdf": [float], # the most up to date cdf
+            "latest_pmf": [float], # the most up to date pmf
+            "timestamps": [float], # timestamps in seconds
+            "nr_forecasters": [int], # for each timestep
+            "forecast_values": [list[float]], # for each timestep
+            "q1s": [float], # for each timestep
+            "medians": [float], # for each timestep
+            "q3s": [float], # for each timestep
+        }
     """
     forecasts_data = get_forecast_initial_dict(question)
 
@@ -63,6 +106,7 @@ def build_question_forecasts(question: Question) -> dict:
                 )
             forecasts_data["timestamps"].append(entry.start_time.timestamp())
             forecasts_data["nr_forecasters"].append(entry.num_forecasters)
+            forecasts_data["forecast_values"].append(entry.forecast_values.tolist())
         forecasts_data["latest_cdf"] = None
         forecasts_data["latest_pmf"] = (
             None if not latest_entry else list(latest_entry.get_pmf())
@@ -87,6 +131,7 @@ def build_question_forecasts(question: Question) -> dict:
             forecasts_data["q3s"].append(entry.q3s[1])
             forecasts_data["means"].append(entry.means[1])
             forecasts_data["nr_forecasters"].append(entry.num_forecasters)
+            forecasts_data["forecast_values"].append(entry.forecast_values.tolist())
     elif question.type in ["numeric", "date"]:
         forecasts_data["latest_cdf"] = (
             [] if not aggregation_history else list(latest_entry.continuous_cdf)
@@ -103,6 +148,7 @@ def build_question_forecasts(question: Question) -> dict:
             forecasts_data["q3s"].append(entry.q3s)
             forecasts_data["q1s"].append(entry.q1s)
             forecasts_data["nr_forecasters"].append(entry.num_forecasters)
+            forecasts_data["forecast_values"].append(entry.forecast_values.tolist())
     else:
         raise Exception(f"Unknown question type: {question.type}")
 
