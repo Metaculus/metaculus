@@ -19,6 +19,7 @@ import {
   CommentType,
 } from "@/types/comment";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { QuestionType } from "@/types/question";
 import { parseComment } from "@/utils/comments";
 
 import Button from "../ui/button";
@@ -83,6 +84,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [offset, setOffset] = useState<number>(0);
   const postId = postData?.id;
+  const includeUserForecast = shouldIncludeForecast(postData);
 
   function handleSortChange(newSort: SortOption) {
     if (newSort === sort) {
@@ -249,6 +251,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
       </div>
       {postId && (
         <CommentEditor
+          shouldIncludeForecast={includeUserForecast}
           postId={postId}
           onSubmit={() => fetchComments("/comments", sort, 0, false)}
         />
@@ -298,5 +301,25 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
     </section>
   );
 };
+
+function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
+  if (postData === undefined) return false;
+
+  // disable forecasts for notebooks
+  if (postData.notebook !== undefined) {
+    return false;
+  }
+
+  // we can link forecast only for date, binary and numeric questions
+  if (postData.question) {
+    if (postData.question.type === QuestionType.MultipleChoice) {
+      return false;
+    }
+
+    return !!postData.question.forecasts.my_forecasts?.medians.length;
+  }
+
+  return false;
+}
 
 export default CommentFeed;

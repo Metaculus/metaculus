@@ -18,6 +18,7 @@ interface CommentEditorProps {
   isPrivate?: boolean;
   postId?: number;
   parentId?: number;
+  shouldIncludeForecast?: boolean;
   onSubmit?: (newComment: CommentType) => void;
 }
 
@@ -27,6 +28,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   postId,
   parentId,
   onSubmit,
+  shouldIncludeForecast,
 }) => {
   const t = useTranslations();
 
@@ -34,11 +36,13 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivate ?? false);
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
+  const [errorMessage, setErrorMessage] = useState<string>();
 
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
   const handleSubmit = async () => {
+    setErrorMessage("");
     const newComment = await createComment({
       parent: parentId,
       text: markdown,
@@ -48,6 +52,8 @@ const CommentEditor: FC<CommentEditorProps> = ({
     });
 
     if ("errors" in newComment) {
+      console.error(newComment.errors?.message);
+      setErrorMessage(newComment.errors?.message);
       return;
     }
 
@@ -77,15 +83,17 @@ const CommentEditor: FC<CommentEditorProps> = ({
   return (
     <>
       {/* TODO: this box can only be shown in create, not edit mode */}
-      {/* TODO: the user should only see the checkbox if they have made a forecast! */}
-      <Checkbox
-        checked={hasIncludedForecast}
-        onChange={(checked) => {
-          setHasIncludedForecast(checked);
-        }}
-        label={t("includeMyForecast")}
-        className="p-1 text-sm"
-      />
+
+      {shouldIncludeForecast && (
+        <Checkbox
+          checked={hasIncludedForecast}
+          onChange={(checked) => {
+            setHasIncludedForecast(checked);
+          }}
+          label={t("includeMyForecast")}
+          className="p-1 text-sm"
+        />
+      )}
       {/* TODO: display in preview mode only */}
       {/*comment.included_forecast && (
         <IncludedForecast author="test" forecastValue={test} />
@@ -115,6 +123,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
           className="p-2"
           onClick={() => {
             setIsEditing((prev) => !prev);
+            !!errorMessage && setErrorMessage("");
           }}
         >
           {isEditing ? t("preview") : t("edit")}
@@ -125,6 +134,11 @@ const CommentEditor: FC<CommentEditorProps> = ({
           </Button>
         )}
       </div>
+      {!!errorMessage && (
+        <p className="text-end text-red-500 dark:text-red-500-dark">
+          {errorMessage}
+        </p>
+      )}
     </>
   );
 };
