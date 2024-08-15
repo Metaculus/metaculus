@@ -192,6 +192,7 @@ def post_create_api_view(request):
         status=status.HTTP_201_CREATED,
     )
 
+
 @api_view(["POST"])
 def remove_from_project(request, pk):
     post = get_object_or_404(Post, pk=pk)
@@ -203,9 +204,7 @@ def remove_from_project(request, pk):
     post.projects.set([x for x in post.projects.all() if x.id != project_id])
     post.save()
     print(len(post.projects.all()))
-    return Response({
-
-    }, status=status.HTTP_200_OK)
+    return Response({}, status=status.HTTP_200_OK)
 
 
 @api_view(["PUT"])
