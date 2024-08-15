@@ -20,6 +20,7 @@ from questions.models import (
 )
 from users.models import User
 from utils.the_math.community_prediction import get_cp_history
+from utils.the_math.single_aggregation import get_single_aggregation_history
 from utils.the_math.measures import percent_point_function
 
 logger = logging.getLogger(__name__)
@@ -51,7 +52,10 @@ def get_forecast_initial_dict(question: Question) -> dict:
     return data
 
 
-def build_question_forecasts(question: Question) -> dict:
+def build_question_forecasts(
+    question: Question,
+    aggregation_method: str = AggregateForecast.AggregationMethod.RECENCY_WEIGHTED,
+) -> dict:
     """
     Enriches questions with the forecasts object.
 
@@ -99,17 +103,23 @@ def build_question_forecasts(question: Question) -> dict:
     """
     forecasts_data = get_forecast_initial_dict(question)
 
-    aggregation_history = get_cp_history(
-        question,
-        aggregation_method=AggregateForecast.AggregationMethod.RECENCY_WEIGHTED,
-        minimize=True,
-    )
+    if aggregation_method == AggregateForecast.AggregationMethod.SINGLE_AGGREGATION:
+        aggregation_history = get_single_aggregation_history(
+            question,
+            minimize=True,
+            include_stats=True,
+        )
+    else:
+        aggregation_history = get_cp_history(
+            question,
+            aggregation_method=aggregation_method,
+            minimize=True,
+            include_stats=True,
+        )
 
     ################ NEW CODE ################
     # overwrite old history with new history
-    previous_history = question.aggregate_forecasts.filter(
-        method=AggregateForecast.AggregationMethod.RECENCY_WEIGHTED
-    )
+    previous_history = question.aggregate_forecasts.filter(method=aggregation_method)
     to_overwrite, to_delete = (
         previous_history[: len(aggregation_history)],
         previous_history[len(aggregation_history) :],
