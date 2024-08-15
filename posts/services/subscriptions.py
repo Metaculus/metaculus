@@ -22,7 +22,7 @@ from posts.models import Post, PostSubscription
 from questions.models import Question, Forecast
 from users.models import User
 from utils.models import ArrayLength
-from utils.the_math.community_prediction import get_cp_history, AggregationEntry
+from utils.the_math.community_prediction import AggregationEntry
 from utils.the_math.formulas import (
     unscaled_location_to_scaled_location,
     get_scaled_quartiles_from_cdf,
@@ -205,9 +205,7 @@ def notify_post_cp_change(post: Post):
             # Send notifications to the users that subscribed to the post CP changes
             # Or we automatically subscribed them for "Forecasted Questions CP change"
             mailing_tag=(
-                None
-                if not subscription.is_global
-                else MailingTags.FORECASTED_CP_CHANGE
+                None if not subscription.is_global else MailingTags.FORECASTED_CP_CHANGE
             ),
         )
 
@@ -408,6 +406,7 @@ def create_subscription_cp_change(
     post: Post,
     cp_change_threshold: float = 0.25,
     is_global=False,
+    save=True,
 ):
     obj = PostSubscription.objects.create(
         user=user,
@@ -419,8 +418,9 @@ def create_subscription_cp_change(
         # TODO: adjust `migrator.services.migrate_subscriptions.migrate_cp_change` in the old db migrator script!
     )
 
-    obj.full_clean()
-    obj.save()
+    if save:
+        obj.full_clean()
+        obj.save()
 
     return obj
 
@@ -491,3 +491,32 @@ def create_subscription(
         return f(user=user, post=post, **kwargs)
 
     raise ValidationError("Wrong subscription type")
+
+
+def disable_global_cp_reminders(user: User):
+    PostSubscription.objects.filter(
+        user=user, type=PostSubscription.SubscriptionType.CP_CHANGE, is_global=True
+    ).delete()
+
+
+def enable_global_cp_reminders(user: User):
+    forecasted_posts = (
+        Post.objects.filter_permission(user=user)
+        .filter_active()
+        .filter(forecasts__author=user)
+        .distinct()
+    )
+
+    PostSubscription.objects.bulk_create(
+        [
+            create_subscription_cp_change(
+                user=user,
+                post=post,
+                cp_change_threshold=0.1,
+                is_global=True,
+                save=False,
+            )
+            for post in forecasted_posts
+        ],
+        ignore_conflicts=True,
+    )

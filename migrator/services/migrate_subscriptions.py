@@ -233,9 +233,10 @@ def migrate_global_cp_change_subscriptions(site_ids: list[int]):
         User.objects.only("unsubscribed_mailing_tags").iterator(chunk_size=5000)
     ):
         if user.id not in enabled_for_user_ids:
-            unsubscribed_mailing_tags = user.unsubscribed_mailing_tags or []
-            unsubscribed_mailing_tags.append(MailingTags.FORECASTED_CP_CHANGE)
-            user.unsubscribed_mailing_tags = unsubscribed_mailing_tags
+            user.unsubscribed_mailing_tags = list(
+                set(user.unsubscribed_mailing_tags or [])
+                | {MailingTags.FORECASTED_CP_CHANGE}
+            )
 
             update_users.append(user)
 
