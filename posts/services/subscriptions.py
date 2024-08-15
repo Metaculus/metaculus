@@ -206,7 +206,7 @@ def notify_post_cp_change(post: Post):
             # Or we automatically subscribed them for "Forecasted Questions CP change"
             mailing_tag=(
                 None
-                if subscription.is_managed_by_user
+                if not subscription.is_global
                 else MailingTags.FORECASTED_CP_CHANGE
             ),
         )
@@ -407,7 +407,7 @@ def create_subscription_cp_change(
     user: User,
     post: Post,
     cp_change_threshold: float = 0.25,
-    is_managed_by_user=True,
+    is_global=False,
 ):
     obj = PostSubscription.objects.create(
         user=user,
@@ -415,7 +415,7 @@ def create_subscription_cp_change(
         type=PostSubscription.SubscriptionType.CP_CHANGE,
         cp_change_threshold=cp_change_threshold,
         last_sent_at=timezone.now(),
-        is_managed_by_user=is_managed_by_user,
+        is_global=is_global,
         # TODO: adjust `migrator.services.migrate_subscriptions.migrate_cp_change` in the old db migrator script!
     )
 

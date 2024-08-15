@@ -412,10 +412,10 @@ def create_forecast(
     if not post.subscriptions.filter(
         user=user,
         type=PostSubscription.SubscriptionType.CP_CHANGE,
-        is_managed_by_user=False,
+        is_global=True,
     ).exists():
         create_subscription_cp_change(
-            user=user, post=post, cp_change_threshold=0.1, is_managed_by_user=False
+            user=user, post=post, cp_change_threshold=0.1, is_global=True
         )
 
     # Run async tasks

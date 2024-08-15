@@ -406,7 +406,7 @@ def post_subscriptions_create(request, pk):
     ObjectPermission.can_view(permission, raise_exception=True)
 
     existing_subscriptions = post.subscriptions.filter(user=request.user).exclude(
-        is_managed_by_user=False
+        is_global=True
     )
 
     # Validating data

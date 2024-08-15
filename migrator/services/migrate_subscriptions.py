@@ -1,8 +1,10 @@
 from datetime import timedelta
 
+from notifications.constants import MailingTags
 from posts.models import PostSubscription, Post
 from projects.models import ProjectSubscription, Project
 from questions.models import Question
+from users.models import User
 from ..utils import paginated_query
 
 
@@ -67,6 +69,7 @@ def migrate_cp_change(old_reminder: dict) -> PostSubscription:
         user_id=old_reminder["user_id"],
         post_id=old_reminder["question_id"],
         created_at=old_reminder["created_time"],
+        last_sent_at=old_reminder["comparison_time"],
         # Initially, we had only one threshold option
         cp_change_threshold=0.25,
     )
@@ -163,6 +166,91 @@ def migrate_tournament_subscriptions():
     print(f"Created {ProjectSubscription.objects.count()} post subscriptions")
 
 
+def migrate_global_cp_change_subscriptions(site_ids: list[int]):
+    subscriptions = []
+    post_ids = Post.objects.values_list("id", flat=True)
+    non_existing_posts = 0
+
+    for idx, old_reminder in enumerate(
+        paginated_query(
+            "SELECT * FROM metac_question_batchquestioncpreminder WHERE site_id in %s",
+            [tuple(site_ids)],
+        )
+    ):
+        # Exclude non-existing posts
+        if old_reminder["question_id"] not in post_ids:
+            # This indicates user created reminder for a single question of Group or Conditional Post
+            # Which we no longer support in favor of entire post subscriptions
+            # Then, we need to find a related post and reattach subscription to it
+            question = Question.objects.filter(pk=old_reminder["question_id"]).first()
+
+            if not question:
+                print(f"Wrong Question/Post id: {old_reminder['question_id']}")
+                continue
+
+            post = question.get_post()
+
+            old_reminder["question_id"] = post.pk
+            non_existing_posts += 1
+
+        subscriptions.append(
+            PostSubscription(
+                type=PostSubscription.SubscriptionType.CP_CHANGE,
+                user_id=old_reminder["user_id"],
+                post_id=old_reminder["question_id"],
+                last_sent_at=old_reminder["comparison_time"],
+                created_at=old_reminder["created_time"],
+                cp_change_threshold=0.1,
+                # Indicates this is global reminder
+                is_global=True,
+            )
+        )
+
+        if len(subscriptions) == 500:
+            print(f"Processed {idx} post subscriptions", end="\r")
+
+            PostSubscription.objects.bulk_create(subscriptions, ignore_conflicts=True)
+            subscriptions = []
+
+    PostSubscription.objects.bulk_create(subscriptions, ignore_conflicts=True)
+    created_count = PostSubscription.objects.filter(
+        type=PostSubscription.SubscriptionType.CP_CHANGE, is_global=True
+    ).count()
+    print(f"Created {created_count} post subscriptions")
+
+    # Migrate notifications settings
+    enabled_for_user_ids = list(
+        paginated_query(
+            "SELECT * FROM metac_account_userpreference",
+            only_columns=["user_id"],
+            flat=True,
+        )
+    )
+
+    update_users = []
+
+    for idx, user in enumerate(
+        User.objects.only("unsubscribed_mailing_tags").iterator(chunk_size=5000)
+    ):
+        if user.id not in enabled_for_user_ids:
+            unsubscribed_mailing_tags = user.unsubscribed_mailing_tags or []
+            unsubscribed_mailing_tags.append(MailingTags.FORECASTED_CP_CHANGE)
+            user.unsubscribed_mailing_tags = unsubscribed_mailing_tags
+
+            update_users.append(user)
+
+            if len(update_users) == 5000:
+                print(f"Updated {idx} user global cp reminder settings ", end="\r")
+
+                User.objects.bulk_update(
+                    update_users, fields=["unsubscribed_mailing_tags"]
+                )
+                update_users = []
+
+    User.objects.bulk_update(update_users, fields=["unsubscribed_mailing_tags"])
+
+
 def migrate_subscriptions(site_ids: list[int]):
     migrate_post_subscriptions(site_ids)
     migrate_tournament_subscriptions()
+    migrate_global_cp_change_subscriptions(site_ids)
