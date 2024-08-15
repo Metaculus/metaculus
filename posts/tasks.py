@@ -4,6 +4,7 @@ import dramatiq
 
 from posts.models import Post, PostSubscription
 from posts.services.search import update_post_search_embedding_vector
+from posts.services.subscriptions import notify_post_cp_change
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,7 @@ def run_on_post_forecast(post_id):
     post = Post.objects.get(pk=post_id)
 
     compute_post_sorting_divergence_and_update_snapshots(post)
+    notify_post_cp_change(post)
 
 
 @dramatiq.actor
