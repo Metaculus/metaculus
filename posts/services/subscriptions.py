@@ -7,6 +7,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
+from notifications.constants import MailingTags
 from notifications.services import (
     NotificationNewComments,
     NotificationPostParams,
@@ -15,11 +16,13 @@ from notifications.services import (
     NotificationPostSpecificTime,
     NotificationPostCPChange,
     CPChangeData,
+    NotificationQuestionParams,
 )
 from posts.models import Post, PostSubscription
 from questions.models import Question, Forecast
 from users.models import User
-from utils.the_math.community_prediction import get_cp_history, AggregationEntry
+from utils.models import ArrayLength
+from utils.the_math.community_prediction import AggregationEntry
 from utils.the_math.formulas import (
     unscaled_location_to_scaled_location,
     get_scaled_quartiles_from_cdf,
@@ -28,38 +31,44 @@ from utils.the_math.measures import (
     prediction_difference_for_sorting,
     prediction_difference_for_display,
 )
-from utils.models import ArrayLength
 
 
 def _get_question_data_for_cp_change_notification(
     question: Question,
     current_entry: AggregationEntry,
+    previous_entry: AggregationEntry,
     display_diff: list[tuple[float, float]],
     user_forecast: Forecast | None,
 ) -> list[CPChangeData]:
     question_data: list[CPChangeData] = []
     if question.type == "binary":
-        data = CPChangeData(question)
+        data = CPChangeData(question=NotificationQuestionParams.from_question(question))
         data.cp_median = current_entry.medians[1] if current_entry.medians else None
-        data.absolute_difference = display_diff[0][0]
-        data.odds_ratio = display_diff[0][1]
-        data.user_forecast = user_forecast.probability_yes if user_forecast else None
+        data.cp_change_label = "goneUp" if display_diff[0][0] > 0 else "goneDown"
+        data.cp_change_value = abs(display_diff[0][0])
+
+        if user_forecast:
+            data.user_forecast = user_forecast.probability_yes
+            data.forecast_date = user_forecast.start_time.isoformat()
+
         question_data.append(data)
     elif question.type == "multiple_choice":
         for i, label in enumerate(question.options):
-            data = CPChangeData(question, None)
+            data = CPChangeData(
+                question=NotificationQuestionParams.from_question(question)
+            )
             data.label = label
             data.cp_median = (
                 current_entry.medians[i] if current_entry.medians is not None else None
             )
-            data.absolute_difference = display_diff[i][0]
-            data.odds_ratio = display_diff[i][1]
+            data.cp_change_label = "goneUp" if display_diff[i][0] > 0 else "goneDown"
+            data.cp_change_value = abs(display_diff[i][0])
             data.user_forecast = (
                 user_forecast.probability_yes_per_category[i] if user_forecast else None
             )
             question_data.append(data)
     else:  # continuous
-        data = CPChangeData(question)
+        data = CPChangeData(question=NotificationQuestionParams.from_question(question))
         median = current_entry.medians[0] if current_entry.medians else None
         q1 = current_entry.q1s[0] if current_entry.q1s else None
         data.cp_q1 = (
@@ -78,8 +87,41 @@ def _get_question_data_for_cp_change_notification(
             if q3 is not None
             else None
         )
-        data.earth_movers_diff = display_diff[0]
-        data.assymetry = display_diff[1]
+        earth_movers_distance, assymetric = display_diff
+        symmetric = earth_movers_distance - abs(assymetric)
+        if abs(assymetric) > symmetric:
+            # gone up / down
+            data.cp_change_label = "goneUp" if assymetric > 0 else "goneDown"
+            data.cp_change_value = abs(assymetric)
+        else:
+            # expanded / contracted
+            old_q1 = previous_entry.q1s[0] if previous_entry.q1s else None
+            old_q1_scaled = (
+                unscaled_location_to_scaled_location(old_q1, question)
+                if old_q1 is not None
+                else None
+            )
+            old_q3 = previous_entry.q3s[0] if previous_entry.q3s else None
+            old_q3_scaled = (
+                unscaled_location_to_scaled_location(old_q3, question)
+                if old_q3 is not None
+                else None
+            )
+            if (
+                old_q1_scaled is not None
+                and old_q3_scaled is not None
+                and data.cp_q1 is not None
+                and data.cp_q3 is not None
+            ):
+                old_range = old_q3_scaled - old_q1_scaled
+                new_range = data.cp_q3 - data.cp_q1
+                if new_range > old_range:
+                    data.cp_change_label = "expanded"
+                else:
+                    data.cp_change_label = "contracted"
+            else:
+                data.cp_change_label = "changed"  # Failsafe
+            data.cp_change_value = symmetric
         user_q1, user_median, user_q3 = None, None, None
         if user_forecast:
             user_q1, user_median, user_q3 = get_scaled_quartiles_from_cdf(
@@ -145,6 +187,7 @@ def notify_post_cp_change(post: Post):
             question_data += _get_question_data_for_cp_change_notification(
                 question,
                 current_entry,
+                entry,
                 display_diff,
                 user_pred,
             )
@@ -153,10 +196,17 @@ def notify_post_cp_change(post: Post):
         ):
             continue
 
-        # we have to send a notification
         NotificationPostCPChange.send(
             subscription.user,
-            NotificationPostCPChange.ParamsType(post, question_data),
+            NotificationPostCPChange.ParamsType(
+                post=NotificationPostParams.from_post(post),
+                question_data=question_data,
+            ),
+            # Send notifications to the users that subscribed to the post CP changes
+            # Or we automatically subscribed them for "Forecasted Questions CP change"
+            mailing_tag=(
+                None if not subscription.is_global else MailingTags.FORECASTED_CP_CHANGE
+            ),
         )
 
         subscription.update_last_sent_at()
@@ -355,6 +405,8 @@ def create_subscription_cp_change(
     user: User,
     post: Post,
     cp_change_threshold: float = 0.25,
+    is_global=False,
+    save=True,
 ):
     obj = PostSubscription.objects.create(
         user=user,
@@ -362,11 +414,13 @@ def create_subscription_cp_change(
         type=PostSubscription.SubscriptionType.CP_CHANGE,
         cp_change_threshold=cp_change_threshold,
         last_sent_at=timezone.now(),
+        is_global=is_global,
         # TODO: adjust `migrator.services.migrate_subscriptions.migrate_cp_change` in the old db migrator script!
     )
 
-    obj.full_clean()
-    obj.save()
+    if save:
+        obj.full_clean()
+        obj.save()
 
     return obj
 
@@ -437,3 +491,32 @@ def create_subscription(
         return f(user=user, post=post, **kwargs)
 
     raise ValidationError("Wrong subscription type")
+
+
+def disable_global_cp_reminders(user: User):
+    PostSubscription.objects.filter(
+        user=user, type=PostSubscription.SubscriptionType.CP_CHANGE, is_global=True
+    ).delete()
+
+
+def enable_global_cp_reminders(user: User):
+    forecasted_posts = (
+        Post.objects.filter_permission(user=user)
+        .filter_active()
+        .filter(forecasts__author=user)
+        .distinct()
+    )
+
+    PostSubscription.objects.bulk_create(
+        [
+            create_subscription_cp_change(
+                user=user,
+                post=post,
+                cp_change_threshold=0.1,
+                is_global=True,
+                save=False,
+            )
+            for post in forecasted_posts
+        ],
+        ignore_conflicts=True,
+    )

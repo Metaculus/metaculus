@@ -22,9 +22,7 @@ from questions.services import (
 from users.models import User
 from utils.dtypes import flatten
 from utils.the_math.community_prediction import get_aggregation_at_time
-from utils.the_math.measures import (
-    prediction_difference_for_sorting,
-)
+from utils.the_math.measures import prediction_difference_for_sorting
 from .subscriptions import notify_post_status_change
 from ..tasks import run_notify_post_status_change
 

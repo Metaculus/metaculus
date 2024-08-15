@@ -2,7 +2,7 @@ import { faSquare, faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Checkbox as HeadlessCheckbox, Field, Label } from "@headlessui/react";
 import classNames from "classnames";
-import { FC, MouseEventHandler, TouchEventHandler } from "react";
+import { FC, MouseEventHandler, ReactNode, TouchEventHandler } from "react";
 
 import { ErrorResponse } from "@/types/fetch";
 
@@ -16,6 +16,7 @@ type Props = {
   inputClassName?: string;
   className?: string;
   color?: string;
+  children?: ReactNode;
   onMouseEnter?: MouseEventHandler<HTMLDivElement>;
   onMouseLeave?: MouseEventHandler<HTMLDivElement>;
   onTouchStart?: TouchEventHandler<HTMLDivElement>;
@@ -29,6 +30,7 @@ const Checkbox: FC<Props> = ({
   defaultChecked,
   onChange,
   label,
+  children,
   inputClassName,
   className,
   color,
@@ -79,7 +81,9 @@ const Checkbox: FC<Props> = ({
         }
       </HeadlessCheckbox>
       {errors && <FormError errors={errors} name={label} />}
-      <Label className="ml-1 hover:cursor-pointer">{label}</Label>
+      <Label className="ml-1 hover:cursor-pointer">
+        {children ? children : label}
+      </Label>
     </Field>
   );
 };
