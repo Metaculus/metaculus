@@ -61,7 +61,7 @@ const EmailNotifications: FC<Props> = ({ user }) => {
           <Tooltip
             showDelayMs={200}
             placement={"top"}
-            TooltipContent={t(
+            tooltipContent={t(
               "settingsSignificantMovementOnPredictedQuestionsTooltip"
             )}
             className="ml-1"

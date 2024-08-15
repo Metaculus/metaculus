@@ -145,7 +145,7 @@ def compute_discrete_forecast_values(
     if forecasts_values.shape[1] == 2:
         return weighted_percentile_2d(
             forecasts_values, weights=weights, percentiles=percentile
-        )
+        ).tolist()
     # TODO: this needs to be normalized for MC, but special care needs to be taken
     # if the percentile isn't 50 (namely it needs to be normalized based off the values
     # at the median)
@@ -197,12 +197,16 @@ def calculate_aggregation_entry(
             lowers, centers, uppers = percent_point_function(
                 aggregation.forecast_values, [25.0, 50.0, 75.0]
             )
-        aggregation.interval_lower_bounds = lowers.tolist()
-        aggregation.centers = centers.tolist()
-        aggregation.interval_upper_bounds = uppers.tolist()
-        aggregation.means = np.average(
-            forecast_set.forecasts_values, weights=weights, axis=0
-        ).tolist()
+            lowers = [lowers]
+            centers = [centers]
+            uppers = [uppers]
+        aggregation.interval_lower_bounds = lowers
+        aggregation.centers = centers
+        aggregation.interval_upper_bounds = uppers
+        if question_type in ["binary", "multiple_choice"]:
+            aggregation.means = np.average(
+                forecast_set.forecasts_values, weights=weights, axis=0
+            ).tolist()
     if histogram and question_type == "binary":
         aggregation.histogram = get_histogram(
             [f[1] for f in forecast_set.forecasts_values], weights
@@ -348,6 +352,8 @@ def get_cp_history(
             include_stats=include_stats,
             histogram=histogram,
         )
+        new_entry.question = question
+        new_entry.method = aggregation_method
         if full_summary:
             # terminate previous entry
             full_summary[-1].end_time = new_entry.start_time

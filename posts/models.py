@@ -267,6 +267,7 @@ class Notebook(TimeStampedModel):
 
 class Post(TimeStampedModel):
     votes: QuerySet["Vote"]
+    subscriptions: QuerySet["PostSubscription"]
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
