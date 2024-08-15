@@ -130,7 +130,7 @@ const FanChart: FC<Props> = ({
               },
             }}
           />
-          <VictoryAxis dependentAxis label={"jlkejakle"} />
+          <VictoryAxis dependentAxis label={yLabel} />
           <VictoryAxis tickFormat={(_, index) => labels[index]} />
           <VictoryScatter
             data={points.map((point) => ({

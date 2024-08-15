@@ -7,14 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questions', '0013_rename_max_question_range_max_and_more'),
-        ('scoring', '0007_leaderboardentry_excluded'),
+        ("questions", "0013_rename_max_question_range_max_and_more"),
+        ("scoring", "0007_leaderboardentry_excluded"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='score',
-            name='question',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='scores', to='questions.question'),
+            model_name="score",
+            name="question",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="scores",
+                to="questions.question",
+            ),
         ),
     ]

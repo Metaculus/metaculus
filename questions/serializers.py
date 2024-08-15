@@ -3,6 +3,7 @@ from datetime import datetime, timezone as dt_timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from posts.models import Post
 from questions.models import Forecast
 from users.models import User
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
@@ -37,7 +38,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "possibilities",
             "resolution",
             "zero_point",
-            "resolution_criteria_description",
+            "resolution_criteria",
             "fine_print",
             "label",
             "open_upper_bound",
@@ -65,7 +66,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "options",
             "scheduled_resolve_time",
             "scheduled_close_time",
-            "resolution_criteria_description",
+            "resolution_criteria",
             "fine_print",
         )
 
@@ -117,7 +118,7 @@ class GroupOfQuestionsSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "description",
-            "resolution_criteria_description",
+            "resolution_criteria",
             "fine_print",
             "group_variable",
         )
@@ -131,7 +132,7 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
         fields = (
             "questions",
             "fine_print",
-            "resolution_criteria_description",
+            "resolution_criteria",
             "description",
             "group_variable",
         )
@@ -168,18 +169,45 @@ class ForecastSerializer(serializers.ModelSerializer):
             return get_scaled_quartiles_from_cdf(forecast.continuous_cdf, question)
 
 
+class ForecastWriteSerializer(serializers.ModelSerializer):
+    question = serializers.IntegerField()
+    continuous_cdf = serializers.ListField(
+        child=serializers.FloatField(),
+        allow_null=True,
+        required=False,
+    )
+    probability_yes = serializers.FloatField(allow_null=True, required=False)
+    probability_yes_per_category = serializers.DictField(
+        child=serializers.FloatField(), allow_null=True, required=False
+    )
+    slider_values = serializers.JSONField(allow_null=True, required=False)
+
+    class Meta:
+        model = Forecast
+        fields = (
+            "question",
+            "continuous_cdf",
+            "probability_yes",
+            "probability_yes_per_category",
+            "slider_values",
+        )
+
+    def validate_question(self, value):
+        return Question.objects.get(pk=value)
+
+
 def serialize_question(
     question: Question,
     with_cp: bool = False,
     current_user: User = None,
+    post: Post = None,
 ):
     """
     Serializes question object
     """
 
     serialized_data = QuestionSerializer(question).data
-    # TODO: this is slow, optimize!
-    serialized_data["post_id"] = question.get_post().id
+    serialized_data["post_id"] = post.id
 
     if with_cp:
         serialized_data["forecasts"] = (
@@ -229,31 +257,27 @@ def serialize_conditional(
     conditional: Conditional,
     with_cp: bool = False,
     current_user: User = None,
-    post_id: int = None,
+    post: Post = None,
 ):
     # Serialization of basic data
     serialized_data = ConditionalSerializer(conditional).data
 
     # Generic questions
     serialized_data["condition"] = serialize_question(
-        conditional.condition,
-        with_cp=False,
+        conditional.condition, with_cp=False, post=conditional.condition.get_post()
     )
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
         with_cp=False,
+        post=conditional.condition_child.get_post(),
     )
 
     # Autogen questions
     serialized_data["question_yes"] = serialize_question(
-        conditional.question_yes,
-        with_cp=with_cp,
-        current_user=current_user,
+        conditional.question_yes, with_cp=with_cp, current_user=current_user, post=post
     )
     serialized_data["question_no"] = serialize_question(
-        conditional.question_no,
-        with_cp=with_cp,
-        current_user=current_user,
+        conditional.question_no, with_cp=with_cp, current_user=current_user, post=post
     )
 
     return serialized_data
@@ -263,7 +287,7 @@ def serialize_group(
     group: GroupOfQuestions,
     with_cp: bool = False,
     current_user: User = None,
-    post_id: int = None,
+    post: Post = None,
 ):
     # Serialization of basic data
     serialized_data = GroupOfQuestionsSerializer(group).data
@@ -272,9 +296,7 @@ def serialize_group(
     for question in group.questions.all():
         serialized_data["questions"].append(
             serialize_question(
-                question,
-                with_cp=with_cp,
-                current_user=current_user,
+                question, with_cp=with_cp, current_user=current_user, post=post
             )
         )
 

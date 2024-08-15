@@ -9,7 +9,7 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
-import { FormError } from "@/components/ui/form_field";
+import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
@@ -24,7 +24,6 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 import { extractQuestionGroupName, formatResolution } from "@/utils/questions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
-import ContinuousPredictionChart from "../continuous_prediction_chart";
 import ContinuousSlider from "../continuous_slider";
 import GroupForecastTable, {
   ConditionalTableOption,
@@ -188,7 +187,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     }
 
     setIsSubmitting(true);
-    const responses = await createForecasts(
+    const response = await createForecasts(
       postId,
       questionsToSubmit.map(({ question, userForecast, userWeights }) => {
         return {
@@ -216,9 +215,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     setIsSubmitting(false);
 
     const errors: ErrorResponse[] = [];
-    for (const response of responses) {
-      if ("errors" in response && !!response.errors) {
-        errors.push(response.errors);
+    if (response && "errors" in response && !!response.errors) {
+      for (const response_errors of response.errors) {
+        errors.push(response_errors);
       }
     }
     if (errors.length) {
@@ -332,6 +331,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             }
             communityQuartiles={activeGroupOption.communityQuartiles}
             withUserQuartiles={activeGroupOption.resolution === null}
+            isDirty={activeGroupOption.isDirty}
+            hasUserForecast={
+              !!prevForecastValuesMap[activeTableOption!].forecast
+            }
           />
 
           {!!activeGroupOption.resolution && (
@@ -351,7 +354,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         </>
       )}
       {submitErrors.map((errResponse, index) => (
-        <FormError key={`error-${index}`} errors={errResponse} />
+        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
       ))}
     </>
   );

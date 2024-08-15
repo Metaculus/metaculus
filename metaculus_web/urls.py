@@ -16,13 +16,16 @@ Including another URLconf
 """
 
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+
 import comments
 import posts
 import questions
 
 urlpatterns = [
+    path("admin/fab-management/", include("fab_management.urls")),
     path("admin/", admin.site.urls),
     path("api/", include("users.urls")),
     path("api/", include("authentication.urls")),
@@ -31,10 +34,12 @@ urlpatterns = [
     path("api/", include("questions.urls")),
     path("api/", include("comments.urls")),
     path("api/", include("scoring.urls")),
+    path("api/", include("misc.urls")),
+    # Backward compatibility endpoints
     path("api2/", include(comments.urls.old_api)),
     path("api2/", include(posts.urls.old_api)),
     path("api2/", include(questions.urls.old_api)),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
     urlpatterns += [

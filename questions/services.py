@@ -8,6 +8,7 @@ from rest_framework.exceptions import ValidationError
 
 from posts.models import PostUserSnapshot, PostSubscription
 from posts.services.subscriptions import create_subscription_cp_change
+from projects.permissions import ObjectPermission
 from questions.constants import ResolutionType
 from questions.models import Question, GroupOfQuestions, Conditional, Forecast
 from users.models import User
@@ -21,6 +22,7 @@ def get_forecast_initial_dict(question: Question) -> dict:
     data = {
         "timestamps": [],
         "nr_forecasters": [],
+        "forecast_values": [],
     }
 
     if question.type == "multiple_choice":
@@ -45,6 +47,48 @@ def get_forecast_initial_dict(question: Question) -> dict:
 def build_question_forecasts(question: Question) -> dict:
     """
     Enriches questions with the forecasts object.
+
+    format:
+        Binary:
+        {
+            "latest_cdf": None,
+            "latest_pmf": [float], # the most up to date pmf
+            "timestamps": [float], # timestamps in seconds
+            "nr_forecasters": [int], # for each timestep
+            "forecast_values": [list[float]], # for each timestep
+            "q1s": [float], # for each timestep
+            "medians": [float], # for each timestep
+            "q3s": [float], # for each timestep
+        }
+        MC:
+        {
+            "latest_cdf": None,
+            "latest_pmf": [float], # the most up to date pmf
+            "timestamps": [float], # timestamps in seconds
+            "nr_forecasters": [int], # for each timestep
+            "forecast_values": [list[float]], # for each timestep
+            "option1": [
+                {
+                    "median": float,
+                    "q3": float,
+                    "q1": float
+                }, # for each timestep
+                ...
+            ],
+            "option2": [...],
+            ...
+        }
+        Numeric / Date:
+        {
+            "latest_cdf": [float], # the most up to date cdf
+            "latest_pmf": [float], # the most up to date pmf
+            "timestamps": [float], # timestamps in seconds
+            "nr_forecasters": [int], # for each timestep
+            "forecast_values": [list[float]], # for each timestep
+            "q1s": [float], # for each timestep
+            "medians": [float], # for each timestep
+            "q3s": [float], # for each timestep
+        }
     """
     forecasts_data = get_forecast_initial_dict(question)
 
@@ -63,6 +107,7 @@ def build_question_forecasts(question: Question) -> dict:
                 )
             forecasts_data["timestamps"].append(entry.start_time.timestamp())
             forecasts_data["nr_forecasters"].append(entry.num_forecasters)
+            forecasts_data["forecast_values"].append(entry.forecast_values.tolist())
         forecasts_data["latest_cdf"] = None
         forecasts_data["latest_pmf"] = (
             None if not latest_entry else list(latest_entry.get_pmf())
@@ -87,6 +132,7 @@ def build_question_forecasts(question: Question) -> dict:
             forecasts_data["q3s"].append(entry.q3s[1])
             forecasts_data["means"].append(entry.means[1])
             forecasts_data["nr_forecasters"].append(entry.num_forecasters)
+            forecasts_data["forecast_values"].append(entry.forecast_values.tolist())
     elif question.type in ["numeric", "date"]:
         forecasts_data["latest_cdf"] = (
             [] if not aggregation_history else list(latest_entry.continuous_cdf)
@@ -103,6 +149,7 @@ def build_question_forecasts(question: Question) -> dict:
             forecasts_data["q3s"].append(entry.q3s)
             forecasts_data["q1s"].append(entry.q1s)
             forecasts_data["nr_forecasters"].append(entry.num_forecasters)
+            forecasts_data["forecast_values"].append(entry.forecast_values.tolist())
     else:
         raise Exception(f"Unknown question type: {question.type}")
 
@@ -372,10 +419,33 @@ def create_forecast(
         )
 
     # Run async tasks
-    from posts.tasks import run_compute_sorting_divergence
     from questions.tasks import run_build_question_forecasts
 
-    run_compute_sorting_divergence.send(post.id)
     run_build_question_forecasts.send(question.id)
 
     return forecast
+
+
+def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
+    from posts.services.common import get_post_permission_for_user
+    from posts.tasks import run_compute_sorting_divergence
+
+    posts = set()
+
+    for forecast in forecasts:
+        question = forecast.pop("question")
+        post = question.get_post()
+        posts.add(post)
+
+        # Check permissions
+        permission = get_post_permission_for_user(post, user=user)
+        ObjectPermission.can_forecast(permission, raise_exception=True)
+
+        if not question.open_time or question.open_time > timezone.now():
+            raise ValidationError("You cannot forecast on this question yet!")
+
+        create_forecast(question=question, user=user, **forecast)
+
+    # Running forecast post triggers
+    for post in posts:
+        run_compute_sorting_divergence.send(post.id)

@@ -4,8 +4,8 @@ from questions import views
 
 urlpatterns = [
     path(
-        "questions/<int:pk>/forecast/",
-        views.create_forecast_api_view,
+        "questions/forecast/",
+        views.bulk_create_forecasts_api_view,
         name="create-forecast",
     ),
     path(

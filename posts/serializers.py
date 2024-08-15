@@ -5,6 +5,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from misc.models import ITNArticle
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers import (
@@ -224,9 +225,7 @@ def serialize_post(
 
     if post.question:
         serialized_data["question"] = serialize_question(
-            post.question,
-            with_cp=with_cp,
-            current_user=current_user,
+            post.question, with_cp=with_cp, current_user=current_user, post=post
         )
 
     if post.conditional:
@@ -234,7 +233,7 @@ def serialize_post(
             post.conditional,
             with_cp=with_cp,
             current_user=current_user,
-            post_id=post.id,
+            post=post,
         )
 
     if post.group_of_questions:
@@ -242,7 +241,7 @@ def serialize_post(
             post.group_of_questions,
             with_cp=with_cp,
             current_user=current_user,
-            post_id=post.id,
+            post=post,
         )
 
     if post.notebook:
@@ -289,6 +288,7 @@ def serialize_post_many(
         .prefetch_projects()
         .prefetch_questions()
         .annotate_comment_count()
+        .select_related("author")
     )
     if current_user:
         qs = qs.annotate_user_vote(current_user)
@@ -390,3 +390,9 @@ def get_subscription_serializer_by_type(
         raise ValidationError("Wrong subscription type")
 
     return serializers_map[subscription_type]
+
+
+class PostRelatedArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ITNArticle
+        fields = ("id", "title", "url", "favicon_url", "created_at", "media_label")
