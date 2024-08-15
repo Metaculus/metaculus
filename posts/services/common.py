@@ -151,7 +151,7 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
         if cp is None:
             continue
 
-        active_forecasts = question.forecast_set.filter(
+        active_forecasts = question.user_forecasts.filter(
             Q(end_time__isnull=True) | Q(end_time__gt=now),
             start_time__lte=now,
         )
