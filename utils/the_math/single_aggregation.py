@@ -29,7 +29,6 @@ from utils.typing import (
     ForecastValues,
     ForecastsValues,
     Weights,
-    Percentiles,
 )
 
 
