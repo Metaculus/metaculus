@@ -30,6 +30,7 @@ const Sidebar: FC<Props> = ({
         <div className="flex flex-col items-start gap-4 self-stretch border-t border-gray-300 pt-4 @container dark:border-gray-300-dark">
           <SidebarQuestionInfo postData={postData} />
           <SidebarQuestionTags
+            postId={postData.id}
             tagData={postData.projects}
             allowModifications={allowModifications}
           />
@@ -65,6 +66,7 @@ const Sidebar: FC<Props> = ({
       <div className="flex flex-col items-start gap-4 self-stretch @container">
         <SidebarQuestionInfo postData={postData} />
         <SidebarQuestionTags
+          postId={postData.id}
           tagData={postData.projects}
           allowModifications={allowModifications}
         />
