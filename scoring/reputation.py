@@ -73,12 +73,16 @@ def get_reputations_during_interval(
     The reputation can change during the interval."""
     if end is None:
         end = timezone.now()
-    all_peer_scores = Score.objects.filter(
-        user__in=users,
-        score_type=Score.ScoreTypes.PEER,
-        question__in=Question.objects.filter_public(),
-        edited_at__lte=end,
-    ).distinct()
+    all_peer_scores = (
+        Score.objects.filter(
+            user__in=users,
+            score_type=Score.ScoreTypes.PEER,
+            question__in=Question.objects.filter_public(),
+            edited_at__lte=end,
+        )
+        .prefetch_related("user", "question")
+        .distinct()
+    )
     old_peer_scores = list(
         all_peer_scores.filter(edited_at__lte=start).order_by("edited_at")
     )
