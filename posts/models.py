@@ -34,22 +34,22 @@ class PostQuerySet(models.QuerySet):
     def prefetch_user_forecasts(self, user_id: int):
         return self.prefetch_related(
             Prefetch(
-                "question__forecast_set",
+                "question__user_forecasts",
                 queryset=Forecast.objects.filter(author_id=user_id),
                 to_attr="user_forecasts",
             ),
             Prefetch(
-                "conditional__question_yes__forecast_set",
+                "conditional__question_yes__user_forecasts",
                 queryset=Forecast.objects.filter(author_id=user_id),
                 to_attr="user_forecasts",
             ),
             Prefetch(
-                "conditional__question_no__forecast_set",
+                "conditional__question_no__user_forecasts",
                 queryset=Forecast.objects.filter(author_id=user_id),
                 to_attr="user_forecasts",
             ),
             Prefetch(
-                "group_of_questions__questions__forecast_set",
+                "group_of_questions__questions__user_forecasts",
                 queryset=Forecast.objects.filter(author_id=user_id),
                 to_attr="user_forecasts",
             ),

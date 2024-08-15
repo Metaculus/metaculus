@@ -223,7 +223,7 @@ def get_aggregation_at_time(
 ) -> AggregateForecast | None:
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
     and q3s"""
-    forecasts = question.forecast_set.filter(
+    forecasts = question.user_forecasts.filter(
         Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
     ).order_by("-start_time")
     if forecasts.count() == 0:
@@ -252,7 +252,7 @@ def filter_between_dates(timestamps, start_time, end_time=None):
 
 
 def get_user_forecast_history(question: Question) -> list[ForecastSet]:
-    forecasts = question.forecast_set.order_by("start_time").all()
+    forecasts = question.user_forecasts.order_by("start_time").all()
     timestamps = set()
     for forecast in forecasts:
         timestamps.add(forecast.start_time)

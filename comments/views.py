@@ -121,7 +121,7 @@ def comment_create_api_view(request: Request):
 
     forecast = (
         (
-            on_post.question.forecast_set.filter(author_id=user.id)
+            on_post.question.user_forecasts.filter(author_id=user.id)
             .order_by("-start_time")
             .first()
         )
@@ -257,7 +257,7 @@ def comment_create_oldapi_view(request: Request):
 
     forecast = (
         (
-            on_post.question.forecast_set.filter(author_id=user.id)
+            on_post.question.user_forecasts.filter(author_id=user.id)
             .order_by("-start_time")
             .first()
         )
