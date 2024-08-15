@@ -103,8 +103,7 @@ def notify_post_cp_change(post: Post):
     ).select_related("user")
     questions = Question.objects.filter(Q(post=post) | Q(group__post=post))
     forecast_history = {
-        question: AggregationEntry.from_composed_forecasts(question.composed_forecasts)
-        for question in questions
+        question: AggregationEntry.from_question(question) for question in questions
     }
 
     for subscription in subscriptions:
