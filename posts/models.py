@@ -267,7 +267,6 @@ class Notebook(TimeStampedModel):
 
 class Post(TimeStampedModel):
     votes: QuerySet["Vote"]
-    subscriptions: QuerySet["PostSubscription"]
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -521,6 +520,11 @@ class PostSubscription(TimeStampedModel):
     # 0. -> 1.
     cp_change_threshold = models.FloatField(null=True, blank=True)
 
+    # Indicate it's a global subscription which was auto-created
+    # When user forecasted on the question
+    # Or it was manually created by post subscription
+    is_global = models.BooleanField(default=False, db_index=True)
+
     def update_last_sent_at(self):
         self.last_sent_at = timezone.now()
 
@@ -528,7 +532,7 @@ class PostSubscription(TimeStampedModel):
         constraints = [
             models.UniqueConstraint(
                 name="postsubscription_unique_type_user_post",
-                fields=["type", "user_id", "post_id"],
+                fields=["type", "user_id", "post_id", "is_global"],
             )
         ]
 
