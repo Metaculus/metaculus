@@ -144,7 +144,7 @@ def notify_post_cp_change(post: Post):
     ).select_related("user")
     questions = Question.objects.filter(
         Q(post=post) | Q(group__post=post)
-    ).prefetch_related("forecast_set")
+    ).prefetch_related("user_forecasts")
     forecast_history = {
         question: AggregateForecast.objects.filter(
             question=question,
@@ -183,7 +183,7 @@ def notify_post_cp_change(post: Post):
                     question=question,
                 )
             user_pred: Forecast = (
-                question.forecast_set.filter(author=subscription.user)
+                question.user_forecasts.filter(author=subscription.user)
                 .order_by("-start_time")
                 .first()
             )
