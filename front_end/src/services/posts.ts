@@ -42,6 +42,12 @@ class PostsApi {
     return data.results;
   }
 
+  static async removePostFromProject(postId: number, projectId: number) {
+    await post<any>(`/posts/${postId}/remove_from_project/`, {
+      project_id: projectId,
+    });
+  }
+
   static async getPostsWithCP(
     params?: PostsParams
   ): Promise<PaginatedPayload<PostWithForecasts>> {
