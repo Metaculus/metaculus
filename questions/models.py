@@ -253,6 +253,7 @@ class Forecast(models.Model):
 
 
 class AggregateForecast(models.Model):
+    id: int
     question = models.ForeignKey(
         Question, models.CASCADE, related_name="aggregate_forecasts"
     )
@@ -273,6 +274,10 @@ class AggregateForecast(models.Model):
     means = ArrayField(models.FloatField(), null=True)
     histogram = ArrayField(models.FloatField(), null=True, size=100)
 
+    def get_cdf(self) -> list[float] | None:
+        if len(self.forecast_values) == CDF_SIZE:
+            return self.forecast_values
+
     def get_pmf(self) -> list[float]:
         if len(self.forecast_values) == CDF_SIZE:
             cdf = self.forecast_values
@@ -282,47 +287,3 @@ class AggregateForecast(models.Model):
             pmf.append(1 - cdf[-1])
             return pmf
         return self.forecast_values
-
-    # TEMPORARY METHOD
-    def from_question(cls, question: Question) -> list["AggregateForecast"]:
-        composed_forecasts = question.composed_forecasts
-        aggregation_history: list[AggregateForecast] = []
-        for i in range(len(composed_forecasts["timestamps"])):
-            start_time = datetime.fromtimestamp(
-                composed_forecasts["timestamps"][i], tz=dt_timezone.utc
-            )
-            num_forecasters = composed_forecasts["nr_forecasters"][i]
-            forecast_values = composed_forecasts["forecast_values"][i]
-            if question.type == "binary":
-                q1 = composed_forecasts["q1s"][i]
-                median = composed_forecasts["medians"][i]
-                q3 = composed_forecasts["q3s"][i]
-                q1s = [1 - q1, q1]
-                medians = [1 - median, median]
-                q3s = [1 - q3, q3]
-            elif question.type == "multiple_choice":
-                q1s = []
-                medians = []
-                q3s = []
-                for label in question.options:
-                    q1s.append(composed_forecasts[label][i]["q1"])
-                    medians.append(composed_forecasts[label][i]["median"])
-                    q3s.append(composed_forecasts[label][i]["q3"])
-            else:  # continuous
-                q1s = composed_forecasts["q1s"]
-                medians = composed_forecasts["medians"]
-                q3s = composed_forecasts["q3s"]
-
-            new_entry: AggregateForecast = cls(
-                question=question,
-                forecast_values=forecast_values,
-                start_time=start_time,
-                forecaster_count=num_forecasters,
-                interval_lower_bounds=q1s,
-                centers=medians,
-                interval_upper_bounds=q3s,
-            )
-            if len(aggregation_history):
-                aggregation_history[-1].end_time = new_entry.start_time
-            aggregation_history.append(new_entry)
-        return aggregation_history
