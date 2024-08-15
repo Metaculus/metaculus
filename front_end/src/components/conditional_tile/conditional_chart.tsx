@@ -1,14 +1,20 @@
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
 import PredictionChip from "@/components/prediction_chip";
 import ProgressBar from "@/components/ui/progress_bar";
+import { ContinuousAreaType } from "@/types/charts";
 import { PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
-import { formatPrediction, getIsForecastEmpty } from "@/utils/forecasts";
+import {
+  extractPrevNumericForecastValue,
+  formatPrediction,
+  getIsForecastEmpty,
+  getNumericForecastDataset,
+} from "@/utils/forecasts";
 
 type Props = {
   parentResolved: boolean;
@@ -32,10 +38,13 @@ const ConditionalChart: FC<Props> = ({
     case QuestionType.Binary: {
       const pctCandidate = question.forecasts?.medians?.at(-1);
       const pct = pctCandidate ? Math.round(pctCandidate * 100) : null;
+      const userForecast = question.forecasts?.my_forecasts?.medians?.at(-1);
+      const userPct = userForecast ? Math.round(userForecast * 100) : null;
 
       return (
         <>
           <ProgressBar
+            userForecast={userPct}
             value={pct}
             disabled={disabled}
             renderLabel={(value) => {
@@ -76,6 +85,33 @@ const ConditionalChart: FC<Props> = ({
         ? formatPrediction(prediction, question.type)
         : "";
 
+      const continuousAreaChartData = [
+        {
+          pmf: question.forecasts.latest_pmf,
+          cdf: question.forecasts.latest_cdf,
+          type: "community" as ContinuousAreaType,
+        },
+      ];
+      const prevForecast = question.forecasts.my_forecasts?.slider_values;
+      const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
+      const dataset =
+        prevForecastValue?.forecast && prevForecastValue?.weights
+          ? getNumericForecastDataset(
+              prevForecastValue.forecast,
+              prevForecastValue.weights,
+              question.open_lower_bound!,
+              question.open_upper_bound!
+            )
+          : null;
+
+      if (!!dataset) {
+        continuousAreaChartData.push({
+          pmf: dataset.pmf,
+          cdf: dataset.cdf,
+          type: "user" as ContinuousAreaType,
+        });
+      }
+
       return (
         <>
           <div className="flex gap-2">
@@ -90,13 +126,7 @@ const ConditionalChart: FC<Props> = ({
               rangeMin={question.range_min!}
               rangeMax={question.range_max!}
               zeroPoint={question.zero_point}
-              data={[
-                {
-                  pmf: question.forecasts.latest_pmf,
-                  cdf: question.forecasts.latest_cdf,
-                  type: "community",
-                },
-              ]}
+              data={continuousAreaChartData}
               extraTheme={chartTheme}
               questionType={question.type}
             />
