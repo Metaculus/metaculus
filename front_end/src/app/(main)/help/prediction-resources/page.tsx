@@ -28,7 +28,7 @@ export default function PredictionResources() {
         </li>
       </ul>
       <hr />
-      <h2 className="section-header" id="analysis-tools">
+      <h2 className="section-header scroll-mt-nav" id="analysis-tools">
         Analysis tools
       </h2>
       <ul className="space-y-6 text-gray-700">
@@ -228,7 +228,7 @@ export default function PredictionResources() {
           </p>
         </li>
       </ul>
-      <h2 className="mb-6 text-2xl font-bold" id="text-books">
+      <h2 className="mb-6 scroll-mt-nav text-2xl font-bold" id="text-books">
         Tutorials, textbooks and other resources
       </h2>
 
@@ -353,7 +353,7 @@ export default function PredictionResources() {
         </li>
       </ul>
 
-      <h2 className="mb-6 text-2xl font-bold" id="research">
+      <h2 className="mb-6 scroll-mt-nav text-2xl font-bold" id="research">
         Research on forecasting
       </h2>
       <p className="mb-4">
@@ -428,7 +428,7 @@ export default function PredictionResources() {
         </li>
       </ul>
 
-      <h2 className="mb-6 mt-8 text-2xl font-bold" id="advice">
+      <h2 className="mb-6 mt-8 scroll-mt-nav text-2xl font-bold" id="advice">
         Tips on how to become a better predictor
       </h2>
       <ul className="space-y-6">
@@ -581,7 +581,7 @@ export default function PredictionResources() {
           </p>
         </li>
       </ul>
-      <h2 className="mb-6 text-2xl font-bold" id="data-sources">
+      <h2 className="mb-6 scroll-mt-nav text-2xl font-bold" id="data-sources">
         Data Sources
       </h2>
       <h3 className="mb-4 text-xl font-semibold" id="gauss">
