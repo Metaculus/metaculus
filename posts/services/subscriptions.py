@@ -140,10 +140,11 @@ def notify_post_cp_change(post: Post):
     """
 
     subscriptions = post.subscriptions.filter(
-        type=PostSubscription.SubscriptionType.CP_CHANGE,
-        next_trigger_value__lte=post.cp,
+        type=PostSubscription.SubscriptionType.CP_CHANGE
     ).select_related("user")
-    questions = Question.objects.filter(Q(post=post) | Q(group__post=post))
+    questions = Question.objects.filter(
+        Q(post=post) | Q(group__post=post)
+    ).prefetch_related("forecast_set")
     forecast_history = {
         question: AggregationEntry.from_question(question) for question in questions
     }
@@ -178,9 +179,7 @@ def notify_post_cp_change(post: Post):
                     question=question,
                 )
             user_pred: Forecast = (
-                question.forecasts.filter(
-                    user=subscription.user,
-                )
+                question.forecast_set.filter(author=subscription.user)
                 .order_by("-start_time")
                 .first()
             )
@@ -191,26 +190,25 @@ def notify_post_cp_change(post: Post):
                 display_diff,
                 user_pred,
             )
-        if not max_sorting_diff or not (
-            max_sorting_diff < subscription.cp_change_threshold
-        ):
-            continue
 
-        NotificationPostCPChange.send(
-            subscription.user,
-            NotificationPostCPChange.ParamsType(
-                post=NotificationPostParams.from_post(post),
-                question_data=question_data,
-            ),
-            # Send notifications to the users that subscribed to the post CP changes
-            # Or we automatically subscribed them for "Forecasted Questions CP change"
-            mailing_tag=(
-                None if not subscription.is_global else MailingTags.FORECASTED_CP_CHANGE
-            ),
-        )
+        if max_sorting_diff and max_sorting_diff >= subscription.cp_change_threshold:
+            NotificationPostCPChange.send(
+                subscription.user,
+                NotificationPostCPChange.ParamsType(
+                    post=NotificationPostParams.from_post(post),
+                    question_data=question_data,
+                ),
+                # Send notifications to the users that subscribed to the post CP changes
+                # Or we automatically subscribed them for "Forecasted Questions CP change"
+                mailing_tag=(
+                    None
+                    if not subscription.is_global
+                    else MailingTags.FORECASTED_CP_CHANGE
+                ),
+            )
 
-        subscription.update_last_sent_at()
-        subscription.save()
+            subscription.update_last_sent_at()
+            subscription.save()
 
 
 def notify_new_comments(post: Post):
