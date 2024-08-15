@@ -632,7 +632,7 @@
   "followModalUnfollowButton": "Unfollow",
   "followModalYouAreFollowingThisQuestion": "You're now following this question!",
   "followModalYouAreFollowingThisGroup": "You're now following this group!",
-  "followModalSuccessMessageDefaultNotificationQuestion": "You'll be notified of new comments, changes to the Community. Prediction, every time 20% of the question lifetime has passed, and when the question opens, closes, or resolves.",
+  "followModalSuccessMessageDefaultNotificationQuestion": "You'll be notified of new comments, changes to the Community Prediction, every time 20% of the question lifetime has passed, and when the question opens, closes, or resolves.",
   "followModalSuccessMessageDefaultNotificationGroup": "You'll be notified of new comments, changes to the Community Prediction, every time 20% of the group lifetime has passed, and when the group opens, closes, or resolves.",
   "followModalNotifyMe": "Notify me",
   "followModalEveryComment": "every comment",
