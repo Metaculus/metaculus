@@ -26,6 +26,7 @@ type Props = {
   href?: string;
   label?: string;
   xMark?: boolean;
+  onXMarkClick?: () => void;
 };
 
 const Chip: FC<PropsWithChildren<Props>> = ({
@@ -38,6 +39,7 @@ const Chip: FC<PropsWithChildren<Props>> = ({
   label,
   children,
   xMark = false,
+  onXMarkClick = undefined,
 }) => {
   return (
     <div
@@ -155,7 +157,10 @@ const Chip: FC<PropsWithChildren<Props>> = ({
       </Button>
 
       {xMark && (
-        <Button className="flex items-center justify-center rounded-r bg-blue-400 p-1.5 text-blue-800 hover:bg-blue-500 dark:bg-blue-400-dark dark:text-blue-800-dark hover:dark:bg-blue-500-dark">
+        <Button
+          className="flex items-center justify-center rounded-r bg-blue-400 p-1.5 text-blue-800 hover:bg-blue-500 dark:bg-blue-400-dark dark:text-blue-800-dark hover:dark:bg-blue-500-dark"
+          onClick={onXMarkClick}
+        >
           <FontAwesomeIcon icon={faXmarkCircle} />
         </Button>
       )}
