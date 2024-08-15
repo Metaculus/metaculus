@@ -3,7 +3,7 @@ import logging
 from django.db.models import Q
 
 from posts.models import Post
-from posts.tasks import run_compute_sorting_divergence
+from posts.services.common import compute_post_sorting_divergence_and_update_snapshots
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ def post_migrate_calculate_divergence():
 
     for idx, post in enumerate(posts.iterator(chunk_size=100)):
         try:
-            run_compute_sorting_divergence(post.id)
+            compute_post_sorting_divergence_and_update_snapshots(post)
         except Exception:
             logger.exception(f"Error running calculate_divergence for post {post.id}")
 
