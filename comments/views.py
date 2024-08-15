@@ -13,6 +13,7 @@ from comments.constants import CommentReportType
 from comments.models import ChangedMyMindEntry, Comment, CommentVote, CommentDiff
 from comments.serializers import (
     CommentWriteSerializer,
+    OldAPICommentWriteSerializer,
     serialize_comment,
     serialize_comment_many,
     CommentFilterSerializer,
@@ -120,7 +121,7 @@ def comment_create_api_view(request: Request):
 
     forecast = (
         (
-            on_post.question.forecast_set.filter(author_id=user.id)
+            on_post.question.user_forecasts.filter(author_id=user.id)
             .order_by("-start_time")
             .first()
         )
@@ -225,3 +226,50 @@ def comment_report_api_view(request, pk=int):
             )
 
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def comment_create_oldapi_view(request: Request):
+    """
+    This has to respond to requests of this form:
+    response = requests.post(
+         f"metaculus.com/api2/comments/",
+         json={
+             "comment_text": comment_text,
+             "submit_type": "N",
+             "include_latest_prediction": True,
+             "question": question_id,
+         },
+         **AUTH_HEADERS,
+     )
+    """
+    user = request.user
+    serializer = OldAPICommentWriteSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    on_post = serializer.validated_data["question"]
+    is_private = serializer.validated_data.get("submit_type") == "N"
+    included_forecast = serializer.validated_data.pop("include_latest_prediction", None)
+    text = serializer.validated_data["comment_text"]
+
+    permission = get_post_permission_for_user(on_post, user=user)
+    ObjectPermission.can_comment(permission, raise_exception=True)
+
+    forecast = (
+        (
+            on_post.question.user_forecasts.filter(author_id=user.id)
+            .order_by("-start_time")
+            .first()
+        )
+        if included_forecast
+        else None
+    )
+
+    new_comment = create_comment(
+        on_post=on_post,
+        is_private=is_private,
+        included_forecast=forecast,
+        user=user,
+        text=text,
+    )
+    return Response(serialize_comment(new_comment), status=status.HTTP_201_CREATED)

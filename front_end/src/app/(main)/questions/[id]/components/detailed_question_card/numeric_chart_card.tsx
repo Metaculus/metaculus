@@ -100,7 +100,7 @@ const NumericChartCard: FC<Props> = ({
       >
         <CursorDetailItem
           title={t("totalForecastersLabel")}
-          text={cursorData.forecastersNr.toString()}
+          text={cursorData.forecastersNr?.toString()}
         />
         <CursorDetailItem
           title={t("communityPredictionLabel")}

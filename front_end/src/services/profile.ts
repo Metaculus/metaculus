@@ -1,6 +1,7 @@
 import { getServerSession } from "@/services/session";
 import { PaginatedPayload } from "@/types/fetch";
 import { SubscriptionEmailType } from "@/types/notifications";
+import { ProfilePreferencesType } from "@/types/preferences";
 import { CurrentUser, UserProfile } from "@/types/users";
 import { get, patch, post } from "@/utils/fetch";
 
@@ -29,6 +30,7 @@ class ProfileApi {
     bio?: string;
     website?: string;
     unsubscribed_mailing_tags?: SubscriptionEmailType[];
+    unsubscribed_preference_tags?: ProfilePreferencesType[];
   }) {
     return patch<CurrentUser, typeof props>("/users/me/update", props);
   }

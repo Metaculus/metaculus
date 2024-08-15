@@ -15,7 +15,7 @@ import { FC, useState, useEffect } from "react";
 import {
   softDeleteComment,
   editComment,
-  createForecast,
+  createForecasts,
 } from "@/app/(main)/questions/actions";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentReportModal from "@/components/comment_feed/comment_report_modal";
@@ -183,17 +183,19 @@ const Comment: FC<CommentProps> = ({
   );
 
   const updateForecast = async (value: number) => {
-    const response = await createForecast(
-      postData?.question?.id ?? 0,
+    const response = await createForecasts(comment.on_post, [
       {
-        continuousCdf: null,
-        probabilityYes: value,
-        probabilityYesPerCategory: null,
+        questionId: postData?.question?.id ?? 0,
+        forecastData: {
+          continuousCdf: null,
+          probabilityYes: value,
+          probabilityYesPerCategory: null,
+        },
+        sliderValues: value,
       },
-      value
-    );
+    ]);
 
-    if ("errors" in response) {
+    if (response && "errors" in response && !!response.errors) {
       throw response.errors;
     }
   };

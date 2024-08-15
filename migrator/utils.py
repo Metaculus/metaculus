@@ -5,6 +5,8 @@ from django.apps import apps
 from django.core.management import call_command
 from django.db import connections, connection
 
+from utils.db import paginate_cursor
+
 
 @contextlib.contextmanager
 def old_db_cursor():
@@ -38,27 +40,15 @@ def paginated_query(
     """
 
     with old_db_cursor() as cursor:
-        cursor.execute(query, *args, **kwargs)
-        columns = [col[0] for col in cursor.description]
-
-        while True:
-            rows = cursor.fetchmany(itersize)
-
-            if len(rows) > 0:
-                for row in rows:
-                    row = dict(zip(columns, row))
-
-                    # Filter out columns not used
-                    if only_columns:
-                        row = {k: v for k, v in row.items() if k in only_columns}
-
-                    # Return just a value if flat == True
-                    if flat:
-                        yield next(iter(row.values()))
-                    else:
-                        yield row
-            else:
-                break
+        yield from paginate_cursor(
+            cursor,
+            query,
+            *args,
+            itersize=itersize,
+            only_columns=only_columns,
+            flat=flat,
+            **kwargs,
+        )
 
 
 def one2one_query(query, *args, **kwargs):

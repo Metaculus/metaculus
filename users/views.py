@@ -23,7 +23,7 @@ from .serializers import (
     UserUpdateProfileSerializer,
     UserFilterSerializer,
 )
-from .services import get_users
+from .services import get_users, user_unsubscribe_tags
 
 
 def get_serialized_user(request, user, Serializer):
@@ -183,6 +183,10 @@ def update_profile_api_view(request: Request):
     user = request.user
     serializer = UserUpdateProfileSerializer(user, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
+
+    unsubscribe_tags = serializer.validated_data.get("unsubscribed_mailing_tags")
+    if unsubscribe_tags is not None:
+        user_unsubscribe_tags(user, unsubscribe_tags)
 
     serializer.save()
     user.save()

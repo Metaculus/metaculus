@@ -29,11 +29,5 @@ def post_url(post_id: int, post_title: str):
 
 
 @register.simple_tag
-def tag_unsubscribe_url():
-    # TODO:
-    return "https://google.com"
-
-
-@register.simple_tag
 def tag_settings_url():
     return _build_frontend_url("/accounts/settings/")

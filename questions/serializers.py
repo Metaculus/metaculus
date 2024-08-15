@@ -3,12 +3,16 @@ from datetime import datetime, timezone as dt_timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from posts.models import Post
 from questions.models import Forecast
 from users.models import User
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
-from utils.the_math.measures import prediction_difference_for_display
+from utils.the_math.measures import (
+    percent_point_function,
+    prediction_difference_for_display,
+)
 from .constants import ResolutionType
-from .models import Question, Conditional, GroupOfQuestions
+from .models import Question, Conditional, GroupOfQuestions, AggregateForecast
 from .services import (
     build_question_forecasts_for_user,
     get_forecast_initial_dict,
@@ -37,7 +41,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "possibilities",
             "resolution",
             "zero_point",
-            "resolution_criteria_description",
+            "resolution_criteria",
             "fine_print",
             "label",
             "open_upper_bound",
@@ -65,7 +69,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "options",
             "scheduled_resolve_time",
             "scheduled_close_time",
-            "resolution_criteria_description",
+            "resolution_criteria",
             "fine_print",
         )
 
@@ -117,7 +121,7 @@ class GroupOfQuestionsSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "description",
-            "resolution_criteria_description",
+            "resolution_criteria",
             "fine_print",
             "group_variable",
         )
@@ -131,7 +135,7 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
         fields = (
             "questions",
             "fine_print",
-            "resolution_criteria_description",
+            "resolution_criteria",
             "description",
             "group_variable",
         )
@@ -168,29 +172,141 @@ class ForecastSerializer(serializers.ModelSerializer):
             return get_scaled_quartiles_from_cdf(forecast.continuous_cdf, question)
 
 
+class MyForecastSerializer(serializers.ModelSerializer):
+    start_time = serializers.SerializerMethodField()
+    end_time = serializers.SerializerMethodField()
+    forecast_values = serializers.SerializerMethodField()
+    quartiles = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Forecast
+        fields = (
+            "question_id",
+            "author_id",
+            "start_time",
+            "end_time",
+            "forecast_values",
+            "quartiles",
+            "slider_values",
+        )
+
+    def get_start_time(self, aggregate_forecast: Forecast):
+        return aggregate_forecast.start_time.timestamp()
+
+    def get_end_time(self, aggregate_forecast: Forecast):
+        return (
+            aggregate_forecast.end_time.timestamp()
+            if aggregate_forecast.end_time
+            else None
+        )
+
+    def get_quartiles(self, forecast: Forecast):
+        if forecast.continuous_cdf is not None:
+            return percent_point_function(forecast.continuous_cdf, [25, 50, 75])
+
+    def get_forecast_value(self, forecast: Forecast):
+        if self.context.get("include_forecast_values", True):
+            return forecast.get_prediction_values()
+
+
+class AggregateForecastSerializer(serializers.ModelSerializer):
+    start_time = serializers.SerializerMethodField()
+    end_time = serializers.SerializerMethodField()
+    forecast_values = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AggregateForecast
+        fields = "__all__"
+
+    def get_start_time(self, aggregate_forecast: AggregateForecast):
+        return aggregate_forecast.start_time.timestamp()
+
+    def get_end_time(self, aggregate_forecast: AggregateForecast):
+        return (
+            aggregate_forecast.end_time.timestamp()
+            if aggregate_forecast.end_time
+            else None
+        )
+
+    def get_forecast_values(self, aggregate_forecast: AggregateForecast):
+        if self.context.get("include_forecast_values", True):
+            return aggregate_forecast.forecast_values
+
+
+class ForecastWriteSerializer(serializers.ModelSerializer):
+    question = serializers.IntegerField()
+    continuous_cdf = serializers.ListField(
+        child=serializers.FloatField(),
+        allow_null=True,
+        required=False,
+    )
+    probability_yes = serializers.FloatField(allow_null=True, required=False)
+    probability_yes_per_category = serializers.DictField(
+        child=serializers.FloatField(), allow_null=True, required=False
+    )
+    slider_values = serializers.JSONField(allow_null=True, required=False)
+
+    class Meta:
+        model = Forecast
+        fields = (
+            "question",
+            "continuous_cdf",
+            "probability_yes",
+            "probability_yes_per_category",
+            "slider_values",
+        )
+
+    def validate_question(self, value):
+        return Question.objects.get(pk=value)
+
+
 def serialize_question(
     question: Question,
     with_cp: bool = False,
     current_user: User = None,
+    post: Post = None,
 ):
     """
     Serializes question object
     """
 
     serialized_data = QuestionSerializer(question).data
-    # TODO: this is slow, optimize!
-    serialized_data["post_id"] = question.get_post().id
+    serialized_data["post_id"] = post.id
 
     if with_cp:
         serialized_data["forecasts"] = (
             question.composed_forecasts or get_forecast_initial_dict(question)
         )
+        aggregate_forecasts = list(question.aggregate_forecasts.order_by("start_time"))
+        serialized_data["aggregate_forecasts_summary"] = AggregateForecastSerializer(
+            aggregate_forecasts[:-1],
+            context={"include_forecast_values": False},
+            many=True,
+        ).data
+        if aggregate_forecasts:
+            serialized_data["aggregate_forecasts_summary"].append(
+                AggregateForecastSerializer(
+                    aggregate_forecasts[-1],
+                ).data
+            )
 
         if (
             current_user
             and not current_user.is_anonymous
             and hasattr(question, "user_forecasts")
         ):
+            user_forecasts = question.user_forecasts
+            serialized_data["my_forecasts"] = MyForecastSerializer(
+                user_forecasts[:-1],
+                context={"include_forecast_values": False},
+                many=True,
+            ).data
+            if user_forecasts:
+                serialized_data["my_forecasts"].append(
+                    MyForecastSerializer(
+                        user_forecasts[-1],
+                    ).data
+                )
             serialized_data["forecasts"]["my_forecasts"] = (
                 build_question_forecasts_for_user(question, question.user_forecasts)
             )
@@ -229,31 +345,27 @@ def serialize_conditional(
     conditional: Conditional,
     with_cp: bool = False,
     current_user: User = None,
-    post_id: int = None,
+    post: Post = None,
 ):
     # Serialization of basic data
     serialized_data = ConditionalSerializer(conditional).data
 
     # Generic questions
     serialized_data["condition"] = serialize_question(
-        conditional.condition,
-        with_cp=False,
+        conditional.condition, with_cp=False, post=conditional.condition.get_post()
     )
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
         with_cp=False,
+        post=conditional.condition_child.get_post(),
     )
 
     # Autogen questions
     serialized_data["question_yes"] = serialize_question(
-        conditional.question_yes,
-        with_cp=with_cp,
-        current_user=current_user,
+        conditional.question_yes, with_cp=with_cp, current_user=current_user, post=post
     )
     serialized_data["question_no"] = serialize_question(
-        conditional.question_no,
-        with_cp=with_cp,
-        current_user=current_user,
+        conditional.question_no, with_cp=with_cp, current_user=current_user, post=post
     )
 
     return serialized_data
@@ -263,7 +375,7 @@ def serialize_group(
     group: GroupOfQuestions,
     with_cp: bool = False,
     current_user: User = None,
-    post_id: int = None,
+    post: Post = None,
 ):
     # Serialization of basic data
     serialized_data = GroupOfQuestionsSerializer(group).data
@@ -272,9 +384,7 @@ def serialize_group(
     for question in group.questions.all():
         serialized_data["questions"].append(
             serialize_question(
-                question,
-                with_cp=with_cp,
-                current_user=current_user,
+                question, with_cp=with_cp, current_user=current_user, post=post
             )
         )
 
@@ -313,3 +423,14 @@ def validate_question_resolution(question: Question, resolution: str) -> str:
             f"Received {resolution}"
         )
     return str(resolution)
+
+
+class OldForecastWriteSerializer(serializers.Serializer):
+    prediction = serializers.FloatField(required=True)
+
+    def validate_prediction(self, value):
+        if value < 0.001 or value > 0.999:
+            raise serializers.ValidationError(
+                "Probability value should be between 0.001 and 0.999"
+            )
+        return value

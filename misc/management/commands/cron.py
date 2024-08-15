@@ -8,6 +8,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_dramatiq.tasks import delete_old_tasks
 
+from misc.jobs import sync_itn_articles
 from notifications.jobs import job_send_notification_groups
 from posts.jobs import (
     job_compute_movement,
@@ -114,10 +115,19 @@ class Command(BaseCommand):
         # TODO: uncomment this after proper testing
         scheduler.add_job(
             close_old_connections(job_send_notification_groups.send),
-            # trigger=CronTrigger.from_crontab("0 * * * *"),  # Every Hour at :00
-            # TODO: DISABLE!!!!
             trigger=CronTrigger.from_crontab("*/2 * * * *"),  # Every Hour at :00
             id="notifications_job_send_notification_groups",
+            max_instances=1,
+            replace_existing=True,
+        )
+
+        #
+        # ITN Sync Job
+        #
+        scheduler.add_job(
+            close_old_connections(sync_itn_articles),
+            trigger=CronTrigger.from_crontab("0 1 * * *"),  # Every day at 01:00 UTC
+            id="misc_sync_itn_articles",
             max_instances=1,
             replace_existing=True,
         )

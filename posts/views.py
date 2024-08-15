@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from misc.services.itn import get_post_get_similar_articles
 from posts.models import (
     Post,
     Vote,
@@ -18,11 +19,13 @@ from posts.models import (
 from posts.serializers import (
     NotebookSerializer,
     PostFilterSerializer,
+    OldQuestionFilterSerializer,
     PostSerializer,
     PostWriteSerializer,
     serialize_post_many,
     serialize_post,
     get_subscription_serializer_by_type,
+    PostRelatedArticleSerializer,
 )
 from posts.services.common import (
     create_post,
@@ -73,6 +76,85 @@ def posts_list_api_view(request):
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
+def posts_list_oldapi_view(request):
+    """
+    We shared this request example with FAB participants:
+    url_qparams = {
+        "limit": count,
+        "offset": offset,
+        "has_group": "false",
+        "order_by": "-activity",
+        "forecast_type": "binary",
+        "project": tournament_id,
+        "status": "open",
+        "type": "forecast",
+        "include_description": "true",
+    }
+    url = f"{api_info.base_url}/questions/"
+    response = requests.get(
+        url, headers={"Authorization": f"Token {api_info.token}"}, params=url_qparams
+    )
+
+    But we don't want to support all these parameters, and the ones relevant are:
+    - order_by
+    - status
+    - project
+    - forecast_type - we ignore this, but assume it's binary - FAB only supports binary for now.
+    """
+
+    paginator = LimitOffsetPagination()
+    qs = Post.objects.all()
+
+    # Apply filtering
+    filters_serializer = OldQuestionFilterSerializer(data=request.query_params)
+    filters_serializer.is_valid(raise_exception=True)
+    status = filters_serializer.validated_data.get("status", None)
+    projects = filters_serializer.validated_data.get("project", None)
+    order_by = filters_serializer.validated_data.get("order_by", None)
+
+    qs = get_posts_feed(
+        qs,
+        user=request.user,
+        tournaments=projects,
+        statuses=status,
+        order_by=order_by,
+        forecast_type=["binary"],
+    )
+    # Paginating queryset
+    posts = paginator.paginate_queryset(qs, request)
+
+    data = serialize_post_many(
+        posts,
+        with_cp=True,
+        current_user=request.user,
+    )
+
+    # Given we limit the feed to binary questions, we expect each post to have a question with a description
+    data = [{**d, "description": d["question"]["description"]} for d in data]
+
+    return paginator.get_paginated_response(data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def post_detail_oldapi_view(request: Request, pk):
+    qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
+    posts = serialize_post_many(
+        qs, current_user=request.user, with_cp=True, with_subscriptions=True
+    )
+
+    if not posts:
+        raise NotFound("Post not found")
+
+    post = posts[0]
+    if post.get("question") is not None:
+        post["description"] = post["question"].get("description")
+
+    return Response(posts[0])
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def post_detail(request: Request, pk):
     qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
     posts = serialize_post_many(
@@ -109,6 +191,20 @@ def post_create_api_view(request):
         serialize_post(post, with_cp=False, current_user=request.user),
         status=status.HTTP_201_CREATED,
     )
+
+
+@api_view(["POST"])
+def remove_from_project(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_edit(permission, raise_exception=True)
+
+    project_id = request.data["project_id"]
+    print(len(post.projects.all()))
+    post.projects.set([x for x in post.projects.all() if x.id != project_id])
+    post.save()
+    print(len(post.projects.all()))
+    return Response({}, status=status.HTTP_200_OK)
 
 
 @api_view(["PUT"])
@@ -309,7 +405,9 @@ def post_subscriptions_create(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    existing_subscriptions = post.subscriptions.filter(user=request.user)
+    existing_subscriptions = post.subscriptions.filter(user=request.user).exclude(
+        is_global=True
+    )
 
     # Validating data
     validated_data = []
@@ -360,3 +458,18 @@ def post_subscriptions_create(request, pk):
         ],
         status=status.HTTP_201_CREATED,
     )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def post_related_articles_api_view(request: Request, pk):
+    post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    # Retrieve cached articles
+    articles = get_post_get_similar_articles(post)
+
+    return Response(PostRelatedArticleSerializer(articles, many=True).data)

@@ -54,7 +54,7 @@ class TestPagination:
 
     def test_root_pagination(self, user2, user1_client, comments):
         response = user1_client.get(
-            f"/api/comments?limit=3&sort=created_at&use_root_comments_pagination=true"
+            f"/api/comments/?limit=3&sort=created_at&use_root_comments_pagination=true"
         )
 
         # Check pagination
@@ -85,7 +85,7 @@ class TestPagination:
 
     def test_focus_on_comment__child(self, user2, user1_client, comments):
         response = user1_client.get(
-            f"/api/comments?limit=2&sort=created_at&use_root_comments_pagination=true"
+            f"/api/comments/?limit=2&sort=created_at&use_root_comments_pagination=true"
             f"&focus_comment_id={comments['c4_1'].pk}"
         )
 
@@ -119,7 +119,7 @@ class TestPagination:
 
     def test_focus_on_comment__root(self, user2, user1_client, comments):
         response = user1_client.get(
-            f"/api/comments?limit=2&sort=created_at&use_root_comments_pagination=true"
+            f"/api/comments/?limit=2&sort=created_at&use_root_comments_pagination=true"
             f"&focus_comment_id={comments['c3'].pk}"
         )
 
