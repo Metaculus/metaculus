@@ -85,6 +85,30 @@ class CPChangeData:
     def format_forecast_date(self):
         return date_parse(self.forecast_date)
 
+    def get_cp_change_label(self):
+        return {
+            "goneUp": _("gone up"),
+            "goneDown": _("gone down"),
+            "expanded": _("expanded"),
+            "contracted": _("contracted"),
+            "changed": _("changed"),
+        }.get(self.cp_change_label, self.cp_change_label)
+
+    def format_value(self, value):
+        if self.question.type in ("multiple_choice", "binary"):
+            return f"{round(value * 100)}%"
+
+        return value
+
+    def format_user_forecast(self):
+        return self.format_value(self.user_forecast)
+
+    def get_cp_change_value(self):
+        return self.format_value(self.cp_change_value)
+
+    def format_cp_median(self):
+        return self.format_value(self.cp_median)
+
 
 class NotificationTypeBase:
     type: str
@@ -460,11 +484,20 @@ class NotificationCommentReport(NotificationTypeBase):
 
 class NotificationPostCPChange(NotificationTypeBase):
     type = "post_cp_change"
+    email_template = "emails/post_cp_change.html"
 
     @dataclass
     class ParamsType:
         post: NotificationPostParams
         question_data: list[CPChangeData]
+
+    @classmethod
+    def generate_subject_group(cls, recipient: User):
+        """
+        Generates subject for group emails
+        """
+
+        return _("Significant change")
 
 
 class NotificationPredictedQuestionResolved(NotificationTypeBase):
