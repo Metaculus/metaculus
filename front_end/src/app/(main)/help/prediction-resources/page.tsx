@@ -1,5 +1,11 @@
 import PageWrapper from "../../components/pagewrapper";
 
+export const metadata = {
+  title: "Prediction Resources",
+  description:
+    "Discover essential forecasting tools and resources. Learn about analysis software, data sources, and expert tips to enhance your prediction skills and accuracy.",
+};
+
 export default function PredictionResources() {
   return (
     <PageWrapper>
