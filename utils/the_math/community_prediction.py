@@ -12,12 +12,12 @@ Normalise to 1 over all outcomes.
 from bisect import bisect_left, bisect_right
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone as dt_timezone
 
 import numpy as np
 from django.db.models import Q, TextChoices
 
-from questions.models import Question, CDF_SIZE
+from questions.models import Question, CDF_SIZE, AggregateForecast
 from utils.the_math.measures import weighted_percentile_2d, percent_point_function
 from utils.typing import (
     ForecastValues,
@@ -80,6 +80,50 @@ class AggregationEntry:
             return pmf
         return self.forecast_values
 
+    @classmethod
+    def from_question(cls, question: Question) -> list["AggregationEntry"]:
+        """returns a list of aggregation entries from a question's composed_forecasts"""
+        composed_forecasts = question.composed_forecasts
+        aggregation_history: list[AggregationEntry] = []
+        for i in range(len(composed_forecasts["timestamps"])):
+            start_time = datetime.fromtimestamp(
+                composed_forecasts["timestamps"][i], tz=dt_timezone.utc
+            )
+            num_forecasters = composed_forecasts["nr_forecasters"][i]
+            forecast_values = composed_forecasts["forecast_values"][i]
+            if question.type == "binary":
+                q1 = composed_forecasts["q1s"][i]
+                median = composed_forecasts["medians"][i]
+                q3 = composed_forecasts["q3s"][i]
+                q1s = [1 - q1, q1]
+                medians = [1 - median, median]
+                q3s = [1 - q3, q3]
+            elif question.type == "multiple_choice":
+                q1s = []
+                medians = []
+                q3s = []
+                for label in question.options:
+                    q1s.append(composed_forecasts[label][i]["q1"])
+                    medians.append(composed_forecasts[label][i]["median"])
+                    q3s.append(composed_forecasts[label][i]["q3"])
+            else:  # continuous
+                q1s = composed_forecasts["q1s"]
+                medians = composed_forecasts["medians"]
+                q3s = composed_forecasts["q3s"]
+
+            new_entry = cls(
+                forecast_values=forecast_values,
+                start_time=start_time,
+                num_forecasters=num_forecasters,
+                q1s=q1s,
+                medians=medians,
+                q3s=q3s,
+            )
+            if len(aggregation_history):
+                aggregation_history[-1].end_time = new_entry.start_time
+            aggregation_history.append(new_entry)
+        return aggregation_history
+
 
 def get_histogram(values: ForecastValues, weights: Weights | None) -> np.ndarray:
     histogram = np.zeros(100)
@@ -101,20 +145,20 @@ def compute_discrete_forecast_values(
     if forecasts_values.shape[1] == 2:
         return weighted_percentile_2d(
             forecasts_values, weights=weights, percentiles=percentile
-        )
+        ).tolist()
     # TODO: this needs to be normalized for MC, but special care needs to be taken
     # if the percentile isn't 50 (namely it needs to be normalized based off the values
     # at the median)
     return weighted_percentile_2d(
         forecasts_values, weights=weights, percentiles=percentile
-    )
+    ).tolist()
 
 
 def compute_cp_continuous(
     forecast_values: ForecastsValues,
     weights: Weights | None = None,
 ) -> ForecastValues:
-    return np.average(forecast_values, axis=0, weights=weights)
+    return np.average(forecast_values, axis=0, weights=weights).tolist()
 
 
 @dataclass
@@ -129,39 +173,44 @@ def calculate_aggregation_entry(
     weights: Weights,
     include_stats: bool = False,
     histogram: bool = False,
-) -> AggregationEntry:
+) -> AggregateForecast:
     if question_type in ["binary", "multiple_choice"]:
-        aggregation = AggregationEntry(
+        aggregation = AggregateForecast(
             forecast_values=compute_discrete_forecast_values(
                 forecast_set.forecasts_values, weights, 50.0
             )[0]
         )
     else:
-        aggregation = AggregationEntry(
+        aggregation = AggregateForecast(
             forecast_values=compute_cp_continuous(
                 forecast_set.forecasts_values, weights
             )
         )
     if include_stats:
         aggregation.start_time = forecast_set.timestep
-        aggregation.num_forecasters = len(forecast_set.forecasts_values)
+        aggregation.forecaster_count = len(forecast_set.forecasts_values)
         if question_type in ["binary", "multiple_choice"]:
-            aggregation.q1s, aggregation.medians, aggregation.q3s = (
-                compute_discrete_forecast_values(
-                    forecast_set.forecasts_values, weights, [25.0, 50.0, 75.0]
-                )
+            lowers, centers, uppers = compute_discrete_forecast_values(
+                forecast_set.forecasts_values, weights, [25.0, 50.0, 75.0]
             )
         else:
-            aggregation.q1s, aggregation.medians, aggregation.q3s = (
-                percent_point_function(aggregation.forecast_values, [25.0, 50.0, 75.0])
+            lowers, centers, uppers = percent_point_function(
+                aggregation.forecast_values, [25.0, 50.0, 75.0]
             )
-        aggregation.means = np.average(
-            forecast_set.forecasts_values, weights=weights, axis=0
-        )
+            lowers = [lowers]
+            centers = [centers]
+            uppers = [uppers]
+        aggregation.interval_lower_bounds = lowers
+        aggregation.centers = centers
+        aggregation.interval_upper_bounds = uppers
+        if question_type in ["binary", "multiple_choice"]:
+            aggregation.means = np.average(
+                forecast_set.forecasts_values, weights=weights, axis=0
+            ).tolist()
     if histogram and question_type == "binary":
         aggregation.histogram = get_histogram(
             [f[1] for f in forecast_set.forecasts_values], weights
-        )
+        ).tolist()
     return aggregation
 
 
@@ -170,11 +219,11 @@ def get_aggregation_at_time(
     time: datetime,
     include_stats: bool = False,
     histogram: bool = False,
-    aggregation_method: AggregationMethod = AggregationMethod.RECENCY_WEIGHTED,
-) -> AggregationEntry | None:
+    aggregation_method: AggregateForecast.AggregationMethod = AggregateForecast.AggregationMethod.RECENCY_WEIGHTED,
+) -> AggregateForecast | None:
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
     and q3s"""
-    forecasts = question.forecast_set.filter(
+    forecasts = question.user_forecasts.filter(
         Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
     ).order_by("-start_time")
     if forecasts.count() == 0:
@@ -185,16 +234,12 @@ def get_aggregation_at_time(
     )
     weights = (
         None
-        if aggregation_method == AggregationMethod.UNWEIGHTED
+        if aggregation_method == AggregateForecast.AggregationMethod.UNWEIGHTED
         else generate_recency_weights(len(forecast_set.forecasts_values))
     )
     aggregation_entry = calculate_aggregation_entry(
-        forecast_set, question.type, weights, include_stats
+        forecast_set, question.type, weights, include_stats, histogram
     )
-    if histogram and question.type == "binary":
-        aggregation_entry.histogram = get_histogram(
-            [f[1] for f in forecast_set.forecasts_values], weights
-        )
     return aggregation_entry
 
 
@@ -207,7 +252,7 @@ def filter_between_dates(timestamps, start_time, end_time=None):
 
 
 def get_user_forecast_history(question: Question) -> list[ForecastSet]:
-    forecasts = question.forecast_set.order_by("start_time").all()
+    forecasts = question.user_forecasts.order_by("start_time").all()
     timestamps = set()
     for forecast in forecasts:
         timestamps.add(forecast.start_time)
@@ -230,9 +275,9 @@ def get_user_forecast_history(question: Question) -> list[ForecastSet]:
 
 
 def minimize_forecast_history(
-    forecast_history: list[AggregationEntry],
+    forecast_history: list[AggregateForecast],
     max_size: int = 128,
-) -> list[AggregationEntry]:
+) -> list[AggregateForecast]:
     if len(forecast_history) <= max_size:
         return forecast_history
 
@@ -241,7 +286,7 @@ def minimize_forecast_history(
     # of the two halves, then the middle of the four quarters, etc. 7 times,
     # generating a maximum list of 128 forecasts close evenly spaced.
 
-    def find_index_of_middle(forecasts: list[AggregationEntry]) -> int:
+    def find_index_of_middle(forecasts: list[AggregateForecast]) -> int:
         if len(forecasts) < 3:
             return 0
         t0 = forecasts[0].start_time
@@ -267,7 +312,7 @@ def minimize_forecast_history(
             new_working_lists.append(working_list[middle_index + 1 :])
         working_lists = new_working_lists
 
-    minimized = sorted(minimized, key=lambda x: x.start_time)
+    minimized: list[AggregateForecast] = sorted(minimized, key=lambda x: x.start_time)
     # make sure to always have the first and last forecast are the first
     # and last of the original list
     if minimized[0].start_time != forecast_history[0].start_time:
@@ -287,15 +332,15 @@ def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
 
 def get_cp_history(
     question: Question,
-    aggregation_method: AggregationMethod = AggregationMethod.RECENCY_WEIGHTED,
+    aggregation_method: AggregateForecast.AggregationMethod = AggregateForecast.AggregationMethod.RECENCY_WEIGHTED,
     minimize: bool = True,
     include_stats: bool = True,
-) -> list[AggregationEntry]:
-    full_summary: list[AggregationEntry] = []
+) -> list[AggregateForecast]:
+    full_summary: list[AggregateForecast] = []
 
     user_forecast_history = get_user_forecast_history(question)
     for i, forecast_set in enumerate(user_forecast_history):
-        if aggregation_method == AggregationMethod.RECENCY_WEIGHTED:
+        if aggregation_method == AggregateForecast.AggregationMethod.RECENCY_WEIGHTED:
             weights = generate_recency_weights(len(forecast_set.forecasts_values))
         else:
             weights = None
@@ -307,6 +352,8 @@ def get_cp_history(
             include_stats=include_stats,
             histogram=histogram,
         )
+        new_entry.question = question
+        new_entry.method = aggregation_method
         if full_summary:
             # terminate previous entry
             full_summary[-1].end_time = new_entry.start_time

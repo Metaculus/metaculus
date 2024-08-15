@@ -2,6 +2,7 @@ import dramatiq
 from django.db.models import Q, OuterRef, Count
 from sql_util.aggregates import SubqueryAggregate
 
+from notifications.constants import MailingTags
 from notifications.services import (
     NotificationPredictedQuestionResolved,
     NotificationPostParams,
@@ -46,7 +47,9 @@ def resolve_question_and_send_notifications(question_id: int):
         )
         # Exclude users with disabled notifications
         .exclude(
-            user__unsubscribed_mailing_tags__contains=["question_resolution"]
+            user__unsubscribed_mailing_tags__contains=[
+                MailingTags.FORECASTED_QUESTION_RESOLUTION
+            ]
         ).select_related("user")
     )
     user_notification_params = {}

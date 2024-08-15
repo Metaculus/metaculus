@@ -81,13 +81,13 @@ const ForecastMakerConditional: FC<Props> = ({
       resolutionCriteria={[
         {
           title: t("parentResolutionCriteria"),
-          content: condition.resolution_criteria_description,
+          content: condition.resolution_criteria,
           questionTitle: condition.title,
           finePrint: condition.fine_print,
         },
         {
           title: t("childResolutionCriteria"),
-          content: condition_child.resolution_criteria_description,
+          content: condition_child.resolution_criteria,
           questionTitle: condition_child.title,
           finePrint: condition_child.fine_print,
         },

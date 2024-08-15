@@ -4,7 +4,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
-from utils.tasks import send_email_async
+from misc.tasks import send_email_async
 
 logger = logging.getLogger(__name__)
 

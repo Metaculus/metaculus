@@ -1,43 +1,35 @@
 "use client";
-import { faXmarkCircle } from "@fortawesome/free-regular-svg-icons";
-import { faNewspaper } from "@fortawesome/free-regular-svg-icons";
+import {
+  faNewspaper,
+  faXmarkCircle,
+} from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useTranslations, useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
+import { removeRelatedArticle } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { NewsArticle } from "@/types/news";
 import { formatDate } from "@/utils/date_formatters";
 
-import NewsArticleVoteButtons from "./news_match_voter";
-
 type Props = {
   article: NewsArticle;
   questionId: number;
-  allowModifications?: boolean;
 };
 
-const NewsMatchArticle: FC<Props> = ({
-  article,
-  questionId,
-  allowModifications,
-}) => {
+const NewsMatchArticle: FC<Props> = ({ article }) => {
   const { user } = useAuth();
   const locale = useLocale();
   const t = useTranslations();
+  const allowModifications = user?.is_staff;
 
   const [articleRemoved, setArticleRemoved] = useState(false);
 
   async function blacklistArticle() {
-    const response = await Promise.resolve({ ok: true });
-    if (!response.ok) return;
+    await removeRelatedArticle(article.id);
     setArticleRemoved(true);
   }
-
-  const media = article.media ?? { name: "Unknown", icon: null, favicon: null };
-
-  const iconUrl = media.icon ?? media.favicon ?? null;
 
   if (articleRemoved) {
     return (
@@ -46,7 +38,7 @@ const NewsMatchArticle: FC<Props> = ({
           <span className="text-gray-700 dark:text-gray-700-dark">
             {t("removed") + ": "}
           </span>
-          <strong>{media.name}</strong>
+          <strong>{article.media_label}</strong>
         </div>
         <span className="italic text-gray-700 dark:text-gray-700-dark">
           {article.title}
@@ -62,12 +54,12 @@ const NewsMatchArticle: FC<Props> = ({
           className="flex flex-1 items-start no-underline @md:order-2 @md:items-center"
           href={article.url}
         >
-          {iconUrl ? (
+          {article.favicon_url ? (
             <object
               className="mr-3 size-8 rounded-full"
-              data={iconUrl}
+              data={article.favicon_url}
               type="image/png"
-              aria-label={`${media.name} logo`}
+              aria-label={`${article.media_label} logo`}
             >
               <span className="mr-3 flex size-8 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-200-dark">
                 <FontAwesomeIcon icon={faNewspaper} size="xl" />
@@ -83,17 +75,18 @@ const NewsMatchArticle: FC<Props> = ({
               {article.title}
             </div>
             <div className="mt-1 text-sm text-gray-700 dark:text-gray-700-dark">
-              <span>{media.name}</span>
+              <span>{article.media_label}</span>
               <span className="mx-2">•</span>
-              <span>{formatDate(locale, new Date(article.date))}</span>
+              <span>{formatDate(locale, new Date(article.created_at))}</span>
             </div>
           </div>
         </a>
+        {/*
         {user && (
           <div className="mr-1 flex flex-col text-gray-900 @md:order-1 @md:self-center dark:text-gray-900-dark">
             <NewsArticleVoteButtons questionId={questionId} article={article} />
           </div>
-        )}
+        )}*/}
       </div>
 
       {allowModifications && (

@@ -2,7 +2,7 @@
 import { useTranslations } from "next-intl";
 import React, { FC, useMemo, useState } from "react";
 
-import { createForecast } from "@/app/(main)/questions/actions";
+import { createForecasts } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
@@ -21,6 +21,7 @@ import NumericForecastTable from "../numeric_table";
 import QuestionResolutionButton from "../resolution";
 
 type Props = {
+  postId: number;
   question: QuestionWithNumericForecasts;
   prevForecast?: any;
   permission?: ProjectPermissions;
@@ -29,6 +30,7 @@ type Props = {
 };
 
 const ForecastMakerContinuous: FC<Props> = ({
+  postId,
   question,
   permission,
   prevForecast,
@@ -86,18 +88,24 @@ const ForecastMakerContinuous: FC<Props> = ({
 
   const handlePredictSubmit = async () => {
     setIsSubmitting(true);
-    await createForecast(
-      question.id,
+    const response = await createForecasts(postId, [
       {
-        continuousCdf: userCdf,
-        probabilityYes: null,
-        probabilityYesPerCategory: null,
+        questionId: question.id,
+        forecastData: {
+          continuousCdf: userCdf,
+          probabilityYes: null,
+          probabilityYesPerCategory: null,
+        },
+        sliderValues: {
+          forecast: forecast,
+          weights: weights,
+        },
       },
-      {
-        forecast: forecast,
-        weights: weights,
-      }
-    );
+    ]);
+    if (response && "errors" in response && !!response.errors) {
+      throw response.errors;
+    }
+
     setIsDirty(false);
     setIsSubmitting(false);
   };
@@ -161,6 +169,8 @@ const ForecastMakerContinuous: FC<Props> = ({
           aboveUpper: 1 - communityCdf[communityCdf.length - 1],
         }}
         communityQuartiles={computeQuartilesFromCDF(communityCdf)}
+        isDirty={isDirty}
+        hasUserForecast={!!prevForecastValue.forecast}
       />
       {canResolve && (
         <div className="flex flex-col items-center justify-center">

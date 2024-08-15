@@ -9,7 +9,6 @@ import ShareQuestionMenu from "./share_question_menu";
 import SidebarQuestionInfo from "./sidebar_question_info";
 import SidebarQuestionTags from "./sidebar_question_tags";
 import SimilarQuestions from "./similar_questions";
-import { MOCK_QUESTIONS_IDS } from "./similar_questions/MOCK_QUESTIONS_IDS";
 import QuestionEmbedButton from "../question_embed_button";
 
 type Props = {
@@ -31,6 +30,7 @@ const Sidebar: FC<Props> = ({
         <div className="flex flex-col items-start gap-4 self-stretch border-t border-gray-300 pt-4 @container dark:border-gray-300-dark">
           <SidebarQuestionInfo postData={postData} />
           <SidebarQuestionTags
+            postId={postData.id}
             tagData={postData.projects}
             allowModifications={allowModifications}
           />
@@ -38,10 +38,7 @@ const Sidebar: FC<Props> = ({
 
         <Suspense fallback={null}>
           <div className="flex w-full flex-col items-start gap-4 self-stretch">
-            <NewsMatch
-              allowModifications={allowModifications}
-              questionId={postData.id}
-            />
+            <NewsMatch questionId={postData.id} />
           </div>
         </Suspense>
 
@@ -69,16 +66,14 @@ const Sidebar: FC<Props> = ({
       <div className="flex flex-col items-start gap-4 self-stretch @container">
         <SidebarQuestionInfo postData={postData} />
         <SidebarQuestionTags
+          postId={postData.id}
           tagData={postData.projects}
           allowModifications={allowModifications}
         />
       </div>
 
       <Suspense fallback={null}>
-        <NewsMatch
-          allowModifications={allowModifications}
-          questionId={postData.id}
-        />
+        <NewsMatch questionId={postData.id} />
       </Suspense>
 
       <Suspense fallback={null}>

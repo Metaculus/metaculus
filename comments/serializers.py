@@ -65,6 +65,16 @@ class CommentSerializer(serializers.ModelSerializer):
         return _("deleted") if value.is_soft_deleted else value.text
 
 
+class OldAPICommentWriteSerializer(serializers.Serializer):
+    comment_text = serializers.CharField(required=True)
+    question = serializers.PrimaryKeyRelatedField(required=True, queryset=Post.objects)
+    submit_type = serializers.ChoiceField(required=True, choices=["N", "S"])
+    include_latest_prediction = serializers.BooleanField(required=False)
+
+    def validated_question(self, value):
+        return Post.objects.get(pk=value)
+
+
 class CommentWriteSerializer(serializers.ModelSerializer):
     on_post = serializers.IntegerField(required=True)
     parent = serializers.IntegerField(required=False, allow_null=True)

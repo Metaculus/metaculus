@@ -88,7 +88,12 @@ export async function updateProfileFormAction(
 }
 
 export async function updateProfileAction(
-  profile: Partial<Pick<CurrentUser, "unsubscribed_mailing_tags">>
+  profile: Partial<
+    Pick<
+      CurrentUser,
+      "unsubscribed_mailing_tags" | "unsubscribed_preferences_tags"
+    >
+  >
 ) {
   const response = await ProfileApi.updateProfile(profile);
 

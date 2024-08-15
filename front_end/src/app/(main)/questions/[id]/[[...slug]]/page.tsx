@@ -8,7 +8,7 @@ import ConditionalTimeline from "@/components/conditional_timeline";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
-import { Post, ProjectPermissions, PostConditional } from "@/types/post";
+import { Post, PostConditional, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getConditionalQuestionTitle } from "@/utils/questions";
 
@@ -119,6 +119,14 @@ export default async function IndividualQuestion({
               </div>
             )}
 
+            {!!postData.conditional && (
+              <ConditionalTile
+                postTitle={postData.title}
+                conditional={postData.conditional}
+                curationStatus={postData.status}
+                withNavigation
+              />
+            )}
             <QuestionHeaderInfo post={postData} />
 
             {!!postData.question && (
@@ -130,14 +138,7 @@ export default async function IndividualQuestion({
                 preselectedQuestionId={preselectedGroupQuestionId}
               />
             )}
-            {!!postData.conditional && (
-              <ConditionalTile
-                postTitle={postData.title}
-                conditional={postData.conditional}
-                curationStatus={postData.status}
-                withNavigation
-              />
-            )}
+
             <ForecastMaker post={postData} />
             {!!postData.conditional && (
               <ConditionalTimeline

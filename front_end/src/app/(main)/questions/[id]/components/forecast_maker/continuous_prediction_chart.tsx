@@ -20,6 +20,7 @@ type Props = {
   };
   graphType: ContinuousAreaGraphType;
   readOnly?: boolean;
+  height?: number;
 };
 
 const ContinuousPredictionChart: FC<Props> = ({
@@ -27,6 +28,7 @@ const ContinuousPredictionChart: FC<Props> = ({
   dataset,
   graphType,
   readOnly = false,
+  height = 300,
 }) => {
   const t = useTranslations();
 
@@ -44,11 +46,11 @@ const ContinuousPredictionChart: FC<Props> = ({
       yUserLabel: readOnly
         ? null
         : graphType === "pmf"
-          ? (hoverState.yData.user * 200).toFixed(3)
+          ? (hoverState.yData.user * 200).toFixed(3) // should it be multiplied by 100 ?
           : getForecastPctDisplayValue(hoverState.yData.user),
       yCommunityLabel:
         graphType === "pmf"
-          ? (hoverState.yData.community * 200).toFixed(3)
+          ? (hoverState.yData.community * 200).toFixed(3) // should it be multiplied by 100 ?
           : getForecastPctDisplayValue(hoverState.yData.community),
     };
   }, [graphType, hoverState, question, readOnly]);
@@ -89,7 +91,7 @@ const ContinuousPredictionChart: FC<Props> = ({
   return (
     <>
       <ContinuousAreaChart
-        height={300}
+        height={height}
         rangeMin={question.range_min!}
         rangeMax={question.range_max!}
         zeroPoint={question.zero_point}

@@ -1,17 +1,18 @@
+import { VoteDirection } from "@/types/votes";
+
 type NewsArticleMedia = {
   favicon: string | null;
   icon: string | null;
-  id: number;
-  label: string;
   name: string;
   url: string;
 };
 
 export type NewsArticle = {
-  date: string;
+  created_at: string;
   id: number;
-  media: NewsArticleMedia;
   title: string;
   url: string;
-  user_vote: 1 | -1 | null;
+  favicon_url?: string;
+  media_label: string;
+  user_vote: VoteDirection;
 };

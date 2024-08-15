@@ -19,3 +19,8 @@ urlpatterns = [
     ),
     path("comments/create", views.comment_create_api_view, name="comment-create"),
 ]
+
+
+old_api = [
+    path("comments/", views.comment_create_oldapi_view, name="oldapi-comment-create")
+]
