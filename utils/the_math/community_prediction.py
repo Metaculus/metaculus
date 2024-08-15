@@ -12,7 +12,7 @@ Normalise to 1 over all outcomes.
 from bisect import bisect_left, bisect_right
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone as dt_timezone
 
 import numpy as np
 from django.db.models import Q, TextChoices
@@ -86,7 +86,9 @@ class AggregationEntry:
         composed_forecasts = question.composed_forecasts
         aggregation_history: list[AggregationEntry] = []
         for i in range(len(composed_forecasts["timestamps"])):
-            start_time = composed_forecasts["timestamps"][i]
+            start_time = datetime.fromtimestamp(
+                composed_forecasts["timestamps"][i], tz=dt_timezone.utc
+            )
             num_forecasters = composed_forecasts["nr_forecasters"][i]
             forecast_values = composed_forecasts["forecast_values"][i]
             if question.type == "binary":
