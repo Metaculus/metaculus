@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
-from posts.models import Notebook, Post, PostSubscription
+from posts.models import Notebook, Post, PostSubscription, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import (
@@ -167,6 +167,25 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
                 user_divergences[forecast.author_id] = difference
 
     return user_divergences
+
+
+def compute_post_sorting_divergence_and_update_snapshots(post: Post):
+    divergence = compute_sorting_divergence(post)
+
+    snapshots = PostUserSnapshot.objects.filter(
+        post=post, user_id__in=divergence.keys()
+    )
+
+    bulk_update = []
+
+    for user_snapshot in snapshots:
+        div = divergence.get(user_snapshot.user_id)
+
+        if div is not None:
+            user_snapshot.divergence = div
+            bulk_update.append(user_snapshot)
+
+    PostUserSnapshot.objects.bulk_update(bulk_update, fields=["divergence"])
 
 
 def compute_hotness():
