@@ -263,6 +263,7 @@ def serialize_post(
         serialized_data["subscriptions"] = [
             get_subscription_serializer_by_type(sub.type)(sub).data
             for sub in post.user_subscriptions
+            if not sub.is_global
         ]
 
     serialized_data["forecasts_count"] = post.forecasts_count

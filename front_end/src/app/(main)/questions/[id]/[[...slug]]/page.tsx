@@ -119,6 +119,14 @@ export default async function IndividualQuestion({
               </div>
             )}
 
+            {!!postData.conditional && (
+              <ConditionalTile
+                postTitle={postData.title}
+                conditional={postData.conditional}
+                curationStatus={postData.status}
+                withNavigation
+              />
+            )}
             <QuestionHeaderInfo post={postData} />
 
             {!!postData.question && (
@@ -130,14 +138,7 @@ export default async function IndividualQuestion({
                 preselectedQuestionId={preselectedGroupQuestionId}
               />
             )}
-            {!!postData.conditional && (
-              <ConditionalTile
-                postTitle={postData.title}
-                conditional={postData.conditional}
-                curationStatus={postData.status}
-                withNavigation
-              />
-            )}
+
             <ForecastMaker post={postData} />
             {!!postData.conditional && (
               <ConditionalTimeline
