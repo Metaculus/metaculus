@@ -323,7 +323,7 @@ def remove_spaces(match):
     return match.group(0).replace(" ", "")
 
 
-def convert_iframes_to_embedded_questions(html):
+def convert_notebook_content_format(html):
     parts = re.split(r"(<iframe[^>]*>.*?</iframe>)", html, flags=re.DOTALL)
 
     converted_parts = []
@@ -340,6 +340,7 @@ def convert_iframes_to_embedded_questions(html):
     md = re.sub(r"\[([^\]]*)\]", remove_newlines, md)
     md = re.sub(r"\(([^)]*)\)", remove_newlines, md)
     md = re.sub(r"\(([^)]*)\)", remove_spaces, md)
+    md = md.replace(">", "\\>").replace("<", "\\<")
 
     return md
 
@@ -421,7 +422,7 @@ def migrate_questions__notebook(root_questions: list[dict]):
             else:
                 raise Exception("Unknown notebook type")
 
-            markdown = convert_iframes_to_embedded_questions(
+            markdown = convert_notebook_content_format(
                 root_question["description_html"]
             )
             notebook = Notebook(
