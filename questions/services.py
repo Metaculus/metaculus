@@ -9,7 +9,13 @@ from rest_framework.exceptions import ValidationError
 from posts.models import PostUserSnapshot
 from projects.permissions import ObjectPermission
 from questions.constants import ResolutionType
-from questions.models import Question, GroupOfQuestions, Conditional, Forecast
+from questions.models import (
+    Question,
+    GroupOfQuestions,
+    Conditional,
+    Forecast,
+    AggregateForecast,
+)
 from users.models import User
 from utils.the_math.community_prediction import get_cp_history
 from utils.the_math.measures import percent_point_function
@@ -91,7 +97,14 @@ def build_question_forecasts(question: Question) -> dict:
     """
     forecasts_data = get_forecast_initial_dict(question)
 
-    aggregation_history = get_cp_history(question)
+    aggregation_history = get_cp_history(
+        question,
+        aggregation_method=AggregateForecast.AggregationMethod.RECENCY_WEIGHTED,
+    )
+    previous_history = question.aggregate_forecasts.filter(
+        method=AggregateForecast.AggregationMethod.RECENCY_WEIGHTED
+    )
+
     latest_entry = aggregation_history[-1] if aggregation_history else None
     if question.type == "multiple_choice":
         options = cast(list[str], question.options)
@@ -99,13 +112,13 @@ def build_question_forecasts(question: Question) -> dict:
             for i, option in enumerate(options):
                 forecasts_data[option].append(
                     {
-                        "median": entry.medians[i],
-                        "q3": entry.q3s[i],
-                        "q1": entry.q1s[i],
+                        "q1": entry.interval_lower_bounds[i],
+                        "median": entry.centers[i],
+                        "q3": entry.interval_upper_bounds[i],
                     }
                 )
             forecasts_data["timestamps"].append(entry.start_time.timestamp())
-            forecasts_data["nr_forecasters"].append(entry.num_forecasters)
+            forecasts_data["nr_forecasters"].append(entry.forecaster_count)
             forecasts_data["forecast_values"].append(entry.forecast_values.tolist())
         forecasts_data["latest_cdf"] = None
         forecasts_data["latest_pmf"] = (
@@ -126,11 +139,11 @@ def build_question_forecasts(question: Question) -> dict:
 
         for entry in aggregation_history:
             forecasts_data["timestamps"].append(entry.start_time.timestamp())
-            forecasts_data["q1s"].append(entry.q1s[1])
-            forecasts_data["medians"].append(entry.medians[1])
-            forecasts_data["q3s"].append(entry.q3s[1])
+            forecasts_data["q1s"].append(entry.interval_lower_bounds[1])
+            forecasts_data["medians"].append(entry.centers[1])
+            forecasts_data["q3s"].append(entry.interval_upper_bounds[1])
             forecasts_data["means"].append(entry.means[1])
-            forecasts_data["nr_forecasters"].append(entry.num_forecasters)
+            forecasts_data["nr_forecasters"].append(entry.forecaster_count)
             forecasts_data["forecast_values"].append(entry.forecast_values.tolist())
     elif question.type in ["numeric", "date"]:
         forecasts_data["latest_cdf"] = (
@@ -144,10 +157,10 @@ def build_question_forecasts(question: Question) -> dict:
 
         for entry in aggregation_history:
             forecasts_data["timestamps"].append(entry.start_time.timestamp())
-            forecasts_data["medians"].append(entry.medians)
-            forecasts_data["q3s"].append(entry.q3s)
-            forecasts_data["q1s"].append(entry.q1s)
-            forecasts_data["nr_forecasters"].append(entry.num_forecasters)
+            forecasts_data["q1s"].append(entry.interval_lower_bounds)
+            forecasts_data["medians"].append(entry.centers)
+            forecasts_data["q3s"].append(entry.interval_upper_bounds)
+            forecasts_data["nr_forecasters"].append(entry.forecaster_count)
             forecasts_data["forecast_values"].append(entry.forecast_values.tolist())
     else:
         raise Exception(f"Unknown question type: {question.type}")

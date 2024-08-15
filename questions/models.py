@@ -1,4 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
+
+import numpy as np
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -86,6 +88,7 @@ class Question(TimeStampedModel):
     )
     # typing
     forecast_set: models.QuerySet["Forecast"]
+    aggregate_forecasts: models.QuerySet["AggregateForecast"]
 
     # Annotated fields
     forecasts_count: int = 0
@@ -247,3 +250,79 @@ class Forecast(models.Model):
             self.post = self.question.get_post()
 
         return super().save(**kwargs)
+
+
+class AggregateForecast(models.Model):
+    question = models.ForeignKey(
+        Question, models.CASCADE, related_name="aggregate_forecasts"
+    )
+
+    class AggregationMethod(models.TextChoices):
+        RECENCY_WEIGHTED = "recency_weighted"
+        UNWEIGHTED = "unweighted"
+        SINGLE_AGGREGATION = "single_aggregation"
+
+    method = models.CharField(max_length=200, choices=AggregationMethod.choices)
+    start_time = models.DateTimeField(db_index=True)
+    end_time = models.DateTimeField(null=True, db_index=True)
+    forecast_values = ArrayField(models.FloatField(), max_length=CDF_SIZE)
+    forecaster_count = models.IntegerField(null=True)
+    interval_lower_bounds = ArrayField(models.FloatField(), null=True)
+    centers = ArrayField(models.FloatField(), null=True)
+    interval_upper_bounds = ArrayField(models.FloatField(), null=True)
+    means = ArrayField(models.FloatField(), null=True)
+    histogram = ArrayField(models.FloatField(), null=True, size=100)
+
+    def get_pmf(self) -> list[float]:
+        if len(self.forecast_values) == CDF_SIZE:
+            cdf = self.forecast_values
+            pmf = [cdf[0]]
+            for i in range(1, len(cdf)):
+                pmf.append(cdf[i] - cdf[i - 1])
+            pmf.append(1 - cdf[-1])
+            return pmf
+        return self.forecast_values
+
+    # TEMPORARY METHOD
+    def from_question(cls, question: Question) -> list["AggregateForecast"]:
+        composed_forecasts = question.composed_forecasts
+        aggregation_history: list[AggregateForecast] = []
+        for i in range(len(composed_forecasts["timestamps"])):
+            start_time = datetime.fromtimestamp(
+                composed_forecasts["timestamps"][i], tz=dt_timezone.utc
+            )
+            num_forecasters = composed_forecasts["nr_forecasters"][i]
+            forecast_values = composed_forecasts["forecast_values"][i]
+            if question.type == "binary":
+                q1 = composed_forecasts["q1s"][i]
+                median = composed_forecasts["medians"][i]
+                q3 = composed_forecasts["q3s"][i]
+                q1s = [1 - q1, q1]
+                medians = [1 - median, median]
+                q3s = [1 - q3, q3]
+            elif question.type == "multiple_choice":
+                q1s = []
+                medians = []
+                q3s = []
+                for label in question.options:
+                    q1s.append(composed_forecasts[label][i]["q1"])
+                    medians.append(composed_forecasts[label][i]["median"])
+                    q3s.append(composed_forecasts[label][i]["q3"])
+            else:  # continuous
+                q1s = composed_forecasts["q1s"]
+                medians = composed_forecasts["medians"]
+                q3s = composed_forecasts["q3s"]
+
+            new_entry: AggregateForecast = cls(
+                question=question,
+                forecast_values=forecast_values,
+                start_time=start_time,
+                forecaster_count=num_forecasters,
+                interval_lower_bounds=q1s,
+                centers=medians,
+                interval_upper_bounds=q3s,
+            )
+            if len(aggregation_history):
+                aggregation_history[-1].end_time = new_entry.start_time
+            aggregation_history.append(new_entry)
+        return aggregation_history
