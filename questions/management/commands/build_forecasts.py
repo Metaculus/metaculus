@@ -13,7 +13,7 @@ class Command(BaseCommand):
     help = "Builds forecasts for all questions"
 
     def handle(self, *args, **options):
-        qs = Question.objects.all().prefetch_related("forecast_set")
+        qs = Question.objects.all().prefetch_related("user_forecasts")
         total = qs.count()
         processed = 0
         tm = time.time()
