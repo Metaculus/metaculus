@@ -31,21 +31,23 @@
                              src='{% build_question_graph_image_url notification.post.post_id %}'/>
                     </a>
 
-                    {% if notification.post_type == "question" %}
+                    {% if notification.post.post_type == "question" and notification.question_data.0.question.type != "multiple_choice" %}
                         {% with question_data=notification.question_data.0 %}
 
                         {% if question_data.question.type == "binary" %}
-                            {% blocktrans with direction=question_data.get_direction_label abs_diff=question_data.absolute_difference forecast_date=question_data.format_forecast_date median=question_data.cp_median user_forecast=question_data.user_forecast %}
+                            {% blocktrans with direction=question_data.get_cp_change_label abs_diff=question_data.absolute_difference forecast_date=question_data.format_forecast_date median=question_data.format_cp_median user_forecast=question_data.format_user_forecast %}
                             The community prediction has {{direction}} by {{abs_diff}} since {{forecast_date}}.
-                            It is now {{median}}. Your last prediction was {{user_forecast}}.
+                            It is now <b>{{median}}</b>. Your last prediction was <b>{{user_forecast}}</b>.
                             {% endblocktrans %}
                         {% elif question_data.question.type == "continuous" %}
-                            {% blocktrans with direction=question_data.get_direction_label cp_median=question_data.cp_median forecast_date=question_data.format_forecast_date cp_median=question_data.cp_median cp_q1=question_data.cp_q1 cp_q3=question_data=cp_q3 user_median=question_data.user_median user_q1=question_data.user_q1 user_q3=question_data.user_q1 %}
+                            {% blocktrans with direction=question_data.get_direction_label cp_median=question_data.cp_median forecast_date=question_data.format_forecast_date cp_median=question_data.cp_median cp_q1=question_data.cp_q1 cp_q3=question_data.cp_q3 user_median=question_data.user_median user_q1=question_data.user_q1 user_q3=question_data.user_q1 %}
                             The community prediction has {{direction}} by {change value} since {{forecast_date}}.
                             It is now {{cp_median}} ({{cp_q1}} – {{cp_q3}}).
                             Your last prediction was {{user_median}} ({{user_q1}} – {{user_q3}}).
                             {% endblocktrans %}
                         {% endif %}
+
+                        {% endwith %}
                     {% else %}
                         <table style="background-color: #eff4f4">
                             <tr>
@@ -72,10 +74,22 @@
                             </tr>
                             {% for item in notification.question_data %}
                             <tr>
-                                <td style="padding: 4px 2px 4px 0; text-align: left">{{ item.label }}</td>
-                                <td style="padding: 4px 2px; text-align: right">{{ item.movement }}</td>
-                                <td style="padding: 4px 2px; text-align: right">{{ item.cp_median }}</td>
-                                <td style="padding: 4px 0 4px 2px; text-align: right">{{ item.user_forecast }}</td>
+                                <td style="padding: 4px 2px 4px 0; text-align: left">
+                                    {% if item.question.type == "multiple_choice" %}
+                                        {{ item.label }}
+                                    {% else %}
+                                        {{ item.question.title }}
+                                    {% endif %}
+                                </td>
+                                <td style="padding: 4px 2px; text-align: right">{{ item.format_cp_change_value }}</td>
+                                <td style="padding: 4px 2px; text-align: right">
+                                    {% with cp_median=item.format_cp_median %}
+                                    {{ cp_median }}
+                                    {% endwith %}
+                                </td>
+                                <td style="padding: 4px 0 4px 2px; text-align: right">
+                                    {{ item.format_user_forecast }}
+                                </td>
                             </tr>
                             {% endfor %}
                         </table>
