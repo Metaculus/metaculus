@@ -240,6 +240,7 @@ export function sortMultipleChoicePredictions(dataset: MultipleChoiceForecast) {
     my_forecasts,
     latest_pmf,
     latest_cdf,
+    forecast_values,
     ...choices
   } = dataset;
 

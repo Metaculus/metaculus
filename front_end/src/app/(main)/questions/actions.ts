@@ -77,6 +77,19 @@ export async function updatePost(postId: number, body: any) {
   };
 }
 
+export async function removePostFromProject(postId: number, projectId: number) {
+  try {
+    const resp = await PostsApi.removePostFromProject(postId, projectId);
+    return null;
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
 export async function createForecasts(
   postId: number,
   forecasts: ForecastPayload[]
