@@ -432,7 +432,7 @@ def create_forecast(
 
 def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
     from posts.services.common import get_post_permission_for_user
-    from posts.tasks import run_compute_sorting_divergence
+    from posts.tasks import run_on_post_forecast
 
     posts = set()
 
@@ -452,4 +452,4 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
 
     # Running forecast post triggers
     for post in posts:
-        run_compute_sorting_divergence.send(post.id)
+        run_on_post_forecast.send(post.id)
