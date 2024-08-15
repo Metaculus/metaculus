@@ -22,7 +22,6 @@ from posts.models import Post, PostSubscription
 from questions.models import Question, Forecast, AggregateForecast
 from users.models import User
 from utils.models import ArrayLength
-from utils.the_math.community_prediction import AggregationEntry
 from utils.the_math.formulas import (
     unscaled_location_to_scaled_location,
     get_scaled_quartiles_from_cdf,
@@ -35,15 +34,15 @@ from utils.the_math.measures import (
 
 def _get_question_data_for_cp_change_notification(
     question: Question,
-    current_entry: AggregationEntry,
-    previous_entry: AggregationEntry,
+    current_entry: AggregateForecast,
+    previous_entry: AggregateForecast,
     display_diff: list[tuple[float, float]],
     user_forecast: Forecast | None,
 ) -> list[CPChangeData]:
     question_data: list[CPChangeData] = []
     if question.type == "binary":
         data = CPChangeData(question=NotificationQuestionParams.from_question(question))
-        data.cp_median = current_entry.medians[1] if current_entry.medians else None
+        data.cp_median = current_entry.centers[1] if current_entry.centers else None
         data.cp_change_label = "goneUp" if display_diff[0][0] > 0 else "goneDown"
         data.cp_change_value = abs(display_diff[0][0])
 
@@ -59,7 +58,7 @@ def _get_question_data_for_cp_change_notification(
             )
             data.label = label
             data.cp_median = (
-                current_entry.medians[i] if current_entry.medians is not None else None
+                current_entry.centers[i] if current_entry.centers is not None else None
             )
             data.cp_change_label = "goneUp" if display_diff[i][0] > 0 else "goneDown"
             data.cp_change_value = abs(display_diff[i][0])
@@ -69,8 +68,12 @@ def _get_question_data_for_cp_change_notification(
             question_data.append(data)
     else:  # continuous
         data = CPChangeData(question=NotificationQuestionParams.from_question(question))
-        median = current_entry.medians[0] if current_entry.medians else None
-        q1 = current_entry.q1s[0] if current_entry.q1s else None
+        median = current_entry.centers[0] if current_entry.centers else None
+        q1 = (
+            current_entry.interval_lower_bounds[0]
+            if current_entry.interval_lower_bounds
+            else None
+        )
         data.cp_q1 = (
             unscaled_location_to_scaled_location(q1, question)
             if q1 is not None
@@ -81,7 +84,11 @@ def _get_question_data_for_cp_change_notification(
             if median is not None
             else None
         )
-        q3 = current_entry.q3s[0] if current_entry.q3s else None
+        q3 = (
+            current_entry.interval_upper_bounds[0]
+            if current_entry.interval_upper_bounds
+            else None
+        )
         data.cp_q3 = (
             unscaled_location_to_scaled_location(q3, question)
             if q3 is not None
@@ -95,13 +102,21 @@ def _get_question_data_for_cp_change_notification(
             data.cp_change_value = abs(assymetric)
         else:
             # expanded / contracted
-            old_q1 = previous_entry.q1s[0] if previous_entry.q1s else None
+            old_q1 = (
+                previous_entry.interval_lower_bounds[0]
+                if previous_entry.interval_lower_bounds
+                else None
+            )
             old_q1_scaled = (
                 unscaled_location_to_scaled_location(old_q1, question)
                 if old_q1 is not None
                 else None
             )
-            old_q3 = previous_entry.q3s[0] if previous_entry.q3s else None
+            old_q3 = (
+                previous_entry.interval_upper_bounds[0]
+                if previous_entry.interval_upper_bounds
+                else None
+            )
             old_q3_scaled = (
                 unscaled_location_to_scaled_location(old_q3, question)
                 if old_q3 is not None
