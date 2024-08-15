@@ -1,9 +1,11 @@
 from dataclasses import dataclass, asdict
 
+from dateutil.parser import parse as date_parse
 from django.utils.translation import gettext_lazy as _
 
 from comments.constants import CommentReportType
 from comments.models import Comment
+from notifications.constants import MailingTags
 from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
 from posts.models import Post, PostSubscription
@@ -20,10 +22,34 @@ from utils.frontend import build_post_comment_url
 class NotificationPostParams:
     post_id: int
     post_title: str
+    post_type: str
 
     @classmethod
     def from_post(cls, post: Post):
-        return cls(post_id=post.id, post_title=post.title)
+        return NotificationPostParams(
+            post_id=post.id,
+            post_title=post.title,
+            post_type=(
+                "question"
+                if post.question_id
+                else (
+                    "conditional"
+                    if post.conditional_id
+                    else "group_of_questions" if post.group_of_questions_id else None
+                )
+            ),
+        )
+
+
+@dataclass
+class NotificationQuestionParams:
+    id: int
+    title: str
+    type: str
+
+    @classmethod
+    def from_question(cls, question: Question):
+        return cls(id=question.id, title=question.title, type=question.type)
 
 
 @dataclass
@@ -39,10 +65,12 @@ class NotificationProjectParams:
 
 @dataclass
 class CPChangeData:
-    question: Question
+    question: NotificationQuestionParams
+    forecast_date: str | None = None
     cp_median: float | None = None
+    cp_change_label: str | None = None
+    cp_change_value: float | None = None
     # binary / MC only
-    absolute_difference: float | None = None
     odds_ratio: float | None = None
     user_forecast: float | None = None
     # MC only
@@ -50,11 +78,12 @@ class CPChangeData:
     # Continuous Only
     cp_q1: float | None = None
     cp_q3: float | None = None
-    earth_movers_diff: float | None = None
-    assymetry: float | None = None
     user_q1: float | None = None
     user_median: float | None = None
     user_q3: float | None = None
+
+    def format_forecast_date(self):
+        return date_parse(self.forecast_date)
 
 
 class NotificationTypeBase:
@@ -66,8 +95,12 @@ class NotificationTypeBase:
         pass
 
     @classmethod
-    def send(cls, recipient: User, params: ParamsType):
-        # Create notification object
+    def send(cls, recipient: User, params: ParamsType, mailing_tag: MailingTags = None):
+        # Skip notification sending if it was ignored
+        if mailing_tag and mailing_tag in recipient.unsubscribed_mailing_tags:
+            return
+
+            # Create notification object
         notification = Notification.objects.create(
             type=cls.type, recipient=recipient, params=asdict(params)
         )
@@ -432,16 +465,6 @@ class NotificationPostCPChange(NotificationTypeBase):
     class ParamsType:
         post: NotificationPostParams
         question_data: list[CPChangeData]
-
-
-@dataclass
-class NotificationQuestionParams:
-    id: int
-    title: str
-
-    @classmethod
-    def from_question(cls, question: Question):
-        return cls(id=question.id, title=question.title)
 
 
 class NotificationPredictedQuestionResolved(NotificationTypeBase):

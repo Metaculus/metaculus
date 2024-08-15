@@ -6,7 +6,9 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from posts.models import PostUserSnapshot
+from notifications.constants import MailingTags
+from posts.models import PostUserSnapshot, PostSubscription
+from posts.services.subscriptions import create_subscription_cp_change
 from projects.permissions import ObjectPermission
 from questions.constants import ResolutionType
 from questions.models import Question, GroupOfQuestions, Conditional, Forecast
@@ -406,6 +408,19 @@ def create_forecast(
     # Update cache
     PostUserSnapshot.update_last_forecast_date(question.get_post(), user)
     post.update_forecasts_count()
+
+    # Auto-subscribe user to CP changes
+    if (
+        MailingTags.FORECASTED_CP_CHANGE not in user.unsubscribed_mailing_tags
+        and not post.subscriptions.filter(
+            user=user,
+            type=PostSubscription.SubscriptionType.CP_CHANGE,
+            is_global=True,
+        ).exists()
+    ):
+        create_subscription_cp_change(
+            user=user, post=post, cp_change_threshold=0.1, is_global=True
+        )
 
     # Run async tasks
     from questions.tasks import run_build_question_forecasts
