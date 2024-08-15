@@ -12,12 +12,12 @@ Normalise to 1 over all outcomes.
 from bisect import bisect_left, bisect_right
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timezone as dt_timezone
+from datetime import datetime
 
 import numpy as np
-from django.db.models import Q, TextChoices
+from django.db.models import Q
 
-from questions.models import Question, CDF_SIZE, AggregateForecast
+from questions.models import Question, AggregateForecast
 from utils.the_math.measures import weighted_percentile_2d, percent_point_function
 from utils.typing import (
     ForecastValues,
@@ -25,104 +25,6 @@ from utils.typing import (
     Weights,
     Percentiles,
 )
-
-
-class AggregationMethod(TextChoices):
-    RECENCY_WEIGHTED = "recency_weighted"
-    UNWEIGHTED = "unweighted"
-
-
-@dataclass
-class AggregationEntry:
-    forecast_values: ForecastValues | None = None
-    start_time: datetime | None = None
-    end_time: datetime | None = None
-    num_forecasters: int | None = None
-    q1s: Percentiles | None = None
-    medians: Percentiles | None = None
-    q3s: Percentiles | None = None
-    means: Percentiles | None = None
-    histogram: np.ndarray | None = None
-
-    @property
-    def continuous_cdf(self) -> list[float] | None:
-        if not len(self.forecast_values):
-            raise ValueError("No forecast values")
-        if len(self.forecast_values) == CDF_SIZE:
-            return self.forecast_values
-
-    @property
-    def probability_yes(self) -> float | None:
-        if not len(self.forecast_values):
-            raise ValueError("No forecast values")
-        if len(self.forecast_values) == 2:
-            return self.forecast_values[1]
-
-    @property
-    def probability_yes_per_category(self) -> list[float] | None:
-        if not len(self.forecast_values):
-            raise ValueError("No forecast values")
-        if len(self.forecast_values) > 2:
-            return self.forecast_values
-
-    def get_prediction_values(self) -> list[float]:
-        if not len(self.forecast_values):
-            raise ValueError("No forecast values")
-        return self.forecast_values
-
-    def get_pmf(self) -> ForecastValues:
-        if not len(self.forecast_values):
-            raise ValueError("No forecast values")
-        if (cdf := self.continuous_cdf) is not None:
-            pmf = [cdf[0]]
-            for i in range(1, len(cdf)):
-                pmf.append(cdf[i] - cdf[i - 1])
-            return pmf
-        return self.forecast_values
-
-    @classmethod
-    def from_question(cls, question: Question) -> list["AggregationEntry"]:
-        """returns a list of aggregation entries from a question's composed_forecasts"""
-        composed_forecasts = question.composed_forecasts
-        aggregation_history: list[AggregationEntry] = []
-        for i in range(len(composed_forecasts["timestamps"])):
-            start_time = datetime.fromtimestamp(
-                composed_forecasts["timestamps"][i], tz=dt_timezone.utc
-            )
-            num_forecasters = composed_forecasts["nr_forecasters"][i]
-            forecast_values = composed_forecasts["forecast_values"][i]
-            if question.type == "binary":
-                q1 = composed_forecasts["q1s"][i]
-                median = composed_forecasts["medians"][i]
-                q3 = composed_forecasts["q3s"][i]
-                q1s = [1 - q1, q1]
-                medians = [1 - median, median]
-                q3s = [1 - q3, q3]
-            elif question.type == "multiple_choice":
-                q1s = []
-                medians = []
-                q3s = []
-                for label in question.options:
-                    q1s.append(composed_forecasts[label][i]["q1"])
-                    medians.append(composed_forecasts[label][i]["median"])
-                    q3s.append(composed_forecasts[label][i]["q3"])
-            else:  # continuous
-                q1s = composed_forecasts["q1s"]
-                medians = composed_forecasts["medians"]
-                q3s = composed_forecasts["q3s"]
-
-            new_entry = cls(
-                forecast_values=forecast_values,
-                start_time=start_time,
-                num_forecasters=num_forecasters,
-                q1s=q1s,
-                medians=medians,
-                q3s=q3s,
-            )
-            if len(aggregation_history):
-                aggregation_history[-1].end_time = new_entry.start_time
-            aggregation_history.append(new_entry)
-        return aggregation_history
 
 
 def get_histogram(values: ForecastValues, weights: Weights | None) -> np.ndarray:
