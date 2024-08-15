@@ -80,6 +80,24 @@ class AggregationEntry:
             return pmf
         return self.forecast_values
 
+    @classmethod
+    def from_composed_forecasts(
+        cls, composed_forecasts: dict
+    ) -> list["AggregationEntry"]:
+        """returns a list of aggregation entries from a question's composed_forecasts"""
+        aggregation_history: list[AggregationEntry] = []
+        for t, fv in zip(
+            composed_forecasts["timestamps"], composed_forecasts["forecast_values"]
+        ):
+            new_entry = cls(
+                forecast_values=fv,
+                start_time=t,
+            )
+            if len(aggregation_history):
+                aggregation_history[-1].end_time = new_entry.start_time
+            aggregation_history.append(new_entry)
+        return aggregation_history
+
 
 def get_histogram(values: ForecastValues, weights: Weights | None) -> np.ndarray:
     histogram = np.zeros(100)
