@@ -17,69 +17,20 @@ from datetime import datetime
 import numpy as np
 from django.db.models import Q, QuerySet
 
-from questions.models import Question, CDF_SIZE, Forecast
+from questions.models import Question, Forecast, AggregateForecast
 from scoring.reputation import (
     get_reputations_at_time,
     get_reputations_during_interval,
     Reputation,
 )
 from users.models import User
-from utils.the_math.measures import weighted_percentile_2d, percent_point_function
+from utils.the_math.measures import percent_point_function
 from utils.typing import (
     ForecastValues,
     ForecastsValues,
     Weights,
     Percentiles,
 )
-
-
-@dataclass
-class AggregationEntry:
-    forecast_values: ForecastValues | None = None
-    start_time: datetime | None = None
-    end_time: datetime | None = None
-    num_forecasters: int | None = None
-    q1s: Percentiles | None = None
-    medians: Percentiles | None = None
-    q3s: Percentiles | None = None
-    means: Percentiles | None = None
-    histogram: np.ndarray | None = None
-
-    @property
-    def continuous_cdf(self) -> list[float] | None:
-        if not len(self.forecast_values):
-            raise ValueError("No forecast values")
-        if len(self.forecast_values) == CDF_SIZE:
-            return self.forecast_values
-
-    @property
-    def probability_yes(self) -> float | None:
-        if not len(self.forecast_values):
-            raise ValueError("No forecast values")
-        if len(self.forecast_values) == 2:
-            return self.forecast_values[1]
-
-    @property
-    def probability_yes_per_category(self) -> list[float] | None:
-        if not len(self.forecast_values):
-            raise ValueError("No forecast values")
-        if len(self.forecast_values) > 2:
-            return self.forecast_values
-
-    def get_prediction_values(self) -> list[float]:
-        if not len(self.forecast_values):
-            raise ValueError("No forecast values")
-        return self.forecast_values
-
-    def get_pmf(self) -> ForecastValues:
-        if not len(self.forecast_values):
-            raise ValueError("No forecast values")
-        if (cdf := self.continuous_cdf) is not None:
-            pmf = [cdf[0]]
-            for i in range(1, len(cdf)):
-                pmf.append(cdf[i] - cdf[i - 1])
-            return pmf
-        return self.forecast_values
 
 
 def get_histogram(values: ForecastValues, weights: Weights | None) -> np.ndarray:
@@ -95,7 +46,7 @@ def compute_forecast_values(
     forecasts_values: ForecastsValues,
     weights: Weights | None = None,
 ) -> ForecastsValues:
-    return np.average(forecasts_values, axis=0, weights=weights)
+    return np.average(forecasts_values, axis=0, weights=weights).tolist()
 
 
 @dataclass
@@ -112,51 +63,60 @@ def calculate_aggregation_entry(
     weights: Weights,
     include_stats: bool = False,
     histogram: bool = False,
-) -> AggregationEntry:
-    aggregation = AggregationEntry(
+) -> AggregateForecast:
+    aggregation = AggregateForecast(
         forecast_values=compute_forecast_values(forecast_set.forecasts_values, weights)
     )
     weights = np.array(weights)
     if include_stats:
         forecasts_values = np.array(forecast_set.forecasts_values)
         aggregation.start_time = forecast_set.timestep
-        aggregation.num_forecasters = len(forecasts_values)
+        aggregation.forecaster_count = len(forecasts_values)
         if question_type in ["binary", "multiple_choice"]:
             # lower and upper "quartiles" are calculated by weighted semivariances
             # Note: these would no longer be quartiles / medians...
             lower_mask = forecasts_values[:, 1] < aggregation.forecast_values[1]
             if not any(lower_mask):
-                aggregation.q1s = aggregation.forecast_values
+                aggregation.interval_lower_bounds = aggregation.forecast_values
             else:
-                aggregation.q1s = aggregation.forecast_values - np.sqrt(
-                    np.average(
-                        (forecasts_values[lower_mask] - aggregation.forecast_values)
-                        ** 2,
-                        weights=weights[lower_mask],
-                        axis=0,
+                aggregation.interval_lower_bounds = (
+                    aggregation.forecast_values
+                    - np.sqrt(
+                        np.average(
+                            (forecasts_values[lower_mask] - aggregation.forecast_values)
+                            ** 2,
+                            weights=weights[lower_mask],
+                            axis=0,
+                        )
                     )
-                )
-            aggregation.medians = aggregation.forecast_values
+                ).tolist()
+            aggregation.centers = aggregation.forecast_values
             upper_mask = forecasts_values[:, 1] > aggregation.forecast_values[1]
             if not any(upper_mask):
-                aggregation.q3s = aggregation.forecast_values
+                aggregation.interval_upper_bounds = aggregation.forecast_values
             else:
-                aggregation.q3s = aggregation.forecast_values + np.sqrt(
-                    np.average(
-                        (forecasts_values[upper_mask] - aggregation.forecast_values)
-                        ** 2,
-                        weights=weights[upper_mask],
-                        axis=0,
+                aggregation.interval_upper_bounds = (
+                    aggregation.forecast_values
+                    + np.sqrt(
+                        np.average(
+                            (forecasts_values[upper_mask] - aggregation.forecast_values)
+                            ** 2,
+                            weights=weights[upper_mask],
+                            axis=0,
+                        )
                     )
-                )
+                ).tolist()
 
         else:
-            aggregation.q1s, aggregation.medians, aggregation.q3s = (
-                percent_point_function(aggregation.forecast_values, [25.0, 50.0, 75.0])
+            lowers, centers, uppers = percent_point_function(
+                aggregation.forecast_values, [25.0, 50.0, 75.0]
             )
+            aggregation.interval_lower_bounds = [lowers]
+            aggregation.centers = [centers]
+            aggregation.interval_upper_bounds = [uppers]
         aggregation.means = aggregation.forecast_values
     if histogram and question_type == "binary":
-        aggregation.histogram = get_histogram(forecasts_values[:, 1], weights)
+        aggregation.histogram = get_histogram(forecasts_values[:, 1], weights).tolist()
     return aggregation
 
 
@@ -213,10 +173,10 @@ def get_aggregation_at_time(
     time: datetime,
     include_stats: bool = False,
     histogram: bool = False,
-) -> AggregationEntry | None:
+) -> AggregateForecast | None:
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
     and q3s"""
-    forecasts = question.forecast_set.filter(
+    forecasts = question.user_forecasts.filter(
         Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
     ).order_by("-start_time")
     if forecasts.count() == 0:
@@ -278,9 +238,9 @@ def get_user_forecast_history(
 
 
 def minimize_forecast_history(
-    forecast_history: list[AggregationEntry],
+    forecast_history: list[AggregateForecast],
     max_size: int = 128,
-) -> list[AggregationEntry]:
+) -> list[AggregateForecast]:
     if len(forecast_history) <= max_size:
         return forecast_history
 
@@ -289,7 +249,7 @@ def minimize_forecast_history(
     # of the two halves, then the middle of the four quarters, etc. 7 times,
     # generating a maximum list of 128 forecasts close evenly spaced.
 
-    def find_index_of_middle(forecasts: list[AggregationEntry]) -> int:
+    def find_index_of_middle(forecasts: list[AggregateForecast]) -> int:
         if len(forecasts) < 3:
             return 0
         t0 = forecasts[0].start_time
@@ -301,7 +261,7 @@ def minimize_forecast_history(
                     return i
                 return i - 1
 
-    minimized = []
+    minimized: list[AggregateForecast] = []
     working_lists = [forecast_history]
     for _ in range(int(np.ceil(np.log2(max_size)))):
         new_working_lists = []
@@ -337,10 +297,10 @@ def get_single_aggregation_history(
     question: Question,
     minimize: bool = True,
     include_stats: bool = True,
-) -> list[AggregationEntry]:
-    full_summary: list[AggregationEntry] = []
+) -> list[AggregateForecast]:
+    full_summary: list[AggregateForecast] = []
 
-    user_forecasts = question.forecast_set.all()
+    user_forecasts = question.user_forecasts.all()
     user_forecast_history = get_user_forecast_history(user_forecasts)
     users = list(set(forecast.author for forecast in user_forecasts))
     reputations = get_reputations_during_interval(
@@ -366,6 +326,8 @@ def get_single_aggregation_history(
             include_stats=include_stats,
             histogram=histogram,
         )
+        new_entry.question = question
+        new_entry.method = AggregateForecast.AggregationMethod.SINGLE_AGGREGATION
         if full_summary:
             # terminate previous entry
             full_summary[-1].end_time = new_entry.start_time

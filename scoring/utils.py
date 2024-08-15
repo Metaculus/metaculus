@@ -39,11 +39,13 @@ def score_question(
                     is_new = False
                     previous_score.score = new_score.score
                     previous_score.coverage = new_score.coverage
+                    previous_score.edited_at = question.resolution_set_time
                     previous_score.save()
                     seen.add(previous_score)
                     break
             if is_new:
                 new_score.question = question
+                new_score.edited_at = question.resolution_set_time
                 new_score.save()
         for previous_score in previous_scores:
             if previous_score not in seen:
