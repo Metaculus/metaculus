@@ -225,10 +225,7 @@ def serialize_post(
 
     if post.question:
         serialized_data["question"] = serialize_question(
-            post.question,
-            with_cp=with_cp,
-            current_user=current_user,
-            post=post
+            post.question, with_cp=with_cp, current_user=current_user, post=post
         )
 
     if post.conditional:
@@ -397,11 +394,4 @@ def get_subscription_serializer_by_type(
 class PostRelatedArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ITNArticle
-        fields = (
-            "id",
-            "title",
-            "url",
-            "favicon_url",
-            "created_at",
-            "media_label"
-        )
+        fields = ("id", "title", "url", "favicon_url", "created_at", "media_label")

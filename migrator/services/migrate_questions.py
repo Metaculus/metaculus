@@ -295,9 +295,7 @@ def migrate_questions__groups(root_questions: list[dict]):
                     id=root_question["id"],
                     description=root_question["description"],
                     group_variable=root_question["group_label"],
-                    resolution_criteria=root_question[
-                        "resolution_criteria"
-                    ],
+                    resolution_criteria=root_question["resolution_criteria"],
                     fine_print=root_question["fine_print"],
                 )
             )

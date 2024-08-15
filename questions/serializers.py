@@ -200,7 +200,7 @@ def serialize_question(
     question: Question,
     with_cp: bool = False,
     current_user: User = None,
-    post: Post = None
+    post: Post = None,
 ):
     """
     Serializes question object
@@ -264,28 +264,20 @@ def serialize_conditional(
 
     # Generic questions
     serialized_data["condition"] = serialize_question(
-        conditional.condition,
-        with_cp=False,
-        post=conditional.condition.get_post()
+        conditional.condition, with_cp=False, post=conditional.condition.get_post()
     )
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
         with_cp=False,
-        post=conditional.condition_child.get_post()
+        post=conditional.condition_child.get_post(),
     )
 
     # Autogen questions
     serialized_data["question_yes"] = serialize_question(
-        conditional.question_yes,
-        with_cp=with_cp,
-        current_user=current_user,
-        post=post
+        conditional.question_yes, with_cp=with_cp, current_user=current_user, post=post
     )
     serialized_data["question_no"] = serialize_question(
-        conditional.question_no,
-        with_cp=with_cp,
-        current_user=current_user,
-        post=post
+        conditional.question_no, with_cp=with_cp, current_user=current_user, post=post
     )
 
     return serialized_data
@@ -304,10 +296,7 @@ def serialize_group(
     for question in group.questions.all():
         serialized_data["questions"].append(
             serialize_question(
-                question,
-                with_cp=with_cp,
-                current_user=current_user,
-                post=post
+                question, with_cp=with_cp, current_user=current_user, post=post
             )
         )
 

@@ -37,7 +37,10 @@ class ProjectsQuerySet(models.QuerySet):
         return self.filter(is_active=True)
 
     def annotate_posts_count(self):
-        return self.annotate(posts_count=Count("posts", distinct=True))
+        return self.annotate(
+            posts_count=Count("posts", distinct=True)
+            + Count("default_posts", distinct=True)
+        )
 
     # Permissions
     def annotate_user_permission(self, user: User = None):
