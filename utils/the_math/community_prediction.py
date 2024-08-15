@@ -81,17 +81,41 @@ class AggregationEntry:
         return self.forecast_values
 
     @classmethod
-    def from_composed_forecasts(
-        cls, composed_forecasts: dict
-    ) -> list["AggregationEntry"]:
+    def from_question(cls, question: Question) -> list["AggregationEntry"]:
         """returns a list of aggregation entries from a question's composed_forecasts"""
+        composed_forecasts = question.composed_forecasts
         aggregation_history: list[AggregationEntry] = []
-        for t, fv in zip(
-            composed_forecasts["timestamps"], composed_forecasts["forecast_values"]
-        ):
+        for i in range(len(composed_forecasts["timestamps"])):
+            start_time = composed_forecasts["timestamps"][i]
+            num_forecasters = composed_forecasts["nr_forecasters"][i]
+            forecast_values = composed_forecasts["forecast_values"][i]
+            if question.type == "binary":
+                q1 = composed_forecasts["q1s"][i]
+                median = composed_forecasts["medians"][i]
+                q3 = composed_forecasts["q3s"][i]
+                q1s = [1 - q1, q1]
+                medians = [1 - median, median]
+                q3s = [1 - q3, q3]
+            elif question.type == "multiple_choice":
+                q1s = []
+                medians = []
+                q3s = []
+                for label in question.options:
+                    q1s.append(composed_forecasts[label][i]["q1"])
+                    medians.append(composed_forecasts[label][i]["median"])
+                    q3s.append(composed_forecasts[label][i]["q3"])
+            else:  # continuous
+                q1s = composed_forecasts["q1s"]
+                medians = composed_forecasts["medians"]
+                q3s = composed_forecasts["q3s"]
+
             new_entry = cls(
-                forecast_values=fv,
-                start_time=t,
+                forecast_values=forecast_values,
+                start_time=start_time,
+                num_forecasters=num_forecasters,
+                q1s=q1s,
+                medians=medians,
+                q3s=q3s,
             )
             if len(aggregation_history):
                 aggregation_history[-1].end_time = new_entry.start_time
