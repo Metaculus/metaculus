@@ -192,6 +192,7 @@ def post_create_api_view(request):
         status=status.HTTP_201_CREATED,
     )
 
+
 @api_view(["POST"])
 def remove_from_project(request, pk):
     post = get_object_or_404(Post, pk=pk)
@@ -203,9 +204,7 @@ def remove_from_project(request, pk):
     post.projects.set([x for x in post.projects.all() if x.id != project_id])
     post.save()
     print(len(post.projects.all()))
-    return Response({
-
-    }, status=status.HTTP_200_OK)
+    return Response({}, status=status.HTTP_200_OK)
 
 
 @api_view(["PUT"])
@@ -406,7 +405,9 @@ def post_subscriptions_create(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    existing_subscriptions = post.subscriptions.filter(user=request.user)
+    existing_subscriptions = post.subscriptions.filter(user=request.user).exclude(
+        is_global=True
+    )
 
     # Validating data
     validated_data = []

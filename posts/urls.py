@@ -22,7 +22,11 @@ urlpatterns = [
     path("posts/create/", views.post_create_api_view, name="post-create"),
     path("posts/<int:pk>/update/", views.post_update_api_view, name="update-question"),
     path("posts/<int:pk>/delete/", views.post_delete_api_view, name="delete-question"),
-    path("posts/<int:pk>/remove_from_project/", views.remove_from_project, name="remove-post-from-project"),
+    path(
+        "posts/<int:pk>/remove_from_project/",
+        views.remove_from_project,
+        name="remove-post-from-project",
+    ),
 ]
 
 old_api = [
