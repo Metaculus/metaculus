@@ -71,8 +71,12 @@ class TestNotificationNewComments:
                 post=NotificationPostParams.from_post(post_2),
                 new_comments_count=0,
                 new_comment_ids=[
-                    factory_comment(author=user2, on_post=post_1, text=f"Comment 2.1").pk,
-                    factory_comment(author=user2, on_post=post_1, text=f"Comment 2.2").pk,
+                    factory_comment(
+                        author=user2, on_post=post_1, text=f"Comment 2.1"
+                    ).pk,
+                    factory_comment(
+                        author=user2, on_post=post_1, text=f"Comment 2.2"
+                    ).pk,
                 ],
             ),
         )

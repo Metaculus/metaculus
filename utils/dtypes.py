@@ -1,6 +1,6 @@
-import dataclasses
+from dataclasses import is_dataclass, fields
 from itertools import chain
-from typing import Iterable
+from typing import Iterable, get_type_hints
 
 
 def flatten(lst: Iterable[Iterable]) -> list:
@@ -19,21 +19,42 @@ def setdefaults_not_null(d: dict, **kwargs):
     return {**{k: v for k, v in kwargs.items() if v is not None}, **d}
 
 
-def dataclass_from_dict(cls: type, data):
+def dataclass_from_dict(cls, data: dict):
     """
-    Initializes nested dataclasses from a dict
+    Convert a dictionary into a dataclass, including nested dataclasses
     """
+    if not is_dataclass(cls):
+        raise ValueError(f"{cls} is not a dataclass")
 
-    field_types = {f.name: f.type for f in dataclasses.fields(cls)}
+    kwargs = {}
+    type_hints = get_type_hints(cls)
 
-    return cls(
-        **{
-            f: (
-                dataclass_from_dict(field_types[f], data[f])
-                if dataclasses.is_dataclass(field_types[f])
-                else data[f]
-            )
-            for f in data
-            if f in field_types
-        }
-    )
+    for field in fields(cls):
+        field_value = data.get(field.name)
+        field_type = type_hints.get(field.name)
+
+        if is_dataclass(field_type) and isinstance(field_value, dict):
+            # Recursively convert nested dataclass
+            kwargs[field.name] = dataclass_from_dict(field_type, field_value)
+        elif (
+            isinstance(field_value, list)
+            and hasattr(field_type, "__origin__")
+            and field_type.__origin__ is list
+        ):
+            # Handle lists of dataclasses
+            list_type = field_type.__args__[0]
+            if is_dataclass(list_type):
+                kwargs[field.name] = [
+                    (
+                        dataclass_from_dict(list_type, item)
+                        if isinstance(item, dict)
+                        else item
+                    )
+                    for item in field_value
+                ]
+            else:
+                kwargs[field.name] = field_value
+        else:
+            kwargs[field.name] = field_value
+
+    return cls(**kwargs)

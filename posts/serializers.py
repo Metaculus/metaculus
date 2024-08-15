@@ -225,10 +225,7 @@ def serialize_post(
 
     if post.question:
         serialized_data["question"] = serialize_question(
-            post.question,
-            with_cp=with_cp,
-            current_user=current_user,
-            post=post
+            post.question, with_cp=with_cp, current_user=current_user, post=post
         )
 
     if post.conditional:
@@ -266,6 +263,7 @@ def serialize_post(
         serialized_data["subscriptions"] = [
             get_subscription_serializer_by_type(sub.type)(sub).data
             for sub in post.user_subscriptions
+            if not sub.is_global
         ]
 
     serialized_data["forecasts_count"] = post.forecasts_count
@@ -397,11 +395,4 @@ def get_subscription_serializer_by_type(
 class PostRelatedArticleSerializer(serializers.ModelSerializer):
     class Meta:
         model = ITNArticle
-        fields = (
-            "id",
-            "title",
-            "url",
-            "favicon_url",
-            "created_at",
-            "media_label"
-        )
+        fields = ("id", "title", "url", "favicon_url", "created_at", "media_label")

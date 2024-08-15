@@ -34,24 +34,24 @@ class PostQuerySet(models.QuerySet):
     def prefetch_user_forecasts(self, user_id: int):
         return self.prefetch_related(
             Prefetch(
-                "question__forecast_set",
+                "question__user_forecasts",
                 queryset=Forecast.objects.filter(author_id=user_id),
-                to_attr="user_forecasts",
+                to_attr="request_user_forecasts",
             ),
             Prefetch(
-                "conditional__question_yes__forecast_set",
+                "conditional__question_yes__user_forecasts",
                 queryset=Forecast.objects.filter(author_id=user_id),
-                to_attr="user_forecasts",
+                to_attr="request_user_forecasts",
             ),
             Prefetch(
-                "conditional__question_no__forecast_set",
+                "conditional__question_no__user_forecasts",
                 queryset=Forecast.objects.filter(author_id=user_id),
-                to_attr="user_forecasts",
+                to_attr="request_user_forecasts",
             ),
             Prefetch(
-                "group_of_questions__questions__forecast_set",
+                "group_of_questions__questions__user_forecasts",
                 queryset=Forecast.objects.filter(author_id=user_id),
-                to_attr="user_forecasts",
+                to_attr="request_user_forecasts",
             ),
         )
 
@@ -521,6 +521,11 @@ class PostSubscription(TimeStampedModel):
     # 0. -> 1.
     cp_change_threshold = models.FloatField(null=True, blank=True)
 
+    # Indicate it's a global subscription which was auto-created
+    # When user forecasted on the question
+    # Or it was manually created by post subscription
+    is_global = models.BooleanField(default=False, db_index=True)
+
     def update_last_sent_at(self):
         self.last_sent_at = timezone.now()
 
@@ -528,7 +533,7 @@ class PostSubscription(TimeStampedModel):
         constraints = [
             models.UniqueConstraint(
                 name="postsubscription_unique_type_user_post",
-                fields=["type", "user_id", "post_id"],
+                fields=["type", "user_id", "post_id", "is_global"],
             )
         ]
 

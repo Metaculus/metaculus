@@ -7,9 +7,12 @@ from posts.models import Post
 from questions.models import Forecast
 from users.models import User
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
-from utils.the_math.measures import prediction_difference_for_display
+from utils.the_math.measures import (
+    percent_point_function,
+    prediction_difference_for_display,
+)
 from .constants import ResolutionType
-from .models import Question, Conditional, GroupOfQuestions
+from .models import Question, Conditional, GroupOfQuestions, AggregateForecast
 from .services import (
     build_question_forecasts_for_user,
     get_forecast_initial_dict,
@@ -169,6 +172,67 @@ class ForecastSerializer(serializers.ModelSerializer):
             return get_scaled_quartiles_from_cdf(forecast.continuous_cdf, question)
 
 
+class MyForecastSerializer(serializers.ModelSerializer):
+    start_time = serializers.SerializerMethodField()
+    end_time = serializers.SerializerMethodField()
+    forecast_values = serializers.SerializerMethodField()
+    quartiles = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Forecast
+        fields = (
+            "question_id",
+            "author_id",
+            "start_time",
+            "end_time",
+            "forecast_values",
+            "quartiles",
+            "slider_values",
+        )
+
+    def get_start_time(self, aggregate_forecast: Forecast):
+        return aggregate_forecast.start_time.timestamp()
+
+    def get_end_time(self, aggregate_forecast: Forecast):
+        return (
+            aggregate_forecast.end_time.timestamp()
+            if aggregate_forecast.end_time
+            else None
+        )
+
+    def get_quartiles(self, forecast: Forecast):
+        if forecast.continuous_cdf is not None:
+            return percent_point_function(forecast.continuous_cdf, [25, 50, 75])
+
+    def get_forecast_values(self, forecast: Forecast):
+        if self.context.get("include_forecast_values", True):
+            return forecast.get_prediction_values()
+
+
+class AggregateForecastSerializer(serializers.ModelSerializer):
+    start_time = serializers.SerializerMethodField()
+    end_time = serializers.SerializerMethodField()
+    forecast_values = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AggregateForecast
+        fields = "__all__"
+
+    def get_start_time(self, aggregate_forecast: AggregateForecast):
+        return aggregate_forecast.start_time.timestamp()
+
+    def get_end_time(self, aggregate_forecast: AggregateForecast):
+        return (
+            aggregate_forecast.end_time.timestamp()
+            if aggregate_forecast.end_time
+            else None
+        )
+
+    def get_forecast_values(self, aggregate_forecast: AggregateForecast):
+        if self.context.get("include_forecast_values", True):
+            return aggregate_forecast.forecast_values
+
+
 class ForecastWriteSerializer(serializers.ModelSerializer):
     question = serializers.IntegerField()
     continuous_cdf = serializers.ListField(
@@ -200,7 +264,7 @@ def serialize_question(
     question: Question,
     with_cp: bool = False,
     current_user: User = None,
-    post: Post = None
+    post: Post = None,
 ):
     """
     Serializes question object
@@ -213,21 +277,49 @@ def serialize_question(
         serialized_data["forecasts"] = (
             question.composed_forecasts or get_forecast_initial_dict(question)
         )
+        aggregate_forecasts = list(question.aggregate_forecasts.order_by("start_time"))
+        serialized_data["aggregate_forecasts_summary"] = AggregateForecastSerializer(
+            aggregate_forecasts[:-1],
+            context={"include_forecast_values": False},
+            many=True,
+        ).data
+        if aggregate_forecasts:
+            serialized_data["aggregate_forecasts_summary"].append(
+                AggregateForecastSerializer(
+                    aggregate_forecasts[-1],
+                ).data
+            )
 
         if (
             current_user
             and not current_user.is_anonymous
-            and hasattr(question, "user_forecasts")
+            and hasattr(question, "request_user_forecasts")
         ):
+            user_forecasts = question.request_user_forecasts
+            serialized_data["my_forecasts"] = MyForecastSerializer(
+                user_forecasts[:-1],
+                context={"include_forecast_values": False},
+                many=True,
+            ).data
+            if user_forecasts:
+                serialized_data["my_forecasts"].append(
+                    MyForecastSerializer(
+                        user_forecasts[-1],
+                    ).data
+                )
             serialized_data["forecasts"]["my_forecasts"] = (
-                build_question_forecasts_for_user(question, question.user_forecasts)
+                build_question_forecasts_for_user(
+                    question, question.request_user_forecasts
+                )
             )
 
             last_forecast = (
                 sorted(
-                    question.user_forecasts, key=lambda x: x.start_time, reverse=True
+                    question.request_user_forecasts,
+                    key=lambda x: x.start_time,
+                    reverse=True,
                 )[0]
-                if question.user_forecasts
+                if question.request_user_forecasts
                 else None
             )
 
@@ -264,28 +356,20 @@ def serialize_conditional(
 
     # Generic questions
     serialized_data["condition"] = serialize_question(
-        conditional.condition,
-        with_cp=False,
-        post=conditional.condition.get_post()
+        conditional.condition, with_cp=False, post=conditional.condition.get_post()
     )
     serialized_data["condition_child"] = serialize_question(
         conditional.condition_child,
         with_cp=False,
-        post=conditional.condition_child.get_post()
+        post=conditional.condition_child.get_post(),
     )
 
     # Autogen questions
     serialized_data["question_yes"] = serialize_question(
-        conditional.question_yes,
-        with_cp=with_cp,
-        current_user=current_user,
-        post=post
+        conditional.question_yes, with_cp=with_cp, current_user=current_user, post=post
     )
     serialized_data["question_no"] = serialize_question(
-        conditional.question_no,
-        with_cp=with_cp,
-        current_user=current_user,
-        post=post
+        conditional.question_no, with_cp=with_cp, current_user=current_user, post=post
     )
 
     return serialized_data
@@ -304,10 +388,7 @@ def serialize_group(
     for question in group.questions.all():
         serialized_data["questions"].append(
             serialize_question(
-                question,
-                with_cp=with_cp,
-                current_user=current_user,
-                post=post
+                question, with_cp=with_cp, current_user=current_user, post=post
             )
         )
 
