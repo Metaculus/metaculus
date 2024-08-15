@@ -11,6 +11,7 @@ import * as z from "zod";
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/form_field";
+import { useAuth } from "@/contexts/auth_context";
 import { Category, PostWithForecasts } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { QuestionType } from "@/types/question";
@@ -61,7 +62,7 @@ const ConditionalForm: React.FC<{
   const router = useRouter();
   const t = useTranslations();
   const { isLive, isDone } = getQuestionStatus(post);
-
+  const { user } = useAuth();
   if (isDone) {
     throw new Error("Cannot edit closed, resolved or rejected questions");
   }
@@ -145,7 +146,7 @@ const ConditionalForm: React.FC<{
           )(e);
         }}
       >
-        {post && (
+        {post && user?.is_superuser && (
           <div>
             <a href={`/admin/posts/post/${post.id}/change`}>
               View in django admin

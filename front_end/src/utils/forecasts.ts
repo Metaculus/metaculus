@@ -17,7 +17,7 @@ export function getForecastPctDisplayValue(
   if (isNil(value)) {
     return "?";
   }
-  return `${Math.round(Number(value) * 100)}%`;
+  return `${Math.round(Number(value) * 100 * 100) / 100}%`;
 }
 
 export function getForecastNumericDisplayValue(value: number | string) {
@@ -123,6 +123,30 @@ export function getNumericForecastDataset(
 
   result.pmf = result.pmf.map((x) => Number(x));
   result.cdf = result.cdf.map((x) => Number(x));
+
+  const cdfOffset =
+    lowerOpen && upperOpen
+      ? (F: number, x: number) => 0.988 * F + 0.01 * x + 0.001
+      : lowerOpen
+        ? (F: number, x: number) => 0.989 * F + 0.01 * x
+        : upperOpen
+          ? (F: number, x: number) => 0.989 * F + 0.01 * x + 0.001
+          : (F: number, x: number) => 0.99 * F + 0.01 * x;
+
+  const pdfOffset =
+    lowerOpen && upperOpen
+      ? (f: number) => 0.988 * f + 0.0001
+      : lowerOpen
+        ? (f: number) => 0.989 * f + 0.0001
+        : upperOpen
+          ? (f: number) => 0.989 * f + 0.0001
+          : (f: number) => 0.99 * f + 0.0001;
+
+  result.cdf = result.cdf.map((F, index) => {
+    const x = index / (result.cdf.length - 1);
+    return cdfOffset(F, x);
+  });
+  result.pmf = result.pmf.map((f) => pdfOffset(f));
 
   return result;
 }

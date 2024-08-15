@@ -75,7 +75,7 @@ const ShareQuestionMenu: FC<Props> = ({ questionTitle }) => {
         className="!rounded border-0"
         presentationType="icon"
       >
-        <FontAwesomeIcon icon={faShareNodes} />
+        <FontAwesomeIcon icon={faShareNodes} className="text-lg" />
       </Button>
     </DropdownMenu>
   );

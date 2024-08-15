@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import Button from "@/components/ui/button";
-import { FormError, Input, Textarea } from "@/components/ui/form_field";
+import { Input, Textarea } from "@/components/ui/form_field";
 import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { QuestionType } from "@/types/question";
@@ -36,7 +36,7 @@ const groupQuestionSchema = z.object({
   url_title: z.string().min(1),
   group_variable: z.string().max(200),
   description: z.string().min(10),
-  resolution_criteria_description: z.string().min(1),
+  resolution_criteria: z.string().min(1),
   fine_print: z.string(),
   default_project_id: z.nullable(z.union([z.number(), z.string()])),
 });
@@ -162,8 +162,7 @@ const GroupForm: React.FC<Props> = ({
         delete: questionToDelete,
         title: data["title"],
         fine_print: data["fine_print"],
-        resolution_criteria_description:
-          data["resolution_criteria_description"],
+        resolution_criteria: data["resolution_criteria"],
         description: data["description"],
         group_variable: data["group_variable"],
         questions: groupData,
@@ -336,12 +335,12 @@ const GroupForm: React.FC<Props> = ({
         </div>
         <span>Resolution Criteria</span>
         <Textarea
-          {...control.register("resolution_criteria_description")}
-          errors={control.formState.errors.resolution_criteria_description}
+          {...control.register("resolution_criteria")}
+          errors={control.formState.errors.resolution_criteria}
           className="h-[120px] w-full"
           defaultValue={
-            post?.group_of_questions?.resolution_criteria_description
-              ? post?.group_of_questions?.resolution_criteria_description
+            post?.group_of_questions?.resolution_criteria
+              ? post?.group_of_questions?.resolution_criteria
               : undefined
           }
         />

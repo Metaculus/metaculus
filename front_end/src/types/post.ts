@@ -84,7 +84,7 @@ export type PostConditional<QT> = {
 export type PostGroupOfQuestions<QT> = {
   id: number;
   description: string;
-  resolution_criteria_description: string;
+  resolution_criteria: string;
   fine_print: string;
   group_variable: string;
   questions: QT[];

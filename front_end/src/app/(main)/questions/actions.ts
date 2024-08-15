@@ -12,10 +12,9 @@ import CommentsApi, {
 } from "@/services/comments";
 import PostsApi, { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
-import QuestionsApi from "@/services/questions";
+import QuestionsApi, { ForecastPayload } from "@/services/questions";
 import { FetchError } from "@/types/fetch";
 import { PostStatus, PostSubscription } from "@/types/post";
-import { ForecastData } from "@/types/question";
 import { VoteDirection } from "@/types/votes";
 
 export async function fetchMorePosts(
@@ -78,20 +77,10 @@ export async function updatePost(postId: number, body: any) {
   };
 }
 
-export async function createForecast(
-  questionId: number,
-  forecastData: ForecastData,
-  sliderValues: any
-) {
+export async function removePostFromProject(postId: number, projectId: number) {
   try {
-    const response = await QuestionsApi.createForecast(
-      questionId,
-      forecastData,
-      sliderValues
-    );
-    revalidatePath(`/questions/${questionId}`);
-
-    return response;
+    const resp = await PostsApi.removePostFromProject(postId, projectId);
+    return null;
   } catch (err) {
     const error = err as FetchError;
 
@@ -103,27 +92,17 @@ export async function createForecast(
 
 export async function createForecasts(
   postId: number,
-  forecasts: Array<{
-    questionId: number;
-    forecastData: ForecastData;
-    sliderValues: any;
-  }>
+  forecasts: ForecastPayload[]
 ) {
   try {
-    const promises = forecasts.map(
-      ({ questionId, forecastData, sliderValues }) =>
-        createForecast(questionId, forecastData, sliderValues)
-    );
-
-    const responses = await Promise.all(promises);
-
+    const response = await QuestionsApi.createForecasts(forecasts);
     revalidatePath(`/questions/${postId}`);
 
-    return responses;
+    return response;
   } catch (err) {
     const error = err as FetchError;
 
-    return [error];
+    return error.data;
   }
 }
 
@@ -294,6 +273,10 @@ export async function searchUsers(query: string) {
 
 export async function changePostActivityBoost(postId: number, score: number) {
   return await PostsApi.changePostActivityBoost(postId, score);
+}
+
+export async function removeRelatedArticle(articleId: number) {
+  return await PostsApi.removeRelatedArticle(articleId);
 }
 
 export async function changePostSubscriptions(

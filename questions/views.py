@@ -1,15 +1,27 @@
+from django.http import Http404
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
 
+from posts.models import Post
 from posts.services.common import get_post_permission_for_user
 from projects.permissions import ObjectPermission
 from questions.models import Question
-from questions.serializers import validate_question_resolution
-from questions.services import resolve_question, create_forecast, close_question
+from questions.serializers import (
+    validate_question_resolution,
+    OldForecastWriteSerializer,
+    ForecastWriteSerializer,
+)
+from questions.services import (
+    resolve_question,
+    create_forecast,
+    close_question,
+    create_forecast_bulk,
+)
 
 
 @api_view(["POST"])
@@ -43,8 +55,27 @@ def close_api_view(request, pk: int):
 
 
 @api_view(["POST"])
-def create_forecast_api_view(request, pk: int):
-    question = get_object_or_404(Question.objects.all(), pk=pk)
+def bulk_create_forecasts_api_view(request):
+    serializer = ForecastWriteSerializer(data=request.data, many=True)
+    serializer.is_valid()
+
+    if serializer.errors:
+        raise ValidationError({"errors": serializer.errors})
+
+    if not serializer.validated_data:
+        raise ValidationError("At least one forecast is required")
+
+    create_forecast_bulk(user=request.user, forecasts=serializer.validated_data)
+
+    return Response({}, status=status.HTTP_201_CREATED)
+
+
+@api_view(["POST"])
+def create_binary_forecast_oldapi_view(request, pk: int):
+    post = get_object_or_404(Post.objects.all(), pk=pk)
+    question = post.question
+    if question is None:
+        raise Http404(f"Question with id {pk} not foiund.")
 
     # Check permissions
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
@@ -56,6 +87,11 @@ def create_forecast_api_view(request, pk: int):
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
-    create_forecast(question=question, user=request.user, **request.data)
+    serializer = OldForecastWriteSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    probability = serializer.validated_data.get("probability")
+
+    create_forecast(question=question, user=request.user, probability_yes=probability)
 
     return Response({}, status=status.HTTP_201_CREATED)

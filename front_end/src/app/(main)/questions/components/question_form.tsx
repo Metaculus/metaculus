@@ -13,6 +13,7 @@ import * as z from "zod";
 
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
+import { useAuth } from "@/contexts/auth_context";
 import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { QuestionType } from "@/types/question";
@@ -36,7 +37,7 @@ const baseQuestionSchema = z.object({
   title: z.string().min(4).max(200),
   url_title: z.string().min(4).max(60),
   description: z.string().min(4),
-  resolution_criteria_description: z.string().min(1),
+  resolution_criteria: z.string().min(1),
   fine_print: z.string(),
   scheduled_close_time: z.date(),
   scheduled_resolve_time: z.date(),
@@ -137,6 +138,7 @@ const QuestionForm: FC<Props> = ({
   tournament_id = null,
   post = null,
 }) => {
+  const { user } = useAuth();
   const router = useRouter();
   const t = useTranslations();
   const { isLive, isDone } = getQuestionStatus(post);
@@ -270,7 +272,7 @@ const QuestionForm: FC<Props> = ({
         }}
         className="mt-4 flex w-[540px] w-full flex-col space-y-4 rounded"
       >
-        {post && (
+        {post && user?.is_superuser && (
           <a href={`/admin/posts/post/${post.id}/change`}>
             {t("viewInDjangoAdmin")}
           </a>
@@ -470,12 +472,12 @@ const QuestionForm: FC<Props> = ({
             })}
           >
             <Textarea
-              {...control.register("resolution_criteria_description")}
-              errors={control.formState.errors.resolution_criteria_description}
+              {...control.register("resolution_criteria")}
+              errors={control.formState.errors.resolution_criteria}
               className={`${baseTextareaStyles} h-32 w-full p-3 text-sm`}
               defaultValue={
-                post?.question?.resolution_criteria_description
-                  ? post?.question?.resolution_criteria_description
+                post?.question?.resolution_criteria
+                  ? post?.question?.resolution_criteria
                   : undefined
               }
             />
