@@ -87,7 +87,7 @@ class Question(TimeStampedModel):
         on_delete=models.CASCADE,
     )
     # typing
-    forecast_set: models.QuerySet["Forecast"]
+    user_forecasts: models.QuerySet["Forecast"]
     aggregate_forecasts: models.QuerySet["AggregateForecast"]
 
     # Annotated fields
@@ -213,7 +213,9 @@ class Forecast(models.Model):
     )
 
     author = models.ForeignKey(User, models.CASCADE)
-    question = models.ForeignKey(Question, models.CASCADE)
+    question = models.ForeignKey(
+        Question, models.CASCADE, related_name="user_forecasts"
+    )
     # TODO: make required
     post = models.ForeignKey(
         "posts.Post",
