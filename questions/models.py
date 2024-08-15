@@ -1,4 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
+
+import numpy as np
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -85,13 +87,12 @@ class Question(TimeStampedModel):
         on_delete=models.CASCADE,
     )
     # typing
-    forecast_set: models.QuerySet["Forecast"]
+    user_forecasts: models.QuerySet["Forecast"]
+    aggregate_forecasts: models.QuerySet["AggregateForecast"]
 
     # Annotated fields
     forecasts_count: int = 0
-    # Should not have a default value
-    # because custom Prefetch construction can't override it
-    user_forecasts: list
+    request_user_forecasts: list["Forecast"]
 
     def __str__(self):
         return f"{self.type} {self.title}"
@@ -210,7 +211,9 @@ class Forecast(models.Model):
     )
 
     author = models.ForeignKey(User, models.CASCADE)
-    question = models.ForeignKey(Question, models.CASCADE)
+    question = models.ForeignKey(
+        Question, models.CASCADE, related_name="user_forecasts"
+    )
     # TODO: make required
     post = models.ForeignKey(
         "posts.Post",
@@ -247,3 +250,40 @@ class Forecast(models.Model):
             self.post = self.question.get_post()
 
         return super().save(**kwargs)
+
+
+class AggregateForecast(models.Model):
+    id: int
+    question = models.ForeignKey(
+        Question, models.CASCADE, related_name="aggregate_forecasts"
+    )
+
+    class AggregationMethod(models.TextChoices):
+        RECENCY_WEIGHTED = "recency_weighted"
+        UNWEIGHTED = "unweighted"
+        SINGLE_AGGREGATION = "single_aggregation"
+
+    method = models.CharField(max_length=200, choices=AggregationMethod.choices)
+    start_time = models.DateTimeField(db_index=True)
+    end_time = models.DateTimeField(null=True, db_index=True)
+    forecast_values = ArrayField(models.FloatField(), max_length=CDF_SIZE)
+    forecaster_count = models.IntegerField(null=True)
+    interval_lower_bounds = ArrayField(models.FloatField(), null=True)
+    centers = ArrayField(models.FloatField(), null=True)
+    interval_upper_bounds = ArrayField(models.FloatField(), null=True)
+    means = ArrayField(models.FloatField(), null=True)
+    histogram = ArrayField(models.FloatField(), null=True, size=100)
+
+    def get_cdf(self) -> list[float] | None:
+        if len(self.forecast_values) == CDF_SIZE:
+            return self.forecast_values
+
+    def get_pmf(self) -> list[float]:
+        if len(self.forecast_values) == CDF_SIZE:
+            cdf = self.forecast_values
+            pmf = [cdf[0]]
+            for i in range(1, len(cdf)):
+                pmf.append(cdf[i] - cdf[i - 1])
+            pmf.append(1 - cdf[-1])
+            return pmf
+        return self.forecast_values

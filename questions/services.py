@@ -6,10 +6,18 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from posts.models import PostUserSnapshot
+from notifications.constants import MailingTags
+from posts.models import PostUserSnapshot, PostSubscription
+from posts.services.subscriptions import create_subscription_cp_change
 from projects.permissions import ObjectPermission
 from questions.constants import ResolutionType
-from questions.models import Question, GroupOfQuestions, Conditional, Forecast
+from questions.models import (
+    Question,
+    GroupOfQuestions,
+    Conditional,
+    Forecast,
+    AggregateForecast,
+)
 from users.models import User
 from utils.the_math.community_prediction import get_cp_history
 from utils.the_math.measures import percent_point_function
@@ -91,7 +99,34 @@ def build_question_forecasts(question: Question) -> dict:
     """
     forecasts_data = get_forecast_initial_dict(question)
 
-    aggregation_history = get_cp_history(question)
+    aggregation_history = get_cp_history(
+        question,
+        aggregation_method=AggregateForecast.AggregationMethod.RECENCY_WEIGHTED,
+        minimize=True,
+    )
+
+    ################ NEW CODE ################
+    # overwrite old history with new history
+    previous_history = question.aggregate_forecasts.filter(
+        method=AggregateForecast.AggregationMethod.RECENCY_WEIGHTED
+    )
+    to_overwrite, to_delete = (
+        previous_history[: len(aggregation_history)],
+        previous_history[len(aggregation_history) :],
+    )
+    overwriters, to_create = (
+        aggregation_history[: len(to_overwrite)],
+        aggregation_history[len(to_overwrite) :],
+    )
+    for old, new in zip(to_overwrite, overwriters):
+        new.id = old.id
+        new.save()
+    AggregateForecast.objects.filter(
+        id__in=to_delete.values_list("id", flat=True)
+    ).delete()
+    AggregateForecast.objects.bulk_create(to_create)
+    ################ NEW CODE ################
+
     latest_entry = aggregation_history[-1] if aggregation_history else None
     if question.type == "multiple_choice":
         options = cast(list[str], question.options)
@@ -99,14 +134,14 @@ def build_question_forecasts(question: Question) -> dict:
             for i, option in enumerate(options):
                 forecasts_data[option].append(
                     {
-                        "median": entry.medians[i],
-                        "q3": entry.q3s[i],
-                        "q1": entry.q1s[i],
+                        "q1": entry.interval_lower_bounds[i],
+                        "median": entry.centers[i],
+                        "q3": entry.interval_upper_bounds[i],
                     }
                 )
             forecasts_data["timestamps"].append(entry.start_time.timestamp())
-            forecasts_data["nr_forecasters"].append(entry.num_forecasters)
-            forecasts_data["forecast_values"].append(entry.forecast_values.tolist())
+            forecasts_data["nr_forecasters"].append(entry.forecaster_count)
+            forecasts_data["forecast_values"].append(entry.forecast_values)
         forecasts_data["latest_cdf"] = None
         forecasts_data["latest_pmf"] = (
             None if not latest_entry else list(latest_entry.get_pmf())
@@ -119,22 +154,22 @@ def build_question_forecasts(question: Question) -> dict:
         forecasts_data["histogram"] = (
             None
             if (not latest_entry or latest_entry.histogram is None)
-            else latest_entry.histogram.tolist()
+            else latest_entry.histogram
         )
         if not aggregation_history:
             return forecasts_data
 
         for entry in aggregation_history:
             forecasts_data["timestamps"].append(entry.start_time.timestamp())
-            forecasts_data["q1s"].append(entry.q1s[1])
-            forecasts_data["medians"].append(entry.medians[1])
-            forecasts_data["q3s"].append(entry.q3s[1])
+            forecasts_data["q1s"].append(entry.interval_lower_bounds[1])
+            forecasts_data["medians"].append(entry.centers[1])
+            forecasts_data["q3s"].append(entry.interval_upper_bounds[1])
             forecasts_data["means"].append(entry.means[1])
-            forecasts_data["nr_forecasters"].append(entry.num_forecasters)
-            forecasts_data["forecast_values"].append(entry.forecast_values.tolist())
+            forecasts_data["nr_forecasters"].append(entry.forecaster_count)
+            forecasts_data["forecast_values"].append(entry.forecast_values)
     elif question.type in ["numeric", "date"]:
         forecasts_data["latest_cdf"] = (
-            [] if not aggregation_history else list(latest_entry.continuous_cdf)
+            [] if not aggregation_history else latest_entry.get_cdf()
         )
         forecasts_data["latest_pmf"] = (
             [] if not aggregation_history else list(latest_entry.get_pmf())
@@ -144,11 +179,11 @@ def build_question_forecasts(question: Question) -> dict:
 
         for entry in aggregation_history:
             forecasts_data["timestamps"].append(entry.start_time.timestamp())
-            forecasts_data["medians"].append(entry.medians)
-            forecasts_data["q3s"].append(entry.q3s)
-            forecasts_data["q1s"].append(entry.q1s)
-            forecasts_data["nr_forecasters"].append(entry.num_forecasters)
-            forecasts_data["forecast_values"].append(entry.forecast_values.tolist())
+            forecasts_data["q1s"].append(entry.interval_lower_bounds)
+            forecasts_data["medians"].append(entry.centers)
+            forecasts_data["q3s"].append(entry.interval_upper_bounds)
+            forecasts_data["nr_forecasters"].append(entry.forecaster_count)
+            forecasts_data["forecast_values"].append(entry.forecast_values)
     else:
         raise Exception(f"Unknown question type: {question.type}")
 
@@ -407,6 +442,19 @@ def create_forecast(
     PostUserSnapshot.update_last_forecast_date(question.get_post(), user)
     post.update_forecasts_count()
 
+    # Auto-subscribe user to CP changes
+    if (
+        MailingTags.FORECASTED_CP_CHANGE not in user.unsubscribed_mailing_tags
+        and not post.subscriptions.filter(
+            user=user,
+            type=PostSubscription.SubscriptionType.CP_CHANGE,
+            is_global=True,
+        ).exists()
+    ):
+        create_subscription_cp_change(
+            user=user, post=post, cp_change_threshold=0.1, is_global=True
+        )
+
     # Run async tasks
     from questions.tasks import run_build_question_forecasts
 
@@ -417,7 +465,7 @@ def create_forecast(
 
 def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
     from posts.services.common import get_post_permission_for_user
-    from posts.tasks import run_compute_sorting_divergence
+    from posts.tasks import run_on_post_forecast
 
     posts = set()
 
@@ -437,4 +485,4 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
 
     # Running forecast post triggers
     for post in posts:
-        run_compute_sorting_divergence.send(post.id)
+        run_on_post_forecast.send(post.id)

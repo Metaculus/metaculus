@@ -680,6 +680,8 @@
   "settingsEmailNotifications": "Email Notifications",
   "settingsMentionsInComments": "Mentions in comments",
   "settingsQuestionResolution": "Resolved Questions",
+  "settingsSignificantMovementOnPredictedQuestions": "Significant movement on predicted questions",
+  "settingsSignificantMovementOnPredictedQuestionsTooltip": "You will receive a notification email when the Community Prediction changes by more than 10% on any question you've predicted. Emails are batched every hour.",
   "newsLetter": "Newsletter",
   "research": "Research",
   "updates": "Updates",

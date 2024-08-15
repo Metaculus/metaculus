@@ -65,7 +65,7 @@ const ConditionalTile: FC<Props> = ({
       question_no.resolution === "ambiguous");
 
   return (
-    <div className="ConditionalSummary grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
+    <div className="ConditionalSummary my-4 grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
       <div
         className={classNames(
           "ConditionalSummary-condition flex flex-col justify-center",
@@ -94,13 +94,13 @@ const ConditionalTile: FC<Props> = ({
         )}
       >
         <ConditionalArrow
-          label={t("arrowIfNo")}
+          label={t("arrowIfYes")}
           didHappen={yesHappened}
           disabled={yesDisabled}
           className={!isEmbedded ? "flex-1 md:flex-none" : undefined}
         />
         <ConditionalArrow
-          label={t("arrowIfYes")}
+          label={t("arrowIfNo")}
           didHappen={noHappened}
           disabled={noDisabled}
           className={!isEmbedded ? "flex-1 md:flex-none" : undefined}
