@@ -3,11 +3,17 @@ import { FC, ReactNode } from "react";
 
 type Props = {
   value: number | null;
+  userForecast: number | null;
   disabled?: boolean;
   renderLabel?: (value: number | null) => ReactNode;
 };
 
-const ProgressBar: FC<Props> = ({ value, renderLabel, disabled = false }) => {
+const ProgressBar: FC<Props> = ({
+  value,
+  userForecast,
+  renderLabel,
+  disabled = false,
+}) => {
   return (
     <div className="BinaryPredictionBar relative h-5">
       <div
@@ -36,6 +42,12 @@ const ProgressBar: FC<Props> = ({ value, renderLabel, disabled = false }) => {
             {renderLabel ? renderLabel(value) : <span>{value}</span>}
           </div>
         </div>
+      )}
+      {userForecast && (
+        <div
+          className="absolute top-[-2px] ml-[-1.5px] h-[24px] w-[3px] border-[1px] border-orange-400 bg-orange-200 dark:bg-orange-800"
+          style={{ left: `${userForecast}%` }}
+        ></div>
       )}
     </div>
   );
