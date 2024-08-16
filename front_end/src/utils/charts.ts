@@ -25,6 +25,7 @@ import {
   Question,
   QuestionWithMultipleChoiceForecasts,
   NumericForecast,
+  UserForecastHistory,
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -245,7 +246,7 @@ export function getDisplayValue(
 }
 
 export function getDisplayUserValue(
-  forecast: NumericForecast,
+  myForecasts: UserForecastHistory,
   value: number | undefined,
   valueTimestamp: number,
   questionOrQuestionType: Question | QuestionType,
@@ -258,17 +259,16 @@ export function getDisplayUserValue(
   let rMax: number | null;
   let zPoint: number | null;
 
-  const userForecasts = forecast.my_forecasts;
   let closestUserForecastIndex = -1;
-  userForecasts?.timestamps.forEach((timestamp, index) => {
-    if (timestamp <= valueTimestamp) {
+  myForecasts?.history.forEach((forecast, index) => {
+    if (forecast.start_time <= valueTimestamp) {
       closestUserForecastIndex = index;
     }
   });
   if (closestUserForecastIndex === -1) {
     return "?";
   }
-  const closestUserForecast = userForecasts!.medians[closestUserForecastIndex];
+  const closestUserForecast = myForecasts.history[closestUserForecastIndex];
 
   if (typeof questionOrQuestionType === "object") {
     // Handle the case where the input is a Question object
@@ -284,11 +284,17 @@ export function getDisplayUserValue(
     zPoint = zeroPoint ?? null;
   }
 
+  let center: number;
+  if (qType === QuestionType.Binary) {
+    center = closestUserForecast.forecast_values[1];
+  } else {
+    center = closestUserForecast.centers![0];
+  }
   if (value === undefined) {
     return "...";
   }
   const scaledValue = scaleInternalLocation(
-    closestUserForecast,
+    center,
     rMin ?? 0,
     rMax ?? 1,
     zPoint
@@ -421,7 +427,12 @@ export function getGroupQuestionsTimestamps(
 ): number[] {
   return uniq(
     questions.reduce<number[]>(
-      (acc, question) => [...acc, ...question.forecasts.timestamps],
+      (acc, question) => [
+        ...acc,
+        ...question.aggregations.recency_weighted.history.map(
+          (x) => x.start_time
+        ),
+      ],
       []
     )
   ).sort((a, b) => a - b);

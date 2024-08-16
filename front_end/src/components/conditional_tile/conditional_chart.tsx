@@ -15,6 +15,7 @@ import {
   getIsForecastEmpty,
   getNumericForecastDataset,
 } from "@/utils/forecasts";
+import { cdfToPmf } from "@/utils/math";
 
 type Props = {
   parentResolved: boolean;
@@ -36,9 +37,10 @@ const ConditionalChart: FC<Props> = ({
 
   switch (question.type) {
     case QuestionType.Binary: {
-      const pctCandidate = question.forecasts?.medians?.at(-1);
+      const pctCandidate =
+        question.aggregations.recency_weighted.latest.centers![1];
       const pct = pctCandidate ? Math.round(pctCandidate * 100) : null;
-      const userForecast = question.forecasts?.my_forecasts?.medians?.at(-1);
+      const userForecast = question.my_forecasts.latest?.forecast_values[1];
       const userPct = userForecast ? Math.round(userForecast * 100) : null;
 
       return (
@@ -76,23 +78,26 @@ const ConditionalChart: FC<Props> = ({
     }
     case QuestionType.Numeric:
     case QuestionType.Date: {
-      if (getIsForecastEmpty(question.forecasts)) {
+      if (question.aggregations.recency_weighted.history.length === 0) {
         return <div className="text-center text-xs">No data yet</div>;
       }
 
-      const prediction = question.forecasts.medians.at(-1);
+      const prediction =
+        question.aggregations.recency_weighted.latest.centers![0];
       const formattedPrediction = prediction
         ? formatPrediction(prediction, question.type)
         : "";
 
       const continuousAreaChartData = [
         {
-          pmf: question.forecasts.latest_pmf,
-          cdf: question.forecasts.latest_cdf,
+          pmf: cdfToPmf(
+            question.aggregations.recency_weighted.latest.forecast_values
+          ),
+          cdf: question.aggregations.recency_weighted.latest.forecast_values,
           type: "community" as ContinuousAreaType,
         },
       ];
-      const prevForecast = question.forecasts.my_forecasts?.slider_values;
+      const prevForecast = question.my_forecasts.latest.slider_values;
       const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
       const dataset =
         prevForecastValue?.forecast && prevForecastValue?.weights
