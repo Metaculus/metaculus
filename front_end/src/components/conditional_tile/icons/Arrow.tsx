@@ -1,6 +1,11 @@
+import classNames from "classnames";
 import { FC, SVGProps } from "react";
 
-const Arrow: FC<SVGProps<SVGSVGElement>> = (props) => {
+type Props = SVGProps<SVGSVGElement> & {
+  didHappen?: boolean;
+};
+
+const Arrow: FC<Props> = ({ didHappen, ...props }) => {
   return (
     <svg
       viewBox="0 0 64 6"
@@ -13,7 +18,9 @@ const Arrow: FC<SVGProps<SVGSVGElement>> = (props) => {
     >
       <path
         d="M64 3 59 .113v5.774L64 3ZM0 3.5h59.5v-1H0v1Z"
-        className="fill-blue-700 dark:fill-blue-700"
+        className={classNames("fill-blue-700 dark:fill-blue-700", {
+          "fill-blue-900 dark:fill-blue-900-dark": didHappen,
+        })}
       />
     </svg>
   );
