@@ -7,13 +7,11 @@ import Histogram from "@/app/(main)/charts/histogram";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
 
 const MAX_COLLAPSED_HEIGHT = 256;
 
 type Props = {
   post: PostWithForecasts;
-  // question: QuestionWithNumericForecasts;
 };
 
 const HistogramDrawer: React.FC<Props> = ({ post }) => {
@@ -24,16 +22,18 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
   if (post.question?.type === "binary") {
     const question = post.question;
 
-    if (!question.forecasts.histogram) {
+    if (!question.aggregations.recency_weighted.latest?.histogram) {
       return null;
     }
-
-    const histogramData = question.forecasts.histogram.map((value, index) => ({
-      x: index,
-      y: value,
-    }));
-    const median = question.forecasts.medians.at(-1);
-    const mean = question.forecasts.means.at(-1);
+    const histogramData =
+      question.aggregations.recency_weighted.latest.histogram.map(
+        (value, index) => ({
+          x: index,
+          y: value,
+        })
+      );
+    const median = question.aggregations.recency_weighted.latest.centers![1];
+    const mean = question.aggregations.recency_weighted.latest.means![1];
 
     return (
       <SectionToggle title={t("histogram")} defaultOpen>

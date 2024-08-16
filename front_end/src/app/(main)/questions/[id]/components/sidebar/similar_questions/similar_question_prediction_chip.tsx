@@ -5,7 +5,6 @@ import { FC } from "react";
 
 import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
-import { getIsForecastEmpty } from "@/utils/forecasts";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -30,11 +29,12 @@ const SimilarPredictionChip: FC<Props> = ({
   ) {
     return null;
   }
-  const isForecastEmpty = getIsForecastEmpty(question.forecasts);
+  const isForecastEmpty =
+    question.aggregations.recency_weighted.history.length === 0;
   if (isForecastEmpty) return null;
 
-  const prediction =
-    question.forecasts.medians[question.forecasts.medians.length - 1];
+  const latest = question.aggregations.recency_weighted.latest;
+  const prediction = latest.centers![latest.centers!.length - 1];
 
   {
     return (

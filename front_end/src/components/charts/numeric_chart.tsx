@@ -33,7 +33,12 @@ import {
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { Resolution } from "@/types/post";
-import { NumericForecast, QuestionType } from "@/types/question";
+import {
+  NumericForecast,
+  QuestionType,
+  Aggregations,
+  UserForecastHistory,
+} from "@/types/question";
 import {
   generateNumericDomain,
   generateTimestampXScale,
@@ -44,7 +49,8 @@ import {
 import XTickLabel from "./primitives/x_tick_label";
 
 type Props = {
-  dataset: NumericForecast;
+  aggregations: Aggregations;
+  myForecasts: UserForecastHistory;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
   yLabel?: string;
@@ -61,7 +67,8 @@ type Props = {
 };
 
 const NumericChart: FC<Props> = ({
-  dataset,
+  aggregations,
+  myForecasts,
   defaultZoom = TimelineChartZoomOption.All,
   withZoomPicker = false,
   yLabel,
@@ -85,10 +92,7 @@ const NumericChart: FC<Props> = ({
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
 
-  const defaultCursor = useMemo(
-    () => Math.max(...dataset.timestamps),
-    [dataset.timestamps]
-  );
+  const defaultCursor = aggregations.recency_weighted.latest.start_time;
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState(defaultZoom);
@@ -100,20 +104,12 @@ const NumericChart: FC<Props> = ({
         rangeMax,
         zeroPoint,
         height,
-        dataset,
+        aggregations,
+        myForecasts,
         width: chartWidth,
         zoom,
       }),
-    [
-      questionType,
-      rangeMin,
-      rangeMax,
-      zeroPoint,
-      height,
-      dataset,
-      chartWidth,
-      zoom,
-    ]
+    [height, chartWidth, zoom]
   );
 
   const prevWidth = usePrevious(chartWidth);
@@ -149,11 +145,15 @@ const NumericChart: FC<Props> = ({
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
-          const closestTimestamp = dataset.timestamps.reduce((prev, curr) =>
-            Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
+          const closestForecast = aggregations.recency_weighted.history.reduce(
+            (prev, curr) =>
+              Math.abs(curr.start_time - value) <
+              Math.abs(prev.start_time - value)
+                ? curr
+                : prev
           );
 
-          onCursorChange(closestTimestamp);
+          onCursorChange(closestForecast.start_time);
         }
       }}
     />
@@ -228,7 +228,7 @@ const NumericChart: FC<Props> = ({
               data={getResolutionData({
                 questionType,
                 resolution,
-                dataset,
+                aggregations,
                 rangeMin,
                 rangeMax,
                 derivRatio,
@@ -284,7 +284,8 @@ function buildChartData({
   rangeMax,
   zeroPoint,
   height,
-  dataset,
+  aggregations,
+  myForecasts,
   width,
   zoom,
 }: {
@@ -293,31 +294,41 @@ function buildChartData({
   rangeMax: number | null;
   zeroPoint: number | null;
   height: number;
-  dataset: NumericForecast;
+  aggregations: Aggregations;
+  myForecasts: UserForecastHistory;
   width: number;
   zoom: TimelineChartZoomOption;
 }): ChartData {
-  const { timestamps, medians, q1s, q3s, my_forecasts } = dataset;
-
-  const line = timestamps.map((timestamp, index) => ({
-    x: timestamp,
-    y: medians[index],
+  const line = aggregations.recency_weighted.history.map((forecast) => ({
+    x: forecast.start_time,
+    y: forecast.centers![forecast.centers!.length - 1],
   }));
-  const area = timestamps.map((timestamp, index) => ({
-    x: timestamp,
-    y0: q1s[index],
-    y: q3s[index],
+  const area = aggregations.recency_weighted.history.map((forecast) => ({
+    x: forecast.start_time,
+    y0: forecast.interval_lower_bounds![
+      forecast.interval_lower_bounds!.length - 1
+    ],
+    y: forecast.interval_upper_bounds![
+      forecast.interval_upper_bounds!.length - 1
+    ],
   }));
 
   let points: Line = [];
-  if (my_forecasts !== null) {
-    points = my_forecasts.timestamps.map((timestamp, index) => ({
-      x: timestamp,
-      y: my_forecasts.medians[index],
+  if (myForecasts.history.length) {
+    points = myForecasts.history.map((forecast) => ({
+      x: forecast.start_time,
+      y:
+        questionType == "binary"
+          ? forecast.forecast_values[1]
+          : forecast.centers![forecast.centers!.length - 1],
     }));
   }
+  // TODO: add quartiles if continuous
 
-  const domainTimestamps = [...timestamps, ...(my_forecasts?.timestamps ?? [])];
+  const domainTimestamps = [
+    ...aggregations.recency_weighted.history.map((f) => f.start_time),
+    ...myForecasts.history.map((f) => f.start_time),
+  ];
   const xDomain = generateNumericDomain(domainTimestamps, zoom);
   const xScale = generateTimestampXScale(xDomain, width);
 
@@ -370,7 +381,7 @@ function buildChartData({
 function getResolutionData({
   questionType,
   resolution,
-  dataset,
+  aggregations,
   rangeMin,
   rangeMax,
   derivRatio,
@@ -379,7 +390,7 @@ function getResolutionData({
   resolution: Resolution;
   rangeMin: number | null;
   rangeMax: number | null;
-  dataset: NumericForecast;
+  aggregations: Aggregations;
   derivRatio?: number;
 }) {
   switch (questionType) {
@@ -388,7 +399,7 @@ function getResolutionData({
       return [
         {
           y: resolution === "no" ? rangeMin ?? 0 : rangeMax ?? 1,
-          x: dataset.timestamps.at(-1),
+          x: aggregations.recency_weighted.latest.start_time,
           symbol: "diamond",
           size: 4,
         },
@@ -406,7 +417,7 @@ function getResolutionData({
       return [
         {
           y: scaledResolution,
-          x: dataset.timestamps.at(-1),
+          x: aggregations.recency_weighted.latest.start_time,
           symbol: "diamond",
           size: 4,
         },
@@ -425,7 +436,7 @@ function getResolutionData({
       return [
         {
           y: scaledResolution,
-          x: dataset.timestamps.at(-1),
+          x: aggregations.recency_weighted.latest.start_time,
           symbol: "diamond",
           size: 4,
         },

@@ -29,7 +29,8 @@ const QuestionChartTile: FC<Props> = ({
       <div>{`Created by ${authorUsername} on ${question.created_at.slice(0, 7)}`}</div>
     );
   }
-  const isForecastEmpty = getIsForecastEmpty(question.forecasts);
+  const isForecastEmpty =
+    question.aggregations.recency_weighted.history.length === 0;
 
   if (isForecastEmpty) {
     return <div>Forecasts data is empty</div>;
