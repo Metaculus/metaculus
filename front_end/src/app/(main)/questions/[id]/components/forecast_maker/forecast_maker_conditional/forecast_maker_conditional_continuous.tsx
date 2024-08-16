@@ -305,7 +305,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       activeOptionData.question.open_upper_bound!
     ).cdf;
   const communityCdf: number[] | undefined =
-    activeOptionData?.question.forecasts.latest_cdf;
+    activeOptionData?.question.aggregations.recency_weighted.latest
+      .forecast_values;
 
   return (
     <>

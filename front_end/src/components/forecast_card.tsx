@@ -119,7 +119,8 @@ const ForecastCard: FC<Props> = ({
         case QuestionType.Date:
           return (
             <NumericChart
-              dataset={question.forecasts}
+              aggregations={question.aggregations}
+              myForecasts={question.my_forecasts}
               height={chartHeight}
               questionType={
                 getNumericChartTypeFromQuestion(question.type) ??
@@ -170,19 +171,21 @@ const ForecastCard: FC<Props> = ({
         case QuestionType.Numeric:
         case QuestionType.Date: {
           const cursorIndex = cursorValue
-            ? question.forecasts.timestamps.findIndex((t) => t === cursorValue)
+            ? question.aggregations.recency_weighted.history.findIndex(
+                (forecast) => forecast.start_time === cursorValue
+              )
             : null;
 
-          const prediction =
+          const forecast =
             cursorIndex !== null && cursorIndex !== -1
-              ? question.forecasts.medians[cursorIndex]
-              : question.forecasts.medians.at(-1) ?? undefined;
+              ? question.aggregations.recency_weighted.history[cursorIndex]
+              : question.aggregations.recency_weighted.latest ?? undefined;
 
           return (
             <PredictionChip
               question={question}
               status={post.status}
-              prediction={prediction}
+              prediction={forecast.centers![forecast.centers!.length - 1]}
               className="ForecastCard-prediction"
             />
           );
