@@ -74,7 +74,7 @@ type MarkdownProps = {
   className?: string;
 };
 
-const MarkdownText: FC<PropsWithChildren<MarkdownProps>> = ({
+export const MarkdownText: FC<PropsWithChildren<MarkdownProps>> = ({
   className,
   children,
 }) => {
@@ -96,7 +96,7 @@ type InputContainerProps = {
   className?: string;
 };
 
-const InputContainer: FC<PropsWithChildren<InputContainerProps>> = ({
+export const InputContainer: FC<PropsWithChildren<InputContainerProps>> = ({
   labelText,
   explanation,
   className,
@@ -237,11 +237,6 @@ const QuestionForm: FC<Props> = ({
     control.setValue("type", questionType);
   }
 
-  const baseInputStyles =
-    "px-3 py-2 text-base border border-gray-500 dark:border-gray-500-dark rounded dark:bg-blue-50-dark";
-  const baseTextareaStyles =
-    "border border-gray-500 dark:border-gray-500-dark rounded dark:bg-blue-50-dark";
-
   return (
     <div className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
@@ -249,9 +244,9 @@ const QuestionForm: FC<Props> = ({
         backHref="/questions/create"
         currentPage={formattedQuestionType}
       />
-      <span className="text-sm text-gray-700 dark:text-gray-700-dark md:mt-1 md:text-base">
+      <div className="text-sm text-gray-700 dark:text-gray-700-dark md:mt-1 md:text-base">
         {questionDescription}
-      </span>
+      </div>
       <form
         onSubmit={async (e) => {
           if (!control.getValues("default_project_id")) {
@@ -272,7 +267,7 @@ const QuestionForm: FC<Props> = ({
           const data = control.getValues();
           data["type"] = questionType;
         }}
-        className="mt-4 flex w-[540px] w-full flex-col space-y-4 rounded"
+        className="mt-4 flex w-full flex-col gap-6"
       >
         {post && user?.is_superuser && (
           <a href={`/admin/posts/post/${post.id}/change`}>
@@ -295,214 +290,209 @@ const QuestionForm: FC<Props> = ({
           className="text-red-500 dark:text-red-500-dark"
           {...control.register("type")}
         />
-        <div className="flex flex-col gap-6">
-          <InputContainer
-            labelText={t("longTitle")}
-            explanation={t("longTitleExplanation")}
-          >
-            <Textarea
-              {...control.register("title")}
-              errors={control.formState.errors.title}
-              defaultValue={post?.title}
-              className={`${baseTextareaStyles} min-h-32 p-5 text-xl font-normal`}
+        <InputContainer
+          labelText={t("longTitle")}
+          explanation={t("longTitleExplanation")}
+        >
+          <Textarea
+            {...control.register("title")}
+            errors={control.formState.errors.title}
+            defaultValue={post?.title}
+            className="min-h-32 w-full rounded border border-gray-500 p-5 text-xl font-normal dark:border-gray-500-dark dark:bg-blue-50-dark"
+          />
+        </InputContainer>
+        <InputContainer
+          labelText={t("shortTitle")}
+          explanation={t("shortTitleExplanation")}
+        >
+          <Input
+            {...control.register("url_title")}
+            errors={control.formState.errors.url_title}
+            defaultValue={post?.url_title}
+            className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+          />
+        </InputContainer>
+        <InputContainer
+          labelText={t("backgroundInformation")}
+          explanation={t.rich("backgroundInfoExplanation", {
+            link: (chunks) => <Link href="/help/markdown">{chunks}</Link>,
+            markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
+          })}
+        >
+          <Textarea
+            {...control.register("description")}
+            errors={control.formState.errors.description}
+            className="h-32 w-full rounded border border-gray-500 p-3 text-sm dark:border-gray-500-dark dark:bg-blue-50-dark"
+            defaultValue={post?.question?.description}
+          />
+        </InputContainer>
+        <div className="flex w-full flex-col gap-4 md:flex-row">
+          <InputContainer labelText={t("closingDate")} className="w-full gap-2">
+            <Input
+              readOnly={isLive}
+              type="datetime-local"
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              {...control.register("scheduled_close_time", {
+                setValueAs: (value: string) => {
+                  if (value === "" || value == null) {
+                    return null;
+                  }
+                  return new Date(value);
+                },
+              })}
+              errors={control.formState.errors.scheduled_close_time}
+              defaultValue={
+                post?.question?.scheduled_close_time
+                  ? format(
+                      new Date(post.question.scheduled_close_time),
+                      "yyyy-MM-dd'T'HH:mm"
+                    )
+                  : undefined
+              }
             />
           </InputContainer>
           <InputContainer
-            labelText={t("shortTitle")}
-            explanation={t("shortTitleExplanation")}
+            labelText={t("resolvingDate")}
+            className="w-full gap-2"
           >
             <Input
-              {...control.register("url_title")}
-              errors={control.formState.errors.url_title}
-              defaultValue={post?.url_title}
-              className={baseInputStyles}
-            />
-          </InputContainer>
-          <InputContainer
-            labelText={t("backgroundInformation")}
-            explanation={t.rich("backgroundInfoExplanation", {
-              link: (chunks) => <Link href="/help/markdown">{chunks}</Link>,
-              markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
-            })}
-          >
-            <Textarea
-              {...control.register("description")}
-              errors={control.formState.errors.description}
-              className={`${baseTextareaStyles} h-32 w-full p-3 text-sm`}
-              defaultValue={post?.question?.description}
-            />
-          </InputContainer>
-          <div className="flex w-full flex-col gap-4 md:flex-row">
-            <InputContainer
-              labelText={t("closingDate")}
-              className="w-full gap-2"
-            >
-              <Input
-                readOnly={isLive}
-                type="datetime-local"
-                className={baseInputStyles}
-                {...control.register("scheduled_close_time", {
-                  setValueAs: (value: string) => {
-                    if (value === "" || value == null) {
-                      return null;
-                    }
-                    return new Date(value);
-                  },
-                })}
-                errors={control.formState.errors.scheduled_close_time}
-                defaultValue={
-                  post?.question?.scheduled_close_time
-                    ? format(
-                        new Date(post.question.scheduled_close_time),
-                        "yyyy-MM-dd'T'HH:mm"
-                      )
-                    : undefined
-                }
-              />
-            </InputContainer>
-            <InputContainer
-              labelText={t("resolvingDate")}
-              className="w-full gap-2"
-            >
-              <Input
-                readOnly={isLive}
-                type="datetime-local"
-                className={baseInputStyles}
-                {...control.register("scheduled_resolve_time", {
-                  setValueAs: (value: string) => {
-                    if (value === "" || value == null) {
-                      return null;
-                    }
-                    return new Date(value);
-                  },
-                })}
-                errors={control.formState.errors.scheduled_resolve_time}
-                defaultValue={
-                  post?.question?.scheduled_resolve_time
-                    ? format(
-                        new Date(post.question.scheduled_resolve_time),
-                        "yyyy-MM-dd'T'HH:mm"
-                      )
-                    : undefined
-                }
-              />
-            </InputContainer>
-          </div>
-          {(questionType === QuestionType.Date ||
-            questionType === QuestionType.Numeric) && (
-            <NumericQuestionInput
-              questionType={questionType}
-              defaultMin={post?.question?.range_min!}
-              defaultMax={post?.question?.range_max!}
-              // @ts-ignore
-              defaultOpenLowerBound={post?.question?.open_lower_bound}
-              // @ts-ignore
-              defaultOpenUpperBound={post?.question?.open_upper_bound}
-              defaultZeroPoint={post?.question?.zero_point}
-              isLive={isLive}
-              canSeeLogarithmic={
-                post?.user_permission === ProjectPermissions.ADMIN || !post
-              }
-              onChange={(
-                rangeMin,
-                rangeMax,
-                openLowerBound,
-                openUpperBound,
-                zeroPoint
-              ) => {
-                control.setValue("rangeMin", rangeMin);
-                control.setValue("rangeMax", rangeMax);
-                control.setValue("open_lower_bound", openLowerBound);
-                control.setValue("open_upper_bound", openUpperBound);
-                control.setValue("zero_point", zeroPoint);
-              }}
-            />
-          )}
-
-          <InputContainer labelText={t("categories")}>
-            <CategoryPicker
-              allCategories={allCategories}
-              categories={categoriesList}
-              onChange={(categories) => {
-                setCategoriesList(categories);
-              }}
-            />
-          </InputContainer>
-          {questionType === "multiple_choice" && (
-            <InputContainer labelText={t("choicesSeparatedBy")}>
-              <Input
-                readOnly={isLive}
-                type="text"
-                className={baseInputStyles}
-                onChange={(event) => {
-                  const options = String(event.target.value)
-                    .split(",")
-                    .map((option) => option.trim());
-                  setOptionsList(options);
-                }}
-                errors={control.formState.errors.options}
-                value={optionsList.join(",")}
-              />
-              {optionsList && (
-                <div className="flex flex-col">
-                  {optionsList.map((option: string, opt_index: number) => (
-                    <Input
-                      readOnly={isLive}
-                      key={opt_index}
-                      className="m-2 w-min min-w-32 border p-2 text-xs"
-                      value={option}
-                      onChange={(e) => {
-                        setOptionsList(
-                          optionsList.map((opt, index) => {
-                            if (index === opt_index) {
-                              return e.target.value;
-                            }
-                            return opt;
-                          })
-                        );
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
-            </InputContainer>
-          )}
-          <InputContainer
-            labelText={t("resolutionCriteria")}
-            explanation={t.rich("resolutionCriteriaExplanation", {
-              markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
-            })}
-          >
-            <Textarea
-              {...control.register("resolution_criteria")}
-              errors={control.formState.errors.resolution_criteria}
-              className={`${baseTextareaStyles} h-32 w-full p-3 text-sm`}
+              readOnly={isLive}
+              type="datetime-local"
+              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              {...control.register("scheduled_resolve_time", {
+                setValueAs: (value: string) => {
+                  if (value === "" || value == null) {
+                    return null;
+                  }
+                  return new Date(value);
+                },
+              })}
+              errors={control.formState.errors.scheduled_resolve_time}
               defaultValue={
-                post?.question?.resolution_criteria
-                  ? post?.question?.resolution_criteria
+                post?.question?.scheduled_resolve_time
+                  ? format(
+                      new Date(post.question.scheduled_resolve_time),
+                      "yyyy-MM-dd'T'HH:mm"
+                    )
                   : undefined
               }
             />
           </InputContainer>
-          <InputContainer
-            labelText={t("finePrint")}
-            explanation={t("finePrintDescription")}
-          >
-            <Textarea
-              {...control.register("fine_print")}
-              errors={control.formState.errors.fine_print}
-              className={`${baseTextareaStyles} h-32 w-full p-3 text-sm`}
-              defaultValue={
-                post?.question?.fine_print
-                  ? post?.question?.fine_print
-                  : undefined
-              }
-            />
-          </InputContainer>
-          <Button type="submit" className="w-max capitalize">
-            {mode === "create" ? t("createQuestion") : t("editQuestion")}
-          </Button>
         </div>
+        {(questionType === QuestionType.Date ||
+          questionType === QuestionType.Numeric) && (
+          <NumericQuestionInput
+            questionType={questionType}
+            defaultMin={post?.question?.range_min!}
+            defaultMax={post?.question?.range_max!}
+            // @ts-ignore
+            defaultOpenLowerBound={post?.question?.open_lower_bound}
+            // @ts-ignore
+            defaultOpenUpperBound={post?.question?.open_upper_bound}
+            defaultZeroPoint={post?.question?.zero_point}
+            isLive={isLive}
+            canSeeLogarithmic={
+              post?.user_permission === ProjectPermissions.ADMIN || !post
+            }
+            onChange={(
+              rangeMin,
+              rangeMax,
+              openLowerBound,
+              openUpperBound,
+              zeroPoint
+            ) => {
+              control.setValue("rangeMin", rangeMin);
+              control.setValue("rangeMax", rangeMax);
+              control.setValue("open_lower_bound", openLowerBound);
+              control.setValue("open_upper_bound", openUpperBound);
+              control.setValue("zero_point", zeroPoint);
+            }}
+          />
+        )}
+
+        <InputContainer labelText={t("categories")}>
+          <CategoryPicker
+            allCategories={allCategories}
+            categories={categoriesList}
+            onChange={(categories) => {
+              setCategoriesList(categories);
+            }}
+          />
+        </InputContainer>
+        {questionType === "multiple_choice" && (
+          <InputContainer labelText={t("choicesSeparatedBy")}>
+            <Input
+              readOnly={isLive}
+              type="text"
+              className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+              onChange={(event) => {
+                const options = String(event.target.value)
+                  .split(",")
+                  .map((option) => option.trim());
+                setOptionsList(options);
+              }}
+              errors={control.formState.errors.options}
+              value={optionsList.join(",")}
+            />
+            {optionsList && (
+              <div className="flex flex-col">
+                {optionsList.map((option: string, opt_index: number) => (
+                  <Input
+                    readOnly={isLive}
+                    key={opt_index}
+                    className="m-2 w-min min-w-32 border p-2 text-xs"
+                    value={option}
+                    onChange={(e) => {
+                      setOptionsList(
+                        optionsList.map((opt, index) => {
+                          if (index === opt_index) {
+                            return e.target.value;
+                          }
+                          return opt;
+                        })
+                      );
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </InputContainer>
+        )}
+        <InputContainer
+          labelText={t("resolutionCriteria")}
+          explanation={t.rich("resolutionCriteriaExplanation", {
+            markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
+          })}
+        >
+          <Textarea
+            {...control.register("resolution_criteria")}
+            errors={control.formState.errors.resolution_criteria}
+            className="h-32 w-full rounded border border-gray-500 p-3 text-sm dark:border-gray-500-dark dark:bg-blue-50-dark"
+            defaultValue={
+              post?.question?.resolution_criteria
+                ? post?.question?.resolution_criteria
+                : undefined
+            }
+          />
+        </InputContainer>
+        <InputContainer
+          labelText={t("finePrint")}
+          explanation={t("finePrintDescription")}
+        >
+          <Textarea
+            {...control.register("fine_print")}
+            errors={control.formState.errors.fine_print}
+            className="h-32 w-full rounded border border-gray-500 p-3 text-sm dark:border-gray-500-dark dark:bg-blue-50-dark"
+            defaultValue={
+              post?.question?.fine_print
+                ? post?.question?.fine_print
+                : undefined
+            }
+          />
+        </InputContainer>
+        <Button type="submit" className="w-max capitalize">
+          {mode === "create" ? t("createQuestion") : t("editQuestion")}
+        </Button>
       </form>
     </div>
   );
