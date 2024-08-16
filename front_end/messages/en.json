@@ -760,5 +760,17 @@
   "inReviewStatusBox3": "A question’s author can invite other users to be co-authors, to help with the writing process, or recognize their contributions.",
   "inReviewStatusBox4": "Note that this question cannot be approved until both its parent and child have been approved.",
   "draftStatusBox1": "Your submission is now a Draft.",
-  "draftStatusBox2": "Once it's ready, please submit your draft for review by our team of Community Moderators. Thank you!"
+  "draftStatusBox2": "Once it's ready, please submit your draft for review by our team of Community Moderators. Thank you!",
+  "newSubquestion": "new subquestion",
+  "subquestions": "subquestions",
+  "binaryQuestionGroup": "binary question group",
+  "binaryQuestionGroupDescription": "Binary question groups contain questions that generally have the form \"Will X happen?\" and resolve as Yes or No.",
+  "numericQuestionGroup": "numeric question group",
+  "numericQuestionGroupDescription": "Numeric question groups contain questions that ask about the value of an unknown future quantity and resolve within a specified range.",
+  "dateQuestionGroup": "numeric question group",
+  "dateQuestionGroupDescription": "Date question groups contain questions that ask when something will happen and resolve within a specified date range.",
+  "groupVariableDescription": "What the subquestion labels represent (e.g. year, country, etc).",
+  "categoryPickerDescription": "A name for the parameter which varies between subquestions, like \"Option\", \"Year\" or \"Country\"",
+  "subquestionLabel": "Subquestion label",
+  "subquestionLabelDescription": "The label or parameter which identifies this subquestion, like \"Option 1\", \"2033\" or \"France\""
 }
