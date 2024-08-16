@@ -74,7 +74,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         (acc, question) => ({
           ...acc,
           [question.id]: extractPrevBinaryForecastValue(
-            question.forecasts.my_forecasts?.slider_values
+            question.my_forecasts.latest?.slider_values
           ),
         }),
         {}
@@ -285,7 +285,8 @@ function generateChoiceOptions(
     return {
       id: question.id,
       name: extractQuestionGroupName(question.title),
-      communityForecast: question.forecasts.medians.at(-1) ?? null,
+      communityForecast:
+        question.aggregations.recency_weighted.latest?.centers![1] ?? null,
       forecast: prevForecastValuesMap[question.id] ?? null,
       resolution: question.resolution,
       isDirty: false,

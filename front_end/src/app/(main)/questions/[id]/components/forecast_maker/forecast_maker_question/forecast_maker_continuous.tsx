@@ -72,7 +72,8 @@ const ForecastMakerContinuous: FC<Props> = ({
   );
 
   const userCdf: number[] = dataset.cdf;
-  const communityCdf: number[] = question.forecasts.latest_cdf;
+  const communityCdf: number[] =
+    question.aggregations.recency_weighted.latest?.forecast_values;
 
   const handleAddComponent = () => {
     setForecast([

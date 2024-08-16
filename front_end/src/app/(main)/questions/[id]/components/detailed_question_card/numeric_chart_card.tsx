@@ -7,13 +7,19 @@ import NumericChart from "@/components/charts/numeric_chart";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { Resolution } from "@/types/post";
-import { NumericForecast, QuestionType } from "@/types/question";
+import {
+  NumericForecast,
+  QuestionType,
+  Aggregations,
+  UserForecastHistory,
+} from "@/types/question";
 import { getDisplayUserValue, getDisplayValue } from "@/utils/charts";
 
 import CursorDetailItem from "./numeric_cursor_item";
 
 type Props = {
-  forecast: NumericForecast;
+  aggregrations: Aggregations;
+  myForecasts: UserForecastHistory;
   questionType: QuestionType;
   rangeMin: number | null;
   rangeMax: number | null;
@@ -23,7 +29,8 @@ type Props = {
 };
 
 const NumericChartCard: FC<Props> = ({
-  forecast,
+  aggregrations,
+  myForecasts,
   questionType,
   rangeMin,
   rangeMax,
@@ -37,28 +44,27 @@ const NumericChartCard: FC<Props> = ({
   const [isChartReady, setIsChartReady] = useState(false);
 
   const [cursorTimestamp, setCursorTimestamp] = useState(
-    forecast.timestamps[forecast.timestamps.length - 1]
+    aggregrations.recency_weighted.latest.start_time
   );
   const cursorData = useMemo(() => {
-    const index = forecast.timestamps.findIndex(
-      (timestamp) => timestamp === cursorTimestamp
+    const index = aggregrations.recency_weighted.history.findIndex(
+      (f) => f.start_time === cursorTimestamp
     );
-
+    const forecast = aggregrations.recency_weighted.history[index];
     return {
-      q1: forecast.q1s[index],
-      q3: forecast.q3s[index],
-      median: forecast.medians[index],
-      forecastersNr: forecast.nr_forecasters[index],
-      timestamp: forecast.timestamps[index],
+      timestamp: forecast.start_time,
+      forecasterCount: forecast.forecaster_count,
+      interval_lower_bound:
+        forecast.interval_lower_bounds![
+          forecast.interval_lower_bounds!.length - 1
+        ],
+      center: forecast.centers![forecast.centers!.length - 1],
+      interval_upper_bound:
+        forecast.interval_upper_bounds![
+          forecast.interval_upper_bounds!.length - 1
+        ],
     };
-  }, [
-    cursorTimestamp,
-    forecast.nr_forecasters,
-    forecast.timestamps,
-    forecast.q3s,
-    forecast.medians,
-    forecast.q1s,
-  ]);
+  }, [cursorTimestamp]);
 
   const handleCursorChange = useCallback((value: number) => {
     setCursorTimestamp(value);
@@ -76,7 +82,8 @@ const NumericChartCard: FC<Props> = ({
       )}
     >
       <NumericChart
-        dataset={forecast}
+        aggregations={aggregrations}
+        myForecasts={myForecasts}
         resolution={resolution}
         onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}
@@ -95,17 +102,17 @@ const NumericChartCard: FC<Props> = ({
       <div
         className={classNames(
           "my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
-          { "sm:grid-cols-3": !!forecast.my_forecasts?.medians.length }
+          { "sm:grid-cols-3": !!myForecasts.history.length }
         )}
       >
         <CursorDetailItem
           title={t("totalForecastersLabel")}
-          text={cursorData.forecastersNr?.toString()}
+          text={cursorData.forecasterCount?.toString()}
         />
         <CursorDetailItem
           title={t("communityPredictionLabel")}
           text={getDisplayValue(
-            cursorData.median,
+            cursorData.center,
             questionType,
             rangeMin,
             rangeMax,
@@ -113,12 +120,12 @@ const NumericChartCard: FC<Props> = ({
           )}
           variant="prediction"
         />
-        {!!forecast.my_forecasts?.medians.length && (
+        {!!myForecasts.history.length && (
           <CursorDetailItem
             title={t("myPredictionLabel")}
             text={getDisplayUserValue(
-              forecast,
-              cursorData.median,
+              myForecasts,
+              cursorData.center,
               cursorData.timestamp,
               questionType,
               rangeMin,
