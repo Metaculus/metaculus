@@ -58,7 +58,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         (acc, question) => ({
           ...acc,
           [question.id]: extractPrevNumericForecastValue(
-            question.forecasts.my_forecasts?.slider_values
+            question.my_forecasts.latest?.slider_values
           ),
         }),
         {}
@@ -234,7 +234,8 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       activeGroupOption?.question.open_upper_bound!
     ).cdf;
   const communityCdf: number[] | undefined =
-    activeGroupOption?.question.forecasts.latest_cdf;
+    activeGroupOption?.question.aggregations.recency_weighted.latest
+      .forecast_values;
 
   return (
     <>

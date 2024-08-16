@@ -27,6 +27,65 @@ export enum QuestionOrder {
   RankDesc = "-rank",
 }
 
+export enum AggregationMethod {
+  RecencyWeighted = "recency_weighted",
+  Unweighted = "unweighted",
+  SingleAggregation = "single_aggregation",
+}
+
+export type Bounds = {
+  belowLower: number;
+  aboveUpper: number;
+};
+
+export type Quartiles = {
+  median: number;
+  lower25: number;
+  upper75: number;
+};
+
+export type ExtendedQuartiles = Quartiles & {
+  lower10: number;
+  upper90: number;
+};
+
+export type Forecast = {
+  question_id: number;
+  start_time: number;
+  end_time: number | null;
+  forecast_values: number[];
+  interval_lower_bounds: number[] | null;
+  centers: number[] | null;
+  interval_upper_bounds: number[] | null;
+};
+
+export type UserForecast = Forecast & {
+  slider_values: any | null; // TODO: solidify this
+};
+
+export type UserForecastHistory = {
+  history: UserForecast[];
+  latest: UserForecast;
+};
+
+export type AggregateForecast = Forecast & {
+  method: AggregationMethod;
+  forecaster_count: number;
+  means: number[] | null;
+  histogram: number[] | null;
+};
+
+type AggregateForecastHistory = {
+  history: AggregateForecast[];
+  latest: AggregateForecast;
+};
+
+export type Aggregations = {
+  recency_weighted: AggregateForecastHistory;
+  unweighted?: AggregateForecastHistory;
+  single_aggregation?: AggregateForecastHistory;
+};
+
 export type BaseForecast = {
   timestamps: number[];
   nr_forecasters: number[];
@@ -54,25 +113,10 @@ export type MultipleChoiceForecast = BaseForecast & {
     q1: number;
   }>;
 };
-export type Bounds = {
-  belowLower: number;
-  aboveUpper: number;
-};
-export type Quartiles = {
-  median: number;
-  lower25: number;
-  upper75: number;
-};
-export type ExtendedQuartiles = Quartiles & {
-  lower10: number;
-  upper90: number;
-};
 
 export type Question = {
   id: number;
   title: string;
-  range_min: number | null;
-  range_max: number | null;
   description: string;
   created_at: string;
   updated_at: string;
@@ -85,6 +129,9 @@ export type Question = {
   forecast_scoring_ends?: string;
   type: QuestionType;
   options?: string[];
+  range_min: number | null;
+  range_max: number | null;
+  zero_point: number | null;
   possibilities: {
     format?: string;
     high?: string;
@@ -102,9 +149,10 @@ export type Question = {
   label: string | null;
   nr_forecasters: number;
   author_username: string;
-  zero_point: number | null;
   post_id?: number;
   display_divergences?: number[][];
+  aggregations: Aggregations;
+  my_forecasts: UserForecastHistory;
 };
 
 export type QuestionWithNumericForecasts = Question & {
