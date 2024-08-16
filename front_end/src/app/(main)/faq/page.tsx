@@ -2660,7 +2660,7 @@ export default function FAQ() {
           </p>
         </div>
 
-        <div>
+        {/* <div>
           <h3
             id="community-prediction"
             className="mb-4 scroll-mt-nav text-2xl font-semibold"
@@ -2679,7 +2679,7 @@ export default function FAQ() {
               Assign them a number \(n\), from oldest to newest (oldest is
               \(1\)).
             </li>
-            {/* <li>Weight each by \(w(n) \propto e^\sqrt{n}\) before being aggregated.</li> */}
+            <li>Weight each by \(w(n) \propto e^\sqrt{n}\) before being aggregated.</li>
             <ul className="ml-5 list-disc">
               <li>
                 For{" "}
@@ -2705,13 +2705,13 @@ export default function FAQ() {
                 distributions.
               </li>
             </ul>
-            {/* <li>The particular form of the weights means that approximately \(\sqrt{N}\) forecasters need to predict or update their prediction in order to substantially change the Community Prediction on a question that already has \(N\) forecasters.</li> */}
+            <li>The particular form of the weights means that approximately \(\sqrt{N}\) forecasters need to predict or update their prediction in order to substantially change the Community Prediction on a question that already has \(N\) forecasters.</li>
           </ul>
           <p>
             Users can hide the Community Prediction from view from within their
             settings.
           </p>
-        </div>
+        </div> */}
 
         <div>
           <h3
