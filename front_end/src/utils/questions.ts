@@ -213,11 +213,15 @@ export const generateUserForecasts = (
   questions: QuestionWithNumericForecasts[]
 ): UserChoiceItem[] => {
   return questions.map((question, index) => {
-    const userForecast = question.forecasts.my_forecasts;
+    const userForecasts = question.my_forecasts;
     return {
       choice: extractQuestionGroupName(question.title),
-      values: userForecast?.medians,
-      timestamps: userForecast?.timestamps,
+      values: userForecasts.history.map((forecast) =>
+        question.type === "binary"
+          ? forecast.forecast_values[1]
+          : forecast.centers![0]
+      ),
+      timestamps: userForecasts.history.map((forecast) => forecast.start_time),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
     };
   });

@@ -112,7 +112,8 @@ const QuestionCard: FC<{ post: Post; onClick?: () => void }> = ({
 const PredictionInfo: FC<{ question: QuestionWithNumericForecasts }> = ({
   question,
 }) => {
-  const prediction = question.forecasts.medians.at(-1);
+  const latest = question.aggregations.recency_weighted.latest;
+  const prediction = latest.centers![latest.centers!.length - 1];
 
   return (
     <div className="flex flex-row gap-2">
