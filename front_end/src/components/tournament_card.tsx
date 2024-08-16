@@ -72,7 +72,7 @@ const TournamentCard: FC<Props> = ({
             alt=""
             fill
             className="size-full object-cover object-center"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            sizes="(max-width: 768px) 100vw, 50vw"
             quality={100}
           />
         )}
