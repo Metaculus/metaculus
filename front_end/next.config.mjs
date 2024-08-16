@@ -23,6 +23,11 @@ const nextConfig = {
         hostname: "metaculus-public.s3.us-west-2.amazonaws.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "raw.githubusercontent.com",
+        pathname: "/**",
+      },
       // TODO: move this to ENV
       {
         protocol: "https",
