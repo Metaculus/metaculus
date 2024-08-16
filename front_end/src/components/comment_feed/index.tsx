@@ -316,7 +316,7 @@ function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
       return false;
     }
 
-    return !!postData.question.forecasts.my_forecasts?.medians.length;
+    return !!postData.question.my_forecasts.history.length;
   }
 
   return false;

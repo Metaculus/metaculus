@@ -1,5 +1,7 @@
 from datetime import datetime, timezone as dt_timezone
 
+from collections import defaultdict
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -176,7 +178,9 @@ class MyForecastSerializer(serializers.ModelSerializer):
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
     forecast_values = serializers.SerializerMethodField()
-    quartiles = serializers.SerializerMethodField()
+    interval_lower_bounds = serializers.SerializerMethodField()
+    centers = serializers.SerializerMethodField()
+    interval_upper_bounds = serializers.SerializerMethodField()
 
     class Meta:
         model = Forecast
@@ -186,7 +190,9 @@ class MyForecastSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "forecast_values",
-            "quartiles",
+            "interval_lower_bounds",
+            "centers",
+            "interval_upper_bounds",
             "slider_values",
         )
 
@@ -200,13 +206,21 @@ class MyForecastSerializer(serializers.ModelSerializer):
             else None
         )
 
-    def get_quartiles(self, forecast: Forecast):
+    def get_interval_lower_bounds(self, forecast: Forecast) -> list[float] | None:
         if forecast.continuous_cdf is not None:
-            return percent_point_function(forecast.continuous_cdf, [25, 50, 75])
+            return percent_point_function(forecast.continuous_cdf, [25])
 
-    def get_forecast_values(self, forecast: Forecast):
-        if self.context.get("include_forecast_values", True):
-            return forecast.get_prediction_values()
+    def get_centers(self, forecast: Forecast) -> list[float] | None:
+        if forecast.continuous_cdf is not None:
+            return percent_point_function(forecast.continuous_cdf, [50])
+
+    def get_interval_upper_bounds(self, forecast: Forecast) -> list[float] | None:
+        if forecast.continuous_cdf is not None:
+            return percent_point_function(forecast.continuous_cdf, [75])
+
+    def get_forecast_values(self, forecast: Forecast) -> list[float] | None:
+        # if self.context.get("include_forecast_values", True):
+        return forecast.get_prediction_values()
 
 
 class AggregateForecastSerializer(serializers.ModelSerializer):
@@ -277,17 +291,32 @@ def serialize_question(
         serialized_data["forecasts"] = (
             question.composed_forecasts or get_forecast_initial_dict(question)
         )
-        aggregate_forecasts = list(question.aggregate_forecasts.order_by("start_time"))
-        serialized_data["aggregate_forecasts_summary"] = AggregateForecastSerializer(
-            aggregate_forecasts[:-1],
-            context={"include_forecast_values": False},
-            many=True,
-        ).data
-        if aggregate_forecasts:
-            serialized_data["aggregate_forecasts_summary"].append(
+        aggregate_forecasts = question.aggregate_forecasts.order_by("start_time")
+        aggregate_forecasts_by_method = defaultdict(list)
+        for aggregate in aggregate_forecasts:
+            aggregate_forecasts_by_method[aggregate.method].append(aggregate)
+        serialized_data["aggregations"] = {
+            "recency_weighted": {"history": {}, "latest": None},
+            "unweighted": {"history": {}, "latest": None},
+            "single_aggregation": {"history": {}, "latest": None},
+        }
+        for method, forecasts in aggregate_forecasts_by_method.items():
+            serialized_data["aggregations"][method]["history"] = (
                 AggregateForecastSerializer(
-                    aggregate_forecasts[-1],
+                    forecasts,
+                    many=True,
+                    context={"include_forecast_values": False},
                 ).data
+            )
+            serialized_data["aggregations"][method]["latest"] = (
+                (
+                    AggregateForecastSerializer(
+                        forecasts[-1],
+                        context={"include_forecast_values": True},
+                    ).data
+                )
+                if forecasts
+                else None
             )
 
         if (
@@ -296,17 +325,20 @@ def serialize_question(
             and hasattr(question, "request_user_forecasts")
         ):
             user_forecasts = question.request_user_forecasts
-            serialized_data["my_forecasts"] = MyForecastSerializer(
-                user_forecasts[:-1],
-                context={"include_forecast_values": False},
-                many=True,
-            ).data
-            if user_forecasts:
-                serialized_data["my_forecasts"].append(
+            serialized_data["my_forecasts"] = {
+                "history": MyForecastSerializer(
+                    user_forecasts,
+                    context={"include_forecast_values": False},
+                    many=True,
+                ).data,
+                "latest": (
                     MyForecastSerializer(
                         user_forecasts[-1],
                     ).data
-                )
+                    if user_forecasts
+                    else None
+                ),
+            }
             serialized_data["forecasts"]["my_forecasts"] = (
                 build_question_forecasts_for_user(
                     question, question.request_user_forecasts

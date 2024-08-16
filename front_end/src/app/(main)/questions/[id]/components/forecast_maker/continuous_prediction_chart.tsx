@@ -11,6 +11,7 @@ import {
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
+import { cdfToPmf } from "@/utils/math";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -65,8 +66,10 @@ const ContinuousPredictionChart: FC<Props> = ({
   const data: ContinuousAreaGraphInput = useMemo(() => {
     const charts: ContinuousAreaGraphInput = [
       {
-        pmf: question.forecasts.latest_pmf,
-        cdf: question.forecasts.latest_cdf,
+        pmf: cdfToPmf(
+          question.aggregations.recency_weighted.latest.forecast_values
+        ),
+        cdf: question.aggregations.recency_weighted.latest.forecast_values,
         type: "community",
       },
     ];
@@ -83,8 +86,7 @@ const ContinuousPredictionChart: FC<Props> = ({
   }, [
     dataset.cdf,
     dataset.pmf,
-    question.forecasts.latest_cdf,
-    question.forecasts.latest_pmf,
+    question.aggregations.recency_weighted.latest.forecast_values,
     readOnly,
   ]);
 
