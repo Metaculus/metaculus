@@ -11,6 +11,7 @@ import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
 } from "@/utils/forecasts";
+import { cdfToPmf } from "@/utils/math";
 
 const HEIGHT = 100;
 
@@ -25,10 +26,10 @@ const QuestionNumericTile: FC<Props> = ({
   curationStatus,
   defaultChartZoom,
 }) => {
-  const prediction =
-    question.forecasts.medians[question.forecasts.medians.length - 1];
+  const latest = question.aggregations.recency_weighted.latest;
+  const prediction = latest.centers![latest.centers!.length - 1];
 
-  const prevForecast = question.forecasts.my_forecasts?.slider_values;
+  const prevForecast = question.my_forecasts.latest?.slider_values;
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
   const dataset = useMemo(
     () =>
@@ -45,8 +46,10 @@ const QuestionNumericTile: FC<Props> = ({
 
   const continuousAreaChartData = [
     {
-      pmf: question.forecasts.latest_pmf,
-      cdf: question.forecasts.latest_cdf,
+      pmf: cdfToPmf(
+        question.aggregations.recency_weighted.latest.forecast_values
+      ),
+      cdf: question.aggregations.recency_weighted.latest.forecast_values,
       type: "community" as ContinuousAreaType,
     },
   ];
@@ -71,7 +74,8 @@ const QuestionNumericTile: FC<Props> = ({
       <div className="my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
         {question.type === QuestionType.Binary ? (
           <NumericChart
-            dataset={question.forecasts}
+            aggregations={question.aggregations}
+            myForecasts={question.my_forecasts}
             height={HEIGHT}
             questionType={
               getNumericChartTypeFromQuestion(question.type) ??

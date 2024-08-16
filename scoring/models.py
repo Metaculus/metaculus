@@ -29,6 +29,9 @@ class Score(TimeStampedModel):
     score = models.FloatField()
     coverage = models.FloatField(default=0)
 
+    # NOTE: we need to use `edited_at` to store the time this is calculated
+    # it effects reputation
+
     class ScoreTypes(models.TextChoices):
         RELATIVE_LEGACY = "relative_legacy"
         PEER = "peer"
