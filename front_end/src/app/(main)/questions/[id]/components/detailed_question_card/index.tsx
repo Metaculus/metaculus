@@ -13,7 +13,8 @@ type Props = {
 };
 
 const DetailedQuestionCard: FC<Props> = ({ question }) => {
-  const isForecastEmpty = getIsForecastEmpty(question.forecasts);
+  const isForecastEmpty =
+    question.aggregations.recency_weighted.history.length === 0;
 
   if (isForecastEmpty) {
     return <DetailedQuestionCardEmptyState />;
@@ -26,7 +27,8 @@ const DetailedQuestionCard: FC<Props> = ({ question }) => {
       return (
         <DetailsQuestionCardErrorBoundary>
           <NumericChartCard
-            forecast={question.forecasts}
+            aggregrations={question.aggregations}
+            myForecasts={question.my_forecasts}
             questionType={question.type}
             rangeMin={question.range_min}
             rangeMax={question.range_max}
