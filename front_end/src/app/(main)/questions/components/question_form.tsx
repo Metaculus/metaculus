@@ -104,12 +104,14 @@ const InputContainer: FC<PropsWithChildren<InputContainerProps>> = ({
 }) => {
   return (
     <div className={classNames("flex flex-col gap-1.5", className)}>
-      {labelText && (
-        <span className="text-sm font-bold capitalize text-gray-600 dark:text-gray-600-dark">
+      {labelText ? (
+        <label className="flex flex-col gap-1.5 text-sm font-bold capitalize text-gray-600 dark:text-gray-600-dark">
           {labelText}
-        </span>
+          {children}
+        </label>
+      ) : (
+        children
       )}
-      {children}
       {explanation && (
         <span className="text-xs text-gray-700 dark:text-gray-700-dark">
           {explanation}
