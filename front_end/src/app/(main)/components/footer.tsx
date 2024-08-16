@@ -1,6 +1,7 @@
 "use client";
 
 import { faTwitter } from "@fortawesome/free-brands-svg-icons";
+import { faDiscord } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -73,15 +74,28 @@ const Footer: FC = () => {
                 {t("Careers")}
               </a>
             </li>
-            <li className="my-2">
-              <a
-                className="no-underline"
-                href="https://twitter.com/metaculus"
-                aria-label="Metaculus on Twitter"
-              >
-                <FontAwesomeIcon icon={faTwitter}></FontAwesomeIcon>
-              </a>
-            </li>
+            <div className="flex flex-row gap-2">
+              <li className="my-2">
+                <a
+                  className="no-underline"
+                  href="https://twitter.com/metaculus"
+                  aria-label="Metaculus on Twitter"
+                  target="_blank"
+                >
+                  <FontAwesomeIcon icon={faTwitter} size="lg"></FontAwesomeIcon>
+                </a>
+              </li>
+              <li className="my-2">
+                <a
+                  className="no-underline"
+                  href="https://discord.gg/7GEKtpnVdJ"
+                  aria-label="Metaculus on Discord"
+                  target="_blank"
+                >
+                  <FontAwesomeIcon icon={faDiscord} size="lg"></FontAwesomeIcon>
+                </a>
+              </li>
+            </div>
           </ul>
         </div>
       </div>
