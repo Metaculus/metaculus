@@ -85,7 +85,8 @@ const EmbeddedQuestionCard: FC<Props> = ({ postData }) => {
         case QuestionType.Binary:
           return (
             <NumericChart
-              dataset={question.forecasts}
+              aggregations={question.aggregations}
+              myForecasts={question.my_forecasts}
               questionType={question.type}
               rangeMin={question.range_min}
               rangeMax={question.range_max}
