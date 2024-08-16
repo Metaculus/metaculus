@@ -15,7 +15,7 @@ const DisabledArrow: FC<SVGProps<SVGSVGElement>> = (props) => {
         strokeDasharray="4 2"
         strokeWidth={2}
         d="M0 6.5h70"
-        className="stroke-blue-500 dark:stroke-blue-500-dark"
+        className="stroke-blue-500 dark:stroke-blue-300-dark"
       />
     </svg>
   );
