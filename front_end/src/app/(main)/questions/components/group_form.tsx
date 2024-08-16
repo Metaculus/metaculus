@@ -1,10 +1,11 @@
 "use client";
 
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { forEach } from "lodash";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -22,6 +23,7 @@ import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
 import ProjectPicker from "./project_picker";
+import { InputContainer, MarkdownText } from "./question_form";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
@@ -62,7 +64,7 @@ const GroupForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
-  const { isLive, isDone } = getQuestionStatus(post);
+  const { isLive } = getQuestionStatus(post);
 
   const defaultProject = post
     ? post.projects.default_project
@@ -84,20 +86,15 @@ const GroupForm: React.FC<Props> = ({
     const groupData = subQuestions
       .filter((x) => !x.id)
       .map((x) => {
-        if (subtype == QuestionType.Binary) {
+        if (subtype === QuestionType.Binary) {
           return {
             type: subtype,
             title: x.label,
             scheduled_close_time: x.scheduled_close_time,
             scheduled_resolve_time: x.scheduled_resolve_time,
           };
-        } else if (subtype == QuestionType.Numeric) {
-          if (
-            x.range_max == null ||
-            x.range_min == null ||
-            x.range_max == undefined ||
-            x.range_min == undefined
-          ) {
+        } else if (subtype === QuestionType.Numeric) {
+          if (x.range_max == null || x.range_min == null) {
             alert(
               "Please enter a range_max or range_min value for numeric questions"
             );
@@ -115,13 +112,8 @@ const GroupForm: React.FC<Props> = ({
             open_upper_bound: x.openUpperBound,
             zero_point: x.zeroPoint,
           };
-        } else if (subtype == QuestionType.Date) {
-          if (
-            x.range_max == null ||
-            x.range_min == null ||
-            x.range_max == undefined ||
-            x.range_min == undefined
-          ) {
+        } else if (subtype === QuestionType.Date) {
+          if (x.range_max === null || x.range_min === null) {
             alert("Please enter a max or min value for numeric questions");
             break_out = true;
             return;
@@ -168,7 +160,7 @@ const GroupForm: React.FC<Props> = ({
         questions: groupData,
       },
     };
-    if (mode == "edit" && post) {
+    if (mode === "edit" && post) {
       const resp = await updatePost(post.id, post_data);
       router.push(`/questions/${resp.post?.id}`);
     } else {
@@ -208,44 +200,32 @@ const GroupForm: React.FC<Props> = ({
     { title: string; description: string }
   > = {
     binary: {
-      title: "Binary Question Group",
-      description:
-        'Binary question groups contain questions that generally have the form "Will X happen?" and resolve as Yes or No.',
+      title: t("binaryQuestionGroup"),
+      description: t("binaryQuestionGroupDescription"),
     },
     numeric: {
-      title: "Numeric Question Group",
-      description:
-        "Numeric question groups contain questions that ask about the value of an unknown future quantity and resolve within a specified range.",
+      title: t("numericQuestionGroup"),
+      description: t("numericQuestionGroupDescription"),
     },
     date: {
-      title: "Date Question Group",
-      description:
-        "Date question groups contain questions that ask when something will happen and resolve within a specified date range.",
+      title: t("dateQuestionGroup"),
+      description: t("dateQuestionGroupDescription"),
     },
   };
 
   const { title: formattedQuestionType, description: questionDescription } =
     questionSubtypeDisplayMap[subtype] || { title: subtype, description: "" };
 
-  const inputContainerStyles = "flex flex-col gap-1.5";
-  const baseInputStyles =
-    "px-3 py-2 text-base border border-gray-500 rounded dark:bg-blue-950";
-  const baseTextareaStyles = "border border-gray-500 rounded dark:bg-blue-950";
-  const inputLabelStyles = "text-sm font-bold text-gray-600 dark:text-gray-400";
-  const inputDescriptionStyles = "text-xs text-gray-700 dark:text-gray-300";
-  const markdownStyles =
-    "text-xs font-mono pb-0.5 pt-0 px-1 rounded-sm bg-blue-400 dark:bg-yellow-500/25";
-
   return (
-    <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
+    <div className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
         backText="Create"
         backHref="/questions/create"
         currentPage={formattedQuestionType}
       />
-      <p className="mt-0 text-sm text-gray-600 dark:text-gray-300 md:mt-1 md:text-base">
+      <div className="text-sm text-gray-700 dark:text-gray-700-dark md:mt-1 md:text-base">
         {questionDescription}
-      </p>
+      </div>
       <form
         onSubmit={async (e) => {
           if (!control.getValues("default_project_id")) {
@@ -261,9 +241,9 @@ const GroupForm: React.FC<Props> = ({
             }
           )(e);
         }}
-        className="mt-4 flex w-[540px] w-full flex-col gap-4 rounded"
+        className="mt-4 flex w-full flex-col gap-4 rounded"
       >
-        <div className={inputContainerStyles}>
+        <InputContainer labelText={t("projects")}>
           <ProjectPicker
             tournaments={tournaments}
             siteMain={siteMain}
@@ -272,140 +252,146 @@ const GroupForm: React.FC<Props> = ({
               control.setValue("default_project_id", project.id);
             }}
           />
-        </div>
-        <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>Long Title</span>
+        </InputContainer>
+        <InputContainer
+          labelText={t("longTitle")}
+          explanation={t("longTitleExplanation")}
+        >
           <Textarea
             {...control.register("title")}
             errors={control.formState.errors.title}
             defaultValue={post?.title}
-            className={`${baseTextareaStyles} min-h-[148px] p-5 text-xl font-normal`}
+            className="min-h-36 rounded border border-gray-500 p-5 text-xl font-normal dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
-          <span className={inputDescriptionStyles}>
-            This should be a shorter version of the question text, used where
-            there is less space to display a title. It should end with a
-            question mark. Examples: &quot;NASA 2022 spacesuit contract
-            winner?&quot; or &quot;EU GDP from 2025 to 2035?&quot;.
-          </span>
-        </div>
-        <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>{t("shortTitle")}</span>
+        </InputContainer>
+        <InputContainer
+          labelText={t("shortTitle")}
+          explanation={t("shortTitleExplanation")}
+        >
           <Input
             {...control.register("url_title")}
             errors={control.formState.errors.url_title}
             defaultValue={post?.url_title}
-            className={baseInputStyles}
+            className={
+              "rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            }
           />
-          <span className={inputDescriptionStyles}>
-            This should be a shorter version of the Long Title, used where there
-            is less space to display a title. Examples: &quot;NASA 2022
-            Spacesuit Contract Winner&quot; ; &quot;EU GDP From 2025 to
-            2035&quot;.
-          </span>
-        </div>
-        <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>Background Information</span>
+        </InputContainer>
+        <InputContainer
+          labelText={t("backgroundInformation")}
+          explanation={t.rich("backgroundInfoExplanation", {
+            link: (chunks) => <Link href="/help/markdown">{chunks}</Link>,
+            markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
+          })}
+        >
           <Textarea
             {...control.register("description")}
             errors={control.formState.errors.description}
-            className={`${baseTextareaStyles} h-[120px] w-full p-3 text-sm`}
+            className="h-32 w-full rounded border border-gray-500 p-3 text-sm dark:border-gray-500-dark dark:bg-blue-50-dark"
             defaultValue={post?.group_of_questions?.description}
           />
-          <span className={inputDescriptionStyles}>
-            Provide background information for your question in a factual and
-            unbiased tone. Links should be added to relevant and helpful
-            resources using markdown syntax:{" "}
-            <span className={markdownStyles}>
-              [Link title](https://link-url.com)
-            </span>
-            .
-          </span>
-        </div>
-        <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>{t("groupVariable")}</span>
+        </InputContainer>
+        <InputContainer
+          labelText={t("groupVariable")}
+          explanation={t("groupVariableDescription")}
+        >
           <Input
             {...control.register("group_variable")}
             errors={control.formState.errors.group_variable}
             defaultValue={post?.group_of_questions?.group_variable}
-            className={baseInputStyles}
+            className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
-          <span className={inputDescriptionStyles}>
-            What the subquestion labels represent (e.g. year, country, etc).
-          </span>
-        </div>
-        <span>Resolution Criteria</span>
-        <Textarea
-          {...control.register("resolution_criteria")}
-          errors={control.formState.errors.resolution_criteria}
-          className="h-[120px] w-full"
-          defaultValue={
-            post?.group_of_questions?.resolution_criteria
-              ? post?.group_of_questions?.resolution_criteria
-              : undefined
-          }
-        />
-        <span>Fine Print</span>
-        <Textarea
-          {...control.register("fine_print")}
-          errors={control.formState.errors.fine_print}
-          className="h-[120px] w-full"
-          defaultValue={
-            post?.group_of_questions?.fine_print
-              ? post?.group_of_questions?.fine_print
-              : undefined
-          }
-        />
-
-        <CategoryPicker
-          allCategories={allCategories}
-          categories={categoriesList}
-          onChange={(categories) => {
-            setCategoriesList(categories);
-          }}
-        ></CategoryPicker>
-        <span className="text-xs font-thin text-gray-800">{`A name for the parameter which varies between subquestions, like "Option", "Year" or "Country"`}</span>
-
-        <div className="flex-col rounded border bg-zinc-200 p-4 dark:bg-blue-700">
-          <div className="mb-4">Subquestions</div>
+        </InputContainer>
+        <InputContainer
+          labelText={t("resolutionCriteria")}
+          explanation={t.rich("resolutionCriteriaExplanation", {
+            markdown: (chunks) => <MarkdownText>{chunks}</MarkdownText>,
+          })}
+        >
+          <Textarea
+            {...control.register("resolution_criteria")}
+            errors={control.formState.errors.resolution_criteria}
+            className="h-32 w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            defaultValue={
+              post?.group_of_questions?.resolution_criteria
+                ? post?.group_of_questions?.resolution_criteria
+                : undefined
+            }
+          />
+        </InputContainer>
+        <InputContainer
+          labelText={t("finePrint")}
+          explanation={t("finePrintDescription")}
+        >
+          <Textarea
+            {...control.register("fine_print")}
+            errors={control.formState.errors.fine_print}
+            className="h-32 w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+            defaultValue={
+              post?.group_of_questions?.fine_print
+                ? post?.group_of_questions?.fine_print
+                : undefined
+            }
+          />
+        </InputContainer>
+        <InputContainer
+          labelText={t("categories")}
+          explanation={t("categoryPickerDescription")}
+        >
+          <CategoryPicker
+            allCategories={allCategories}
+            categories={categoriesList}
+            onChange={(categories) => {
+              setCategoriesList(categories);
+            }}
+          />
+        </InputContainer>
+        <div className="flex flex-col gap-4 rounded border bg-gray-200 p-4 dark:bg-gray-200-dark">
+          <h4 className="m-0 capitalize">{t("subquestions")}</h4>
 
           {subQuestions.map((subQuestion, index) => {
             return (
               <div
                 key={index}
-                className="flex w-full flex-col space-y-4 rounded border bg-white p-4 dark:bg-blue-900"
+                className="flex w-full flex-col gap-4 rounded border bg-gray-0 p-4 dark:bg-gray-0-dark"
               >
-                <div className={inputContainerStyles}>
-                  {collapsedSubQuestions[index] && (
-                    <span className={inputLabelStyles}>Subquestion Label</span>
-                  )}
+                <InputContainer
+                  labelText={
+                    collapsedSubQuestions[index]
+                      ? t("subquestionLabel")
+                      : undefined
+                  }
+                  explanation={
+                    collapsedSubQuestions[index]
+                      ? t("subquestionLabelDescription")
+                      : undefined
+                  }
+                >
                   <Input
                     onChange={(e) => {
                       setSubQuestions(
                         subQuestions.map((subQuestion, iter_index) => {
-                          if (index == iter_index) {
+                          if (index === iter_index) {
                             subQuestion["label"] = e.target.value;
                           }
                           return subQuestion;
                         })
                       );
                     }}
-                    className={baseInputStyles}
+                    className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                     value={subQuestion?.label}
                   />
-                  {collapsedSubQuestions[index] && (
-                    <span className={inputDescriptionStyles}>
-                      {`The label or parameter which identifies this subquestion, like "Option 1", "2033" or "France"`}
-                    </span>
-                  )}
-                </div>
+                </InputContainer>
                 {collapsedSubQuestions[index] && (
                   <div className="flex w-full flex-col gap-4 md:flex-row">
-                    <div className="flex w-full flex-col gap-2">
-                      <span className={inputLabelStyles}>Closing Date</span>
+                    <InputContainer
+                      labelText={t("closingDate")}
+                      className="w-full"
+                    >
                       <Input
                         readOnly={isLive}
                         type="datetime-local"
-                        className={baseInputStyles}
+                        className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                         defaultValue={
                           subQuestions[index].scheduled_close_time
                             ? format(
@@ -419,7 +405,7 @@ const GroupForm: React.FC<Props> = ({
                         onChange={(e) => {
                           setSubQuestions(
                             subQuestions.map((subQuestion, iter_index) => {
-                              if (index == iter_index) {
+                              if (index === iter_index) {
                                 subQuestion.scheduled_close_time =
                                   e.target.value;
                               }
@@ -428,13 +414,15 @@ const GroupForm: React.FC<Props> = ({
                           );
                         }}
                       />
-                    </div>
-                    <div className="flex w-full flex-col gap-2">
-                      <span className={inputLabelStyles}>Resolving Date</span>
+                    </InputContainer>
+                    <InputContainer
+                      labelText={t("resolvingDate")}
+                      className="w-full"
+                    >
                       <Input
                         readOnly={isLive}
                         type="datetime-local"
-                        className={baseInputStyles}
+                        className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                         defaultValue={
                           subQuestions[index].scheduled_resolve_time
                             ? format(
@@ -448,7 +436,7 @@ const GroupForm: React.FC<Props> = ({
                         onChange={(e) => {
                           setSubQuestions(
                             subQuestions.map((subQuestion, iter_index) => {
-                              if (index == iter_index) {
+                              if (index === iter_index) {
                                 subQuestion.scheduled_resolve_time =
                                   e.target.value;
                               }
@@ -457,7 +445,7 @@ const GroupForm: React.FC<Props> = ({
                           );
                         }}
                       />
-                    </div>
+                    </InputContainer>
                     {(subtype === QuestionType.Date ||
                       subtype === QuestionType.Numeric) && (
                       <NumericQuestionInput
@@ -476,7 +464,7 @@ const GroupForm: React.FC<Props> = ({
                         defaultZeroPoint={subQuestions[index].zero_point}
                         isLive={isLive}
                         canSeeLogarithmic={
-                          post?.user_permission == ProjectPermissions.ADMIN ||
+                          post?.user_permission === ProjectPermissions.ADMIN ||
                           !post
                         }
                         onChange={(
@@ -488,7 +476,7 @@ const GroupForm: React.FC<Props> = ({
                         ) => {
                           setSubQuestions(
                             subQuestions.map((subQuestion, iter_index) => {
-                              if (index == iter_index) {
+                              if (index === iter_index) {
                                 subQuestion["range_min"] = range_min;
                                 subQuestion["range_max"] = range_max;
                                 subQuestion["openLowerBound"] = openLowerBound;
@@ -511,7 +499,7 @@ const GroupForm: React.FC<Props> = ({
                     onClick={() => {
                       setCollapsedSubQuestions(
                         collapsedSubQuestions.map((x, iter_index) => {
-                          if (iter_index == index) {
+                          if (iter_index === index) {
                             return !x;
                           }
                           return x;
@@ -533,84 +521,82 @@ const GroupForm: React.FC<Props> = ({
                     onClick={() => {
                       setSubQuestions(
                         subQuestions.filter(
-                          (subQuestion, iter_index) => index != iter_index
+                          (subQuestion, iter_index) => index !== iter_index
                         )
                       );
                       setCollapsedSubQuestions(
                         collapsedSubQuestions.filter(
-                          (_, iter_index) => index != iter_index
+                          (_, iter_index) => index !== iter_index
                         )
                       );
                     }}
                   >
-                    <FontAwesomeIcon icon={faTrash}></FontAwesomeIcon>
+                    <FontAwesomeIcon icon={faTrash} />
                   </Button>
                 </div>
               </div>
             );
           })}
-          <div className="mt-4">
-            <Button
-              onClick={() => {
-                if (subtype === "numeric") {
-                  setSubQuestions([
-                    ...subQuestions,
-                    {
-                      type: "numeric",
-                      label: "",
-                      scheduled_close_time:
-                        control.getValues().scheduled_close_time,
-                      scheduled_resolve_time:
-                        control.getValues().scheduled_resolve_time,
-                      range_min: null,
-                      range_max: null,
-                      zero_point: null,
-                      open_lower_bound: null,
-                      open_upper_bound: null,
-                    },
-                  ]);
-                } else if (subtype === "date") {
-                  setSubQuestions([
-                    ...subQuestions,
-                    {
-                      type: "date",
-                      label: "",
-                      scheduled_close_time:
-                        control.getValues().scheduled_close_time,
-                      scheduled_resolve_time:
-                        control.getValues().scheduled_resolve_time,
-                      range_min: null,
-                      range_max: null,
-                      zero_point: null,
-                      open_lower_bound: null,
-                      open_upper_bound: null,
-                    },
-                  ]);
-                } else {
-                  setSubQuestions([
-                    ...subQuestions,
-                    {
-                      type: "binary",
-                      label: "",
-                      scheduled_close_time:
-                        control.getValues().scheduled_close_time,
-                      scheduled_resolve_time:
-                        control.getValues().scheduled_resolve_time,
-                    },
-                  ]);
-                }
-                setCollapsedSubQuestions([...collapsedSubQuestions, true]);
-              }}
-            >
-              + New Subquestion
-            </Button>
-          </div>
-        </div>
-        <div className="mt-4">
-          <Button type="submit">
-            {mode == "create" ? "Create Question" : "Edit Question"}
+          <Button
+            onClick={() => {
+              if (subtype === "numeric") {
+                setSubQuestions([
+                  ...subQuestions,
+                  {
+                    type: "numeric",
+                    label: "",
+                    scheduled_close_time:
+                      control.getValues().scheduled_close_time,
+                    scheduled_resolve_time:
+                      control.getValues().scheduled_resolve_time,
+                    range_min: null,
+                    range_max: null,
+                    zero_point: null,
+                    open_lower_bound: null,
+                    open_upper_bound: null,
+                  },
+                ]);
+              } else if (subtype === "date") {
+                setSubQuestions([
+                  ...subQuestions,
+                  {
+                    type: "date",
+                    label: "",
+                    scheduled_close_time:
+                      control.getValues().scheduled_close_time,
+                    scheduled_resolve_time:
+                      control.getValues().scheduled_resolve_time,
+                    range_min: null,
+                    range_max: null,
+                    zero_point: null,
+                    open_lower_bound: null,
+                    open_upper_bound: null,
+                  },
+                ]);
+              } else {
+                setSubQuestions([
+                  ...subQuestions,
+                  {
+                    type: "binary",
+                    label: "",
+                    scheduled_close_time:
+                      control.getValues().scheduled_close_time,
+                    scheduled_resolve_time:
+                      control.getValues().scheduled_resolve_time,
+                  },
+                ]);
+              }
+              setCollapsedSubQuestions([...collapsedSubQuestions, true]);
+            }}
+            className="w-fit capitalize"
+          >
+            <FontAwesomeIcon icon={faPlus} />
+            {t("newSubquestion")}
           </Button>
         </div>
+        <Button type="submit" className="w-fit">
+          {mode === "create" ? "Create Question" : "Edit Question"}
+        </Button>
       </form>
     </div>
   );
