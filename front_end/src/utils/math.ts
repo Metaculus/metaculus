@@ -63,6 +63,18 @@ function logisticCDF(
   );
 }
 
+export function cdfToPmf(cdf: number[]) {
+  const pdf = [];
+  for (let i = 0; i < cdf.length; i++) {
+    if (i === 0) {
+      pdf.push(cdf[i]);
+    } else {
+      pdf.push(cdf[i] - cdf[i - 1]);
+    }
+  }
+  return pdf;
+}
+
 export function binWeightsFromSliders(
   left: number,
   center: number,
@@ -88,18 +100,10 @@ export function binWeightsFromSliders(
   const rescaled_inbound_mass = scale_upper_to - scale_lower_to;
   cdf = cdf.map((x) => (x - scale_lower_to) / rescaled_inbound_mass);
 
-  const pmf = [];
   if (cdf === null) {
     cdf = [];
   }
-  for (let i = 0; i < cdf.length; i++) {
-    if (i == 0) {
-      pmf.push(cdf[0]);
-    } else {
-      pmf.push(Number(math.subtract(cdf[i], cdf[i - 1])));
-    }
-  }
-  pmf.push(1 - cdf[cdf.length - 1]);
+  const pmf = cdfToPmf(cdf);
   return { pmf: pmf, cdf: cdf };
 }
 
