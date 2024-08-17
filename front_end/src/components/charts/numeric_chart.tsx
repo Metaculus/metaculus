@@ -38,6 +38,7 @@ import {
   QuestionType,
   Aggregations,
   UserForecastHistory,
+  Scaling,
 } from "@/types/question";
 import {
   generateNumericDomain,
@@ -58,9 +59,8 @@ type Props = {
   onCursorChange?: (value: number) => void;
   onChartReady?: () => void;
   questionType: QuestionType;
-  rangeMin: number | null;
-  rangeMax: number | null;
-  zeroPoint: number | null;
+  actualCloseTime: number | null;
+  scaling: Scaling;
   extraTheme?: VictoryThemeDefinition;
   resolution?: Resolution | null;
 };
@@ -75,9 +75,8 @@ const NumericChart: FC<Props> = ({
   onCursorChange,
   onChartReady,
   questionType,
-  rangeMin,
-  rangeMax,
-  zeroPoint,
+  actualCloseTime,
+  scaling,
   extraTheme,
   resolution,
 }) => {
@@ -90,7 +89,7 @@ const NumericChart: FC<Props> = ({
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
 
-  const defaultCursor = aggregations.recency_weighted.latest.start_time;
+  const defaultCursor = Date.now();
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState(defaultZoom);
@@ -98,9 +97,8 @@ const NumericChart: FC<Props> = ({
     () =>
       buildChartData({
         questionType,
-        rangeMin,
-        rangeMax,
-        zeroPoint,
+        actualCloseTime,
+        scaling,
         height,
         aggregations,
         myForecasts,
@@ -227,9 +225,7 @@ const NumericChart: FC<Props> = ({
                 questionType,
                 resolution,
                 aggregations,
-                rangeMin,
-                rangeMax,
-                zeroPoint,
+                scaling,
               })}
               style={{
                 data: {
@@ -278,9 +274,8 @@ type ChartData = BaseChartData & {
 
 function buildChartData({
   questionType,
-  rangeMin,
-  rangeMax,
-  zeroPoint,
+  actualCloseTime,
+  scaling,
   height,
   aggregations,
   myForecasts,
@@ -288,24 +283,36 @@ function buildChartData({
   zoom,
 }: {
   questionType: QuestionType;
-  rangeMin: number | null;
-  rangeMax: number | null;
-  zeroPoint: number | null;
+  actualCloseTime: number | null;
+  scaling: Scaling;
   height: number;
   aggregations: Aggregations;
   myForecasts: UserForecastHistory;
   width: number;
   zoom: TimelineChartZoomOption;
 }): ChartData {
-  const line = aggregations.recency_weighted.history.map((forecast) => ({
+  const aggregation = aggregations.recency_weighted;
+  const line = aggregation.history.map((forecast) => ({
     x: forecast.start_time,
     y: forecast.centers![0],
   }));
-  const area = aggregations.recency_weighted.history.map((forecast) => ({
+  const area = aggregation.history.map((forecast) => ({
     x: forecast.start_time,
     y0: forecast.interval_lower_bounds![0],
     y: forecast.interval_upper_bounds![0],
   }));
+  const latestTimestamp = actualCloseTime ?? Date.now() / 1000;
+  if (aggregation.latest) {
+    line.push({
+      x: latestTimestamp,
+      y: aggregation.latest.centers![0],
+    });
+    area.push({
+      x: latestTimestamp,
+      y0: aggregation.latest.interval_lower_bounds![0],
+      y: aggregation.latest.interval_upper_bounds![0],
+    });
+  }
 
   let points: Line = [];
   if (myForecasts.history.length) {
@@ -320,8 +327,9 @@ function buildChartData({
   // TODO: add quartiles if continuous
 
   const domainTimestamps = [
-    ...aggregations.recency_weighted.history.map((f) => f.start_time),
+    ...aggregation.history.map((f) => f.start_time),
     ...myForecasts.history.map((f) => f.start_time),
+    latestTimestamp,
   ];
   const xDomain = generateNumericDomain(domainTimestamps, zoom);
   const xScale = generateTimestampXScale(xDomain, width);
@@ -354,7 +362,7 @@ function buildChartData({
     if (!majorTicks.includes(value)) {
       return "";
     }
-    return getDisplayValue(value, questionType, rangeMin, rangeMax, zeroPoint);
+    return getDisplayValue(value, questionType, scaling);
   };
   const yScale: Scale = {
     ticks,
@@ -376,24 +384,23 @@ function getResolutionData({
   questionType,
   resolution,
   aggregations,
-  rangeMin,
-  rangeMax,
-  zeroPoint,
+  scaling,
 }: {
   questionType: QuestionType;
   resolution: Resolution;
-  rangeMin: number | null;
-  rangeMax: number | null;
   aggregations: Aggregations;
-  zeroPoint: number | null;
+  scaling: Scaling;
 }) {
   switch (questionType) {
     case QuestionType.Binary: {
       // format data for binary question
       return [
         {
-          y: resolution === "no" ? rangeMin ?? 0 : rangeMax ?? 1,
-          x: aggregations.recency_weighted.latest.start_time,
+          y:
+            resolution === "no"
+              ? scaling.range_min ?? 0
+              : scaling.range_max ?? 1,
+          x: aggregations.recency_weighted.latest!.start_time,
           symbol: "diamond",
           size: 4,
         },
@@ -403,15 +410,13 @@ function getResolutionData({
       // format data for numerical question
       const unscaledResolution = unscaleNominalLocation(
         Number(resolution),
-        rangeMin ?? 0,
-        rangeMax ?? 1,
-        zeroPoint
+        scaling
       );
 
       return [
         {
           y: unscaledResolution,
-          x: aggregations.recency_weighted.latest.start_time,
+          x: aggregations.recency_weighted.latest!.start_time,
           symbol: "diamond",
           size: 4,
         },
@@ -420,17 +425,12 @@ function getResolutionData({
     case QuestionType.Date: {
       // format data for date question
       const dateTimestamp = new Date(resolution).getTime() / 1000;
-      const unscaledResolution = unscaleNominalLocation(
-        dateTimestamp,
-        rangeMin ?? 0,
-        rangeMax ?? 1,
-        zeroPoint
-      );
+      const unscaledResolution = unscaleNominalLocation(dateTimestamp, scaling);
 
       return [
         {
           y: unscaledResolution,
-          x: aggregations.recency_weighted.latest.start_time,
+          x: aggregations.recency_weighted.latest!.start_time,
           symbol: "diamond",
           size: 4,
         },

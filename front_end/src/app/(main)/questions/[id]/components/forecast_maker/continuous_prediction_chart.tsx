@@ -64,15 +64,16 @@ const ContinuousPredictionChart: FC<Props> = ({
   );
 
   const data: ContinuousAreaGraphInput = useMemo(() => {
-    const charts: ContinuousAreaGraphInput = [
-      {
+    const charts: ContinuousAreaGraphInput = [];
+    if (question.aggregations.recency_weighted.latest) {
+      charts.push({
         pmf: cdfToPmf(
           question.aggregations.recency_weighted.latest.forecast_values
         ),
         cdf: question.aggregations.recency_weighted.latest.forecast_values,
         type: "community",
-      },
-    ];
+      });
+    }
 
     if (!readOnly) {
       charts.push({
@@ -83,20 +84,13 @@ const ContinuousPredictionChart: FC<Props> = ({
     }
 
     return charts;
-  }, [
-    dataset.cdf,
-    dataset.pmf,
-    question.aggregations.recency_weighted.latest.forecast_values,
-    readOnly,
-  ]);
+  }, [dataset.cdf, dataset.pmf, readOnly]);
 
   return (
     <>
       <ContinuousAreaChart
         height={height}
-        rangeMin={question.range_min!}
-        rangeMax={question.range_max!}
-        zeroPoint={question.zero_point}
+        scaling={question.scaling}
         questionType={question.type}
         graphType={graphType}
         data={data}
