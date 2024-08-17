@@ -51,7 +51,7 @@ import XTickLabel from "./primitives/x_tick_label";
 
 type Props = {
   aggregations: Aggregations;
-  myForecasts: UserForecastHistory;
+  myForecasts?: UserForecastHistory;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
   yLabel?: string;
@@ -287,7 +287,7 @@ function buildChartData({
   scaling: Scaling;
   height: number;
   aggregations: Aggregations;
-  myForecasts: UserForecastHistory;
+  myForecasts?: UserForecastHistory;
   width: number;
   zoom: TimelineChartZoomOption;
 }): ChartData {
@@ -317,7 +317,7 @@ function buildChartData({
   }
 
   let points: Line = [];
-  if (myForecasts.history.length) {
+  if (myForecasts?.history.length) {
     points = myForecasts.history.map((forecast) => ({
       x: forecast.start_time,
       y:
@@ -330,7 +330,9 @@ function buildChartData({
 
   const domainTimestamps = [
     ...aggregation.history.map((f) => f.start_time),
-    ...myForecasts.history.map((f) => f.start_time),
+    ...(myForecasts?.history
+      ? myForecasts.history.map((f) => f.start_time)
+      : []),
     latestTimestamp,
   ];
   const xDomain = generateNumericDomain(domainTimestamps, zoom);
