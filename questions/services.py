@@ -118,7 +118,7 @@ def build_question_forecasts(
         )
 
     ################ NEW CODE ################
-    # overwrite old history with new history
+    # overwrite old history with new history, minimizing the amount deleted and created
     previous_history = question.aggregate_forecasts.filter(method=aggregation_method)
     to_overwrite, to_delete = (
         previous_history[: len(aggregation_history)],
@@ -128,13 +128,17 @@ def build_question_forecasts(
         aggregation_history[: len(to_overwrite)],
         aggregation_history[len(to_overwrite) :],
     )
-    for old, new in zip(to_overwrite, overwriters):
+    for new, old in zip(overwriters, to_overwrite):
         new.id = old.id
-        new.save()
-    AggregateForecast.objects.filter(
-        id__in=to_delete.values_list("id", flat=True)
-    ).delete()
-    AggregateForecast.objects.bulk_create(to_create)
+    fields = [
+        field.name
+        for field in AggregateForecast._meta.get_fields()
+        if not field.primary_key
+    ]
+    with transaction.atomic():
+        AggregateForecast.objects.bulk_update(overwriters, fields)
+        AggregateForecast.objects.filter(id__in=[old.id for old in to_delete]).delete()
+        AggregateForecast.objects.bulk_create(to_create)
     ################ NEW CODE ################
 
     latest_entry = aggregation_history[-1] if aggregation_history else None
