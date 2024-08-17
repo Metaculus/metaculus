@@ -74,7 +74,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         (acc, question) => ({
           ...acc,
           [question.id]: extractPrevBinaryForecastValue(
-            question.my_forecasts.latest?.slider_values
+            question.my_forecasts?.latest?.slider_values
           ),
         }),
         {}

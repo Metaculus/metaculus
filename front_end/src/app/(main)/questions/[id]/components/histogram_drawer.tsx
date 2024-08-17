@@ -32,8 +32,8 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
           y: value,
         })
       );
-    const median = question.aggregations.recency_weighted.latest.centers![1];
-    const mean = question.aggregations.recency_weighted.latest.means![1];
+    const median = question.aggregations.recency_weighted.latest.centers![0];
+    const mean = question.aggregations.recency_weighted.latest.means![0];
 
     return (
       <SectionToggle title={t("histogram")} defaultOpen>
@@ -56,31 +56,29 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     post.conditional?.question_yes.type === "binary" &&
     post.conditional?.question_no.type === "binary"
   ) {
-    const question_yes = post.conditional.question_yes;
-    if (!question_yes.forecasts.histogram) {
+    const latest_yes =
+      post.conditional.question_yes.aggregations.recency_weighted.latest;
+    if (!latest_yes) {
       return null;
     }
-    const histogramData_yes = question_yes.forecasts.histogram.map(
-      (value, index) => ({
-        x: index,
-        y: value,
-      })
-    );
-    const median_yes = question_yes.forecasts.medians.at(-1);
-    const mean_yes = question_yes.forecasts.means.at(-1);
+    const histogramData_yes = latest_yes.histogram!.map((value, index) => ({
+      x: index,
+      y: value,
+    }));
+    const median_yes = latest_yes.centers![0];
+    const mean_yes = latest_yes.means![0];
 
-    const question_no = post.conditional.question_no;
-    if (!question_no.forecasts.histogram) {
+    const latest_no =
+      post.conditional.question_no.aggregations.recency_weighted.latest;
+    if (!latest_no) {
       return null;
     }
-    const histogramData_no = question_no.forecasts.histogram.map(
-      (value, index) => ({
-        x: index,
-        y: value,
-      })
-    );
-    const median_no = question_no.forecasts.medians.at(-1);
-    const mean_no = question_no.forecasts.means.at(-1);
+    const histogramData_no = latest_no.histogram!.map((value, index) => ({
+      x: index,
+      y: value,
+    }));
+    const median_no = latest_no.centers![0];
+    const mean_no = latest_no.means![0];
 
     return (
       <SectionToggle title={t("histogram")} defaultOpen>

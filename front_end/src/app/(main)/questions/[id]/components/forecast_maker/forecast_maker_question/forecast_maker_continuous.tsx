@@ -72,7 +72,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   );
 
   const userCdf: number[] = dataset.cdf;
-  const communityCdf: number[] =
+  const communityCdf: number[] | undefined =
     question.aggregations.recency_weighted.latest?.forecast_values;
 
   const handleAddComponent = () => {
@@ -164,12 +164,18 @@ const ForecastMakerContinuous: FC<Props> = ({
           belowLower: userCdf[0],
           aboveUpper: 1 - userCdf[userCdf.length - 1],
         }}
-        userQuartiles={computeQuartilesFromCDF(userCdf)}
-        communityBounds={{
-          belowLower: communityCdf[0],
-          aboveUpper: 1 - communityCdf[communityCdf.length - 1],
-        }}
-        communityQuartiles={computeQuartilesFromCDF(communityCdf)}
+        userQuartiles={userCdf ? computeQuartilesFromCDF(userCdf) : undefined}
+        communityBounds={
+          communityCdf
+            ? {
+                belowLower: communityCdf[0],
+                aboveUpper: 1 - communityCdf[communityCdf.length - 1],
+              }
+            : undefined
+        }
+        communityQuartiles={
+          communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
+        }
         isDirty={isDirty}
         hasUserForecast={!!prevForecastValue.forecast}
       />
