@@ -301,7 +301,9 @@ function buildChartData({
     y0: forecast.interval_lower_bounds![0],
     y: forecast.interval_upper_bounds![0],
   }));
-  const latestTimestamp = actualCloseTime ?? Date.now() / 1000;
+  const latestTimestamp = actualCloseTime
+    ? Math.min(actualCloseTime, Date.now() / 1000)
+    : Date.now() / 1000;
   if (aggregation.latest) {
     line.push({
       x: latestTimestamp,
