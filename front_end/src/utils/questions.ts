@@ -216,12 +216,12 @@ export const generateUserForecasts = (
     const userForecasts = question.my_forecasts;
     return {
       choice: extractQuestionGroupName(question.title),
-      values: userForecasts.history.map((forecast) =>
+      values: userForecasts?.history.map((forecast) =>
         question.type === "binary"
           ? forecast.forecast_values[1]
           : forecast.centers![0]
       ),
-      timestamps: userForecasts.history.map((forecast) => forecast.start_time),
+      timestamps: userForecasts?.history.map((forecast) => forecast.start_time),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
     };
   });

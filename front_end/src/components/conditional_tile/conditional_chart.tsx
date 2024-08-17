@@ -41,7 +41,7 @@ const ConditionalChart: FC<Props> = ({
     case QuestionType.Binary: {
       const pctCandidate = aggregate.latest?.centers![0];
       const pct = pctCandidate ? Math.round(pctCandidate * 100) : null;
-      const userForecast = userForecasts.latest?.forecast_values[1];
+      const userForecast = userForecasts?.latest?.forecast_values[1];
       const userPct = userForecast ? Math.round(userForecast * 100) : null;
 
       return (
@@ -95,7 +95,7 @@ const ConditionalChart: FC<Props> = ({
           type: "community" as ContinuousAreaType,
         },
       ];
-      const prevForecast = userForecasts.latest?.slider_values;
+      const prevForecast = userForecasts?.latest?.slider_values;
       const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
       const dataset =
         prevForecastValue?.forecast && prevForecastValue?.weights
