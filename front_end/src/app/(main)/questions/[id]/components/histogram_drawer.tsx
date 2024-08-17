@@ -58,27 +58,27 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
   ) {
     const latest_yes =
       post.conditional.question_yes.aggregations.recency_weighted.latest;
-    if (!latest_yes?.histogram) {
+    if (!latest_yes) {
       return null;
     }
-    const histogramData_yes = latest_yes!.histogram!.map((value, index) => ({
+    const histogramData_yes = latest_yes.histogram!.map((value, index) => ({
       x: index,
       y: value,
     }));
-    const median_yes = latest_yes!.centers![0];
-    const mean_yes = latest_yes!.means![0];
+    const median_yes = latest_yes.centers![0];
+    const mean_yes = latest_yes.means![0];
 
     const latest_no =
       post.conditional.question_no.aggregations.recency_weighted.latest;
-    if (!latest_no?.histogram) {
+    if (!latest_no) {
       return null;
     }
-    const histogramData_no = latest_no!.histogram!.map((value, index) => ({
+    const histogramData_no = latest_no.histogram!.map((value, index) => ({
       x: index,
       y: value,
     }));
-    const median_no = latest_no!.centers![0];
-    const mean_no = latest_no!.means![0];
+    const median_no = latest_no.centers![0];
+    const mean_no = latest_no.means![0];
 
     return (
       <SectionToggle title={t("histogram")} defaultOpen>
