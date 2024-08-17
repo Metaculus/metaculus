@@ -156,7 +156,7 @@ export type Question = {
   post_id?: number;
   display_divergences?: number[][];
   aggregations: Aggregations;
-  my_forecasts: UserForecastHistory;
+  my_forecasts?: UserForecastHistory;
 };
 
 export type QuestionWithNumericForecasts = Question & {

@@ -58,7 +58,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         (acc, question) => ({
           ...acc,
           [question.id]: extractPrevNumericForecastValue(
-            question.my_forecasts.latest?.slider_values
+            question.my_forecasts?.latest?.slider_values
           ),
         }),
         {}

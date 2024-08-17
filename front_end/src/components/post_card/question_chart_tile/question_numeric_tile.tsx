@@ -29,7 +29,7 @@ const QuestionNumericTile: FC<Props> = ({
   const latest = question.aggregations.recency_weighted.latest;
   const prediction = latest?.centers![0];
 
-  const prevForecast = question.my_forecasts.latest?.slider_values;
+  const prevForecast = question.my_forecasts?.latest?.slider_values;
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
   const dataset = useMemo(
     () =>
