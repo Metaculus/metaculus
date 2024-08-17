@@ -354,6 +354,9 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   const { activeCount } = config ?? {};
 
   const latest = question.aggregations.recency_weighted.latest;
+  if (!latest) {
+    return [];
+  }
   const choiceOrdering: number[] = latest.forecast_values.map((_, i) => i);
   choiceOrdering.sort(
     (a, b) => latest.forecast_values[b] - latest.forecast_values[a]
