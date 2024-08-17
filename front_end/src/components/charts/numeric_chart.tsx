@@ -43,7 +43,7 @@ import {
   generateNumericDomain,
   generateTimestampXScale,
   getDisplayValue,
-  scaleResolutionLocation,
+  unscaleNominalLocation,
 } from "@/utils/charts";
 
 import XTickLabel from "./primitives/x_tick_label";
@@ -63,7 +63,6 @@ type Props = {
   zeroPoint: number | null;
   extraTheme?: VictoryThemeDefinition;
   resolution?: Resolution | null;
-  derivRatio?: number;
 };
 
 const NumericChart: FC<Props> = ({
@@ -81,7 +80,6 @@ const NumericChart: FC<Props> = ({
   zeroPoint,
   extraTheme,
   resolution,
-  derivRatio,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -231,7 +229,7 @@ const NumericChart: FC<Props> = ({
                 aggregations,
                 rangeMin,
                 rangeMax,
-                derivRatio,
+                zeroPoint,
               })}
               style={{
                 data: {
@@ -301,16 +299,12 @@ function buildChartData({
 }): ChartData {
   const line = aggregations.recency_weighted.history.map((forecast) => ({
     x: forecast.start_time,
-    y: forecast.centers![forecast.centers!.length - 1],
+    y: forecast.centers![0],
   }));
   const area = aggregations.recency_weighted.history.map((forecast) => ({
     x: forecast.start_time,
-    y0: forecast.interval_lower_bounds![
-      forecast.interval_lower_bounds!.length - 1
-    ],
-    y: forecast.interval_upper_bounds![
-      forecast.interval_upper_bounds!.length - 1
-    ],
+    y0: forecast.interval_lower_bounds![0],
+    y: forecast.interval_upper_bounds![0],
   }));
 
   let points: Line = [];
@@ -320,7 +314,7 @@ function buildChartData({
       y:
         questionType == "binary"
           ? forecast.forecast_values[1]
-          : forecast.centers![forecast.centers!.length - 1],
+          : forecast.centers![0],
     }));
   }
   // TODO: add quartiles if continuous
@@ -384,14 +378,14 @@ function getResolutionData({
   aggregations,
   rangeMin,
   rangeMax,
-  derivRatio,
+  zeroPoint,
 }: {
   questionType: QuestionType;
   resolution: Resolution;
   rangeMin: number | null;
   rangeMax: number | null;
   aggregations: Aggregations;
-  derivRatio?: number;
+  zeroPoint: number | null;
 }) {
   switch (questionType) {
     case QuestionType.Binary: {
@@ -407,16 +401,16 @@ function getResolutionData({
     }
     case QuestionType.Numeric: {
       // format data for numerical question
-      const scaledResolution = scaleResolutionLocation(
+      const unscaledResolution = unscaleNominalLocation(
         Number(resolution),
         rangeMin ?? 0,
         rangeMax ?? 1,
-        derivRatio
+        zeroPoint
       );
 
       return [
         {
-          y: scaledResolution,
+          y: unscaledResolution,
           x: aggregations.recency_weighted.latest.start_time,
           symbol: "diamond",
           size: 4,
@@ -426,16 +420,16 @@ function getResolutionData({
     case QuestionType.Date: {
       // format data for date question
       const dateTimestamp = new Date(resolution).getTime() / 1000;
-      const scaledResolution = scaleResolutionLocation(
+      const unscaledResolution = unscaleNominalLocation(
         dateTimestamp,
         rangeMin ?? 0,
         rangeMax ?? 1,
-        derivRatio
+        zeroPoint
       );
 
       return [
         {
-          y: scaledResolution,
+          y: unscaledResolution,
           x: aggregations.recency_weighted.latest.start_time,
           symbol: "diamond",
           size: 4,

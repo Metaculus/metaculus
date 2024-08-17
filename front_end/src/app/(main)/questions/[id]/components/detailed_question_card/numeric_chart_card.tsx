@@ -8,7 +8,6 @@ import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { Resolution } from "@/types/post";
 import {
-  NumericForecast,
   QuestionType,
   Aggregations,
   UserForecastHistory,
@@ -25,7 +24,6 @@ type Props = {
   rangeMax: number | null;
   zeroPoint: number | null;
   resolution?: Resolution | null;
-  derivRatio?: number;
 };
 
 const NumericChartCard: FC<Props> = ({
@@ -36,7 +34,6 @@ const NumericChartCard: FC<Props> = ({
   rangeMax,
   zeroPoint,
   resolution,
-  derivRatio,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -54,15 +51,9 @@ const NumericChartCard: FC<Props> = ({
     return {
       timestamp: forecast.start_time,
       forecasterCount: forecast.forecaster_count,
-      interval_lower_bound:
-        forecast.interval_lower_bounds![
-          forecast.interval_lower_bounds!.length - 1
-        ],
-      center: forecast.centers![forecast.centers!.length - 1],
-      interval_upper_bound:
-        forecast.interval_upper_bounds![
-          forecast.interval_upper_bounds!.length - 1
-        ],
+      interval_lower_bound: forecast.interval_lower_bounds![0],
+      center: forecast.centers![0],
+      interval_upper_bound: forecast.interval_upper_bounds![0],
     };
   }, [cursorTimestamp]);
 
@@ -92,7 +83,6 @@ const NumericChartCard: FC<Props> = ({
         rangeMin={rangeMin}
         rangeMax={rangeMax}
         zeroPoint={zeroPoint}
-        derivRatio={derivRatio}
         defaultZoom={
           user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths
         }
