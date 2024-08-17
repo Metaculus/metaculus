@@ -34,7 +34,6 @@ const DetailedQuestionCard: FC<Props> = ({ question }) => {
             rangeMax={question.range_max}
             zeroPoint={question.zero_point}
             resolution={question.resolution}
-            derivRatio={question.possibilities.scale?.deriv_ratio}
           />
         </DetailsQuestionCardErrorBoundary>
       );
