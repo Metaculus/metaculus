@@ -26,6 +26,7 @@ import {
   QuestionWithMultipleChoiceForecasts,
   NumericForecast,
   UserForecastHistory,
+  Scaling,
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -145,47 +146,39 @@ export function generateTimestampXScale(
 
 /**
  * scales an internal loction within a range of 0 to 1 to a location
- * within a range of rangeMin to rangeMax, taking into account any logarithmic
- * scaling determined by zeroPoint
+ * within a range of range_min to range_max, taking into account any logarithmic
+ * scaling determined by zero_point
  */
-export function scaleInternalLocation(
-  x: number,
-  rangeMin: number,
-  rangeMax: number,
-  zeroPoint: number | null
-) {
+export function scaleInternalLocation(x: number, scaling: Scaling) {
   let scaled_location = null;
-  if (zeroPoint !== null) {
-    const derivRatio = (rangeMax - zeroPoint) / (rangeMin - zeroPoint);
+  const { range_min, range_max, zero_point } = scaling;
+  if (zero_point !== null) {
+    const derivRatio = (range_max! - zero_point) / (range_min! - zero_point);
     scaled_location =
-      rangeMin +
-      ((rangeMax - rangeMin) * (derivRatio ** x - 1)) / (derivRatio - 1);
+      range_min! +
+      ((range_max! - range_min!) * (derivRatio ** x - 1)) / (derivRatio - 1);
   } else {
-    scaled_location = rangeMin + (rangeMax - rangeMin) * x;
+    scaled_location = range_min! + (range_max! - range_min!) * x;
   }
   return scaled_location;
 }
 
 /**
- * unscales a nominal location within a range of rangeMin to rangeMax
+ * unscales a nominal location within a range of range_min to range_max
  * to an internal location within a range of 0 to 1
- * taking into account any logarithmic scaling determined by zeroPoint
+ * taking into account any logarithmic scaling determined by zero_point
  */
-export function unscaleNominalLocation(
-  x: number,
-  rangeMin: number,
-  rangeMax: number,
-  zeroPoint: number | null
-) {
+export function unscaleNominalLocation(x: number, scaling: Scaling) {
   let unscaled_location = null;
-  if (zeroPoint !== null) {
-    const derivRatio = (rangeMax - zeroPoint) / (rangeMin - zeroPoint);
+  const { range_min, range_max, zero_point } = scaling;
+  if (zero_point !== null) {
+    const derivRatio = (range_max! - zero_point) / (range_min! - zero_point);
     unscaled_location =
       Math.log(
-        ((x - rangeMin) * (derivRatio - 1)) / (rangeMax - rangeMin) + 1
+        ((x - range_min!) * (derivRatio - 1)) / (range_max! - range_min!) + 1
       ) / Math.log(derivRatio);
   } else {
-    unscaled_location = (x - rangeMin) / (rangeMax - rangeMin);
+    unscaled_location = (x - range_min!) / (range_max! - range_min!);
   }
   return unscaled_location;
 }
@@ -203,16 +196,12 @@ export function getDisplayValue(
 export function getDisplayValue(
   value: number | undefined,
   questionType: QuestionType,
-  rangeMin?: number | null,
-  rangeMax?: number | null,
-  zeroPoint?: number | null
+  scaling: Scaling
 ): string;
 export function getDisplayValue(
   value: number | undefined,
   questionOrQuestionType: Question | QuestionType,
-  rangeMin?: number | null,
-  rangeMax?: number | null,
-  zeroPoint?: number | null
+  scaling?: Scaling
 ): string {
   let qType: string;
   let rMin: number | null;
@@ -222,26 +211,25 @@ export function getDisplayValue(
   if (typeof questionOrQuestionType === "object") {
     // Handle the case where the input is a Question object
     qType = questionOrQuestionType.type;
-    rMin = questionOrQuestionType.range_min;
-    rMax = questionOrQuestionType.range_max;
-    zPoint = questionOrQuestionType.zero_point;
+    rMin = questionOrQuestionType.scaling.range_min;
+    rMax = questionOrQuestionType.scaling.range_max;
+    zPoint = questionOrQuestionType.scaling.zero_point;
   } else {
     // Handle the case where the input is individual parameters
     qType = questionOrQuestionType;
-    rMin = rangeMin ?? 0;
-    rMax = rangeMax ?? 1;
-    zPoint = zeroPoint ?? null;
+    rMin = scaling!.range_min ?? 0;
+    rMax = scaling!.range_max ?? 1;
+    zPoint = scaling!.zero_point ?? null;
   }
 
   if (value === undefined) {
     return "...";
   }
-  const scaledValue = scaleInternalLocation(
-    value,
-    rMin ?? 0,
-    rMax ?? 1,
-    zPoint
-  );
+  const scaledValue = scaleInternalLocation(value, {
+    range_min: rMin ?? 0,
+    range_max: rMax ?? 1,
+    zero_point: zPoint,
+  });
   if (qType === QuestionType.Date) {
     return format(fromUnixTime(scaledValue), "yyyy-MM");
   } else if (qType === QuestionType.Numeric) {
@@ -256,9 +244,7 @@ export function getDisplayUserValue(
   value: number | undefined,
   valueTimestamp: number,
   questionOrQuestionType: Question | QuestionType,
-  rangeMin?: number | null,
-  rangeMax?: number | null,
-  zeroPoint?: number | null
+  scaling?: Scaling
 ): string {
   let qType: string;
   let rMin: number | null;
@@ -279,15 +265,15 @@ export function getDisplayUserValue(
   if (typeof questionOrQuestionType === "object") {
     // Handle the case where the input is a Question object
     qType = questionOrQuestionType.type;
-    rMin = questionOrQuestionType.range_min;
-    rMax = questionOrQuestionType.range_max;
-    zPoint = questionOrQuestionType.zero_point;
+    rMin = questionOrQuestionType.scaling.range_min;
+    rMax = questionOrQuestionType.scaling.range_max;
+    zPoint = questionOrQuestionType.scaling.zero_point;
   } else {
     // Handle the case where the input is individual parameters
     qType = questionOrQuestionType;
-    rMin = rangeMin ?? 0;
-    rMax = rangeMax ?? 1;
-    zPoint = zeroPoint ?? null;
+    rMin = scaling!.range_min ?? 0;
+    rMax = scaling!.range_max ?? 1;
+    zPoint = scaling!.zero_point ?? null;
   }
 
   let center: number;
@@ -299,12 +285,11 @@ export function getDisplayUserValue(
   if (value === undefined) {
     return "...";
   }
-  const scaledValue = scaleInternalLocation(
-    center,
-    rMin ?? 0,
-    rMax ?? 1,
-    zPoint
-  );
+  const scaledValue = scaleInternalLocation(center, {
+    range_min: rMin ?? 0,
+    range_max: rMax ?? 1,
+    zero_point: zPoint,
+  });
   if (qType === QuestionType.Date) {
     return format(fromUnixTime(scaledValue), "yyyy-MM");
   } else if (qType === QuestionType.Numeric) {
@@ -416,8 +401,8 @@ export function generateChoiceItemsFromBinaryGroup(
       active,
       highlighted: q.id === preselectedQuestionId,
       resolution: q.resolution,
-      rangeMin: q.range_min,
-      rangeMax: q.range_max,
+      rangeMin: q.scaling.range_min,
+      rangeMax: q.scaling.range_max,
     };
   });
 }

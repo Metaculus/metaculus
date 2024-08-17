@@ -24,7 +24,7 @@ import {
   ContinuousAreaHoverState,
   ContinuousAreaType,
 } from "@/types/charts";
-import { QuestionType } from "@/types/question";
+import { QuestionType, Scaling } from "@/types/question";
 import { interpolateYValue, getDisplayValue } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -47,9 +47,7 @@ const BOTTOM_PADDING = 20;
 const HORIZONTAL_PADDING = 10;
 
 type Props = {
-  rangeMin: number;
-  rangeMax: number;
-  zeroPoint: number | null;
+  scaling: Scaling;
   data: ContinuousAreaGraphInput;
   graphType?: ContinuousAreaGraphType;
   questionType?: QuestionType;
@@ -59,9 +57,7 @@ type Props = {
 };
 
 const ContinuousAreaChart: FC<Props> = ({
-  rangeMin,
-  rangeMax,
-  zeroPoint,
+  scaling,
   data,
   graphType = "pmf",
   questionType = QuestionType.Numeric,
@@ -117,15 +113,8 @@ const ContinuousAreaChart: FC<Props> = ({
     [data, graphType]
   );
   const { ticks, tickFormat } = useMemo(
-    () =>
-      generateNumericAreaTicks(
-        rangeMin,
-        rangeMax,
-        zeroPoint,
-        questionType,
-        chartWidth
-      ),
-    [rangeMin, rangeMax, zeroPoint, questionType, chartWidth]
+    () => generateNumericAreaTicks(scaling, questionType, chartWidth),
+    [chartWidth]
   );
 
   // TODO: find a nice way to display the out of bounds weights as numbers
@@ -310,9 +299,7 @@ function generateNumericAreaGraph(data: {
 }
 
 function generateNumericAreaTicks(
-  rangeMin: number,
-  rangeMax: number,
-  zeroPoint: number | null,
+  scaling: Scaling,
   questionType: QuestionType,
   chartWidth: number
 ) {
@@ -339,13 +326,7 @@ function generateNumericAreaTicks(
     ticks,
     tickFormat: (value: number) => {
       if (majorTicks.includes(value)) {
-        return getDisplayValue(
-          value,
-          questionType,
-          rangeMin,
-          rangeMax,
-          zeroPoint
-        );
+        return getDisplayValue(value, questionType, scaling);
       }
 
       return "";

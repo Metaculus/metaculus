@@ -94,7 +94,7 @@ const GroupForm: React.FC<Props> = ({
             scheduled_resolve_time: x.scheduled_resolve_time,
           };
         } else if (subtype === QuestionType.Numeric) {
-          if (x.range_max == null || x.range_min == null) {
+          if (x.scaling.range_max == null || x.scaling.range_min == null) {
             alert(
               "Please enter a range_max or range_min value for numeric questions"
             );
@@ -106,14 +106,14 @@ const GroupForm: React.FC<Props> = ({
             title: x.label,
             scheduled_close_time: x.scheduled_close_time,
             scheduled_resolve_time: x.scheduled_resolve_time,
-            range_min: x.range_min,
-            range_max: x.range_max,
+            range_min: x.scaling.range_min,
+            range_max: x.scaling.range_max,
             open_lower_bound: x.openLowerBound,
             open_upper_bound: x.openUpperBound,
             zero_point: x.zeroPoint,
           };
         } else if (subtype === QuestionType.Date) {
-          if (x.range_max === null || x.range_min === null) {
+          if (x.scaling.range_max === null || x.scaling.range_min === null) {
             alert("Please enter a max or min value for numeric questions");
             break_out = true;
             return;
@@ -123,8 +123,8 @@ const GroupForm: React.FC<Props> = ({
             title: x.label,
             scheduled_close_time: x.scheduled_close_time,
             scheduled_resolve_time: x.scheduled_resolve_time,
-            range_min: x.range_min,
-            range_max: x.range_max,
+            range_min: x.scaling.range_min,
+            range_max: x.scaling.range_max,
             open_lower_bound: x.openLowerBound,
             open_upper_bound: x.openUpperBound,
             zero_point: x.zeroPoint,
@@ -177,8 +177,7 @@ const GroupForm: React.FC<Props> = ({
             scheduled_close_time: x.scheduled_close_time,
             scheduled_resolve_time: x.scheduled_resolve_time,
             label: x.title,
-            range_max: x.range_max,
-            range_min: x.range_min,
+            scaling: x.scaling,
           };
         })
       : []
@@ -451,8 +450,8 @@ const GroupForm: React.FC<Props> = ({
                       <NumericQuestionInput
                         // @ts-ignore
                         questionType={subtype}
-                        defaultMin={subQuestions[index].range_min}
-                        defaultMax={subQuestions[index].range_max}
+                        defaultMin={subQuestions[index].scaling.range_min}
+                        defaultMax={subQuestions[index].scaling.range_max}
                         // @ts-ignore
                         defaultOpenLowerBound={
                           subQuestions[index].open_lower_bound
@@ -477,11 +476,13 @@ const GroupForm: React.FC<Props> = ({
                           setSubQuestions(
                             subQuestions.map((subQuestion, iter_index) => {
                               if (index === iter_index) {
-                                subQuestion["range_min"] = range_min;
-                                subQuestion["range_max"] = range_max;
+                                subQuestion.scaling = {
+                                  range_min: range_min,
+                                  range_max: range_max,
+                                  zeroPoint: zeroPoint,
+                                };
                                 subQuestion["openLowerBound"] = openLowerBound;
                                 subQuestion["openUpperBound"] = openUpperBound;
-                                subQuestion["zeroPoint"] = zeroPoint;
                               }
                               return subQuestion;
                             })

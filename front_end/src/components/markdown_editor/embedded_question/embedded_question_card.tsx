@@ -88,9 +88,12 @@ const EmbeddedQuestionCard: FC<Props> = ({ postData }) => {
               aggregations={question.aggregations}
               myForecasts={question.my_forecasts}
               questionType={question.type}
-              rangeMin={question.range_min}
-              rangeMax={question.range_max}
-              zeroPoint={question.zero_point}
+              actualCloseTime={
+                question.actual_close_time
+                  ? new Date(question.actual_close_time).getTime()
+                  : null
+              }
+              scaling={question.scaling}
               height={CHART_HEIGHT}
             />
           );

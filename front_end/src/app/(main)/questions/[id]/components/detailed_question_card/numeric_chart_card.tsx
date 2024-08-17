@@ -11,43 +11,32 @@ import {
   QuestionType,
   Aggregations,
   UserForecastHistory,
+  Question,
 } from "@/types/question";
 import { getDisplayUserValue, getDisplayValue } from "@/utils/charts";
 
 import CursorDetailItem from "./numeric_cursor_item";
 
 type Props = {
-  aggregrations: Aggregations;
-  myForecasts: UserForecastHistory;
-  questionType: QuestionType;
-  rangeMin: number | null;
-  rangeMax: number | null;
-  zeroPoint: number | null;
-  resolution?: Resolution | null;
+  question: Question;
 };
 
-const NumericChartCard: FC<Props> = ({
-  aggregrations,
-  myForecasts,
-  questionType,
-  rangeMin,
-  rangeMax,
-  zeroPoint,
-  resolution,
-}) => {
+const NumericChartCard: FC<Props> = ({ question }) => {
   const t = useTranslations();
   const { user } = useAuth();
 
   const [isChartReady, setIsChartReady] = useState(false);
 
+  const aggregate = question.aggregations.recency_weighted;
+
   const [cursorTimestamp, setCursorTimestamp] = useState(
-    aggregrations.recency_weighted.latest.start_time
+    aggregate.latest?.start_time
   );
   const cursorData = useMemo(() => {
-    const index = aggregrations.recency_weighted.history.findIndex(
+    const index = aggregate.history.findIndex(
       (f) => f.start_time === cursorTimestamp
     );
-    const forecast = aggregrations.recency_weighted.history[index];
+    const forecast = aggregate.history[index];
     return {
       timestamp: forecast.start_time,
       forecasterCount: forecast.forecaster_count,
@@ -73,16 +62,19 @@ const NumericChartCard: FC<Props> = ({
       )}
     >
       <NumericChart
-        aggregations={aggregrations}
-        myForecasts={myForecasts}
-        resolution={resolution}
+        aggregations={question.aggregations}
+        myForecasts={question.my_forecasts}
+        resolution={question.resolution}
         onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}
-        questionType={questionType}
-        rangeMin={rangeMin}
-        rangeMax={rangeMax}
-        zeroPoint={zeroPoint}
+        questionType={question.type}
+        actualCloseTime={
+          question.actual_close_time
+            ? new Date(question.actual_close_time).getTime()
+            : null
+        }
+        scaling={question.scaling}
         defaultZoom={
           user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths
         }
@@ -92,7 +84,7 @@ const NumericChartCard: FC<Props> = ({
       <div
         className={classNames(
           "my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
-          { "sm:grid-cols-3": !!myForecasts.history.length }
+          { "sm:grid-cols-3": !!question.my_forecasts.history.length }
         )}
       >
         <CursorDetailItem
@@ -103,24 +95,20 @@ const NumericChartCard: FC<Props> = ({
           title={t("communityPredictionLabel")}
           text={getDisplayValue(
             cursorData.center,
-            questionType,
-            rangeMin,
-            rangeMax,
-            zeroPoint
+            question.type,
+            question.scaling
           )}
           variant="prediction"
         />
-        {!!myForecasts.history.length && (
+        {!!question.my_forecasts.history.length && (
           <CursorDetailItem
             title={t("myPredictionLabel")}
             text={getDisplayUserValue(
-              myForecasts,
+              question.my_forecasts,
               cursorData.center,
               cursorData.timestamp,
-              questionType,
-              rangeMin,
-              rangeMax,
-              zeroPoint
+              question.type,
+              question.scaling
             )}
             variant="my-prediction"
           />
