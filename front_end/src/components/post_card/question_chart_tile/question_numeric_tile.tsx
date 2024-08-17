@@ -27,9 +27,9 @@ const QuestionNumericTile: FC<Props> = ({
   defaultChartZoom,
 }) => {
   const latest = question.aggregations.recency_weighted.latest;
-  const prediction = latest.centers![latest.centers!.length - 1];
+  const prediction = latest?.centers![0];
 
-  const prevForecast = question.my_forecasts.latest?.slider_values;
+  const prevForecast = question.my_forecasts?.latest?.slider_values;
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
   const dataset = useMemo(
     () =>
@@ -44,15 +44,14 @@ const QuestionNumericTile: FC<Props> = ({
     [question.open_lower_bound, question.open_upper_bound]
   );
 
-  const continuousAreaChartData = [
-    {
-      pmf: cdfToPmf(
-        question.aggregations.recency_weighted.latest.forecast_values
-      ),
-      cdf: question.aggregations.recency_weighted.latest.forecast_values,
+  const continuousAreaChartData = [];
+  if (latest) {
+    continuousAreaChartData.push({
+      pmf: cdfToPmf(latest.forecast_values),
+      cdf: latest.forecast_values,
       type: "community" as ContinuousAreaType,
-    },
-  ];
+    });
+  }
 
   if (!!dataset) {
     continuousAreaChartData.push({
@@ -81,18 +80,18 @@ const QuestionNumericTile: FC<Props> = ({
               getNumericChartTypeFromQuestion(question.type) ??
               QuestionType.Numeric
             }
-            rangeMin={question.range_min}
-            rangeMax={question.range_max}
-            zeroPoint={question.zero_point}
+            actualCloseTime={
+              question.actual_close_time
+                ? new Date(question.actual_close_time).getTime()
+                : null
+            }
+            scaling={question.scaling}
             defaultZoom={defaultChartZoom}
             resolution={question.resolution}
-            derivRatio={question.possibilities.scale?.deriv_ratio}
           />
         ) : (
           <ContinuousAreaChart
-            rangeMin={question.range_min!}
-            rangeMax={question.range_max!}
-            zeroPoint={question.zero_point}
+            scaling={question.scaling}
             data={continuousAreaChartData}
             height={HEIGHT}
           />

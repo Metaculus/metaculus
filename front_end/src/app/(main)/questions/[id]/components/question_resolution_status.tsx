@@ -13,7 +13,7 @@ const QuestionResolutionStatus: FC<Props> = ({ post }) => {
   const question = post.question as QuestionWithForecasts;
 
   const latest_cp = question.aggregations.recency_weighted.latest;
-  if (!latest_cp.centers) {
+  if (!latest_cp?.centers) {
     return null;
   }
 

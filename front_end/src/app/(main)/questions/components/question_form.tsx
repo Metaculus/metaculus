@@ -383,13 +383,13 @@ const QuestionForm: FC<Props> = ({
           questionType === QuestionType.Numeric) && (
           <NumericQuestionInput
             questionType={questionType}
-            defaultMin={post?.question?.range_min!}
-            defaultMax={post?.question?.range_max!}
+            defaultMin={post?.question?.scaling.range_min!}
+            defaultMax={post?.question?.scaling.range_max!}
             // @ts-ignore
             defaultOpenLowerBound={post?.question?.open_lower_bound}
             // @ts-ignore
             defaultOpenUpperBound={post?.question?.open_upper_bound}
-            defaultZeroPoint={post?.question?.zero_point}
+            defaultZeroPoint={post?.question?.scaling.zero_point}
             isLive={isLive}
             canSeeLogarithmic={
               post?.user_permission === ProjectPermissions.ADMIN || !post
