@@ -135,9 +135,7 @@ export type Question = {
   forecast_scoring_ends?: string;
   type: QuestionType;
   options?: string[];
-  range_min: number | null;
-  range_max: number | null;
-  zero_point: number | null;
+  scaling: Scaling;
   possibilities: {
     format?: string;
     high?: string;

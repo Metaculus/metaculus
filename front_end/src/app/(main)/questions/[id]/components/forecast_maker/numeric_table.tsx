@@ -51,7 +51,9 @@ const NumericForecastTable: FC<Props> = ({
           <div className="w-full text-center">
             {isDirty || hasUserForecast ? (
               <>
-                <div>{(userBounds!.belowLower * 100).toFixed(1)}%</div>
+                <div>
+                  {userBounds && (userBounds.belowLower * 100).toFixed(1)}%
+                </div>
                 <div>{getDisplayValue(userQuartiles?.lower25, question)}</div>
                 <div>{getDisplayValue(userQuartiles?.median, question)}</div>
                 <div>{getDisplayValue(userQuartiles?.upper75, question)}</div>
@@ -68,11 +70,15 @@ const NumericForecastTable: FC<Props> = ({
         )}
 
         <div className="w-full text-center">
-          <div>{(communityBounds!.belowLower * 100).toFixed(1)}%</div>
+          <div>
+            {communityBounds && (communityBounds.belowLower * 100).toFixed(1)}%
+          </div>
           <div>{getDisplayValue(communityQuartiles?.lower25, question)}</div>
           <div>{getDisplayValue(communityQuartiles?.median, question)}</div>
           <div>{getDisplayValue(communityQuartiles?.upper75, question)}</div>
-          <div>{(communityBounds!.aboveUpper * 100).toFixed(1)}%</div>
+          <div>
+            {communityBounds && (communityBounds!.aboveUpper * 100).toFixed(1)}%
+          </div>
         </div>
       </div>
     </>
