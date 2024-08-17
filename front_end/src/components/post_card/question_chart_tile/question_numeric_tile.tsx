@@ -86,7 +86,6 @@ const QuestionNumericTile: FC<Props> = ({
             zeroPoint={question.zero_point}
             defaultZoom={defaultChartZoom}
             resolution={question.resolution}
-            derivRatio={question.possibilities.scale?.deriv_ratio}
           />
         ) : (
           <ContinuousAreaChart

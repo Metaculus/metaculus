@@ -169,13 +169,14 @@ const getStateByItems = (
       return area;
     }
 
-    const prediction = questionData.forecasts.medians.at(-1);
+    const aggregation = questionData.aggregations.recency_weighted;
+    const prediction = aggregation.latest?.centers![0];
     if (!prediction) {
       return area;
     }
 
-    const forecastersNumber = questionData.forecasts.nr_forecasters.at(-1) ?? 0;
-    const forecastsNumber = questionData.forecasts.timestamps.length;
+    const forecastersNumber = aggregation.latest?.forecaster_count;
+    const forecastsNumber = aggregation.history.length;
 
     return {
       ...area,
@@ -210,8 +211,10 @@ function getDemocratRepublicanPrediction({
     return null;
   }
 
-  const rawDemocratPrediction = demQuestion.forecasts.medians.at(-1);
-  const rawRepublicanPrediction = repQuestion.forecasts.medians.at(-1);
+  const rawDemocratPrediction =
+    demQuestion.aggregations.recency_weighted.latest?.centers![0];
+  const rawRepublicanPrediction =
+    repQuestion.aggregations.recency_weighted.latest?.centers![0];
 
   return {
     democratPrediction: rawDemocratPrediction

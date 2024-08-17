@@ -156,32 +156,38 @@ export function scaleInternalLocation(
 ) {
   let scaled_location = null;
   if (zeroPoint !== null) {
-    const deriv_ratio = (rangeMax - zeroPoint) / (rangeMin - zeroPoint);
+    const derivRatio = (rangeMax - zeroPoint) / (rangeMin - zeroPoint);
     scaled_location =
       rangeMin +
-      ((rangeMax - rangeMin) * (deriv_ratio ** x - 1)) / (deriv_ratio - 1);
+      ((rangeMax - rangeMin) * (derivRatio ** x - 1)) / (derivRatio - 1);
   } else {
     scaled_location = rangeMin + (rangeMax - rangeMin) * x;
   }
   return scaled_location;
 }
 
-export function scaleResolutionLocation(
-  resolution: number,
+/**
+ * unscales a nominal location within a range of rangeMin to rangeMax
+ * to an internal location within a range of 0 to 1
+ * taking into account any logarithmic scaling determined by zeroPoint
+ */
+export function unscaleNominalLocation(
+  x: number,
   rangeMin: number,
   rangeMax: number,
-  derivRatio?: number
+  zeroPoint: number | null
 ) {
-  let scaledResolution = null;
-  if (derivRatio && derivRatio > 1) {
-    scaledResolution =
+  let unscaled_location = null;
+  if (zeroPoint !== null) {
+    const derivRatio = (rangeMax - zeroPoint) / (rangeMin - zeroPoint);
+    unscaled_location =
       Math.log(
-        ((resolution - rangeMin) * (derivRatio - 1)) / (rangeMax - rangeMin) + 1
+        ((x - rangeMin) * (derivRatio - 1)) / (rangeMax - rangeMin) + 1
       ) / Math.log(derivRatio);
   } else {
-    scaledResolution = (resolution - rangeMin) / (rangeMax - rangeMin);
+    unscaled_location = (x - rangeMin) / (rangeMax - rangeMin);
   }
-  return scaledResolution;
+  return unscaled_location;
 }
 
 /**
@@ -346,24 +352,33 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   }
 ): ChoiceItem[] {
   const { activeCount } = config ?? {};
-  const { forecasts: dataset, range_min, range_max, resolution } = question;
-  const sortedPredictions = sortMultipleChoicePredictions(dataset);
 
-  return sortedPredictions.map(([choice, values], index) => ({
-    choice,
-    values: values.map((x: { median: number }) => x.median),
-    color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-    active: !!activeCount ? index <= activeCount - 1 : true,
-    highlighted: false,
-    resolution,
-    displayedResolution: resolution
-      ? choice === resolution
-        ? "Yes"
-        : "No"
-      : undefined,
-    rangeMin: range_min,
-    rangeMax: range_max,
-  }));
+  const latest = question.aggregations.recency_weighted.latest;
+  const choiceOrdering: number[] = latest.forecast_values.map((_, i) => i);
+  choiceOrdering.sort(
+    (a, b) => latest.forecast_values[b] - latest.forecast_values[a]
+  );
+
+  const history = question.aggregations.recency_weighted.history;
+  return choiceOrdering.map((order, index) => {
+    const label = question.options![order];
+    const choice = {
+      choice: label,
+      values: history.map((forecast) => forecast.centers![order]),
+      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      active: !!activeCount ? index <= activeCount - 1 : true,
+      highlighted: false,
+      resolution: question.resolution,
+      displayedResolution: question.resolution
+        ? label === question.resolution
+          ? "Yes"
+          : "No"
+        : undefined,
+      rangeMin: 0,
+      rangeMax: 1,
+    };
+    return choice;
+  });
 }
 
 export function generateChoiceItemsFromBinaryGroup(
