@@ -126,9 +126,12 @@ const ForecastCard: FC<Props> = ({
                 getNumericChartTypeFromQuestion(question.type) ??
                 QuestionType.Numeric
               }
-              rangeMin={question.range_min}
-              rangeMax={question.range_max}
-              zeroPoint={question.zero_point}
+              actualCloseTime={
+                question.actual_close_time
+                  ? new Date(question.actual_close_time).getTime()
+                  : null
+              }
+              scaling={question.scaling}
               onCursorChange={nonInteractive ? undefined : setCursorValue}
               extraTheme={chartTheme}
               defaultZoom={defaultChartZoom}
@@ -185,7 +188,7 @@ const ForecastCard: FC<Props> = ({
             <PredictionChip
               question={question}
               status={post.status}
-              prediction={forecast.centers![forecast.centers!.length - 1]}
+              prediction={forecast?.centers![forecast.centers!.length - 1]}
               className="ForecastCard-prediction"
             />
           );

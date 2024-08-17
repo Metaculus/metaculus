@@ -26,16 +26,7 @@ const DetailedQuestionCard: FC<Props> = ({ question }) => {
     case QuestionType.Binary:
       return (
         <DetailsQuestionCardErrorBoundary>
-          <NumericChartCard
-            aggregrations={question.aggregations}
-            myForecasts={question.my_forecasts}
-            questionType={question.type}
-            rangeMin={question.range_min}
-            rangeMax={question.range_max}
-            zeroPoint={question.zero_point}
-            resolution={question.resolution}
-            derivRatio={question.possibilities.scale?.deriv_ratio}
-          />
+          <NumericChartCard question={question} />
         </DetailsQuestionCardErrorBoundary>
       );
     case QuestionType.MultipleChoice:

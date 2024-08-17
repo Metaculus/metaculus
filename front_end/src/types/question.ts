@@ -27,6 +27,12 @@ export enum QuestionOrder {
   RankDesc = "-rank",
 }
 
+export type Scaling = {
+  range_max: number | null;
+  range_min: number | null;
+  zero_point: number | null;
+};
+
 export enum AggregationMethod {
   RecencyWeighted = "recency_weighted",
   Unweighted = "unweighted",
@@ -65,7 +71,7 @@ export type UserForecast = Forecast & {
 
 export type UserForecastHistory = {
   history: UserForecast[];
-  latest: UserForecast;
+  latest?: UserForecast;
 };
 
 export type AggregateForecast = Forecast & {
@@ -77,7 +83,7 @@ export type AggregateForecast = Forecast & {
 
 type AggregateForecastHistory = {
   history: AggregateForecast[];
-  latest: AggregateForecast;
+  latest?: AggregateForecast;
 };
 
 export type Aggregations = {
@@ -129,9 +135,7 @@ export type Question = {
   forecast_scoring_ends?: string;
   type: QuestionType;
   options?: string[];
-  range_min: number | null;
-  range_max: number | null;
-  zero_point: number | null;
+  scaling: Scaling;
   possibilities: {
     format?: string;
     high?: string;
@@ -152,7 +156,7 @@ export type Question = {
   post_id?: number;
   display_divergences?: number[][];
   aggregations: Aggregations;
-  my_forecasts: UserForecastHistory;
+  my_forecasts?: UserForecastHistory;
 };
 
 export type QuestionWithNumericForecasts = Question & {
