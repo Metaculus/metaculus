@@ -72,7 +72,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   );
 
   const userCdf: number[] = dataset.cdf;
-  const communityCdf: number[] =
+  const communityCdf: number[] | undefined =
     question.aggregations.recency_weighted.latest?.forecast_values;
 
   const handleAddComponent = () => {
