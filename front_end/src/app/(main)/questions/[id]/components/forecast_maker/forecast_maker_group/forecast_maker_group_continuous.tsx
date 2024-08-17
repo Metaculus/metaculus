@@ -235,7 +235,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     ).cdf;
   const communityCdf: number[] | undefined =
     activeGroupOption?.question.aggregations.recency_weighted.latest
-      .forecast_values;
+      ?.forecast_values;
 
   return (
     <>
