@@ -114,13 +114,15 @@ function getForecastData(
   ) {
     return null;
   }
-
+  const latest_democrat = democratQuestion.aggregations.recency_weighted.latest;
+  const latest_republican =
+    republicanQuestion.aggregations.recency_weighted.latest;
   const democratQuartiles = computeQuartilesFromCDF(
-    democratQuestion.forecasts.latest_cdf,
+    latest_democrat!.forecast_values,
     true
   );
   const republicanQuartiles = computeQuartilesFromCDF(
-    republicanQuestion.forecasts.latest_cdf,
+    latest_republican!.forecast_values,
     true
   );
 
@@ -134,8 +136,8 @@ function getForecastData(
       color: "#E0152B",
     },
   ];
-  const democratPrediction = democratQuestion.forecasts.medians.at(-1);
-  const republicanPrediction = republicanQuestion.forecasts.medians.at(-1);
+  const democratPrediction = latest_democrat!.centers![0];
+  const republicanPrediction = latest_republican!.centers![0];
 
   return {
     candles,
