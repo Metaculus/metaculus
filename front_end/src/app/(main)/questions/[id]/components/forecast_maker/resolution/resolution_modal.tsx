@@ -138,8 +138,8 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                   type="number"
                   placeholder="numeric resolution"
                   className="max-w-xs bg-transparent"
-                  min={question.range_min!}
-                  max={question.range_max!}
+                  min={question.scaling.range_min!}
+                  max={question.scaling.range_max!}
                   {...register("resolutionValue")}
                 />
               )}

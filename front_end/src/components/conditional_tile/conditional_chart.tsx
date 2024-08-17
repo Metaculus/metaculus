@@ -34,13 +34,14 @@ const ConditionalChart: FC<Props> = ({
   chartTheme,
 }) => {
   const resolved = parentResolved && question.resolution !== null;
+  const aggregate = question.aggregations.recency_weighted;
+  const userForecasts = question.my_forecasts;
 
   switch (question.type) {
     case QuestionType.Binary: {
-      const pctCandidate =
-        question.aggregations.recency_weighted.latest.centers![1];
+      const pctCandidate = aggregate.latest?.centers![0];
       const pct = pctCandidate ? Math.round(pctCandidate * 100) : null;
-      const userForecast = question.my_forecasts.latest?.forecast_values[1];
+      const userForecast = userForecasts.latest?.forecast_values[1];
       const userPct = userForecast ? Math.round(userForecast * 100) : null;
 
       return (
@@ -78,26 +79,23 @@ const ConditionalChart: FC<Props> = ({
     }
     case QuestionType.Numeric:
     case QuestionType.Date: {
-      if (question.aggregations.recency_weighted.history.length === 0) {
+      if (aggregate.history.length === 0) {
         return <div className="text-center text-xs">No data yet</div>;
       }
 
-      const prediction =
-        question.aggregations.recency_weighted.latest.centers![0];
+      const prediction = aggregate.latest?.centers![0];
       const formattedPrediction = prediction
         ? formatPrediction(prediction, question.type)
         : "";
 
       const continuousAreaChartData = [
         {
-          pmf: cdfToPmf(
-            question.aggregations.recency_weighted.latest.forecast_values
-          ),
-          cdf: question.aggregations.recency_weighted.latest.forecast_values,
+          pmf: cdfToPmf(aggregate.latest!.forecast_values),
+          cdf: aggregate.latest!.forecast_values,
           type: "community" as ContinuousAreaType,
         },
       ];
-      const prevForecast = question.my_forecasts.latest.slider_values;
+      const prevForecast = userForecasts.latest?.slider_values;
       const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
       const dataset =
         prevForecastValue?.forecast && prevForecastValue?.weights
@@ -128,9 +126,7 @@ const ConditionalChart: FC<Props> = ({
             </div>
             <ContinuousAreaChart
               height={40}
-              rangeMin={question.range_min!}
-              rangeMax={question.range_max!}
-              zeroPoint={question.zero_point}
+              scaling={question.scaling}
               data={continuousAreaChartData}
               extraTheme={chartTheme}
               questionType={question.type}

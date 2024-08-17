@@ -22,13 +22,13 @@ from .services import (
 
 
 class QuestionSerializer(serializers.ModelSerializer):
+    scaling = serializers.SerializerMethodField()
+
     class Meta:
         model = Question
         fields = (
             "id",
             "title",
-            "range_min",
-            "range_max",
             "description",
             "created_at",
             "open_time",
@@ -42,13 +42,20 @@ class QuestionSerializer(serializers.ModelSerializer):
             "options",
             "possibilities",
             "resolution",
-            "zero_point",
             "resolution_criteria",
             "fine_print",
             "label",
             "open_upper_bound",
             "open_lower_bound",
+            "scaling",
         )
+
+    def get_scaling(self, question: Question):
+        return {
+            "range_max": question.range_max,
+            "range_min": question.range_min,
+            "zero_point": question.zero_point,
+        }
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
@@ -319,9 +326,9 @@ def serialize_question(
         for aggregate in aggregate_forecasts:
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)
         serialized_data["aggregations"] = {
-            "recency_weighted": {"history": {}, "latest": None},
-            "unweighted": {"history": {}, "latest": None},
-            "single_aggregation": {"history": {}, "latest": None},
+            "recency_weighted": {"history": [], "latest": None},
+            "unweighted": {"history": [], "latest": None},
+            "single_aggregation": {"history": [], "latest": None},
         }
         for method, forecasts in aggregate_forecasts_by_method.items():
             serialized_data["aggregations"][method]["history"] = (
