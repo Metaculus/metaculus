@@ -58,7 +58,7 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
   ) {
     const latest_yes =
       post.conditional.question_yes.aggregations.recency_weighted.latest;
-    if (latest_yes?.histogram) {
+    if (!latest_yes?.histogram) {
       return null;
     }
     const histogramData_yes = latest_yes!.histogram!.map((value, index) => ({
@@ -70,7 +70,7 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
 
     const latest_no =
       post.conditional.question_no.aggregations.recency_weighted.latest;
-    if (latest_no?.histogram) {
+    if (!latest_no?.histogram) {
       return null;
     }
     const histogramData_no = latest_no!.histogram!.map((value, index) => ({
