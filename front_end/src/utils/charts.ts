@@ -9,6 +9,8 @@ import {
 } from "date-fns";
 import { findLastIndex, uniq } from "lodash";
 import { Tuple } from "victory";
+import { useLocale } from "next-intl";
+import { formatDate } from "@/utils/date_formatters";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
@@ -17,6 +19,7 @@ import {
   NumericChartType,
   Scale,
   TimelineChartZoomOption,
+  ForecastTimelineData,
 } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
 import {
@@ -166,22 +169,28 @@ export function scaleInternalLocation(
   return scaled_location;
 }
 
-export function scaleResolutionLocation(
-  resolution: number,
+/**
+ * unscales a nominal location within a range of rangeMin to rangeMax
+ * to an internal location within a range of 0 to 1
+ * taking into account any logarithmic scaling determined by zeroPoint
+ */
+export function unscaleNominalLocation(
+  x: number,
   rangeMin: number,
   rangeMax: number,
-  derivRatio?: number
+  zeroPoint: number | null
 ) {
-  let scaledResolution = null;
-  if (derivRatio && derivRatio > 1) {
-    scaledResolution =
+  let unscaled_location = null;
+  if (zeroPoint !== null) {
+    const derivRatio = (rangeMax - zeroPoint) / (rangeMin - zeroPoint);
+    unscaled_location =
       Math.log(
-        ((resolution - rangeMin) * (derivRatio - 1)) / (rangeMax - rangeMin) + 1
+        ((x - rangeMin) * (derivRatio - 1)) / (rangeMax - rangeMin) + 1
       ) / Math.log(derivRatio);
   } else {
-    scaledResolution = (resolution - rangeMin) / (rangeMax - rangeMin);
+    unscaled_location = (x - rangeMin) / (rangeMax - rangeMin);
   }
-  return scaledResolution;
+  return unscaled_location;
 }
 
 /**
@@ -337,6 +346,77 @@ export function generatePercentageYScale(containerHeight: number): Scale {
     tickFormat: (y: number) =>
       majorTicks.includes(y) ? `${Math.round(y * 100)}%` : "",
   };
+}
+
+export function generateForecastTimelinesFromMultipleChoiceQuestion(
+  question: Question,
+  config?: {
+    activeCount?: number;
+  }
+): ForecastTimelineData[] {
+  const { activeCount } = config ?? {};
+  const { aggregations, my_forecasts, options, resolution } = question;
+
+  const optionOrdering = options!.map((_, i) => i); // todo: real ordering
+
+  const forecastTimelines: ForecastTimelineData[] = [];
+  options!.forEach((label, index) => {
+    // recency_weighted
+    const recencyWeightedForecastTimeline: ForecastTimelineData = {
+      label: label,
+      color:
+        MULTIPLE_CHOICE_COLOR_SCALE[optionOrdering[index]] ??
+        METAC_COLORS.gray["400"],
+      symbol: undefined,
+      highlighted: false,
+      active: !!activeCount ? index <= activeCount - 1 : true,
+      timestamps: [],
+      centers: [],
+      lowers: [],
+      uppers: [],
+      resolutionPoint: undefined,
+    };
+    aggregations.recency_weighted.history.forEach((forecast) => {
+      recencyWeightedForecastTimeline.timestamps.push(forecast.start_time);
+      recencyWeightedForecastTimeline.centers.push(forecast.centers![index]);
+      recencyWeightedForecastTimeline.lowers!.push(
+        forecast.interval_lower_bounds![index]
+      );
+      recencyWeightedForecastTimeline.uppers!.push(
+        forecast.interval_upper_bounds![index]
+      );
+    });
+    if (question.resolution === label) {
+      recencyWeightedForecastTimeline.resolutionPoint = {
+        time: new Date(question.resolution_set_time!).getTime(),
+        value: 1,
+      };
+    }
+    forecastTimelines.push(recencyWeightedForecastTimeline);
+    // my_forecasts
+    if (my_forecasts.history?.length > 0) {
+      const myForecastTimeline: ForecastTimelineData = {
+        label: label,
+        color:
+          MULTIPLE_CHOICE_COLOR_SCALE[optionOrdering[index]] ??
+          METAC_COLORS.gray["400"], // should this be set
+        symbol: "diamond",
+        highlighted: false,
+        active: !!activeCount ? index <= activeCount - 1 : true,
+        timestamps: [],
+        centers: [],
+        lowers: undefined,
+        uppers: undefined,
+        resolutionPoint: undefined,
+      };
+      my_forecasts.history?.forEach((forecast) => {
+        myForecastTimeline.timestamps.push(forecast.start_time);
+        myForecastTimeline.centers.push(forecast.forecast_values[index]);
+      });
+      forecastTimelines.push(myForecastTimeline);
+    }
+  });
+  return forecastTimelines;
 }
 
 export function generateChoiceItemsFromMultipleChoiceForecast(

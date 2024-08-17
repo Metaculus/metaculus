@@ -1,7 +1,7 @@
 "use client";
 import { FC } from "react";
 
-import MultipleChoiceTile from "@/components/multiple_choice_tile";
+import GroupTile from "@/components/multiple_choice_tile";
 import GroupNumericTile from "@/components/post_card/group_of_questions_tile/group_numeric_tile";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -44,7 +44,7 @@ const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
         activeCount: visibleChoicesCount,
       });
       return (
-        <MultipleChoiceTile
+        <GroupTile
           choices={choices}
           timestamps={timestamps}
           visibleChoicesCount={visibleChoicesCount}

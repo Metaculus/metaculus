@@ -4,15 +4,17 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import ChoicesLegend from "@/app/(main)/questions/[id]/components/choices_legend";
+import MultiForecastTimeline from "@/components/charts/multi_forecast_timeline";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import usePrevious from "@/hooks/use_previous";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
+import { ChoiceTooltipItem } from "@/types/choices";
 import { QuestionWithMultipleChoiceForecasts } from "@/types/question";
-import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
+import { generateForecastTimelinesFromMultipleChoiceQuestion } from "@/utils/charts";
+import { ForecastTimelineData } from "@/types/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
 import ChoicesTooltip from "../choices_tooltip";
@@ -20,7 +22,7 @@ import ChoicesTooltip from "../choices_tooltip";
 const MAX_VISIBLE_CHECKBOXES = 6;
 
 const generateList = (question: QuestionWithMultipleChoiceForecasts) =>
-  generateChoiceItemsFromMultipleChoiceForecast(question, {
+  generateForecastTimelinesFromMultipleChoiceQuestion(question, {
     activeCount: MAX_VISIBLE_CHECKBOXES,
   });
 
@@ -39,7 +41,7 @@ const MultipleChoiceChartCard: FC<Props> = ({ question }) => {
     setIsChartReady(true);
   }, []);
 
-  const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
+  const [choiceItems, setChoiceItems] = useState<ForecastTimelineData[]>(
     generateList(question)
   );
 
@@ -68,10 +70,10 @@ const MultipleChoiceChartCard: FC<Props> = ({ question }) => {
     () =>
       choiceItems
         .filter(({ active }) => active)
-        .map(({ choice, values, color }) => ({
-          choiceLabel: choice,
+        .map(({ label, centers, color }) => ({
+          choiceLabel: label,
           color,
-          valueLabel: getForecastPctDisplayValue(values[cursorIndex]),
+          valueLabel: getForecastPctDisplayValue(centers[cursorIndex]),
         })),
     [choiceItems, cursorIndex]
   );
@@ -84,20 +86,20 @@ const MultipleChoiceChartCard: FC<Props> = ({ question }) => {
     floatingStyles,
   } = useChartTooltip();
 
-  const handleChoiceChange = useCallback((choice: string, checked: boolean) => {
+  const handleChoiceChange = useCallback((label: string, checked: boolean) => {
     setChoiceItems((prev) =>
       prev.map((item) =>
-        item.choice === choice
+        item.label === label
           ? { ...item, active: checked, highlighted: false }
           : item
       )
     );
   }, []);
   const handleChoiceHighlight = useCallback(
-    (choice: string, highlighted: boolean) => {
+    (label: string, highlighted: boolean) => {
       setChoiceItems((prev) =>
         prev.map((item) =>
-          item.choice === choice ? { ...item, highlighted } : item
+          item.label === label ? { ...item, highlighted } : item
         )
       );
     },
@@ -130,7 +132,25 @@ const MultipleChoiceChartCard: FC<Props> = ({ question }) => {
         </div>
       </div>
       <div ref={refs.setReference} {...getReferenceProps()}>
-        <MultipleChoiceChart
+        <MultiForecastTimeline
+          forecastTimelines={choiceItems}
+          questionType={question.type}
+          scaling={{
+            range_max: question.range_max,
+            range_min: question.range_min,
+            zero_point: question.zero_point,
+          }}
+          defaultZoom={
+            user
+              ? TimelineChartZoomOption.All
+              : TimelineChartZoomOption.TwoMonths
+          }
+          withZoomPicker
+          yLabel={t("communityPredictionLabel")}
+          onCursorChange={handleCursorChange}
+          onChartReady={handleChartReady}
+        />
+        {/* <MultipleChoiceChart
           timestamps={forecasts.timestamps}
           choiceItems={choiceItems}
           yLabel={t("communityPredictionLabel")}
@@ -142,7 +162,7 @@ const MultipleChoiceChartCard: FC<Props> = ({ question }) => {
               : TimelineChartZoomOption.TwoMonths
           }
           withZoomPicker
-        />
+        /> */}
       </div>
 
       <div className="mb-4 mt-3">

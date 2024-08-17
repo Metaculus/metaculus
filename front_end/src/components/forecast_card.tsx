@@ -7,7 +7,7 @@ import { VictoryThemeDefinition } from "victory";
 import FanChart from "@/components/charts/fan_chart";
 import NumericChart from "@/components/charts/numeric_chart";
 import ConditionalTile from "@/components/conditional_tile";
-import MultipleChoiceTile from "@/components/multiple_choice_tile";
+import GroupTile from "@/components/multiple_choice_tile";
 import PredictionChip from "@/components/prediction_chip";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
@@ -84,7 +84,7 @@ const ForecastCard: FC<Props> = ({
             activeCount: visibleChoicesCount,
           });
           return (
-            <MultipleChoiceTile
+            <GroupTile
               choices={choices}
               timestamps={timestamps}
               visibleChoicesCount={visibleChoicesCount}
@@ -144,7 +144,7 @@ const ForecastCard: FC<Props> = ({
             }
           );
           return (
-            <MultipleChoiceTile
+            <GroupTile
               choices={choices}
               timestamps={question.forecasts.timestamps}
               visibleChoicesCount={visibleChoicesCount}

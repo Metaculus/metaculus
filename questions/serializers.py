@@ -196,15 +196,14 @@ class MyForecastSerializer(serializers.ModelSerializer):
             "slider_values",
         )
 
-    def get_start_time(self, aggregate_forecast: Forecast):
-        return aggregate_forecast.start_time.timestamp()
+    def get_start_time(self, forecast: Forecast):
+        return forecast.start_time.timestamp()
 
-    def get_end_time(self, aggregate_forecast: Forecast):
-        return (
-            aggregate_forecast.end_time.timestamp()
-            if aggregate_forecast.end_time
-            else None
-        )
+    def get_end_time(self, forecast: Forecast):
+        return forecast.end_time.timestamp() if forecast.end_time else None
+
+    def get_forecast_values(self, forecast: Forecast) -> list[float] | None:
+        return forecast.get_prediction_values()
 
     def get_interval_lower_bounds(self, forecast: Forecast) -> list[float] | None:
         if forecast.continuous_cdf is not None:
@@ -218,15 +217,14 @@ class MyForecastSerializer(serializers.ModelSerializer):
         if forecast.continuous_cdf is not None:
             return percent_point_function(forecast.continuous_cdf, [75])
 
-    def get_forecast_values(self, forecast: Forecast) -> list[float] | None:
-        # if self.context.get("include_forecast_values", True):
-        return forecast.get_prediction_values()
-
 
 class AggregateForecastSerializer(serializers.ModelSerializer):
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
     forecast_values = serializers.SerializerMethodField()
+    interval_lower_bounds = serializers.SerializerMethodField()
+    centers = serializers.SerializerMethodField()
+    interval_upper_bounds = serializers.SerializerMethodField()
 
     class Meta:
         model = AggregateForecast
@@ -245,6 +243,25 @@ class AggregateForecastSerializer(serializers.ModelSerializer):
     def get_forecast_values(self, aggregate_forecast: AggregateForecast):
         if self.context.get("include_forecast_values", True):
             return aggregate_forecast.forecast_values
+
+    def get_interval_lower_bounds(
+        self, aggregate_forecast: AggregateForecast
+    ) -> list[float] | None:
+        if len(aggregate_forecast.forecast_values) == 2:
+            return aggregate_forecast.interval_lower_bounds[1:]
+        return aggregate_forecast.interval_lower_bounds
+
+    def get_centers(self, aggregate_forecast: AggregateForecast) -> list[float] | None:
+        if len(aggregate_forecast.forecast_values) == 2:
+            return aggregate_forecast.centers[1:]
+        return aggregate_forecast.centers
+
+    def get_interval_upper_bounds(
+        self, aggregate_forecast: AggregateForecast
+    ) -> list[float] | None:
+        if len(aggregate_forecast.forecast_values) == 2:
+            return aggregate_forecast.interval_upper_bounds[1:]
+        return aggregate_forecast.interval_upper_bounds
 
 
 class ForecastWriteSerializer(serializers.ModelSerializer):

@@ -5,21 +5,70 @@ import { isNil } from "lodash";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 import { VictoryThemeDefinition } from "victory";
+import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import MultiForecastTimeline from "@/components/charts/multi_forecast_timeline";
 import ChoiceIcon from "@/components/choice_icon";
 import ResolutionIcon from "@/components/icons/resolution";
 import PredictionChip from "@/components/prediction_chip";
-import { TimelineChartZoomOption } from "@/types/charts";
+import { ForecastTimelineData, TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, UserChoiceItem } from "@/types/choices";
 import { PostStatus, Resolution } from "@/types/post";
-import { Question } from "@/types/question";
+import { Aggregations, Question, UserForecastHistory } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
+type MCTProps = {
+  question: Question;
+  aggregations: Aggregations;
+  myForecasts: UserForecastHistory;
+  visibleChoicesCount: number;
+  defaultChartZoom?: TimelineChartZoomOption;
+  withZoomPicker?: boolean;
+  chartHeight?: number;
+  chartTheme?: VictoryThemeDefinition;
+};
+
+export const MultipleChoiceTile: FC<MCTProps> = ({
+  question,
+  aggregations,
+  myForecasts,
+  visibleChoicesCount,
+  defaultChartZoom,
+  withZoomPicker,
+  chartHeight,
+  chartTheme,
+}) => {
+  const t = useTranslations();
+
+  const optionOrdering = question.options!.map((_, i) => i); // real ordering
+
+  const forecastTimelines: ForecastTimelineData[][] = question.options!.map(
+    () => []
+  );
+  aggregations.recency_weighted.history.forEach((forecast) => {
+    question.options!.map((_, i) => {
+      forecastTimelines[i].push({
+        color: MULTIPLE_CHOICE_COLOR_SCALE[optionOrdering[i]],
+
+        highlighted: forecast.highlighted,
+        active: forecast.active,
+        timestamps: forecast.timestamps,
+        centers: forecast.centers,
+        uppers: forecast.uppers,
+        lowers: forecast.lowers,
+        resolutionPoint: forecast.resolutionPoint,
+      });
+    });
+  });
+
+  return <div />;
+};
+
 type Props = {
-  timestamps: number[];
-  choices: ChoiceItem[];
+  timestamps: number[]; // deprecate
+  choices: ChoiceItem[]; // depprecate
   visibleChoicesCount: number;
   defaultChartZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
@@ -29,9 +78,9 @@ type Props = {
   question?: Question;
 };
 
-const MultipleChoiceTile: FC<Props> = ({
-  timestamps,
-  choices,
+const GroupTile: FC<Props> = ({
+  timestamps, // deprecate
+  choices, // deprecate
   visibleChoicesCount,
   defaultChartZoom,
   withZoomPicker,
@@ -93,7 +142,7 @@ const MultipleChoiceTile: FC<Props> = ({
   };
 
   return (
-    <div className="MultipleChoiceTile ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 p-1 pl-0 xs:grid">
+    <div className="GroupTile ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 p-1 pl-0 xs:grid">
       <div className="resize-container">{renderSideInfo()}</div>
       {!isResolvedView && (
         <MultipleChoiceChart
@@ -142,4 +191,4 @@ const ChoiceOption: FC<{
   );
 };
 
-export default MultipleChoiceTile;
+export default GroupTile;
