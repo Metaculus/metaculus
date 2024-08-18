@@ -302,32 +302,22 @@ function generateChoiceOptions(
   my_forecasts: UserForecastHistory
 ): ChoiceOption[] {
   const latest = aggregate.latest;
-  if (!latest) {
-    return [];
-  }
-  const choiceOrdering: number[] = latest.forecast_values.map((_, i) => i);
-  choiceOrdering.sort(
-    (a, b) => latest.forecast_values[b] - latest.forecast_values[a]
-  );
+  const choiceOrdering: number[] = question.options!.map((_, i) => i);
+  choiceOrdering.sort((a, b) => {
+    const aCenter = latest?.forecast_values[a] ?? 0;
+    const bCenter = latest?.forecast_values[b] ?? 0;
+    return bCenter - aCenter;
+  });
   return choiceOrdering.map((order, index) => {
     return {
       name: question.options![order],
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      communityForecast: latest.forecast_values[order],
+      communityForecast: latest?.forecast_values[order] ?? null,
       forecast: my_forecasts.latest
         ? Math.round(my_forecasts.latest.forecast_values[order] * 1000) / 10
         : null,
     };
   });
-
-  // const sortedPredictions = sortMultipleChoicePredictions(dataset);
-
-  // return sortedPredictions.map(([choice, values], index) => ({
-  //   name: choice,
-  //   color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-  //   communityForecast: values ? values.at(-1)?.median : null,
-  //   forecast: getDefaultForecast(choice, defaultForecasts),
-  // }));
 }
 
 function getDefaultForecast(

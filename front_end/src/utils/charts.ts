@@ -335,13 +335,13 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   const { activeCount } = config ?? {};
 
   const latest = question.aggregations.recency_weighted.latest;
-  if (!latest) {
-    return [];
-  }
-  const choiceOrdering: number[] = latest.forecast_values.map((_, i) => i);
-  choiceOrdering.sort(
-    (a, b) => latest.forecast_values[b] - latest.forecast_values[a]
-  );
+
+  const choiceOrdering: number[] = question.options!.map((_, i) => i);
+  choiceOrdering.sort((a, b) => {
+    const aCenter = latest?.forecast_values[a] ?? 0;
+    const bCenter = latest?.forecast_values[b] ?? 0;
+    return bCenter - aCenter;
+  });
 
   const history = question.aggregations.recency_weighted.history;
   return choiceOrdering.map((order, index) => {
@@ -387,7 +387,6 @@ export function generateChoiceItemsFromBinaryGroup(
     return [];
   }
   const choiceOrdering: number[] = latests.map((_, i) => i);
-
   choiceOrdering.sort((a, b) => {
     const aCenter = latests[a]?.centers![0] ?? 0;
     const bCenter = latests[b]?.centers![0] ?? 0;
