@@ -14,8 +14,10 @@ import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
 import {
-  MultipleChoiceForecast,
+  AggregateForecastHistory,
+  Question,
   QuestionWithMultipleChoiceForecasts,
+  UserForecastHistory,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { extractPrevMultipleChoicesForecastValue } from "@/utils/forecasts";
@@ -39,7 +41,6 @@ type ChoiceOption = {
 type Props = {
   postId: number;
   question: QuestionWithMultipleChoiceForecasts;
-  prevForecast?: any;
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
@@ -49,7 +50,6 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   postId,
   question,
   permission,
-  prevForecast,
   canPredict,
   canResolve,
 }) => {
@@ -57,12 +57,13 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
-  const prevForecastValue =
-    extractPrevMultipleChoicesForecastValue(prevForecast);
-
   const [isDirty, setIsDirty] = useState(false);
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
-    generateChoiceOptions(question.forecasts, prevForecastValue)
+    generateChoiceOptions(
+      question,
+      question.aggregations.recency_weighted,
+      question.my_forecasts ?? { history: [] }
+    )
   );
 
   const equalizedForecast = useMemo(
@@ -86,12 +87,15 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
-      prev.map((prevChoice, index) => ({
+      prev.map((prevChoice) => ({
         ...prevChoice,
-        forecast: getDefaultForecast(prevChoice.name, prevForecastValue),
+        forecast: getDefaultForecast(
+          prevChoice.name,
+          question.my_forecasts?.latest?.slider_values
+        ),
       }))
     );
-  }, [prevForecastValue]);
+  }, [question.my_forecasts?.latest?.slider_values]);
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
       setIsDirty(true);
@@ -293,17 +297,37 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 };
 
 function generateChoiceOptions(
-  dataset: MultipleChoiceForecast,
-  defaultForecasts: Record<string, number> | null
+  question: Question,
+  aggregate: AggregateForecastHistory,
+  my_forecasts: UserForecastHistory
 ): ChoiceOption[] {
-  const sortedPredictions = sortMultipleChoicePredictions(dataset);
+  const latest = aggregate.latest;
+  if (!latest) {
+    return [];
+  }
+  const choiceOrdering: number[] = latest.forecast_values.map((_, i) => i);
+  choiceOrdering.sort(
+    (a, b) => latest.forecast_values[b] - latest.forecast_values[a]
+  );
+  return choiceOrdering.map((order, index) => {
+    return {
+      name: question.options![order],
+      color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      communityForecast: latest.forecast_values[order],
+      forecast: my_forecasts.latest
+        ? Math.round(my_forecasts.latest.forecast_values[order] * 1000) / 10
+        : null,
+    };
+  });
 
-  return sortedPredictions.map(([choice, values], index) => ({
-    name: choice,
-    color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-    communityForecast: values ? values.at(-1)?.median : null,
-    forecast: getDefaultForecast(choice, defaultForecasts),
-  }));
+  // const sortedPredictions = sortMultipleChoicePredictions(dataset);
+
+  // return sortedPredictions.map(([choice, values], index) => ({
+  //   name: choice,
+  //   color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+  //   communityForecast: values ? values.at(-1)?.median : null,
+  //   forecast: getDefaultForecast(choice, defaultForecasts),
+  // }));
 }
 
 function getDefaultForecast(

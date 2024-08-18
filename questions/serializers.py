@@ -318,9 +318,9 @@ def serialize_question(
     serialized_data["post_id"] = post.id
 
     if with_cp:
-        serialized_data["forecasts"] = (
-            question.composed_forecasts or get_forecast_initial_dict(question)
-        )
+        # serialized_data["forecasts"] = (
+        #     question.composed_forecasts or get_forecast_initial_dict(question)
+        # )
         aggregate_forecasts = question.aggregate_forecasts.order_by("start_time")
         aggregate_forecasts_by_method = defaultdict(list)
         for aggregate in aggregate_forecasts:
@@ -369,38 +369,38 @@ def serialize_question(
                     else None
                 ),
             }
-            serialized_data["forecasts"]["my_forecasts"] = (
-                build_question_forecasts_for_user(
-                    question, question.request_user_forecasts
-                )
-            )
+            # serialized_data["forecasts"]["my_forecasts"] = (
+            #     build_question_forecasts_for_user(
+            #         question, question.request_user_forecasts
+            #     )
+            # )
 
-            last_forecast = (
-                sorted(
-                    question.request_user_forecasts,
-                    key=lambda x: x.start_time,
-                    reverse=True,
-                )[0]
-                if question.request_user_forecasts
-                else None
-            )
+            # last_forecast = (
+            #     sorted(
+            #         question.request_user_forecasts,
+            #         key=lambda x: x.start_time,
+            #         reverse=True,
+            #     )[0]
+            #     if question.request_user_forecasts
+            #     else None
+            # )
 
-            if last_forecast:
-                if question.type in ["binary", "multiple_choice"]:
-                    cp_prediction_values = serialized_data["forecasts"]["latest_pmf"]
-                else:
-                    cp_prediction_values = serialized_data["forecasts"]["latest_cdf"]
-                if cp_prediction_values is not None:
-                    try:
-                        serialized_data["display_divergences"] = (
-                            prediction_difference_for_display(
-                                last_forecast.get_prediction_values(),
-                                cp_prediction_values,
-                                question,
-                            )
-                        )
-                    except Exception:
-                        pass
+            # if last_forecast:
+            #     if question.type in ["binary", "multiple_choice"]:
+            #         cp_prediction_values = serialized_data["forecasts"]["latest_pmf"]
+            #     else:
+            #         cp_prediction_values = serialized_data["forecasts"]["latest_cdf"]
+            #     if cp_prediction_values is not None:
+            #         try:
+            #             serialized_data["display_divergences"] = (
+            #                 prediction_difference_for_display(
+            #                     last_forecast.get_prediction_values(),
+            #                     cp_prediction_values,
+            #                     question,
+            #                 )
+            #             )
+            #         except Exception:
+            #             pass
 
     serialized_data["resolution"] = question.resolution
 

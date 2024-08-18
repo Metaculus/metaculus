@@ -286,7 +286,7 @@ function generateChoiceOptions(
       id: question.id,
       name: extractQuestionGroupName(question.title),
       communityForecast:
-        question.aggregations.recency_weighted.latest?.centers![1] ?? null,
+        question.aggregations.recency_weighted.latest?.centers![0] ?? null,
       forecast: prevForecastValuesMap[question.id] ?? null,
       resolution: question.resolution,
       isDirty: false,

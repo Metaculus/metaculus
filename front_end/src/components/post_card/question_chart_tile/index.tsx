@@ -59,7 +59,9 @@ const QuestionChartTile: FC<Props> = ({
       });
       return (
         <MultipleChoiceTile
-          timestamps={question.forecasts.timestamps}
+          timestamps={question.aggregations.recency_weighted.history.map(
+            (forecast) => forecast.start_time
+          )}
           choices={choices}
           visibleChoicesCount={visibleChoicesCount}
           defaultChartZoom={defaultChartZoom}

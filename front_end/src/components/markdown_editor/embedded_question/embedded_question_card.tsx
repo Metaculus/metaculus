@@ -100,7 +100,9 @@ const EmbeddedQuestionCard: FC<Props> = ({ postData }) => {
         case QuestionType.MultipleChoice:
           return (
             <MultipleChoiceChart
-              timestamps={question.forecasts.timestamps}
+              timestamps={question.aggregations.recency_weighted.history.map(
+                (forecast) => forecast.start_time
+              )}
               choiceItems={generateChoiceItemsFromMultipleChoiceForecast(
                 question,
                 { activeCount: 3 }

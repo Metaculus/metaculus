@@ -81,7 +81,7 @@ export type AggregateForecast = Forecast & {
   histogram: number[] | null;
 };
 
-type AggregateForecastHistory = {
+export type AggregateForecastHistory = {
   history: AggregateForecast[];
   latest?: AggregateForecast;
 };
