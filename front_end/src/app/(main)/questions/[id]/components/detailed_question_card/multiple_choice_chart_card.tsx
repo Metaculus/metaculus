@@ -32,7 +32,8 @@ const MultipleChoiceChartCard: FC<Props> = ({ question }) => {
   const t = useTranslations();
   const { user } = useAuth();
 
-  const { forecasts } = question;
+  const history = question.aggregations.recency_weighted.history;
+  const timestamps = history.map((forecast) => forecast.start_time);
 
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => {
@@ -43,7 +44,7 @@ const MultipleChoiceChartCard: FC<Props> = ({ question }) => {
     generateList(question)
   );
 
-  const timestampsCount = forecasts.timestamps.length;
+  const timestampsCount = timestamps.length;
   const prevTimestampsCount = usePrevious(timestampsCount);
   // sync BE driven data with local state
   useEffect(() => {
@@ -52,16 +53,12 @@ const MultipleChoiceChartCard: FC<Props> = ({ question }) => {
     }
   }, [prevTimestampsCount, question, timestampsCount]);
 
-  const [cursorTimestamp, tooltipDate, handleCursorChange] = useTimestampCursor(
-    forecasts.timestamps
-  );
+  const [cursorTimestamp, tooltipDate, handleCursorChange] =
+    useTimestampCursor(timestamps);
 
   const cursorIndex = useMemo(
-    () =>
-      forecasts.timestamps.findIndex(
-        (timestamp) => timestamp === cursorTimestamp
-      ),
-    [cursorTimestamp, forecasts.timestamps]
+    () => timestamps.findIndex((timestamp) => timestamp === cursorTimestamp),
+    [cursorTimestamp, timestamps]
   );
 
   const tooltipChoices = useMemo<ChoiceTooltipItem[]>(
@@ -126,12 +123,12 @@ const MultipleChoiceChartCard: FC<Props> = ({ question }) => {
         </h3>
         <div className="ml-auto dark:text-white">
           {t("totalForecastersLabel")}{" "}
-          <strong>{forecasts.nr_forecasters[cursorIndex]}</strong>
+          <strong>{history[cursorIndex].forecaster_count}</strong>
         </div>
       </div>
       <div ref={refs.setReference} {...getReferenceProps()}>
         <MultipleChoiceChart
-          timestamps={forecasts.timestamps}
+          timestamps={timestamps}
           choiceItems={choiceItems}
           yLabel={t("communityPredictionLabel")}
           onChartReady={handleChartReady}
