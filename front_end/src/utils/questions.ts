@@ -231,8 +231,8 @@ export function sortGroupPredictionOptions(
   questions: QuestionWithNumericForecasts[]
 ) {
   return [...questions].sort((a, b) => {
-    const aMean = a.forecasts.medians.at(-1) ?? 0;
-    const bMean = b.forecasts.medians.at(-1) ?? 0;
+    const aMean = a.aggregations.recency_weighted.latest?.centers![0] ?? 0;
+    const bMean = b.aggregations.recency_weighted.latest?.centers![0] ?? 0;
     return bMean - aMean;
   });
 }

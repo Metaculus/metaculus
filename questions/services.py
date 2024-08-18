@@ -57,52 +57,9 @@ def build_question_forecasts(
     aggregation_method: str = AggregateForecast.AggregationMethod.RECENCY_WEIGHTED,
 ) -> dict:
     """
-    Enriches questions with the forecasts object.
-
-    format:
-        Binary:
-        {
-            "latest_cdf": None,
-            "latest_pmf": [float], # the most up to date pmf
-            "timestamps": [float], # timestamps in seconds
-            "nr_forecasters": [int], # for each timestep
-            "forecast_values": [list[float]], # for each timestep
-            "q1s": [float], # for each timestep
-            "medians": [float], # for each timestep
-            "q3s": [float], # for each timestep
-        }
-        MC:
-        {
-            "latest_cdf": None,
-            "latest_pmf": [float], # the most up to date pmf
-            "timestamps": [float], # timestamps in seconds
-            "nr_forecasters": [int], # for each timestep
-            "forecast_values": [list[float]], # for each timestep
-            "option1": [
-                {
-                    "median": float,
-                    "q3": float,
-                    "q1": float
-                }, # for each timestep
-                ...
-            ],
-            "option2": [...],
-            ...
-        }
-        Numeric / Date:
-        {
-            "latest_cdf": [float], # the most up to date cdf
-            "latest_pmf": [float], # the most up to date pmf
-            "timestamps": [float], # timestamps in seconds
-            "nr_forecasters": [int], # for each timestep
-            "forecast_values": [list[float]], # for each timestep
-            "q1s": [float], # for each timestep
-            "medians": [float], # for each timestep
-            "q3s": [float], # for each timestep
-        }
+    Builds the AggregateForecasts for a question
+    Stores them in the database
     """
-    forecasts_data = get_forecast_initial_dict(question)
-
     if aggregation_method == AggregateForecast.AggregationMethod.SINGLE_AGGREGATION:
         aggregation_history = get_single_aggregation_history(
             question,
@@ -117,7 +74,6 @@ def build_question_forecasts(
             include_stats=True,
         )
 
-    ################ NEW CODE ################
     # overwrite old history with new history, minimizing the amount deleted and created
     previous_history = question.aggregate_forecasts.filter(method=aggregation_method)
     to_overwrite, to_delete = (
@@ -139,69 +95,6 @@ def build_question_forecasts(
         AggregateForecast.objects.bulk_update(overwriters, fields)
         AggregateForecast.objects.filter(id__in=[old.id for old in to_delete]).delete()
         AggregateForecast.objects.bulk_create(to_create)
-    ################ NEW CODE ################
-
-    latest_entry = aggregation_history[-1] if aggregation_history else None
-    if question.type == "multiple_choice":
-        options = cast(list[str], question.options)
-        for entry in aggregation_history:
-            for i, option in enumerate(options):
-                forecasts_data[option].append(
-                    {
-                        "q1": entry.interval_lower_bounds[i],
-                        "median": entry.centers[i],
-                        "q3": entry.interval_upper_bounds[i],
-                    }
-                )
-            forecasts_data["timestamps"].append(entry.start_time.timestamp())
-            forecasts_data["nr_forecasters"].append(entry.forecaster_count)
-            forecasts_data["forecast_values"].append(entry.forecast_values)
-        forecasts_data["latest_cdf"] = None
-        forecasts_data["latest_pmf"] = (
-            None if not latest_entry else list(latest_entry.get_pmf())
-        )
-    elif question.type == "binary":
-        forecasts_data["latest_cdf"] = None
-        forecasts_data["latest_pmf"] = (
-            None if not latest_entry else list(latest_entry.get_pmf())
-        )
-        forecasts_data["histogram"] = (
-            None
-            if (not latest_entry or latest_entry.histogram is None)
-            else latest_entry.histogram
-        )
-        if not aggregation_history:
-            return forecasts_data
-
-        for entry in aggregation_history:
-            forecasts_data["timestamps"].append(entry.start_time.timestamp())
-            forecasts_data["q1s"].append(entry.interval_lower_bounds[1])
-            forecasts_data["medians"].append(entry.centers[1])
-            forecasts_data["q3s"].append(entry.interval_upper_bounds[1])
-            forecasts_data["means"].append(entry.means[1])
-            forecasts_data["nr_forecasters"].append(entry.forecaster_count)
-            forecasts_data["forecast_values"].append(entry.forecast_values)
-    elif question.type in ["numeric", "date"]:
-        forecasts_data["latest_cdf"] = (
-            [] if not aggregation_history else latest_entry.get_cdf()
-        )
-        forecasts_data["latest_pmf"] = (
-            [] if not aggregation_history else list(latest_entry.get_pmf())
-        )
-        if not aggregation_history:
-            return forecasts_data
-
-        for entry in aggregation_history:
-            forecasts_data["timestamps"].append(entry.start_time.timestamp())
-            forecasts_data["q1s"].append(entry.interval_lower_bounds)
-            forecasts_data["medians"].append(entry.centers)
-            forecasts_data["q3s"].append(entry.interval_upper_bounds)
-            forecasts_data["nr_forecasters"].append(entry.forecaster_count)
-            forecasts_data["forecast_values"].append(entry.forecast_values)
-    else:
-        raise Exception(f"Unknown question type: {question.type}")
-
-    return forecasts_data
 
 
 def build_question_forecasts_for_user(
