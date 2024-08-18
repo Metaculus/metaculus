@@ -395,7 +395,9 @@ function generateGroupOptions(
         ),
         userForecast: getSliderValue(prevForecast),
         userWeights: getWeightsValue(prevWeights),
-        communityQuartiles: computeQuartilesFromCDF(q.forecasts.latest_cdf),
+        communityQuartiles: computeQuartilesFromCDF(
+          q.aggregations.recency_weighted.latest!.forecast_values
+        ),
         resolution: q.resolution,
         isDirty: false,
         menu: (

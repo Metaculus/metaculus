@@ -149,7 +149,9 @@ const ForecastCard: FC<Props> = ({
           return (
             <MultipleChoiceTile
               choices={choices}
-              timestamps={question.forecasts.timestamps}
+              timestamps={question.aggregations.recency_weighted.history.map(
+                (forecast) => forecast.start_time
+              )}
               visibleChoicesCount={visibleChoicesCount}
               chartHeight={chartHeight}
               chartTheme={chartTheme}
