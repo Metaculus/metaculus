@@ -25,7 +25,9 @@ const GroupNumericTile: FC<Props> = ({ questions, curationStatus }) => {
         </span>
         <PredictionChip
           question={predictionQuestion}
-          prediction={predictionQuestion.forecasts.medians.at(-1)}
+          prediction={
+            predictionQuestion.aggregations.recency_weighted.latest?.centers![0]
+          }
           status={curationStatus}
         />
       </div>

@@ -28,7 +28,9 @@ export default async function GenerateQuestionPreview({
   const chartZoomParam = searchParams[GRAPH_ZOOM_PARAM];
   let chartZoom: TimelineChartZoomOption | undefined = undefined;
   if (typeof chartZoomParam === "string") {
-    chartZoom = chartZoomParam as TimelineChartZoomOption;
+    chartZoom =
+      (chartZoomParam as TimelineChartZoomOption) ??
+      TimelineChartZoomOption.TwoMonths;
   }
 
   const hideZoomPickerParam = searchParams[HIDE_ZOOM_PICKER];

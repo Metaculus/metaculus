@@ -12,7 +12,7 @@ import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import {
-  findClosestTimestamp,
+  findPreviousTimestamp,
   generateChoiceItemsFromBinaryGroup,
 } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
@@ -222,7 +222,7 @@ function getQuestionTooltipLabel(
     });
     return getForecastPctDisplayValue(values[closestTimestampIndex]);
   }
-  const closestTimestamp = findClosestTimestamp(timestamps, cursorTimestamp);
+  const closestTimestamp = findPreviousTimestamp(timestamps, cursorTimestamp);
   const cursorIndex = timestamps.findIndex(
     (timestamp) => timestamp === closestTimestamp
   );
