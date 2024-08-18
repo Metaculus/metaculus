@@ -400,6 +400,12 @@ export function generateChoiceItemsFromBinaryGroup(
     return {
       choice: label,
       values: history.map((forecast) => forecast.centers![0]),
+      minValues: history.map(
+        (forecast) => forecast.interval_lower_bounds![order]
+      ),
+      maxValues: history.map(
+        (forecast) => forecast.interval_upper_bounds![order]
+      ),
       timestamps: history.map((forecast) => forecast.start_time),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       active: !!activeCount ? index <= activeCount - 1 : true,
@@ -445,13 +451,12 @@ export function getGroupQuestionsTimestamps(
   ).sort((a, b) => a - b);
 }
 
-export function findClosestTimestamp(
+export function findPreviousTimestamp(
   timestamps: number[],
   timestamp: number
 ): number {
   return timestamps.reduce(
-    (prev, curr) =>
-      Math.abs(curr - timestamp) < Math.abs(prev - timestamp) ? curr : prev,
+    (prev, curr) => (curr < timestamp && curr > prev ? curr : prev),
     0
   );
 }

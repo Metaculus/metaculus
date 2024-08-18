@@ -32,7 +32,7 @@ import {
 import { ChoiceItem, UserChoiceItem } from "@/types/choices";
 import { ThemeColor } from "@/types/theme";
 import {
-  findClosestTimestamp,
+  findPreviousTimestamp,
   generateNumericDomain,
   generatePercentageYScale,
   generateTimestampXScale,
@@ -133,7 +133,7 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
-          const closestTimestamp = findClosestTimestamp(timestamps, value);
+          const closestTimestamp = findPreviousTimestamp(timestamps, value);
 
           onCursorChange(closestTimestamp, xScale.tickFormat);
         }
