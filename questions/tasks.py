@@ -22,10 +22,7 @@ def run_build_question_forecasts(question_id: int):
     """
 
     question = Question.objects.get(id=question_id)
-    forecasts = build_question_forecasts(question)
-
-    question.composed_forecasts = forecasts
-    question.save()
+    build_question_forecasts(question)
 
 
 @dramatiq.actor

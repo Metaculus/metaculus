@@ -74,7 +74,9 @@ class Question(TimeStampedModel):
     open_upper_bound = models.BooleanField(null=True, blank=True)
     open_lower_bound = models.BooleanField(null=True, blank=True)
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
-    composed_forecasts = models.JSONField(null=True, blank=True, editable=False)
+    composed_forecasts = models.JSONField(
+        null=True, blank=True, editable=False
+    )  # DEPRECATED
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
