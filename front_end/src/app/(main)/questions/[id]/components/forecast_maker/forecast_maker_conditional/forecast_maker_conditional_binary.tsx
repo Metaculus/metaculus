@@ -59,14 +59,16 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       name: t("Yes"),
       value: prevYesForecastValue,
       isDirty: false,
-      communitiesForecast: question_yes.forecasts.medians.at(-1),
+      communitiesForecast:
+        question_yes.aggregations.recency_weighted.latest?.centers![0],
     },
     {
       id: questionNoId,
       name: t("No"),
       value: prevNoForecastValue,
       isDirty: false,
-      communitiesForecast: question_no.forecasts.medians.at(-1),
+      communitiesForecast:
+        question_no.aggregations.recency_weighted.latest?.centers![0],
     },
   ]);
   const [activeTableOption, setActiveTableOption] = useState(
