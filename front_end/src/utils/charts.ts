@@ -14,7 +14,6 @@ import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
   FanOption,
   Line,
-  NumericChartType,
   Scale,
   TimelineChartZoomOption,
 } from "@/types/charts";
@@ -24,16 +23,13 @@ import {
   QuestionWithNumericForecasts,
   Question,
   QuestionWithMultipleChoiceForecasts,
-  NumericForecast,
   UserForecastHistory,
   Scaling,
+  AggregateForecast,
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
-import {
-  extractQuestionGroupName,
-  sortMultipleChoicePredictions,
-} from "@/utils/questions";
+import { extractQuestionGroupName } from "@/utils/questions";
 
 export function getNumericChartTypeFromQuestion(
   type: QuestionType
@@ -350,9 +346,15 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   const history = question.aggregations.recency_weighted.history;
   return choiceOrdering.map((order, index) => {
     const label = question.options![order];
-    const choice = {
+    return {
       choice: label,
       values: history.map((forecast) => forecast.centers![order]),
+      minValues: history.map(
+        (forecast) => forecast.interval_lower_bounds![order]
+      ),
+      maxValues: history.map(
+        (forecast) => forecast.interval_upper_bounds![order]
+      ),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       active: !!activeCount ? index <= activeCount - 1 : true,
       highlighted: false,
@@ -365,7 +367,6 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
       rangeMin: 0,
       rangeMax: 1,
     };
-    return choice;
   });
 }
 
@@ -377,32 +378,36 @@ export function generateChoiceItemsFromBinaryGroup(
     preselectedQuestionId?: number;
   }
 ): ChoiceItem[] {
-  const { withMinMax, activeCount, preselectedQuestionId } = config ?? {};
+  const { activeCount } = config ?? {};
 
-  return questions.map((q, index) => {
-    let active = true;
-    if (preselectedQuestionId !== undefined) {
-      active = q.id === preselectedQuestionId;
-    } else if (activeCount) {
-      active = index <= activeCount - 1;
-    }
+  const latests: (AggregateForecast | undefined)[] = questions.map(
+    (question) => question.aggregations.recency_weighted.latest
+  );
+  if (latests.length == 0) {
+    return [];
+  }
+  const choiceOrdering: number[] = latests.map((_, i) => i);
 
+  choiceOrdering.sort((a, b) => {
+    const aCenter = latests[a]?.centers![0] ?? 0;
+    const bCenter = latests[b]?.centers![0] ?? 0;
+    return bCenter - aCenter;
+  });
+
+  return choiceOrdering.map((order, index) => {
+    const question = questions[order];
+    const history = question.aggregations.recency_weighted.history;
+    const label = extractQuestionGroupName(question.title);
     return {
-      choice: extractQuestionGroupName(q.title),
-      values: q.forecasts.medians,
-      ...(withMinMax
-        ? {
-            minValues: q.forecasts.q1s,
-            maxValues: q.forecasts.q3s,
-          }
-        : {}),
-      timestamps: q.forecasts.timestamps,
+      choice: label,
+      values: history.map((forecast) => forecast.centers![0]),
+      timestamps: history.map((forecast) => forecast.start_time),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      active,
-      highlighted: q.id === preselectedQuestionId,
-      resolution: q.resolution,
-      rangeMin: q.scaling.range_min,
-      rangeMax: q.scaling.range_max,
+      active: !!activeCount ? index <= activeCount - 1 : true,
+      highlighted: false,
+      resolution: question.resolution,
+      rangeMin: 0,
+      rangeMax: 1,
     };
   });
 }
@@ -413,7 +418,7 @@ export function getFanOptionsFromNumericGroup(
   return questions
     .map((q) => ({
       name: extractQuestionGroupName(q.title),
-      cdf: q.forecasts.latest_cdf,
+      cdf: q.aggregations.recency_weighted.latest?.forecast_values ?? [],
       resolvedAt: new Date(q.scheduled_resolve_time),
       resolved: q.resolution !== null,
     }))
