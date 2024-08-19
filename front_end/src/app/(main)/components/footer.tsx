@@ -33,11 +33,6 @@ const Footer: FC = () => {
                 {t("API")}
               </a>
             </li>
-            <li className="my-2">
-              <a className="no-underline" href="/otherinitiatives/">
-                {t("Other Initiatives")}
-              </a>
-            </li>
           </ul>
         </div>
         <div className="mr-3">

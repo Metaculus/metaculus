@@ -44,6 +44,9 @@ const config: Config = {
       strokeWidth: {
         "3": "3px",
       },
+      scrollMargin: {
+        nav: "70px",
+      },
     },
   },
   plugins: [
