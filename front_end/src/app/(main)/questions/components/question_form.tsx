@@ -1,18 +1,19 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import classNames from "classnames";
 import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { FC, PropsWithChildren } from "react";
+import { FC } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
+import { InputContainer } from "@/components/ui/input_container";
+import { MarkdownText } from "@/components/ui/markdown_text";
 import { useAuth } from "@/contexts/auth_context";
 import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { Tournament } from "@/types/projects";
@@ -69,57 +70,6 @@ const dateQuestionSchema = continuousQuestionSchema.merge(
 );
 
 const multipleChoiceQuestionSchema = baseQuestionSchema;
-
-type MarkdownProps = {
-  className?: string;
-};
-
-export const MarkdownText: FC<PropsWithChildren<MarkdownProps>> = ({
-  className,
-  children,
-}) => {
-  return (
-    <span
-      className={classNames(
-        "rounded-sm bg-blue-400 px-1 pb-0.5 pt-0 font-mono text-xs text-gray-1000 dark:bg-blue-400-dark dark:text-gray-1000-dark",
-        className
-      )}
-    >
-      {children}
-    </span>
-  );
-};
-
-type InputContainerProps = {
-  labelText?: string;
-  explanation?: any;
-  className?: string;
-};
-
-export const InputContainer: FC<PropsWithChildren<InputContainerProps>> = ({
-  labelText,
-  explanation,
-  className,
-  children,
-}) => {
-  return (
-    <div className={classNames("flex flex-col gap-1.5", className)}>
-      {labelText ? (
-        <label className="flex flex-col gap-1.5 text-sm font-bold capitalize text-gray-600 dark:text-gray-600-dark">
-          {labelText}
-          {children}
-        </label>
-      ) : (
-        children
-      )}
-      {explanation && (
-        <span className="text-xs text-gray-700 dark:text-gray-700-dark">
-          {explanation}
-        </span>
-      )}
-    </div>
-  );
-};
 
 type Props = {
   questionType: string;
