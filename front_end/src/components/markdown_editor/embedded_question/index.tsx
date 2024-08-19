@@ -27,6 +27,8 @@ type Props = {
   id: number;
 };
 
+const COMPONENT_NAME = "EmbeddedQuestion";
+
 const EmbeddedQuestion: FC<Props> = ({ id }) => {
   const [postData, setPostData] = useState<PostWithForecasts | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,7 +89,7 @@ export const EmbedQuestionAction: FC = () => {
 
   const handleSelectQuestion = (id: number) => {
     insertJsx({
-      name: EmbeddedQuestion.name,
+      name: COMPONENT_NAME,
       kind: "flow",
       props: {
         id: id.toString(),
@@ -110,7 +112,7 @@ export const EmbedQuestionAction: FC = () => {
 };
 
 export const embeddedQuestionDescriptor: JsxComponentDescriptor = {
-  name: EmbeddedQuestion.name,
+  name: COMPONENT_NAME,
   props: [{ name: "id", type: "number", required: true }],
   kind: "flow",
   hasChildren: false,
