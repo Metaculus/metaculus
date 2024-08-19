@@ -14,6 +14,8 @@ import * as z from "zod";
 
 import Button from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/form_field";
+import { InputContainer } from "@/components/ui/input_container";
+import { MarkdownText } from "@/components/ui/markdown_text";
 import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { QuestionType } from "@/types/question";
@@ -23,7 +25,6 @@ import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
 import ProjectPicker from "./project_picker";
-import { InputContainer, MarkdownText } from "./question_form";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
