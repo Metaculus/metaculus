@@ -128,11 +128,14 @@ const CommentEditor: FC<CommentEditorProps> = ({
         >
           {isEditing ? t("preview") : t("edit")}
         </Button>
-        {!isEditing && (
-          <Button className="p-2" onClick={handleSubmit}>
-            {t("submit")}
-          </Button>
-        )}
+
+        <Button
+          className="p-2"
+          disabled={markdown.length === 0}
+          onClick={handleSubmit}
+        >
+          {t("submit")}
+        </Button>
       </div>
       {!!errorMessage && (
         <p className="text-end text-red-500 dark:text-red-500-dark">
