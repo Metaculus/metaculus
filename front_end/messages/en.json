@@ -772,5 +772,13 @@
   "groupVariableDescription": "What the subquestion labels represent (e.g. year, country, etc).",
   "categoryPickerDescription": "A name for the parameter which varies between subquestions, like \"Option\", \"Year\" or \"Country\"",
   "subquestionLabel": "Subquestion label",
-  "subquestionLabelDescription": "The label or parameter which identifies this subquestion, like \"Option 1\", \"2033\" or \"France\""
+  "subquestionLabelDescription": "The label or parameter which identifies this subquestion, like \"Option 1\", \"2033\" or \"France\"",
+  "conditionalPairDescription": "A Conditional Pair is a special type of Question Group that elicits conditional probabilities. Each Conditional Pair sits between a Parent Question and a Child Question.  The Parent must be a binary question, while the child may be a single binary, numeric, or date question.",
+  "parentId": "Parent ID",
+  "parentInputDescription": "Please enter the ID of a binary question.",
+  "childId": "Child ID",
+  "childInputDescription": "Please enter the ID of a binary, numeric, or date question.",
+  "isDoneError": "Cannot edit closed, resolved or rejected questions",
+  "editNotebook": "edit notebook",
+  "createNotebook": "create notebook"
 }

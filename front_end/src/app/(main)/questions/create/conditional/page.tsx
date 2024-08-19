@@ -25,7 +25,6 @@ const QuestionConditionalCreator: React.FC<{
     );
   }
 
-  const allCategories = await ProjectsApi.getCategories();
   const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
 
@@ -33,9 +32,8 @@ const QuestionConditionalCreator: React.FC<{
     <ConditionalForm
       mode={post ? "edit" : "create"}
       post={post}
-      conditionInit={condition}
+      conditionParentInit={condition}
       conditionChildInit={conditionChild}
-      allCategories={allCategories}
       tournament_id={
         searchParams["tournament_id"]
           ? Number(searchParams["tournament_id"])
