@@ -43,7 +43,7 @@ const AccountPreferences: FC<Props> = ({ user }) => {
         setIsLoading(false);
       }
     },
-    [user.unsubscribed_preferences_tags]
+    [user]
   );
 
   const options = [
@@ -58,28 +58,23 @@ const AccountPreferences: FC<Props> = ({ user }) => {
   ];
 
   return (
-    <section>
-      <h2 className="mx-[-4px] mb-5 mt-3 border-t border-gray-500 px-1 pt-4">
-        {t("settingsPreferences")}
-      </h2>
-
-      <h3 className="bg-blue-200 p-1 text-sm font-medium dark:bg-blue-800">
+    <section className="text-sm">
+      <h2 className="mb-5 mt-3 px-1">{t("settingsPreferences")}</h2>
+      <h3 className="bg-blue-200 p-1 text-sm font-medium dark:bg-blue-200-dark">
         {t("communityPredictionLabel")}
       </h3>
-      <div className="text-sm">
-        {options.map(({ type, ...opts }) => (
-          <Checkbox
-            key={`subscriptions-${type}`}
-            checked={!user.unsubscribed_preferences_tags?.includes(type)} // if user didn`t unsubscribe check by default
-            onChange={(checked) => {
-              handlePreferencesChange(type, checked).then();
-            }}
-            className="p-1.5"
-            readOnly={isLoading}
-            {...opts}
-          />
-        ))}
-      </div>
+      {options.map(({ type, ...opts }) => (
+        <Checkbox
+          key={`subscriptions-${type}`}
+          checked={!user.unsubscribed_preferences_tags?.includes(type)} // if user didn`t unsubscribe check by default
+          onChange={(checked) => {
+            handlePreferencesChange(type, checked).then();
+          }}
+          className="p-1.5"
+          readOnly={isLoading}
+          {...opts}
+        />
+      ))}
     </section>
   );
 };
