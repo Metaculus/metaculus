@@ -81,27 +81,24 @@ const EmailNotifications: FC<Props> = ({ user }) => {
   ];
 
   return (
-    <section>
-      <h2 className="mx-[-4px] mb-5 mt-3 border-t border-gray-500 px-1 pt-4">
-        {t("settingsSubscriptions")}
-      </h2>
-      <h3 className="bg-blue-200 p-1 text-sm font-medium dark:bg-blue-800">
+    <section className="text-sm">
+      <hr />
+      <h2 className="mb-5 mt-3 px-1 pt-4">{t("settingsSubscriptions")}</h2>
+      <h3 className="bg-blue-200 p-1 text-sm font-medium dark:bg-blue-200-dark">
         {t("settingsEmailNotifications")}
       </h3>
-      <div className="text-sm">
-        {options.map(({ type, ...opts }) => (
-          <Checkbox
-            key={`subscriptions-${type}`}
-            checked={!user.unsubscribed_mailing_tags.includes(type)}
-            onChange={(checked) => {
-              handleEmailSubscriptionChange(type, checked).then();
-            }}
-            className="p-1.5"
-            readOnly={isLoading}
-            {...opts}
-          />
-        ))}
-      </div>
+      {options.map(({ type, ...opts }) => (
+        <Checkbox
+          key={`subscriptions-${type}`}
+          checked={!user.unsubscribed_mailing_tags.includes(type)}
+          onChange={(checked) => {
+            handleEmailSubscriptionChange(type, checked).then();
+          }}
+          className="p-1.5"
+          readOnly={isLoading}
+          {...opts}
+        />
+      ))}
     </section>
   );
 };

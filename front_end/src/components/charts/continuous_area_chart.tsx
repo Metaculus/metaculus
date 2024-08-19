@@ -1,6 +1,4 @@
 "use client";
-import { log } from "console";
-import { format, fromUnixTime } from "date-fns";
 import { merge } from "lodash";
 import React, { FC, useMemo } from "react";
 import {
@@ -12,7 +10,6 @@ import {
   VictoryLine,
   VictoryThemeDefinition,
 } from "victory";
-import { z } from "zod";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
@@ -27,7 +24,6 @@ import {
 import { QuestionType, Scaling } from "@/types/question";
 import { interpolateYValue, getDisplayValue } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
-import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
 
