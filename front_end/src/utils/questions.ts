@@ -257,3 +257,11 @@ export function sortMultipleChoicePredictions(dataset: MultipleChoiceForecast) {
   );
   return choicesArray;
 }
+
+export function getQuestionTitle(post: Post) {
+  if (post.conditional) {
+    return getConditionalQuestionTitle(post.conditional.question_yes);
+  }
+
+  return post.title;
+}

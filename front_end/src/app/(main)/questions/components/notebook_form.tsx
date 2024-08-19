@@ -46,7 +46,7 @@ const NotebookForm: React.FC<Props> = ({
   news_type,
 }) => {
   const { user } = useAuth();
-  const [markdown, setMarkdown] = useState("");
+  const [markdown, setMarkdown] = useState(post?.notebook?.markdown ?? "");
   const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
   const t = useTranslations();
   const control = useForm({

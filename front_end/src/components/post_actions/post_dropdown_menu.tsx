@@ -14,9 +14,10 @@ type Props = {
   post: Post;
 };
 
-const PostDropdownMenu: FC<Props> = ({ post }) => {
+export const PostDropdownMenu: FC<Props> = ({ post }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  console.log(post);
   const changePostActivity = useCallback(
     (score: number) => {
       changePostActivityBoost(post.id, score).then(({ score_total }) => {
@@ -86,5 +87,3 @@ const PostDropdownMenu: FC<Props> = ({ post }) => {
     );
   }
 };
-
-export default PostDropdownMenu;

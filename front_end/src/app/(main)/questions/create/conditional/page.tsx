@@ -3,6 +3,7 @@ import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 
 import ConditionalForm from "../../components/conditional_form";
+import { extractMode } from "../helpers";
 
 const QuestionConditionalCreator: React.FC<{
   searchParams: SearchParams;
@@ -24,14 +25,14 @@ const QuestionConditionalCreator: React.FC<{
       Number(post?.conditional?.condition_child.post_id)
     );
   }
-
+  const mode = extractMode(searchParams, post);
   const allCategories = await ProjectsApi.getCategories();
   const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
 
   return (
     <ConditionalForm
-      mode={post ? "edit" : "create"}
+      mode={mode}
       post={post}
       conditionInit={condition}
       conditionChildInit={conditionChild}

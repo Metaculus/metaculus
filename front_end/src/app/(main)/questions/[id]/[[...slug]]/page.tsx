@@ -8,9 +8,9 @@ import ConditionalTimeline from "@/components/conditional_timeline";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
-import { Post, PostConditional, ProjectPermissions } from "@/types/post";
+import { PostConditional, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
-import { getConditionalQuestionTitle } from "@/utils/questions";
+import { getQuestionTitle } from "@/utils/questions";
 
 import BackgroundInfo from "../components/background_info";
 import DetailedGroupCard from "../components/detailed_group_card";
@@ -183,12 +183,4 @@ function extractPreselectedGroupQuestionId(
     const id = Number(param);
     return isNaN(id) ? undefined : id;
   }
-}
-
-function getQuestionTitle(post: Post) {
-  if (post.conditional) {
-    return getConditionalQuestionTitle(post.conditional.question_yes);
-  }
-
-  return post.title;
 }

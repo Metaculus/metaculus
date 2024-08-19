@@ -196,7 +196,7 @@ const ConditionalForm: React.FC<{
         <div className={inputContainerStyles}>
           <span className={inputLabelStyles}>Condition ID</span>
           <Input
-            readOnly={isLive}
+            readOnly={isLive && mode !== "create"}
             value={condition?.id}
             className={baseInputStyles}
             type="number"
@@ -233,7 +233,7 @@ const ConditionalForm: React.FC<{
         <div className={inputContainerStyles}>
           <span className={inputLabelStyles}>Condition Child ID</span>
           <Input
-            readOnly={isLive}
+            readOnly={isLive && mode !== "create"}
             value={conditionChild?.id}
             className={baseInputStyles}
             type="number"
