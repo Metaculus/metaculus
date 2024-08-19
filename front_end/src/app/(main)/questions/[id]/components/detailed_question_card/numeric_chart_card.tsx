@@ -6,13 +6,7 @@ import React, { FC, useCallback, useMemo, useState } from "react";
 import NumericChart from "@/components/charts/numeric_chart";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { Resolution } from "@/types/post";
-import {
-  QuestionType,
-  Aggregations,
-  UserForecastHistory,
-  Question,
-} from "@/types/question";
+import { Question } from "@/types/question";
 import { getDisplayUserValue, getDisplayValue } from "@/utils/charts";
 
 import CursorDetailItem from "./numeric_cursor_item";
@@ -44,7 +38,7 @@ const NumericChartCard: FC<Props> = ({ question }) => {
       center: forecast.centers![0],
       interval_upper_bound: forecast.interval_upper_bounds![0],
     };
-  }, [cursorTimestamp]);
+  }, [cursorTimestamp, aggregate.history]);
 
   const handleCursorChange = useCallback((value: number) => {
     setCursorTimestamp(value);
