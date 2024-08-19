@@ -84,7 +84,12 @@ const ContinuousPredictionChart: FC<Props> = ({
     }
 
     return charts;
-  }, [dataset.cdf, dataset.pmf, readOnly]);
+  }, [
+    question.aggregations.recency_weighted.latest,
+    dataset.cdf,
+    dataset.pmf,
+    readOnly,
+  ]);
 
   return (
     <>
@@ -101,24 +106,28 @@ const ContinuousPredictionChart: FC<Props> = ({
           <>
             <span>
               {graphType === "pmf" ? "P(x = " : "P(x < "}
-              <strong className="text-gray-900 dark:text-gray-900-dark">
+              <span className="font-bold text-gray-900 dark:text-gray-900-dark">
                 {cursorDisplayData.xLabel}
-              </strong>{" "}
-              {"):"}
+              </span>
+              {" ):"}
             </span>
             {cursorDisplayData.yUserLabel !== null && (
               <span>
-                <strong className="text-gray-900 dark:text-gray-900-dark">
+                <span className="font-bold text-gray-900 dark:text-gray-900-dark">
                   {cursorDisplayData.yUserLabel}
-                </strong>{" "}
-                ({t("you")});
+                </span>
+                {" ("}
+                {t("you")}
+                {")"}
               </span>
             )}
             <span>
-              <strong className="text-gray-900 dark:text-gray-900-dark">
+              <span className="font-bold text-gray-900 dark:text-gray-900-dark">
                 {cursorDisplayData.yCommunityLabel}
-              </strong>{" "}
-              ({t("community")})
+              </span>
+              {" ("}
+              {t("community")}
+              {")"}
             </span>
           </>
         )}
