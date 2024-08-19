@@ -31,7 +31,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   shouldIncludeForecast,
 }) => {
   const t = useTranslations();
-
+  const [rerenderKey, updateRerenderKey] = useState(0);
   const [isEditing, setIsEditing] = useState(true);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivate ?? false);
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
@@ -61,6 +61,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
     setIsPrivateComment(isPrivate ?? false);
     setHasIncludedForecast(false);
     setMarkdown("");
+    updateRerenderKey((prev) => prev + 1); // completely reset mdx editor
     onSubmit && onSubmit(parseComment(newComment));
   };
 
@@ -101,6 +102,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       {isEditing && (
         <div className="flex flex-col">
           <MarkdownEditor
+            key={rerenderKey}
             mode="write"
             markdown={markdown}
             onChange={setMarkdown}
