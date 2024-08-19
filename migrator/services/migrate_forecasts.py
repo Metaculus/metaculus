@@ -85,7 +85,7 @@ def migrate_forecasts(qty: int | None = None):
 
     migrate_post_snapshots_forecasts()
     migrate_forecast_post_relation()
-    migrate_post_forecasts_count()
+    #migrate_post_forecasts_count()
 
 
 def migrate_forecast_post_relation():
