@@ -35,7 +35,7 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
       allCategories={allCategories}
       tournaments={allTournaments}
       siteMain={siteMain}
-    ></QuestionForm>
+    />
   );
 };
 

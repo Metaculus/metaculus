@@ -35,7 +35,7 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
       }
       tournaments={allTournaments}
       siteMain={siteMain}
-    ></GroupForm>
+    />
   );
 };
 
