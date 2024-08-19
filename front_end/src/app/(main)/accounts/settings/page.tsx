@@ -13,7 +13,7 @@ export default async function Settings() {
   if (!token || !currentUser) return redirect("/");
 
   return (
-    <main className="mx-auto min-h-min w-full max-w-3xl flex-auto rounded bg-gray-0 p-0 dark:bg-gray-0-dark sm:p-2 sm:pt-0 md:p-3 lg:mt-4">
+    <main className="mx-auto min-h-min w-full max-w-3xl flex-auto rounded bg-gray-0 px-0 pb-0 pt-2 dark:bg-gray-0-dark sm:px-2 md:p-3 lg:mt-4">
       <AccountPreferences user={currentUser} />
       <EmailNotifications user={currentUser} />
       {currentUser.is_bot && <ApiAccess token={token} />}

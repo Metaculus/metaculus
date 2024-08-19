@@ -14,6 +14,8 @@ import * as z from "zod";
 
 import Button from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/form_field";
+import { InputContainer } from "@/components/ui/input_container";
+import { MarkdownText } from "@/components/ui/markdown_text";
 import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { QuestionType } from "@/types/question";
@@ -23,7 +25,6 @@ import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
 import ProjectPicker from "./project_picker";
-import { InputContainer, MarkdownText } from "./question_form";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
@@ -216,9 +217,9 @@ const GroupForm: React.FC<Props> = ({
     questionSubtypeDisplayMap[subtype] || { title: subtype, description: "" };
 
   return (
-    <div className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
+    <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
-        backText="Create"
+        backText={t("create")}
         backHref="/questions/create"
         currentPage={formattedQuestionType}
       />
@@ -595,11 +596,11 @@ const GroupForm: React.FC<Props> = ({
             {t("newSubquestion")}
           </Button>
         </div>
-        <Button type="submit" className="w-fit">
-          {mode === "create" ? "Create Question" : "Edit Question"}
+        <Button type="submit" className="w-max capitalize">
+          {mode === "create" ? t("createQuestion") : t("editQuestion")}
         </Button>
       </form>
-    </div>
+    </main>
   );
 };
 
