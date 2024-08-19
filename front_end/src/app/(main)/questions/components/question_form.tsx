@@ -152,7 +152,7 @@ const QuestionForm: FC<Props> = ({
       : siteMain;
 
   if (isDone) {
-    throw new Error("Cannot edit closed, resolved or rejected questions");
+    throw new Error(t("isDoneError"));
   }
 
   const questionTypeDisplayMap: Record<

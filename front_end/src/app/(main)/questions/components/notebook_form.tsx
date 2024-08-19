@@ -18,6 +18,7 @@ import { Tournament } from "@/types/projects";
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import ProjectPicker from "./project_picker";
+import { InputContainer } from "./question_form";
 import { createQuestionPost, updatePost } from "../actions";
 
 const notebookSchema = z.object({
@@ -92,24 +93,17 @@ const NotebookForm: React.FC<Props> = ({
     }
   };
 
-  const inputContainerStyles = "flex flex-col gap-1.5";
-  const baseInputStyles =
-    "px-3 py-2 text-base border border-gray-500 rounded dark:bg-blue-950";
-  const baseTextareaStyles = "border border-gray-500 rounded dark:bg-blue-950";
-  const inputLabelStyles = "text-sm font-bold text-gray-600 dark:text-gray-400";
-  const inputDescriptionStyles = "text-xs text-gray-700 dark:text-gray-300";
-
   useConfirmPageLeave(isFormDirty);
 
   return (
-    <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
+    <div className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
-        backText="Create"
+        backText={t("create")}
         backHref="/questions/create"
-        currentPage="Notebook"
+        currentPage={t("notebook")}
       />
       <form
-        className="mt-4 flex flex w-[540px] w-full flex-col space-y-4 rounded"
+        className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
           if (!control.getValues("default_project_id")) {
             control.setValue("default_project_id", siteMain.id);
@@ -126,13 +120,11 @@ const NotebookForm: React.FC<Props> = ({
         }}
       >
         {post && user?.is_superuser && (
-          <div>
-            <a href={`/admin/posts/post/${post.id}/change`}>
-              View in django admin
-            </a>
-          </div>
+          <a href={`/admin/posts/post/${post.id}/change`}>
+            {t("viewInDjangoAdmin")}
+          </a>
         )}
-        <div className={inputContainerStyles}>
+        <InputContainer labelText={t("projects")}>
           <ProjectPicker
             tournaments={tournaments}
             siteMain={siteMain}
@@ -141,38 +133,24 @@ const NotebookForm: React.FC<Props> = ({
               control.setValue("default_project_id", project.id);
             }}
           />
-        </div>
-        <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>Long Title</span>
+        </InputContainer>
+        <InputContainer labelText={t("longTitle")}>
           <Textarea
             {...control.register("title")}
             errors={control.formState.errors.title}
             defaultValue={post?.title}
-            className={`${baseTextareaStyles} min-h-[148px] p-5 text-xl font-normal`}
+            className="min-h-36 rounded border border-gray-500 p-5 text-xl font-normal dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
-          <span className={inputDescriptionStyles}>
-            This should be a shorter version of the question text, used where
-            there is less space to display a title. It should end with a
-            question mark. Examples: &quot;NASA 2022 spacesuit contract
-            winner?&quot; or &quot;EU GDP from 2025 to 2035?&quot;.
-          </span>
-        </div>
-        <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>{t("shortTitle")}</span>
+        </InputContainer>
+        <InputContainer labelText={t("shortTitle")}>
           <Input
             {...control.register("url_title")}
             errors={control.formState.errors.url_title}
             defaultValue={post?.url_title}
-            className={baseInputStyles}
+            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
           />
-          <span className={inputDescriptionStyles}>
-            This should be a shorter version of the Long Title, used where there
-            is less space to display a title. Examples: &quot;NASA 2022
-            Spacesuit Contract Winner&quot; ; &quot;EU GDP From 2025 to
-            2035&quot;.
-          </span>
-        </div>
-        <div className="rounded border border-gray-300 dark:border-gray-600/60">
+        </InputContainer>
+        <div className="rounded border border-gray-300 dark:border-gray-300-dark">
           <MarkdownEditor
             markdown={markdown}
             shouldConfirmLeave={isMarkdownDirty}
@@ -183,22 +161,19 @@ const NotebookForm: React.FC<Props> = ({
             mode="write"
           />
         </div>
-        <div>
-          <div className={inputContainerStyles}>
-            <span className={inputLabelStyles}>Categories</span>
-            <CategoryPicker
-              allCategories={allCategories}
-              categories={categoriesList}
-              onChange={(categories) => {
-                setCategoriesList(categories);
-                setIsCategoriesDirty(true);
-              }}
-            ></CategoryPicker>
-          </div>
-          <Button type="submit">
-            {mode === "edit" ? "Edit Notebook" : "Create Notebook"}
-          </Button>
-        </div>
+        <InputContainer labelText={t("categories")}>
+          <CategoryPicker
+            allCategories={allCategories}
+            categories={categoriesList}
+            onChange={(categories) => {
+              setCategoriesList(categories);
+              setIsCategoriesDirty(true);
+            }}
+          ></CategoryPicker>
+        </InputContainer>
+        <Button type="submit" className="w-max capitalize">
+          {mode === "edit" ? t("editNotebook") : t("createNotebook")}
+        </Button>
       </form>
     </div>
   );

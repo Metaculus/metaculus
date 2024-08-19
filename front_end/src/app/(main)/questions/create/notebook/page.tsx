@@ -10,8 +10,7 @@ const NotebookCreator: React.FC<{ searchParams: SearchParams }> = async ({
   let post = null;
   if (
     searchParams["post_id"] &&
-    searchParams["post_id"] !== null &&
-    searchParams["post_id"] !== undefined &&
+    searchParams["post_id"] != null &&
     Number(searchParams["post_id"]) !== 0
   ) {
     post = await PostsApi.getPost(Number(searchParams["post_id"]));
