@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -10,22 +9,21 @@ import * as z from "zod";
 
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
-import { Input, Textarea } from "@/components/ui/form_field";
+import { Input } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
-import { Category, PostWithForecasts } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import { Tournament } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { getQuestionStatus } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
-import CategoryPicker from "./category_picker";
 import ProjectPicker from "./project_picker";
+import { InputContainer } from "./question_form";
 import { createQuestionPost, getPost, updatePost } from "../actions";
 
 type PostCreationData = {
   title: string;
   url_title: string;
-  categories: number[];
   default_project_id: number;
   conditional: {
     condition_id: number;
@@ -42,20 +40,18 @@ const conditionalQuestionSchema = z.object({
 
 const ConditionalForm: React.FC<{
   post: PostWithForecasts | null;
-  conditionInit: PostWithForecasts | null;
+  mode: "create" | "edit";
+  conditionParentInit: PostWithForecasts | null;
   conditionChildInit: PostWithForecasts | null;
   tournament_id: number | null;
-  mode: "create" | "edit";
-  allCategories: Category[];
   tournaments: Tournament[];
   siteMain: Tournament;
 }> = ({
   post = null,
-  conditionInit = null,
+  mode = "create",
+  conditionParentInit = null,
   conditionChildInit = null,
   tournament_id = null,
-  mode = "create",
-  allCategories,
   tournaments,
   siteMain,
 }) => {
@@ -64,11 +60,10 @@ const ConditionalForm: React.FC<{
   const { isLive, isDone } = getQuestionStatus(post);
   const { user } = useAuth();
   if (isDone) {
-    throw new Error("Cannot edit closed, resolved or rejected questions");
+    throw new Error(t("isDoneError"));
   }
-  const [condition, setCondition] = useState<PostWithForecasts | null>(
-    conditionInit
-  );
+  const [conditionParent, setConditionParent] =
+    useState<PostWithForecasts | null>(conditionParentInit);
   const [conditionChild, setConditionChild] =
     useState<PostWithForecasts | null>(conditionChildInit);
 
@@ -76,19 +71,14 @@ const ConditionalForm: React.FC<{
     resolver: zodResolver(conditionalQuestionSchema),
   });
 
-  const [categoriesList, setCategoriesList] = useState<Category[]>(
-    post?.projects.category ? post?.projects.category : ([] as Category[])
-  );
-
   const submitQuestion = async (data: any) => {
-    if (condition?.id && conditionChild?.id) {
+    if (conditionParent?.id && conditionChild?.id) {
       let post_data: PostCreationData = {
         title: data["title"],
         url_title: data["url_title"],
         default_project_id: data["default_project_id"],
-        categories: categoriesList.map((x) => x.id),
         conditional: {
-          condition_id: condition?.question?.id as number,
+          condition_id: conditionParent?.question?.id as number,
           condition_child_id: conditionChild?.question?.id as number,
         },
       };
@@ -109,28 +99,18 @@ const ConditionalForm: React.FC<{
       ? [...tournaments, siteMain].filter((x) => x.id === tournament_id)[0]
       : siteMain;
 
-  const inputContainerStyles = "flex flex-col gap-1.5";
-  const baseInputStyles =
-    "px-3 py-2 text-base border border-gray-500 rounded dark:bg-blue-950";
-  const baseTextareaStyles = "border border-gray-500 rounded dark:bg-blue-950";
-  const inputLabelStyles = "text-sm font-bold text-gray-600 dark:text-gray-400";
-  const inputDescriptionStyles = "text-xs text-gray-700 dark:text-gray-300";
-
   return (
-    <div className="mb-4 mt-2 flex max-w-[840px] flex-col justify-center self-center rounded-none bg-white px-4 py-4 pb-5 dark:bg-blue-900 md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
+    <div className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
-        backText="Create"
+        backText={t("create")}
         backHref="/questions/create"
-        currentPage="Conditional Pair"
+        currentPage={t("conditionalPair")}
       />
-      <p className="mt-0 text-sm text-gray-600 dark:text-gray-300 md:mt-1 md:text-base">
-        A Conditional Pair is a special type of Question Group that elicits
-        conditional probabilities. Each Conditional Pair sits between a Parent
-        Question and a Child Question. Both Parent and Child must be existing
-        Metaculus Binary Questions.
-      </p>
+      <div className="mt-0 text-sm text-gray-600 dark:text-gray-300 md:mt-1 md:text-base">
+        {t("conditionalPairDescription")}
+      </div>
       <form
-        className="mt-4 flex flex w-[540px] w-full flex-col space-y-4 rounded"
+        className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
           if (!control.getValues("default_project_id")) {
             control.setValue("default_project_id", siteMain.id);
@@ -147,13 +127,11 @@ const ConditionalForm: React.FC<{
         }}
       >
         {post && user?.is_superuser && (
-          <div>
-            <a href={`/admin/posts/post/${post.id}/change`}>
-              View in django admin
-            </a>
-          </div>
+          <a href={`/admin/posts/post/${post.id}/change`}>
+            {t("viewInDjangoAdmin")}
+          </a>
         )}
-        <div className={inputContainerStyles}>
+        <InputContainer>
           <ProjectPicker
             tournaments={tournaments}
             siteMain={siteMain}
@@ -162,43 +140,12 @@ const ConditionalForm: React.FC<{
               control.setValue("default_project_id", project.id);
             }}
           />
-        </div>
-        <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>Long Title</span>
-          <Textarea
-            {...control.register("title")}
-            errors={control.formState.errors.title}
-            defaultValue={post?.title}
-            className={`${baseTextareaStyles} min-h-[148px] p-5 text-xl font-normal`}
-          />
-          <span className={inputDescriptionStyles}>
-            This should be a shorter version of the question text, used where
-            there is less space to display a title. It should end with a
-            question mark. Examples: &quot;NASA 2022 spacesuit contract
-            winner?&quot; or &quot;EU GDP from 2025 to 2035?&quot;.
-          </span>
-        </div>
-        <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>{t("shortTitle")}</span>
-          <Input
-            {...control.register("url_title")}
-            errors={control.formState.errors.url_title}
-            defaultValue={post?.url_title}
-            className={baseInputStyles}
-          />
-          <span className={inputDescriptionStyles}>
-            This should be a shorter version of the Long Title, used where there
-            is less space to display a title. Examples: &quot;NASA 2022
-            Spacesuit Contract Winner&quot; ; &quot;EU GDP From 2025 to
-            2035&quot;.
-          </span>
-        </div>
-        <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>Condition ID</span>
+        </InputContainer>
+        <InputContainer labelText={t("parentId")}>
           <Input
             readOnly={isLive}
-            value={condition?.id}
-            className={baseInputStyles}
+            value={conditionParent?.id}
+            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             type="number"
             {...control.register("condition_id", {
               setValueAs: (value: string) => {
@@ -208,9 +155,9 @@ const ConditionalForm: React.FC<{
                 }
                 getPost(valueAsNr).then((res) => {
                   if (res && res.question?.type === QuestionType.Binary) {
-                    setCondition(res);
+                    setConditionParent(res);
                   } else {
-                    setCondition(null);
+                    setConditionParent(null);
                   }
                 });
                 return valueAsNr;
@@ -218,24 +165,23 @@ const ConditionalForm: React.FC<{
             })}
             errors={control.formState.errors.condition_id}
           />
-          {condition?.question ? (
+          {conditionParent?.question ? (
             <QuestionChartTile
-              question={condition?.question}
-              authorUsername={condition.author_username}
-              curationStatus={condition.curation_status}
+              question={conditionParent?.question}
+              authorUsername={conditionParent.author_username}
+              curationStatus={conditionParent.curation_status}
             />
           ) : (
-            <span className={inputDescriptionStyles}>
-              Please enter the id of a binary question.
+            <span className="text-xs normal-case text-gray-700 dark:text-gray-700-dark">
+              {t("parentInputDescription")}
             </span>
           )}
-        </div>
-        <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>Condition Child ID</span>
+        </InputContainer>
+        <InputContainer labelText={t("childId")}>
           <Input
             readOnly={isLive}
             value={conditionChild?.id}
-            className={baseInputStyles}
+            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             type="number"
             {...control.register("condition_child_id", {
               setValueAs: (value: string) => {
@@ -262,23 +208,13 @@ const ConditionalForm: React.FC<{
               curationStatus={conditionChild.curation_status}
             />
           ) : (
-            <span className={inputDescriptionStyles}>
-              Please enter the id of a question.
+            <span className="text-xs normal-case text-gray-700 dark:text-gray-700-dark">
+              {t("childInputDescription")}
             </span>
           )}
-        </div>
-        <div className={inputContainerStyles}>
-          <span className={inputLabelStyles}>Categories</span>
-          <CategoryPicker
-            allCategories={allCategories}
-            categories={categoriesList}
-            onChange={(categories) => {
-              setCategoriesList(categories);
-            }}
-          ></CategoryPicker>
-        </div>
-        <Button type="submit">
-          {mode === "edit" ? "Edit Question" : "Create Question"}
+        </InputContainer>
+        <Button type="submit" className="w-max capitalize">
+          {mode === "create" ? t("createQuestion") : t("editQuestion")}
         </Button>
       </form>
     </div>
