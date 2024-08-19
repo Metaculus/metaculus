@@ -41,7 +41,7 @@ const QuestionConditionalCreator: React.FC<{
       }
       tournaments={allTournaments}
       siteMain={siteMain}
-    ></ConditionalForm>
+    />
   );
 };
 
