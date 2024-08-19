@@ -96,7 +96,7 @@ const NotebookForm: React.FC<Props> = ({
   useConfirmPageLeave(isFormDirty);
 
   return (
-    <div className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
+    <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
       <BacktoCreate
         backText={t("create")}
         backHref="/questions/create"
@@ -175,7 +175,7 @@ const NotebookForm: React.FC<Props> = ({
           {mode === "edit" ? t("editNotebook") : t("createNotebook")}
         </Button>
       </form>
-    </div>
+    </main>
   );
 };
 
