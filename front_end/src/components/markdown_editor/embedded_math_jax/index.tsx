@@ -24,6 +24,8 @@ type MathJaxRendererProps = {
   content: string;
 };
 
+const COMPONENT_NAME = "EmbeddedMathJax";
+
 const EmbeddedMathJax: React.FC<MathJaxRendererProps> = ({ content }) => {
   const isReadOnly = useCellValue(readOnly$);
   const deleteMathJax = useLexicalNodeRemove();
@@ -65,7 +67,7 @@ export const EmbedMathJaxAction: FC = () => {
         const formula = prompt("Enter a block LaTeX formula", "\\[e=mc^2\\]");
         if (formula) {
           insertJsx({
-            name: EmbeddedMathJax.name,
+            name: COMPONENT_NAME,
             kind: "flow",
             props: {
               content: formula,
@@ -80,7 +82,7 @@ export const EmbedMathJaxAction: FC = () => {
 };
 
 export const mathJaxDescriptor: JsxComponentDescriptor = {
-  name: EmbeddedMathJax.name,
+  name: COMPONENT_NAME,
   props: [{ name: "content", type: "string", required: true }],
   kind: "text",
   hasChildren: false,
