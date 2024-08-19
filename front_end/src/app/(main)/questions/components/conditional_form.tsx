@@ -10,6 +10,7 @@ import * as z from "zod";
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
+import { InputContainer } from "@/components/ui/input_container";
 import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
 import { Tournament } from "@/types/projects";
@@ -18,7 +19,6 @@ import { getQuestionStatus } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
 import ProjectPicker from "./project_picker";
-import { InputContainer } from "./question_form";
 import { createQuestionPost, getPost, updatePost } from "../actions";
 
 type PostCreationData = {

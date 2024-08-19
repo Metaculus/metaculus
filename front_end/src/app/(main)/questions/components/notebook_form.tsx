@@ -10,6 +10,7 @@ import { z } from "zod";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/form_field";
+import { InputContainer } from "@/components/ui/input_container";
 import { useAuth } from "@/contexts/auth_context";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { Category, PostWithForecasts } from "@/types/post";
@@ -18,7 +19,6 @@ import { Tournament } from "@/types/projects";
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import ProjectPicker from "./project_picker";
-import { InputContainer } from "./question_form";
 import { createQuestionPost, updatePost } from "../actions";
 
 const notebookSchema = z.object({
