@@ -31,7 +31,11 @@ const CommentEditor: FC<CommentEditorProps> = ({
   shouldIncludeForecast,
 }) => {
   const t = useTranslations();
-
+  /* TODO: Investigate the synchronization between the internal state of MDXEditor and the external state. */
+  /* Currently, manually updating the markdown state outside of MDXEditor only affects our local state, while the editor retains its previous state.
+   As a temporary workaround, we use the 'key' prop to force a re-render, creating a new instance of the component with the updated initial state.
+   This ensures the editor reflects the correct markdown content. */
+  const [rerenderKey, updateRerenderKey] = useState(0);
   const [isEditing, setIsEditing] = useState(true);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivate ?? false);
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
@@ -61,6 +65,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
     setIsPrivateComment(isPrivate ?? false);
     setHasIncludedForecast(false);
     setMarkdown("");
+    updateRerenderKey((prev) => prev + 1); // completely reset mdx editor
     onSubmit && onSubmit(parseComment(newComment));
   };
 
@@ -101,6 +106,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       {isEditing && (
         <div className="flex flex-col">
           <MarkdownEditor
+            key={rerenderKey}
             mode="write"
             markdown={markdown}
             onChange={setMarkdown}
@@ -128,11 +134,14 @@ const CommentEditor: FC<CommentEditorProps> = ({
         >
           {isEditing ? t("preview") : t("edit")}
         </Button>
-        {!isEditing && (
-          <Button className="p-2" onClick={handleSubmit}>
-            {t("submit")}
-          </Button>
-        )}
+
+        <Button
+          className="p-2"
+          disabled={markdown.length === 0}
+          onClick={handleSubmit}
+        >
+          {t("submit")}
+        </Button>
       </div>
       {!!errorMessage && (
         <p className="text-end text-red-500 dark:text-red-500-dark">
