@@ -31,6 +31,10 @@ const CommentEditor: FC<CommentEditorProps> = ({
   shouldIncludeForecast,
 }) => {
   const t = useTranslations();
+  /* TODO: Investigate the synchronization between the internal state of MDXEditor and the external state. */
+  /* Currently, manually updating the markdown state outside of MDXEditor only affects our local state, while the editor retains its previous state.
+   As a temporary workaround, we use the 'key' prop to force a re-render, creating a new instance of the component with the updated initial state.
+   This ensures the editor reflects the correct markdown content. */
   const [rerenderKey, updateRerenderKey] = useState(0);
   const [isEditing, setIsEditing] = useState(true);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivate ?? false);
