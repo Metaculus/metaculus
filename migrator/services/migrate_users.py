@@ -15,8 +15,8 @@ def create_user(user_obj: dict) -> User:
         # Lowercase email just in case
         email=user_obj["email"].lower(),
         password=user_obj["password"],
-        first_name=user_obj["first_name"],
-        last_name=user_obj["last_name"],
+        first_name=None,
+        last_name=None,
         # Profile Data
         bio=user_obj.get("bio_text", ""),
         website=user_obj.get("website", ""),
