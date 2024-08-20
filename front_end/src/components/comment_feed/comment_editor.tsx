@@ -104,7 +104,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         <IncludedForecast author="test" forecastValue={test} />
       )*/}
       {isEditing && (
-        <div className="flex flex-col">
+        <div className="border border-gray-500 dark:border-gray-500-dark">
           <MarkdownEditor
             key={rerenderKey}
             mode="write"
@@ -115,7 +115,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       )}
       {!isEditing && <MarkdownEditor mode="read" markdown={markdown} />}
 
-      <div className="flex items-center justify-end gap-3">
+      <div className="my-4 flex items-center justify-end gap-3">
         <Checkbox
           checked={isPrivateComment}
           onChange={(checked) => {
@@ -144,9 +144,9 @@ const CommentEditor: FC<CommentEditorProps> = ({
         </Button>
       </div>
       {!!errorMessage && (
-        <p className="text-end text-red-500 dark:text-red-500-dark">
+        <div className="text-end text-red-500 dark:text-red-500-dark">
           {errorMessage}
-        </p>
+        </div>
       )}
     </>
   );
