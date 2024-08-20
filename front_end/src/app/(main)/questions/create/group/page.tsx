@@ -4,6 +4,7 @@ import { PostWithForecasts } from "@/types/post";
 
 import { getPost } from "../../actions";
 import GroupForm from "../../components/group_form";
+import { extractMode } from "../helpers";
 
 const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   searchParams,
@@ -13,6 +14,7 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   if (post_id) {
     post = await getPost(Number(post_id));
   }
+  const mode = extractMode(searchParams, post);
   const allCategories = await ProjectsApi.getCategories();
   const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
@@ -26,7 +28,7 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
           : searchParams["subtype"]
       }
       post={post}
-      mode={post ? "edit" : "create"}
+      mode={mode}
       allCategories={allCategories}
       tournament_id={
         searchParams["tournament_id"]

@@ -1,11 +1,10 @@
 import { FC, Suspense } from "react";
 
 import PostSubscribeButton from "@/app/(main)/questions/[id]/components/subscribe_button";
+import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
 import { PostWithForecasts } from "@/types/post";
 
 import NewsMatch from "./news_match";
-import PostDropdownMenu from "./question_dropdown_menu";
-import ShareQuestionMenu from "./share_question_menu";
 import SidebarQuestionInfo from "./sidebar_question_info";
 import SidebarQuestionTags from "./sidebar_question_tags";
 import SimilarQuestions from "./similar_questions";
@@ -58,7 +57,10 @@ const Sidebar: FC<Props> = ({
         </div>
 
         <div className="flex gap-2">
-          <ShareQuestionMenu questionTitle={questionTitle} />
+          <SharePostMenu
+            questionTitle={questionTitle}
+            questionId={postData.id}
+          />
           <PostDropdownMenu post={postData} />
         </div>
       </div>
