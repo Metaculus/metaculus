@@ -577,7 +577,7 @@ export default function FAQ() {
           predictions. Unlike in a poll, over many predictions, participants
           accrue a track record indicating their forecasting accuracy. These
           track records are incorporated into the{" "}
-          <a href="https://www.metaculus.com/help/faq/#metaculus-prediction">
+          <a href="https://www.metaculus.com/faq/#metaculus-prediction">
             Metaculus Prediction
           </a>
           . The accuracy of the Metaculus track record itself is tracked{" "}
@@ -1125,7 +1125,7 @@ export default function FAQ() {
         </h3>
         <p className="mb-4">
           A Conditional Pair is a special type of{" "}
-          <a href="https://www.metaculus.com/help/faq/#question-groups">
+          <a href="https://www.metaculus.com/faq/#question-groups">
             Question Group
           </a>{" "}
           that elicits{" "}
@@ -1134,7 +1134,7 @@ export default function FAQ() {
           </a>
           . Each Conditional Pair sits between a Parent Question and a Child
           Question. Both Parent and Child must be existing Metaculus{" "}
-          <a href="https://www.metaculus.com/help/faq/#question-types">
+          <a href="https://www.metaculus.com/faq/#question-types">
             Binary Questions
           </a>
           .
@@ -1180,7 +1180,7 @@ export default function FAQ() {
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
             When the Parent resolves Yes, the &quot;if No&quot; Conditional is{" "}
-            <a href="https://www.metaculus.com/help/faq/#ambiguous-annulled">
+            <a href="https://www.metaculus.com/faq/#ambiguous-annulled">
               Annulled
             </a>
             . (And vice versa.)
@@ -1388,7 +1388,7 @@ export default function FAQ() {
             will occur at an unknown time, but the outcome is likely to be
             independent of this time, then it should be specified that the
             question{" "}
-            <a href="https://www.metaculus.com/help/faq/#retroactive-closure">
+            <a href="https://www.metaculus.com/faq/#retroactive-closure">
               retroactively closes
             </a>{" "}
             some appropriate time before the process begins. (Example: success
@@ -1431,16 +1431,14 @@ export default function FAQ() {
         </p>
         <p className="mb-4">
           For{" "}
-          <a href="https://www.metaculus.com/help/faq/#question-types">
-            date range
-          </a>{" "}
+          <a href="https://www.metaculus.com/faq/#question-types">date range</a>{" "}
           questions, the dates on the interface are in UTC. Typically the time
           of day makes little difference as one day is miniscule in comparison
           to the full range, but occasionally for shorter term questions the
           time of day might materially impact scores. If it is not clear what
           point in a specified period a date range question will be resolved as,
           it resolves as the{" "}
-          <a href="https://www.metaculus.com/help/faq/#whenresolve">
+          <a href="https://www.metaculus.com/faq/#whenresolve">
             midpoint of that period
           </a>
           . For example, if a question says it will resolve as a certain day,
@@ -1456,12 +1454,12 @@ export default function FAQ() {
         <p className="mb-4">
           Only Metaculus Administrators can resolve questions. Binary questions
           can resolve <strong>Yes</strong>, <strong>No</strong>,{" "}
-          <a href="https://www.metaculus.com/help/faq/#ambiguous-annulled">
+          <a href="https://www.metaculus.com/faq/#ambiguous-annulled">
             Ambiguous, or Annuled
           </a>
           . Range questions can resolve to a specific value, an out-of-bounds
           value,{" "}
-          <a href="https://www.metaculus.com/help/faq/#ambiguous-annulled">
+          <a href="https://www.metaculus.com/faq/#ambiguous-annulled">
             Ambiguous, or Annuled
           </a>
           .
@@ -1485,7 +1483,7 @@ export default function FAQ() {
         <p className="mb-4">
           In the same way, when a Conditional turns out to be based on an
           outcome that did not occur, it is Annulled. For example, when a{" "}
-          <a href="https://www.metaculus.com/help/faq/#conditionals">
+          <a href="https://www.metaculus.com/faq/#conditionals">
             Conditional Pair
           </a>
           &apos;s parent resolves Yes, the <q>if No</q> Conditional is Annulled.
@@ -1710,7 +1708,7 @@ export default function FAQ() {
                   This question relied on data published in a report by
                   Microsoft, however Microsoft&apos;s report for the year in
                   question no longer contained the relevant data. It&apos;s{" "}
-                  <a href="https://www.metaculus.com/help/faq/#ressrc">
+                  <a href="https://www.metaculus.com/faq/#ressrc">
                     Metaculus policy
                   </a>{" "}
                   that by default if a resolution source is not available
@@ -1786,7 +1784,7 @@ export default function FAQ() {
                 This question relied on data published in a report by Microsoft,
                 however Microsoft&apos;s report for the year in question no
                 longer contained the relevant data. It&apos;s{" "}
-                <a href="https://www.metaculus.com/help/faq/#ressrc">
+                <a href="https://www.metaculus.com/faq/#ressrc">
                   Metaculus policy
                 </a>{" "}
                 that by default if a resolution source is not available
@@ -2683,7 +2681,7 @@ export default function FAQ() {
             <ul className="ml-5 list-disc">
               <li>
                 For{" "}
-                <a href="https://www.metaculus.com/help/faq/#question-types">
+                <a href="https://www.metaculus.com/faq/#question-types">
                   Binary Questions
                 </a>
                 , the Community Prediction is a{" "}
@@ -2694,7 +2692,7 @@ export default function FAQ() {
               </li>
               <li>
                 For{" "}
-                <a href="https://www.metaculus.com/help/faq/#question-types">
+                <a href="https://www.metaculus.com/faq/#question-types">
                   Numeric and Date Questions
                 </a>
                 , the Community Prediction is a weighted{" "}

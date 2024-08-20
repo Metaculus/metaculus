@@ -163,7 +163,7 @@
   "replyWithCount_other": "{{count}} reakcí",
   "now": "nyní",
   "weight": "váha",
-  "communityWeighting": "komunitní <a href=\"/help/faq/#community-prediction\">vážení</a>:",
+  "communityWeighting": "komunitní <a href=\"/faq/#community-prediction\">vážení</a>:",
   "communityWeightingRecent": "nedávné",
   "communityWeightingUniform": "jednotné",
   "medianPredictionLabel": "Medián",
