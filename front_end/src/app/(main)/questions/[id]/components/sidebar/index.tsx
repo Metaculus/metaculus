@@ -25,7 +25,7 @@ const Sidebar: FC<Props> = ({
 }) => {
   if (layout === "mobile") {
     return (
-      <div className="lg:hidden">
+      <section className="lg:hidden">
         <div className="flex flex-col items-start gap-4 self-stretch border-t border-gray-300 pt-4 @container dark:border-gray-300-dark">
           <SidebarQuestionInfo postData={postData} />
           <SidebarQuestionTags
@@ -44,12 +44,12 @@ const Sidebar: FC<Props> = ({
         <Suspense fallback={null}>
           <SimilarQuestions post_id={postData.id} />
         </Suspense>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="hidden w-80 shrink-0 border border-transparent bg-gray-0 p-4 text-gray-700 dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-700-dark lg:block">
+    <section className="hidden h-fit w-80 shrink-0 border border-transparent bg-gray-0 p-4 text-gray-700 dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-700-dark lg:block">
       <div className="mb-4 flex w-full items-center justify-between gap-2 border-b border-gray-300 pb-4 dark:border-gray-300-dark">
         <div className="flex gap-1">
           <PostSubscribeButton post={postData} />
@@ -81,7 +81,7 @@ const Sidebar: FC<Props> = ({
       <Suspense fallback={null}>
         <SimilarQuestions post_id={postData.id} />
       </Suspense>
-    </div>
+    </section>
   );
 };
 
