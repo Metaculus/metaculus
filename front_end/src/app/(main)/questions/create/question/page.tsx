@@ -3,6 +3,7 @@ import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 
 import QuestionForm from "../../components/question_form";
+import { extractMode } from "../helpers";
 
 const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   searchParams,
@@ -19,6 +20,7 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   const question_type: string = post
     ? (post.question?.type as string)
     : (searchParams["type"] as string);
+  const mode = extractMode(searchParams, post);
   const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
 
@@ -26,7 +28,7 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
     <QuestionForm
       post={post}
       questionType={question_type}
-      mode={post ? "edit" : "create"}
+      mode={mode}
       tournament_id={
         searchParams["tournament_id"]
           ? Number(searchParams["tournament_id"])

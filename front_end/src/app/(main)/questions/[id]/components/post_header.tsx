@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions/";
 import Button from "@/components/ui/button";
 import {
   PostStatus,
@@ -13,8 +14,6 @@ import {
 
 import PostApprovalModal from "./post_approval_modal";
 import { draftPost, submitPostForReview } from "../../actions";
-import PostDropdownMenu from "../components/sidebar/question_dropdown_menu";
-import ShareQuestionMenu from "../components/sidebar/share_question_menu";
 
 export default function PostHeader({
   post,
@@ -82,7 +81,7 @@ export default function PostHeader({
           </>
         )}
         <div className="ml-auto flex flex-row justify-self-end text-gray-700 dark:text-gray-700-dark lg:hidden">
-          <ShareQuestionMenu questionTitle={questionTitle} />
+          <SharePostMenu questionTitle={questionTitle} questionId={post.id} />
           <PostDropdownMenu post={post} />
         </div>
       </div>

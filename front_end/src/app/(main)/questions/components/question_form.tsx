@@ -279,7 +279,7 @@ const QuestionForm: FC<Props> = ({
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <InputContainer labelText={t("closingDate")} className="w-full gap-2">
             <Input
-              readOnly={isLive}
+              readOnly={isLive && mode !== "create"}
               type="datetime-local"
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               {...control.register("scheduled_close_time", {
@@ -306,7 +306,7 @@ const QuestionForm: FC<Props> = ({
             className="w-full gap-2"
           >
             <Input
-              readOnly={isLive}
+              readOnly={isLive && mode !== "create"}
               type="datetime-local"
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               {...control.register("scheduled_resolve_time", {
@@ -372,7 +372,7 @@ const QuestionForm: FC<Props> = ({
         {questionType === "multiple_choice" && (
           <InputContainer labelText={t("choicesSeparatedBy")}>
             <Input
-              readOnly={isLive}
+              readOnly={isLive && mode !== "create"}
               type="text"
               className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               onChange={(event) => {
@@ -388,7 +388,7 @@ const QuestionForm: FC<Props> = ({
               <div className="flex flex-col">
                 {optionsList.map((option: string, opt_index: number) => (
                   <Input
-                    readOnly={isLive}
+                    readOnly={isLive && mode !== "create"}
                     key={opt_index}
                     className="m-2 w-min min-w-32 border p-2 text-xs"
                     value={option}
