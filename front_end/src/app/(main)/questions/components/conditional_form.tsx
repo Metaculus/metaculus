@@ -143,7 +143,7 @@ const ConditionalForm: React.FC<{
         </InputContainer>
         <InputContainer labelText={t("parentId")}>
           <Input
-            readOnly={isLive}
+            readOnly={isLive && mode !== "create"}
             value={conditionParent?.id}
             className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             type="number"
@@ -179,7 +179,7 @@ const ConditionalForm: React.FC<{
         </InputContainer>
         <InputContainer labelText={t("childId")}>
           <Input
-            readOnly={isLive}
+            readOnly={isLive && mode !== "create"}
             value={conditionChild?.id}
             className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
             type="number"

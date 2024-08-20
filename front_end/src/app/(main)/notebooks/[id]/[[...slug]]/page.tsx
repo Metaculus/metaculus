@@ -1,5 +1,3 @@
-import { faEllipsis, faShareNodes } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -14,13 +12,13 @@ import {
 } from "@/app/(main)/notebooks/constants/page_sections";
 import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import CommentFeed from "@/components/comment_feed";
-import Button from "@/components/ui/button";
+import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
 import CircleDivider from "@/components/ui/circle_divider";
 import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import { PostWithNotebook } from "@/types/post";
 import { formatDate } from "@/utils/date_formatters";
-import { estimateReadingTime } from "@/utils/questions";
+import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
 
 export default async function IndividualNotebook({
   params,
@@ -35,6 +33,7 @@ export default async function IndividualNotebook({
 
   const locale = await getLocale();
   const t = await getTranslations();
+  const questionTitle = getQuestionTitle(postData);
 
   return (
     <main className="mx-auto mb-24 mt-12 flex w-full max-w-6xl flex-1 flex-col bg-gray-0 p-4 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark xs:p-8">
@@ -95,23 +94,9 @@ export default async function IndividualNotebook({
             })}
           </span>
         </div>
-        <div className="flex gap-1">
-          <Button
-            variant="secondary"
-            className="!rounded border-0"
-            presentationType="icon"
-            size="lg"
-          >
-            <FontAwesomeIcon icon={faShareNodes} size="lg"></FontAwesomeIcon>
-          </Button>
-          <Button
-            variant="secondary"
-            className="!rounded border-0"
-            presentationType="icon"
-            size="lg"
-          >
-            <FontAwesomeIcon icon={faEllipsis} size="lg"></FontAwesomeIcon>
-          </Button>
+        <div className="flex items-center gap-1">
+          <SharePostMenu questionTitle={questionTitle} />
+          <PostDropdownMenu post={postData} />
         </div>
       </div>
 

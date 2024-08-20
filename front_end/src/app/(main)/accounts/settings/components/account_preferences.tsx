@@ -31,8 +31,6 @@ const AccountPreferences: FC<Props> = ({ user }) => {
             new Set([...user.unsubscribed_preferences_tags, preferenceType])
           );
 
-      console.log(preferences, preferenceType, checked);
-
       setIsLoading(true);
       try {
         // Update helper (BE) to handle unsubscribed_preferences_tags field

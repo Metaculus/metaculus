@@ -3,6 +3,7 @@ import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 
 import NotebookForm from "../../components/notebook_form";
+import { extractMode } from "../helpers";
 
 const NotebookCreator: React.FC<{ searchParams: SearchParams }> = async ({
   searchParams,
@@ -15,14 +16,14 @@ const NotebookCreator: React.FC<{ searchParams: SearchParams }> = async ({
   ) {
     post = await PostsApi.getPost(Number(searchParams["post_id"]));
   }
-
+  const mode = extractMode(searchParams, post);
   const allCategories = await ProjectsApi.getCategories();
   const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
 
   return (
     <NotebookForm
-      mode={post ? "edit" : "create"}
+      mode={mode}
       post={post}
       allCategories={allCategories}
       tournament_id={
