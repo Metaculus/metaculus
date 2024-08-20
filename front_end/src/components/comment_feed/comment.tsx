@@ -7,8 +7,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
-import { parseISO } from "date-fns";
-import { isNil } from "lodash";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState, useEffect } from "react";
 
@@ -25,11 +23,7 @@ import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { CommentPermissions, CommentType } from "@/types/comment";
-import {
-  PostStatus,
-  PostWithForecasts,
-  ProjectPermissions,
-} from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { formatDate } from "@/utils/date_formatters";
 import { canPredictQuestion } from "@/utils/questions";
@@ -102,9 +96,9 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
           })}
         />
         <span className="flex-1 text-left">
-          {/* TODO change these translation strings to be one cohesive string */}
-          {childrenExpanded ? t("hide") : t("show")}{" "}
-          {t("replyWithCount", { count: getTreeSize(commentChildren) })}
+          {childrenExpanded
+            ? t("hideReplyWithCount", { count: getTreeSize(commentChildren) })
+            : t("showReplyWithCount", { count: getTreeSize(commentChildren) })}
         </span>
       </Button>
       <div

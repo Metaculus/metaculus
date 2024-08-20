@@ -24,12 +24,14 @@ import { parseComment } from "@/utils/comments";
 
 import Button from "../ui/button";
 
-export type SortOption = "-created_at" | "-vote_score";
+export type SortOption = "created_at" | "-created_at" | "-vote_score";
 type FeedOptions = "public" | "private";
 
 export function sortComments(comments: CommentType[], sort: SortOption) {
   comments.sort((a, b) => {
     switch (sort) {
+      case "created_at":
+        return Number(new Date(a.created_at)) - Number(new Date(b.created_at));
       case "-created_at":
         return Number(new Date(b.created_at)) - Number(new Date(a.created_at));
       case "-vote_score":
@@ -213,6 +215,13 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
       },
     },
     {
+      id: "created_at",
+      name: t("oldest"),
+      onClick: () => {
+        handleSortChange("created_at");
+      },
+    },
+    {
       id: "-vote_score",
       name: t("best"),
       onClick: () => {
@@ -241,8 +250,8 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
             variant="tertiary"
           />
         )}
-        <DropdownMenu items={menuItems}>
-          <Button variant="text">
+        <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
+          <Button variant="text" className="capitalize">
             {menuItems.find((item) => item.id === sort)?.name ?? "sort"}
             <FontAwesomeIcon icon={faChevronDown} />
           </Button>
@@ -274,7 +283,8 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
             comment={comment}
             permissions={permissions}
             treeDepth={0}
-            sort={sort}
+            /* comment children should switch to chronological order if the feed is in reverse-chronological order */
+            sort={sort === "-created_at" ? "created_at" : sort}
             postData={postData}
           />
         </div>
@@ -289,7 +299,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
       )}
       {isLoading && <LoadingIndicator className="mx-auto my-8 w-24" />}
       {offset !== -1 && (
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center pt-4">
           <Button
             onClick={() => fetchComments("/comments", sort, offset, true)}
             disabled={isLoading}
