@@ -241,8 +241,8 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
             variant="tertiary"
           />
         )}
-        <DropdownMenu items={menuItems}>
-          <Button variant="text">
+        <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
+          <Button variant="text" className="capitalize">
             {menuItems.find((item) => item.id === sort)?.name ?? "sort"}
             <FontAwesomeIcon icon={faChevronDown} />
           </Button>
@@ -289,7 +289,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
       )}
       {isLoading && <LoadingIndicator className="mx-auto my-8 w-24" />}
       {offset !== -1 && (
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center pt-4">
           <Button
             onClick={() => fetchComments("/comments", sort, offset, true)}
             disabled={isLoading}
