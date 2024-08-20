@@ -19,6 +19,7 @@ export type MenuItemProps = {
 interface DropdownMenuProps extends React.PropsWithChildren {
   items: MenuItemProps[];
   textAlign?: "left" | "right";
+  itemClassName?: string;
 }
 
 const defaultButton = (
@@ -36,6 +37,7 @@ export default function DropdownMenu({
   items,
   children = defaultButton,
   textAlign = "right",
+  itemClassName,
 }: DropdownMenuProps) {
   return (
     <Menu as="div" className="relative text-gray-900 dark:text-gray-900-dark">
@@ -57,7 +59,8 @@ export default function DropdownMenu({
                     className={clsx(
                       "w-full whitespace-nowrap p-2 no-underline hover:bg-gray-200 hover:dark:bg-gray-200-dark",
                       { "text-right": textAlign === "right" },
-                      { "text-left": textAlign === "left" }
+                      { "text-left": textAlign === "left" },
+                      itemClassName
                     )}
                     onClick={item.onClick}
                   >
@@ -70,7 +73,8 @@ export default function DropdownMenu({
                     className={clsx(
                       "w-full self-stretch whitespace-nowrap p-2 hover:bg-gray-200 hover:dark:bg-gray-200-dark",
                       { "text-right": textAlign === "right" },
-                      { "text-left": textAlign === "left" }
+                      { "text-left": textAlign === "left" },
+                      itemClassName
                     )}
                     onClick={item.onClick}
                   >
