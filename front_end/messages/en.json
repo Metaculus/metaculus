@@ -176,7 +176,7 @@
   "replyWithCount": "{count} replies",
   "now": "now",
   "weight": "weight",
-  "communityWeighting": "community <a href=\"/help/faq/#community-prediction\">weighting</a>:",
+  "communityWeighting": "community <a href=\"/faq/#community-prediction\">weighting</a>:",
   "recent": "recent",
   "uniform": "uniform",
   "medianPredictionLabel": "Median",

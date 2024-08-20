@@ -167,7 +167,7 @@
     "replyWithCount_other": "{{count}} 條回覆",
     "now": "現在",
     "weight": "權重",
-    "communityWeighting": "社區 <a href=\"/help/faq/#community-prediction\">權重</a>：",
+    "communityWeighting": "社區 <a href=\"/faq/#community-prediction\">權重</a>：",
     "communityWeightingRecent": "最近",
     "communityWeightingUniform": "均勻",
     "medianPredictionLabel": "中位數",
