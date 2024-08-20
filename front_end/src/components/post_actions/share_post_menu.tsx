@@ -8,7 +8,6 @@ import Button from "@/components/ui/button";
 import DropdownMenu from "@/components/ui/dropdown_menu";
 import useEmbedModalContext from "@/contexts/embed_modal_context";
 import {
-  useMetaImageUrl,
   useCopyUrl,
   useShareOnFacebookLink,
   useShareOnTwitterLink,
@@ -17,14 +16,14 @@ import { useBreakpoint } from "@/hooks/tailwind";
 
 type Props = {
   questionTitle: string;
+  questionId?: number;
 };
 
-const ShareQuestionMenu: FC<Props> = ({ questionTitle }) => {
+export const SharePostMenu: FC<Props> = ({ questionTitle, questionId }) => {
   const isLargeScreen = useBreakpoint("md");
   const t = useTranslations();
   const { updateIsOpen } = useEmbedModalContext();
   const copyUrl = useCopyUrl();
-  const copyImageUrl = useMetaImageUrl("twitter:image");
   const shareOnTwitterLink = useShareOnTwitterLink(
     `${questionTitle} #metaculus`
   );
@@ -54,12 +53,13 @@ const ShareQuestionMenu: FC<Props> = ({ questionTitle }) => {
           link: shareOnTwitterLink,
           openNewTab: true,
         },
-        ...(copyImageUrl
+        ...(questionId
           ? [
               {
                 id: "image",
                 name: t("image"),
-                link: copyImageUrl,
+                link: `/questions/${questionId}/api/generate-preview`,
+                openNewTab: true,
               },
             ]
           : []),
@@ -80,5 +80,3 @@ const ShareQuestionMenu: FC<Props> = ({ questionTitle }) => {
     </DropdownMenu>
   );
 };
-
-export default ShareQuestionMenu;
