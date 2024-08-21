@@ -10,6 +10,7 @@ from users.models import User
 from posts.models import Post
 from projects.models import Project
 from questions.models import Question
+from questions.types import AggregationMethod
 from scoring.models import Score, LeaderboardEntry, Leaderboard, MedalExclusionRecord
 from scoring.score_math import evaluate_question
 from utils.the_math.formulas import string_location_to_bucket_index
@@ -58,34 +59,33 @@ def generate_scoring_leaderboard_entries(
     questions: list[Question],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
-    # TODO: add aggregate scores
     scores: QuerySet[Score] = Score.objects.filter(
-        user__isnull=False,
         question__in=questions,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
-    user_entries: dict[int, LeaderboardEntry] = {}
+    entries: dict[int | AggregationMethod, LeaderboardEntry] = {}
     now = timezone.now()
     for score in scores:
-        user_id = score.user_id
-        if user_id not in user_entries:
-            user_entries[user_id] = LeaderboardEntry(
-                user_id=user_id,
+        identifier = score.user_id or score.aggregation_method
+        if identifier not in entries:
+            entries[identifier] = LeaderboardEntry(
+                user_id=score.user_id,
+                aggregation_method=score.aggregation_method,
                 score=0,
                 coverage=0,
                 contribution_count=0,
                 calculated_on=now,
             )
-        user_entries[user_id].score += score.score
-        user_entries[user_id].coverage += score.coverage
-        user_entries[user_id].contribution_count += 1
+        entries[identifier].score += score.score
+        entries[identifier].coverage += score.coverage
+        entries[identifier].contribution_count += 1
     if leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL:
-        for entry in user_entries.values():
+        for entry in entries.values():
             entry.score /= max(30, entry.coverage)
     elif leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL_LEGACY:
-        for entry in user_entries.values():
+        for entry in entries.values():
             entry.score /= max(40, entry.contribution_count)
-    return sorted(user_entries.values(), key=lambda entry: entry.score, reverse=True)
+    return sorted(entries.values(), key=lambda entry: entry.score, reverse=True)
 
 
 def generate_comment_insight_leaderboard_entries(
@@ -221,6 +221,7 @@ def update_project_leaderboard(
             start_time__lte=leaderboard.finalize_time
         )
     excluded_users = exclusion_records.values_list("user", flat=True)
+    excluded_user_ids = set([r.user.id for r in exclusion_records])
     # medals
     golds = silvers = bronzes = 0
     if (
@@ -228,13 +229,19 @@ def update_project_leaderboard(
         and leaderboard.finalize_time
         and (timezone.now() > leaderboard.finalize_time)
     ):
-        entry_count = len(new_entries)
+        entry_count = len(
+            [
+                e
+                for e in new_entries
+                if (e.user_id and (e.user_id not in excluded_user_ids))
+            ]
+        )
         golds = max(0.01 * entry_count, 1)
         silvers = max(0.01 * entry_count, 1)
         bronzes = max(0.03 * entry_count, 1)
     rank = 1
     for entry in new_entries:
-        if entry.user.id in excluded_users:
+        if (entry.user_id is None) or (entry.user_id in excluded_users):
             entry.excluded = True
             entry.medal = None
             entry.rank = rank
@@ -251,7 +258,9 @@ def update_project_leaderboard(
     for new_entry in new_entries:
         new_entry.leaderboard = leaderboard
         for previous_entry in previous_entries:
-            if previous_entry.user == new_entry.user:
+            if (previous_entry.user_id == new_entry.user_id) and (
+                previous_entry.aggregation_method == new_entry.aggregation_method
+            ):
                 new_entry.id = previous_entry.id
                 seen.add(previous_entry)
                 break
