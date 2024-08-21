@@ -295,3 +295,6 @@ class AggregateForecast(models.Model):
             pmf.append(1 - cdf[-1])
             return pmf
         return self.forecast_values
+
+    def get_prediction_values(self) -> list[float]:
+        return self.forecast_values
