@@ -4,13 +4,16 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
+import scipy
+import numpy as np
 
+from questions.models import Forecast
 from users.models import User
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.views import get_projects_qs, get_project_permission_for_user
-from scoring.models import Leaderboard, LeaderboardEntry
+from scoring.models import Leaderboard, LeaderboardEntry, Score
 from scoring.serializers import (
     LeaderboardSerializer,
     LeaderboardEntrySerializer,
@@ -179,3 +182,116 @@ def medal_contributions(
         "user_id": user_id,
     }
     return Response(return_data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def metaculus_track_record(
+    request: Request,
+):
+    # @TODO Luke replace with the id to fetch the CP
+    author_id = 115725
+    all_score_objs = Score.objects.filter(
+        user=author_id, score_type=Score.ScoreTypes.BASELINE
+    ).all()
+    forecasts = (
+        Forecast.objects.filter(
+            author=author_id,
+            question__type="binary",
+            question__resolution__in=["no", "yes"],
+        )
+        .prefetch_related("question")
+        .all()
+    )
+
+    values = []
+    weights = []
+    resolutions = []
+    questions_predicted = []
+    scores = []
+    question_score_map = {score.question_id: score for score in all_score_objs}
+
+    for forecast in forecasts:
+        question = forecast.question
+        if question.id not in questions_predicted:
+            questions_predicted.append(question.id)
+            if score := question_score_map.get(question.id):
+                scores.append(score.score)
+
+        forecast_horizon_start = question.open_time.timestamp()
+        actual_close_time = question.forecast_scoring_ends.timestamp()
+        forecast_horizon_end = question.actual_close_time.timestamp()
+        forecast_start = max(forecast_horizon_start, forecast.start_time.timestamp())
+        if forecast.end_time:
+            forecast_end = min(actual_close_time, forecast.end_time.timestamp())
+        else:
+            forecast_end = actual_close_time
+        forecast_duration = forecast_end - forecast_start
+        question_duration = forecast_horizon_end - forecast_horizon_start
+        weight = forecast_duration / question_duration
+        values.append(forecast.probability_yes)
+        weights.append(weight)
+        resolutions.append(int(question.resolution == "yes"))
+
+    ser = {}
+    calibration_curve = []
+    for p_min, p_max in [(x / 20, x / 20 + 0.05) for x in range(20)]:
+        res = []
+        ws = []
+        bin_center = p_min + 0.05
+        for value, weight, resolution in zip(values, weights, resolutions):
+            if p_min <= value < p_max:
+                res.append(resolution)
+                ws.append(weight)
+        if res:
+            user_middle_quartile = np.average(res, weights=ws)
+        else:
+            user_middle_quartile = None
+        user_lower_quartile = scipy.stats.binom.ppf(
+            0.05, max([len(res), 1]), bin_center
+        ) / max([len(res), 1])
+        user_upper_quartile = scipy.stats.binom.ppf(
+            0.95, max([len(res), 1]), bin_center
+        ) / max([len(res), 1])
+
+        print(user_upper_quartile, user_lower_quartile, bin_center)
+        calibration_curve.append(
+            {
+                "user_lower_quartile": user_lower_quartile,
+                "user_middle_quartile": user_middle_quartile,
+                "user_upper_quartile": user_upper_quartile,
+                "perfect_calibration": bin_center,
+            }
+        )
+
+    ser["calibration_curve"] = calibration_curve
+    ser["score_histogram"] = [
+        {"x_start": 0, "x_end": 0.2, "y": 0.7},
+        {"x_start": 0.2, "x_end": 0.4, "y": 0.1},
+        {"x_start": 0.4, "x_end": 0.6, "y": 0.05},
+        {"x_start": 0.6, "x_end": 0.8, "y": 0.03},
+        {"x_start": 0.8, "x_end": 1, "y": 0.02},
+    ]
+
+    ser["score_scatter_plot"] = []
+    for score in all_score_objs:
+        ser["score_scatter_plot"].append(
+            {
+                "score": score.score,
+                "score_timestamp": score.created_at.timestamp(),
+            }
+        )
+    ser["score_histogram"] = []
+    bin_incr = 70
+    for bin_start in range(-700, 700, bin_incr):
+        bin_end = bin_start + bin_incr
+        ser["score_histogram"].append(
+            {
+                "bin_start": bin_start,
+                "bin_end": bin_end,
+                "pct_scores": len([s for s in scores if s >= bin_start and s < bin_end])
+                / len(scores),
+            }
+        )
+    print(ser)
+    return Response(ser)
