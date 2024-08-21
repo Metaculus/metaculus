@@ -7,13 +7,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questions', '0015_aggregateforecast'),
+        ("questions", "0015_aggregateforecast"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='forecast',
-            name='question',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='user_forecasts', to='questions.question'),
+            model_name="forecast",
+            name="question",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="user_forecasts",
+                to="questions.question",
+            ),
         ),
     ]
