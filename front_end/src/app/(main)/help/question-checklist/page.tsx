@@ -19,7 +19,7 @@ export default function QuestionChecklist() {
           it is the best path forward.
         </p>
 
-        <hr className="my-4 border-t-2 border-gray-300" />
+        <hr className="my-4 border-t-2 border-gray-300 dark:border-gray-700" />
 
         <section>
           <ul className="ml-6 list-disc space-y-4">
@@ -95,7 +95,7 @@ export default function QuestionChecklist() {
           </ul>
         </section>
 
-        <hr className="my-4 border-t-2 border-gray-300" />
+        <hr className="my-4 border-t-2 border-gray-300 dark:border-gray-700" />
 
         <h2 className="text-xl font-bold">Explanations/Rationales</h2>
 
@@ -148,7 +148,7 @@ export default function QuestionChecklist() {
           &quot;when this question was written&quot;.
         </p>
 
-        <hr className="my-4 border-t-2 border-gray-300" />
+        <hr className="my-4 border-t-2 border-gray-300 dark:border-gray-700" />
 
         <h3 className="text-lg font-semibold">
           Resolution and Scoring Details
@@ -247,7 +247,7 @@ export default function QuestionChecklist() {
           well-defined terms).
         </p>
 
-        <hr className="my-4 border-t-2 border-gray-300" />
+        <hr className="my-4 border-t-2 border-gray-300 dark:border-gray-700" />
 
         <h3 className="text-lg font-semibold">Sensitive Subjects</h3>
 
