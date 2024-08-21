@@ -19,7 +19,7 @@ class UserWeight(TimeStampedModel):
 class Score(TimeStampedModel):
     # typing
     forecasts_count: int
-
+    question_id: int
     objects: models.Manager["Score"]
     user_id: int | None
 
