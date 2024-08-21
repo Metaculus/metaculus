@@ -20,6 +20,7 @@ from notifications.services import (
 )
 from posts.models import Post, PostSubscription
 from questions.models import Question, Forecast, AggregateForecast
+from questions.types import AggregationMethod
 from users.models import User
 from utils.models import ArrayLength
 from utils.the_math.formulas import (
@@ -163,7 +164,7 @@ def notify_post_cp_change(post: Post):
     forecast_history = {
         question: AggregateForecast.objects.filter(
             question=question,
-            method=AggregateForecast.AggregationMethod.RECENCY_WEIGHTED,
+            method=AggregationMethod.RECENCY_WEIGHTED,
         )
         for question in questions
     }

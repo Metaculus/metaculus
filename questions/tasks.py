@@ -12,6 +12,7 @@ from questions.models import Question
 from questions.services import build_question_forecasts
 from scoring.models import Score
 from scoring.utils import score_question
+from users.models import User
 
 
 @dramatiq.actor
@@ -27,7 +28,7 @@ def run_build_question_forecasts(question_id: int):
 
 @dramatiq.actor
 def resolve_question_and_send_notifications(question_id: int):
-    question = Question.objects.get(id=question_id)
+    question: Question = Question.objects.get(id=question_id)
     post = question.get_post()
 
     # Generates Scores
@@ -37,7 +38,8 @@ def resolve_question_and_send_notifications(question_id: int):
         score_types=[Score.ScoreTypes.PEER, Score.ScoreTypes.BASELINE],
     )
     scores = (
-        question.scores.annotate(
+        question.scores.filter(user__isnull=False)
+        .annotate(
             forecasts_count=SubqueryAggregate(
                 "question__forecast", filter=Q(author=OuterRef("user")), aggregate=Count
             )
@@ -47,9 +49,12 @@ def resolve_question_and_send_notifications(question_id: int):
             user__unsubscribed_mailing_tags__contains=[
                 MailingTags.FORECASTED_QUESTION_RESOLUTION
             ]
-        ).select_related("user")
+        )
+        .select_related("user")
     )
-    user_notification_params = {}
+    user_notification_params: dict[
+        User, NotificationPredictedQuestionResolved.ParamsType
+    ] = {}
 
     # Send notifications
     for score in scores:
