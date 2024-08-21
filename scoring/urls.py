@@ -23,4 +23,9 @@ urlpatterns = [
         views.medal_contributions,
         name="medal-contributions",
     ),
+    path(
+        "metaculus_track_record",
+        views.metaculus_track_record,
+        name="metaculus-track-record",
+    ),
 ]
