@@ -10,6 +10,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
+import scipy
 
 from comments.models import Comment
 from posts.models import Post
@@ -39,7 +40,7 @@ def get_serialized_user(request, user, Serializer):
         .all()
     )
 
-    ser["nr_forecasts"] = len(forecasts)
+    ser["nr_forecasts"] = Forecast.objects.filter(author=user).count()
     ser["nr_comments"] = Comment.objects.filter(author=user).count()
     values = []
     weights = []
@@ -47,13 +48,11 @@ def get_serialized_user(request, user, Serializer):
     scores = []
     questions_predicted = []
     questions_predicted_socred = []
+    all_score_objs = Score.objects.filter(
+        user=user, score_type=Score.ScoreTypes.BASELINE
+    ).all()
 
-    question_score_map = {
-        score.question_id: score
-        for score in Score.objects.filter(
-            user=user, score_type=Score.ScoreTypes.BASELINE
-        )
-    }
+    question_score_map = {score.question_id: score for score in all_score_objs}
 
     for forecast in forecasts:
         question = forecast.question
@@ -94,9 +93,7 @@ def get_serialized_user(request, user, Serializer):
     for p_min, p_max in [(x / 20, x / 20 + 0.05) for x in range(20)]:
         res = []
         ws = []
-        user_lower_quartile = max(p_min, 0)
-        user_upper_quartile = min(p_min + 0.1, 1)
-
+        bin_center = p_min + 0.05
         for value, weight, resolution in zip(values, weights, resolutions):
             if p_min <= value < p_max:
                 res.append(resolution)
@@ -105,12 +102,20 @@ def get_serialized_user(request, user, Serializer):
             user_middle_quartile = np.average(res, weights=ws)
         else:
             user_middle_quartile = None
+        user_lower_quartile = scipy.stats.binom.ppf(
+            0.05, max([len(res), 1]), bin_center
+        ) / max([len(res), 1])
+        user_upper_quartile = scipy.stats.binom.ppf(
+            0.95, max([len(res), 1]), bin_center
+        ) / max([len(res), 1])
+
+        print(user_upper_quartile, user_lower_quartile, bin_center)
         calibration_curve.append(
             {
                 "user_lower_quartile": user_lower_quartile,
                 "user_middle_quartile": user_middle_quartile,
                 "user_upper_quartile": user_upper_quartile,
-                "perfect_calibration": p_min + 0.05,
+                "perfect_calibration": bin_center,
             }
         )
 
@@ -122,6 +127,28 @@ def get_serialized_user(request, user, Serializer):
         {"x_start": 0.6, "x_end": 0.8, "y": 0.03},
         {"x_start": 0.8, "x_end": 1, "y": 0.02},
     ]
+
+    ser["score_scatter_plot"] = []
+    for score in all_score_objs:
+        ser["score_scatter_plot"].append(
+            {
+                "score": score.score,
+                "score_timestamp": score.created_at.timestamp(),
+            }
+        )
+    ser["score_histogram"] = []
+    bin_incr = 70
+    for bin_start in range(-700, 700, bin_incr):
+        bin_end = bin_start + bin_incr
+        ser["score_histogram"].append(
+            {
+                "bin_start": bin_start,
+                "bin_end": bin_end,
+                "pct_scores": len([s for s in scores if s >= bin_start and s < bin_end])
+                / len(scores),
+            }
+        )
+    print(ser["score_histogram"])
     return ser
 
 

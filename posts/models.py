@@ -35,22 +35,30 @@ class PostQuerySet(models.QuerySet):
         return self.prefetch_related(
             Prefetch(
                 "question__user_forecasts",
-                queryset=Forecast.objects.filter(author_id=user_id),
+                queryset=Forecast.objects.filter(author_id=user_id).order_by(
+                    "start_time"
+                ),
                 to_attr="request_user_forecasts",
             ),
             Prefetch(
                 "conditional__question_yes__user_forecasts",
-                queryset=Forecast.objects.filter(author_id=user_id),
+                queryset=Forecast.objects.filter(author_id=user_id).order_by(
+                    "start_time"
+                ),
                 to_attr="request_user_forecasts",
             ),
             Prefetch(
                 "conditional__question_no__user_forecasts",
-                queryset=Forecast.objects.filter(author_id=user_id),
+                queryset=Forecast.objects.filter(author_id=user_id).order_by(
+                    "start_time"
+                ),
                 to_attr="request_user_forecasts",
             ),
             Prefetch(
                 "group_of_questions__questions__user_forecasts",
-                queryset=Forecast.objects.filter(author_id=user_id),
+                queryset=Forecast.objects.filter(author_id=user_id).order_by(
+                    "start_time"
+                ),
                 to_attr="request_user_forecasts",
             ),
         )
@@ -266,9 +274,20 @@ class Notebook(TimeStampedModel):
 
 
 class Post(TimeStampedModel):
+    # typing
+    id: int
     votes: QuerySet["Vote"]
     subscriptions: QuerySet["PostSubscription"]
     forecasts: QuerySet["Forecast"]
+
+    # Annotated fields
+    nr_forecasters: int = 0
+    vote_score: int = 0
+    user_vote = None
+    user_permission: ObjectPermission = None
+    comment_count: int = 0
+    user_last_forecasts_date = None
+    divergence: int = None
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -456,15 +475,6 @@ class Post(TimeStampedModel):
         self.save(update_fields=["forecasts_count"])
 
     objects = PostManager()
-
-    # Annotated fields
-    nr_forecasters: int = 0
-    vote_score: int = 0
-    user_vote = None
-    user_permission: ObjectPermission = None
-    comment_count: int = 0
-    user_last_forecasts_date = None
-    divergence: int = None
 
     def __str__(self):
         return self.title

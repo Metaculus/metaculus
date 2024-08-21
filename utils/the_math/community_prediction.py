@@ -18,6 +18,7 @@ import numpy as np
 from django.db.models import Q
 
 from questions.models import Question, AggregateForecast
+from questions.types import AggregationMethod
 from utils.the_math.measures import weighted_percentile_2d, percent_point_function
 from utils.typing import (
     ForecastValues,
@@ -121,13 +122,13 @@ def get_aggregation_at_time(
     time: datetime,
     include_stats: bool = False,
     histogram: bool = False,
-    aggregation_method: AggregateForecast.AggregationMethod = AggregateForecast.AggregationMethod.RECENCY_WEIGHTED,
+    aggregation_method: AggregationMethod = AggregationMethod.RECENCY_WEIGHTED,
 ) -> AggregateForecast | None:
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
     and q3s"""
     forecasts = question.user_forecasts.filter(
         Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
-    ).order_by("-start_time")
+    ).order_by("start_time")
     if forecasts.count() == 0:
         return None
     forecast_set = ForecastSet(
@@ -136,7 +137,7 @@ def get_aggregation_at_time(
     )
     weights = (
         None
-        if aggregation_method == AggregateForecast.AggregationMethod.UNWEIGHTED
+        if aggregation_method == AggregationMethod.UNWEIGHTED
         else generate_recency_weights(len(forecast_set.forecasts_values))
     )
     aggregation_entry = calculate_aggregation_entry(
@@ -234,7 +235,7 @@ def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
 
 def get_cp_history(
     question: Question,
-    aggregation_method: AggregateForecast.AggregationMethod = AggregateForecast.AggregationMethod.RECENCY_WEIGHTED,
+    aggregation_method: AggregationMethod = AggregationMethod.RECENCY_WEIGHTED,
     minimize: bool = True,
     include_stats: bool = True,
 ) -> list[AggregateForecast]:
@@ -242,7 +243,7 @@ def get_cp_history(
 
     user_forecast_history = get_user_forecast_history(question)
     for i, forecast_set in enumerate(user_forecast_history):
-        if aggregation_method == AggregateForecast.AggregationMethod.RECENCY_WEIGHTED:
+        if aggregation_method == AggregationMethod.RECENCY_WEIGHTED:
             weights = generate_recency_weights(len(forecast_set.forecasts_values))
         else:
             weights = None

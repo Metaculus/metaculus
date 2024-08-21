@@ -85,7 +85,12 @@ const GroupForm: React.FC<Props> = ({
 
     let break_out = false;
     const groupData = subQuestions
-      .filter((x) => !x.id)
+      .filter((x) => {
+        if (mode === "edit") {
+          return !x.id;
+        }
+        return true;
+      })
       .map((x) => {
         if (subtype === QuestionType.Binary) {
           return {
@@ -389,7 +394,7 @@ const GroupForm: React.FC<Props> = ({
                       className="w-full"
                     >
                       <Input
-                        readOnly={isLive}
+                        readOnly={isLive && mode !== "create"}
                         type="datetime-local"
                         className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                         defaultValue={
@@ -420,7 +425,7 @@ const GroupForm: React.FC<Props> = ({
                       className="w-full"
                     >
                       <Input
-                        readOnly={isLive}
+                        readOnly={isLive && mode !== "create"}
                         type="datetime-local"
                         className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                         defaultValue={
@@ -462,7 +467,7 @@ const GroupForm: React.FC<Props> = ({
                           subQuestions[index].open_upper_bound
                         }
                         defaultZeroPoint={subQuestions[index].zero_point}
-                        isLive={isLive}
+                        isLive={isLive && mode !== "create"}
                         canSeeLogarithmic={
                           post?.user_permission === ProjectPermissions.ADMIN ||
                           !post
@@ -515,7 +520,7 @@ const GroupForm: React.FC<Props> = ({
                   </Button>
 
                   <Button
-                    disabled={isLive}
+                    disabled={isLive && mode !== "create"}
                     size="md"
                     presentationType="icon"
                     variant="tertiary"
@@ -551,9 +556,11 @@ const GroupForm: React.FC<Props> = ({
                       control.getValues().scheduled_close_time,
                     scheduled_resolve_time:
                       control.getValues().scheduled_resolve_time,
-                    range_min: null,
-                    range_max: null,
-                    zero_point: null,
+                    scaling: {
+                      range_min: null,
+                      range_max: null,
+                      zero_point: null,
+                    },
                     open_lower_bound: null,
                     open_upper_bound: null,
                   },
@@ -568,9 +575,11 @@ const GroupForm: React.FC<Props> = ({
                       control.getValues().scheduled_close_time,
                     scheduled_resolve_time:
                       control.getValues().scheduled_resolve_time,
-                    range_min: null,
-                    range_max: null,
-                    zero_point: null,
+                    scaling: {
+                      range_min: null,
+                      range_max: null,
+                      zero_point: null,
+                    },
                     open_lower_bound: null,
                     open_upper_bound: null,
                   },

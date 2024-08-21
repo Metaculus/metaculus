@@ -3,6 +3,7 @@
 This is the codebase for the rewrite main [Metaculus website](https://metaculus.com), it's expected to be live by the start of September.
 
 [Feel free to suggest changes and report bugs](https://github.com/Metaculus/metaculus/issues)
+
 # Setup dev env
 
 ### 0. Setup environment
@@ -11,12 +12,16 @@ This is the codebase for the rewrite main [Metaculus website](https://metaculus.
 - Install poetry and python 3.12
 - Install node
 - Install [pgvector](https://github.com/pgvector/pgvector) database extension
+
 ### 1. Setup Backend
 `poetry install`
-`poetry run python manage.py mjml_compose`
+(optional) `poetry run python manage.py mjml_compose`
 
 ### 2. Setup test database
-TODO: Test db doesn't exist yet
+Create a database called `metaculus`
+Load our testing database dump (WIP, should be merged soon)
+`poetry run python3 manage.py migrate`
+
 
 ### 3. Setup Frontend
 `cd front_end && npm install`
@@ -64,5 +69,3 @@ A few common paths on Mac are:
 7. Connect to psql and enable extension: `CREATE EXTENSION vector;`
 
 Other installations and detailed instructions - https://github.com/pgvector/pgvector
-
-

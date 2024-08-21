@@ -5,11 +5,9 @@ from django.db.models.query import QuerySet, Q
 
 from projects.models import Project
 from questions.models import Question
+from questions.types import AggregationMethod
 from users.models import User
 from utils.models import TimeStampedModel
-
-
-# Create your models here.
 
 
 class UserWeight(TimeStampedModel):
@@ -19,10 +17,16 @@ class UserWeight(TimeStampedModel):
 
 
 class Score(TimeStampedModel):
+    # typing
+    forecasts_count: int
+    question_id: int
     objects: models.Manager["Score"]
-    user_id: int
+    user_id: int | None
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    aggregation_method = models.CharField(
+        max_length=200, null=True, choices=AggregationMethod.choices
+    )
     question = models.ForeignKey(
         Question, on_delete=models.CASCADE, related_name="scores"
     )
@@ -64,7 +68,7 @@ class Leaderboard(TimeStampedModel):
         QUESTION_WRITING = "question_writing"
 
         @classmethod
-        def get_base_score(cls, score_type: "ScoreTypes") -> Score.ScoreTypes:
+        def get_base_score(cls, score_type: str) -> Score.ScoreTypes:
             match score_type:
                 case cls.RELATIVE_LEGACY_TOURNAMENT:
                     return Score.ScoreTypes.RELATIVE_LEGACY

@@ -45,7 +45,7 @@ const NewsMatchDrawer: FC<Props> = ({ questionId, articles }) => {
             {t.rich("learnMoreAboutNewsMatch", {
               link: (chunks) => (
                 <Link
-                  href="/help/faq/#related-news"
+                  href="/faq/#related-news"
                   className="text-blue-700 dark:text-blue-700-dark"
                 >
                   {chunks}

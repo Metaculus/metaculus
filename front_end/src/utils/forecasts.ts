@@ -128,9 +128,9 @@ export function getNumericForecastDataset(
     lowerOpen && upperOpen
       ? (F: number, x: number) => 0.988 * F + 0.01 * x + 0.001
       : lowerOpen
-        ? (F: number, x: number) => 0.989 * F + 0.01 * x
+        ? (F: number, x: number) => 0.989 * F + 0.01 * x + 0.001
         : upperOpen
-          ? (F: number, x: number) => 0.989 * F + 0.01 * x + 0.001
+          ? (F: number, x: number) => 0.989 * F + 0.01 * x
           : (F: number, x: number) => 0.99 * F + 0.01 * x;
 
   const pdfOffset =
