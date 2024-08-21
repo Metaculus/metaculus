@@ -124,9 +124,15 @@ export function computeQuartilesFromCDF(
     if (cdf === null) {
       cdf = [];
     }
+    const target = percentile / 100;
+
     for (let i = 0; i < cdf.length; i++) {
-      if (cdf[i] >= percentile / 100) {
-        return i / (cdf.length - 1);
+      if (cdf[i] >= target) {
+        if (i === 0) return 0;
+
+        const diff = cdf[i] - cdf[i - 1];
+        const adjustedPercentile = (target - cdf[i - 1]) / diff;
+        return (i - 1 + adjustedPercentile) / (cdf.length - 1);
       }
     }
     return 1;

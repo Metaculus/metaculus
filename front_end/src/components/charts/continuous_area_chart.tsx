@@ -274,15 +274,15 @@ function generateNumericAreaGraph(data: {
   verticalLines.push(
     {
       x: quantiles.lower25,
-      y: graph[Math.min(198, Math.round(quantiles.lower25 * 200))]?.y ?? 0,
+      y: interpolateYValue(quantiles.lower25, graph),
     },
     {
       x: quantiles.median,
-      y: graph[Math.min(198, Math.round(quantiles.median * 200))]?.y ?? 0,
+      y: interpolateYValue(quantiles.median, graph),
     },
     {
       x: quantiles.upper75,
-      y: graph[Math.min(198, Math.round(quantiles.upper75 * 200))]?.y ?? 0,
+      y: interpolateYValue(quantiles.upper75, graph),
     }
   );
 
