@@ -12,6 +12,7 @@ def score_questions(qty: int | None = None):
     if qty:
         questions = questions.order_by("?")[:qty]
     c = len(questions)
+    question: Question
     for i, question in enumerate(questions, 1):
         if question.resolution and not question.forecast_scoring_ends:
             print(

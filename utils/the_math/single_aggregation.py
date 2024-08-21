@@ -18,6 +18,7 @@ import numpy as np
 from django.db.models import Q, QuerySet
 
 from questions.models import Question, Forecast, AggregateForecast
+from questions.types import AggregationMethod
 from scoring.reputation import (
     get_reputations_at_time,
     get_reputations_during_interval,
@@ -326,7 +327,7 @@ def get_single_aggregation_history(
             histogram=histogram,
         )
         new_entry.question = question
-        new_entry.method = AggregateForecast.AggregationMethod.SINGLE_AGGREGATION
+        new_entry.method = AggregationMethod.SINGLE_AGGREGATION
         if full_summary:
             # terminate previous entry
             full_summary[-1].end_time = new_entry.start_time
