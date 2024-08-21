@@ -40,7 +40,7 @@ def get_serialized_user(request, user, Serializer):
         .all()
     )
 
-    ser["nr_forecasts"] = len(forecasts)
+    ser["nr_forecasts"] = Forecast.objects.filter(author=user).count()
     ser["nr_comments"] = Comment.objects.filter(author=user).count()
     values = []
     weights = []
