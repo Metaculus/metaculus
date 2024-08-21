@@ -3,7 +3,7 @@ import PageWrapper from "../../components/pagewrapper";
 export const metadata = {
   title: "Rules for Q3 AI Forecasting Benchmark Tournament | Metaculus",
   description:
-    "Metaculus is a community dedicated to generating accurate predictions about future real-world events by aggregating the collective wisdom, insight, and intelligence of its participants.",
+    "Explore the official rules for the AIB Contest on Metaculus. Learn about eligibility, scoring, submission guidelines, and prize allocation to ensure your AI bot meets all requirements and competes fairly.",
 };
 
 export default function ContestRules() {

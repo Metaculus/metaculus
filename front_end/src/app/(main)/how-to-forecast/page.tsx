@@ -3,7 +3,7 @@ import PageWrapper from "../components/pagewrapper";
 export const metadata = {
   title: "How to forecast on Metaculus",
   description:
-    "Metaculus is a community dedicated to generating accurate predictions about future real-world events by aggregating the collective wisdom, insight, and intelligence of its participants.",
+    "Learn how to forecast effectively on Metaculus with our comprehensive guide. Discover best practices, understand scoring systems, and enhance your prediction skills across a wide range of topics including science, technology, and global events.",
 };
 
 export default function QuestionChecklist() {

@@ -3,7 +3,7 @@ import PageWrapper from "../../components/pagewrapper";
 export const metadata = {
   title: "Question Approval Checklist | Metaculus",
   description:
-    "Metaculus is a community dedicated to generating accurate predictions about future real-world events by aggregating the collective wisdom, insight, and intelligence of its participants.",
+    "The guidelines below are general rules that should be followed in the large majority of cases. There are always exceptions to the rules, but if your question breaks a guideline below then it is worth checking with another moderator or admin to get a second or third opinion that it is the best path forward.",
 };
 
 export default function QuestionChecklist() {

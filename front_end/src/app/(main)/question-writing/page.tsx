@@ -3,7 +3,7 @@ import PageWrapper from "../components/pagewrapper";
 export const metadata = {
   title: "Question writing and submission guidelines",
   description:
-    "Metaculus is a community dedicated to generating accurate predictions about future real-world events by aggregating the collective wisdom, insight, and intelligence of its participants.",
+    "We greatly value the contributions of our diverse community of forecasters, question authors, and forum participants, and we hope that these guidelines will promote, enhance, and safeguard a vibrant community forecasting space for many years to come.",
 };
 
 export default function QuestionChecklist() {
