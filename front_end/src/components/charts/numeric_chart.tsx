@@ -209,14 +209,8 @@ const NumericChart: FC<Props> = ({
             interpolation="stepAfter"
           />
           <VictoryScatter
-            data={points.map((x) => ({ ...x, symbol: "diamond" }))}
-            style={{
-              data: {
-                stroke: getThemeColor(METAC_COLORS.orange["700"]),
-                fill: "none",
-                strokeWidth: 2,
-              },
-            }}
+            data={points}
+            dataComponent={<PredictionWithRange />}
           />
 
           {resolution && (
@@ -321,9 +315,17 @@ function buildChartData({
     points = myForecasts.history.map((forecast) => ({
       x: forecast.start_time,
       y:
-        questionType == "binary"
+        questionType === "binary"
           ? forecast.forecast_values[1]
           : forecast.centers![0],
+      y1:
+        questionType === "binary"
+          ? undefined
+          : forecast.interval_lower_bounds?.[0],
+      y2:
+        questionType === "binary"
+          ? undefined
+          : forecast.interval_upper_bounds?.[0],
     }));
   }
   // TODO: add quartiles if continuous
@@ -444,5 +446,38 @@ function getResolutionData({
       return;
   }
 }
+
+const PredictionWithRange: React.FC<any> = ({
+  x,
+  y,
+  datum: { y1, y2 },
+  scale,
+}) => {
+  const { getThemeColor } = useAppTheme();
+  const y1Scaled = scale.y(y1);
+  const y2Scaled = scale.y(y2);
+  return (
+    <>
+      {y1 !== undefined && y2 !== undefined && (
+        <line
+          x1={x}
+          x2={x}
+          y1={y1Scaled}
+          y2={y2Scaled}
+          stroke={getThemeColor(METAC_COLORS.orange["700"])}
+          strokeWidth={2}
+        />
+      )}
+      <circle
+        cx={x}
+        cy={y}
+        r={3}
+        fill={getThemeColor(METAC_COLORS.gray["0"])}
+        stroke={getThemeColor(METAC_COLORS.orange["700"])}
+        strokeWidth={2}
+      />
+    </>
+  );
+};
 
 export default React.memo(NumericChart);
