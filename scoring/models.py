@@ -47,6 +47,7 @@ class Score(TimeStampedModel):
 
 
 class Leaderboard(TimeStampedModel):
+    # typing
     id: int
     project_id: int
     objects: models.Manager["Leaderboard"]
@@ -138,9 +139,15 @@ class Leaderboard(TimeStampedModel):
 
 
 class LeaderboardEntry(TimeStampedModel):
+    # typing
+    id: int
     objects: models.Manager["LeaderboardEntry"]
+    user_id: int | None
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    aggregation_method = models.CharField(
+        max_length=200, null=True, choices=AggregationMethod.choices
+    )
     leaderboard = models.ForeignKey(
         Leaderboard, on_delete=models.CASCADE, related_name="entries", null=True
     )

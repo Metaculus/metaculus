@@ -21,7 +21,8 @@ type Props = {
 };
 
 const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
-  const { user, rank, contribution_count, score, medal } = rowEntry;
+  const { user, aggregation_method, rank, contribution_count, score, medal } =
+    rowEntry;
 
   return (
     <tr
@@ -33,7 +34,7 @@ const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
         },
         {
           "bg-purple-200 hover:bg-purple-300 dark:bg-purple-200-dark hover:dark:bg-purple-300-dark":
-            !isUserRow && !!user.is_staff,
+            !isUserRow && !!user?.is_staff,
         }
       )}
     >
@@ -56,7 +57,11 @@ const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
           href={href}
           className="flex items-center truncate px-4 py-2.5 no-underline"
         >
-          {user.username}
+          {user
+            ? user.username
+            : aggregation_method == "recency_weighted"
+              ? "Recency Weighted CP"
+              : aggregation_method}
         </Link>
       </td>
       <td className="hidden w-24 p-0 font-mono text-base leading-4 @md:!table-cell">
@@ -102,7 +107,7 @@ export const UserLeaderboardRow: FC<UserLeaderboardRowProps> = ({
 
   const userHref = userEntry.medal
     ? "/medals"
-    : `/contributions/?${SCORING_CATEGORY_FILTER}=${category}&${CONTRIBUTIONS_USER_FILTER}=${userEntry.user.id}&${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
+    : `/contributions/?${SCORING_CATEGORY_FILTER}=${category}&${CONTRIBUTIONS_USER_FILTER}=${userEntry.user!.id}&${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
 
   return <LeaderboardRow rowEntry={userEntry} href={userHref} isUserRow />;
 };
