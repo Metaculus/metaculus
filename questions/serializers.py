@@ -328,6 +328,7 @@ def serialize_question(
             "single_aggregation": {"history": [], "latest": None},
         }
         for method, forecasts in aggregate_forecasts_by_method.items():
+            scores = question.scores.filter(aggregation_method=method)
             serialized_data["aggregations"][method]["history"] = (
                 AggregateForecastSerializer(
                     forecasts,
@@ -345,12 +346,17 @@ def serialize_question(
                 if forecasts
                 else None
             )
+            for score in scores:
+                serialized_data["aggregations"][method][
+                    score.score_type + "_score"
+                ] = score.score
 
         if (
             current_user
             and not current_user.is_anonymous
             and hasattr(question, "request_user_forecasts")
         ):
+            scores = question.scores.filter(user=current_user)
             user_forecasts = question.request_user_forecasts
             serialized_data["my_forecasts"] = {
                 "history": MyForecastSerializer(
@@ -366,6 +372,10 @@ def serialize_question(
                     else None
                 ),
             }
+            for score in scores:
+                serialized_data["my_forecasts"][
+                    score.score_type + "_score"
+                ] = score.score
 
     serialized_data["resolution"] = question.resolution
 
