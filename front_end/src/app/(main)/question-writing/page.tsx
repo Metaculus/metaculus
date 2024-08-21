@@ -305,15 +305,16 @@ export default function QuestionChecklist() {
               creators?&quot;
             </i>{" "}
             would all be great to know, but as standalone questions they
-            struggle to pass the Clairvoyance Test. For example, what does “war”
-            mean, exactly, in a post-WWII world when countries usually do not
-            declare war and instead engage in “police actions” or “special
-            military operations”? How do you tell one type of AI goal from
-            another, and how do you even define it? If your question fails the
-            Clairvoyance Test, another way to assess the outcome of interest is
-            by asking a series of specific, testable propositions. In the case
-            of whether the US might decline as a world power, you&apos;d want to
-            get at the theme with multiple well-formed questions such as{" "}
+            struggle to pass the Clairvoyance Test. For example, what does
+            &quot;war&quot; mean, exactly, in a post-WWII world when countries
+            usually do not declare war and instead engage in &quot;police
+            actions&quot; or &quot;special military operations&quot;? How do you
+            tell one type of AI goal from another, and how do you even define
+            it? If your question fails the Clairvoyance Test, another way to
+            assess the outcome of interest is by asking a series of specific,
+            testable propositions. In the case of whether the US might decline
+            as a world power, you&apos;d want to get at the theme with multiple
+            well-formed questions such as{" "}
             <i>
               &quot;Will the US lose its #1 position in the IMF&apos;s annual
               GDP rankings before 2050?&quot;
