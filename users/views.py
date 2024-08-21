@@ -89,14 +89,6 @@ def get_serialized_user(request, user, Serializer):
     ).count()
     ser["comments_authored"] = Comment.objects.filter(author=user).count()
 
-    """
-    For each bin:
-
-    - Plot the weighted average of Yes resolutions. `sum([p.weight * (p.question.resolution == 'Yes') for p in predictions]) / sum([p.weight for p in predictions])`.
-    - Plot the calibration of a perfectly calibrated forecaster with that many forecasts in that bin, and its 90% CI.
-        - Calibration: 50th percentile of a binomial distribution with `n = int(sum([p.weight for p in predictions]))` trials and probability the center of the bin. `calibration = scipy.stats.binom.ppf(0.5, n, bin_center) / n`.
-        - 90% CI: 5th and 95th percentiles of the same. `CI = [scipy.stats.binom.ppf(q, n, bin_center) / n for q in (0.05, 0.95)]`.
-    """
     calibration_curve = []
     for p_min, p_max in [(x / 20, x / 20 + 0.05) for x in range(20)]:
         res = []
