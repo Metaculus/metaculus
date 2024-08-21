@@ -1,6 +1,5 @@
-from datetime import datetime, timedelta, timezone as dt_timezone
-
-import numpy as np
+from datetime import datetime, timedelta
+from typing import TYPE_CHECKING
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -8,8 +7,13 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
+from questions.types import AggregationMethod
 from users.models import User
 from utils.models import TimeStampedModel
+
+if TYPE_CHECKING:
+    from posts.models import Post
+    from scoring.models import Score
 
 CDF_SIZE = 201
 
@@ -33,6 +37,16 @@ class QuestionManager(models.Manager.from_queryset(QuestionQuerySet)):
 
 
 class Question(TimeStampedModel):
+    # typing
+    user_forecasts: models.QuerySet["Forecast"]
+    aggregate_forecasts: models.QuerySet["AggregateForecast"]
+    scores: models.QuerySet["Score"]
+    objects: QuestionQuerySet["Question"]
+
+    # Annotated fields
+    forecasts_count: int = 0
+    request_user_forecasts: list["Forecast"]
+
     class QuestionType(models.TextChoices):
         BINARY = "binary"
         NUMERIC = "numeric"
@@ -94,13 +108,6 @@ class Question(TimeStampedModel):
         related_name="questions",
         on_delete=models.CASCADE,
     )
-    # typing
-    user_forecasts: models.QuerySet["Forecast"]
-    aggregate_forecasts: models.QuerySet["AggregateForecast"]
-
-    # Annotated fields
-    forecasts_count: int = 0
-    request_user_forecasts: list["Forecast"]
 
     def __str__(self):
         return f"{self.type} {self.title}"
@@ -114,7 +121,7 @@ class Question(TimeStampedModel):
             self.actual_close_time, self.actual_resolve_time
         )
 
-    def get_post(self):
+    def get_post(self) -> "Post | None":
         # Back-rel of One2One relations does not populate None values,
         # So we always need to check whether attr exists
         posts = []
@@ -265,11 +272,7 @@ class AggregateForecast(models.Model):
     question = models.ForeignKey(
         Question, models.CASCADE, related_name="aggregate_forecasts"
     )
-
-    class AggregationMethod(models.TextChoices):
-        RECENCY_WEIGHTED = "recency_weighted"
-        UNWEIGHTED = "unweighted"
-        SINGLE_AGGREGATION = "single_aggregation"
+    AggregationMethod = AggregationMethod
 
     method = models.CharField(max_length=200, choices=AggregationMethod.choices)
     start_time = models.DateTimeField(db_index=True)

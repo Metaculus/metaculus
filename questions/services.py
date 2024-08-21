@@ -18,6 +18,7 @@ from questions.models import (
     Forecast,
     AggregateForecast,
 )
+from questions.types import AggregationMethod
 from users.models import User
 from utils.the_math.community_prediction import get_cp_history
 from utils.the_math.single_aggregation import get_single_aggregation_history
@@ -54,13 +55,13 @@ def get_forecast_initial_dict(question: Question) -> dict:
 
 def build_question_forecasts(
     question: Question,
-    aggregation_method: str = AggregateForecast.AggregationMethod.RECENCY_WEIGHTED,
+    aggregation_method: str = AggregationMethod.RECENCY_WEIGHTED,
 ) -> dict:
     """
     Builds the AggregateForecasts for a question
     Stores them in the database
     """
-    if aggregation_method == AggregateForecast.AggregationMethod.SINGLE_AGGREGATION:
+    if aggregation_method == AggregationMethod.SINGLE_AGGREGATION:
         aggregation_history = get_single_aggregation_history(
             question,
             minimize=True,

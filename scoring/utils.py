@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 from dataclasses import dataclass
 
 from django.utils import timezone
@@ -35,7 +35,9 @@ def score_question(
         for new_score in new_scores:
             is_new = True
             for previous_score in previous_scores:
-                if previous_score.user == new_score.user:
+                if (previous_score.user == new_score.user) and (
+                    previous_score.aggregation_method == new_score.aggregation_method
+                ):
                     is_new = False
                     previous_score.score = new_score.score
                     previous_score.coverage = new_score.coverage
@@ -56,7 +58,9 @@ def generate_scoring_leaderboard_entries(
     questions: list[Question],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
+    # TODO: add aggregate scores
     scores: QuerySet[Score] = Score.objects.filter(
+        user__isnull=False,
         question__in=questions,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
