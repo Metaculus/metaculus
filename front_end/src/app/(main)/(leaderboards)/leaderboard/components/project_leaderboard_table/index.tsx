@@ -73,7 +73,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
         <tbody>
           {leaderboardEntries.map((entry) => (
             <TableRow
-              key={entry.user.id}
+              key={entry.user?.id ?? entry.aggregation_method}
               rowEntry={entry}
               userId={userId}
               withTake={withTake}

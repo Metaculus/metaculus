@@ -6,6 +6,7 @@ from users.serializers import BaseUserSerializer
 
 class LeaderboardEntrySerializer(serializers.ModelSerializer):
     user = BaseUserSerializer(required=False)
+    aggregation_method = serializers.CharField()
     score = serializers.FloatField()
     rank = serializers.IntegerField()
     excluded = serializers.BooleanField()
@@ -21,6 +22,7 @@ class LeaderboardEntrySerializer(serializers.ModelSerializer):
         model = LeaderboardEntry
         fields = [
             "user",
+            "aggregation_method",
             "score",
             "rank",
             "excluded",

@@ -41,7 +41,8 @@ export type MedalCategory = {
 };
 
 export type LeaderboardEntry = {
-  user: User;
+  user: User | null;
+  aggregation_method: string | null;
   score: number;
   rank: number | null;
   excluded: boolean;
