@@ -48,12 +48,11 @@ def get_serialized_user(request, user, Serializer):
     scores = []
     questions_predicted = []
     questions_predicted_socred = []
-    all_score_objs = Score.objects.filter(user=user, score_type=Score.ScoreTypes.BASELINE).all()
-    
-    question_score_map = {
-        score.question_id: score
-        for score in all_score_objs
-    }
+    all_score_objs = Score.objects.filter(
+        user=user, score_type=Score.ScoreTypes.BASELINE
+    ).all()
+
+    question_score_map = {score.question_id: score for score in all_score_objs}
 
     for forecast in forecasts:
         question = forecast.question
@@ -111,8 +110,12 @@ def get_serialized_user(request, user, Serializer):
             user_middle_quartile = np.average(res, weights=ws)
         else:
             user_middle_quartile = None
-        user_lower_quartile = scipy.stats.binom.ppf(0.05, max([len(res), 1]), bin_center) / max([len(res), 1])
-        user_upper_quartile = scipy.stats.binom.ppf(0.95, max([len(res), 1]), bin_center) / max([len(res), 1])
+        user_lower_quartile = scipy.stats.binom.ppf(
+            0.05, max([len(res), 1]), bin_center
+        ) / max([len(res), 1])
+        user_upper_quartile = scipy.stats.binom.ppf(
+            0.95, max([len(res), 1]), bin_center
+        ) / max([len(res), 1])
 
         print(user_upper_quartile, user_lower_quartile, bin_center)
         calibration_curve.append(
@@ -135,11 +138,13 @@ def get_serialized_user(request, user, Serializer):
 
     ser["score_scatter_plot"] = []
     for score in all_score_objs:
-        ser["score_scatter_plot"].append({
-            "score": score.score,
-            "score_timestamp": score.created_at.timestamp(),
-        })
-    print(ser["score_scatter_plot"] )
+        ser["score_scatter_plot"].append(
+            {
+                "score": score.score,
+                "score_timestamp": score.created_at.timestamp(),
+            }
+        )
+    print(ser["score_scatter_plot"])
     return ser
 
 
