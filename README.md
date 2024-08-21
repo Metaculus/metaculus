@@ -3,6 +3,7 @@
 This is the codebase for the rewrite main [Metaculus website](https://metaculus.com), it's expected to be live by the start of September.
 
 [Feel free to suggest changes and report bugs](https://github.com/Metaculus/metaculus/issues)
+
 # Setup dev env
 
 ### 0. Setup environment
@@ -68,5 +69,3 @@ A few common paths on Mac are:
 7. Connect to psql and enable extension: `CREATE EXTENSION vector;`
 
 Other installations and detailed instructions - https://github.com/pgvector/pgvector
-
-
