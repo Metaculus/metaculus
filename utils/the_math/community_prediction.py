@@ -127,7 +127,7 @@ def get_aggregation_at_time(
     and q3s"""
     forecasts = question.user_forecasts.filter(
         Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
-    ).order_by("-start_time")
+    ).order_by("start_time")
     if forecasts.count() == 0:
         return None
     forecast_set = ForecastSet(
