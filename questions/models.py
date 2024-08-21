@@ -42,6 +42,7 @@ class Question(TimeStampedModel):
     aggregate_forecasts: models.QuerySet["AggregateForecast"]
     scores: models.QuerySet["Score"]
     objects: QuestionQuerySet["Question"]
+    id: int
 
     # Annotated fields
     forecasts_count: int = 0

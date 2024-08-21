@@ -7,7 +7,8 @@ from rest_framework.response import Response
 import scipy
 import numpy as np
 
-from questions.models import Forecast
+from questions.models import AggregateForecast
+from questions.types import AggregationMethod
 from users.models import User
 
 from projects.models import Project
@@ -189,14 +190,13 @@ def medal_contributions(
 def metaculus_track_record(
     request: Request,
 ):
-    # @TODO Luke replace with the id to fetch the CP
-    author_id = 115725
     all_score_objs = Score.objects.filter(
-        user=author_id, score_type=Score.ScoreTypes.BASELINE
+        aggregation_method=AggregationMethod.RECENCY_WEIGHTED,
+        score_type=Score.ScoreTypes.BASELINE,
     ).all()
     forecasts = (
-        Forecast.objects.filter(
-            author=author_id,
+        AggregateForecast.objects.filter(
+            method=AggregationMethod.RECENCY_WEIGHTED,
             question__type="binary",
             question__resolution__in=["no", "yes"],
         )
@@ -229,7 +229,7 @@ def metaculus_track_record(
         forecast_duration = forecast_end - forecast_start
         question_duration = forecast_horizon_end - forecast_horizon_start
         weight = forecast_duration / question_duration
-        values.append(forecast.probability_yes)
+        values.append(forecast.forecast_values[1])
         weights.append(weight)
         resolutions.append(int(question.resolution == "yes"))
 
