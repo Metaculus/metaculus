@@ -144,7 +144,19 @@ def get_serialized_user(request, user, Serializer):
                 "score_timestamp": score.created_at.timestamp(),
             }
         )
-    print(ser["score_scatter_plot"])
+    ser["score_histogram"] = []
+    bin_incr = 70
+    for bin_start in range(-700, 700, bin_incr):
+        bin_end = bin_start + bin_incr
+        ser["score_histogram"].append(
+            {
+                "bin_start": bin_start,
+                "bin_end": bin_end,
+                "pct_scores": len([s for s in scores if s >= bin_start and s < bin_end])
+                / len(scores),
+            }
+        )
+    print(ser["score_histogram"])
     return ser
 
 
