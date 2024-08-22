@@ -19,80 +19,77 @@ const Footer: FC = () => {
   const { setCurrentModal } = useModal();
 
   return (
-    <footer className="dark relative mx-auto my-0 flex w-full flex-wrap justify-center bg-blue-900 px-0 pb-0 pt-2 text-white">
-      <div className="flex min-w-[300px] max-w-[400px] flex-1 flex-grow-[300px] justify-evenly px-4 pb-0 pt-4">
-        <div className="mr-3">
-          <ul>
+    <footer className="dark relative mx-auto my-0 flex w-full flex-wrap justify-center bg-blue-900 px-0 pb-0 pt-2 text-gray-0">
+      <div className="flex min-w-72 max-w-96 flex-1 justify-evenly px-4 pb-0 pt-4">
+        <ul className="mr-3">
+          <li className="my-2">
+            <a className="capitalize no-underline" href="/about/">
+              {t("about")}
+            </a>
+          </li>
+          <li className="my-2">
+            <a className="no-underline" href="/api">
+              {t("api")}
+            </a>
+          </li>
+        </ul>
+        <ul className="mr-3">
+          <li className="my-2">
+            <a className="no-underline" href="/faq">
+              {t("faq")}
+            </a>
+          </li>
+          <li className="my-2">
+            <a
+              className="capitalize no-underline"
+              href="/help/prediction-resources"
+            >
+              {t("forecastingResources")}
+            </a>
+          </li>
+          <li className="my-2">
+            <a className="capitalize no-underline" href="/press">
+              {t("forJournalists")}
+            </a>
+          </li>
+        </ul>
+        <ul className="mr-3">
+          <li className="my-2">
+            <button onClick={() => setCurrentModal({ type: "contactUs" })}>
+              {t("contact")}
+            </button>
+          </li>
+          <li className="my-2">
+            <a
+              className="no-underline"
+              href="https://apply.workable.com/metaculus"
+            >
+              {t("careers")}
+            </a>
+          </li>
+          <div className="flex flex-row gap-2">
             <li className="my-2">
-              <a className="no-underline" href="/about/">
-                {t("about")}
+              <a
+                className="no-underline"
+                href="https://twitter.com/metaculus"
+                aria-label={t("metaculusOnTwitter")}
+                target="_blank"
+              >
+                <FontAwesomeIcon icon={faTwitter} size="lg"></FontAwesomeIcon>
               </a>
-            </li>
-            <li className="my-2">
-              <a className="no-underline" href="/api">
-                {t("API")}
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div className="mr-3">
-          <ul>
-            <li className="my-2">
-              <a className="no-underline" href="/faq">
-                {t("faq")}
-              </a>
-            </li>
-            <li className="my-2">
-              <a className="no-underline" href="/help/prediction-resources">
-                {t("Forecasting Resources")}
-              </a>
-            </li>
-            <li className="my-2">
-              <a className="no-underline" href="/press">
-                {t("Metaculus for Journalists")}
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div className="mr-3">
-          <ul>
-            <li className="my-2">
-              <button onClick={() => setCurrentModal({ type: "contactUs" })}>
-                {t("Contact")}
-              </button>
             </li>
             <li className="my-2">
               <a
                 className="no-underline"
-                href="https://apply.workable.com/metaculus"
+                href="https://discord.gg/7GEKtpnVdJ"
+                aria-label={t("metaculusOnDiscord")}
+                target="_blank"
               >
-                {t("Careers")}
+                <FontAwesomeIcon icon={faDiscord} size="lg"></FontAwesomeIcon>
               </a>
             </li>
-            <div className="flex flex-row gap-2">
-              <li className="my-2">
-                <a
-                  className="no-underline"
-                  href="https://twitter.com/metaculus"
-                  aria-label="Metaculus on Twitter"
-                  target="_blank"
-                >
-                  <FontAwesomeIcon icon={faTwitter} size="lg"></FontAwesomeIcon>
-                </a>
-              </li>
-              <li className="my-2">
-                <a
-                  className="no-underline"
-                  href="https://discord.gg/7GEKtpnVdJ"
-                  aria-label="Metaculus on Discord"
-                  target="_blank"
-                >
-                  <FontAwesomeIcon icon={faDiscord} size="lg"></FontAwesomeIcon>
-                </a>
-              </li>
-            </div>
-          </ul>
-        </div>
+          </div>
+        </ul>
       </div>
 
       <div id="newsletter-form"></div>
@@ -103,19 +100,19 @@ const Footer: FC = () => {
             className="my-1 inline px-2 no-underline lg:block lg:px-0"
             href="/help/guidelines/"
           >
-            {t("Guidelines")}
+            {t("guidelines")}
           </a>
           <a
             className="my-1 inline border-l border-gray-600-dark px-2 no-underline lg:block lg:border-0 lg:px-0"
             href="/privacy-policy/"
           >
-            {t("Privacy Policy")}
+            {t("privacyPolicy")}
           </a>
           <a
             className="my-1 inline border-l border-gray-600-dark px-2 no-underline lg:block lg:border-0 lg:px-0"
             href="/terms-of-use/"
           >
-            {t("Terms of Use")}
+            {t("termsOfUse")}
           </a>
         </div>
 
@@ -125,7 +122,7 @@ const Footer: FC = () => {
           method="post"
         >
           <button
-            className="pr-2 hover:text-white lg:pr-1"
+            className="pr-2 hover:text-gray-0 lg:pr-1"
             onClick={(e) => {
               e.preventDefault();
               params.delete("locale");
@@ -139,7 +136,7 @@ const Footer: FC = () => {
             English
           </button>
           <button
-            className="border-l border-gray-600-dark pl-2 pr-2 hover:text-white lg:pl-1"
+            className="border-l border-gray-600-dark pl-2 pr-2 hover:text-gray-0 lg:pl-1"
             onClick={(e) => {
               e.preventDefault();
               params.delete("locale");
@@ -153,7 +150,7 @@ const Footer: FC = () => {
             Čeština
           </button>
           <button
-            className="border-l border-gray-600-dark pl-2 hover:text-white lg:pl-1"
+            className="border-l border-gray-600-dark pl-2 hover:text-gray-0 lg:pl-1"
             onClick={(e) => {
               e.preventDefault();
               params.delete("locale");
