@@ -28,7 +28,11 @@ def score_questions(qty: int | None = None):
                 question,
                 question.resolution,
                 # TODO: add spot_forecast_time
-                score_types=[Score.ScoreTypes.PEER, Score.ScoreTypes.BASELINE],
+                score_types=[
+                    Score.ScoreTypes.PEER,
+                    Score.ScoreTypes.BASELINE,
+                    Score.ScoreTypes.RELATIVE_LEGACY,
+                ],
             )
             print("scored question", i, "/", c, "ID:", question.id, end="\r")
         except Exception as e:
