@@ -39,7 +39,7 @@ const Footer: FC = () => {
           <ul>
             <li className="my-2">
               <a className="no-underline" href="/faq">
-                {t("FAQ")}
+                {t("faq")}
               </a>
             </li>
             <li className="my-2">
