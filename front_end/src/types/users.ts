@@ -29,7 +29,12 @@ export type User = {
 
 export type UserProfile = User & {
   calibration_curve?: any;
-  score_histogram?: any;
+  score_histogram?: {
+    bin_start: number;
+    bin_end: number;
+    pct_scores: number;
+  }[];
+  score_scatter_plot?: { score: number; score_timestamp: number }[];
   nr_forecasts?: number;
   nr_comments?: number;
   avg_score?: number;

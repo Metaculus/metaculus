@@ -23,7 +23,6 @@ const CalibrationChart: React.FC<{ data: any; showIntervals?: boolean }> = ({
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
   const actualTheme = merge({}, chartTheme);
-  console.log(actualTheme.axis?.style?.axis?.stroke);
 
   return (
     <div className="mb-5 size-full">
