@@ -271,7 +271,7 @@ def serialize_post(
 
 
 def serialize_post_many(
-    data: Union[Post.objects, list[Post]],
+    data: Union[Post, list[Post]],
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
