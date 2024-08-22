@@ -106,7 +106,7 @@ def project_leaderboard(
     if not user.is_staff:
         entries = entries.filter(excluded=False)
 
-    entries = hydrate_take(entries)  # NOTE: don't query after this as the
+    entries = hydrate_take(entries, leaderboard)  # NOTE: don't query after this as the
     # manual annotations will be lost
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     # add user entry
