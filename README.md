@@ -18,8 +18,16 @@ This is the codebase for the rewritten main [Metaculus website](https://metaculu
 (optional) `poetry run python manage.py mjml_compose`
 
 ### 2. Setup test database
-Create a database called `metaculus`
-Load our testing database dump (WIP, should be merged soon)
+Create a database called `metaculus` and then load our testing database dump (available as a [release](https://github.com/Metaculus/metaculus/releases/latest) artefact)
+```
+wget https://github.com/Metaculus/metaculus/releases/latest/download/test_metaculus.sql.zip
+unzip test_metaculus.sql.zip
+psql -d $DATABASE_URL < test_metaculus.sql
+```
+(where DATABASE_URL should be of this format: `postgres://postgres:postgres@localhost:5432/test_metaculus`).
+
+and then:
+
 `poetry run python3 manage.py migrate`
 
 
