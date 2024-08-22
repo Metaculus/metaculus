@@ -7,7 +7,8 @@ from rest_framework.response import Response
 import scipy
 import numpy as np
 
-from questions.models import AggregateForecast
+from posts.models import Post
+from questions.models import AggregateForecast, Question
 from questions.types import AggregationMethod
 from users.models import User
 
@@ -190,9 +191,14 @@ def medal_contributions(
 def metaculus_track_record(
     request: Request,
 ):
+    public_posts = Post.objects.filter(
+        default_project__default_permission=ObjectPermission.FORECASTER
+    ).all()
+    public_questions = Question.objects.filter(post__in=[x.id for x in public_posts])
     all_score_objs = Score.objects.filter(
         aggregation_method=AggregationMethod.RECENCY_WEIGHTED,
         score_type=Score.ScoreTypes.BASELINE,
+        question__in=public_questions,
     ).all()
     forecasts = (
         AggregateForecast.objects.filter(
@@ -254,7 +260,6 @@ def metaculus_track_record(
             0.95, max([len(res), 1]), bin_center
         ) / max([len(res), 1])
 
-        print(user_upper_quartile, user_lower_quartile, bin_center)
         calibration_curve.append(
             {
                 "user_lower_quartile": user_lower_quartile,
@@ -282,8 +287,10 @@ def metaculus_track_record(
             }
         )
     ser["score_histogram"] = []
-    bin_incr = 70
-    for bin_start in range(-700, 700, bin_incr):
+    min_bin = min(-50, min([s for s in scores]))
+    max_bin = max(50, max([s for s in scores]))
+    bin_incr = int((max_bin + np.abs(min_bin)) / 20)
+    for bin_start in range(min_bin, max_bin, bin_incr):
         bin_end = bin_start + bin_incr
         ser["score_histogram"].append(
             {
@@ -293,5 +300,4 @@ def metaculus_track_record(
                 / len(scores),
             }
         )
-    print(ser)
     return Response(ser)
