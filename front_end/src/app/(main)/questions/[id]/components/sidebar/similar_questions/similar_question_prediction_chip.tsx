@@ -34,7 +34,7 @@ const SimilarPredictionChip: FC<Props> = ({
   if (isForecastEmpty) return null;
 
   const latest = question.aggregations.recency_weighted.latest;
-  const prediction = latest!.centers![0];
+  const prediction = latest?.centers![0];
 
   {
     return (
