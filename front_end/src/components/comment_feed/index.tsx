@@ -1,4 +1,5 @@
 "use client";
+
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
@@ -71,6 +72,26 @@ type Props = {
   postPermissions?: ProjectPermissions;
   profileId?: number;
 };
+
+function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
+  if (postData === undefined) return false;
+
+  // disable forecasts for notebooks
+  if (postData.notebook !== undefined) {
+    return false;
+  }
+
+  // we can link forecast only for date, binary and numeric questions
+  if (postData.question) {
+    if (postData.question.type === QuestionType.MultipleChoice) {
+      return false;
+    }
+
+    return !!postData.question.my_forecasts?.history.length;
+  }
+
+  return false;
+}
 
 const COMMENTS_PER_PAGE = 10;
 
@@ -240,7 +261,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         >
           {t("comments")}
         </h2>
-        {profileId && (
+        {!profileId && user && (
           <ButtonGroup
             value={feedSection}
             buttons={feedOptions}
@@ -311,25 +332,5 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
     </section>
   );
 };
-
-function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
-  if (postData === undefined) return false;
-
-  // disable forecasts for notebooks
-  if (postData.notebook !== undefined) {
-    return false;
-  }
-
-  // we can link forecast only for date, binary and numeric questions
-  if (postData.question) {
-    if (postData.question.type === QuestionType.MultipleChoice) {
-      return false;
-    }
-
-    return !!postData.question.my_forecasts?.history.length;
-  }
-
-  return false;
-}
 
 export default CommentFeed;
