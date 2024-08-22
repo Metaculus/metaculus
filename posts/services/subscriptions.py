@@ -162,9 +162,11 @@ def notify_post_cp_change(post: Post):
         Q(post=post) | Q(group__post=post)
     ).prefetch_related("user_forecasts")
     forecast_history = {
-        question: AggregateForecast.objects.filter(
-            question=question,
-            method=AggregationMethod.RECENCY_WEIGHTED,
+        question: list(
+            AggregateForecast.objects.filter(
+                question=question,
+                method=AggregationMethod.RECENCY_WEIGHTED,
+            )
         )
         for question in questions
     }
