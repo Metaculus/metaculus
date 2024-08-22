@@ -788,5 +788,6 @@
   "editNotebook": "edit notebook",
   "createNotebook": "create notebook",
   "metaculusOnTwitter": "Metaculus on Twitter",
-  "metaculusOnDiscord": "Metaculus on Discord"
+  "metaculusOnDiscord": "Metaculus on Discord",
+  "signUpAsBot": "Sign Up as Bot"
 }
