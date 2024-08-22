@@ -24,6 +24,25 @@ type SignInModalType = {
   onClose: (isOpen: boolean) => void;
 };
 
+export const ResetPasswordConfirmModal: FC<SignInModalType> = ({
+  isOpen,
+  onClose,
+}: SignInModalType) => {
+  const t = useTranslations();
+
+  return (
+    <BaseModal
+      label={t("resetPasswordEmailSentHeading")}
+      isOpen={isOpen}
+      onClose={onClose}
+      className="max-w-sm text-sm leading-tight"
+    >
+      <p>{t("resetPasswordEmailSent1")}</p>
+      <p>{t("resetPasswordEmailSent2")}</p>
+    </BaseModal>
+  );
+};
+
 const ResetPasswordModal: FC<SignInModalType> = ({
   isOpen,
   onClose,
@@ -59,16 +78,14 @@ const ResetPasswordModal: FC<SignInModalType> = ({
         className="flex max-w-xs flex-col gap-4"
       >
         {t("passwordResetDescription")}
-        <div>
-          <Input
-            className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-            type="text"
-            placeholder={t("loginUsernamePlaceholder")}
-            {...register("login")}
-            errors={state?.errors}
-          />
-          <FormError errors={state?.errors}></FormError>
-        </div>
+        <Input
+          className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          type="text"
+          placeholder={t("loginUsernamePlaceholder")}
+          {...register("login")}
+          errors={state?.errors}
+        />
+        <FormError errors={state?.errors}></FormError>
         <Button
           variant="primary"
           className="w-full"
@@ -78,26 +95,6 @@ const ResetPasswordModal: FC<SignInModalType> = ({
           {t("resetPasswordButton")}
         </Button>
       </form>
-    </BaseModal>
-  );
-};
-
-export const ResetPasswordConfirmModal: FC<SignInModalType> = ({
-  isOpen,
-  onClose,
-}: SignInModalType) => {
-  const t = useTranslations();
-
-  return (
-    <BaseModal
-      label={t("resetPasswordEmailSentHeading")}
-      isOpen={isOpen}
-      onClose={onClose}
-    >
-      <div className="max-w-sm text-sm leading-tight">
-        <p>{t("resetPasswordEmailSent1")}</p>
-        <p>{t("resetPasswordEmailSent2")}</p>
-      </div>
     </BaseModal>
   );
 };
