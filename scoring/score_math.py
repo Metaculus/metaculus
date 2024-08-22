@@ -262,7 +262,7 @@ def evaluate_forecasts_legacy_relative(
         )
         for bf in base_forecasts
     ]
-    total_duration = forecast_horizon_end - forecast_horizon_start
+    total_duration = actual_close_time - forecast_horizon_start
     forecast_scores: list[float] = []
     for forecast in forecasts:
         forecast_start = max(forecast.start_time.timestamp(), forecast_horizon_start)
