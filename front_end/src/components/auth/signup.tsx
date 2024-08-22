@@ -26,7 +26,7 @@ type SignInModalType = {
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
-const SignupForm: FC<{
+export const SignupForm: FC<{
   forceIsBot?: boolean | "ask";
   addToProject?: number;
 }> = ({ forceIsBot = "ask", addToProject }) => {
@@ -66,7 +66,7 @@ const SignupForm: FC<{
           formAction(data);
         });
       }}
-      className="flex flex-col gap-4 "
+      className="flex flex-col gap-4"
     >
       <Input
         autoComplete="username"
@@ -100,13 +100,13 @@ const SignupForm: FC<{
         errors={state?.errors}
         {...register("email")}
       />
-      {forceIsBot === undefined && (
+      {forceIsBot == null && (
         <Checkbox
           checked={watch("isBot")}
           onChange={(is_bot) => {
             setValue("isBot", is_bot);
           }}
-          label="Sign up as Bot"
+          label={t("signUpAsBot")}
           className="p-1.5"
         />
       )}
@@ -146,97 +146,6 @@ const SignupForm: FC<{
   );
 };
 
-const SignUpModal: FC<SignInModalType> = ({
-  isOpen,
-  onClose,
-}: SignInModalType) => {
-  const t = useTranslations();
-  const { setCurrentModal } = useModal();
-
-  return (
-    <BaseModal
-      label={t("registrationHeadingSite")}
-      isOpen={isOpen}
-      onClose={onClose}
-    >
-      <div className="mt-4">
-        <div className="mb-6 text-base leading-tight">
-          {t("registrationSignInHeading")}&nbsp;
-          <Button
-            variant="link"
-            size="md"
-            onClick={() => setCurrentModal({ type: "signin" })}
-          >
-            {t("logIn")}
-          </Button>
-        </div>
-        <div className="flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">
-          <div className="border-gray-300 dark:border-gray-700-dark sm:w-80 sm:border-r sm:pr-4">
-            <SignupForm />
-          </div>
-          <div className="sm:w-80 sm:pl-4">
-            <ul className="hidden leading-tight sm:block">
-              <li className="mb-3 flex">
-                <FontAwesomeIcon
-                  icon={faCheck}
-                  className="text-olive-700 dark:text-olive-700-dark"
-                />
-                <span className="ml-4">{t("registrationInfoAbility1")}</span>
-              </li>
-              <li className="mb-3 flex">
-                <FontAwesomeIcon
-                  icon={faCheck}
-                  className="text-olive-700 dark:text-olive-700-dark"
-                />
-                <span className="ml-4">{t("registrationInfoAbility2")}</span>
-              </li>
-              <li className="mb-3 flex">
-                <FontAwesomeIcon
-                  icon={faCheck}
-                  className="text-olive-700 dark:text-olive-700-dark"
-                />
-                <span className="ml-4">{t("registrationInfoAbility3")}</span>
-              </li>
-              <li className="mb-3 flex">
-                <FontAwesomeIcon
-                  icon={faCheck}
-                  className="text-olive-700 dark:text-olive-700-dark"
-                />
-                <span className="ml-4">{t("registrationInfoAbility4")}</span>
-              </li>
-              <li className="mb-3 flex">
-                <FontAwesomeIcon
-                  icon={faCheck}
-                  className="text-olive-700 dark:text-olive-700-dark"
-                />
-                <span className="ml-4">{t("registrationInfoAbility5")}</span>
-              </li>
-            </ul>
-            <hr className="my-6 border-gray-300 dark:border-gray-300-dark sm:hidden" />
-            <div className="flex flex-col gap-2">
-              <SocialButtons type="signup" />
-            </div>
-          </div>
-        </div>
-        <div className="mt-6 text-center text-gray-700 dark:text-gray-700-dark">
-          {t.rich("registrationTerms", {
-            terms: (chunks) => (
-              <Link target="_blank" href={"/terms-of-use/"}>
-                {chunks}
-              </Link>
-            ),
-            privacy: (chunks) => (
-              <Link target="_blank" href={"/privacy-policy/"}>
-                {chunks}
-              </Link>
-            ),
-          })}
-        </div>
-      </div>
-    </BaseModal>
-  );
-};
-
 type SignUpModalSuccessProps = SignInModalType & {
   username: string;
   email: string;
@@ -251,28 +160,109 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
   const t = useTranslations();
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose}>
-      <div className="max-w-xs">
-        <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
-          {t("registrationSuccessHeading")}
-        </h2>
-        <div>
-          <p>
-            {t.rich("registrationSuccess1", {
-              username: () => <b>{username}</b>,
-            })}
-          </p>
-          <p>
-            {t.rich("registrationSuccess2", {
-              email: () => <b>{email}</b>,
-            })}
-          </p>
+    <BaseModal isOpen={isOpen} onClose={onClose} className="max-w-xs">
+      <h2 className="mb-4	mr-3 mt-0 text-2xl text-blue-900 dark:text-blue-900-dark">
+        {t("registrationSuccessHeading")}
+      </h2>
+      <p>
+        {t.rich("registrationSuccess1", {
+          username: () => <b>{username}</b>,
+        })}
+      </p>
+      <p>
+        {t.rich("registrationSuccess2", {
+          email: () => <b>{email}</b>,
+        })}
+      </p>
+    </BaseModal>
+  );
+};
+
+const SignUpModal: FC<SignInModalType> = ({
+  isOpen,
+  onClose,
+}: SignInModalType) => {
+  const t = useTranslations();
+  const { setCurrentModal } = useModal();
+
+  return (
+    <BaseModal
+      label={t("registrationHeadingSite")}
+      isOpen={isOpen}
+      onClose={onClose}
+    >
+      <div className="mb-6 text-base leading-tight">
+        {t("registrationSignInHeading")}&nbsp;
+        <Button
+          variant="link"
+          size="md"
+          onClick={() => setCurrentModal({ type: "signin" })}
+        >
+          {t("logIn")}
+        </Button>
+      </div>
+      <div className="flex flex-col text-gray-900 dark:text-gray-900-dark sm:flex-row">
+        <div className="border-gray-300 dark:border-gray-300-dark sm:w-80 sm:border-r sm:pr-4">
+          <SignupForm />
         </div>
+        <div className="flex flex-col gap-2 sm:w-80 sm:pl-4">
+          <ul className="hidden leading-tight sm:block">
+            <li className="mb-3 flex">
+              <FontAwesomeIcon
+                icon={faCheck}
+                className="text-olive-700 dark:text-olive-700-dark"
+              />
+              <span className="ml-4">{t("registrationInfoAbility1")}</span>
+            </li>
+            <li className="mb-3 flex">
+              <FontAwesomeIcon
+                icon={faCheck}
+                className="text-olive-700 dark:text-olive-700-dark"
+              />
+              <span className="ml-4">{t("registrationInfoAbility2")}</span>
+            </li>
+            <li className="mb-3 flex">
+              <FontAwesomeIcon
+                icon={faCheck}
+                className="text-olive-700 dark:text-olive-700-dark"
+              />
+              <span className="ml-4">{t("registrationInfoAbility3")}</span>
+            </li>
+            <li className="mb-3 flex">
+              <FontAwesomeIcon
+                icon={faCheck}
+                className="text-olive-700 dark:text-olive-700-dark"
+              />
+              <span className="ml-4">{t("registrationInfoAbility4")}</span>
+            </li>
+            <li className="mb-3 flex">
+              <FontAwesomeIcon
+                icon={faCheck}
+                className="text-olive-700 dark:text-olive-700-dark"
+              />
+              <span className="ml-4">{t("registrationInfoAbility5")}</span>
+            </li>
+          </ul>
+          <hr className="my-6 border-gray-300 dark:border-gray-300-dark sm:hidden" />
+          <SocialButtons type="signup" />
+        </div>
+      </div>
+      <div className="mt-6 text-center text-gray-700 dark:text-gray-700-dark">
+        {t.rich("registrationTerms", {
+          terms: (chunks) => (
+            <Link target="_blank" href={"/terms-of-use/"}>
+              {chunks}
+            </Link>
+          ),
+          privacy: (chunks) => (
+            <Link target="_blank" href={"/privacy-policy/"}>
+              {chunks}
+            </Link>
+          ),
+        })}
       </div>
     </BaseModal>
   );
 };
 
 export default SignUpModal;
-
-export { SignupForm };
