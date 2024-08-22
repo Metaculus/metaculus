@@ -28,6 +28,7 @@ def create_project(project_obj: dict) -> Project:
     project_type = {
         "TO": Project.ProjectTypes.TOURNAMENT,
         "QS": Project.ProjectTypes.QUESTION_SERIES,
+        "ST": Project.ProjectTypes.QUESTION_SERIES,
         "MP": Project.ProjectTypes.SITE_MAIN,
     }.get(project_obj["type"])
 
@@ -240,7 +241,7 @@ def migrate_projects(site_ids: list[int] = None):
 
     for project_obj in paginated_query(
         "SELECT * FROM metac_project_project "
-        "WHERE site_id in %s AND (type in ('TO', 'QS') OR (type = 'MP' and site_id = 1))",
+        "WHERE site_id in %s AND (type in ('TO', 'QS', 'ST') OR (type = 'MP' and site_id = 1))",
         [tuple(site_ids)],
     ):
         project = create_project(project_obj)
