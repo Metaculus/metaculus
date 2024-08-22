@@ -35,7 +35,7 @@ export default async function Medals({
     MedalsPath.Profile;
 
   const userMedals = await LeaderboardApi.getUserMedals(userId);
-  const username = userMedals.at(0)?.user.username;
+  const username = userMedals.at(0)?.user!.username;
 
   return (
     <main className="mb-auto pb-3 text-blue-700 dark:text-blue-700-dark sm:px-3">

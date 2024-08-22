@@ -10,6 +10,9 @@ from utils.models import TimeStampedModel
 
 
 class User(TimeStampedModel, AbstractUser):
+    # typing
+    id: int
+
     # Profile data
     bio = models.TextField(default="", blank=True)
     is_bot = models.BooleanField(default=False)
@@ -44,7 +47,7 @@ class User(TimeStampedModel, AbstractUser):
         models.CharField(max_length=200), blank=True, default=list
     )
 
-    objects = UserManager()
+    objects: models.Manager["User"] = UserManager()
 
     def get_old_usernames(self) -> list[tuple[str, datetime]]:
         return [
