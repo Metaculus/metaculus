@@ -241,13 +241,13 @@ def get_cp_history(
 ) -> list[AggregateForecast]:
     full_summary: list[AggregateForecast] = []
 
-    user_forecast_history = get_user_forecast_history(question)
-    for i, forecast_set in enumerate(user_forecast_history):
+    forecast_history = get_user_forecast_history(question)
+    for i, forecast_set in enumerate(forecast_history):
         if aggregation_method == AggregationMethod.RECENCY_WEIGHTED:
             weights = generate_recency_weights(len(forecast_set.forecasts_values))
         else:
             weights = None
-        histogram = question.type == "binary" and i == (len(user_forecast_history) - 1)
+        histogram = question.type == "binary" and i == (len(forecast_history) - 1)
         new_entry = calculate_aggregation_entry(
             forecast_set,
             question.type,

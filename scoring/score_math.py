@@ -176,7 +176,7 @@ def evaluate_forecasts_peer_accuracy(
             continue
 
         pmf = forecast.get_pmf()
-        interval_scores: float | None = []
+        interval_scores: list[float | None] = []
         for gm in geometric_mean_forecasts:
             if forecast_start <= gm.timestamp < forecast_end:
                 score = (
@@ -253,9 +253,53 @@ def evaluate_forecasts_legacy_relative(
     forecast_horizon_start: float,
     actual_close_time: float,
     forecast_horizon_end: float,
-    question_type: str,
 ) -> list[ForecastScore]:
-    return [ForecastScore(0)] * len(forecasts)  # not yet implemented
+    baseline_forecasts = [
+        AggregationEntry(
+            timestamp=max(bf.start_time.timestamp(), forecast_horizon_start),
+            pmf=bf.get_pmf(),
+            num_forecasters=bf.forecaster_count,
+        )
+        for bf in base_forecasts
+    ]
+    total_duration = forecast_horizon_end - forecast_horizon_start
+    forecast_scores: list[float] = []
+    for forecast in forecasts:
+        forecast_start = max(forecast.start_time.timestamp(), forecast_horizon_start)
+        forecast_end = (
+            actual_close_time
+            if forecast.end_time is None
+            else min(forecast.end_time.timestamp(), actual_close_time)
+        )
+        if (forecast_end - forecast_start) <= 0:
+            forecast_scores.append(ForecastScore(0))
+            continue
+
+        pmf = forecast.get_pmf()
+        interval_scores: list[float | None] = []
+        for bf in baseline_forecasts:
+            if forecast_start <= bf.timestamp < forecast_end:
+                score = np.log2(pmf[resolution_bucket] / bf.pmf[resolution_bucket])
+                interval_scores.append(score)
+            else:
+                interval_scores.append(None)
+
+        forecast_score = 0
+        forecast_coverage = 0
+        times = [
+            bf.timestamp
+            for bf in baseline_forecasts
+            if bf.timestamp < actual_close_time
+        ] + [actual_close_time]
+        for i in range(len(times) - 1):
+            if interval_scores[i] is None:
+                continue
+            interval_duration = times[i + 1] - times[i]
+            forecast_score += interval_scores[i] * interval_duration / total_duration
+            forecast_coverage += interval_duration / total_duration
+        forecast_scores.append(ForecastScore(forecast_score, forecast_coverage))
+
+    return forecast_scores
 
 
 def evaluate_question(
@@ -352,24 +396,21 @@ def evaluate_question(
                 question.type,
             )
         case score_types.RELATIVE_LEGACY:
-            # TODO: fill this out
             user_scores = evaluate_forecasts_legacy_relative(
                 user_forecasts,
-                user_forecasts,
+                community_forecasts,
                 resolution_bucket,
                 forecast_horizon_start,
                 actual_close_time,
                 forecast_horizon_end,
-                question.type,
             )
             community_scores = evaluate_forecasts_legacy_relative(
                 community_forecasts,
-                user_forecasts,
+                community_forecasts,
                 resolution_bucket,
                 forecast_horizon_start,
                 actual_close_time,
                 forecast_horizon_end,
-                question.type,
             )
         case other:
             raise NotImplementedError(f"Score type {other} not implemented")
