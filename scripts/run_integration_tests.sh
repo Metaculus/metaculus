@@ -1,6 +1,7 @@
 #!/bin/bash
 set -x
 set -e
+set -o pipefail
 
 cleanup() {
     for process in "next-server" "gunicorn" "dramatiq"; do
