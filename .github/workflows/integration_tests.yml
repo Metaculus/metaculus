@@ -77,14 +77,6 @@ jobs:
           cache-dependency-path: front_end/package-lock.json
       - name: "Install node_modules and build the frontend"
         run: cd front_end && npm ci && npm run build
-      # Uncomment this to stop the job at this spot, and get a remote shell into the VM
-      # - name: Get tty-share
-      #   if: always()
-      #   run: |
-      #     curl -L https://github.com/elisescu/tty-share/releases/download/v2.4.0/tty-share_linux-amd64 -o tty-share
-      #     chmod u+x ./tty-share
-      #     export TERM=xterm-256color
-      #     ./tty-share -A --public --headless --headless-cols 255 --headless-rows 50 --no-wait --listen :8001
       - name: Run the integration tests
         if: always()
         env:
@@ -95,7 +87,18 @@ jobs:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: |
           PLAYWRIGHT_BROWSERS_PATH=.venv scripts/run_integration_tests.sh
+      - name: Create trace.zip
+        if: always()
+        run: |
           mkdir -p trace && cd trace && unzip ../trace.zip && rm ../trace.zip
+      # Uncomment this to stop the job at this spot, and get a remote shell into the VM
+      # - name: Get tty-share
+      #   if: always()
+      #   run: |
+      #     curl -L https://github.com/elisescu/tty-share/releases/download/v2.4.0/tty-share_linux-amd64 -o tty-share
+      #     chmod u+x ./tty-share
+      #     export TERM=xterm-256color
+      #     ./tty-share -A --public --headless --headless-cols 255 --headless-rows 50 --no-wait --listen :8001
       - name: "Upload trace.zip"
         uses: actions/upload-artifact@v4
         if: always()
