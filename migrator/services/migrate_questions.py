@@ -87,7 +87,7 @@ def create_question(question: dict, **kwargs) -> Question:
         ),
         actual_resolve_time=question["resolve_time"],
         resolution_set_time=question["resolve_time"],
-        actual_close_time=question["close_time"],
+        actual_close_time=min(question["close_time"], question["resolve_time"]),
         type=question_type,
         possibilities=possibilities,
         zero_point=zero_point,

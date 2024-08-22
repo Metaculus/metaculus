@@ -2,6 +2,8 @@ from collections import defaultdict
 from datetime import datetime
 from dataclasses import dataclass
 
+import numpy as np
+
 from django.utils import timezone
 from django.db.models import QuerySet, Q
 
@@ -63,8 +65,16 @@ def generate_scoring_leaderboard_entries(
         question__in=questions,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
+    scores = sorted(scores, key=lambda x: x.user_id or x.score)
     entries: dict[int | AggregationMethod, LeaderboardEntry] = {}
     now = timezone.now()
+    maximum_coverage = len(
+        [
+            q
+            for q in questions
+            if q.resolution and q.resolution not in ["annulled", "ambiguous"]
+        ]
+    )
     for score in scores:
         identifier = score.user_id or score.aggregation_method
         if identifier not in entries:
@@ -77,7 +87,7 @@ def generate_scoring_leaderboard_entries(
                 calculated_on=now,
             )
         entries[identifier].score += score.score
-        entries[identifier].coverage += score.coverage
+        entries[identifier].coverage += score.coverage / maximum_coverage
         entries[identifier].contribution_count += 1
     if leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL:
         for entry in entries.values():
@@ -85,6 +95,10 @@ def generate_scoring_leaderboard_entries(
     elif leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL_LEGACY:
         for entry in entries.values():
             entry.score /= max(40, entry.contribution_count)
+    elif leaderboard.score_type == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
+        for entry in entries.values():
+            entry.take = max(entry.coverage * np.exp(entry.score), 0)
+        return sorted(entries.values(), key=lambda entry: entry.take, reverse=True)
     return sorted(entries.values(), key=lambda entry: entry.score, reverse=True)
 
 
@@ -210,7 +224,10 @@ def update_project_leaderboard(
     new_entries = generate_project_leaderboard(project, leaderboard)
 
     # assign ranks (and medals if finalized)
-    new_entries.sort(key=lambda entry: entry.score, reverse=True)
+    if leaderboard.score_type == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
+        new_entries.sort(key=lambda entry: entry.take, reverse=True)
+    else:
+        new_entries.sort(key=lambda entry: entry.score, reverse=True)
     exclusion_records = MedalExclusionRecord.objects.all()
     if leaderboard.start_time:
         exclusion_records = exclusion_records.filter(
@@ -373,13 +390,20 @@ def get_contributions(
 
 def hydrate_take(
     leaderboard_entries: list[LeaderboardEntry] | QuerySet[LeaderboardEntry],
+    leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry] | QuerySet[LeaderboardEntry]:
     total_take = 0
     for entry in leaderboard_entries:
         if entry.excluded:
             setattr(entry, "take", 0)
         else:
-            take = max(entry.score, 0) ** 2
+            if (
+                leaderboard.score_type
+                == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
+            ):
+                take = max(entry.coverage * np.exp(entry.score), 0)
+            else:
+                take = max(entry.score, 0) ** 2
             setattr(entry, "take", take)
             total_take += take
     for entry in leaderboard_entries:
