@@ -30,7 +30,7 @@ const NewsMatchDrawer: FC<Props> = ({ questionId, articles }) => {
           />
         ))}
         <div className="flex flex-col items-center justify-between @md:flex-row">
-          {articles.length > articleDisplayLimit ? (
+          {articles.length > articleDisplayLimit && (
             <Button
               variant="tertiary"
               className="mb-4"
@@ -38,10 +38,8 @@ const NewsMatchDrawer: FC<Props> = ({ questionId, articles }) => {
             >
               {t("showMoreNews")}
             </Button>
-          ) : (
-            <div />
           )}
-          <div className="my-auto size-fit pr-2 text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
+          <div className="size-fit pr-2 text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
             {t.rich("learnMoreAboutNewsMatch", {
               link: (chunks) => (
                 <Link

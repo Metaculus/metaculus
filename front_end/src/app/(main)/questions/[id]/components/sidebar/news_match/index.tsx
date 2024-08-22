@@ -16,7 +16,9 @@ const fetchArticles = async (postId: number) => {
 const NewsMatch: FC<Props> = async ({ questionId }) => {
   const articles = await fetchArticles(questionId);
 
-  return <NewsMatchDrawer articles={articles} questionId={questionId} />;
+  if (articles.length > 0) {
+    return <NewsMatchDrawer articles={articles} questionId={questionId} />;
+  }
 };
 
 export default NewsMatch;

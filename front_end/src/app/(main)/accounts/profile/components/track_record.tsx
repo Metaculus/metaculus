@@ -1,10 +1,10 @@
 "use client";
 
-import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import CalibrationChart from "@/app/(main)/charts/calibration_chart";
+import UserHistogram from "@/app/(main)/charts/user_histogram";
 import { UserProfile } from "@/types/users";
 
 const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
@@ -15,6 +15,16 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
   return (
     <div className="flex flex-col gap-4 md:gap-6">
       <div className="flex flex-col rounded bg-white p-6 dark:bg-blue-900">
+        <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
+          {t("scoreHistogram")}
+        </h3>
+        {profile.score_histogram && (
+          <UserHistogram
+            rawHistogramData={profile.score_histogram}
+            color="gray"
+          />
+        )}
+
         <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
           Calibration Curve
         </h3>
