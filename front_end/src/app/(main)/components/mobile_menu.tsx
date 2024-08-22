@@ -35,15 +35,15 @@ const MobileMenu: FC = () => {
       >
         <MenuItems className="absolute inset-x-0 top-12 max-h-[calc(100dvh-48px)] list-none flex-col items-stretch justify-end space-y-0.5 overflow-y-auto bg-blue-200-dark text-base no-underline lg:hidden">
           <MenuLink href={`/leaderboard`}>{t("leaderboards")}</MenuLink>
-          <MenuLink href={`/news/`}>{t("News")}</MenuLink>
-          <SectionTitle>{t("More")}</SectionTitle>
-          <MenuLink href={`/about/`}>{t("About Metaculus")}</MenuLink>
-          <MenuLink href={`/press/`}>{t("For Journalists")}</MenuLink>
-          <MenuLink href={`/faq/`}>{t("FAQ")}</MenuLink>
+          <MenuLink href={`/news/`}>{t("news")}</MenuLink>
+          <SectionTitle>{t("more")}</SectionTitle>
+          <MenuLink href={`/about/`}>{t("aboutMetaculus")}</MenuLink>
+          <MenuLink href={`/press/`}>{t("forJournalists")}</MenuLink>
+          <MenuLink href={`/faq/`}>{t("faq")}</MenuLink>
           <MenuLink href={`/questions/track-record/`}>
-            {t("Track Record")}
+            {t("trackRecord")}
           </MenuLink>
-          <MenuLink href={`/project/journal/`}>{t("The Journal")}</MenuLink>
+          <MenuLink href={`/project/journal/`}>{t("theJournal")}</MenuLink>
           <MenuLink href={`/questions/create/`}>+ {t("create")}</MenuLink>
           <SectionTitle>{t("Account")}</SectionTitle>
           {user ? (
@@ -51,9 +51,9 @@ const MobileMenu: FC = () => {
               <MenuLink href={`/accounts/profile/${user.id}`}>
                 {t("profile")}
               </MenuLink>
-              <MenuLink href={"/accounts/settings/"}>{t("Settings")}</MenuLink>
+              <MenuLink href={"/accounts/settings/"}>{t("settings")}</MenuLink>
               {user.is_superuser && (
-                <MenuLink href={"/admin"}>{t("Admin")}</MenuLink>
+                <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
               )}
               <MenuLink href="/accounts/signout" regularLink>
                 {t("Logout")}
@@ -81,7 +81,7 @@ const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
   </div>
 );
 
-const MenuLink: FC<
+export const MenuLink: FC<
   PropsWithChildren<{
     href?: Href;
     onClick?: () => void;
