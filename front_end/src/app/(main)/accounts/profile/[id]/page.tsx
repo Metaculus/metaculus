@@ -89,7 +89,7 @@ export default async function Profile({
                   : " bg-white hover:bg-blue-200 dark:bg-blue-950 hover:dark:bg-blue-800")
               }
             >
-              {t("Medals")}
+              {t("medals")}
             </button>
           </Link>
           <Link href={`/accounts/profile/${id}?mode=comments`}>

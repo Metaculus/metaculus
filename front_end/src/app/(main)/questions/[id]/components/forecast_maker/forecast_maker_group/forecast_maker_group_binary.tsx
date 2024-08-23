@@ -255,7 +255,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
                 onClick={handlePredictSubmit}
                 disabled={!submitIsAllowed}
               >
-                {t("saveButton")}
+                {t("saveChange")}
               </Button>
             </>
           ) : (
@@ -264,7 +264,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               type="button"
               onClick={() => setCurrentModal({ type: "signup" })}
             >
-              {t("signUpButton")}
+              {t("signUpToPredict")}
             </Button>
           )}
         </div>

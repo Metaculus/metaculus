@@ -31,7 +31,7 @@ const QuestionResolutionButton: FC<Props> = ({
           onClick={() => setIsOpen(true)}
           className={className}
         >
-          {t("resolveButton")}
+          {t("resolve")}
         </Button>
         <QuestionResolutionModal
           question={question}

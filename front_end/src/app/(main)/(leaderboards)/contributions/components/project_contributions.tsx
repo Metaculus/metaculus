@@ -107,7 +107,7 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
               <dt className="mr-2 w-20 flex-none font-bold">{t("score")}</dt>
               {project.score_type === "peer_tournament" ? (
                 <dd>
-                  {t.rich("pearScoreInfo", {
+                  {t.rich("peerScoreInfo", {
                     link: (chunks) => (
                       <Link href={"/help/scores-faq/#peer-score"}>
                         {chunks}

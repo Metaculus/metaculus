@@ -103,7 +103,7 @@ const ForecastMakerBinary: FC<Props> = ({
             disabled={!!user && (!isForecastDirty || isSubmitting)}
             onClick={handlePredictSubmit}
           >
-            {user ? t("predictButton") : t("signUpButton")}
+            {user ? t("predict") : t("signUpToPredict")}
           </Button>
         )}
         {canResolve && (
