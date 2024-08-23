@@ -53,7 +53,9 @@ const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
                     className="mr-2 flex-none text-[#1877F2]"
                   />
                   <span className="flex-1 whitespace-nowrap text-center">
-                    {type == "signin" ? t("loginFB") : t("registrationFB")}
+                    {type == "signin"
+                      ? t("loginFacebook")
+                      : t("registrationFacebook")}
                   </span>
                 </Button>
               );

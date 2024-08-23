@@ -75,7 +75,7 @@ export default function PostHeader({
                   setIsApprovalModalOpen(true);
                 }}
               >
-                {t("Edit Open & CP Reveal Times")}
+                {t("editOpenAndCpRevealTimes")}
               </Button>
             ) : null}
           </>

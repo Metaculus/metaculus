@@ -22,7 +22,7 @@ const TournamentsBlock: FC<Props> = async ({ postSlugs }) => {
   return (
     <div className="my-6 flex flex-col md:my-12 lg:my-16">
       <h2 className="mb-5 mt-0 w-full text-4xl font-bold text-blue-800 dark:text-blue-800-dark md:text-5xl">
-        {t("Forecasting")}{" "}
+        {t("forecasting")}{" "}
         <span className="text-blue-600 dark:text-blue-600-dark">
           {t("tournaments")}
         </span>
