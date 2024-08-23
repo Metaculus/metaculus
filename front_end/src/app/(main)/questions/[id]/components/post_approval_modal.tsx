@@ -90,7 +90,7 @@ const PostApprovalModal: FC<{
                     <span>{t("Question")}: </span>
                     <span>{key}</span>
                   </div>
-                  <span>{t("Open Time")}</span>
+                  <span>{t("openTime")}</span>
                   <Input
                     type="datetime-local"
                     placeholder="date when forecasts will open"
@@ -102,7 +102,7 @@ const PostApprovalModal: FC<{
                     }}
                     defaultValue={approvalData[value].open_time as string}
                   />
-                  <span>{t("CP Reveal Time")}</span>
+                  <span>{t("cpRevealTime")}</span>
                   <Input
                     type="datetime-local"
                     placeholder="time when the cp will be revealed"

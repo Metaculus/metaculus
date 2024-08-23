@@ -53,13 +53,13 @@ const ContributionsHero: FC<Props> = ({ year, duration, category, userId }) => {
       </div>
       <div className="flex gap-5 text-base font-medium leading-6">
         <div className="flex gap-1.5 text-gray-500 dark:text-gray-500-dark">
-          <span>{t("scoringDurationLabel")}</span>
+          <span>{t("duration:")}</span>
           <span className="text-gray-800 dark:text-gray-800-dark">
             {`${duration} ${Number(duration) > 1 ? t("years") : t("year")}`}
           </span>
         </div>
         <div className="flex gap-1.5 text-gray-500 dark:text-gray-500-dark">
-          <span>{t("scoringTimePeriodLabel")}</span>
+          <span>{t("timePeriod")}</span>
           <span className="text-gray-800 dark:text-gray-800-dark">
             {getPeriodLabel(year, duration)}
           </span>

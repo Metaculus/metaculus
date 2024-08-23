@@ -206,7 +206,7 @@ const UserInfo: FC<UserInfoProps> = ({
                   {format(new Date(profile.date_joined), "MM-yyyy")}
                 </span>
                 <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
-                  {t("Member Since")}
+                  {t("memberSince")}
                 </span>
               </div>
             </div>

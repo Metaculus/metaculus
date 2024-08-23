@@ -142,7 +142,7 @@ const ForecastMakerContinuous: FC<Props> = ({
                 onClick={handlePredictSubmit}
                 disabled={!submitIsAllowed}
               >
-                {t("saveButton")}
+                {t("saveChange")}
               </Button>
             </>
           ) : (
@@ -151,7 +151,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               type="button"
               onClick={() => setCurrentModal({ type: "signup" })}
             >
-              {t("signUpButton")}
+              {t("signUpToPredict")}
             </Button>
           )}
         </div>
