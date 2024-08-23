@@ -340,7 +340,7 @@ const Comment: FC<CommentProps> = ({
           <a
             href={`/questions/${comment.parent.on_post}/#comment-${comment.parent.id}`}
           >
-            ➞ {t("inReplyTo")} {comment.parent.author.username}
+            {t('inReplyTo', {author: comment.parent.author.username})}
           </a>
         </div>
       )} */}
