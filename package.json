@@ -1,0 +1,8 @@
+{
+    "name": "metaculus-web",
+    "version": "0.1.0",
+    "scripts": {
+        "postinstall": "npm install --prefix front_end",
+        "build": "npm run build --prefix front_end"
+    }
+}
