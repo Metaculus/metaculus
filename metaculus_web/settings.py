@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     "django_dramatiq",
     "admin_auto_filters",
     # TODO: disable in prod
-    "debug_toolbar",
     # first-party:
     "migrator",
     "misc",
@@ -70,18 +69,23 @@ INSTALLED_APPS = [
     "fab_management",
 ]
 
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "utils.middlewares.middleware_alpha_access_check",
 ]
+
+if DEBUG:
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
+
 
 # Cors configuration
 CORS_ORIGIN_WHITELIST = [
