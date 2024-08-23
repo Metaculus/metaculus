@@ -164,7 +164,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               type="submit"
               disabled={!formState.isValid || !resolutionType || isSubmitting}
             >
-              {t("resolveButton")}
+              {t("resolve")}
             </Button>
             <FormError errors={submitErrors} />
           </div>

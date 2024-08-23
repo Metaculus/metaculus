@@ -15,14 +15,6 @@ type Props = {
   button?: ReactNode;
 };
 
-const copyToClipboard = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch (err) {
-    console.error("Failed to copy text: ", err);
-  }
-};
-
 const ForecastMakerGroupControls: FC<Props> = ({
   question,
   button,
@@ -31,15 +23,23 @@ const ForecastMakerGroupControls: FC<Props> = ({
   const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
   const t = useTranslations();
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.error(t("failedToCopyText"), err);
+    }
+  };
+
   return (
-    <div className="flex gap-1">
+    <>
       <DropdownMenu
         items={[
           ...(canResolveQuestion(question, permission)
             ? [
                 {
                   id: "resolve",
-                  name: t("resolveButton"),
+                  name: t("resolve"),
                   onClick: () => setIsResolutionModalOpen(true),
                 },
               ]
@@ -63,7 +63,7 @@ const ForecastMakerGroupControls: FC<Props> = ({
         isOpen={isResolutionModalOpen}
         onClose={() => setIsResolutionModalOpen(false)}
       />
-    </div>
+    </>
   );
 };
 
