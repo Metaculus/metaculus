@@ -284,6 +284,8 @@ def metaculus_track_record(
             {
                 "score": score.score,
                 "score_timestamp": score.created_at.timestamp(),
+                "question_title": score.question.title,
+                "question_resolution": score.question.resolution
             }
         )
     ser["score_histogram"] = []
@@ -300,4 +302,5 @@ def metaculus_track_record(
                 / len(scores),
             }
         )
+    
     return Response(ser)
