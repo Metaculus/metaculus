@@ -329,6 +329,7 @@ def serialize_question(
         }
         for method, forecasts in aggregate_forecasts_by_method.items():
             scores = question.scores.filter(aggregation_method=method)
+            archived_scores = question.archived_scores.filter(aggregation_method=method)
             serialized_data["aggregations"][method]["history"] = (
                 AggregateForecastSerializer(
                     forecasts,
@@ -349,6 +350,10 @@ def serialize_question(
             for score in scores:
                 serialized_data["aggregations"][method][
                     score.score_type + "_score"
+                ] = score.score
+            for score in archived_scores:
+                serialized_data["aggregations"][method][
+                    score.score_type + "_archived_score"
                 ] = score.score
 
         if (

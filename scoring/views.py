@@ -171,9 +171,6 @@ def medal_contributions(
         return Response(status=status.HTTP_404_NOT_FOUND)
     leaderboard = leaderboard.first()
 
-    from datetime import datetime
-
-    now = datetime.now()
     contributions = get_contributions(user, leaderboard)
     leaderboard_entry = leaderboard.entries.filter(user=user).first()
 
@@ -285,7 +282,7 @@ def metaculus_track_record(
                 "score": score.score,
                 "score_timestamp": score.created_at.timestamp(),
                 "question_title": score.question.title,
-                "question_resolution": score.question.resolution
+                "question_resolution": score.question.resolution,
             }
         )
     ser["score_histogram"] = []
@@ -302,5 +299,5 @@ def metaculus_track_record(
                 / len(scores),
             }
         )
-    
+
     return Response(ser)

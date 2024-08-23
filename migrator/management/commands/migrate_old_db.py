@@ -15,7 +15,7 @@ from migrator.services.migrate_mailgun_notification_preferences import (
 from migrator.services.migrate_permissions import migrate_permissions
 from migrator.services.migrate_projects import migrate_projects
 from migrator.services.migrate_questions import migrate_questions
-from migrator.services.migrate_scoring import score_questions
+from migrator.services.migrate_scoring import migrate_archived_scores, score_questions
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
 from migrator.services.post_migrate import post_migrate_calculate_divergence
@@ -84,6 +84,8 @@ class Command(BaseCommand):
         # print("Migrated post subscriptions")
 
         # scoring
+        migrate_archived_scores()
+        print("Migrated archived scores")
         score_questions()
         print("Scored questions")
         populate_medal_exclusion_records()

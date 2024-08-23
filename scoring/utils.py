@@ -13,7 +13,13 @@ from posts.models import Post
 from projects.models import Project
 from questions.models import Question
 from questions.types import AggregationMethod
-from scoring.models import Score, LeaderboardEntry, Leaderboard, MedalExclusionRecord
+from scoring.models import (
+    ArchivedScore,
+    Score,
+    LeaderboardEntry,
+    Leaderboard,
+    MedalExclusionRecord,
+)
 from scoring.score_math import evaluate_question
 from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
@@ -61,10 +67,28 @@ def generate_scoring_leaderboard_entries(
     questions: list[Question],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
-    scores: QuerySet[Score] = Score.objects.filter(
+    calculated_scores: QuerySet[Score] = Score.objects.filter(
         question__in=questions,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
+    archived_scores: QuerySet[ArchivedScore] = ArchivedScore.objects.filter(
+        question__in=questions,
+        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+    )
+    scores: list[Score | ArchivedScore]
+    if archived_scores.exists():
+        scores = list(archived_scores)
+        for score in calculated_scores:
+            if archived_scores.filter(
+                question=score.question,
+                user_id=score.user_id,
+                aggregation_method=score.aggregation_method,
+            ).exists():
+                pass
+            scores.append(score)
+    else:
+        scores = list(calculated_scores)
+
     scores = sorted(scores, key=lambda x: x.user_id or x.score)
     entries: dict[int | AggregationMethod, LeaderboardEntry] = {}
     now = timezone.now()
