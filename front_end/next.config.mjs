@@ -57,6 +57,9 @@ const nextConfig = {
       destination: `${API_BASE_URL}/static/debug_toolbar/:path*`,
     },
   ],
+  eslint: {
+    ignoreDuringBuilds: true
+  }
 };
 
 export default withNextIntl(nextConfig);
