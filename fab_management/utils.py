@@ -53,7 +53,7 @@ question_columns = [
     # touples with: column header, question field name, type/conversion function
     ("title", "title", "string"),
     ("description", "description", "string"),
-    ("resolution_criteria", "resolution_criteria_description", "string"),
+    ("resolution_criteria", "resolution_criteria", "string"),
     ("fine_print", "fine_print", "string"),
     ("publish_time", "open_time", lambda val: convert_to_timestamp(val, 10, 30)),
     (
