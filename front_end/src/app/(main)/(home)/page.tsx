@@ -54,6 +54,17 @@ export default async function Home() {
   const topics = await ProjectsApi.getTopics();
   const hotTopics = topics.filter((t) => t.section === "hot_topics");
 
+  const questionCarouselIDs =
+    process.env.HOME_PAGE_QUESTION_CAROUSEL_IDS?.split(",").map((id) =>
+      Number(id)
+    );
+  const researchIDs = process.env.HOME_PAGE_RESEARCH_IDS?.split(",").map((id) =>
+    Number(id)
+  );
+  const tournamentSlugs = process.env.HOME_PAGE_TOURNAMENTS_SLUGS?.split(
+    ","
+  ).map((id) => id.trim());
+
   return (
     <main className="bg-gradient-to-b from-blue-100 from-20% to-blue-200 to-50% pt-16 dark:from-blue-100-dark dark:to-blue-200-dark sm:pt-28">
       <div className="mx-auto mb-24 flex w-full max-w-7xl flex-1 flex-col items-stretch px-4 text-blue-700 dark:text-blue-700-dark sm:px-8 md:px-12 lg:px-16">
@@ -91,14 +102,11 @@ export default async function Home() {
             </div>
           </div>
         </div>
-        <div className="mt-12">
-          <QuestionCarousel
-            postIds={[
-              3479, 5320, 353, 17280, 15462, 384, 13858, 12910, 12923, 11437,
-              8466,
-            ]}
-          />
-        </div>
+        {questionCarouselIDs && (
+          <div className="mt-12">
+            <QuestionCarousel postIds={questionCarouselIDs} />
+          </div>
+        )}
         <div className="my-6 md:my-12 lg:my-16">
           <h2 className="mb-5 mt-0 w-full text-center text-4xl font-bold text-blue-800 dark:text-blue-800-dark md:text-5xl">
             {t.rich("focusAreasTitle", {
@@ -119,19 +127,16 @@ export default async function Home() {
           </div>
         </div>
 
-        <Suspense>
-          <TournamentsBlock
-            postSlugs={[
-              "forecasting-Our-World-in-Data",
-              "biosecurity-tournament",
-              "ukraine-conflict",
-              "keep-virginia-safe-ii",
-            ]}
-          />
-        </Suspense>
-        <Suspense>
-          <ResearchAndUpdatesBlock postIds={[16708, 14965, 15007]} />
-        </Suspense>
+        {tournamentSlugs && (
+          <Suspense>
+            <TournamentsBlock postSlugs={tournamentSlugs} />
+          </Suspense>
+        )}
+        {researchIDs && (
+          <Suspense>
+            <ResearchAndUpdatesBlock postIds={researchIDs} />
+          </Suspense>
+        )}
         <EngageBlock />
       </div>
     </main>
