@@ -109,7 +109,6 @@ def get_serialized_user(request, user, Serializer):
             0.95, max([len(res), 1]), bin_center
         ) / max([len(res), 1])
 
-        print(user_upper_quartile, user_lower_quartile, bin_center)
         calibration_curve.append(
             {
                 "user_lower_quartile": user_lower_quartile,
@@ -150,7 +149,6 @@ def get_serialized_user(request, user, Serializer):
                 / len(scores),
             }
         )
-    print(ser["score_scatter_plot"])
     return ser
 
 
