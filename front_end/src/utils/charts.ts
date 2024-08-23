@@ -95,6 +95,15 @@ export function generateTimestampXScale(
     ticks = d3.timeMinute.range(start, end);
     format = d3.timeFormat("%_I:%M %p");
     cursorFormat = d3.timeFormat("%_I:%M %p, %b %d");
+  } else if (timeRange < oneHour * 6) {
+    const every5Minutes = d3.timeMinute.every(5);
+    if (every5Minutes) {
+      ticks = every5Minutes.range(start, end);
+    } else {
+      ticks = d3.timeHour.range(start, end);
+    }
+    format = d3.timeFormat("%_I:%M %p");
+    cursorFormat = d3.timeFormat("%_I:%M %p, %b %d");
   } else if (timeRange < oneDay) {
     const every30Minutes = d3.timeMinute.every(30);
     if (every30Minutes) {
@@ -477,3 +486,31 @@ export const interpolateYValue = (xValue: number, line: Line) => {
   const t = (xValue - p1.x) / (p2.x - p1.x);
   return p1.y + t * (p2.y - p1.y);
 };
+
+export function generateTicksY(height: number, desiredMajorTicks: number[]) {
+  const minorTicksPerMajor = 9;
+  const desiredMajorTickDistance = 50;
+  let majorTicks = desiredMajorTicks;
+  const maxMajorTicks = Math.floor(height / desiredMajorTickDistance);
+
+  if (maxMajorTicks < desiredMajorTicks.length) {
+    const step = 1 / (maxMajorTicks - 1);
+    majorTicks = Array.from({ length: maxMajorTicks }, (_, i) => i * step);
+  }
+  const ticks = [];
+  for (let i = 0; i < majorTicks.length - 1; i++) {
+    ticks.push(majorTicks[i]);
+    const step = (majorTicks[i + 1] - majorTicks[i]) / (minorTicksPerMajor + 1);
+    for (let j = 1; j <= minorTicksPerMajor; j++) {
+      ticks.push(majorTicks[i] + step * j);
+    }
+  }
+  ticks.push(majorTicks[majorTicks.length - 1]);
+  const tickFormat = (value: number): string => {
+    if (!majorTicks.includes(value)) {
+      return "";
+    }
+    return value.toString();
+  };
+  return { ticks, tickFormat };
+}
