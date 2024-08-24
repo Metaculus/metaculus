@@ -1,6 +1,8 @@
 FROM python:3.12.3-slim
 
-COPY . .
+COPY . /app
+
+RUN chmod +x /app/start.sh
 
 RUN apt-get update && apt-get install -y \
     curl \
@@ -16,6 +18,7 @@ ENV PATH="/root/.local/bin:$PATH"
 WORKDIR /app
 
 RUN poetry install --no-root
+RUN cd front_end && npm run build
 
-# CMD ["poetry", "run", "gunicorn", "metaculus_web.wsgi:application", "--workers", "8", "--bind", "0.0.0.0:8000"]
-CMD ["./start.sh"]
+# CMD ["poetry run gunicorn metaculus_web.wsgi:application --workers 8 --bind 0.0.0.0:8000"]
+CMD ["/bin/bash", "/app/start.sh"]
