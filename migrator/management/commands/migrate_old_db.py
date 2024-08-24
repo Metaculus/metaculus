@@ -40,53 +40,60 @@ class Command(BaseCommand):
             default="1",
             help="Comma-separated list of site IDs",
         )
-
-    def handle(self, *args, site_ids=None, **options):
-        site_ids = [int(x) for x in site_ids.split(",")]
-        with connection.cursor() as cursor:
-            cursor.execute("DROP SCHEMA public CASCADE;")
-            cursor.execute("CREATE SCHEMA public;")
-        call_command("makemigrations")
-        call_command("migrate")
-
-        Project.objects.get_or_create(
-            type=Project.ProjectTypes.SITE_MAIN,
-            defaults={
-                "name": "Metaculus Community",
-                "type": Project.ProjectTypes.SITE_MAIN,
-                "default_permission": ObjectPermission.FORECASTER,
-            },
+        parser.add_argument(
+            "start_score_questions_with_id",
+            type=int,
+            nargs="?",
+            default=0,
+            help="only score questions with IDs >= this",
         )
 
-        # main model migration
-        migrate_users()
-        print("Migrated users")
-        migrate_questions(site_ids=site_ids)
-        print("Migrated questions")
-        migrate_forecasts()
-        print("Migrated forecasts")
-        migrate_projects(site_ids=site_ids)
-        print("Migrated projects")
-        migrate_votes()
-        print("Migrated votes")
-        migrate_comments()
-        print("Migrated comments")
-        migrate_comment_votes()
-        print("Migrated comment votes")
-        migrate_permissions()
-        print("Migrated permissions")
-        migrate_mailgun_notification_preferences()
-        print("Migrated user notification preferences")
+    def handle(self, *args, site_ids=None, **options):
+        # site_ids = [int(x) for x in site_ids.split(",")]
+        # with connection.cursor() as cursor:
+        #     cursor.execute("DROP SCHEMA public CASCADE;")
+        #     cursor.execute("CREATE SCHEMA public;")
+        # call_command("makemigrations")
+        # call_command("migrate")
 
-        # TODO: enable on prod release!
-        print("\033[93mPost Subscriptions/Following migration is disabled!\033[0m")
-        # migrate_subscriptions(site_ids=site_ids)
-        # print("Migrated post subscriptions")
+        # Project.objects.get_or_create(
+        #     type=Project.ProjectTypes.SITE_MAIN,
+        #     defaults={
+        #         "name": "Metaculus Community",
+        #         "type": Project.ProjectTypes.SITE_MAIN,
+        #         "default_permission": ObjectPermission.FORECASTER,
+        #     },
+        # )
 
-        # scoring
-        migrate_archived_scores()
-        print("Migrated archived scores")
-        score_questions()
+        # # main model migration
+        # migrate_users()
+        # print("Migrated users")
+        # migrate_questions(site_ids=site_ids)
+        # print("Migrated questions")
+        # migrate_forecasts()
+        # print("Migrated forecasts")
+        # migrate_projects(site_ids=site_ids)
+        # print("Migrated projects")
+        # migrate_votes()
+        # print("Migrated votes")
+        # migrate_comments()
+        # print("Migrated comments")
+        # migrate_comment_votes()
+        # print("Migrated comment votes")
+        # migrate_permissions()
+        # print("Migrated permissions")
+        # migrate_mailgun_notification_preferences()
+        # print("Migrated user notification preferences")
+
+        # # TODO: enable on prod release!
+        # print("\033[93mPost Subscriptions/Following migration is disabled!\033[0m")
+        # # migrate_subscriptions(site_ids=site_ids)
+        # # print("Migrated post subscriptions")
+
+        # # scoring
+        # migrate_archived_scores()
+        # print("Migrated archived scores")
+        score_questions(start_id=options["start_score_questions_with_id"])
         print("Scored questions")
         populate_medal_exclusion_records()
         print("Populated medal exclusion records")

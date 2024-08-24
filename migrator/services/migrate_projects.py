@@ -79,12 +79,18 @@ def create_project(project_obj: dict) -> Project:
 
     project.save()
     if leaderboard_score_type:
-        project.primary_leaderboard = Leaderboard.objects.create(
-            project=project,
-            score_type=leaderboard_score_type,
-            start_time=project.start_date,
-            finalize_time=project.close_date,
-        )
+        existing_leaderboard = Leaderboard.objects.filter(
+            project=project, score_type=leaderboard_score_type
+        ).first()
+        if existing_leaderboard:
+            project.primary_leaderboard = existing_leaderboard
+        else:
+            project.primary_leaderboard = Leaderboard.objects.create(
+                project=project,
+                score_type=leaderboard_score_type,
+                start_time=project.start_date,
+                finalize_time=project.close_date,
+            )
         # awkward double save since Leaderboard creation requires project.id
         # And project.primary_leaderboard requires Leaderboard.id
         project.save()

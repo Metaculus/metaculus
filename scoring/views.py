@@ -142,6 +142,7 @@ def user_medals(
 def medal_contributions(
     request: Request,
 ):
+    breakpoint()
     user_id = request.GET.get("userId", None)
     user = get_object_or_404(User, pk=user_id)
     project_id = request.GET.get("projectId", 1)
@@ -157,19 +158,23 @@ def medal_contributions(
     leaderboard_type = request.GET.get("leaderboardType", None)
     leaderboard_name = request.GET.get("leaderboardName", None)
 
-    leaderboard = Leaderboard.objects.filter(project=project)
+    leaderboards = Leaderboard.objects.filter(project=project)
     if start_time:
-        leaderboard = leaderboard.filter(start_time=start_time)
+        leaderboards = leaderboards.filter(start_time=start_time)
     if end_time:
-        leaderboard = leaderboard.filter(end_time=end_time)
+        leaderboards = leaderboards.filter(end_time=end_time)
     if leaderboard_type:
-        leaderboard = leaderboard.filter(score_type=leaderboard_type)
+        leaderboards = leaderboards.filter(score_type=leaderboard_type)
     if leaderboard_name:
-        leaderboard = leaderboard.filter(name=leaderboard_name)
+        leaderboards = leaderboards.filter(name=leaderboard_name)
 
-    if leaderboard.count() != 1:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    leaderboard = leaderboard.first()
+    if leaderboards.count() != 1:
+        if project.primary_leaderboard in leaderboards.all():
+            leaderboard = project.primary_leaderboard
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+    else:
+        leaderboard = leaderboards.first()
 
     contributions = get_contributions(user, leaderboard)
     leaderboard_entry = leaderboard.entries.filter(user=user).first()

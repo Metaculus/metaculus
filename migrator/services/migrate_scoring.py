@@ -1,4 +1,5 @@
 from django.db.models import Q
+from django.utils import timezone
 
 from questions.models import Question
 from scoring.utils import score_question
@@ -40,20 +41,38 @@ def migrate_archived_scores():
                 edited_at=question.resolution_set_time,
             )
         )
-    ArchivedScore.objects.delete()
+    ArchivedScore.objects.all().delete()
     ArchivedScore.objects.bulk_create(archived_scores)
 
 
-def score_questions(qty: int | None = None):
-    questions = Question.objects.filter(
-        resolution__isnull=False,
-    ).exclude(
-        resolution__in=["ambiguous", "annulled"],
+def score_questions(qty: int | None = None, start_id: int = 0):
+    questions = (
+        Question.objects.filter(
+            resolution__isnull=False,
+            id__gte=start_id,
+        )
+        .exclude(
+            resolution__in=["ambiguous", "annulled"],
+        )
+        .order_by("id")
     )
     if qty:
         questions = questions.order_by("?")[:qty]
     c = len(questions)
+    rltst = Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
+    question_ids_to_relative_score: set[int] = set(
+        Question.objects.filter(
+            Q(post__projects__primary_leaderboard__score_type=rltst)
+            | Q(post__default_project__primary_leaderboard__score_type=rltst)
+            | Q(group__post__projects__primary_leaderboard__score_type=rltst)
+            | Q(group__post__default_project__primary_leaderboard__score_type=rltst),
+            resolution__isnull=True,
+        )
+        .distinct()
+        .values_list("id", flat=True)
+    )
     question: Question
+    start = timezone.now()
     for i, question in enumerate(questions, 1):
         if question.resolution and not question.forecast_scoring_ends:
             print(
@@ -64,20 +83,51 @@ def score_questions(qty: int | None = None):
             )
             print("Resolved q with no resolved time")
             exit()
-        try:
+        f = question.user_forecasts.count()
+        print(
+            f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
+            f"dur:{str(timezone.now() - start).split(".")[0]} "
+            f"est:{str((timezone.now() - start) / i * c).split(".")[0]} "
+            "peer...",
+            end="\r",
+        )
+        score_question(
+            question,
+            question.resolution,
+            score_types=[
+                Score.ScoreTypes.PEER,
+            ],
+        )
+        print(
+            f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
+            f"dur:{str(timezone.now() - start).split(".")[0]} "
+            f"est:{str((timezone.now() - start) / i * c).split(".")[0]} "
+            "peer done. basline...",
+            end="\r",
+        )
+        score_question(
+            question,
+            question.resolution,
+            score_types=[
+                Score.ScoreTypes.BASELINE,
+            ],
+        )
+        # TODO: add spot_forecast_time
+        if question.id in question_ids_to_relative_score:
+            if ArchivedScore.objects.filter(question=question).exists():
+                continue  
+            print(
+                f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
+                f"dur:{str(timezone.now() - start).split(".")[0]} "
+                f"est:{str((timezone.now() - start) / i * c).split(".")[0]} "
+                "peer done. basline done. relative...",
+                end="\r",
+            )
             score_question(
                 question,
                 question.resolution,
                 # TODO: add spot_forecast_time
                 score_types=[
-                    Score.ScoreTypes.PEER,
-                    Score.ScoreTypes.BASELINE,
                     Score.ScoreTypes.RELATIVE_LEGACY,
                 ],
             )
-            print("scored question", i, "/", c, "ID:", question.id, end="\r")
-        except Exception as e:
-            if "ambiguous or annulled" in str(e):
-                pass
-            else:
-                raise e
