@@ -142,7 +142,6 @@ def user_medals(
 def medal_contributions(
     request: Request,
 ):
-    breakpoint()
     user_id = request.GET.get("userId", None)
     user = get_object_or_404(User, pk=user_id)
     project_id = request.GET.get("projectId", 1)

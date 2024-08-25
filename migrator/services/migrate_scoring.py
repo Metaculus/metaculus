@@ -1,3 +1,5 @@
+import numpy as np
+
 from django.db.models import Q
 from django.utils import timezone
 
@@ -5,6 +7,7 @@ from questions.models import Question
 from scoring.utils import score_question
 from scoring.models import Score, ArchivedScore, Leaderboard
 from migrator.utils import paginated_query
+
 
 
 def migrate_archived_scores():
@@ -31,14 +34,17 @@ def migrate_archived_scores():
         ):
             continue
         question = question_dict[comboprediction["question_id"]]
+        score = np.log(2**comboprediction["log_score"])
+
         archived_scores.append(
             ArchivedScore(
                 question_id=comboprediction["question_id"],
                 user_id=comboprediction["user_id"],
-                score=comboprediction["log_score"],
+                score=score,
                 coverage=comboprediction["coverage"],
                 created_at=question.resolution_set_time,
                 edited_at=question.resolution_set_time,
+                score_type=Score.ScoreTypes.RELATIVE_LEGACY
             )
         )
     ArchivedScore.objects.all().delete()

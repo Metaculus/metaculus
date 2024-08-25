@@ -391,11 +391,32 @@ def get_contributions(
         # need to make unpopulated contributions for questions that have not
         # been resolved.
         questions = [q for q in questions if q.resolution is not None]
-    scores = Score.objects.filter(
-        question__in=questions,
-        user=user,
-        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+    archived_scores = list(
+        ArchivedScore.objects.filter(
+            question__in=questions,
+            user=user,
+            score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+        )
     )
+    calculated_scores = list(
+        Score.objects.filter(
+            question__in=questions,
+            user=user,
+            score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+        )
+    )
+    scores = archived_scores
+    for score in calculated_scores:
+        found = False
+        for archived_score in archived_scores:
+            if (
+                score.question == archived_score.question
+                and score.aggregation_method == archived_score.aggregation_method
+            ):
+                found = True
+                break
+        if not found:
+            scores.append(score)
     # User has scores on some questions
     contributions = [
         Contribution(score=s.score, coverage=s.coverage, question=s.question)
