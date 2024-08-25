@@ -84,7 +84,7 @@ def generate_scoring_leaderboard_entries(
                 user_id=score.user_id,
                 aggregation_method=score.aggregation_method,
             ).exists():
-                pass
+                continue
             scores.append(score)
     else:
         scores = list(calculated_scores)
@@ -417,6 +417,9 @@ def get_contributions(
                 break
         if not found:
             scores.append(score)
+    scores = sorted(
+        scores, key=lambda s: s.score if s.score is not None else 0, reverse=True
+    )
     # User has scores on some questions
     contributions = [
         Contribution(score=s.score, coverage=s.coverage, question=s.question)
@@ -437,6 +440,7 @@ def hydrate_take(
     leaderboard_entries: list[LeaderboardEntry] | QuerySet[LeaderboardEntry],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry] | QuerySet[LeaderboardEntry]:
+    # TODO: just add take and percent_prize to model instance
     total_take = 0
     for entry in leaderboard_entries:
         if entry.excluded:

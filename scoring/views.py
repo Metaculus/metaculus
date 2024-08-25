@@ -167,16 +167,20 @@ def medal_contributions(
     if leaderboard_name:
         leaderboards = leaderboards.filter(name=leaderboard_name)
 
-    if leaderboards.count() != 1:
-        if project.primary_leaderboard in leaderboards.all():
-            leaderboard = project.primary_leaderboard
-        else:
+    # get leaderboard and project
+    leaderboard_count = leaderboards.count()
+    if leaderboard_count == 0:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if leaderboard_count > 1:
+        leaderboard = project.primary_leaderboard
+        if not leaderboard:
             return Response(status=status.HTTP_404_NOT_FOUND)
     else:
         leaderboard = leaderboards.first()
 
     contributions = get_contributions(user, leaderboard)
-    leaderboard_entry = leaderboard.entries.filter(user=user).first()
+    entries = hydrate_take(leaderboard.entries.all(), leaderboard)
+    leaderboard_entry = next((e for e in entries if e.user == user), None)
 
     return_data = {
         "leaderboard_entry": LeaderboardEntrySerializer(leaderboard_entry).data,
