@@ -144,6 +144,9 @@ class LeaderboardEntry(TimeStampedModel):
     objects: models.Manager["LeaderboardEntry"]
     user_id: int | None
 
+    # annotations
+    take: float | None
+
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     aggregation_method = models.CharField(
         max_length=200, null=True, choices=AggregationMethod.choices

@@ -48,65 +48,66 @@ const SignInModal: FC<SignInModalType> = ({
   }, [setCurrentModal, setUser, state]);
 
   return (
-    <BaseModal label={t("logIn")} isOpen={isOpen} onClose={onClose}>
-      {/* dummy div to give the modal a 384px max width */}
-      <div className="w-[328px]" />
-      <div className="flex w-full flex-col gap-2">
-        <div className="mb-4 text-base leading-tight">
-          <span className="text-blue-900 dark:text-gray-1000-dark">
-            {t("loginSignUpHeading")}{" "}
-          </span>
-          <Button
-            variant="link"
-            size="md"
-            onClick={() => setCurrentModal({ type: "signup" })}
-          >
-            {t("createAnAccount")}
-          </Button>
-        </div>
-        <form
-          action={(data) => {
-            startTransition(() => {
-              formAction(data);
-            });
-          }}
-          className="flex flex-col gap-4"
-        >
-          <Input
-            autoComplete="username"
-            className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-            type="text"
-            placeholder={t("loginUsernamePlaceholder")}
-            {...register("login")}
-            errors={state?.errors}
-          />
-          <Input
-            autoComplete="current-password"
-            className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-            type="password"
-            placeholder="password"
-            {...register("password")}
-            errors={state?.errors}
-          />
-          <Button
-            variant="primary"
-            className="w-full"
-            type="submit"
-            disabled={isPending}
-          >
-            {t("logIn")}
-          </Button>
-        </form>
+    <BaseModal
+      label={t("logIn")}
+      isOpen={isOpen}
+      onClose={onClose}
+      className="flex max-w-sm flex-col gap-2"
+    >
+      <div className="mb-4 text-base leading-tight">
+        <span className="text-blue-900 dark:text-gray-1000-dark">
+          {t("loginSignUpHeading")}{" "}
+        </span>
         <Button
-          variant="text"
-          className="w-full px-3 py-2"
-          onClick={() => setCurrentModal({ type: "resetPassword" })}
+          variant="link"
+          size="md"
+          onClick={() => setCurrentModal({ type: "signup" })}
         >
-          {t("forgotPasswordLink")}
+          {t("createAnAccount")}
         </Button>
-        <hr className="mb-3 mt-1 border-gray-300 dark:border-gray-300-dark" />
-        <SocialButtons type="signin" />
       </div>
+      <form
+        action={(data) => {
+          startTransition(() => {
+            formAction(data);
+          });
+        }}
+        className="flex flex-col gap-4"
+      >
+        <Input
+          autoComplete="username"
+          className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          type="text"
+          placeholder={t("loginUsernamePlaceholder")}
+          {...register("login")}
+          errors={state?.errors}
+        />
+        <Input
+          autoComplete="current-password"
+          className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
+          type="password"
+          placeholder="password"
+          {...register("password")}
+          errors={state?.errors}
+        />
+        <Button
+          variant="primary"
+          className="w-full"
+          type="submit"
+          disabled={isPending}
+        >
+          {t("logIn")}
+        </Button>
+      </form>
+      <Button
+        variant="text"
+        className="w-full px-3 py-2"
+        onClick={() => setCurrentModal({ type: "resetPassword" })}
+      >
+        {t("forgotPasswordLink")}
+      </Button>
+      <hr className="mb-3 mt-1 border-gray-300 dark:border-gray-300-dark" />
+      <SocialButtons type="signin" />
     </BaseModal>
   );
 };

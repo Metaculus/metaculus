@@ -87,7 +87,7 @@ def create_question(question: dict, **kwargs) -> Question:
         ),
         actual_resolve_time=question["resolve_time"],
         resolution_set_time=question["resolve_time"],
-        actual_close_time=question["close_time"],
+        actual_close_time=min(question["close_time"], question["resolve_time"]),
         type=question_type,
         possibilities=possibilities,
         zero_point=zero_point,
@@ -471,17 +471,27 @@ def migrate_questions__conditional(root_questions: list[dict]):
 
                 return _id
 
-            old_question_yes = next(
-                q for q in root_question["children"] if q["qc_resolution"] == 1
-            )
-            old_question_no = next(
-                q for q in root_question["children"] if q["qc_resolution"] == 0
-            )
+            try:
+                old_question_yes = next(
+                    q for q in root_question["children"] if q["qc_resolution"] == 1
+                )
+            except Exception:
+                old_question_yes = None
+            
+            try:
+                old_question_no = next(
+                    q for q in root_question["children"] if q["qc_resolution"] == 0
+                )
+            except Exception:
+                old_question_no = None
 
             condition_id = get_children_relation_id_by_attr("condition_id")
             condition_child_id = get_children_relation_id_by_attr("condition_child_id")
 
-            if not condition_id or not condition_child_id:
+            if not condition_id or not condition_child_id or not old_question_yes or not old_question_no:
+                print(
+                    f"\n\nError migrating conditionl: {root_question['id']}Could not find all related questions for the conditional pair. old_question_yes: {old_question_yes}, old_question_no: {old_question_no}, condition_id: {condition_id}, condition_child_id: {condition_child_id}"
+                )
                 continue
 
             # Please note: to simplify the process, our Conditional Question will have the same id

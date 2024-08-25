@@ -8,19 +8,31 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scoring', '0009_score_aggregation_method_alter_score_user'),
+        ("scoring", "0009_score_aggregation_method_alter_score_user"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='leaderboardentry',
-            name='aggregation_method',
-            field=models.CharField(choices=[('recency_weighted', 'Recency Weighted'), ('unweighted', 'Unweighted'), ('single_aggregation', 'Single Aggregation')], max_length=200, null=True),
+            model_name="leaderboardentry",
+            name="aggregation_method",
+            field=models.CharField(
+                choices=[
+                    ("recency_weighted", "Recency Weighted"),
+                    ("unweighted", "Unweighted"),
+                    ("single_aggregation", "Single Aggregation"),
+                ],
+                max_length=200,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='leaderboardentry',
-            name='user',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="leaderboardentry",
+            name="user",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

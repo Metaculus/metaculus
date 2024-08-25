@@ -1,4 +1,6 @@
 "use client";
+import { faBars, faMinus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Menu,
   MenuButton,
@@ -15,73 +17,13 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { Href } from "@/types/navigation";
 
-const MobileMenu: FC = () => {
-  const { user } = useAuth();
-  const { setCurrentModal } = useModal();
-  const t = useTranslations();
-
-  return (
-    <Menu>
-      <MenuButton className="color-white flex w-12 flex-col items-center justify-center hover:bg-blue-200-dark active:bg-blue-300-dark lg:hidden lg:items-end lg:justify-end">
-        {({ open }) => (open ? <CloseHamburgerIcon /> : <HamburgerIcon />)}
-      </MenuButton>
-      <Transition
-        enter="duration-200 ease-out"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="duration-300 ease-out"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-      >
-        <MenuItems className="absolute inset-x-0 top-12 max-h-[calc(100dvh-48px)] list-none flex-col items-stretch justify-end space-y-0.5 overflow-y-auto bg-blue-200-dark text-base no-underline lg:hidden">
-          <MenuLink href={`/leaderboard`}>{t("leaderboards")}</MenuLink>
-          <MenuLink href={`/news/`}>{t("News")}</MenuLink>
-          <SectionTitle>{t("More")}</SectionTitle>
-          <MenuLink href={`/about/`}>{t("About Metaculus")}</MenuLink>
-          <MenuLink href={`/press/`}>{t("For Journalists")}</MenuLink>
-          <MenuLink href={`/faq/`}>{t("FAQ")}</MenuLink>
-          <MenuLink href={`/questions/track-record/`}>
-            {t("Track Record")}
-          </MenuLink>
-          <MenuLink href={`/project/journal/`}>{t("The Journal")}</MenuLink>
-          <MenuLink href={`/questions/create/`}>+ {t("create")}</MenuLink>
-          <SectionTitle>{t("Account")}</SectionTitle>
-          {user ? (
-            <>
-              <MenuLink href={`/accounts/profile/${user.id}`}>
-                {t("profile")}
-              </MenuLink>
-              <MenuLink href={"/accounts/settings/"}>{t("Settings")}</MenuLink>
-              {user.is_superuser && (
-                <MenuLink href={"/admin"}>{t("Admin")}</MenuLink>
-              )}
-              <MenuLink href="/accounts/signout" regularLink>
-                {t("Logout")}
-              </MenuLink>
-            </>
-          ) : (
-            <MenuLink onClick={() => setCurrentModal({ type: "signin" })}>
-              {t("Login")}
-            </MenuLink>
-          )}
-
-          <div className="flex items-center justify-between bg-blue-900 px-4 py-3">
-            <div />
-            <ThemeToggle />
-          </div>
-        </MenuItems>
-      </Transition>
-    </Menu>
-  );
-};
-
 const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
   <div className="flex h-full items-center justify-center px-4 pb-1 pt-2 text-sm font-medium uppercase text-gray-200 opacity-50">
     {children}
   </div>
 );
 
-const MenuLink: FC<
+export const MenuLink: FC<
   PropsWithChildren<{
     href?: Href;
     onClick?: () => void;
@@ -100,29 +42,69 @@ const MenuLink: FC<
   );
 };
 
-const HamburgerIcon: FC = () => (
-  <svg
-    width="18"
-    height="16"
-    viewBox="0 0 18 16"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      className="fill-white"
-      d="M0 0H18V2H0V0ZM0 7H18V9H0V7ZM0 14H18V16H0V14Z"
-    />
-  </svg>
-);
+const MobileMenu: FC = () => {
+  const { user } = useAuth();
+  const { setCurrentModal } = useModal();
+  const t = useTranslations();
 
-const CloseHamburgerIcon: FC = () => (
-  <svg
-    width="18"
-    height="16"
-    viewBox="0 0 18 16"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path className="fill-white" d="M0 7H18V9H0V7Z" />
-  </svg>
-);
+  return (
+    <Menu>
+      <MenuButton className="color-white flex w-12 flex-col items-center justify-center hover:bg-blue-200-dark active:bg-blue-300-dark lg:hidden lg:items-end lg:justify-end">
+        {({ open }) =>
+          open ? (
+            <FontAwesomeIcon icon={faMinus} size="lg" />
+          ) : (
+            <FontAwesomeIcon icon={faBars} size="lg" />
+          )
+        }
+      </MenuButton>
+      <Transition
+        enter="duration-200 ease-out"
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        leave="duration-300 ease-out"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+      >
+        <MenuItems className="absolute inset-x-0 top-12 max-h-[calc(100dvh-48px)] list-none flex-col items-stretch justify-end space-y-0.5 overflow-y-auto bg-blue-200-dark text-base no-underline lg:hidden">
+          <MenuLink href={`/leaderboard`}>{t("leaderboards")}</MenuLink>
+          <MenuLink href={`/news/`}>{t("news")}</MenuLink>
+          <SectionTitle>{t("more")}</SectionTitle>
+          <MenuLink href={`/about/`}>{t("aboutMetaculus")}</MenuLink>
+          <MenuLink href={`/press/`}>{t("forJournalists")}</MenuLink>
+          <MenuLink href={`/faq/`}>{t("faq")}</MenuLink>
+          <MenuLink href={`/questions/track-record/`}>
+            {t("trackRecord")}
+          </MenuLink>
+          <MenuLink href={`/project/journal/`}>{t("theJournal")}</MenuLink>
+          <MenuLink href={`/questions/create/`}>+ {t("create")}</MenuLink>
+          <SectionTitle>{t("account")}</SectionTitle>
+          {user ? (
+            <>
+              <MenuLink href={`/accounts/profile/${user.id}`}>
+                {t("profile")}
+              </MenuLink>
+              <MenuLink href={"/accounts/settings/"}>{t("settings")}</MenuLink>
+              {user.is_superuser && (
+                <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
+              )}
+              <MenuLink href="/accounts/signout" regularLink>
+                {t("logout")}
+              </MenuLink>
+            </>
+          ) : (
+            <MenuLink onClick={() => setCurrentModal({ type: "signin" })}>
+              {t("login")}
+            </MenuLink>
+          )}
+
+          <div className="flex items-center justify-end bg-blue-900 px-4 py-3">
+            <ThemeToggle />
+          </div>
+        </MenuItems>
+      </Transition>
+    </Menu>
+  );
+};
 
 export default MobileMenu;

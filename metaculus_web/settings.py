@@ -30,9 +30,7 @@ SECRET_KEY = os.environ.get(
     "SECRET_KEY", "django-insecure-47@xwq5$pn*^d(2233!+41#=-)53&@iz)*t@foixp(ov2e7r)t"
 )
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# TODO: disable in prod
-DEBUG = os.environ.get("DEBUG", "true").lower() == "true"
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 # Application definition
 
@@ -55,7 +53,6 @@ INSTALLED_APPS = [
     "django_dramatiq",
     "admin_auto_filters",
     # TODO: disable in prod
-    "debug_toolbar",
     # first-party:
     "migrator",
     "misc",
@@ -70,18 +67,23 @@ INSTALLED_APPS = [
     "fab_management",
 ]
 
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "utils.middlewares.middleware_alpha_access_check",
 ]
+
+if DEBUG:
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
+
 
 # Cors configuration
 CORS_ORIGIN_WHITELIST = [

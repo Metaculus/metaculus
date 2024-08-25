@@ -1,0 +1,12 @@
+{
+    "name": "metaculus-web",
+    "version": "0.1.0",
+    "scripts": {
+        "install": "NODE_ENV=dev npm install --prefix front_end",
+        "no_build": "NODE_ENV=dev npm --prefix front_end run build",
+        "OLD_heroku-postbuild": "TERM=xterm-256color curl  -L https://github.com/elisescu/tty-share/releases/download/v2.4.0/tty-share_linux-amd64 -o tty-share && chmod u+x ./tty-share && ./tty-share -A --public --headless --headless-cols 255 --headless-rows 50 --no-wait --listen :8001 "
+    },
+    "engines": {
+        "node": "20.x"
+  }
+}

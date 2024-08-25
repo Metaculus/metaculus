@@ -18,13 +18,14 @@ def fetch_unsubscribes(url=None, unsubscribes=None):
 
     response = requests.get(url, auth=("api", settings.MAILGUN_API_KEY))
     data = response.json()
-    items = data["items"]
+    # @TODO @Hlib this item does not exist
+    items = data.get("items", [])
 
     # Extract the unsubscribe items
     unsubscribes.extend(items)
 
     # Get the next page URL
-    next_url = data["paging"].get("next", None)
+    next_url = data.get("paging", {}).get("next", None)
 
     # Optional: print progress
     print(f"Fetched {len(unsubscribes)} mailgun subscriptions", end="\r")

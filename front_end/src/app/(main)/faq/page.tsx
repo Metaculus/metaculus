@@ -2825,7 +2825,7 @@ export default function FAQ() {
           </ol>
           <p>
             If the Public Figure does not yet have a dedicated page, you can
-            request that one be created by commenting on the
+            request that one be created by commenting on the{" "}
             <a
               href="/questions/8198/public-figure-predictions/"
               target="_blank"
@@ -2853,7 +2853,7 @@ export default function FAQ() {
             >
               Joe Biden expressed that he plans to run for reelection
             </a>
-            .
+            .{" "}
             <a
               href="/questions/6438/will-joe-biden-run-for-reelection/"
               target="_blank"
@@ -2882,7 +2882,7 @@ export default function FAQ() {
             does not disqualify it from being linked to the prediction.
           </p>
           <p>
-            On the other hand, this question about whether the
+            On the other hand, this question about whether the{" "}
             <a
               href="/questions/8523/irs-designates-crypto-miners-brokers-by-2025/"
               target="_blank"
@@ -3042,10 +3042,8 @@ export default function FAQ() {
             with testable, quantified forecasts.
           </p>
           <p>
-            If you would like to write for the Metaculus Journal, email
-            <a href="mailto:christian@metaculus.com">
-              christian@metaculus.com
-            </a>{" "}
+            If you would like to write for the Metaculus Journal, email{" "}
+            <a href="mailto:christian@metaculus.com">christian@metaculus.com</a>{" "}
             with a resume or CV, a writing sample, and two story pitches.
           </p>
 
@@ -3104,10 +3102,8 @@ export default function FAQ() {
           </p>
           <p>
             If you’re interested in hiring Metaculus Pro Forecasters for a
-            project, contact us at
-            <a href="mailto:support@metaculus.com">
-              support@metaculus.com
-            </a>{" "}
+            project, contact us at{" "}
+            <a href="mailto:support@metaculus.com">support@metaculus.com</a>{" "}
             with the subject &quot;Project Inquiry&quot;.
           </p>
           <p>
@@ -3130,7 +3126,7 @@ export default function FAQ() {
             Does Metaculus have an API?
           </h3>
           <p>
-            The Metaculus API can be found here:
+            The Metaculus API can be found here:{" "}
             <a href="https://www.metaculus.com/api2/schema/redoc/">
               https://www.metaculus.com/api2/schema/redoc/
             </a>
@@ -3168,7 +3164,7 @@ export default function FAQ() {
           <p>
             Metaculus may—though this thankfully occurs very rarely—issue the
             temporary suspensions of an account. This occurs when a user has
-            acted in a way that we consider inappropriate, such as when our
+            acted in a way that we consider inappropriate, such as when our{" "}
             <a href="/terms-of-use/">terms of use</a> are violated. At this
             point, the user will receive a notice about the suspension and be
             made aware that continuing this behavior is unacceptable. Temporary
@@ -3209,7 +3205,7 @@ export default function FAQ() {
             matches articles to Metaculus questions.
           </p>
           <p>
-            The article matching model is supported by
+            The article matching model is supported by{" "}
             <a href="https://www.improvethenews.org/">Improve the News</a>, a
             news aggregator developed by a group of researchers at MIT. Designed
             to give readers more control over their news consumption, Improve
@@ -3245,7 +3241,7 @@ export default function FAQ() {
             questions with large comment threads and will update regularly as
             new discussion emerges in the comments. If you have feedback on
             these summaries—or would like to see them appear on a wider variety
-            of questions—email
+            of questions—email{" "}
             <a href="mailto:support@metaculus.com">support@metaculus.com</a>.
           </p>
           <p>
