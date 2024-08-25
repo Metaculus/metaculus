@@ -3,7 +3,10 @@ from django.core.management.base import BaseCommand
 from django.db import connection
 
 from migrator.services.migrate_comments import migrate_comments, migrate_comment_votes
-from migrator.services.migrate_forecasts import migrate_forecasts
+from migrator.services.migrate_forecasts import (
+    migrate_forecasts,
+    migrate_metaculus_predictions,
+)
 from migrator.services.migrate_leaderboards import (
     create_global_leaderboards,
     populate_global_leaderboards,
@@ -72,6 +75,8 @@ class Command(BaseCommand):
         print("Migrated questions")
         migrate_forecasts()
         print("Migrated forecasts")
+        migrate_metaculus_predictions()
+        print("Migrated Metaculus predictions")
         migrate_projects(site_ids=site_ids)
         print("Migrated projects")
         migrate_votes()
