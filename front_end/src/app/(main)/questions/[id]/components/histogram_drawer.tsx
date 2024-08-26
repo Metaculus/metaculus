@@ -4,11 +4,8 @@ import { useTranslations } from "next-intl";
 import React from "react";
 
 import Histogram from "@/components/charts/histogram";
-import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { PostWithForecasts } from "@/types/post";
-
-const MAX_COLLAPSED_HEIGHT = 256;
 
 type Props = {
   post: PostWithForecasts;
@@ -16,8 +13,6 @@ type Props = {
 
 const HistogramDrawer: React.FC<Props> = ({ post }) => {
   const t = useTranslations();
-  const expandLabel = t("showMore");
-  const collapseLabel = t("showLess");
 
   if (post.question?.type === "binary") {
     const question = post.question;
@@ -37,19 +32,12 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
 
     return (
       <SectionToggle title={t("histogram")} defaultOpen>
-        <ExpandableContent
-          maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
-          expandLabel={expandLabel}
-          collapseLabel={collapseLabel}
-          className="-mt-4"
-        >
-          <Histogram
-            histogramData={histogramData}
-            median={median}
-            mean={mean}
-            color={"green"}
-          />
-        </ExpandableContent>
+        <Histogram
+          histogramData={histogramData}
+          median={median}
+          mean={mean}
+          color={"green"}
+        />
       </SectionToggle>
     );
   } else if (
@@ -81,38 +69,28 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     const mean_no = latest_no.means![0];
 
     return (
-      <SectionToggle title={t("histogram")} defaultOpen>
-        <ExpandableContent
-          maxCollapsedHeight={MAX_COLLAPSED_HEIGHT}
-          expandLabel={expandLabel}
-          collapseLabel={collapseLabel}
-          className="-mt-4"
-        >
-          <div className="mb-4">
-            <div className="mb-2 text-center text-xs ">
-              Condition Resolves Yes
-            </div>
-            <Histogram
-              histogramData={histogramData_yes}
-              median={median_yes}
-              mean={mean_yes}
-              color={"green"}
-            />
-            <div className="mb-2 mt-4 text-center text-xs ">
-              Condition Resolves No
-            </div>
-            <Histogram
-              histogramData={histogramData_no}
-              median={median_no}
-              mean={mean_no}
-              color={"blue"}
-            />
-          </div>
-        </ExpandableContent>
+      <SectionToggle title={t("histogram")}>
+        <div className="mb-2 text-center text-xs">
+          {t("parentResolvesAsYes")}
+        </div>
+        <Histogram
+          histogramData={histogramData_yes}
+          median={median_yes}
+          mean={mean_yes}
+          color="green"
+        />
+        <div className="mb-2 text-center text-xs">
+          {t("parentResolvesAsNo")}
+        </div>
+        <Histogram
+          histogramData={histogramData_no}
+          median={median_no}
+          mean={mean_no}
+          color="blue"
+        />
       </SectionToggle>
     );
   }
-  return null;
 };
 
 export default HistogramDrawer;
