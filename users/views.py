@@ -138,8 +138,10 @@ def get_serialized_user(request, user, Serializer):
             }
         )
     ser["score_histogram"] = []
-    bin_incr = 70
-    for bin_start in range(-700, 700, bin_incr):
+    min_bin = min(-50, min([s for s in scores]))
+    max_bin = max(50, max([s for s in scores]))
+    bin_incr = int((max_bin + np.abs(min_bin)) / 20)
+    for bin_start in range(int(np.ceil(min_bin)), int(np.ceil(max_bin)), bin_incr):
         bin_end = bin_start + bin_incr
         ser["score_histogram"].append(
             {
