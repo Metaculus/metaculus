@@ -22,8 +22,6 @@ from migrator.services.post_migrate import post_migrate_calculate_divergence
 from migrator.utils import reset_sequence
 from posts.jobs import job_compute_movement
 from posts.services.common import compute_hotness
-from projects.models import Project
-from projects.permissions import ObjectPermission
 from scoring.models import populate_medal_exclusion_records
 
 
@@ -48,15 +46,6 @@ class Command(BaseCommand):
             cursor.execute("CREATE SCHEMA public;")
         call_command("makemigrations")
         call_command("migrate")
-
-        Project.objects.get_or_create(
-            type=Project.ProjectTypes.SITE_MAIN,
-            defaults={
-                "name": "Metaculus Community",
-                "type": Project.ProjectTypes.SITE_MAIN,
-                "default_permission": ObjectPermission.FORECASTER,
-            },
-        )
 
         # main model migration
         migrate_users()
