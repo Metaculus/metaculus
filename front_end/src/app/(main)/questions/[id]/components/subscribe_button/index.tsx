@@ -17,7 +17,7 @@ import { getInitialSubscriptions } from "./utils";
 
 type Props = {
   post: Post;
-  mini: boolean;
+  mini?: boolean;
 };
 
 type FollowModalType = "success" | "customisation";

@@ -26,7 +26,8 @@ const Sidebar: FC<Props> = ({
   if (layout === "mobile") {
     return (
       <section className="lg:hidden">
-        <div className="flex flex-col items-start gap-4 self-stretch border-t border-gray-300 pt-4 @container dark:border-gray-300-dark">
+        <hr className="my-4 border-blue-400 dark:border-blue-400-dark" />
+        <div className="flex flex-col items-start gap-4 self-stretch @container">
           <SidebarQuestionInfo postData={postData} />
           <SidebarQuestionTags
             postId={postData.id}
