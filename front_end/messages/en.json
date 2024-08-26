@@ -482,6 +482,8 @@
   "forJournalists": "For Journalists",
   "trackRecord": "Track Record",
   "medals": "Medals",
+  "metaculusTrackRecord": "Metaculus Track Record",
+  "trackRecordOutdatedMessage": "This track record does not yet use the new Baseline and Peer scores <link>introduced in November 2023</link>. Updating this page is one of our next priorities.",
   "theJournal": "The Journal",
   "account": "Account",
   "settings": "Settings",
@@ -714,4 +716,13 @@
   "metaculusOnDiscord": "Metaculus on Discord",
   "signUpAsBot": "Sign Up as Bot",
   "failedToCopyText": "failed to copy text: "
+  "resolutionLabel": "Resolution:",
+  "totalQuestions": "Total questions:",
+  "averageScore": "Average score:",
+  "confidenceInterval": "confidence interval",
+  "perfectCalibration": "perfect calibration",
+  "userCalibration": "user's calibration",
+  "scatterPlotHoverMessage": "Hover over a circle to see how that question resolved.",
+  "calibrationCurve": "Calibration Curve",
+  "calibrationCurveInfo": "If the diamonds are close to the grey lines, the predictions are well-calibrated at that confidence level. If the diamonds are closer to the 50% than the diamonds, the predictions were underconfident, and vice-versa."
 }
