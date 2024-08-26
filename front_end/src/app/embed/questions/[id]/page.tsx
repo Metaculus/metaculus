@@ -8,8 +8,8 @@ import {
 import PostsApi from "@/services/posts";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
-
 import "./styles.scss";
+import { PostWithForecasts } from "@/types/post";
 
 export default async function GenerateQuestionPreview({
   params,
@@ -58,7 +58,7 @@ export default async function GenerateQuestionPreview({
       <div className="flex items-center justify-between gap-8">
         <h4 className="text-sm font-normal lg:text-2xl">
           Based on {post.forecasts_count ?? 0} predictions by{" "}
-          {post.nr_forecasters} forecasters
+          {getForecastersNumber(post)} forecasters
         </h4>
         <Link
           href="/"
@@ -70,4 +70,14 @@ export default async function GenerateQuestionPreview({
       </div>
     </div>
   );
+}
+
+function getForecastersNumber(post: PostWithForecasts) {
+  if (post.question) {
+    return (
+      post.question.aggregations.recency_weighted.latest?.forecaster_count ?? 0
+    );
+  }
+
+  return post.nr_forecasters ?? 0;
 }
