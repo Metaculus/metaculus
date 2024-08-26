@@ -109,8 +109,8 @@
   "weight": "weight",
   "recent": "recent",
   "uniform": "uniform",
-  "medianPredictionLabel": "Median",
-  "meanPredictionLabel": "Mean",
+  "median": "median",
+  "mean": "mean",
   "scoreIfNo": "Score if No",
   "scoreIfYes": "Score if Yes",
   "ifNo": "if no",
@@ -727,5 +727,7 @@
   "condition": "condition",
   "facebook": "Facebook",
   "xTwitter": "X / Twitter",
-  "copyFromBranch": "copy from {branch}"
+  "copyFromBranch": "copy from {branch}",
+  "parentResolvesAsYes": "Parent Resolves as Yes",
+  "parentResolvesAsNo": "Parent Resolves as No"
 }
