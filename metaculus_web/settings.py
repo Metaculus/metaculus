@@ -325,7 +325,11 @@ SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
 GOOGLE_CREDEBTIALS_FAB_SHEET_B64 = os.environ.get("GOOGLE_CREDEBTIALS_FAB_SHEET_B64")
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    ".metaculus.com",
+    "localhost",
+    "127.0.0.1"
+]
 CSRF_TRUSTED_ORIGINS = [FRONTEND_BASE_URL]
 INTERNAL_IPS = ["127.0.0.1"]
 

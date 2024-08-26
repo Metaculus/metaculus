@@ -38,6 +38,8 @@ const ProjectLeaderboardTable: FC<Props> = ({
     setStep((prev) => (isNil(prev) ? prev : prev * 10));
   };
 
+  const withCoverage =
+    leaderboardDetails.score_type === "relative_legacy_tournament";
   const withTake = leaderboardDetails.entries.some(
     (entry) => !isNil(entry.take)
   );
@@ -57,6 +59,9 @@ const ProjectLeaderboardTable: FC<Props> = ({
               {t("forecaster")}
             </TableHeader>
             <TableHeader className="text-right">{t("totalScore")}</TableHeader>
+            {withCoverage && (
+              <TableHeader className="text-right">{t("coverage")}</TableHeader>
+            )}
             {withTake && (
               <TableHeader className="text-right">{t("take")}</TableHeader>
             )}
@@ -76,6 +81,7 @@ const ProjectLeaderboardTable: FC<Props> = ({
               key={entry.user?.id ?? entry.aggregation_method}
               rowEntry={entry}
               userId={userId}
+              withCoverage={withCoverage}
               withTake={withTake}
               withPrize={withPrize}
               prizePool={prizePool}

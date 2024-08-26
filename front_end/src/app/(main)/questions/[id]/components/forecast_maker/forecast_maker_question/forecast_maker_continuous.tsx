@@ -12,7 +12,6 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
-  normalizeWeights,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
@@ -84,7 +83,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         center: 0.5,
       },
     ]);
-    setWeights(normalizeWeights([...weights, 1]));
+    setWeights([...weights, 1]);
   };
 
   const handlePredictSubmit = async () => {
@@ -143,7 +142,7 @@ const ForecastMakerContinuous: FC<Props> = ({
                 onClick={handlePredictSubmit}
                 disabled={!submitIsAllowed}
               >
-                {t("saveButton")}
+                {t("saveChange")}
               </Button>
             </>
           ) : (
@@ -152,7 +151,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               type="button"
               onClick={() => setCurrentModal({ type: "signup" })}
             >
-              {t("signUpButton")}
+              {t("signUpToPredict")}
             </Button>
           )}
         </div>

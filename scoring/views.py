@@ -157,25 +157,30 @@ def medal_contributions(
     leaderboard_type = request.GET.get("leaderboardType", None)
     leaderboard_name = request.GET.get("leaderboardName", None)
 
-    leaderboard = Leaderboard.objects.filter(project=project)
+    leaderboards = Leaderboard.objects.filter(project=project)
     if start_time:
-        leaderboard = leaderboard.filter(start_time=start_time)
+        leaderboards = leaderboards.filter(start_time=start_time)
     if end_time:
-        leaderboard = leaderboard.filter(end_time=end_time)
+        leaderboards = leaderboards.filter(end_time=end_time)
     if leaderboard_type:
-        leaderboard = leaderboard.filter(score_type=leaderboard_type)
+        leaderboards = leaderboards.filter(score_type=leaderboard_type)
     if leaderboard_name:
-        leaderboard = leaderboard.filter(name=leaderboard_name)
+        leaderboards = leaderboards.filter(name=leaderboard_name)
 
-    if leaderboard.count() != 1:
+    # get leaderboard and project
+    leaderboard_count = leaderboards.count()
+    if leaderboard_count == 0:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    leaderboard = leaderboard.first()
+    if leaderboard_count > 1:
+        leaderboard = project.primary_leaderboard
+        if not leaderboard:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+    else:
+        leaderboard = leaderboards.first()
 
-    from datetime import datetime
-
-    now = datetime.now()
     contributions = get_contributions(user, leaderboard)
-    leaderboard_entry = leaderboard.entries.filter(user=user).first()
+    entries = hydrate_take(leaderboard.entries.all(), leaderboard)
+    leaderboard_entry = next((e for e in entries if e.user == user), None)
 
     return_data = {
         "leaderboard_entry": LeaderboardEntrySerializer(leaderboard_entry).data,
@@ -285,14 +290,14 @@ def metaculus_track_record(
                 "score": score.score,
                 "score_timestamp": score.created_at.timestamp(),
                 "question_title": score.question.title,
-                "question_resolution": score.question.resolution
+                "question_resolution": score.question.resolution,
             }
         )
     ser["score_histogram"] = []
     min_bin = min(-50, min([s for s in scores]))
     max_bin = max(50, max([s for s in scores]))
     bin_incr = int((max_bin + np.abs(min_bin)) / 20)
-    for bin_start in range(min_bin, max_bin, bin_incr):
+    for bin_start in range(int(np.ceil(min_bin)), int(np.ceil(max_bin)), bin_incr):
         bin_end = bin_start + bin_incr
         ser["score_histogram"].append(
             {
@@ -302,5 +307,5 @@ def metaculus_track_record(
                 / len(scores),
             }
         )
-    
+
     return Response(ser)
