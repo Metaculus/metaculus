@@ -116,13 +116,9 @@ const Footer: FC = () => {
           </a>
         </div>
 
-        <form
-          className="mt-2 text-xs text-gray-600-dark lg:mt-0"
-          action=""
-          method="post"
-        >
+        <form className="max-lg:mt-2" action="" method="post">
           <button
-            className="pr-2 hover:text-gray-0 lg:pr-1"
+            className="rounded px-1.5 text-lg hover:bg-blue-300-dark"
             onClick={(e) => {
               e.preventDefault();
               params.delete("locale");
@@ -133,10 +129,10 @@ const Footer: FC = () => {
             name="language"
             value="en"
           >
-            English
+            🇬🇧
           </button>
           <button
-            className="border-l border-gray-600-dark pl-2 pr-2 hover:text-gray-0 lg:pl-1"
+            className="rounded px-1.5 text-lg hover:bg-blue-300-dark"
             onClick={(e) => {
               e.preventDefault();
               params.delete("locale");
@@ -147,10 +143,10 @@ const Footer: FC = () => {
             name="language"
             value="cs"
           >
-            Čeština
+            🇨🇿
           </button>
           <button
-            className="border-l border-gray-600-dark pl-2 hover:text-gray-0 lg:pl-1"
+            className="rounded px-1.5 text-lg hover:bg-blue-300-dark"
             onClick={(e) => {
               e.preventDefault();
               params.delete("locale");
@@ -161,7 +157,7 @@ const Footer: FC = () => {
             name="language"
             value="zh"
           >
-            中国人
+            🇨🇳
           </button>
         </form>
       </div>
