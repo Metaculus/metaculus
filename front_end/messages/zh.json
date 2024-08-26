@@ -49,8 +49,6 @@
   "resolutionAnnulled": "已廢止",
   "resolutionPending": "待解決",
   "resolution": "解決",
-  "Yes": "如果是",
-  "No": "如果沒有",
   "pendingResolution": "待解決",
   "forecastTimelineHeading": "預測時間線",
   "totalPredictionsLabel": "總預測",
@@ -711,5 +709,9 @@
   "xTwitter": "X / Twitter",
   "copyFromBranch": "從{branch}複製",
   "parentResolvesAsYes": "家長決定是",
-  "parentResolvesAsNo": "家長決定不"
+  "parentResolvesAsNo": "家長決定不",
+  "othersCount": "{count}其他",
+  "selectAll": "選擇全部",
+  "deselectAll": "取消全選",
+  "forecastDataIsEmpty": "預測資料為空"
 }

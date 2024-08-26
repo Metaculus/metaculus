@@ -729,5 +729,10 @@
   "xTwitter": "X / Twitter",
   "copyFromBranch": "copy from {branch}",
   "parentResolvesAsYes": "Parent Resolves as Yes",
-  "parentResolvesAsNo": "Parent Resolves as No"
+  "parentResolvesAsNo": "Parent Resolves as No",
+  "othersCount": "{count} others",
+  "selectAll": "select all",
+  "deselectAll": "deselect all",
+  "forecastDataIsEmpty": "Forecast data is empty",
+  "createdByUserOnDate": "Created by {user} on {date}"
 }
