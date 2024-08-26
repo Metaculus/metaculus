@@ -51,8 +51,6 @@
   "resolutionAnnulled": "Annulled",
   "resolutionPending": "Pending resolution",
   "resolution": "resolution",
-  "Yes": "Yes",
-  "No": "No",
   "pendingResolution": "pending resolution",
   "forecastTimelineHeading": "Forecast Timeline",
   "totalPredictionsLabel": "Total Predictions",
@@ -60,7 +58,8 @@
   "communityPredictionLabel": "Community Prediction",
   "metaculusPredictionLabel": "Metaculus Prediction",
   "userPredictionLabel": "User Prediction",
-  "myPredictionLabel": "My Prediction",
+  "myPrediction": "My Prediction",
+  "myPredictionValue": "My Prediction: <forecast>{forecastValue}</forecast>",
   "myCoverageLabel": "My Coverage",
   "predictionLabel": "Prediction",
   "pdfLabel": "Probability Density",
@@ -114,8 +113,8 @@
   "meanPredictionLabel": "Mean",
   "scoreIfNo": "Score if No",
   "scoreIfYes": "Score if Yes",
-  "arrowIfNo": "if no",
-  "arrowIfYes": "if yes",
+  "ifNo": "if no",
+  "ifYes": "if yes",
   "absoluteLogScore": "Absolute Log Score",
   "brierScore": "Brier Score",
   "yes": "yes",
@@ -727,5 +726,6 @@
   "calibrationCurveInfo": "If the diamonds are close to the grey lines, the predictions are well-calibrated at that confidence level. If the diamonds are closer to the 50% than the diamonds, the predictions were underconfident, and vice-versa.",
   "condition": "condition",
   "facebook": "Facebook",
-  "xTwitter": "X / Twitter"
+  "xTwitter": "X / Twitter",
+  "copyFromBranch": "copy from {branch}"
 }
