@@ -13,7 +13,13 @@ from posts.models import Post
 from projects.models import Project
 from questions.models import Question
 from questions.types import AggregationMethod
-from scoring.models import Score, LeaderboardEntry, Leaderboard, MedalExclusionRecord
+from scoring.models import (
+    ArchivedScore,
+    Score,
+    LeaderboardEntry,
+    Leaderboard,
+    MedalExclusionRecord,
+)
 from scoring.score_math import evaluate_question
 from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
@@ -63,10 +69,28 @@ def generate_scoring_leaderboard_entries(
     questions: list[Question],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
-    scores: QuerySet[Score] = Score.objects.filter(
+    calculated_scores: QuerySet[Score] = Score.objects.filter(
         question__in=questions,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
+    archived_scores: QuerySet[ArchivedScore] = ArchivedScore.objects.filter(
+        question__in=questions,
+        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+    )
+    scores: list[Score | ArchivedScore]
+    if archived_scores.exists():
+        scores = list(archived_scores)
+        for score in calculated_scores:
+            if archived_scores.filter(
+                question=score.question,
+                user_id=score.user_id,
+                aggregation_method=score.aggregation_method,
+            ).exists():
+                continue
+            scores.append(score)
+    else:
+        scores = list(calculated_scores)
+
     scores = sorted(scores, key=lambda x: x.user_id or x.score)
     entries: dict[int | AggregationMethod, LeaderboardEntry] = {}
     now = timezone.now()
@@ -369,10 +393,34 @@ def get_contributions(
         # need to make unpopulated contributions for questions that have not
         # been resolved.
         questions = [q for q in questions if q.resolution is not None]
-    scores = Score.objects.filter(
-        question__in=questions,
-        user=user,
-        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+    archived_scores = list(
+        ArchivedScore.objects.filter(
+            question__in=questions,
+            user=user,
+            score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+        )
+    )
+    calculated_scores = list(
+        Score.objects.filter(
+            question__in=questions,
+            user=user,
+            score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+        )
+    )
+    scores = archived_scores
+    for score in calculated_scores:
+        found = False
+        for archived_score in archived_scores:
+            if (
+                score.question == archived_score.question
+                and score.aggregation_method == archived_score.aggregation_method
+            ):
+                found = True
+                break
+        if not found:
+            scores.append(score)
+    scores = sorted(
+        scores, key=lambda s: s.score if s.score is not None else 0, reverse=True
     )
     # User has scores on some questions
     contributions = [
@@ -394,6 +442,7 @@ def hydrate_take(
     leaderboard_entries: list[LeaderboardEntry] | QuerySet[LeaderboardEntry],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry] | QuerySet[LeaderboardEntry]:
+    # TODO: just add take and percent_prize to model instance
     total_take = 0
     for entry in leaderboard_entries:
         if entry.excluded:
