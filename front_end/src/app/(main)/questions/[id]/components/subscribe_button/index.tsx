@@ -1,6 +1,6 @@
 "use client";
 
-import { faBell } from "@fortawesome/free-regular-svg-icons";
+import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
@@ -17,11 +17,12 @@ import { getInitialSubscriptions } from "./utils";
 
 type Props = {
   post: Post;
+  mini: boolean;
 };
 
 type FollowModalType = "success" | "customisation";
 
-const PostSubscribeButton: FC<Props> = ({ post }) => {
+const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -64,16 +65,29 @@ const PostSubscribeButton: FC<Props> = ({ post }) => {
       {user && postSubscriptions.length ? (
         <Button
           variant="primary"
+          presentationType={mini ? "icon" : "default"}
           disabled={isLoading}
           onClick={() => setActiveModal("customisation")}
         >
-          <FontAwesomeIcon icon={faBell} />
-          {t("followingButton")}
+          <FontAwesomeIcon
+            icon={faBell}
+            className="text-yellow-400 dark:text-yellow-600"
+          />
+          {!mini && t("followingButton")}
         </Button>
       ) : (
-        <Button variant="secondary" onClick={handleFollow} disabled={isLoading}>
-          <FontAwesomeIcon icon={faBell} />
-          {t("followButton")}
+        <Button
+          variant="secondary"
+          presentationType={mini ? "icon" : "default"}
+          onClick={handleFollow}
+          disabled={isLoading}
+          className={mini ? "border-0" : ""}
+        >
+          <FontAwesomeIcon
+            icon={faBell}
+            className="text-yellow-600 dark:text-yellow-400"
+          />
+          {!mini && t("followButton")}
         </Button>
       )}
       <PostSubscribeSuccessModal
