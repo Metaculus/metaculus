@@ -255,24 +255,30 @@ class AggregateForecastSerializer(serializers.ModelSerializer):
     def get_interval_lower_bounds(
         self, aggregate_forecast: AggregateForecast
     ) -> list[float] | None:
-        if len(aggregate_forecast.forecast_values) == 2:
+        if (
+            len(aggregate_forecast.forecast_values) == 2
+        ) and aggregate_forecast.interval_lower_bounds:
             return aggregate_forecast.interval_lower_bounds[1:]
         return aggregate_forecast.interval_lower_bounds
 
     def get_centers(self, aggregate_forecast: AggregateForecast) -> list[float] | None:
-        if len(aggregate_forecast.forecast_values) == 2:
+        if (
+            len(aggregate_forecast.forecast_values) == 2
+        ) and aggregate_forecast.centers:
             return aggregate_forecast.centers[1:]
         return aggregate_forecast.centers
 
     def get_interval_upper_bounds(
         self, aggregate_forecast: AggregateForecast
     ) -> list[float] | None:
-        if len(aggregate_forecast.forecast_values) == 2:
+        if (
+            len(aggregate_forecast.forecast_values) == 2
+        ) and aggregate_forecast.interval_upper_bounds:
             return aggregate_forecast.interval_upper_bounds[1:]
         return aggregate_forecast.interval_upper_bounds
 
     def get_means(self, aggregate_forecast: AggregateForecast) -> list[float] | None:
-        if len(aggregate_forecast.forecast_values) == 2:
+        if (len(aggregate_forecast.forecast_values) == 2) and aggregate_forecast.means:
             return aggregate_forecast.means[1:]
         return aggregate_forecast.means
 
@@ -326,6 +332,7 @@ def serialize_question(
             "recency_weighted": {"history": [], "latest": None},
             "unweighted": {"history": [], "latest": None},
             "single_aggregation": {"history": [], "latest": None},
+            "metaculus_prediction": {"history": [], "latest": None},
         }
         for method, forecasts in aggregate_forecasts_by_method.items():
             scores = question.scores.filter(aggregation_method=method)
