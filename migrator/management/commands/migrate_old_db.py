@@ -3,7 +3,10 @@ from django.core.management.base import BaseCommand
 from django.db import connection
 
 from migrator.services.migrate_comments import migrate_comments, migrate_comment_votes
-from migrator.services.migrate_forecasts import migrate_forecasts
+from migrator.services.migrate_forecasts import (
+    migrate_forecasts,
+    migrate_metaculus_predictions,
+)
 from migrator.services.migrate_leaderboards import (
     create_global_leaderboards,
     populate_global_leaderboards,
@@ -15,7 +18,7 @@ from migrator.services.migrate_mailgun_notification_preferences import (
 from migrator.services.migrate_permissions import migrate_permissions
 from migrator.services.migrate_projects import migrate_projects
 from migrator.services.migrate_questions import migrate_questions
-from migrator.services.migrate_scoring import score_questions
+from migrator.services.migrate_scoring import migrate_archived_scores, score_questions
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
 from migrator.services.post_migrate import post_migrate_calculate_divergence
@@ -38,6 +41,13 @@ class Command(BaseCommand):
             default="1",
             help="Comma-separated list of site IDs",
         )
+        parser.add_argument(
+            "start_score_questions_with_id",
+            type=int,
+            nargs="?",
+            default=0,
+            help="only score questions with IDs >= this",
+        )
 
     def handle(self, *args, site_ids=None, **options):
         site_ids = [int(x) for x in site_ids.split(",")]
@@ -54,6 +64,8 @@ class Command(BaseCommand):
         print("Migrated questions")
         migrate_forecasts()
         print("Migrated forecasts")
+        migrate_metaculus_predictions()
+        print("Migrated Metaculus predictions")
         migrate_projects(site_ids=site_ids)
         print("Migrated projects")
         migrate_votes()
@@ -73,7 +85,9 @@ class Command(BaseCommand):
         # print("Migrated post subscriptions")
 
         # scoring
-        score_questions()
+        migrate_archived_scores()
+        print("Migrated archived scores")
+        score_questions(start_id=options["start_score_questions_with_id"])
         print("Scored questions")
         populate_medal_exclusion_records()
         print("Populated medal exclusion records")

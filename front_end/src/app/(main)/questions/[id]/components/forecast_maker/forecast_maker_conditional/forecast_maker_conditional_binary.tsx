@@ -289,7 +289,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
                 onClick={handlePredictSubmit}
                 disabled={!submitIsAllowed}
               >
-                {t("saveButton")}
+                {t("saveChange")}
               </Button>
             </>
           ) : (
@@ -298,7 +298,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
               type="button"
               onClick={() => setCurrentModal({ type: "signup" })}
             >
-              {t("signUpButton")}
+              {t("signUpToPredict")}
             </Button>
           ))}
       </div>

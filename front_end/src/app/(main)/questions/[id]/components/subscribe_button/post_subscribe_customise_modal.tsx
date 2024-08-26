@@ -220,7 +220,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
               disabled={isLoading}
               onClick={handleSubscriptionsSave}
             >
-              {t("saveButton")}
+              {t("saveChange")}
             </Button>
           </div>
         </div>
