@@ -68,7 +68,7 @@ const ConditionalTile: FC<Props> = ({
         )}
       >
         <ConditionalCard
-          label="Condition"
+          label={t("condition")}
           title={getConditionTitle(postTitle, condition)}
           resolved={parentSuccessfullyResolved}
           href={withNavigation ? conditionHref : undefined}

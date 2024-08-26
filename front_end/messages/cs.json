@@ -439,7 +439,7 @@
   "StartDate": "Datum zahájení",
   "EndDate": "Datum ukončení",
   "SeriesContents": "Obsah série",
-  "MakePrediction": "Vytvořit předpověď",
+  "makePrediction": "Vytvořit předpověď",
   "Title": "Název",
   "Access": "Přístup",
   "save": "Uložit",
@@ -713,5 +713,8 @@
   "metaculusOnTwitter": "Metaculus na Twitteru",
   "metaculusOnDiscord": "Metaculus na Discordu",
   "signUpAsBot": "Zaregistrovat se jako bot",
-  "failedToCopyText": "nepodařilo se zkopírovat text: "
+  "failedToCopyText": "nepodařilo se zkopírovat text: ",
+  "condition": "okolnost",
+  "facebook": "Facebook",
+  "xTwitter": "X / Twitter"
 }
