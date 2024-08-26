@@ -51,8 +51,6 @@
   "resolutionAnnulled": "Anulováno",
   "resolutionPending": "Čeká na řešení",
   "resolution": "vyřešení",
-  "Yes": "Ano",
-  "No": "Ne",
   "pendingResolution": "čeká na řešení",
   "forecastTimelineHeading": "Časová osa predikce",
   "totalPredictionsLabel": "Celkový počet predikcí",
@@ -60,7 +58,8 @@
   "communityPredictionLabel": "Predikce komunity",
   "metaculusPredictionLabel": "Metaculus predikce",
   "userPredictionLabel": "Predikce uživatele",
-  "myPredictionLabel": "Moje predikce",
+  "myPrediction": "Moje predikce",
+  "myPredictionValue": "Moje predikce: <forecast>{forecastValue}</forecast>",
   "myCoverageLabel": "Moje pokrytí",
   "predictionLabel": "Predikce",
   "pdfLabel": "Hustota pravděpodobnosti",
@@ -114,8 +113,8 @@
   "meanPredictionLabel": "Průměr",
   "scoreIfNo": "Skóre, pokud bude odpověď ne",
   "scoreIfYes": "Skóre, pokud bude odpověď ano",
-  "arrowIfNo": "pokud ne",
-  "arrowIfYes": "pokud ano",
+  "ifNo": "pokud ne",
+  "ifYes": "pokud ano",
   "absoluteLogScore": "Absolutní log skóre",
   "brierScore": "Brierovo skóre",
   "yes": "ano",
@@ -716,5 +715,6 @@
   "failedToCopyText": "nepodařilo se zkopírovat text: ",
   "condition": "okolnost",
   "facebook": "Facebook",
-  "xTwitter": "X / Twitter"
+  "xTwitter": "X / Twitter",
+  "copyFromBranch": "kopie z {branch}"
 }
