@@ -33,7 +33,6 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                 {t("Question")}
               </th>
               <th className="p-2 text-right text-sm font-bold">{t("score")}</th>
-              {/* include "coverage" column if project.score_type == "relative_legacy_tournament" */}
               {project.score_type === "relative_legacy_tournament" && (
                 <th className="p-2 text-right text-sm font-bold">
                   {t("coverage")}
