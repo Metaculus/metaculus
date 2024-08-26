@@ -8,8 +8,6 @@ import {
   VictoryBar,
   VictoryChart,
   VictoryContainer,
-  VictoryLine,
-  VictoryLabel,
 } from "victory";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
