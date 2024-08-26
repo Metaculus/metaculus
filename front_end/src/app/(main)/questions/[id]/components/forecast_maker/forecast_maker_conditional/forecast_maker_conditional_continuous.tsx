@@ -15,7 +15,6 @@ import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
-  normalizeWeights,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
@@ -194,7 +193,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               ...prevChoice.sliderForecast,
               { left: 0.4, center: 0.5, right: 0.6 },
             ],
-            weights: normalizeWeights([...prevChoice.weights, 1]),
+            weights: [...prevChoice.weights, 1],
             isDirty: true,
           };
         }
