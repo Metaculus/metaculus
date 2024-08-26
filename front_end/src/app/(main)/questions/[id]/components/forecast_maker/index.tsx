@@ -51,7 +51,6 @@ const ForecastMaker: FC<Props> = ({ post }) => {
         post={post}
         conditional={conditional}
         canPredict={canPredict}
-        canResolve={canResolve}
       />
     );
   }
