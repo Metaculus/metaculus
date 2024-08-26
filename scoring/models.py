@@ -18,7 +18,6 @@ class UserWeight(TimeStampedModel):
 
 class Score(TimeStampedModel):
     # typing
-    forecasts_count: int
     question_id: int
     objects: models.Manager["Score"]
     user_id: int | None
@@ -42,6 +41,30 @@ class Score(TimeStampedModel):
         BASELINE = "baseline"
         SPOT_PEER = "spot_peer"
         SPOT_BASELINE = "spot_baseline"
+
+    score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
+
+
+class ArchivedScore(TimeStampedModel):
+    """This is a permanent copy of scores that can't be recalculated"""
+
+    # typing
+    question_id: int
+    objects: models.Manager["Score"]
+    user_id: int | None
+
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    aggregation_method = models.CharField(
+        max_length=200, null=True, choices=AggregationMethod.choices
+    )
+    question = models.ForeignKey(
+        Question, on_delete=models.CASCADE, related_name="archived_scores"
+    )
+    score = models.FloatField()
+    coverage = models.FloatField(default=0)
+
+    class ScoreTypes(models.TextChoices):
+        RELATIVE_LEGACY = "relative_legacy"
 
     score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
 

@@ -64,4 +64,5 @@ export type Tournament = {
   user_permission: ProjectPermissions;
   default_permission: ProjectPermissions;
   is_subscribed?: boolean;
+  score_type: string;
 };
