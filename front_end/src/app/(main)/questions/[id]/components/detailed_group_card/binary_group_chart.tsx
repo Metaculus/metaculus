@@ -1,4 +1,5 @@
 "use client";
+
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
@@ -23,21 +24,52 @@ import ChoicesTooltip from "../choices_tooltip";
 
 const MAX_VISIBLE_CHECKBOXES = 6;
 
+function getQuestionTooltipLabel(
+  timestamps: number[],
+  values: number[],
+  cursorTimestamp: number,
+  isUserPrediction: boolean = false
+) {
+  const hasValue = isUserPrediction
+    ? cursorTimestamp >= Math.min(...timestamps)
+    : cursorTimestamp >= Math.min(...timestamps) &&
+      cursorTimestamp <= Math.max(...timestamps);
+  if (!hasValue) {
+    return getForecastPctDisplayValue(null);
+  }
+  if (isUserPrediction) {
+    let closestTimestampIndex = 0;
+    timestamps.forEach((timestamp, index) => {
+      if (cursorTimestamp >= timestamp) {
+        closestTimestampIndex = index;
+      }
+    });
+    return getForecastPctDisplayValue(values[closestTimestampIndex]);
+  }
+  const closestTimestamp = findPreviousTimestamp(timestamps, cursorTimestamp);
+  const cursorIndex = timestamps.findIndex(
+    (timestamp) => timestamp === closestTimestamp
+  );
+
+  return getForecastPctDisplayValue(values[cursorIndex]);
+}
+
+function generateList(
+  questions: QuestionWithNumericForecasts[],
+  preselectedQuestionId?: number
+) {
+  return generateChoiceItemsFromBinaryGroup(questions, {
+    withMinMax: true,
+    activeCount: MAX_VISIBLE_CHECKBOXES,
+    preselectedQuestionId,
+  });
+}
+
 type Props = {
   questions: QuestionWithNumericForecasts[];
   timestamps: number[];
   preselectedQuestionId?: number;
 };
-
-const generateList = (
-  questions: QuestionWithNumericForecasts[],
-  preselectedQuestionId?: number
-) =>
-  generateChoiceItemsFromBinaryGroup(questions, {
-    withMinMax: true,
-    activeCount: MAX_VISIBLE_CHECKBOXES,
-    preselectedQuestionId,
-  });
 
 const BinaryGroupChart: FC<Props> = ({
   questions,
@@ -199,35 +231,5 @@ const BinaryGroupChart: FC<Props> = ({
     </div>
   );
 };
-
-function getQuestionTooltipLabel(
-  timestamps: number[],
-  values: number[],
-  cursorTimestamp: number,
-  isUserPrediction: boolean = false
-) {
-  const hasValue = isUserPrediction
-    ? cursorTimestamp >= Math.min(...timestamps)
-    : cursorTimestamp >= Math.min(...timestamps) &&
-      cursorTimestamp <= Math.max(...timestamps);
-  if (!hasValue) {
-    return getForecastPctDisplayValue(null);
-  }
-  if (isUserPrediction) {
-    let closestTimestampIndex = 0;
-    timestamps.forEach((timestamp, index) => {
-      if (cursorTimestamp >= timestamp) {
-        closestTimestampIndex = index;
-      }
-    });
-    return getForecastPctDisplayValue(values[closestTimestampIndex]);
-  }
-  const closestTimestamp = findPreviousTimestamp(timestamps, cursorTimestamp);
-  const cursorIndex = timestamps.findIndex(
-    (timestamp) => timestamp === closestTimestamp
-  );
-
-  return getForecastPctDisplayValue(values[cursorIndex]);
-}
 
 export default BinaryGroupChart;

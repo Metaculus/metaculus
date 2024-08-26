@@ -718,5 +718,9 @@
   "xTwitter": "X / Twitter",
   "copyFromBranch": "kopie z {branch}",
   "parentResolvesAsYes": "Rodič vyřeší jako Ano",
-  "parentResolvesAsNo": "Rodič se rozhodne jako Ne"
+  "parentResolvesAsNo": "Rodič se rozhodne jako Ne",
+  "othersCount": "{count} ostatní",
+  "selectAll": "vybrat vše",
+  "deselectAll": "zrušit výběr všech",
+  "forecastDataIsEmpty": "Údaje o prognóze jsou prázdné"
 }
