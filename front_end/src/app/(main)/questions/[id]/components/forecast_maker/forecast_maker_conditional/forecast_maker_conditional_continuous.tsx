@@ -63,7 +63,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   >(() => [
     {
       id: questionYesId,
-      name: t("Yes"),
+      name: t("ifYes"),
       value: getTableValue(
         prevYesForecastValue?.forecast,
         prevYesForecastValue?.weights,
@@ -77,7 +77,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     },
     {
       id: questionNoId,
-      name: t("No"),
+      name: t("ifNo"),
       value: getTableValue(
         prevNoForecastValue?.forecast,
         prevNoForecastValue?.weights,
