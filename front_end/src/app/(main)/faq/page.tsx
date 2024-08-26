@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import PageWrapper from "../components/pagewrapper";
+import MathJaxWrapper from "../components/mathjaxwrapper";
 
 export const metadata = {
   title: "Metaculus FAQ",
@@ -2657,8 +2658,7 @@ export default function FAQ() {
             distribution to be symmetric.
           </p>
         </div>
-
-        {/* <div>
+        <div>
           <h3
             id="community-prediction"
             className="mb-4 scroll-mt-nav text-2xl font-semibold"
@@ -2671,13 +2671,15 @@ export default function FAQ() {
             forecaster opinion while still being fairly insensitive to outliers.
           </p>
           <p>Here&apos;s the mathematical detail:</p>
-          <ul className="ml-5 list-disc">
+          <ul className="ml-5 list-disc space-y-2">
             <li>Keep only the most recent prediction from each forecaster.</li>
             <li>
-              Assign them a number \(n\), from oldest to newest (oldest is
-              \(1\)).
+              <MathJaxWrapper>{` Assign them a number \\(n\\), from oldest to newest (oldest is
+            \\(1\\)).`}</MathJaxWrapper>
             </li>
-            <li>Weight each by \(w(n) \propto e^\sqrt{n}\) before being aggregated.</li>
+            <li>
+              <MathJaxWrapper>{` Weight each by \\(w(n) \\propto e^{\\sqrt{n}}\\) before being aggregated.`}</MathJaxWrapper>
+            </li>
             <ul className="ml-5 list-disc">
               <li>
                 For{" "}
@@ -2703,13 +2705,15 @@ export default function FAQ() {
                 distributions.
               </li>
             </ul>
-            <li>The particular form of the weights means that approximately \(\sqrt{N}\) forecasters need to predict or update their prediction in order to substantially change the Community Prediction on a question that already has \(N\) forecasters.</li>
+            <li>
+              <MathJaxWrapper>{` The particular form of the weights means that approximately \\(\\sqrt{N}\\) forecasters need to predict or update their prediction in order to substantially change the Community Prediction on a question that already has \\(N\\) forecasters.`}</MathJaxWrapper>
+            </li>
           </ul>
           <p>
             Users can hide the Community Prediction from view from within their
             settings.
           </p>
-        </div> */}
+        </div>
 
         <div>
           <h3
