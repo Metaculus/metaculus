@@ -109,8 +109,8 @@
   "weight": "váha",
   "recent": "nedávné",
   "uniform": "stejnoměrný",
-  "medianPredictionLabel": "Medián",
-  "meanPredictionLabel": "Průměr",
+  "median": "Medián",
+  "mean": "Průměr",
   "scoreIfNo": "Skóre, pokud bude odpověď ne",
   "scoreIfYes": "Skóre, pokud bude odpověď ano",
   "ifNo": "pokud ne",
@@ -716,5 +716,7 @@
   "condition": "okolnost",
   "facebook": "Facebook",
   "xTwitter": "X / Twitter",
-  "copyFromBranch": "kopie z {branch}"
+  "copyFromBranch": "kopie z {branch}",
+  "parentResolvesAsYes": "Rodič vyřeší jako Ano",
+  "parentResolvesAsNo": "Rodič se rozhodne jako Ne"
 }

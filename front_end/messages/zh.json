@@ -59,7 +59,7 @@
   "metaculusPredictionLabel": "Metaculus 預測",
   "userPredictionLabel": "用戶預測",
   "myPrediction": "我的預測",
-  "myPredictionValue": "l的預測： <forecast>{forecastValue}</forecast>",
+  "myPredictionValue": "我的預測： <forecast>{forecastValue}</forecast>",
   "myCoverageLabel": "我的覆蓋",
   "predictionLabel": "預測",
   "pdfLabel": "概率密度",
@@ -109,8 +109,8 @@
   "weight": "權重",
   "recent": "最近的",
   "uniform": "均",
-  "medianPredictionLabel": "中位數",
-  "meanPredictionLabel": "平均數",
+  "median": "中位數",
+  "mean": "平均數",
   "scoreIfNo": "如果否的分數",
   "scoreIfYes": "如果是的分數",
   "ifNo": "如果否",
@@ -709,5 +709,7 @@
   "condition": "光景",
   "facebook": "Facebook",
   "xTwitter": "X / Twitter",
-  "copyFromBranch": "從{branch}複製"
+  "copyFromBranch": "從{branch}複製",
+  "parentResolvesAsYes": "家長決定是",
+  "parentResolvesAsNo": "家長決定不"
 }
