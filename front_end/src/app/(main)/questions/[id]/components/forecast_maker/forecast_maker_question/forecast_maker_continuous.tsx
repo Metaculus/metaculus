@@ -12,7 +12,6 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
-  normalizeWeights,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
@@ -84,7 +83,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         center: 0.5,
       },
     ]);
-    setWeights(normalizeWeights([...weights, 1]));
+    setWeights([...weights, 1]);
   };
 
   const handlePredictSubmit = async () => {

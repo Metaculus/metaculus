@@ -94,24 +94,23 @@ export function extractPrevNumericForecastValue(prevForecast: any): {
   return result;
 }
 
-export function normalizeWeights(weights: number[]) {
-  return weights.map((x) => x / weights.reduce((a, b) => a + b));
-}
-
 export function getNumericForecastDataset(
   forecast: MultiSliderValue[],
   weights: number[],
   lowerOpen: boolean,
   upperOpen: boolean
 ) {
+  const normalizedWeights = weights.map(
+    (x) => x / weights.reduce((a, b) => a + b)
+  );
   const result: { cdf: number[]; pmf: number[] } = forecast
     .map((x) =>
       binWeightsFromSliders(x.left, x.center, x.right, lowerOpen, upperOpen)
     )
     .map((x, index) => {
       return {
-        pmf: math.multiply(x.pmf, weights[index]) as number[],
-        cdf: math.multiply(x.cdf, weights[index]) as number[],
+        pmf: math.multiply(x.pmf, normalizedWeights[index]) as number[],
+        cdf: math.multiply(x.cdf, normalizedWeights[index]) as number[],
       };
     })
     .reduce((acc, curr) => {
