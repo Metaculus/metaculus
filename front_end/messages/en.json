@@ -715,7 +715,7 @@
   "metaculusOnTwitter": "Metaculus on Twitter",
   "metaculusOnDiscord": "Metaculus on Discord",
   "signUpAsBot": "Sign Up as Bot",
-  "failedToCopyText": "failed to copy text: "
+  "failedToCopyText": "failed to copy text: ",
   "resolutionLabel": "Resolution:",
   "totalQuestions": "Total questions:",
   "averageScore": "Average score:",
