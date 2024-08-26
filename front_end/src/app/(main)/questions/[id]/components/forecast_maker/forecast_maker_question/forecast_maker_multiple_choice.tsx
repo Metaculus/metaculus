@@ -266,7 +266,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
                 onClick={rescaleForecasts}
                 disabled={!forecastHasValues || isForecastValid}
               >
-                {t("rescalePredictionButton")}
+                {t("rescalePrediction")}
               </Button>
             </div>
             <Button
@@ -283,7 +283,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               disabled={!submitIsAllowed}
               onClick={handlePredictSubmit}
             >
-              {user ? t("saveButton") : t("signUpButton")}
+              {user ? t("saveChange") : t("signUpToPredict")}
             </Button>
           </div>
         )}

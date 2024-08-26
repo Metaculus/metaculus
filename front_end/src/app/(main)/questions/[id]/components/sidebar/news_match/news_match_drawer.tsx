@@ -21,7 +21,7 @@ const NewsMatchDrawer: FC<Props> = ({ questionId, articles }) => {
 
   return (
     <div className="w-full @container">
-      <SectionToggle defaultOpen title={t("NewsMatch")}>
+      <SectionToggle defaultOpen title={t("newsMatch")}>
         {articles.slice(0, articleDisplayLimit).map((article: NewsArticle) => (
           <NewsMatchArticle
             key={article.id}

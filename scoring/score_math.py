@@ -143,7 +143,7 @@ def evaluate_forecasts_baseline_spot_forecast(
                 else:
                     baseline = (1 - 0.05 * open_bounds_count) / (len(pmf) - 2)
                 forecast_score = 100 * np.log(pmf[resolution_bucket] / baseline) / 2
-            forecast_scores.append(ForecastScore(forecast_score))
+            forecast_scores.append(ForecastScore(forecast_score, 1.0))
         else:
             forecast_scores.append(ForecastScore(0))
     return forecast_scores
@@ -157,9 +157,10 @@ def evaluate_forecasts_peer_accuracy(
     actual_close_time: float,
     forecast_horizon_end: float,
     question_type: str,
+    geometric_means: list[AggregationEntry] | None = None,
 ) -> list[ForecastScore]:
     base_forecasts = base_forecasts or forecasts
-    geometric_mean_forecasts = get_geometric_means(base_forecasts)
+    geometric_mean_forecasts = geometric_means or get_geometric_means(base_forecasts)
     for gm in geometric_mean_forecasts:
         gm.timestamp = max(gm.timestamp, forecast_horizon_start)
     total_duration = forecast_horizon_end - forecast_horizon_start
@@ -214,9 +215,10 @@ def evaluate_forecasts_peer_spot_forecast(
     resolution_bucket: int,
     spot_forecast_timestamp: float,
     question_type: str,
+    geometric_means: list[AggregationEntry] | None = None,
 ) -> list[ForecastScore]:
     base_forecasts = base_forecasts or forecasts
-    geometric_mean_forecasts = get_geometric_means(base_forecasts)
+    geometric_mean_forecasts = geometric_means or get_geometric_means(base_forecasts)
     g = None
     for gm in geometric_mean_forecasts[::-1]:
         if gm.timestamp < spot_forecast_timestamp:
@@ -240,7 +242,7 @@ def evaluate_forecasts_peer_spot_forecast(
             )
             if question_type in ["numeric", "date"]:
                 forecast_score /= 2
-            forecast_scores.append(ForecastScore(forecast_score))
+            forecast_scores.append(ForecastScore(forecast_score, 1.0))
         else:
             forecast_scores.append(ForecastScore(0))
     return forecast_scores
@@ -305,7 +307,7 @@ def evaluate_forecasts_legacy_relative(
 def evaluate_question(
     question: Question,
     resolution_bucket: int,
-    score_type: Score.ScoreTypes,
+    score_types: list[Score.ScoreTypes],
     spot_forecast_timestamp: float | None = None,
 ) -> list[Score]:
     forecast_horizon_start = question.open_time.timestamp()
@@ -318,133 +320,142 @@ def evaluate_question(
         minimize=False,
         aggregation_method=AggregationMethod.RECENCY_WEIGHTED,
     )
+    geometric_means: list[AggregationEntry] = []
 
-    score_types = Score.ScoreTypes
-    match score_type:
-        case score_types.BASELINE:
-            open_bounds_count = bool(question.open_upper_bound) + bool(
-                question.open_lower_bound
-            )
-            user_scores = evaluate_forecasts_baseline_accuracy(
-                user_forecasts,
-                resolution_bucket,
-                forecast_horizon_start,
-                actual_close_time,
-                forecast_horizon_end,
-                question.type,
-                open_bounds_count,
-            )
-            community_scores = evaluate_forecasts_baseline_accuracy(
-                community_forecasts,
-                resolution_bucket,
-                forecast_horizon_start,
-                actual_close_time,
-                forecast_horizon_end,
-                question.type,
-                open_bounds_count,
-            )
-        case score_types.SPOT_BASELINE:
-            open_bounds_count = bool(question.open_upper_bound) + bool(
-                question.open_lower_bound
-            )
-            user_scores = evaluate_forecasts_baseline_spot_forecast(
-                user_forecasts,
-                resolution_bucket,
-                spot_forecast_timestamp,
-                question.type,
-                open_bounds_count,
-            )
-            community_scores = evaluate_forecasts_baseline_spot_forecast(
-                community_forecasts,
-                resolution_bucket,
-                spot_forecast_timestamp,
-                question.type,
-                open_bounds_count,
-            )
-        case score_types.PEER:
-            user_scores = evaluate_forecasts_peer_accuracy(
-                user_forecasts,
-                user_forecasts,
-                resolution_bucket,
-                forecast_horizon_start,
-                actual_close_time,
-                forecast_horizon_end,
-                question.type,
-            )
-            community_scores = evaluate_forecasts_peer_accuracy(
-                community_forecasts,
-                user_forecasts,
-                resolution_bucket,
-                forecast_horizon_start,
-                actual_close_time,
-                forecast_horizon_end,
-                question.type,
-            )
-        case score_types.SPOT_PEER:
-            user_scores = evaluate_forecasts_peer_spot_forecast(
-                user_forecasts,
-                user_forecasts,
-                resolution_bucket,
-                spot_forecast_timestamp,
-                question.type,
-            )
-            community_scores = evaluate_forecasts_peer_spot_forecast(
-                community_forecasts,
-                user_forecasts,
-                resolution_bucket,
-                spot_forecast_timestamp,
-                question.type,
-            )
-        case score_types.RELATIVE_LEGACY:
-            user_scores = evaluate_forecasts_legacy_relative(
-                user_forecasts,
-                community_forecasts,
-                resolution_bucket,
-                forecast_horizon_start,
-                actual_close_time,
-                forecast_horizon_end,
-            )
-            community_scores = evaluate_forecasts_legacy_relative(
-                community_forecasts,
-                community_forecasts,
-                resolution_bucket,
-                forecast_horizon_start,
-                actual_close_time,
-                forecast_horizon_end,
-            )
-        case other:
-            raise NotImplementedError(f"Score type {other} not implemented")
+    ScoreTypes = Score.ScoreTypes
+    if ScoreTypes.PEER in score_types:
+        geometric_means = get_geometric_means(user_forecasts)
 
     scores: list[Score] = []
-    users = {forecast.author for forecast in user_forecasts}
-    for user in users:
-        user_score = 0
-        user_coverage = 0
-        for forecast, score in zip(user_forecasts, user_scores):
-            if forecast.author == user:
-                user_score += score.score
-                user_coverage += score.coverage
-        if user_coverage > 0:
-            scores.append(
-                Score(
-                    user=user,
-                    score=user_score,
-                    coverage=user_coverage,
-                    score_type=score_type,
+    for score_type in score_types:
+        match score_type:
+            case ScoreTypes.BASELINE:
+                open_bounds_count = bool(question.open_upper_bound) + bool(
+                    question.open_lower_bound
                 )
+                user_scores = evaluate_forecasts_baseline_accuracy(
+                    user_forecasts,
+                    resolution_bucket,
+                    forecast_horizon_start,
+                    actual_close_time,
+                    forecast_horizon_end,
+                    question.type,
+                    open_bounds_count,
+                )
+                community_scores = evaluate_forecasts_baseline_accuracy(
+                    community_forecasts,
+                    resolution_bucket,
+                    forecast_horizon_start,
+                    actual_close_time,
+                    forecast_horizon_end,
+                    question.type,
+                    open_bounds_count,
+                )
+            case ScoreTypes.SPOT_BASELINE:
+                open_bounds_count = bool(question.open_upper_bound) + bool(
+                    question.open_lower_bound
+                )
+                user_scores = evaluate_forecasts_baseline_spot_forecast(
+                    user_forecasts,
+                    resolution_bucket,
+                    spot_forecast_timestamp,
+                    question.type,
+                    open_bounds_count,
+                )
+                community_scores = evaluate_forecasts_baseline_spot_forecast(
+                    community_forecasts,
+                    resolution_bucket,
+                    spot_forecast_timestamp,
+                    question.type,
+                    open_bounds_count,
+                )
+            case ScoreTypes.PEER:
+                user_scores = evaluate_forecasts_peer_accuracy(
+                    user_forecasts,
+                    user_forecasts,
+                    resolution_bucket,
+                    forecast_horizon_start,
+                    actual_close_time,
+                    forecast_horizon_end,
+                    question.type,
+                    geometric_means=geometric_means,
+                )
+                community_scores = evaluate_forecasts_peer_accuracy(
+                    community_forecasts,
+                    user_forecasts,
+                    resolution_bucket,
+                    forecast_horizon_start,
+                    actual_close_time,
+                    forecast_horizon_end,
+                    question.type,
+                    geometric_means=geometric_means,
+                )
+            case ScoreTypes.SPOT_PEER:
+                user_scores = evaluate_forecasts_peer_spot_forecast(
+                    user_forecasts,
+                    user_forecasts,
+                    resolution_bucket,
+                    spot_forecast_timestamp,
+                    question.type,
+                    geometric_means=geometric_means,
+                )
+                community_scores = evaluate_forecasts_peer_spot_forecast(
+                    community_forecasts,
+                    user_forecasts,
+                    resolution_bucket,
+                    spot_forecast_timestamp,
+                    question.type,
+                    geometric_means=geometric_means,
+                )
+            case ScoreTypes.RELATIVE_LEGACY:
+                user_scores = evaluate_forecasts_legacy_relative(
+                    user_forecasts,
+                    community_forecasts,
+                    resolution_bucket,
+                    forecast_horizon_start,
+                    actual_close_time,
+                    forecast_horizon_end,
+                )
+                community_scores = evaluate_forecasts_legacy_relative(
+                    community_forecasts,
+                    community_forecasts,
+                    resolution_bucket,
+                    forecast_horizon_start,
+                    actual_close_time,
+                    forecast_horizon_end,
+                )
+            case other:
+                raise NotImplementedError(f"Score type {other} not implemented")
+
+        users = {forecast.author for forecast in user_forecasts}
+        for user in users:
+            user_score = 0
+            user_coverage = 0
+            for forecast, score in zip(user_forecasts, user_scores):
+                if forecast.author == user:
+                    user_score += score.score
+                    user_coverage += score.coverage
+            if user_coverage > 0:
+                scores.append(
+                    Score(
+                        user=user,
+                        score=user_score,
+                        coverage=user_coverage,
+                        score_type=score_type,
+                    )
+                )
+        community_score = 0
+        community_coverage = 0
+        for score in community_scores:
+            community_score += score.score
+            community_coverage += score.coverage
+        scores.append(
+            Score(
+                user=None,
+                aggregation_method=AggregationMethod.RECENCY_WEIGHTED,
+                score=community_score,
+                coverage=community_coverage,
+                score_type=score_type,
             )
-    community_score = 0
-    community_coverage = 0
-    for score in community_scores:
-        community_score += score.score
-        community_coverage += score.coverage
-    scores.append(
-        Score(
-            user=None,
-            aggregation_method=AggregationMethod.RECENCY_WEIGHTED,
-            score=community_score,
-            coverage=community_coverage,
-            score_type=score_type,
         )
-    )
     return scores

@@ -97,7 +97,7 @@ const LeaderboardTable: FC<Props> = ({
                 colSpan={3}
                 className="max-w-full p-4 text-center text-base italic text-gray-700 dark:text-gray-700-dark"
               >
-                {t("No questions have resolved yet in this period")}
+                {t("noQuestionsResolved")}
               </td>
             </tr>
           )}

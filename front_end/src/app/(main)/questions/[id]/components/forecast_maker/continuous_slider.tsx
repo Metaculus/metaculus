@@ -92,11 +92,11 @@ const ContinuousSlider: FC<Props> = ({
                       defaultValue={weights[index]}
                       round={true}
                       onChange={(value) => {
-                        const newWeights = normWeights([
+                        const newWeights = [
                           ...weights.slice(0, index),
                           value,
                           ...weights.slice(index + 1, forecast.length),
-                        ]);
+                        ];
                         onChange(forecast, newWeights);
                       }}
                       disabled={disabled}
@@ -110,10 +110,10 @@ const ContinuousSlider: FC<Props> = ({
                         ...forecast.slice(0, index),
                         ...forecast.slice(index + 1, forecast.length),
                       ];
-                      const newWeights = normWeights([
+                      const newWeights = [
                         ...weights.slice(0, index),
                         ...weights.slice(index + 1, forecast.length),
-                      ]);
+                      ];
                       onChange(newForecast, newWeights);
                     }}
                   />
@@ -125,9 +125,5 @@ const ContinuousSlider: FC<Props> = ({
     </div>
   );
 };
-
-function normWeights(weights: number[]) {
-  return weights.map((x) => x / weights.reduce((a, b) => a + b));
-}
 
 export default ContinuousSlider;

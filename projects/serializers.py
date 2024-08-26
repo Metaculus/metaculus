@@ -48,6 +48,7 @@ class MiniTournamentSerializer(serializers.ModelSerializer):
 
 
 class TournamentSerializer(serializers.ModelSerializer):
+    score_type = serializers.CharField(source="primary_leaderboard.score_type")
 
     class Meta:
         model = Project
@@ -69,6 +70,7 @@ class TournamentSerializer(serializers.ModelSerializer):
             "created_at",
             "edited_at",
             "default_permission",
+            "score_type",
         )
 
 
