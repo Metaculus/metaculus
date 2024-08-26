@@ -9,6 +9,7 @@ import MedalIcon from "../../../components/medal_icon";
 
 type Props = {
   rowEntry: LeaderboardEntry;
+  withCoverage: boolean;
   withTake: boolean;
   withPrize: boolean;
   prizePool: number;
@@ -17,13 +18,23 @@ type Props = {
 
 const TableRow: FC<Props> = ({
   rowEntry,
+  withCoverage,
   withTake,
   withPrize,
   userId,
   prizePool,
 }) => {
-  const { user, aggregation_method, medal, rank, score, take, percent_prize } =
-    rowEntry;
+  const {
+    user,
+    aggregation_method,
+    medal,
+    rank,
+    score,
+    coverage,
+    take,
+    percent_prize,
+    prize,
+  } = rowEntry;
   const highlight = user?.id === userId;
 
   return (
@@ -42,15 +53,24 @@ const TableRow: FC<Props> = ({
             user ? `/accounts/profile/${user.id}/` : `questions/track-record/`
           }
         >
-          {user ? user.username : aggregation_method}
+          {user
+            ? user.username
+            : aggregation_method == "recency_weighted"
+              ? "Recency Weighted CP"
+              : aggregation_method}
         </Link>
       </Td>
       <Td className="text-right" highlight={highlight}>
-        {score.toFixed(2)}
+        {score.toFixed(3)}
       </Td>
+      {withCoverage && (
+        <Td className="text-right" highlight={highlight}>
+          {coverage ? `${(coverage * 100).toFixed(0)}%` : "-"}
+        </Td>
+      )}
       {withTake && (
         <Td className="text-right" highlight={highlight}>
-          {take?.toFixed(2)}
+          {take?.toFixed(3)}
         </Td>
       )}
       {withPrize && (
@@ -59,7 +79,7 @@ const TableRow: FC<Props> = ({
             {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}
           </Td>
           <Td className="text-right" highlight={highlight}>
-            {getUserPrize(prizePool, percent_prize)}
+            {prize && prize >= 10 ? "$" + prize.toFixed(0) : "-"}
           </Td>
         </>
       )}
