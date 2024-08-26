@@ -435,7 +435,7 @@
   "StartDate": "開始日期",
   "EndDate": "結束日期",
   "SeriesContents": "系列內容",
-  "MakePrediction": "進行預測",
+  "makePrediction": "進行預測",
   "Title": "標題",
   "Access": "訪問",
   "save": "保存",
@@ -704,5 +704,8 @@
   "metaculusOnTwitter": "Metaculus的Twitter",
   "metaculusOnDiscord": "Metaculus的Discord",
   "signUpAsBot": "註冊為機器人",
-  "failedToCopyText": "複製文本失敗："
+  "failedToCopyText": "複製文本失敗：",
+  "condition": "光景",
+  "facebook": "Facebook",
+  "xTwitter": "X / Twitter"
 }

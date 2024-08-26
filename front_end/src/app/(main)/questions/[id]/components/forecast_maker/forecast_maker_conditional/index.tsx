@@ -77,7 +77,6 @@ const ForecastMakerConditional: FC<Props> = ({
 
   return (
     <ForecastMakerContainer
-      title={t("MakePrediction")}
       resolutionCriteria={[
         {
           title: t("parentResolutionCriteria"),
