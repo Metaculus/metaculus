@@ -28,67 +28,6 @@ const QuestionForecastMaker: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const renderForecastMaker = () => {
-    switch (question.type) {
-      case QuestionType.Numeric:
-      case QuestionType.Date:
-        return (
-          <>
-            <ForecastMakerContinuous
-              postId={postId}
-              question={question}
-              permission={permission}
-              prevForecast={question.my_forecasts?.latest?.slider_values}
-              canPredict={
-                canPredict &&
-                question.open_time !== undefined &&
-                parseISO(question.open_time) < new Date()
-              }
-              canResolve={canResolve}
-            />
-            <QuestionResolutionText question={question} />
-          </>
-        );
-      case QuestionType.Binary:
-        return (
-          <>
-            <ForecastMakerBinary
-              postId={postId}
-              question={question}
-              permission={permission}
-              prevForecast={question.my_forecasts?.latest?.slider_values}
-              canPredict={
-                canPredict &&
-                question.open_time !== undefined &&
-                parseISO(question.open_time) < new Date()
-              }
-              canResolve={canResolve}
-            />
-            <QuestionResolutionText question={question} />
-          </>
-        );
-      case QuestionType.MultipleChoice:
-        return (
-          <>
-            <ForecastMakerMultipleChoice
-              postId={postId}
-              question={question}
-              permission={permission}
-              canPredict={
-                canPredict &&
-                question.open_time !== undefined &&
-                parseISO(question.open_time) < new Date()
-              }
-              canResolve={canResolve}
-            />
-            <QuestionResolutionText question={question} />
-          </>
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <ForecastMakerContainer
       resolutionCriteria={[
@@ -99,7 +38,57 @@ const QuestionForecastMaker: FC<Props> = ({
         },
       ]}
     >
-      {renderForecastMaker()}
+      {(question.type === QuestionType.Numeric ||
+        question.type === QuestionType.Date) && (
+        <>
+          <ForecastMakerContinuous
+            postId={postId}
+            question={question}
+            permission={permission}
+            prevForecast={question.my_forecasts?.latest?.slider_values}
+            canPredict={
+              canPredict &&
+              question.open_time !== undefined &&
+              parseISO(question.open_time) < new Date()
+            }
+            canResolve={canResolve}
+          />
+          <QuestionResolutionText question={question} />
+        </>
+      )}
+      {question.type === QuestionType.Binary && (
+        <>
+          <ForecastMakerBinary
+            postId={postId}
+            question={question}
+            permission={permission}
+            prevForecast={question.my_forecasts?.latest?.slider_values}
+            canPredict={
+              canPredict &&
+              question.open_time !== undefined &&
+              parseISO(question.open_time) < new Date()
+            }
+            canResolve={canResolve}
+          />
+          <QuestionResolutionText question={question} />
+        </>
+      )}
+      {question.type === QuestionType.MultipleChoice && (
+        <>
+          <ForecastMakerMultipleChoice
+            postId={postId}
+            question={question}
+            permission={permission}
+            canPredict={
+              canPredict &&
+              question.open_time !== undefined &&
+              parseISO(question.open_time) < new Date()
+            }
+            canResolve={canResolve}
+          />
+          <QuestionResolutionText question={question} />
+        </>
+      )}
     </ForecastMakerContainer>
   );
 };
