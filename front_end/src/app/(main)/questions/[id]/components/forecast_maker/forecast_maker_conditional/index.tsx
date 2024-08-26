@@ -16,64 +16,21 @@ type Props = {
   post: PostWithForecasts;
   conditional: PostConditional<QuestionWithForecasts>;
   canPredict: boolean;
-  canResolve: boolean;
 };
 
 const ForecastMakerConditional: FC<Props> = ({
   post,
   conditional,
   canPredict,
-  canResolve,
 }) => {
   const t = useTranslations();
 
   const { id: postId, title: postTitle } = post;
   const { condition, condition_child, question_yes, question_no } = conditional;
+
   if (question_yes.type !== question_no.type) {
     return null;
   }
-
-  const renderForecastMaker = () => {
-    switch (question_yes.type) {
-      case QuestionType.Binary:
-        return (
-          <ForecastMakerConditionalBinary
-            postId={postId}
-            postTitle={postTitle}
-            conditional={
-              conditional as PostConditional<QuestionWithNumericForecasts>
-            }
-            prevYesForecast={question_yes.my_forecasts?.latest?.slider_values}
-            prevNoForecast={question_no.my_forecasts?.latest?.slider_values}
-            canPredict={
-              canPredict &&
-              conditional.condition_child.open_time !== undefined &&
-              new Date(conditional.condition_child.open_time) <= new Date()
-            }
-          />
-        );
-      case QuestionType.Date:
-      case QuestionType.Numeric:
-        return (
-          <ForecastMakerConditionalContinuous
-            postId={postId}
-            postTitle={postTitle}
-            conditional={
-              conditional as PostConditional<QuestionWithNumericForecasts>
-            }
-            prevYesForecast={question_yes.my_forecasts?.latest?.slider_values}
-            prevNoForecast={question_no.my_forecasts?.latest?.slider_values}
-            canPredict={
-              canPredict &&
-              conditional.condition_child.open_time !== undefined &&
-              new Date(conditional.condition_child.open_time) <= new Date()
-            }
-          />
-        );
-      default:
-        return null;
-    }
-  };
 
   return (
     <ForecastMakerContainer
@@ -92,7 +49,39 @@ const ForecastMakerConditional: FC<Props> = ({
         },
       ]}
     >
-      {renderForecastMaker()}
+      {question_yes.type === QuestionType.Binary && (
+        <ForecastMakerConditionalBinary
+          postId={postId}
+          postTitle={postTitle}
+          conditional={
+            conditional as PostConditional<QuestionWithNumericForecasts>
+          }
+          prevYesForecast={question_yes.my_forecasts?.latest?.slider_values}
+          prevNoForecast={question_no.my_forecasts?.latest?.slider_values}
+          canPredict={
+            canPredict &&
+            conditional.condition_child.open_time !== undefined &&
+            new Date(conditional.condition_child.open_time) <= new Date()
+          }
+        />
+      )}
+      {(question_yes.type === QuestionType.Date ||
+        question_yes.type === QuestionType.Numeric) && (
+        <ForecastMakerConditionalContinuous
+          postId={postId}
+          postTitle={postTitle}
+          conditional={
+            conditional as PostConditional<QuestionWithNumericForecasts>
+          }
+          prevYesForecast={question_yes.my_forecasts?.latest?.slider_values}
+          prevNoForecast={question_no.my_forecasts?.latest?.slider_values}
+          canPredict={
+            canPredict &&
+            conditional.condition_child.open_time !== undefined &&
+            new Date(conditional.condition_child.open_time) <= new Date()
+          }
+        />
+      )}
     </ForecastMakerContainer>
   );
 };
