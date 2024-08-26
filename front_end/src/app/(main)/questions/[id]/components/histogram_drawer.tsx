@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import React from "react";
 
-import Histogram from "@/app/(main)/charts/histogram";
+import Histogram from "@/components/charts/histogram";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { PostWithForecasts } from "@/types/post";
