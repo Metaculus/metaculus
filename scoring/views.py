@@ -292,7 +292,7 @@ def metaculus_track_record(
     min_bin = min(-50, min([s for s in scores]))
     max_bin = max(50, max([s for s in scores]))
     bin_incr = int((max_bin + np.abs(min_bin)) / 20)
-    for bin_start in range(min_bin, max_bin, bin_incr):
+    for bin_start in range(int(np.ceil(min_bin)), int(np.ceil(max_bin)), bin_incr):
         bin_end = bin_start + bin_incr
         ser["score_histogram"].append(
             {
