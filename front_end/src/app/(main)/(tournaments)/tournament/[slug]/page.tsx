@@ -134,7 +134,7 @@ export default async function TournamentSlug({
           />
           {currentUser && (
             <ProjectContributions
-              projectId={tournament.id}
+              project={tournament}
               userId={currentUser.id}
             />
           )}
