@@ -28,39 +28,41 @@ from utils.the_math.measures import decimal_h_index
 def score_question(
     question: Question,
     resolution: str,
-    spot_forecast_time: datetime | None = None,
+    spot_forecast_time: float | None = None,
     score_types: list[str] | None = None,
 ):
     resolution_bucket = string_location_to_bucket_index(resolution, question)
+    spot_forecast_time = spot_forecast_time or question.cp_reveal_time.timestamp()
     score_types = score_types or Score.ScoreTypes.choices
-    for score_type in score_types:
-        seen = set()
-        previous_scores = list(
-            Score.objects.filter(question=question, score_type=score_type)
-        )
-        new_scores = evaluate_question(
-            question, resolution_bucket, score_type, spot_forecast_time
-        )
-        for new_score in new_scores:
-            is_new = True
-            for previous_score in previous_scores:
-                if (previous_score.user == new_score.user) and (
-                    previous_score.aggregation_method == new_score.aggregation_method
-                ):
-                    is_new = False
-                    previous_score.score = new_score.score
-                    previous_score.coverage = new_score.coverage
-                    previous_score.edited_at = question.resolution_set_time
-                    previous_score.save()
-                    seen.add(previous_score)
-                    break
-            if is_new:
-                new_score.question = question
-                new_score.edited_at = question.resolution_set_time
-                new_score.save()
+    seen = set()
+    previous_scores = list(
+        Score.objects.filter(question=question, score_type__in=score_types)
+    )
+    new_scores = evaluate_question(
+        question, resolution_bucket, score_types, spot_forecast_time
+    )
+    for new_score in new_scores:
+        is_new = True
         for previous_score in previous_scores:
-            if previous_score not in seen:
-                previous_score.delete()
+            if (
+                (previous_score.user == new_score.user)
+                and (previous_score.aggregation_method == new_score.aggregation_method)
+                and (previous_score.score_type == new_score.score_type)
+            ):
+                is_new = False
+                previous_score.score = new_score.score
+                previous_score.coverage = new_score.coverage
+                previous_score.edited_at = question.resolution_set_time
+                previous_score.save()
+                seen.add(previous_score)
+                break
+        if is_new:
+            new_score.question = question
+            new_score.edited_at = question.resolution_set_time
+            new_score.save()
+    for previous_score in previous_scores:
+        if previous_score not in seen:
+            previous_score.delete()
 
 
 def generate_scoring_leaderboard_entries(
