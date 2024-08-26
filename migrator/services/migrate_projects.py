@@ -29,10 +29,11 @@ def create_project(project_obj: dict) -> Project:
         "TO": Project.ProjectTypes.TOURNAMENT,
         "QS": Project.ProjectTypes.QUESTION_SERIES,
         "MP": Project.ProjectTypes.SITE_MAIN,
-        # https://www.notion.so/metaculus/Private-Projects-that-aren-t-tournaments-or-question-series-should-become-private-question-series-02cb0bedd6a54650869879b6323d96ff
-        # Explicitly converting other types to QUESTION_SERIES
-        "ST": Project.ProjectTypes.QUESTION_SERIES
     }.get(project_obj["type"])
+
+    # https://www.notion.so/metaculus/Private-Projects-that-aren-t-tournaments-or-question-series-should-become-private-question-series-02cb0bedd6a54650869879b6323d96ff
+    # Converting other types to QUESTION_SERIES
+    project_type = project_type or Project.ProjectTypes.QUESTION_SERIES
 
     leaderboard_score_type = None
     if project_type in [
@@ -240,7 +241,7 @@ def migrate_projects(site_ids: list[int] = None):
 
     for project_obj in paginated_query(
         "SELECT * FROM metac_project_project "
-        "WHERE site_id in %s AND type in ('TO', 'QS', 'MP', 'ST')",
+        "WHERE site_id in %s",
         [tuple(site_ids)],
     ):
         project = create_project(project_obj)

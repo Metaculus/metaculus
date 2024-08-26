@@ -62,7 +62,7 @@ class Command(BaseCommand):
         print("Migrated comments")
         migrate_comment_votes()
         print("Migrated comment votes")
-        migrate_permissions()
+        migrate_permissions(site_ids=site_ids)
         print("Migrated permissions")
         migrate_mailgun_notification_preferences()
         print("Migrated user notification preferences")
