@@ -15,7 +15,7 @@ import {
   UpdateProfileSchema,
   updateProfileSchema,
 } from "@/app/(main)/accounts/schemas";
-import CalibrationChart from "@/app/(main)/charts/calibration_chart";
+import CalibrationChart from "@/app/(main)/questions/track-record/components/charts/calibration_chart";
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
