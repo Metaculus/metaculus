@@ -16,7 +16,6 @@ from django.db import transaction
 # from metac_question.models.question import Question
 from users.models import User
 from projects.models import Project
-from projects.services import get_site_main_project
 from questions.models import Question
 from posts.models import Post
 

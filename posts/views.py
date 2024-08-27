@@ -183,7 +183,6 @@ def post_create_api_view(request):
             .filter(name__iexact=request.data["news_type"])
             .first()
         )
-        print(news_project, request.data["news_type"])
         post.projects.add(news_project)
         post.save()
 
