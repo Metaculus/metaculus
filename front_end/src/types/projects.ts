@@ -65,4 +65,5 @@ export type Tournament = {
   default_permission: ProjectPermissions;
   is_subscribed?: boolean;
   score_type: string;
+  add_posts_to_main_feed: boolean;
 };
