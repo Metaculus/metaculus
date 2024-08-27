@@ -170,7 +170,7 @@ export default async function IndividualQuestion({
         </div>
       </main>
 
-      <QuestionEmbedModal postId={postData.id} />
+      <QuestionEmbedModal postId={postData.id} postTitle={postData.title} />
     </EmbedModalContextProvider>
   );
 }
