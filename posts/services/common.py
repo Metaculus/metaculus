@@ -11,7 +11,6 @@ from posts.models import Notebook, Post, PostSubscription, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import (
-    get_site_main_project,
     notify_project_subscriptions_post_open,
 )
 from questions.services import (
@@ -89,11 +88,7 @@ def create_post(
         main_projects = [site_main]
 
     if not obj.default_project:
-        obj.default_project = main_projects.pop(0)  
-
-    if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
-        if site_main not in obj.projects.all():
-            obj.projects.add(site_main)
+        obj.default_project = main_projects.pop(0)
 
     # Save project and validate
     obj.full_clean()
@@ -102,8 +97,13 @@ def create_post(
     # Sync status fields
     obj.update_pseudo_materialized_fields()
 
+    secondary_projects = set(meta_projects + main_projects)
+
+    if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
+        secondary_projects.add(site_main)
+
     # Adding projects
-    obj.projects.add(*(meta_projects + main_projects))
+    obj.projects.add(*secondary_projects)
 
     # Run async tasks
     from ..tasks import run_post_indexing
