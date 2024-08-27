@@ -73,21 +73,21 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
     <>
       <BaseModal
         className="max-w-xl !overflow-y-auto"
-        label={t("Contact Us")}
+        label={t("contactUs")}
         isOpen={isOpen}
         onClose={onClose}
       >
         <div className="max-h-full w-full">
           <p className="my-6 text-base leading-tight">
-            {t("reach out to learn more")}
+            {t("reachOutToLearnMore")}
           </p>
           <p className="mb-6 mt-3 text-base leading-tight">
-            {t("feel free to just say hello")}
+            {t("feelFreeToJustSayHello")}
           </p>
           <form onSubmit={handleSubmit(onSubmit)}>
             <Input
               className="mt-4 block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
-              placeholder={t("Your Email")}
+              placeholder={t("yourEmail")}
               type="email"
               errors={errors.email}
               {...register("email")}
@@ -131,7 +131,7 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
       </BaseModal>
       <BaseModal
         className="max-w-xl !overflow-y-auto"
-        label={t("Contact Us")}
+        label={t("contactUs")}
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
       >

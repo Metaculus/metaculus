@@ -13,11 +13,12 @@ import {
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import useAppTheme from "@/hooks/use_app_theme";
+import { TrackRecordCalibrationCurveItem } from "@/types/track_record";
 
-const CalibrationChart: React.FC<{ data: any; showIntervals?: boolean }> = ({
-  data,
-  showIntervals = true,
-}) => {
+const CalibrationChart: React.FC<{
+  data: TrackRecordCalibrationCurveItem[];
+  showIntervals?: boolean;
+}> = ({ data, showIntervals = true }) => {
   const calibrationData = data;
 
   const { theme, getThemeColor } = useAppTheme();

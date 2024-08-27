@@ -15,7 +15,6 @@ import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
-  normalizeWeights,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
@@ -64,7 +63,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   >(() => [
     {
       id: questionYesId,
-      name: t("Yes"),
+      name: t("ifYes"),
       value: getTableValue(
         prevYesForecastValue?.forecast,
         prevYesForecastValue?.weights,
@@ -78,7 +77,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     },
     {
       id: questionNoId,
-      name: t("No"),
+      name: t("ifNo"),
       value: getTableValue(
         prevNoForecastValue?.forecast,
         prevNoForecastValue?.weights,
@@ -194,7 +193,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               ...prevChoice.sliderForecast,
               { left: 0.4, center: 0.5, right: 0.6 },
             ],
-            weights: normalizeWeights([...prevChoice.weights, 1]),
+            weights: [...prevChoice.weights, 1],
             isDirty: true,
           };
         }
@@ -392,7 +391,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
                 onClick={handlePredictSubmit}
                 disabled={!submitIsAllowed}
               >
-                {t("saveButton")}
+                {t("saveChange")}
               </Button>
             </>
           ) : (
@@ -401,7 +400,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               type="button"
               onClick={() => setCurrentModal({ type: "signup" })}
             >
-              {t("signUpButton")}
+              {t("signUpToPredict")}
             </Button>
           )}
           )

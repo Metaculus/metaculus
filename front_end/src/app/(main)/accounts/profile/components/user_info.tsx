@@ -15,7 +15,7 @@ import {
   UpdateProfileSchema,
   updateProfileSchema,
 } from "@/app/(main)/accounts/schemas";
-import CalibrationChart from "@/app/(main)/charts/calibration_chart";
+import CalibrationChart from "@/app/(main)/questions/track-record/components/charts/calibration_chart";
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
@@ -206,7 +206,7 @@ const UserInfo: FC<UserInfoProps> = ({
                   {format(new Date(profile.date_joined), "MM-yyyy")}
                 </span>
                 <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
-                  {t("Member Since")}
+                  {t("memberSince")}
                 </span>
               </div>
             </div>
