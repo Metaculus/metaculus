@@ -6,11 +6,8 @@ from migrator.utils import paginated_query
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
+from projects.services import get_site_main_project
 from utils.dtypes import flatten
-
-# TODO: what to do with MP/Site Main project type? Do we want
-#  to keep it as separate type or merge with categories/topics?
-
 
 # These types were merged with project during metaculus refactoring
 # So we need to exclude them since we kept same ids for old Projects table rows,
@@ -329,8 +326,24 @@ def deduplicate_default_project_and_m2m():
     PostProject.objects.filter(Exists(subquery)).delete()
 
 
+def add_to_main_feed_if_in_other_project():
+    site_main = get_site_main_project()
+    posts = (
+        Post.objects.exclude(default_project=site_main)
+        .exclude(projects=site_main)
+        .filter(default_project__add_posts_to_main_feed=True)
+        .prefetch_related("projects")
+        .distinct()
+        .iterator(chunk_size=500)
+    )
+    m2m_model = Post.projects.through
+    m2m_objects = [m2m_model(post=post, project=site_main) for post in posts]
+    m2m_model.objects.bulk_create(m2m_objects, batch_size=1_000)
+
+
 def migrate_permissions(site_ids: list):
     migrate_personal_projects()
     migrate_common_permissions(site_ids)
     migrate_post_default_project()
     deduplicate_default_project_and_m2m()
+    add_to_main_feed_if_in_other_project()
