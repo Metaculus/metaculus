@@ -71,6 +71,7 @@ def create_project(project_obj: dict) -> Project:
             if (project_obj["public"] and project_obj["id"] != 3349)
             else None
         ),
+        add_posts_to_main_feed=project_obj["in_main_feed_by_default"],
     )
 
     if project_obj["id"] == 3349:
@@ -251,7 +252,7 @@ def migrate_projects(site_ids: list[int] = None):
         [tuple(site_ids)],
     ):
         project = create_project(project_obj)
-
+        
         #
         # Migrate question relations
         #

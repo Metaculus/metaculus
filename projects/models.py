@@ -99,6 +99,8 @@ class Project(TimeStampedModel):
         HOT_TOPICS = "hot_topics"
         HOT_CATEGORIES = "hot_categories"
 
+    add_posts_to_main_feed = models.BooleanField(default=False)
+
     type = models.CharField(
         max_length=32,
         choices=ProjectTypes.choices,
