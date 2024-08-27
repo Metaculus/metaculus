@@ -134,7 +134,7 @@ def get_serialized_user(request, user, Serializer):
                 "score": score.score,
                 "score_timestamp": score.created_at.timestamp(),
                 "question_title": score.question.title,
-                "question_resolution": score.question.resolution           
+                "question_resolution": score.question.resolution,
             }
         )
     ser["score_histogram"] = []
