@@ -103,7 +103,8 @@ def migrate_common_permissions(site_ids: list):
         JOIN metac_project_project p 
         ON upp.project_id = p.id
         WHERE p.type != 'PP' AND site_id in %s
-        """, [tuple(site_ids)]
+        """,
+        [tuple(site_ids)],
     ):
         # New app merges Project & Categories & Tags etc.
         # Tournaments & QS & PP were migrated to Project model with the same Ids as the old ones.
@@ -329,6 +330,7 @@ def deduplicate_default_project_and_m2m():
 
     PostProject.objects.filter(Exists(subquery)).delete()
 
+
 def add_to_main_feed_if_in_other_project():
     site_main = get_site_main_project()
     all_posts = Post.objects.all()
@@ -336,9 +338,8 @@ def add_to_main_feed_if_in_other_project():
         if post.default_project.add_posts_to_main_feed:
             if site_main not in post.projects.all():
                 post.projects.add(site_main)
-    Post.objects.bulk_update(
-        all_posts, batch_size=50_000, fields=["default_project"]
-    )
+    Post.objects.bulk_update(all_posts, batch_size=50_000, fields=["default_project"])
+
 
 def migrate_permissions(site_ids: list):
     migrate_personal_projects()

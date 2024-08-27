@@ -89,7 +89,7 @@ def create_post(
         main_projects = [site_main]
 
     if not obj.default_project:
-        obj.default_project = main_projects.pop(0)  
+        obj.default_project = main_projects.pop(0)
 
     if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
         if site_main not in obj.projects.all():

@@ -19,6 +19,7 @@ def get_projects_qs(user: User = None):
 
     return Project.objects.filter_active().filter_permission(user=user)
 
+
 def update_with_add_posts_to_main_feed(project: Project):
     site_main = get_site_main_project()
     post_projects = Post.objects.filter(default_project=project).all()
@@ -33,7 +34,8 @@ def update_with_add_posts_to_main_feed(project: Project):
                 post.projects.remove(site_main)
 
                 post.save()
-                
+
+
 def get_site_main_project():
     obj, _ = Project.objects.get_or_create(type=Project.ProjectTypes.SITE_MAIN)
 
