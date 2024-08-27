@@ -18,7 +18,7 @@ import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { Area, FanOption, Line } from "@/types/charts";
-import { Quartiles } from "@/types/question";
+import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
 
 const TOOLTIP_WIDTH = 150;
 
@@ -58,8 +58,16 @@ const FanChart: FC<Props> = ({
 
   const tooltipItems = useMemo(
     () =>
-      options.reduce<Record<string, Quartiles>>(
-        (acc, el) => ({ ...acc, [el.name]: el.quartiles }),
+      options.reduce<
+        Record<
+          string,
+          { quartiles: Quartiles; question: QuestionWithNumericForecasts }
+        >
+      >(
+        (acc, el) => ({
+          ...acc,
+          [el.name]: { quartiles: el.quartiles, question: el.question },
+        }),
         {}
       ),
     [options]

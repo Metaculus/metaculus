@@ -2,12 +2,16 @@ import { useTranslations } from "next-intl";
 import { ComponentProps, FC } from "react";
 import { VictoryLabel } from "victory";
 
-import { Quartiles } from "@/types/question";
+import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
+import { getDisplayValue } from "@/utils/charts";
 
 const HEIGHT = 70;
 
 type Props = ComponentProps<typeof VictoryLabel> & {
-  items: Record<string, Quartiles>;
+  items: Record<
+    string,
+    { quartiles: Quartiles; question: QuestionWithNumericForecasts }
+  >;
   width: number;
   chartHeight: number;
 };
@@ -27,10 +31,13 @@ const ChartFanTooltip: FC<Props> = ({
     return null;
   }
 
-  const quartiles = items[option];
-  if (!quartiles) {
+  const activeItem = items[option];
+  if (!activeItem) {
     return null;
   }
+
+  const quartiles = items[option].quartiles;
+  const question = items[option].question;
 
   const padding = 10;
   const position = y + padding + HEIGHT > chartHeight ? "top" : "bottom";
@@ -46,15 +53,15 @@ const ChartFanTooltip: FC<Props> = ({
         <div className="flex flex-col rounded-sm border border-olive-700 bg-gray-0 p-1 dark:border-olive-700-dark dark:bg-gray-0-dark">
           <TooltipItem
             label={t("fanGraphThirdQuartileLabel")}
-            value={quartiles.upper75}
+            value={getDisplayValue(quartiles.upper75, question)}
           />
           <TooltipItem
             label={t("fanGraphSecondQuartileLabel")}
-            value={quartiles.median}
+            value={getDisplayValue(quartiles.median, question)}
           />
           <TooltipItem
             label={t("fanGraphFirstQuartileLabel")}
-            value={quartiles.lower25}
+            value={getDisplayValue(quartiles.lower25, question)}
           />
         </div>
       </foreignObject>
@@ -62,7 +69,7 @@ const ChartFanTooltip: FC<Props> = ({
   );
 };
 
-const TooltipItem: FC<{ label: string; value: number }> = ({
+const TooltipItem: FC<{ label: string; value: string }> = ({
   label,
   value,
 }) => (
