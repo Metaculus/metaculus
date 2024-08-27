@@ -6,6 +6,7 @@ import BaseModal from "@/components/base_modal";
 import {
   ENFORCED_THEME_PARAM,
   GRAPH_ZOOM_PARAM,
+  EMBED_QUESTION_TITLE,
 } from "@/constants/global_search_params";
 import useAppTheme from "@/hooks/use_app_theme";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -20,6 +21,7 @@ type Props = {
   embedHeight: number;
   embedWidth: number;
   withChartZoom?: boolean;
+  postTitle?: string;
 };
 
 const EmbedModal: FC<Props> = ({
@@ -29,11 +31,12 @@ const EmbedModal: FC<Props> = ({
   embedWidth,
   embedHeight,
   withChartZoom,
+  postTitle
 }) => {
   const { theme: appTheme } = useAppTheme();
 
   const [embedTheme, setEmbedTheme] = useState<AppTheme>(appTheme);
-
+  const [embedTitle, setEmbedTitle] = useState(postTitle);
   const zoomOptions = getChartZoomOptions();
   const [chartZoom, setChartZoom] = useState(TimelineChartZoomOption.All);
 
@@ -41,11 +44,14 @@ const EmbedModal: FC<Props> = ({
     () =>
       addUrlParams(url, [
         { paramName: ENFORCED_THEME_PARAM, paramValue: embedTheme },
+        ...(embedTitle
+          ? [{ paramName: EMBED_QUESTION_TITLE, paramValue: embedTitle }]
+          : []),
         ...(withChartZoom
           ? [{ paramName: GRAPH_ZOOM_PARAM, paramValue: chartZoom }]
           : []),
       ]),
-    [chartZoom, embedTheme, url, withChartZoom]
+    [chartZoom, embedTheme, embedTitle, url, withChartZoom]
   );
 
   return (
@@ -89,6 +95,17 @@ const EmbedModal: FC<Props> = ({
               </Select>
             </Field>
           )}
+          <div className="mt-4">
+            <label>
+              Embeded question title
+              <input
+                onChange={(e) => setEmbedTitle(e.target.value)}
+                value={embedTitle}
+                className="h-10 w-full rounded border border-gray-700 bg-inherit px-3 py-2 font-mono text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
+              ></input>
+            </label>
+          </div>
+
           <textarea
             autoFocus
             className="mt-4 h-36 w-full rounded border border-gray-700 bg-inherit px-3 py-2 font-mono text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
