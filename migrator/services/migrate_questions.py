@@ -493,7 +493,7 @@ def migrate_questions__conditional(root_questions: list[dict]):
                 or not old_question_no
             ):
                 print(
-                    f"\n\nError migrating conditionl: {root_question['id']}Could not find all related questions for the conditional pair. old_question_yes: {old_question_yes}, old_question_no: {old_question_no}, condition_id: {condition_id}, condition_child_id: {condition_child_id}"
+                    f"\n\nError migrating conditionl: {root_question['id']} Could not find all related questions for the conditional pair. old_question_yes: {old_question_yes}, old_question_no: {old_question_no}, condition_id: {condition_id}, condition_child_id: {condition_child_id}"
                 )
                 continue
 

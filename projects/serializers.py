@@ -44,11 +44,12 @@ class MiniTournamentSerializer(serializers.ModelSerializer):
             "created_at",
             "edited_at",
             "default_permission",
+            "add_posts_to_main_feed",
         )
 
 
 class TournamentSerializer(serializers.ModelSerializer):
-    score_type = serializers.CharField(source="primary_leaderboard.score_type")
+    score_type = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Project
@@ -71,8 +72,14 @@ class TournamentSerializer(serializers.ModelSerializer):
             "edited_at",
             "default_permission",
             "score_type",
+            "add_posts_to_main_feed",
         )
-
+        
+    def get_score_type(self, project: Project) -> str | None:
+        if not project.primary_leaderboard:
+            return None
+        return project.primary_leaderboard.score_type
+    
 
 def serialize_projects(
     projects: list[Project], default_project: Project = None
