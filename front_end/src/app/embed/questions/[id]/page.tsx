@@ -35,7 +35,7 @@ export default async function GenerateQuestionPreview({
   }
 
   const hideZoomPickerParam = searchParams[HIDE_ZOOM_PICKER];
-  const embedTitle = searchParams[EMBED_QUESTION_TITLE] as string;
+  const embedTitle = searchParams[EMBED_QUESTION_TITLE] as string | undefined;
   return (
     <div
       className="flex size-full flex-col gap-8 bg-blue-100 p-4 text-gray-900 dark:bg-blue-100-dark dark:text-gray-900-dark xs:p-8 lg:p-14"
@@ -60,7 +60,7 @@ export default async function GenerateQuestionPreview({
       <div className="flex items-center justify-between gap-8">
         <h4 className="text-sm font-normal lg:text-2xl">
           Based on {post.forecasts_count ?? 0} predictions by{" "}
-          {getForecastersNumber(post)} forecasters
+          {post.nr_forecasters ?? 0} forecasters
         </h4>
         <Link
           href="/"
@@ -72,14 +72,4 @@ export default async function GenerateQuestionPreview({
       </div>
     </div>
   );
-}
-
-function getForecastersNumber(post: PostWithForecasts) {
-  if (post.question) {
-    return (
-      post.question.aggregations.recency_weighted.latest?.forecaster_count ?? 0
-    );
-  }
-
-  return post.nr_forecasters ?? 0;
 }

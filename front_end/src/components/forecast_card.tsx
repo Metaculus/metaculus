@@ -7,7 +7,6 @@ import { VictoryThemeDefinition } from "victory";
 import FanChart from "@/components/charts/fan_chart";
 import NumericChart from "@/components/charts/numeric_chart";
 import ConditionalTile from "@/components/conditional_tile";
-import MultipleChoiceTile from "@/components/multiple_choice_tile";
 import PredictionChip from "@/components/prediction_chip";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
@@ -21,6 +20,7 @@ import {
 } from "@/utils/charts";
 import { sortGroupPredictionOptions } from "@/utils/questions";
 import BinaryGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/binary_group_chart";
+import MultipleChoiceChartCard from "@/app/(main)/questions/[id]/components/detailed_question_card/multiple_choice_chart_card";
 
 type Props = {
   post: PostWithForecasts;
@@ -41,7 +41,7 @@ const ForecastCard: FC<Props> = ({
   withZoomPicker,
   nonInteractive = false,
   navigateToNewTab,
-  embedTitle
+  embedTitle,
 }) => {
   const [cursorValue, setCursorValue] = useState<number | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -146,20 +146,7 @@ const ForecastCard: FC<Props> = ({
               activeCount: visibleChoicesCount,
             }
           );
-          return (
-            <MultipleChoiceTile
-              choices={choices}
-              timestamps={question.aggregations.recency_weighted.history.map(
-                (forecast) => forecast.start_time
-              )}
-              visibleChoicesCount={visibleChoicesCount}
-              chartHeight={chartHeight}
-              chartTheme={chartTheme}
-              defaultChartZoom={defaultChartZoom}
-              withZoomPicker={withZoomPicker}
-              question={question}
-            />
-          );
+          return <MultipleChoiceChartCard question={question} embedMode />;
         default:
           return null;
       }
