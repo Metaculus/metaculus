@@ -9,7 +9,6 @@ from scoring.models import Score, ArchivedScore, Leaderboard
 from migrator.utils import paginated_query
 
 
-
 def migrate_archived_scores():
     rltst = Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
     questions = (
@@ -34,7 +33,7 @@ def migrate_archived_scores():
         ):
             continue
         question = question_dict[comboprediction["question_id"]]
-        score = np.log(2**comboprediction["log_score"])
+        score = np.log(2 ** comboprediction["log_score"])
 
         archived_scores.append(
             ArchivedScore(
@@ -44,7 +43,7 @@ def migrate_archived_scores():
                 coverage=comboprediction["coverage"],
                 created_at=question.resolution_set_time,
                 edited_at=question.resolution_set_time,
-                score_type=Score.ScoreTypes.RELATIVE_LEGACY
+                score_type=Score.ScoreTypes.RELATIVE_LEGACY,
             )
         )
     ArchivedScore.objects.all().delete()
@@ -121,7 +120,7 @@ def score_questions(qty: int | None = None, start_id: int = 0):
         # TODO: add spot_forecast_time
         if question.id in question_ids_to_relative_score:
             if ArchivedScore.objects.filter(question=question).exists():
-                continue  
+                continue
             print(
                 f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
                 f"dur:{str(timezone.now() - start).split(".")[0]} "

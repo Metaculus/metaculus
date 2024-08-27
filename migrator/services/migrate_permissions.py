@@ -99,7 +99,8 @@ def migrate_common_permissions(site_ids: list):
         JOIN metac_project_project p 
         ON upp.project_id = p.id
         WHERE p.type != 'PP' AND site_id in %s
-        """, [tuple(site_ids)]
+        """,
+        [tuple(site_ids)],
     ):
         # New app merges Project & Categories & Tags etc.
         # Tournaments & QS & PP were migrated to Project model with the same Ids as the old ones.
