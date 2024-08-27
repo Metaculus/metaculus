@@ -256,7 +256,8 @@ DRAMATIQ_BROKER = {
     "BROKER": "dramatiq.brokers.redis.RedisBroker",
     "OPTIONS": {
         # Setting redis db to 1 for the MQ storage
-        "url": f"{REDIS_URL}/1"
+        "url": f"{REDIS_URL}/1?ssl_cert_reqs=none",
+        "ssl_cert_reqs": None,
     },
     "MIDDLEWARE": [
         "dramatiq.middleware.AgeLimit",
@@ -277,11 +278,9 @@ DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_URL}/2",
+        "LOCATION": f"{REDIS_URL}/2?ssl_cert_reqs=none",
         "OPTIONS": {
-            "CONNECTION_POOL_KWARGS": (
-                {"ssl_cert_reqs": None} if REDIS_URL.startswith("rediss://") else {}
-            ),
+            "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None},
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     }
