@@ -21,9 +21,11 @@ from projects.serializers import (
 from projects.services import (
     get_projects_qs,
     get_project_permission_for_user,
+    get_site_main_project,
     invite_user_to_project,
     subscribe_project,
     unsubscribe_project,
+    update_with_add_posts_to_main_feed,
 )
 from users.services import get_users_by_usernames
 
@@ -219,23 +221,17 @@ def project_members_manage_api_view(request: Request, project_id: int, user_id: 
 @api_view(["POST"])
 def toggel_add_posts_to_main_feed_api_view(request: Request, project_id: int):
     project = get_object_or_404(Project, pk=project_id)
-    site_main = Project.objects.get(type=Project.ProjectTypes.SITE_MAIN)
+    site_main = get_site_main_project()
+    if project.id == site_main.id:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    
     permission = get_project_permission_for_user(site_main, user=request.user)
     if ObjectPermission.ADMIN != permission:
         return Response(status=status.HTTP_403_FORBIDDEN, data={"error": "Only website admin can toggel this flag"})
     project.add_posts_to_main_feed = not project.add_posts_to_main_feed
     project.save()
-    post_projects = Post.objects.filter(default_project=project).all()
-    if project.add_posts_to_main_feed:
-        for post in post_projects:
-            if site_main not in post.projects.all():
-                post.projects.add(site_main)
-                post.save()
-    else:
-        for post in post_projects:
-            if site_main in post.projects.all():
-                post.projects.remove(site_main)
-                post.save()
+    update_with_add_posts_to_main_feed(project)
+    
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 

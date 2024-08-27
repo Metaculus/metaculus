@@ -84,11 +84,16 @@ def create_post(
 
     # If no projects were provided,
     # We need to append default ones
+    site_main = Project.objects.get(type=Project.ProjectTypes.SITE_MAIN)
     if not main_projects:
-        main_projects = [get_site_main_project()]
+        main_projects = [site_main]
 
     if not obj.default_project:
-        obj.default_project = main_projects.pop(0)
+        obj.default_project = main_projects.pop(0)  
+
+    if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
+        if site_main not in obj.projects.all():
+            obj.projects.add(site_main)
 
     # Save project and validate
     obj.full_clean()
