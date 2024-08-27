@@ -1,4 +1,5 @@
 "use client";
+
 import { FC } from "react";
 
 import MultipleChoiceTile from "@/components/multiple_choice_tile";
@@ -7,9 +8,9 @@ import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
-import { getIsForecastEmpty } from "@/utils/forecasts";
 
 import QuestionNumericTile from "./question_numeric_tile";
+import { useTranslations } from "next-intl";
 
 type Props = {
   question: QuestionWithForecasts;
@@ -22,18 +23,22 @@ const QuestionChartTile: FC<Props> = ({
   authorUsername,
   curationStatus,
 }) => {
+  const t = useTranslations();
   const { user } = useAuth();
 
   if (curationStatus === PostStatus.PENDING) {
     return (
-      <div>{`Created by ${authorUsername} on ${question.created_at.slice(0, 7)}`}</div>
+      <div>
+        {t("createdByUserOnDate", {
+          user: authorUsername,
+          date: question.created_at.slice(0, 7),
+        })}
+      </div>
     );
   }
-  const isForecastEmpty =
-    question.aggregations.recency_weighted.history.length === 0;
 
-  if (isForecastEmpty) {
-    return <div>Forecasts data is empty</div>;
+  if (question.aggregations.recency_weighted.history.length === 0) {
+    return <div>{t("forecastDataIsEmpty")}</div>;
   }
 
   const defaultChartZoom: TimelineChartZoomOption = user

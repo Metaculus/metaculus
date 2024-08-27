@@ -2,6 +2,7 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import classNames from "classnames";
+import { useTranslations } from "next-intl";
 import React, { FC, useMemo } from "react";
 
 import Button from "@/components/ui/button";
@@ -25,6 +26,7 @@ const ChoicesLegend: FC<Props> = ({
   onToggleAll,
   maxLegendChoices,
 }) => {
+  const t = useTranslations()
   const { legendChoices, dropdownChoices } = useMemo(
     () => ({
       legendChoices: choices.slice(0, maxLegendChoices),
@@ -66,7 +68,7 @@ const ChoicesLegend: FC<Props> = ({
                   "bg-gray-300 dark:bg-gray-300-dark": open,
                 })}
               >
-                Others ({dropdownChoices.length})
+                {t("othersCount", {count: dropdownChoices.length})}
                 <FontAwesomeIcon icon={faChevronDown} className="ml-1" />
               </PopoverButton>
               <PopoverPanel
@@ -76,8 +78,8 @@ const ChoicesLegend: FC<Props> = ({
                 <Checkbox
                   checked={areAllSelected}
                   onChange={() => onToggleAll(areAllSelected)}
-                  label={areAllSelected ? "Deselect All" : "Select All"}
-                  className="p-1.5"
+                  label={areAllSelected ? t("deselectAll") : t("selectAll")}
+                  className="p-1.5 capitalize"
                 />
                 {dropdownChoices.map(({ choice, color, active }, idx) => (
                   <ChoiceCheckbox

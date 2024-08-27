@@ -68,7 +68,7 @@ const ConditionalTile: FC<Props> = ({
         )}
       >
         <ConditionalCard
-          label="Condition"
+          label={t("condition")}
           title={getConditionTitle(postTitle, condition)}
           resolved={parentSuccessfullyResolved}
           href={withNavigation ? conditionHref : undefined}
@@ -89,19 +89,19 @@ const ConditionalTile: FC<Props> = ({
         )}
       >
         <ConditionalArrow
-          label={t("arrowIfYes")}
+          label={t("ifYes")}
           didHappen={yesHappened}
           disabled={yesDisabled}
           className={!isEmbedded ? "flex-1 md:flex-none" : undefined}
         />
         <ConditionalArrow
-          label={t("arrowIfNo")}
+          label={t("ifNo")}
           didHappen={noHappened}
           disabled={noDisabled}
           className={!isEmbedded ? "flex-1 md:flex-none" : undefined}
         />
         {!isEmbedded && (
-          <div className="absolute left-0 top-0 h-3/4 w-[1px] bg-blue-700 dark:bg-blue-700-dark md:hidden" />
+          <div className="absolute left-0 top-0 h-3/4 w-px bg-blue-700 dark:bg-blue-700-dark md:hidden" />
         )}
       </div>
       <div

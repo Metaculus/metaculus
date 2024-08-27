@@ -13,6 +13,7 @@ import {
 } from "@/types/post";
 
 import PostApprovalModal from "./post_approval_modal";
+import PostSubscribeButton from "./subscribe_button";
 import { draftPost, submitPostForReview } from "../../actions";
 
 export default function PostHeader({
@@ -81,6 +82,7 @@ export default function PostHeader({
           </>
         )}
         <div className="ml-auto flex flex-row justify-self-end text-gray-700 dark:text-gray-700-dark lg:hidden">
+          <PostSubscribeButton post={post} mini />
           <SharePostMenu questionTitle={questionTitle} questionId={post.id} />
           <PostDropdownMenu post={post} />
         </div>
