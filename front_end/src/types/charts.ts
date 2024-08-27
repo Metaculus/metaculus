@@ -1,4 +1,4 @@
-import { Quartiles } from "@/types/question";
+import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
 
 export type TickFormat = (
   value: number,
@@ -31,6 +31,7 @@ export type FanOption = {
   name: string;
   quartiles: Quartiles;
   resolved: boolean;
+  question: QuestionWithNumericForecasts;
 };
 
 export enum TimelineChartZoomOption {

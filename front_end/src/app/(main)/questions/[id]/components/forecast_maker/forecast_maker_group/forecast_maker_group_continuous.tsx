@@ -242,6 +242,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         value={activeTableOption}
         options={groupOptions}
         onChange={setActiveTableOption}
+        questions={questions}
       />
       {groupOptions.map((option) => {
         const dataset = getNumericForecastDataset(

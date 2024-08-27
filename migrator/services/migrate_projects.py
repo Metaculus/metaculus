@@ -31,6 +31,10 @@ def create_project(project_obj: dict) -> Project:
         "MP": Project.ProjectTypes.SITE_MAIN,
     }.get(project_obj["type"])
 
+    # https://www.notion.so/metaculus/Private-Projects-that-aren-t-tournaments-or-question-series-should-become-private-question-series-02cb0bedd6a54650869879b6323d96ff
+    # Converting other types to QUESTION_SERIES
+    project_type = project_type or Project.ProjectTypes.QUESTION_SERIES
+
     leaderboard_score_type = None
     if project_type in [
         Project.ProjectTypes.TOURNAMENT,
@@ -43,39 +47,37 @@ def create_project(project_obj: dict) -> Project:
         elif project_obj["score_type"] == "SPOT_PEER_SCORE":
             leaderboard_score_type = Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT
 
-    if project_type == Project.ProjectTypes.SITE_MAIN:
-        project = Project.objects.get(type=project_type)
-    else:
-        project = Project(
-            # We keep original IDS for old projects
-            id=project_obj["id"],
-            type=project_type,
-            name=project_obj["name"],
-            slug=project_obj["slug"],
-            subtitle=project_obj["subtitle"],
-            description=project_obj["description"],
-            header_image=project_obj["header_image"],
-            header_logo=project_obj["header_logo"],
-            prize_pool=project_obj["prize_pool"],
-            close_date=project_obj["tournament_close_date"],
-            start_date=project_obj["tournament_start_date"],
-            sign_up_fields=sign_up_fields,
-            meta_description=project_obj["meta_description"],
-            created_at=project_obj["created_at"],
-            edited_at=project_obj["edited_at"],
-            # Old project.default_question_permissions was not working
-            # And project visibility was determined by `is_public` attr
-            default_permission=(
-                ObjectPermission.FORECASTER
-                if (project_obj["public"] and project_obj["id"] != 3349)
-                else None
-            ),
-        )
+    project = Project(
+        # We keep original IDS for old projects
+        id=project_obj["id"],
+        type=project_type,
+        name=project_obj["name"],
+        slug=project_obj["slug"],
+        subtitle=project_obj["subtitle"],
+        description=project_obj["description"],
+        header_image=project_obj["header_image"],
+        header_logo=project_obj["header_logo"],
+        prize_pool=project_obj["prize_pool"],
+        close_date=project_obj["tournament_close_date"],
+        start_date=project_obj["tournament_start_date"],
+        sign_up_fields=sign_up_fields,
+        meta_description=project_obj["meta_description"],
+        created_at=project_obj["created_at"],
+        edited_at=project_obj["edited_at"],
+        # Old project.default_question_permissions was not working
+        # And project visibility was determined by `is_public` attr
+        default_permission=(
+            ObjectPermission.FORECASTER
+            if (project_obj["public"] and project_obj["id"] != 3349)
+            else None
+        ),
+        add_posts_to_main_feed=project_obj["in_main_feed_by_default"],
+    )
 
-        if project_obj["id"] == 3349:
-            # the FAB project (id == 3349), was probably the only project using the default_question_permissions
-            # to make the project visible to everyone, but predictable only by the users added to the project
-            project.default_permission = ObjectPermission.VIEWER
+    if project_obj["id"] == 3349:
+        # the FAB project (id == 3349), was probably the only project using the default_question_permissions
+        # to make the project visible to everyone, but predictable only by the users added to the project
+        project.default_permission = ObjectPermission.VIEWER
 
     project.save()
     if leaderboard_score_type:
@@ -245,8 +247,7 @@ def migrate_projects(site_ids: list[int] = None):
     q_p_m2m_cls = Post.projects.through
 
     for project_obj in paginated_query(
-        "SELECT * FROM metac_project_project "
-        "WHERE site_id in %s AND (type in ('TO', 'QS') OR (type = 'MP' and site_id = 1))",
+        "SELECT * FROM metac_project_project " "WHERE site_id in %s",
         [tuple(site_ids)],
     ):
         project = create_project(project_obj)

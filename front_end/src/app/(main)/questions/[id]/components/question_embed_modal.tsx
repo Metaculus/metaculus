@@ -7,9 +7,10 @@ import { useEmbedUrl } from "@/hooks/share";
 
 type Props = {
   postId: number;
+  postTitle?: string;
 };
 
-const QuestionEmbedModal: FC<Props> = ({ postId }) => {
+const QuestionEmbedModal: FC<Props> = ({ postId, postTitle }) => {
   const embedUrl = useEmbedUrl(`/embed/questions/${postId}`);
   const { isOpen, updateIsOpen } = useEmbedModalContext();
 
@@ -25,6 +26,7 @@ const QuestionEmbedModal: FC<Props> = ({ postId }) => {
       embedHeight={430}
       url={embedUrl}
       withChartZoom
+      postTitle={postTitle}
     />
   );
 };

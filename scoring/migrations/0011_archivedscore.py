@@ -9,27 +9,75 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questions', '0016_alter_forecast_question'),
-        ('scoring', '0010_leaderboardentry_aggregation_method_and_more'),
+        ("questions", "0016_alter_forecast_question"),
+        ("scoring", "0010_leaderboardentry_aggregation_method_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ArchivedScore',
+            name="ArchivedScore",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now, editable=False)),
-                ('edited_at', models.DateTimeField(default=django.utils.timezone.now, editable=False, null=True)),
-                ('aggregation_method', models.CharField(choices=[('recency_weighted', 'Recency Weighted'), ('unweighted', 'Unweighted'), ('single_aggregation', 'Single Aggregation')], max_length=200, null=True)),
-                ('score', models.FloatField()),
-                ('coverage', models.FloatField(default=0)),
-                ('score_type', models.CharField(choices=[('relative_legacy', 'Relative Legacy')], max_length=200)),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='archived_scores', to='questions.question')),
-                ('user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, editable=False
+                    ),
+                ),
+                (
+                    "edited_at",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, editable=False, null=True
+                    ),
+                ),
+                (
+                    "aggregation_method",
+                    models.CharField(
+                        choices=[
+                            ("recency_weighted", "Recency Weighted"),
+                            ("unweighted", "Unweighted"),
+                            ("single_aggregation", "Single Aggregation"),
+                        ],
+                        max_length=200,
+                        null=True,
+                    ),
+                ),
+                ("score", models.FloatField()),
+                ("coverage", models.FloatField(default=0)),
+                (
+                    "score_type",
+                    models.CharField(
+                        choices=[("relative_legacy", "Relative Legacy")], max_length=200
+                    ),
+                ),
+                (
+                    "question",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="archived_scores",
+                        to="questions.question",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]
