@@ -42,6 +42,7 @@ sshtunnel = "^0.4.0"
 python-dotenv = "^1.0.1"
 mysql-connector-python = "^9.0.0"
 gspread = "^6.1.2"
+whitenoise = "^6.7.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"

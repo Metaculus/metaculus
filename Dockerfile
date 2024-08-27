@@ -61,7 +61,7 @@ RUN poetry config virtualenvs.create false \
 ENV NODE_ENV=production
 RUN cd front_end  && npm ci && npm run build
 
-RUN source venv/bin/activate && ./manage.py collectstatic
+RUN source venv/bin/activate && ./manage.py collectstatic --noinput
 
 ENV PORT=3000
 EXPOSE 3000
