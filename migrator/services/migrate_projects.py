@@ -251,7 +251,7 @@ def migrate_projects(site_ids: list[int] = None):
         [tuple(site_ids)],
     ):
         project = create_project(project_obj)
-
+        
         #
         # Migrate question relations
         #
