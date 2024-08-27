@@ -12,6 +12,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import (
     notify_project_subscriptions_post_open,
+    get_site_main_project,
 )
 from questions.services import (
     create_question,
@@ -83,7 +84,7 @@ def create_post(
 
     # If no projects were provided,
     # We need to append default ones
-    site_main = Project.objects.get(type=Project.ProjectTypes.SITE_MAIN)
+    site_main = get_site_main_project()
     if not main_projects:
         main_projects = [site_main]
 
