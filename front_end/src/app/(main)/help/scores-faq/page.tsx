@@ -1,5 +1,4 @@
 import PageWrapper from "../../components/pagewrapper";
-import MathJaxWrapper from "../../components/mathjaxwrapper";
 
 export const metadata = {
   title: "Scores FAQ | Metaculus",
@@ -278,7 +277,7 @@ export default function ScoresFAQ() {
         With the log score, you do get a higher (better) score if you predict
         the true probability of 17%.
       </p>
-      {/* 
+      {/*
   <h2 className="section-header" id="log-score">What is the log score?</h2>
   <p>The logarithmic scoring rule, or &quot;log score&quot; for short, is defined as:</p>
   <MathJaxWrapper>
@@ -295,7 +294,7 @@ export default function ScoresFAQ() {
   <p>This means that the log score is always negative (for Binary and Multiple Choice questions). This has proved unintuitive, which is one reason why Metaculus uses the <a href="/help/scores-faq/#baseline-score">Baseline</a> and <a href="/help/scores-faq/#peer-score">Peer</a> scores, which are based on the log score but can be positive.</p>
   <p>The log score is proper (see <a href="/help/scores-faq/#proper-scoring">What is a proper scoring rule?</a>). This means that to maximize your score <b>you should predict your true beliefs</b> (see <a href="#extremizing">Can I get better scores by predicting extreme values?</a>).</p>
   <p>One interesting property of the log score: it is much more punitive of extreme wrong predictions than it is rewarding of extreme right predictions. Consider the scores you get for predicting 99% or 99.9%:</p>
-  
+
   <div className="overflow-x-auto">
     <table className="mx-auto w-auto border-collapse">
       <thead>
@@ -319,9 +318,9 @@ export default function ScoresFAQ() {
       </tbody>
     </table>
   </div>
-  
+
   <p>Going from 99% to 99.9% only gives you a tiny advantage if you are correct (+0.009), but a huge penalty if you are wrong (-2.3). So be careful, and only use extreme probabilities when you&apos;re sure they&apos;re appropriate!</p>
-  
+
   <h2 className="section-header" id="continuous-log-score">What is the log score for continuous questions?</h2>
   <p>Since the domain of possible outcomes for continuous questions is (drum roll) continuous, any outcome has mathematically 0 chance of happening. Thankfully we can adapt the log score in the form:</p>
   <MathJaxWrapper>

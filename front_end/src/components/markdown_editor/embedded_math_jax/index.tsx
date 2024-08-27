@@ -16,6 +16,7 @@ import classNames from "classnames";
 import React, { FC } from "react";
 
 import createEditorComponent from "@/components/markdown_editor/createJsxComponent";
+import MathJaxContent from "@/components/math_jax_content";
 import Button from "@/components/ui/button";
 
 import useLexicalBackspaceNodeRemove from "../hooks/use_backspace_node_remove";
@@ -44,9 +45,7 @@ const EmbeddedMathJax: React.FC<MathJaxRendererProps> = ({ content }) => {
       )}
       {...getReferenceProps()}
     >
-      <MathJaxContext>
-        <MathJax>{content}</MathJax>
-      </MathJaxContext>
+      <MathJaxContent content={content} />
       {!isReadOnly && (
         <Button onClick={deleteMathJax} presentationType="icon" variant="text">
           <FontAwesomeIcon icon={faXmark} />

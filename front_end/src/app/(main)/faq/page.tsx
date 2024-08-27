@@ -1,7 +1,8 @@
 import Image from "next/image";
 
+import MathJaxContent from "@/components/math_jax_content";
+
 import PageWrapper from "../components/pagewrapper";
-import MathJaxWrapper from "../components/mathjaxwrapper";
 
 export const metadata = {
   title: "Metaculus FAQ",
@@ -2674,11 +2675,15 @@ export default function FAQ() {
           <ul className="ml-5 list-disc space-y-2">
             <li>Keep only the most recent prediction from each forecaster.</li>
             <li>
-              <MathJaxWrapper>{` Assign them a number \\(n\\), from oldest to newest (oldest is
-            \\(1\\)).`}</MathJaxWrapper>
+              <MathJaxContent
+                content={` Assign them a number \\(n\\), from oldest to newest (oldest is
+              \\(1\\)).`}
+              />
             </li>
             <li>
-              <MathJaxWrapper>{` Weight each by \\(w(n) \\propto e^{\\sqrt{n}}\\) before being aggregated.`}</MathJaxWrapper>
+              <MathJaxContent
+                content={` Weight each by \\(w(n) \\propto e^{\\sqrt{n}}\\) before being aggregated.`}
+              />
             </li>
             <ul className="ml-5 list-disc">
               <li>
@@ -2706,7 +2711,9 @@ export default function FAQ() {
               </li>
             </ul>
             <li>
-              <MathJaxWrapper>{` The particular form of the weights means that approximately \\(\\sqrt{N}\\) forecasters need to predict or update their prediction in order to substantially change the Community Prediction on a question that already has \\(N\\) forecasters.`}</MathJaxWrapper>
+              <MathJaxContent
+                content={` The particular form of the weights means that approximately \\(\\sqrt{N}\\) forecasters need to predict or update their prediction in order to substantially change the Community Prediction on a question that already has \\(N\\) forecasters.`}
+              />
             </li>
           </ul>
           <p>
