@@ -74,12 +74,12 @@ class TournamentSerializer(serializers.ModelSerializer):
             "score_type",
             "add_posts_to_main_feed",
         )
-        
+
     def get_score_type(self, project: Project) -> str | None:
         if not project.primary_leaderboard:
             return None
         return project.primary_leaderboard.score_type
-    
+
 
 def serialize_projects(
     projects: list[Project], default_project: Project = None
