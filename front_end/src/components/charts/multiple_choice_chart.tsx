@@ -1,5 +1,5 @@
 "use client";
-import { fromUnixTime } from "date-fns";
+
 import { isNil, merge } from "lodash";
 import React, { FC, memo, useEffect, useMemo, useState } from "react";
 import {
@@ -41,6 +41,7 @@ import {
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
 import XTickLabel from "./primitives/x_tick_label";
+import { useTranslations } from "next-intl";
 
 type Props = {
   timestamps: number[];
@@ -67,6 +68,7 @@ const MultipleChoiceChart: FC<Props> = ({
   extraTheme,
   userForecasts,
 }) => {
+  const t = useTranslations();
   const {
     ref: chartContainerRef,
     width: chartWidth,
@@ -118,7 +120,7 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorLabel={({ datum }: VictoryLabelProps) => {
         if (datum) {
           return datum.x === defaultCursor
-            ? "now"
+            ? t("now")
             : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
         }
       }}

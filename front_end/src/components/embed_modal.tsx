@@ -1,4 +1,5 @@
 "use client";
+
 import { Field, Label, Select } from "@headlessui/react";
 import { FC, useMemo, useState } from "react";
 
@@ -13,6 +14,7 @@ import { TimelineChartZoomOption } from "@/types/charts";
 import { AppTheme } from "@/types/theme";
 import { getChartZoomOptions } from "@/utils/charts";
 import { addUrlParams } from "@/utils/navigation";
+import { useTranslations } from "next-intl";
 
 type Props = {
   isOpen: boolean;
@@ -33,6 +35,7 @@ const EmbedModal: FC<Props> = ({
   withChartZoom,
   postTitle
 }) => {
+  const t = useTranslations();
   const { theme: appTheme } = useAppTheme();
 
   const [embedTheme, setEmbedTheme] = useState<AppTheme>(appTheme);
@@ -55,15 +58,14 @@ const EmbedModal: FC<Props> = ({
   );
 
   return (
-    <BaseModal label="Embed this page" isOpen={isOpen} onClose={onClose}>
+    <BaseModal label={t("embedThisPage")} isOpen={isOpen} onClose={onClose}>
       <div className="max-w-2xl">
         <p className="text-base leading-tight">
-          You can use the below code snippet to embed this page on your own
-          webpage. Feel free to change the height and width to suit your needs.
+          {t("embedCodeSnippet")}
         </p>
         <div>
           <Field className="mr-4 mt-4 inline-block text-base leading-tight">
-            <Label>Select a theme</Label>
+            <Label>{t("selectATheme")}</Label>
             <Select
               value={embedTheme}
               onChange={(event) =>
@@ -72,13 +74,13 @@ const EmbedModal: FC<Props> = ({
               name="chart-theme"
               className="select-arrow ml-2 h-8 rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-3 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
             >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
+              <option className="capitalize" value="light">{t("light")}</option>
+              <option className="capitalize" value="dark">{t("dark")}</option>
             </Select>
           </Field>
           {withChartZoom && (
             <Field className="mr-4 mt-4 inline-block text-base leading-tight">
-              <Label>Select graph zoom</Label>
+              <Label>{t("selectAGraphZoom")}</Label>
               <Select
                 value={chartZoom}
                 onChange={(event) =>
@@ -89,7 +91,7 @@ const EmbedModal: FC<Props> = ({
               >
                 {zoomOptions.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {option.label}
+                    {t(option.label)}
                   </option>
                 ))}
               </Select>
@@ -113,7 +115,9 @@ const EmbedModal: FC<Props> = ({
             readOnly
             value={`<iframe src="${iFrameSrc}" style="height:${embedHeight}px; width:100%; max-width:${embedWidth}px"></iframe>`}
           />
-          <p className="my-2 text-base leading-tight">Preview</p>
+          <span className="my-2 text-base leading-tight">
+            {t("preview")}
+          </span>
           <div className="mt-2 max-w-full overflow-x-auto">
             <iframe
               className="mx-auto"
