@@ -10,7 +10,7 @@ import PostsApi from "@/services/posts";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
 import "./styles.scss";
-import { PostWithForecasts } from "@/types/post";
+import { getTranslations } from "next-intl/server";
 
 export default async function GenerateQuestionPreview({
   params,
@@ -19,6 +19,7 @@ export default async function GenerateQuestionPreview({
   params: { id: number };
   searchParams: SearchParams;
 }) {
+  const t = await getTranslations()
   const post = await PostsApi.getPost(params.id);
   if (!post) {
     return null;
@@ -59,15 +60,14 @@ export default async function GenerateQuestionPreview({
       />
       <div className="flex items-center justify-between gap-8">
         <h4 className="text-sm font-normal lg:text-2xl">
-          Based on {post.forecasts_count ?? 0} predictions by{" "}
-          {post.nr_forecasters ?? 0} forecasters
+          {t("forecastDisclaimer", { predictionCount: post.forecasts_count ?? 0, forecasterCount: post.nr_forecasters })}
         </h4>
         <Link
           href="/"
           id="id-logo-used-by-screenshot-donot-change"
-          className="m-0 max-w-[250px] font-alternate-gothic text-4xl font-light tracking-[.04em] no-underline antialiased lg:text-6xl"
+          className="m-0 max-w-[250px] font-alternate-gothic text-4xl font-light tracking-[.04em] no-underline antialiased lg:text-6xl capitalize"
         >
-          Metaculus
+          {t("metaculus")}
         </Link>
       </div>
     </div>

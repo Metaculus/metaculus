@@ -33,14 +33,6 @@ import IncludedForecast from "./included_forecast";
 
 import { SortOption, sortComments } from ".";
 
-const copyToClipboard = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch (err) {
-    console.error("Failed to copy text: ", err);
-  }
-};
-
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
   permissions: CommentPermissions;
@@ -191,6 +183,14 @@ const Comment: FC<CommentProps> = ({
 
     if (response && "errors" in response && !!response.errors) {
       throw response.errors;
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.error(t("failedToCopyText"), err);
     }
   };
 
@@ -363,7 +363,7 @@ const Comment: FC<CommentProps> = ({
               author: user!.id,
             });
             if (response && "errors" in response) {
-              console.error("Error deleting comment:", response.errors);
+              console.error(t("errorDeletingComment"), response.errors);
             } else {
               setIsEditing(false);
             }
@@ -402,7 +402,7 @@ const Comment: FC<CommentProps> = ({
                   }}
                 >
                   <FontAwesomeIcon icon={faXmark} />
-                  Cancel
+                  {t("cancel")}
                 </Button>
               ) : (
                 <Button onClick={() => setIsReplying(true)} variant="text">
