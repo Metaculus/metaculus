@@ -6,6 +6,7 @@ from migrator.utils import paginated_query
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
+from projects.services import get_site_main_project
 from utils.dtypes import flatten
 
 # TODO: what to do with MP/Site Main project type? Do we want
@@ -328,9 +329,20 @@ def deduplicate_default_project_and_m2m():
 
     PostProject.objects.filter(Exists(subquery)).delete()
 
+def add_to_main_feed_if_in_other_project():
+    site_main = get_site_main_project()
+    all_posts = Post.objects.all()
+    for post in all_posts:
+        if post.default_project.add_posts_to_main_feed:
+            if site_main not in post.projects.all():
+                post.projects.add(site_main)
+    Post.objects.bulk_update(
+        all_posts, batch_size=50_000, fields=["default_project"]
+    )
 
 def migrate_permissions(site_ids: list):
     migrate_personal_projects()
     migrate_common_permissions(site_ids)
     migrate_post_default_project()
     deduplicate_default_project_and_m2m()
+    add_to_main_feed_if_in_other_project()
