@@ -69,12 +69,14 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   timestamps: number[];
   preselectedQuestionId?: number;
+  defaultZoom?: TimelineChartZoomOption;
 };
 
 const BinaryGroupChart: FC<Props> = ({
   questions,
   timestamps,
   preselectedQuestionId,
+  defaultZoom,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -195,9 +197,11 @@ const BinaryGroupChart: FC<Props> = ({
           onChartReady={handleChartReady}
           onCursorChange={handleCursorChange}
           defaultZoom={
-            user
-              ? TimelineChartZoomOption.All
-              : TimelineChartZoomOption.TwoMonths
+            defaultZoom
+              ? defaultZoom
+              : user
+                ? TimelineChartZoomOption.All
+                : TimelineChartZoomOption.TwoMonths
           }
           withZoomPicker
           userForecasts={userForecasts}
