@@ -16,7 +16,7 @@ urlpatterns = [
     ),
     path(
         "projects/toggel_add_posts_to_main_feed/<int:project_id>",
-        views.toggel_add_posts_to_main_feed_api_view,
+        views.toggle_add_posts_to_main_feed_api_view,
         name="toggel_add_posts_to_main_feed",
     ),
     path(

@@ -20,7 +20,7 @@ def get_projects_qs(user: User = None):
     return Project.objects.filter_active().filter_permission(user=user)
 
 
-def update_with_add_posts_to_main_feed(project: Project):
+def update_with_add_posts_to_main_feed(project: Project, add_posts_to_main_feed: bool):
     site_main = get_site_main_project()
 
     if project == site_main:
@@ -33,6 +33,9 @@ def update_with_add_posts_to_main_feed(project: Project):
             post.projects.add(site_main)
         else:
             post.projects.remove(site_main)
+
+    project.add_posts_to_main_feed = add_posts_to_main_feed
+    project.save()
 
 
 def get_site_main_project():
