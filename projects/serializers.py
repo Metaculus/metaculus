@@ -44,6 +44,7 @@ class MiniTournamentSerializer(serializers.ModelSerializer):
             "created_at",
             "edited_at",
             "default_permission",
+            "add_posts_to_main_feed",
         )
 
 
@@ -71,6 +72,7 @@ class TournamentSerializer(serializers.ModelSerializer):
             "edited_at",
             "default_permission",
             "score_type",
+            "add_posts_to_main_feed",
         )
         
     def get_score_type(self, project: Project) -> str | None:

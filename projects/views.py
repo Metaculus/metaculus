@@ -8,6 +8,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.serializers import (
@@ -213,6 +214,28 @@ def project_members_manage_api_view(request: Request, project_id: int, user_id: 
         member.permission = permission
         member.save(update_fields=["permission"])
 
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(["POST"])
+def toggel_add_posts_to_main_feed_api_view(request: Request, project_id: int):
+    project = get_object_or_404(Project, pk=project_id)
+    site_main = Project.objects.get(type=Project.ProjectTypes.SITE_MAIN)
+    permission = get_project_permission_for_user(site_main, user=request.user)
+    if ObjectPermission.ADMIN != permission:
+        return Response(status=status.HTTP_403_FORBIDDEN, data={"error": "Only website admin can toggel this flag"})
+    project.add_posts_to_main_feed = not project.add_posts_to_main_feed
+    project.save()
+    post_projects = Post.objects.filter(default_project=project).all()
+    if project.add_posts_to_main_feed:
+        for post in post_projects:
+            if site_main not in post.projects.all():
+                post.projects.add(site_main)
+                post.save()
+    else:
+        for post in post_projects:
+            if site_main in post.projects.all():
+                post.projects.remove(site_main)
+                post.save()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
