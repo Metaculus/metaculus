@@ -26,7 +26,7 @@ const ChoicesLegend: FC<Props> = ({
   onToggleAll,
   maxLegendChoices,
 }) => {
-  const t = useTranslations()
+  const t = useTranslations();
   const { legendChoices, dropdownChoices } = useMemo(
     () => ({
       legendChoices: choices.slice(0, maxLegendChoices),
@@ -45,7 +45,7 @@ const ChoicesLegend: FC<Props> = ({
   }, [choices]);
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-normal">
+    <div className="relative flex flex-wrap items-center justify-center gap-3 text-xs font-normal">
       {legendChoices.map(({ choice, color, active }, idx) => (
         <ChoiceCheckbox
           key={`multiple-choice-legend-${choice}-${idx}`}
