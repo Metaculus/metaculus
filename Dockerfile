@@ -57,6 +57,7 @@ RUN poetry config virtualenvs.create false \
     && . venv/bin/activate \
     && poetry install --without dev
 
+<<<<<<< HEAD
 RUN cd front_end  && npm ci
 
 RUN source venv/bin/activate && ./manage.py collectstatic
@@ -69,4 +70,19 @@ EXPOSE 3000
 
 CMD ["/app/entry_point.sh"]
 
+=======
+
+ENV NODE_ENV=production
+RUN cd front_end  && npm ci && npm run build
+
+RUN source venv/bin/activate && ./manage.py collectstatic
+
+ENV PORT=3000
+EXPOSE 3000
+
+ARG ENTRY_SCRIPT_ARG="scripts/prod/startapp.sh"
+ENV ENTRY_SCRIPT=${ENTRY_SCRIPT_ARG}
+
+CMD ["sh","-c","${ENTRY_SCRIPT}"]
+>>>>>>> 091bcdcd24c0f2c30a61dad45066de335946225f
 

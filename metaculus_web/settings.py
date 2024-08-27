@@ -255,7 +255,7 @@ DRAMATIQ_BROKER = {
     "BROKER": "dramatiq.brokers.redis.RedisBroker",
     "OPTIONS": {
         # Setting redis db to 1 for the MQ storage
-        "url": f"{REDIS_URL}/1",
+        "url": f"{REDIS_URL}/1"
     },
     "MIDDLEWARE": [
         "dramatiq.middleware.AgeLimit",
@@ -278,6 +278,9 @@ CACHES = {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": f"{REDIS_URL}/2",
         "OPTIONS": {
+            "CONNECTION_POOL_KWARGS": (
+                {"ssl_cert_reqs": None} if REDIS_URL.startswith("rediss://") else {}
+            ),
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     }
@@ -325,11 +328,7 @@ SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
 GOOGLE_CREDEBTIALS_FAB_SHEET_B64 = os.environ.get("GOOGLE_CREDEBTIALS_FAB_SHEET_B64")
 
 
-ALLOWED_HOSTS = [
-    ".metaculus.com",
-    "localhost",
-    "127.0.0.1"
-]
+ALLOWED_HOSTS = [".metaculus.com", "localhost", "127.0.0.1"]
 CSRF_TRUSTED_ORIGINS = [FRONTEND_BASE_URL]
 INTERNAL_IPS = ["127.0.0.1"]
 

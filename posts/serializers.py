@@ -148,6 +148,7 @@ class PostFilterSerializer(serializers.Serializer):
     similar_to_post_id = serializers.IntegerField(required=False, allow_null=True)
 
     search = serializers.CharField(required=False, allow_null=True)
+    for_main_feed = serializers.BooleanField(required=False, allow_null=True)
 
     def validate_public_figure(self, value: int):
         try:

@@ -247,8 +247,7 @@ def migrate_projects(site_ids: list[int] = None):
     q_p_m2m_cls = Post.projects.through
 
     for project_obj in paginated_query(
-        "SELECT * FROM metac_project_project "
-        "WHERE site_id in %s",
+        "SELECT * FROM metac_project_project " "WHERE site_id in %s",
         [tuple(site_ids)],
     ):
         project = create_project(project_obj)

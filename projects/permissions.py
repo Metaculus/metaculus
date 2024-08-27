@@ -170,7 +170,7 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
 
         if raise_exception and not can:
             raise PermissionDenied(
-                "You do not have permission delete this member of the project"
+                "You do not have permission to delete this member of the project"
             )
 
         return can
