@@ -98,10 +98,10 @@ def create_post(
     # Sync status fields
     obj.update_pseudo_materialized_fields()
 
-    secondary_projects = set(meta_projects + main_projects)
+    secondary_projects = meta_projects + main_projects
 
     if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
-        secondary_projects.add(site_main)
+        secondary_projects.append(site_main)
 
     # Adding projects
     obj.projects.add(*secondary_projects)
