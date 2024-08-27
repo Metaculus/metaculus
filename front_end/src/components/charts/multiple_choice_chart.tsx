@@ -133,6 +133,15 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
+          const lastTimestamp = timestamps[timestamps.length - 1]
+          if (value === lastTimestamp) {
+            onCursorChange(
+              lastTimestamp,
+              xScale.tickFormat
+            );
+            return;
+          }
+
           const closestTimestamp = findPreviousTimestamp(timestamps, value);
 
           onCursorChange(closestTimestamp, xScale.tickFormat);
