@@ -2,14 +2,15 @@ import Link from "next/link";
 
 import ForecastCard from "@/components/forecast_card";
 import {
+  EMBED_QUESTION_TITLE,
   GRAPH_ZOOM_PARAM,
   HIDE_ZOOM_PICKER,
 } from "@/constants/global_search_params";
 import PostsApi from "@/services/posts";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
-
 import "./styles.scss";
+import { PostWithForecasts } from "@/types/post";
 
 export default async function GenerateQuestionPreview({
   params,
@@ -34,7 +35,7 @@ export default async function GenerateQuestionPreview({
   }
 
   const hideZoomPickerParam = searchParams[HIDE_ZOOM_PICKER];
-
+  const embedTitle = searchParams[EMBED_QUESTION_TITLE] as string | undefined;
   return (
     <div
       className="flex size-full flex-col gap-8 bg-blue-100 p-4 text-gray-900 dark:bg-blue-100-dark dark:text-gray-900-dark xs:p-8 lg:p-14"
@@ -54,11 +55,12 @@ export default async function GenerateQuestionPreview({
         defaultChartZoom={chartZoom}
         withZoomPicker={hideZoomPickerParam !== "true"}
         navigateToNewTab
+        embedTitle={embedTitle}
       />
       <div className="flex items-center justify-between gap-8">
         <h4 className="text-sm font-normal lg:text-2xl">
           Based on {post.forecasts_count ?? 0} predictions by{" "}
-          {post.nr_forecasters} forecasters
+          {post.nr_forecasters ?? 0} forecasters
         </h4>
         <Link
           href="/"

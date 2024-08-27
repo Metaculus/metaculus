@@ -72,7 +72,7 @@ def convert_project_permissions(code):
     }.get(code)
 
 
-def migrate_common_permissions():
+def migrate_common_permissions(site_ids: list):
     """
     Migrates permissions from regular projects
     """
@@ -101,8 +101,8 @@ def migrate_common_permissions():
         FROM metac_project_userprojectpermissions upp
         JOIN metac_project_project p 
         ON upp.project_id = p.id
-        WHERE p.type != 'PP'
-        """
+        WHERE p.type != 'PP' AND site_id in %s
+        """, [tuple(site_ids)]
     ):
         # New app merges Project & Categories & Tags etc.
         # Tournaments & QS & PP were migrated to Project model with the same Ids as the old ones.
@@ -329,8 +329,8 @@ def deduplicate_default_project_and_m2m():
     PostProject.objects.filter(Exists(subquery)).delete()
 
 
-def migrate_permissions():
+def migrate_permissions(site_ids: list):
     migrate_personal_projects()
-    migrate_common_permissions()
+    migrate_common_permissions(site_ids)
     migrate_post_default_project()
     deduplicate_default_project_and_m2m()

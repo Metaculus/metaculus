@@ -12,7 +12,6 @@ from migrator.utils import paginated_query
 from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services import get_site_main_project
 from questions.constants import ResolutionType
 from questions.models import Question, Conditional, GroupOfQuestions, Forecast
 from utils.the_math.formulas import unscaled_location_to_string_location
@@ -147,7 +146,6 @@ def create_post(question: dict, **kwargs) -> Post:
         published_at=question["publish_time"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
-        default_project=get_site_main_project(),
         **kwargs,
     )
 
@@ -434,7 +432,7 @@ def migrate_questions__notebook(root_questions: list[dict]):
 
             notebook.save()
             post.save()
-            post.projects.set([get_site_main_project(), *projects])
+            post.projects.set(projects)
             post.save()
 
 
@@ -477,7 +475,7 @@ def migrate_questions__conditional(root_questions: list[dict]):
                 )
             except Exception:
                 old_question_yes = None
-            
+
             try:
                 old_question_no = next(
                     q for q in root_question["children"] if q["qc_resolution"] == 0
@@ -488,7 +486,12 @@ def migrate_questions__conditional(root_questions: list[dict]):
             condition_id = get_children_relation_id_by_attr("condition_id")
             condition_child_id = get_children_relation_id_by_attr("condition_child_id")
 
-            if not condition_id or not condition_child_id or not old_question_yes or not old_question_no:
+            if (
+                not condition_id
+                or not condition_child_id
+                or not old_question_yes
+                or not old_question_no
+            ):
                 print(
                     f"\n\nError migrating conditionl: {root_question['id']}Could not find all related questions for the conditional pair. old_question_yes: {old_question_yes}, old_question_no: {old_question_no}, condition_id: {condition_id}, condition_child_id: {condition_child_id}"
                 )

@@ -22,7 +22,7 @@ const ElectionsEmbedModal: FC = () => {
       <Button
         variant="tertiary"
         size="sm"
-        className="col-start-3 row-start-1 hidden w-auto self-center justify-self-end xs:flex"
+        className="col-start-3 row-start-1 hidden w-auto self-center justify-self-end xs:flex capitalize"
         onClick={() => {
           updateIsOpen(true);
         }}
