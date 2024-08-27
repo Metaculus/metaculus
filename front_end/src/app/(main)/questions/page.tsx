@@ -15,11 +15,11 @@ export default async function Questions({
 }: {
   searchParams: SearchParams;
 }) {
-  const filters = generateFiltersFromSearchParams(
-    searchParams,
+  const filters = generateFiltersFromSearchParams(searchParams, {
     // Default Feed ordering should be hotness
-    QuestionOrder.HotDesc
-  );
+    defaultOrderBy: QuestionOrder.HotDesc,
+    defaultForMainFeed: true,
+  });
   const topics = await ProjectsApi.getTopics();
 
   return (
