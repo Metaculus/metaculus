@@ -94,8 +94,8 @@ const Histogram: React.FC<HistogramProps> = ({
               ),
               stroke: getThemeColor(
                 color === "blue"
-                  ? METAC_COLORS["conditional-blue"]["500"]
-                  : METAC_COLORS["conditional-green"]["500"]
+                  ? METAC_COLORS["conditional-blue"]["700"]
+                  : METAC_COLORS["conditional-green"]["700"]
               ),
               strokeWidth: 1,
             },
