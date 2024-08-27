@@ -1,5 +1,4 @@
 #! /bin/bash
-cd ..
 
 # Push container
 heroku container:push release  --arg ENTRY_SCRIPT_ARG="scripts/prod/release.sh"

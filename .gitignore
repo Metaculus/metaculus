@@ -160,3 +160,5 @@ some_data.csv
 
 profile.dump
 .env.sh
+
+staticfiles

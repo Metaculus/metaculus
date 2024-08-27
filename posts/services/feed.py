@@ -76,7 +76,9 @@ def get_posts_feed(
 
     if for_main_feed:
         site_main_project = get_site_main_project()
-        qs = qs.filter(Q(projects=site_main_project) | Q(default_project=site_main_project))
+        qs = qs.filter(
+            Q(projects=site_main_project) | Q(default_project=site_main_project)
+        )
 
     forecast_type = forecast_type or []
     forecast_type_q = Q()
