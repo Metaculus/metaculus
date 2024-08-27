@@ -22,6 +22,7 @@ export type PostsParams = PaginationParams & {
   commented_by?: string;
   order_by?: string;
   tournaments?: string | string[];
+  for_main_feed?: boolean;
   ids?: number[];
   news_type?: string;
   public_figure?: number;

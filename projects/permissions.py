@@ -174,14 +174,3 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
             )
 
         return can
-
-    @classmethod
-    def can_change_project_in_main_feed_flag(
-        cls, permission: Self, raise_exception=False
-    ):
-        can = permission == cls.ADMIN
-
-        if raise_exception and not can:
-            raise PermissionDenied("You do not have permission to toggle this flag")
-
-        return can

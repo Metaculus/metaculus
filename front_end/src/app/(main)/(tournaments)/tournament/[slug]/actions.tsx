@@ -70,3 +70,8 @@ export async function subscribeProject(projectId: number) {
 export async function unsubscribeProject(projectId: number) {
   return ProjectsApi.unsubscribe(projectId);
 }
+
+export async function toggleAddPostsToMainFeed(projectId: number) {
+  await ProjectsApi.toggleAddPostsToMainFeed(projectId);
+  revalidatePath("/");
+}
