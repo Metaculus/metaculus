@@ -136,6 +136,20 @@ const Footer: FC = () => {
             onClick={(e) => {
               e.preventDefault();
               params.delete("locale");
+              params.append("locale", "es");
+              router.push(pathname + "?" + params.toString());
+              router.refresh();
+            }}
+            name="language"
+            value="es"
+          >
+            🇪🇸
+          </button>
+          <button
+            className="rounded px-1.5 text-lg hover:bg-blue-300-dark"
+            onClick={(e) => {
+              e.preventDefault();
+              params.delete("locale");
               params.append("locale", "cs");
               router.push(pathname + "?" + params.toString());
               router.refresh();
