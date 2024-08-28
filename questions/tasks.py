@@ -35,7 +35,12 @@ def resolve_question_and_send_notifications(question_id: int):
     score_question(
         question,
         question.resolution,
-        score_types=[Score.ScoreTypes.PEER, Score.ScoreTypes.BASELINE],
+        score_types=[
+            Score.ScoreTypes.PEER,
+            Score.ScoreTypes.BASELINE,
+            Score.ScoreTypes.SPOT_PEER,
+            Score.ScoreTypes.RELATIVE_LEGACY,
+        ],
     )
     scores = (
         question.scores.filter(user__isnull=False)
