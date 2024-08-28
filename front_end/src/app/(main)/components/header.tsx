@@ -10,6 +10,7 @@ import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 
 import MobileMenu from "./mobile_menu";
+import LanguageMenu from "@/components/language_menu";
 
 const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
   return (
@@ -116,6 +117,9 @@ const Header: FC = () => {
         </li>
         <li className="z-10 flex h-full items-center justify-center">
           <NavUserButton />
+        </li>
+        <li className="z-10 flex items-center p-2 hover:bg-blue-200-dark">
+          <LanguageMenu />
         </li>
         <li className="z-10 flex items-center p-4">
           <ThemeToggle />

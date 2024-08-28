@@ -13,6 +13,7 @@ import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
 import ThemeToggle from "@/components/theme_toggle";
+import LanguageMenu from "@/components/language_menu";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { Href } from "@/types/navigation";
@@ -98,7 +99,8 @@ const MobileMenu: FC = () => {
             </MenuLink>
           )}
 
-          <div className="flex items-center justify-end bg-blue-900 px-4 py-3">
+          <div className="flex items-center justify-end bg-blue-100-dark px-4 py-3 gap-4">
+            <LanguageMenu />
             <ThemeToggle />
           </div>
         </MenuItems>
