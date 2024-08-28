@@ -55,7 +55,6 @@ const QuestionForecastMaker: FC<Props> = ({
             canResolve={canResolve}
           />
           <QuestionResolutionText question={question} />
-          <ScoreDisplay question={question} />
         </>
       )}
       {question.type === QuestionType.Binary && (
@@ -73,7 +72,6 @@ const QuestionForecastMaker: FC<Props> = ({
             canResolve={canResolve}
           />
           <QuestionResolutionText question={question} />
-          <ScoreDisplay question={question} />
         </>
       )}
       {question.type === QuestionType.MultipleChoice && (
@@ -90,9 +88,9 @@ const QuestionForecastMaker: FC<Props> = ({
             canResolve={canResolve}
           />
           <QuestionResolutionText question={question} />
-          <ScoreDisplay question={question} />
         </>
       )}
+      <ScoreDisplay question={question} />
     </ForecastMakerContainer>
   );
 };
