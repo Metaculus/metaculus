@@ -65,6 +65,17 @@ export type Forecast = {
   interval_upper_bounds: number[] | null;
 };
 
+export type ScoreData = {
+  baseline_score?: number | null;
+  peer_score?: number | null;
+  spot_baseline_score?: number | null;
+  spot_peer_score?: number | null;
+  relative_legacy_score?: number | null;
+  relative_legacy_arvhived_score?: number | null;
+  coverage?: number | null;
+  weighted_coverage?: number | null;
+};
+
 export type UserForecast = Forecast & {
   slider_values: any | null; // TODO: solidify this
 };
@@ -72,6 +83,7 @@ export type UserForecast = Forecast & {
 export type UserForecastHistory = {
   history: UserForecast[];
   latest?: UserForecast;
+  score_data?: ScoreData;
 };
 
 export type AggregateForecast = Forecast & {
@@ -84,6 +96,7 @@ export type AggregateForecast = Forecast & {
 export type AggregateForecastHistory = {
   history: AggregateForecast[];
   latest?: AggregateForecast;
+  score_data?: ScoreData;
 };
 
 export type Aggregations = {

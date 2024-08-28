@@ -10,6 +10,7 @@ import ForecastMakerBinary from "./forecast_maker_binary";
 import ForecastMakerContinuous from "./forecast_maker_continuous";
 import ForecastMakerMultipleChoice from "./forecast_maker_multiple_choice";
 import ForecastMakerContainer from "../container";
+import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
   postId: number;
@@ -89,6 +90,7 @@ const QuestionForecastMaker: FC<Props> = ({
           <QuestionResolutionText question={question} />
         </>
       )}
+      <ScoreDisplay question={question} />
     </ForecastMakerContainer>
   );
 };
