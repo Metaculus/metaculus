@@ -87,7 +87,7 @@ jobs:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: |
           poetry run ./manage.py migrate
-          PLAYWRIGHT_BROWSERS_PATH=.venv scripts/run_integration_tests.sh
+          PLAYWRIGHT_BROWSERS_PATH=.venv scripts/tests/run_integration_tests.sh
       - name: Create trace.zip
         if: always()
         run: |
