@@ -13,7 +13,7 @@ class Command(BaseCommand):
     help = "Builds forecasts for all questions"
 
     def handle(self, *args, **options):
-        qs = Question.objects.all().prefetch_related("user_forecasts")
+        qs = Question.objects.all().order_by("id").prefetch_related("user_forecasts")
         total = qs.count()
         processed = 0
         tm = time.time()
@@ -31,11 +31,13 @@ class Command(BaseCommand):
 
             processed += 1
             print(
-                f"Processed {int(processed / total * 100)}% ({processed}/{total})"
-                f" questions. Duration: {round(time.time() - tm)}s",
+                f"Processed {int(processed / total * 100)}% ({processed}/{total}) "
+                f"Dur:{round(time.time() - tm)}s "
+                f"Est:{round((time.time() - tm) / processed * (total - processed))}s",
                 end="\r",
             )
         print(
-            f"Processed {int(processed / total * 100)}% ({processed}/{total})"
-            f" questions. Duration: {round(time.time() - tm)}s",
+            f"Processed {int(processed / total * 100)}% ({processed}/{total}) "
+            f"Dur:{round(time.time() - tm)}s "
+            f"Est:{round((time.time() - tm) / processed * (total - processed))}s"
         )
