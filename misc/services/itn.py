@@ -27,6 +27,9 @@ BLOCKED_MEDIAS = [
     # Purpose: russian foreign intelligence agency
     # https://en.wikipedia.org/wiki/New_Eastern_Outlook
     "neweasternoutlook",
+    # Purpose: russian foreign intelligence agency
+    # https://en.wikipedia.org/wiki/RT_(TV_network)
+    "rt",
 ]
 
 
