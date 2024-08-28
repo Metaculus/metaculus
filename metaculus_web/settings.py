@@ -68,7 +68,6 @@ INSTALLED_APPS = [
     "fab_credits",
 ]
 
-
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -85,7 +84,6 @@ MIDDLEWARE = [
 if DEBUG:
     INSTALLED_APPS += ["debug_toolbar"]
     MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
-
 
 # Cors configuration
 CORS_ORIGIN_WHITELIST = [
@@ -214,7 +212,7 @@ ANYMAIL = {
 }
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 EMAIL_HOST_USER = os.environ.get(
-    "EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg.metaculus.com>"
+    "EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg2.metaculus.com>"
 )
 EMAIL_SENDER_NO_REPLY = os.environ.get(
     "EMAIL_SENDER_NO_REPLY", "Metaculus NoReply <no-reply@mg2.metaculus.com>"
@@ -237,6 +235,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
