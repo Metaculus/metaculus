@@ -1,12 +1,13 @@
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
+import { faUser } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
-import { PostStatus, Resolution } from "@/types/post";
+import { PostStatus } from "@/types/post";
 import { Question } from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
+import { getDisplayUserValue, getDisplayValue } from "@/utils/charts";
 import { formatResolution } from "@/utils/questions";
 
 type Size = "compact" | "large";
@@ -18,6 +19,7 @@ type Props = {
   size?: Size;
   className?: string;
   chipClassName?: string;
+  showUserForecast?: boolean;
 };
 
 const PredictionChip: FC<Props> = ({
@@ -27,6 +29,7 @@ const PredictionChip: FC<Props> = ({
   className,
   chipClassName,
   size,
+  showUserForecast,
 }) => {
   const t = useTranslations();
   const locale = useLocale();
@@ -38,9 +41,27 @@ const PredictionChip: FC<Props> = ({
     question.type,
     locale
   );
-
-  const fmted_prediction = formatResolution(prediction, question.type, locale);
-
+  const userForecast = question.my_forecasts;
+  const aggregate = question.aggregations.recency_weighted;
+  const lastUserForecast = aggregate.history[aggregate.history.length - 1];
+  if (question.id === 3104) {
+    console.log(lastUserForecast);
+    console.log(question.my_forecasts);
+    console.log(lastUserForecast.centers![0]);
+    console.log(lastUserForecast.start_time);
+    console.log(question.type);
+    console.log(question.scaling);
+    console.log(
+      getDisplayUserValue(
+        question.my_forecasts!,
+        lastUserForecast.centers![0],
+        lastUserForecast.start_time,
+        question.type,
+        question.scaling
+      )
+    );
+  }
+  console.log(question);
   switch (status) {
     case PostStatus.PENDING:
       return (
@@ -72,6 +93,18 @@ const PredictionChip: FC<Props> = ({
           >
             {formattedResolution}
           </Chip>
+          {showUserForecast && question.my_forecasts?.history.length && (
+            <p className="m-2 text-orange-800 dark:text-orange-800-dark">
+              <FontAwesomeIcon icon={faUser} className="mr-1" />
+              {getDisplayUserValue(
+                question.my_forecasts,
+                lastUserForecast.centers![0],
+                lastUserForecast.start_time,
+                question.type,
+                question.scaling
+              )}
+            </p>
+          )}
           {size !== "compact" && !!nr_forecasters && (
             <p>
               {nr_forecasters} {t("forecasters")}
@@ -116,6 +149,18 @@ const PredictionChip: FC<Props> = ({
           {!!nr_forecasters && (
             <p>
               {nr_forecasters} {t("forecasters")}
+            </p>
+          )}
+          {showUserForecast && question.my_forecasts?.history.length && (
+            <p className="m-2 text-orange-800 dark:text-orange-800-dark">
+              <FontAwesomeIcon icon={faUser} className="mr-1" />
+              {getDisplayUserValue(
+                question.my_forecasts,
+                lastUserForecast.centers![0],
+                lastUserForecast.start_time,
+                question.type,
+                question.scaling
+              )}
             </p>
           )}
         </span>
