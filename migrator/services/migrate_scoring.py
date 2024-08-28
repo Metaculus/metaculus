@@ -88,51 +88,29 @@ def score_questions(qty: int | None = None, start_id: int = 0):
             )
             print("Resolved q with no resolved time")
             exit()
+        score_types = [
+            Score.ScoreTypes.PEER,
+            Score.ScoreTypes.BASELINE,
+            Score.ScoreTypes.SPOT_PEER,
+        ]
+        if question.id in question_ids_to_relative_score:
+            score_types.append(Score.ScoreTypes.RELATIVE_LEGACY)
         f = question.user_forecasts.count()
         print(
             f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
             f"dur:{str(timezone.now() - start).split(".")[0]} "
             f"est:{str((timezone.now() - start) / i * c).split(".")[0]} "
-            "peer...",
+            f"scoring: {','.join(score_types)}...",
             end="\r",
         )
         score_question(
             question,
             question.resolution,
-            score_types=[
-                Score.ScoreTypes.PEER,
-            ],
+            score_types=score_types,
         )
-        print(
-            f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
-            f"dur:{str(timezone.now() - start).split(".")[0]} "
-            f"est:{str((timezone.now() - start) / i * c).split(".")[0]} "
-            "peer done. basline...",
-            end="\r",
-        )
-        score_question(
-            question,
-            question.resolution,
-            score_types=[
-                Score.ScoreTypes.BASELINE,
-            ],
-        )
-        # TODO: add spot_forecast_time
-        if question.id in question_ids_to_relative_score:
-            if ArchivedScore.objects.filter(question=question).exists():
-                continue
-            print(
-                f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
-                f"dur:{str(timezone.now() - start).split(".")[0]} "
-                f"est:{str((timezone.now() - start) / i * c).split(".")[0]} "
-                "peer done. basline done. relative...",
-                end="\r",
-            )
-            score_question(
-                question,
-                question.resolution,
-                # TODO: add spot_forecast_time
-                score_types=[
-                    Score.ScoreTypes.RELATIVE_LEGACY,
-                ],
-            )
+    print(
+        f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
+        f"dur:{str(timezone.now() - start).split(".")[0]} "
+        f"est:{str((timezone.now() - start) / i * (c - i)).split(".")[0]} "
+        f"scoring: {','.join(score_types)}... DONE",
+    )
