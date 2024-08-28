@@ -45,7 +45,7 @@ RUN export NODE_VERSION=$(cat /tmp/.nvmrc) && cd /tmp/ && curl -fsSLO --compress
   && ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
 
-  # This is done to copy only the source code from HEAD into the image
+# This is done to copy only the source code from HEAD into the image
 RUN --mount=type=bind,source=.git/,target=/tmp/app/.git/ \
     git clone /tmp/app/.git/ /app/
 
@@ -69,5 +69,5 @@ EXPOSE 3000
 ARG ENTRY_SCRIPT_ARG="scripts/prod/startapp.sh"
 ENV ENTRY_SCRIPT=${ENTRY_SCRIPT_ARG}
 
-CMD ["sh","-c","${ENTRY_SCRIPT}"]
+CMD ["sh", "-c", "${ENTRY_SCRIPT}"]
 
