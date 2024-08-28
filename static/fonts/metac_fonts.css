@@ -1,0 +1,22 @@
+@font-face {
+    font-family: "Diatype Variable";
+    src: url("ABCDiatypeVariable.woff2") format("woff2-variations"),
+    url("ABCDiatypeVariable.woff") format("woff-variations");
+    font-weight: 100 700;
+}
+
+/* Fallback static font */
+@font-face {
+    font-family: "Diatype";
+    src: url("ABCDiatype-Regular.woff2") format("woff2"),
+    url("ABCDiatype-Regular.woff") format("woff");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Diatype";
+    src: url("ABCDiatype-RegularItalic.woff2") format("woff2");
+    font-weight: 400;
+    font-style: italic;
+}
