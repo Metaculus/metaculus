@@ -134,7 +134,7 @@ const PredictionChip: FC<Props> = ({
               {nr_forecasters} {t("forecasters")}
             </p>
           )}
-          {showUserForecast && question.my_forecasts?.history.length && (
+          {showUserForecast && !!question.my_forecasts?.history.length && (
             <p className="m-2 text-orange-800 dark:text-orange-800-dark">
               <FontAwesomeIcon icon={faUser} className="mr-1" />
               {getDisplayUserValue(
