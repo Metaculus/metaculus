@@ -1,16 +1,31 @@
 #! /bin/bash
-set -x
+required_vars=("NEXT_PUBLIC_TURNSTILE_SITE_KEY" "HEROKU_APP" "NEXT_PUBLIC_APP_URL")
 
-[ -z "$HEROKU_APP" ] && { echo "Error: HEROKU_APP env varible is not set."; exit 1; }
+for var in "${required_vars[@]}"; do
+    if [ -z "${!var}" ]; then
+        echo "Error: $var environment variable is not set."
+        exit 1
+    fi
+done
 
-# Push container
-heroku container:push release --arg ENTRY_SCRIPT_ARG="scripts/prod/release.sh" -a $HEROKU_APP
-heroku container:push web --arg ENTRY_SCRIPT_ARG="scripts/prod/startapp.sh" -a $HEROKU_APP
-heroku container:push dramatiq_worker --arg ENTRY_SCRIPT_ARG="scripts/prod/run_dramatiq.sh" -a $HEROKU_APP
-heroku container:push django_cron --arg ENTRY_SCRIPT_ARG="scripts/prod/django_cron.sh" -a $HEROKU_APP
+# These are needed for nextjs build phase, as it replaces the value of these environmental variables
+# at build time :/
+FRONTEND_ENV_FILE=$(mktemp)
+echo NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY >$FRONTEND_ENV_FILE
+echo NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL >>$FRONTEND_ENV_FILE
+docker buildx build \
+    --secret id=frontend_env,src=$FRONTEND_ENV_FILE \
+    --platform linux/amd64 -t registry.heroku.com/$HEROKU_APP/web --target web .
 
-# Release them
-heroku container:release release -a $HEROKU_APP
-heroku container:release web -a $HEROKU_APP
-heroku container:release dramatiq_worker -a $HEROKU_APP
-heroku container:release django_cron -a $HEROKU_APP
+# The rest of the target images don't require any special env variables
+for target in release dramatiq_worker django_cron; do
+    docker build --platform linux/amd64 . -t registry.heroku.com/$HEROKU_APP/$target --target $target
+done
+
+# Push all built images to the heroku docker registry
+for target in release dramatiq_worker django_cron web; do
+    docker push registry.heroku.com/$HEROKU_APP/$target
+done
+
+# Release them all
+heroku container:release release web dramatiq_worker django_cron -a $HEROKU_APP
