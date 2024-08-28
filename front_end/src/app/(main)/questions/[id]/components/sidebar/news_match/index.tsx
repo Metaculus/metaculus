@@ -9,7 +9,6 @@ interface Props {
 }
 
 const fetchArticles = async (postId: number) => {
-  await new Promise((resolve) => setTimeout(resolve, 300));
   return await PostsApi.getRelatedNews(postId);
 };
 
