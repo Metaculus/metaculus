@@ -22,6 +22,7 @@ from migrator.services.migrate_scoring import migrate_archived_scores, score_que
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
 from migrator.services.post_migrate import post_migrate_calculate_divergence
+from migrator.services.migrate_fab_credits import migrate_fab_credits
 from migrator.utils import reset_sequence
 from posts.jobs import job_compute_movement
 from posts.services.common import compute_hotness
@@ -60,6 +61,7 @@ class Command(BaseCommand):
         # main model migration
         migrate_users()
         print("Migrated users")
+        migrate_fab_credits()
         migrate_questions(site_ids=site_ids)
         print("Migrated questions")
         migrate_projects(site_ids=site_ids)
