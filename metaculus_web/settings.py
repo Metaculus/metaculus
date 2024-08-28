@@ -337,7 +337,13 @@ FAB_CREDITS_ANTHROPIC_API_KEY = os.environ.get("FAB_CREDITS_ANTHROPIC_API_KEY")
 FAB_CREDITS_OPENAI_API_KEY = os.environ.get("FAB_CREDITS_OPENAI_API_KEY")
 
 
-ALLOWED_HOSTS = [".metaculus.com", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    ".metaculus.com",
+    "localhost",
+    "127.0.0.1",
+    "dev-metaculus-web-023b332df454.herokuapp.com/", #remove after we have a DNS entry for dev environment
+]
+
 CSRF_TRUSTED_ORIGINS = [FRONTEND_BASE_URL]
 INTERNAL_IPS = ["127.0.0.1"]
 
