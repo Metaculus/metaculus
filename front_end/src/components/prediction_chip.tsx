@@ -41,27 +41,10 @@ const PredictionChip: FC<Props> = ({
     question.type,
     locale
   );
-  const userForecast = question.my_forecasts;
+
   const aggregate = question.aggregations.recency_weighted;
   const lastUserForecast = aggregate.history[aggregate.history.length - 1];
-  if (question.id === 3104) {
-    console.log(lastUserForecast);
-    console.log(question.my_forecasts);
-    console.log(lastUserForecast.centers![0]);
-    console.log(lastUserForecast.start_time);
-    console.log(question.type);
-    console.log(question.scaling);
-    console.log(
-      getDisplayUserValue(
-        question.my_forecasts!,
-        lastUserForecast.centers![0],
-        lastUserForecast.start_time,
-        question.type,
-        question.scaling
-      )
-    );
-  }
-  console.log(question);
+
   switch (status) {
     case PostStatus.PENDING:
       return (
