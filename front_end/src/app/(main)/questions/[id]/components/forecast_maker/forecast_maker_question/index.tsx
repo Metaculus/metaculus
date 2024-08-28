@@ -10,6 +10,7 @@ import ForecastMakerBinary from "./forecast_maker_binary";
 import ForecastMakerContinuous from "./forecast_maker_continuous";
 import ForecastMakerMultipleChoice from "./forecast_maker_multiple_choice";
 import ForecastMakerContainer from "../container";
+import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
   postId: number;
@@ -54,6 +55,7 @@ const QuestionForecastMaker: FC<Props> = ({
             canResolve={canResolve}
           />
           <QuestionResolutionText question={question} />
+          <ScoreDisplay question={question} />
         </>
       )}
       {question.type === QuestionType.Binary && (
@@ -71,6 +73,7 @@ const QuestionForecastMaker: FC<Props> = ({
             canResolve={canResolve}
           />
           <QuestionResolutionText question={question} />
+          <ScoreDisplay question={question} />
         </>
       )}
       {question.type === QuestionType.MultipleChoice && (
@@ -87,6 +90,7 @@ const QuestionForecastMaker: FC<Props> = ({
             canResolve={canResolve}
           />
           <QuestionResolutionText question={question} />
+          <ScoreDisplay question={question} />
         </>
       )}
     </ForecastMakerContainer>
