@@ -154,55 +154,32 @@ def filter_between_dates(timestamps, start_time, end_time=None):
     return timestamps[start_index:end_index]
 
 
-def get_user_forecast_history(question: Question) -> list[ForecastSet]:
-    forecasts = question.user_forecasts.order_by("start_time").all()
-    timestamps = set()
-    for forecast in forecasts:
-        timestamps.add(forecast.start_time)
-        if forecast.end_time:
-            timestamps.add(forecast.end_time)
-
-    timestamps = sorted(timestamps)
-    output = defaultdict(list)
-
-    for forecast in forecasts:
-        # Find active timestamps
-        forecast_timestamps = filter_between_dates(
-            timestamps, forecast.start_time, forecast.end_time
-        )
-
-        for timestamp in forecast_timestamps:
-            output[timestamp].append(forecast.get_prediction_values())
-
-    return [ForecastSet(output[key], key) for key in sorted(output.keys())]
-
-
-def minimize_forecast_history(
-    forecast_history: list[AggregateForecast],
+def minimize_history(
+    history: list[datetime],
     max_size: int = 128,
-) -> list[AggregateForecast]:
-    if len(forecast_history) <= max_size:
-        return forecast_history
+) -> list[datetime]:
+    if len(history) <= max_size:
+        return history
 
-    # this is a pretty cheap algorithm that generates a minimized forecast history
-    # by taking the middle (wrt start_time) forecast of the list, then the middle
+    # this is a pretty cheap algorithm that generates a minimized history
+    # by taking the middle time of the list, then the middle
     # of the two halves, then the middle of the four quarters, etc. 7 times,
-    # generating a maximum list of 128 forecasts close evenly spaced.
+    # generating a maximum list of 128 datetimes close evenly spaced.
 
     def find_index_of_middle(forecasts: list[AggregateForecast]) -> int:
         if len(forecasts) < 3:
             return 0
-        t0 = forecasts[0].start_time
-        t2 = forecasts[-1].start_time
+        t0 = forecasts[0]
+        t2 = forecasts[-1]
         t1 = t0 + (t2 - t0) / 2
         for i, forecast in enumerate(forecasts):
-            if forecast.start_time > t1:
-                if forecast.start_time - t1 < t1 - forecasts[i - 1].start_time:
+            if forecast > t1:
+                if forecast - t1 < t1 - forecasts[i - 1]:
                     return i
                 return i - 1
 
     minimized = []
-    working_lists = [forecast_history]
+    working_lists = [history]
     for _ in range(int(np.ceil(np.log2(max_size)))):
         new_working_lists = []
         for working_list in working_lists:
@@ -215,14 +192,41 @@ def minimize_forecast_history(
             new_working_lists.append(working_list[middle_index + 1 :])
         working_lists = new_working_lists
 
-    minimized: list[AggregateForecast] = sorted(minimized, key=lambda x: x.start_time)
+    minimized: list[AggregateForecast] = sorted(minimized)
     # make sure to always have the first and last forecast are the first
     # and last of the original list
-    if minimized[0].start_time != forecast_history[0].start_time:
-        minimized.insert(0, forecast_history[0])
-    if minimized[-1].start_time != forecast_history[-1].start_time:
-        minimized.append(forecast_history[-1])
+    if minimized[0] != history[0]:
+        minimized.insert(0, history[0])
+    if minimized[-1] != history[-1]:
+        minimized.append(history[-1])
     return minimized
+
+
+def get_user_forecast_history(
+    question: Question, minimize: bool = False
+) -> list[ForecastSet]:
+    forecasts = question.user_forecasts.order_by("start_time").all()
+    timestamps = set()
+    for forecast in forecasts:
+        timestamps.add(forecast.start_time)
+        if forecast.end_time:
+            timestamps.add(forecast.end_time)
+
+    timestamps = sorted(timestamps)
+    if minimize:
+        timestamps = minimize_history(timestamps)
+    output = defaultdict(list)
+
+    for forecast in forecasts:
+        # Find active timestamps
+        forecast_timestamps = filter_between_dates(
+            timestamps, forecast.start_time, forecast.end_time
+        )
+
+        for timestamp in forecast_timestamps:
+            output[timestamp].append(forecast.get_prediction_values())
+
+    return [ForecastSet(output[key], key) for key in sorted(output.keys())]
 
 
 def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
@@ -241,7 +245,7 @@ def get_cp_history(
 ) -> list[AggregateForecast]:
     full_summary: list[AggregateForecast] = []
 
-    forecast_history = get_user_forecast_history(question)
+    forecast_history = get_user_forecast_history(question, minimize=minimize)
     for i, forecast_set in enumerate(forecast_history):
         if aggregation_method == AggregationMethod.RECENCY_WEIGHTED:
             weights = generate_recency_weights(len(forecast_set.forecasts_values))
@@ -262,6 +266,4 @@ def get_cp_history(
             full_summary[-1].end_time = new_entry.start_time
         full_summary.append(new_entry)
 
-    if minimize:
-        return minimize_forecast_history(full_summary)
     return full_summary
