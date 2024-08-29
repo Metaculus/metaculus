@@ -1,3 +1,4 @@
+import pytest  # noqa
 import datetime
 
 from freezegun import freeze_time

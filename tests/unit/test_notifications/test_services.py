@@ -15,7 +15,7 @@ class TestNotificationNewComments:
 
         # Post #1 Notifications
         post_1_duplicated_comment = factory_comment(
-            author=user2, on_post=post_1, text=f"Comment 2"
+            author=user2, on_post=post_1, text="Comment 2"
         )
 
         factory_notification(
@@ -25,7 +25,7 @@ class TestNotificationNewComments:
                 post=NotificationPostParams.from_post(post_1),
                 new_comments_count=0,
                 new_comment_ids=[
-                    factory_comment(author=user2, on_post=post_1, text=f"Comment 1").pk,
+                    factory_comment(author=user2, on_post=post_1, text="Comment 1").pk,
                     post_1_duplicated_comment.pk,
                 ],
             ),
@@ -43,7 +43,7 @@ class TestNotificationNewComments:
                         text=(
                             "It is a long established fact that a reader will be distracted by the readable content of "
                             "a page when looking at its layout. @user1 The point of using Lorem Ipsum is that "
-                            f"it has a more-or-less normal distribution of letters, as opposed to using"
+                            "it has a more-or-less normal distribution of letters, as opposed to using"
                         ),
                     ).pk
                 ],
@@ -56,8 +56,8 @@ class TestNotificationNewComments:
                 post=NotificationPostParams.from_post(post_1),
                 new_comments_count=0,
                 new_comment_ids=[
-                    factory_comment(author=user2, on_post=post_1, text=f"Comment 3").pk,
-                    factory_comment(author=user2, on_post=post_1, text=f"Comment 4").pk,
+                    factory_comment(author=user2, on_post=post_1, text="Comment 3").pk,
+                    factory_comment(author=user2, on_post=post_1, text="Comment 4").pk,
                     post_1_duplicated_comment.pk,
                 ],
             ),
@@ -72,10 +72,10 @@ class TestNotificationNewComments:
                 new_comments_count=0,
                 new_comment_ids=[
                     factory_comment(
-                        author=user2, on_post=post_1, text=f"Comment 2.1"
+                        author=user2, on_post=post_1, text="Comment 2.1"
                     ).pk,
                     factory_comment(
-                        author=user2, on_post=post_1, text=f"Comment 2.2"
+                        author=user2, on_post=post_1, text="Comment 2.2"
                     ).pk,
                 ],
             ),

@@ -1,7 +1,6 @@
 from django.db import models
 from pgvector.django import VectorField
 
-from posts.models import Post
 from utils.models import TimeStampedModel
 
 

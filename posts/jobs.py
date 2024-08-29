@@ -62,7 +62,7 @@ def job_compute_movement():
     for i, post in enumerate(qs.iterator(100), 1):
         try:
             post.movement = compute_movement(post)
-        except:
+        except Exception:
             logger.exception(f"Error during compute_movement for post_id {post.id}")
             continue
 

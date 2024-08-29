@@ -1,3 +1,5 @@
+import pytest  # noqa
+
 from comments.services.common import create_comment
 from notifications.models import Notification
 from posts.models import Post, PostUserSnapshot

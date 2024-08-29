@@ -1,3 +1,5 @@
+import pytest  # noqa
+
 from comments.models import Comment
 from comments.services.feed import get_comments_feed
 from tests.unit.fixtures import *  # noqa
@@ -54,7 +56,7 @@ class TestPagination:
 
     def test_root_pagination(self, user2, user1_client, comments):
         response = user1_client.get(
-            f"/api/comments/?limit=3&sort=created_at&use_root_comments_pagination=true"
+            "/api/comments/?limit=3&sort=created_at&use_root_comments_pagination=true"
         )
 
         # Check pagination
