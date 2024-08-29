@@ -7,7 +7,6 @@ from django.db.models.query import QuerySet
 from django.utils import timezone as django_timezone
 
 from projects.permissions import ObjectPermission
-from questions.models import Question
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
 
@@ -88,7 +87,7 @@ class Project(TimeStampedModel):
         TOPIC = "topic"
 
         @classmethod
-        def can_have_permissions(cls, tp: "ProjectTypes"):
+        def can_have_permissions(cls, tp):
             """
             Detects whether this project type can have permission configuration
             """

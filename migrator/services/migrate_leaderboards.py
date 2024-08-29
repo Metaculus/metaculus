@@ -1,9 +1,5 @@
 from datetime import timedelta
 
-from collections import defaultdict
-from django.utils import timezone
-
-
 from posts.models import Post
 from projects.models import Project
 from scoring.models import (
@@ -67,11 +63,11 @@ def populate_global_leaderboards():
 
 
 def populate_project_leaderboards():
-    projects_with_leaderboads = Project.objects.filter(
+    projects_with_leaderboards = Project.objects.filter(
         type__in=[Project.ProjectTypes.TOURNAMENT, Project.ProjectTypes.QUESTION_SERIES]
     )
-    c = len(projects_with_leaderboads)
-    for i, project in enumerate(projects_with_leaderboads, 1):
+    c = len(projects_with_leaderboards)
+    for i, project in enumerate(projects_with_leaderboards, 1):
         print("populating:", i, "/", c, project.name, end="\r")
         for leaderboard in project.leaderboards.all():
             update_project_leaderboard(project, leaderboard)

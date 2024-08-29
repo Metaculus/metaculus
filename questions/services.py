@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from typing import cast
 
 from django.db import transaction
 from django.utils import timezone

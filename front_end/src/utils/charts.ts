@@ -493,7 +493,11 @@ export const interpolateYValue = (xValue: number, line: Line) => {
   return p1.y + t * (p2.y - p1.y);
 };
 
-export function generateTicksY(height: number, desiredMajorTicks: number[], majorTickDistance?: number) {
+export function generateTicksY(
+  height: number,
+  desiredMajorTicks: number[],
+  majorTickDistance?: number
+) {
   const minorTicksPerMajor = 9;
   const desiredMajorTickDistance = majorTickDistance ?? 50;
   let majorTicks = desiredMajorTicks;
