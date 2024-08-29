@@ -99,7 +99,7 @@ const MobileMenu: FC = () => {
             </MenuLink>
           )}
 
-          <div className="flex items-center justify-end bg-blue-100-dark px-4 py-3 gap-4">
+          <div className="flex items-center justify-end gap-4 bg-blue-100-dark px-4 py-3">
             <LanguageMenu />
             <ThemeToggle />
           </div>
