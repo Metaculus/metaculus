@@ -2,6 +2,7 @@ from comments.models import Comment, CommentVote
 from migrator.utils import paginated_query
 from posts.models import Post
 from questions.models import Forecast
+from django.utils import timezone
 
 
 def create_comment_vote(vote_obj):
@@ -52,14 +53,29 @@ def migrate_comment_votes():
     comment_ids = Comment.objects.values_list("id", flat=True)
     vote_instances = []
 
-    vote_instances += [
-        create_comment_vote(obj)
-        for obj in paginated_query("SELECT * FROM metac_question_comment_likes")
-        if obj["comment_id"] in comment_ids
-    ]
+    start = timezone.now()
+    for i, obj in paginated_query("SELECT * FROM metac_question_comment_likes"):
+        print(
+            f"\033[Kmigrating comment votes: {i}. "
+            f"dur:{str(timezone.now() - start).split('.')[0]} ",
+            end="\r",
+        )
+        if obj["comment_id"] in comment_ids:
+            vote_instances.append(create_comment_vote(obj))
 
+    print(
+        f"\033[Kmigrating comment votes: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} ",
+        "bulk creating...",
+        end="\r",
+    )
     CommentVote.objects.bulk_create(
         vote_instances, ignore_conflicts=True, batch_size=1_000
+    )
+    print(
+        f"\033[Kmigrating comment votes: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} ",
+        "bulk creating... DONE",
     )
 
 
@@ -67,16 +83,31 @@ def migrate_comments():
     comments = []
     post_ids = Post.objects.values_list("id", flat=True)
 
-    for comment in paginated_query(
-        """
+    start = timezone.now()
+    for i, comment in enumerate(
+        paginated_query(
+            """
         SELECT c.*
         FROM metac_question_comment c
         where c.author_id is not null
         and c.id is not null
         order by c.id
         ;"""
+        ),
+        1,
     ):
+        print(
+            f"\033[Kmigrating comments: {i}. "
+            f"dur:{str(timezone.now() - start).split('.')[0]} ",
+            end="\r",
+        )
         if comment["question_id"] in post_ids:
             comments.append(create_comment(comment))
+    print(
+        f"\033[Kmigrating comments: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} ",
+    )
 
+    print("bulk creating...", end="\r")
     Comment.objects.bulk_create(comments)
+    print("bulk creating... DONE")

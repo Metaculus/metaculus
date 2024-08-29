@@ -181,7 +181,7 @@ def migrate_metaculus_predictions():
     for i, mp_data in enumerate(mp_histories, 1):
         print(
             f"Migrating continuous metaculus prediction {i}/{c} "
-            f"dur:{str(timezone.now() - start).split(".")[0]} "
+            f"dur:{str(timezone.now() - start).split('.')[0]} "
             f"remaining:{str((timezone.now() - start) / i * (c - i)).split(".")[0]}",
             end="\r",
         )
@@ -244,7 +244,7 @@ def migrate_metaculus_predictions():
         AggregateForecast.objects.bulk_create(forecasts)
     print(
         f"\033[KMigrating continuous metaculus prediction {i}/{c} "
-        f"dur:{str(timezone.now() - start).split(".")[0]} "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
     )
 
     # binary questions
@@ -262,7 +262,7 @@ def migrate_metaculus_predictions():
     for i, q_data in enumerate(question_histories, 1):
         print(
             f"Migrating binary metaculus prediction {i}/{c} "
-            f"dur:{str(timezone.now() - start).split(".")[0]} "
+            f"dur:{str(timezone.now() - start).split('.')[0]} "
             f"remaining:{str((timezone.now() - start) / i * (c - i)).split(".")[0]}",
             end="\r",
         )
@@ -300,5 +300,5 @@ def migrate_metaculus_predictions():
         AggregateForecast.objects.bulk_create(forecasts)
     print(
         f"\033[KMigrating binary metaculus prediction {i}/{c} "
-        f"dur:{str(timezone.now() - start).split(".")[0]} "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
     )
