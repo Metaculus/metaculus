@@ -1,7 +1,7 @@
 """
 Ftr, the general shape of the aggregation is:
 Everytime a new prediction is made, take the latest prediction of each user.
-For each of those users, compute a reputation weight and a recency weight, 
+For each of those users, compute a reputation weight and a recency weight,
 then combine them to get a weight for the user's prediction.
 Transform the predictions to logodds.
 For each possible outcome, take the weighted average of all user-prediction logodds.

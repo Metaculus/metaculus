@@ -13,9 +13,7 @@ import {
 import ResolutionIcon from "@/components/icons/resolution";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import RadioButton from "@/components/ui/radio_button";
-import {
-  Resolution,
-} from "@/types/post";
+import { Resolution } from "@/types/post";
 import {
   Quartiles,
   Question,

@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
+
 import numpy as np
 
 from questions.models import Question
+from utils.typing import ForecastValues
 
-from utils.typing import ForecastValues, ForecastsValues, Weights, Percentiles
 
 # string_location <> scaled_location <> unscaled_location <> bucket_index
 # string_location: the human-readable representation of the location

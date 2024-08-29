@@ -1,14 +1,11 @@
 from collections import defaultdict
-from datetime import datetime
 from dataclasses import dataclass
 
 import numpy as np
-
-from django.utils import timezone
 from django.db.models import QuerySet, Q
+from django.utils import timezone
 
 from comments.models import Comment
-from users.models import User
 from posts.models import Post
 from projects.models import Project
 from questions.models import Question
@@ -21,6 +18,7 @@ from scoring.models import (
     MedalExclusionRecord,
 )
 from scoring.score_math import evaluate_question
+from users.models import User
 from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
 
@@ -378,7 +376,6 @@ def get_contributions(
             forecaster_ids_for_post[post].update(forecasters)
         contributions: list[Contribution] = []
         for post, forecaster_ids in forecaster_ids_for_post.items():
-
             contribution = Contribution(
                 score=len(forecaster_ids),
                 post=post,

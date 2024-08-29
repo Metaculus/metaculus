@@ -9,6 +9,12 @@ on:
     branches:
       - 'main'
 
+concurrency:
+  # Cancel previous job
+  group: integration_tests-${{ github.ref }}
+  cancel-in-progress: true
+
+
 jobs:
   integration-tests:
     runs-on: ubuntu-latest
