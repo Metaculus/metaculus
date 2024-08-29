@@ -192,11 +192,20 @@ class Conditional(TimeStampedModel):
 
 
 class GroupOfQuestions(TimeStampedModel):
+    class GroupOfQuestionsGraphType(models.TextChoices):
+        FAN_GRAPH = "fan_graph"
+        MULTIPLE_CHOICE_GRAPH = "multiple_choice_graph"
+
     description = models.TextField(blank=True)
     resolution_criteria = models.TextField(blank=True, null=True)
     fine_print = models.TextField(blank=True, null=True)
 
     group_variable = models.TextField(blank=True, null=True)
+    graph_type = models.CharField(
+        max_length=256,
+        choices=GroupOfQuestionsGraphType.choices,
+        default=GroupOfQuestionsGraphType.MULTIPLE_CHOICE_GRAPH,
+    )
 
 
 class Forecast(models.Model):

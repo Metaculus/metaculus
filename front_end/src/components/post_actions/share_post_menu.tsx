@@ -43,13 +43,13 @@ export const SharePostMenu: FC<Props> = ({ questionTitle, questionId }) => {
             ]),
         {
           id: "share_fb",
-          name: "Facebook",
+          name: t("facebook"),
           link: shareOnFacebookLink,
           openNewTab: true,
         },
         {
           id: "share_twitter",
-          name: "X / Twitter",
+          name: t("xTwitter"),
           link: shareOnTwitterLink,
           openNewTab: true,
         },

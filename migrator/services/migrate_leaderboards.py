@@ -52,15 +52,17 @@ def populate_global_leaderboards():
     for i, leaderboard in enumerate(global_leaderboards, 1):
         print("populating:", i, "/", c, leaderboard.name, end="\r")
         update_project_leaderboard(main_site_project, leaderboard)
+        entries = LeaderboardEntry.objects.filter(leaderboard=leaderboard).count()
         print(
-            "populating:",
+            "\033[Kpopulating:",
             i,
             "/",
             c,
             leaderboard.name,
             "(created",
-            LeaderboardEntry.objects.filter(leaderboard=leaderboard).count(),
+            entries,
             "entries)",
+            end="\r" if entries == 0 else "\n",
         )
 
 
@@ -73,13 +75,15 @@ def populate_project_leaderboards():
         print("populating:", i, "/", c, project.name, end="\r")
         for leaderboard in project.leaderboards.all():
             update_project_leaderboard(project, leaderboard)
+        entries = LeaderboardEntry.objects.filter(leaderboard__project=project).count()
         print(
-            "populating:",
+            "\033[Kpopulating:",
             i,
             "/",
             c,
             project.name,
             "(created",
-            LeaderboardEntry.objects.filter(leaderboard__project=project).count(),
+            entries,
             "entries)",
+            end="\r" if entries == 0 else "\n",
         )

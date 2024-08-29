@@ -410,18 +410,22 @@ export function generateChoiceItemsFromBinaryGroup(
       choice: label,
       values: history.map((forecast) => forecast.centers![0]),
       minValues: history.map(
-        (forecast) => forecast.interval_lower_bounds![order]
+        (forecast) =>
+          forecast.interval_lower_bounds![order] ??
+          forecast.interval_lower_bounds![0]
       ),
       maxValues: history.map(
-        (forecast) => forecast.interval_upper_bounds![order]
+        (forecast) =>
+          forecast.interval_upper_bounds![order] ??
+          forecast.interval_upper_bounds![0]
       ),
       timestamps: history.map((forecast) => forecast.start_time),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       active: !!activeCount ? index <= activeCount - 1 : true,
       highlighted: false,
       resolution: question.resolution,
-      rangeMin: 0,
-      rangeMax: 1,
+      rangeMin: question.scaling.range_min ?? 0,
+      rangeMax: question.scaling.range_min ?? 1,
     };
   });
 }
@@ -435,12 +439,14 @@ export function getFanOptionsFromNumericGroup(
       cdf: q.aggregations.recency_weighted.latest?.forecast_values ?? [],
       resolvedAt: new Date(q.scheduled_resolve_time),
       resolved: q.resolution !== null,
+      question: q,
     }))
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt))
-    .map(({ name, cdf, resolved }) => ({
+    .map(({ name, cdf, resolved, question }) => ({
       name,
       quartiles: computeQuartilesFromCDF(cdf),
       resolved,
+      question,
     }));
 }
 
@@ -487,9 +493,9 @@ export const interpolateYValue = (xValue: number, line: Line) => {
   return p1.y + t * (p2.y - p1.y);
 };
 
-export function generateTicksY(height: number, desiredMajorTicks: number[]) {
+export function generateTicksY(height: number, desiredMajorTicks: number[], majorTickDistance?: number) {
   const minorTicksPerMajor = 9;
-  const desiredMajorTickDistance = 50;
+  const desiredMajorTickDistance = majorTickDistance ?? 50;
   let majorTicks = desiredMajorTicks;
   const maxMajorTicks = Math.floor(height / desiredMajorTickDistance);
 
@@ -512,5 +518,5 @@ export function generateTicksY(height: number, desiredMajorTicks: number[]) {
     }
     return value.toString();
   };
-  return { ticks, tickFormat };
+  return { ticks, tickFormat, majorTicks };
 }

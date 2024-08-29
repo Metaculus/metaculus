@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
 import ResolutionCriteria, {
@@ -6,17 +7,16 @@ import ResolutionCriteria, {
 } from "./resolution_criteria";
 
 type Props = {
-  title: string;
   resolutionCriteria: ResolutionCriteriaData[];
   className?: string;
 };
 
 const ForecastMakerContainer: FC<PropsWithChildren<Props>> = ({
-  title,
   resolutionCriteria,
   className,
   children,
 }) => {
+  const t = useTranslations()
   return (
     <section
       id="prediction-section"
@@ -25,7 +25,7 @@ const ForecastMakerContainer: FC<PropsWithChildren<Props>> = ({
         className
       )}
     >
-      <h3 className="m-0 text-base font-normal leading-5">{title}</h3>
+      <h3 className="m-0 text-base font-normal leading-5">{t("makePrediction")}</h3>
       <div className="mt-3">{children}</div>
       {resolutionCriteria.map((criteria, index) => (
         <ResolutionCriteria key={index} {...criteria} />

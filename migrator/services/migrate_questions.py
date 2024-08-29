@@ -12,7 +12,6 @@ from migrator.utils import paginated_query
 from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services import get_site_main_project
 from questions.constants import ResolutionType
 from questions.models import Question, Conditional, GroupOfQuestions, Forecast
 from utils.the_math.formulas import unscaled_location_to_string_location
@@ -138,6 +137,7 @@ def create_post(question: dict, **kwargs) -> Post:
         # Keeping the same ID as the old question
         id=question["id"],
         title=question["title"],
+        url_title=question["title_short"],
         author_id=question["author_id"],
         curated_last_by_id=question["approved_by_id"],
         curation_status=curation_status,
@@ -147,7 +147,6 @@ def create_post(question: dict, **kwargs) -> Post:
         published_at=question["publish_time"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
-        default_project=get_site_main_project(),
         **kwargs,
     )
 
@@ -164,8 +163,10 @@ def migrate_questions__simple(site_ids: list[int] = None):
     posts = []
     site_ids = site_ids or []
 
-    for old_question in paginated_query(
-        """
+    start = timezone.now()
+    for i, old_question in enumerate(
+        paginated_query(
+            """
         SELECT q.*, ARRAY_AGG(o.label ORDER BY o.id) AS option_labels
             FROM metac_question_question q
             JOIN (SELECT q.*
@@ -181,14 +182,32 @@ def migrate_questions__simple(site_ids: list[int] = None):
                     LEFT JOIN
                 metac_question_option o ON q.id = o.question_id
             GROUP BY q.id;""",
-        [tuple(site_ids)],
+            [tuple(site_ids)],
+        ),
+        1,
     ):
+        print(
+            f"\033[Kmigrating questions/posts: {i}. "
+            f"dur:{str(timezone.now() - start).split('.')[0]} ",
+            end="\r",
+        )
         question = create_question(old_question)
         if question is not None:
             questions.append(question)
             posts.append(create_post(old_question, question_id=old_question["id"]))
+    print(
+        f"\033[Kmigrating questions/posts: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
+        "bulk creating...",
+        end="\r",
+    )
     Question.objects.bulk_create(questions)
     Post.objects.bulk_create(posts)
+    print(
+        f"\033[Kmigrating questions/posts: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
+        "bulk creating... DONE",
+    )
 
 
 #
@@ -200,8 +219,10 @@ def migrate_questions__composite(site_ids: list[int] = None):
     old_groups = {}
     site_ids = site_ids or []
 
-    for old_question in paginated_query(
-        """SELECT q.*,
+    start = timezone.now()
+    for i, old_question in enumerate(
+        paginated_query(
+            """SELECT q.*,
                        qc.parent_id                 as condition_id,
                        qc.unconditional_question_id as condition_child_id,
                        qc.resolution                as qc_resolution
@@ -224,9 +245,16 @@ def migrate_questions__composite(site_ids: list[int] = None):
                      metac_question_conditional qc ON qc.child_id = q.id
                 -- Ensure parents go first
                 ORDER BY group_id DESC;""",
-        [tuple(site_ids)],
-        itersize=10000,
+            [tuple(site_ids)],
+            itersize=10000,
+        ),
+        1,
     ):
+        print(
+            f"\033[Kprocessing questions/posts: {i}. "
+            f"dur:{str(timezone.now() - start).split('.')[0]} ",
+            end="\r",
+        )
         group_id = old_question["group_id"]
 
         # If root
@@ -237,6 +265,10 @@ def migrate_questions__composite(site_ids: list[int] = None):
             # Some child questions might not have a parent, so we need to exclude such questions
             if group_id in old_groups:
                 old_groups[group_id]["children"].append(old_question)
+    print(
+        f"\033[Kprocessing questions/posts: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} ",
+    )
 
     print("Migrating notebooks")
     migrate_questions__notebook(list(old_groups.values()))
@@ -297,6 +329,11 @@ def migrate_questions__groups(root_questions: list[dict]):
                     group_variable=root_question["group_label"],
                     resolution_criteria=root_question["resolution_criteria"],
                     fine_print=root_question["fine_print"],
+                    graph_type=(
+                        GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
+                        if root_question["show_as_fan_graph"]
+                        else GroupOfQuestions.GroupOfQuestionsGraphType.MULTIPLE_CHOICE_GRAPH
+                    ),
                 )
             )
 
@@ -434,7 +471,7 @@ def migrate_questions__notebook(root_questions: list[dict]):
 
             notebook.save()
             post.save()
-            post.projects.set([get_site_main_project(), *projects])
+            post.projects.set(projects)
             post.save()
 
 
@@ -477,7 +514,7 @@ def migrate_questions__conditional(root_questions: list[dict]):
                 )
             except Exception:
                 old_question_yes = None
-            
+
             try:
                 old_question_no = next(
                     q for q in root_question["children"] if q["qc_resolution"] == 0
@@ -488,9 +525,14 @@ def migrate_questions__conditional(root_questions: list[dict]):
             condition_id = get_children_relation_id_by_attr("condition_id")
             condition_child_id = get_children_relation_id_by_attr("condition_child_id")
 
-            if not condition_id or not condition_child_id or not old_question_yes or not old_question_no:
+            if (
+                not condition_id
+                or not condition_child_id
+                or not old_question_yes
+                or not old_question_no
+            ):
                 print(
-                    f"\n\nError migrating conditionl: {root_question['id']}Could not find all related questions for the conditional pair. old_question_yes: {old_question_yes}, old_question_no: {old_question_no}, condition_id: {condition_id}, condition_child_id: {condition_child_id}"
+                    f"\n\nError migrating conditionl: {root_question['id']} Could not find all related questions for the conditional pair. old_question_yes: {old_question_yes}, old_question_no: {old_question_no}, condition_id: {condition_id}, condition_child_id: {condition_child_id}"
                 )
                 continue
 
@@ -521,9 +563,15 @@ def migrate_post_user_snapshots():
     post_ids = Post.objects.values_list("id", flat=True)
     snapshots = []
 
-    for snapshot_obj in paginated_query(
-        "SELECT * FROM metac_question_questionsnapshot"
+    start = timezone.now()
+    for i, snapshot_obj in enumerate(
+        paginated_query("SELECT * FROM metac_question_questionsnapshot"), 1
     ):
+        print(
+            f"\033[Kmigrating post user snapshots: {i}. "
+            f"dur:{str(timezone.now() - start).split('.')[0]} ",
+            end="\r",
+        )
         if snapshot_obj["question_id"] not in post_ids:
             continue
 
@@ -537,10 +585,27 @@ def migrate_post_user_snapshots():
         )
 
         if len(snapshots) >= 5_000:
+            print(
+                f"\033[Kmigrating post user snapshots: {i}. "
+                f"dur:{str(timezone.now() - start).split('.')[0]} ",
+                "Bulk creating...",
+                end="\r",
+            )
             PostUserSnapshot.objects.bulk_create(snapshots)
             snapshots = []
 
+    print(
+        f"\033[Kmigrating post user snapshots: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} ",
+        "Bulk creating...",
+        end="\r",
+    )
     PostUserSnapshot.objects.bulk_create(snapshots)
+    print(
+        f"\033[Kmigrating post user snapshots: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} ",
+        "Bulk creating... DONE",
+    )
 
 
 def migrate_post_snapshots_forecasts():
@@ -586,6 +651,6 @@ def migrate_post_snapshots_forecasts():
             bulk_update = []
 
         if not (processed % 25_000):
-            print(f"Updated PostUserSnapshot.last_forecast_date: {processed}")
+            print(f"Updated PostUserSnapshot.last_forecast_date: {processed}", end="\r")
 
     PostUserSnapshot.objects.bulk_update(bulk_update, fields=["last_forecast_date"])

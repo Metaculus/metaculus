@@ -3,7 +3,6 @@ import { useTranslations } from "next-intl";
 
 import { searchUsers } from "@/app/(main)/questions/actions";
 import {
-  FilterOption,
   FilterOptionType,
   FilterSection,
 } from "@/components/popover_filter/types";
@@ -13,7 +12,6 @@ import { SelectOption } from "@/components/ui/listbox";
 import {
   POST_ACCESS_FILTER,
   POST_AUTHOR_FILTER,
-  POST_USERNAMES_FILTER,
   POST_CATEGORIES_FILTER,
   POST_COMMENTED_BY_FILTER,
   POST_FORECASTER_ID_FILTER,
@@ -25,8 +23,9 @@ import {
   POST_TOPIC_FILTER,
   POST_TYPE_FILTER,
   POST_UPVOTED_BY_FILTER,
+  POST_USERNAMES_FILTER,
 } from "@/constants/posts_feed";
-import Posts, { PostsParams } from "@/services/posts";
+import { PostsParams } from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
 import {
   ForecastType,
@@ -62,10 +61,16 @@ export const POST_STATUS_LABEL_MAP = {
   [PostStatus.REJECTED]: "Rejected Posts",
 };
 
+type FiltersFromSearchParamsOptions = {
+  defaultOrderBy?: string;
+  defaultForMainFeed?: boolean;
+};
+
 export function generateFiltersFromSearchParams(
   searchParams: SearchParams,
-  defaultOrderBy?: string
+  options: FiltersFromSearchParamsOptions = {}
 ): PostsParams {
+  const { defaultOrderBy, defaultForMainFeed } = options;
   const filters: PostsParams = {};
 
   if (typeof searchParams[POST_TEXT_SEARCH_FILTER] === "string") {
@@ -94,6 +99,10 @@ export function generateFiltersFromSearchParams(
 
   if (searchParams[POST_USERNAMES_FILTER]) {
     filters.usernames = searchParams[POST_USERNAMES_FILTER];
+  }
+
+  if (typeof defaultForMainFeed !== "undefined" && !filters.search) {
+    filters.for_main_feed = defaultForMainFeed;
   }
 
   if (typeof searchParams[POST_FORECASTER_ID_FILTER] === "string") {

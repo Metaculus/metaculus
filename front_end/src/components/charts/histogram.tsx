@@ -9,15 +9,17 @@ import {
   VictoryChart,
   VictoryContainer,
 } from "victory";
+import classNames from "classnames";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 
 type HistogramProps = {
   histogramData: { x: number; y: number }[];
   median: number | undefined;
   mean: number | undefined;
-  color: string;
+  color: "blue" | "green";
 };
 
 const Histogram: React.FC<HistogramProps> = ({
@@ -27,25 +29,36 @@ const Histogram: React.FC<HistogramProps> = ({
   color,
 }) => {
   const t = useTranslations();
-  const { theme } = useAppTheme();
+  const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
   const maxY = Math.max(...histogramData.map((d) => d.y));
 
   return (
-    <div className="mb-5 size-full">
+    <>
       <div className="mb-2 text-center">
-        {median !== undefined && (
-          <span className="text-sm font-bold">
-            <span style={{ color }}>{`${(100 * median).toFixed(1)}%`}</span>{" "}
-            {t("medianPredictionLabel")}
+        {median != null && (
+          <span className="text-sm font-bold capitalize">
+            {t("median")}{" "}
+            <span
+              className={classNames(
+                color === "blue"
+                  ? "text-conditional-blue-500 dark:text-conditional-blue-500-dark"
+                  : "text-conditional-green-500 dark:text-conditional-green-500-dark"
+              )}
+            >{`${(100 * median).toFixed(1)}%`}</span>
           </span>
         )}
-        {mean !== undefined && (
-          <span className="ml-8 text-sm font-bold">
-            {" "}
-            <span style={{ color }}>{`${(100 * mean).toFixed(1)}%`}</span>{" "}
-            {t("meanPredictionLabel")}
+        {mean != null && (
+          <span className="ml-8 text-sm font-bold capitalize">
+            {t("mean")}{" "}
+            <span
+              className={classNames(
+                color === "blue"
+                  ? "text-conditional-blue-500 dark:text-conditional-blue-500-dark"
+                  : "text-conditional-green-500 dark:text-conditional-green-500-dark"
+              )}
+            >{`${(100 * mean).toFixed(1)}%`}</span>
           </span>
         )}
       </div>
@@ -74,8 +87,16 @@ const Histogram: React.FC<HistogramProps> = ({
           data={histogramData}
           style={{
             data: {
-              fill: "light" + color,
-              stroke: "dark" + color,
+              fill: getThemeColor(
+                color === "blue"
+                  ? METAC_COLORS["conditional-blue"]["500"]
+                  : METAC_COLORS["conditional-green"]["500"]
+              ),
+              stroke: getThemeColor(
+                color === "blue"
+                  ? METAC_COLORS["conditional-blue"]["700"]
+                  : METAC_COLORS["conditional-green"]["700"]
+              ),
               strokeWidth: 1,
             },
           }}
@@ -83,7 +104,7 @@ const Histogram: React.FC<HistogramProps> = ({
           x={(d) => d.x + 0.5}
         />
       </VictoryChart>
-    </div>
+    </>
   );
 };
 

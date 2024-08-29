@@ -42,7 +42,7 @@ sshtunnel = "^0.4.0"
 python-dotenv = "^1.0.1"
 mysql-connector-python = "^9.0.0"
 gspread = "^6.1.2"
-playwright = "^1.46.0"
+whitenoise = "^6.7.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"
@@ -52,6 +52,7 @@ factory-boy = "^3.3.0"
 django-debug-toolbar = "^4.4.2"
 freezegun = "^1.5.1"
 pytest-mock = "^3.14.0"
+playwright = "^1.46.0"
 
 [build-system]
 requires = ["poetry-core"]

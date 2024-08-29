@@ -7,6 +7,7 @@ from posts.serializers import PostFilterSerializer
 from posts.services.search import perform_post_search, qs_filter_similar_posts
 from projects.models import Project
 from projects.permissions import ObjectPermission
+from projects.services import get_site_main_project
 from users.models import User
 from utils.models import build_order_by
 from utils.serializers import parse_order_by
@@ -32,6 +33,7 @@ def get_posts_feed(
     usernames: list[str] = None,
     forecaster_id: int = None,
     similar_to_post_id: int = None,
+    for_main_feed: bool = None,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
@@ -69,10 +71,14 @@ def get_posts_feed(
     if public_figure:
         qs = qs.filter(projects=public_figure)
 
-    # TODO: ensure projects filtering logic is correct
-    #   I assume it might not work exactly as before
     if tournaments:
         qs = qs.filter(Q(projects__in=tournaments) | Q(default_project__in=tournaments))
+
+    if for_main_feed:
+        site_main_project = get_site_main_project()
+        qs = qs.filter(
+            Q(projects=site_main_project) | Q(default_project=site_main_project)
+        )
 
     forecast_type = forecast_type or []
     forecast_type_q = Q()

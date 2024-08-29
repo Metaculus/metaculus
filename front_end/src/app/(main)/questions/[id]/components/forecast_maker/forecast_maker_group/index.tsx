@@ -32,44 +32,14 @@ const ForecastMakerGroup: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const renderForecastMaker = () => {
-    const tileType = questions.at(0)?.type;
+  const tileType = questions.at(0)?.type;
 
-    if (!tileType) {
-      return null;
-    }
-
-    switch (tileType) {
-      case QuestionType.Binary:
-        const sortedQuestions = sortGroupPredictionOptions(
-          questions as QuestionWithNumericForecasts[]
-        );
-        return (
-          <ForecastMakerGroupBinary
-            post={post}
-            questions={sortedQuestions}
-            canResolve={canResolve}
-            canPredict={canPredict}
-          />
-        );
-      case QuestionType.Numeric:
-      case QuestionType.Date:
-        return (
-          <ForecastMakerGroupContinuous
-            post={post}
-            questions={questions as QuestionWithNumericForecasts[]}
-            canResolve={canResolve}
-            canPredict={canPredict}
-          />
-        );
-      default:
-        return null;
-    }
-  };
+  if (!tileType) {
+    return null;
+  }
 
   return (
     <ForecastMakerContainer
-      title={t("MakePrediction")}
       resolutionCriteria={[
         {
           title: t("resolutionCriteria"),
@@ -78,7 +48,25 @@ const ForecastMakerGroup: FC<Props> = ({
         },
       ]}
     >
-      {renderForecastMaker()}
+      {tileType === QuestionType.Binary && (
+        <ForecastMakerGroupBinary
+          post={post}
+          questions={sortGroupPredictionOptions(
+            questions as QuestionWithNumericForecasts[]
+          )}
+          canResolve={canResolve}
+          canPredict={canPredict}
+        />
+      )}
+      {(tileType === QuestionType.Date ||
+        tileType === QuestionType.Numeric) && (
+        <ForecastMakerGroupContinuous
+          post={post}
+          questions={questions as QuestionWithNumericForecasts[]}
+          canResolve={canResolve}
+          canPredict={canPredict}
+        />
+      )}
     </ForecastMakerContainer>
   );
 };
