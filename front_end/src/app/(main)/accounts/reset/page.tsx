@@ -20,7 +20,7 @@ export default async function ResetPassword({
   }
 
   return (
-    <main className="mx-auto min-h-min w-full max-w-3xl flex-auto rounded bg-white p-0 sm:p-2 sm:pt-0 md:p-3 lg:mt-4">
+    <main className="mx-auto mb-24 mt-12 flex w-full max-w-3xl flex-1 flex-col bg-gray-0 p-4 text-base text-gray-800 dark:bg-blue-900 dark:text-gray-800-dark xs:p-8">
       <PasswordReset user_id={user_id} token={token} />
     </main>
   );
