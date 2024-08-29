@@ -15,11 +15,12 @@ import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import RadioButton from "@/components/ui/radio_button";
 import { Resolution } from "@/types/post";
 import {
-  Bounds,
   Quartiles,
+  Question,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { formatResolution } from "@/utils/questions";
+import { getDisplayValue } from "@/utils/charts";
 
 export type ConditionalTableOption = {
   id: number;
@@ -38,9 +39,15 @@ type Props = {
   value: number | null;
   options: ConditionalTableOption[];
   onChange: (id: number) => void;
+  questions: QuestionWithNumericForecasts[];
 };
 
-const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
+const GroupForecastTable: FC<Props> = ({
+  options,
+  value,
+  onChange,
+  questions,
+}) => {
   const t = useTranslations();
   const locale = useLocale();
 
@@ -155,8 +162,18 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
                   })}
                 >
                   <PredictionCell
-                    communityValue={option.communityQuartiles.lower25}
-                    userValue={option.userQuartiles?.lower25}
+                    communityValue={getDisplayValue(
+                      option.communityQuartiles.lower25,
+                      questions.find(
+                        (question) => question.id === option.id
+                      ) as Question
+                    )}
+                    userValue={getDisplayValue(
+                      option.userQuartiles?.lower25,
+                      questions.find(
+                        (question) => question.id === option.id
+                      ) as Question
+                    )}
                     isDirty={option.isDirty}
                   />
                 </Td>
@@ -166,8 +183,18 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
                   })}
                 >
                   <PredictionCell
-                    communityValue={option.communityQuartiles.median}
-                    userValue={option.userQuartiles?.median}
+                    communityValue={getDisplayValue(
+                      option.communityQuartiles.median,
+                      questions.find(
+                        (question) => question.id === option.id
+                      ) as Question
+                    )}
+                    userValue={getDisplayValue(
+                      option.userQuartiles?.median,
+                      questions.find(
+                        (question) => question.id === option.id
+                      ) as Question
+                    )}
                     isDirty={option.isDirty}
                   />
                 </Td>
@@ -179,8 +206,18 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
                   <div className="flex">
                     <div className="w-full">
                       <PredictionCell
-                        communityValue={option.communityQuartiles.upper75}
-                        userValue={option.userQuartiles?.upper75}
+                        communityValue={getDisplayValue(
+                          option.communityQuartiles.upper75,
+                          questions.find(
+                            (question) => question.id === option.id
+                          ) as Question
+                        )}
+                        userValue={getDisplayValue(
+                          option.userQuartiles?.upper75,
+                          questions.find(
+                            (question) => question.id === option.id
+                          ) as Question
+                        )}
                         isDirty={option.isDirty}
                       />
                     </div>
@@ -197,9 +234,9 @@ const GroupForecastTable: FC<Props> = ({ options, value, onChange }) => {
 };
 
 const PredictionCell: FC<{
-  communityValue: number;
+  communityValue: number | string;
   isDirty: boolean;
-  userValue?: number;
+  userValue?: number | string;
 }> = ({ communityValue, isDirty, userValue }) => (
   <div className="grid grid-rows-2">
     <div className="flex justify-center whitespace-nowrap text-olive-700 dark:text-olive-700-dark">

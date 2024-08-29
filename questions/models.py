@@ -13,7 +13,7 @@ from utils.models import TimeStampedModel
 
 if TYPE_CHECKING:
     from posts.models import Post
-    from scoring.models import Score
+    from scoring.models import Score, ArchivedScore
 
 CDF_SIZE = 201
 
@@ -41,6 +41,7 @@ class Question(TimeStampedModel):
     user_forecasts: models.QuerySet["Forecast"]
     aggregate_forecasts: models.QuerySet["AggregateForecast"]
     scores: models.QuerySet["Score"]
+    archived_scores: models.QuerySet["ArchivedScore"]
     objects: QuestionQuerySet["Question"]
     id: int
 
@@ -99,7 +100,7 @@ class Question(TimeStampedModel):
     # Common fields
     resolution = models.TextField(null=True, blank=True)
 
-    objects = QuestionManager()
+    objects: models.Manager["Question"] = QuestionManager()
 
     # Group
     group = models.ForeignKey(
@@ -191,11 +192,20 @@ class Conditional(TimeStampedModel):
 
 
 class GroupOfQuestions(TimeStampedModel):
+    class GroupOfQuestionsGraphType(models.TextChoices):
+        FAN_GRAPH = "fan_graph"
+        MULTIPLE_CHOICE_GRAPH = "multiple_choice_graph"
+
     description = models.TextField(blank=True)
     resolution_criteria = models.TextField(blank=True, null=True)
     fine_print = models.TextField(blank=True, null=True)
 
     group_variable = models.TextField(blank=True, null=True)
+    graph_type = models.CharField(
+        max_length=256,
+        choices=GroupOfQuestionsGraphType.choices,
+        default=GroupOfQuestionsGraphType.MULTIPLE_CHOICE_GRAPH,
+    )
 
 
 class Forecast(models.Model):

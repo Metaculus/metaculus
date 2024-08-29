@@ -102,7 +102,8 @@ class PostQuerySet(models.QuerySet):
             self.filter(snapshots__user_id=user_id)
             .annotate_comment_count()
             .annotate(
-                unread_comment_count=F("comment_count") - F("snapshots__comment_count"),
+                unread_comment_count=F("comment_count")
+                - F("snapshots__comments_count"),
             )
         )
 

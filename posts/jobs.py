@@ -55,24 +55,24 @@ def job_compute_movement():
         )
         .prefetch_questions()
     )
-    total = qs.count()
 
     posts = []
 
-    for idx, post in enumerate(qs.iterator(100)):
+    for i, post in enumerate(qs.iterator(100), 1):
         try:
             post.movement = compute_movement(post)
-        except:
+        except Exception:
             logger.exception(f"Error during compute_movement for post_id {post.id}")
             continue
 
         posts.append(post)
 
         if len(posts) >= 100:
+            print("bulk updating...", end="\r")
             Post.objects.bulk_update(posts, fields=["movement"])
             posts = []
+            print("bulk updating... DONE")
 
-        if not idx % 100:
-            logger.info(f"Processed {idx + 1}/{total}. ")
-
+    print("bulk updating...", end="\r")
     Post.objects.bulk_update(posts, fields=["movement"])
+    print("bulk updating... DONE")

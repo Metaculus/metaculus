@@ -1,9 +1,11 @@
 "use client";
+
 import { faAnglesRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Radio, RadioGroup } from "@headlessui/react";
 import classNames from "classnames";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
@@ -42,6 +44,8 @@ const ConditionalForecastTable: FC<Props> = ({
   onChange,
   formatForecastValue,
 }) => {
+  const t = useTranslations();
+
   const conditionHref =
     condition.id === condition.post_id
       ? `/questions/${condition.id}`
@@ -85,15 +89,13 @@ const ConditionalForecastTable: FC<Props> = ({
           >
             {({ checked, disabled }) => (
               <>
-                <td className="border-t px-2 py-3 pr-4">
+                <td className="border-t py-3 pl-2 pr-4 font-bold">
                   <RadioButton
                     checked={checked}
                     disabled={disabled}
                     size="small"
                   >
-                    <span>
-                      If <strong>{option.name}</strong>
-                    </span>
+                    {option.name}
                   </RadioButton>
                 </td>
                 <td className="relative border-t py-3 pl-4 pr-2">
@@ -101,14 +103,16 @@ const ConditionalForecastTable: FC<Props> = ({
                     icon={faAnglesRight}
                     className="ConditionalPredictionRow-chevrons absolute -left-1.5"
                   />
-                  My prediction{" "}
-                  <strong>
-                    <span className="text-orange-800 dark:text-orange-800-dark">
-                      {formatForecastValue
-                        ? formatForecastValue(option.value)
-                        : option.value}
-                    </span>
-                  </strong>
+                  {t.rich("myPredictionValue", {
+                    forecast: (chunks) => (
+                      <span className="font-bold text-orange-800 dark:text-orange-800-dark">
+                        {chunks}
+                      </span>
+                    ),
+                    forecastValue: formatForecastValue
+                      ? formatForecastValue(option.value)
+                      : option.value,
+                  })}
                 </td>
               </>
             )}

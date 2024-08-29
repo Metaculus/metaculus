@@ -96,7 +96,7 @@ const NumericChartCard: FC<Props> = ({ question }) => {
         />
         {!!question.my_forecasts?.history.length && (
           <CursorDetailItem
-            title={t("myPredictionLabel")}
+            title={t("myPrediction")}
             text={getDisplayUserValue(
               question.my_forecasts,
               cursorData.center,

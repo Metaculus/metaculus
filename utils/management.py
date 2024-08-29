@@ -14,7 +14,7 @@ def parallel_command_executor(
     # Split post_ids into chunks for each process
     item_chunks = [list(x) for x in np.array_split(items, num_processes) if x.size]
 
-    with Manager() as manager:
+    with Manager():
         with Pool(processes=num_processes, initializer=django.setup) as pool:
             pool.starmap(
                 handler,

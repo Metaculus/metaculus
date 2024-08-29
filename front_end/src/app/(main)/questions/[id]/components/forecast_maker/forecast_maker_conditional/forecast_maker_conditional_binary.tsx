@@ -56,7 +56,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   >([
     {
       id: questionYesId,
-      name: t("Yes"),
+      name: t("ifYes"),
       value: prevYesForecastValue,
       isDirty: false,
       communitiesForecast:
@@ -64,7 +64,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     },
     {
       id: questionNoId,
-      name: t("No"),
+      name: t("ifNo"),
       value: prevNoForecastValue,
       isDirty: false,
       communitiesForecast:
@@ -102,7 +102,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     }
 
     return {
-      label: `Copy from IF ${inactiveOption.name.toUpperCase()}`,
+      label: t("copyFromBranch", { branch: inactiveOption.name.toUpperCase() }),
       fromQuestionId: inactiveOption.id,
       toQuestionId: activeTableOption,
     };
@@ -289,7 +289,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
                 onClick={handlePredictSubmit}
                 disabled={!submitIsAllowed}
               >
-                {t("saveButton")}
+                {t("saveChange")}
               </Button>
             </>
           ) : (
@@ -298,7 +298,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
               type="button"
               onClick={() => setCurrentModal({ type: "signup" })}
             >
-              {t("signUpButton")}
+              {t("signUpToPredict")}
             </Button>
           ))}
       </div>

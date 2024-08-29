@@ -109,7 +109,6 @@ def get_serialized_user(request, user, Serializer):
             0.95, max([len(res), 1]), bin_center
         ) / max([len(res), 1])
 
-        print(user_upper_quartile, user_lower_quartile, bin_center)
         calibration_curve.append(
             {
                 "user_lower_quartile": user_lower_quartile,
@@ -134,11 +133,15 @@ def get_serialized_user(request, user, Serializer):
             {
                 "score": score.score,
                 "score_timestamp": score.created_at.timestamp(),
+                "question_title": score.question.title,
+                "question_resolution": score.question.resolution,
             }
         )
     ser["score_histogram"] = []
-    bin_incr = 70
-    for bin_start in range(-700, 700, bin_incr):
+    min_bin = min(-50, min([s for s in scores]))
+    max_bin = max(50, max([s for s in scores]))
+    bin_incr = int((max_bin + np.abs(min_bin)) / 20)
+    for bin_start in range(int(np.ceil(min_bin)), int(np.ceil(max_bin)), bin_incr):
         bin_end = bin_start + bin_incr
         ser["score_histogram"].append(
             {
@@ -148,7 +151,6 @@ def get_serialized_user(request, user, Serializer):
                 / len(scores),
             }
         )
-    print(ser["score_histogram"])
     return ser
 
 

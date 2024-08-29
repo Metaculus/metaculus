@@ -26,9 +26,13 @@ const generateList = (question: QuestionWithMultipleChoiceForecasts) =>
 
 type Props = {
   question: QuestionWithMultipleChoiceForecasts;
+  embedMode?: boolean;
 };
 
-const MultipleChoiceChartCard: FC<Props> = ({ question }) => {
+const MultipleChoiceChartCard: FC<Props> = ({
+  question,
+  embedMode = false,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
 
@@ -117,15 +121,17 @@ const MultipleChoiceChartCard: FC<Props> = ({ question }) => {
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
-      <div className="flex items-center">
-        <h3 className="m-0 text-base font-normal leading-5">
-          {t("forecastTimelineHeading")}
-        </h3>
-        <div className="ml-auto dark:text-white">
-          {t("totalForecastersLabel")}{" "}
-          <strong>{history[cursorIndex].forecaster_count}</strong>
+      {!embedMode && (
+        <div className="flex items-center">
+          <h3 className="m-0 text-base font-normal leading-5">
+            {t("forecastTimelineHeading")}
+          </h3>
+          <div className="ml-auto dark:text-white">
+            {t("totalForecastersLabel")}{" "}
+            <strong>{history[cursorIndex].forecaster_count}</strong>
+          </div>
         </div>
-      </div>
+      )}
       <div ref={refs.setReference} {...getReferenceProps()}>
         <MultipleChoiceChart
           timestamps={timestamps}

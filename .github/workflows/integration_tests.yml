@@ -9,6 +9,12 @@ on:
     branches:
       - 'main'
 
+concurrency:
+  # Cancel previous job
+  group: integration_tests-${{ github.ref }}
+  cancel-in-progress: true
+
+
 jobs:
   integration-tests:
     runs-on: ubuntu-latest
@@ -86,7 +92,8 @@ jobs:
           NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: |
-          PLAYWRIGHT_BROWSERS_PATH=.venv scripts/run_integration_tests.sh
+          poetry run ./manage.py migrate
+          PLAYWRIGHT_BROWSERS_PATH=.venv scripts/tests/run_integration_tests.sh
       - name: Create trace.zip
         if: always()
         run: |

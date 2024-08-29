@@ -253,7 +253,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
 
   return (
     <section>
-      <hr className="my-4 border-blue-400 dark:border-blue-700" />
+      <hr className="my-4 border-blue-400 dark:border-blue-400-dark" />
       <div className="my-4 flex flex-row items-center gap-4">
         <h2
           className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
@@ -277,7 +277,10 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
             <FontAwesomeIcon icon={faChevronDown} />
           </Button>
         </DropdownMenu>
-        <span>{totalCount} comments</span>
+        <span>
+          {totalCount ? `${totalCount} ` : ""}
+          {t("commentsWithCount", { count: totalCount })}
+        </span>
       </div>
       {postId && (
         <CommentEditor

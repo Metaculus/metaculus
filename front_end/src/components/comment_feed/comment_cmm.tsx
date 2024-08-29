@@ -2,15 +2,11 @@
 
 import {
   useFloating,
-  autoUpdate,
   offset,
   flip,
-  shift,
   useDismiss,
   useRole,
   useInteractions,
-  FloatingFocusManager,
-  FloatingContext,
   FloatingRootContext,
   useFloatingRootContext,
 } from "@floating-ui/react";
@@ -20,15 +16,13 @@ import {
   faCaretUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import clsx from "clsx";
 import { useTranslations } from "next-intl";
 import React, { useState, forwardRef, FC } from "react";
+import classNames from "classnames";
 
 import ForecastTextInput from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_text_input";
 import { toggleCMMComment } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
-
-import BaseModal from "../base_modal";
 
 export const BINARY_MIN_VALUE = 0.001;
 export const BINARY_MAX_VALUE = 0.999;
@@ -263,7 +257,9 @@ const CmmOverlay = ({
         {...cmmContext.getFloatingProps()}
         className="z-50 rounded bg-white p-4 text-sm text-blue-900 shadow-xl dark:bg-gray-0-dark dark:text-blue-900-dark"
       >
-        <h3 className="my-2 mb-4 w-full text-center">Update your prediction</h3>
+        <h3 className="my-2 mb-4 w-full text-center">
+          {t("updateYourPrediction")}
+        </h3>
         <div className="flex flex-col gap-2">
           {forecast && showForecastingUI && updateForecast && (
             <CmmMakeForecast
@@ -325,7 +321,7 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
       >
         <FontAwesomeIcon
           icon={faCaretUp}
-          className={clsx(
+          className={classNames(
             "size-4 rounded-full",
             {
               "bg-gradient-to-b p-1 text-blue-700 group-hover:from-blue-400 group-hover:to-blue-100 dark:text-blue-700-dark dark:group-hover:from-blue-400-dark dark:group-hover:to-blue-100-dark":

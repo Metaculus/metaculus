@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: metaculus
+      POSTGRES_USER: metaculus_user
+      POSTGRES_PASSWORD: metaculus_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_DB: metaculus
+      POSTGRES_USER: metaculus_user
+      POSTGRES_PASSWORD: metaculus_password
+      POSTGRES_HOST: db
+      # for use w/ https://pypi.org/project/dj-database-url/
+      DATABASE_URL: postgres://metaculus_user:metaculus_password@db:5432/metaculus
+
+      REDIS_URL: redis://redis:6379
+
+      # frontend?
+      NEXT_PUBLIC_APP_URL: http://localhost
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000
+      #NEXT_PUBLIC_TURNSTILE_SITE_KEY=key
+    ports:
+      - "8000:8000"
+      - "3000:3000"
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  postgres_data:

@@ -16,7 +16,6 @@ from django.db import transaction
 # from metac_question.models.question import Question
 from users.models import User
 from projects.models import Project
-from projects.services import get_site_main_project
 from questions.models import Question
 from posts.models import Post
 
@@ -53,7 +52,7 @@ question_columns = [
     # touples with: column header, question field name, type/conversion function
     ("title", "title", "string"),
     ("description", "description", "string"),
-    ("resolution_criteria", "resolution_criteria_description", "string"),
+    ("resolution_criteria", "resolution_criteria", "string"),
     ("fine_print", "fine_print", "string"),
     ("publish_time", "open_time", lambda val: convert_to_timestamp(val, 10, 30)),
     (

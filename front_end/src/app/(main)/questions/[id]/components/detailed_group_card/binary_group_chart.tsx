@@ -1,4 +1,5 @@
 "use client";
+
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
@@ -23,26 +24,59 @@ import ChoicesTooltip from "../choices_tooltip";
 
 const MAX_VISIBLE_CHECKBOXES = 6;
 
-type Props = {
-  questions: QuestionWithNumericForecasts[];
-  timestamps: number[];
-  preselectedQuestionId?: number;
-};
+function getQuestionTooltipLabel(
+  timestamps: number[],
+  values: number[],
+  cursorTimestamp: number,
+  isUserPrediction: boolean = false
+) {
+  const hasValue = isUserPrediction
+    ? cursorTimestamp >= Math.min(...timestamps)
+    : cursorTimestamp >= Math.min(...timestamps) &&
+      cursorTimestamp <= Math.max(...timestamps);
+  if (!hasValue) {
+    return getForecastPctDisplayValue(null);
+  }
+  if (isUserPrediction) {
+    let closestTimestampIndex = 0;
+    timestamps.forEach((timestamp, index) => {
+      if (cursorTimestamp >= timestamp) {
+        closestTimestampIndex = index;
+      }
+    });
+    return getForecastPctDisplayValue(values[closestTimestampIndex]);
+  }
+  const closestTimestamp = findPreviousTimestamp(timestamps, cursorTimestamp);
+  const cursorIndex = timestamps.findIndex(
+    (timestamp) => timestamp === closestTimestamp
+  );
 
-const generateList = (
+  return getForecastPctDisplayValue(values[cursorIndex]);
+}
+
+function generateList(
   questions: QuestionWithNumericForecasts[],
   preselectedQuestionId?: number
-) =>
-  generateChoiceItemsFromBinaryGroup(questions, {
+) {
+  return generateChoiceItemsFromBinaryGroup(questions, {
     withMinMax: true,
     activeCount: MAX_VISIBLE_CHECKBOXES,
     preselectedQuestionId,
   });
+}
+
+type Props = {
+  questions: QuestionWithNumericForecasts[];
+  timestamps: number[];
+  preselectedQuestionId?: number;
+  defaultZoom?: TimelineChartZoomOption;
+};
 
 const BinaryGroupChart: FC<Props> = ({
   questions,
   timestamps,
   preselectedQuestionId,
+  defaultZoom,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -87,7 +121,7 @@ const BinaryGroupChart: FC<Props> = ({
 
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(
     () =>
-      userForecasts === undefined
+      userForecasts == null
         ? []
         : userForecasts?.map(
             ({ choice, values, color, timestamps: optionTimestamps }) => {
@@ -163,9 +197,11 @@ const BinaryGroupChart: FC<Props> = ({
           onChartReady={handleChartReady}
           onCursorChange={handleCursorChange}
           defaultZoom={
-            user
-              ? TimelineChartZoomOption.All
-              : TimelineChartZoomOption.TwoMonths
+            defaultZoom
+              ? defaultZoom
+              : user
+                ? TimelineChartZoomOption.All
+                : TimelineChartZoomOption.TwoMonths
           }
           withZoomPicker
           userForecasts={userForecasts}
@@ -199,35 +235,5 @@ const BinaryGroupChart: FC<Props> = ({
     </div>
   );
 };
-
-function getQuestionTooltipLabel(
-  timestamps: number[],
-  values: number[],
-  cursorTimestamp: number,
-  isUserPrediction: boolean = false
-) {
-  const hasValue = isUserPrediction
-    ? cursorTimestamp >= Math.min(...timestamps)
-    : cursorTimestamp >= Math.min(...timestamps) &&
-      cursorTimestamp <= Math.max(...timestamps);
-  if (!hasValue) {
-    return getForecastPctDisplayValue(null);
-  }
-  if (isUserPrediction) {
-    let closestTimestampIndex = 0;
-    timestamps.forEach((timestamp, index) => {
-      if (cursorTimestamp >= timestamp) {
-        closestTimestampIndex = index;
-      }
-    });
-    return getForecastPctDisplayValue(values[closestTimestampIndex]);
-  }
-  const closestTimestamp = findPreviousTimestamp(timestamps, cursorTimestamp);
-  const cursorIndex = timestamps.findIndex(
-    (timestamp) => timestamp === closestTimestamp
-  );
-
-  return getForecastPctDisplayValue(values[cursorIndex]);
-}
 
 export default BinaryGroupChart;

@@ -4,6 +4,7 @@ import { FC } from "react";
 
 import ChoiceIcon from "@/components/choice_icon";
 import { ChoiceTooltipItem } from "@/types/choices";
+import { useTranslations } from "next-intl";
 
 type Props = {
   date: string;
@@ -12,8 +13,10 @@ type Props = {
 };
 
 const ChoicesTooltip: FC<Props> = ({ date, choices, userChoices }) => {
+  const t = useTranslations();
   const containUserChoices =
     userChoices && !userChoices.every((choice) => choice.valueLabel === "?");
+
   return (
     <table>
       <tbody>
@@ -29,8 +32,8 @@ const ChoicesTooltip: FC<Props> = ({ date, choices, userChoices }) => {
             />
           </td>
           {containUserChoices && (
-            <td className="px-1.5 py-1 text-center text-xs font-bold text-orange-800 dark:text-orange-800-dark">
-              Me
+            <td className="px-1.5 py-1 text-center text-xs font-bold capitalize text-orange-800 dark:text-orange-800-dark">
+              {t("me")}
             </td>
           )}
         </tr>

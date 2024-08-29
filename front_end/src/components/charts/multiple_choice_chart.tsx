@@ -1,5 +1,5 @@
 "use client";
-import { fromUnixTime } from "date-fns";
+
 import { isNil, merge } from "lodash";
 import React, { FC, memo, useEffect, useMemo, useState } from "react";
 import {
@@ -35,12 +35,16 @@ import {
   findPreviousTimestamp,
   generateNumericDomain,
   generatePercentageYScale,
+  generateTicksY,
   generateTimestampXScale,
+  getDisplayValue,
 } from "@/utils/charts";
 
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
 import XTickLabel from "./primitives/x_tick_label";
+import { useTranslations } from "next-intl";
+import { QuestionType, Scaling } from "@/types/question";
 
 type Props = {
   timestamps: number[];
@@ -53,6 +57,8 @@ type Props = {
   onChartReady?: () => void;
   extraTheme?: VictoryThemeDefinition;
   userForecasts?: UserChoiceItem[];
+  questionType?: QuestionType;
+  scaling?: Scaling;
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -66,7 +72,10 @@ const MultipleChoiceChart: FC<Props> = ({
   onChartReady,
   extraTheme,
   userForecasts,
+  questionType,
+  scaling,
 }) => {
+  const t = useTranslations();
   const {
     ref: chartContainerRef,
     width: chartWidth,
@@ -91,6 +100,8 @@ const MultipleChoiceChart: FC<Props> = ({
         width: chartWidth,
         height: chartHeight,
         zoom,
+        questionType,
+        scaling,
       }),
     [timestamps, choiceItems, chartWidth, chartHeight, zoom]
   );
@@ -118,7 +129,7 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorLabel={({ datum }: VictoryLabelProps) => {
         if (datum) {
           return datum.x === defaultCursor
-            ? "now"
+            ? t("now")
             : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
         }
       }}
@@ -133,6 +144,12 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
+          const lastTimestamp = timestamps[timestamps.length - 1];
+          if (value === lastTimestamp) {
+            onCursorChange(lastTimestamp, xScale.tickFormat);
+            return;
+          }
+
           const closestTimestamp = findPreviousTimestamp(timestamps, value);
 
           onCursorChange(closestTimestamp, xScale.tickFormat);
@@ -293,12 +310,16 @@ function buildChartData({
   choiceItems,
   timestamps,
   zoom,
+  questionType,
+  scaling,
 }: {
   timestamps: number[];
   choiceItems: ChoiceItem[];
   width: number;
   height: number;
   zoom: TimelineChartZoomOption;
+  questionType?: QuestionType;
+  scaling?: Scaling;
 }): ChartData {
   const xDomain = generateNumericDomain(timestamps, zoom);
 
@@ -358,10 +379,30 @@ function buildChartData({
       return item;
     }
   );
+  let yScale = generatePercentageYScale(height);
+  if (!!scaling && !!questionType) {
+    console.log(choiceItems);
+    const minChoiceRange = choiceItems[0].rangeMin ?? 0;
+    const maxChoiceRange = choiceItems[0].rangeMax ?? 1;
+    console.log(minChoiceRange);
+    console.log(maxChoiceRange);
+    const { ticks, majorTicks } = generateTicksY(
+      height,
+      [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+      20
+    );
+    const tickFormat = (value: number): string => {
+      if (!majorTicks.includes(value)) {
+        return "";
+      }
+      return getDisplayValue(value, questionType!, scaling!);
+    };
+    yScale = { ticks, tickFormat };
+  }
 
   return {
     xScale: generateTimestampXScale(xDomain, width),
-    yScale: generatePercentageYScale(height),
+    yScale,
     graphs: graphs,
     xDomain,
   };

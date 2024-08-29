@@ -1,20 +1,24 @@
 from collections import defaultdict
-from datetime import datetime
 from dataclasses import dataclass
 
 import numpy as np
-
-from django.utils import timezone
 from django.db.models import QuerySet, Q
+from django.utils import timezone
 
 from comments.models import Comment
-from users.models import User
 from posts.models import Post
 from projects.models import Project
 from questions.models import Question
 from questions.types import AggregationMethod
-from scoring.models import Score, LeaderboardEntry, Leaderboard, MedalExclusionRecord
+from scoring.models import (
+    ArchivedScore,
+    Score,
+    LeaderboardEntry,
+    Leaderboard,
+    MedalExclusionRecord,
+)
 from scoring.score_math import evaluate_question
+from users.models import User
 from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
 
@@ -22,49 +26,69 @@ from utils.the_math.measures import decimal_h_index
 def score_question(
     question: Question,
     resolution: str,
-    spot_forecast_time: datetime | None = None,
+    spot_forecast_time: float | None = None,
     score_types: list[str] | None = None,
 ):
     resolution_bucket = string_location_to_bucket_index(resolution, question)
+    spot_forecast_time = spot_forecast_time or question.cp_reveal_time.timestamp()
     score_types = score_types or Score.ScoreTypes.choices
-    for score_type in score_types:
-        seen = set()
-        previous_scores = list(
-            Score.objects.filter(question=question, score_type=score_type)
-        )
-        new_scores = evaluate_question(
-            question, resolution_bucket, score_type, spot_forecast_time
-        )
-        for new_score in new_scores:
-            is_new = True
-            for previous_score in previous_scores:
-                if (previous_score.user == new_score.user) and (
-                    previous_score.aggregation_method == new_score.aggregation_method
-                ):
-                    is_new = False
-                    previous_score.score = new_score.score
-                    previous_score.coverage = new_score.coverage
-                    previous_score.edited_at = question.resolution_set_time
-                    previous_score.save()
-                    seen.add(previous_score)
-                    break
-            if is_new:
-                new_score.question = question
-                new_score.edited_at = question.resolution_set_time
-                new_score.save()
+    seen = set()
+    previous_scores = list(
+        Score.objects.filter(question=question, score_type__in=score_types)
+    )
+    new_scores = evaluate_question(
+        question, resolution_bucket, score_types, spot_forecast_time
+    )
+    for new_score in new_scores:
+        is_new = True
         for previous_score in previous_scores:
-            if previous_score not in seen:
-                previous_score.delete()
+            if (
+                (previous_score.user == new_score.user)
+                and (previous_score.aggregation_method == new_score.aggregation_method)
+                and (previous_score.score_type == new_score.score_type)
+            ):
+                is_new = False
+                previous_score.score = new_score.score
+                previous_score.coverage = new_score.coverage
+                previous_score.edited_at = question.resolution_set_time
+                previous_score.save()
+                seen.add(previous_score)
+                break
+        if is_new:
+            new_score.question = question
+            new_score.edited_at = question.resolution_set_time
+            new_score.save()
+    for previous_score in previous_scores:
+        if previous_score not in seen:
+            previous_score.delete()
 
 
 def generate_scoring_leaderboard_entries(
     questions: list[Question],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
-    scores: QuerySet[Score] = Score.objects.filter(
+    calculated_scores: QuerySet[Score] = Score.objects.filter(
         question__in=questions,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
+    archived_scores: QuerySet[ArchivedScore] = ArchivedScore.objects.filter(
+        question__in=questions,
+        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+    )
+    scores: list[Score | ArchivedScore]
+    if archived_scores.exists():
+        scores = list(archived_scores)
+        for score in calculated_scores:
+            if archived_scores.filter(
+                question=score.question,
+                user_id=score.user_id,
+                aggregation_method=score.aggregation_method,
+            ).exists():
+                continue
+            scores.append(score)
+    else:
+        scores = list(calculated_scores)
+
     scores = sorted(scores, key=lambda x: x.user_id or x.score)
     entries: dict[int | AggregationMethod, LeaderboardEntry] = {}
     now = timezone.now()
@@ -352,7 +376,6 @@ def get_contributions(
             forecaster_ids_for_post[post].update(forecasters)
         contributions: list[Contribution] = []
         for post, forecaster_ids in forecaster_ids_for_post.items():
-
             contribution = Contribution(
                 score=len(forecaster_ids),
                 post=post,
@@ -367,10 +390,34 @@ def get_contributions(
         # need to make unpopulated contributions for questions that have not
         # been resolved.
         questions = [q for q in questions if q.resolution is not None]
-    scores = Score.objects.filter(
-        question__in=questions,
-        user=user,
-        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+    archived_scores = list(
+        ArchivedScore.objects.filter(
+            question__in=questions,
+            user=user,
+            score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+        )
+    )
+    calculated_scores = list(
+        Score.objects.filter(
+            question__in=questions,
+            user=user,
+            score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
+        )
+    )
+    scores = archived_scores
+    for score in calculated_scores:
+        found = False
+        for archived_score in archived_scores:
+            if (
+                score.question == archived_score.question
+                and score.aggregation_method == archived_score.aggregation_method
+            ):
+                found = True
+                break
+        if not found:
+            scores.append(score)
+    scores = sorted(
+        scores, key=lambda s: s.score if s.score is not None else 0, reverse=True
     )
     # User has scores on some questions
     contributions = [
@@ -392,6 +439,7 @@ def hydrate_take(
     leaderboard_entries: list[LeaderboardEntry] | QuerySet[LeaderboardEntry],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry] | QuerySet[LeaderboardEntry]:
+    # TODO: just add take and percent_prize to model instance
     total_take = 0
     for entry in leaderboard_entries:
         if entry.excluded:

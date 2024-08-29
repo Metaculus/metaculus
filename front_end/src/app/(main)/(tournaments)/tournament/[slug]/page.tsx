@@ -8,6 +8,7 @@ import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
+import TournamentControls from "@/app/(main)/(tournaments)/tournament/components/tournament_controls";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import HtmlContent from "@/components/html_content";
@@ -66,7 +67,7 @@ export default async function TournamentSlug({
       <div className="bg-gray-0 dark:bg-gray-0-dark">
         <div
           className={classNames(
-            " flex flex-wrap items-center gap-2.5 rounded-t px-3 py-1.5 text-[20px] uppercase text-gray-100 dark:text-gray-100-dark",
+            " flex flex-wrap items-center justify-between gap-2.5 rounded-t px-3 py-1.5 text-[20px] uppercase text-gray-100 dark:text-gray-100-dark",
             tournament.type === TournamentType.QuestionSeries
               ? "bg-gray-500 dark:bg-gray-500-dark"
               : "bg-blue-600 dark:bg-blue-600-dark"
@@ -78,6 +79,9 @@ export default async function TournamentSlug({
           >
             {title}
           </Link>
+          {currentUser?.is_superuser && (
+            <TournamentControls tournament={tournament} />
+          )}
         </div>
         {!!tournament.header_image && (
           <div className="relative h-[130px] w-full">
@@ -134,7 +138,7 @@ export default async function TournamentSlug({
           />
           {currentUser && (
             <ProjectContributions
-              projectId={tournament.id}
+              project={tournament}
               userId={currentUser.id}
             />
           )}

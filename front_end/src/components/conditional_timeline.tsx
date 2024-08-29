@@ -3,13 +3,8 @@ import { FC } from "react";
 import BinaryGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/binary_group_chart";
 import NumericGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/numeric_group_chart";
 import { PostConditional } from "@/types/post";
-import {
-  QuestionType,
-  QuestionWithForecasts,
-  QuestionWithNumericForecasts,
-} from "@/types/question";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
-import { sortGroupPredictionOptions } from "@/utils/questions";
 
 type Props = {
   conditional: PostConditional<QuestionWithNumericForecasts>;

@@ -33,14 +33,6 @@ import IncludedForecast from "./included_forecast";
 
 import { SortOption, sortComments } from ".";
 
-const copyToClipboard = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch (err) {
-    console.error("Failed to copy text: ", err);
-  }
-};
-
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
   permissions: CommentPermissions;
@@ -152,6 +144,7 @@ const Comment: FC<CommentProps> = ({
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isReplying, setIsReplying] = useState(false);
   const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
+  const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const { user } = useAuth();
@@ -194,6 +187,14 @@ const Comment: FC<CommentProps> = ({
     }
   };
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.error(t("failedToCopyText"), err);
+    }
+  };
+
   const menuItems: MenuItemProps[] = [
     {
       hidden: !isMobileScreen || !isCmmButtonVisible,
@@ -218,6 +219,7 @@ const Comment: FC<CommentProps> = ({
       id: "edit",
       name: t("edit"),
       onClick: () => {
+        setTempCommentMarkdown(commentMarkdown);
         setIsEditing(true);
       },
     },
@@ -340,37 +342,51 @@ const Comment: FC<CommentProps> = ({
           <a
             href={`/questions/${comment.parent.on_post}/#comment-${comment.parent.id}`}
           >
-            ➞ {t("inReplyTo")} {comment.parent.author.username}
+            {t('inReplyTo', {author: comment.parent.author.username})}
           </a>
         </div>
       )} */}
 
       <div className="break-anywhere">
-        <MarkdownEditor
-          markdown={commentMarkdown}
-          mode={isEditing ? "write" : "read"}
-          onChange={(text) => {
-            setCommentMarkdown(text);
-          }}
-        />
+        {isEditing && (
+          <MarkdownEditor
+            markdown={commentMarkdown}
+            mode={"write"}
+            onChange={setCommentMarkdown}
+          />
+        )}{" "}
+        {!isEditing && (
+          <MarkdownEditor markdown={commentMarkdown} mode={"read"} />
+        )}
       </div>
       {isEditing && (
-        <Button
-          onClick={async () => {
-            const response = await editComment({
-              id: comment.id,
-              text: commentMarkdown,
-              author: user!.id,
-            });
-            if (response && "errors" in response) {
-              console.error("Error deleting comment:", response.errors);
-            } else {
+        <>
+          <Button
+            onClick={async () => {
+              const response = await editComment({
+                id: comment.id,
+                text: commentMarkdown,
+                author: user!.id,
+              });
+              if (response && "errors" in response) {
+                console.error(t("errorDeletingComment"), response.errors);
+              } else {
+                setIsEditing(false);
+              }
+            }}
+          >
+            {t("save")}
+          </Button>
+          <Button
+            className="ml-2"
+            onClick={() => {
+              setCommentMarkdown(tempCommentMarkdown);
               setIsEditing(false);
-            }
-          }}
-        >
-          {t("save")}
-        </Button>
+            }}
+          >
+            {t("cancel")}
+          </Button>
+        </>
       )}
       <div className="mb-2 mt-1 h-7 overflow-visible">
         <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
@@ -402,7 +418,7 @@ const Comment: FC<CommentProps> = ({
                   }}
                 >
                   <FontAwesomeIcon icon={faXmark} />
-                  Cancel
+                  {t("cancel")}
                 </Button>
               ) : (
                 <Button onClick={() => setIsReplying(true)} variant="text">

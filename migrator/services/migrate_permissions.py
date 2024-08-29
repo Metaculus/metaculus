@@ -6,11 +6,8 @@ from migrator.utils import paginated_query
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
+from projects.services import get_site_main_project
 from utils.dtypes import flatten
-
-# TODO: what to do with MP/Site Main project type? Do we want
-#  to keep it as separate type or merge with categories/topics?
-
 
 # These types were merged with project during metaculus refactoring
 # So we need to exclude them since we kept same ids for old Projects table rows,
@@ -72,7 +69,7 @@ def convert_project_permissions(code):
     }.get(code)
 
 
-def migrate_common_permissions():
+def migrate_common_permissions(site_ids: list):
     """
     Migrates permissions from regular projects
     """
@@ -96,13 +93,14 @@ def migrate_common_permissions():
     # Migrating User<>Project ad-hoc permissions
     for user_project_perm_obj in paginated_query(
         """
-        SELECT 
+        SELECT
            upp.*, p.default_question_permissions, p.default_project_permissions, p.type
         FROM metac_project_userprojectpermissions upp
-        JOIN metac_project_project p 
+        JOIN metac_project_project p
         ON upp.project_id = p.id
-        WHERE p.type != 'PP'
-        """
+        WHERE p.type != 'PP' AND site_id in %s
+        """,
+        [tuple(site_ids)],
     ):
         # New app merges Project & Categories & Tags etc.
         # Tournaments & QS & PP were migrated to Project model with the same Ids as the old ones.
@@ -140,7 +138,8 @@ def migrate_common_permissions():
                 ):
                     print(
                         f"QuestionProjectPermission.permission affected "
-                        f"project: {user_project_perm_obj['project_id']}"
+                        f"project: {user_project_perm_obj['project_id']}",
+                        end="\r",
                     )
 
         question_permission = convert_question_permissions(question_permission_code)
@@ -154,8 +153,19 @@ def migrate_common_permissions():
                 )
             )
 
+    print(
+        f"QuestionProjectPermission.permission affected "
+        f"project: {user_project_perm_obj['project_id']}",
+        "bulk creating...",
+        end="\r",
+    )
     ProjectUserPermission.objects.bulk_create(
         user_project_perms, batch_size=50_000, ignore_conflicts=True
+    )
+    print(
+        f"QuestionProjectPermission.permission affected "
+        f"project: {user_project_perm_obj['project_id']}",
+        "bulk creating... DONE",
     )
     print(
         f"Missed projects: {len(total_missed_project_ids)} "
@@ -329,8 +339,24 @@ def deduplicate_default_project_and_m2m():
     PostProject.objects.filter(Exists(subquery)).delete()
 
 
-def migrate_permissions():
+def add_to_main_feed_if_in_other_project():
+    site_main = get_site_main_project()
+    posts = (
+        Post.objects.exclude(default_project=site_main)
+        .exclude(projects=site_main)
+        .filter(default_project__add_posts_to_main_feed=True)
+        .prefetch_related("projects")
+        .distinct()
+        .iterator(chunk_size=500)
+    )
+    m2m_model = Post.projects.through
+    m2m_objects = [m2m_model(post=post, project=site_main) for post in posts]
+    m2m_model.objects.bulk_create(m2m_objects, batch_size=1_000)
+
+
+def migrate_permissions(site_ids: list):
     migrate_personal_projects()
-    migrate_common_permissions()
+    migrate_common_permissions(site_ids)
     migrate_post_default_project()
     deduplicate_default_project_and_m2m()
+    add_to_main_feed_if_in_other_project()

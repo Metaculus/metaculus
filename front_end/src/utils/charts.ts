@@ -95,6 +95,15 @@ export function generateTimestampXScale(
     ticks = d3.timeMinute.range(start, end);
     format = d3.timeFormat("%_I:%M %p");
     cursorFormat = d3.timeFormat("%_I:%M %p, %b %d");
+  } else if (timeRange < oneHour * 6) {
+    const every5Minutes = d3.timeMinute.every(5);
+    if (every5Minutes) {
+      ticks = every5Minutes.range(start, end);
+    } else {
+      ticks = d3.timeHour.range(start, end);
+    }
+    format = d3.timeFormat("%_I:%M %p");
+    cursorFormat = d3.timeFormat("%_I:%M %p, %b %d");
   } else if (timeRange < oneDay) {
     const every30Minutes = d3.timeMinute.every(30);
     if (every30Minutes) {
@@ -401,18 +410,22 @@ export function generateChoiceItemsFromBinaryGroup(
       choice: label,
       values: history.map((forecast) => forecast.centers![0]),
       minValues: history.map(
-        (forecast) => forecast.interval_lower_bounds![order]
+        (forecast) =>
+          forecast.interval_lower_bounds![order] ??
+          forecast.interval_lower_bounds![0]
       ),
       maxValues: history.map(
-        (forecast) => forecast.interval_upper_bounds![order]
+        (forecast) =>
+          forecast.interval_upper_bounds![order] ??
+          forecast.interval_upper_bounds![0]
       ),
       timestamps: history.map((forecast) => forecast.start_time),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       active: !!activeCount ? index <= activeCount - 1 : true,
       highlighted: false,
       resolution: question.resolution,
-      rangeMin: 0,
-      rangeMax: 1,
+      rangeMin: question.scaling.range_min ?? 0,
+      rangeMax: question.scaling.range_min ?? 1,
     };
   });
 }
@@ -426,12 +439,14 @@ export function getFanOptionsFromNumericGroup(
       cdf: q.aggregations.recency_weighted.latest?.forecast_values ?? [],
       resolvedAt: new Date(q.scheduled_resolve_time),
       resolved: q.resolution !== null,
+      question: q,
     }))
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt))
-    .map(({ name, cdf, resolved }) => ({
+    .map(({ name, cdf, resolved, question }) => ({
       name,
       quartiles: computeQuartilesFromCDF(cdf),
       resolved,
+      question,
     }));
 }
 
@@ -477,3 +492,35 @@ export const interpolateYValue = (xValue: number, line: Line) => {
   const t = (xValue - p1.x) / (p2.x - p1.x);
   return p1.y + t * (p2.y - p1.y);
 };
+
+export function generateTicksY(
+  height: number,
+  desiredMajorTicks: number[],
+  majorTickDistance?: number
+) {
+  const minorTicksPerMajor = 9;
+  const desiredMajorTickDistance = majorTickDistance ?? 50;
+  let majorTicks = desiredMajorTicks;
+  const maxMajorTicks = Math.floor(height / desiredMajorTickDistance);
+
+  if (maxMajorTicks < desiredMajorTicks.length) {
+    const step = 1 / (maxMajorTicks - 1);
+    majorTicks = Array.from({ length: maxMajorTicks }, (_, i) => i * step);
+  }
+  const ticks = [];
+  for (let i = 0; i < majorTicks.length - 1; i++) {
+    ticks.push(majorTicks[i]);
+    const step = (majorTicks[i + 1] - majorTicks[i]) / (minorTicksPerMajor + 1);
+    for (let j = 1; j <= minorTicksPerMajor; j++) {
+      ticks.push(majorTicks[i] + step * j);
+    }
+  }
+  ticks.push(majorTicks[majorTicks.length - 1]);
+  const tickFormat = (value: number): string => {
+    if (!majorTicks.includes(value)) {
+      return "";
+    }
+    return value.toString();
+  };
+  return { ticks, tickFormat, majorTicks };
+}

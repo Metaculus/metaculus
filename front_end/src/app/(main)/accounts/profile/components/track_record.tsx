@@ -3,8 +3,7 @@
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import CalibrationChart from "@/app/(main)/charts/calibration_chart";
-import UserHistogram from "@/app/(main)/charts/user_histogram";
+import TrackRecordCharts from "@/app/(main)/questions/track-record/components/track_record_charts";
 import { UserProfile } from "@/types/users";
 
 const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
@@ -14,46 +13,12 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
-      <div className="flex flex-col rounded bg-white p-6 dark:bg-blue-900">
-        <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
-          {t("scoreHistogram")}
-        </h3>
-        {profile.score_histogram && (
-          <UserHistogram
-            rawHistogramData={profile.score_histogram}
-            color="gray"
-          />
-        )}
-
-        <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
-          Calibration Curve
-        </h3>
-        {profile.calibration_curve && (
-          <CalibrationChart data={profile.calibration_curve} />
-        )}
-        <div className="flex flex-col items-center space-y-3 divide-y divide-gray-300 dark:divide-gray-700">
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 md:gap-x-8">
-            <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
-              <span className="block h-4 w-7 bg-gray-500/30"></span>confidence
-              interval
-            </div>
-            <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
-              <span className="block h-1 w-7 bg-gray-500"></span>perfect
-              calibration
-            </div>
-            <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
-              <span className="block size-2 rotate-45 bg-[#ffa500]"></span>
-              user&apos;s calibration
-            </div>
-          </div>
-          <span className="pt-3 text-center text-sm text-gray-600 dark:text-gray-400">
-            If the diamonds are close to the grey lines, the predictions are
-            well-calibrated at that confidence level. If the diamonds are closer
-            to the 50% than the diamonds, the predictions were underconfident,
-            and vice-versa.
-          </span>
-        </div>
-      </div>
+      <TrackRecordCharts
+        scatterPlot={profile.score_scatter_plot}
+        calibrationCurve={profile.calibration_curve}
+        scoreHistogram={profile.score_histogram}
+        className="bg-white p-6 dark:bg-blue-900"
+      />
 
       <div className="flex flex-col rounded bg-white p-6 dark:bg-blue-900 ">
         <div className="flex w-full flex-row items-center justify-between">

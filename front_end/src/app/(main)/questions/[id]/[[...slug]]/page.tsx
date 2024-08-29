@@ -23,6 +23,7 @@ import QuestionHeaderInfo from "../components/question_header_info";
 import QuestionResolutionStatus from "../components/question_resolution_status";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
+import ContinuousGroupTimeline from "../components/forecast_timeline_drawer";
 
 type Props = {
   params: { id: number; slug: string[] };
@@ -147,6 +148,11 @@ export default async function IndividualQuestion({
                 }
               />
             )}
+
+            {!!postData.group_of_questions && (
+              <ContinuousGroupTimeline post={postData} />
+            )}
+
             <BackgroundInfo post={postData} />
             <HistogramDrawer post={postData} />
             <Sidebar
@@ -170,7 +176,7 @@ export default async function IndividualQuestion({
         </div>
       </main>
 
-      <QuestionEmbedModal postId={postData.id} />
+      <QuestionEmbedModal postId={postData.id} postTitle={postData.title} />
     </EmbedModalContextProvider>
   );
 }

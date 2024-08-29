@@ -18,7 +18,6 @@ import { QuestionWithNumericForecasts } from "@/types/question";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
-  normalizeWeights,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { extractQuestionGroupName, formatResolution } from "@/utils/questions";
@@ -133,7 +132,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             ...prevChoice.userForecast,
             { left: 0.4, center: 0.5, right: 0.6 },
           ];
-          const newWeights = normalizeWeights([...prevChoice.userWeights, 1]);
+          const newWeights = [...prevChoice.userWeights, 1];
           const newUserQuartiles = getUserQuartiles(
             newUserForecast,
             newWeights
@@ -243,6 +242,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         value={activeTableOption}
         options={groupOptions}
         onChange={setActiveTableOption}
+        questions={questions}
       />
       {groupOptions.map((option) => {
         const dataset = getNumericForecastDataset(
@@ -299,7 +299,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
                   onClick={handlePredictSubmit}
                   disabled={!submitIsAllowed}
                 >
-                  {t("saveButton")}
+                  {t("saveChange")}
                 </Button>
               </>
             ) : (
@@ -308,7 +308,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
                 type="button"
                 onClick={() => setCurrentModal({ type: "signup" })}
               >
-                {t("signUpButton")}
+                {t("signUpToPredict")}
               </Button>
             ))}
         </div>
