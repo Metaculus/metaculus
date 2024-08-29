@@ -87,6 +87,7 @@ export type PostGroupOfQuestions<QT> = {
   resolution_criteria: string;
   fine_print: string;
   group_variable: string;
+  graph_type: string;
   questions: QT[];
 };
 
