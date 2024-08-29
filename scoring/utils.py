@@ -31,7 +31,7 @@ def score_question(
 ):
     resolution_bucket = string_location_to_bucket_index(resolution, question)
     spot_forecast_time = spot_forecast_time or question.cp_reveal_time.timestamp()
-    score_types = score_types or Score.ScoreTypes.choices
+    score_types = score_types or [c[0] for c in Score.ScoreTypes.choices]
     seen = set()
     previous_scores = list(
         Score.objects.filter(question=question, score_type__in=score_types)
@@ -385,11 +385,6 @@ def get_contributions(
         contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
         return contributions[: int(h_index) + 1]
 
-    if leaderboard.score_type == "global_leaderboard":
-        # There are so many questions in global leaderboards that we don't
-        # need to make unpopulated contributions for questions that have not
-        # been resolved.
-        questions = [q for q in questions if q.resolution is not None]
     archived_scores = list(
         ArchivedScore.objects.filter(
             question__in=questions,
@@ -416,6 +411,11 @@ def get_contributions(
                 break
         if not found:
             scores.append(score)
+    if "global" in leaderboard.score_type:
+        # There are so many questions in global leaderboards that we don't
+        # need to make unpopulated contributions for questions that have not
+        # been resolved.
+        scores = [s for s in scores if s.coverage > 0]
     scores = sorted(
         scores, key=lambda s: s.score if s.score is not None else 0, reverse=True
     )
@@ -426,11 +426,12 @@ def get_contributions(
     ]
     # add unpopulated contributions for other questions
     scored_question = {score.question for score in scores}
-    contributions += [
-        Contribution(score=None, coverage=None, question=question)
-        for question in questions
-        if question not in scored_question
-    ]
+    if "global" not in leaderboard.score_type:
+        contributions += [
+            Contribution(score=None, coverage=None, question=question)
+            for question in questions
+            if question not in scored_question
+        ]
 
     return contributions
 

@@ -63,8 +63,8 @@ def get_serialized_user(request, user, Serializer):
                 questions_predicted_socred.append(question.id)
 
         forecast_horizon_start = question.open_time.timestamp()
-        actual_close_time = question.forecast_scoring_ends.timestamp()
-        forecast_horizon_end = question.actual_close_time.timestamp()
+        actual_close_time = question.actual_close_time.timestamp()
+        forecast_horizon_end = question.scheduled_close_time.timestamp()
         forecast_start = max(forecast_horizon_start, forecast.start_time.timestamp())
         if forecast.end_time:
             forecast_end = min(actual_close_time, forecast.end_time.timestamp())
