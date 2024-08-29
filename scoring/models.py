@@ -123,10 +123,14 @@ class Leaderboard(TimeStampedModel):
     def get_questions(self) -> list[Question]:
         if self.project:
             questions = Question.objects.filter(
-                models.Q(post__projects=self.project)
-                | models.Q(group__post__projects=self.project)
-                | models.Q(post__default_project=self.project)
-                | models.Q(group__post__default_project=self.project)
+                Q(post__projects=self.project)
+                | Q(group__post__projects=self.project)
+                | Q(post__default_project=self.project)
+                | Q(group__post__default_project=self.project)
+                | Q(conditional_yes__post__projects=self.project)
+                | Q(conditional_no__post__projects=self.project)
+                | Q(conditional_yes__post__default_project=self.project)
+                | Q(conditional_no__post__default_project=self.project)
             ).distinct()
         else:
             questions = Question.objects.all()
