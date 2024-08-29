@@ -2,10 +2,10 @@ from notifications.models import Notification
 from posts.models import Post
 from projects.permissions import ObjectPermission
 from projects.services import notify_project_subscriptions_post_open
-from tests.fixtures import *  # noqa
-from tests.test_posts.factories import factory_post
-from tests.test_projects.factories import factory_project
-from tests.test_users.factories import factory_user
+from tests.unit.fixtures import *  # noqa
+from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_users.factories import factory_user
 
 
 def test_notify_project_subscriptions_post_open_notification(user1, user2):
