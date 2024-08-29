@@ -1,6 +1,8 @@
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
+from django.utils import timezone
+from datetime import datetime, timedelta
 
 from migrator.services.migrate_comments import migrate_comments, migrate_comment_votes
 from migrator.services.migrate_forecasts import (
@@ -29,6 +31,17 @@ from posts.services.common import compute_hotness
 from scoring.models import populate_medal_exclusion_records
 
 
+def print_duration(text, task_start, global_start) -> datetime:
+    print(
+        "\033[92m"
+        f"{text} ---"
+        f"Task Duration:{str(timezone.now() - task_start).split('.')[0]}, "
+        f"Total Runtime:{str(timezone.now() - global_start).split('.')[0]}"
+        "\033[0m"
+    )
+    return timezone.now()
+
+
 class Command(BaseCommand):
     help = """
     Migrates old database data to the new one
@@ -51,6 +64,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, site_ids=None, **options):
+        start = timezone.now()
+        task_start = timezone.now()
         site_ids = [int(x) for x in site_ids.split(",")]
         with connection.cursor() as cursor:
             cursor.execute("DROP SCHEMA public CASCADE;")
@@ -60,56 +75,60 @@ class Command(BaseCommand):
 
         # main model migration
         migrate_users()
-        print("Migrated users")
+        task_start = print_duration("Migrated users", task_start, start)
         migrate_fab_credits()
-        print("Migrated fab credits")
+        task_start = print_duration("Migrated fab credits", task_start, start)
         migrate_questions(site_ids=site_ids)
-        print("Migrated questions")
+        task_start = print_duration("Migrated questions", task_start, start)
         migrate_projects(site_ids=site_ids)
-        print("Migrated projects")
+        task_start = print_duration("Migrated projects", task_start, start)
         migrate_votes()
-        print("Migrated votes")
+        task_start = print_duration("Migrated votes", task_start, start)
         migrate_comments()
-        print("Migrated comments")
+        task_start = print_duration("Migrated comments", task_start, start)
         migrate_comment_votes()
-        print("Migrated comment votes")
+        task_start = print_duration("Migrated comment votes", task_start, start)
         migrate_permissions(site_ids=site_ids)
-        print("Migrated permissions")
+        task_start = print_duration("Migrated permissions", task_start, start)
         migrate_forecasts()
-        print("Migrated forecasts")
+        task_start = print_duration("Migrated forecasts", task_start, start)
         migrate_metaculus_predictions()
-        print("Migrated Metaculus predictions")
+        task_start = print_duration("Migrated Metaculus predictions", task_start, start)
         migrate_mailgun_notification_preferences()
-        print("Migrated user notification preferences")
+        task_start = print_duration(
+            "Migrated user notification preferences", task_start, start
+        )
 
         # TODO: enable on prod release!
-        print("\033[93mPost Subscriptions/Following migration is disabled!\033[0m")
+        print(f"\033[93mPost Subscriptions/Following migration is disabled!\033[0m")
         # migrate_subscriptions(site_ids=site_ids)
-        # print("Migrated post subscriptions")
+        # task_start = print_duration("Migrated post subscriptions", task_start, start)
 
-        # scoring
+        scoring
         migrate_archived_scores()
-        print("Migrated archived scores")
+        task_start = print_duration("Migrated archived scores", task_start, start)
         score_questions(start_id=options["start_score_questions_with_id"])
-        print("Scored questions")
+        task_start = print_duration("Scored questions", task_start, start)
         populate_medal_exclusion_records()
-        print("Populated medal exclusion records")
+        task_start = print_duration(
+            "Populated medal exclusion records", task_start, start
+        )
         create_global_leaderboards()
-        print("Created global leaderboards")
+        task_start = print_duration("Created global leaderboards", task_start, start)
         populate_global_leaderboards()
-        print("Populated global leaderboards")
+        task_start = print_duration("Populated global leaderboards", task_start, start)
         populate_project_leaderboards()
-        print("Populated project leaderboards")
+        task_start = print_duration("Populated project leaderboards", task_start, start)
 
         # stats on questions
-        print("Running calculate divergence")
         post_migrate_calculate_divergence()
-        print("Running calculate movement")
+        task_start = print_duration("calculated divergence", task_start, start)
         job_compute_movement()
-        print("Running build forecasts")
+        task_start = print_duration("calculated movement", task_start, start)
         call_command("build_forecasts")
-        print("Running compute hotness")
+        task_start = print_duration("built forecasts", task_start, start)
         compute_hotness()
+        task_start = print_duration("computed hotness", task_start, start)
 
         # Reset sql sequences
         reset_sequence()

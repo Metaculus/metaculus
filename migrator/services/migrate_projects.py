@@ -217,7 +217,7 @@ def migrate_topics(question_ids: list[int], q_p_m2m_cls):
         # Some topics contain inline question ids in topic.question_ids column
         m2m_queries.append([{"question_id": x} for x in topic_obj["question_ids"]])
         print(
-            f"related_categories:{related_category_ids}"
+            f"related_categories:{related_category_ids} "
             f"related_tags:{related_tag_ids} "
             f"related_projects:{related_project_ids} "
             f"inline_questions:{topic_obj["question_ids"]}",

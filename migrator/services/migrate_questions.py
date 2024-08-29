@@ -247,7 +247,7 @@ def migrate_questions__composite(site_ids: list[int] = None):
             [tuple(site_ids)],
             itersize=10000,
         ),
-        i,
+        1,
     ):
         print(
             f"\033[Kprocessing questions/posts: {i}. "
@@ -264,6 +264,10 @@ def migrate_questions__composite(site_ids: list[int] = None):
             # Some child questions might not have a parent, so we need to exclude such questions
             if group_id in old_groups:
                 old_groups[group_id]["children"].append(old_question)
+    print(
+        f"\033[Kprocessing questions/posts: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} ",
+    )
 
     print("Migrating notebooks")
     migrate_questions__notebook(list(old_groups.values()))
@@ -553,9 +557,15 @@ def migrate_post_user_snapshots():
     post_ids = Post.objects.values_list("id", flat=True)
     snapshots = []
 
-    for snapshot_obj in paginated_query(
-        "SELECT * FROM metac_question_questionsnapshot"
+    start = timezone.now()
+    for i, snapshot_obj in enumerate(
+        paginated_query("SELECT * FROM metac_question_questionsnapshot"), 1
     ):
+        print(
+            f"\033[Kmigrating post user snapshots: {i}. "
+            f"dur:{str(timezone.now() - start).split('.')[0]} ",
+            end="\r",
+        )
         if snapshot_obj["question_id"] not in post_ids:
             continue
 
@@ -569,10 +579,27 @@ def migrate_post_user_snapshots():
         )
 
         if len(snapshots) >= 5_000:
+            print(
+                f"\033[Kmigrating post user snapshots: {i}. "
+                f"dur:{str(timezone.now() - start).split('.')[0]} ",
+                "Bulk creating...",
+                end="\r",
+            )
             PostUserSnapshot.objects.bulk_create(snapshots)
             snapshots = []
 
+    print(
+        f"\033[Kmigrating post user snapshots: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} ",
+        "Bulk creating...",
+        end="\r",
+    )
     PostUserSnapshot.objects.bulk_create(snapshots)
+    print(
+        f"\033[Kmigrating post user snapshots: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} ",
+        "Bulk creating... DONE",
+    )
 
 
 def migrate_post_snapshots_forecasts():

@@ -54,7 +54,7 @@ def populate_global_leaderboards():
         update_project_leaderboard(main_site_project, leaderboard)
         entries = LeaderboardEntry.objects.filter(leaderboard=leaderboard).count()
         print(
-            "populating:",
+            "\033[Kpopulating:",
             i,
             "/",
             c,
@@ -75,11 +75,9 @@ def populate_project_leaderboards():
         print("populating:", i, "/", c, project.name, end="\r")
         for leaderboard in project.leaderboards.all():
             update_project_leaderboard(project, leaderboard)
-        entries = (
-            LeaderboardEntry.objects.filter(leaderboard__project=project).count(),
-        )
+        entries = LeaderboardEntry.objects.filter(leaderboard__project=project).count()
         print(
-            "populating:",
+            "\033[Kpopulating:",
             i,
             "/",
             c,

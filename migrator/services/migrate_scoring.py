@@ -27,7 +27,13 @@ def migrate_archived_scores():
     query_string = "SELECT * FROM metac_question_comboprediction"
 
     archived_scores = []
-    for comboprediction in paginated_query(query_string):
+    start = timezone.now()
+    for i, comboprediction in enumerate(paginated_query(query_string), 1):
+        print(
+            f"\033[Kmigrating archived scores: {i}. "
+            f"dur:{str(timezone.now() - start).split('.')[0]} ",
+            end="\r",
+        )
         if (comboprediction["question_id"] not in question_dict) or (
             comboprediction["log_score"] is None
         ):
@@ -46,8 +52,19 @@ def migrate_archived_scores():
                 score_type=Score.ScoreTypes.RELATIVE_LEGACY,
             )
         )
+    print(
+        f"\033[Kmigrating archived scores: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
+        "bulk creating...",
+        end="\r",
+    )
     ArchivedScore.objects.all().delete()
     ArchivedScore.objects.bulk_create(archived_scores)
+    print(
+        f"\033[Kmigrating archived scores: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
+        "bulk creating... DONE",
+    )
 
 
 def score_questions(qty: int | None = None, start_id: int = 0):
