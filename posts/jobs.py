@@ -72,8 +72,6 @@ def job_compute_movement():
             Post.objects.bulk_update(posts, fields=["movement"])
             posts = []
 
-        print(f"compute movement: {i}/{total}", end="\r")
-
     print("bulk updating...", end="\r")
     Post.objects.bulk_update(posts, fields=["movement"])
     print("bulk updating... DONE")
