@@ -3,8 +3,6 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
-import { headers } from "next/headers";
-import { NextRequest } from "next/server";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
@@ -65,41 +63,43 @@ const sourceSerifPro = localFont({
   ],
   variable: "--font-source-serif-pro",
 });
-const diatype = localFont({
+
+const inter = localFont({
   src: [
     {
-      path: "./assets/fonts/ABCDiatype-Regular.woff2",
+      path: "./assets/fonts/inter_18pt-medium.ttf",
       weight: "400",
       style: "normal",
     },
     {
-      path: "./assets/fonts/ABCDiatype-RegularItalic.woff2",
+      path: "./assets/fonts/inter_18pt-mediumitalic.ttf",
       weight: "400",
       style: "italic",
     },
   ],
-  variable: "--font-diatype",
+  variable: "--font-inter",
 });
-const diatypeVariable = localFont({
+
+const interVariable = localFont({
   src: [
     {
-      path: "./assets/fonts/ABCDiatypeVariable.woff2",
+      path: "./assets/fonts/inter_variable.ttf",
       weight: "100 700",
       style: "normal",
     },
   ],
-  variable: "--font-diatype-variable",
+  variable: "--font-inter-variable",
 });
 
-const alternateGothic = localFont({
-  src: "./assets/fonts/alternategothicno1.otf",
-  variable: "--font-alternate-gothic-no-1-d",
+const leagueGothic = localFont({
+  src: "./assets/fonts/league_gothic_variable.ttf",
+  variable: "--font-league-gothic",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Metaculus",
-    description: "Metaculus rewrite",
+    description: "Metaculus",
     metadataBase: new URL(
       process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
     ),
@@ -121,7 +121,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${diatypeVariable.variable} ${diatype.variable} ${sourceSerifPro.variable} ${alternateGothic.variable} font-sans`}
+      className={`${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${leagueGothic.variable} font-sans`}
       // required by next-themes
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       suppressHydrationWarning

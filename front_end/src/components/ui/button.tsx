@@ -59,8 +59,6 @@ const Button = forwardRef<HTMLButtonElement, Props>(
               "border border-blue-500 bg-gray-0 text-blue-700 no-underline hover:border-blue-600 hover:bg-blue-100 active:border-blue-600 active:bg-blue-200 disabled:border-blue-500 disabled:bg-gray-0 dark:border-blue-500-dark dark:bg-gray-0-dark dark:text-blue-700-dark dark:hover:border-blue-600-dark dark:hover:bg-blue-100-dark dark:active:border-blue-600-dark dark:active:bg-blue-200-dark disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark",
             text: "border border-transparent text-blue-800 no-underline hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 dark:text-blue-800-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark disabled:dark:text-blue-800-dark",
             link: "text-blue-800 underline hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 dark:text-blue-800-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark disabled:dark:text-blue-800-dark",
-            bright:
-              "rounded-none border border-gray-900-dark bg-blue-100-dark font-alternate-gothic font-light uppercase tracking-[0.08em] text-gray-900-dark",
           }[variant],
           className
         )}

@@ -151,12 +151,12 @@
                   <tbody>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">Hello {{recipient.username}},</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">Hello {{recipient.username}},</div>
                       </td>
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% if params.from_projects %} {% for item in params.from_projects %} <p> {% blocktrans with project_name=item.project.name %} In <b>{{project_name}}</b>: {% endblocktrans %} </p> {% for notification in item.notifications %} <li>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% if params.from_projects %} {% for item in params.from_projects %} <p> {% blocktrans with project_name=item.project.name %} In <b>{{project_name}}</b>: {% endblocktrans %} </p> {% for notification in item.notifications %} <li>
                             <a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
                               {{ notification.post.post_title }}
                             </a> is now {{notification.event}}
@@ -188,12 +188,12 @@
                   <tbody>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} <h4>Here are some other questions you may be interested in:</h4> {% endblocktrans %}</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} <h4>Here are some other questions you may be interested in:</h4> {% endblocktrans %}</div>
                       </td>
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% for post in similar_posts %} <div style="margin-bottom: 8px">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% for post in similar_posts %} <div style="margin-bottom: 8px">
                             <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
                               {{ post.title }}
                             </a>
@@ -224,7 +224,7 @@
                   <tbody>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} Happy Predicting,<br> The Metaculus Team {% endblocktrans %}</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} Happy Predicting,<br> The Metaculus Team {% endblocktrans %}</div>
                       </td>
                     </tr>
                   </tbody>
@@ -248,7 +248,7 @@
                   <tbody>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
                           <p style="font-size:85%; color:#aaaaaa;"> {% blocktrans %} If you no longer wish to receive this type of email, you can <a href="%tag_unsubscribe_url%" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">unsubscribe here</a>. You can also manage your notification settings on your Metaculus <a href="{{ FRONTEND_BASE_URL }}/accounts/settings/" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">settings page</a>. {% endblocktrans %} </p>
                         </div>
                       </td>

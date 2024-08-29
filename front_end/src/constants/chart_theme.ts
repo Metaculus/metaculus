@@ -1,7 +1,7 @@
 import { merge } from "lodash";
 import { VictoryTheme, VictoryThemeDefinition } from "victory";
 
-const sansSerif = "var(--font-diatype-variable) var(--font-diatype)";
+const sansSerif = "var(--font-inter-variable) var(--font-inter)";
 
 const baseChart: VictoryThemeDefinition = {
   chart: {
