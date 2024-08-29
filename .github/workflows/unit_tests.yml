@@ -2,8 +2,6 @@ name: Run Backend Unit Tests
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ "**" ]
   pull_request:
     types:
       - opened
