@@ -152,7 +152,7 @@ export default async function IndividualQuestion({
             {!!postData.group_of_questions && (
               <ContinuousGroupTimeline post={postData} />
             )}
-            
+
             <BackgroundInfo post={postData} />
             <HistogramDrawer post={postData} />
             <Sidebar
