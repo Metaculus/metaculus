@@ -137,6 +137,7 @@ def create_post(question: dict, **kwargs) -> Post:
         # Keeping the same ID as the old question
         id=question["id"],
         title=question["title"],
+        url_title=question["title_short"],
         author_id=question["author_id"],
         curated_last_by_id=question["approved_by_id"],
         curation_status=curation_status,
