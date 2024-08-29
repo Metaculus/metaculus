@@ -145,7 +145,6 @@ export type Question = {
   resolution_set_time?: string;
   scheduled_close_time: string;
   actual_close_time?: string;
-  forecast_scoring_ends?: string;
   type: QuestionType;
   options?: string[];
   scaling: Scaling;
