@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.utils.module_loading import import_string
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -37,7 +37,7 @@ def social_providers_api_view(request):
 
 
 class SocialCodeAuth(SocialTokenOnlyAuthView):
-    def post(self, request, provider: str, *args, **kwargs):
-        # TODO: migrate social relations
+    def respond_error(self, error):
+        response = super().respond_error(error)
 
-        return super().post(request, provider, *args, **kwargs)
+        return Response({"detail": response.data}, status=status.HTTP_400_BAD_REQUEST)
