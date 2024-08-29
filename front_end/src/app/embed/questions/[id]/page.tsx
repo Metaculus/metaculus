@@ -65,7 +65,7 @@ export default async function GenerateQuestionPreview({
         <Link
           href="/"
           id="id-logo-used-by-screenshot-donot-change"
-          className="m-0 max-w-[250px] font-alternate-gothic text-4xl font-light tracking-[.04em] no-underline antialiased lg:text-6xl capitalize"
+          className="m-0 max-w-64 font-league-gothic text-4xl font-light tracking-wider no-underline antialiased lg:text-6xl capitalize"
         >
           {t("metaculus")}
         </Link>

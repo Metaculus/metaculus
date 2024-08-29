@@ -91,15 +91,15 @@ const interVariable = localFont({
   variable: "--font-inter-variable",
 });
 
-const alternateGothic = localFont({
-  src: "./assets/fonts/alternategothicno1.otf",
-  variable: "--font-alternate-gothic-no-1-d",
+const leagueGothic = localFont({
+  src: "./assets/fonts/league_gothic_variable.ttf",
+  variable: "--font-league-gothic",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Metaculus",
-    description: "Metaculus rewrite",
+    description: "Metaculus",
     metadataBase: new URL(
       process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
     ),
@@ -121,7 +121,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${alternateGothic.variable} font-sans`}
+      className={`${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${leagueGothic.variable} font-sans`}
       // required by next-themes
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       suppressHydrationWarning
