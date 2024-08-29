@@ -34,7 +34,9 @@ def global_leaderboard(
     end_time = request.GET.get("endTime", None)
     leaderboard_type = request.GET.get("leaderboardType", None)
     # filtering
-    leaderboards = Leaderboard.objects.filter(project_id=1)
+    leaderboards = Leaderboard.objects.filter(
+        project__type=Project.ProjectTypes.SITE_MAIN
+    )
     if start_time:
         leaderboards = leaderboards.filter(start_time=start_time)
     if end_time:
