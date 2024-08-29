@@ -28,7 +28,7 @@ const NewsCard: FC<Props> = ({ post }) => {
         className="flex flex-col items-stretch no-underline sm:h-64 sm:flex-row-reverse"
       >
         {post.notebook.image_url &&
-        post.notebook.image_url.startsWith("https:") ? (
+        post.notebook.image_url.startsWith("https:") && (
           <Image
             src={post.notebook.image_url}
             alt=""
@@ -38,8 +38,6 @@ const NewsCard: FC<Props> = ({ post }) => {
             className="h-auto w-full object-cover max-sm:h-40 max-sm:rounded-t sm:h-full sm:w-60 sm:rounded-r"
             unoptimized
           />
-        ) : (
-          <></>
         )}
         <div className="flex flex-1 flex-col p-6 text-base">
           <span className="mb-3 font-serif font-semibold capitalize text-blue-700 dark:text-blue-700-dark">
@@ -48,7 +46,7 @@ const NewsCard: FC<Props> = ({ post }) => {
           <h2 className="mt-0 line-clamp-2 font-serif text-2xl font-bold text-blue-900 dark:text-blue-900-dark">
             {post.title}
           </h2>
-          <div ref={ref} className="mb-3 h-[48px]">
+          <div ref={ref} className="mb-3 h-12">
             {!!width && (
               <MarkdownEditor
                 mode="read"
