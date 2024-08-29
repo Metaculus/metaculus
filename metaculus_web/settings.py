@@ -340,7 +340,7 @@ ALLOWED_HOSTS = [
     ".metaculus.com",
     "localhost",
     "127.0.0.1",
-    "dev-metaculus-web-023b332df454.herokuapp.com/", #remove after we have a DNS entry for dev environment
+    "dev-metaculus-web-023b332df454.herokuapp.com/",  # remove after we have a DNS entry for dev environment
 ]
 
 CSRF_TRUSTED_ORIGINS = [FRONTEND_BASE_URL]
