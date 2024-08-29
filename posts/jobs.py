@@ -55,7 +55,6 @@ def job_compute_movement():
         )
         .prefetch_questions()
     )
-    total = qs.count()
 
     posts = []
 
@@ -69,8 +68,10 @@ def job_compute_movement():
         posts.append(post)
 
         if len(posts) >= 100:
+            print("bulk updating...", end="\r")
             Post.objects.bulk_update(posts, fields=["movement"])
             posts = []
+            print("bulk updating... DONE")
 
     print("bulk updating...", end="\r")
     Post.objects.bulk_update(posts, fields=["movement"])
