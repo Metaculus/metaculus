@@ -42,6 +42,7 @@ import {
 } from "@/types/question";
 import {
   generateNumericDomain,
+  generateTicksY,
   generateTimestampXScale,
   getDisplayValue,
   unscaleNominalLocation,
@@ -343,27 +344,13 @@ function buildChartData({
   const yDomain: Tuple<number> = [0, 1];
 
   const desiredMajorTicks = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
-  const minorTicksPerMajor = 9;
   const desiredMajorTickDistance = 20;
 
-  const maxMajorTicks = Math.floor(height / desiredMajorTickDistance);
-
-  let majorTicks = desiredMajorTicks;
-  if (maxMajorTicks < desiredMajorTicks.length) {
-    // adjust major ticks on small height
-    const step = 1 / (maxMajorTicks - 1);
-    majorTicks = Array.from({ length: maxMajorTicks }, (_, i) => i * step);
-  }
-  const ticks = [];
-  for (let i = 0; i < majorTicks.length - 1; i++) {
-    ticks.push(majorTicks[i]);
-    const step = (majorTicks[i + 1] - majorTicks[i]) / (minorTicksPerMajor + 1);
-    for (let j = 1; j <= minorTicksPerMajor; j++) {
-      ticks.push(majorTicks[i] + step * j);
-    }
-  }
-  ticks.push(majorTicks[majorTicks.length - 1]);
-
+  const { ticks, majorTicks } = generateTicksY(
+    height,
+    desiredMajorTicks,
+    desiredMajorTickDistance
+  );
   const tickFormat = (value: number): string => {
     if (!majorTicks.includes(value)) {
       return "";
