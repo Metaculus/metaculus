@@ -1,5 +1,4 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
-from django.apps import apps
 from django.contrib import admin
 
 from .models import Comment

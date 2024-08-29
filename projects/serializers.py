@@ -142,7 +142,7 @@ def validate_tournaments(lookup_values: list):
     tournaments = (
         Project.objects.filter_tournament()
         .filter_active()
-        .filter(Q(**{f"slug__in": slug_values}) | Q(pk__in=id_values))
+        .filter(Q(**{"slug__in": slug_values}) | Q(pk__in=id_values))
     )
 
     lookup_values_fetched = {obj.slug for obj in tournaments}

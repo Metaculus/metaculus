@@ -1,16 +1,17 @@
+import pytest  # noqa
 import datetime
 
 from freezegun import freeze_time
 
 from posts.models import Post
 from projects.permissions import ObjectPermission
-from tests.fixtures import *  # noqa
-from tests.test_comments.factories import factory_comment
-from tests.test_posts.factories import factory_post, factory_post_snapshot
-from tests.test_projects.factories import factory_project
-from tests.test_questions.factories import factory_forecast
-from tests.test_questions.fixtures import *  # noqa
-from tests.test_users.factories import factory_user
+from tests.unit.fixtures import *  # noqa
+from tests.unit.test_comments.factories import factory_comment
+from tests.unit.test_posts.factories import factory_post, factory_post_snapshot
+from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_questions.factories import factory_forecast
+from tests.unit.test_questions.fixtures import *  # noqa
+from tests.unit.test_users.factories import factory_user
 
 
 class TestPostQuerySetAnnotatePredictionsCount:
