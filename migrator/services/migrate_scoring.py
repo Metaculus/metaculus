@@ -9,7 +9,6 @@ from scoring.models import Score, ArchivedScore, Leaderboard
 from migrator.utils import paginated_query
 
 
-
 def migrate_archived_scores():
     rltst = Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
     questions = (
@@ -28,13 +27,19 @@ def migrate_archived_scores():
     query_string = "SELECT * FROM metac_question_comboprediction"
 
     archived_scores = []
-    for comboprediction in paginated_query(query_string):
+    start = timezone.now()
+    for i, comboprediction in enumerate(paginated_query(query_string), 1):
+        print(
+            f"\033[Kmigrating archived scores: {i}. "
+            f"dur:{str(timezone.now() - start).split('.')[0]} ",
+            end="\r",
+        )
         if (comboprediction["question_id"] not in question_dict) or (
             comboprediction["log_score"] is None
         ):
             continue
         question = question_dict[comboprediction["question_id"]]
-        score = np.log(2**comboprediction["log_score"])
+        score = np.log(2 ** comboprediction["log_score"])
 
         archived_scores.append(
             ArchivedScore(
@@ -44,11 +49,22 @@ def migrate_archived_scores():
                 coverage=comboprediction["coverage"],
                 created_at=question.resolution_set_time,
                 edited_at=question.resolution_set_time,
-                score_type=Score.ScoreTypes.RELATIVE_LEGACY
+                score_type=Score.ScoreTypes.RELATIVE_LEGACY,
             )
         )
+    print(
+        f"\033[Kmigrating archived scores: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
+        "bulk creating...",
+        end="\r",
+    )
     ArchivedScore.objects.all().delete()
     ArchivedScore.objects.bulk_create(archived_scores)
+    print(
+        f"\033[Kmigrating archived scores: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
+        "bulk creating... DONE",
+    )
 
 
 def score_questions(qty: int | None = None, start_id: int = 0):
@@ -89,51 +105,29 @@ def score_questions(qty: int | None = None, start_id: int = 0):
             )
             print("Resolved q with no resolved time")
             exit()
+        score_types = [
+            Score.ScoreTypes.PEER,
+            Score.ScoreTypes.BASELINE,
+            Score.ScoreTypes.SPOT_PEER,
+        ]
+        if question.id in question_ids_to_relative_score:
+            score_types.append(Score.ScoreTypes.RELATIVE_LEGACY)
         f = question.user_forecasts.count()
         print(
             f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
-            f"dur:{str(timezone.now() - start).split(".")[0]} "
-            f"est:{str((timezone.now() - start) / i * c).split(".")[0]} "
-            "peer...",
+            f"dur:{str(timezone.now() - start).split('.')[0]} "
+            f"remaining:{str((timezone.now() - start) / i * (c - i)).split(".")[0]} "
+            f"scoring: {','.join(score_types)}...",
             end="\r",
         )
         score_question(
             question,
             question.resolution,
-            score_types=[
-                Score.ScoreTypes.PEER,
-            ],
+            score_types=score_types,
         )
-        print(
-            f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
-            f"dur:{str(timezone.now() - start).split(".")[0]} "
-            f"est:{str((timezone.now() - start) / i * c).split(".")[0]} "
-            "peer done. basline...",
-            end="\r",
-        )
-        score_question(
-            question,
-            question.resolution,
-            score_types=[
-                Score.ScoreTypes.BASELINE,
-            ],
-        )
-        # TODO: add spot_forecast_time
-        if question.id in question_ids_to_relative_score:
-            if ArchivedScore.objects.filter(question=question).exists():
-                continue  
-            print(
-                f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
-                f"dur:{str(timezone.now() - start).split(".")[0]} "
-                f"est:{str((timezone.now() - start) / i * c).split(".")[0]} "
-                "peer done. basline done. relative...",
-                end="\r",
-            )
-            score_question(
-                question,
-                question.resolution,
-                # TODO: add spot_forecast_time
-                score_types=[
-                    Score.ScoreTypes.RELATIVE_LEGACY,
-                ],
-            )
+    print(
+        f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
+        f"remaining:{str((timezone.now() - start) / i * (c - i)).split(".")[0]} "
+        f"scoring: {','.join(score_types)}... DONE",
+    )

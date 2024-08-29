@@ -121,7 +121,7 @@ const BinaryGroupChart: FC<Props> = ({
 
   const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(
     () =>
-      userForecasts === undefined
+      userForecasts == null 
         ? []
         : userForecasts?.map(
             ({ choice, values, color, timestamps: optionTimestamps }) => {

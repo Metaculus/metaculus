@@ -65,11 +65,12 @@ INSTALLED_APPS = [
     "comments",
     "notifications",
     "fab_management",
+    "fab_credits",
 ]
-
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -83,7 +84,6 @@ MIDDLEWARE = [
 if DEBUG:
     INSTALLED_APPS += ["debug_toolbar"]
     MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
-
 
 # Cors configuration
 CORS_ORIGIN_WHITELIST = [
@@ -212,7 +212,7 @@ ANYMAIL = {
 }
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 EMAIL_HOST_USER = os.environ.get(
-    "EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg.metaculus.com>"
+    "EMAIL_HOST_USER", "Metaculus Accounts <accounts@mg2.metaculus.com>"
 )
 EMAIL_SENDER_NO_REPLY = os.environ.get(
     "EMAIL_SENDER_NO_REPLY", "Metaculus NoReply <no-reply@mg2.metaculus.com>"
@@ -235,6 +235,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -255,7 +256,8 @@ DRAMATIQ_BROKER = {
     "BROKER": "dramatiq.brokers.redis.RedisBroker",
     "OPTIONS": {
         # Setting redis db to 1 for the MQ storage
-        "url": f"{REDIS_URL}/1",
+        "url": f"{REDIS_URL}/1?ssl_cert_reqs=none",
+        "ssl_cert_reqs": None,
     },
     "MIDDLEWARE": [
         "dramatiq.middleware.AgeLimit",
@@ -276,8 +278,9 @@ DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_URL}/2",
+        "LOCATION": f"{REDIS_URL}/2?ssl_cert_reqs=none",
         "OPTIONS": {
+            "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None},
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     }
@@ -290,8 +293,13 @@ STORAGES = {
         "BACKEND": "storages.backends.s3.S3Storage",
         "OPTIONS": {},
     },
-    # TODO: change for prod
-    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    "staticfiles": {
+        "BACKEND": (
+            "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            if not DEBUG
+            else "django.contrib.staticfiles.storage.StaticFilesStorage"
+        )
+    },
 }
 
 ITN_DB_MACHINE_SSH_ADDR = os.environ.get("ITN_DB_MACHINE_SSH_ADDR")
@@ -324,12 +332,17 @@ SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
 
 GOOGLE_CREDEBTIALS_FAB_SHEET_B64 = os.environ.get("GOOGLE_CREDEBTIALS_FAB_SHEET_B64")
 
+FAB_CREDITS_ANTHROPIC_API_KEY = os.environ.get("FAB_CREDITS_ANTHROPIC_API_KEY")
+FAB_CREDITS_OPENAI_API_KEY = os.environ.get("FAB_CREDITS_OPENAI_API_KEY")
+
 
 ALLOWED_HOSTS = [
     ".metaculus.com",
     "localhost",
-    "127.0.0.1"
+    "127.0.0.1",
+    "dev-metaculus-web-023b332df454.herokuapp.com/",  # remove after we have a DNS entry for dev environment
 ]
+
 CSRF_TRUSTED_ORIGINS = [FRONTEND_BASE_URL]
 INTERNAL_IPS = ["127.0.0.1"]
 

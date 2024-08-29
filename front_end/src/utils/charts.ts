@@ -435,12 +435,14 @@ export function getFanOptionsFromNumericGroup(
       cdf: q.aggregations.recency_weighted.latest?.forecast_values ?? [],
       resolvedAt: new Date(q.scheduled_resolve_time),
       resolved: q.resolution !== null,
+      question: q,
     }))
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt))
-    .map(({ name, cdf, resolved }) => ({
+    .map(({ name, cdf, resolved, question }) => ({
       name,
       quartiles: computeQuartilesFromCDF(cdf),
       resolved,
+      question,
     }));
 }
 

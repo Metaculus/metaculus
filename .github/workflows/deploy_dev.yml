@@ -1,32 +1,24 @@
-name: Deploy Dev
+name: Deploy to dev
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
-  deploy:
-    runs-on: ubuntu-20.04
+  deploy-to-dev:
+    runs-on: ubuntu-latest
+    env:
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_APP: dev-metaculus-web
+      NEXT_PUBLIC_APP_URL: "https://dev.metaculus.com"
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Install SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.DEV_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-
-    - name: Run deployment script on dev server
-      run: |
-        ssh -o StrictHostKeyChecking=no ubuntu@107.20.216.39 << 'EOF'
-        bash -il << 'ENDBASH'
-        echo "Starting interactive shell"
-        chmod +x /home/ubuntu/rewrite/deploy.sh
-        /home/ubuntu/rewrite/deploy.sh > /home/ubuntu/deploy.log 2>&1
-        echo "Finished executing commands"
-        exit
-        ENDBASH
-        EOF
-      env:
-        DEV_SERVER_SSH_KEY: ${{ secrets.DEV_SERVER_SSH_KEY }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build and deploy to Heroku
+        run: |
+          heroku container:login # uses the HEROKU_API_KEY
+          ./scripts/deploy_to_heroku.sh

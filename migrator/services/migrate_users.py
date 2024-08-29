@@ -1,5 +1,6 @@
 from social_django.models import Association, Code, Nonce, Partial, UserSocialAuth
 from rest_framework.authtoken.models import Token
+from django.utils import timezone
 
 from migrator.utils import paginated_query
 from users.models import User
@@ -50,22 +51,58 @@ def migrate_social_auth():
 
 
 def migrate_users():
+    start = timezone.now()
     users = []
-    for user_obj in paginated_query(
-        "SELECT u.*, p.bio_text, p.website "
-        "FROM metac_account_user u "
-        "LEFT JOIN metac_account_userprofile p ON p.user_id = u.id"
+    for i, user_obj in enumerate(
+        paginated_query(
+            "SELECT u.*, p.bio_text, p.website "
+            "FROM metac_account_user u "
+            "LEFT JOIN metac_account_userprofile p ON p.user_id = u.id"
+        ),
+        1,
     ):
+        print(
+            f"\033[Kmigrating users: {i}. "
+            f"dur:{str(timezone.now() - start).split('.')[0]} ",
+            end="\r",
+        )
         users.append(create_user(user_obj))
 
+    print(
+        f"\033[Kmigrated users: {i}. "
+        f"dur:{str(timezone.now() - start).split(".")[0]}. "
+        "bulk creating...",
+        end="\r",
+    )
     User.objects.bulk_create(users, batch_size=10_000)
+    print(
+        f"\033[Kmigrated users: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
+        "bulk creating... DONE"
+    )
 
     # Migrating existing bot/user tokens
-    tokens = [
-        Token(**token_obj)
-        for token_obj in paginated_query("SELECT * FROM authtoken_token")
-    ]
+    start = timezone.now()
+    tokens = []
+    for i, token_obj in enumerate(paginated_query("SELECT * FROM authtoken_token"), 1):
+        tokens.append(Token(**token_obj))
+        print(
+            f"\033[Kmigrating tokens: {i}. "
+            f"dur:{str(timezone.now() - start).split('.')[0]} ",
+            end="\r",
+        )
+    print(
+        f"\033[Kmigrating tokens: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
+        "bulk creating...",
+        end="\r",
+    )
     Token.objects.bulk_create(tokens, batch_size=5_000)
+    print(
+        f"\033[Kmigrating tokens: {i}. "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
+        "bulk creating... DONE"
+    )
 
     # Social migrations
     migrate_social_auth()

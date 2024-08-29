@@ -68,6 +68,7 @@ const QuestionNumericTile: FC<Props> = ({
           question={question}
           prediction={prediction}
           status={curationStatus}
+          showUserForecast
         />
       </div>
       <div className="my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">

@@ -13,12 +13,12 @@ class Command(BaseCommand):
     help = "Builds forecasts for all questions"
 
     def handle(self, *args, **options):
-        qs = Question.objects.all().prefetch_related("user_forecasts")
-        total = qs.count()
-        processed = 0
+        qs = Question.objects.all().order_by("id").prefetch_related("user_forecasts")
+        c = qs.count()
+        i = 0
         tm = time.time()
 
-        print(f"Building CP. Found {total} questions with forecasts to process.")
+        print(f"Building CP. Found {c} questions with forecasts to process.")
 
         for question in qs.iterator(chunk_size=100):
 
@@ -29,13 +29,15 @@ class Command(BaseCommand):
                     "Failed to generate forecast for question %s", question.id
                 )
 
-            processed += 1
+            i += 1
             print(
-                f"Processed {int(processed / total * 100)}% ({processed}/{total})"
-                f" questions. Duration: {round(time.time() - tm)}s",
+                f"Processed {int(i / c * 100)}% ({i}/{c}) "
+                f"dur:{round(time.time() - tm)}s "
+                f"remaining:{round((time.time() - tm) / i * (c - i))}s",
                 end="\r",
             )
         print(
-            f"Processed {int(processed / total * 100)}% ({processed}/{total})"
-            f" questions. Duration: {round(time.time() - tm)}s",
+            f"Processed {int(i / c * 100)}% ({i}/{c}) "
+            f"dur:{round(time.time() - tm)}s "
+            f"remaining:{round((time.time() - tm) / i * (c - i))}s"
         )

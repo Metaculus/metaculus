@@ -20,6 +20,24 @@ def get_projects_qs(user: User = None):
     return Project.objects.filter_active().filter_permission(user=user)
 
 
+def update_with_add_posts_to_main_feed(project: Project, add_posts_to_main_feed: bool):
+    site_main = get_site_main_project()
+
+    if project == site_main:
+        raise ValueError("Site main can not be updated")
+
+    post_projects = Post.objects.filter(default_project=project).all()
+
+    for post in post_projects:
+        if project.add_posts_to_main_feed:
+            post.projects.add(site_main)
+        else:
+            post.projects.remove(site_main)
+
+    project.add_posts_to_main_feed = add_posts_to_main_feed
+    project.save()
+
+
 def get_site_main_project():
     obj, _ = Project.objects.get_or_create(type=Project.ProjectTypes.SITE_MAIN)
 
