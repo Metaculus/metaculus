@@ -133,6 +133,7 @@ class GroupOfQuestionsSerializer(serializers.ModelSerializer):
             "resolution_criteria",
             "fine_print",
             "group_variable",
+            "graph_type",
         )
 
 
