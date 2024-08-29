@@ -38,7 +38,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
 
   const history = question.aggregations.recency_weighted.history;
   const timestamps = history.map((forecast) => forecast.start_time);
-  
+
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => {
     setIsChartReady(true);

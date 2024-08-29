@@ -15,6 +15,7 @@ import AuthProvider from "@/contexts/auth_context";
 import ModalProvider from "@/contexts/modal_context";
 import AuthApi from "@/services/auth";
 import ProfileApi from "@/services/profile";
+import { CSPostHogProvider } from "./providers";
 
 config.autoAddCss = false;
 
@@ -126,23 +127,25 @@ export default async function RootLayout({
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       suppressHydrationWarning
     >
-      <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
-        <AppThemeProvided>
-          <NextIntlClientProvider messages={messages}>
-            <AuthProvider user={user} socialProviders={socialProviders}>
-              <ModalProvider>
-                <NextTopLoader
-                  showSpinner={false}
-                  color={METAC_COLORS.blue["500"].DEFAULT}
-                />
-                {children}
-                <GlobalModals />
-                <Toaster />
-              </ModalProvider>
-            </AuthProvider>
-          </NextIntlClientProvider>
-        </AppThemeProvided>
-      </body>
+      <CSPostHogProvider>
+        <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
+          <AppThemeProvided>
+            <NextIntlClientProvider messages={messages}>
+              <AuthProvider user={user} socialProviders={socialProviders}>
+                <ModalProvider>
+                  <NextTopLoader
+                    showSpinner={false}
+                    color={METAC_COLORS.blue["500"].DEFAULT}
+                  />
+                  {children}
+                  <GlobalModals />
+                  <Toaster />
+                </ModalProvider>
+              </AuthProvider>
+            </NextIntlClientProvider>
+          </AppThemeProvided>
+        </body>
+      </CSPostHogProvider>
     </html>
   );
 }

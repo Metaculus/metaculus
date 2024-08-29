@@ -49,13 +49,19 @@ const NumericForecastTable: FC<Props> = ({
       <div className="mb-4 flex justify-between">
         <div className="w-full text-center">
           {question.open_lower_bound && (
-            <div className="w-full">{"<"}{question.scaling.range_min}</div>
+            <div className="w-full">
+              {"<"}
+              {question.scaling.range_min}
+            </div>
           )}
           <div className="w-full">{t("firstQuartile")}</div>
           <div className="w-full">{t("secondQuartile")}</div>
           <div className="w-full">{t("thirdQuartile")}</div>
           {question.open_upper_bound && (
-            <div className="w-full">{">"}{question.scaling.range_max}</div>
+            <div className="w-full">
+              {">"}
+              {question.scaling.range_max}
+            </div>
           )}
         </div>
         {withUserQuartiles && (
