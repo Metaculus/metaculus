@@ -33,7 +33,7 @@ const EmbedModal: FC<Props> = ({
   embedWidth,
   embedHeight,
   withChartZoom,
-  postTitle
+  postTitle,
 }) => {
   const t = useTranslations();
   const { theme: appTheme } = useAppTheme();
@@ -60,9 +60,7 @@ const EmbedModal: FC<Props> = ({
   return (
     <BaseModal label={t("embedThisPage")} isOpen={isOpen} onClose={onClose}>
       <div className="max-w-2xl">
-        <p className="text-base leading-tight">
-          {t("embedCodeSnippet")}
-        </p>
+        <p className="text-base leading-tight">{t("embedCodeSnippet")}</p>
         <div>
           <Field className="mr-4 mt-4 inline-block text-base leading-tight">
             <Label>{t("selectATheme")}</Label>
@@ -74,8 +72,12 @@ const EmbedModal: FC<Props> = ({
               name="chart-theme"
               className="select-arrow ml-2 h-8 rounded border border-gray-700 bg-inherit bg-[length:22px_20%] bg-no-repeat px-3 text-gray-900 dark:border-gray-700-dark dark:text-gray-900-dark"
             >
-              <option className="capitalize" value="light">{t("light")}</option>
-              <option className="capitalize" value="dark">{t("dark")}</option>
+              <option className="capitalize" value="light">
+                {t("light")}
+              </option>
+              <option className="capitalize" value="dark">
+                {t("dark")}
+              </option>
             </Select>
           </Field>
           {withChartZoom && (
@@ -115,9 +117,7 @@ const EmbedModal: FC<Props> = ({
             readOnly
             value={`<iframe src="${iFrameSrc}" style="height:${embedHeight}px; width:100%; max-width:${embedWidth}px"></iframe>`}
           />
-          <span className="my-2 text-base leading-tight">
-            {t("preview")}
-          </span>
+          <span className="my-2 text-base leading-tight">{t("preview")}</span>
           <div className="mt-2 max-w-full overflow-x-auto">
             <iframe
               className="mx-auto"

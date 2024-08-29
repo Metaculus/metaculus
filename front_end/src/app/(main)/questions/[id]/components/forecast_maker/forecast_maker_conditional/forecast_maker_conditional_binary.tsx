@@ -102,7 +102,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     }
 
     return {
-      label: t("copyFromBranch", {branch: inactiveOption.name.toUpperCase()}),
+      label: t("copyFromBranch", { branch: inactiveOption.name.toUpperCase() }),
       fromQuestionId: inactiveOption.id,
       toQuestionId: activeTableOption,
     };

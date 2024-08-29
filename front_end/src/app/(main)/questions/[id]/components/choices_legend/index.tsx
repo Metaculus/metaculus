@@ -68,7 +68,7 @@ const ChoicesLegend: FC<Props> = ({
                   "bg-gray-300 dark:bg-gray-300-dark": open,
                 })}
               >
-                {t("othersCount", {count: dropdownChoices.length})}
+                {t("othersCount", { count: dropdownChoices.length })}
                 <FontAwesomeIcon icon={faChevronDown} className="ml-1" />
               </PopoverButton>
               <PopoverPanel
