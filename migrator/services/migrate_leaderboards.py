@@ -1,9 +1,5 @@
 from datetime import timedelta
 
-from collections import defaultdict
-from django.utils import timezone
-
-
 from posts.models import Post
 from projects.models import Project
 from scoring.models import (

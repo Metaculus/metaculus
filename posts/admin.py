@@ -1,7 +1,7 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 
-from posts.models import Post, Notebook
+from posts.models import Post
 
 
 @admin.register(Post)

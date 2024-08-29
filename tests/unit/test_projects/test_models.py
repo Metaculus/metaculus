@@ -1,8 +1,8 @@
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from tests.fixtures import *  # noqa
-from tests.test_projects.factories import factory_project
-from tests.test_users.factories import factory_user
+from tests.unit.fixtures import *  # noqa
+from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_users.factories import factory_user
 
 
 def test_annotate_user_permission(user1, user2, user_admin):

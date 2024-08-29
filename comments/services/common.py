@@ -4,7 +4,6 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Forecast
 from users.models import User
-from posts.services.common import get_post_permission_for_user
 
 from ..tasks import run_on_post_comment_create
 
