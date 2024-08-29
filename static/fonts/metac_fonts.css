@@ -1,22 +1,20 @@
 @font-face {
-    font-family: "Diatype Variable";
-    src: url("ABCDiatypeVariable.woff2") format("woff2-variations"),
-    url("ABCDiatypeVariable.woff") format("woff-variations");
+    font-family: "Inter Variable";
+    src: url("inter_variable.ttf") format("truetype");
     font-weight: 100 700;
 }
 
 /* Fallback static font */
 @font-face {
-    font-family: "Diatype";
-    src: url("ABCDiatype-Regular.woff2") format("woff2"),
-    url("ABCDiatype-Regular.woff") format("woff");
+    font-family: "Inter";
+    src: url("inter_18pt-medium.ttf") format("truetype");
     font-weight: 400;
     font-style: normal;
 }
 
 @font-face {
-    font-family: "Diatype";
-    src: url("ABCDiatype-RegularItalic.woff2") format("woff2");
+    font-family: "Inter";
+    src: url("inter_18pt-mediumitalic.ttf") format("truetype");
     font-weight: 400;
     font-style: italic;
 }

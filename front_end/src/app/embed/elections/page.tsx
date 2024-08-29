@@ -24,10 +24,10 @@ export default function ElectionsEmbed() {
             </div>
 
             <div className="mt-6 flex self-start">
-              <div className="m-0 hidden max-w-[250px] items-center justify-center border-4 border-blue-500 px-3 py-2 pt-3 text-center font-['alternate-gothic-no-1-d'] text-4xl font-light tracking-[.04em] text-blue-500 no-underline antialiased dark:border-blue-500-dark dark:text-blue-500-dark lg:block lg:text-5xl">
+              <div className="m-0 hidden max-w-64 items-center justify-center border-4 border-blue-500 px-3 py-2 pt-3 text-center font-league-gothic text-4xl font-light tracking-wider text-blue-500 no-underline antialiased dark:border-blue-500-dark dark:text-blue-500-dark lg:block lg:text-5xl">
                 Metaculus
               </div>
-              <div className="m-0 flex size-[64px] items-center justify-center border-4 border-blue-500 pt-1 text-center font-alternate-gothic text-5xl font-light text-blue-500 no-underline antialiased dark:border-blue-500-dark dark:text-blue-500-dark md:size-[80px] md:pt-2 md:text-6xl lg:hidden">
+              <div className="m-0 flex size-16 items-center justify-center border-4 border-blue-500 pt-1 text-center font-league-gothic text-5xl font-light text-blue-500 no-underline antialiased dark:border-blue-500-dark dark:text-blue-500-dark md:size-20 md:pt-2 md:text-6xl lg:hidden">
                 M
               </div>
             </div>

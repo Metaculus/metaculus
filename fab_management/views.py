@@ -1,27 +1,17 @@
-from django.shortcuts import render
-
 import traceback
-from datetime import timedelta
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.core.exceptions import PermissionDenied
-from django.db.models import Case, Count, F, Q, When
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import render
 from django.utils import timezone
 
+from comments.models import Comment
+from projects.models import Project
 # from metac_account.models.user import User
 from .utils import (
     get_fab_tournament,
     submit_questions,
 )
-
-
-from projects.models import Project, ProjectUserPermission
-from users.models import User
-from projects.permissions import ObjectPermission
-from comments.models import Comment
 
 
 @staff_member_required

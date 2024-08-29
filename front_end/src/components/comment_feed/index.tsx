@@ -277,7 +277,10 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
             <FontAwesomeIcon icon={faChevronDown} />
           </Button>
         </DropdownMenu>
-        <span>{totalCount ? `${totalCount} ` : ""}{t("commentsWithCount", { count: totalCount })}</span>
+        <span>
+          {totalCount ? `${totalCount} ` : ""}
+          {t("commentsWithCount", { count: totalCount })}
+        </span>
       </div>
       {postId && (
         <CommentEditor

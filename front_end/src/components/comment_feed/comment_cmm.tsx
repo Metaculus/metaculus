@@ -257,7 +257,9 @@ const CmmOverlay = ({
         {...cmmContext.getFloatingProps()}
         className="z-50 rounded bg-white p-4 text-sm text-blue-900 shadow-xl dark:bg-gray-0-dark dark:text-blue-900-dark"
       >
-        <h3 className="my-2 mb-4 w-full text-center">{t("updateYourPrediction")}</h3>
+        <h3 className="my-2 mb-4 w-full text-center">
+          {t("updateYourPrediction")}
+        </h3>
         <div className="flex flex-col gap-2">
           {forecast && showForecastingUI && updateForecast && (
             <CmmMakeForecast
