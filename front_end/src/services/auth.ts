@@ -29,18 +29,13 @@ class AuthApi {
     code: string,
     redirect_uri: string
   ): Promise<SocialAuthResponse | null> {
-    try {
-      return await post<
-        SocialAuthResponse,
-        { code: string; redirect_uri: string }
-      >(`/auth/social/${provider}/`, {
+    return post<SocialAuthResponse, { code: string; redirect_uri: string }>(
+      `/auth/social/${provider}/`,
+      {
         code,
         redirect_uri,
-      });
-    } catch (err) {
-      console.error("Error getting social providers:", err);
-      return null;
-    }
+      }
+    );
   }
 
   static async signIn(login: string, password: string) {
