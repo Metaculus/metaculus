@@ -62,6 +62,7 @@ class Command(BaseCommand):
         migrate_users()
         print("Migrated users")
         migrate_fab_credits()
+        print("Migrated fab credits")
         migrate_questions(site_ids=site_ids)
         print("Migrated questions")
         migrate_projects(site_ids=site_ids)

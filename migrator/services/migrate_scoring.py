@@ -98,8 +98,8 @@ def score_questions(qty: int | None = None, start_id: int = 0):
         f = question.user_forecasts.count()
         print(
             f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
-            f"dur:{str(timezone.now() - start).split(".")[0]} "
-            f"est:{str((timezone.now() - start) / i * c).split(".")[0]} "
+            f"dur:{str(timezone.now() - start).split('.')[0]} "
+            f"remaining:{str((timezone.now() - start) / i * (c - i)).split(".")[0]} "
             f"scoring: {','.join(score_types)}...",
             end="\r",
         )
@@ -110,7 +110,7 @@ def score_questions(qty: int | None = None, start_id: int = 0):
         )
     print(
         f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
-        f"dur:{str(timezone.now() - start).split(".")[0]} "
-        f"est:{str((timezone.now() - start) / i * (c - i)).split(".")[0]} "
+        f"dur:{str(timezone.now() - start).split('.')[0]} "
+        f"remaining:{str((timezone.now() - start) / i * (c - i)).split(".")[0]} "
         f"scoring: {','.join(score_types)}... DONE",
     )

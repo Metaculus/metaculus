@@ -138,7 +138,8 @@ def migrate_common_permissions(site_ids: list):
                 ):
                     print(
                         f"QuestionProjectPermission.permission affected "
-                        f"project: {user_project_perm_obj['project_id']}"
+                        f"project: {user_project_perm_obj['project_id']}",
+                        end="\r",
                     )
 
         question_permission = convert_question_permissions(question_permission_code)
