@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.views import exception_handler
 
@@ -10,6 +11,13 @@ def custom_exception_handler(exc, context):
 
     # Adapter for legacy django validation errors
     print(f"Error:\n{exc}")
+
+    # Convert django.core.exceptions.ValidationError to rest_framework.exceptions.ValidationError
+    if isinstance(exc, DjangoValidationError):
+        if exc.messages:
+            exc = DRFValidationError(exc.messages)
+        elif exc.error_list:
+            exc = DRFValidationError([x.messages for x in exc.error_list])
 
     if isinstance(exc, DRFValidationError):
         if isinstance(exc.detail, list) or (
