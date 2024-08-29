@@ -53,11 +53,14 @@ def migrate_social_auth():
 def migrate_users():
     start = timezone.now()
     users = []
-    for i, user_obj in enumerate(paginated_query(
-        "SELECT u.*, p.bio_text, p.website "
-        "FROM metac_account_user u "
-        "LEFT JOIN metac_account_userprofile p ON p.user_id = u.id"
-    ), 1):
+    for i, user_obj in enumerate(
+        paginated_query(
+            "SELECT u.*, p.bio_text, p.website "
+            "FROM metac_account_user u "
+            "LEFT JOIN metac_account_userprofile p ON p.user_id = u.id"
+        ),
+        1,
+    ):
         print(
             f"\033[Kmigrating users: {i}. "
             f"dur:{str(timezone.now() - start).split('.')[0]} ",

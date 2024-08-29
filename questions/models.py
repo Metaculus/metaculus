@@ -204,7 +204,7 @@ class GroupOfQuestions(TimeStampedModel):
     graph_type = models.CharField(
         max_length=256,
         choices=GroupOfQuestionsGraphType.choices,
-        default=GroupOfQuestionsGraphType.MULTIPLE_CHOICE_GRAPH
+        default=GroupOfQuestionsGraphType.MULTIPLE_CHOICE_GRAPH,
     )
 
 
