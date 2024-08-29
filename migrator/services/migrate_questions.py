@@ -329,7 +329,11 @@ def migrate_questions__groups(root_questions: list[dict]):
                     group_variable=root_question["group_label"],
                     resolution_criteria=root_question["resolution_criteria"],
                     fine_print=root_question["fine_print"],
-                    graph_type=GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH if root_question["show_as_fan_graph"] else GroupOfQuestions.GroupOfQuestionsGraphType.MULTIPLE_CHOICE_GRAPH
+                    graph_type=(
+                        GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
+                        if root_question["show_as_fan_graph"]
+                        else GroupOfQuestions.GroupOfQuestionsGraphType.MULTIPLE_CHOICE_GRAPH
+                    ),
                 )
             )
 
