@@ -142,7 +142,7 @@ class Question(TimeStampedModel):
         from scoring.models import global_leaderboard_dates
 
         forecast_horizon_start = self.open_time
-        forecast_horizon_end = self.actual_close_time
+        forecast_horizon_end = self.scheduled_close_time
         global_leaderboard_dates = global_leaderboard_dates()
 
         # iterate over the global leaderboard dates in reverse order
