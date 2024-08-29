@@ -177,7 +177,6 @@ def migrate_topics(question_ids: list[int], q_p_m2m_cls):
             )
         )
 
-
         #
         # Aggregating all M2M tables which were related to the questions
         #
