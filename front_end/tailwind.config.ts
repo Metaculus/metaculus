@@ -39,7 +39,7 @@ const config: Config = {
           ...defaultTheme.fontFamily.serif,
         ],
         mono: ['"Ubuntu mono"', ...defaultTheme.fontFamily.mono],
-        "alternate-gothic": "var(--font-alternate-gothic-no-1-d)",
+        "league-gothic": "var(--font-league-gothic)",
       },
       strokeWidth: {
         "3": "3px",
