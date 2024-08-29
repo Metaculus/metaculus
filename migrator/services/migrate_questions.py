@@ -1,8 +1,8 @@
 import json
 import re
 from collections import defaultdict
+from datetime import timedelta
 
-import django
 import html2text
 from dateutil.parser import parse as date_parse
 from django.db.models.functions import Coalesce
@@ -77,16 +77,20 @@ def create_question(question: dict, **kwargs) -> Question:
         scheduled_close_time=(
             question["close_time"]
             if question["close_time"]
-            else django.utils.timezone.now() + timezone.timedelta(days=10000)
+            else timezone.now() + timedelta(days=10000)
         ),
         scheduled_resolve_time=(
-            question["resolve_time"]
-            if question["close_time"]
-            else django.utils.timezone.now() + timezone.timedelta(days=10000)
+            max(question["resolve_time"], question["close_time"])
+            if (question["resolve_time"] and question["close_time"])
+            else timezone.now() + timedelta(days=10000)
         ),
-        actual_resolve_time=question["resolve_time"],
-        resolution_set_time=question["resolve_time"],
-        actual_close_time=min(question["close_time"], question["resolve_time"]),
+        actual_resolve_time=(
+            question["resolve_time"] if question["resolution"] is not None else None
+        ),
+        resolution_set_time=(
+            question["resolve_time"] if question["resolution"] is not None else None
+        ),
+        actual_close_time=question["effected_close_time"],
         type=question_type,
         possibilities=possibilities,
         zero_point=zero_point,
@@ -119,7 +123,7 @@ def create_post(question: dict, **kwargs) -> Post:
 
     if (
         question["mod_status"] == "ACTIVE"
-        and question["publish_time"] <= django.utils.timezone.now()
+        and question["publish_time"] <= timezone.now()
     ):
         curation_status = Post.CurationStatus.APPROVED
     if question["mod_status"] == "PENDING":
@@ -287,9 +291,6 @@ def migrate_questions__composite(site_ids: list[int] = None):
     # Set relevant values:
     all_questions = Question.objects.all()
     all_posts = Post.objects.all()
-    for q in all_questions:
-        q.set_forecast_scoring_ends()
-        q.save()
     for p in all_posts:
         p.update_pseudo_materialized_fields()
 

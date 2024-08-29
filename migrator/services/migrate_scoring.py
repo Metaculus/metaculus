@@ -96,15 +96,6 @@ def score_questions(qty: int | None = None, start_id: int = 0):
     question: Question
     start = timezone.now()
     for i, question in enumerate(questions, 1):
-        if question.resolution and not question.forecast_scoring_ends:
-            print(
-                question.forecast_scoring_ends,
-                question.resolution,
-                question.get_post().title,
-                question.get_post().id,
-            )
-            print("Resolved q with no resolved time")
-            exit()
         score_types = [
             Score.ScoreTypes.PEER,
             Score.ScoreTypes.BASELINE,

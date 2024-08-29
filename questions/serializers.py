@@ -37,7 +37,6 @@ class QuestionSerializer(serializers.ModelSerializer):
             "resolution_set_time",
             "scheduled_close_time",
             "actual_close_time",
-            "forecast_scoring_ends",
             "type",
             "options",
             "possibilities",

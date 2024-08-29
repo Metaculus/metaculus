@@ -146,7 +146,9 @@ def medal_contributions(
 ):
     user_id = request.GET.get("userId", None)
     user = get_object_or_404(User, pk=user_id)
-    project_id = request.GET.get("projectId", 1)
+    project_id = request.GET.get(
+        "projectId", Project.objects.get(type=Project.ProjectTypes.SITE_MAIN).id
+    )
 
     projects = get_projects_qs(user=request.user)
     project: Project = get_object_or_404(projects, pk=project_id)
@@ -159,6 +161,7 @@ def medal_contributions(
     leaderboard_type = request.GET.get("leaderboardType", None)
     leaderboard_name = request.GET.get("leaderboardName", None)
 
+    # breakpoint()
     leaderboards = Leaderboard.objects.filter(project=project)
     if start_time:
         leaderboards = leaderboards.filter(start_time=start_time)
@@ -232,8 +235,8 @@ def metaculus_track_record(
                 scores.append(score.score)
 
         forecast_horizon_start = question.open_time.timestamp()
-        actual_close_time = question.forecast_scoring_ends.timestamp()
-        forecast_horizon_end = question.actual_close_time.timestamp()
+        actual_close_time = question.actual_close_time.timestamp()
+        forecast_horizon_end = question.scheduled_close_time.timestamp()
         forecast_start = max(forecast_horizon_start, forecast.start_time.timestamp())
         if forecast.end_time:
             forecast_end = min(actual_close_time, forecast.end_time.timestamp())

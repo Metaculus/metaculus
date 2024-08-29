@@ -114,15 +114,6 @@ class Question(TimeStampedModel):
     def __str__(self):
         return f"{self.type} {self.title}"
 
-    forecast_scoring_ends = models.DateTimeField(db_index=True, null=True, blank=True)
-
-    def set_forecast_scoring_ends(self) -> datetime | None:
-        if self.actual_close_time is None or self.actual_resolve_time is None:
-            self.forecast_scoring_ends = None
-        self.forecast_scoring_ends = min(
-            self.actual_close_time, self.actual_resolve_time
-        )
-
     def get_post(self) -> "Post | None":
         # Back-rel of One2One relations does not populate None values,
         # So we always need to check whether attr exists

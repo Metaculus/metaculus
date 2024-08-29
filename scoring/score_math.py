@@ -311,8 +311,8 @@ def evaluate_question(
     spot_forecast_timestamp: float | None = None,
 ) -> list[Score]:
     forecast_horizon_start = question.open_time.timestamp()
-    actual_close_time = question.forecast_scoring_ends.timestamp()
-    forecast_horizon_end = question.actual_close_time.timestamp()
+    actual_close_time = question.actual_close_time.timestamp()
+    forecast_horizon_end = question.scheduled_close_time.timestamp()
 
     user_forecasts = question.user_forecasts.all()
     community_forecasts = get_cp_history(

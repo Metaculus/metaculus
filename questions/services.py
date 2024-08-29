@@ -210,7 +210,6 @@ def resolve_question(question: Question, resolution, actual_resolve_time: dateti
     question.actual_resolve_time = actual_resolve_time
     if not question.actual_close_time:
         question.actual_close_time = timezone.now()
-    question.set_forecast_scoring_ends()
     question.save()
 
     # Check if the question is part of any/all conditionals
