@@ -29,6 +29,6 @@ def post_migrate_calculate_divergence():
             logger.exception(f"Error running calculate_divergence for post {post.id}")
 
         if not idx % 250:
-            print(f"Processed {idx + 1}/{posts_total} posts")
+            print(f"Processed {idx + 1}/{posts_total} posts", end="\r")
 
     print("Finished calculate_divergence")

@@ -138,7 +138,8 @@ def migrate_common_permissions(site_ids: list):
                 ):
                     print(
                         f"QuestionProjectPermission.permission affected "
-                        f"project: {user_project_perm_obj['project_id']}"
+                        f"project: {user_project_perm_obj['project_id']}",
+                        end="\r",
                     )
 
         question_permission = convert_question_permissions(question_permission_code)
@@ -152,8 +153,19 @@ def migrate_common_permissions(site_ids: list):
                 )
             )
 
+    print(
+        f"QuestionProjectPermission.permission affected "
+        f"project: {user_project_perm_obj['project_id']}",
+        "bulk creating...",
+        end="\r",
+    )
     ProjectUserPermission.objects.bulk_create(
         user_project_perms, batch_size=50_000, ignore_conflicts=True
+    )
+    print(
+        f"QuestionProjectPermission.permission affected "
+        f"project: {user_project_perm_obj['project_id']}",
+        "bulk creating... DONE",
     )
     print(
         f"Missed projects: {len(total_missed_project_ids)} "

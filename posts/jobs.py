@@ -59,7 +59,7 @@ def job_compute_movement():
 
     posts = []
 
-    for idx, post in enumerate(qs.iterator(100)):
+    for i, post in enumerate(qs.iterator(100), 1):
         try:
             post.movement = compute_movement(post)
         except:
@@ -72,7 +72,8 @@ def job_compute_movement():
             Post.objects.bulk_update(posts, fields=["movement"])
             posts = []
 
-        if not idx % 100:
-            logger.info(f"Processed {idx + 1}/{total}. ")
+        print(f"compute movement: {i}/{total}", end="\r")
 
+    print("bulk updating...", end="\r")
     Post.objects.bulk_update(posts, fields=["movement"])
+    print("bulk updating... DONE")
