@@ -30,8 +30,8 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
-          "var(--font-diatype-variable)",
-          "var(--font-diatype)",
+          "var(--font-inter-variable)",
+          "var(--font-inter)",
           ...defaultTheme.fontFamily.sans,
         ],
         serif: [
