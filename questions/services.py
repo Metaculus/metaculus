@@ -209,7 +209,9 @@ def resolve_question(question: Question, resolution, actual_resolve_time: dateti
     question.resolution_set_time = timezone.now()
     question.actual_resolve_time = actual_resolve_time
     if not question.actual_close_time:
-        question.actual_close_time = timezone.now()
+        question.actual_close_time = min(
+            actual_resolve_time, question.scheduled_close_time
+        )
     question.save()
 
     # Check if the question is part of any/all conditionals
@@ -286,7 +288,7 @@ def resolve_question(question: Question, resolution, actual_resolve_time: dateti
 
 
 def close_question(question: Question):
-    if question.actual_close_time:
+    if question.actual_close_time < timezone.now():
         raise ValidationError("Question is already closed")
 
     question.actual_close_time = timezone.now()

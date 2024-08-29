@@ -161,7 +161,6 @@ def medal_contributions(
     leaderboard_type = request.GET.get("leaderboardType", None)
     leaderboard_name = request.GET.get("leaderboardName", None)
 
-    # breakpoint()
     leaderboards = Leaderboard.objects.filter(project=project)
     if start_time:
         leaderboards = leaderboards.filter(start_time=start_time)
