@@ -258,6 +258,7 @@ const SortArrow: FC<{ isAsc: boolean }> = ({ isAsc }) => (
 
 const getIsResolved = (contribution: Contribution) =>
   !!contribution.question_resolution &&
-  contribution.question_resolution !== "no";
+  (contribution.question_resolution !== "ambiguous" ??
+    contribution.question_resolution !== "annulled");
 
 export default ContributionsTable;
