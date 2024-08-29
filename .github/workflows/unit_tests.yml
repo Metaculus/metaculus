@@ -12,6 +12,11 @@ on:
     branches:
       - "main"
 
+concurrency:
+  # Cancel previous job
+  group: unit_tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend-unit-tests:
     runs-on: ubuntu-latest
