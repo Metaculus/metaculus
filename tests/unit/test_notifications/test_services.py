@@ -1,9 +1,9 @@
 from notifications.models import Notification
 from notifications.services import NotificationNewComments, NotificationPostParams
-from tests.fixtures import *  # noqa
-from tests.test_comments.factories import factory_comment
-from tests.test_notifications.factories import factory_notification
-from tests.test_posts.factories import factory_post
+from tests.unit.fixtures import *  # noqa
+from tests.unit.test_comments.factories import factory_comment
+from tests.unit.test_notifications.factories import factory_notification
+from tests.unit.test_posts.factories import factory_post
 
 
 class TestNotificationNewComments:

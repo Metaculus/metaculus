@@ -1,7 +1,7 @@
 import pytest
 
 from questions.models import Question
-from tests.test_questions.factories import create_conditional, create_question
+from tests.unit.test_questions.factories import create_conditional, create_question
 
 
 @pytest.fixture()

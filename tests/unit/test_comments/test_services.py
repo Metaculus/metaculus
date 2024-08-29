@@ -2,12 +2,12 @@ from comments.services.common import create_comment
 from notifications.models import Notification
 from posts.models import Post, PostUserSnapshot
 from projects.permissions import ObjectPermission
-from tests.fixtures import *  # noqa
-from tests.test_posts.factories import factory_post
-from tests.test_projects.factories import factory_project
-from tests.test_questions.factories import factory_forecast
-from tests.test_questions.fixtures import *  # noqa
-from tests.test_users.factories import factory_user
+from tests.unit.fixtures import *  # noqa
+from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_questions.factories import factory_forecast
+from tests.unit.test_questions.fixtures import *  # noqa
+from tests.unit.test_users.factories import factory_user
 
 
 @pytest.fixture()

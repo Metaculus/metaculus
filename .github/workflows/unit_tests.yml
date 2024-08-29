@@ -58,5 +58,7 @@ jobs:
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
+      - name: Run Flake8 Linter
+        run: poetry run flake8 .
       - name: "Run he backend unit tests"
-        run: poetry run pytest ./tests
+        run: poetry run pytest ./tests/unit

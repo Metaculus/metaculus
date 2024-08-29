@@ -1,9 +1,9 @@
 from comments.models import Comment
 from comments.services.feed import get_comments_feed
-from tests.fixtures import *  # noqa
-from tests.test_comments.factories import factory_comment
-from tests.test_posts.factories import factory_post
-from tests.test_projects.factories import factory_project
+from tests.unit.fixtures import *  # noqa
+from tests.unit.test_comments.factories import factory_comment
+from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_projects.factories import factory_project
 
 
 class TestPagination:
