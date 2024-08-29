@@ -45,8 +45,8 @@ class TestPostCreate:
         assert response.data["author_id"] == user1.id
         assert response.data["question"]["title"] == "Question Post"
         assert response.data["question"]["type"] == "numeric"
-        assert response.data["question"]["range_min"] == 1
-        assert response.data["question"]["range_max"] == 100
+        assert response.data["question"]["scaling"]["range_min"] == 1
+        assert response.data["question"]["scaling"]["range_max"] == 100
         assert (
             response.data["scheduled_resolve_time"]
             == response.data["question"]["scheduled_resolve_time"]
@@ -107,12 +107,15 @@ class TestPostCreate:
             scheduled_close_time=timezone.make_aware(datetime.datetime(2024, 5, 1)),
             scheduled_resolve_time=timezone.make_aware(datetime.datetime(2024, 5, 2)),
         )
+        factory_post(author=user1, question=question_binary)
+
         question_numeric = create_question(
             title="Starship Booster Tower Catch Attempt in 2024?",
             question_type=Question.QuestionType.NUMERIC,
             scheduled_close_time=timezone.make_aware(datetime.datetime(2024, 4, 1)),
             scheduled_resolve_time=timezone.make_aware(datetime.datetime(2024, 4, 2)),
         )
+        factory_post(author=user1, question=question_numeric)
 
         response = user1_client.post(
             self.url,

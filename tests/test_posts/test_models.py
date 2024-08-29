@@ -236,7 +236,7 @@ class TestPostPermissions:
         )
 
 
-def test_annotate_unread_comment_count(user1, user2):
+def test_annotate_unread_comment_count(user1, user2, user_admin):
     # User2 & User3
     post = factory_post(
         author=factory_user(),
@@ -245,10 +245,14 @@ def test_annotate_unread_comment_count(user1, user2):
     )
 
     factory_post_snapshot(
-        user=user1, post=post, comments_count=1, viewed_at=datetime.datetime(2024, 6, 1)
+        user=user1,
+        post=post,
+        comments_count=2,
+        viewed_at=datetime.datetime(2024, 6, 1),
+        divergence=0.95,
     )
     factory_post_snapshot(
-        user=user2, post=post, comments_count=2, viewed_at=datetime.datetime(2024, 6, 2)
+        user=user2, post=post, comments_count=1, viewed_at=datetime.datetime(2024, 6, 2)
     )
 
     factory_comment(on_post=post, created_at=datetime.datetime(2024, 6, 1))
@@ -257,10 +261,10 @@ def test_annotate_unread_comment_count(user1, user2):
 
     assert (
         Post.objects.filter(pk=post.id).annotate_unread_comment_count(user1.id).first()
-    ).unread_comment_count == 2
+    ).unread_comment_count == 1
     assert (
         Post.objects.filter(pk=post.id).annotate_unread_comment_count(user2.id).first()
-    ).unread_comment_count == 1
+    ).unread_comment_count == 2
 
 
 @freeze_time("2024-07-09")
