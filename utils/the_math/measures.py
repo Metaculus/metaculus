@@ -2,7 +2,6 @@ import numpy as np
 
 from questions.models import Question
 from utils.the_math.formulas import unscaled_location_to_scaled_location
-
 from utils.typing import (
     ForecastValues,
     ForecastsValues,

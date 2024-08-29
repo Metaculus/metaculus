@@ -13,7 +13,7 @@ type Props = {
 };
 
 const ChoicesTooltip: FC<Props> = ({ date, choices, userChoices }) => {
-  const t = useTranslations()
+  const t = useTranslations();
   const containUserChoices =
     userChoices && !userChoices.every((choice) => choice.valueLabel === "?");
 
@@ -32,7 +32,7 @@ const ChoicesTooltip: FC<Props> = ({ date, choices, userChoices }) => {
             />
           </td>
           {containUserChoices && (
-            <td className="px-1.5 py-1 text-center text-xs font-bold text-orange-800 dark:text-orange-800-dark capitalize">
+            <td className="px-1.5 py-1 text-center text-xs font-bold capitalize text-orange-800 dark:text-orange-800-dark">
               {t("me")}
             </td>
           )}
