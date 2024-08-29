@@ -39,7 +39,10 @@ const PasswordReset: FC<PasswordResetProps> = ({ user_id, token }) => {
         <h2 className="my-4 text-2xl font-bold">{t("passwordResetHeading")}</h2>
       </div>
       <div>
-        <form className="flex w-full flex-col pb-4 text-sm" action={formAction}>
+        <form
+          className="flex w-full flex-col gap-2 pb-4 text-sm"
+          action={formAction}
+        >
           <input
             type="hidden"
             defaultValue={user_id}
@@ -54,7 +57,7 @@ const PasswordReset: FC<PasswordResetProps> = ({ user_id, token }) => {
               <div className="w-full max-w-44 justify-start">
                 <Input
                   type="password"
-                  className="w-full border border-gray-600-dark bg-blue-100 px-[5px] py-[3px]"
+                  className="w-full rounded border border-gray-500 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                   {...register("password")}
                 />
               </div>
@@ -71,7 +74,7 @@ const PasswordReset: FC<PasswordResetProps> = ({ user_id, token }) => {
               <div className="w-full max-w-44 justify-start">
                 <Input
                   type="password"
-                  className="w-full border border-t-0 border-gray-600-dark bg-blue-100 px-[5px] py-[3px]"
+                  className="w-full rounded border border-gray-500 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                   {...register("passwordAgain")}
                 />
               </div>
