@@ -104,7 +104,7 @@ class Command(BaseCommand):
         # migrate_subscriptions(site_ids=site_ids)
         # task_start = print_duration("Migrated post subscriptions", task_start, start)
 
-        scoring
+        # scoring
         migrate_archived_scores()
         task_start = print_duration("Migrated archived scores", task_start, start)
         score_questions(start_id=options["start_score_questions_with_id"])
