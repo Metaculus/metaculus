@@ -1,6 +1,6 @@
 import pytest
 
-from tests.test_projects.factories import TagFactory
+from tests.unit.test_projects.factories import TagFactory
 
 
 @pytest.fixture

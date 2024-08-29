@@ -93,10 +93,10 @@ def migrate_common_permissions(site_ids: list):
     # Migrating User<>Project ad-hoc permissions
     for user_project_perm_obj in paginated_query(
         """
-        SELECT 
+        SELECT
            upp.*, p.default_question_permissions, p.default_project_permissions, p.type
         FROM metac_project_userprojectpermissions upp
-        JOIN metac_project_project p 
+        JOIN metac_project_project p
         ON upp.project_id = p.id
         WHERE p.type != 'PP' AND site_id in %s
         """,

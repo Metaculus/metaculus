@@ -8,10 +8,10 @@ from rest_framework.reverse import reverse
 
 from posts.models import Post, PostUserSnapshot
 from questions.models import Question
-from tests.fixtures import *  # noqa
-from tests.test_comments.factories import factory_comment
-from tests.test_posts.factories import factory_post
-from tests.test_questions.factories import create_question
+from tests.unit.fixtures import *  # noqa
+from tests.unit.test_comments.factories import factory_comment
+from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_questions.factories import create_question
 
 
 class TestPostCreate:

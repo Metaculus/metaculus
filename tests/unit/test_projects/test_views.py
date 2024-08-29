@@ -3,9 +3,9 @@ from rest_framework.reverse import reverse
 
 from projects.permissions import ObjectPermission
 from projects.services import get_project_permission_for_user
-from tests.fixtures import *  # noqa
-from tests.test_projects.factories import factory_project
-from tests.test_users.factories import factory_user
+from tests.unit.fixtures import *  # noqa
+from tests.unit.test_projects.factories import factory_project
+from tests.unit.test_users.factories import factory_user
 
 
 class TestInviteUsersToPrivateProject:
