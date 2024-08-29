@@ -100,25 +100,25 @@ def migrate_forecast_post_relation():
             """
             -- Optimized update query
             WITH post_ids AS (
-                SELECT 
+                SELECT
                     q.id AS question_id,
                     COALESCE(p.id, NULL) AS post_id
-                FROM 
+                FROM
                     questions_question q
-                LEFT JOIN 
+                LEFT JOIN
                     questions_groupofquestions g ON q.group_id = g.id
-                LEFT JOIN 
+                LEFT JOIN
                     questions_conditional c ON c.question_yes_id = q.id OR c.question_no_id = q.id
-                LEFT JOIN 
+                LEFT JOIN
                     posts_post p ON p.question_id = q.id OR p.group_of_questions_id = g.id OR p.conditional_id = c.id
             )
-            UPDATE 
+            UPDATE
                 questions_forecast f
-            SET 
+            SET
                 post_id = post_ids.post_id
-            FROM 
+            FROM
                 post_ids
-            WHERE 
+            WHERE
                 f.question_id = post_ids.question_id;
         """
         )

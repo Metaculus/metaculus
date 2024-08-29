@@ -24,4 +24,4 @@ export DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_metaculus
 sleep 2
 # Run pytest without Django plugins or the conf test, as the global DB setup/parmas
 # interfere with running the backend in prod "mode"
-poetry run pytest -s -p no:django -c - --noconftest --log-cli-level=INFO tests_integration/*.py | sed 's/^/[Tests] /'
+poetry run pytest -s -p no:django -c - --noconftest --log-cli-level=INFO tests/integration/*.py | sed 's/^/[Tests] /'
