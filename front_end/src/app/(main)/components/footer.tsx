@@ -1,20 +1,14 @@
 "use client";
 
-import { faTwitter } from "@fortawesome/free-brands-svg-icons";
-import { faDiscord } from "@fortawesome/free-brands-svg-icons";
+import { faTwitter, faDiscord } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { useModal } from "@/contexts/modal_context";
-import useSearchParams from "@/hooks/use_search_params";
 
 const Footer: FC = () => {
-  const router = useRouter();
-  const { params } = useSearchParams();
-  const pathname = usePathname();
   const t = useTranslations();
   const { setCurrentModal } = useModal();
 
@@ -94,72 +88,25 @@ const Footer: FC = () => {
 
       <div id="newsletter-form"></div>
 
-      <div className="w-full px-6 pb-0 pt-1 text-center lg:w-auto lg:pt-4 lg:text-left">
-        <div className="text-xs text-gray-600-dark">
-          <a
-            className="my-1 inline px-2 no-underline lg:block lg:px-0"
-            href="/help/guidelines/"
-          >
-            {t("guidelines")}
-          </a>
-          <a
-            className="my-1 inline border-l border-gray-600-dark px-2 no-underline lg:block lg:border-0 lg:px-0"
-            href="/privacy-policy/"
-          >
-            {t("privacyPolicy")}
-          </a>
-          <a
-            className="my-1 inline border-l border-gray-600-dark px-2 no-underline lg:block lg:border-0 lg:px-0"
-            href="/terms-of-use/"
-          >
-            {t("termsOfUse")}
-          </a>
-        </div>
-
-        <form className="max-lg:mt-2" action="" method="post">
-          <button
-            className="rounded px-1.5 text-lg hover:bg-blue-300-dark"
-            onClick={(e) => {
-              e.preventDefault();
-              params.delete("locale");
-              params.append("locale", "en");
-              router.push(pathname + "?" + params.toString());
-              router.refresh();
-            }}
-            name="language"
-            value="en"
-          >
-            🇬🇧
-          </button>
-          <button
-            className="rounded px-1.5 text-lg hover:bg-blue-300-dark"
-            onClick={(e) => {
-              e.preventDefault();
-              params.delete("locale");
-              params.append("locale", "cs");
-              router.push(pathname + "?" + params.toString());
-              router.refresh();
-            }}
-            name="language"
-            value="cs"
-          >
-            🇨🇿
-          </button>
-          <button
-            className="rounded px-1.5 text-lg hover:bg-blue-300-dark"
-            onClick={(e) => {
-              e.preventDefault();
-              params.delete("locale");
-              params.append("locale", "zh");
-              router.push(pathname + "?" + params.toString());
-              router.refresh();
-            }}
-            name="language"
-            value="zh"
-          >
-            🇨🇳
-          </button>
-        </form>
+      <div className="w-full px-6 pb-0 pt-1 text-center text-xs text-gray-600-dark lg:w-auto lg:pt-4 lg:text-left">
+        <a
+          className="my-1 inline px-2 no-underline lg:block lg:px-0"
+          href="/help/guidelines/"
+        >
+          {t("guidelines")}
+        </a>
+        <a
+          className="my-1 inline border-l border-gray-600-dark px-2 no-underline lg:block lg:border-0 lg:px-0"
+          href="/privacy-policy/"
+        >
+          {t("privacyPolicy")}
+        </a>
+        <a
+          className="my-1 inline border-l border-gray-600-dark px-2 no-underline lg:block lg:border-0 lg:px-0"
+          href="/terms-of-use/"
+        >
+          {t("termsOfUse")}
+        </a>
       </div>
 
       <div className="mt-3 flex w-full items-center justify-around bg-gray-600-dark py-0.5 sm:py-1">
