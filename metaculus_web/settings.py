@@ -210,6 +210,13 @@ MAILGUN_API_KEY = os.environ.get("MAILGUN_API_KEY")
 MAILGUN_SUBDOMAIN = os.environ.get("MAILGUN_SUBDOMAIN")
 ANYMAIL = {
     "MAILGUN_API_KEY": MAILGUN_API_KEY,
+    "SEND_DEFAULTS": {
+        # https://anymail.dev/en/stable/sending/templates/#batch-sending-with-merge-data
+        # "Without it, you may get a single message to everyone, exposing all of the email addresses
+        # to all recipients. (If you don’t have any per-recipient customizations, but still want
+        # individual messages, just set merge_data to an empty dict.)"
+        "merge_data": {},
+    },
 }
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 EMAIL_HOST_USER = os.environ.get(
