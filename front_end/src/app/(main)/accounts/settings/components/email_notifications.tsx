@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
+import ChangeEmailModal from "@/app/(main)/accounts/settings/components/change_email";
+import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import Tooltip from "@/components/ui/tooltip";
 import { SubscriptionEmailType } from "@/types/notifications";
@@ -18,6 +20,7 @@ export type Props = {
 const EmailNotifications: FC<Props> = ({ user }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
+  const [isChangeEmailModalOpen, setIsChangeEmailModalOpen] = useState(false);
 
   const handleEmailSubscriptionChange = useCallback(
     async (subscriptionType: SubscriptionEmailType, checked: boolean) => {
@@ -73,17 +76,23 @@ const EmailNotifications: FC<Props> = ({ user }) => {
     },
   ];
 
-  const newsletterOptions = [
-    {
-      type: SubscriptionEmailType.newsletter,
-      label: `Metaculus ${t("newsLetter")}`,
-    },
-  ];
-
   return (
     <section className="text-sm">
       <hr />
       <h2 className="mb-5 mt-3 px-1">{t("settingsSubscriptions")}</h2>
+      <h3 className="bg-blue-200 p-1 text-sm font-medium dark:bg-blue-200-dark">
+        {t("settingsUserEmail")}
+      </h3>
+      <div className="p-1 text-sm">
+        <span className="pr-8">{user.email}</span>{" "}
+        <Button variant="link" onClick={() => setIsChangeEmailModalOpen(true)}>
+          {t("edit")}
+        </Button>
+        <ChangeEmailModal
+          isOpen={isChangeEmailModalOpen}
+          onClose={() => setIsChangeEmailModalOpen(false)}
+        />
+      </div>
       <h3 className="bg-blue-200 p-1 text-sm font-medium dark:bg-blue-200-dark">
         {t("settingsEmailNotifications")}
       </h3>

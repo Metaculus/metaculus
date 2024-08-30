@@ -42,6 +42,19 @@ class ProfileApi {
     });
   }
 
+  static async changeEmail(email: string, password: string) {
+    return post("/users/me/email", {
+      email,
+      password,
+    });
+  }
+
+  static async changeEmailConfirm(token: string) {
+    return post("/users/me/email/confirm", {
+      token,
+    });
+  }
+
   static async searchUsers(query: string) {
     return await get<PaginatedPayload<UserProfile>>(`/users/?search=${query}`);
   }

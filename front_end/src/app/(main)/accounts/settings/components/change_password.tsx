@@ -47,7 +47,6 @@ const ChangePassword: FC = () => {
     async (data: ChangePasswordSchema) => {
       setIsLoading(true);
       try {
-        // use form data to send request to the email api
         const response = await changePassword(data.password, data.new_password);
         if (response && "errors" in response && !!response.errors) {
           setSubmitErrors(response.errors);
@@ -60,7 +59,7 @@ const ChangePassword: FC = () => {
         setIsLoading(false);
       }
     },
-    [reset]
+    [reset, t]
   );
 
   return (
