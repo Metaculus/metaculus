@@ -1,5 +1,4 @@
 import React from "react";
-import { notFound } from "next/navigation";
 import RefreshButton from "./refresh_button";
 
 const ServerComponentErrorBoundary = async (
@@ -9,16 +8,21 @@ const ServerComponentErrorBoundary = async (
     return await fn();
   } catch (error) {
     if (error instanceof Error) {
-      if (error.message.includes("404")) return notFound();
+      const { digest } = error as Error & { digest?: string };
       return (
         <div className="flex h-[50vh] w-full flex-col items-center justify-center">
-          <h2>{error.message ?? "Unknown error"}</h2>
+          <h2>{digest ?? "Unknown error"}</h2>
           <RefreshButton />
         </div>
       );
     }
 
-    throw error;
+    return (
+      <div className="flex h-[50vh] w-full flex-col items-center justify-center">
+        <h2>Unknown error</h2>
+        <RefreshButton />
+      </div>
+    );
   }
 };
 
