@@ -62,7 +62,7 @@ def fab_management_view(request):
                     tournament = Project.objects.get(pk=tournament_id)
                     now = timezone.now()
                     count = Comment.objects.filter(
-                        on_post__projects=tournament,
+                        on_post__default_project=tournament,
                         author__is_bot=True,
                         on_post__question__cp_reveal_time__lt=now,
                         is_private=True,
