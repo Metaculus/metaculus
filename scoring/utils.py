@@ -133,6 +133,12 @@ def generate_comment_insight_leaderboard_entries(
 
     posts = Post.objects.filter(
         Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
+    ).exclude(
+        curation_status__in=[
+            Post.CurationStatus.REJECTED,
+            Post.CurationStatus.DRAFT,
+            Post.CurationStatus.DELETED,
+        ]
     )
     comments = Comment.objects.filter(
         on_post__in=posts,
@@ -175,13 +181,14 @@ def generate_question_writing_leaderboard_entries(
     for question in questions:
         forecasts_during_period = question.user_forecasts.filter(
             start_time__gte=leaderboard.start_time,
-            start_time__lte=min(
-                [
-                    leaderboard.end_time,
-                    question.actual_close_time or question.scheduled_close_time,
-                    question.actual_resolve_time or question.scheduled_resolve_time,
-                ]
-            ),
+            # start_time__lte=min(
+            #     [
+            #         leaderboard.end_time,
+            #         question.actual_close_time or question.scheduled_close_time,
+            #         question.actual_resolve_time or question.scheduled_resolve_time,
+            #     ]
+            # ),
+            start_time__lte=leaderboard.end_time,
         )
         forecasters = set([forecast.author_id for forecast in forecasts_during_period])
         post = question.get_post()
@@ -264,7 +271,7 @@ def update_project_leaderboard(
     excluded_users = exclusion_records.values_list("user", flat=True)
     excluded_user_ids = set([r.user.id for r in exclusion_records])
     # medals
-    golds = silvers = bronzes = 0
+    gold_rank = silver_rank = bronze_rank = 0
     if (
         (leaderboard.project.type != "question_series")
         and leaderboard.finalize_time
@@ -277,23 +284,42 @@ def update_project_leaderboard(
                 if (e.user_id and (e.user_id not in excluded_user_ids))
             ]
         )
-        golds = max(0.01 * entry_count, 1)
-        silvers = max(0.01 * entry_count, 1)
-        bronzes = max(0.03 * entry_count, 1)
+        gold_rank = max(np.ceil(0.01 * entry_count), 1)
+        silver_rank = max(np.ceil(0.02 * entry_count), 2)
+        bronze_rank = max(np.ceil(0.05 * entry_count), 3)
     rank = 1
+    prev_entry = None
     for entry in new_entries:
         if (entry.user_id is None) or (entry.user_id in excluded_users):
             entry.excluded = True
             entry.medal = None
             entry.rank = rank
+            if (
+                leaderboard.score_type
+                == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
+            ):
+                if prev_entry and (entry.take == prev_entry.take):
+                    entry.rank = prev_entry.rank
+            else:
+                if prev_entry and (entry.score == prev_entry.score):
+                    entry.rank = prev_entry.rank
             continue
-        if rank <= golds:
+        if rank <= gold_rank:
             entry.medal = LeaderboardEntry.Medals.GOLD
-        elif rank <= golds + silvers:
+        elif rank <= silver_rank:
             entry.medal = LeaderboardEntry.Medals.SILVER
-        elif rank <= golds + silvers + bronzes:
+        elif rank <= bronze_rank:
             entry.medal = LeaderboardEntry.Medals.BRONZE
         entry.rank = rank
+        if leaderboard.score_type == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
+            if prev_entry and (entry.take == prev_entry.take):
+                entry.rank = prev_entry.rank
+                entry.medal = prev_entry.medal
+        else:
+            if prev_entry and (entry.score == prev_entry.score):
+                entry.rank = prev_entry.rank
+                entry.medal = prev_entry.medal
+        prev_entry = entry
         rank += 1
 
     for new_entry in new_entries:
@@ -383,7 +409,8 @@ def get_contributions(
             contributions.append(contribution)
         h_index = decimal_h_index([c.score / 10 for c in contributions])
         contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
-        return contributions[: int(h_index) + 1]
+        # return contributions[: int(h_index) + 1]
+        return contributions
 
     archived_scores = list(
         ArchivedScore.objects.filter(
