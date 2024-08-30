@@ -123,12 +123,15 @@ def get_aggregation_at_time(
     include_stats: bool = False,
     histogram: bool = False,
     aggregation_method: AggregationMethod = AggregationMethod.RECENCY_WEIGHTED,
+    include_bots: bool = False,
 ) -> AggregateForecast | None:
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
     and q3s"""
     forecasts = question.user_forecasts.filter(
         Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
     ).order_by("start_time")
+    if not include_bots:
+        forecasts = forecasts.exclude(forecaster__is_bot=True)
     if forecasts.count() == 0:
         return None
     forecast_set = ForecastSet(
@@ -203,9 +206,11 @@ def minimize_history(
 
 
 def get_user_forecast_history(
-    question: Question, minimize: bool = False
+    question: Question, minimize: bool = False, include_bots: bool = False
 ) -> list[ForecastSet]:
     forecasts = question.user_forecasts.order_by("start_time").all()
+    if not include_bots:
+        forecasts.exclude(author__is_bot=True)
     timestamps = set()
     for forecast in forecasts:
         timestamps.add(forecast.start_time)
@@ -242,10 +247,13 @@ def get_cp_history(
     aggregation_method: AggregationMethod = AggregationMethod.RECENCY_WEIGHTED,
     minimize: bool = True,
     include_stats: bool = True,
+    include_bots: bool = False,
 ) -> list[AggregateForecast]:
     full_summary: list[AggregateForecast] = []
 
-    forecast_history = get_user_forecast_history(question, minimize=minimize)
+    forecast_history = get_user_forecast_history(
+        question, minimize=minimize, include_bots=include_bots
+    )
     for i, forecast_set in enumerate(forecast_history):
         if aggregation_method == AggregationMethod.RECENCY_WEIGHTED:
             weights = generate_recency_weights(len(forecast_set.forecasts_values))
