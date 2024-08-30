@@ -83,7 +83,7 @@ const EmailNotifications: FC<Props> = ({ user }) => {
   return (
     <section className="text-sm">
       <hr />
-      <h2 className="mb-5 mt-3 px-1 pt-4">{t("settingsSubscriptions")}</h2>
+      <h2 className="mb-5 mt-3 px-1">{t("settingsSubscriptions")}</h2>
       <h3 className="bg-blue-200 p-1 text-sm font-medium dark:bg-blue-200-dark">
         {t("settingsEmailNotifications")}
       </h3>
