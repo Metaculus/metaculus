@@ -12,4 +12,5 @@ urlpatterns = [
         name="user-change-username",
     ),
     path("users/me/update", views.update_profile_api_view, name="user-update-profile"),
+    path("users/me/password", views.password_change_api_view, name="user-change-password"),
 ]

@@ -1,8 +1,10 @@
 from datetime import timedelta
 
 import numpy as np
+import scipy
+from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
@@ -10,7 +12,6 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-import scipy
 
 from comments.models import Comment
 from posts.models import Post
@@ -23,6 +24,7 @@ from .serializers import (
     validate_username,
     UserUpdateProfileSerializer,
     UserFilterSerializer,
+    PasswordChangeSerializer,
 )
 from .services import get_users, user_unsubscribe_tags
 
@@ -221,3 +223,24 @@ def update_profile_api_view(request: Request):
     user.save()
 
     return Response(UserPrivateSerializer(user).data)
+
+
+@api_view(["POST"])
+def password_change_api_view(request):
+    user = request.user
+
+    serializer = PasswordChangeSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    password = serializer.validated_data["password"]
+    new_password = serializer.validated_data["new_password"]
+
+    if not user.check_password(password):
+        raise ValidationError({"password": "Current password is incorrect"})
+
+    validate_password(new_password, user=user)
+
+    user.set_password(new_password)
+    user.save()
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
