@@ -16,7 +16,11 @@ type Props = {
 
 const AwaitedPostsFeed: FC<Props> = async ({ filters, type, topics }) => {
   return ServerComponentErrorBoundary(async () => {
-    if (topics && !topics?.some((topic) => topic.slug === filters.topic)) {
+    if (
+      topics &&
+      filters.topic &&
+      !topics?.some((topic) => topic.slug === filters.topic)
+    ) {
       return (
         <div className="text-center text-gray-500 dark:text-gray-500-dark">
           Such topic does not exist
