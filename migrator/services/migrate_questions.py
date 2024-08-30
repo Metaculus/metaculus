@@ -289,7 +289,6 @@ def migrate_questions__composite(site_ids: list[int] = None):
     print("Set relevant values")
 
     # Set relevant values:
-    all_questions = Question.objects.all()
     all_posts = Post.objects.all()
     for p in all_posts:
         p.update_pseudo_materialized_fields()
