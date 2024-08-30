@@ -146,13 +146,28 @@ class Leaderboard(TimeStampedModel):
         elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
             # post must be published, and can't be resolved before the start_time
             # of the leaderboard
+            from posts.models import Post
+
+            invalid_statuses = [
+                Post.CurationStatus.DELETED,
+                Post.CurationStatus.DRAFT,
+                Post.CurationStatus.REJECTED,
+            ]
             return list(
                 questions.filter(
                     Q(post__published_at__lt=self.end_time)
-                    | Q(group__post__published_at__lt=self.end_time),
-                    Q(actual_resolve_time__gte=self.start_time)
-                    | Q(actual_resolve_time__isnull=True),
-                ).distinct()
+                    | Q(group__post__published_at__lt=self.end_time)
+                    | Q(conditional_yes__post__published_at__lt=self.end_time)
+                    | Q(conditional_no__post__published_at__lt=self.end_time),
+                    # Q(scheduled_close_time__gte=self.start_time),
+                )
+                .exclude(
+                    Q(post__curation_status__in=invalid_statuses)
+                    | Q(group__post__curation_status__in=invalid_statuses)
+                    | Q(conditional_yes__post__curation_status__in=invalid_statuses)
+                    | Q(conditional_no__post__curation_status__in=invalid_statuses),
+                )
+                .distinct()
             )
 
         if self.start_time and self.end_time:
