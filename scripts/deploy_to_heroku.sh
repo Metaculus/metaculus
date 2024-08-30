@@ -12,8 +12,8 @@ done
 # These are needed for nextjs build phase, as it replaces the value of these environmental variables
 # at build time :/
 FRONTEND_ENV_FILE=$(mktemp)
-echo NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY >$FRONTEND_ENV_FILE
-echo NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL >>$FRONTEND_ENV_FILE
+env | grep NEXT_PUBLIC > $FRONTEND_ENV_FILE
+
 docker buildx build \
     --secret id=frontend_env,src=$FRONTEND_ENV_FILE \
     --platform linux/amd64 -t registry.heroku.com/$HEROKU_APP/web --target web .
