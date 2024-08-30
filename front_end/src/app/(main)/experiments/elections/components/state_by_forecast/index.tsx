@@ -17,6 +17,7 @@ import { extractQuestionGroupName } from "@/utils/questions";
 import MiddleVotesArrow from "./middle_votes_arrow";
 import StateByForecastCharts from "./state_by_forecast_charts";
 import { US_MAP_AREAS } from "./us_areas";
+import ServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   questionGroupId: number;
@@ -31,105 +32,107 @@ const StateByForecast: FC<Props> = async ({
   republicanPostId,
   isEmbed,
 }) => {
-  const t = await getTranslations();
-  const post = await PostsApi.getPost(questionGroupId);
-  if (!post?.group_of_questions) {
-    return null;
-  }
-
-  let democratPrediction = null;
-  let republicanPrediction = null;
-  if (democratPostId && republicanPostId) {
-    const [demPost, repPost] = await Promise.all([
-      PostsApi.getPost(democratPostId),
-      PostsApi.getPost(republicanPostId),
-    ]);
-    const predictions = getDemocratRepublicanPrediction({ demPost, repPost });
-    if (predictions) {
-      democratPrediction = predictions.democratPrediction;
-      republicanPrediction = predictions.republicanPrediction;
+  return ServerComponentErrorBoundary(async () => {
+    const t = await getTranslations();
+    const post = await PostsApi.getPost(questionGroupId);
+    if (!post?.group_of_questions) {
+      return null;
     }
-  }
 
-  const stateByItems = getStateByItems(
-    post.id,
-    post.group_of_questions.questions
-  );
+    let democratPrediction = null;
+    let republicanPrediction = null;
+    if (democratPostId && republicanPostId) {
+      const [demPost, repPost] = await Promise.all([
+        PostsApi.getPost(democratPostId),
+        PostsApi.getPost(republicanPostId),
+      ]);
+      const predictions = getDemocratRepublicanPrediction({ demPost, repPost });
+      if (predictions) {
+        democratPrediction = predictions.democratPrediction;
+        republicanPrediction = predictions.republicanPrediction;
+      }
+    }
 
-  if (isEmbed) {
-    return (
-      <div className="relative mt-20 inline-flex w-full flex-col">
-        <div className="flex w-full flex-col">
-          <MiddleVotesArrow
-            className={classNames("absolute left-2/4 -translate-x-2/4")}
-          />
-          <div className="flex w-full justify-between">
-            {democratPrediction && (
-              <div className="capitalize">
-                {t("democrat")}
-                <br />
-                {t("numVotes", { num: democratPrediction })}
-              </div>
-            )}
-            {republicanPrediction && (
-              <div className="capitalize">
-                {t("republican")}
-                <br />
-                {t("numVotes", { num: republicanPrediction })}
-              </div>
-            )}
+    const stateByItems = getStateByItems(
+      post.id,
+      post.group_of_questions.questions
+    );
+
+    if (isEmbed) {
+      return (
+        <div className="relative mt-20 inline-flex w-full flex-col">
+          <div className="flex w-full flex-col">
+            <MiddleVotesArrow
+              className={classNames("absolute left-2/4 -translate-x-2/4")}
+            />
+            <div className="flex w-full justify-between">
+              {democratPrediction && (
+                <div className="capitalize">
+                  {t("democrat")}
+                  <br />
+                  {t("numVotes", { num: democratPrediction })}
+                </div>
+              )}
+              {republicanPrediction && (
+                <div className="capitalize">
+                  {t("republican")}
+                  <br />
+                  {t("numVotes", { num: republicanPrediction })}
+                </div>
+              )}
+            </div>
           </div>
+
+          <StateByForecastCharts items={stateByItems} interactive={false} />
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-4 flex w-full flex-col rounded bg-gray-0 p-4 dark:bg-gray-0-dark">
+        <div className="mb-2 grid w-full grid-cols-[1fr_auto_1fr] gap-2">
+          <Link
+            className="col-start-2 row-span-1 row-start-1 flex items-center gap-2 text-lg text-gray-700 no-underline hover:text-gray-900 dark:text-gray-700-dark hover:dark:text-gray-900-dark md:col-start-1"
+            href={`/questions/${post.id}`}
+          >
+            {t("stateByStateForecasts")}
+            <Button
+              aria-label={t("republicanElectoralVote")}
+              variant="tertiary"
+              presentationType="icon"
+              size="sm"
+            >
+              <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
+            </Button>
+          </Link>
+
+          <ElectionsEmbedModal />
         </div>
 
-        <StateByForecastCharts items={stateByItems} interactive={false} />
+        <div className="relative mt-10 w-full md:mt-0">
+          <MiddleVotesArrow className="absolute left-2/4 -translate-x-2/4 -translate-y-full" />
+        </div>
+
+        <StateByForecastCharts items={stateByItems} />
+
+        <hr className="border-blue-400 dark:border-blue-400-dark" />
+
+        <div className="font-sans text-sm font-light leading-5 text-gray-600 dark:text-gray-600-dark">
+          {t.rich("electionHubDisclaimer", {
+            bold: (chunks) => <span className="font-semibold">{chunks}</span>,
+            link: (chunks) => (
+              <Link
+                href={`/questions/${post.id}`}
+                className="font-semibold hover:text-blue-800 dark:hover:text-blue-800-dark"
+              >
+                {chunks}
+              </Link>
+            ),
+          })}
+        </div>
       </div>
     );
-  }
-
-  return (
-    <div className="mt-4 flex w-full flex-col rounded bg-gray-0 p-4 dark:bg-gray-0-dark">
-      <div className="mb-2 grid w-full grid-cols-[1fr_auto_1fr] gap-2">
-        <Link
-          className="col-start-2 row-span-1 row-start-1 flex items-center gap-2 text-lg text-gray-700 no-underline hover:text-gray-900 dark:text-gray-700-dark hover:dark:text-gray-900-dark md:col-start-1"
-          href={`/questions/${post.id}`}
-        >
-          {t("stateByStateForecasts")}
-          <Button
-            aria-label={t("republicanElectoralVote")}
-            variant="tertiary"
-            presentationType="icon"
-            size="sm"
-          >
-            <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
-          </Button>
-        </Link>
-
-        <ElectionsEmbedModal />
-      </div>
-
-      <div className="relative mt-10 w-full md:mt-0">
-        <MiddleVotesArrow className="absolute left-2/4 -translate-x-2/4 -translate-y-full" />
-      </div>
-
-      <StateByForecastCharts items={stateByItems} />
-
-      <hr className="border-blue-400 dark:border-blue-400-dark" />
-
-      <div className="font-sans text-sm font-light leading-5 text-gray-600 dark:text-gray-600-dark">
-        {t.rich("electionHubDisclaimer", {
-          bold: (chunks) => <span className="font-semibold">{chunks}</span>,
-          link: (chunks) => (
-            <Link
-              href={`/questions/${post.id}`}
-              className="font-semibold hover:text-blue-800 dark:hover:text-blue-800-dark"
-            >
-              {chunks}
-            </Link>
-          ),
-        })}
-      </div>
-    </div>
-  );
+  });
 };
 
 const getStateByItems = (

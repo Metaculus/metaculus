@@ -9,6 +9,7 @@ import { SearchParams } from "@/types/navigation";
 import DiscoverySection from "./section";
 import AwaitedTags from "./tags";
 import { TAGS_TEXT_SEARCH_FILTER } from "../constants/tags_feed";
+import ServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 const getFilters = (searchParams: SearchParams) => {
   const filters: TagsParams = {};
@@ -23,21 +24,23 @@ const getFilters = (searchParams: SearchParams) => {
 const TagsDiscovery: FC<{ searchParams: SearchParams }> = async ({
   searchParams,
 }) => {
-  const filters = getFilters(searchParams);
-  let tags = await ProjectsApi.getTags(filters);
-  const t = await getTranslations();
+  return ServerComponentErrorBoundary(async () => {
+    const filters = getFilters(searchParams);
+    let tags = await ProjectsApi.getTags(filters);
+    const t = await getTranslations();
 
-  return (
-    <DiscoverySection title={t("tags")}>
-      <TagFilters />
-      <Suspense
-        key={JSON.stringify(searchParams)}
-        fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}
-      >
-        <AwaitedTags tags={tags} />
-      </Suspense>
-    </DiscoverySection>
-  );
+    return (
+      <DiscoverySection title={t("tags")}>
+        <TagFilters />
+        <Suspense
+          key={JSON.stringify(searchParams)}
+          fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}
+        >
+          <AwaitedTags tags={tags} />
+        </Suspense>
+      </DiscoverySection>
+    );
+  });
 };
 
 export default TagsDiscovery;
