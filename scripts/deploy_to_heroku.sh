@@ -1,4 +1,5 @@
 #! /bin/bash
+set -e
 required_vars=("NEXT_PUBLIC_TURNSTILE_SITE_KEY" "HEROKU_APP" "NEXT_PUBLIC_APP_URL")
 
 for var in "${required_vars[@]}"; do
