@@ -16,7 +16,7 @@ const ForecastMakerContainer: FC<PropsWithChildren<Props>> = ({
   className,
   children,
 }) => {
-  const t = useTranslations()
+  const t = useTranslations();
   return (
     <section
       id="prediction-section"
@@ -25,7 +25,9 @@ const ForecastMakerContainer: FC<PropsWithChildren<Props>> = ({
         className
       )}
     >
-      <h3 className="m-0 text-base font-normal leading-5">{t("makePrediction")}</h3>
+      <h3 className="m-0 text-base font-normal leading-5">
+        {t("makePrediction")}
+      </h3>
       <div className="mt-3">{children}</div>
       {resolutionCriteria.map((criteria, index) => (
         <ResolutionCriteria key={index} {...criteria} />

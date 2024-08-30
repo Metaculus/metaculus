@@ -1,10 +1,12 @@
+from datetime import datetime
+
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
 from django.utils import timezone
-from datetime import datetime, timedelta
 
 from migrator.services.migrate_comments import migrate_comments, migrate_comment_votes
+from migrator.services.migrate_fab_credits import migrate_fab_credits
 from migrator.services.migrate_forecasts import (
     migrate_forecasts,
     migrate_metaculus_predictions,
@@ -24,7 +26,6 @@ from migrator.services.migrate_scoring import migrate_archived_scores, score_que
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
 from migrator.services.post_migrate import post_migrate_calculate_divergence
-from migrator.services.migrate_fab_credits import migrate_fab_credits
 from migrator.utils import reset_sequence
 from posts.jobs import job_compute_movement
 from posts.services.common import compute_hotness
@@ -100,7 +101,7 @@ class Command(BaseCommand):
         )
 
         # TODO: enable on prod release!
-        print(f"\033[93mPost Subscriptions/Following migration is disabled!\033[0m")
+        print("\033[93mPost Subscriptions/Following migration is disabled!\033[0m")
         # migrate_subscriptions(site_ids=site_ids)
         # task_start = print_duration("Migrated post subscriptions", task_start, start)
 

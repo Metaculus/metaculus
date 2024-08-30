@@ -89,7 +89,7 @@ const ConditionalForecastTable: FC<Props> = ({
           >
             {({ checked, disabled }) => (
               <>
-                <td className="border-t pl-2 py-3 pr-4 font-bold">
+                <td className="border-t py-3 pl-2 pr-4 font-bold">
                   <RadioButton
                     checked={checked}
                     disabled={disabled}

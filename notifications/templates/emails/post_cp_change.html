@@ -59,13 +59,6 @@
       .mj-outlook-group-fix { width:100% !important; }
     </style>
     <![endif]-->
-  <!--[if !mso]><!-->
-  <link href="{% static 'fonts/metac_fonts.css' %}" rel="stylesheet" type="text/css">
-  <style type="text/css">
-    @import url({% static 'fonts/metac_fonts.css' %});
-
-  </style>
-  <!--<![endif]-->
   <style type="text/css">
     @media only screen and (min-width:420px) {
       .mj-column-per-100 {
@@ -123,7 +116,7 @@
                           <tbody>
                             <tr>
                               <td style="width:60px;">
-                                <img alt="Metaculus Logo" src="{{static_url_scheme|default:'https'}}:{% static 'metaculus_logo.png'%}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:16px;" title="Metaculus Logo" width="60" height="auto">
+                                <img alt="Metaculus Logo" src="{% build_frontend_url 'images/metaculus_logo.png' %}" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:16px;" title="Metaculus Logo" width="60" height="auto">
                               </td>
                             </tr>
                           </tbody>
@@ -151,21 +144,21 @@
                   <tbody>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">Hello {{recipient.username}},</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">Hello {{recipient.username}},</div>
                       </td>
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans with count=params|length %} There has been significant change in the Community prediction for these {{count}} questions: {% endblocktrans %}</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans with count=params|length %} There has been significant change in the Community prediction for these {{count}} questions: {% endblocktrans %}</div>
                       </td>
                     </tr> {% for notification in params %} <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);"><a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);"><a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
                             {{ notification.post.post_title }}
                           </a>
                           <a href="{% post_url notification.post.post_id notification.post.post_title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
-                            <img class="question_graph_img" src="!!!!!!!!!{% build_question_graph_image_url notification.post.post_id %}" style="border: none; display: block; outline: none; width: 100%; height: auto;" height="auto">
-                          </a> {% if notification.post.post_type == "question" and notification.question_data.0.question.type != "multiple_choice" %} {% with question_data=notification.question_data.0 %} {% if question_data.question.type == "binary" %} {% blocktrans with direction=question_data.get_cp_change_label abs_diff=question_data.absolute_difference forecast_date=question_data.format_forecast_date median=question_data.format_cp_median user_forecast=question_data.format_user_forecast %} The community prediction has {{direction}} by {{abs_diff}} since {{forecast_date}}. It is now <b>{{median}}</b>>. Your last prediction was <b>{{user_forecast}}</b>. {% endblocktrans %} {% elif question_data.question.type == "continuous" %} {% blocktrans with direction=question_data.get_direction_label cp_median=question_data.cp_median forecast_date=question_data.format_forecast_date cp_median=question_data.cp_median cp_q1=question_data.cp_q1 cp_q3=question_data.cp_q3 user_median=question_data.user_median user_q1=question_data.user_q1 user_q3=question_data.user_q1 %} The community prediction has {{direction}} by {change value} since {{forecast_date}}. It is now {{cp_median}} ({{cp_q1}} – {{cp_q3}}). Your last prediction was {{user_median}} ({{user_q1}} – {{user_q3}}). {% endblocktrans %} {% endif %} {% endwith %} {% else %} <table style="background-color: #eff4f4">
+                            <img class="question_graph_img" src="{% build_question_graph_image_url notification.post.post_id %}" style="border: none; display: block; outline: none; width: 100%; height: auto;" height="auto">
+                          </a> {% if notification.post.post_type == "question" and notification.question_data.0.question.type != "multiple_choice" %} {% with question_data=notification.question_data.0 %} {% if question_data.question.type == "binary" %} {% blocktrans with direction=question_data.get_cp_change_label abs_diff=question_data.absolute_difference forecast_date=question_data.format_forecast_date median=question_data.format_cp_median user_forecast=question_data.format_user_forecast %} The community prediction has {{direction}} by {{abs_diff}} since {{forecast_date}}. It is now <b>{{median}}</b>. Your last prediction was <b>{{user_forecast}}</b>. {% endblocktrans %} {% elif question_data.question.type == "continuous" %} {% blocktrans with direction=question_data.get_direction_label cp_median=question_data.cp_median forecast_date=question_data.format_forecast_date cp_median=question_data.cp_median cp_q1=question_data.cp_q1 cp_q3=question_data.cp_q3 user_median=question_data.user_median user_q1=question_data.user_q1 user_q3=question_data.user_q1 %} The community prediction has {{direction}} by {change value} since {{forecast_date}}. It is now {{cp_median}} ({{cp_q1}} – {{cp_q3}}). Your last prediction was {{user_median}} ({{user_q1}} – {{user_q3}}). {% endblocktrans %} {% endif %} {% endwith %} {% else %} <table style="background-color: #eff4f4">
                             <tr>
                               <th style="font-weight: bold; padding: 4px 2px 4px 0; text-align: left"> {% blocktrans %} Option {% endblocktrans %} </th>
                               <th style="font-weight: bold; padding: 4px 2px; text-align: right"> {% blocktrans %} Movement {% endblocktrans %} </th>
@@ -204,12 +197,12 @@
                   <tbody>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} <h4>Here are some other questions you may be interested in:</h4> {% endblocktrans %}</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} <h4>Here are some other questions you may be interested in:</h4> {% endblocktrans %}</div>
                       </td>
                     </tr>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% for post in similar_posts %} <div style="margin-bottom: 8px">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% for post in similar_posts %} <div style="margin-bottom: 8px">
                             <a href="{% post_url post.id post.title %}" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">
                               {{ post.title }}
                             </a>
@@ -240,7 +233,7 @@
                   <tbody>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} Happy Predicting,<br> The Metaculus Team {% endblocktrans %}</div>
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">{% blocktrans %} Happy Predicting,<br> The Metaculus Team {% endblocktrans %}</div>
                       </td>
                     </tr>
                   </tbody>
@@ -264,7 +257,7 @@
                   <tbody>
                     <tr>
                       <td align="left" class="general-text" style="font-size:0px;padding:10px 25px;word-break:break-word;">
-                        <div style="font-family:Diatype Variable, Diatype, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
+                        <div style="font-family:Inter Variable, Inter, Arial, sans-serif;font-size:16px;line-height:24px;text-align:left;color:rgba(22, 28, 34, 1);">
                           <p style="font-size:85%; color:#aaaaaa;"> {% blocktrans %} If you no longer wish to receive this type of email, you can <a href="%tag_unsubscribe_url%" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">unsubscribe here</a>. You can also manage your notification settings on your Metaculus <a href="{{ FRONTEND_BASE_URL }}/accounts/settings/" style="color: rgba(47, 65, 85, 1); font-weight: bold; text-decoration: underline;">settings page</a>. {% endblocktrans %} </p>
                         </div>
                       </td>

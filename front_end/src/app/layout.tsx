@@ -3,8 +3,6 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
-import { headers } from "next/headers";
-import { NextRequest } from "next/server";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
@@ -18,88 +16,92 @@ import ModalProvider from "@/contexts/modal_context";
 import AuthApi from "@/services/auth";
 import ProfileApi from "@/services/profile";
 
+import { CSPostHogProvider } from "./providers";
+
 config.autoAddCss = false;
 
 const sourceSerifPro = localFont({
   src: [
     {
-      path: "./assets/fonts/SourceSerifPro-Regular.woff2",
+      path: "../../public/fonts/SourceSerifPro-Regular.woff2",
       weight: "400",
       style: "normal",
     },
     {
-      path: "./assets/fonts/SourceSerifPro-Regular.woff",
+      path: "../../public/fonts/SourceSerifPro-Regular.woff",
       weight: "400",
       style: "normal",
     },
     {
-      path: "./assets/fonts/SourceSerifPro-Italic.woff2",
-      weight: "400",
-      style: "italic",
-    },
-    {
-      path: "./assets/fonts/SourceSerifPro-Italic.woff",
+      path: "../../public/fonts/SourceSerifPro-Italic.woff2",
       weight: "400",
       style: "italic",
     },
     {
-      path: "./assets/fonts/SourceSerifPro-Bold.woff2",
+      path: "../../public/fonts/SourceSerifPro-Italic.woff",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../../public/fonts/SourceSerifPro-Bold.woff2",
       weight: "700",
       style: "normal",
     },
     {
-      path: "./assets/fonts/SourceSerifPro-Bold.woff",
+      path: "../../public/fonts/SourceSerifPro-Bold.woff",
       weight: "700",
       style: "normal",
     },
     {
-      path: "./assets/fonts/SourceSerifPro-BoldItalic.woff2",
+      path: "../../public/fonts/SourceSerifPro-BoldItalic.woff2",
       weight: "700",
       style: "italic",
     },
     {
-      path: "./assets/fonts/SourceSerifPro-BoldItalic.woff",
+      path: "../../public/fonts/SourceSerifPro-BoldItalic.woff",
       weight: "700",
       style: "italic",
     },
   ],
   variable: "--font-source-serif-pro",
 });
-const diatype = localFont({
+
+const inter = localFont({
   src: [
     {
-      path: "./assets/fonts/ABCDiatype-Regular.woff2",
+      path: "../../public/fonts/inter_18pt-medium.ttf",
       weight: "400",
       style: "normal",
     },
     {
-      path: "./assets/fonts/ABCDiatype-RegularItalic.woff2",
+      path: "../../public/fonts/inter_18pt-mediumitalic.ttf",
       weight: "400",
       style: "italic",
     },
   ],
-  variable: "--font-diatype",
+  variable: "--font-inter",
 });
-const diatypeVariable = localFont({
+
+const interVariable = localFont({
   src: [
     {
-      path: "./assets/fonts/ABCDiatypeVariable.woff2",
+      path: "../../public/fonts/inter_variable.ttf",
       weight: "100 700",
       style: "normal",
     },
   ],
-  variable: "--font-diatype-variable",
+  variable: "--font-inter-variable",
 });
 
-const alternateGothic = localFont({
-  src: "./assets/fonts/alternategothicno1.otf",
-  variable: "--font-alternate-gothic-no-1-d",
+const leagueGothic = localFont({
+  src: "../../public/fonts/league_gothic_variable.ttf",
+  variable: "--font-league-gothic",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "Metaculus",
-    description: "Metaculus rewrite",
+    description: "Metaculus",
     metadataBase: new URL(
       process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
     ),
@@ -121,28 +123,30 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${diatypeVariable.variable} ${diatype.variable} ${sourceSerifPro.variable} ${alternateGothic.variable} font-sans`}
+      className={`${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${leagueGothic.variable} font-sans`}
       // required by next-themes
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       suppressHydrationWarning
     >
-      <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
-        <AppThemeProvided>
-          <NextIntlClientProvider messages={messages}>
-            <AuthProvider user={user} socialProviders={socialProviders}>
-              <ModalProvider>
-                <NextTopLoader
-                  showSpinner={false}
-                  color={METAC_COLORS.blue["500"].DEFAULT}
-                />
-                {children}
-                <GlobalModals />
-                <Toaster />
-              </ModalProvider>
-            </AuthProvider>
-          </NextIntlClientProvider>
-        </AppThemeProvided>
-      </body>
+      <CSPostHogProvider>
+        <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
+          <AppThemeProvided>
+            <NextIntlClientProvider messages={messages}>
+              <AuthProvider user={user} socialProviders={socialProviders}>
+                <ModalProvider>
+                  <NextTopLoader
+                    showSpinner={false}
+                    color={METAC_COLORS.blue["500"].DEFAULT}
+                  />
+                  {children}
+                  <GlobalModals />
+                  <Toaster />
+                </ModalProvider>
+              </AuthProvider>
+            </NextIntlClientProvider>
+          </AppThemeProvided>
+        </body>
+      </CSPostHogProvider>
     </html>
   );
 }

@@ -42,8 +42,8 @@ const PredictionChip: FC<Props> = ({
     locale
   );
 
-  const aggregate = question.aggregations.recency_weighted;
-  const lastUserForecast = aggregate.history[aggregate.history.length - 1];
+  const aggregate = question.aggregations?.recency_weighted;
+  const lastUserForecast = aggregate?.history[aggregate.history.length - 1];
 
   switch (status) {
     case PostStatus.PENDING:

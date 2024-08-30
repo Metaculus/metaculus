@@ -21,7 +21,6 @@ from projects.serializers import (
 from projects.services import (
     get_projects_qs,
     get_project_permission_for_user,
-    get_site_main_project,
     invite_user_to_project,
     subscribe_project,
     unsubscribe_project,

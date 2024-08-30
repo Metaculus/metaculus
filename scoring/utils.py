@@ -1,14 +1,11 @@
 from collections import defaultdict
-from datetime import datetime
 from dataclasses import dataclass
 
 import numpy as np
-
-from django.utils import timezone
 from django.db.models import QuerySet, Q
+from django.utils import timezone
 
 from comments.models import Comment
-from users.models import User
 from posts.models import Post
 from projects.models import Project
 from questions.models import Question
@@ -21,6 +18,7 @@ from scoring.models import (
     MedalExclusionRecord,
 )
 from scoring.score_math import evaluate_question
+from users.models import User
 from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
 
@@ -30,16 +28,21 @@ def score_question(
     resolution: str,
     spot_forecast_time: float | None = None,
     score_types: list[str] | None = None,
+    include_bots_in_aggregates: bool = False,
 ):
     resolution_bucket = string_location_to_bucket_index(resolution, question)
     spot_forecast_time = spot_forecast_time or question.cp_reveal_time.timestamp()
-    score_types = score_types or Score.ScoreTypes.choices
+    score_types = score_types or [c[0] for c in Score.ScoreTypes.choices]
     seen = set()
     previous_scores = list(
         Score.objects.filter(question=question, score_type__in=score_types)
     )
     new_scores = evaluate_question(
-        question, resolution_bucket, score_types, spot_forecast_time
+        question,
+        resolution_bucket,
+        score_types,
+        spot_forecast_time,
+        include_bots_in_aggregates,
     )
     for new_score in new_scores:
         is_new = True
@@ -113,7 +116,7 @@ def generate_scoring_leaderboard_entries(
                 calculated_on=now,
             )
         entries[identifier].score += score.score
-        entries[identifier].coverage += score.coverage / maximum_coverage
+        entries[identifier].coverage += score.coverage
         entries[identifier].contribution_count += 1
     if leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL:
         for entry in entries.values():
@@ -123,6 +126,7 @@ def generate_scoring_leaderboard_entries(
             entry.score /= max(40, entry.contribution_count)
     elif leaderboard.score_type == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
         for entry in entries.values():
+            entry.coverage /= maximum_coverage
             entry.take = max(entry.coverage * np.exp(entry.score), 0)
         return sorted(entries.values(), key=lambda entry: entry.take, reverse=True)
     return sorted(entries.values(), key=lambda entry: entry.score, reverse=True)
@@ -135,6 +139,12 @@ def generate_comment_insight_leaderboard_entries(
 
     posts = Post.objects.filter(
         Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
+    ).exclude(
+        curation_status__in=[
+            Post.CurationStatus.REJECTED,
+            Post.CurationStatus.DRAFT,
+            Post.CurationStatus.DELETED,
+        ]
     )
     comments = Comment.objects.filter(
         on_post__in=posts,
@@ -177,13 +187,14 @@ def generate_question_writing_leaderboard_entries(
     for question in questions:
         forecasts_during_period = question.user_forecasts.filter(
             start_time__gte=leaderboard.start_time,
-            start_time__lte=min(
-                [
-                    leaderboard.end_time,
-                    question.actual_close_time or question.scheduled_close_time,
-                    question.actual_resolve_time or question.scheduled_resolve_time,
-                ]
-            ),
+            # start_time__lte=min(
+            #     [
+            #         leaderboard.end_time,
+            #         question.actual_close_time or question.scheduled_close_time,
+            #         question.actual_resolve_time or question.scheduled_resolve_time,
+            #     ]
+            # ),
+            start_time__lte=leaderboard.end_time,
         )
         forecasters = set([forecast.author_id for forecast in forecasts_during_period])
         post = question.get_post()
@@ -266,7 +277,7 @@ def update_project_leaderboard(
     excluded_users = exclusion_records.values_list("user", flat=True)
     excluded_user_ids = set([r.user.id for r in exclusion_records])
     # medals
-    golds = silvers = bronzes = 0
+    gold_rank = silver_rank = bronze_rank = 0
     if (
         (leaderboard.project.type != "question_series")
         and leaderboard.finalize_time
@@ -279,23 +290,46 @@ def update_project_leaderboard(
                 if (e.user_id and (e.user_id not in excluded_user_ids))
             ]
         )
-        golds = max(0.01 * entry_count, 1)
-        silvers = max(0.01 * entry_count, 1)
-        bronzes = max(0.03 * entry_count, 1)
+        gold_rank = max(np.ceil(0.01 * entry_count), 1)
+        silver_rank = max(np.ceil(0.02 * entry_count), 2)
+        bronze_rank = max(np.ceil(0.05 * entry_count), 3)
     rank = 1
+    prev_entry = None
     for entry in new_entries:
-        if (entry.user_id is None) or (entry.user_id in excluded_users):
+        if (
+            (entry.user_id is None)
+            or (entry.user_id in excluded_users)
+            or (entry.user.is_bot and "global" in leaderboard.score_type)
+        ):
             entry.excluded = True
             entry.medal = None
             entry.rank = rank
+            if (
+                leaderboard.score_type
+                == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
+            ):
+                if prev_entry and (entry.take == prev_entry.take):
+                    entry.rank = prev_entry.rank
+            else:
+                if prev_entry and (entry.score == prev_entry.score):
+                    entry.rank = prev_entry.rank
             continue
-        if rank <= golds:
+        if rank <= gold_rank:
             entry.medal = LeaderboardEntry.Medals.GOLD
-        elif rank <= golds + silvers:
+        elif rank <= silver_rank:
             entry.medal = LeaderboardEntry.Medals.SILVER
-        elif rank <= golds + silvers + bronzes:
+        elif rank <= bronze_rank:
             entry.medal = LeaderboardEntry.Medals.BRONZE
         entry.rank = rank
+        if leaderboard.score_type == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
+            if prev_entry and (entry.take == prev_entry.take):
+                entry.rank = prev_entry.rank
+                entry.medal = prev_entry.medal
+        else:
+            if prev_entry and (entry.score == prev_entry.score):
+                entry.rank = prev_entry.rank
+                entry.medal = prev_entry.medal
+        prev_entry = entry
         rank += 1
 
     for new_entry in new_entries:
@@ -378,7 +412,6 @@ def get_contributions(
             forecaster_ids_for_post[post].update(forecasters)
         contributions: list[Contribution] = []
         for post, forecaster_ids in forecaster_ids_for_post.items():
-
             contribution = Contribution(
                 score=len(forecaster_ids),
                 post=post,
@@ -386,13 +419,9 @@ def get_contributions(
             contributions.append(contribution)
         h_index = decimal_h_index([c.score / 10 for c in contributions])
         contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
-        return contributions[: int(h_index) + 1]
+        # return contributions[: int(h_index) + 1]
+        return contributions
 
-    if leaderboard.score_type == "global_leaderboard":
-        # There are so many questions in global leaderboards that we don't
-        # need to make unpopulated contributions for questions that have not
-        # been resolved.
-        questions = [q for q in questions if q.resolution is not None]
     archived_scores = list(
         ArchivedScore.objects.filter(
             question__in=questions,
@@ -419,6 +448,11 @@ def get_contributions(
                 break
         if not found:
             scores.append(score)
+    if "global" in leaderboard.score_type:
+        # There are so many questions in global leaderboards that we don't
+        # need to make unpopulated contributions for questions that have not
+        # been resolved.
+        scores = [s for s in scores if s.coverage > 0]
     scores = sorted(
         scores, key=lambda s: s.score if s.score is not None else 0, reverse=True
     )
@@ -429,11 +463,12 @@ def get_contributions(
     ]
     # add unpopulated contributions for other questions
     scored_question = {score.question for score in scores}
-    contributions += [
-        Contribution(score=None, coverage=None, question=question)
-        for question in questions
-        if question not in scored_question
-    ]
+    if "global" not in leaderboard.score_type:
+        contributions += [
+            Contribution(score=None, coverage=None, question=question)
+            for question in questions
+            if question not in scored_question
+        ]
 
     return contributions
 

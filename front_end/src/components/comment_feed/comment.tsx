@@ -361,15 +361,15 @@ const Comment: FC<CommentProps> = ({
       </div>
       {isEditing && (
         <>
-        <Button
-          onClick={async () => {
-            const response = await editComment({
-              id: comment.id,
-              text: commentMarkdown,
-              author: user!.id,
-            });
-            if (response && "errors" in response) {
-              console.error(t("errorDeletingComment"), response.errors);
+          <Button
+            onClick={async () => {
+              const response = await editComment({
+                id: comment.id,
+                text: commentMarkdown,
+                author: user!.id,
+              });
+              if (response && "errors" in response) {
+                console.error(t("errorDeletingComment"), response.errors);
               } else {
                 setIsEditing(false);
               }

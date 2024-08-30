@@ -68,6 +68,7 @@ def migrate_archived_scores():
 
 
 def score_questions(qty: int | None = None, start_id: int = 0):
+    fab_questions = Leaderboard.objects.get(project__slug="aibq3").get_questions()
     questions = (
         Question.objects.filter(
             resolution__isnull=False,
@@ -96,15 +97,6 @@ def score_questions(qty: int | None = None, start_id: int = 0):
     question: Question
     start = timezone.now()
     for i, question in enumerate(questions, 1):
-        if question.resolution and not question.forecast_scoring_ends:
-            print(
-                question.forecast_scoring_ends,
-                question.resolution,
-                question.get_post().title,
-                question.get_post().id,
-            )
-            print("Resolved q with no resolved time")
-            exit()
         score_types = [
             Score.ScoreTypes.PEER,
             Score.ScoreTypes.BASELINE,
@@ -124,6 +116,7 @@ def score_questions(qty: int | None = None, start_id: int = 0):
             question,
             question.resolution,
             score_types=score_types,
+            include_bots_in_aggregates=question in fab_questions,
         )
     print(
         f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "

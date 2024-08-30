@@ -1,6 +1,5 @@
-from datetime import datetime, timezone as dt_timezone
-
 from collections import defaultdict
+from datetime import datetime, timezone as dt_timezone
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -11,14 +10,9 @@ from users.models import User
 from utils.the_math.formulas import get_scaled_quartiles_from_cdf
 from utils.the_math.measures import (
     percent_point_function,
-    prediction_difference_for_display,
 )
 from .constants import ResolutionType
 from .models import Question, Conditional, GroupOfQuestions, AggregateForecast
-from .services import (
-    build_question_forecasts_for_user,
-    get_forecast_initial_dict,
-)
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -37,7 +31,6 @@ class QuestionSerializer(serializers.ModelSerializer):
             "resolution_set_time",
             "scheduled_close_time",
             "actual_close_time",
-            "forecast_scoring_ends",
             "type",
             "options",
             "possibilities",

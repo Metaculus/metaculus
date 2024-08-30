@@ -202,6 +202,7 @@ SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {"fields": "id, name, email"}
 # Google
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_KEY")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.environ.get("SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET")
+REST_SOCIAL_VERBOSE_ERRORS = True
 
 # Email configuration
 # https://anymail.dev/
@@ -209,6 +210,13 @@ MAILGUN_API_KEY = os.environ.get("MAILGUN_API_KEY")
 MAILGUN_SUBDOMAIN = os.environ.get("MAILGUN_SUBDOMAIN")
 ANYMAIL = {
     "MAILGUN_API_KEY": MAILGUN_API_KEY,
+    "SEND_DEFAULTS": {
+        # https://anymail.dev/en/stable/sending/templates/#batch-sending-with-merge-data
+        # "Without it, you may get a single message to everyone, exposing all of the email addresses
+        # to all recipients. (If you don’t have any per-recipient customizations, but still want
+        # individual messages, just set merge_data to an empty dict.)"
+        "merge_data": {},
+    },
 }
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 EMAIL_HOST_USER = os.environ.get(
@@ -249,15 +257,14 @@ FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000")
 
 # Redis endpoint
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
-
+REDIS_OVER_SSL = "ss:/" in REDIS_URL
 # django-dramatiq
 # https://github.com/Bogdanp/django_dramatiq
 DRAMATIQ_BROKER = {
     "BROKER": "dramatiq.brokers.redis.RedisBroker",
     "OPTIONS": {
         # Setting redis db to 1 for the MQ storage
-        "url": f"{REDIS_URL}/1?ssl_cert_reqs=none",
-        "ssl_cert_reqs": None,
+        "url": f"{REDIS_URL}/1?ssl_cert_reqs=none" if REDIS_OVER_SSL else f"{REDIS_URL}/1",
     },
     "MIDDLEWARE": [
         "dramatiq.middleware.AgeLimit",
@@ -267,6 +274,8 @@ DRAMATIQ_BROKER = {
         "django_dramatiq.middleware.AdminMiddleware",
     ],
 }
+if REDIS_OVER_SSL:
+    DRAMATIQ_BROKER["OPTIONS"]["ssl_cert_reqs"] = None
 # Setting StubBroker broker for unit tests environment
 # Integration tests should run as the real env
 if ENV == "testing":
@@ -278,13 +287,15 @@ DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_URL}/2?ssl_cert_reqs=none",
+        "LOCATION": f"{REDIS_URL}/2?ssl_cert_reqs=none" if REDIS_OVER_SSL else f"{REDIS_URL}/2",
         "OPTIONS": {
             "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None},
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     }
 }
+if REDIS_OVER_SSL:
+    DRAMATIQ_BROKER["default"]["LOCATION"] = None
 
 # Django-storages
 # https://github.com/jschneier/django-storages
@@ -329,12 +340,10 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 # Serper Google API key
 SERPER_API_KEY = os.environ.get("SERPER_API_KEY")
 
-
 GOOGLE_CREDEBTIALS_FAB_SHEET_B64 = os.environ.get("GOOGLE_CREDEBTIALS_FAB_SHEET_B64")
 
 FAB_CREDITS_ANTHROPIC_API_KEY = os.environ.get("FAB_CREDITS_ANTHROPIC_API_KEY")
 FAB_CREDITS_OPENAI_API_KEY = os.environ.get("FAB_CREDITS_OPENAI_API_KEY")
-
 
 ALLOWED_HOSTS = [
     ".metaculus.com",
