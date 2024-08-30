@@ -4,7 +4,7 @@ This is the codebase for the rewritten main [Metaculus website](https://metaculu
 
 [Feel free to suggest changes and report bugs](https://github.com/Metaculus/metaculus/issues)
 
-# Setup dev env
+# Setup dev env.
 
 ### 0. Setup environment
 - Install Postgres
