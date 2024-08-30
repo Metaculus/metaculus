@@ -9,7 +9,6 @@
 </mj-raw>
 
 <mj-head>
-  <mj-font name="Inter" href="{% static 'fonts/metac_fonts.css' %}" />
   <mj-breakpoint width="420px" />
 
 
@@ -22,34 +21,56 @@
   {% endcomment %}
 
   <mj-style inline="inline">
-    .quote-text {
-      font-style: italic;
-      background-color:rgba(239, 244, 244, 1);
-      padding:12px 16px;
-      font-size: 18px;
-      border-radius:8px;
-      margin-inline-start: 0px;
-      margin-inline-end: 0px;
-      margin: 18px 0px;
-    }
+      @font-face {
+          font-family: "Inter Variable";
+          src: url("{% build_frontend_url 'fonts/inter_variable.ttf' %}") format("truetype");
+          font-weight: 100 700;
+      }
 
-    a {
-      color: rgba(47, 65, 85, 1);
-      font-weight: bold;
-      text-decoration: underline;
-    }
+      /* Fallback static font */
+      @font-face {
+          font-family: "Inter";
+          src: url("{% build_frontend_url 'fonts/inter_18pt-medium.ttf' %}") format("truetype");
+          font-weight: 400;
+          font-style: normal;
+      }
 
-    .primary-button a {
-      width: 100%;
-    }
+      @font-face {
+          font-family: "Inter";
+          src: url("{% build_frontend_url 'fonts/inter_18pt-mediumitalic.ttf' %}") format("truetype");
+          font-weight: 400;
+          font-style: italic;
+      }
 
-    .question_graph_img {
-      border:none;
-      display:block;
-      outline:none;
-      width:100%;
-      height: auto;
-    }
+
+      .quote-text {
+          font-style: italic;
+          background-color: rgba(239, 244, 244, 1);
+          padding: 12px 16px;
+          font-size: 18px;
+          border-radius: 8px;
+          margin-inline-start: 0px;
+          margin-inline-end: 0px;
+          margin: 18px 0px;
+      }
+
+      a {
+          color: rgba(47, 65, 85, 1);
+          font-weight: bold;
+          text-decoration: underline;
+      }
+
+      .primary-button a {
+          width: 100%;
+      }
+
+      .question_graph_img {
+          border: none;
+          display: block;
+          outline: none;
+          width: 100%;
+          height: auto;
+      }
   </mj-style>
 
   <mj-style>
