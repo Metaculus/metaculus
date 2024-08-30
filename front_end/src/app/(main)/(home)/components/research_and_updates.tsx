@@ -10,85 +10,88 @@ import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import PostsApi from "@/services/posts";
 import { PostWithNotebook } from "@/types/post";
 import { getNotebookSummary } from "@/utils/questions";
+import ServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   postIds: number[];
 };
 
 const ResearchAndUpdatesBlock: FC<Props> = async ({ postIds }) => {
-  const t = await getTranslations();
-  const locale = await getLocale();
-  const { results } = await PostsApi.getPostsWithCP({
-    ids: postIds,
-  });
-  const posts = results as PostWithNotebook[];
+  return ServerComponentErrorBoundary(async () => {
+    const t = await getTranslations();
+    const locale = await getLocale();
+    const { results } = await PostsApi.getPostsWithCP({
+      ids: postIds,
+    });
+    const posts = results as PostWithNotebook[];
 
-  return (
-    <div className="my-6 flex flex-col md:my-12 lg:my-16">
-      <h2 className="mb-5 mt-0 w-full text-4xl font-bold text-blue-800 dark:text-blue-800-dark md:text-5xl">
-        {t("research")} &{" "}
-        <span className="text-blue-600 dark:text-blue-600-dark">
-          {t("updates")}
-        </span>
-      </h2>
-      <p className="m-0 text-xl text-blue-700 dark:text-blue-700-dark">
-        {t("partnersUseForecasts")}
-      </p>
-      <div className="mt-6 flex flex-col gap-8 lg:flex-row">
-        {posts.map(({ title, created_at, id, notebook, url_title }) => (
-          <Link
-            key={id}
-            className="flex-1 rounded-b-2xl bg-gray-0 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark"
-            href={`/notebooks/${id}/${url_title}`}
-          >
-            {notebook.image_url && notebook.image_url.startsWith("https:") ? (
-              <Image
-                src={notebook.image_url}
-                alt=""
-                width={265}
-                height={160}
-                quality={100}
-                className="h-56 w-full object-cover object-center"
-              />
-            ) : (
-              <Image
-                src={imagePlaceholder}
-                alt=""
-                className="h-56 w-full object-cover object-center"
-                quality={100}
-              />
-            )}
+    return (
+      <div className="my-6 flex flex-col md:my-12 lg:my-16">
+        <h2 className="mb-5 mt-0 w-full text-4xl font-bold text-blue-800 dark:text-blue-800-dark md:text-5xl">
+          {t("research")} &{" "}
+          <span className="text-blue-600 dark:text-blue-600-dark">
+            {t("updates")}
+          </span>
+        </h2>
+        <p className="m-0 text-xl text-blue-700 dark:text-blue-700-dark">
+          {t("partnersUseForecasts")}
+        </p>
+        <div className="mt-6 flex flex-col gap-8 lg:flex-row">
+          {posts.map(({ title, created_at, id, notebook, url_title }) => (
+            <Link
+              key={id}
+              className="flex-1 rounded-b-2xl bg-gray-0 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark"
+              href={`/notebooks/${id}/${url_title}`}
+            >
+              {notebook.image_url && notebook.image_url.startsWith("https:") ? (
+                <Image
+                  src={notebook.image_url}
+                  alt=""
+                  width={265}
+                  height={160}
+                  quality={100}
+                  className="h-56 w-full object-cover object-center"
+                />
+              ) : (
+                <Image
+                  src={imagePlaceholder}
+                  alt=""
+                  className="h-56 w-full object-cover object-center"
+                  quality={100}
+                />
+              )}
 
-            <div className="px-5 py-6">
-              <span className="rounded-full bg-blue-400 px-1.5 py-0.5 text-sm font-medium text-blue-900 dark:bg-blue-400-dark dark:text-blue-900-dark">
-                {intlFormat(
-                  new Date(created_at),
-                  {
-                    year: "numeric",
-                    month: "short",
-                  },
-                  { locale }
-                )}
-              </span>
-              <h3 className="mb-2 mt-3 text-2xl">{title}</h3>
-              <p className="m-0 text-base text-blue-700 dark:text-blue-700-dark">
-                {getNotebookSummary(notebook.markdown, 200, 80)}
-              </p>
-            </div>
-          </Link>
-        ))}
+              <div className="px-5 py-6">
+                <span className="rounded-full bg-blue-400 px-1.5 py-0.5 text-sm font-medium text-blue-900 dark:bg-blue-400-dark dark:text-blue-900-dark">
+                  {intlFormat(
+                    new Date(created_at),
+                    {
+                      year: "numeric",
+                      month: "short",
+                    },
+                    { locale }
+                  )}
+                </span>
+                <h3 className="mb-2 mt-3 text-2xl">{title}</h3>
+                <p className="m-0 text-base text-blue-700 dark:text-blue-700-dark">
+                  {getNotebookSummary(notebook.markdown, 200, 80)}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+        <a
+          href="https://metaculus.medium.com/"
+          className="mt-8 inline-flex items-center self-end text-right text-base font-bold text-blue-800 no-underline dark:text-blue-800-dark"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t("seeMorePosts")}
+          <FontAwesomeIcon icon={faArrowRight} className="ml-1.5 mr-1" />
+        </a>
       </div>
-      <a
-        href="https://metaculus.medium.com/"
-        className="mt-8 inline-flex items-center self-end text-right text-base font-bold text-blue-800 no-underline dark:text-blue-800-dark"
-        target="_blank"
-        rel="noreferrer"
-      >
-        {t("seeMorePosts")}
-        <FontAwesomeIcon icon={faArrowRight} className="ml-1.5 mr-1" />
-      </a>
-    </div>
-  );
+    );
+  });
 };
 
 export default ResearchAndUpdatesBlock;
