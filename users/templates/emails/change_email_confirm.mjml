@@ -1,0 +1,33 @@
+<mjml>
+    <mj-include path="../../../templates/emails/email_styles.mjml"/>
+
+    <mj-body>
+        <mj-include path="../../../templates/emails/email_top.mjml"/>
+
+        <mj-section>
+            <mj-column>
+                <mj-text>
+                    Hello {{ username }},
+                </mj-text>
+
+                <mj-text>
+                    {% blocktrans with username=token.user.username new_email=token.new_email %}
+                    We just received a request to change the email address associated with your Metaculus account. <a
+                        href="{{ reset_link }}">Click this link
+                </a> to change your Metaculus email address to <code>{{ new_email }}</code>.
+
+                    <p>If you did not make this request, you can safely ignore this email.</p>
+
+                    <p style="font-size: 80%;">
+                        Alternatively, you can copy and paste the following link into a browser:
+                        <br/>
+                        {{ reset_link }}
+                    </p>
+                    {% endblocktrans %}
+                </mj-text>
+            </mj-column>
+
+        </mj-section>
+        <mj-include path="../../../templates/emails/email_greeting.mjml"/>
+    </mj-body>
+</mjml>

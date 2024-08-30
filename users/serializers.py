@@ -123,3 +123,8 @@ class PasswordChangeSerializer(serializers.Serializer):
             )
 
         return attrs
+
+
+class EmailChangeSerializer(serializers.Serializer):
+    password = serializers.CharField()
+    email = serializers.EmailField()

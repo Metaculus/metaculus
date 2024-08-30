@@ -25,8 +25,14 @@ from .serializers import (
     UserUpdateProfileSerializer,
     UserFilterSerializer,
     PasswordChangeSerializer,
+    EmailChangeSerializer,
 )
-from .services import get_users, user_unsubscribe_tags
+from .services import (
+    get_users,
+    user_unsubscribe_tags,
+    send_email_change_confirmation_email,
+    change_email_from_token,
+)
 
 
 def get_serialized_user(request, user, Serializer):
@@ -242,5 +248,31 @@ def password_change_api_view(request):
 
     user.set_password(new_password)
     user.save()
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def email_change_api_view(request):
+    user = request.user
+
+    serializer = EmailChangeSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    password = serializer.validated_data["password"]
+    new_email = serializer.validated_data["email"]
+
+    if not user.check_password(password):
+        raise ValidationError({"password": "Invalid password"})
+
+    send_email_change_confirmation_email(user, new_email)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def email_change_confirm_api_view(request):
+    token = serializers.CharField().run_validation(request.data.get("token"))
+    change_email_from_token(request.user, token)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
