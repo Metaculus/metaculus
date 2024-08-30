@@ -70,8 +70,8 @@ export default function MedalsFAQ() {
       <p>
         Links can be produced using a{" "}
         <code>[link title](http://and-link-address.com)</code> or by surrounding
-        a link with <code>&lt;</code> and <code>></code>, like{" "}
-        <code>&lt;http://www.example.com></code>. There are a number of
+        a link with <code>&lt;</code> and <code>{">"}</code>, like{" "}
+        <code>&lt;http://www.example.com{">"}</code>. There are a number of
         shortcuts to make your life easier if you keep repeating the same link
         (see the{" "}
         <a href="http://daringfireball.net/projects/markdown/syntax">docs</a>),
@@ -82,30 +82,32 @@ export default function MedalsFAQ() {
         and two asterisks will make the text <strong>**bold**</strong>.
         Back-ticks denote <code>fixed-width text</code>. If you want small text,
         you can wrap it in a literal{" "}
-        <small>&lt;small>html tag&lt;/small></small>. Special characters (
-        <code>*_{}#+-.!\</code>) can be escaped using a backslash, like{" "}
-        <code>\*</code>, if they would otherwise be converted into a markdown
-        element.
+        <small>
+          &lt;small{">"}html tag&lt;/small{">"}
+        </small>
+        . Special characters (<code>*_{}#+-.!\</code>) can be escaped using a
+        backslash, like <code>\*</code>, if they would otherwise be converted
+        into a markdown element.
       </p>
       <p>
         We also allow a limited subset of HTML tags, which you can mix with
-        markdown syntax if you want. These include: <code>&lt;a></code>,{" "}
-        <code>&lt;p></code>, <code>&lt;em></code>,{" "}
-        <code>&lt;strong></code>, <code>&lt;small></code>,{" "}
-        <code>&lt;ol></code>, <code>&lt;ul></code>,{" "}
-        <code>&lt;li></code>, <code>&lt;br></code>,{" "}
-        <code>&lt;code></code>, <code>&lt;pre></code>,{" "}
-        <code>&lt;blockquote></code>, <code>&lt;aside></code>,{" "}
-        <code>&lt;div></code>, <code>&lt;h1></code>,{" "}
-        <code>&lt;h2></code>, <code>&lt;h3></code>,{" "}
-        <code>&lt;h4></code>, <code>&lt;h5></code>,{" "}
-        <code>&lt;h6></code>, <code>&lt;math-inline></code>,{" "}
-        <code>&lt;math-display></code>, <code>&lt;hr></code>,{" "}
-        <code>&lt;table></code>, <code>&lt;thead></code>,{" "}
-        <code>&lt;tbody></code>, <code>&lt;tr></code>,{" "}
-        <code>&lt;th></code>, <code>&lt;td></code>,{" "}
-        <code>&lt;del></code>, <code>&lt;sup></code>,{" "}
-        <code>&lt;sub></code>.
+        markdown syntax if you want. These include: <code>&lt;a{">"}</code>,{" "}
+        <code>&lt;p{">"}</code>, <code>&lt;em{">"}</code>,{" "}
+        <code>&lt;strong{">"}</code>, <code>&lt;small{">"}</code>,{" "}
+        <code>&lt;ol{">"}</code>, <code>&lt;ul{">"}</code>,{" "}
+        <code>&lt;li{">"}</code>, <code>&lt;br{">"}</code>,{" "}
+        <code>&lt;code{">"}</code>, <code>&lt;pre{">"}</code>,{" "}
+        <code>&lt;blockquote{">"}</code>, <code>&lt;aside{">"}</code>,{" "}
+        <code>&lt;div{">"}</code>, <code>&lt;h1{">"}</code>,{" "}
+        <code>&lt;h2{">"}</code>, <code>&lt;h3{">"}</code>,{" "}
+        <code>&lt;h4{">"}</code>, <code>&lt;h5{">"}</code>,{" "}
+        <code>&lt;h6{">"}</code>, <code>&lt;math-inline{">"}</code>,{" "}
+        <code>&lt;math-display{">"}</code>, <code>&lt;hr{">"}</code>,{" "}
+        <code>&lt;table{">"}</code>, <code>&lt;thead{">"}</code>,{" "}
+        <code>&lt;tbody{">"}</code>, <code>&lt;tr{">"}</code>,{" "}
+        <code>&lt;th{">"}</code>, <code>&lt;td{">"}</code>,{" "}
+        <code>&lt;del{">"}</code>, <code>&lt;sup{">"}</code>,{" "}
+        <code>&lt;sub{">"}</code>.
       </p>
 
       <hr />
@@ -180,7 +182,7 @@ def hello_world():
 > id sem consectetuer libero luctus adipiscing.`}
       </pre>
       <p>which would produce:</p>
-      <blockquote className="opacity-75 pl-4 border-l border-gray-500/50 ml-4">
+      <blockquote className="ml-4 border-l border-gray-500/50 pl-4 opacity-75">
         <p>
           This is a blockquote with two paragraphs. Lorem ipsum dolor sit amet,
           consectetuer adipiscing elit. Aliquam hendrerit mi posuere lectus.
@@ -346,7 +348,7 @@ def hello_world():
         Embeds
       </h2>
       <p>
-        We allow <code>&lt;iframe></code> embeds from a limited list of
+        We allow <code>&lt;iframe{">"}</code> embeds from a limited list of
         trusted sites, currently including:
       </p>
       <ul className="ml-5 list-disc">
@@ -379,7 +381,7 @@ def hello_world():
         Images
       </h2>
       <p>
-        We also allow <code>&lt;img></code> images:
+        We also allow <code>&lt;img{">"}</code> images:
       </p>
       <pre>
         {`<img src="https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg" alt="markdown logo">`}
@@ -399,10 +401,12 @@ def hello_world():
         limit users to the elements described above. For example, if you try to
         input an image using <code>![Alt text](/path/to/img.jpg)</code> the
         output will look like &lt;img alt=&quot;Alt text&quot;
-        src=&quot;/path/to/img.jpg&quot;/>, and something like{" "}
-        <code>&lt;script>doSomethingEvil()&lt;/script></code> certainly
-        won&apos;t work. We also employ a few markdown extensions that handle
-        fenced code blocks (described above) and make{" "}
+        src=&quot;/path/to/img.jpg&quot;/{">"}, and something like{" "}
+        <code>
+          &lt;script{">"}doSomethingEvil()&lt;/script{">"}
+        </code>{" "}
+        certainly won&apos;t work. We also employ a few markdown extensions that
+        handle fenced code blocks (described above) and make{" "}
         <a href="https://python-markdown.github.io/extensions/sane_lists/">
           lists
         </a>{" "}
