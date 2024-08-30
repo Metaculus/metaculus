@@ -15,6 +15,7 @@ import AuthProvider from "@/contexts/auth_context";
 import ModalProvider from "@/contexts/modal_context";
 import AuthApi from "@/services/auth";
 import ProfileApi from "@/services/profile";
+
 import { CSPostHogProvider } from "./providers";
 
 config.autoAddCss = false;
@@ -22,42 +23,42 @@ config.autoAddCss = false;
 const sourceSerifPro = localFont({
   src: [
     {
-      path: "./assets/fonts/SourceSerifPro-Regular.woff2",
+      path: "../../public/fonts/SourceSerifPro-Regular.woff2",
       weight: "400",
       style: "normal",
     },
     {
-      path: "./assets/fonts/SourceSerifPro-Regular.woff",
+      path: "../../public/fonts/SourceSerifPro-Regular.woff",
       weight: "400",
       style: "normal",
     },
     {
-      path: "./assets/fonts/SourceSerifPro-Italic.woff2",
-      weight: "400",
-      style: "italic",
-    },
-    {
-      path: "./assets/fonts/SourceSerifPro-Italic.woff",
+      path: "../../public/fonts/SourceSerifPro-Italic.woff2",
       weight: "400",
       style: "italic",
     },
     {
-      path: "./assets/fonts/SourceSerifPro-Bold.woff2",
+      path: "../../public/fonts/SourceSerifPro-Italic.woff",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../../public/fonts/SourceSerifPro-Bold.woff2",
       weight: "700",
       style: "normal",
     },
     {
-      path: "./assets/fonts/SourceSerifPro-Bold.woff",
+      path: "../../public/fonts/SourceSerifPro-Bold.woff",
       weight: "700",
       style: "normal",
     },
     {
-      path: "./assets/fonts/SourceSerifPro-BoldItalic.woff2",
+      path: "../../public/fonts/SourceSerifPro-BoldItalic.woff2",
       weight: "700",
       style: "italic",
     },
     {
-      path: "./assets/fonts/SourceSerifPro-BoldItalic.woff",
+      path: "../../public/fonts/SourceSerifPro-BoldItalic.woff",
       weight: "700",
       style: "italic",
     },
@@ -68,12 +69,12 @@ const sourceSerifPro = localFont({
 const inter = localFont({
   src: [
     {
-      path: "./assets/fonts/inter_18pt-medium.ttf",
+      path: "../../public/fonts/inter_18pt-medium.ttf",
       weight: "400",
       style: "normal",
     },
     {
-      path: "./assets/fonts/inter_18pt-mediumitalic.ttf",
+      path: "../../public/fonts/inter_18pt-mediumitalic.ttf",
       weight: "400",
       style: "italic",
     },
@@ -84,7 +85,7 @@ const inter = localFont({
 const interVariable = localFont({
   src: [
     {
-      path: "./assets/fonts/inter_variable.ttf",
+      path: "../../public/fonts/inter_variable.ttf",
       weight: "100 700",
       style: "normal",
     },
@@ -93,7 +94,7 @@ const interVariable = localFont({
 });
 
 const leagueGothic = localFont({
-  src: "./assets/fonts/league_gothic_variable.ttf",
+  src: "../../public/fonts/league_gothic_variable.ttf",
   variable: "--font-league-gothic",
 });
 
