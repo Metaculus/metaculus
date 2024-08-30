@@ -7,6 +7,8 @@ from rest_framework.response import Response
 import scipy
 import numpy as np
 
+from django.db.models import Q
+
 from posts.models import Post
 from questions.models import AggregateForecast, Question
 from questions.types import AggregationMethod
@@ -51,8 +53,11 @@ def global_leaderboard(
     leaderboard_data = LeaderboardSerializer(leaderboard).data
 
     user = request.user
-    entries = leaderboard.entries.select_related("user").order_by("rank")
-    entries = entries.filter(rank__lte=max(3, entries.count() * 0.05))
+    entries = leaderboard.entries.select_related("user").order_by("rank", "-score")
+    entries = entries.filter(
+        Q(medal__isnull=False)
+        | Q(rank__lte=max(3, np.ceil(entries.exclude(excluded=True).count() * 0.05)))
+    )
 
     if not user.is_staff:
         entries = entries.filter(excluded=False)
@@ -102,7 +107,7 @@ def project_leaderboard(
 
     # serialize
     leaderboard_data = LeaderboardSerializer(leaderboard).data
-    entries = leaderboard.entries.order_by("rank").select_related("user")
+    entries = leaderboard.entries.order_by("rank", "-score").select_related("user")
     user = request.user
 
     if not user.is_staff:

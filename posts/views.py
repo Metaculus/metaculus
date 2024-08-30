@@ -469,6 +469,6 @@ def post_related_articles_api_view(request: Request, pk):
     ObjectPermission.can_view(permission, raise_exception=True)
 
     # Retrieve cached articles
-    articles = get_post_get_similar_articles(post)
+    articles = []  # get_post_get_similar_articles(post)
 
     return Response(PostRelatedArticleSerializer(articles, many=True).data)
