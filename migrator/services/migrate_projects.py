@@ -47,12 +47,14 @@ def create_project(project_obj: dict) -> Project:
         elif project_obj["score_type"] == "SPOT_PEER_SCORE":
             leaderboard_score_type = Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT
 
+    config = json.loads(project_obj["config"])
     project = Project(
         # We keep original IDS for old projects
         id=project_obj["id"],
         type=project_type,
         name=project_obj["name"],
         slug=project_obj["slug"],
+        include_bots_in_leaderboard=config.get("is_fab_project", False),
         subtitle=project_obj["subtitle"],
         description=project_obj["description"],
         header_image=project_obj["header_image"],

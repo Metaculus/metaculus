@@ -166,11 +166,11 @@ def evaluate_forecasts_peer_accuracy(
     forecast_horizon_end: float,
     question_type: str,
     geometric_means: list[AggregationEntry] | None = None,
-    include_bots_in_geometric_mean: bool = False,
+    include_bots_in_aggregates: bool = False,
 ) -> list[ForecastScore]:
     base_forecasts = base_forecasts or forecasts
     geometric_mean_forecasts = geometric_means or get_geometric_means(
-        base_forecasts, include_bots_in_geometric_mean
+        base_forecasts, include_bots_in_aggregates
     )
     for gm in geometric_mean_forecasts:
         gm.timestamp = max(gm.timestamp, forecast_horizon_start)
@@ -227,11 +227,11 @@ def evaluate_forecasts_peer_spot_forecast(
     spot_forecast_timestamp: float,
     question_type: str,
     geometric_means: list[AggregationEntry] | None = None,
-    include_bots_in_geometric_mean: bool = False,
+    include_bots_in_aggregates: bool = False,
 ) -> list[ForecastScore]:
     base_forecasts = base_forecasts or forecasts
     geometric_mean_forecasts = geometric_means or get_geometric_means(
-        base_forecasts, include_bots_in_geometric_mean
+        base_forecasts, include_bots_in_aggregates
     )
     g = None
     for gm in geometric_mean_forecasts[::-1]:
@@ -322,7 +322,6 @@ def evaluate_question(
     resolution_bucket: int,
     score_types: list[Score.ScoreTypes],
     spot_forecast_timestamp: float | None = None,
-    include_bots_in_aggregates: bool = False,
 ) -> list[Score]:
     forecast_horizon_start = question.open_time.timestamp()
     actual_close_time = question.actual_close_time.timestamp()
@@ -333,14 +332,13 @@ def evaluate_question(
         question,
         minimize=False,
         aggregation_method=AggregationMethod.RECENCY_WEIGHTED,
-        include_bots=include_bots_in_aggregates,
     )
     geometric_means: list[AggregationEntry] = []
 
     ScoreTypes = Score.ScoreTypes
     if ScoreTypes.PEER in score_types:
         geometric_means = get_geometric_means(
-            user_forecasts, include_bots=include_bots_in_aggregates
+            user_forecasts, include_bots=question.include_bots_in_aggregates
         )
 
     scores: list[Score] = []
@@ -396,7 +394,6 @@ def evaluate_question(
                     forecast_horizon_end,
                     question.type,
                     geometric_means=geometric_means,
-                    include_bots_in_geometric_mean=include_bots_in_aggregates,
                 )
                 community_scores = evaluate_forecasts_peer_accuracy(
                     community_forecasts,
@@ -407,7 +404,6 @@ def evaluate_question(
                     forecast_horizon_end,
                     question.type,
                     geometric_means=geometric_means,
-                    include_bots_in_geometric_mean=include_bots_in_aggregates,
                 )
             case ScoreTypes.SPOT_PEER:
                 user_scores = evaluate_forecasts_peer_spot_forecast(
@@ -417,7 +413,6 @@ def evaluate_question(
                     spot_forecast_timestamp,
                     question.type,
                     geometric_means=geometric_means,
-                    include_bots_in_geometric_mean=include_bots_in_aggregates,
                 )
                 community_scores = evaluate_forecasts_peer_spot_forecast(
                     community_forecasts,
@@ -426,7 +421,6 @@ def evaluate_question(
                     spot_forecast_timestamp,
                     question.type,
                     geometric_means=geometric_means,
-                    include_bots_in_geometric_mean=include_bots_in_aggregates,
                 )
             case ScoreTypes.RELATIVE_LEGACY:
                 user_scores = evaluate_forecasts_legacy_relative(

@@ -186,9 +186,6 @@ class LeaderboardEntry(TimeStampedModel):
     objects: models.Manager["LeaderboardEntry"]
     user_id: int | None
 
-    # annotations
-    take: float | None
-
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
     aggregation_method = models.CharField(
         max_length=200, null=True, choices=AggregationMethod.choices
@@ -197,6 +194,7 @@ class LeaderboardEntry(TimeStampedModel):
         Leaderboard, on_delete=models.CASCADE, related_name="entries", null=True
     )
     score = models.FloatField()
+    take = models.FloatField(null=True)
     rank = models.IntegerField(null=True)
     excluded = models.BooleanField(default=False)
 
@@ -206,6 +204,7 @@ class LeaderboardEntry(TimeStampedModel):
         BRONZE = "bronze"
 
     medal = models.CharField(max_length=200, null=True, choices=Medals.choices)
+    percent_prize = models.FloatField(null=True)
     prize = models.FloatField(null=True)
     coverage = models.FloatField(null=True)
     contribution_count = models.IntegerField(default=0)

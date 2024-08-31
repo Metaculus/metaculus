@@ -77,7 +77,6 @@ class Project(TimeStampedModel):
     class ProjectTypes(models.TextChoices):
         SITE_MAIN = "site_main"
         TOURNAMENT = "tournament"
-        GLOBAL_LEADERBOARD = "global_leaderboard"
         QUESTION_SERIES = "question_series"
         PERSONAL_PROJECT = "personal_project"
         NEWS_CATEGORY = "news_category"
@@ -112,6 +111,7 @@ class Project(TimeStampedModel):
         on_delete=models.SET_NULL,
         related_name="primary_project",
     )
+    include_bots_in_leaderboard = models.BooleanField(default=False)
 
     name = models.CharField(max_length=200)
     slug = models.CharField(

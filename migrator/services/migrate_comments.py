@@ -54,7 +54,9 @@ def migrate_comment_votes():
     vote_instances = []
 
     start = timezone.now()
-    for i, obj in paginated_query("SELECT * FROM metac_question_comment_likes"):
+    for i, obj in enumerate(
+        paginated_query("SELECT * FROM metac_question_comment_likes"), 1
+    ):
         print(
             f"\033[Kmigrating comment votes: {i}. "
             f"dur:{str(timezone.now() - start).split('.')[0]} ",
