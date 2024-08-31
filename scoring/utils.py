@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import numpy as np
 from django.db.models import QuerySet, Q
 from django.utils import timezone
+from decimal import Decimal
 
 from comments.models import Comment
 from posts.models import Post
@@ -78,6 +79,13 @@ def generate_scoring_leaderboard_entries(
         question__in=questions,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
+    if leaderboard.finalize_time:
+        calculated_scores = calculated_scores.filter(
+            question__scheduled_close_time__lte=leaderboard.finalize_time
+        )
+        archived_scores = archived_scores.filter(
+            question__scheduled_close_time__lte=leaderboard.finalize_time
+        )
     scores: list[Score | ArchivedScore]
     if archived_scores.exists():
         scores = list(archived_scores)
@@ -127,7 +135,7 @@ def generate_scoring_leaderboard_entries(
         Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
     ):
         for entry in entries.values():
-            entry.take = entry.score**2
+            entry.take = max(entry.score, 0) ** 2
     elif leaderboard.score_type == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
         for entry in entries.values():
             entry.coverage /= maximum_coverage
@@ -252,6 +260,8 @@ def assign_ranks(
         entries.sort(key=lambda entry: entry.take, reverse=True)
     else:
         entries.sort(key=lambda entry: entry.score, reverse=True)
+
+    # set up exclusions
     exclusion_records = MedalExclusionRecord.objects.all()
     if leaderboard.start_time:
         exclusion_records = exclusion_records.filter(
@@ -264,10 +274,16 @@ def assign_ranks(
     excluded_ids: set[int | None] = set(
         exclusion_records.values_list("user", flat=True)
     )
-    if not include_bots:
-        for entry in entries:
-            if entry.user is None or entry.user.is_bot:
+    for entry in entries:
+        if entry.user:
+            if not include_bots and entry.user.is_bot:
                 excluded_ids.add(entry.user_id)
+            if not entry.user.is_active:
+                excluded_ids.add(entry.user_id)
+            # TODO: add exclusions for moderators (not yet migrated)
+            # Also add similar exclusions to other leaderboard types
+    excluded_ids.add(None)  # aggregates are excluded
+
     # set ranks
     rank = 1
     prev_entry = None
@@ -311,13 +327,13 @@ def assign_medals(
 
 
 def assign_prizes(
-    entries: list[LeaderboardEntry], prize_pool: float
+    entries: list[LeaderboardEntry], prize_pool: Decimal
 ) -> list[LeaderboardEntry]:
     included = [e for e in entries if not e.excluded]
     if total_take := sum(e.take for e in included):
         for entry in included:
             entry.percent_prize = entry.take / total_take
-            entry.prize = prize_pool * entry.percent_prize
+            entry.prize = float(prize_pool) * entry.percent_prize
     return entries
 
 
@@ -452,21 +468,24 @@ def get_contributions(
         # return contributions[: int(h_index) + 1]
         return contributions
 
-    archived_scores = list(
-        ArchivedScore.objects.filter(
-            question__in=questions,
-            user=user,
-            score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
-        )
+    calculated_scores = Score.objects.filter(
+        question__in=questions,
+        user=user,
+        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
-    calculated_scores = list(
-        Score.objects.filter(
-            question__in=questions,
-            user=user,
-            score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
-        )
+    archived_scores = ArchivedScore.objects.filter(
+        question__in=questions,
+        user=user,
+        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
-    scores = archived_scores
+    if leaderboard.finalize_time:
+        calculated_scores = calculated_scores.filter(
+            question__scheduled_close_time__lte=leaderboard.finalize_time
+        )
+        archived_scores = archived_scores.filter(
+            question__scheduled_close_time__lte=leaderboard.finalize_time
+        )
+    scores = list(archived_scores)
     for score in calculated_scores:
         found = False
         for archived_score in archived_scores:

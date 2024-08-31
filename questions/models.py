@@ -153,7 +153,10 @@ class Question(TimeStampedModel):
                 continue
             if forecast_horizon_end > gl_end + timedelta(days=3):
                 continue
-            if self.resolution_set_time > gl_end + timedelta(days=100):
+            if (
+                self.resolution_set_time
+                and self.resolution_set_time > gl_end + timedelta(days=100)
+            ):
                 # we allow for a 100 day buffer after the global leaderboard closes
                 # for questions to be resolved
                 continue

@@ -68,7 +68,6 @@ def migrate_archived_scores():
 
 
 def score_questions(qty: int | None = None, start_id: int = 0):
-    fab_questions = Leaderboard.objects.get(project__slug="aibq3").get_questions()
     questions = (
         Question.objects.filter(
             resolution__isnull=False,
@@ -116,7 +115,6 @@ def score_questions(qty: int | None = None, start_id: int = 0):
             question,
             question.resolution,
             score_types=score_types,
-            include_bots_in_aggregates=question in fab_questions,
         )
     print(
         f"\033[Kscoring question {i:>4}/{c} ID:{question.id:<4} forecasts:{f:<4} "
