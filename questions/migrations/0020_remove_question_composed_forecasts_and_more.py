@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('questions', '0019_remove_question_forecast_scoring_ends'),
+        ("questions", "0019_remove_question_forecast_scoring_ends"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='question',
-            name='composed_forecasts',
+            model_name="question",
+            name="composed_forecasts",
         ),
         migrations.AddField(
-            model_name='question',
-            name='include_bots_in_aggregations',
+            model_name="question",
+            name="include_bots_in_aggregates",
             field=models.BooleanField(default=False),
         ),
     ]

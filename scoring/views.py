@@ -23,7 +23,7 @@ from scoring.serializers import (
     LeaderboardEntrySerializer,
     ContributionSerializer,
 )
-from scoring.utils import get_contributions, hydrate_take
+from scoring.utils import get_contributions
 
 
 @api_view(["GET"])
@@ -113,7 +113,6 @@ def project_leaderboard(
     if not user.is_staff:
         entries = entries.filter(excluded=False)
 
-    entries = hydrate_take(entries, leaderboard)  # NOTE: don't query after this as the
     # manual annotations will be lost
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     # add user entry
@@ -188,7 +187,7 @@ def medal_contributions(
         leaderboard = leaderboards.first()
 
     contributions = get_contributions(user, leaderboard)
-    entries = hydrate_take(leaderboard.entries.all(), leaderboard)
+    entries = leaderboard.entries.all()
     leaderboard_entry = next((e for e in entries if e.user == user), None)
 
     return_data = {

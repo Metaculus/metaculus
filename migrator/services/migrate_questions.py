@@ -62,7 +62,7 @@ def create_question(question: dict, **kwargs) -> Question:
     new_question = Question(
         id=question["id"],
         title=question["title"],
-        include_bots_in_aggregations=question["include_bots_in_aggregations"],
+        include_bots_in_aggregates=question["include_bots_in_aggregations"],
         range_max=range_max,
         range_min=range_min,
         open_upper_bound=open_upper_bound,

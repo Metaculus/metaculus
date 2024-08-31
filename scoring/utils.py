@@ -28,7 +28,6 @@ def score_question(
     resolution: str,
     spot_forecast_time: float | None = None,
     score_types: list[str] | None = None,
-    include_bots_in_aggregates: bool = False,
 ):
     resolution_bucket = string_location_to_bucket_index(resolution, question)
     spot_forecast_time = spot_forecast_time or question.cp_reveal_time.timestamp()
@@ -42,7 +41,6 @@ def score_question(
         resolution_bucket,
         score_types,
         spot_forecast_time,
-        include_bots_in_aggregates,
     )
     for new_score in new_scores:
         is_new = True
@@ -124,10 +122,16 @@ def generate_scoring_leaderboard_entries(
     elif leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL_LEGACY:
         for entry in entries.values():
             entry.score /= max(40, entry.contribution_count)
+    elif leaderboard.score_type in (
+        Leaderboard.ScoreTypes.PEER_TOURNAMENT,
+        Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
+    ):
+        for entry in entries.values():
+            entry.take = entry.score**2
     elif leaderboard.score_type == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
         for entry in entries.values():
             entry.coverage /= maximum_coverage
-            entry.take = max(entry.coverage * np.exp(entry.score), 0)
+            entry.take = entry.coverage * np.exp(entry.score)
         return sorted(entries.values(), key=lambda entry: entry.take, reverse=True)
     return sorted(entries.values(), key=lambda entry: entry.score, reverse=True)
 
@@ -274,33 +278,29 @@ def update_project_leaderboard(
         exclusion_records = exclusion_records.filter(
             start_time__lte=leaderboard.finalize_time
         )
-    excluded_users = exclusion_records.values_list("user", flat=True)
-    excluded_user_ids = set([r.user.id for r in exclusion_records])
-    # medals
+    excluded_ids: set[int | None] = set(
+        exclusion_records.values_list("user", flat=True)
+    )
+    if not project.include_bots_in_leaderboard:
+        for entry in new_entries:
+            if entry.user and entry.user.is_bot:
+                excluded_ids.add(entry.user_id)
+    excluded_ids.add(None)
+    # rakn (and medals if applicable)
     gold_rank = silver_rank = bronze_rank = 0
     if (
-        (leaderboard.project.type != "question_series")
+        (leaderboard.project.type != Project.ProjectTypes.QUESTION_SERIES)
         and leaderboard.finalize_time
         and (timezone.now() > leaderboard.finalize_time)
     ):
-        entry_count = len(
-            [
-                e
-                for e in new_entries
-                if (e.user_id and (e.user_id not in excluded_user_ids))
-            ]
-        )
+        entry_count = len([e for e in new_entries if e.user_id not in excluded_ids])
         gold_rank = max(np.ceil(0.01 * entry_count), 1)
         silver_rank = max(np.ceil(0.02 * entry_count), 2)
         bronze_rank = max(np.ceil(0.05 * entry_count), 3)
     rank = 1
     prev_entry = None
     for entry in new_entries:
-        if (
-            (entry.user_id is None)
-            or (entry.user_id in excluded_users)
-            or (entry.user.is_bot and "global" in leaderboard.score_type)
-        ):
+        if entry.user_id in excluded_ids:
             entry.excluded = True
             entry.medal = None
             entry.rank = rank
@@ -332,6 +332,19 @@ def update_project_leaderboard(
         prev_entry = entry
         rank += 1
 
+    # add prize if applicable
+    if (
+        project.prize_pool
+        and leaderboard.finalize_time
+        and (timezone.now() > leaderboard.finalize_time)
+    ):
+        included = [e for e in new_entries if not e.excluded]
+        if total_take := sum(e.take for e in included):
+            for entry in included:
+                entry.percent_prize = entry.take / total_take
+                entry.prize = project.prize_pool * entry.percent_prize
+
+    # save entries
     for new_entry in new_entries:
         new_entry.leaderboard = leaderboard
         for previous_entry in previous_entries:
@@ -471,30 +484,3 @@ def get_contributions(
         ]
 
     return contributions
-
-
-def hydrate_take(
-    leaderboard_entries: list[LeaderboardEntry] | QuerySet[LeaderboardEntry],
-    leaderboard: Leaderboard,
-) -> list[LeaderboardEntry] | QuerySet[LeaderboardEntry]:
-    # TODO: just add take and percent_prize to model instance
-    total_take = 0
-    for entry in leaderboard_entries:
-        if entry.excluded:
-            setattr(entry, "take", 0)
-        else:
-            if (
-                leaderboard.score_type
-                == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
-            ):
-                take = max(entry.coverage * np.exp(entry.score), 0)
-            else:
-                take = max(entry.score, 0) ** 2
-            setattr(entry, "take", take)
-            total_take += take
-    for entry in leaderboard_entries:
-        if total_take == 0:
-            setattr(entry, "percent_prize", 0)
-        else:
-            setattr(entry, "percent_prize", entry.take / total_take)
-    return leaderboard_entries
