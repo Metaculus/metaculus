@@ -53,6 +53,7 @@ def create_project(project_obj: dict) -> Project:
         type=project_type,
         name=project_obj["name"],
         slug=project_obj["slug"],
+        include_bots_in_leaderboard=project_obj["config"].get("is_fab_project", False),
         subtitle=project_obj["subtitle"],
         description=project_obj["description"],
         header_image=project_obj["header_image"],

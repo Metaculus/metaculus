@@ -112,6 +112,7 @@ class Project(TimeStampedModel):
         on_delete=models.SET_NULL,
         related_name="primary_project",
     )
+    include_bots_in_leaderboard = models.BooleanField(default=False)
 
     name = models.CharField(max_length=200)
     slug = models.CharField(
