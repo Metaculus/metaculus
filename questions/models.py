@@ -200,6 +200,10 @@ class GroupOfQuestions(TimeStampedModel):
 
 
 class Forecast(models.Model):
+    # typing
+    id: int
+    author_id: int
+
     start_time = models.DateTimeField(
         help_text="Begining time when this prediction is active", db_index=True
     )

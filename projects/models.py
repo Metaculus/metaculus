@@ -77,7 +77,6 @@ class Project(TimeStampedModel):
     class ProjectTypes(models.TextChoices):
         SITE_MAIN = "site_main"
         TOURNAMENT = "tournament"
-        GLOBAL_LEADERBOARD = "global_leaderboard"
         QUESTION_SERIES = "question_series"
         PERSONAL_PROJECT = "personal_project"
         NEWS_CATEGORY = "news_category"
