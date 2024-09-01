@@ -92,7 +92,7 @@ const Header: FC = () => {
             </MenuButton>
             <MenuItems
               anchor="bottom"
-              className="text-gray-0 z-50 lg:border lg:border-blue-200-dark lg:bg-blue-900 lg:text-sm"
+              className="z-50 text-gray-0 lg:border lg:border-blue-200-dark lg:bg-blue-900 lg:text-sm"
             >
               <LinkMenuItem href="/about/" label={t("aboutMetaculus")} />
               <LinkMenuItem href="/press/" label={t("forJournalists")} />

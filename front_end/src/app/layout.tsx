@@ -123,7 +123,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${leagueGothic.variable} font-sans [scrollbar-gutter:stable] !pe-0`}
+      className={`${interVariable.variable} ${inter.variable} ${sourceSerifPro.variable} ${leagueGothic.variable} !pe-0 font-sans [scrollbar-gutter:stable]`}
       // required by next-themes
       // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
       suppressHydrationWarning
