@@ -3,7 +3,6 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC, useCallback, useState } from "react";
 
@@ -77,23 +76,23 @@ const QuestionNotifications: FC<Props> = ({ user, posts }) => {
     <section className="text-sm">
       <hr />
       <h2 className="mb-5 mt-3 px-1">{t("settingsQuestionNotifications")}</h2>
-      <div className="p-1 text-sm">
-        <table className="table-auto rounded-lg">
-          <thead className="text-left text-blue-700">
+      <div className="p-1">
+        <table className="table-auto border-separate rounded-lg">
+          <thead className="text-left text-blue-700 dark:text-blue-700-dark">
             <tr>
-              <th className="border border-gray-300 bg-blue-200 p-2 font-normal">
+              <th className="rounded-tl border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark">
                 {t("question")}
               </th>
-              <th className="border border-gray-300 bg-blue-200 p-2 font-normal">
+              <th className="border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark">
                 {t("remindWhen")}
               </th>
-              <th className="border border-gray-300 bg-blue-200 p-2 font-normal">
+              <th className="border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark">
                 {t("created")}
               </th>
-              <th className="border border-gray-300 bg-blue-200 p-2 font-normal"></th>
+              <th className="rounded-tr-lg border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark"></th>
             </tr>
           </thead>
-          <tbody className="text-gray-800">
+          <tbody className="text-gray-800 dark:text-gray-800-dark">
             {posts.map((post, index) => (
               <tr
                 key={`post-${post.id}`}
@@ -101,7 +100,15 @@ const QuestionNotifications: FC<Props> = ({ user, posts }) => {
                   "rounded-b": index === posts.length - 1,
                 })}
               >
-                <td className="rounded-l border border-gray-300 p-2">
+                <td
+                  className={classNames(
+                    "border border-blue-200 border-l-gray-300 p-2 dark:border-blue-200-dark dark:border-l-gray-300-dark",
+                    {
+                      "rounded-bl border-b-gray-300 dark:border-b-gray-300-dark":
+                        index === posts.length - 1,
+                    }
+                  )}
+                >
                   <Button
                     variant="link"
                     className="text-left text-blue-800"
@@ -110,18 +117,42 @@ const QuestionNotifications: FC<Props> = ({ user, posts }) => {
                     {post.title}
                   </Button>
                 </td>
-                <td className="border border-gray-300 p-2">
+                <td
+                  className={classNames(
+                    "border border-blue-200 p-2 dark:border-blue-200-dark",
+                    {
+                      "border-b-gray-300 dark:border-b-gray-300-dark":
+                        index === posts.length - 1,
+                    }
+                  )}
+                >
                   {getSubscriptionsLabel(t, locale, post)}
                 </td>
-                <td className="rounded-r border border-gray-300 p-2">
+                <td
+                  className={classNames(
+                    "border border-blue-200 p-2 dark:border-blue-200-dark",
+                    {
+                      "border-b-gray-300 dark:border-b-gray-300-dark":
+                        index === posts.length - 1,
+                    }
+                  )}
+                >
                   {formatDate(
                     locale,
                     new Date(post.subscriptions.at(-1)!.created_at)
                   )}
                 </td>
-                <td className="rounded-r border border-gray-300 p-2">
+                <td
+                  className={classNames(
+                    "border border-blue-200 border-r-gray-300 p-2 dark:border-blue-200-dark dark:border-r-gray-300-dark",
+                    {
+                      "rounded-br border-b-gray-300 dark:border-b-gray-300-dark":
+                        index === posts.length - 1,
+                    }
+                  )}
+                >
                   <button
-                    className="p-1 text-xl text-gray-500 no-underline hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 disabled:opacity-30 dark:text-blue-800-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark dark:disabled:text-blue-800-dark"
+                    className="p-1 text-xl text-gray-500 no-underline hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 disabled:opacity-30 dark:text-gray-500-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark dark:disabled:text-blue-800-dark"
                     onClick={() =>
                       setActiveModal({
                         type: "deletion",
