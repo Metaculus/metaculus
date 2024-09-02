@@ -1,4 +1,5 @@
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withNextIntl = createNextIntlPlugin();
 
@@ -10,6 +11,9 @@ const nextConfig = {
   env: {
     API_BASE_URL,
     APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  },
+  experimental: {
+    instrumentationHook: true,
   },
   images: {
     remotePatterns: [
@@ -62,4 +66,9 @@ const nextConfig = {
   }
 };
 
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+    org: "metaculus",
+    project: "metaculus-frontend",
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    silent: false, 
+});

@@ -58,13 +58,6 @@ export async function updateProfileFormAction(
     Object.fromEntries(formData.entries())
   );
 
-  console.log(
-    "formData",
-    formData,
-    validatedFields,
-    Object.fromEntries(formData.entries())
-  );
-
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,

@@ -53,7 +53,7 @@ export default async function Home() {
   const t = await getTranslations();
   const topics = await ProjectsApi.getTopics();
   const hotTopics = topics.filter((t) => t.section === "hot_topics");
-
+  
   const questionCarouselIDs =
     process.env.HOME_PAGE_QUESTION_CAROUSEL_IDS?.split(",").map((id) =>
       Number(id)
