@@ -10,14 +10,14 @@ for var in "${required_vars[@]}"; do
 done
 
 wait_and_fail_if_release_failed() {
-    max_iters=10
+    max_iters=20
     for ((i = 1; i <= max_iters; i++)); do
         json=$(heroku releases --json)
         # Extract the status and current fields from the first element of the array
         status=$(echo "$json" | jq -r '.[0].status')
         current=$(echo "$json" | jq -r '.[0].current')
 
-        [ "$status" == "pending" ] && echo "Waiting for release to finish" && sleep 1 && continue
+        [ "$status" == "pending" ] && echo "Waiting for release to finish" && sleep 3 && continue
 
         [ "$status" == "succeeded" ] && [ "$current" == "true" ] && echo "Release succeeded " && exit 0
 
