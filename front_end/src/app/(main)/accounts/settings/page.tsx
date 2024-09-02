@@ -12,7 +12,7 @@ import { getServerSession } from "@/services/session";
 export default async function Settings() {
   const currentUser = await ProfileApi.getMyProfile();
   const token = getServerSession();
-  const subscriptions = await PostsApi.getAllSubscriptions();
+  const posts = await PostsApi.getAllSubscriptions();
 
   if (!token || !currentUser) return redirect("/");
 
@@ -20,7 +20,7 @@ export default async function Settings() {
     <main className="mx-auto min-h-min w-full max-w-3xl flex-auto rounded bg-gray-0 p-2 dark:bg-gray-0-dark sm:px-2 md:p-3 lg:my-4">
       <AccountPreferences user={currentUser} />
       <EmailNotifications user={currentUser} />
-      <QuestionNotifications user={currentUser} subscriptions={subscriptions} />
+      <QuestionNotifications user={currentUser} posts={posts} />
       <ChangePassword />
       {currentUser.is_bot && <ApiAccess token={token} />}
     </main>

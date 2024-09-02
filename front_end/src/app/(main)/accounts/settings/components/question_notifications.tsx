@@ -9,14 +9,17 @@ import React, { FC, useCallback, useState } from "react";
 
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
+import PostSubscribeCustomizeModal from "@/components/post_subscribe/post_subscribe_customise_modal";
 import Button from "@/components/ui/button";
-import { PostSubscriptionType, PostWithSubscriptions } from "@/types/post";
+import { Post, PostSubscriptionType } from "@/types/post";
 import { CurrentUser } from "@/types/users";
+import { Require } from "@/types/utils";
 import { formatDate } from "@/utils/date_formatters";
 
-export type Props = {
+type PostWithSubscriptions = Require<Post, "subscriptions">;
+type Props = {
   user: CurrentUser;
-  subscriptions: PostWithSubscriptions[];
+  posts: PostWithSubscriptions[];
 };
 
 const getSubscriptionsLabel = (
@@ -50,7 +53,7 @@ const getSubscriptionsLabel = (
   });
 };
 
-const QuestionNotifications: FC<Props> = ({ user, subscriptions }) => {
+const QuestionNotifications: FC<Props> = ({ user, posts }) => {
   const t = useTranslations();
   const locale = useLocale();
   const [isLoading, setIsLoading] = useState(false);
@@ -91,25 +94,29 @@ const QuestionNotifications: FC<Props> = ({ user, subscriptions }) => {
             </tr>
           </thead>
           <tbody className="text-gray-800">
-            {subscriptions.map((obj, index) => (
+            {posts.map((post, index) => (
               <tr
-                key={`post-${obj.id}`}
+                key={`post-${post.id}`}
                 className={classNames({
-                  "rounded-b": index === subscriptions.length - 1,
+                  "rounded-b": index === posts.length - 1,
                 })}
               >
                 <td className="rounded-l border border-gray-300 p-2">
-                  <Link className="text-blue-800" href={`/questions/${obj.id}`}>
-                    {obj.title}
-                  </Link>
+                  <Button
+                    variant="link"
+                    className="text-left text-blue-800"
+                    onClick={() => setActiveModal({ type: "edition", post })}
+                  >
+                    {post.title}
+                  </Button>
                 </td>
                 <td className="border border-gray-300 p-2">
-                  {getSubscriptionsLabel(t, locale, obj)}
+                  {getSubscriptionsLabel(t, locale, post)}
                 </td>
                 <td className="rounded-r border border-gray-300 p-2">
                   {formatDate(
                     locale,
-                    new Date(obj.subscriptions.at(-1)!.created_at)
+                    new Date(post.subscriptions.at(-1)!.created_at)
                   )}
                 </td>
                 <td className="rounded-r border border-gray-300 p-2">
@@ -118,7 +125,7 @@ const QuestionNotifications: FC<Props> = ({ user, subscriptions }) => {
                     onClick={() =>
                       setActiveModal({
                         type: "deletion",
-                        post: obj,
+                        post,
                       })
                     }
                   >
@@ -152,6 +159,15 @@ const QuestionNotifications: FC<Props> = ({ user, subscriptions }) => {
           </div>
         </div>
       </BaseModal>
+      {activeModal && (
+        <PostSubscribeCustomizeModal
+          isOpen={activeModal.type === "edition"}
+          onClose={() => setActiveModal(undefined)}
+          post={activeModal.post}
+          subscriptions={activeModal.post.subscriptions}
+          showPostLink={true}
+        />
+      )}
     </section>
   );
 };

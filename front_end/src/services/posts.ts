@@ -1,11 +1,7 @@
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
 import { NewsArticle } from "@/types/news";
-import {
-  Post,
-  PostSubscription,
-  PostWithForecasts,
-  PostWithSubscriptions,
-} from "@/types/post";
+import { Post, PostSubscription, PostWithForecasts } from "@/types/post";
+import { Require } from "@/types/utils";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post, put } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
@@ -105,7 +101,7 @@ class PostsApi {
   }
 
   static async getAllSubscriptions() {
-    return get<PostWithSubscriptions[]>(`/posts/subscriptions`, {});
+    return get<Require<Post, "subscriptions">[]>(`/posts/subscriptions`, {});
   }
 
   static async getRelatedNews(postId: number) {

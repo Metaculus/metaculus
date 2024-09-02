@@ -1,10 +1,11 @@
 import { Radio, RadioGroup } from "@headlessui/react";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useMemo } from "react";
+import { FC, useMemo } from "react";
 
-import { SubscriptionSectionProps } from "@/app/(main)/questions/[id]/components/subscribe_button/subscription_types_customisation/types";
 import RadioButton from "@/components/ui/radio_button";
 import { PostSubscriptionNewComments } from "@/types/post";
+
+import { SubscriptionSectionProps } from "./types";
 
 const SubscriptionSectionNewComments: FC<
   SubscriptionSectionProps<PostSubscriptionNewComments>

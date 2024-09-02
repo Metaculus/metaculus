@@ -189,9 +189,3 @@ export type PostSubscriptionSpecificTime = {
   recurrence_interval: string;
   created_at: string;
 };
-
-export type PostWithSubscriptions = {
-  id: number;
-  title: string;
-  subscriptions: PostSubscription[];
-};
