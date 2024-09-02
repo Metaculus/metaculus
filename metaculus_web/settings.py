@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import os
 from pathlib import Path
+import sentry_sdk
 
 import dj_database_url
 
@@ -385,3 +386,10 @@ SHELL_PLUS_IMPORTS = [
     "import numpy as np",
     "from datetime import datetime, timedelta, timezone as dt_timezone",
 ]
+
+if os.environ.get("SENTRY_DNS", None):
+    sentry_sdk.init(
+        dsn=os.environ.get("SENTRY_DNS"),
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+    )

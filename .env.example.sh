@@ -1,3 +1,4 @@
+export SENTRY_DNS=""
 # General
 export SECRET_KEY="your developer secret keu"
 export FRONTEND_BASE_URL="https://yourdomain.com"

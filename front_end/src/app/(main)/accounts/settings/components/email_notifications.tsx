@@ -29,8 +29,6 @@ const EmailNotifications: FC<Props> = ({ user }) => {
             new Set([...user.unsubscribed_mailing_tags, subscriptionType])
           );
 
-      console.log(subscriptionTypes, subscriptionType, checked);
-
       setIsLoading(true);
       try {
         await updateProfileAction({
