@@ -258,6 +258,9 @@ FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000")
 
 # Redis endpoint
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
+# Extra redis config query
+REDIS_URL_CONFIG = os.environ.get("REDIS_URL_CONFIG", "")
+
 REDIS_OVER_SSL = "ss:/" in REDIS_URL
 # django-dramatiq
 # https://github.com/Bogdanp/django_dramatiq
@@ -265,7 +268,7 @@ DRAMATIQ_BROKER = {
     "BROKER": "dramatiq.brokers.redis.RedisBroker",
     "OPTIONS": {
         # Setting redis db to 1 for the MQ storage
-        "url": f"{REDIS_URL}/1?ssl_cert_reqs=none" if REDIS_OVER_SSL else f"{REDIS_URL}/1",
+        "url": f"{REDIS_URL}/1?{REDIS_URL_CONFIG}",
     },
     "MIDDLEWARE": [
         "dramatiq.middleware.AgeLimit",
@@ -275,8 +278,7 @@ DRAMATIQ_BROKER = {
         "django_dramatiq.middleware.AdminMiddleware",
     ],
 }
-if REDIS_OVER_SSL:
-    DRAMATIQ_BROKER["OPTIONS"]["ssl_cert_reqs"] = None
+
 # Setting StubBroker broker for unit tests environment
 # Integration tests should run as the real env
 if ENV == "testing":
@@ -288,15 +290,13 @@ DRAMATIQ_AUTODISCOVER_MODULES = ["tasks", "jobs"]
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS_URL}/2?ssl_cert_reqs=none" if REDIS_OVER_SSL else f"{REDIS_URL}/2",
+        "LOCATION": f"{REDIS_URL}/2?{REDIS_URL_CONFIG}",
         "OPTIONS": {
             "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None},
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     }
 }
-if REDIS_OVER_SSL:
-    DRAMATIQ_BROKER["default"]["LOCATION"] = None
 
 # Django-storages
 # https://github.com/jschneier/django-storages
