@@ -145,6 +145,11 @@ const MultipleChoiceChartCard: FC<Props> = ({
               : TimelineChartZoomOption.TwoMonths
           }
           withZoomPicker
+          isClosed={
+            question.actual_close_time
+              ? new Date(question.actual_close_time).getTime() < Date.now()
+              : false
+          }
         />
       </div>
 

@@ -8,16 +8,23 @@ import { getGroupQuestionsTimestamps } from "@/utils/charts";
 
 type Props = {
   conditional: PostConditional<QuestionWithNumericForecasts>;
+  isClosed?: boolean;
 };
 
-const ConditionalTimeline: FC<Props> = ({ conditional }) => {
+const ConditionalTimeline: FC<Props> = ({ conditional, isClosed }) => {
   const groupType = conditional.question_no.type;
   const questions = [conditional.question_yes, conditional.question_no];
 
   switch (groupType) {
     case QuestionType.Binary: {
       const timestamps = getGroupQuestionsTimestamps(questions);
-      return <BinaryGroupChart questions={questions} timestamps={timestamps} />;
+      return (
+        <BinaryGroupChart
+          questions={questions}
+          timestamps={timestamps}
+          isClosed={isClosed}
+        />
+      );
     }
     case QuestionType.Numeric:
     case QuestionType.Date:

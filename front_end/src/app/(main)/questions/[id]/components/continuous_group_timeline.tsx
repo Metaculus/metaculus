@@ -57,9 +57,14 @@ function generateList(
 type Props = {
   questions: QuestionWithNumericForecasts[];
   timestamps: number[];
+  isClosed?: boolean;
 };
 
-const ContinuousGroupTimeline: FC<Props> = ({ questions, timestamps }) => {
+const ContinuousGroupTimeline: FC<Props> = ({
+  questions,
+  timestamps,
+  isClosed,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
   const [isChartReady, setIsChartReady] = useState(false);
@@ -163,6 +168,7 @@ const ContinuousGroupTimeline: FC<Props> = ({ questions, timestamps }) => {
           userForecasts={userForecasts}
           questionType={questions[0].type}
           scaling={questions[0].scaling}
+          isClosed={isClosed}
         />
       </div>
 

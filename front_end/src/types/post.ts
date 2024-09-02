@@ -114,6 +114,7 @@ export type Post<QT = Question> = {
   updated_at: string;
   published_at: string;
   curation_status_updated_at: string | null;
+  actual_close_time: string;
   scheduled_close_time: string;
   scheduled_resolve_time: string;
   vote: PostVote;
