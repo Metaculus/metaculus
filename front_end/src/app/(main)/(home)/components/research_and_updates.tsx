@@ -10,6 +10,7 @@ import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import PostsApi from "@/services/posts";
 import { PostWithNotebook } from "@/types/post";
 import { getNotebookSummary } from "@/utils/questions";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   postIds: number[];
@@ -91,4 +92,4 @@ const ResearchAndUpdatesBlock: FC<Props> = async ({ postIds }) => {
   );
 };
 
-export default ResearchAndUpdatesBlock;
+export default WithServerComponentErrorBoundary(ResearchAndUpdatesBlock);

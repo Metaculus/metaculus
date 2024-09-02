@@ -16,6 +16,7 @@ import {
   SCORING_DURATION_FILTER,
   SCORING_YEAR_FILTER,
 } from "../../search_params";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   category: CategoryKey;
@@ -72,12 +73,13 @@ const ContributionsHero: FC<Props> = ({ year, duration, category, userId }) => {
   );
 };
 
-const AwaitedUserHeader: FC<{ userId: number }> = async ({ userId }) => {
-  const t = await getTranslations();
-  const profile = await ProfileApi.getProfileById(userId);
+const AwaitedUserHeader: FC<{ userId: number }> =
+  WithServerComponentErrorBoundary(async ({ userId }) => {
+    const t = await getTranslations();
+    const profile = await ProfileApi.getProfileById(userId);
 
-  return <UserHeader>{profile.username ?? t("user")}</UserHeader>;
-};
+    return <UserHeader>{profile.username ?? t("user")}</UserHeader>;
+  });
 
 const UserHeader: FC<PropsWithChildren> = ({ children }) => (
   <h1 className="m-0 text-2xl font-bold text-blue-900 dark:text-blue-900-dark sm:text-4xl">

@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import TournamentCard from "@/components/tournament_card";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import ProjectsApi from "@/services/projects";
 import { Tournament, TournamentType } from "@/types/projects";
 
@@ -60,4 +61,4 @@ const TournamentsBlock: FC<Props> = async ({ postSlugs }) => {
   );
 };
 
-export default TournamentsBlock;
+export default WithServerComponentErrorBoundary(TournamentsBlock);

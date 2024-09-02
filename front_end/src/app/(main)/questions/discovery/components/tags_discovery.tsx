@@ -9,6 +9,7 @@ import { SearchParams } from "@/types/navigation";
 import DiscoverySection from "./section";
 import AwaitedTags from "./tags";
 import { TAGS_TEXT_SEARCH_FILTER } from "../constants/tags_feed";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 const getFilters = (searchParams: SearchParams) => {
   const filters: TagsParams = {};
@@ -40,4 +41,4 @@ const TagsDiscovery: FC<{ searchParams: SearchParams }> = async ({
   );
 };
 
-export default TagsDiscovery;
+export default WithServerComponentErrorBoundary(TagsDiscovery);

@@ -17,6 +17,7 @@ import { extractQuestionGroupName } from "@/utils/questions";
 import MiddleVotesArrow from "./middle_votes_arrow";
 import StateByForecastCharts from "./state_by_forecast_charts";
 import { US_MAP_AREAS } from "./us_areas";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   questionGroupId: number;
@@ -226,4 +227,4 @@ function getDemocratRepublicanPrediction({
   };
 }
 
-export default StateByForecast;
+export default WithServerComponentErrorBoundary(StateByForecast);

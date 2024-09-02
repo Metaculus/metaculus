@@ -1,21 +1,14 @@
 import classNames from "classnames";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
-import Tooltip from "@/components/ui/tooltip";
 import LeaderboardApi from "@/services/leaderboard";
 
 import MedalIcon from "../../components/medal_icon";
 import { RANKING_CATEGORIES } from "../../ranking_categories";
-import { CONTRIBUTIONS_USER_FILTER } from "../../contributions/search_params";
-
-import {
-  SCORING_CATEGORY_FILTER,
-  SCORING_YEAR_FILTER,
-} from "../../search_params";
 import { getMedalCategories } from "../helpers/medal_categories";
 import { getMedalDisplayTitle } from "../helpers/medal_title";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   profileId: number;
@@ -60,12 +53,7 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
               {!!category.medals.length ? (
                 category.medals.map((medal, index) => {
                   return (
-                    <Link
-                      href={
-                        category.name === "tournament"
-                          ? `/tournament/${medal.projectId}`
-                          : `/contributions/?${SCORING_CATEGORY_FILTER}=${category.name}&${CONTRIBUTIONS_USER_FILTER}=${profileId}&${SCORING_YEAR_FILTER}=${medal.year}&duration=${medal.duration}`
-                      }
+                    <div
                       key={index}
                       className={`relative flex w-full min-w-[210px] flex-row items-center gap-3 overflow-hidden rounded-lg px-3 py-3 shadow-none shadow-blue-500/30 dark:bg-blue-900 dark:shadow-black/25 md:w-fit md:flex-col md:px-8 md:py-4 md:shadow-lg ${getMedalClassName(medal.type)}`}
                     >
@@ -89,7 +77,7 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
                           </span>
                         </span>
                       </div>
-                    </Link>
+                    </div>
                   );
                 })
               ) : (
@@ -105,4 +93,4 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
   );
 };
 
-export default MedalsPage;
+export default WithServerComponentErrorBoundary(MedalsPage);

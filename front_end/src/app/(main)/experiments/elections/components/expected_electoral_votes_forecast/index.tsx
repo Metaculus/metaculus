@@ -11,6 +11,7 @@ import { Candle } from "@/types/experiments";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   democratPostId: number;
@@ -150,4 +151,4 @@ function getForecastData(
   };
 }
 
-export default ExpectedElectoralVotesForecast;
+export default WithServerComponentErrorBoundary(ExpectedElectoralVotesForecast);

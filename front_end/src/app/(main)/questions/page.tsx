@@ -34,7 +34,7 @@ export default async function Questions({
               <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
             }
           >
-            <AwaitedPostsFeed filters={filters} />
+            <AwaitedPostsFeed filters={filters} topics={topics} />
           </Suspense>
         </div>
       </div>
