@@ -325,6 +325,7 @@ class SubscriptionNewCommentsSerializer(serializers.ModelSerializer):
         fields = (
             "type",
             "comments_frequency",
+            "created_at",
         )
 
 
@@ -336,6 +337,7 @@ class SubscriptionMilestoneSerializer(serializers.ModelSerializer):
         fields = (
             "type",
             "milestone_step",
+            "created_at",
         )
 
 
@@ -347,13 +349,17 @@ class SubscriptionCPChangeSerializer(serializers.ModelSerializer):
         fields = (
             "type",
             "cp_change_threshold",
+            "created_at",
         )
 
 
 class SubscriptionStatusChangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostSubscription
-        fields = ("type",)
+        fields = (
+            "type",
+            "created_at",
+        )
 
 
 class SubscriptionSpecificTimeSerializer(serializers.ModelSerializer):
@@ -361,7 +367,12 @@ class SubscriptionSpecificTimeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PostSubscription
-        fields = ("type", "next_trigger_datetime", "recurrence_interval")
+        fields = (
+            "type",
+            "next_trigger_datetime",
+            "recurrence_interval",
+            "created_at",
+        )
 
     def validate_next_trigger_datetime(self, value):
         if value <= timezone.now():
