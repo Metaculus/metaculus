@@ -70,6 +70,7 @@ type Props = {
   timestamps: number[];
   preselectedQuestionId?: number;
   defaultZoom?: TimelineChartZoomOption;
+  isClosed?: boolean;
 };
 
 const BinaryGroupChart: FC<Props> = ({
@@ -77,6 +78,7 @@ const BinaryGroupChart: FC<Props> = ({
   timestamps,
   preselectedQuestionId,
   defaultZoom,
+  isClosed
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -205,6 +207,7 @@ const BinaryGroupChart: FC<Props> = ({
           }
           withZoomPicker
           userForecasts={userForecasts}
+          isClosed={isClosed}
         />
       </div>
 

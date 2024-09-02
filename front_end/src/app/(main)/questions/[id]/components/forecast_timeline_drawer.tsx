@@ -31,6 +31,12 @@ const ForecastTimelineDrawer: FC<Props> = ({ post }) => {
     <ContinuousGroupTimeline
       questions={sortedQuestions}
       timestamps={timestamps}
+      isClosed={
+        post.actual_close_time
+          ? new Date(post.actual_close_time).getTime() <
+            Date.now()
+          : false
+      }
     />
   );
 };

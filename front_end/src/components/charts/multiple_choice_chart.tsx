@@ -59,6 +59,7 @@ type Props = {
   userForecasts?: UserChoiceItem[];
   questionType?: QuestionType;
   scaling?: Scaling;
+  isClosed?: boolean;
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -74,6 +75,7 @@ const MultipleChoiceChart: FC<Props> = ({
   userForecasts,
   questionType,
   scaling,
+  isClosed,
 }) => {
   const t = useTranslations();
   const {
@@ -129,7 +131,9 @@ const MultipleChoiceChart: FC<Props> = ({
       cursorLabel={({ datum }: VictoryLabelProps) => {
         if (datum) {
           return datum.x === defaultCursor
-            ? t("now")
+            ? isClosed
+              ? ""
+              : t("now")
             : xScale.cursorFormat?.(datum.x) ?? xScale.tickFormat(datum.x);
         }
       }}
@@ -381,11 +385,6 @@ function buildChartData({
   );
   let yScale = generatePercentageYScale(height);
   if (!!scaling && !!questionType) {
-    console.log(choiceItems);
-    const minChoiceRange = choiceItems[0].rangeMin ?? 0;
-    const maxChoiceRange = choiceItems[0].rangeMax ?? 1;
-    console.log(minChoiceRange);
-    console.log(maxChoiceRange);
     const { ticks, majorTicks } = generateTicksY(
       height,
       [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],

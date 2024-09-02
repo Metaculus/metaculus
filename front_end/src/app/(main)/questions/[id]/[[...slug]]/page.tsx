@@ -137,6 +137,12 @@ export default async function IndividualQuestion({
               <DetailedGroupCard
                 questions={postData.group_of_questions.questions}
                 preselectedQuestionId={preselectedGroupQuestionId}
+                isClosed={
+                  postData.actual_close_time
+                    ? new Date(postData.actual_close_time).getTime() <
+                      Date.now()
+                    : false
+                }
               />
             )}
 
@@ -145,6 +151,12 @@ export default async function IndividualQuestion({
               <ConditionalTimeline
                 conditional={
                   postData.conditional as PostConditional<QuestionWithNumericForecasts>
+                }
+                isClosed={
+                  postData.actual_close_time
+                    ? new Date(postData.actual_close_time).getTime() <
+                      Date.now()
+                    : false
                 }
               />
             )}
