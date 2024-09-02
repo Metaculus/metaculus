@@ -261,7 +261,6 @@ REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
 # Extra redis config query
 REDIS_URL_CONFIG = os.environ.get("REDIS_URL_CONFIG", "")
 
-REDIS_OVER_SSL = "ss:/" in REDIS_URL
 # django-dramatiq
 # https://github.com/Bogdanp/django_dramatiq
 DRAMATIQ_BROKER = {
