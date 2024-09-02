@@ -90,7 +90,7 @@ export function generateTimestampXScale(
   const start = fromUnixTime(xDomain[0]);
   const end = fromUnixTime(xDomain[1]);
   const timeRange = differenceInMilliseconds(end, start);
-  const maxTicks = Math.floor(width / 80);
+  const maxTicks = Math.floor(width / 60);
   if (timeRange < oneHour) {
     ticks = d3.timeMinute.range(start, end);
     format = d3.timeFormat("%_I:%M %p");
@@ -104,7 +104,7 @@ export function generateTimestampXScale(
     }
     format = d3.timeFormat("%_I:%M %p");
     cursorFormat = d3.timeFormat("%_I:%M %p, %b %d");
-  } else if (timeRange < oneDay) {
+  } else if (timeRange <= oneDay * 2) {
     const every30Minutes = d3.timeMinute.every(30);
     if (every30Minutes) {
       ticks = every30Minutes.range(start, end);
@@ -121,8 +121,28 @@ export function generateTimestampXScale(
     ticks = d3.timeMonth.range(start, end);
     format = d3.timeFormat("%b %d");
     cursorFormat = d3.timeFormat("%b %d, %Y");
-  } else {
+  } else if (timeRange < oneYear * 2) {
     ticks = d3.timeMonth.range(start, end);
+    format = (date: Date) => {
+      const isFirstMonthOfYear = date.getMonth() === 0;
+      return isFirstMonthOfYear
+        ? d3.timeFormat("%Y")(date)
+        : d3.timeFormat("%b %d")(date);
+    };
+    cursorFormat = d3.timeFormat("%b %d, %Y");
+  } else if (timeRange < oneYear * 4) {
+    const adjustedStart = d3.timeYear.floor(start);
+    ticks = d3.timeMonth.range(adjustedStart, end, 3);
+    format = (date: Date) => {
+      const isFirstMonthOfYear = date.getMonth() === 0;
+      return isFirstMonthOfYear
+        ? d3.timeFormat("%Y")(date)
+        : d3.timeFormat("%b %e")(date);
+    };
+    cursorFormat = d3.timeFormat("%b %d, %Y");
+  } else {
+    const adjustedStart = d3.timeYear.floor(start);
+    ticks = d3.timeMonth.range(adjustedStart, end, 6);
     format = (date: Date) => {
       const isFirstMonthOfYear = date.getMonth() === 0;
       return isFirstMonthOfYear
