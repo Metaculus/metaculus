@@ -79,7 +79,9 @@ class PostQuerySet(models.QuerySet):
         return self.prefetch_related(
             Prefetch(
                 "subscriptions",
-                queryset=PostSubscription.objects.filter(user=user),
+                queryset=PostSubscription.objects.filter(user=user).order_by(
+                    "-created_at"
+                ),
                 to_attr="user_subscriptions",
             )
         )
