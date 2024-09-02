@@ -290,7 +290,6 @@ CACHES = {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": f"{REDIS_URL}/2?{REDIS_URL_CONFIG}",
         "OPTIONS": {
-            "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None},
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     }
