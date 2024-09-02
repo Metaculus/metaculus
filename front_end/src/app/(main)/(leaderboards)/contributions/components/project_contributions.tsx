@@ -6,7 +6,7 @@ import InfoToggle from "@/components/ui/info_toggle";
 import SectionToggle from "@/components/ui/section_toggle";
 import LeaderboardApi from "@/services/leaderboard";
 import { Tournament } from "@/types/projects";
-import ServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   project: Tournament;
@@ -14,7 +14,6 @@ type Props = {
 };
 
 const ProjectContributions: FC<Props> = async ({ project, userId }) => {
-  return ServerComponentErrorBoundary(async () => {
     const t = await getTranslations();
     const contributionsDetails = await LeaderboardApi.getContributions({
       type: "project",
@@ -182,7 +181,6 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
         </InfoToggle>
       </SectionToggle>
     );
-  });
 };
 
-export default ProjectContributions;
+export default WithServerComponentErrorBoundary(ProjectContributions);

@@ -3,7 +3,7 @@ import { FC } from "react";
 import ContributionsTable from "@/app/(main)/(leaderboards)/contributions/components/contributions_table";
 import LeaderboardApi from "@/services/leaderboard";
 import { CategoryKey, LeaderboardType } from "@/types/scoring";
-import ServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   startTime: string;
@@ -20,7 +20,6 @@ const GlobalContributions: FC<Props> = async ({
   startTime,
   category,
 }) => {
-  return ServerComponentErrorBoundary(async () => {
     const contributionsDetails = await LeaderboardApi.getContributions({
       type: "global",
       leaderboardType,
@@ -36,7 +35,6 @@ const GlobalContributions: FC<Props> = async ({
         contributions={contributionsDetails.contributions}
       />
     );
-  });
 };
 
-export default GlobalContributions;
+export default WithServerComponentErrorBoundary(GlobalContributions);

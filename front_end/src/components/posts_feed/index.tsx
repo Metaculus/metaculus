@@ -5,7 +5,7 @@ import PaginatedPostsFeed, {
 } from "@/components/posts_feed/paginated_feed";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import PostsApi, { PostsParams } from "@/services/posts";
-import ServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { Topic } from "@/types/projects";
 
 type Props = {
@@ -15,7 +15,6 @@ type Props = {
 };
 
 const AwaitedPostsFeed: FC<Props> = async ({ filters, type, topics }) => {
-  return ServerComponentErrorBoundary(async () => {
     if (
       topics &&
       filters.topic &&
@@ -28,20 +27,19 @@ const AwaitedPostsFeed: FC<Props> = async ({ filters, type, topics }) => {
       );
     }
 
-    const { results: questions, count } = await PostsApi.getPostsWithCP({
-      ...filters,
-      limit: POSTS_PER_PAGE,
-    });
-
-    return (
-      <PaginatedPostsFeed
-        filters={filters}
-        initialQuestions={questions}
-        totalCount={count}
-        type={type}
-      />
-    );
+  const { results: questions, count } = await PostsApi.getPostsWithCP({
+    ...filters,
+    limit: POSTS_PER_PAGE,
   });
+
+  return (
+    <PaginatedPostsFeed
+      filters={filters}
+      initialQuestions={questions}
+      totalCount={count}
+      type={type}
+    />
+  );
 };
 
-export default AwaitedPostsFeed;
+export default WithServerComponentErrorBoundary(AwaitedPostsFeed);

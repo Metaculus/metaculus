@@ -4,7 +4,7 @@ import LeaderboardApi from "@/services/leaderboard";
 import { CategoryKey, LeaderboardType } from "@/types/scoring";
 
 import LeaderboardTable from "./leaderboard_table";
-import ServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   startTime: string;
@@ -25,7 +25,6 @@ const GlobalLeaderboard: FC<Props> = async ({
   category,
   cardSized,
 }) => {
-  return ServerComponentErrorBoundary(async () => {
     const leaderboardDetails = await LeaderboardApi.getGlobalLeaderboard(
       startTime,
       endTime,
@@ -41,7 +40,6 @@ const GlobalLeaderboard: FC<Props> = async ({
         cardSized={cardSized}
       />
     );
-  });
 };
 
-export default GlobalLeaderboard;
+export default WithServerComponentErrorBoundary(GlobalLeaderboard);

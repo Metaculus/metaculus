@@ -11,14 +11,13 @@ import { RANKING_CATEGORIES } from "../../ranking_categories";
 import { SCORING_CATEGORY_FILTER } from "../../search_params";
 import { getMedalCategories } from "../helpers/medal_categories";
 import { getMedalDisplayTitle } from "../helpers/medal_title";
-import ServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   profileId: number;
 };
 
 const MedalsWidget: FC<Props> = async ({ profileId }) => {
-  return ServerComponentErrorBoundary(async () => {
     const t = await getTranslations();
 
     const userMedals = await LeaderboardApi.getUserMedals(profileId);
@@ -94,7 +93,6 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
         </div>
       </section>
     );
-  });
 };
 
-export default MedalsWidget;
+export default WithServerComponentErrorBoundary(MedalsWidget);

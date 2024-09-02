@@ -7,7 +7,7 @@ import LeaderboardApi from "@/services/leaderboard";
 import { LeaderboardType } from "@/types/scoring";
 
 import ProjectLeaderboardTable from "./project_leaderboard_table";
-import ServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   projectId: number;
@@ -24,7 +24,6 @@ const ProjectLeaderboard: FC<Props> = async ({
   isQuestionSeries,
   userId,
 }) => {
-  return ServerComponentErrorBoundary(async () => {
     const leaderboardDetails = await LeaderboardApi.getProjectLeaderboard(
       projectId,
       leaderboardType
@@ -56,7 +55,6 @@ const ProjectLeaderboard: FC<Props> = async ({
         />
       </SectionToggle>
     );
-  });
 };
 
-export default ProjectLeaderboard;
+export default WithServerComponentErrorBoundary(ProjectLeaderboard);
