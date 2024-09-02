@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 from django.core.files.storage import default_storage
 from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
@@ -17,7 +15,6 @@ from posts.models import (
     Vote,
     PostUserSnapshot,
     PostActivityBoost,
-    PostSubscription,
 )
 from posts.serializers import (
     NotebookSerializer,
@@ -468,31 +465,14 @@ def all_post_subscriptions(request):
     Returns all post subscriptions of the user
     """
 
-    existing_subscriptions = (
-        PostSubscription.objects.filter(user=request.user)
-        .exclude(is_global=True)
-        .select_related("post")
-        .order_by("-created_at")
+    posts = serialize_post_many(
+        Post.objects.filter(subscriptions__user=request.user).distinct(),
+        with_cp=False,
+        current_user=request.user,
+        with_subscriptions=True,
     )
 
-    post_subscriptions_map = defaultdict(list)
-
-    for subscription in existing_subscriptions:
-        post_subscriptions_map[subscription.post].append(subscription)
-
-    return Response(
-        [
-            {
-                "id": post.id,
-                "title": post.title,
-                "subscriptions": [
-                    get_subscription_serializer_by_type(sub.type)(sub).data
-                    for sub in subscriptions
-                ],
-            }
-            for post, subscriptions in post_subscriptions_map.items()
-        ],
-    )
+    return Response(posts)
 
 
 @api_view(["GET"])
