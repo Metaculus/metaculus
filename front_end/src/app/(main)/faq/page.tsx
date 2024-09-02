@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import MathJaxContent from "@/components/math_jax_content";
+
 import PageWrapper from "../components/pagewrapper";
 
 export const metadata = {
@@ -11,11 +13,12 @@ export const metadata = {
 export default function FAQ() {
   return (
     <PageWrapper>
-      <h1 className="mb-6 text-3xl font-bold">Metaculus FAQ</h1>
+      <h1 className="text-3xl font-bold">Metaculus FAQ</h1>
+      <hr />
       <div className="flex flex-col">
-        <div className="mb-4">
-          <h2 className="mb-4 text-2xl font-semibold">Basics</h2>
-          <ul className="space-y-2">
+        <div>
+          <h2 className="mb-4 mt-0 text-2xl font-semibold">Basics</h2>
+          <ul className="space-y-1">
             <li>
               <a href="#whatismetaculus">What is Metaculus?</a>
             </li>
@@ -46,10 +49,12 @@ export default function FAQ() {
             </li>
           </ul>
         </div>
-
-        <div className="mb-4">
-          <h2 className="mb-4 text-2xl font-semibold">Metaculus Questions</h2>
-          <ul className="space-y-2">
+        <hr />
+        <div>
+          <h2 className="mb-4 mt-0 text-2xl font-semibold">
+            Metaculus Questions
+          </h2>
+          <ul className="space-y-1">
             <li>
               <a href="#whatsort">
                 What sorts of questions are allowed, and what makes a good
@@ -116,9 +121,12 @@ export default function FAQ() {
           </ul>
         </div>
 
-        <div className="mb-4">
-          <h2 className="mb-4 text-2xl font-semibold">Question Resolution</h2>
-          <ul className="space-y-2">
+        <hr />
+        <div>
+          <h2 className="mb-4 mt-0 text-2xl font-semibold">
+            Question Resolution
+          </h2>
+          <ul className="space-y-1">
             <li>
               <a href="#closers">
                 What are the &quot;open date&quot;, &quot;close date&quot; and
@@ -186,10 +194,10 @@ export default function FAQ() {
             </li>
           </ul>
         </div>
-
-        <div className="mb-4">
-          <h2 className="mb-4 text-2xl font-semibold">Predictions</h2>
-          <ul className="space-y-2">
+        <hr />
+        <div>
+          <h2 className="mb-4 mt-0 text-2xl font-semibold">Predictions</h2>
+          <ul className="space-y-1">
             <li>
               <a href="#tutorial">Is there a tutorial or walkthrough?</a>
             </li>
@@ -221,10 +229,12 @@ export default function FAQ() {
             </li>
           </ul>
         </div>
-
-        <div className="mb-4">
-          <h2 className="mb-4 text-2xl font-semibold">Scores and Medals</h2>
-          <ul className="space-y-2">
+        <hr />
+        <div>
+          <h2 className="mb-4 mt-0 text-2xl font-semibold">
+            Scores and Medals
+          </h2>
+          <ul className="space-y-1">
             <li>
               <a href="#whatscores">What are scores?</a>
             </li>
@@ -233,10 +243,12 @@ export default function FAQ() {
             </li>
           </ul>
         </div>
-
-        <div className="mb-4">
-          <h2 className="mb-4 text-2xl font-semibold">Metaculus Journal</h2>
-          <ul className="space-y-2">
+        <hr />
+        <div>
+          <h2 className="mb-4 mt-0 text-2xl font-semibold">
+            Metaculus Journal
+          </h2>
+          <ul className="space-y-1">
             <li>
               <a href="#whatisjournal">What is the metaculus Journal?</a>
             </li>
@@ -245,10 +257,10 @@ export default function FAQ() {
             </li>
           </ul>
         </div>
-
-        <div className="mb-4">
-          <h2 className="mb-4 text-2xl font-semibold">Miscellany</h2>
-          <ul className="space-y-2">
+        <hr />
+        <div>
+          <h2 className="mb-4 mt-0 text-2xl font-semibold">Miscellany</h2>
+          <ul className="space-y-1">
             <li>
               <a href="#what-are-pros">What are Metaculus Pro Forecasters?</a>
             </li>
@@ -296,17 +308,18 @@ export default function FAQ() {
             </li>
           </ul>
         </div>
-        <h2 className="mb-4 mt-8 scroll-mt-nav text-2xl font-bold" id="basics">
+        <hr />
+        <h2 className="scroll-mt-nav text-2xl font-bold" id="basics">
           Basics
         </h2>
 
         <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
+          className="scroll-mt-nav text-xl font-semibold"
           id="whatismetaculus"
         >
           What is Metaculus?
         </h3>
-        <p className="mb-4">
+        <p>
           Metaculus is an online forecasting platform and aggregation engine
           that brings together a global reasoning community and keeps score for
           thousands of forecasters, delivering machine learning-optimized
@@ -316,12 +329,12 @@ export default function FAQ() {
           organizations, university researchers and companies to increase the
           positive impact of its forecasts.
         </p>
-        <p className="mb-4">
+        <p>
           Metaculus therefore poses questions about the occurrence of a variety
           of future events, on many timescales, to a community of participating
           forecasters — you!
         </p>
-        <p className="mb-4">
+        <p>
           The name &quot;Metaculus&quot; comes from the{" "}
           <a href="https://en.wikipedia.org/wiki/Eriophyidae">
             Metaculus genus
@@ -331,25 +344,25 @@ export default function FAQ() {
         </p>
 
         <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
+          className="scroll-mt-nav text-xl font-semibold"
           id="whatisforecasting"
         >
           What is forecasting?
         </h3>
-        <p className="mb-4">
+        <p>
           Forecasting is a systematic practice of attempting to answer questions
           about future events. On Metaculus, we follow a few principles to
           elevate forecasting above simple guesswork:
         </p>
 
-        <p className="mb-4">
+        <p>
           First, questions are carefully specified so that everyone understands
           beforehand and afterward which kinds of outcomes are included in the
           resolution, and which are not. Forecasters then give precise
           probabilities that measure their uncertainty about the outcome.
         </p>
 
-        <p className="mb-4">
+        <p>
           Second, Metaculus aggregates the forecasts into a simple{" "}
           <a href="https://en.wikipedia.org/wiki/Median">median</a> (community)
           prediction, and an advanced Metaculus Prediction. The Community
@@ -369,7 +382,7 @@ export default function FAQ() {
           (provided the whole group is not biased in the same way).
         </p>
 
-        <p className="mb-4">
+        <p>
           Third, we measure the relative skill of each forecaster, using their
           quantified forecasts. When we know the outcome of the question, the
           question is &quot;resolved&quot;, and forecasters receive their
@@ -383,17 +396,17 @@ export default function FAQ() {
         </p>
 
         <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
+          className="scroll-mt-nav text-xl font-semibold"
           id="whenforecastingvaluable"
         >
           When is forecasting valuable?
         </h3>
-        <p className="mb-4">
+        <p>
           Forecasting is uniquely valuable primarily in complex, multi-variable
           problems or in situations where a lack of data makes it difficult to
           predict using explicit or exact models.
         </p>
-        <p className="mb-4">
+        <p>
           In these and other scenarios, aggregated predictions of strong
           forecasters offer one of the best ways of predicting future events. In
           fact, work by the political scientist Philip Tetlock demonstrated that
@@ -402,10 +415,10 @@ export default function FAQ() {
           forecasting various geopolitical outcomes.
         </p>
 
-        <h3 className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold" id="aim">
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="aim">
           Why should I be a forecaster?
         </h3>
-        <p className="mb-4">
+        <p>
           Research has shown that great forecasters come from various
           backgrounds—and oftentimes from fields that have nothing to do with
           predicting the future. Like many mental capabilities, prediction is a
@@ -413,7 +426,7 @@ export default function FAQ() {
           Steady quantitative feedback and regular practice can greatly improve
           a forecaster&apos;s accuracy.
         </p>
-        <p className="mb-4">
+        <p>
           Some events — such as eclipse timing and well-polled elections, can
           often be predicted with high resolution, e.g. 99.9% likely or 3%
           likely. Others — such as the flip of a coin or a close horse-race —
@@ -423,19 +436,16 @@ export default function FAQ() {
           groups, corporations, governments, and humanity as a whole will make
           better decisions.
         </p>
-        <p className="mb-4">
+        <p>
           As well as being worthwhile, Metaculus aims to be interesting and fun,
           while allowing participants to hone their prediction prowess and amass
           a track-record to prove it.
         </p>
 
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="whocreated"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="whocreated">
           Who created Metaculus?
         </h3>
-        <p className="mb-4">
+        <p>
           {" "}
           Metaculus originated with two researcher scientists, Anthony Aguirre
           and Greg Laughlin. Aguirre, a physicist, is a co-founder of{" "}
@@ -450,14 +460,14 @@ export default function FAQ() {
         </p>
 
         <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
+          className="scroll-mt-nav text-xl font-semibold"
           id="whattournaments"
         >
           What Are Metaculus Tournaments and Question Series?
         </h3>
 
-        <h4 className="mb-2 mt-4 text-lg font-semibold">Tournaments</h4>
-        <p className="mb-4">
+        <h4 className="text-lg font-semibold">Tournaments</h4>
+        <p>
           Metaculus tournaments are organized around a central topic or theme.
           Tournaments are often collaborations between Metaculus and a
           nonprofit, government agency, or other organization seeking to use
@@ -465,7 +475,7 @@ export default function FAQ() {
           and archived tournaments in our{" "}
           <a href="https://www.metaculus.com/tournaments/">Tournaments page</a>.
         </p>
-        <p className="mb-4">
+        <p>
           Tournaments are the perfect place to prove your forecasting skills,
           while helping to improve our collective decision making ability. Cash
           prizes and{" "}
@@ -474,7 +484,7 @@ export default function FAQ() {
           valuable contributions (like comments). Follow a Tournament (with the
           Follow button) to never miss new questions.
         </p>
-        <p className="mb-4">
+        <p>
           After at least one question has resolved, a Leaderboard will appear on
           the tournament page displaying current scores and rankings. A personal
           score board (&quot;My Score&quot;) will also appear, detailing your
@@ -484,17 +494,17 @@ export default function FAQ() {
           </a>
           .
         </p>
-        <p className="mb-4">
+        <p>
           At the end of a tournament, the prize pool is divided among
           forecasters according to their forecasting performance. The more you
           forecasted and the more accurate your forecasts were, the greater
           proportion of the prize pool you receive.
         </p>
 
-        <h4 className="mb-2 mt-4 text-lg font-semibold">
+        <h4 className="text-lg font-semibold">
           Can I donate my tournament winnings?
         </h4>
-        <p className="mb-4">
+        <p>
           If you have outstanding tournament winnings, Metaculus is happy to
           facilitate donations to various non-profits, regranting organizations,
           and funds. You can find the list of organizations we facilitate
@@ -505,27 +515,24 @@ export default function FAQ() {
           .
         </p>
 
-        <h4 className="mb-2 mt-4 text-lg font-semibold">Question Series</h4>
-        <p className="mb-4">
+        <h4 className="text-lg font-semibold">Question Series</h4>
+        <p>
           Like Tournaments, Question Series are organized around a central topic
           or theme. Unlike tournaments, they do not have a prize pool.
         </p>
-        <p className="mb-4">
+        <p>
           Question Series still show leaderboards, for interest and fun. However
           they do **not** award medals.
         </p>
-        <p className="mb-4">
+        <p>
           You can find all Question Series in a special section of the{" "}
           <a href="https://www.metaculus.com/tournaments/">Tournaments page</a>.
         </p>
 
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="predmarket"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="predmarket">
           Is Metaculus a prediction market?
         </h3>
-        <p className="mb-4">
+        <p>
           Sort of. Like a prediction market, Metaculus aims to aggregate many
           people&apos;s information, expertise, and predictive power into
           high-quality forecasts. However, prediction markets generally operate
@@ -539,10 +546,10 @@ export default function FAQ() {
           prediction market.
         </p>
 
-        <h4 className="mb-2 mt-4 text-lg font-semibold">
+        <h4 className="text-lg font-semibold">
           Advantages of Metaculus over prediction markets
         </h4>
-        <p className="mb-4">
+        <p>
           Metaculus has several advantages over prediction markets. One is that
           Metaculus forecasts are scored solely based on accuracy, while
           prediction markets may be used for other reasons, such as hedging.
@@ -551,13 +558,10 @@ export default function FAQ() {
           if an event occurs.
         </p>
 
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="justpolling"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="justpolling">
           Are Metaculus Questions Polls?
         </h3>
-        <p className="mb-4">
+        <p>
           No. Opinion polling can be a useful way to gauge the sentiment and
           changes in a group or culture, but there is often no single
           &quot;right answer&quot;, as in a{" "}
@@ -567,7 +571,7 @@ export default function FAQ() {
           &quot;How worried are you about the environment?&quot;
         </p>
 
-        <p className="mb-4">
+        <p>
           In contrast, Metaculus questions are designed to be objectively
           resolvable (like in{" "}
           <a href="https://www.metaculus.com/questions/9942/brent-oil-to-breach-140-before-may">
@@ -585,19 +589,16 @@ export default function FAQ() {
         </p>
 
         <h2
-          className="mb-4 mt-8 scroll-mt-nav scroll-mt-nav text-2xl font-bold"
+          className="scroll-mt-nav scroll-mt-nav text-2xl font-bold"
           id="metaculus-questions"
         >
           Metaculus Questions
         </h2>
 
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="whatsort"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="whatsort">
           What sorts of questions are allowed, and what makes a good question?
         </h3>
-        <p className="mb-4">
+        <p>
           Questions should focus on tangible, objective facts about the world
           which are well-defined and not a matter of opinion. &quot;When will
           the United States collapse?&quot; is a poor, ambiguous question;{" "}
@@ -612,12 +613,12 @@ export default function FAQ() {
           <q>When will (event) X occur?</q> or{" "}
           <q>What will the value or quantity of X be by (date) Y?</q>
         </p>
-        <p className="mb-4">
+        <p>
           A good question will be unambiguously resolvable. A community reading
           the question terms should be able to agree, before and after the event
           has occurred, whether the outcome satisfies the question&apos;s terms.
         </p>
-        <p className="mb-4">Questions should also follow some obvious rules:</p>
+        <p>Questions should also follow some obvious rules:</p>
 
         <ol className="mb-4 ml-4 list-inside list-decimal space-y-2">
           <li>
@@ -647,13 +648,10 @@ export default function FAQ() {
           </li>
         </ol>
 
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="whocreates"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="whocreates">
           Who creates the questions, and who decides which get posted?
         </h3>
-        <p className="mb-4">
+        <p>
           Many questions are launched by Metaculus staff, but any logged-in user
           can propose a question. Proposed questions will be reviewed by a group
           of moderators appointed by Metaculus. Moderators will select the best
@@ -662,7 +660,7 @@ export default function FAQ() {
           <a href="/question-writing/">aligned with our writing style</a>.
         </p>
 
-        <p className="mb-4">
+        <p>
           Metaculus hosts questions on{" "}
           <a href="/questions/categories/">many topics</a>, but our primary
           focus areas are Science,{" "}
@@ -684,10 +682,7 @@ export default function FAQ() {
           , and <a href="/questions/?categories=geopolitics">Geopolitics</a>.
         </p>
 
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="whoedits"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="whoedits">
           Who can edit questions?
         </h3>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
@@ -708,10 +703,7 @@ export default function FAQ() {
             or Pending.
           </li>
         </ul>
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="add-coauthors"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="add-coauthors">
           How do I invite co-authors to my question?
         </h3>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
@@ -735,7 +727,7 @@ export default function FAQ() {
         </ul>
 
         <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
+          className="scroll-mt-nav text-xl font-semibold"
           id="question-submission"
         >
           How can I get my own question posted?
@@ -793,13 +785,13 @@ export default function FAQ() {
         </ol>
 
         <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
+          className="scroll-mt-nav text-xl font-semibold"
           id="pending-question"
         >
           What can I do if a question I submitted has been pending for a long
           time?
         </h3>
-        <p className="mb-4">
+        <p>
           We currently receive a large volume of question submissions, many of
           which are interesting and well-written. That said, we try to approve
           just enough questions that they each can get the attention they
@@ -827,12 +819,12 @@ export default function FAQ() {
         </p>
 
         <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
+          className="scroll-mt-nav text-xl font-semibold"
           id="admins-resolution"
         >
           What can I do if a question should be resolved but isn&apos;t?
         </h3>
-        <p className="mb-4">
+        <p>
           If a question is still waiting for resolution, check to make sure
           there hasn&apos;t been a comment from staff explaining the reason for
           the delay. If there hasn&apos;t, you can tag @admins to alert the
@@ -841,12 +833,12 @@ export default function FAQ() {
         </p>
 
         <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
+          className="scroll-mt-nav text-xl font-semibold"
           id="question-private"
         >
           What is a private question?
         </h3>
-        <p className="mb-4">
+        <p>
           Private questions are questions that are not visible to the broader
           community. They aren&apos;t subject to the normal review process, so
           you can create one and predict on it right away. You can resolve your
@@ -854,7 +846,7 @@ export default function FAQ() {
           won&apos;t be added to your overall Metaculus score and they
           won&apos;t affect your ranking on the leaderboard.
         </p>
-        <p className="mb-4">
+        <p>
           You can use private questions for anything you want. Use them as
           practice to calibrate your predictions before playing for points,
           create a question series on a niche topic, or pose personal questions
@@ -862,19 +854,16 @@ export default function FAQ() {
           <strong>You can even invite up to 19 other users</strong> to view and
           predict on your own questions!
         </p>
-        <p className="mb-4">
+        <p>
           To invite other forecasters to your private question, click the
           &apos;...&apos; more options menu and select &apos;Share Private
           Question&apos;.
         </p>
 
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="comments"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="comments">
           What are the rules and guidelines for comments and discussions?
         </h3>
-        <p className="mb-4">
+        <p>
           We have a full set of{" "}
           <a href="/help/guidelines/">community etiquette guidelines</a> but in
           summary:
@@ -912,14 +901,11 @@ export default function FAQ() {
           </li>
         </ul>
 
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="definitions"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="definitions">
           What do &quot;credible source&quot; and &quot;before [date X]&quot;
           and such phrases mean exactly?
         </h3>
-        <p className="mb-4">
+        <p>
           To reduce ambiguity in an efficient way, here are some definitions
           that can be used in questions, with a meaning set by this FAQ:
         </p>
@@ -952,14 +938,11 @@ export default function FAQ() {
             </ul>
           </li>
         </ol>
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="question-types"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="question-types">
           What types of questions are there?
         </h3>
-        <h4 className="mb-2 mt-4 text-lg font-semibold">Binary Questions</h4>
-        <p className="mb-4">
+        <h4 className="text-lg font-semibold">Binary Questions</h4>
+        <p>
           Binary questions can resolve as either <strong>Yes</strong> or{" "}
           <strong>No</strong> (unless the resolution criteria were
           underspecified or otherwise circumvented, in which case they can
@@ -973,8 +956,8 @@ export default function FAQ() {
           dropped below 5% before the specified time.
         </p>
 
-        <h4 className="mb-2 mt-4 text-lg font-semibold">Range Questions</h4>
-        <p className="mb-4">
+        <h4 className="text-lg font-semibold">Range Questions</h4>
+        <p>
           Range questions resolve to a certain value, and forecasters can
           specify a probability distribution to estimate the likelihood of each
           value occurring. Range questions can have open or closed bounds. If
@@ -985,19 +968,19 @@ export default function FAQ() {
           <a href="#out-of-bounds-resolution">See here</a> for more details
           about boundaries on range questions.
         </p>
-        <p className="mb-4">
+        <p>
           The range interface allows you to input multiple probability
           distributions with different weights.{" "}
           <a href="#range-interface">See here</a> for more details on using the
           interface.
         </p>
-        <p className="mb-4">
+        <p>
           There are two types of range questions, numeric range questions and
           date range questions.
         </p>
 
-        <h5 className="mb-2 mt-4 text-lg font-semibold">Numeric Range</h5>
-        <p className="mb-4">
+        <h5 className="text-lg font-semibold">Numeric Range</h5>
+        <p>
           Numeric range questions can resolve as a numeric value. For example,
           the question &quot;
           <a href="https://www.metaculus.com/questions/7346/initial-jobless-claims-july-2021/">
@@ -1007,7 +990,7 @@ export default function FAQ() {
           &quot; resolved as <strong>395</strong>, because the underlying source
           reported 395 thousand initial jobless claims for July 2021.
         </p>
-        <p className="mb-4">
+        <p>
           Questions can also resolve outside the numeric range. For example, the
           question &quot;
           <a href="https://www.metaculus.com/questions/6645/highest-us-core-cpi-growth-in-2021/">
@@ -1019,8 +1002,8 @@ export default function FAQ() {
           and 6.5 was the upper bound.
         </p>
 
-        <h5 className="mb-2 mt-4 text-lg font-semibold">Date Range</h5>
-        <p className="mb-4">
+        <h5 className="text-lg font-semibold">Date Range</h5>
+        <p>
           Date range questions can resolve as a certain date. For example, the
           question &quot;
           <a href="https://www.metaculus.com/questions/8723/date-of-next-who-pheic-declaration/">
@@ -1030,7 +1013,7 @@ export default function FAQ() {
           &quot; resolved as <strong>July 23, 2022</strong>, because a Public
           Health Emergency of International Concern was declared on that date.
         </p>
-        <p className="mb-4">
+        <p>
           Questions can also resolve outside the date range. For example, the
           question &quot;
           <a href="https://www.metaculus.com/questions/6947/first-super-heavy-flight/">
@@ -1042,23 +1025,23 @@ export default function FAQ() {
         </p>
 
         <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
+          className="scroll-mt-nav text-xl font-semibold"
           id="question-groups"
         >
           What are question groups?
         </h3>
-        <p className="mb-4">
+        <p>
           Question groups are sets of closely related questions or question
           outcomes all collected on a single page. Forecasters can predict
           quickly and efficiently on these interconnected outcomes, confident
           that they are keeping all of their predictions internally consistent.
         </p>
 
-        <h4 className="mb-2 mt-4 text-lg font-semibold">
+        <h4 className="text-lg font-semibold">
           How do question groups facilitate more efficient, more accurate
           forecasting?
         </h4>
-        <p className="mb-4">
+        <p>
           With question groups, it&apos;s easy to forecast progressively wider
           distributions the further into the future you predict to reflect
           increasing uncertainty. A question group collecting multiple binary
@@ -1067,11 +1050,11 @@ export default function FAQ() {
           each other.
         </p>
 
-        <h4 className="mb-2 mt-4 text-lg font-semibold">
+        <h4 className="text-lg font-semibold">
           What happens to the existing question pages when they are combined in
           a question group?
         </h4>
-        <p className="mb-4">
+        <p>
           When regular forecast questions are converted into
           &quot;subquestions&quot; of a question group, the original pages are
           replaced by a single question group page. Comments that previously
@@ -1080,28 +1063,28 @@ export default function FAQ() {
           move.
         </p>
 
-        <h4 className="mb-2 mt-4 text-lg font-semibold">
+        <h4 className="text-lg font-semibold">
           Do I need to forecast on every outcome / subquestion of a question
           group?
         </h4>
-        <p className="mb-4">
+        <p>
           No. Question groups comprise multiple <i>independent</i> subquestions.
           For that reason, there is no requirement that you forecast on every
           outcome within a group.
         </p>
 
-        <h4 className="mb-2 mt-4 text-lg font-semibold">
+        <h4 className="text-lg font-semibold">
           How are question groups scored?
         </h4>
-        <p className="mb-4">
+        <p>
           Each outcome or subquestion is scored in the same manner as a normal
           independent question.
         </p>
 
-        <h4 className="mb-2 mt-4 text-lg font-semibold">
+        <h4 className="text-lg font-semibold">
           Why don&apos;t question group outcome probabilities sum to 100%?
         </h4>
-        <p className="mb-4">
+        <p>
           Even if there can only be one outcome for a particular question group,
           the Community and Metaculus Predictions function as they would for
           normal independent questions. The Community and Metaculus Predictions
@@ -1109,7 +1092,7 @@ export default function FAQ() {
           on each subquestion, respectively. These medians and weighted
           aggregates are not constrained to sum to 100%
         </p>
-        <p className="mb-4">
+        <p>
           Feedback for question groups can be provided on the{" "}
           <a href="https://www.metaculus.com/questions/9861/2022-3-9-update-forecast-question-groups/">
             question group discussion post
@@ -1117,13 +1100,10 @@ export default function FAQ() {
           .
         </p>
 
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="conditionals"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="conditionals">
           What are Conditional Pairs?
         </h3>
-        <p className="mb-4">
+        <p>
           A Conditional Pair is a special type of{" "}
           <a href="https://www.metaculus.com/faq/#question-groups">
             Question Group
@@ -1140,7 +1120,7 @@ export default function FAQ() {
           .
         </p>
 
-        <p className="mb-4">
+        <p>
           Conditional Pairs ask two Conditional Questions (or
           &quot;Conditionals&quot; for short), each corresponding to a possible
           outcome of the Parent:
@@ -1151,13 +1131,13 @@ export default function FAQ() {
           <li>If the Parent resolves No, how will the Child resolve?</li>
         </ol>
 
-        <p className="mb-4">
+        <p>
           The first Conditional assumes that &quot;The Parent resolves Yes&quot;
           (or &quot;if Yes&quot; for short). The second conditional does the
           same for No.
         </p>
 
-        <p className="mb-4">
+        <p>
           Conditional probabilities are probabilities, so forecasting is very
           similar to Binary Questions. The main difference is that we present
           both conditionals next to each other for convenience:
@@ -1166,13 +1146,12 @@ export default function FAQ() {
         <Image
           src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_2.jpg"
           alt="The two conditionals next to each other"
-          className="mb-4"
           layout="responsive"
           width={730}
           height={75}
         />
 
-        <p className="mb-4">
+        <p>
           Conditional questions are automatically resolved when their Parent and
           Child resolve:
         </p>
@@ -1191,23 +1170,21 @@ export default function FAQ() {
           </li>
         </ul>
 
-        <p className="mb-4">Let&apos;s work through an example:</p>
+        <p>Let&apos;s work through an example:</p>
 
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>The Parent is &quot;Will it rain today?&quot;.</li>
           <li>The Child is &quot;Will it rain tomorrow?&quot;.</li>
         </ul>
 
-        <p className="mb-4">
-          So the two Conditionals in the Conditional Pair will be:
-        </p>
+        <p>So the two Conditionals in the Conditional Pair will be:</p>
 
         <ol className="mb-4 ml-4 list-inside list-decimal space-y-2">
           <li>&quot;If it rains today, will it rain tomorrow?&quot;</li>
           <li>&quot;If it does not rain today, will it rain tomorrow?&quot;</li>
         </ol>
 
-        <p className="mb-4">
+        <p>
           For simplicity, Metaculus presents conditional questions graphically.
           In the forecasting interface they are in a table:
         </p>
@@ -1215,13 +1192,12 @@ export default function FAQ() {
         <Image
           src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_3.jpg"
           alt="The Conditional Pair forecasting interface"
-          className="mb-4"
           layout="responsive"
           width={754}
           height={253}
         />
 
-        <p className="mb-4">
+        <p>
           And in the feeds, each possible outcome of the Parent is an arrow, and
           each conditional probability is a bar:
         </p>
@@ -1229,29 +1205,28 @@ export default function FAQ() {
         <Image
           src="https://metaculus-public.s3.us-west-2.amazonaws.com/conditional_faq_1.jpg"
           alt="The Conditional Pair feed tile"
-          className="mb-4"
           layout="responsive"
           width={746}
           height={142}
         />
 
-        <p className="mb-4">Back to the example:</p>
+        <p>Back to the example:</p>
 
-        <p className="mb-4">
+        <p>
           It rains today. The parent resolves Yes. This triggers the second
           conditional (&quot;if No&quot;) to be annulled. It is not scored.
         </p>
 
-        <p className="mb-4">
+        <p>
           You wait a day. This time it doesn&apos;t rain. The Child resolves No.
           This triggers the remaining Conditional (&quot;if Yes&quot;) to
           resolve No. It is scored like a normal Binary Question.
         </p>
 
-        <h4 className="mb-2 mt-4 text-lg font-semibold">
+        <h4 className="text-lg font-semibold">
           How do I create conditional pairs?
         </h4>
-        <p className="mb-4">
+        <p>
           You can create and submit conditional pairs like any other question
           type. On the &apos;
           <a href="https://www.metaculus.com/questions/create/">
@@ -1261,25 +1236,25 @@ export default function FAQ() {
           select Parent and Child questions.
         </p>
 
-        <p className="mb-4">
+        <p>
           Note: You can use question group subquestions as the Parent or Child
           by clicking the Parent or Child button and then either searching for
           the subquestion in the field or pasting the URL for the subquestion.
         </p>
 
-        <p className="mb-4">
+        <p>
           To copy the URL for a subquestion, simply visit a question group page
           and click the &apos;...&apos; more options menu to reveal the Copy
           Link option.
         </p>
 
         <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
+          className="scroll-mt-nav text-xl font-semibold"
           id="navigation-and-filtering"
         >
           How do I find certain questions on Metaculus?
         </h3>
-        <p className="mb-4">
+        <p>
           Questions on Metaculus are sorted by activity by default. Newer
           questions, questions with new comments, recently upvoted questions,
           and questions with many new predictions will appear at the top of the{" "}
@@ -1288,24 +1263,18 @@ export default function FAQ() {
           interest and customize the way you interact with Metaculus.
         </p>
 
-        <h4
-          className="mb-2 mt-4 scroll-mt-nav text-lg font-semibold"
-          id="search-bar"
-        >
+        <h4 className="scroll-mt-nav text-lg font-semibold" id="search-bar">
           Search Bar
         </h4>
-        <p className="mb-4">
+        <p>
           The search bar can be used to find questions using keywords and
           semantic matches. At this time it cannot search comments or users.
         </p>
 
-        <h4
-          className="mb-2 mt-4 scroll-mt-nav text-lg font-semibold"
-          id="filters"
-        >
+        <h4 className="scroll-mt-nav text-lg font-semibold" id="filters">
           Filters
         </h4>
-        <p className="mb-4">
+        <p>
           Questions can be sorted and filtered in a different manner from the
           default using the filters menu. Questions can be filtered by type,
           status and participation. Questions can also be ordered, for example
@@ -1316,20 +1285,17 @@ export default function FAQ() {
         </p>
 
         <h2
-          className="mb-4 mt-8 scroll-mt-nav scroll-mt-nav text-2xl font-bold"
+          className="scroll-mt-nav scroll-mt-nav text-2xl font-bold"
           id="question-resolution"
         >
           Question Resolution
         </h2>
 
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="closers"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="closers">
           What are the &quot;open date&quot;, &quot;close date&quot; and
           &quot;resolve date?&quot;
         </h3>
-        <p className="mb-4">
+        <p>
           When submitting a question, you are asked to specify the closing date
           (when the question is no longer available for predicting) and
           resolution date (when the resolution is expected to occur). The date
@@ -1359,7 +1325,7 @@ export default function FAQ() {
             not binding in any way.
           </li>
         </ul>
-        <p className="mb-4">
+        <p>
           In some cases, questions must resolve at the resolution date according
           to the best available information. In such cases, it becomes important
           to choose the resolution date carefully. Try to set resolution dates
@@ -1370,7 +1336,7 @@ export default function FAQ() {
           &quot;this question resolves as <strong>Yes</strong> if X happens
           before January 1, 2040)&quot;.
         </p>
-        <p className="mb-4">
+        <p>
           The close date <em>must</em> be at least one hour prior to the
           resolution date, but can be much earlier, depending upon the context.
           Here are some guidelines for specifying the close date:
@@ -1401,7 +1367,7 @@ export default function FAQ() {
             discretion of the period of interest.
           </li>
         </ul>
-        <p className="mb-4">
+        <p>
           <strong>Note:</strong> Previous guidance suggested that a question
           should close between 1/2 to 2/3 of the way between the open time and
           resolution time. This was necessary due to the scoring system at the
@@ -1412,13 +1378,10 @@ export default function FAQ() {
           .
         </p>
 
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="timezone"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="timezone">
           What timezone is used for questions?
         </h3>
-        <p className="mb-4">
+        <p>
           For dates and times written in the question, such as &quot;will event
           X happen before January 1, 2030?&quot;, if the timezone is not
           specified{" "}
@@ -1429,7 +1392,7 @@ export default function FAQ() {
           timezone in the resolution criteria, and any timezone specified in the
           text will be used.
         </p>
-        <p className="mb-4">
+        <p>
           For{" "}
           <a href="https://www.metaculus.com/faq/#question-types">date range</a>{" "}
           questions, the dates on the interface are in UTC. Typically the time
@@ -1445,13 +1408,10 @@ export default function FAQ() {
           but not what time of day, it will resolve as noon UTC on that day.
         </p>
 
-        <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
-          id="who-resolves"
-        >
+        <h3 className="scroll-mt-nav text-xl font-semibold" id="who-resolves">
           Who decides the resolution to a question?
         </h3>
-        <p className="mb-4">
+        <p>
           Only Metaculus Administrators can resolve questions. Binary questions
           can resolve <strong>Yes</strong>, <strong>No</strong>,{" "}
           <a href="https://www.metaculus.com/faq/#ambiguous-annulled">
@@ -1466,21 +1426,21 @@ export default function FAQ() {
         </p>
 
         <h3
-          className="mb-3 mt-6 scroll-mt-nav text-xl font-semibold"
+          className="scroll-mt-nav text-xl font-semibold"
           id="ambiguous-annulled"
         >
           What are &quot;Ambiguous&quot; and &quot;Annulled&quot; resolutions?
         </h3>
-        <p className="mb-4">
+        <p>
           Sometimes a question cannot be resolved because the state of the
           world, the <q>truth of the matter</q>, is too uncertain. In these
           cases, the question is resolved as Ambiguous.
         </p>
-        <p className="mb-4">
+        <p>
           Other times, the state of the world is clear, but a key assumption of
           the question was overturned. In these cases, the question is Annulled.
         </p>
-        <p className="mb-4">
+        <p>
           In the same way, when a Conditional turns out to be based on an
           outcome that did not occur, it is Annulled. For example, when a{" "}
           <a href="https://www.metaculus.com/faq/#conditionals">
@@ -1488,29 +1448,29 @@ export default function FAQ() {
           </a>
           &apos;s parent resolves Yes, the <q>if No</q> Conditional is Annulled.
         </p>
-        <p className="mb-4">
+        <p>
           When questions are Annulled or resolved as Ambiguous, they are no
           longer open for forecasting, and they are not scored.
         </p>
-        <p className="mb-4">
+        <p>
           <em>
             If you&apos;d like to read more about why Ambiguous and Annulled
             resolutions are necessary you can expand the section below.
           </em>
         </p>
 
-        <div className="mb-4">
+        <div>
           <p className="cursor-pointer font-semibold">
             Reasons for Ambiguous and Annulled resolutions
           </p>
           <div className="mt-2">
             <h3
-              className="mb-2 mt-4 scroll-mt-nav text-lg font-semibold"
+              className="scroll-mt-nav text-lg font-semibold"
               id="reason-annulled"
             >
               Why was this question Annulled or resolved as Ambiguous?
             </h3>
-            <p className="mb-4">
+            <p>
               An Ambiguous or Annulled resolution generally implies that there
               was some inherent ambiguity in the question, that real-world
               events subverted one of the assumptions of the question, or that
@@ -1521,7 +1481,7 @@ export default function FAQ() {
               consider factors such as fairness to all participating forecasters
               and the underlying incentives toward accurate forecasting.
             </p>
-            <p className="mb-4">
+            <p>
               To avoid this unfairness and provide the most accurate
               information, we resolve all questions in accordance with the
               actual written text of the resolution criteria whenever possible.
@@ -1536,12 +1496,12 @@ export default function FAQ() {
             </p>
 
             <h3
-              className="mb-2 mt-4 scroll-mt-nav text-lg font-semibold"
+              className="scroll-mt-nav text-lg font-semibold"
               id="types-annulled"
             >
               Types of Ambiguous or Annulled Resolutions
             </h3>
-            <p className="mb-4">
+            <p>
               A question&apos;s resolution criteria can be thought of as akin to
               a legal contract. The resolution criteria create a shared
               understanding of what forecasters are aiming to predict, and
@@ -1556,7 +1516,7 @@ export default function FAQ() {
               Additionally, the information provided by the forecasts on the
               question will be poor due to the differing interpretations.
             </p>
-            <p className="mb-4">
+            <p>
               The following sections provide more detail about common reasons we
               resolve questions as Ambiguous or Annul them and some examples.
               Some of these examples could fit into multiple categories, but
@@ -1618,7 +1578,7 @@ export default function FAQ() {
                 </li>
               </ul>
             </ul>
-            <p className="mb-4">
+            <p>
               <strong>Note:</strong> Previously Metaculus only had one
               resolution type &mdash; Ambiguous &mdash; for cases where a
               question could not otherwise be resolved. We&apos;ve since
@@ -1629,12 +1589,12 @@ export default function FAQ() {
             </p>
 
             <h4
-              className="mb-2 mt-4 scroll-mt-nav text-lg font-semibold"
+              className="scroll-mt-nav text-lg font-semibold"
               id="ambiguous-details"
             >
               Ambiguous Resolution
             </h4>
-            <p className="mb-4">
+            <p>
               Ambiguous resolution is reserved for questions where reality is
               not clear. Either because reporting about an event is conflicted
               or unclear about what actually happened, or available material is
@@ -1644,12 +1604,12 @@ export default function FAQ() {
             </p>
 
             <h5
-              className="mb-2 mt-4 scroll-mt-nav text-lg font-semibold"
+              className="scroll-mt-nav text-lg font-semibold"
               id="no-clear-consensus"
             >
               No Clear Consensus
             </h5>
-            <p className="mb-4">
+            <p>
               Questions can also resolve Ambiguous when there is not enough
               information available to arrive at an appropriate resolution. This
               can be because of conflicting or unclear media reports, or because
@@ -1722,12 +1682,12 @@ export default function FAQ() {
           </div>
         </div>
         <h5
-          className="mb-2 mt-4 scroll-mt-nav text-lg font-semibold"
+          className="scroll-mt-nav text-lg font-semibold"
           id="no-clear-consensus"
         >
           No Clear Consensus
         </h5>
-        <p className="mb-4">
+        <p>
           Questions can also resolve Ambiguous when there is not enough
           information available to arrive at an appropriate resolution. This can
           be because of conflicting or unclear media reports, or because a data
@@ -1798,29 +1758,29 @@ export default function FAQ() {
         </ul>
 
         <h4
-          className="mb-2 mt-4 scroll-mt-nav text-lg font-semibold"
+          className="scroll-mt-nav text-lg font-semibold"
           id="annulment-details"
         >
           Annulment
         </h4>
-        <p className="mb-4">
+        <p>
           Annulling a question is reserved for situations where reality is clear
           but the question is not. In other words, the question failed to
           adequately capture a method for clear resolution.
         </p>
-        <p className="mb-4">
+        <p>
           <strong>Note:</strong> Annulment was introduced in April of 2023, so
           while the following examples describe Annulment the questions in
           actuality were resolved as Ambiguous.
         </p>
 
         <h5
-          className="mb-2 mt-4 scroll-mt-nav text-lg font-semibold"
+          className="scroll-mt-nav text-lg font-semibold"
           id="annulled-underspecified"
         >
           The Question Was Underspecified
         </h5>
-        <p className="mb-4">
+        <p>
           Writing good forecasting questions is hard, and it only gets harder
           the farther the question looks into the future. To fully eliminate the
           potential for a question to be Annulled the resolution criteria must
@@ -1834,7 +1794,7 @@ export default function FAQ() {
           find an interpretation that is clearly an appropriate fit for the
           resolution criteria, but this is not always possible.
         </p>
-        <p className="mb-4">
+        <p>
           Here are some examples of Annulment due to underspecified questions:
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
@@ -1908,12 +1868,12 @@ export default function FAQ() {
         </ul>
 
         <h5
-          className="mb-2 mt-4 scroll-mt-nav text-lg font-semibold"
+          className="scroll-mt-nav text-lg font-semibold"
           id="annulled-subverted"
         >
           The Assumptions of the Question Were Subverted
         </h5>
-        <p className="mb-4">
+        <p>
           Questions often contain assumptions in their resolution criteria, many
           of which are unstated. For example, assuming that the underlying
           methodology of a data source will remain the same, assuming that an
@@ -1924,9 +1884,7 @@ export default function FAQ() {
           situations) but due to the difficulty in anticipating these outcomes
           this isn&apos;t always done.
         </p>
-        <p className="mb-4">
-          Here are some examples of Annulment due to subverted assumptions:
-        </p>
+        <p>Here are some examples of Annulment due to subverted assumptions:</p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
             <a href="https://www.metaculus.com/questions/10444/cause-of-flight-5735-crash/">
@@ -2024,12 +1982,12 @@ export default function FAQ() {
         </ul>
 
         <h5
-          className="mb-2 mt-4 scroll-mt-nav text-lg font-semibold"
+          className="scroll-mt-nav text-lg font-semibold"
           id="annulled-imbalanced"
         >
           Imbalanced Outcomes and Consistent Incentives
         </h5>
-        <p className="mb-4">
+        <p>
           Sometimes questions imply imbalanced outcomes, for example where the
           burden of proof for an event to be considered to have occurred is high
           and tips the scales toward a binary question resolving No, or where
@@ -2043,7 +2001,7 @@ export default function FAQ() {
           resolution of Yes or Annulled. This creates a bias in the question and
           also produces bad incentives if the question isn&apos;t Annulled.
         </p>
-        <p className="mb-4">
+        <p>
           The case of imbalanced outcomes and consistent incentives is best
           explained with examples, such as the following:
         </p>
@@ -2446,6 +2404,7 @@ export default function FAQ() {
             question, Metaculus may choose a suitable replacement.
           </p>
         </div>
+        <hr />
         <div>
           <h2
             id="predictions"
@@ -2657,8 +2616,7 @@ export default function FAQ() {
             distribution to be symmetric.
           </p>
         </div>
-
-        {/* <div>
+        <div>
           <h3
             id="community-prediction"
             className="mb-4 scroll-mt-nav text-2xl font-semibold"
@@ -2671,13 +2629,19 @@ export default function FAQ() {
             forecaster opinion while still being fairly insensitive to outliers.
           </p>
           <p>Here&apos;s the mathematical detail:</p>
-          <ul className="ml-5 list-disc">
+          <ul className="ml-5 list-disc space-y-2">
             <li>Keep only the most recent prediction from each forecaster.</li>
             <li>
-              Assign them a number \(n\), from oldest to newest (oldest is
-              \(1\)).
+              <MathJaxContent
+                content={` Assign them a number \\(n\\), from oldest to newest (oldest is
+              \\(1\\)).`}
+              />
             </li>
-            <li>Weight each by \(w(n) \propto e^\sqrt{n}\) before being aggregated.</li>
+            <li>
+              <MathJaxContent
+                content={` Weight each by \\(w(n) \\propto e^{\\sqrt{n}}\\) before being aggregated.`}
+              />
+            </li>
             <ul className="ml-5 list-disc">
               <li>
                 For{" "}
@@ -2703,13 +2667,17 @@ export default function FAQ() {
                 distributions.
               </li>
             </ul>
-            <li>The particular form of the weights means that approximately \(\sqrt{N}\) forecasters need to predict or update their prediction in order to substantially change the Community Prediction on a question that already has \(N\) forecasters.</li>
+            <li>
+              <MathJaxContent
+                content={` The particular form of the weights means that approximately \\(\\sqrt{N}\\) forecasters need to predict or update their prediction in order to substantially change the Community Prediction on a question that already has \\(N\\) forecasters.`}
+              />
+            </li>
           </ul>
           <p>
             Users can hide the Community Prediction from view from within their
             settings.
           </p>
-        </div> */}
+        </div>
 
         <div>
           <h3
@@ -2735,6 +2703,7 @@ export default function FAQ() {
             <a href="/questions/track-record/">track record page</a>.
           </p>
         </div>
+        <hr />
         <div>
           <h2
             id="visibility-of-the-cp-and-mp"
@@ -2816,7 +2785,7 @@ export default function FAQ() {
             From a Public Figure&apos;s page, click Report Prediction and then
             provide
           </p>
-          <ol className="ml-5 list-decimal">
+          <ol className="ml-5 list-inside list-decimal">
             <li>A direct quotation from the prediction news source</li>
             <li>The name of the news source</li>
             <li>A link to the news source</li>
@@ -2973,6 +2942,7 @@ export default function FAQ() {
             you had a forecast, but not the others.
           </p>
         </div>
+        <hr />
         <div>
           <h2
             id="scores-and-medals"
@@ -3020,6 +2990,7 @@ export default function FAQ() {
           </p>
         </div>
 
+        <hr />
         <div>
           <h2
             id="Metaculus Journal"
@@ -3078,7 +3049,7 @@ export default function FAQ() {
             of organizations.
           </p>
         </div>
-
+        <hr />
         <div>
           <h2 id="miscellany" className="mb-4 scroll-mt-nav text-3xl font-bold">
             Miscellany
@@ -3109,7 +3080,7 @@ export default function FAQ() {
           <p>
             Metaculus selects individuals according to the following criteria:
           </p>
-          <ol className="ml-5 list-decimal">
+          <ol className="ml-5 list-inside list-decimal">
             <li>Have scores in the top 2% of all Metaculus forecasters.</li>
             <li>
               Have forecasted on a minimum of 75+ questions that have been
