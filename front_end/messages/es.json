@@ -175,7 +175,7 @@
   "searchOptionFewestComments": "Menos comentarios",
   "searchOptionDateSubmitted": "Fecha de envío",
   "createdBy": "Creado por {{author}}",
-  "onDate": "el {{date}}",
+  "onDate": "el {date}",
   "published": "Publicado",
   "byAuthor": "Autor: {{author}}",
   "estimatedReadingTime": "{minutes} min de lectura",

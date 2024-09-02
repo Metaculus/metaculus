@@ -175,7 +175,7 @@
   "searchOptionFewestComments": "Nejméně komentářů",
   "searchOptionDateSubmitted": "Datum zveřejnění",
   "createdBy": "Vytvořeno {{author}}",
-  "onDate": "dne {{date}}",
+  "onDate": "dne {date}",
   "published": "Zveřejněno",
   "byAuthor": "autorem {{author}}",
   "estimatedReadingTime": "čtení na {{minutes}} minut",

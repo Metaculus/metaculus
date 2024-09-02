@@ -174,7 +174,7 @@
   "searchOptionFewestComments": "最少評論",
   "searchOptionDateSubmitted": "提交日期",
   "createdBy": "由 {{author}} 創建",
-  "onDate": "於 {{date}}",
+  "onDate": "於 {date}",
   "published": "已發佈",
   "byAuthor": "由 {{author}} 創作",
   "estimatedReadingTime": "{minutes} 分鐘閱讀",

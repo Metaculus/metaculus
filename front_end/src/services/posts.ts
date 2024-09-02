@@ -1,6 +1,11 @@
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
 import { NewsArticle } from "@/types/news";
-import { Post, PostSubscription, PostWithForecasts } from "@/types/post";
+import {
+  Post,
+  PostSubscription,
+  PostWithForecasts,
+  PostWithSubscriptions,
+} from "@/types/post";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post, put } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
@@ -97,6 +102,10 @@ class PostsApi {
       `/posts/${postId}/subscriptions`,
       subscriptions
     );
+  }
+
+  static async getAllSubscriptions() {
+    return get<PostWithSubscriptions[]>(`/posts/subscriptions`, {});
   }
 
   static async getRelatedNews(postId: number) {

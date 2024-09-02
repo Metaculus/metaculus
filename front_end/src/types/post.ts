@@ -163,24 +163,35 @@ export type PostSubscription =
 export type PostSubscriptionNewComments = {
   type: PostSubscriptionType.NEW_COMMENTS;
   comments_frequency: number;
+  created_at: string;
 };
 
 export type PostSubscriptionMilestone = {
   type: PostSubscriptionType.MILESTONE;
   milestone_step: number;
+  created_at: string;
 };
 
 export type PostSubscriptionStatusChange = {
   type: PostSubscriptionType.STATUS_CHANGE;
+  created_at: string;
 };
 
 export type PostSubscriptionCPCHange = {
   type: PostSubscriptionType.CP_CHANGE;
   cp_change_threshold: CPChangeThreshold;
+  created_at: string;
 };
 
 export type PostSubscriptionSpecificTime = {
   type: PostSubscriptionType.SPECIFIC_TIME;
   next_trigger_datetime: string;
   recurrence_interval: string;
+  created_at: string;
+};
+
+export type PostWithSubscriptions = {
+  id: number;
+  title: string;
+  subscriptions: PostSubscription[];
 };
