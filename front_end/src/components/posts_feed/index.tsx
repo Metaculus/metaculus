@@ -15,17 +15,17 @@ type Props = {
 };
 
 const AwaitedPostsFeed: FC<Props> = async ({ filters, type, topics }) => {
-    if (
-      topics &&
-      filters.topic &&
-      !topics?.some((topic) => topic.slug === filters.topic)
-    ) {
-      return (
-        <div className="text-center text-gray-500 dark:text-gray-500-dark">
-          Such topic does not exist
-        </div>
-      );
-    }
+  if (
+    topics &&
+    filters.topic &&
+    !topics?.some((topic) => topic.slug === filters.topic)
+  ) {
+    return (
+      <div className="text-center text-gray-500 dark:text-gray-500-dark">
+        Such topic does not exist
+      </div>
+    );
+  }
 
   const { results: questions, count } = await PostsApi.getPostsWithCP({
     ...filters,

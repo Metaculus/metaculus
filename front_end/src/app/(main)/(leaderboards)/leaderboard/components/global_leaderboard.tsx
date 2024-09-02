@@ -25,21 +25,21 @@ const GlobalLeaderboard: FC<Props> = async ({
   category,
   cardSized,
 }) => {
-    const leaderboardDetails = await LeaderboardApi.getGlobalLeaderboard(
-      startTime,
-      endTime,
-      leaderboardType
-    );
+  const leaderboardDetails = await LeaderboardApi.getGlobalLeaderboard(
+    startTime,
+    endTime,
+    leaderboardType
+  );
 
-    return (
-      <LeaderboardTable
-        duration={duration}
-        year={year}
-        category={category}
-        leaderboardDetails={leaderboardDetails}
-        cardSized={cardSized}
-      />
-    );
+  return (
+    <LeaderboardTable
+      duration={duration}
+      year={year}
+      category={category}
+      leaderboardDetails={leaderboardDetails}
+      cardSized={cardSized}
+    />
+  );
 };
 
 export default WithServerComponentErrorBoundary(GlobalLeaderboard);

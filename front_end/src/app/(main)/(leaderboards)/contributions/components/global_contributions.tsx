@@ -20,21 +20,21 @@ const GlobalContributions: FC<Props> = async ({
   startTime,
   category,
 }) => {
-    const contributionsDetails = await LeaderboardApi.getContributions({
-      type: "global",
-      leaderboardType,
-      userId,
-      startTime,
-      endTime,
-    });
+  const contributionsDetails = await LeaderboardApi.getContributions({
+    type: "global",
+    leaderboardType,
+    userId,
+    startTime,
+    endTime,
+  });
 
-    return (
-      <ContributionsTable
-        category={category}
-        leaderboardEntry={contributionsDetails.leaderboard_entry}
-        contributions={contributionsDetails.contributions}
-      />
-    );
+  return (
+    <ContributionsTable
+      category={category}
+      leaderboardEntry={contributionsDetails.leaderboard_entry}
+      contributions={contributionsDetails.contributions}
+    />
+  );
 };
 
 export default WithServerComponentErrorBoundary(GlobalContributions);

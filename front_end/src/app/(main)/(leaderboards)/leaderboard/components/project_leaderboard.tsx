@@ -24,37 +24,37 @@ const ProjectLeaderboard: FC<Props> = async ({
   isQuestionSeries,
   userId,
 }) => {
-    const leaderboardDetails = await LeaderboardApi.getProjectLeaderboard(
-      projectId,
-      leaderboardType
-    );
+  const leaderboardDetails = await LeaderboardApi.getProjectLeaderboard(
+    projectId,
+    leaderboardType
+  );
 
-    if (!leaderboardDetails || !leaderboardDetails.entries.length) {
-      return null;
-    }
+  if (!leaderboardDetails || !leaderboardDetails.entries.length) {
+    return null;
+  }
 
-    const prizePoolValue = !isNaN(Number(prizePool)) ? Number(prizePool) : 0;
+  const prizePoolValue = !isNaN(Number(prizePool)) ? Number(prizePool) : 0;
 
-    const t = await getTranslations();
+  const t = await getTranslations();
 
-    const leaderboardTitle = isQuestionSeries
-      ? t("openLeaderboard")
-      : t("leaderboard");
+  const leaderboardTitle = isQuestionSeries
+    ? t("openLeaderboard")
+    : t("leaderboard");
 
-    return (
-      <SectionToggle
-        title={leaderboardTitle}
-        className={classNames({
-          "bg-gold-200 dark:bg-gold-200-dark": !isQuestionSeries,
-        })}
-      >
-        <ProjectLeaderboardTable
-          leaderboardDetails={leaderboardDetails}
-          prizePool={prizePoolValue}
-          userId={userId}
-        />
-      </SectionToggle>
-    );
+  return (
+    <SectionToggle
+      title={leaderboardTitle}
+      className={classNames({
+        "bg-gold-200 dark:bg-gold-200-dark": !isQuestionSeries,
+      })}
+    >
+      <ProjectLeaderboardTable
+        leaderboardDetails={leaderboardDetails}
+        prizePool={prizePoolValue}
+        userId={userId}
+      />
+    </SectionToggle>
+  );
 };
 
 export default WithServerComponentErrorBoundary(ProjectLeaderboard);
