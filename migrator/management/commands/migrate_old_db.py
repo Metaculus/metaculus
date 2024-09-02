@@ -34,7 +34,7 @@ from scoring.models import populate_medal_exclusion_records
 
 def print_duration(text, task_start, global_start) -> datetime:
     print(
-        "\033[92m"
+        "\033[K\033[92m"
         f"{text} ---"
         f"Task Duration:{str(timezone.now() - task_start).split('.')[0]}, "
         f"Total Runtime:{str(timezone.now() - global_start).split('.')[0]}"

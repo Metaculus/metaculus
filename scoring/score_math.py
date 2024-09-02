@@ -19,17 +19,25 @@ class AggregationEntry:
 
 def get_geometric_means(
     forecasts: list[Forecast | AggregateForecast],
+    include_bots: bool = False,
 ) -> list[AggregationEntry]:
+    included_forecasts = forecasts
+    if not include_bots:
+        included_forecasts = [
+            f
+            for f in forecasts
+            if (isinstance(f, AggregateForecast) or f.author.is_bot is False)
+        ]
     geometric_means = []
     timesteps: set[datetime] = set()
-    for forecast in forecasts:
+    for forecast in included_forecasts:
         timesteps.add(forecast.start_time.timestamp())
         if forecast.end_time:
             timesteps.add(forecast.end_time.timestamp())
     for timestep in sorted(timesteps):
         prediction_values = [
             f.get_pmf()
-            for f in forecasts
+            for f in included_forecasts
             if f.start_time.timestamp() <= timestep
             and (f.end_time is None or f.end_time.timestamp() > timestep)
         ]
@@ -158,9 +166,12 @@ def evaluate_forecasts_peer_accuracy(
     forecast_horizon_end: float,
     question_type: str,
     geometric_means: list[AggregationEntry] | None = None,
+    include_bots_in_aggregates: bool = False,
 ) -> list[ForecastScore]:
     base_forecasts = base_forecasts or forecasts
-    geometric_mean_forecasts = geometric_means or get_geometric_means(base_forecasts)
+    geometric_mean_forecasts = geometric_means or get_geometric_means(
+        base_forecasts, include_bots_in_aggregates
+    )
     for gm in geometric_mean_forecasts:
         gm.timestamp = max(gm.timestamp, forecast_horizon_start)
     total_duration = forecast_horizon_end - forecast_horizon_start
@@ -216,9 +227,12 @@ def evaluate_forecasts_peer_spot_forecast(
     spot_forecast_timestamp: float,
     question_type: str,
     geometric_means: list[AggregationEntry] | None = None,
+    include_bots_in_aggregates: bool = False,
 ) -> list[ForecastScore]:
     base_forecasts = base_forecasts or forecasts
-    geometric_mean_forecasts = geometric_means or get_geometric_means(base_forecasts)
+    geometric_mean_forecasts = geometric_means or get_geometric_means(
+        base_forecasts, include_bots_in_aggregates
+    )
     g = None
     for gm in geometric_mean_forecasts[::-1]:
         if gm.timestamp < spot_forecast_timestamp:
@@ -254,7 +268,6 @@ def evaluate_forecasts_legacy_relative(
     resolution_bucket: int,
     forecast_horizon_start: float,
     actual_close_time: float,
-    forecast_horizon_end: float,
 ) -> list[ForecastScore]:
     baseline_forecasts = [
         AggregationEntry(
@@ -324,7 +337,9 @@ def evaluate_question(
 
     ScoreTypes = Score.ScoreTypes
     if ScoreTypes.PEER in score_types:
-        geometric_means = get_geometric_means(user_forecasts)
+        geometric_means = get_geometric_means(
+            user_forecasts, include_bots=question.include_bots_in_aggregates
+        )
 
     scores: list[Score] = []
     for score_type in score_types:
@@ -414,7 +429,6 @@ def evaluate_question(
                     resolution_bucket,
                     forecast_horizon_start,
                     actual_close_time,
-                    forecast_horizon_end,
                 )
                 community_scores = evaluate_forecasts_legacy_relative(
                     community_forecasts,
@@ -422,7 +436,6 @@ def evaluate_question(
                     resolution_bucket,
                     forecast_horizon_start,
                     actual_close_time,
-                    forecast_horizon_end,
                 )
             case other:
                 raise NotImplementedError(f"Score type {other} not implemented")

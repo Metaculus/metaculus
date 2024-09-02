@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import numpy as np
 from django.db.models import QuerySet, Q
 from django.utils import timezone
+from decimal import Decimal
 
 from comments.models import Comment
 from posts.models import Post
@@ -37,7 +38,10 @@ def score_question(
         Score.objects.filter(question=question, score_type__in=score_types)
     )
     new_scores = evaluate_question(
-        question, resolution_bucket, score_types, spot_forecast_time
+        question,
+        resolution_bucket,
+        score_types,
+        spot_forecast_time,
     )
     for new_score in new_scores:
         is_new = True
@@ -75,6 +79,13 @@ def generate_scoring_leaderboard_entries(
         question__in=questions,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
+    if leaderboard.finalize_time:
+        calculated_scores = calculated_scores.filter(
+            question__scheduled_close_time__lte=leaderboard.finalize_time
+        )
+        archived_scores = archived_scores.filter(
+            question__scheduled_close_time__lte=leaderboard.finalize_time
+        )
     scores: list[Score | ArchivedScore]
     if archived_scores.exists():
         scores = list(archived_scores)
@@ -111,7 +122,7 @@ def generate_scoring_leaderboard_entries(
                 calculated_on=now,
             )
         entries[identifier].score += score.score
-        entries[identifier].coverage += score.coverage / maximum_coverage
+        entries[identifier].coverage += score.coverage
         entries[identifier].contribution_count += 1
     if leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL:
         for entry in entries.values():
@@ -119,9 +130,16 @@ def generate_scoring_leaderboard_entries(
     elif leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL_LEGACY:
         for entry in entries.values():
             entry.score /= max(40, entry.contribution_count)
+    elif leaderboard.score_type in (
+        Leaderboard.ScoreTypes.PEER_TOURNAMENT,
+        Leaderboard.ScoreTypes.SPOT_PEER_TOURNAMENT,
+    ):
+        for entry in entries.values():
+            entry.take = max(entry.score, 0) ** 2
     elif leaderboard.score_type == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
         for entry in entries.values():
-            entry.take = max(entry.coverage * np.exp(entry.score), 0)
+            entry.coverage /= maximum_coverage
+            entry.take = entry.coverage * np.exp(entry.score)
         return sorted(entries.values(), key=lambda entry: entry.take, reverse=True)
     return sorted(entries.values(), key=lambda entry: entry.score, reverse=True)
 
@@ -181,16 +199,9 @@ def generate_question_writing_leaderboard_entries(
     for question in questions:
         forecasts_during_period = question.user_forecasts.filter(
             start_time__gte=leaderboard.start_time,
-            # start_time__lte=min(
-            #     [
-            #         leaderboard.end_time,
-            #         question.actual_close_time or question.scheduled_close_time,
-            #         question.actual_resolve_time or question.scheduled_resolve_time,
-            #     ]
-            # ),
             start_time__lte=leaderboard.end_time,
         )
-        forecasters = set([forecast.author_id for forecast in forecasts_during_period])
+        forecasters = set(forecast.author_id for forecast in forecasts_during_period)
         post = question.get_post()
         forecaster_ids_for_post[post].update(forecasters)
 
@@ -201,7 +212,7 @@ def generate_question_writing_leaderboard_entries(
         # we use the h-index by number of forecasters divided by 10
         scores_for_author[author].append(len(forecaster_ids) / 10)
 
-    user_entries: dict[User, LeaderboardEntry] = {}
+    user_entries: dict[User, LeaderboardEntry] = dict()
     for user, scores in scores_for_author.items():
         if user not in user_entries:
             user_entries[user] = LeaderboardEntry(
@@ -213,8 +224,8 @@ def generate_question_writing_leaderboard_entries(
         score = decimal_h_index(scores)
         user_entries[user].score = score
         user_entries[user].contribution_count = len(scores)
-    results = [entry for entry in user_entries.values() if entry.score > 0]
-    return sorted(results, key=lambda entry: entry.score, reverse=True)
+    results = [e for e in user_entries.values() if e.score > 0]
+    return sorted(results, key=lambda e: e.score, reverse=True)
 
 
 def generate_project_leaderboard(
@@ -239,26 +250,18 @@ def generate_project_leaderboard(
     return generate_scoring_leaderboard_entries(questions, leaderboard)
 
 
-def update_project_leaderboard(
-    project: Project,
-    leaderboard: Leaderboard | None = None,
+def assign_ranks(
+    entries: list[LeaderboardEntry],
+    leaderboard: Leaderboard,
+    include_bots: bool = False,
 ) -> list[LeaderboardEntry]:
-    leaderboard = leaderboard or project.primary_leaderboard
-    if not leaderboard:
-        raise ValueError("Leaderboard not found")
-
-    leaderboard.project = project
-    leaderboard.save()
-
-    seen = set()
-    previous_entries = list(leaderboard.entries.all())
-    new_entries = generate_project_leaderboard(project, leaderboard)
-
-    # assign ranks (and medals if finalized)
-    if leaderboard.score_type == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
-        new_entries.sort(key=lambda entry: entry.take, reverse=True)
+    RelativeLegacy = Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
+    if leaderboard.score_type == RelativeLegacy:
+        entries.sort(key=lambda entry: entry.take, reverse=True)
     else:
-        new_entries.sort(key=lambda entry: entry.score, reverse=True)
+        entries.sort(key=lambda entry: entry.score, reverse=True)
+
+    # set up exclusions
     exclusion_records = MedalExclusionRecord.objects.all()
     if leaderboard.start_time:
         exclusion_records = exclusion_records.filter(
@@ -268,60 +271,113 @@ def update_project_leaderboard(
         exclusion_records = exclusion_records.filter(
             start_time__lte=leaderboard.finalize_time
         )
-    excluded_users = exclusion_records.values_list("user", flat=True)
-    excluded_user_ids = set([r.user.id for r in exclusion_records])
-    # medals
-    gold_rank = silver_rank = bronze_rank = 0
-    if (
-        (leaderboard.project.type != "question_series")
-        and leaderboard.finalize_time
-        and (timezone.now() > leaderboard.finalize_time)
-    ):
-        entry_count = len(
-            [
-                e
-                for e in new_entries
-                if (e.user_id and (e.user_id not in excluded_user_ids))
-            ]
-        )
-        gold_rank = max(np.ceil(0.01 * entry_count), 1)
-        silver_rank = max(np.ceil(0.02 * entry_count), 2)
-        bronze_rank = max(np.ceil(0.05 * entry_count), 3)
+    excluded_ids: set[int | None] = set(
+        exclusion_records.values_list("user", flat=True)
+    )
+    for entry in entries:
+        if entry.user:
+            if not include_bots and entry.user.is_bot:
+                excluded_ids.add(entry.user_id)
+            if not entry.user.is_active:
+                excluded_ids.add(entry.user_id)
+            # TODO: add exclusions for moderators (not yet migrated)
+            # Also add similar exclusions to other leaderboard types
+    excluded_ids.add(None)  # aggregates are excluded
+
+    # set ranks
     rank = 1
     prev_entry = None
-    for entry in new_entries:
-        if (entry.user_id is None) or (entry.user_id in excluded_users):
-            entry.excluded = True
-            entry.medal = None
-            entry.rank = rank
-            if (
-                leaderboard.score_type
-                == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
-            ):
-                if prev_entry and (entry.take == prev_entry.take):
-                    entry.rank = prev_entry.rank
-            else:
-                if prev_entry and (entry.score == prev_entry.score):
-                    entry.rank = prev_entry.rank
-            continue
-        if rank <= gold_rank:
-            entry.medal = LeaderboardEntry.Medals.GOLD
-        elif rank <= silver_rank:
-            entry.medal = LeaderboardEntry.Medals.SILVER
-        elif rank <= bronze_rank:
-            entry.medal = LeaderboardEntry.Medals.BRONZE
+    for entry in entries:
         entry.rank = rank
-        if leaderboard.score_type == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT:
-            if prev_entry and (entry.take == prev_entry.take):
+        if leaderboard.score_type == RelativeLegacy:
+            if prev_entry and np.isclose(entry.take, prev_entry.take):
                 entry.rank = prev_entry.rank
-                entry.medal = prev_entry.medal
         else:
-            if prev_entry and (entry.score == prev_entry.score):
+            if prev_entry and np.isclose(entry.score, prev_entry.score):
                 entry.rank = prev_entry.rank
-                entry.medal = prev_entry.medal
         prev_entry = entry
-        rank += 1
+        if entry.user_id in excluded_ids:
+            entry.excluded = True
+        else:
+            rank += 1
 
+    return entries
+
+
+def assign_medals(
+    entries: list[LeaderboardEntry],
+) -> list[LeaderboardEntry]:
+    entries.sort(key=lambda entry: entry.rank)
+    entry_count = len([e for e in entries if not e.excluded])
+    gold_rank = max(np.ceil(0.01 * entry_count), 1)
+    silver_rank = max(np.ceil(0.02 * entry_count), 2)
+    bronze_rank = max(np.ceil(0.05 * entry_count), 3)
+    for entry in entries:
+        if entry.excluded:
+            continue
+        elif entry.rank <= gold_rank:
+            entry.medal = LeaderboardEntry.Medals.GOLD
+        elif entry.rank <= silver_rank:
+            entry.medal = LeaderboardEntry.Medals.SILVER
+        elif entry.rank <= bronze_rank:
+            entry.medal = LeaderboardEntry.Medals.BRONZE
+        else:
+            break
+    return entries
+
+
+def assign_prizes(
+    entries: list[LeaderboardEntry], prize_pool: Decimal
+) -> list[LeaderboardEntry]:
+    included = [e for e in entries if not e.excluded]
+    if total_take := sum(e.take for e in included):
+        for entry in included:
+            entry.percent_prize = entry.take / total_take
+            entry.prize = float(prize_pool) * entry.percent_prize
+    return entries
+
+
+def update_project_leaderboard(
+    project: Project,
+    leaderboard: Leaderboard | None = None,
+) -> list[LeaderboardEntry]:
+    leaderboard = leaderboard or project.primary_leaderboard
+    if not leaderboard:
+        raise ValueError("Leaderboard not found")
+    leaderboard.project = project
+    leaderboard.save()
+
+    # new entries
+    new_entries = generate_project_leaderboard(project, leaderboard)
+
+    # assign ranks
+    new_entries = assign_ranks(
+        new_entries,
+        leaderboard,
+        include_bots=project.include_bots_in_leaderboard,
+    )
+
+    # check if we're ready to finalize with medals and prizes
+    if (
+        (
+            leaderboard.project.type
+            in [
+                Project.ProjectTypes.SITE_MAIN,
+                Project.ProjectTypes.TOURNAMENT,
+            ]
+        )
+        and leaderboard.finalize_time
+        and (timezone.now() >= leaderboard.finalize_time)
+    ):
+        # assign medals
+        new_entries = assign_medals(new_entries)
+        # add prize if applicable
+        if project.prize_pool:
+            new_entries = assign_prizes(new_entries, project.prize_pool)
+
+    # save entries
+    seen = set()
+    previous_entries = list(leaderboard.entries.all())
     for new_entry in new_entries:
         new_entry.leaderboard = leaderboard
         for previous_entry in previous_entries:
@@ -412,21 +468,24 @@ def get_contributions(
         # return contributions[: int(h_index) + 1]
         return contributions
 
-    archived_scores = list(
-        ArchivedScore.objects.filter(
-            question__in=questions,
-            user=user,
-            score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
-        )
+    calculated_scores = Score.objects.filter(
+        question__in=questions,
+        user=user,
+        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
-    calculated_scores = list(
-        Score.objects.filter(
-            question__in=questions,
-            user=user,
-            score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
-        )
+    archived_scores = ArchivedScore.objects.filter(
+        question__in=questions,
+        user=user,
+        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
-    scores = archived_scores
+    if leaderboard.finalize_time:
+        calculated_scores = calculated_scores.filter(
+            question__scheduled_close_time__lte=leaderboard.finalize_time
+        )
+        archived_scores = archived_scores.filter(
+            question__scheduled_close_time__lte=leaderboard.finalize_time
+        )
+    scores = list(archived_scores)
     for score in calculated_scores:
         found = False
         for archived_score in archived_scores:
@@ -461,30 +520,3 @@ def get_contributions(
         ]
 
     return contributions
-
-
-def hydrate_take(
-    leaderboard_entries: list[LeaderboardEntry] | QuerySet[LeaderboardEntry],
-    leaderboard: Leaderboard,
-) -> list[LeaderboardEntry] | QuerySet[LeaderboardEntry]:
-    # TODO: just add take and percent_prize to model instance
-    total_take = 0
-    for entry in leaderboard_entries:
-        if entry.excluded:
-            setattr(entry, "take", 0)
-        else:
-            if (
-                leaderboard.score_type
-                == Leaderboard.ScoreTypes.RELATIVE_LEGACY_TOURNAMENT
-            ):
-                take = max(entry.coverage * np.exp(entry.score), 0)
-            else:
-                take = max(entry.score, 0) ** 2
-            setattr(entry, "take", take)
-            total_take += take
-    for entry in leaderboard_entries:
-        if total_take == 0:
-            setattr(entry, "percent_prize", 0)
-        else:
-            setattr(entry, "percent_prize", entry.take / total_take)
-    return leaderboard_entries

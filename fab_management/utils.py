@@ -132,7 +132,7 @@ def submit_questions(
             )
 
             question.cp_reveal_time = question.scheduled_close_time
-            question.include_bots_in_aggregations = True
+            question.include_bots_in_aggregates = True
             question.save()
             post = Post(
                 title=question.title,

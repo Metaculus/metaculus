@@ -49,6 +49,10 @@ class Question(TimeStampedModel):
     forecasts_count: int = 0
     request_user_forecasts: list["Forecast"]
 
+    # utility
+    objects: models.Manager["Question"] = QuestionManager()
+
+    # Common fields
     class QuestionType(models.TextChoices):
         BINARY = "binary"
         NUMERIC = "numeric"
@@ -56,14 +60,16 @@ class Question(TimeStampedModel):
         MULTIPLE_CHOICE = "multiple_choice"
 
     type = models.CharField(max_length=20, choices=QuestionType.choices)
-    title = models.CharField(max_length=2000)
+    resolution = models.TextField(null=True, blank=True)
+    include_bots_in_aggregates = models.BooleanField(default=False)
 
+    # description fields
+    title = models.CharField(max_length=2000)
     description = models.TextField(blank=True)
     resolution_criteria = models.TextField(blank=True)
     fine_print = models.TextField(blank=True)
 
-    label = models.TextField(blank=True, null=True)
-
+    # time fields
     open_time = models.DateTimeField(db_index=True, null=True, blank=True)
     scheduled_close_time = models.DateTimeField(
         db_index=True,
@@ -77,32 +83,26 @@ class Question(TimeStampedModel):
         blank=False,
         default=timezone.make_aware(timezone.now().max),
     )
-
     actual_resolve_time = models.DateTimeField(db_index=True, null=True, blank=True)
     resolution_set_time = models.DateTimeField(db_index=True, null=True, blank=True)
     actual_close_time = models.DateTimeField(db_index=True, null=True, blank=True)
     cp_reveal_time = models.DateTimeField(null=True, blank=True)
 
+    # continuous range fields
     range_max = models.FloatField(null=True, blank=True)
     range_min = models.FloatField(null=True, blank=True)
     zero_point = models.FloatField(null=True, blank=True)
-
     open_upper_bound = models.BooleanField(null=True, blank=True)
     open_lower_bound = models.BooleanField(null=True, blank=True)
+
+    # list of multiple choice option labels
     options = ArrayField(models.CharField(max_length=200), blank=True, null=True)
-    composed_forecasts = models.JSONField(
-        null=True, blank=True, editable=False
-    )  # DEPRECATED
 
     # Legacy field that will be removed
     possibilities = models.JSONField(null=True, blank=True)
 
-    # Common fields
-    resolution = models.TextField(null=True, blank=True)
-
-    objects: models.Manager["Question"] = QuestionManager()
-
     # Group
+    label = models.TextField(blank=True, null=True)
     group = models.ForeignKey(
         "GroupOfQuestions",
         null=True,
@@ -153,7 +153,10 @@ class Question(TimeStampedModel):
                 continue
             if forecast_horizon_end > gl_end + timedelta(days=3):
                 continue
-            if self.resolution_set_time > gl_end + timedelta(days=100):
+            if (
+                self.resolution_set_time
+                and self.resolution_set_time > gl_end + timedelta(days=100)
+            ):
                 # we allow for a 100 day buffer after the global leaderboard closes
                 # for questions to be resolved
                 continue
@@ -200,6 +203,10 @@ class GroupOfQuestions(TimeStampedModel):
 
 
 class Forecast(models.Model):
+    # typing
+    id: int
+    author_id: int
+
     start_time = models.DateTimeField(
         help_text="Begining time when this prediction is active", db_index=True
     )
