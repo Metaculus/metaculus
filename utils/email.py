@@ -3,6 +3,7 @@ import logging
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from metaculus_web.settings import SEND_ALL_MAIL_TO
 
 from misc.tasks import send_email_async
 
@@ -16,6 +17,9 @@ def send_email_with_template(
         template_name=template_name, context=context
     )
     plain_message = strip_tags(convert_to_html_content)
+
+    if SEND_ALL_MAIL_TO:
+        to = SEND_ALL_MAIL_TO
 
     send_email_async.send(
         subject=str(subject),

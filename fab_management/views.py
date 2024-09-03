@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from comments.models import Comment
 from projects.models import Project
+
 # from metac_account.models.user import User
 from .utils import (
     get_fab_tournament,

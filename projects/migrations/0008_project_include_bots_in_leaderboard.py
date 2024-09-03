@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects', '0007_project_add_posts_to_main_feed'),
+        ("projects", "0007_project_add_posts_to_main_feed"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='include_bots_in_leaderboard',
+            model_name="project",
+            name="include_bots_in_leaderboard",
             field=models.BooleanField(default=False),
         ),
     ]

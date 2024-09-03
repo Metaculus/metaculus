@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('scoring', '0012_alter_archivedscore_aggregation_method_and_more'),
+        ("scoring", "0012_alter_archivedscore_aggregation_method_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='leaderboardentry',
-            name='percent_prize',
+            model_name="leaderboardentry",
+            name="percent_prize",
             field=models.FloatField(null=True),
         ),
         migrations.AddField(
-            model_name='leaderboardentry',
-            name='take',
+            model_name="leaderboardentry",
+            name="take",
             field=models.FloatField(null=True),
         ),
     ]
