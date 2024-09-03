@@ -159,7 +159,6 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
             post={post}
             subscription={subscription as PostSubscriptionSpecificTime}
             onChange={(name, value) => {
-              console.log("CHANGED: ", subscription.type, name, value);
               handleSubscriptionChange(subscription.type, name, value);
             }}
           />
