@@ -6,6 +6,7 @@ import { getGroupQuestionsTimestamps } from "@/utils/charts";
 import { sortGroupPredictionOptions } from "@/utils/questions";
 import ContinuousGroupTimeline from "./continuous_group_timeline";
 import BinaryGroupChart from "./detailed_group_card/binary_group_chart";
+import { GroupOfQuestionsGraphType } from "@/types/charts";
 
 type Props = {
   post: PostWithForecasts;
@@ -19,7 +20,8 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
 
   if (
     !groupType ||
-    post.group_of_questions?.graph_type === "multiple_choice_graph"
+    post.group_of_questions?.graph_type ===
+      GroupOfQuestionsGraphType.MultipleChoiceGraph
   ) {
     return null;
   }

@@ -11,6 +11,7 @@ import { sortGroupPredictionOptions } from "@/utils/questions";
 
 import BinaryGroupChart from "./binary_group_chart";
 import ContinuousGroupTimeline from "../continuous_group_timeline";
+import { GroupOfQuestionsGraphType } from "@/types/charts";
 
 type Props = {
   questions: QuestionWithForecasts[];
@@ -32,7 +33,7 @@ const DetailedGroupCard: FC<Props> = ({
   }
 
   switch (graphType) {
-    case "multiple_choice_graph": {
+    case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
       const sortedQuestions = sortGroupPredictionOptions(
         questions as QuestionWithNumericForecasts[]
       );
@@ -59,12 +60,14 @@ const DetailedGroupCard: FC<Props> = ({
           );
       }
     }
-    default:
+    case GroupOfQuestionsGraphType.FanGraph:
       return (
         <NumericGroupChart
           questions={questions as QuestionWithNumericForecasts[]}
         />
       );
+    default:
+      return null;
   }
 };
 
