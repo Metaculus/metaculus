@@ -283,6 +283,12 @@ def migrate_projects(site_ids: list[int] = None):
 
     # Migrate Categories
     for cat_obj in paginated_query("SELECT * FROM metac_question_category"):
+        category_site_id = int(cat_obj["id"].split("/")[0])
+
+        # Skip categories from other sites
+        if category_site_id not in site_ids:
+            continue
+
         project = create_category(cat_obj)
 
         try:
