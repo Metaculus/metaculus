@@ -89,7 +89,9 @@ export default async function IndividualQuestion({
     postData.user_permission === ProjectPermissions.CREATOR;
 
   const questionTitle = getQuestionTitle(postData);
-
+  const isClosed = postData.actual_close_time
+    ? new Date(postData.actual_close_time).getTime() < Date.now()
+    : false;
   return (
     <EmbedModalContextProvider>
       <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4">
@@ -137,12 +139,8 @@ export default async function IndividualQuestion({
               <DetailedGroupCard
                 questions={postData.group_of_questions.questions}
                 preselectedQuestionId={preselectedGroupQuestionId}
-                isClosed={
-                  postData.actual_close_time
-                    ? new Date(postData.actual_close_time).getTime() <
-                      Date.now()
-                    : false
-                }
+                isClosed={isClosed}
+                graphType={postData.group_of_questions.graph_type}
               />
             )}
 
@@ -152,17 +150,15 @@ export default async function IndividualQuestion({
                 conditional={
                   postData.conditional as PostConditional<QuestionWithNumericForecasts>
                 }
-                isClosed={
-                  postData.actual_close_time
-                    ? new Date(postData.actual_close_time).getTime() <
-                      Date.now()
-                    : false
-                }
+                isClosed={isClosed}
               />
             )}
 
             {!!postData.group_of_questions && (
-              <ContinuousGroupTimeline post={postData} />
+              <ContinuousGroupTimeline
+                post={postData}
+                preselectedQuestionId={preselectedGroupQuestionId}
+              />
             )}
 
             <BackgroundInfo post={postData} />

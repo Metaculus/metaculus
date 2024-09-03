@@ -10,9 +10,11 @@ import { getGroupQuestionsTimestamps } from "@/utils/charts";
 import { sortGroupPredictionOptions } from "@/utils/questions";
 
 import BinaryGroupChart from "./binary_group_chart";
+import ContinuousGroupTimeline from "../continuous_group_timeline";
 
 type Props = {
   questions: QuestionWithForecasts[];
+  graphType: string;
   preselectedQuestionId?: number;
   isClosed?: boolean;
 };
@@ -21,6 +23,7 @@ const DetailedGroupCard: FC<Props> = ({
   questions,
   preselectedQuestionId,
   isClosed,
+  graphType,
 }) => {
   const groupType = questions.at(0)?.type;
 
@@ -28,24 +31,35 @@ const DetailedGroupCard: FC<Props> = ({
     return <div>Forecasts data is empty</div>;
   }
 
-  switch (groupType) {
-    case QuestionType.Binary: {
+  switch (graphType) {
+    case "multiple_choice_graph": {
       const sortedQuestions = sortGroupPredictionOptions(
         questions as QuestionWithNumericForecasts[]
       );
       const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
-
-      return (
-        <BinaryGroupChart
-          questions={sortedQuestions}
-          timestamps={timestamps}
-          preselectedQuestionId={preselectedQuestionId}
-          isClosed={isClosed}
-        />
-      );
+      switch (groupType) {
+        case QuestionType.Binary: {
+          return (
+            <BinaryGroupChart
+              questions={sortedQuestions}
+              timestamps={timestamps}
+              preselectedQuestionId={preselectedQuestionId}
+              isClosed={isClosed}
+            />
+          );
+        }
+        case QuestionType.Numeric:
+        case QuestionType.Date:
+          return (
+            <ContinuousGroupTimeline
+              questions={sortedQuestions}
+              timestamps={timestamps}
+              isClosed={isClosed}
+            />
+          );
+      }
     }
-    case QuestionType.Numeric:
-    case QuestionType.Date:
+    default:
       return (
         <NumericGroupChart
           questions={questions as QuestionWithNumericForecasts[]}
