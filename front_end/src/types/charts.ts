@@ -49,3 +49,8 @@ export type ContinuousAreaHoverState = {
 };
 
 export type ContinuousAreaGraphType = "pmf" | "cdf";
+
+export enum GroupOfQuestionsGraphType {
+  FanGraph = "fan_graph",
+  MultipleChoiceGraph = "multiple_choice_graph",
+}
