@@ -295,10 +295,10 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
           {profileId && (
             <h3 className="mb-2 text-lg font-semibold">
               <Link
-                href="#"
+                href={`/questions/${comment.on_post}`}
                 className="text-blue-700 no-underline hover:text-blue-800 dark:text-blue-400 hover:dark:text-blue-300"
               >
-                Question Title Comes Here
+                Go to question
               </Link>
             </h3>
           )}
