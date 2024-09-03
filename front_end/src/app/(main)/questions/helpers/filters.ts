@@ -101,7 +101,7 @@ export function generateFiltersFromSearchParams(
     filters.usernames = searchParams[POST_USERNAMES_FILTER];
   }
 
-  if (typeof defaultForMainFeed !== "undefined" && !filters.search) {
+  if (typeof defaultForMainFeed !== "undefined") {
     filters.for_main_feed = defaultForMainFeed;
   }
 
