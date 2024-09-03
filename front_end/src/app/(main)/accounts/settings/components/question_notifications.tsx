@@ -77,7 +77,7 @@ const QuestionNotifications: FC<Props> = ({ user, posts }) => {
       <hr />
       <h2 className="mb-5 mt-3 px-1">{t("settingsQuestionNotifications")}</h2>
       <div className="p-1">
-        <table className="table-auto border-separate rounded-lg">
+        <table className="hidden table-auto border-separate rounded-lg lg:table">
           <thead className="text-left text-blue-700 dark:text-blue-700-dark">
             <tr>
               <th className="rounded-tl border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark">
@@ -89,13 +89,13 @@ const QuestionNotifications: FC<Props> = ({ user, posts }) => {
               <th className="border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark">
                 {t("created")}
               </th>
-              <th className="rounded-tr-lg border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark"></th>
+              <th className="rounded-tr border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark"></th>
             </tr>
           </thead>
           <tbody className="text-gray-800 dark:text-gray-800-dark">
             {posts.map((post, index) => (
               <tr
-                key={`post-${post.id}`}
+                key={`sub-${post.id}`}
                 className={classNames({
                   "rounded-b": index === posts.length - 1,
                 })}
@@ -167,6 +167,55 @@ const QuestionNotifications: FC<Props> = ({ user, posts }) => {
             ))}
           </tbody>
         </table>
+        <div className="flex flex-col gap-2.5 lg:hidden">
+          {posts.map((post) => (
+            <div
+              key={`sub-mobile-${post.id}`}
+              className="flex flex-col gap-2 rounded border border-blue-400 bg-blue-200 px-4 py-3 text-gray-800 dark:border-blue-400-dark dark:bg-blue-200-dark dark:text-gray-800-dark"
+            >
+              <div className="flex items-baseline justify-between gap-3">
+                <Button
+                  variant="link"
+                  className="text-left text-blue-800 dark:text-blue-800-dark"
+                  size="md"
+                  onClick={() => setActiveModal({ type: "edition", post })}
+                >
+                  {post.title}
+                </Button>
+                <button
+                  className="p-1 text-xl text-gray-500 no-underline hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 disabled:opacity-30 dark:text-gray-500-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark dark:disabled:text-blue-800-dark"
+                  onClick={() =>
+                    setActiveModal({
+                      type: "deletion",
+                      post,
+                    })
+                  }
+                >
+                  <FontAwesomeIcon icon={faXmark} />
+                </button>
+              </div>
+              <div className="grid grid-cols-2">
+                <div className="flex flex-col gap-1">
+                  <div className="font-medium text-gray-500 dark:text-gray-500-dark">
+                    {t("remindWhen")}
+                  </div>
+                  <div>{getSubscriptionsLabel(t, locale, post)}</div>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <div className="font-medium text-gray-500 dark:text-gray-500-dark">
+                    {t("created")}
+                  </div>
+                  <div>
+                    {formatDate(
+                      locale,
+                      new Date(post.subscriptions.at(-1)!.created_at)
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       <BaseModal
         label={t("unfollowModalTitle")}

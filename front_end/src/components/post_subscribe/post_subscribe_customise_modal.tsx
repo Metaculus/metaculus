@@ -186,7 +186,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
         {showPostLink && (
           <div>
             <Link
-              className="text-lg text-blue-800"
+              className="text-lg text-blue-800 dark:text-blue-800-dark"
               href={`/questions/${post.id}`}
             >
               {post.title}
