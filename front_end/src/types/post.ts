@@ -130,7 +130,7 @@ export type Post<QT = Question> = {
   user_permission: ProjectPermissions;
   comment_count?: number;
   forecasts_count?: number;
-  subscriptions?: PostSubscription[];
+  subscriptions?: PostSubscriptionResponse[];
 };
 
 export type PostWithNotebook = Omit<Post, "notebook"> & {
@@ -160,32 +160,31 @@ export type PostSubscription =
   | PostSubscriptionSpecificTime
   | PostSubscriptionCPCHange;
 
+export type PostSubscriptionResponse = PostSubscription & {
+  created_at: string;
+};
+
 export type PostSubscriptionNewComments = {
   type: PostSubscriptionType.NEW_COMMENTS;
   comments_frequency: number;
-  created_at: string;
 };
 
 export type PostSubscriptionMilestone = {
   type: PostSubscriptionType.MILESTONE;
   milestone_step: number;
-  created_at: string;
 };
 
 export type PostSubscriptionStatusChange = {
   type: PostSubscriptionType.STATUS_CHANGE;
-  created_at: string;
 };
 
 export type PostSubscriptionCPCHange = {
   type: PostSubscriptionType.CP_CHANGE;
   cp_change_threshold: CPChangeThreshold;
-  created_at: string;
 };
 
 export type PostSubscriptionSpecificTime = {
   type: PostSubscriptionType.SPECIFIC_TIME;
   next_trigger_datetime: string;
   recurrence_interval: string;
-  created_at: string;
 };
