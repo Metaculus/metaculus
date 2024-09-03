@@ -76,7 +76,7 @@ const PredictionChip: FC<Props> = ({
           >
             {formattedResolution}
           </Chip>
-          {showUserForecast && question.my_forecasts?.history.length && (
+          {(showUserForecast && question.my_forecasts?.history.length) ? (
             <p className="m-2 text-orange-800 dark:text-orange-800-dark">
               <FontAwesomeIcon icon={faUser} className="mr-1" />
               {getDisplayUserValue(
@@ -87,7 +87,7 @@ const PredictionChip: FC<Props> = ({
                 question.scaling
               )}
             </p>
-          )}
+          ) : (<></>)}
           {size !== "compact" && !!nr_forecasters && (
             <p>
               {nr_forecasters} {t("forecasters")}
