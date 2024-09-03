@@ -27,6 +27,7 @@ def update_with_add_posts_to_main_feed(project: Project, add_posts_to_main_feed:
         raise ValueError("Site main can not be updated")
 
     post_projects = Post.objects.filter(default_project=project).all()
+    project.add_posts_to_main_feed = add_posts_to_main_feed
 
     for post in post_projects:
         if project.add_posts_to_main_feed:
@@ -34,7 +35,6 @@ def update_with_add_posts_to_main_feed(project: Project, add_posts_to_main_feed:
         else:
             post.projects.remove(site_main)
 
-    project.add_posts_to_main_feed = add_posts_to_main_feed
     project.save()
 
 

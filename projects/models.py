@@ -198,7 +198,6 @@ class Project(TimeStampedModel):
     def is_ongoing(self):
         if self.type in (
             self.ProjectTypes.TOURNAMENT,
-            self.ProjectTypes.GLOBAL_LEADERBOARD,
             self.ProjectTypes.QUESTION_SERIES,
         ):
             return self.close_date > django_timezone.now() if self.close_date else True
