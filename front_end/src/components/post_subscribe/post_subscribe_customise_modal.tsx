@@ -1,9 +1,14 @@
 "use client";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
+import SubscriptionSectionCPChange from "@/components/post_subscribe/subscription_types_customisation/subscription_cp_change";
+import SubscriptionSectionMilestone from "@/components/post_subscribe/subscription_types_customisation/subscription_milestone";
+import SubscriptionSectionNewComments from "@/components/post_subscribe/subscription_types_customisation/subscription_new_comments";
+import SubscriptionSectionSpecificTime from "@/components/post_subscribe/subscription_types_customisation/subscription_specific_time";
 import Button from "@/components/ui/button";
 import Switch from "@/components/ui/switch";
 import {
@@ -16,17 +21,14 @@ import {
   PostSubscriptionType,
 } from "@/types/post";
 
-import SubscriptionSectionCPChange from "./subscription_types_customisation/subscription_cp_change";
-import SubscriptionSectionMilestone from "./subscription_types_customisation/subscription_milestone";
-import SubscriptionSectionNewComments from "./subscription_types_customisation/subscription_new_comments";
-import SubscriptionSectionSpecificTime from "./subscription_types_customisation/subscription_specific_time";
-import { getDefaultSubscriptionProps } from "./utils";
+import { getDefaultSubscriptionProps } from "../../app/(main)/questions/[id]/components/subscribe_button/utils";
 
 type Props = {
   isOpen: boolean;
   onClose: (open: boolean) => void;
   post: Post;
   subscriptions: PostSubscription[];
+  showPostLink?: boolean;
 };
 
 const PostSubscribeCustomizeModal: FC<Props> = ({
@@ -34,6 +36,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   onClose,
   post,
   subscriptions: initialSubscriptions,
+  showPostLink = false,
 }) => {
   const t = useTranslations();
 
@@ -176,10 +179,20 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
       isOpen={isOpen}
       onClose={onClose}
     >
-      <div className="max-w-xl">
+      <div className="max-w-md">
         <p className="text-base leading-tight">
           {t("followModalCustomiseNotificationsParagraph")}
         </p>
+        {showPostLink && (
+          <div>
+            <Link
+              className="text-lg text-blue-800 dark:text-blue-800-dark"
+              href={`/questions/${post.id}`}
+            >
+              {post.title}
+            </Link>
+          </div>
+        )}
         <div className="mt-8 flex flex-col gap-4 pb-16">
           {subscriptionTypes.map(({ type, title, render }, idx) => (
             <section key={`subscription-${type}`}>

@@ -6,12 +6,12 @@ import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
+import PostSubscribeCustomizeModal from "@/components/post_subscribe/post_subscribe_customise_modal";
 import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { Post, PostSubscription } from "@/types/post";
 
-import PostSubscribeCustomizeModal from "./post_subscribe_customise_modal";
 import PostSubscribeSuccessModal from "./post_subscribe_success_modal";
 import { getInitialSubscriptions } from "./utils";
 

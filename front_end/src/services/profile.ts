@@ -35,6 +35,26 @@ class ProfileApi {
     return patch<CurrentUser, typeof props>("/users/me/update", props);
   }
 
+  static async changePassword(password: string, new_password: string) {
+    return post("/users/me/password", {
+      password,
+      new_password,
+    });
+  }
+
+  static async changeEmail(email: string, password: string) {
+    return post("/users/me/email", {
+      email,
+      password,
+    });
+  }
+
+  static async changeEmailConfirm(token: string) {
+    return post("/users/me/email/confirm", {
+      token,
+    });
+  }
+
   static async searchUsers(query: string) {
     return await get<PaginatedPayload<UserProfile>>(`/users/?search=${query}`);
   }

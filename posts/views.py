@@ -460,6 +460,22 @@ def post_subscriptions_create(request, pk):
 
 
 @api_view(["GET"])
+def all_post_subscriptions(request):
+    """
+    Returns all post subscriptions of the user
+    """
+
+    posts = serialize_post_many(
+        Post.objects.filter(subscriptions__user=request.user).distinct(),
+        with_cp=False,
+        current_user=request.user,
+        with_subscriptions=True,
+    )
+
+    return Response(posts)
+
+
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def post_related_articles_api_view(request: Request, pk):
     post = get_object_or_404(Post, pk=pk)

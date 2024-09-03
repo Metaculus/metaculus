@@ -17,6 +17,11 @@ urlpatterns = [
         views.post_subscriptions_create,
         name="post-subscriptions",
     ),
+    path(
+        "posts/subscriptions",
+        views.all_post_subscriptions,
+        name="all-post-subscriptions",
+    ),
     path("posts/<int:pk>/read", views.post_view_event_api_view, name="post-mark-read"),
     path("posts/<int:pk>/vote", views.post_vote_api_view, name="question-detail"),
     path("posts/create/", views.post_create_api_view, name="post-create"),

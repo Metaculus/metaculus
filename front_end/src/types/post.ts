@@ -131,7 +131,7 @@ export type Post<QT = Question> = {
   user_permission: ProjectPermissions;
   comment_count?: number;
   forecasts_count?: number;
-  subscriptions?: PostSubscription[];
+  subscriptions?: Array<PostSubscription & { created_at: string }>;
 };
 
 export type PostWithNotebook = Omit<Post, "notebook"> & {

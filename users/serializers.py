@@ -110,3 +110,21 @@ def validate_username(value: str):
 
 class UserFilterSerializer(serializers.Serializer):
     search = serializers.CharField(required=True, min_length=3)
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    password = serializers.CharField()
+    new_password = serializers.CharField()
+
+    def validate(self, attrs):
+        if attrs["new_password"] == attrs["password"]:
+            raise serializers.ValidationError(
+                "New password should not match the old one"
+            )
+
+        return attrs
+
+
+class EmailChangeSerializer(serializers.Serializer):
+    password = serializers.CharField()
+    email = serializers.EmailField()
