@@ -67,7 +67,7 @@ type Props = {
 const MarkdownEditor: FC<Props> = ({
   markdown,
   mode = "read",
-  onChange = console.log,
+  onChange,
   contentEditableClassName,
 }) => {
   const { theme } = useAppTheme();
@@ -152,7 +152,7 @@ const MarkdownEditor: FC<Props> = ({
       markdown={formattedMarkdown}
       onChange={(value) => {
         // Revert the MathJax transformation before passing the markdown to the parent component
-        onChange(revertMathJaxTransform(value));
+        onChange && onChange(revertMathJaxTransform(value))
       }}
       readOnly={mode === "read"}
       plugins={[

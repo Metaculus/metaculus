@@ -11,9 +11,6 @@ const ScoreDisplay: FC<Props> = ({ question }) => {
   const user_scores = question.my_forecasts?.score_data;
   if (!cp_scores && !user_scores) return null;
 
-  console.log("cp_scores", cp_scores);
-  console.log("user_scores", user_scores);
-
   return (
     <>
       <div className="mb-4 grid grid-cols-4 gap-4">
