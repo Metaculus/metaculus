@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
@@ -155,6 +155,11 @@ class PostQuerySet(models.QuerySet):
     def annotate_comment_count(self):
         return self.annotate(
             comment_count=SubqueryAggregate("comments__id", aggregate=Count)
+        )
+
+    def annotate_nr_forecasters(self):
+        return self.annotate(
+            nr_forecasters=Count("forecasts__author_id", distinct=True)
         )
 
     def annotate_divergence(self, user_id: int):

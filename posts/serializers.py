@@ -301,6 +301,7 @@ def serialize_post_many(
         .prefetch_projects()
         .prefetch_questions()
         .annotate_comment_count()
+        .annotate_nr_forecasters()
         .select_related("author")
     )
     if current_user:
