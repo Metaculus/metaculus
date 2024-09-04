@@ -88,7 +88,6 @@ const MainFeedFilters: FC = () => {
         QuestionOrder.WeeklyMovementDesc,
         QuestionOrder.PublishTimeDesc,
         QuestionOrder.CloseTimeAsc,
-        QuestionOrder.ResolveTimeAsc,
       ].includes(order)
     ) {
       setFilterParam(POST_STATUS_FILTER, "open", false);
