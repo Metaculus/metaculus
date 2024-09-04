@@ -90,7 +90,11 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     serializer = OldForecastWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    probability = serializer.validated_data.get("probability")
+    probability = serializer.validated_data.get("prediction")
+    serializer_new = ForecastWriteSerializer(
+        data={"probability_yes": probability, "question": question.id}
+    )
+    serializer_new.is_valid(raise_exception=True)
 
     create_forecast(question=question, user=request.user, probability_yes=probability)
 
