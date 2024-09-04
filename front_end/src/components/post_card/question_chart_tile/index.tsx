@@ -11,6 +11,7 @@ import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
 
 import QuestionNumericTile from "./question_numeric_tile";
 import { useTranslations } from "next-intl";
+import { generateUserForecastsForMultipleQuestion } from "@/utils/questions";
 
 type Props = {
   question: QuestionWithForecasts;
@@ -62,6 +63,8 @@ const QuestionChartTile: FC<Props> = ({
       const choices = generateChoiceItemsFromMultipleChoiceForecast(question, {
         activeCount: visibleChoicesCount,
       });
+      const userForecasts = generateUserForecastsForMultipleQuestion(question);
+
       return (
         <MultipleChoiceTile
           timestamps={question.aggregations.recency_weighted.history.map(
@@ -71,6 +74,7 @@ const QuestionChartTile: FC<Props> = ({
           visibleChoicesCount={visibleChoicesCount}
           defaultChartZoom={defaultChartZoom}
           question={question}
+          userForecasts={userForecasts}
         />
       );
     }

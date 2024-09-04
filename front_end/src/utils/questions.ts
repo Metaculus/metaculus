@@ -15,6 +15,7 @@ import {
   MultipleChoiceForecast,
   Question,
   QuestionType,
+  QuestionWithMultipleChoiceForecasts,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -208,6 +209,33 @@ export function getPredictionQuestion(
     sortedQuestions[sortedQuestions.length - 1]
   );
 }
+
+export const generateUserForecastsForMultipleQuestion = (
+  question: QuestionWithMultipleChoiceForecasts
+): UserChoiceItem[] | undefined => {
+  const latest = question.aggregations.recency_weighted.latest;
+  const options = question.options!;
+
+  const choiceOrdering: number[] = options.map((_, i) => i);
+  choiceOrdering.sort((a, b) => {
+    const aCenter = latest?.forecast_values[a] ?? 0;
+    const bCenter = latest?.forecast_values[b] ?? 0;
+    return bCenter - aCenter;
+  });
+
+  return options.map((choice, index) => {
+    const userForecasts = question.my_forecasts?.history;
+    return {
+      choice,
+      values:
+        userForecasts?.map((forecast) => forecast.forecast_values[index]) ?? [],
+      timestamps: userForecasts?.map((forecast) => forecast.start_time) ?? [],
+      color:
+        MULTIPLE_CHOICE_COLOR_SCALE[choiceOrdering[index]] ??
+        METAC_COLORS.gray["400"],
+    };
+  });
+};
 
 export const generateUserForecasts = (
   questions: QuestionWithNumericForecasts[]
