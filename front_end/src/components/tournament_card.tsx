@@ -98,7 +98,7 @@ const TournamentCard: FC<Props> = ({
               icon={faCalendar}
               className="ml-1 mr-2 align-middle"
             />
-            <span className="align-middle">
+            <span className="align-middle" suppressHydrationWarning>
               {closeDateFormatter(new Date(closeDate))}
             </span>
           </div>

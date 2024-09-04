@@ -171,6 +171,7 @@ const Chip: FC<PropsWithChildren<ChipProps>> = ({
       },
       className
     )}
+    suppressHydrationWarning
     {...props}
   />
 );
