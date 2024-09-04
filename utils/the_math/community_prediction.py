@@ -131,7 +131,7 @@ def get_aggregation_at_time(
         Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
     ).order_by("start_time")
     if not include_bots:
-        forecasts = forecasts.exclude(forecaster__is_bot=True)
+        forecasts = forecasts.exclude(author__is_bot=True)
     if forecasts.count() == 0:
         return None
     forecast_set = ForecastSet(
