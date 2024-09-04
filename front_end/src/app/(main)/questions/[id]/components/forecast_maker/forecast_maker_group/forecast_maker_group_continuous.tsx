@@ -342,7 +342,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             <div className="mb-3 text-gray-600 dark:text-gray-600-dark">
               <p className="my-1 flex justify-center gap-1 text-base">
                 {t("resolutionDescriptionContinuous")}
-                <strong className="text-purple-800 dark:text-purple-800-dark">
+                <strong
+                  className="text-purple-800 dark:text-purple-800-dark"
+                  suppressHydrationWarning
+                >
                   {formatResolution(
                     activeGroupOption.resolution,
                     activeGroupOption.question.type,

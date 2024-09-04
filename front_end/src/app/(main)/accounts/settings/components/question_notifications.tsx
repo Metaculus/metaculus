@@ -77,7 +77,7 @@ const QuestionNotifications: FC<Props> = ({ user, posts }) => {
       <hr />
       <h2 className="mb-5 mt-3 px-1">{t("settingsQuestionNotifications")}</h2>
       <div className="p-1">
-        <table className="hidden table-auto border-separate rounded-lg lg:table">
+        <table className="hidden w-full table-auto border-separate rounded-lg lg:table">
           <thead className="text-left text-blue-700 dark:text-blue-700-dark">
             <tr>
               <th className="rounded-tl border border-b-0 border-gray-300 bg-blue-200 p-2 font-normal dark:border-gray-300-dark dark:bg-blue-200-dark">

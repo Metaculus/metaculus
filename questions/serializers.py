@@ -1,6 +1,8 @@
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
 
+import numpy as np
+
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -302,6 +304,42 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
 
     def validate_question(self, value):
         return Question.objects.get(pk=value)
+
+    def validate(self, data):
+        def is_valid_probability(x):
+            return x < 1 and x > 0
+
+        probability_yes = data.get("probability_yes")
+        continuous_cdf = data.get("continuous_cdf")
+        probability_yes_per_category = data.get("probability_yes_per_category")
+
+        prob_yes_ok = probability_yes is not None and is_valid_probability(
+            probability_yes
+        )
+        prob_yes_per_cat_ok = (
+            probability_yes_per_category is not None
+            and sum(probability_yes_per_category.values()) == 1
+            and all(
+                [is_valid_probability(p) for p in probability_yes_per_category.values()]
+            )
+        )
+
+        continuous_cdf_increasing = continuous_cdf is not None and all(
+            [
+                continuous_cdf[i] < continuous_cdf[i + 1]
+                for i in range(len(continuous_cdf) - 1)
+            ]
+        )
+        continuous_cdf_ok = (
+            continuous_cdf is not None
+            and np.isclose(continuous_cdf[-1], 1.0)
+            and continuous_cdf_increasing
+        )
+
+        if not (prob_yes_ok or prob_yes_per_cat_ok or continuous_cdf_ok):
+            raise serializers.ValidationError("Invalid forecast values")
+
+        return data
 
 
 def serialize_question(

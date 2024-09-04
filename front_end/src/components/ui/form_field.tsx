@@ -3,6 +3,7 @@ import * as React from "react";
 import { FC, useEffect, useMemo } from "react";
 
 import { ErrorResponse } from "@/types/fetch";
+import { extractError } from "@/utils/errors";
 
 export type ErrorProps = {
   errors?: ErrorResponse;
@@ -26,23 +27,6 @@ export interface SelectProps
   options: { value: string; label: string }[];
   errors?: ErrorResponse;
 }
-
-const extractError = (field_error: any): string | undefined => {
-  console.log("Error: ", field_error);
-
-  if (typeof field_error === "string") return field_error;
-
-  if (typeof field_error === "object" && field_error !== null) {
-    for (const key in field_error) {
-      if (field_error.hasOwnProperty(key)) {
-        const result = extractError(field_error[key]);
-        if (result !== undefined) {
-          return result;
-        }
-      }
-    }
-  }
-};
 
 export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
   /**

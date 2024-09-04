@@ -56,7 +56,9 @@ const NewsCard: FC<Props> = ({ post }) => {
             )}
           </div>
           <div className="mt-auto line-clamp-1 text-sm font-normal leading-tight text-gray-700 dark:text-gray-700-dark">
-            <span>{formatDate(locale, new Date(post.published_at))}</span>
+            <span suppressHydrationWarning>
+              {formatDate(locale, new Date(post.published_at))}
+            </span>
             <CircleDivider className="mx-2" />
             <span>by {post.author_username}</span>
             <CircleDivider className="mx-2" />

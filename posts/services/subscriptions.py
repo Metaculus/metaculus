@@ -373,7 +373,7 @@ def notify_date():
     subscriptions = (
         PostSubscription.objects.filter(
             type=PostSubscription.SubscriptionType.SPECIFIC_TIME,
-            next_trigger_datetime_lte=timezone.now(),
+            next_trigger_datetime__lte=timezone.now(),
         )
         .filter(
             Q(post__actual_close_time__isnull=True)

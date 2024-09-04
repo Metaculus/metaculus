@@ -1,8 +1,10 @@
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import PasswordReset from "@/app/(main)/accounts/reset/components/password_reset";
+import { GlobalErrorContainer } from "@/components/global_error_boundary";
 import AuthApi from "@/services/auth";
 import { getServerSession } from "@/services/session";
+import { FetchError } from "@/types/fetch";
 
 export default async function ResetPassword({
   searchParams: { user_id, token },
@@ -16,7 +18,7 @@ export default async function ResetPassword({
   try {
     await AuthApi.passwordResetVerifyToken(user_id, token);
   } catch (error) {
-    return notFound();
+    return <GlobalErrorContainer error={(error as FetchError).data} />;
   }
 
   return (
