@@ -117,7 +117,7 @@ class Command(BaseCommand):
         scheduler.add_job(
             close_old_connections(job_send_notification_groups.send),
             trigger=CronTrigger.from_crontab(
-                f"0-59/${MAIL_FREQUENCY_MIN} * * * *"
+                f"0-59/{MAIL_FREQUENCY_MIN} * * * *"
             ),  # Every Hour at :00
             id="notifications_job_send_notification_groups",
             max_instances=1,
