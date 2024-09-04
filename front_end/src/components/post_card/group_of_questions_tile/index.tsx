@@ -56,7 +56,7 @@ const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
           userForecasts={
             user
               ? generateUserForecasts(
-                  questions as QuestionWithNumericForecasts[]
+                  sortedQuestions as QuestionWithNumericForecasts[]
                 )
               : undefined
           }
