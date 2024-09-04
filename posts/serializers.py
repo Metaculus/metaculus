@@ -218,6 +218,7 @@ def serialize_post(
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
+    with_nr_forecasters: bool = False,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -279,7 +280,9 @@ def serialize_post(
             }
         )
 
-    serialized_data["forecasts_count"] = post.forecasts_count
+    if with_nr_forecasters:
+        serialized_data["forecasts_count"] = post.get_forecasters().count()
+
     return serialized_data
 
 
@@ -288,6 +291,7 @@ def serialize_post_many(
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
+    with_nr_forecasters: bool = False,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -300,8 +304,8 @@ def serialize_post_many(
         .annotate_vote_score()
         .prefetch_projects()
         .prefetch_questions()
+        .prefetch_questions_aggregate_forecasts()
         .annotate_comment_count()
-        .annotate_nr_forecasters()
         .select_related("author")
     )
     if current_user:
@@ -330,6 +334,7 @@ def serialize_post_many(
             with_cp=with_cp,
             current_user=current_user,
             with_subscriptions=with_subscriptions,
+            with_nr_forecasters=with_nr_forecasters,
         )
         for post in objects
     ]

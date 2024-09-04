@@ -138,10 +138,6 @@ def get_posts_feed(
     if access == PostFilterSerializer.Access.PUBLIC:
         qs = qs.filter_public()
 
-    # Performing query override
-    # Before running order_by
-    qs = Post.objects.filter(pk__in=qs.distinct("id"))
-
     # Similar posts lookup
     if similar_to_post_id:
         try:
@@ -164,42 +160,41 @@ def get_posts_feed(
         else:
             qs = qs.filter(rank__gte=0.3)
 
+    order_by = order_by or "-created_at"
+
     # Ordering
-    if order_by:
-        order_desc, order_type = parse_order_by(order_by)
+    order_desc, order_type = parse_order_by(order_by)
 
-        if order_type == PostFilterSerializer.Order.VOTES:
-            qs = qs.annotate_vote_score()
-        if order_type == PostFilterSerializer.Order.COMMENT_COUNT:
-            qs = qs.annotate_comment_count()
-        if (
-            forecaster_id
-            and order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE
-        ):
-            qs = qs.annotate_user_last_forecasts_date(forecaster_id)
-        if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
-            qs = qs.annotate_unread_comment_count(user_id=user.id)
-        if order_type == PostFilterSerializer.Order.SCORE:
-            if not forecaster_id:
-                raise ValidationError(
-                    "Can not order by score without forecaster_id provided"
-                )
+    if order_type == PostFilterSerializer.Order.VOTES:
+        qs = qs.annotate_vote_score()
+    if order_type == PostFilterSerializer.Order.COMMENT_COUNT:
+        qs = qs.annotate_comment_count()
+    if (
+        forecaster_id
+        and order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE
+    ):
+        qs = qs.annotate_user_last_forecasts_date(forecaster_id)
+    if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
+        qs = qs.annotate_unread_comment_count(user_id=user.id)
+    if order_type == PostFilterSerializer.Order.SCORE:
+        if not forecaster_id:
+            raise ValidationError(
+                "Can not order by score without forecaster_id provided"
+            )
 
-            qs = qs.annotate_score(forecaster_id, desc=order_desc)
-        if order_type == PostFilterSerializer.Order.WEEKLY_MOVEMENT:
-            order_type = "movement"
-        if order_type == PostFilterSerializer.Order.DIVERGENCE:
-            if not forecaster_id:
-                raise ValidationError(
-                    "Can not order by score without forecaster_id provided"
-                )
+        qs = qs.annotate_score(forecaster_id, desc=order_desc)
+    if order_type == PostFilterSerializer.Order.WEEKLY_MOVEMENT:
+        order_type = "movement"
+    if order_type == PostFilterSerializer.Order.DIVERGENCE:
+        if not forecaster_id:
+            raise ValidationError(
+                "Can not order by score without forecaster_id provided"
+            )
 
-            qs = qs.annotate_divergence(forecaster_id)
-        if order_type == PostFilterSerializer.Order.SCHEDULED_RESOLVE_TIME:
-            qs = qs.filter(scheduled_resolve_time__gte=timezone.now())
+        qs = qs.annotate_divergence(forecaster_id)
+    if order_type == PostFilterSerializer.Order.SCHEDULED_RESOLVE_TIME:
+        qs = qs.filter(scheduled_resolve_time__gte=timezone.now())
 
-        qs = qs.order_by(build_order_by(order_type, order_desc))
-    else:
-        qs = qs.order_by("-created_at")
+    qs = qs.order_by(build_order_by(order_type, order_desc))
 
-    return qs
+    return qs.distinct("id", order_type)

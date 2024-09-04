@@ -48,6 +48,8 @@ class Question(TimeStampedModel):
     # Annotated fields
     forecasts_count: int = 0
     request_user_forecasts: list["Forecast"]
+    user_scores: list["Score"]
+    user_archived_scores: list["ArchivedScore"]
 
     # utility
     objects: models.Manager["Question"] = QuestionManager()

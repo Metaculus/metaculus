@@ -140,7 +140,11 @@ def posts_list_oldapi_view(request):
 def post_detail_oldapi_view(request: Request, pk):
     qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
     posts = serialize_post_many(
-        qs, current_user=request.user, with_cp=True, with_subscriptions=True
+        qs,
+        current_user=request.user,
+        with_cp=True,
+        with_subscriptions=True,
+        with_nr_forecasters=True,
     )
 
     if not posts:
@@ -158,7 +162,11 @@ def post_detail_oldapi_view(request: Request, pk):
 def post_detail(request: Request, pk):
     qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
     posts = serialize_post_many(
-        qs, current_user=request.user, with_cp=True, with_subscriptions=True
+        qs,
+        current_user=request.user,
+        with_cp=True,
+        with_subscriptions=True,
+        with_nr_forecasters=True,
     )
 
     if not posts:

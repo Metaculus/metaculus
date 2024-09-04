@@ -22,7 +22,7 @@ from sql_util.aggregates import SubqueryAggregate
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from questions.models import Question, Conditional, GroupOfQuestions, Forecast
-from scoring.models import Score
+from scoring.models import Score, ArchivedScore
 from users.models import User
 from utils.models import TimeStampedModel
 
@@ -32,36 +32,37 @@ class PostQuerySet(models.QuerySet):
         return self.prefetch_related("projects").select_related("default_project")
 
     def prefetch_user_forecasts(self, user_id: int):
-        return self.prefetch_related(
-            Prefetch(
-                "question__user_forecasts",
-                queryset=Forecast.objects.filter(author_id=user_id).order_by(
-                    "start_time"
+        question_relations = [
+            "question",
+            "conditional__question_yes",
+            "conditional__question_no",
+            "group_of_questions__questions",
+        ]
+
+        prefetches = []
+
+        for rel in question_relations:
+            prefetches += [
+                Prefetch(
+                    f"{rel}__user_forecasts",
+                    queryset=Forecast.objects.filter(author_id=user_id).order_by(
+                        "start_time"
+                    ),
+                    to_attr="request_user_forecasts",
                 ),
-                to_attr="request_user_forecasts",
-            ),
-            Prefetch(
-                "conditional__question_yes__user_forecasts",
-                queryset=Forecast.objects.filter(author_id=user_id).order_by(
-                    "start_time"
+                Prefetch(
+                    f"{rel}__scores",
+                    queryset=Score.objects.filter(user_id=user_id),
+                    to_attr="user_scores",
                 ),
-                to_attr="request_user_forecasts",
-            ),
-            Prefetch(
-                "conditional__question_no__user_forecasts",
-                queryset=Forecast.objects.filter(author_id=user_id).order_by(
-                    "start_time"
+                Prefetch(
+                    f"{rel}__archived_scores",
+                    queryset=ArchivedScore.objects.filter(user_id=user_id),
+                    to_attr="user_archived_scores",
                 ),
-                to_attr="request_user_forecasts",
-            ),
-            Prefetch(
-                "group_of_questions__questions__user_forecasts",
-                queryset=Forecast.objects.filter(author_id=user_id).order_by(
-                    "start_time"
-                ),
-                to_attr="request_user_forecasts",
-            ),
-        )
+            ]
+
+        return self.prefetch_related(*prefetches)
 
     def prefetch_questions(self):
         return self.prefetch_related(
@@ -73,6 +74,16 @@ class PostQuerySet(models.QuerySet):
             "conditional__question_no",
             # Group Of Questions
             "group_of_questions__questions",
+        )
+
+    def prefetch_questions_aggregate_forecasts(self):
+        return self.prefetch_related(
+            "question__aggregate_forecasts",
+            # Conditional
+            "conditional__question_yes__aggregate_forecasts",
+            "conditional__question_no__aggregate_forecasts",
+            # Group Of Questions
+            "group_of_questions__questions__aggregate_forecasts",
         )
 
     def prefetch_user_subscriptions(self, user: User):
@@ -155,11 +166,6 @@ class PostQuerySet(models.QuerySet):
     def annotate_comment_count(self):
         return self.annotate(
             comment_count=SubqueryAggregate("comments__id", aggregate=Count)
-        )
-
-    def annotate_nr_forecasters(self):
-        return self.annotate(
-            nr_forecasters=Count("forecasts__author_id", distinct=True)
         )
 
     def annotate_divergence(self, user_id: int):

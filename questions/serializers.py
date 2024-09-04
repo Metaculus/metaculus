@@ -2,7 +2,6 @@ from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
 
 import numpy as np
-
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -356,7 +355,9 @@ def serialize_question(
     serialized_data["post_id"] = post.id
 
     if with_cp:
-        aggregate_forecasts = question.aggregate_forecasts.order_by("start_time")
+        aggregate_forecasts = sorted(
+            question.aggregate_forecasts.all(), key=lambda x: x.start_time
+        )
         aggregate_forecasts_by_method = defaultdict(list)
         for aggregate in aggregate_forecasts:
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)
@@ -420,8 +421,8 @@ def serialize_question(
             and not current_user.is_anonymous
             and hasattr(question, "request_user_forecasts")
         ):
-            scores = question.scores.filter(user=current_user)
-            archived_scores = question.archived_scores.filter(user=current_user)
+            scores = question.user_scores
+            archived_scores = question.user_archived_scores
             user_forecasts = question.request_user_forecasts
             serialized_data["my_forecasts"] = {
                 "history": MyForecastSerializer(
