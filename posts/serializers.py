@@ -267,7 +267,7 @@ def serialize_post(
             if not sub.is_global
         ]
 
-    if current_user and post.user_snapshots:
+    if hasattr(post, "user_snapshots") and current_user and post.user_snapshots:
         snapshot = post.user_snapshots[0]
 
         serialized_data.update(
