@@ -269,7 +269,6 @@ def serialize_post(
 
     if current_user and post.user_snapshots:
         snapshot = post.user_snapshots[0]
-        print(post.comment_count, snapshot.comments_count)
 
         serialized_data.update(
             {
