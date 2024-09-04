@@ -16,6 +16,7 @@ import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 
 import ChoicesTooltip from "../choices_tooltip";
+import { generateUserForecastsForMultipleQuestion } from "@/utils/questions";
 
 const MAX_VISIBLE_CHECKBOXES = 6;
 
@@ -47,7 +48,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(question)
   );
-
+  const userForecasts = generateUserForecastsForMultipleQuestion(question);
   const timestampsCount = timestamps.length;
   const prevTimestampsCount = usePrevious(timestampsCount);
   // sync BE driven data with local state
@@ -76,6 +77,30 @@ const MultipleChoiceChartCard: FC<Props> = ({
         })),
     [choiceItems, cursorIndex]
   );
+
+  const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(() => {
+    if (!userForecasts) {
+      return [];
+    }
+
+    return userForecasts.map(
+      ({ choice, values, color, timestamps: optionTimestamps }) => {
+        const timestampIndex = optionTimestamps?.findLastIndex(
+          (timestamp) => timestamp <= cursorTimestamp
+        );
+
+        return {
+          choiceLabel: choice,
+          color,
+          valueLabel: getForecastPctDisplayValue(
+            timestampIndex === -1 || timestampIndex === undefined
+              ? null
+              : values?.[timestampIndex]
+          ),
+        };
+      }
+    );
+  }, [userForecasts, cursorTimestamp]);
 
   const {
     isActive: isTooltipActive,
@@ -150,6 +175,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
               ? new Date(question.actual_close_time).getTime() < Date.now()
               : false
           }
+          userForecasts={userForecasts}
         />
       </div>
 
@@ -170,7 +196,11 @@ const MultipleChoiceChartCard: FC<Props> = ({
           style={floatingStyles}
           {...getFloatingProps()}
         >
-          <ChoicesTooltip date={tooltipDate} choices={tooltipChoices} />
+          <ChoicesTooltip
+            date={tooltipDate}
+            choices={tooltipChoices}
+            userChoices={tooltipUserChoices}
+          />
         </div>
       )}
     </div>
