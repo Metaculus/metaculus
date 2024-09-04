@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
@@ -86,6 +86,15 @@ class PostQuerySet(models.QuerySet):
             )
         )
 
+    def prefetch_user_snapshots(self, user: User):
+        return self.prefetch_related(
+            Prefetch(
+                "snapshots",
+                queryset=PostUserSnapshot.objects.filter(user=user),
+                to_attr="user_snapshots",
+            )
+        )
+
     def annotate_user_last_forecasts_date(self, author_id: int):
         """
         Annotate last forecast date for user
@@ -97,7 +106,7 @@ class PostQuerySet(models.QuerySet):
 
     def annotate_unread_comment_count(self, user_id: int):
         """
-        Annotate last forecast date for user
+        Annotate last forecast date for user on predicted questions
         """
 
         return (

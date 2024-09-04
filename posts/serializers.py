@@ -267,6 +267,16 @@ def serialize_post(
             if not sub.is_global
         ]
 
+    if current_user and post.user_snapshots:
+        snapshot = post.user_snapshots[0]
+
+        serialized_data.update(
+            {
+                "unread_comment_count": post.comment_count - snapshot.comments_count,
+                "last_viewed_at": snapshot.viewed_at,
+            }
+        )
+
     serialized_data["forecasts_count"] = post.forecasts_count
     return serialized_data
 
@@ -303,6 +313,9 @@ def serialize_post_many(
 
     if with_subscriptions and current_user:
         qs = qs.prefetch_user_subscriptions(user=current_user)
+
+    if current_user:
+        qs = qs.prefetch_user_snapshots(current_user)
 
     # Restore the original ordering
     objects = list(qs.all())
