@@ -1,8 +1,10 @@
+import dramatiq
 import numpy as np
 
 from django.db.models import Q
 from django.utils import timezone
 
+from migrator.services.migrate_leaderboards import populate_project_leaderboards
 from questions.models import Question
 from scoring.utils import score_question
 from scoring.models import Score, ArchivedScore, Leaderboard
@@ -122,3 +124,13 @@ def score_questions(qty: int | None = None, start_id: int = 0):
         f"remaining:{str((timezone.now() - start) / i * (c - i)).split(".")[0]} "
         f"scoring: {','.join(score_types)}... DONE",
     )
+
+
+@dramatiq.actor
+def score_questions_async():
+    score_question()
+
+
+@dramatiq.actor
+def populate_project_leaderboards_async():
+    populate_project_leaderboards()
