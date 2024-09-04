@@ -130,7 +130,10 @@ const QuestionResolutionText = ({
     <div className="mb-3 text-gray-600 dark:text-gray-600-dark">
       <p className="my-1 flex justify-center gap-1 text-base">
         {resolutionText}
-        <strong className="text-purple-800 dark:text-purple-800-dark">
+        <strong
+          className="text-purple-800 dark:text-purple-800-dark"
+          suppressHydrationWarning
+        >
           {formattedResolution}
         </strong>
       </p>

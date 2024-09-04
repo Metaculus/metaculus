@@ -77,7 +77,7 @@ const NewsMatchArticle: FC<Props> = ({ article }) => {
             <div className="mt-1 text-sm text-gray-700 dark:text-gray-700-dark">
               <span>{article.media_label}</span>
               <span className="mx-2">•</span>
-              <span>{formatDate(locale, new Date(article.created_at))}</span>
+              <span suppressHydrationWarning>{formatDate(locale, new Date(article.created_at))}</span>
             </div>
           </div>
         </a>

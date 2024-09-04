@@ -54,7 +54,7 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
         actual_close_time={scheduled_close_time}
         resolution={resolution}
       />
-      <span className="whitespace-nowrap text-sm">
+      <span className="whitespace-nowrap text-sm" suppressHydrationWarning>
         {statusInfo.map((part) => (
           <React.Fragment key={`${post.id}-status-${part}`}>
             {part + " "}

@@ -1,4 +1,3 @@
-"use client";
 import { FC } from "react";
 
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
