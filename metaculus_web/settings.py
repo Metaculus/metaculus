@@ -12,15 +12,17 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 import os
 from pathlib import Path
-import sentry_sdk
 
 import dj_database_url
+import sentry_sdk
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Current env
 ENV = os.environ.get("METACULUS_ENV", "").strip()
+ENV_DEV = "dev"
+ENV_PROD = "prod"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -397,4 +399,5 @@ if os.environ.get("SENTRY_DNS", None):
         dsn=os.environ.get("SENTRY_DNS"),
         traces_sample_rate=1.0,
         profiles_sample_rate=1.0,
+        environment=ENV,
     )
