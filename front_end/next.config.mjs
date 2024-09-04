@@ -8,6 +8,7 @@ const API_BASE_URL =
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  trailingSlash: true,
   env: {
     API_BASE_URL,
     APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
@@ -50,6 +51,14 @@ const nextConfig = {
     {
       source: "/admin/:path*",
       destination: `${API_BASE_URL}/admin/:path*/`,
+    },
+    {
+      source: "/api2/:path*/",
+      destination: `${API_BASE_URL}/api2/:path*/`,
+    },
+    {
+      source: "/api/:path*/",
+      destination: `${API_BASE_URL}/api/:path*/`,
     },
     // Assets
     {
