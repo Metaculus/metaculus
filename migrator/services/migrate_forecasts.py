@@ -133,23 +133,23 @@ def migrate_post_forecasts_count():
         forecasts_count_annotated=(
             # Note: Order is important
             Coalesce(
-                SubqueryAggregate("question__forecast", aggregate=Count),
+                SubqueryAggregate("question__user_forecasts", aggregate=Count),
                 # Question groups
                 SubqueryAggregate(
-                    "group_of_questions__questions__forecast",
+                    "group_of_questions__questions__user_forecasts",
                     aggregate=Count,
                 ),
                 # Conditional questions
                 Coalesce(
                     SubqueryAggregate(
-                        "conditional__question_yes__forecast",
+                        "conditional__question_yes__user_forecasts",
                         aggregate=Count,
                     ),
                     0,
                 )
                 + Coalesce(
                     SubqueryAggregate(
-                        "conditional__question_no__forecast",
+                        "conditional__question_no__user_forecasts",
                         aggregate=Count,
                     ),
                     0,
