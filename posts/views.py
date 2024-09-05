@@ -1,5 +1,9 @@
+from datetime import timedelta
 from django.core.files.storage import default_storage
-from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
+import django.utils
+import requests
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -8,6 +12,12 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
+from playwright.sync_api import sync_playwright
+import os
+import django
+from PIL import Image
+from io import BytesIO
+import tempfile
 
 from misc.services.itn import get_post_get_similar_articles
 from posts.models import (
@@ -207,10 +217,8 @@ def remove_from_project(request, pk):
     ObjectPermission.can_edit(permission, raise_exception=True)
 
     project_id = request.data["project_id"]
-    print(len(post.projects.all()))
     post.projects.set([x for x in post.projects.all() if x.id != project_id])
     post.save()
-    print(len(post.projects.all()))
     return Response({}, status=status.HTTP_200_OK)
 
 
@@ -498,3 +506,50 @@ def post_related_articles_api_view(request: Request, pk):
     articles = get_post_get_similar_articles(post)
 
     return Response(PostRelatedArticleSerializer(articles, many=True).data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def post_preview_image(request: Request, pk):
+    post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+    filename = f"preview-post-{pk}.png"
+
+    if not post.preview_image_generated_at or post.preview_image_generated_at < (
+        django.utils.timezone.now() - timedelta(hours=6)
+    ):
+        # This has to happen where because once we're in the playwright sync context the connection is invalidated
+        post.preview_image_generated_at = django.utils.timezone.now()
+        post.save()
+        with sync_playwright() as p:
+
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page(viewport={"width": 1200, "height": 630})
+
+            origin = os.getenv("NEXT_PUBLIC_APP_URL", "http://localhost:3000")
+
+            url = f"{origin}/embed/questions/{pk}?ENFORCED_THEME_PARAM=dark&HIDE_ZOOM_PICKER=true&non-interactive=true"
+            page.goto(url)
+            page.wait_for_load_state("networkidle")
+
+            element = page.query_selector("#id-used-by-screenshot-donot-change")
+
+            if not element:
+                browser.close()
+                return Response("Element not found", status=404)
+
+            screenshot = element.screenshot(type="png")
+            image = Image.open(BytesIO(screenshot))
+            temp_file = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
+            image.save(temp_file, "PNG")
+            default_storage.save(filename, temp_file, max_length=100)
+            browser.close()
+
+    file_url = default_storage.url(filename)
+    return redirect(file_url)
+    # Do this in case redirects end up not working:
+    # response = requests.get(file_url)
+    # return HttpResponse(response.content, content_type='image/png')  #

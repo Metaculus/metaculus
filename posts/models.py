@@ -355,6 +355,8 @@ class Post(TimeStampedModel):
         blank=True,
     )
 
+    preview_image_generated_at = models.DateTimeField(null=True, blank=True)
+
     def set_scheduled_close_time(self):
         if self.question:
             self.scheduled_close_time = self.question.scheduled_close_time

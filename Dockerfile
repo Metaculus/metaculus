@@ -50,6 +50,7 @@ RUN poetry config virtualenvs.create false \
     && . venv/bin/activate \
     && poetry install --without dev
 
+RUN playwright install
 
 FROM base AS frontend_deps
 WORKDIR /app/front_end/

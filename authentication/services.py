@@ -13,9 +13,6 @@ def send_activation_email(user: User):
     confirmation_token = default_token_generator.make_token(user)
     activation_link = build_frontend_account_activation_url(user.id, confirmation_token)
 
-    # TODO: send email, so printing link for now
-    print(activation_link)
-
     send_email_with_template(
         user.email,
         "Metaculus Account Creation",
@@ -31,9 +28,6 @@ def send_activation_email(user: User):
 def send_password_reset_email(user: User):
     confirmation_token = default_token_generator.make_token(user)
     reset_link = build_frontend_password_reset_url(user.id, confirmation_token)
-
-    # TODO: send email, so printing link for now
-    print(reset_link)
 
     send_email_with_template(
         user.email,

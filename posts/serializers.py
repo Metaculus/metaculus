@@ -36,6 +36,7 @@ class PostSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
+    open_time = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -56,6 +57,7 @@ class PostSerializer(serializers.ModelSerializer):
             "resolved",
             "scheduled_close_time",
             "scheduled_resolve_time",
+            "open_time",
         )
 
     def get_projects(self, obj: Post):
@@ -70,6 +72,16 @@ class PostSerializer(serializers.ModelSerializer):
         if obj.actual_close_time and obj.actual_close_time < timezone.now():
             return "closed"
         return obj.curation_status
+
+    def get_open_time(self, obj: Post):
+        if obj.notebook:
+            return obj.published_at
+        if obj.question:
+            return obj.question.open_time
+        if obj.conditional:
+            return obj.conditional.condition_child.open_time
+        if obj.group_of_questions:
+            return min(*[x.open_time for x in obj.group_of_questions.questions.all()])
 
 
 class NotebookWriteSerializer(serializers.ModelSerializer):
@@ -282,6 +294,7 @@ def serialize_post(
     if with_nr_forecasters:
         serialized_data["forecasts_count"] = post.get_forecasters().count()
 
+    print(serialized_data["open_time"])
     return serialized_data
 
 
