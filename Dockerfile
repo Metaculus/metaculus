@@ -79,6 +79,7 @@ COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_module
 ENV NODE_ENV=production
 RUN --mount=type=secret,id=frontend_env,target=/app/front_end/.env cd front_end && npm run build
 
+SHELL ["/bin/bash", "-c"]
 RUN source venv/bin/activate && ./manage.py collectstatic --noinput
 
 ENV PORT=3000
