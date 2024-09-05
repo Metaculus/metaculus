@@ -64,6 +64,11 @@ jobs:
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
       - name: Run Flake8 Linter
+        if: ${{ !cancelled() }}
         run: poetry run flake8 .
+      - name: Check migrations
+        if: ${{ !cancelled() }}
+        run: poetry run python manage.py makemigrations --dry-run --check
       - name: "Run he backend unit tests"
+        if: ${{ !cancelled() }}
         run: poetry run pytest ./tests/unit
