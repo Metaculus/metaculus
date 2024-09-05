@@ -319,6 +319,7 @@
   "average": "Average",
   "score": "Score",
   "coverage": "Coverage",
+  "totalCoverage": "Total Coverage",
   "totalScore": "Total Score",
   "totalTake": "Total Take",
   "weightedAverageScore": "Weighted Average Score",

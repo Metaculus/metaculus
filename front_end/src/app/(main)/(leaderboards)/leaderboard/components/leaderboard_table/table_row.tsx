@@ -90,12 +90,14 @@ const LeaderboardRow: FC<Props> = ({
         </Link>
       </td>
       {scoreType == "peer_global" && (
-        <Link
-          href={href}
-          className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
-        >
-          {abbreviatedNumber(coverage, 3, 0)}
-        </Link>
+        <td className="hidden w-24 p-0 font-mono text-base leading-4 @md:!table-cell">
+          <Link
+            href={href}
+            className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
+          >
+            {abbreviatedNumber(coverage, 3, 0)}
+          </Link>
+        </td>
       )}
       <td
         className={classNames(
