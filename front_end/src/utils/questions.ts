@@ -299,12 +299,13 @@ export function getPredictionInputMessage(post: Post) {
     case PostStatus.UPCOMING: {
       return "predictionUpcomingMessage";
     }
-    case (PostStatus.REJECTED, PostStatus.PENDING, PostStatus.DRAFT): {
+    case PostStatus.REJECTED:
+    case PostStatus.PENDING:
+    case PostStatus.DRAFT: {
       return "predictionUnapprovedMessage";
     }
     case PostStatus.CLOSED: {
-      if (!post.resolved)
-        return "predictionClosedMessage";
+      if (!post.resolved) return "predictionClosedMessage";
     }
     default:
       return null;
