@@ -43,18 +43,18 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
   };
 
   return (
-    <section className="text-metac-blue-800 dark:text-metac-blue-800-dark flex w-full flex-col items-center gap-3.5 max-sm:pt-3 sm:m-8 sm:mb-6 sm:gap-6">
+    <section className="flex w-full flex-col items-center gap-3.5 text-blue-800 dark:text-blue-800-dark max-sm:pt-3 sm:m-8 sm:mb-6 sm:gap-6">
       <div className="flex flex-col gap-3.5">
         <div className="flex flex-col items-center justify-center gap-3">
           {category !== "all" && (
             <Link
               href={`?year=${year}&duration=${duration}`}
-              className="text-metac-blue-700 dark:text-metac-blue-700-dark text-base leading-5"
+              className="text-base leading-5 text-blue-700 dark:text-blue-700-dark"
             >
               {t("leaderboards")}
             </Link>
           )}
-          <div className="text-metac-blue-900 dark:text-metac-blue-900-dark text-2xl font-bold sm:text-4xl">
+          <div className="text-2xl font-bold text-blue-900 dark:text-blue-900-dark sm:text-4xl">
             {category !== "all" ? (
               <div className="flex items-center gap-4">
                 <span>{t(RANKING_CATEGORIES[category].translationKey)}</span>
@@ -64,7 +64,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
             )}
           </div>
         </div>
-        <div className="text-metac-gray-700 dark:text-metac-gray-700-dark max-w-3xl px-5 py-2 text-center text-sm font-normal sm:py-0 sm:text-base">
+        <div className="max-w-3xl px-5 py-2 text-center text-sm font-normal text-gray-700 dark:text-gray-700-dark sm:py-0 sm:text-base">
           {RANKING_CATEGORIES[category].explanation}
         </div>
       </div>
@@ -95,13 +95,13 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
           </div>
         )}
       </div>
-      <div className="dark:text-metac-blue-600-dark flex justify-center gap-5 font-medium leading-6 sm:hidden">
+      <div className="flex justify-center gap-5 font-medium leading-6 dark:text-blue-600-dark sm:hidden">
         {/* comments and questionWriting leaderboards only exist for 1-year durations, so no selector is shown */}
         {durations &&
           duration &&
           ["all", "peer", "baseline"].includes(category) && (
             <div className="flex items-center gap-2.5">
-              <span className="text-metac-blue-800 dark:text-metac-blue-800-dark text-base font-medium">
+              <span className="text-base font-medium text-blue-800 dark:text-blue-800-dark">
                 {t("duration:")}
               </span>
               <Listbox
@@ -115,7 +115,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
           )}
         {periods && year && (
           <div className="flex items-center gap-2.5">
-            <span className="text-metac-blue-800 dark:text-metac-blue-800-dark text-base font-medium">
+            <span className="text-base font-medium text-blue-800 dark:text-blue-800-dark">
               {t("timePeriod")}
             </span>
             <Listbox
@@ -128,6 +128,20 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
           </div>
         )}
       </div>
+      {Number(year) + Number(duration) > 2024 && (
+        <div className="max-w-3xl px-5 py-2 text-center text-xs font-normal text-gray-700 dark:text-gray-700-dark sm:py-0">
+          {t("liveLeaderboardDisclaimer")}
+        </div>
+      )}
+      {category === "peer" && Number(year) + Number(duration) < 2024 && (
+        <div className="max-w-3xl px-5 py-2 text-center text-xs font-normal text-gray-700 dark:text-gray-700-dark sm:py-0">
+          {t.rich("legacyPeerDisclaimer", {
+            link: (chunks) => (
+              <Link href="/help/medals-faq/#peer-medals">{chunks}</Link>
+            ),
+          })}
+        </div>
+      )}
     </section>
   );
 };
