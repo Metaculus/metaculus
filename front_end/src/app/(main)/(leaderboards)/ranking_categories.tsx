@@ -43,13 +43,13 @@ export const RANKING_CATEGORIES: Record<
     explanation: (
       <span>
         <strong>Peer Accuracy</strong> measures how accurate a user was compared
-        to others. Users are ranked by the average of their{" "}
-        <a href="/help/scores-faq/#peer-score">Peer scores</a>. If a user
-        forecast
-        {" N<40"} questions, then their average score includes (40-N) questions
-        with a 0 score. This lowers the chance of a user getting lucky on a few
-        questions and winning a medal. Learn more{" "}
-        <a href="/help/medals-faq/#peer-medals">here</a>.
+        to others. Users are ranked by the sum of their{" "}
+        <a href="/help/scores-faq/#peer-score">Peer scores</a>, divided by the
+        sum of their <a href="/help/scores-faq/#coverage">Coverages</a>. This
+        creates a weighted average, where each prediction is counted
+        proportionally to how long it was standing. To reduce the impact of
+        luck, all forecasters start with a prior of 30 questions with a score of
+        0. Learn more <a href="/help/medals-faq/#peer-medals">here</a>.
       </span>
     ),
   },

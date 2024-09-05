@@ -68,6 +68,7 @@ const LeaderboardTable: FC<Props> = ({
               year={year}
               duration={duration}
               category={category}
+              scoreType={leaderboardDetails.score_type}
             />
           )}
 
@@ -77,6 +78,9 @@ const LeaderboardTable: FC<Props> = ({
             <th className="hidden w-24 px-4 py-2.5 text-right @md:!table-cell">
               {category === "comments" ? t("comments") : t("questions")}
             </th>
+            {leaderboardDetails.score_type === "peer_global" && (
+              <th className="w-24 px-4 py-2.5 text-right">{t("coverage")}</th>
+            )}
             <th className="w-20 px-4 py-2.5 text-right">{t("score")}</th>
           </tr>
           {!!entriesToDisplay.length ? (
@@ -84,6 +88,7 @@ const LeaderboardTable: FC<Props> = ({
               <LeaderboardRow
                 key={`ranking-row-${category}-${entry.user ? entry.user.id : entry.aggregation_method!}`}
                 rowEntry={entry}
+                scoreType={leaderboardDetails.score_type}
                 href={
                   entry.user
                     ? `/accounts/profile/${entry.user.id}?mode=medals`
@@ -125,6 +130,7 @@ const LeaderboardTable: FC<Props> = ({
                 year={year}
                 duration={duration}
                 category={category}
+                scoreType={leaderboardDetails.score_type}
               />
             </>
           )}

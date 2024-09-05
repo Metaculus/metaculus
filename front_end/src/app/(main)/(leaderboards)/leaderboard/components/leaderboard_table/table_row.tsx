@@ -3,7 +3,11 @@ import Link from "next/link";
 import { FC } from "react";
 
 import { Href } from "@/types/navigation";
-import { CategoryKey, LeaderboardEntry } from "@/types/scoring";
+import {
+  CategoryKey,
+  LeaderboardEntry,
+  LeaderboardType,
+} from "@/types/scoring";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import MedalIcon from "../../../components/medal_icon";
@@ -16,13 +20,26 @@ import {
 
 type Props = {
   rowEntry: LeaderboardEntry;
+  scoreType: LeaderboardType;
   href: Href;
   isUserRow?: boolean;
 };
 
-const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
-  const { user, aggregation_method, rank, contribution_count, score, medal } =
-    rowEntry;
+const LeaderboardRow: FC<Props> = ({
+  rowEntry,
+  scoreType,
+  href,
+  isUserRow = false,
+}) => {
+  const {
+    user,
+    aggregation_method,
+    rank,
+    coverage,
+    contribution_count,
+    score,
+    medal,
+  } = rowEntry;
 
   return (
     <tr
@@ -72,6 +89,14 @@ const LeaderboardRow: FC<Props> = ({ rowEntry, href, isUserRow = false }) => {
           {abbreviatedNumber(contribution_count, 3, 0)}
         </Link>
       </td>
+      {scoreType == "peer_global" && (
+        <Link
+          href={href}
+          className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
+        >
+          {abbreviatedNumber(coverage, 3, 0)}
+        </Link>
+      )}
       <td
         className={classNames(
           "w-20 p-0 font-mono text-base leading-4",
@@ -94,12 +119,14 @@ type UserLeaderboardRowProps = {
   category: CategoryKey;
   year: string;
   duration: string;
+  scoreType: LeaderboardType;
 };
 export const UserLeaderboardRow: FC<UserLeaderboardRowProps> = ({
   userEntry,
   year,
   duration,
   category,
+  scoreType,
 }) => {
   // only show this row for users who are logged in and have any ranking data
   // in this category
@@ -109,7 +136,14 @@ export const UserLeaderboardRow: FC<UserLeaderboardRowProps> = ({
     ? "/medals"
     : `/contributions/?${SCORING_CATEGORY_FILTER}=${category}&${CONTRIBUTIONS_USER_FILTER}=${userEntry.user!.id}&${SCORING_YEAR_FILTER}=${year}&${SCORING_DURATION_FILTER}=${duration}`;
 
-  return <LeaderboardRow rowEntry={userEntry} href={userHref} isUserRow />;
+  return (
+    <LeaderboardRow
+      rowEntry={userEntry}
+      scoreType={scoreType}
+      href={userHref}
+      isUserRow
+    />
+  );
 };
 
 export default LeaderboardRow;
