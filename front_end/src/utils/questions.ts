@@ -293,3 +293,20 @@ export function getQuestionTitle(post: Post) {
 
   return post.title;
 }
+
+export function getPredictionInputMessage(post: Post) {
+  switch (post.status) {
+    case PostStatus.UPCOMING: {
+      return "predictionUpcomingMessage";
+    }
+    case (PostStatus.REJECTED, PostStatus.PENDING, PostStatus.DRAFT): {
+      return "predictionUnapprovedMessage";
+    }
+    case PostStatus.CLOSED: {
+      if (!post.resolved)
+        return "predictionClosedMessage";
+    }
+    default:
+      return null;
+  }
+}

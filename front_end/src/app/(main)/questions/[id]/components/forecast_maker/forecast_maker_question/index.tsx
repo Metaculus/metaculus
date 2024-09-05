@@ -3,7 +3,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { ProjectPermissions } from "@/types/post";
-import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { PredictionInputMessage, QuestionType, QuestionWithForecasts } from "@/types/question";
 import { formatResolution } from "@/utils/questions";
 
 import ForecastMakerBinary from "./forecast_maker_binary";
@@ -18,6 +18,7 @@ type Props = {
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
+  predictionMessage: PredictionInputMessage;
 };
 
 const QuestionForecastMaker: FC<Props> = ({
@@ -26,6 +27,7 @@ const QuestionForecastMaker: FC<Props> = ({
   canPredict,
   canResolve,
   postId,
+  predictionMessage
 }) => {
   const t = useTranslations();
 
@@ -53,6 +55,7 @@ const QuestionForecastMaker: FC<Props> = ({
               parseISO(question.open_time) < new Date()
             }
             canResolve={canResolve}
+            predictionMessage={predictionMessage}
           />
           <QuestionResolutionText question={question} />
         </>
@@ -70,6 +73,7 @@ const QuestionForecastMaker: FC<Props> = ({
               parseISO(question.open_time) < new Date()
             }
             canResolve={canResolve}
+            predictionMessage={predictionMessage}
           />
           <QuestionResolutionText question={question} />
         </>

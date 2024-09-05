@@ -191,3 +191,9 @@ export type ForecastData = {
   probabilityYes: number | null;
   probabilityYesPerCategory: Record<string, number> | null;
 };
+
+export type PredictionInputMessage =
+  | "predictionUpcomingMessage"
+  | "predictionUnapprovedMessage"
+  | "predictionClosedMessage"
+  | null;

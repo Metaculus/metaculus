@@ -7,7 +7,10 @@ import {
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
-import { canPredictQuestion } from "@/utils/questions";
+import {
+  canPredictQuestion,
+  getPredictionInputMessage,
+} from "@/utils/questions";
 
 import ForecastMakerConditional from "./forecast_maker_conditional";
 import ForecastMakerGroup from "./forecast_maker_group";
@@ -23,15 +26,18 @@ const ForecastMaker: FC<Props> = ({ post }) => {
     conditional,
     question,
     user_permission: permission,
+    status,
   } = post;
   const canPredict = canPredictQuestion(post);
   const canResolve =
-    (post.user_permission === ProjectPermissions.CURATOR ||
-      post.user_permission === ProjectPermissions.ADMIN) &&
+    [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
+      post.user_permission
+    ) &&
     !isNil(post.published_at) &&
     parseISO(post.published_at) <= new Date() &&
-    post.status === PostStatus.APPROVED;
+    [PostStatus.APPROVED, PostStatus.CLOSED].includes(status);
 
+  const predictionMessage = getPredictionInputMessage(post);
   if (groupOfQuestions) {
     return (
       <ForecastMakerGroup
@@ -63,6 +69,7 @@ const ForecastMaker: FC<Props> = ({ post }) => {
         canPredict={canPredict}
         canResolve={canResolve}
         postId={post.id}
+        predictionMessage={predictionMessage}
       />
     );
   }
