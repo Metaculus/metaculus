@@ -128,6 +128,7 @@ type CommentProps = {
   treeDepth: number;
   sort: SortOption;
   postData?: PostWithForecasts;
+  lastViewedAt?: string;
 };
 
 const Comment: FC<CommentProps> = ({
@@ -137,6 +138,7 @@ const Comment: FC<CommentProps> = ({
   treeDepth,
   sort,
   postData,
+  lastViewedAt,
 }) => {
   const locale = useLocale();
   const t = useTranslations();
@@ -288,45 +290,52 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`}>
-      <CmmOverlay
-        forecast={100 * userForecast}
-        updateForecast={updateForecast}
-        showForecastingUI={postData?.question?.type === QuestionType.Binary}
-        onClickScrollLink={() => {
-          cmmContext.setIsOverlayOpen(false);
-          const section = document.getElementById("prediction-section");
-          if (section) {
-            section.scrollIntoView({ behavior: "smooth" });
-          }
-        }}
-        cmmContext={cmmContext}
-      />
-
-      {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
-      {comment.included_forecast && (
-        <IncludedForecast
-          author={comment.author.username}
-          forecast={comment.included_forecast}
+      <div
+        className={classNames("p-2", {
+          "bg-blue-100 dark:bg-blue-100-dark":
+            lastViewedAt &&
+            new Date(lastViewedAt) < new Date(comment.created_at),
+        })}
+      >
+        <CmmOverlay
+          forecast={100 * userForecast}
+          updateForecast={updateForecast}
+          showForecastingUI={postData?.question?.type === QuestionType.Binary}
+          onClickScrollLink={() => {
+            cmmContext.setIsOverlayOpen(false);
+            const section = document.getElementById("prediction-section");
+            if (section) {
+              section.scrollIntoView({ behavior: "smooth" });
+            }
+          }}
+          cmmContext={cmmContext}
         />
-      )}
-      <div className="my-2.5 flex flex-col items-start gap-1">
-        <span className="inline-flex items-center">
-          <a
-            className="no-underline"
-            href={`/accounts/profile/${comment.author.id}/`}
-          >
-            <h4 className="my-1">{comment.author.username}</h4>
-          </a>
-          {/*
+
+        {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
+        {comment.included_forecast && (
+          <IncludedForecast
+            author={comment.author.username}
+            forecast={comment.included_forecast}
+          />
+        )}
+        <div className="my-2.5 flex flex-col items-start gap-1">
+          <span className="inline-flex items-center">
+            <a
+              className="no-underline"
+              href={`/accounts/profile/${comment.author.id}/`}
+            >
+              <h4 className="my-1">{comment.author.username}</h4>
+            </a>
+            {/*
           {comment.is_moderator && !comment.is_admin && (
             <Moderator className="ml-2 text-lg" />
           )}
           {comment.is_admin && <Admin className="ml-2 text-lg" />}
           */}
-          <span className="mx-1">·</span>
-          {formatDate(locale, new Date(comment.created_at))}
-        </span>
-        {/*
+            <span className="mx-1">·</span>
+            {formatDate(locale, new Date(comment.created_at))}
+          </span>
+          {/*
         <span className="text-gray-600 dark:text-gray-600-dark block text-xs leading-3">
           {comment.parent
             ? t("replied")
@@ -334,10 +343,10 @@ const Comment: FC<CommentProps> = ({
           {commentAge(comment.created_time)}
         </span>
         */}
-      </div>
+        </div>
 
-      {/* TODO: fix TS error */}
-      {/* {comment.parent && onProfile && (
+        {/* TODO: fix TS error */}
+        {/* {comment.parent && onProfile && (
         <div>
           <a
             href={`/questions/${comment.parent.on_post}/#comment-${comment.parent.id}`}
@@ -347,93 +356,93 @@ const Comment: FC<CommentProps> = ({
         </div>
       )} */}
 
-      <div className="break-anywhere">
-        {isEditing && (
-          <MarkdownEditor
-            markdown={commentMarkdown}
-            mode={"write"}
-            onChange={setCommentMarkdown}
-          />
-        )}{" "}
-        {!isEditing && (
-          <MarkdownEditor markdown={commentMarkdown} mode={"read"} />
-        )}
-      </div>
-      {isEditing && (
-        <>
-          <Button
-            onClick={async () => {
-              const response = await editComment({
-                id: comment.id,
-                text: commentMarkdown,
-                author: user!.id,
-              });
-              if (response && "errors" in response) {
-                console.error(t("errorDeletingComment"), response.errors);
-              } else {
-                setIsEditing(false);
-              }
-            }}
-          >
-            {t("save")}
-          </Button>
-          <Button
-            className="ml-2"
-            onClick={() => {
-              setCommentMarkdown(tempCommentMarkdown);
-              setIsEditing(false);
-            }}
-          >
-            {t("cancel")}
-          </Button>
-        </>
-      )}
-      <div className="mb-2 mt-1 h-7 overflow-visible">
-        <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
-          <div className="inline-flex items-center gap-3">
-            <CommentVoter
-              voteData={{
-                commentId: comment.id,
-                voteScore: comment.vote_score,
-                userVote: comment.user_vote ?? null,
-              }}
+        <div className="break-anywhere">
+          {isEditing && (
+            <MarkdownEditor
+              markdown={commentMarkdown}
+              mode={"write"}
+              onChange={setCommentMarkdown}
             />
-
-            {isCmmButtonVisible && !isMobileScreen && (
-              <CmmToggleButton
-                cmmContext={cmmContext}
-                comment_id={comment.id}
-                disabled={isCmmButtonDisabled}
-                ref={cmmContext.setAnchorRef}
+          )}{" "}
+          {!isEditing && (
+            <MarkdownEditor markdown={commentMarkdown} mode={"read"} />
+          )}
+        </div>
+        {isEditing && (
+          <>
+            <Button
+              onClick={async () => {
+                const response = await editComment({
+                  id: comment.id,
+                  text: commentMarkdown,
+                  author: user!.id,
+                });
+                if (response && "errors" in response) {
+                  console.error(t("errorDeletingComment"), response.errors);
+                } else {
+                  setIsEditing(false);
+                }
+              }}
+            >
+              {t("save")}
+            </Button>
+            <Button
+              className="ml-2"
+              onClick={() => {
+                setCommentMarkdown(tempCommentMarkdown);
+                setIsEditing(false);
+              }}
+            >
+              {t("cancel")}
+            </Button>
+          </>
+        )}
+        <div className="mb-2 mt-1 h-7 overflow-visible">
+          <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
+            <div className="inline-flex items-center gap-3">
+              <CommentVoter
+                voteData={{
+                  commentId: comment.id,
+                  voteScore: comment.vote_score,
+                  userVote: comment.user_vote ?? null,
+                }}
               />
-            )}
 
-            {!onProfile &&
-              (isReplying ? (
-                <Button
-                  className="ml-auto p-2"
-                  variant="text"
-                  onClick={() => {
-                    setIsReplying(false);
-                  }}
-                >
-                  <FontAwesomeIcon icon={faXmark} />
-                  {t("cancel")}
-                </Button>
-              ) : (
-                <Button onClick={() => setIsReplying(true)} variant="text">
-                  <FontAwesomeIcon icon={faReply} />
-                  {t("reply")}
-                </Button>
-              ))}
-          </div>
+              {isCmmButtonVisible && !isMobileScreen && (
+                <CmmToggleButton
+                  cmmContext={cmmContext}
+                  comment_id={comment.id}
+                  disabled={isCmmButtonDisabled}
+                  ref={cmmContext.setAnchorRef}
+                />
+              )}
 
-          <div ref={isMobileScreen ? cmmContext.setAnchorRef : null}>
-            <DropdownMenu items={menuItems} />
+              {!onProfile &&
+                (isReplying ? (
+                  <Button
+                    className="ml-auto p-2"
+                    variant="text"
+                    onClick={() => {
+                      setIsReplying(false);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faXmark} />
+                    {t("cancel")}
+                  </Button>
+                ) : (
+                  <Button onClick={() => setIsReplying(true)} variant="text">
+                    <FontAwesomeIcon icon={faReply} />
+                    {t("reply")}
+                  </Button>
+                ))}
+            </div>
+
+            <div ref={isMobileScreen ? cmmContext.setAnchorRef : null}>
+              <DropdownMenu items={menuItems} />
+            </div>
           </div>
         </div>
       </div>
-
       {isReplying && (
         <CommentEditor
           parentId={comment.id}

@@ -30,6 +30,11 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   const { id, title } = post;
   const resolutionData = extractPostResolution(post);
 
+  let newCommentsCount = post.comment_count ? post.comment_count : 0;
+  if ( post.unread_comment_count !== undefined) {
+    newCommentsCount = post.unread_comment_count
+  }
+
   return (
     <div
       className={classNames(
@@ -55,7 +60,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           <div className="flex items-center gap-3">
             <PostVoter className="md:min-w-20" post={post} />
             <CommentStatus
-              newCommentsCount={post.comment_count ? post.comment_count : 0}
+              newCommentsCount={newCommentsCount}
               url={`/questions/${id}`}
               commentColor={borderColor}
             />
