@@ -117,6 +117,7 @@ export type Post<QT = Question> = {
   actual_close_time: string;
   scheduled_close_time: string;
   scheduled_resolve_time: string;
+  open_time: string;
   vote: PostVote;
   nr_forecasters: number;
   author_username: string;
