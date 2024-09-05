@@ -269,7 +269,7 @@ def serialize_post(
         "user_vote": post.user_vote,
     }
     # Forecasters
-    serialized_data["nr_forecasters"] = post.nr_forecasters
+    serialized_data["forecasts_count"] = post.forecasts_count
 
     # Subscriptions
     if with_subscriptions and current_user:
@@ -292,9 +292,8 @@ def serialize_post(
         )
 
     if with_nr_forecasters:
-        serialized_data["forecasts_count"] = post.get_forecasters().count()
+        serialized_data["nr_forecasters"] = post.get_forecasters().count()
 
-    print(serialized_data["open_time"])
     return serialized_data
 
 
