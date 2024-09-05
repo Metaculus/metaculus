@@ -10,7 +10,10 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import {
+  PredictionInputMessage,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
@@ -23,6 +26,7 @@ type Props = {
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
+  predictionMessage?: PredictionInputMessage;
 };
 
 const ForecastMakerBinary: FC<Props> = ({
@@ -32,6 +36,7 @@ const ForecastMakerBinary: FC<Props> = ({
   permission,
   canPredict,
   canResolve,
+  predictionMessage,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -96,6 +101,11 @@ const ForecastMakerBinary: FC<Props> = ({
         }}
         disabled={!canPredict}
       />
+      {predictionMessage && (
+        <div className="text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
+          {t(predictionMessage)}
+        </div>
+      )}
       <div className="flex flex-col items-center justify-center">
         {canPredict && (
           <Button

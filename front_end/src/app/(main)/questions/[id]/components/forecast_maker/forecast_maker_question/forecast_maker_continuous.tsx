@@ -8,7 +8,10 @@ import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ProjectPermissions } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import {
+  PredictionInputMessage,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
@@ -26,6 +29,7 @@ type Props = {
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
+  predictionMessage?: PredictionInputMessage;
 };
 
 const ForecastMakerContinuous: FC<Props> = ({
@@ -35,6 +39,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   prevForecast,
   canPredict,
   canResolve,
+  predictionMessage,
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -156,7 +161,11 @@ const ForecastMakerContinuous: FC<Props> = ({
           )}
         </div>
       )}
-
+      {predictionMessage && (
+        <div className="text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
+          {t(predictionMessage)}
+        </div>
+      )}
       <NumericForecastTable
         question={question}
         userBounds={{

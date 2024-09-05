@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { FC } from "react";
 
-import { PostWithForecasts } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import { formatDate } from "@/utils/date_formatters";
 
 type Props = {
@@ -40,7 +40,7 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
 
         <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
           <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
-            {t("closes")}:
+            {postData.status === PostStatus.CLOSED ? t("closed") : t("closes")}:
           </span>
           <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
             {postData.scheduled_close_time &&
