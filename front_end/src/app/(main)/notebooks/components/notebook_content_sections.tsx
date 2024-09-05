@@ -18,9 +18,13 @@ import useSectionHeadings from "@/hooks/use_section_headings";
 
 type Props = {
   commentsCount: number;
+  unreadComments?: number;
 };
 
-const NotebookContentSections: FC<Props> = ({ commentsCount }) => {
+const NotebookContentSections: FC<Props> = ({
+  commentsCount,
+  unreadComments,
+}) => {
   const t = useTranslations();
   const hash = useHash();
 
@@ -95,7 +99,7 @@ const NotebookContentSections: FC<Props> = ({ commentsCount }) => {
 
   const commentsTitle = useMemo(
     () =>
-      `${commentsCount ? `${commentsCount} ` : ""} ${t("commentsWithCount", { count: commentsCount })}`,
+      `${commentsCount ? `${commentsCount} ` : ""} ${t("commentsWithCount", { count: commentsCount })} ${unreadComments ? `(${unreadComments === commentsCount ? `${t("unreadAll")}` : `${t("unreadWithCount", { count: unreadComments })}`})` : ``}`,
     [commentsCount, t]
   );
 

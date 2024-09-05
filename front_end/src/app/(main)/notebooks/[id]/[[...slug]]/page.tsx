@@ -104,7 +104,7 @@ export default async function IndividualNotebook({
 
       <div className="block md:flex md:gap-8">
         <div className="inline w-full md:mt-3 md:min-w-56 md:max-w-56">
-          <NotebookContentSections commentsCount={postData.vote.score ?? 0} />
+          <NotebookContentSections commentsCount={postData.comment_count ?? 0} unreadComments={postData.unread_comment_count}/>
         </div>
         <div className="w-full">
           <NotebookEditor

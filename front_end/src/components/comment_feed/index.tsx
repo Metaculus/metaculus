@@ -310,6 +310,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
             /* comment children should switch to chronological order if the feed is in reverse-chronological order */
             sort={sort === "-created_at" ? "created_at" : sort}
             postData={postData}
+            lastViewedAt={postData?.last_viewed_at}
           />
         </div>
       ))}
