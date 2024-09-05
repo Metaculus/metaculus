@@ -18,9 +18,13 @@ import useSectionHeadings from "@/hooks/use_section_headings";
 
 type Props = {
   commentsCount: number;
+  unreadComments?: number;
 };
 
-const NotebookContentSections: FC<Props> = ({ commentsCount }) => {
+const NotebookContentSections: FC<Props> = ({
+  commentsCount,
+  unreadComments,
+}) => {
   const t = useTranslations();
   const hash = useHash();
 
@@ -43,11 +47,9 @@ const NotebookContentSections: FC<Props> = ({ commentsCount }) => {
   }, [headings, headings.length]);
 
   useEffect(() => {
-    if (headings.length) {
       const notebookTitleElement = document.querySelector(`#${NOTEBOOK_TITLE}`);
       setNotebookTitle(notebookTitleElement?.textContent);
-    }
-  }, [headings.length]);
+  }, []);
 
   useEffect(() => {
     const handleOnScroll = () => {
@@ -93,11 +95,16 @@ const NotebookContentSections: FC<Props> = ({ commentsCount }) => {
     };
   }, [headings, isLargeScreen]);
 
-  const commentsTitle = useMemo(
-    () =>
-      `${commentsCount ? `${commentsCount} ` : ""} ${t("commentsWithCount", { count: commentsCount })}`,
-    [commentsCount, t]
-  );
+  const commentsTitle = useMemo(() => {
+    const commentCount = t("commentsWithCount", { count: commentsCount });
+    const unreadCount = unreadComments ? 
+      (unreadComments === commentsCount ? 
+        t("unreadAll") : 
+        `${unreadComments} ${t("unreadWithCount", { count: unreadComments })}`) :
+      '';
+    const unreadText = unreadCount ? `(${unreadCount})` : '';
+    return `${commentsCount || ''} ${commentCount} ${unreadText}`.trim();
+  }, [commentsCount, unreadComments, t]);
 
   return (
     <Popover

@@ -32,6 +32,11 @@ urlpatterns = [
         views.remove_from_project,
         name="remove-post-from-project",
     ),
+    path(
+        "posts/preview-image/<int:pk>/",
+        views.post_preview_image,
+        name="post-preview-image",
+    ),
 ]
 
 old_api = [

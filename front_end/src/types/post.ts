@@ -117,6 +117,7 @@ export type Post<QT = Question> = {
   actual_close_time: string;
   scheduled_close_time: string;
   scheduled_resolve_time: string;
+  open_time: string;
   vote: PostVote;
   nr_forecasters: number;
   author_username: string;
@@ -132,6 +133,8 @@ export type Post<QT = Question> = {
   comment_count?: number;
   forecasts_count?: number;
   subscriptions?: Array<PostSubscription & { created_at: string }>;
+  unread_comment_count?: number;
+  last_viewed_at?: string;
 };
 
 export type PostWithNotebook = Omit<Post, "notebook"> & {

@@ -1,3 +1,5 @@
+"use client";
+
 import { faComment as faRegularComment } from "@fortawesome/free-regular-svg-icons";
 import { faComment as faSolidComment } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -7,6 +9,7 @@ import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+import { useAuth } from "@/contexts/auth_context";
 
 type Props = {
   url: string;
@@ -20,6 +23,7 @@ const CommentStatus: FC<Props> = ({
   commentColor = "blue",
 }) => {
   const t = useTranslations();
+  const { user } = useAuth();
   const formattedCount = abbreviatedNumber(newCommentsCount, 2, 0);
 
   return (
@@ -49,7 +53,9 @@ const CommentStatus: FC<Props> = ({
       {/* Large screens version */}
       <span className="hidden align-middle md:block">
         {`${newCommentsCount ? `${formattedCount} ` : ""}` +
-          t("commentsWithCount", { count: formattedCount })}
+          t(user ? "unreadWithCount" : "commentsWithCount", {
+            count: formattedCount,
+          })}
       </span>
       {/* Small screens version */}
       <span className="block align-middle md:hidden">{formattedCount}</span>
