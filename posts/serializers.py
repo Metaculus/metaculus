@@ -56,7 +56,6 @@ class PostSerializer(serializers.ModelSerializer):
             "resolved",
             "scheduled_close_time",
             "scheduled_resolve_time",
-            "maybe_try_to_resolve_at",
         )
 
     def get_projects(self, obj: Post):
