@@ -304,7 +304,6 @@ class Post(TimeStampedModel):
     forecasts: QuerySet["Forecast"]
 
     # Annotated fields
-    nr_forecasters: int = 0
     vote_score: int = 0
     user_vote = None
     user_permission: ObjectPermission = None
