@@ -47,11 +47,9 @@ const NotebookContentSections: FC<Props> = ({
   }, [headings, headings.length]);
 
   useEffect(() => {
-    if (headings.length) {
       const notebookTitleElement = document.querySelector(`#${NOTEBOOK_TITLE}`);
       setNotebookTitle(notebookTitleElement?.textContent);
-    }
-  }, [headings.length]);
+  }, []);
 
   useEffect(() => {
     const handleOnScroll = () => {
