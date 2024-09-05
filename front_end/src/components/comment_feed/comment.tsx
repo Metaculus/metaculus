@@ -215,9 +215,9 @@ const Comment: FC<CommentProps> = ({
       },
     },
     {
-      // hidden:
-      //     permissions !== CommentPermissions.CREATOR &&
-      //     permissions !== CommentPermissions.CURATOR,
+      hidden:
+        permissions !== CommentPermissions.CREATOR &&
+        permissions !== CommentPermissions.CURATOR,
       id: "edit",
       name: t("edit"),
       onClick: () => {
@@ -239,13 +239,14 @@ const Comment: FC<CommentProps> = ({
       onClick: () => setIsReportModalOpen(true),
     },
     {
-      // hidden: permissions !== CommentPermissions.CURATOR,
+      hidden: permissions !== CommentPermissions.CURATOR,
       id: "delete",
       name: t("delete"),
       onClick: async () => {
-        // setDeleteModalOpen(true),
-        const response = softDeleteComment(comment.id);
-        if ("errors" in response) {
+        //setDeleteModalOpen(true),
+        const response = await softDeleteComment(comment.id);
+
+        if (response && "errors" in response) {
           console.error("Error deleting comment:", response.errors);
         } else {
           setIsDeleted(true);
