@@ -3,7 +3,11 @@ import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { ProjectPermissions } from "@/types/post";
-import { PredictionInputMessage, QuestionType, QuestionWithForecasts } from "@/types/question";
+import {
+  PredictionInputMessage,
+  QuestionType,
+  QuestionWithForecasts,
+} from "@/types/question";
 import { formatResolution } from "@/utils/questions";
 
 import ForecastMakerBinary from "./forecast_maker_binary";
@@ -27,7 +31,7 @@ const QuestionForecastMaker: FC<Props> = ({
   canPredict,
   canResolve,
   postId,
-  predictionMessage
+  predictionMessage,
 }) => {
   const t = useTranslations();
 

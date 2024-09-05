@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import React, { FC, useMemo, useState } from "react";
+import React, { FC, use, useMemo, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";

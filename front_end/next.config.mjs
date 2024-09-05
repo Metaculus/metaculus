@@ -71,13 +71,13 @@ const nextConfig = {
     },
   ],
   eslint: {
-    ignoreDuringBuilds: true
-  }
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default withSentryConfig(withNextIntl(nextConfig), {
-    org: "metaculus",
-    project: "metaculus-frontend",
-    authToken: process.env.SENTRY_AUTH_TOKEN,
-    silent: false, 
+  org: "metaculus",
+  project: "metaculus-frontend",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: false,
 });

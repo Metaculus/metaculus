@@ -67,7 +67,10 @@ const ForecastValue: FC<ForecastValueProps> = ({ forecast }) => {
   }
   if (forecast.question_type == "date") {
     return (
-      <div className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark" suppressHydrationWarning>
+      <div
+        className="order-1 grow-0 text-xl font-bold text-gray-900 dark:text-gray-900-dark"
+        suppressHydrationWarning
+      >
         {`${formatDate(locale, new Date(forecast.quartiles[1] * 1000))} (${formatDate(locale, new Date(forecast.quartiles[0] * 1000))} - ${formatDate(locale, new Date(forecast.quartiles[2] * 1000))})`}
       </div>
     );
@@ -94,7 +97,10 @@ const IncludedForecast: FC<Props> = ({ author, forecast }) => {
         })}
       </div>
       <ForecastValue forecast={forecast} />
-      <div className="order-1 grow-0 text-gray-600 dark:text-gray-600-dark" suppressHydrationWarning>
+      <div
+        className="order-1 grow-0 text-gray-600 dark:text-gray-600-dark"
+        suppressHydrationWarning
+      >
         {formatDate(locale, forecast.start_time)}
       </div>
     </div>

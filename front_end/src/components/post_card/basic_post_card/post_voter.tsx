@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { FC, useState } from "react";
 
 import { votePost } from "@/app/(main)/questions/actions";

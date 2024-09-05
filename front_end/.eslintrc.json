@@ -1,22 +1,13 @@
 {
-  "extends": [
-    "plugin:prettier/recommended",
-    "next/core-web-vitals"
-  ],
+  "extends": ["plugin:prettier/recommended", "next/core-web-vitals"],
   "rules": {
     "import/order": [
       "error",
       {
         "groups": [
-          [
-            "builtin",
-            "external"
-          ],
+          ["builtin", "external"],
           "internal",
-          [
-            "parent",
-            "sibling"
-          ],
+          ["parent", "sibling"],
           "index",
           "object"
         ],
