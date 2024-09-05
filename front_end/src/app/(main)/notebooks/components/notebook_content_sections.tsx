@@ -97,11 +97,16 @@ const NotebookContentSections: FC<Props> = ({
     };
   }, [headings, isLargeScreen]);
 
-  const commentsTitle = useMemo(
-    () =>
-      `${commentsCount ? `${commentsCount} ` : ""} ${t("commentsWithCount", { count: commentsCount })} ${unreadComments ? `(${unreadComments === commentsCount ? `${t("unreadAll")}` : `${t("unreadWithCount", { count: unreadComments })}`})` : ``}`,
-    [commentsCount, t]
-  );
+  const commentsTitle = useMemo(() => {
+    const commentCount = t("commentsWithCount", { count: commentsCount });
+    const unreadCount = unreadComments ? 
+      (unreadComments === commentsCount ? 
+        t("unreadAll") : 
+        `${unreadComments} ${t("unreadWithCount", { count: unreadComments })}`) :
+      '';
+    const unreadText = unreadCount ? `(${unreadCount})` : '';
+    return `${commentsCount || ''} ${commentCount} ${unreadText}`.trim();
+  }, [commentsCount, unreadComments, t]);
 
   return (
     <Popover
