@@ -239,7 +239,12 @@ class PostQuerySet(models.QuerySet):
                     )
                 )
                 & (
-                    Q(curation_status=Post.CurationStatus.APPROVED)
+                    Q(
+                        curation_status__in=[
+                            Post.CurationStatus.APPROVED,
+                            Post.CurationStatus.PENDING,
+                        ]
+                    )
                     | Q(
                         default_project__in=projects.filter(
                             user_permission__in=[
