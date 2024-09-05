@@ -132,6 +132,8 @@ export type Post<QT = Question> = {
   comment_count?: number;
   forecasts_count?: number;
   subscriptions?: Array<PostSubscription & { created_at: string }>;
+  unread_comment_count?: number;
+  last_viewed_at?: string;
 };
 
 export type PostWithNotebook = Omit<Post, "notebook"> & {
