@@ -12,7 +12,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-from playwright.sync_api import sync_playwright
+# from playwright.sync_api import sync_playwright
 import os
 import django
 from PIL import Image

@@ -1,32 +1,23 @@
-FROM node:20.11.1-bookworm AS base
+FROM alpine:latest AS base
 
-RUN apt update && apt install -y \
-    python3 \
-    python3-pip \
-    bash \
-    curl \
-    git \
-    build-essential \
-    libssl-dev \
-    zlib1g-dev \
-    libbz2-dev \
-    libreadline-dev \
-    libsqlite3-dev \
+RUN apk add --no-cache --update python3 py3-pip bash curl git \
+    build-base \
+    openssl-dev \
+    zlib-dev \
+    bzip2-dev \
+    readline-dev \
+    sqlite-dev \
     wget \
     curl \
     llvm \
-    libncurses5-dev \
-    libncursesw5-dev \
-    xz-utils \
+    ncurses-dev \
+    xz \
     tk-dev \
     libffi-dev \
+    xz-dev \
     python3-dev \
-    liblzma-dev \
-    vim \
-    chromium
-
-
-RUN npx -y playwright@1.46.1 install --with-deps
+    py3-openssl \
+    vim
 
 RUN curl https://pyenv.run | bash && \
     chmod -R 777 "/root/.pyenv/bin"
@@ -44,6 +35,9 @@ ADD front_end/.nvmrc /tmp/.nvmrc
 # Install Nodejs
 # Inspired from: https://github.com/nodejs/docker-node/blob/main/Dockerfile-alpine.template
 ENV ARCH=x64
+RUN export NODE_VERSION=$(cat /tmp/.nvmrc) && cd /tmp/ && curl -fsSLO --compressed "https://unofficial-builds.nodejs.org/download/release/v$NODE_VERSION/node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" \
+  && tar -xJf "node-v$NODE_VERSION-linux-$ARCH-musl.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
+  && ln -s /usr/local/bin/node /usr/local/bin/nodejs
 
 FROM base AS backend_deps
 WORKDIR /app
@@ -55,6 +49,7 @@ RUN poetry config virtualenvs.create false \
     && python -m venv venv \
     && . venv/bin/activate \
     && poetry install --without dev
+
 
 FROM base AS frontend_deps
 WORKDIR /app/front_end/
@@ -72,14 +67,12 @@ RUN --mount=type=bind,source=.git/,target=/tmp/app/.git/ \
 git clone /tmp/app/.git/ /app/
 
 # Copy the backkend and frontend deps
-COPY . /app/
 COPY --from=backend_deps /app/venv /app/venv
 COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_modules
 
 ENV NODE_ENV=production
 RUN --mount=type=secret,id=frontend_env,target=/app/front_end/.env cd front_end && npm run build
 
-SHELL ["/bin/bash", "-c"]
 RUN source venv/bin/activate && ./manage.py collectstatic --noinput
 
 ENV PORT=3000
