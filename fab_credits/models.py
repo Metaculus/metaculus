@@ -4,6 +4,7 @@ from users.models import User
 
 available_models = [
     ("gpt-4o", "gpt-4o"),
+    ("gpt-4o-mini", "gpt-4o-mini"),
     ("gpt-4o-2024-05-13", "gpt-4o-2024-05-13"),
     ("gpt-3.5-turbo-0125", "gpt-3.5-turbo-0125"),
     ("gpt-3.5-turbo-instruct", "gpt-3.5-turbo-instruct"),
