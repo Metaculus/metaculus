@@ -1,10 +1,12 @@
-import createNextIntlPlugin from "next-intl/plugin";
 import { withSentryConfig } from "@sentry/nextjs";
+import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin();
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+
+const AWS_STORAGE_BUCKET_NAME = process.env.AWS_STORAGE_BUCKET_NAME;
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
@@ -33,12 +35,16 @@ const nextConfig = {
         hostname: "raw.githubusercontent.com",
         pathname: "/**",
       },
+      ...(AWS_STORAGE_BUCKET_NAME
+        ? [
+            {
+              protocol: "https",
+              hostname: `${AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com`,
+              pathname: "/**",
+            },
+          ]
+        : []),
       // TODO: move this to ENV
-      {
-        protocol: "https",
-        hostname: "dev-rewrite-metaculus-media.s3.amazonaws.com",
-        pathname: "/**",
-      },
       {
         protocol: "https",
         hostname: "d3s0w6fek99l5b.cloudfront.net",
