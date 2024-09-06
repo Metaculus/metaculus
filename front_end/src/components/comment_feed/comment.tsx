@@ -156,7 +156,7 @@ const Comment: FC<CommentProps> = ({
 
   const userCanPredict = postData && canPredictQuestion(postData);
   const userForecast =
-    postData?.question?.my_forecasts?.latest?.slider_values ?? 0.5;
+    postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
 
   const isCmmButtonVisible =
     user?.id !== comment.author.id && !!postData?.question;
@@ -180,7 +180,6 @@ const Comment: FC<CommentProps> = ({
           probabilityYes: value,
           probabilityYesPerCategory: null,
         },
-        sliderValues: value,
       },
     ]);
 

@@ -1,7 +1,6 @@
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
 
-import numpy as np
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -323,17 +322,29 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             )
         )
 
-        continuous_cdf_increasing = continuous_cdf is not None and all(
-            [
-                continuous_cdf[i] < continuous_cdf[i + 1]
-                for i in range(len(continuous_cdf) - 1)
-            ]
-        )
-        continuous_cdf_ok = (
-            continuous_cdf is not None
-            and np.isclose(continuous_cdf[-1], 1.0)
-            and continuous_cdf_increasing
-        )
+        continuous_cdf_ok = False
+        if continuous_cdf is not None:
+            continuous_cdf_increasing = all(
+                [
+                    continuous_cdf[i + 1] - continuous_cdf[i] >= 0.01 / 201
+                    for i in range(len(continuous_cdf) - 1)
+                ]
+            )
+            question: Question = data["question"]
+            if question.open_lower_bound:
+                lower_bound_ok = continuous_cdf[0] >= 0.001
+            else:
+                lower_bound_ok = continuous_cdf[0] == 0.00
+            if question.open_upper_bound:
+                upper_bound_ok = continuous_cdf[-1] <= 0.999
+            else:
+                upper_bound_ok = continuous_cdf[-1] == 1.00
+            continuous_cdf_ok = (
+                continuous_cdf is not None
+                and continuous_cdf_increasing
+                and lower_bound_ok
+                and upper_bound_ok
+            )
 
         if not (prob_yes_ok or prob_yes_per_cat_ok or continuous_cdf_ok):
             raise serializers.ValidationError("Invalid forecast values")
@@ -465,7 +476,6 @@ def serialize_question(
                     ] = score.coverage
 
     serialized_data["resolution"] = question.resolution
-
     return serialized_data
 
 
@@ -562,3 +572,9 @@ class OldForecastWriteSerializer(serializers.Serializer):
                 "Probability value should be between 0.001 and 0.999"
             )
         return value
+
+
+class QuestionApproveSerializer(serializers.Serializer):
+    question_id = serializers.IntegerField(required=True)
+    open_time = serializers.DateTimeField(required=True)
+    cp_reveal_time = serializers.DateTimeField(required=True)

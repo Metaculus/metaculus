@@ -1,10 +1,10 @@
-import { ForecastData } from "@/types/question";
+import { ForecastData, SliderValues } from "@/types/question";
 import { post } from "@/utils/fetch";
 
 export type ForecastPayload = {
   questionId: number;
   forecastData: ForecastData;
-  sliderValues: any;
+  sliderValues?: SliderValues | null;
 };
 
 class QuestionsApi {
