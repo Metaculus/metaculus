@@ -22,7 +22,7 @@ export default async function Settings() {
       <EmailNotifications user={currentUser} />
       <QuestionNotifications user={currentUser} posts={posts} />
       <ChangePassword />
-      {currentUser.is_bot && <ApiAccess token={token} />}
+      <ApiAccess token={token} />
     </main>
   );
 }

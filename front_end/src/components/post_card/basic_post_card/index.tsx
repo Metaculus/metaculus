@@ -31,8 +31,8 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   const resolutionData = extractPostResolution(post);
 
   let newCommentsCount = post.comment_count ? post.comment_count : 0;
-  if ( post.unread_comment_count !== undefined) {
-    newCommentsCount = post.unread_comment_count
+  if (post.unread_comment_count !== undefined) {
+    newCommentsCount = post.unread_comment_count;
   }
 
   return (

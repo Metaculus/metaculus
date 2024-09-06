@@ -215,7 +215,7 @@ class PostQuerySet(models.QuerySet):
         self, user: User = None, permission: ObjectPermission = ObjectPermission.VIEWER
     ):
         """
-        Returns only allowed projects for the user
+        Returns posts visible to the user
         """
 
         user_id = user.id if user else None
@@ -239,7 +239,12 @@ class PostQuerySet(models.QuerySet):
                     )
                 )
                 & (
-                    Q(curation_status=Post.CurationStatus.APPROVED)
+                    Q(
+                        curation_status__in=[
+                            Post.CurationStatus.APPROVED,
+                            Post.CurationStatus.PENDING,
+                        ]
+                    )
                     | Q(
                         default_project__in=projects.filter(
                             user_permission__in=[
@@ -304,7 +309,6 @@ class Post(TimeStampedModel):
     forecasts: QuerySet["Forecast"]
 
     # Annotated fields
-    nr_forecasters: int = 0
     vote_score: int = 0
     user_vote = None
     user_permission: ObjectPermission = None
@@ -335,6 +339,9 @@ class Post(TimeStampedModel):
     title = models.CharField(max_length=2000)
     url_title = models.CharField(max_length=2000, default="")
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
+    coauthors = models.ManyToManyField(
+        User, related_name="coauthored_posts", blank=True
+    )
 
     curated_last_by = models.ForeignKey(
         User,
@@ -365,9 +372,14 @@ class Post(TimeStampedModel):
                 question.scheduled_close_time
                 for question in self.group_of_questions.questions.all()
             )
-        elif self.conditional:
-            self.scheduled_close_time = (
-                self.conditional.condition_child.scheduled_close_time
+        elif (
+            self.conditional
+            and self.conditional.condition_child.scheduled_close_time
+            and self.conditional.condition.scheduled_close_time
+        ):
+            self.scheduled_close_time = min(
+                self.conditional.condition_child.scheduled_close_time,
+                self.conditional.condition.scheduled_close_time,
             )
         else:
             self.scheduled_close_time = None
@@ -380,9 +392,14 @@ class Post(TimeStampedModel):
                 question.scheduled_resolve_time
                 for question in self.group_of_questions.questions.all()
             )
-        elif self.conditional:
-            self.scheduled_resolve_time = (
-                self.conditional.condition_child.scheduled_resolve_time
+        elif (
+            self.conditional
+            and self.conditional.condition_child.scheduled_resolve_time
+            and self.conditional.condition.scheduled_resolve_time
+        ):
+            self.scheduled_resolve_time = max(
+                self.conditional.condition_child.scheduled_resolve_time,
+                self.conditional.condition.scheduled_resolve_time,
             )
         else:
             self.scheduled_resolve_time = None
@@ -392,7 +409,7 @@ class Post(TimeStampedModel):
             self.actual_close_time = self.question.actual_close_time
         elif self.group_of_questions:
             close_times = [
-                question.scheduled_close_time
+                question.actual_close_time
                 for question in self.group_of_questions.questions.all()
             ]
 
@@ -400,19 +417,24 @@ class Post(TimeStampedModel):
                 self.actual_close_time = max(close_times)
             else:
                 self.actual_close_time = None
-        elif self.conditional:
-            close_times = [
-                question.scheduled_close_time
-                for question in [
-                    self.conditional.condition_child,
-                    self.conditional.condition,
-                ]
-            ]
-
-            if None not in close_times:
-                self.actual_close_time = max(close_times)
-            else:
-                self.actual_close_time = None
+        elif self.conditional and (
+            self.conditional.condition_child.actual_close_time
+            or self.conditional.condition.actual_close_time
+        ):
+            if (
+                self.conditional.condition_child.actual_close_time
+                and self.conditional.condition.actual_close_time
+            ):
+                self.actual_close_time = min(
+                    self.conditional.condition_child.actual_close_time,
+                    self.conditional.condition.actual_close_time,
+                )
+            elif self.conditional.condition_child.actual_close_time:
+                self.actual_close_time = (
+                    self.conditional.condition_child.actual_close_time
+                )
+            elif self.conditional.condition.actual_close_time:
+                self.actual_close_time = self.conditional.condition.actual_close_time
         else:
             self.actual_close_time = None
 
@@ -442,12 +464,24 @@ class Post(TimeStampedModel):
         else:
             self.resolved = False
 
+    def updated_related_conditionals(self):
+        if self.question:
+            related_conditionals = [
+                *self.question.conditional_conditions.all(),
+                *self.question.conditional_children.all(),
+            ]
+            for conditional in related_conditionals:
+                conditional.post.update_pseudo_materialized_fields()
+                print("Updated conditional in post: ", conditional.post)
+
     def update_pseudo_materialized_fields(self):
         self.set_scheduled_close_time()
         self.set_actual_close_time()
         self.set_scheduled_resolve_time()
         self.set_resolved()
         self.save()
+        # Note: No risk of infinite loops since conditionals can't father other conditionals
+        self.updated_related_conditionals()
 
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields

@@ -97,7 +97,10 @@ const GroupForecastTable: FC<Props> = ({
                   <div className="flex">
                     <div className="flex w-full items-center justify-center">
                       <ResolutionIcon />
-                      <span className="text-purple-800 dark:text-purple-800-dark" suppressHydrationWarning>
+                      <span
+                        className="text-purple-800 dark:text-purple-800-dark"
+                        suppressHydrationWarning
+                      >
                         {formatResolution(
                           option.resolution,
                           option.question.type,

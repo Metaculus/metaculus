@@ -25,6 +25,7 @@ export enum QuestionOrder {
   HotDesc = "-hotness",
   HotAsc = "hotness",
   RankDesc = "-rank",
+  CreatedDesc = "-created_at",
 }
 
 export type Scaling = {

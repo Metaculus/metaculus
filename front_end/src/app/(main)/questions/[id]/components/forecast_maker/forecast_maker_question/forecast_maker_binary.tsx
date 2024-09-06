@@ -18,6 +18,8 @@ import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import QuestionResolutionButton from "../resolution";
+import { useRouter } from "next/navigation";
+import { post } from "@/utils/fetch";
 
 type Props = {
   postId: number;
@@ -41,6 +43,7 @@ const ForecastMakerBinary: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
+  const router = useRouter();
 
   const communityForecast =
     question.aggregations.recency_weighted.latest?.centers![0];
@@ -86,6 +89,7 @@ const ForecastMakerBinary: FC<Props> = ({
       setSubmitError(response.errors[0]);
     }
     setIsSubmitting(false);
+    router.push(`/questions/${postId}/refresh${Date.now()}`);
   };
 
   return (

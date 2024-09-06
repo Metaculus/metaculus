@@ -78,7 +78,7 @@ const BinaryGroupChart: FC<Props> = ({
   timestamps,
   preselectedQuestionId,
   defaultZoom,
-  isClosed
+  isClosed,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();

@@ -114,6 +114,7 @@ def tournaments_list_api_view(request: Request):
         .filter_tournament()
         .annotate_posts_count()
         .order_by("-posts_count")
+        .prefetch_related("primary_leaderboard")
     )
 
     qs, enrich_posts_count = enrich_tournaments_with_posts_count(qs)

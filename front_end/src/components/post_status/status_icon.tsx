@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { differenceInMilliseconds } from "date-fns";
 import { FC, useEffect, useRef } from "react";
 

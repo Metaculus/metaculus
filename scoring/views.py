@@ -187,7 +187,7 @@ def medal_contributions(
         leaderboard = leaderboards.first()
 
     contributions = get_contributions(user, leaderboard)
-    entries = leaderboard.entries.all()
+    entries = leaderboard.entries.select_related("user").all()
     leaderboard_entry = next((e for e in entries if e.user == user), None)
 
     return_data = {
@@ -302,18 +302,21 @@ def metaculus_track_record(
             }
         )
     ser["score_histogram"] = []
-    min_bin = min(-50, min([s for s in scores]))
-    max_bin = max(50, max([s for s in scores]))
-    bin_incr = int((max_bin + np.abs(min_bin)) / 20)
-    for bin_start in range(int(np.ceil(min_bin)), int(np.ceil(max_bin)), bin_incr):
-        bin_end = bin_start + bin_incr
-        ser["score_histogram"].append(
-            {
-                "bin_start": bin_start,
-                "bin_end": bin_end,
-                "pct_scores": len([s for s in scores if s >= bin_start and s < bin_end])
-                / len(scores),
-            }
-        )
+    if len(scores) > 0:
+        min_bin = min(-50, min([s for s in scores]))
+        max_bin = max(50, max([s for s in scores]))
+        bin_incr = int((max_bin + np.abs(min_bin)) / 20)
+        for bin_start in range(int(np.ceil(min_bin)), int(np.ceil(max_bin)), bin_incr):
+            bin_end = bin_start + bin_incr
+            ser["score_histogram"].append(
+                {
+                    "bin_start": bin_start,
+                    "bin_end": bin_end,
+                    "pct_scores": len(
+                        [s for s in scores if s >= bin_start and s < bin_end]
+                    )
+                    / len(scores),
+                }
+            )
 
     return Response(ser)

@@ -32,9 +32,16 @@ const SidebarQuestionTags: FC<Props> = ({
   const t = useTranslations();
   const { setCurrentModal } = useModal();
 
-  const { category: _category, tag: _tag } = tagData;
+  const {
+    category: _category,
+    tag: _tag,
+    tournament: _tournament,
+    question_series: _question_series,
+  } = tagData;
   const tag = _tag ?? [];
   const category = _category ?? [];
+  const tournament = _tournament ?? [];
+  const question_series = _question_series ?? [];
 
   const [showAllTags, setShowAllTags] = useState(
     (tag.length ?? 0) < INITIAL_NUM_OF_TAGS
@@ -46,6 +53,26 @@ const SidebarQuestionTags: FC<Props> = ({
   return (
     <div className="flex flex-col items-center justify-center gap-4 self-stretch border-t border-gray-300 @lg:border-0 dark:border-gray-300-dark">
       <div className="mt-4 flex flex-wrap content-start items-start gap-2.5 self-stretch @lg:m-0">
+        {tournament.map((element) => (
+          <Chip
+            color="orange"
+            key={element.id}
+            href={`/tournament/${element.slug}/`}
+          >
+            {element.name}
+          </Chip>
+        ))}
+
+        {question_series.map((element) => (
+          <Chip
+            color="orange"
+            key={element.id}
+            href={`/tournament/${element.slug}/`}
+          >
+            {element.name}
+          </Chip>
+        ))}
+
         {category.map((element) => (
           <Chip
             color="olive"

@@ -152,7 +152,7 @@ const MarkdownEditor: FC<Props> = ({
       markdown={formattedMarkdown}
       onChange={(value) => {
         // Revert the MathJax transformation before passing the markdown to the parent component
-        onChange && onChange(revertMathJaxTransform(value))
+        onChange && onChange(revertMathJaxTransform(value));
       }}
       readOnly={mode === "read"}
       plugins={[

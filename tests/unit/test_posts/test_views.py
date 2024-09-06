@@ -145,7 +145,7 @@ class TestPostCreate:
         )
         assert response.data["conditional"]["question_no"]["type"] == "numeric"
         assert response.data["scheduled_close_time"] == "2024-04-01T00:00:00Z"
-        assert response.data["scheduled_resolve_time"] == "2024-04-02T00:00:00Z"
+        assert response.data["scheduled_resolve_time"] == "2024-05-02T00:00:00Z"
 
     def test_create__is_public__true(self, user1, user2, user1_client):
         response = user1_client.post(

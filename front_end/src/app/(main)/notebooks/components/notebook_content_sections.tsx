@@ -47,8 +47,8 @@ const NotebookContentSections: FC<Props> = ({
   }, [headings, headings.length]);
 
   useEffect(() => {
-      const notebookTitleElement = document.querySelector(`#${NOTEBOOK_TITLE}`);
-      setNotebookTitle(notebookTitleElement?.textContent);
+    const notebookTitleElement = document.querySelector(`#${NOTEBOOK_TITLE}`);
+    setNotebookTitle(notebookTitleElement?.textContent);
   }, []);
 
   useEffect(() => {
@@ -97,13 +97,13 @@ const NotebookContentSections: FC<Props> = ({
 
   const commentsTitle = useMemo(() => {
     const commentCount = t("commentsWithCount", { count: commentsCount });
-    const unreadCount = unreadComments ? 
-      (unreadComments === commentsCount ? 
-        t("unreadAll") : 
-        `${unreadComments} ${t("unreadWithCount", { count: unreadComments })}`) :
-      '';
-    const unreadText = unreadCount ? `(${unreadCount})` : '';
-    return `${commentsCount || ''} ${commentCount} ${unreadText}`.trim();
+    const unreadCount = unreadComments
+      ? unreadComments === commentsCount
+        ? t("unreadAll")
+        : `${unreadComments} ${t("unreadWithCount", { count: unreadComments })}`
+      : "";
+    const unreadText = unreadCount ? `(${unreadCount})` : "";
+    return `${commentsCount || ""} ${commentCount} ${unreadText}`.trim();
   }, [commentsCount, unreadComments, t]);
 
   return (

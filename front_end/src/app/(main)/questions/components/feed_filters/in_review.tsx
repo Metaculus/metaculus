@@ -29,7 +29,7 @@ const InReviewFeed: FC = () => {
         label: t("hot"),
       },
       {
-        value: QuestionOrder.PublishTimeDesc,
+        value: QuestionOrder.CreatedDesc,
         label: t("new"),
       },
     ],

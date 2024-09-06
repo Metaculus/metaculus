@@ -37,6 +37,7 @@ class PostSerializer(serializers.ModelSerializer):
     author_username = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     open_time = serializers.SerializerMethodField()
+    coauthors = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -46,6 +47,7 @@ class PostSerializer(serializers.ModelSerializer):
             "url_title",
             "author_id",
             "author_username",
+            "coauthors",
             "projects",
             "created_at",
             "published_at",
@@ -66,6 +68,9 @@ class PostSerializer(serializers.ModelSerializer):
     def get_author_username(self, obj: Post):
         return obj.author.username
 
+    def get_coauthors(self, obj: Post):
+        return [{"id": u.id, "username": u.username} for u in obj.coauthors.all()]
+
     def get_status(self, obj: Post):
         if obj.resolved:
             return "resolved"
@@ -81,7 +86,14 @@ class PostSerializer(serializers.ModelSerializer):
         if obj.conditional:
             return obj.conditional.condition_child.open_time
         if obj.group_of_questions:
-            return min(*[x.open_time for x in obj.group_of_questions.questions.all()])
+            open_times = [
+                x.open_time
+                for x in obj.group_of_questions.questions.all()
+                if x.open_time
+            ]
+            if len(open_times) == 0:
+                return None
+            return min(*open_times)
 
 
 class NotebookWriteSerializer(serializers.ModelSerializer):
@@ -269,7 +281,7 @@ def serialize_post(
         "user_vote": post.user_vote,
     }
     # Forecasters
-    serialized_data["nr_forecasters"] = post.nr_forecasters
+    serialized_data["forecasts_count"] = post.forecasts_count
 
     # Subscriptions
     if with_subscriptions and current_user:
@@ -292,7 +304,7 @@ def serialize_post(
         )
 
     if with_nr_forecasters:
-        serialized_data["forecasts_count"] = post.get_forecasters().count()
+        serialized_data["nr_forecasters"] = post.get_forecasters().count()
 
     return serialized_data
 

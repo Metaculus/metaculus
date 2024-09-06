@@ -76,7 +76,7 @@ class TournamentSerializer(serializers.ModelSerializer):
         )
 
     def get_score_type(self, project: Project) -> str | None:
-        if not project.primary_leaderboard:
+        if not project.primary_leaderboard_id:
             return None
         return project.primary_leaderboard.score_type
 
@@ -92,6 +92,9 @@ def serialize_projects(
     ):
         projects = [x for x in projects] + [default_project]
     for obj in projects:
+        if obj.default_permission is None:
+            continue
+
         match obj.type:
             case obj.ProjectTypes.TAG:
                 serializer = TagSerializer

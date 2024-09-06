@@ -163,6 +163,33 @@ def migrate_questions(site_ids: list[int] = None):
     migrate_questions__composite(site_ids=site_ids)
 
 
+def add_coauthors_for_post(post: Post):
+    for obj in paginated_query(
+        """
+        WITH shared_projects AS (
+            SELECT project_id
+            FROM metac_project_questionprojectpermissions
+            WHERE question_id = %s
+            AND project_id IN (
+                SELECT id
+                FROM metac_project_project
+                WHERE type = 'PP'
+            )
+        )
+        SELECT upp.user_id AS id, u.username
+        FROM metac_project_userprojectpermissions upp
+        JOIN metac_account_user u ON upp.user_id = u.id
+        WHERE upp.project_id IN (SELECT project_id FROM shared_projects)
+        AND upp.user_id != (SELECT author_id
+                            FROM metac_question_question
+                            WHERE id = %s);
+            """,
+        [post.id, post.id],
+    ):
+        user_id = obj["id"]
+        post.coauthors.add(user_id)
+
+
 def migrate_questions__simple(site_ids: list[int] = None):
     questions = []
     posts = []
@@ -208,6 +235,10 @@ def migrate_questions__simple(site_ids: list[int] = None):
     )
     Question.objects.bulk_create(questions)
     Post.objects.bulk_create(posts)
+
+    for post in posts:
+        add_coauthors_for_post(post)
+
     print(
         f"\033[Kmigrating questions/posts: {i}. "
         f"dur:{str(timezone.now() - start).split('.')[0]} "
