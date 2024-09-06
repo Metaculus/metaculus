@@ -374,7 +374,6 @@ def create_forecast(
 
 def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
     from posts.services.common import get_post_permission_for_user
-    from posts.tasks import run_on_post_forecast
 
     posts = set()
 
