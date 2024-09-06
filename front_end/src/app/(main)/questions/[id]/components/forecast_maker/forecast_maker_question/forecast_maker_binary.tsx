@@ -90,7 +90,7 @@ const ForecastMakerBinary: FC<Props> = ({
       setSubmitError(response.errors[0]);
     }
     setIsSubmitting(false);
-    // router.push(`/questions/${postId}/refresh${Date.now()}`);
+    router.push(`/questions/${postId}/refresh${Date.now()}`);
   };
 
   return (
