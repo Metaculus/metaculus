@@ -92,6 +92,9 @@ def serialize_projects(
     ):
         projects = [x for x in projects] + [default_project]
     for obj in projects:
+        if obj.default_permission is None:
+            continue
+
         match obj.type:
             case obj.ProjectTypes.TAG:
                 serializer = TagSerializer
