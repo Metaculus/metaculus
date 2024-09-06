@@ -205,7 +205,6 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
             probabilityYesPerCategory: null,
             probabilityYes: forecastValue,
           },
-          sliderValues: forecastValue,
         };
       })
     );

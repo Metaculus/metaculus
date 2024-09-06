@@ -1,6 +1,6 @@
 import numpy as np
+from typing import TYPE_CHECKING
 
-from questions.models import Question
 from utils.the_math.formulas import unscaled_location_to_scaled_location
 from utils.typing import (
     ForecastValues,
@@ -8,6 +8,9 @@ from utils.typing import (
     Weights,
     Percentiles,
 )
+
+if TYPE_CHECKING:
+    from questions.models import Question
 
 
 def weighted_percentile_2d(
@@ -82,7 +85,7 @@ def percent_point_function(
 
 
 def prediction_difference_for_sorting(
-    p1: ForecastValues, p2: ForecastValues, question: Question
+    p1: ForecastValues, p2: ForecastValues, question: "Question"
 ) -> float:
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""
@@ -99,7 +102,7 @@ def prediction_difference_for_sorting(
 
 
 def prediction_difference_for_display(
-    p1: ForecastValues, p2: ForecastValues, question: Question
+    p1: ForecastValues, p2: ForecastValues, question: "Question"
 ) -> list[tuple[float, float]]:
     """for binary and multiple choice, takes pmfs
     for continuous takes cdfs"""

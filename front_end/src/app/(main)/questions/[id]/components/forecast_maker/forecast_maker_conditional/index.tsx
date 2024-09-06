@@ -56,8 +56,10 @@ const ForecastMakerConditional: FC<Props> = ({
           conditional={
             conditional as PostConditional<QuestionWithNumericForecasts>
           }
-          prevYesForecast={question_yes.my_forecasts?.latest?.slider_values}
-          prevNoForecast={question_no.my_forecasts?.latest?.slider_values}
+          prevYesForecast={
+            question_yes.my_forecasts?.latest?.forecast_values[1]
+          }
+          prevNoForecast={question_no.my_forecasts?.latest?.forecast_values[1]}
           canPredict={
             canPredict &&
             conditional.condition_child.open_time !== undefined &&

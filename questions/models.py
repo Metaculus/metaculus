@@ -10,6 +10,7 @@ from sql_util.aggregates import SubqueryAggregate
 from questions.types import AggregationMethod
 from users.models import User
 from utils.models import TimeStampedModel
+from utils.the_math.measures import percent_point_function
 
 if TYPE_CHECKING:
     from posts.models import Post
@@ -209,6 +210,7 @@ class Forecast(models.Model):
     id: int
     author_id: int
 
+    # times
     start_time = models.DateTimeField(
         help_text="Begining time when this prediction is active", db_index=True
     )
@@ -225,10 +227,12 @@ class Forecast(models.Model):
         null=True,
         size=CDF_SIZE,
     )
-
+    # binary prediction
     probability_yes = models.FloatField(null=True)
+    # multiple choice prediction
     probability_yes_per_category = ArrayField(models.FloatField(), null=True)
 
+    # continuous prediction - migrated from old version
     distribution_components = ArrayField(
         models.JSONField(null=True),
         size=5,
@@ -251,6 +255,18 @@ class Forecast(models.Model):
     )
 
     slider_values = models.JSONField(null=True)
+
+    def __repr__(self):
+        pv = self.get_prediction_values()
+        if len(pv) > 64:
+            q1, q2, q3 = percent_point_function(pv, [25, 50, 75])
+            pvs = f"{round(q1, 5)} ({round(q2, 5)} - {round(q3, 5)})"
+        else:
+            pvs = str(pv)
+        return (
+            f"<Forecast at {str(self.start_time).split(".")[0]} "
+            f"by {self.author.username}: {pvs}>"
+        )
 
     def get_prediction_values(self) -> list[float]:
         if self.probability_yes:
@@ -295,6 +311,18 @@ class AggregateForecast(models.Model):
     interval_upper_bounds = ArrayField(models.FloatField(), null=True)
     means = ArrayField(models.FloatField(), null=True)
     histogram = ArrayField(models.FloatField(), null=True, size=100)
+
+    def __repr__(self):
+        pv = self.get_prediction_values()
+        if len(pv) > 64:
+            q1, q2, q3 = percent_point_function(pv, [25, 50, 75])
+            pvs = f"{round(q1, 5)} ({round(q2, 5)} - {round(q3, 5)})"
+        else:
+            pvs = str(pv)
+        return (
+            f"<Forecast at {str(self.start_time).split(".")[0]} "
+            f"by {self.method}: {pvs}>"
+        )
 
     def get_cdf(self) -> list[float] | None:
         if len(self.forecast_values) == CDF_SIZE:
