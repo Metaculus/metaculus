@@ -34,7 +34,6 @@ from posts.serializers import (
     serialize_post,
     get_subscription_serializer_by_type,
     PostRelatedArticleSerializer,
-    PostApproveSerializer,
 )
 from posts.services.common import (
     create_post,
@@ -50,7 +49,7 @@ from questions.models import Question
 from questions.serializers import (
     GroupOfQuestionsSerializer,
     QuestionSerializer,
-    QuestionWriteSerializer,
+    QuestionWriteSerializer, QuestionApproveSerializer,
 )
 from questions.services import clone_question, create_question
 from utils.files import UserUploadedImage, generate_filename
@@ -331,10 +330,10 @@ def post_approve_api_view(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_approve(permission, raise_exception=True)
 
-    serializer = PostApproveSerializer(post, data=request.data, partial=True)
+    serializer = QuestionApproveSerializer(post, data=request.data, many=True)
     serializer.is_valid(raise_exception=True)
 
-    approve_post(**serializer.validated_data)
+    approve_post(post=post, questions=serializer.validated_data)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 

@@ -2,6 +2,7 @@ from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
 
 import numpy as np
+from botocore.serialize import Serializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -562,3 +563,9 @@ class OldForecastWriteSerializer(serializers.Serializer):
                 "Probability value should be between 0.001 and 0.999"
             )
         return value
+
+
+class QuestionApproveSerializer(serializers.Serializer):
+    question_id = serializers.IntegerField(required=True)
+    open_time = serializers.DateTimeField(required=True)
+    cp_reveal_time = serializers.DateTimeField(required=True)

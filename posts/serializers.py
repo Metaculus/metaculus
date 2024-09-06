@@ -1,4 +1,3 @@
-from datetime import date
 from typing import Union
 
 from django.db import models
@@ -88,15 +87,6 @@ class PostSerializer(serializers.ModelSerializer):
             return obj.conditional.condition_child.open_time
         if obj.group_of_questions:
             return min(*[x.open_time for x in obj.group_of_questions.questions.all()])
-
-
-class PostApproveSerializer(serializers.Serializer):
-    class Meta:
-        model = Post
-        fields = (
-            "open_time",
-            "cp_reveal_time",
-        )
 
 
 class NotebookWriteSerializer(serializers.ModelSerializer):
