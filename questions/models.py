@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
-import numpy as np
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -324,7 +323,6 @@ class AggregateForecast(models.Model):
             f"<Forecast at {str(self.start_time).split(".")[0]} "
             f"by {self.method}: {pvs}>"
         )
-
 
     def get_cdf(self) -> list[float] | None:
         if len(self.forecast_values) == CDF_SIZE:
