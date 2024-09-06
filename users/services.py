@@ -1,5 +1,5 @@
 from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
-from django.db.models import Q
+from django.db.models import Q, Case, When, IntegerField
 from django.utils.crypto import get_random_string
 from rest_framework.exceptions import ValidationError
 
@@ -24,7 +24,17 @@ def get_users(
 
     # Search
     if search:
-        qs = qs.filter(username__icontains=search)
+        qs = (
+            qs.annotate(
+                full_match=Case(
+                    When(username__iexact=search, then=1),
+                    default=0,
+                    output_field=IntegerField(),
+                )
+            )
+            .filter(username__icontains=search)
+            .order_by("-full_match", "username")
+        )
 
     return qs
 
