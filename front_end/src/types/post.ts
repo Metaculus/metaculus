@@ -121,6 +121,7 @@ export type Post<QT = Question> = {
   vote: PostVote;
   nr_forecasters: number;
   author_username: string;
+  coauthors: { id: number; username: string }[];
   author_id: number;
   question?: QT;
   conditional?: PostConditional<QT>;

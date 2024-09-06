@@ -339,6 +339,9 @@ class Post(TimeStampedModel):
     title = models.CharField(max_length=2000)
     url_title = models.CharField(max_length=2000, default="")
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
+    coauthors = models.ManyToManyField(
+        User, related_name="coauthored_posts", blank=True
+    )
 
     curated_last_by = models.ForeignKey(
         User,
