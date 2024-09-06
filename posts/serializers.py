@@ -37,6 +37,7 @@ class PostSerializer(serializers.ModelSerializer):
     author_username = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     open_time = serializers.SerializerMethodField()
+    coauthors = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -46,6 +47,7 @@ class PostSerializer(serializers.ModelSerializer):
             "url_title",
             "author_id",
             "author_username",
+            "coauthors",
             "projects",
             "created_at",
             "published_at",
@@ -65,6 +67,9 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_author_username(self, obj: Post):
         return obj.author.username
+
+    def get_coauthors(self, obj: Post):
+        return [{"id": u.id, "username": u.username} for u in obj.coauthors.all()]
 
     def get_status(self, obj: Post):
         if obj.resolved:
