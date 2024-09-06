@@ -523,6 +523,7 @@ def post_preview_image(request: Request, pk):
         post.preview_image_generated_at = django.utils.timezone.now()
         post.save()
         from playwright.sync_api import sync_playwright
+
         with sync_playwright() as p:
 
             browser = p.chromium.launch(headless=True)

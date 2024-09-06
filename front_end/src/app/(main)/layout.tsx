@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import FeedbackFloat from "./(home)/components/feedback_float";
 import Footer from "./components/footer";
 import Header from "./components/header";
+import Bulletins from "./components/bulletins";
 
 config.autoAddCss = false;
 
@@ -21,7 +22,8 @@ export default async function RootLayout({
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <div className="flex-grow pt-12">{children}</div>
+      <Bulletins />
+      <div className="flex-grow">{children}</div>
       <FeedbackFloat />
       <Footer />
     </div>
