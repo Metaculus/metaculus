@@ -62,17 +62,13 @@ const ProjectLeaderboardTable: FC<Props> = ({
             {withCoverage && (
               <TableHeader className="text-right">{t("coverage")}</TableHeader>
             )}
-            {withTake && (
-              <TableHeader className="text-right">{t("take")}</TableHeader>
-            )}
-            {withPrize && (
-              <>
-                <TableHeader className="text-right">
-                  {t("percentPrize")}
-                </TableHeader>
-                <TableHeader className=" text-right">{t("prize")}</TableHeader>
-              </>
-            )}
+            <TableHeader className="text-right">{t("take")}</TableHeader>
+            <>
+              <TableHeader className="text-right">
+                {t("percentPrize")}
+              </TableHeader>
+              <TableHeader className=" text-right">{t("prize")}</TableHeader>
+            </>
           </tr>
         </thead>
         <tbody>
@@ -82,9 +78,6 @@ const ProjectLeaderboardTable: FC<Props> = ({
               rowEntry={entry}
               userId={userId}
               withCoverage={withCoverage}
-              withTake={withTake}
-              withPrize={withPrize}
-              prizePool={prizePool}
             />
           ))}
         </tbody>
