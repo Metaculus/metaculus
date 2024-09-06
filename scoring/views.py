@@ -187,7 +187,7 @@ def medal_contributions(
         leaderboard = leaderboards.first()
 
     contributions = get_contributions(user, leaderboard)
-    entries = leaderboard.entries.all()
+    entries = leaderboard.entries.select_related("user").all()
     leaderboard_entry = next((e for e in entries if e.user == user), None)
 
     return_data = {

@@ -76,7 +76,7 @@ class TournamentSerializer(serializers.ModelSerializer):
         )
 
     def get_score_type(self, project: Project) -> str | None:
-        if not project.primary_leaderboard:
+        if not project.primary_leaderboard_id:
             return None
         return project.primary_leaderboard.score_type
 
