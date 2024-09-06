@@ -25,6 +25,7 @@ jobs:
       AWS_S3_REGION_NAME: ${{ vars.AWS_S3_REGION_NAME }}
       FRONTEND_BASE_URL: ${{ vars.FRONTEND_BASE_URL }}
       NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+      NODE_ENV: "production"
     services:
       db:
         image: pgvector/pgvector:pg16
@@ -84,7 +85,6 @@ jobs:
       - name: "Install node_modules and build the frontend"
         run: cd front_end && npm ci && npm run build
       - name: Run the integration tests
-        if: always()
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -95,7 +95,7 @@ jobs:
           poetry run ./manage.py migrate
           PLAYWRIGHT_BROWSERS_PATH=.venv scripts/tests/run_integration_tests.sh
       - name: Create trace.zip
-        if: always()
+        if: ${{ !cancelled() }}
         run: |
           mkdir -p trace && cd trace && unzip ../trace.zip && rm ../trace.zip
       # Uncomment this to stop the job at this spot, and get a remote shell into the VM
@@ -108,7 +108,7 @@ jobs:
       #     ./tty-share -A --public --headless --headless-cols 255 --headless-rows 50 --no-wait --listen :8001
       - name: "Upload trace.zip"
         uses: actions/upload-artifact@v4
-        if: always()
+        if: ${{ !cancelled() }}
         with:
           if-no-files-found: error
           retention-days: 90
