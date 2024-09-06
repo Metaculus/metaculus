@@ -274,7 +274,6 @@ def serialize_post(
         "user_vote": post.user_vote,
     }
     # Forecasters
-    post.update_forecasts_count()
     serialized_data["forecasts_count"] = post.forecasts_count
 
     # Subscriptions
