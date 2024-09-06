@@ -7,7 +7,7 @@ class ProjectUserPermissionInline(admin.TabularInline):
     model = ProjectUserPermission
     extra = 0
 
-    autocomplete_fields = ('user',)
+    autocomplete_fields = ("user",)
 
 
 @admin.register(Project)

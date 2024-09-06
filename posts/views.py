@@ -310,6 +310,7 @@ def post_update_api_view(request, pk):
         ser.save()
 
     post.update_pseudo_materialized_fields()
+
     if "categories" in request.data:
         add_categories(request.data["categories"], post)
     if "default_project_id" in request.data:
@@ -523,6 +524,7 @@ def post_preview_image(request: Request, pk):
         post.preview_image_generated_at = django.utils.timezone.now()
         post.save()
         from playwright.sync_api import sync_playwright
+
         with sync_playwright() as p:
 
             browser = p.chromium.launch(headless=True)

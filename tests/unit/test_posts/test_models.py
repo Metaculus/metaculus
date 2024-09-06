@@ -192,7 +192,7 @@ class TestPostPermissions:
                     user3.id: ObjectPermission.ADMIN,
                 },
             ),
-            curation_status=Post.CurationStatus.PENDING,
+            curation_status=Post.CurationStatus.DRAFT,
         )
 
         # Post exists for creator
