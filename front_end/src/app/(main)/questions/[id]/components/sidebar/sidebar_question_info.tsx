@@ -13,6 +13,7 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
   const locale = useLocale();
   const t = useTranslations();
 
+  const isUpcoming = new Date(postData.open_time).getTime() > Date.now();
   return (
     <div className="flex flex-col items-start gap-4 self-stretch @container">
       <div className="flex flex-col justify-between gap-3 self-stretch @lg:grid @lg:grid-cols-4 @lg:gap-1">
@@ -30,11 +31,13 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
 
         <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
           <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
-            {t("opened")}:
+            {t(isUpcoming ? "opens" : "opened")}:
           </span>
           <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-            {postData.published_at &&
-              formatDate(locale, new Date(postData.published_at))}
+            {formatDate(
+              locale,
+              new Date(isUpcoming ? postData.open_time : postData.published_at)
+            )}
           </span>
         </div>
 
