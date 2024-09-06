@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 import django.utils
 import requests
+from django.db.models import Q
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -47,7 +48,7 @@ from posts.services.feed import get_posts_feed
 from posts.services.subscriptions import create_subscription
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from questions.models import Question
+from questions.models import Conditional, Question
 from questions.serializers import (
     GroupOfQuestionsSerializer,
     QuestionSerializer,
@@ -313,6 +314,7 @@ def post_update_api_view(request, pk):
         ser.save()
 
     post.update_pseudo_materialized_fields()
+
     if "categories" in request.data:
         add_categories(request.data["categories"], post)
     if "default_project_id" in request.data:
