@@ -89,7 +89,7 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         can = permission in (cls.CURATOR, cls.ADMIN, cls.CREATOR)
 
         if raise_exception and not can:
-            raise PermissionDenied("You do not have permission to edit this project")
+            raise PermissionDenied("You do not have permission to edit this post")
 
         return can
 
@@ -102,7 +102,16 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         )
 
         if raise_exception and not can:
-            raise PermissionDenied("You do not have permission to delete this project")
+            raise PermissionDenied("You do not have permission to delete this post")
+
+        return can
+
+    @classmethod
+    def can_approve(cls, permission: Self, raise_exception=False):
+        can = permission in (cls.CURATOR, cls.ADMIN)
+
+        if raise_exception and not can:
+            raise PermissionDenied("You do not have permission to approve this post")
 
         return can
 

@@ -572,3 +572,9 @@ class OldForecastWriteSerializer(serializers.Serializer):
                 "Probability value should be between 0.001 and 0.999"
             )
         return value
+
+
+class QuestionApproveSerializer(serializers.Serializer):
+    question_id = serializers.IntegerField(required=True)
+    open_time = serializers.DateTimeField(required=True)
+    cp_reveal_time = serializers.DateTimeField(required=True)

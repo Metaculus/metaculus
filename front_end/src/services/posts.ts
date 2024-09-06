@@ -31,6 +31,12 @@ export type PostsParams = PaginationParams & {
   similar_to_post_id?: number;
 };
 
+export type ApprovePostParams = {
+  question_id: number;
+  open_time: string;
+  cp_reveal_time: string;
+};
+
 class PostsApi {
   static async getPost(id: number): Promise<PostWithForecasts> {
     return await get<PostWithForecasts>(
@@ -69,6 +75,10 @@ class PostsApi {
 
   static async updatePost(id: number, body: any): Promise<PostWithForecasts> {
     return await put<any, PostWithForecasts>(`/posts/${id}/update/`, body);
+  }
+
+  static async approvePost(id: number, params: ApprovePostParams[]) {
+    return await post(`/posts/${id}/approve/`, params);
   }
 
   static async votePost(

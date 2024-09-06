@@ -14,6 +14,7 @@ from projects.services import (
     notify_project_subscriptions_post_open,
     get_site_main_project,
 )
+from questions.models import Question
 from questions.services import (
     create_question,
     create_conditional,
@@ -255,6 +256,28 @@ def compute_hotness():
     )
 
     qs.update(hotness=F("hotness_value"))
+
+
+def approve_post(post: Post = None, questions: list[dict] = None):
+    if post.curation_status == Post.CurationStatus.APPROVED:
+        raise ValidationError("Post is already approved")
+
+    post.update_curation_status(Post.CurationStatus.APPROVED)
+    post_questions_map = {q.pk: q for q in post.get_questions()}
+
+    for params in questions:
+        question = post_questions_map.get(params["question_id"])
+
+        if not question:
+            raise ValueError("Wrong question ID")
+
+        question.open_time = params["open_time"]
+        question.cp_reveal_time = params["cp_reveal_time"]
+
+    post.save()
+    Question.objects.bulk_update(
+        list(post_questions_map.values()), fields=["open_time", "cp_reveal_time"]
+    )
 
 
 def resolve_post(post: Post):
