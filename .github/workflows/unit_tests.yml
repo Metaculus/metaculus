@@ -65,7 +65,7 @@ jobs:
         run: poetry install --no-interaction --no-root
       - name: Run Flake8 Linter
         if: ${{ !cancelled() }}
-        run: poetry run flake8 .
+        run: poetry run flake8 . --exclude=front_end,.venv
       - name: Check migrations
         if: ${{ !cancelled() }}
         run: poetry run python manage.py makemigrations --dry-run --check

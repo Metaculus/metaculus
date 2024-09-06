@@ -22,6 +22,17 @@ class ITNArticle(TimeStampedModel):
     is_removed = models.BooleanField(default=False)
 
 
+class Bulletin(TimeStampedModel):
+    bulletin_start = models.DateTimeField()
+    bulletin_end = models.DateTimeField()
+    text = models.TextField()
+
+
+class BulletinViewedBy(TimeStampedModel):
+    bulletin = models.ForeignKey(Bulletin, on_delete=models.CASCADE)
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE)
+
+
 # TODO: index new posts
 # TODO: ensure we sync PostITNArticle new articles only
 # TODO: create a sync command + cron job
