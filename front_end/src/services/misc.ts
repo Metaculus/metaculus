@@ -1,4 +1,4 @@
-import { post } from "@/utils/fetch";
+import { post, get } from "@/utils/fetch";
 
 export type ContactForm = {
   email: string;
@@ -9,6 +9,19 @@ export type ContactForm = {
 class MiscApi {
   static async submitContactForm(data: ContactForm) {
     return post("/contact-form", data);
+  }
+  static async getBulletins() {
+    const resp = await get<{
+      bulletins: {
+        text: string;
+        id: number;
+      }[];
+    }>("/get-bulletins");
+    return resp.bulletins;
+  }
+  static async cancelBulletin(bulletinId: number) {
+    const resp = await post(`/cancel-bulletin/${bulletinId}`, {});
+    return resp;
   }
 }
 

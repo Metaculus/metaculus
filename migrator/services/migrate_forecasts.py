@@ -28,13 +28,38 @@ def create_forecast(
     probability_yes_per_category = None
     if question.type == Question.QuestionType.BINARY:
         probability_yes = spv[1]
+        slider_values = None
     elif question.type in (Question.QuestionType.NUMERIC, Question.QuestionType.DATE):
         continuous_pdf = spv
         vals = np.roll(continuous_pdf, 1)
         cdf = np.cumsum(vals)[..., :-1]
         continuous_cdf = cdf.tolist()
+        distribution_components = [json.loads(c) for c in prediction["distribution_components"]]
+        weights = []
+        forecast = []
+        for component in distribution_components:
+            weights.append(component["weight"])
+            skew = component["skew"]
+            scale = component["scale"]
+            location = component["location"]
+            center = (location + 0.15) / 1.3
+            scaling = np.tanh(np.sqrt(scale)) / 2
+            left = center + (skew - 1) * scaling
+            right = center + (skew + 1) * scaling
+            forecast.append({
+                "left": left,
+                "center": center,
+                "right": right,
+            })
+
+        slider_values = {
+            "weights": weights,
+            "forecast": forecast
+        }
+
     elif question.type == Question.QuestionType.MULTIPLE_CHOICE:
         probability_yes_per_category = spv
+        slider_values = None
 
     new_forecast = Forecast(
         id=prediction["id"],
@@ -46,7 +71,7 @@ def create_forecast(
         distribution_components=prediction["distribution_components"],
         author=users_dict[prediction["user_id"]],
         question=question,
-        slider_values=None,
+        slider_values=slider_values,
     )
 
     return new_forecast

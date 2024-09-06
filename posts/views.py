@@ -316,6 +316,7 @@ def post_update_api_view(request, pk):
         ser.save()
 
     post.update_pseudo_materialized_fields()
+
     if "categories" in request.data:
         add_categories(request.data["categories"], post)
     if "default_project_id" in request.data:

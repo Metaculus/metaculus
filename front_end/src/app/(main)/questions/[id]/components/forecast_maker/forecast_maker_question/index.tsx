@@ -70,7 +70,7 @@ const QuestionForecastMaker: FC<Props> = ({
             postId={postId}
             question={question}
             permission={permission}
-            prevForecast={question.my_forecasts?.latest?.slider_values}
+            prevForecast={question.my_forecasts?.latest?.forecast_values[1]}
             canPredict={
               canPredict &&
               question.open_time !== undefined &&

@@ -342,7 +342,7 @@ def create_forecast(
         probability_yes=probability_yes,
         probability_yes_per_category=probability_yes_per_category_arr,
         distribution_components=None,
-        slider_values=slider_values,
+        slider_values=slider_values if question.type in ["date", "numeric"] else None,
         post=post,
     )
     forecast.save()

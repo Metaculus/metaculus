@@ -87,15 +87,12 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
-      prev.map((prevChoice) => ({
+      prev.map((prevChoice, i) => ({
         ...prevChoice,
-        forecast: getDefaultForecast(
-          prevChoice.name,
-          question.my_forecasts?.latest?.slider_values
-        ),
+        forecast: question.my_forecasts?.latest?.forecast_values[i] ?? null,
       }))
     );
-  }, [question.my_forecasts?.latest?.slider_values]);
+  }, [question.my_forecasts?.latest?.forecast_values]);
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
       setIsDirty(true);
@@ -185,7 +182,6 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
           probabilityYes: null,
           probabilityYesPerCategory: forecastValue,
         },
-        sliderValues: forecastValue,
       },
     ]);
     setIsDirty(false);

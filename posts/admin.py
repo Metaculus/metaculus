@@ -15,7 +15,7 @@ class PostAdmin(admin.ModelAdmin):
         "projects",
         "conditional",
         "group_of_questions",
-        "coauthors"
+        "coauthors",
     ]
     search_fields = ["title"]
     readonly_fields = ["notebook"]
