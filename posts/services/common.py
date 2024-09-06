@@ -1,5 +1,5 @@
 import logging
-from datetime import timedelta
+from datetime import timedelta, date
 
 from django.db.models import Q, Count, Sum, Value, Case, When, F
 from django.db.models.functions import Coalesce
@@ -14,6 +14,7 @@ from projects.services import (
     notify_project_subscriptions_post_open,
     get_site_main_project,
 )
+from questions.models import Question
 from questions.services import (
     create_question,
     create_conditional,
@@ -255,6 +256,21 @@ def compute_hotness():
     )
 
     qs.update(hotness=F("hotness_value"))
+
+
+def approve_post(post: Post, open_time: date = None, cp_reveal_time: date = None):
+    if post.curation_status == Post.CurationStatus.APPROVED:
+        raise ValidationError("Post is already approved")
+
+    post.update_curation_status(Post.CurationStatus.APPROVED)
+
+    questions = post.get_questions()
+    for question in questions:
+        question.open_time = open_time
+        question.cp_reveal_time = cp_reveal_time
+
+    post.save()
+    Question.objects.bulk_update(questions, fields=["open_time", "cp_reveal_time"])
 
 
 def resolve_post(post: Post):

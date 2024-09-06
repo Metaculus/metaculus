@@ -1,7 +1,13 @@
+import os
+import tempfile
 from datetime import timedelta
+from io import BytesIO
+
+import django
+import django.utils
+from PIL import Image
 from django.core.files.storage import default_storage
 from django.shortcuts import get_object_or_404, redirect
-import django.utils
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -10,12 +16,6 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-
-import os
-import django
-from PIL import Image
-from io import BytesIO
-import tempfile
 
 from misc.services.itn import get_post_get_similar_articles
 from posts.models import (
@@ -34,11 +34,13 @@ from posts.serializers import (
     serialize_post,
     get_subscription_serializer_by_type,
     PostRelatedArticleSerializer,
+    PostApproveSerializer,
 )
 from posts.services.common import (
     create_post,
     get_post_permission_for_user,
     add_categories,
+    approve_post,
 )
 from posts.services.feed import get_posts_feed
 from posts.services.subscriptions import create_subscription
@@ -229,10 +231,15 @@ def post_update_api_view(request, pk):
     serializer = PostSerializer(post, data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
 
+    # TODO: test this!!!
     question_data = request.data.get("question", None)
     conditional_data = request.data.get("conditional", None)
     group_of_questions_data = request.data.get("group_of_questions", None)
     notebook_data = request.data.get("notebook", None)
+
+    # TODO: currently, authors are able to publish their posts
+    #   Fix this!!!
+    # TODO: check post denial
 
     if question_data:
         ser = QuestionSerializer(post.question, data=question_data, partial=True)
@@ -316,6 +323,20 @@ def post_update_api_view(request, pk):
         post.default_project_id = request.data["default_project_id"]
     serializer.save()
     return Response(serializer.data)
+
+
+@api_view(["POST"])
+def post_approve_api_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_approve(permission, raise_exception=True)
+
+    serializer = PostApproveSerializer(post, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+
+    approve_post(**serializer.validated_data)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["DELETE"])
@@ -523,6 +544,7 @@ def post_preview_image(request: Request, pk):
         post.preview_image_generated_at = django.utils.timezone.now()
         post.save()
         from playwright.sync_api import sync_playwright
+
         with sync_playwright() as p:
 
             browser = p.chromium.launch(headless=True)

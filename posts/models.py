@@ -512,6 +512,9 @@ class Post(TimeStampedModel):
         self.curation_status = status
         self.curation_status_updated_at = timezone.now()
 
+        if status == status.APPROVED:
+            self.published_at = timezone.now()
+
     def get_questions(self) -> list[Question]:
         """
         Generate list of questions available for forecasting
