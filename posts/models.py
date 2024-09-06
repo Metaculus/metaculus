@@ -215,7 +215,7 @@ class PostQuerySet(models.QuerySet):
         self, user: User = None, permission: ObjectPermission = ObjectPermission.VIEWER
     ):
         """
-        Returns only allowed projects for the user
+        Returns posts visible to the user
         """
 
         user_id = user.id if user else None
@@ -377,11 +377,7 @@ class Post(TimeStampedModel):
             and self.conditional.condition_child.scheduled_close_time
             and self.conditional.condition.scheduled_close_time
         ):
-            print(
-                self.conditional.condition_child.scheduled_close_time,
-                self.conditional.condition.scheduled_close_time,
-            )
-            self.actual_close_time = min(
+            self.scheduled_close_time = min(
                 self.conditional.condition_child.scheduled_close_time,
                 self.conditional.condition.scheduled_close_time,
             )
@@ -413,7 +409,7 @@ class Post(TimeStampedModel):
             self.actual_close_time = self.question.actual_close_time
         elif self.group_of_questions:
             close_times = [
-                question.scheduled_close_time
+                question.actual_close_time
                 for question in self.group_of_questions.questions.all()
             ]
 
