@@ -197,4 +197,4 @@ def get_posts_feed(
 
     qs = qs.order_by(build_order_by(order_type, order_desc))
 
-    return qs.distinct("id", order_type)
+    return qs.distinct("id", order_type).only("pk")

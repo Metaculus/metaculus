@@ -86,7 +86,14 @@ class PostSerializer(serializers.ModelSerializer):
         if obj.conditional:
             return obj.conditional.condition_child.open_time
         if obj.group_of_questions:
-            return min(*[x.open_time for x in obj.group_of_questions.questions.all()])
+            open_times = [
+                x.open_time
+                for x in obj.group_of_questions.questions.all()
+                if x.open_time
+            ]
+            if len(open_times) == 0:
+                return None
+            return min(*open_times)
 
 
 class NotebookWriteSerializer(serializers.ModelSerializer):
@@ -274,7 +281,6 @@ def serialize_post(
         "user_vote": post.user_vote,
     }
     # Forecasters
-    post.update_forecasts_count()
     serialized_data["forecasts_count"] = post.forecasts_count
 
     # Subscriptions
