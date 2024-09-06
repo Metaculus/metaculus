@@ -79,7 +79,7 @@ const TournamentCard: FC<Props> = ({
       </div>
       <div className="flex flex-1 flex-col whitespace-break-spaces p-6">
         <h3 className="m-0 flex-1">{name}</h3>
-        {!!prizePool && (
+        {!!prizePool && Number(prizePool) > 0 && (
           <div className="mt-2 text-green-800 dark:text-green-800-dark">
             <FontAwesomeIcon
               icon={faAward}
