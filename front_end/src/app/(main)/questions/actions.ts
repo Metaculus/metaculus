@@ -10,7 +10,7 @@ import CommentsApi, {
   ToggleCMMCommentParams,
   VoteCommentParams,
 } from "@/services/comments";
-import PostsApi, { PostsParams } from "@/services/posts";
+import PostsApi, { ApprovePostParams, PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import QuestionsApi, { ForecastPayload } from "@/services/questions";
 import { FetchError } from "@/types/fetch";
@@ -77,6 +77,19 @@ export async function updatePost(postId: number, body: any) {
   };
 }
 
+export async function approvePost(postId: number, params: ApprovePostParams[]) {
+  try {
+    await PostsApi.approvePost(postId, params);
+    revalidatePath(`/questions/${postId}/`);
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
 export async function removePostFromProject(postId: number, projectId: number) {
   try {
     const resp = await PostsApi.removePostFromProject(postId, projectId);
@@ -97,8 +110,6 @@ export async function createForecasts(
   try {
     const response = await QuestionsApi.createForecasts(forecasts);
     revalidatePath(`/questions/${postId}`);
-
-    return response;
   } catch (err) {
     const error = err as FetchError;
 
