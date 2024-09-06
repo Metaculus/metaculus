@@ -110,6 +110,7 @@ class Project(TimeStampedModel):
         null=True,
         on_delete=models.SET_NULL,
         related_name="primary_project",
+        blank=True,
     )
     include_bots_in_leaderboard = models.BooleanField(default=False)
 
@@ -163,7 +164,12 @@ class Project(TimeStampedModel):
     meta_description = models.TextField(blank=True, default="")
 
     created_by = models.ForeignKey(
-        User, models.CASCADE, related_name="created_projects", default=None, null=True
+        User,
+        models.CASCADE,
+        related_name="created_projects",
+        default=None,
+        null=True,
+        blank=True,
     )
 
     # Permissions
