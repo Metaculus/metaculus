@@ -87,7 +87,7 @@ const PostApprovalModal: FC<{
         setIsOpen(false);
       }}
     >
-      <form className="flex max-w-xl flex-col items-center gap-4 text-center">
+      <div className="flex max-w-xl flex-col items-center gap-4 text-center">
         {approvalMap && (
           <>
             {approvalData.map(
@@ -143,7 +143,7 @@ const PostApprovalModal: FC<{
           {t("approve")}
         </Button>
         <FormError errors={submitErrors} />
-      </form>
+      </div>
     </BaseModal>
   );
 };
