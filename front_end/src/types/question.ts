@@ -76,8 +76,19 @@ export type ScoreData = {
   weighted_coverage?: number | null;
 };
 
+export type SliderLocations = {
+  left: number;
+  center: number;
+  right: number;
+};
+
+export type SliderValues = {
+  weights: number[];
+  forecast: SliderLocations[];
+};
+
 export type UserForecast = Forecast & {
-  slider_values: any | null; // TODO: solidify this
+  slider_values: SliderValues | null;
 };
 
 export type UserForecastHistory = {

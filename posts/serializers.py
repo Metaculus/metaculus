@@ -294,7 +294,6 @@ def serialize_post(
     if with_nr_forecasters:
         serialized_data["forecasts_count"] = post.get_forecasters().count()
 
-    print(serialized_data["open_time"])
     return serialized_data
 
 

@@ -82,7 +82,6 @@ export function binWeightsFromSliders(
   lowerOpen: boolean,
   upperOpen: boolean
 ) {
-  // TODO: deal with boundaries
   const params = logisticDistributionParamsFromSliders(left, center, right);
   const step = 1 / 200;
   const xArr = Array.from(

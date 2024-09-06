@@ -78,7 +78,6 @@ const ForecastMakerBinary: FC<Props> = ({
           probabilityYes: forecastValue,
           probabilityYesPerCategory: null,
         },
-        sliderValues: forecastValue,
       },
     ]);
     setIsForecastDirty(false);
