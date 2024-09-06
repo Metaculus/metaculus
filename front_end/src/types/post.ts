@@ -106,6 +106,8 @@ export type Post<QT = Question> = {
     category?: Category[];
     topic: Topic[];
     default_project: Tournament;
+    tournament?: Tournament[];
+    question_series?: Tournament[];
     tag?: Tag[];
   };
   title: string;
@@ -121,6 +123,7 @@ export type Post<QT = Question> = {
   vote: PostVote;
   nr_forecasters: number;
   author_username: string;
+  coauthors: { id: number; username: string }[];
   author_id: number;
   question?: QT;
   conditional?: PostConditional<QT>;

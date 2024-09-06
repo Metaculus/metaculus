@@ -4,8 +4,9 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -94,6 +95,7 @@ def comments_list_api_view(request: Request):
 
 
 @api_view(["POST"])
+@permission_classes([IsAdminUser])
 def comment_delete_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
 
@@ -104,6 +106,7 @@ def comment_delete_api_view(request: Request, pk: int):
 
 
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def comment_create_api_view(request: Request):
     user = request.user
     serializer = CommentWriteSerializer(data=request.data)
@@ -137,10 +140,14 @@ def comment_create_api_view(request: Request):
 
 
 @api_view(["POST"])
+@permission_classes([IsAuthenticated])
 def comment_edit_api_view(request: Request, pk: int):
     # Small validation
-    comment = get_object_or_404(Comment.objects.filter(author=request.user), pk=pk)
+    comment = get_object_or_404(Comment, pk=pk)
     text = serializers.CharField().run_validation(request.data.get("text"))
+
+    if not (request.user.is_staff or comment.author == request.user):
+        raise PermissionDenied("You do not have permission to edit this comment.")
 
     differ = difflib.Differ()
 

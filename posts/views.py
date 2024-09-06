@@ -1,6 +1,5 @@
 from datetime import timedelta
 from django.core.files.storage import default_storage
-from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 import django.utils
 import requests
@@ -14,7 +13,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-# from playwright.sync_api import sync_playwright
 import os
 import django
 from PIL import Image
@@ -527,6 +525,8 @@ def post_preview_image(request: Request, pk):
         # This has to happen where because once we're in the playwright sync context the connection is invalidated
         post.preview_image_generated_at = django.utils.timezone.now()
         post.save()
+        from playwright.sync_api import sync_playwright
+
         with sync_playwright() as p:
 
             browser = p.chromium.launch(headless=True)

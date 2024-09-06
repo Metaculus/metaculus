@@ -376,6 +376,7 @@
   "predicted": "Predicted",
   "notPredicted": "Not Predicted",
   "author": "Author",
+  "authorWithCount": "{count, plural, =1 {Author} other {Authors} }",
   "authored": "Authored",
   "upvoted": "Upvoted",
   "moderating": "Moderating",
