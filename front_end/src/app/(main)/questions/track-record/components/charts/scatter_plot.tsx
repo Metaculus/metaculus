@@ -1,4 +1,5 @@
 "use client";
+import { range } from "lodash";
 
 import { useTranslations } from "next-intl";
 import React, { useMemo, useState } from "react";
@@ -17,19 +18,19 @@ import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { TrackRecordScatterPlotItem } from "@/types/track_record";
-import {
-  generateNumericDomain,
-  generateTicksY,
-  generateTimestampXScale,
-} from "@/utils/charts";
+import { generateNumericDomain, generateTimestampXScale } from "@/utils/charts";
 
 import TrackRecordChartHero from "../track_record_chart_hero";
 
 type HistogramProps = {
   score_scatter_plot: TrackRecordScatterPlotItem[];
+  scoreLabel: string;
 };
 
-const ScatterPlot: React.FC<HistogramProps> = ({ score_scatter_plot }) => {
+const ScatterPlot: React.FC<HistogramProps> = ({
+  score_scatter_plot,
+  scoreLabel,
+}) => {
   const t = useTranslations();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
@@ -64,6 +65,8 @@ const ScatterPlot: React.FC<HistogramProps> = ({ score_scatter_plot }) => {
     const sum = score_scatter_plot.reduce((acc, { score }) => acc + score, 0);
     return (sum / score_scatter_plot.length).toFixed(3);
   }, [score_scatter_plot]);
+  const yMin = Math.min(-100, ...score_scatter_plot.map((data) => data.score));
+  const yMax = Math.max(100, ...score_scatter_plot.map((data) => data.score));
 
   return (
     <>
@@ -77,7 +80,7 @@ const ScatterPlot: React.FC<HistogramProps> = ({ score_scatter_plot }) => {
           theme={chartTheme}
           domain={{
             x: xDomain,
-            y: [-100, 100],
+            y: [yMin, yMax],
           }}
           domainPadding={{
             x: 10,
@@ -159,7 +162,7 @@ const ScatterPlot: React.FC<HistogramProps> = ({ score_scatter_plot }) => {
               },
               axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
             }}
-            label={`Metaculus ${t("brierScore")}`}
+            label={scoreLabel}
           />
           <VictoryAxis
             tickValues={xScale.ticks}
@@ -221,10 +224,20 @@ function buildChartData({
     };
   });
 
-  const { ticks: ticksY, tickFormat: ticksYFormat } = generateTicksY(
-    270,
-    [-100, -50, 0, 50, 100]
+  const yMin = Math.min(-100, ...score_scatter_plot.map((data) => data.score));
+  const yMax = Math.max(100, ...score_scatter_plot.map((data) => data.score));
+  const ticksY = range(
+    Math.round(yMin / 10) * 10,
+    Math.round(yMax / 10) * 10,
+    5
   );
+  const ticksYFormat = (y: number) => {
+    if (y % 50 == 0) {
+      return y.toString();
+    } else {
+      return "";
+    }
+  };
   const xDomain = generateNumericDomain(
     score_scatter_plot.map((data) => data.score_timestamp),
     "all" as TimelineChartZoomOption

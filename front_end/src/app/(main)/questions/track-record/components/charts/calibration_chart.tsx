@@ -54,15 +54,17 @@ const CalibrationChart: React.FC<{
           }}
         />
         <VictoryScatter
-          data={calibrationData.map((d: any, index: number) => {
-            const y = d.user_middle_quartile;
-            return {
-              x: (index + 0.5) / calibrationData.length,
-              y0: y - 0.01,
-              y: y,
-              symbol: "diamond",
-            };
-          })}
+          data={calibrationData.map(
+            (d: TrackRecordCalibrationCurveItem, index: number) => {
+              const y = d.middle_quartile;
+              return {
+                x: (index + 0.5) / calibrationData.length,
+                y0: y - 0.01,
+                y: y,
+                symbol: "diamond",
+              };
+            }
+          )}
           style={{
             data: {
               fill: "orange",
@@ -72,27 +74,31 @@ const CalibrationChart: React.FC<{
         />
         <VictoryBar
           barRatio={1.1}
-          data={calibrationData.map((d: any, index: number) => {
-            const y = d.perfect_calibration;
-            return {
-              x: (index + 0.5) / calibrationData.length,
-              y0: y - 0.01,
-              y: y,
-            };
-          })}
+          data={calibrationData.map(
+            (d: TrackRecordCalibrationCurveItem, index: number) => {
+              const y = d.perfect_calibration;
+              return {
+                x: (index + 0.5) / calibrationData.length,
+                y0: y - 0.01,
+                y: y,
+              };
+            }
+          )}
           style={{ data: { fill: "darkgray", opacity: 1 } }}
         />
         {/* Confidence interval area */}
         {showIntervals && (
           <VictoryBar
             barRatio={1.1}
-            data={calibrationData.map((d: any, index: number) => {
-              return {
-                x: (index + 0.5) / calibrationData.length,
-                y0: d.user_lower_quartile,
-                y: d.user_upper_quartile,
-              };
-            })}
+            data={calibrationData.map(
+              (d: TrackRecordCalibrationCurveItem, index: number) => {
+                return {
+                  x: (index + 0.5) / calibrationData.length,
+                  y0: d.lower_quartile,
+                  y: d.upper_quartile,
+                };
+              }
+            )}
             style={{ data: { fill: "lightgray", opacity: 0.5 } }}
           />
         )}

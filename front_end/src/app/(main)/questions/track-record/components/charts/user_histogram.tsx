@@ -13,33 +13,44 @@ import {
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import useAppTheme from "@/hooks/use_app_theme";
 import { TrackRecordHistogramItem } from "@/types/track_record";
-import { generateTicksY } from "@/utils/charts";
 
 import TrackRecordChartHero from "../track_record_chart_hero";
 
 type HistogramProps = {
   rawHistogramData: TrackRecordHistogramItem[];
   color: string;
+  scoreLabel: string;
 };
 
 const UserHistogram: React.FC<HistogramProps> = ({
   rawHistogramData,
   color,
+  scoreLabel,
 }) => {
   const histogramData = mapHistogramData(rawHistogramData);
+  const yMax = Math.max(...histogramData.map((d) => d.y));
   const t = useTranslations();
   const { theme } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
-  const { ticks: ticksY, tickFormat: ticksYFormat } = generateTicksY(
-    180,
-    [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
-  );
+  const ticksYFormat = (y: number) => {
+    if (y % Math.round(yMax / 5) == 0) {
+      return y.toString();
+    } else {
+      return "";
+    }
+  };
+  const ticksXFormat = (x: number) => {
+    if (x % 15 == 0) {
+      return x.toString();
+    } else {
+      return "";
+    }
+  };
 
   const averageScore = useMemo(() => {
     const sum = histogramData.reduce((acc, { y }) => acc + y, 0);
-
-    return Math.round((sum / histogramData.length) * 1000);
+    return Math.round((sum / histogramData.length) * 1000) / 1000;
   }, [histogramData]);
 
   return (
@@ -56,7 +67,7 @@ const UserHistogram: React.FC<HistogramProps> = ({
             rawHistogramData[0].bin_start ?? 1,
             rawHistogramData[rawHistogramData.length - 1].bin_end ?? 0,
           ],
-          y: [0, 1],
+          y: [0, yMax],
         }}
         containerComponent={<VictoryContainer responsive={true} />}
         padding={{ top: 20, bottom: 65, left: 40, right: 20 }}
@@ -64,15 +75,8 @@ const UserHistogram: React.FC<HistogramProps> = ({
       >
         <VictoryAxis
           dependentAxis
-          domain={{
-            x: [
-              rawHistogramData[0].bin_start ?? 1,
-              rawHistogramData[rawHistogramData.length - 1].bin_end ?? 0,
-            ],
-            y: [0, 1],
-          }}
           offsetX={40}
-          tickValues={ticksY}
+          tickValues={range(0, yMax, Math.round(yMax / 40))}
           tickFormat={ticksYFormat}
           style={{
             tickLabels: {
@@ -89,8 +93,9 @@ const UserHistogram: React.FC<HistogramProps> = ({
           tickValues={range(
             rawHistogramData[0].bin_start,
             rawHistogramData[rawHistogramData.length - 1].bin_end + 70,
-            70
+            1
           )}
+          tickFormat={ticksXFormat}
           style={{
             tickLabels: {
               fontSize: 5,
@@ -101,7 +106,7 @@ const UserHistogram: React.FC<HistogramProps> = ({
             axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
             grid: { stroke: "none" },
           }}
-          label={t("brierScoreForPlayer")}
+          label={scoreLabel}
         />
         <VictoryArea
           data={histogramData}
@@ -123,15 +128,15 @@ const mapHistogramData = (
   userHistogram: {
     bin_start: number;
     bin_end: number;
-    pct_scores: number;
+    score_count: number;
   }[]
 ) => {
   const mappedArray = [] as { x: number; y: number }[];
   userHistogram.forEach((data, index) => {
     mappedArray.push(
       ...[
-        { x: data.bin_start, y: Math.max(data.pct_scores, 0) },
-        { x: data.bin_end - 1, y: Math.max(data.pct_scores, 0) },
+        { x: data.bin_start, y: Math.max(data.score_count, 0) },
+        { x: data.bin_end - 1, y: Math.max(data.score_count, 0) },
       ]
     );
   });

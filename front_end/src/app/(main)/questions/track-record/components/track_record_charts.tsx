@@ -17,6 +17,7 @@ type Props = {
   scoreHistogram?: TrackRecordHistogramItem[];
   calibrationCurve?: TrackRecordCalibrationCurveItem[];
   className?: string;
+  scoreLabel: string;
 };
 
 const TrackRecordCharts: FC<Props> = ({
@@ -24,6 +25,7 @@ const TrackRecordCharts: FC<Props> = ({
   scoreHistogram,
   calibrationCurve,
   className,
+  scoreLabel,
 }) => {
   const t = useTranslations();
 
@@ -32,12 +34,18 @@ const TrackRecordCharts: FC<Props> = ({
       <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
         {t("scoreScatterPlot")}
       </h3>
-      {scatterPlot && <ScatterPlot score_scatter_plot={scatterPlot} />}
+      {scatterPlot && (
+        <ScatterPlot score_scatter_plot={scatterPlot} scoreLabel={scoreLabel} />
+      )}
       <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
         {t("scoreHistogram")}
       </h3>
       {scoreHistogram && (
-        <UserHistogram rawHistogramData={scoreHistogram} color="gray" />
+        <UserHistogram
+          rawHistogramData={scoreHistogram}
+          color="gray"
+          scoreLabel={scoreLabel}
+        />
       )}
 
       <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">

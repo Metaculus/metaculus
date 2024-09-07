@@ -285,7 +285,7 @@ class PostQuerySet(models.QuerySet):
 
 
 class PostManager(models.Manager.from_queryset(PostQuerySet)):
-    def get_queryset(self):
+    def get_queryset(self) -> PostQuerySet:
         return super().get_queryset().defer("embedding_vector")
 
 
@@ -315,6 +315,8 @@ class Post(TimeStampedModel):
     comment_count: int = 0
     user_last_forecasts_date = None
     divergence: int = None
+
+    objects: PostManager = PostManager()
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -529,8 +531,6 @@ class Post(TimeStampedModel):
 
         self.forecasts_count = self.forecasts.count()
         self.save(update_fields=["forecasts_count"])
-
-    objects = PostManager()
 
     def __str__(self):
         return self.title

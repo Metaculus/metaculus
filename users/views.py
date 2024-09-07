@@ -1,7 +1,8 @@
 from datetime import timedelta
 
 import numpy as np
-import scipy
+from scipy.stats import binom
+from django.db.models import Avg, QuerySet
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers, status
@@ -15,10 +16,11 @@ from rest_framework.response import Response
 
 from comments.models import Comment
 from posts.models import Post
-from questions.models import Forecast
+from questions.models import Forecast, Question
+from questions.types import AggregationMethod
 from scoring.models import Score
-from .models import User
-from .serializers import (
+from users.models import User
+from users.serializers import (
     UserPrivateSerializer,
     UserPublicSerializer,
     validate_username,
@@ -27,7 +29,7 @@ from .serializers import (
     PasswordChangeSerializer,
     EmailChangeSerializer,
 )
-from .services import (
+from users.services import (
     get_users,
     user_unsubscribe_tags,
     send_email_change_confirmation_email,
@@ -35,41 +37,136 @@ from .services import (
 )
 
 
-def get_serialized_user(request, user, Serializer):
-    ser = Serializer(user).data
-
-    forecasts = (
-        Forecast.objects.filter(
-            author=user,
-            question__type="binary",
-            question__resolution__in=["no", "yes"],
+def get_score_scatter_plot_data(
+    scores: list[Score] | None = None,
+    user: User | None = None,
+    aggregation_method: AggregationMethod | None = None,
+    score_type: Score.ScoreTypes | None = None,
+) -> dict:
+    """must provide either
+    1) scores
+    2) either user or aggregation_method and optionally a score_type
+    """
+    # set up
+    if scores is None:
+        if (user is None and aggregation_method is None) or (
+            user is not None and aggregation_method is not None
+        ):
+            raise ValueError("Either user or aggregation_method must be provided only")
+        if user is not None and score_type is None:
+            score_type = Score.ScoreTypes.PEER
+        if aggregation_method is not None and score_type is None:
+            score_type = Score.ScoreTypes.BASELINE
+        public_questions = Question.objects.filter_public()
+        # TODO: support archived scores
+        score_qs = Score.objects.filter(
+            question__in=public_questions,
+            score_type=score_type,
         )
-        .prefetch_related("question")
-        .all()
-    )
+        if user is not None:
+            score_qs = score_qs.filter(user=user)
+        else:
+            score_qs = score_qs.filter(aggregation_method=aggregation_method)
+        scores = list(score_qs)
 
-    ser["nr_forecasts"] = Forecast.objects.filter(author=user).count()
-    ser["nr_comments"] = Comment.objects.filter(author=user).count()
+    score_scatter_plot = []
+    for score in scores:
+        score_scatter_plot.append(
+            {
+                "score": score.score,
+                "score_timestamp": score.edited_at.timestamp(),
+                "question_title": score.question.title,
+                "question_resolution": score.question.resolution,
+            }
+        )
+
+    return {
+        "score_scatter_plot": score_scatter_plot,
+    }
+
+
+def get_score_histogram_data(
+    scores: list[Score] | None = None,
+    user: User | None = None,
+    aggregation_method: AggregationMethod | None = None,
+    score_type: Score.ScoreTypes | None = None,
+) -> dict:
+    """must provide either
+    1) scores
+    2) either user or aggregation_method and optionally a score_type
+    """
+    # set up
+    if scores is None:
+        if (user is None and aggregation_method is None) or (
+            user is not None and aggregation_method is not None
+        ):
+            raise ValueError("Either user or aggregation_method must be provided only")
+        if user is not None and score_type is None:
+            score_type = Score.ScoreTypes.PEER
+        if aggregation_method is not None and score_type is None:
+            score_type = Score.ScoreTypes.BASELINE
+        public_questions = Question.objects.filter_public()
+        # TODO: support archived scores
+        score_qs = Score.objects.filter(
+            question__in=public_questions,
+            score_type=score_type,
+        )
+        if user is not None:
+            score_qs = score_qs.filter(user=user)
+        else:
+            score_qs = score_qs.filter(aggregation_method=aggregation_method)
+        scores = list(score_qs)
+
+    score_histogram = []
+    if len(scores) > 0:
+        min_bin = min(-50, min(s.score for s in scores))
+        max_bin = max(50, max(s.score for s in scores))
+        bin_incr = int((max_bin + np.abs(min_bin)) / 20)
+        for bin_start in range(int(np.ceil(min_bin)), int(np.ceil(max_bin)), bin_incr):
+            bin_end = bin_start + bin_incr
+            score_histogram.append(
+                {
+                    "bin_start": bin_start,
+                    "bin_end": bin_end,
+                    "score_count": len(
+                        [
+                            s.score
+                            for s in scores
+                            if s.score >= bin_start and s.score < bin_end
+                        ]
+                    ),
+                }
+            )
+
+    return {
+        "score_histogram": score_histogram,
+    }
+
+
+def get_calibration_curve_data(
+    user: User | None = None,
+    aggregation_method: AggregationMethod | None = None,
+) -> dict:
+    if (user is None and aggregation_method is None) or (
+        user is not None and aggregation_method is not None
+    ):
+        raise ValueError("Either user or aggregation_method must be provided only")
+    public_questions = Question.objects.filter_public()
+    forecasts = Forecast.objects.filter(
+        question__in=public_questions,
+        question__type="binary",
+        question__resolution__in=["no", "yes"],
+    )
+    if user is not None:
+        forecasts = forecasts.filter(author=user)
+    forecasts = forecasts.prefetch_related("question")
+
     values = []
     weights = []
     resolutions = []
-    scores = []
-    questions_predicted = []
-    questions_predicted_socred = []
-    all_score_objs = Score.objects.filter(
-        user=user, score_type=Score.ScoreTypes.BASELINE
-    ).all()
-
-    question_score_map = {score.question_id: score for score in all_score_objs}
 
     for forecast in forecasts:
         question = forecast.question
-        if question.id not in questions_predicted:
-            questions_predicted.append(question.id)
-            if score := question_score_map.get(question.id):
-                scores.append(score.score)
-                questions_predicted_socred.append(question.id)
-
         forecast_horizon_start = question.open_time.timestamp()
         actual_close_time = question.actual_close_time.timestamp()
         forecast_horizon_end = question.scheduled_close_time.timestamp()
@@ -81,88 +178,162 @@ def get_serialized_user(request, user, Serializer):
         forecast_duration = forecast_end - forecast_start
         question_duration = forecast_horizon_end - forecast_horizon_start
         weight = forecast_duration / question_duration
+
         values.append(forecast.probability_yes)
         weights.append(weight)
         resolutions.append(int(question.resolution == "yes"))
-
-    avg_score = np.average(scores)
-    ser["avg_score"] = None if np.isnan(avg_score) else avg_score
-    ser["questions_predicted_scored"] = len(questions_predicted_socred)
-    ser["questions_predicted"] = len(questions_predicted)
-    ser["question_authored"] = Post.objects.filter(
-        author=user, notebook__isnull=True
-    ).count()
-    ser["notebooks_authored"] = Post.objects.filter(
-        author=user, notebook__isnull=False
-    ).count()
-    ser["comments_authored"] = Comment.objects.filter(author=user).count()
 
     calibration_curve = []
     for p_min, p_max in [(x / 20, x / 20 + 0.05) for x in range(20)]:
         res = []
         ws = []
-        bin_center = p_min + 0.05
+        bin_center = p_min + 0.025
         for value, weight, resolution in zip(values, weights, resolutions):
             if p_min <= value < p_max:
                 res.append(resolution)
                 ws.append(weight)
-        if res:
-            user_middle_quartile = np.average(res, weights=ws)
-        else:
-            user_middle_quartile = None
-        user_lower_quartile = scipy.stats.binom.ppf(
-            0.05, max([len(res), 1]), bin_center
-        ) / max([len(res), 1])
-        user_upper_quartile = scipy.stats.binom.ppf(
-            0.95, max([len(res), 1]), bin_center
-        ) / max([len(res), 1])
+        middle_quartile = np.average(res, weights=ws) if res else None
+        lower_quartile = binom.ppf(0.05, max([len(res), 1]), bin_center) / max(
+            [len(res), 1]
+        )
+        upper_quartile = binom.ppf(0.95, max([len(res), 1]), bin_center) / max(
+            [len(res), 1]
+        )
 
         calibration_curve.append(
             {
-                "user_lower_quartile": user_lower_quartile,
-                "user_middle_quartile": user_middle_quartile,
-                "user_upper_quartile": user_upper_quartile,
+                "lower_quartile": lower_quartile,
+                "middle_quartile": middle_quartile,
+                "upper_quartile": upper_quartile,
                 "perfect_calibration": bin_center,
             }
         )
 
-    ser["calibration_curve"] = calibration_curve
-    ser["score_histogram"] = [
-        {"x_start": 0, "x_end": 0.2, "y": 0.7},
-        {"x_start": 0.2, "x_end": 0.4, "y": 0.1},
-        {"x_start": 0.4, "x_end": 0.6, "y": 0.05},
-        {"x_start": 0.6, "x_end": 0.8, "y": 0.03},
-        {"x_start": 0.8, "x_end": 1, "y": 0.02},
-    ]
+    return {
+        "calibration_curve": calibration_curve,
+    }
 
-    ser["score_scatter_plot"] = []
-    for score in all_score_objs:
-        ser["score_scatter_plot"].append(
-            {
-                "score": score.score,
-                "score_timestamp": score.created_at.timestamp(),
-                "question_title": score.question.title,
-                "question_resolution": score.question.resolution,
-            }
+
+def get_forecasting_stats_data(
+    scores: list[Score] | None = None,
+    user: User | None = None,
+    aggregation_method: AggregationMethod | None = None,
+    score_type: Score.ScoreTypes | None = None,
+) -> dict:
+    # set up
+    if (user is None and aggregation_method is None) or (
+        user is not None and aggregation_method is not None
+    ):
+        raise ValueError("Either user or aggregation_method must be provided only")
+    if user is not None and score_type is None:
+        score_type = Score.ScoreTypes.PEER
+    if aggregation_method is not None and score_type is None:
+        score_type = Score.ScoreTypes.BASELINE
+    public_questions = Question.objects.filter_public()
+    if scores is None:
+        # TODO: support archived scores
+        score_qs = Score.objects.filter(
+            question__in=public_questions,
+            score_type=score_type,
         )
-    ser["score_histogram"] = []
-    if len(scores) > 0:
-        min_bin = min(-50, min([s for s in scores]))
-        max_bin = max(50, max([s for s in scores]))
-        bin_incr = int((max_bin + np.abs(min_bin)) / 20)
-        for bin_start in range(int(np.ceil(min_bin)), int(np.ceil(max_bin)), bin_incr):
-            bin_end = bin_start + bin_incr
-            ser["score_histogram"].append(
-                {
-                    "bin_start": bin_start,
-                    "bin_end": bin_end,
-                    "pct_scores": len(
-                        [s for s in scores if s >= bin_start and s < bin_end]
-                    )
-                    / len(scores),
-                }
-            )
-    return ser
+        if user is not None:
+            score_qs = score_qs.filter(user=user)
+        else:
+            score_qs = score_qs.filter(aggregation_method=aggregation_method)
+        scores = list(score_qs)
+
+    average_score = np.average([score.score for score in scores])
+    forecasts = Forecast.objects.filter(question__in=public_questions)
+    if user is not None:
+        forecasts = forecasts.filter(author=user)
+    forecasts_count = forecasts.count()
+    questions_predicted_count = forecasts.values("question").distinct().count()
+    score_count = len(scores)
+
+    return {
+        "average_score": average_score,
+        "forecasts_count": forecasts_count,
+        "questions_predicted_count": questions_predicted_count,
+        "score_count": score_count,
+    }
+
+
+def get_authoring_stats_data(
+    user: User,
+) -> dict:
+    posts_authored = Post.objects.filter_public().filter(
+        author=user, notebook__isnull=True
+    )
+    posts_authored_count = posts_authored.count()
+    forecasts_on_authored_questions_count = Forecast.objects.filter(
+        post__in=posts_authored
+    ).count()
+    notebooks_authored_count = (
+        Post.objects.filter_public().filter(author=user, notebook__isnull=False).count()
+    )
+    comment_count = Comment.objects.filter(
+        author=user, on_post__in=Post.objects.filter_public()
+    ).count()
+
+    return {
+        "posts_authored_count": posts_authored_count,
+        "forecasts_on_authored_questions_count": forecasts_on_authored_questions_count,
+        "notebooks_authored_count": notebooks_authored_count,
+        "comments_count": comment_count,
+    }
+
+
+def get_user_profile_data(
+    user: User,
+) -> dict:
+    return UserPublicSerializer(user).data
+
+
+def serialize_profile(
+    user: User | None = None,
+    aggregation_method: AggregationMethod | None = None,
+    score_type: Score.ScoreTypes | None = None,
+) -> dict:
+    if (user is None and aggregation_method is None) or (
+        user is not None and aggregation_method is not None
+    ):
+        raise ValueError("Either user or aggregation_method must be provided only")
+    if user is not None and score_type is None:
+        score_type = Score.ScoreTypes.PEER
+    if aggregation_method is not None and score_type is None:
+        score_type = Score.ScoreTypes.BASELINE
+    public_questions = Question.objects.filter_public()
+    # TODO: support archived scores
+    score_qs = Score.objects.filter(
+        question__in=public_questions,
+        score_type=score_type,
+    )
+    if user is not None:
+        score_qs = score_qs.filter(user=user)
+    else:
+        score_qs = score_qs.filter(aggregation_method=aggregation_method)
+    scores = list(score_qs)
+    data = {}
+    data.update(
+        get_score_scatter_plot_data(
+            scores=scores, user=user, aggregation_method=aggregation_method
+        )
+    )
+    data.update(
+        get_score_histogram_data(
+            scores=scores, user=user, aggregation_method=aggregation_method
+        )
+    )
+    data.update(get_calibration_curve_data(user, aggregation_method))
+    data.update(
+        get_forecasting_stats_data(
+            scores=scores, user=user, aggregation_method=aggregation_method
+        )
+    )
+    if user is not None:
+        data.update(get_user_profile_data(user))
+        data.update(get_authoring_stats_data(user))
+    return data
 
 
 @api_view(["GET"])
@@ -180,7 +351,7 @@ def current_user_api_view(request):
 def user_profile_api_view(request, pk: int):
     qs = User.objects.all()
     user = get_object_or_404(qs, pk=pk)
-    return Response(get_serialized_user(request, user, UserPublicSerializer))
+    return Response(serialize_profile(user))
 
 
 @api_view(["GET"])
