@@ -304,6 +304,16 @@ def assign_ranks(
     return entries
 
 
+def assign_prize_percentages(entries: list[LeaderboardEntry]) -> list[LeaderboardEntry]:
+    total_take = sum(e.take for e in entries if not e.excluded)
+    for entry in entries:
+        if total_take and not entry.excluded:
+            entry.percent_prize = entry.take / total_take
+        else:
+            entry.percent_prize = 0
+    return entries
+
+
 def assign_medals(
     entries: list[LeaderboardEntry],
 ) -> list[LeaderboardEntry]:
@@ -330,10 +340,8 @@ def assign_prizes(
     entries: list[LeaderboardEntry], prize_pool: Decimal
 ) -> list[LeaderboardEntry]:
     included = [e for e in entries if not e.excluded]
-    if total_take := sum(e.take for e in included):
-        for entry in included:
-            entry.percent_prize = entry.take / total_take
-            entry.prize = float(prize_pool) * entry.percent_prize
+    for entry in included:
+        entry.prize = float(prize_pool) * entry.percent_prize
     return entries
 
 
@@ -350,12 +358,15 @@ def update_project_leaderboard(
     # new entries
     new_entries = generate_project_leaderboard(project, leaderboard)
 
-    # assign ranks
+    # assign ranks - also applies exclusions
     new_entries = assign_ranks(
         new_entries,
         leaderboard,
         include_bots=project.include_bots_in_leaderboard,
     )
+
+    # assign prize percentages
+    new_entries = assign_prize_percentages(new_entries)
 
     # check if we're ready to finalize with medals and prizes
     if (

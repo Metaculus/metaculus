@@ -10,20 +10,10 @@ import MedalIcon from "../../../components/medal_icon";
 type Props = {
   rowEntry: LeaderboardEntry;
   withCoverage: boolean;
-  withTake: boolean;
-  withPrize: boolean;
-  prizePool: number;
   userId?: number;
 };
 
-const TableRow: FC<Props> = ({
-  rowEntry,
-  withCoverage,
-  withTake,
-  withPrize,
-  userId,
-  prizePool,
-}) => {
+const TableRow: FC<Props> = ({ rowEntry, withCoverage, userId }) => {
   const {
     user,
     aggregation_method,
@@ -60,29 +50,25 @@ const TableRow: FC<Props> = ({
               : aggregation_method}
         </Link>
       </Td>
-      <Td className="text-right" highlight={highlight}>
+      <Td className="text-right tabular-nums" highlight={highlight}>
         {score.toFixed(3)}
       </Td>
       {withCoverage && (
-        <Td className="text-right" highlight={highlight}>
+        <Td className="text-right tabular-nums" highlight={highlight}>
           {coverage ? `${(coverage * 100).toFixed(0)}%` : "-"}
         </Td>
       )}
-      {withTake && (
-        <Td className="text-right" highlight={highlight}>
-          {take?.toFixed(3)}
+      <Td className="text-right tabular-nums" highlight={highlight}>
+        {take?.toFixed(3)}
+      </Td>
+      <>
+        <Td className="text-right tabular-nums" highlight={highlight}>
+          {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}
         </Td>
-      )}
-      {withPrize && (
-        <>
-          <Td className="text-right" highlight={highlight}>
-            {percent_prize ? `${(percent_prize * 100).toFixed(1)}%` : "-"}
-          </Td>
-          <Td className="text-right" highlight={highlight}>
-            {prize && prize >= 10 ? "$" + prize.toFixed(0) : "-"}
-          </Td>
-        </>
-      )}
+        <Td className="text-right tabular-nums" highlight={highlight}>
+          {prize && prize >= 10 ? "$" + prize.toFixed(0) : "-"}
+        </Td>
+      </>
     </tr>
   );
 };

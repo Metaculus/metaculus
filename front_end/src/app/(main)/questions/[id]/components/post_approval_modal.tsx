@@ -36,15 +36,6 @@ const PostApprovalModal: FC<{
     return [];
   }, [post.group_of_questions, post.question]);
 
-  const approvalMap: Record<string, number> = {};
-  if (post.question) {
-    approvalMap[post.question.title] = post.question.id;
-  } else if (post.group_of_questions) {
-    post.group_of_questions.questions.forEach((q) => {
-      approvalMap[q.title] = q.id;
-    });
-  }
-
   const [approvalData, setApprovalData] = useState<
     (ApprovePostParams & { question_title: string })[]
   >(() =>
@@ -83,67 +74,63 @@ const PostApprovalModal: FC<{
   return (
     <BaseModal
       isOpen={isOpen}
+      label={t("questionApproval")}
       onClose={() => {
         setIsOpen(false);
       }}
     >
-      <form className="flex max-w-xl flex-col items-center gap-4 text-center">
-        {approvalMap && (
-          <>
-            {approvalData.map(
-              ({ question_title, question_id, open_time, cp_reveal_time }) => {
-                return (
-                  <div
-                    key={`question-${question_id}`}
-                    className="flex flex-col gap-2"
-                  >
-                    <div>
-                      <span>{t("Question")}: </span>
-                      <span>{question_title}</span>
-                    </div>
-                    <span>{t("openTime")}</span>
-                    <DatetimeUtc
-                      placeholder="date when forecasts will open"
-                      min={currentDateTime}
-                      onChange={(dt) =>
-                        setApprovalData(
-                          approvalData.map((obj) => ({
-                            ...obj,
-                            ...(obj.question_id === question_id
-                              ? { open_time: dt }
-                              : {}),
-                          }))
-                        )
-                      }
-                      defaultValue={open_time}
-                    />
-                    <span>{t("cpRevealTime")}</span>
-                    <DatetimeUtc
-                      placeholder="time when the cp will be revealed"
-                      min={currentDateTime}
-                      onChange={(dt) =>
-                        setApprovalData(
-                          approvalData.map((obj) => ({
-                            ...obj,
-                            ...(obj.question_id === question_id
-                              ? { cp_reveal_time: dt }
-                              : {}),
-                          }))
-                        )
-                      }
-                      defaultValue={cp_reveal_time}
-                    />
-                  </div>
-                );
-              }
-            )}
-          </>
+      <div className="flex max-w-md flex-col items-center gap-4">
+        {!approvalData.length && <p>{post.title}</p>}
+        {approvalData.map(
+          ({ question_title, question_id, open_time, cp_reveal_time }) => (
+            <div
+              key={`question-${question_id}`}
+              className="flex flex-col gap-2"
+            >
+              <div>
+                <span>{t("Question")}: </span>
+                <span>{question_title}</span>
+              </div>
+              <span>{t("openTime")}</span>
+              <DatetimeUtc
+                placeholder="date when forecasts will open"
+                min={currentDateTime}
+                onChange={(dt) =>
+                  setApprovalData(
+                    approvalData.map((obj) => ({
+                      ...obj,
+                      ...(obj.question_id === question_id
+                        ? { open_time: dt }
+                        : {}),
+                    }))
+                  )
+                }
+                defaultValue={open_time}
+              />
+              <span>{t("cpRevealTime")}</span>
+              <DatetimeUtc
+                placeholder="time when the cp will be revealed"
+                min={currentDateTime}
+                onChange={(dt) =>
+                  setApprovalData(
+                    approvalData.map((obj) => ({
+                      ...obj,
+                      ...(obj.question_id === question_id
+                        ? { cp_reveal_time: dt }
+                        : {}),
+                    }))
+                  )
+                }
+                defaultValue={cp_reveal_time}
+              />
+            </div>
+          )
         )}
         <Button onClick={handleSubmit} disabled={isLoading}>
           {t("approve")}
         </Button>
         <FormError errors={submitErrors} />
-      </form>
+      </div>
     </BaseModal>
   );
 };
