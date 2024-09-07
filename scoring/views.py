@@ -4,21 +4,17 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-import scipy
 import numpy as np
 
 from django.db.models import Q
 
-from posts.models import Post
-from questions.models import AggregateForecast, Question
-from questions.types import AggregationMethod
 from users.models import User
 from users.views import serialize_profile
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.views import get_projects_qs, get_project_permission_for_user
-from scoring.models import Leaderboard, LeaderboardEntry, Score
+from scoring.models import Leaderboard, LeaderboardEntry
 from scoring.serializers import (
     LeaderboardSerializer,
     LeaderboardEntrySerializer,

@@ -2,7 +2,6 @@ from datetime import timedelta
 
 import numpy as np
 from scipy.stats import binom
-from django.db.models import Avg, QuerySet
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers, status
