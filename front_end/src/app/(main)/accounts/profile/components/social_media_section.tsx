@@ -14,7 +14,7 @@ import Link from "next/link";
 import { FC } from "react";
 
 import { FormError, Input } from "@/components/ui/form_field";
-import { CurrentUser, UserProfile } from "@/types/users";
+import { UserProfile } from "@/types/users";
 
 const SocialMediaSection: FC<{
   user: UserProfile;
