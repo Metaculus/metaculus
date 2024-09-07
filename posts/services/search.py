@@ -124,10 +124,15 @@ def get_similar_posts_for_multiple_posts(posts: list[Post]):
     Generates similar posts for multiple posts.
     """
 
+    posts_with_embeddings = [ch.embedding_vector for ch in posts if ch.embedding_vector]
+
+    if not posts_with_embeddings:
+        return []
+
     vector = np.average(
-        [ch.embedding_vector for ch in posts],
+        posts_with_embeddings,
         axis=0,
-        weights=[len(ch.embedding_vector) for ch in posts],
+        weights=[len(x) for x in posts_with_embeddings],
     )
 
     return (
