@@ -4,11 +4,15 @@ Module contains Cron Job handlers
 
 import logging
 
+import django
 import dramatiq
 from django.db.models import Q
 
 from posts.models import Post
 from posts.services.subscriptions import notify_milestone, notify_date
+from questions.services import close_question
+from questions.models import Question
+
 
 logger = logging.getLogger(__name__)
 
@@ -76,3 +80,16 @@ def job_compute_movement():
     print("bulk updating...", end="\r")
     Post.objects.bulk_update(posts, fields=["movement"])
     print("bulk updating... DONE")
+
+
+@dramatiq.actor
+def job_close_question():
+    questions_to_close = Question.objects.filter(
+        actual_close_time__isnull=True,
+        scheduled_close_time__lte=django.utils.timezone.now(),
+    ).all()
+    for question in questions_to_close:
+        try:
+            close_question(question)
+        except Exception:
+            logger.exception(f"Failed to close question {question.id}")
