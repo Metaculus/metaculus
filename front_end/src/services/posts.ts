@@ -69,6 +69,10 @@ class PostsApi {
     );
   }
 
+  static async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
+    return await get<PostWithForecasts[]>(`/posts/${postId}/similar-posts`);
+  }
+
   static async createQuestionPost(body: any): Promise<PostWithForecasts> {
     return await post<PostWithForecasts>(`/posts/create/`, body);
   }

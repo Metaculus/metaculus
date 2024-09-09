@@ -9,6 +9,7 @@ from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
 from users.models import User
+from utils.cache import cache_get_or_set
 from utils.models import build_order_by
 from utils.serializers import parse_order_by
 
@@ -40,6 +41,8 @@ def get_posts_feed(
 
     TODO: implement "New Comments" ordering
     """
+
+    qs = qs or Post.objects.all()
 
     # If ids provided
     if ids:
@@ -198,3 +201,15 @@ def get_posts_feed(
     qs = qs.order_by(build_order_by(order_type, order_desc))
 
     return qs.distinct("id", order_type).only("pk")
+
+
+def get_similar_posts(post: Post):
+    return cache_get_or_set(
+        f"get_similar_questions:v2:{post.id}",
+        lambda: [
+            p.pk
+            for p in get_posts_feed(similar_to_post_id=post.id, statuses=["open"])[:20]
+        ],
+        # 24h
+        timeout=3600 * 24,
+    )
