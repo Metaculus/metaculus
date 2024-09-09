@@ -120,4 +120,3 @@ const CalibrationChart: React.FC<{
 export default dynamic(() => Promise.resolve(CalibrationChart), {
   ssr: false,
 });
-// export default CalibrationChart;

@@ -2,7 +2,7 @@
 import { range } from "lodash";
 
 import { useTranslations } from "next-intl";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   VictoryAxis,
   VictoryChart,
@@ -51,8 +51,15 @@ const ScatterPlot: React.FC<HistogramProps> = ({
   } = buildChartData({ score_scatter_plot, chartWidth });
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [externalMutations, setExternalMutations] = useState<{
+    selectedIndex: number | null;
+    externalMutations: any | undefined;
+  }>({
+    selectedIndex: null,
+    externalMutations: undefined,
+  });
   const hoverData = useMemo(() => {
+    const selectedIndex = externalMutations.selectedIndex;
     if (
       (activeIndex === null && selectedIndex === null) ||
       (activeIndex !== null && !score_scatter_plot[activeIndex]) ||
@@ -78,9 +85,8 @@ const ScatterPlot: React.FC<HistogramProps> = ({
     if (!point) {
       return null;
     }
-
     return point;
-  }, [activeIndex, selectedIndex, score_scatter_plot]);
+  }, [activeIndex, externalMutations, score_scatter_plot]);
 
   const averageScore = useMemo(() => {
     const sum = score_scatter_plot.reduce((acc, { score }) => acc + score, 0);
@@ -88,6 +94,40 @@ const ScatterPlot: React.FC<HistogramProps> = ({
   }, [score_scatter_plot]);
   const yMin = Math.min(-100, ...score_scatter_plot.map((data) => data.score));
   const yMax = Math.max(100, ...score_scatter_plot.map((data) => data.score));
+
+  const removeMutation = useCallback(() => {
+    setExternalMutations({
+      selectedIndex: null,
+      externalMutations: undefined,
+    });
+  }, []);
+
+  const handleChartClick = useCallback((event: React.MouseEvent) => {
+    const target = event.target as Element;
+    if (target.tagName.toLowerCase() !== "path") {
+      setExternalMutations({
+        selectedIndex: null,
+        externalMutations: [
+          {
+            childName: "scatter",
+            target: ["data"],
+            eventKey: "all",
+            callback: removeMutation,
+            mutation: (props: any) => {
+              return {
+                style: {
+                  ...props.style,
+                  fill: "none",
+                  strokeWidth: 1,
+                  stroke: getThemeColor(METAC_COLORS.gold["500"]),
+                },
+              };
+            },
+          },
+        ],
+      });
+    }
+  }, []);
 
   return (
     <>
@@ -97,15 +137,7 @@ const ScatterPlot: React.FC<HistogramProps> = ({
       />
 
       <ChartContainer ref={chartContainerRef} height={350}>
-        <div
-          className="size-full"
-          onClick={(e) => {
-            const target = e.target as Element;
-            if (target.tagName.toLowerCase() !== "path") {
-              setSelectedIndex(null);
-            }
-          }}
-        >
+        <div className="size-full" onClick={handleChartClick}>
           <VictoryChart
             theme={chartTheme}
             domain={{
@@ -136,18 +168,21 @@ const ScatterPlot: React.FC<HistogramProps> = ({
                   strokeWidth: 1,
                 },
               }}
+              externalEventMutations={externalMutations.externalMutations}
               events={[
                 {
                   target: "data",
+                  childName: "scatter",
                   eventHandlers: {
                     onMouseOver: (_event, datum) => {
                       setActiveIndex(datum.index);
                       return {
                         mutation: (props) => {
                           return {
-                            style: Object.assign({}, props.style, {
+                            style: {
+                              ...props.style,
                               strokeWidth: 3,
-                            }),
+                            },
                           };
                         },
                       };
@@ -155,19 +190,27 @@ const ScatterPlot: React.FC<HistogramProps> = ({
                     onMouseOut: (_event, datum) => {
                       setActiveIndex(null);
 
-                      if (selectedIndex !== datum.index) {
+                      if (externalMutations.selectedIndex !== datum.index) {
                         return {
                           mutation: () => null,
                         };
                       }
                     },
-                    onClick: (_event, datum) => {
-                      setSelectedIndex((prev) =>
-                        prev === datum.index ? null : datum.index
-                      );
-
-                      return {
-                        mutation: (props) => {
+                    onClick: () => [
+                      {
+                        target: "data",
+                        mutation: (props: any) => {
+                          setExternalMutations((prev) =>
+                            prev.selectedIndex === props.index
+                              ? {
+                                  selectedIndex: null,
+                                  externalMutations: undefined,
+                                }
+                              : {
+                                  selectedIndex: props.index,
+                                  externalMutations: undefined,
+                                }
+                          );
                           return {
                             style: {
                               ...props.style,
@@ -176,8 +219,8 @@ const ScatterPlot: React.FC<HistogramProps> = ({
                             },
                           };
                         },
-                      };
-                    },
+                      },
+                    ],
                   },
                 },
               ]}
@@ -240,7 +283,7 @@ const ScatterPlot: React.FC<HistogramProps> = ({
           </VictoryChart>
         </div>
       </ChartContainer>
-      <div className="ml-16 mr-7 text-sm">
+      <div className="ml-16 mr-7 min-h-[80px] text-sm">
         {hoverData ? (
           <>
             <div className="text-center underline">
@@ -248,6 +291,9 @@ const ScatterPlot: React.FC<HistogramProps> = ({
             </div>
             <div className="text-center capitalize">
               {t("resolutionLabel")} {hoverData.question_resolution}
+            </div>
+            <div className="text-center">
+              {t("score")}: {hoverData.score}
             </div>
           </>
         ) : (

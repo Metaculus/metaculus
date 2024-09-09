@@ -1,6 +1,5 @@
 "use client";
 
-import { range } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { useMemo } from "react";
 import {
@@ -16,17 +15,20 @@ import { TrackRecordHistogramItem } from "@/types/track_record";
 
 import TrackRecordChartHero from "../track_record_chart_hero";
 import dynamic from "next/dynamic";
+import { range } from "lodash";
 
 type HistogramProps = {
   rawHistogramData: TrackRecordHistogramItem[];
   color: string;
   scoreLabel: string;
+  username?: string;
 };
 
 const UserHistogram: React.FC<HistogramProps> = ({
   rawHistogramData,
   color,
   scoreLabel,
+  username
 }) => {
   const histogramData = mapHistogramData(rawHistogramData);
   const yMax = Math.max(...histogramData.map((d) => d.y));
@@ -53,7 +55,7 @@ const UserHistogram: React.FC<HistogramProps> = ({
     const sum = histogramData.reduce((acc, { y }) => acc + y, 0);
     return Math.round((sum / histogramData.length) * 1000) / 1000;
   }, [histogramData]);
-
+  
   return (
     <>
       <TrackRecordChartHero
@@ -88,7 +90,11 @@ const UserHistogram: React.FC<HistogramProps> = ({
             },
             axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
           }}
-          label={t("frequency")}
+          label={
+            username
+              ? t("userPeerScore", { username })
+              : t("communityPredictionBaselineScore")
+          }
         />
         <VictoryAxis
           tickValues={range(

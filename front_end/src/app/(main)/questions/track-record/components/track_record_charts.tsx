@@ -41,7 +41,7 @@ const TrackRecordCharts: FC<Props> = ({
         {t("calibrationCurve")}
       </h3>
       {calibrationCurve && (
-          <CalibrationChart calibrationData={calibrationCurve} />
+        <CalibrationChart calibrationData={calibrationCurve} />
       )}
       <div className="flex flex-col items-center space-y-3 divide-y divide-gray-300 dark:divide-gray-700">
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 md:gap-x-8">
@@ -90,7 +90,12 @@ const TrackRecordCharts: FC<Props> = ({
         {t("scoreHistogram")}
       </h3>
       {scoreHistogram && (
-        <UserHistogram rawHistogramData={scoreHistogram} color="gray" scoreLabel={scoreLabel}/>
+        <UserHistogram
+          rawHistogramData={scoreHistogram}
+          color="gray"
+          username={username}
+          scoreLabel={scoreLabel}
+        />
       )}
     </div>
   );
