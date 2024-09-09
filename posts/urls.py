@@ -9,6 +9,11 @@ urlpatterns = [
     path("posts/<int:pk>/boost", views.activity_boost_api_view, name="post-boost"),
     path("posts/<int:pk>/approve/", views.post_approve_api_view, name="post-approve"),
     path(
+        "posts/<int:pk>/similar-posts/",
+        views.post_similar_posts_api_view,
+        name="post-similar-posts",
+    ),
+    path(
         "posts/<int:pk>/related-articles/",
         views.post_related_articles_api_view,
         name="post-related-articles",
