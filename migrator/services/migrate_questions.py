@@ -3,6 +3,9 @@ import re
 from collections import defaultdict
 from datetime import timedelta
 
+import django
+import django.utils
+import django.utils.timezone
 import html2text
 from dateutil.parser import parse as date_parse
 from django.db.models.functions import Coalesce
@@ -91,7 +94,11 @@ def create_question(question: dict, **kwargs) -> Question:
         resolution_set_time=(
             question["resolve_time"] if question["resolution"] is not None else None
         ),
-        actual_close_time=question["effected_close_time"],
+        actual_close_time=(
+            question["effected_close_time"]
+            if question["effected_close_time"] < django.utils.timezone.now()
+            else None
+        ),
         type=question_type,
         possibilities=possibilities,
         zero_point=zero_point,
@@ -152,6 +159,11 @@ def create_post(question: dict, **kwargs) -> Post:
         published_at=question["publish_time"],
         created_at=question["created_time"],
         edited_at=question["edited_time"],
+        actual_close_time=(
+            question["effected_close_time"]
+            if question["effected_close_time"] < django.utils.timezone.now()
+            else None
+        ),
         **kwargs,
     )
 

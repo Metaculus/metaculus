@@ -1,8 +1,11 @@
 import logging
 from datetime import datetime
 
+import django
 from django.db import transaction
 from django.utils import timezone
+import django.utils
+import django.utils.timezone
 from rest_framework.exceptions import ValidationError
 
 from notifications.constants import MailingTags
@@ -292,12 +295,17 @@ def close_question(question: Question):
         raise ValidationError("Question is already closed")
 
     question.actual_close_time = timezone.now()
+    question.save()
 
     post = question.get_post()
     post.update_pseudo_materialized_fields()
     post.save()
 
     if post.actual_close_time:
+        if post.actual_close_time < django.utils.timezone.now():
+            raise Exception(
+                f"Post has an actual close time in the future: {post.actual_close_time} !"
+            )
         from posts.services.common import close_post
 
         close_post(post)
