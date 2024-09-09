@@ -6,8 +6,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useState } from "react";
 
-import { markPostAsRead } from "@/app/(main)/questions/actions";
-import { getComments } from "@/app/(main)/questions/actions";
+import { getComments, markPostAsRead } from "@/app/(main)/questions/actions";
 import Comment from "@/components/comment_feed/comment";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
@@ -116,7 +115,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
     setOffset(COMMENTS_PER_PAGE);
     setSort(newSort);
     setComments([]);
-    fetchComments("/comments", newSort, 0, false);
+    fetchComments(newSort, 0, false);
   }
 
   useEffect(() => {
@@ -128,7 +127,6 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
   }, [comments, feedSection]);
 
   const fetchComments = async (
-    url: string = "/comments",
     commentSort: SortOption = sort,
     offset: number = 0,
     keepComments = true,
@@ -136,7 +134,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
   ) => {
     try {
       setIsLoading(true);
-      const response = await getComments(url, {
+      const response = await getComments({
         post: postId,
         author: profileId,
         /* if we're on a post, fetch only parent comments with children annotated.  if this is a profile, fetch only the author's comments, including parents and children */
@@ -179,7 +177,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
       if (window.location.hash) {
         const focus_comment_id = window.location.hash.split("-")[1];
 
-        await fetchComments("/comments", sort, 0, false, focus_comment_id);
+        await fetchComments(sort, 0, false, focus_comment_id);
         const questionBlock = document.getElementById(
           window.location.hash.slice(1) // remove # symbol
         );
@@ -286,7 +284,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         <CommentEditor
           shouldIncludeForecast={includeUserForecast}
           postId={postId}
-          onSubmit={() => fetchComments("/comments", sort, 0, false)}
+          onSubmit={() => fetchComments(sort, 0, false)}
         />
       )}
       {shownComments.map((comment: CommentType) => (
@@ -326,7 +324,7 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
       {offset !== -1 && (
         <div className="flex items-center justify-center pt-4">
           <Button
-            onClick={() => fetchComments("/comments", sort, offset, true)}
+            onClick={() => fetchComments(sort, offset, true)}
             disabled={isLoading}
           >
             {t("loadMoreComments")}
