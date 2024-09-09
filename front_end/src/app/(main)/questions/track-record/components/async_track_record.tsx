@@ -3,6 +3,7 @@ import { FC } from "react";
 import TrackRecordApi from "@/services/track_record";
 
 import TrackRecordCharts from "./track_record_charts";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 const AsyncTrackRecord: FC = async () => {
   const trackRecord = await TrackRecordApi.getGlobalTrackRecord();
@@ -65,4 +66,4 @@ const AsyncTrackRecord: FC = async () => {
   );
 };
 
-export default AsyncTrackRecord;
+export default WithServerComponentErrorBoundary(AsyncTrackRecord);

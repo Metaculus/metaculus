@@ -17,6 +17,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
         scatterPlot={profile.score_scatter_plot}
         calibrationCurve={profile.calibration_curve}
         scoreHistogram={profile.score_histogram}
+        username={profile.username}
         className="bg-white p-6 dark:bg-blue-900"
         scoreLabel={t("peerScore")}
       />

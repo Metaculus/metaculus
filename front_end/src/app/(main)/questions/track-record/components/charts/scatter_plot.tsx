@@ -21,15 +21,18 @@ import { TrackRecordScatterPlotItem } from "@/types/track_record";
 import { generateNumericDomain, generateTimestampXScale } from "@/utils/charts";
 
 import TrackRecordChartHero from "../track_record_chart_hero";
+import dynamic from "next/dynamic";
 
 type HistogramProps = {
   score_scatter_plot: TrackRecordScatterPlotItem[];
   scoreLabel: string;
+  username?: string;
 };
 
 const ScatterPlot: React.FC<HistogramProps> = ({
   score_scatter_plot,
   scoreLabel,
+  username,
 }) => {
   const t = useTranslations();
   const { theme, getThemeColor } = useAppTheme();
@@ -47,19 +50,37 @@ const ScatterPlot: React.FC<HistogramProps> = ({
     xScale,
   } = buildChartData({ score_scatter_plot, chartWidth });
 
-  const [activeIndex, setActiveIndex] = useState(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const hoverData = useMemo(() => {
-    if (activeIndex === null || !score_scatter_plot[activeIndex]) {
+    if (
+      (activeIndex === null && selectedIndex === null) ||
+      (activeIndex !== null && !score_scatter_plot[activeIndex]) ||
+      (selectedIndex !== null && !score_scatter_plot[selectedIndex])
+    ) {
       return null;
     }
 
+    if (selectedIndex) {
+      if (!!activeIndex) {
+        return score_scatter_plot[activeIndex];
+      }
+      const point = score_scatter_plot[selectedIndex];
+      if (!point) {
+        return null;
+      }
+      return point;
+    }
+    if (activeIndex === null) {
+      return null;
+    }
     const point = score_scatter_plot[activeIndex];
     if (!point) {
       return null;
     }
 
     return point;
-  }, [activeIndex, score_scatter_plot]);
+  }, [activeIndex, selectedIndex, score_scatter_plot]);
 
   const averageScore = useMemo(() => {
     const sum = score_scatter_plot.reduce((acc, { score }) => acc + score, 0);
@@ -76,112 +97,148 @@ const ScatterPlot: React.FC<HistogramProps> = ({
       />
 
       <ChartContainer ref={chartContainerRef} height={350}>
-        <VictoryChart
-          theme={chartTheme}
-          domain={{
-            x: xDomain,
-            y: [yMin, yMax],
+        <div
+          className="size-full"
+          onClick={(e) => {
+            const target = e.target as Element;
+            if (target.tagName.toLowerCase() !== "path") {
+              setSelectedIndex(null);
+            }
           }}
-          domainPadding={{
-            x: 10,
-          }}
-          padding={{ top: 20, bottom: 65, left: 40, right: 20 }}
-          height={350}
-          width={chartWidth}
         >
-          <VictoryScatter
-            name={"scatter"}
-            data={score_scatter_plot.map((point, index) => {
-              return {
-                x: point.score_timestamp,
-                y: point.score,
-                size: index === activeIndex ? 6 : 5,
-              };
-            })}
-            style={{
-              data: {
-                stroke: getThemeColor(METAC_COLORS.blue["600"]),
-                fill: "none",
-                strokeWidth: 1,
-              },
+          <VictoryChart
+            theme={chartTheme}
+            domain={{
+              x: xDomain,
+              y: [yMin, yMax],
             }}
-            events={[
-              {
-                target: "data",
-                eventHandlers: {
-                  onMouseOver: (_event, datum) => {
-                    setActiveIndex(datum.index);
-                    return {
-                      mutation: (props) => {
+            domainPadding={{
+              x: 10,
+            }}
+            padding={{ top: 20, bottom: 65, left: 40, right: 20 }}
+            height={350}
+            width={chartWidth}
+          >
+            <VictoryScatter
+              name={"scatter"}
+              data={score_scatter_plot.map((point, index) => {
+                return {
+                  x: point.score_timestamp,
+                  y: point.score,
+                  size: index === activeIndex ? 6 : 5,
+                };
+              })}
+              style={{
+                data: {
+                  zIndex: 100,
+                  stroke: getThemeColor(METAC_COLORS.gold["500"]),
+                  fill: "none",
+                  strokeWidth: 1,
+                },
+              }}
+              events={[
+                {
+                  target: "data",
+                  eventHandlers: {
+                    onMouseOver: (_event, datum) => {
+                      setActiveIndex(datum.index);
+                      return {
+                        mutation: (props) => {
+                          return {
+                            style: Object.assign({}, props.style, {
+                              strokeWidth: 3,
+                            }),
+                          };
+                        },
+                      };
+                    },
+                    onMouseOut: (_event, datum) => {
+                      setActiveIndex(null);
+
+                      if (selectedIndex !== datum.index) {
                         return {
-                          style: Object.assign({}, props.style, {
-                            strokeWidth: 3,
-                          }),
+                          mutation: () => null,
                         };
-                      },
-                    };
-                  },
-                  onMouseOut: () => {
-                    setActiveIndex(null);
-                    return {
-                      mutation: () => null,
-                    };
+                      }
+                    },
+                    onClick: (_event, datum) => {
+                      setSelectedIndex((prev) =>
+                        prev === datum.index ? null : datum.index
+                      );
+
+                      return {
+                        mutation: (props) => {
+                          return {
+                            style: {
+                              ...props.style,
+                              strokeWidth: 3,
+                              fill: getThemeColor(METAC_COLORS.gold["500"]),
+                            },
+                          };
+                        },
+                      };
+                    },
                   },
                 },
-              },
-            ]}
-          />
-          <VictoryLine
-            y={overallAverage}
-            style={{
-              data: {
-                stroke: getThemeColor(METAC_COLORS.gray["400"]),
-                strokeDasharray: "5, 2",
-              },
-            }}
-          />
-          <VictoryLine
-            data={movingAverage}
-            style={{
-              data: {
-                stroke: getThemeColor(METAC_COLORS.gray["800"]),
-              },
-            }}
-          />
-          <VictoryAxis
-            dependentAxis
-            offsetX={40}
-            tickValues={ticksY}
-            tickFormat={ticksYFormat}
-            style={{
-              tickLabels: {
-                fontSize: 10,
-              },
-              axisLabel: {
-                fontSize: 13,
-              },
-              axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
-            }}
-            label={scoreLabel}
-          />
-          <VictoryAxis
-            tickValues={xScale.ticks}
-            tickFormat={xScale.tickFormat}
-            offsetY={65}
-            label={t("closingTime")}
-            style={{
-              tickLabels: {
-                fontSize: 10,
-              },
-              axisLabel: {
-                fontSize: 13,
-              },
-              axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
-              grid: { stroke: "none" },
-            }}
-            tickLabelComponent={<XTickLabel chartWidth={chartWidth} />}
-          />
-        </VictoryChart>
+              ]}
+            />
+            <VictoryLine
+              y={overallAverage}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.gray["400"]),
+                  strokeDasharray: "5, 2",
+                },
+              }}
+            />
+            <VictoryLine
+              data={movingAverage}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.gray["800"]),
+                },
+              }}
+            />
+            <VictoryAxis
+              dependentAxis
+              offsetX={40}
+              tickValues={ticksY}
+              tickFormat={ticksYFormat}
+              style={{
+                tickLabels: {
+                  fontSize: 10,
+                },
+                axisLabel: {
+                  fontSize: 13,
+                },
+                axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
+              }}
+              label={
+                scoreLabel ||
+                (username
+                  ? t("userPeerScore", { username })
+                  : t("communityPredictionBaselineScore")
+              )}
+            />
+            <VictoryAxis
+              tickValues={xScale.ticks}
+              tickFormat={xScale.tickFormat}
+              offsetY={65}
+              label={t("scheduledCloseTime")}
+              style={{
+                tickLabels: {
+                  fontSize: 10,
+                },
+                axisLabel: {
+                  fontSize: 13,
+                },
+                axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
+                grid: { stroke: "none" },
+              }}
+              tickLabelComponent={<XTickLabel chartWidth={chartWidth} />}
+            />
+          </VictoryChart>
+        </div>
       </ChartContainer>
       <div className="ml-16 mr-7 text-sm">
         {hoverData ? (
@@ -254,4 +311,6 @@ function buildChartData({
   };
 }
 
-export default ScatterPlot;
+export default dynamic(() => Promise.resolve(ScatterPlot), {
+  ssr: false,
+});

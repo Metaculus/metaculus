@@ -15,6 +15,7 @@ import useAppTheme from "@/hooks/use_app_theme";
 import { TrackRecordHistogramItem } from "@/types/track_record";
 
 import TrackRecordChartHero from "../track_record_chart_hero";
+import dynamic from "next/dynamic";
 
 type HistogramProps = {
   rawHistogramData: TrackRecordHistogramItem[];
@@ -143,4 +144,6 @@ const mapHistogramData = (
   return mappedArray;
 };
 
-export default UserHistogram;
+export default dynamic(() => Promise.resolve(UserHistogram), {
+  ssr: false,
+});
