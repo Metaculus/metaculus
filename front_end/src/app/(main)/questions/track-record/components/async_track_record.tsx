@@ -3,6 +3,7 @@ import { FC } from "react";
 import TrackRecordApi from "@/services/track_record";
 
 import TrackRecordCharts from "./track_record_charts";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 const AsyncTrackRecord: FC = async () => {
   const trackRecord = await TrackRecordApi.getGlobalTrackRecord();
@@ -15,7 +16,6 @@ const AsyncTrackRecord: FC = async () => {
         scoreHistogram={trackRecord.score_histogram}
         calibrationCurve={trackRecord.calibration_curve}
         scatterPlot={trackRecord.score_scatter_plot}
-        scoreLabel="ecjklajkles "
       />
       <div className="flex flex-col rounded bg-white p-6 dark:bg-blue-900 ">
         <div className="flex w-full flex-row items-center justify-between">
@@ -65,4 +65,4 @@ const AsyncTrackRecord: FC = async () => {
   );
 };
 
-export default AsyncTrackRecord;
+export default WithServerComponentErrorBoundary(AsyncTrackRecord);

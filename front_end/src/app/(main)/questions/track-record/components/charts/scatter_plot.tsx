@@ -1,13 +1,14 @@
 "use client";
 import { range } from "lodash";
-
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import React, { useMemo, useState } from "react";
+import React, { ComponentProps, useCallback, useMemo, useState } from "react";
 import {
   VictoryAxis,
   VictoryChart,
   VictoryScatter,
   VictoryLine,
+  Point,
 } from "victory";
 
 import ChartContainer from "@/components/charts/primitives/chart_container";
@@ -24,12 +25,12 @@ import TrackRecordChartHero from "../track_record_chart_hero";
 
 type HistogramProps = {
   score_scatter_plot: TrackRecordScatterPlotItem[];
-  scoreLabel: string;
+  username?: string;
 };
 
 const ScatterPlot: React.FC<HistogramProps> = ({
   score_scatter_plot,
-  scoreLabel,
+  username,
 }) => {
   const t = useTranslations();
   const { theme, getThemeColor } = useAppTheme();
@@ -47,19 +48,37 @@ const ScatterPlot: React.FC<HistogramProps> = ({
     xScale,
   } = buildChartData({ score_scatter_plot, chartWidth });
 
-  const [activeIndex, setActiveIndex] = useState(null);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [clickIndex, setClickIndex] = useState<number | null>(null);
+
   const hoverData = useMemo(() => {
-    if (activeIndex === null || !score_scatter_plot[activeIndex]) {
+    if (
+      (hoverIndex === null && clickIndex === null) ||
+      (hoverIndex !== null && !score_scatter_plot[hoverIndex]) ||
+      (clickIndex !== null && !score_scatter_plot[clickIndex])
+    ) {
       return null;
     }
 
-    const point = score_scatter_plot[activeIndex];
+    if (clickIndex !== null) {
+      if (hoverIndex !== null) {
+        return score_scatter_plot[hoverIndex];
+      }
+      const point = score_scatter_plot[clickIndex];
+      if (!point) {
+        return null;
+      }
+      return point;
+    }
+    if (hoverIndex === null) {
+      return null;
+    }
+    const point = score_scatter_plot[hoverIndex];
     if (!point) {
       return null;
     }
-
     return point;
-  }, [activeIndex, score_scatter_plot]);
+  }, [hoverIndex, clickIndex, score_scatter_plot]);
 
   const averageScore = useMemo(() => {
     const sum = score_scatter_plot.reduce((acc, { score }) => acc + score, 0);
@@ -67,6 +86,13 @@ const ScatterPlot: React.FC<HistogramProps> = ({
   }, [score_scatter_plot]);
   const yMin = Math.min(-100, ...score_scatter_plot.map((data) => data.score));
   const yMax = Math.max(100, ...score_scatter_plot.map((data) => data.score));
+
+  const handleChartClick = useCallback((event: React.MouseEvent) => {
+    const target = event.target as Element;
+    if (target.tagName.toLowerCase() !== "path") {
+      setClickIndex(null);
+    }
+  }, []);
 
   return (
     <>
@@ -76,114 +102,121 @@ const ScatterPlot: React.FC<HistogramProps> = ({
       />
 
       <ChartContainer ref={chartContainerRef} height={350}>
-        <VictoryChart
-          theme={chartTheme}
-          domain={{
-            x: xDomain,
-            y: [yMin, yMax],
-          }}
-          domainPadding={{
-            x: 10,
-          }}
-          padding={{ top: 20, bottom: 65, left: 40, right: 20 }}
-          height={350}
-          width={chartWidth}
-        >
-          <VictoryScatter
-            name={"scatter"}
-            data={score_scatter_plot.map((point, index) => {
-              return {
+        <div className="size-full" onClick={handleChartClick}>
+          <VictoryChart
+            theme={chartTheme}
+            domain={{
+              x: xDomain,
+              y: [yMin, yMax],
+            }}
+            domainPadding={{
+              x: 10,
+            }}
+            padding={{ top: 20, bottom: 65, left: 40, right: 20 }}
+            height={350}
+            width={chartWidth}
+          >
+            <VictoryScatter
+              name={"scatter"}
+              data={score_scatter_plot.map((point, index) => ({
                 x: point.score_timestamp,
                 y: point.score,
-                size: index === activeIndex ? 6 : 5,
-              };
-            })}
-            style={{
-              data: {
-                stroke: getThemeColor(METAC_COLORS.blue["600"]),
-                fill: "none",
-                strokeWidth: 1,
-              },
-            }}
-            events={[
-              {
-                target: "data",
-                eventHandlers: {
-                  onMouseOver: (_event, datum) => {
-                    setActiveIndex(datum.index);
-                    return {
-                      mutation: (props) => {
-                        return {
-                          style: Object.assign({}, props.style, {
-                            strokeWidth: 3,
-                          }),
-                        };
+                size: index === hoverIndex ? 6 : 5,
+              }))}
+              style={{
+                data: {
+                  zIndex: 100,
+                  stroke: getThemeColor(METAC_COLORS.gold["500"]),
+                  fill: "none",
+                  strokeWidth: 1,
+                },
+              }}
+              events={[
+                {
+                  target: "data",
+                  childName: "scatter",
+                  eventHandlers: {
+                    onMouseOver: (_event, datum) => {
+                      setHoverIndex(datum.index);
+                    },
+                    onMouseOut: (_event, datum) => {
+                      setHoverIndex(null);
+                    },
+                    onClick: () => [
+                      {
+                        target: "data",
+                        mutation: (props: any) => {
+                          setClickIndex((prev) =>
+                            prev === props.index ? null : props.index
+                          );
+                        },
                       },
-                    };
-                  },
-                  onMouseOut: () => {
-                    setActiveIndex(null);
-                    return {
-                      mutation: () => null,
-                    };
+                    ],
                   },
                 },
-              },
-            ]}
-          />
-          <VictoryLine
-            y={overallAverage}
-            style={{
-              data: {
-                stroke: getThemeColor(METAC_COLORS.gray["400"]),
-                strokeDasharray: "5, 2",
-              },
-            }}
-          />
-          <VictoryLine
-            data={movingAverage}
-            style={{
-              data: {
-                stroke: getThemeColor(METAC_COLORS.gray["800"]),
-              },
-            }}
-          />
-          <VictoryAxis
-            dependentAxis
-            offsetX={40}
-            tickValues={ticksY}
-            tickFormat={ticksYFormat}
-            style={{
-              tickLabels: {
-                fontSize: 10,
-              },
-              axisLabel: {
-                fontSize: 13,
-              },
-              axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
-            }}
-            label={scoreLabel}
-          />
-          <VictoryAxis
-            tickValues={xScale.ticks}
-            tickFormat={xScale.tickFormat}
-            offsetY={65}
-            label={t("closingTime")}
-            style={{
-              tickLabels: {
-                fontSize: 10,
-              },
-              axisLabel: {
-                fontSize: 13,
-              },
-              axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
-              grid: { stroke: "none" },
-            }}
-            tickLabelComponent={<XTickLabel chartWidth={chartWidth} />}
-          />
-        </VictoryChart>
+              ]}
+              dataComponent={
+                <CustomPoint hoverIndex={hoverIndex} clickIndex={clickIndex} />
+              }
+            />
+            <VictoryLine
+              y={overallAverage}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.gray["400"]),
+                  strokeDasharray: "5, 2",
+                },
+              }}
+            />
+            <VictoryLine
+              data={movingAverage}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.gray["800"]),
+                },
+              }}
+            />
+            <VictoryAxis
+              dependentAxis
+              offsetX={40}
+              tickValues={ticksY}
+              tickFormat={ticksYFormat}
+              style={{
+                tickLabels: {
+                  fontSize: 10,
+                },
+                axisLabel: {
+                  fontSize: 13,
+                },
+                axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
+              }}
+              label={
+                username
+                  ? t("userPeerScore", { username })
+                  : t("communityPredictionBaselineScore")
+              }
+            />
+            <VictoryAxis
+              tickValues={xScale.ticks}
+              tickFormat={xScale.tickFormat}
+              offsetY={65}
+              label={t("scheduledCloseTime")}
+              style={{
+                tickLabels: {
+                  fontSize: 10,
+                },
+                axisLabel: {
+                  fontSize: 13,
+                },
+                axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
+                grid: { stroke: "none" },
+              }}
+              tickLabelComponent={<XTickLabel chartWidth={chartWidth} />}
+            />
+          </VictoryChart>
+        </div>
       </ChartContainer>
-      <div className="ml-16 mr-7 text-sm">
+      <div className="ml-16 mr-7 min-h-[80px] text-sm">
         {hoverData ? (
           <>
             <div className="text-center underline">
@@ -191,6 +224,9 @@ const ScatterPlot: React.FC<HistogramProps> = ({
             </div>
             <div className="text-center capitalize">
               {t("resolutionLabel")} {hoverData.question_resolution}
+            </div>
+            <div className="text-center">
+              {t("score")}: {hoverData.score}
             </div>
           </>
         ) : (
@@ -254,4 +290,35 @@ function buildChartData({
   };
 }
 
-export default ScatterPlot;
+type CustomPointProps<T> = {
+  hoverIndex: number | null;
+  clickIndex: number | null;
+};
+const CustomPoint = <T extends string>({
+  hoverIndex,
+  clickIndex,
+  ...props
+}: ComponentProps<typeof Point> & CustomPointProps<T>) => {
+  const { getThemeColor } = useAppTheme();
+
+  const isHovered = props.index === hoverIndex;
+  const isClicked = props.index === clickIndex;
+
+  return (
+    <Point
+      {...props}
+      style={{
+        ...props.style,
+        fill: isClicked
+          ? getThemeColor(METAC_COLORS.gold["500"])
+          : "transparent",
+        stroke: getThemeColor(METAC_COLORS.gold["500"]),
+        strokeWidth: isHovered ? 3 : 1,
+      }}
+    />
+  );
+};
+
+export default dynamic(() => Promise.resolve(ScatterPlot), {
+  ssr: false,
+});

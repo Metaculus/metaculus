@@ -90,6 +90,7 @@ export const METAC_COLORS = {
   },
   gold: {
     200: { DEFAULT: "#f8f4d0", dark: "#78755d" },
+    500: { DEFAULT: "#ffa500", dark: "#ffa500" },
   },
   red: {
     500: { DEFAULT: "#a80000", dark: "#fc4141" },

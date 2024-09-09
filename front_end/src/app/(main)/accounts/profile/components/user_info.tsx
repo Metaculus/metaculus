@@ -226,7 +226,7 @@ const UserInfo: FC<UserInfoProps> = ({
             <div className="flex flex-col items-center gap-1">
               {profile.calibration_curve && (
                 <CalibrationChart
-                  data={profile.calibration_curve}
+                  calibrationData={profile.calibration_curve}
                   showIntervals={false}
                 />
               )}
