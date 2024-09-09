@@ -25,13 +25,11 @@ import dynamic from "next/dynamic";
 
 type HistogramProps = {
   score_scatter_plot: TrackRecordScatterPlotItem[];
-  scoreLabel: string;
   username?: string;
 };
 
 const ScatterPlot: React.FC<HistogramProps> = ({
   score_scatter_plot,
-  scoreLabel,
   username,
 }) => {
   const t = useTranslations();
@@ -51,15 +49,24 @@ const ScatterPlot: React.FC<HistogramProps> = ({
   } = buildChartData({ score_scatter_plot, chartWidth });
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [externalMutations, setExternalMutations] = useState<{
-    selectedIndex: number | null;
-    externalMutations: any | undefined;
-  }>({
-    selectedIndex: null,
-    externalMutations: undefined,
-  });
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  const handleChartClick = useCallback((event: React.MouseEvent) => {
+    const target = event.target as Element;
+
+    if (target.tagName.toLowerCase() !== "circle") {
+      setSelectedIndex((prev) => {
+        const circle = document.getElementById(`scatter-point-${prev}`);
+        if (circle) {
+          circle.style.fill = "none";
+        }
+
+        return null;
+      });
+    }
+  }, []);
+
   const hoverData = useMemo(() => {
-    const selectedIndex = externalMutations.selectedIndex;
     if (
       (activeIndex === null && selectedIndex === null) ||
       (activeIndex !== null && !score_scatter_plot[activeIndex]) ||
@@ -68,8 +75,8 @@ const ScatterPlot: React.FC<HistogramProps> = ({
       return null;
     }
 
-    if (selectedIndex) {
-      if (!!activeIndex) {
+    if (selectedIndex !== null) {
+      if (activeIndex !== null) {
         return score_scatter_plot[activeIndex];
       }
       const point = score_scatter_plot[selectedIndex];
@@ -86,7 +93,7 @@ const ScatterPlot: React.FC<HistogramProps> = ({
       return null;
     }
     return point;
-  }, [activeIndex, externalMutations, score_scatter_plot]);
+  }, [activeIndex, selectedIndex, score_scatter_plot]);
 
   const averageScore = useMemo(() => {
     const sum = score_scatter_plot.reduce((acc, { score }) => acc + score, 0);
@@ -95,39 +102,21 @@ const ScatterPlot: React.FC<HistogramProps> = ({
   const yMin = Math.min(-100, ...score_scatter_plot.map((data) => data.score));
   const yMax = Math.max(100, ...score_scatter_plot.map((data) => data.score));
 
-  const removeMutation = useCallback(() => {
-    setExternalMutations({
-      selectedIndex: null,
-      externalMutations: undefined,
+  const scatterData = useMemo(() => {
+    return score_scatter_plot.map((point, index) => {
+      return {
+        x: point.score_timestamp,
+        y: point.score,
+        size: index === activeIndex ? 6 : 5,
+        style: {
+          fill:
+            index === selectedIndex
+              ? getThemeColor(METAC_COLORS.gold["500"])
+              : "none",
+        },
+      };
     });
-  }, []);
-
-  const handleChartClick = useCallback((event: React.MouseEvent) => {
-    const target = event.target as Element;
-    if (target.tagName.toLowerCase() !== "path") {
-      setExternalMutations({
-        selectedIndex: null,
-        externalMutations: [
-          {
-            childName: "scatter",
-            target: ["data"],
-            eventKey: "all",
-            callback: removeMutation,
-            mutation: (props: any) => {
-              return {
-                style: {
-                  ...props.style,
-                  fill: "none",
-                  strokeWidth: 1,
-                  stroke: getThemeColor(METAC_COLORS.gold["500"]),
-                },
-              };
-            },
-          },
-        ],
-      });
-    }
-  }, []);
+  }, [activeIndex, selectedIndex, score_scatter_plot]);
 
   return (
     <>
@@ -153,13 +142,8 @@ const ScatterPlot: React.FC<HistogramProps> = ({
           >
             <VictoryScatter
               name={"scatter"}
-              data={score_scatter_plot.map((point, index) => {
-                return {
-                  x: point.score_timestamp,
-                  y: point.score,
-                  size: index === activeIndex ? 6 : 5,
-                };
-              })}
+              dataComponent={<CustomPoint />}
+              data={scatterData}
               style={{
                 data: {
                   zIndex: 100,
@@ -168,7 +152,6 @@ const ScatterPlot: React.FC<HistogramProps> = ({
                   strokeWidth: 1,
                 },
               }}
-              externalEventMutations={externalMutations.externalMutations}
               events={[
                 {
                   target: "data",
@@ -187,40 +170,35 @@ const ScatterPlot: React.FC<HistogramProps> = ({
                         },
                       };
                     },
-                    onMouseOut: (_event, datum) => {
+                    onMouseOut: () => {
                       setActiveIndex(null);
 
-                      if (externalMutations.selectedIndex !== datum.index) {
-                        return {
-                          mutation: () => null,
-                        };
-                      }
-                    },
-                    onClick: () => [
-                      {
-                        target: "data",
-                        mutation: (props: any) => {
-                          setExternalMutations((prev) =>
-                            prev.selectedIndex === props.index
-                              ? {
-                                  selectedIndex: null,
-                                  externalMutations: undefined,
-                                }
-                              : {
-                                  selectedIndex: props.index,
-                                  externalMutations: undefined,
-                                }
-                          );
+                      return {
+                        mutation: (props) => {
                           return {
                             style: {
                               ...props.style,
-                              strokeWidth: 3,
-                              fill: getThemeColor(METAC_COLORS.gold["500"]),
+                              strokeWidth: 1,
                             },
                           };
                         },
-                      },
-                    ],
+                      };
+                    },
+                    onClick: (_event, datum) => {
+                      setSelectedIndex((prev) => {
+                        const newIndex =
+                          prev === datum.index ? null : datum.index;
+                        const circleId = `scatter-point-${datum.index}`;
+                        const circle = document.getElementById(circleId);
+                        if (circle) {
+                          circle.style.fill =
+                            newIndex !== null
+                              ? getThemeColor(METAC_COLORS.gold["500"])
+                              : "none";
+                        }
+                        return newIndex;
+                      });
+                    },
                   },
                 },
               ]}
@@ -257,11 +235,10 @@ const ScatterPlot: React.FC<HistogramProps> = ({
                 axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
               }}
               label={
-                scoreLabel ||
-                (username
+                username
                   ? t("userPeerScore", { username })
                   : t("communityPredictionBaselineScore")
-              )}
+              }
             />
             <VictoryAxis
               tickValues={xScale.ticks}
@@ -360,3 +337,18 @@ function buildChartData({
 export default dynamic(() => Promise.resolve(ScatterPlot), {
   ssr: false,
 });
+
+const CustomPoint = (props: any) => {
+  const { datum, index, x, y, events, ...otherProps } = props;
+  return (
+    <circle
+      cx={x}
+      cy={y}
+      r={5}
+      {...events}
+      {...otherProps}
+      id={`scatter-point-${index}`}
+      key={index}
+    />
+  );
+};

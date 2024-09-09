@@ -16,7 +16,6 @@ const AsyncTrackRecord: FC = async () => {
         scoreHistogram={trackRecord.score_histogram}
         calibrationCurve={trackRecord.calibration_curve}
         scatterPlot={trackRecord.score_scatter_plot}
-        scoreLabel="ecjklajkles "
       />
       <div className="flex flex-col rounded bg-white p-6 dark:bg-blue-900 ">
         <div className="flex w-full flex-row items-center justify-between">

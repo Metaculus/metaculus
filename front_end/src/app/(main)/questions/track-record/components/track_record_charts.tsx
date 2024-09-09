@@ -21,7 +21,6 @@ type Props = {
   calibrationCurve?: TrackRecordCalibrationCurveItem[];
   username?: string;
   className?: string;
-  scoreLabel: string;
 };
 
 const TrackRecordCharts: FC<Props> = ({
@@ -30,7 +29,6 @@ const TrackRecordCharts: FC<Props> = ({
   calibrationCurve,
   username,
   className,
-  scoreLabel,
 }) => {
   const t = useTranslations();
   const { getThemeColor } = useAppTheme();
@@ -84,7 +82,7 @@ const TrackRecordCharts: FC<Props> = ({
         {t("scoreScatterPlot")}
       </h3>
       {scatterPlot && (
-        <ScatterPlot score_scatter_plot={scatterPlot} username={username} scoreLabel={scoreLabel}/>
+        <ScatterPlot score_scatter_plot={scatterPlot} username={username} />
       )}
       <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
         {t("scoreHistogram")}
@@ -94,7 +92,6 @@ const TrackRecordCharts: FC<Props> = ({
           rawHistogramData={scoreHistogram}
           color="gray"
           username={username}
-          scoreLabel={scoreLabel}
         />
       )}
     </div>

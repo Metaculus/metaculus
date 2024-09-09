@@ -16,21 +16,21 @@ import { TrackRecordHistogramItem } from "@/types/track_record";
 import TrackRecordChartHero from "../track_record_chart_hero";
 import dynamic from "next/dynamic";
 import { range } from "lodash";
+import { generateTicksY } from "@/utils/charts";
 
 type HistogramProps = {
   rawHistogramData: TrackRecordHistogramItem[];
   color: string;
-  scoreLabel: string;
   username?: string;
 };
 
 const UserHistogram: React.FC<HistogramProps> = ({
   rawHistogramData,
   color,
-  scoreLabel,
-  username
+  username,
 }) => {
   const histogramData = mapHistogramData(rawHistogramData);
+
   const yMax = Math.max(...histogramData.map((d) => d.y));
   const t = useTranslations();
   const { theme } = useAppTheme();
@@ -51,11 +51,18 @@ const UserHistogram: React.FC<HistogramProps> = ({
     }
   };
 
+  const desiredMajorTicks = useMemo(() => generateMajorTicks(yMax, 6), [yMax]);
+  const desiredMajorTickDistance = 20;
+  const { ticks: ticksY } = generateTicksY(
+    180,
+    desiredMajorTicks,
+    desiredMajorTickDistance
+  );
+  
   const averageScore = useMemo(() => {
     const sum = histogramData.reduce((acc, { y }) => acc + y, 0);
     return Math.round((sum / histogramData.length) * 1000) / 1000;
   }, [histogramData]);
-  
   return (
     <>
       <TrackRecordChartHero
@@ -79,7 +86,7 @@ const UserHistogram: React.FC<HistogramProps> = ({
         <VictoryAxis
           dependentAxis
           offsetX={40}
-          tickValues={range(0, yMax, Math.round(yMax / 40))}
+          tickValues={ticksY}
           tickFormat={ticksYFormat}
           style={{
             tickLabels: {
@@ -113,7 +120,11 @@ const UserHistogram: React.FC<HistogramProps> = ({
             axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
             grid: { stroke: "none" },
           }}
-          label={scoreLabel}
+          label={
+            username
+              ? t("userPeerScore", { username })
+              : t("communityPredictionBaselineScore")
+          }
         />
         <VictoryArea
           data={histogramData}
@@ -148,6 +159,20 @@ const mapHistogramData = (
     );
   });
   return mappedArray;
+};
+
+const generateMajorTicks = (maxValue: number, tickCount: number): number[] => {
+  const roundedMaxValue = Math.ceil(maxValue * 20) / 20;
+
+  const ticks = [];
+  const step = roundedMaxValue / (tickCount - 1);
+
+  for (let i = 0; i < tickCount; i++) {
+    const value = i * step;
+    ticks.push(Number(value.toFixed(2)));
+  }
+
+  return ticks;
 };
 
 export default dynamic(() => Promise.resolve(UserHistogram), {
