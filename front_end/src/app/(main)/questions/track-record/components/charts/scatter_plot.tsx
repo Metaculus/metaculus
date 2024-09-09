@@ -1,13 +1,14 @@
 "use client";
 import { range } from "lodash";
-
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { ComponentProps, useCallback, useMemo, useState } from "react";
 import {
   VictoryAxis,
   VictoryChart,
   VictoryScatter,
   VictoryLine,
+  Point,
 } from "victory";
 
 import ChartContainer from "@/components/charts/primitives/chart_container";
@@ -21,7 +22,6 @@ import { TrackRecordScatterPlotItem } from "@/types/track_record";
 import { generateNumericDomain, generateTimestampXScale } from "@/utils/charts";
 
 import TrackRecordChartHero from "../track_record_chart_hero";
-import dynamic from "next/dynamic";
 
 type HistogramProps = {
   score_scatter_plot: TrackRecordScatterPlotItem[];
@@ -48,52 +48,37 @@ const ScatterPlot: React.FC<HistogramProps> = ({
     xScale,
   } = buildChartData({ score_scatter_plot, chartWidth });
 
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-
-  const handleChartClick = useCallback((event: React.MouseEvent) => {
-    const target = event.target as Element;
-
-    if (target.tagName.toLowerCase() !== "circle") {
-      setSelectedIndex((prev) => {
-        const circle = document.getElementById(`scatter-point-${prev}`);
-        if (circle) {
-          circle.style.fill = "none";
-        }
-
-        return null;
-      });
-    }
-  }, []);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const [clickIndex, setClickIndex] = useState<number | null>(null);
 
   const hoverData = useMemo(() => {
     if (
-      (activeIndex === null && selectedIndex === null) ||
-      (activeIndex !== null && !score_scatter_plot[activeIndex]) ||
-      (selectedIndex !== null && !score_scatter_plot[selectedIndex])
+      (hoverIndex === null && clickIndex === null) ||
+      (hoverIndex !== null && !score_scatter_plot[hoverIndex]) ||
+      (clickIndex !== null && !score_scatter_plot[clickIndex])
     ) {
       return null;
     }
 
-    if (selectedIndex !== null) {
-      if (activeIndex !== null) {
-        return score_scatter_plot[activeIndex];
+    if (clickIndex !== null) {
+      if (hoverIndex !== null) {
+        return score_scatter_plot[hoverIndex];
       }
-      const point = score_scatter_plot[selectedIndex];
+      const point = score_scatter_plot[clickIndex];
       if (!point) {
         return null;
       }
       return point;
     }
-    if (activeIndex === null) {
+    if (hoverIndex === null) {
       return null;
     }
-    const point = score_scatter_plot[activeIndex];
+    const point = score_scatter_plot[hoverIndex];
     if (!point) {
       return null;
     }
     return point;
-  }, [activeIndex, selectedIndex, score_scatter_plot]);
+  }, [hoverIndex, clickIndex, score_scatter_plot]);
 
   const averageScore = useMemo(() => {
     const sum = score_scatter_plot.reduce((acc, { score }) => acc + score, 0);
@@ -102,21 +87,12 @@ const ScatterPlot: React.FC<HistogramProps> = ({
   const yMin = Math.min(-100, ...score_scatter_plot.map((data) => data.score));
   const yMax = Math.max(100, ...score_scatter_plot.map((data) => data.score));
 
-  const scatterData = useMemo(() => {
-    return score_scatter_plot.map((point, index) => {
-      return {
-        x: point.score_timestamp,
-        y: point.score,
-        size: index === activeIndex ? 6 : 5,
-        style: {
-          fill:
-            index === selectedIndex
-              ? getThemeColor(METAC_COLORS.gold["500"])
-              : "none",
-        },
-      };
-    });
-  }, [activeIndex, selectedIndex, score_scatter_plot]);
+  const handleChartClick = useCallback((event: React.MouseEvent) => {
+    const target = event.target as Element;
+    if (target.tagName.toLowerCase() !== "path") {
+      setClickIndex(null);
+    }
+  }, []);
 
   return (
     <>
@@ -142,8 +118,11 @@ const ScatterPlot: React.FC<HistogramProps> = ({
           >
             <VictoryScatter
               name={"scatter"}
-              dataComponent={<CustomPoint />}
-              data={scatterData}
+              data={score_scatter_plot.map((point, index) => ({
+                x: point.score_timestamp,
+                y: point.score,
+                size: index === hoverIndex ? 6 : 5,
+              }))}
               style={{
                 data: {
                   zIndex: 100,
@@ -158,50 +137,27 @@ const ScatterPlot: React.FC<HistogramProps> = ({
                   childName: "scatter",
                   eventHandlers: {
                     onMouseOver: (_event, datum) => {
-                      setActiveIndex(datum.index);
-                      return {
-                        mutation: (props) => {
-                          return {
-                            style: {
-                              ...props.style,
-                              strokeWidth: 3,
-                            },
-                          };
+                      setHoverIndex(datum.index);
+                    },
+                    onMouseOut: (_event, datum) => {
+                      setHoverIndex(null);
+                    },
+                    onClick: () => [
+                      {
+                        target: "data",
+                        mutation: (props: any) => {
+                          setClickIndex((prev) =>
+                            prev === props.index ? null : props.index
+                          );
                         },
-                      };
-                    },
-                    onMouseOut: () => {
-                      setActiveIndex(null);
-
-                      return {
-                        mutation: (props) => {
-                          return {
-                            style: {
-                              ...props.style,
-                              strokeWidth: 1,
-                            },
-                          };
-                        },
-                      };
-                    },
-                    onClick: (_event, datum) => {
-                      setSelectedIndex((prev) => {
-                        const newIndex =
-                          prev === datum.index ? null : datum.index;
-                        const circleId = `scatter-point-${datum.index}`;
-                        const circle = document.getElementById(circleId);
-                        if (circle) {
-                          circle.style.fill =
-                            newIndex !== null
-                              ? getThemeColor(METAC_COLORS.gold["500"])
-                              : "none";
-                        }
-                        return newIndex;
-                      });
-                    },
+                      },
+                    ],
                   },
                 },
               ]}
+              dataComponent={
+                <CustomPoint hoverIndex={hoverIndex} clickIndex={clickIndex} />
+              }
             />
             <VictoryLine
               y={overallAverage}
@@ -334,21 +290,35 @@ function buildChartData({
   };
 }
 
-export default dynamic(() => Promise.resolve(ScatterPlot), {
-  ssr: false,
-});
+type CustomPointProps<T> = {
+  hoverIndex: number | null;
+  clickIndex: number | null;
+};
+const CustomPoint = <T extends string>({
+  hoverIndex,
+  clickIndex,
+  ...props
+}: ComponentProps<typeof Point> & CustomPointProps<T>) => {
+  const { getThemeColor } = useAppTheme();
 
-const CustomPoint = (props: any) => {
-  const { datum, index, x, y, events, ...otherProps } = props;
+  const isHovered = props.index === hoverIndex;
+  const isClicked = props.index === clickIndex;
+
   return (
-    <circle
-      cx={x}
-      cy={y}
-      r={5}
-      {...events}
-      {...otherProps}
-      id={`scatter-point-${index}`}
-      key={index}
+    <Point
+      {...props}
+      style={{
+        ...props.style,
+        fill: isClicked
+          ? getThemeColor(METAC_COLORS.gold["500"])
+          : "transparent",
+        stroke: getThemeColor(METAC_COLORS.gold["500"]),
+        strokeWidth: isHovered ? 3 : 1,
+      }}
     />
   );
 };
+
+export default dynamic(() => Promise.resolve(ScatterPlot), {
+  ssr: false,
+});
