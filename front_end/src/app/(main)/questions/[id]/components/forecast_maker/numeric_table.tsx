@@ -5,7 +5,7 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { getDisplayValue } from "@/utils/charts";
+import { getDisplayValue, displayValue } from "@/utils/charts";
 import { useTranslations } from "next-intl";
 
 type Props = {
@@ -51,7 +51,7 @@ const NumericForecastTable: FC<Props> = ({
           {question.open_lower_bound && (
             <div className="w-full">
               {"<"}
-              {question.scaling.range_min}
+              {displayValue(question.scaling.range_min!, question.type)}
             </div>
           )}
           <div className="w-full">{t("firstQuartile")}</div>
@@ -60,7 +60,7 @@ const NumericForecastTable: FC<Props> = ({
           {question.open_upper_bound && (
             <div className="w-full">
               {">"}
-              {question.scaling.range_max}
+              {displayValue(question.scaling.range_max!, question.type)}
             </div>
           )}
         </div>

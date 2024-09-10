@@ -110,7 +110,7 @@ const ContributionsTable: FC<Props> = ({
               { "w-20": isQuestionCategory }
             )}
           >
-            {abbreviatedNumber(totalScore, 4, 0)}
+            {abbreviatedNumber(totalScore, 4, false)}
           </InfoHeaderTd>
           <InfoHeaderTd className="w-full font-medium">
             {category === "baseline" && t("totalScore")}

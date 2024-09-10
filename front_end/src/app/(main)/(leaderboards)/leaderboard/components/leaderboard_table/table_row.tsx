@@ -86,7 +86,7 @@ const LeaderboardRow: FC<Props> = ({
           href={href}
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
         >
-          {abbreviatedNumber(contribution_count, 3, 0)}
+          {abbreviatedNumber(contribution_count, 3, false)}
         </Link>
       </td>
       {scoreType == "peer_global" && (
@@ -95,7 +95,7 @@ const LeaderboardRow: FC<Props> = ({
             href={href}
             className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
           >
-            {abbreviatedNumber(coverage, 3, 0)}
+            {abbreviatedNumber(coverage, 3, false)}
           </Link>
         </td>
       )}
@@ -109,7 +109,7 @@ const LeaderboardRow: FC<Props> = ({
           href={href}
           className="flex items-center justify-end px-4 py-2.5 text-sm no-underline"
         >
-          {abbreviatedNumber(score, 3, 0)}
+          {abbreviatedNumber(score, 3, false)}
         </Link>
       </td>
     </tr>

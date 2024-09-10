@@ -24,7 +24,7 @@ const CommentStatus: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const formattedCount = abbreviatedNumber(newCommentsCount, 2, 0);
+  const formattedCount = abbreviatedNumber(newCommentsCount, 2, false);
 
   return (
     <Button

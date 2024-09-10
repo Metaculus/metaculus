@@ -10,6 +10,7 @@ import {
   VictoryThemeDefinition,
   VictoryVoronoiContainer,
 } from "victory";
+import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
 
 import ChartFanTooltip from "@/components/charts/primitives/chart_fan_tooltip";
 import FanPoint from "@/components/charts/primitives/fan_point";
@@ -18,7 +19,12 @@ import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
 import { Area, FanOption, Line } from "@/types/charts";
-import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  Scaling,
+  Quartiles,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
+import { generateNumericAreaTicks } from "./continuous_area_chart";
 
 const TOOLTIP_WIDTH = 150;
 
@@ -33,7 +39,7 @@ type Props = {
 
 const FanChart: FC<Props> = ({
   options,
-  height = 150,
+  height = 220,
   yLabel,
   withTooltip = false,
   extraTheme,
@@ -50,11 +56,16 @@ const FanChart: FC<Props> = ({
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
 
-  const { line, area, points } = useMemo(
+  const { line, area, points, scaling } = useMemo(
     () => buildChartData(options),
     [options]
   );
   const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
+  const { ticks, tickFormat } = generateNumericAreaTicks(
+    scaling,
+    options[0].question.type,
+    height
+  );
 
   const tooltipItems = useMemo(
     () =>
@@ -138,7 +149,13 @@ const FanChart: FC<Props> = ({
               },
             }}
           />
-          <VictoryAxis dependentAxis label={yLabel} />
+          <VictoryAxis
+            dependentAxis
+            label={yLabel}
+            tickValues={ticks}
+            tickFormat={tickFormat}
+            style={{ ticks: { strokeWidth: 1 } }}
+          />
           <VictoryAxis tickFormat={(_, index) => labels[index]} />
           <VictoryScatter
             data={points.map((point) => ({
@@ -175,19 +192,50 @@ function buildChartData(options: FanOption[]) {
   const area: Area<string> = [];
   const points: Array<{ x: string; y: number; resolved: boolean }> = [];
 
+  const zeroPoints: number[] = [];
+  options.forEach((option) => {
+    if (option.question.scaling.zero_point !== null) {
+      zeroPoints.push(option.question.scaling.zero_point);
+    }
+  });
+  const scaling: Scaling = {
+    range_max: Math.max(
+      ...options.map((option) => option.question.scaling.range_max!)
+    ),
+    range_min: Math.min(
+      ...options.map((option) => option.question.scaling.range_min!)
+    ),
+    zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
+  };
+
   for (const option of options) {
+    // scale up the values to nominal values
+    // then unscale by the derived scaling
+    const median = unscaleNominalLocation(
+      scaleInternalLocation(option.quartiles.median, option.question.scaling),
+      scaling
+    );
+    const lower25 = unscaleNominalLocation(
+      scaleInternalLocation(option.quartiles.lower25, option.question.scaling),
+      scaling
+    );
+    const upper75 = unscaleNominalLocation(
+      scaleInternalLocation(option.quartiles.upper75, option.question.scaling),
+      scaling
+    );
+
     line.push({
       x: option.name,
-      y: option.quartiles.median,
+      y: median,
     });
     area.push({
       x: option.name,
-      y0: option.quartiles.lower25,
-      y: option.quartiles.upper75,
+      y0: lower25,
+      y: upper75,
     });
     points.push({
       x: option.name,
-      y: option.quartiles.median,
+      y: median,
       resolved: option.resolved,
     });
   }
@@ -196,6 +244,7 @@ function buildChartData(options: FanOption[]) {
     line,
     area,
     points,
+    scaling,
   };
 }
 
