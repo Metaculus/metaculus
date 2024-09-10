@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "headless-rendering"
+version = "0.1.0"
+description = ""
+authors = ["Vasile Popescu <elisescu@elisescu.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.12.3"
+fastapi = "^0.109.1"
+playwright = "^1.33.0"
+python-decouple = "^3.8"
+sentry-sdk = {extras = ["fastapi"], version = "^1.22.2"}
+uvicorn = "^0.22.0"
+
+[tool.poetry.group.dev.dependencies]
+poetry-plugin-sort = "^0.2.0"
+
+[tool.poetry-sort]
+enabled = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
