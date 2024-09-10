@@ -686,7 +686,6 @@
   "FABTokenInfo": "Váš token je potřeba pro komunikaci vašeho bota s Metaculus API.",
   "inReviewStatusBox1": "Tato otázka nyní musí být schválena moderátorem Metaculus. Otázky, které odpovídají našim <link1>Pokynům pro psaní otázek</link1> a týkají se některého z našich <link2>hlavních témat</link2>, mají větší šanci na rychlejší schválení.",
   "inReviewStatusBox2": "Všichni uživatelé Metaculus jsou vyzváni, aby poskytli zpětnou vazbu na otázky během recenze a hlasovali pro otázky, které považují za zajímavé nebo dobře napsané. Otázky s kladnou bilancí hlasů dostanou prioritní pozornost administrátorů. Otázky s výrazně zápornou bilancí hlasů budou automaticky odmítnuty.",
-  "inReviewStatusBox3": "Autor otázky může pozvat další uživatele, aby se stali spoluautory, aby pomohli s psaním, nebo uznali jejich příspěvky.",
   "inReviewStatusBox4": "Všimněte si, že tato otázka nemůže být schválena, dokud nebudou schváleny jak její nadřazená, tak podřazená otázka.",
   "draftStatusBox1": "Vaše odeslání je nyní koncept.",
   "draftStatusBox2": "Jakmile bude připraven, prosím, odešlete svůj koncept ke kontrole našemu týmu komunitních moderátorů. Děkujeme!",

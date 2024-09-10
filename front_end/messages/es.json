@@ -688,7 +688,6 @@
   "FABTokenInfo": "Tu token es necesario para que tu bot interactúe con la API de Metaculus.",
   "inReviewStatusBox1": "Esta pregunta ahora necesita ser aprobada por un Moderador de Metaculus. Las preguntas que cumplan con nuestras <link1>Directrices para la Redacción de Preguntas</link1> y que se refieran a uno de nuestros <link2>temas principales</link2> tienen más probabilidades de ser aprobadas, y más rápido.",
   "inReviewStatusBox2": "Se anima a todos los usuarios de Metaculus a dar su opinión sobre las preguntas durante la Revisión y a votar a favor de las preguntas que les parezcan interesantes y/o bien redactadas. Las preguntas con un balance de votos positivo recibirán atención prioritaria de los Administradores. Las preguntas con un balance de votos significativamente negativo serán rechazadas por defecto.",
-  "inReviewStatusBox3": "El autor de una pregunta puede invitar a otros usuarios a ser coautores, para ayudar en el proceso de redacción o para reconocer sus contribuciones.",
   "inReviewStatusBox4": "Ten en cuenta que esta pregunta no puede ser aprobada hasta que tanto su pregunta principal como secundaria hayan sido aprobadas.",
   "draftStatusBox1": "Tu envío ahora es un Borrador.",
   "draftStatusBox2": "Una vez que esté listo, por favor envía tu borrador para revisión por parte de nuestro equipo de Moderadores de la Comunidad. ¡Gracias!",

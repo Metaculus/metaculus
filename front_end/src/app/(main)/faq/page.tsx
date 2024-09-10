@@ -75,11 +75,6 @@ export default function FAQ() {
               </a>
             </li>
             <li>
-              <a href="#add-coauthors">
-                How do I add coauthors to my question?
-              </a>
-            </li>
-            <li>
               <a href="#pending-question">
                 What can I do if a question I submitted has been pending for a
                 long time?
@@ -701,28 +696,6 @@ export default function FAQ() {
           <li>
             Authors can invite other users to edit questions that are in Draft
             or Pending.
-          </li>
-        </ul>
-        <h3 className="scroll-mt-nav text-xl font-semibold" id="add-coauthors">
-          How do I invite co-authors to my question?
-        </h3>
-        <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
-          <li>
-            When a question is a Draft or Pending review, click the &apos;Invite
-            Co-authors&apos; button at the top of the page.
-          </li>
-          <li>
-            Co-authors can edit the question, but cannot invite other co-authors
-            or submit a draft for review.
-          </li>
-          <li>
-            Note that if two writers are in the question editor at the same
-            time, it&apos;s possible for one to overwrite the other&apos;s work.
-            The last edit that was submitted will be saved.
-          </li>
-          <li>
-            To leave a question you have been invited to co-author, click the
-            &quot;Remove myself as Co-author&quot; button.
           </li>
         </ul>
 

@@ -101,7 +101,6 @@ export default function PostHeader({
                 })}
               </p>
               <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox2")}</p>
-              <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox3")}</p>
               {post.conditional && (
                 <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox4")}</p>
               )}
@@ -117,7 +116,6 @@ export default function PostHeader({
             <Button href={`/questions/create/${edit_type}?post_id=${post.id}`}>
               {t("edit")}
             </Button>
-            <Button>Invite Co-authors (TODO)</Button>
             {post.status === PostStatus.DRAFT && (
               <Button
                 onClick={async () => {
