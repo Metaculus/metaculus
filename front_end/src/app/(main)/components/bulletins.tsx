@@ -4,7 +4,7 @@ import Bulletin from "./bulletin";
 
 const Bulletins: FC = async () => {
   const bulletins = await MiscApi.getBulletins();
-  console.log(bulletins);
+
   return (
     <div className="mt-12 flex w-full flex-col items-center justify-center bg-transparent">
       {bulletins.map((bulletin, idx) => (

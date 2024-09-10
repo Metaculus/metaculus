@@ -42,7 +42,6 @@ const ProjectPicker: React.FC<{
     <div>
       <Combobox
         immediate
-        multiple
         onChange={(_) => {
           onChange(selectedProject);
         }}
@@ -92,19 +91,19 @@ const ProjectPicker: React.FC<{
                       setSelectedProject(project);
                       onChange(project);
                       setQuery("");
-                      setFilteredProjects([]);
+                      setFilteredProjects([siteMain, ...tournaments]);
                     }}
                   >
-                    {({ selected }) => (
+                    {({ }) => (
                       <div className="flex flex-row items-center">
                         <span
                           className={`block cursor-pointer truncate py-2 pl-4 pr-2.5 ${
-                            selected ? "font-bold" : "font-normal"
+                            selectedProject === project ? "font-bold" : "font-normal"
                           }`}
                         >
                           {project.name}
                         </span>
-                        {selected && (
+                        {selectedProject === project && (
                           <span className="flex items-center">
                             <FontAwesomeIcon
                               icon={faCheck}
