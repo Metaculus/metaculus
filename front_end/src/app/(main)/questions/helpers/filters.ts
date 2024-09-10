@@ -365,7 +365,7 @@ export function getUserSortOptions(
     },
     {
       label: t("divergence"),
-      value: QuestionOrder.DivergenceAsc,
+      value: QuestionOrder.DivergenceDesc,
     },
   ];
 }
@@ -400,7 +400,7 @@ export function getDropdownSortOptions(
             className: classNames("block lg:hidden"),
           },
           {
-            value: QuestionOrder.DivergenceAsc,
+            value: QuestionOrder.DivergenceDesc,
             label: t("myDivergence"),
             className: classNames("block lg:hidden"),
           },
