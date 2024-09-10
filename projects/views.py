@@ -1,6 +1,3 @@
-from typing import Callable
-
-from django.db.models import QuerySet
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import PermissionDenied
@@ -17,6 +14,7 @@ from projects.serializers import (
     TournamentSerializer,
     TagSerializer,
     ProjectUserSerializer,
+    TournamentShortSerializer,
 )
 from projects.services import (
     get_projects_qs,
@@ -60,23 +58,6 @@ def categories_list_api_view(request: Request):
     return Response(data)
 
 
-def enrich_tournaments_with_posts_count(
-    qs: QuerySet,
-) -> tuple[QuerySet, Callable[[Project, dict], dict]]:
-    """
-    Enriches tournament with posts count.
-    """
-
-    qs = qs.annotate_posts_count()
-
-    def enrich(obj: Project, serialized_obj: dict):
-        serialized_obj["posts_count"] = obj.posts_count
-
-        return serialized_obj
-
-    return qs, enrich
-
-
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def tags_list_api_view(request: Request):
@@ -114,17 +95,15 @@ def tournaments_list_api_view(request: Request):
         .filter_tournament()
         .annotate_posts_count()
         .order_by("-posts_count")
+        .defer("description")
         .prefetch_related("primary_leaderboard")
     )
-
-    qs, enrich_posts_count = enrich_tournaments_with_posts_count(qs)
 
     data = []
 
     for obj in qs.all():
-        serialized_tournament = TournamentSerializer(obj).data
-
-        serialized_tournament = enrich_posts_count(obj, serialized_tournament)
+        serialized_tournament = TournamentShortSerializer(obj).data
+        serialized_tournament["posts_count"] = obj.posts_count
 
         data.append(serialized_tournament)
 
@@ -134,8 +113,7 @@ def tournaments_list_api_view(request: Request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def tournament_by_slug_api_view(request: Request, slug: str):
-    qs = get_projects_qs(user=request.user).filter_tournament()
-    qs, enrich_posts_count = enrich_tournaments_with_posts_count(qs)
+    qs = get_projects_qs(user=request.user).filter_tournament().annotate_posts_count()
 
     try:
         pk = int(slug)
@@ -144,7 +122,7 @@ def tournament_by_slug_api_view(request: Request, slug: str):
         obj = get_object_or_404(qs, slug=slug)
 
     data = TournamentSerializer(obj).data
-    data = enrich_posts_count(obj, data)
+    data["posts_count"] = obj.posts_count
 
     if request.user.is_authenticated:
         data["is_subscribed"] = obj.subscriptions.filter(user=request.user).exists()

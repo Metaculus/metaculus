@@ -48,7 +48,7 @@ class MiniTournamentSerializer(serializers.ModelSerializer):
         )
 
 
-class TournamentSerializer(serializers.ModelSerializer):
+class TournamentShortSerializer(serializers.ModelSerializer):
     score_type = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -58,27 +58,34 @@ class TournamentSerializer(serializers.ModelSerializer):
             "type",
             "name",
             "slug",
-            "subtitle",
-            "description",
             "header_image",
-            "header_logo",
             "prize_pool",
             "start_date",
             "close_date",
-            "meta_description",
             "is_ongoing",
             "user_permission",
             "created_at",
-            "edited_at",
-            "default_permission",
             "score_type",
-            "add_posts_to_main_feed",
         )
 
     def get_score_type(self, project: Project) -> str | None:
         if not project.primary_leaderboard_id:
             return None
         return project.primary_leaderboard.score_type
+
+
+class TournamentSerializer(TournamentShortSerializer):
+    class Meta:
+        model = Project
+        fields = TournamentShortSerializer.Meta.fields + (
+            "subtitle",
+            "description",
+            "header_image",
+            "header_logo",
+            "meta_description",
+            "edited_at",
+            "add_posts_to_main_feed",
+        )
 
 
 def serialize_projects(

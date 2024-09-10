@@ -1,10 +1,11 @@
 from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, FilteredRelation, Q, F
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone as django_timezone
+from sql_util.aggregates import SubqueryAggregate
 
 from projects.permissions import ObjectPermission
 from users.models import User
@@ -37,8 +38,8 @@ class ProjectsQuerySet(models.QuerySet):
 
     def annotate_posts_count(self):
         return self.annotate(
-            posts_count=Count("posts", distinct=True)
-            + Count("default_posts", distinct=True)
+            posts_count=Coalesce(SubqueryAggregate("posts__id", aggregate=Count), 0)
+            + Coalesce(SubqueryAggregate("default_posts__id", aggregate=Count), 0)
         )
 
     # Permissions
@@ -47,17 +48,19 @@ class ProjectsQuerySet(models.QuerySet):
         Annotates user permission for the project
         """
 
-        # Step #1: find custom permission overrides
-        user_permission_subquery = ProjectUserPermission.objects.filter(
-            project_id=models.OuterRef("pk"), user_id=user.id if user else None
-        ).values("permission")[:1]
+        user_id = user.id if user else None
 
         return self.annotate(
+            user_permission_override=FilteredRelation(
+                "projectuserpermission",
+                condition=Q(
+                    projectuserpermission__user_id=user_id,
+                ),
+            ),
             user_permission=Coalesce(
-                models.Subquery(user_permission_subquery),
-                "default_permission",
-                output_field=models.CharField(),
-            )
+                F("user_permission_override__permission"),
+                F("default_permission"),
+            ),
         )
 
     def filter_permission(self, user: User = None):
