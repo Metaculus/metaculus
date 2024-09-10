@@ -1,46 +1,60 @@
-import { almostEqual } from "@/utils/math";
-
-export function formatSigFig(
-  val: number | string,
+/**
+ * Format a number to a given number of significant figures.
+ * leadingNumbers is the number of digits to display before the decimal point.
+ * trailingZeros determines whether to allow trailing zeros.
+ */
+export function toScientificNotation(
+  val: number,
   sigfigs: number,
-  trailingZeros?: number
-) {
-  val = +val;
-  var k,
-    p,
-    // Note that leadingDigits is always at least 1
-    // to account for a leading zero before the decimal.
-    leadingDigits = Math.max(0, Math.floor(Math.log10(Math.abs(val)))) + 1;
-  for (k = 0, p = 1; k < sigfigs - leadingDigits; k++, p *= 10) {
-    if (!trailingZeros && almostEqual(Math.round(p * val), p * val)) break;
+  leadingNumbers: number = 1,
+  trailingZeros: boolean = true
+): string {
+  const pow = Math.floor(Math.log10(Math.abs(val))) - leadingNumbers + 1;
+  let mantissa = (val / Math.pow(10, pow)).toFixed(
+    Math.max(0, sigfigs - leadingNumbers)
+  );
+  if (!trailingZeros) {
+    // if there is a decimal point, remove trailing zeros (and the point itself if no digits follow)
+    mantissa = mantissa.replace(/(\.\d*?)0+$/, "");
   }
-  val = val.toFixed(k || 0);
-  return val;
+  if (pow !== 0) {
+    return `${mantissa}e${pow}`;
+  }
+  return mantissa;
 }
 
 export function abbreviatedNumber(
   val: number | string,
   sigfigs = 3,
-  maxZeros = 1
+  trailingZeros: boolean = false
 ) {
   val = +val;
   if (!val) {
     return "0";
   }
-
-  let pow = Math.floor(Math.log10(Math.abs(val)) / 3) * 3;
-  pow = Math.min(Math.max(0, pow), 9);
-  let suffix =
-    {
-      3: "k",
-      6: "M",
-      9: "B",
-    }[pow] || "";
-  val /= Math.pow(10, pow);
-  pow = Math.floor(Math.log10(Math.abs(val)));
-  sigfigs += Math.max(0, Math.min(-pow, maxZeros));
-  if (Math.abs(val) <= 0.5 * Math.pow(10, 1 - sigfigs)) {
-    val = 0;
+  const pow = Math.floor(Math.log10(Math.abs(val)));
+  if (pow >= 12) {
+    return toScientificNotation(val, 2, 1, false);
   }
-  return formatSigFig(val, sigfigs) + suffix;
+
+  let suffix = "";
+  let leadingNumbers = 1;
+  if (pow >= 9) {
+    suffix = "B";
+    val /= 1e9;
+    leadingNumbers = pow - 8;
+  } else if (pow >= 6) {
+    suffix = "M";
+    val /= 1e6;
+    leadingNumbers = pow - 5;
+  } else if (pow >= 3) {
+    suffix = "k";
+    val /= 1e3;
+    leadingNumbers = pow - 2;
+  } else if (pow >= 0) {
+    leadingNumbers = pow + 1;
+  }
+  return (
+    toScientificNotation(val, sigfigs, leadingNumbers, trailingZeros) + suffix
+  );
 }

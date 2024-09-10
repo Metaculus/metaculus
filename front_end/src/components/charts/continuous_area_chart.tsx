@@ -294,7 +294,7 @@ function generateNumericAreaGraph(data: {
   };
 }
 
-function generateNumericAreaTicks(
+export function generateNumericAreaTicks(
   scaling: Scaling,
   questionType: QuestionType,
   chartWidth: number

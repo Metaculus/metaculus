@@ -208,6 +208,19 @@ export function unscaleNominalLocation(x: number, scaling: Scaling) {
   return unscaled_location;
 }
 
+export function displayValue(
+  value: number,
+  questionType: QuestionType
+): string {
+  if (questionType === QuestionType.Date) {
+    return format(fromUnixTime(value), "yyyy-MM");
+  } else if (questionType === QuestionType.Numeric) {
+    return abbreviatedNumber(value);
+  } else {
+    return `${Math.round(value * 100)}%`;
+  }
+}
+
 /**
  * Returns the display value of an internal location given the
  * details of the question
@@ -255,13 +268,7 @@ export function getDisplayValue(
     range_max: rMax ?? 1,
     zero_point: zPoint,
   });
-  if (qType === QuestionType.Date) {
-    return format(fromUnixTime(scaledValue), "yyyy-MM");
-  } else if (qType === QuestionType.Numeric) {
-    return abbreviatedNumber(scaledValue);
-  } else {
-    return `${Math.round(scaledValue * 100)}%`;
-  }
+  return displayValue(scaledValue, qType as QuestionType);
 }
 
 export function getDisplayUserValue(
