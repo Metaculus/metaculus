@@ -154,11 +154,6 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               max={currentDateTime}
             />
           </label>
-          <div>
-            Notifications will be sent in 10 minutes (at Jun 27, 2024, 8:32 PM).
-            If this question is unresolved before then, no notification will be
-            sent.
-          </div>
           <div className="flex justify-center">
             <Button
               type="submit"
