@@ -95,6 +95,7 @@ const QuestionNumericTile: FC<Props> = ({
             scaling={question.scaling}
             data={continuousAreaChartData}
             height={HEIGHT}
+            questionType={question.type}
           />
         )}
       </div>
