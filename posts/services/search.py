@@ -124,7 +124,9 @@ def get_similar_posts_for_multiple_posts(posts: list[Post]):
     Generates similar posts for multiple posts.
     """
 
-    posts_with_embeddings = [ch.embedding_vector for ch in posts if ch.embedding_vector]
+    posts_with_embeddings = [
+        ch.embedding_vector for ch in posts if ch.embedding_vector is not None
+    ]
 
     if not posts_with_embeddings:
         return []
