@@ -38,6 +38,8 @@ import {
   generateTicksY,
   generateTimestampXScale,
   getDisplayValue,
+  scaleInternalLocation,
+  unscaleNominalLocation,
 } from "@/utils/charts";
 
 import ChartContainer from "./primitives/chart_container";
@@ -340,6 +342,7 @@ function buildChartData({
       resolution,
       rangeMin,
       rangeMax,
+      scaling: choiceScaling,
     }) => {
       const actualTimestamps = choiceTimestamps ?? timestamps;
 
@@ -348,7 +351,12 @@ function buildChartData({
         color,
         line: actualTimestamps.map((timestamp, timestampIndex) => ({
           x: timestamp,
-          y: values[timestampIndex] ?? 0,
+          y: scaling
+            ? unscaleNominalLocation(
+                scaleInternalLocation(values[timestampIndex], choiceScaling!),
+                scaling
+              )
+            : values[timestampIndex] ?? 0,
         })),
         active,
         highlighted,
@@ -357,8 +365,24 @@ function buildChartData({
       if (minValues && maxValues) {
         item.area = actualTimestamps.map((timestamp, timestampIndex) => ({
           x: timestamp,
-          y: maxValues[timestampIndex] ?? 0,
-          y0: minValues[timestampIndex] ?? 0,
+          y: scaling
+            ? unscaleNominalLocation(
+                scaleInternalLocation(
+                  maxValues[timestampIndex],
+                  choiceScaling!
+                ),
+                scaling
+              )
+            : values[timestampIndex] ?? 0,
+          y0: scaling
+            ? unscaleNominalLocation(
+                scaleInternalLocation(
+                  minValues[timestampIndex],
+                  choiceScaling!
+                ),
+                scaling
+              )
+            : values[timestampIndex] ?? 0,
         }));
       }
 
