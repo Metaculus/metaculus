@@ -34,7 +34,9 @@ def create_forecast(
         vals = np.roll(continuous_pdf, 1)
         cdf = np.cumsum(vals)[..., :-1]
         continuous_cdf = cdf.tolist()
-        distribution_components = [json.loads(c) for c in prediction["distribution_components"]]
+        distribution_components = [
+            json.loads(c) for c in prediction["distribution_components"]
+        ]
         weights = []
         forecast = []
         for component in distribution_components:
@@ -46,16 +48,15 @@ def create_forecast(
             scaling = np.tanh(np.sqrt(scale)) / 2
             left = center + (skew - 1) * scaling
             right = center + (skew + 1) * scaling
-            forecast.append({
-                "left": left,
-                "center": center,
-                "right": right,
-            })
+            forecast.append(
+                {
+                    "left": left,
+                    "center": center,
+                    "right": right,
+                }
+            )
 
-        slider_values = {
-            "weights": weights,
-            "forecast": forecast
-        }
+        slider_values = {"weights": weights, "forecast": forecast}
 
     elif question.type == Question.QuestionType.MULTIPLE_CHOICE:
         probability_yes_per_category = spv

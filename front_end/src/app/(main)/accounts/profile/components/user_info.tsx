@@ -187,7 +187,7 @@ const UserInfo: FC<UserInfoProps> = ({
             <div className="flex flex-row gap-2 md:gap-4">
               <div className={keyStatStyles}>
                 <span className="text-xl font-normal text-gray-800 dark:text-gray-200 md:text-2xl">
-                  {profile.nr_forecasts}
+                  {profile.forecasts_count}
                 </span>
                 <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
                   {t("predictions")}
@@ -195,7 +195,7 @@ const UserInfo: FC<UserInfoProps> = ({
               </div>
               <div className={keyStatStyles}>
                 <span className="text-xl font-normal text-gray-800 dark:text-gray-200 md:text-2xl">
-                  {profile.nr_comments}
+                  {profile.comments_count}
                 </span>
                 <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
                   {t("comments")}
@@ -226,7 +226,7 @@ const UserInfo: FC<UserInfoProps> = ({
             <div className="flex flex-col items-center gap-1">
               {profile.calibration_curve && (
                 <CalibrationChart
-                  data={profile.calibration_curve}
+                  calibrationData={profile.calibration_curve}
                   showIntervals={false}
                 />
               )}

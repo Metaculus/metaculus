@@ -36,14 +36,14 @@ export type UserProfile = User & {
   calibration_curve?: TrackRecordCalibrationCurveItem[];
   score_histogram?: TrackRecordHistogramItem[];
   score_scatter_plot?: TrackRecordScatterPlotItem[];
-  nr_forecasts?: number;
-  nr_comments?: number;
-  avg_score?: number;
-  questions_predicted_scored?: number;
-  questions_predicted?: number;
-  question_authored?: number;
-  notebooks_authored?: number;
-  comments_authored?: number;
+  average_score?: number;
+  forecasts_count?: number;
+  questions_predicted_count?: number;
+  score_count?: number;
+  posts_authored_count?: number;
+  forecasts_on_authored_questions_count?: number;
+  notebooks_authored_count?: number;
+  comments_count?: number;
 };
 
 export type CurrentUser = User & {

@@ -305,9 +305,9 @@ def assign_ranks(
 
 
 def assign_prize_percentages(entries: list[LeaderboardEntry]) -> list[LeaderboardEntry]:
-    total_take = sum(e.take for e in entries if not e.excluded)
+    total_take = sum(e.take for e in entries if not e.excluded and e.take is not None)
     for entry in entries:
-        if total_take and not entry.excluded:
+        if total_take and not entry.excluded and entry.take is not None:
             entry.percent_prize = entry.take / total_take
         else:
             entry.percent_prize = 0

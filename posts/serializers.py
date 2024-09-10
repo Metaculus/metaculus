@@ -310,7 +310,7 @@ def serialize_post(
 
 
 def serialize_post_many(
-    data: Union[Post, list[Post]],
+    posts: Union[Post.objects, list[Post], list[int]],
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
@@ -319,7 +319,7 @@ def serialize_post_many(
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
     )
-    ids = [p.pk for p in data]
+    ids = [p.pk if isinstance(p, Post) else p for p in posts]
     qs = Post.objects.filter(pk__in=ids)
 
     qs = (

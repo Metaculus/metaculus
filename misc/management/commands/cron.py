@@ -12,6 +12,7 @@ from metaculus_web.settings import MAIL_FREQUENCY_MIN
 from misc.jobs import sync_itn_articles
 from notifications.jobs import job_send_notification_groups
 from posts.jobs import (
+    job_close_question,
     job_compute_movement,
     job_subscription_notify_date,
     job_subscription_notify_milestone,
@@ -74,6 +75,15 @@ class Command(BaseCommand):
         #
         # Post Jobs
         #
+
+        scheduler.add_job(
+            close_old_connections(job_close_question.send),
+            trigger=CronTrigger.from_crontab("* * * * *"),  # Every Hour
+            id="posts_job_compute_movement",
+            max_instances=1,
+            replace_existing=True,
+        )
+
         scheduler.add_job(
             close_old_connections(job_compute_movement.send),
             trigger=CronTrigger.from_crontab("0 * * * *"),  # Every Hour

@@ -188,12 +188,9 @@ export async function uploadImage(formData: FormData) {
   }
 }
 
-export async function getComments(
-  url: string,
-  commentsParams: getCommentsParams
-) {
+export async function getComments(commentsParams: getCommentsParams) {
   try {
-    return await CommentsApi.getComments(url, commentsParams);
+    return await CommentsApi.getComments(commentsParams);
   } catch (err) {
     const error = err as FetchError;
 

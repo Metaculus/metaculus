@@ -1,6 +1,5 @@
 "use client";
 
-import { merge } from "lodash";
 import React from "react";
 import {
   VictoryChart,
@@ -14,21 +13,20 @@ import {
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import useAppTheme from "@/hooks/use_app_theme";
 import { TrackRecordCalibrationCurveItem } from "@/types/track_record";
+import { METAC_COLORS } from "@/constants/colors";
+import dynamic from "next/dynamic";
 
 const CalibrationChart: React.FC<{
-  data: TrackRecordCalibrationCurveItem[];
+  calibrationData: TrackRecordCalibrationCurveItem[];
   showIntervals?: boolean;
-}> = ({ data, showIntervals = true }) => {
-  const calibrationData = data;
-
+}> = ({ calibrationData, showIntervals = true }) => {
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-  const actualTheme = merge({}, chartTheme);
 
   return (
     <div className="mb-5 size-full">
       <VictoryChart
-        theme={actualTheme}
+        theme={chartTheme}
         domain={{ x: [0, 1], y: [0, 1] }}
         containerComponent={<VictoryContainer responsive={true} />}
         padding={{ top: 24, bottom: 24, left: 35, right: 12 }}
@@ -37,9 +35,12 @@ const CalibrationChart: React.FC<{
           tickValues={[0, 0.2, 0.4, 0.6, 0.8, 1]}
           tickFormat={(t: number) => `${(t * 100).toFixed(0)}%`}
           style={{
-            tickLabels: { fontSize: 10, fontWeight: "lighter", opacity: 0.6 },
-            axis: { stroke: actualTheme.axis?.style?.axis?.stroke },
-            grid: { stroke: actualTheme.axis?.style?.axis?.stroke },
+            tickLabels: { fontSize: 10, fontWeight: 200 },
+            axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
+            grid: {
+              stroke: chartTheme.axis?.style?.axis?.stroke,
+              opacity: 0.5,
+            },
           }}
         />
         <VictoryAxis
@@ -48,31 +49,36 @@ const CalibrationChart: React.FC<{
           dependentAxis
           axisLabelComponent={<VictoryLabel dy={-12} />}
           style={{
-            tickLabels: { fontSize: 10, fontWeight: "lighter", opacity: 0.6 },
-            axis: { stroke: actualTheme.axis?.style?.axis?.stroke },
-            grid: { stroke: actualTheme.axis?.style?.axis?.stroke },
+            tickLabels: { fontSize: 10, fontWeight: 200 },
+            axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
+            grid: {
+              stroke: chartTheme.axis?.style?.axis?.stroke,
+              opacity: 0.5,
+            },
           }}
         />
         <VictoryScatter
-          data={calibrationData.map((d: any, index: number) => {
-            const y = d.user_middle_quartile;
-            return {
-              x: (index + 0.5) / calibrationData.length,
-              y0: y - 0.01,
-              y: y,
-              symbol: "diamond",
-            };
-          })}
+          data={calibrationData.map(
+            (d: TrackRecordCalibrationCurveItem, index: number) => {
+              const y = d.middle_quartile;
+              return {
+                x: (index + 0.5) / calibrationData.length,
+                y0: y - 0.01,
+                y: y,
+                symbol: "diamond",
+              };
+            }
+          )}
           style={{
             data: {
-              fill: "orange",
+              fill: getThemeColor(METAC_COLORS.gold["500"]),
               stroke: "none",
             },
           }}
         />
         <VictoryBar
           barRatio={1.1}
-          data={calibrationData.map((d: any, index: number) => {
+          data={calibrationData.map((d: TrackRecordCalibrationCurveItem, index: number) => {
             const y = d.perfect_calibration;
             return {
               x: (index + 0.5) / calibrationData.length,
@@ -80,20 +86,30 @@ const CalibrationChart: React.FC<{
               y: y,
             };
           })}
-          style={{ data: { fill: "darkgray", opacity: 1 } }}
+          style={{
+            data: {
+              fill: getThemeColor(METAC_COLORS.gray["600"]),
+              opacity: 1,
+            },
+          }}
         />
         {/* Confidence interval area */}
         {showIntervals && (
           <VictoryBar
             barRatio={1.1}
-            data={calibrationData.map((d: any, index: number) => {
+            data={calibrationData.map((d: TrackRecordCalibrationCurveItem, index: number) => {
               return {
                 x: (index + 0.5) / calibrationData.length,
-                y0: d.user_lower_quartile,
-                y: d.user_upper_quartile,
+                y0: d.lower_quartile,
+                y: d.upper_quartile,
               };
             })}
-            style={{ data: { fill: "lightgray", opacity: 0.5 } }}
+            style={{
+              data: {
+                fill: getThemeColor(METAC_COLORS.gray["300"]),
+                opacity: 0.5,
+              },
+            }}
           />
         )}
       </VictoryChart>
@@ -101,4 +117,6 @@ const CalibrationChart: React.FC<{
   );
 };
 
-export default CalibrationChart;
+export default dynamic(() => Promise.resolve(CalibrationChart), {
+  ssr: false,
+});

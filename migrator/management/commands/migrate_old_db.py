@@ -23,6 +23,7 @@ from migrator.services.migrate_permissions import migrate_permissions
 from migrator.services.migrate_projects import migrate_projects
 from migrator.services.migrate_questions import migrate_questions
 from migrator.services.migrate_scoring import migrate_archived_scores, score_questions
+from migrator.services.migrate_subscriptions import migrate_subscriptions
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
 from migrator.services.post_migrate import post_migrate_calculate_divergence
@@ -100,10 +101,9 @@ class Command(BaseCommand):
             "Migrated user notification preferences", task_start, start
         )
 
-        # TODO: enable on prod release!
-        print("\033[93mPost Subscriptions/Following migration is disabled!\033[0m")
-        # migrate_subscriptions(site_ids=site_ids)
-        # task_start = print_duration("Migrated post subscriptions", task_start, start)
+        # print("\033[93mPost Subscriptions/Following migration is disabled!\033[0m")
+        migrate_subscriptions(site_ids=site_ids)
+        task_start = print_duration("Migrated post subscriptions", task_start, start)
 
         # scoring
         migrate_archived_scores()

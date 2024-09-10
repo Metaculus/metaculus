@@ -17,6 +17,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
         scatterPlot={profile.score_scatter_plot}
         calibrationCurve={profile.calibration_curve}
         scoreHistogram={profile.score_histogram}
+        username={profile.username}
         className="bg-white p-6 dark:bg-blue-900"
       />
 
@@ -30,25 +31,25 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
         <div className="flex flex-col gap-2 md:flex-row md:gap-4">
           <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
-              {profile.avg_score
-                ? Math.round(profile.avg_score * 100) / 100
+              {profile.average_score
+                ? Math.round(profile.average_score * 100) / 100
                 : "-"}
             </span>
             <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
-              AVG SCORE
+              AVERAGE PEER SCORE
             </span>
           </div>
           <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
-              {profile.nr_forecasts}
+              {profile.forecasts_count}
             </span>
             <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
-              PREDICTIONS
+              TOTAL PREDICTIONS
             </span>
           </div>
           <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
-              {profile.questions_predicted}
+              {profile.questions_predicted_count}
             </span>
             <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
               QUESTIONS PREDICTED
@@ -56,7 +57,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
           </div>
           <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
-              {profile.questions_predicted_scored}
+              {profile.score_count}
             </span>
             <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
               QUESTIONS SCORED
@@ -75,7 +76,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
         <div className="flex flex-col gap-2 md:flex-row md:gap-4">
           <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
-              {profile.question_authored}
+              {profile.posts_authored_count}
             </span>
             <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
               QUESTIONS AUTHORED
@@ -83,15 +84,15 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
           </div>
           <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
-              {0}
+              {profile.forecasts_on_authored_questions_count}
             </span>
             <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
-              PREDICTIONS ON AUTHORED QUESTIONS
+              FORECASTS ON AUTHORED QUESTIONS
             </span>
           </div>
           <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
-              {profile.notebooks_authored}
+              {profile.notebooks_authored_count}
             </span>
             <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
               NOTEBOOKS AUTHORED
@@ -99,7 +100,7 @@ const TrackRecord: FC<{ profile: UserProfile }> = ({ profile }) => {
           </div>
           <div className={keyStatStyles}>
             <span className="text-2xl font-normal text-gray-800 dark:text-gray-200">
-              {profile.comments_authored}
+              {profile.comments_count}
             </span>
             <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
               COMMENTS AUTHORED

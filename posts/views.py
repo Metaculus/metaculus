@@ -41,7 +41,7 @@ from posts.services.common import (
     add_categories,
     approve_post,
 )
-from posts.services.feed import get_posts_feed
+from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -49,7 +49,8 @@ from questions.models import Question
 from questions.serializers import (
     GroupOfQuestionsSerializer,
     QuestionSerializer,
-    QuestionWriteSerializer, QuestionApproveSerializer,
+    QuestionWriteSerializer,
+    QuestionApproveSerializer,
 )
 from questions.services import clone_question, create_question
 from utils.files import UserUploadedImage, generate_filename
@@ -510,6 +511,21 @@ def all_post_subscriptions(request):
     )
 
     return Response(posts)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def post_similar_posts_api_view(request: Request, pk):
+    post = get_object_or_404(Post, pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    # Retrieve cached articles
+    posts = get_similar_posts(post)
+
+    return Response(serialize_post_many(posts, with_cp=True, current_user=request.user))
 
 
 @api_view(["GET"])
