@@ -236,7 +236,8 @@ class PostQuerySet(models.QuerySet):
         ]
 
         return self.annotate_user_permission(user).filter(
-            (
+            Q(author_id=user_id)
+            | (
                 Q(user_permission__in=permissions_lookup)
                 & (
                     Q(
