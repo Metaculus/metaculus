@@ -43,7 +43,7 @@ const MyPredictionsFilters: FC = () => {
         label: t("movers"),
       },
       {
-        value: QuestionOrder.DivergenceAsc,
+        value: QuestionOrder.DivergenceDesc,
         label: t("divergence"),
       },
       {
@@ -82,7 +82,7 @@ const MyPredictionsFilters: FC = () => {
     if (
       [
         QuestionOrder.WeeklyMovementDesc,
-        QuestionOrder.DivergenceAsc,
+        QuestionOrder.DivergenceDesc,
         QuestionOrder.HotAsc,
         QuestionOrder.UnreadCommentCountDesc,
         QuestionOrder.CloseTimeAsc,
