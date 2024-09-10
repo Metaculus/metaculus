@@ -92,13 +92,19 @@ const ProjectPicker: React.FC<{
                       onChange(project);
                       setQuery("");
                       setFilteredProjects([siteMain, ...tournaments]);
+                      // we need timeout to blur the combobox after the selection is made
+                      setTimeout(() => {
+                        (document.activeElement as HTMLElement)?.blur();
+                      }, 0);
                     }}
                   >
-                    {({ }) => (
+                    {({}) => (
                       <div className="flex flex-row items-center">
                         <span
                           className={`block cursor-pointer truncate py-2 pl-4 pr-2.5 ${
-                            selectedProject === project ? "font-bold" : "font-normal"
+                            selectedProject === project
+                              ? "font-bold"
+                              : "font-normal"
                           }`}
                         >
                           {project.name}
