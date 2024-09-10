@@ -8,6 +8,7 @@ import Button from "@/components/ui/button";
 import useSearchParams from "@/hooks/use_search_params";
 import {
   Tournament,
+  TournamentPreview,
   TournamentsSortBy,
   TournamentType,
 } from "@/types/projects";
@@ -18,7 +19,7 @@ import {
 } from "../constants/query_params";
 
 type Props = {
-  items: Tournament[];
+  items: TournamentPreview[];
   title: string;
   cardsPerPage: number;
   initialCardsCount?: number;
@@ -97,7 +98,7 @@ const TournamentsList: FC<Props> = ({
 };
 
 function filterItems(
-  items: Tournament[],
+  items: TournamentPreview[],
   searchString: string,
   sortBy: TournamentsSortBy | null
 ) {

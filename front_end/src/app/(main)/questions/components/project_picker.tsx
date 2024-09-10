@@ -13,22 +13,21 @@ import {
 import Link from "next/link";
 import { Fragment, useEffect, useState } from "react";
 
-import { Tournament } from "@/types/projects";
+import { Tournament, TournamentPreview } from "@/types/projects";
 
 const ProjectPicker: React.FC<{
-  tournaments: Tournament[];
+  tournaments: TournamentPreview[];
   siteMain: Tournament;
-  currentProject?: Tournament;
-  onChange: (project: Tournament) => void;
+  currentProject?: TournamentPreview;
+  onChange: (project: TournamentPreview) => void;
 }> = ({ tournaments, siteMain, currentProject, onChange }) => {
   const [query, setQuery] = useState<string>("");
-  const [filteredProjects, setFilteredProjects] = useState<Tournament[]>([
-    siteMain,
-    ...tournaments,
-  ]);
+  const [filteredProjects, setFilteredProjects] = useState<TournamentPreview[]>(
+    [siteMain, ...tournaments]
+  );
   const initialProject = currentProject ? currentProject : siteMain;
   const [selectedProject, setSelectedProject] =
-    useState<Tournament>(initialProject);
+    useState<TournamentPreview>(initialProject);
 
   useEffect(() => {
     setFilteredProjects(

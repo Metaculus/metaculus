@@ -2,7 +2,11 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import ProjectsApi from "@/services/projects";
-import { Tournament, TournamentType } from "@/types/projects";
+import {
+  Tournament,
+  TournamentPreview,
+  TournamentType,
+} from "@/types/projects";
 
 import TournamentFilters from "./components/tournament_filters";
 import TournamentsList from "./components/tournaments_list";
@@ -62,10 +66,10 @@ export default async function Tournaments() {
   );
 }
 
-function extractTournamentLists(tournaments: Tournament[]) {
-  const activeTournaments: Tournament[] = [];
-  const archivedTournaments: Tournament[] = [];
-  const questionSeries: Tournament[] = [];
+function extractTournamentLists(tournaments: TournamentPreview[]) {
+  const activeTournaments: TournamentPreview[] = [];
+  const archivedTournaments: TournamentPreview[] = [];
+  const questionSeries: TournamentPreview[] = [];
 
   for (const tournament of tournaments) {
     if (!tournament.posts_count) {

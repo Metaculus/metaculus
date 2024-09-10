@@ -14,7 +14,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import { useAuth } from "@/contexts/auth_context";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { Category, PostWithForecasts } from "@/types/post";
-import { Tournament } from "@/types/projects";
+import { Tournament, TournamentPreview } from "@/types/projects";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
@@ -32,7 +32,7 @@ type Props = {
   post: PostWithForecasts | null;
   allCategories: Category[];
   tournament_id: number | null;
-  tournaments: Tournament[];
+  tournaments: TournamentPreview[];
   siteMain: Tournament;
   news_type: string | undefined | null;
 };

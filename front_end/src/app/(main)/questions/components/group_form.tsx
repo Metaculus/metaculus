@@ -17,7 +17,7 @@ import { Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
-import { Tournament } from "@/types/projects";
+import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { getQuestionStatus } from "@/utils/questions";
 
@@ -50,7 +50,7 @@ type Props = {
   post?: PostWithForecasts | null;
   mode: "create" | "edit";
   allCategories: Category[];
-  tournaments: Tournament[];
+  tournaments: TournamentPreview[];
   siteMain: Tournament;
 };
 

@@ -44,26 +44,27 @@ export type TournamentMember = {
   permission: ProjectPermissions;
 };
 
-export type Tournament = {
+export type TournamentPreview = {
   id: number;
   type: TournamentType;
   name: string;
   slug: string | null;
-  subtitle: string;
-  description: string;
   header_image: string;
-  header_logo: string;
   prize_pool: string | null;
   start_date: string;
   close_date: string;
-  meta_description: string;
   is_ongoing: boolean;
   created_at: string;
-  edited_at: string;
   posts_count: number;
   user_permission: ProjectPermissions;
-  default_permission: ProjectPermissions;
-  is_subscribed?: boolean;
   score_type: string;
+};
+
+export type Tournament = TournamentPreview & {
+  subtitle: string;
+  description: string;
+  header_logo: string;
+  meta_description: string;
+  is_subscribed?: boolean;
   add_posts_to_main_feed: boolean;
 };

@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
-import { Tournament } from "@/types/projects";
+import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { getQuestionStatus } from "@/utils/questions";
 
@@ -44,7 +44,7 @@ const ConditionalForm: React.FC<{
   conditionParentInit: PostWithForecasts | null;
   conditionChildInit: PostWithForecasts | null;
   tournament_id: number | null;
-  tournaments: Tournament[];
+  tournaments: TournamentPreview[];
   siteMain: Tournament;
 }> = ({
   post = null,

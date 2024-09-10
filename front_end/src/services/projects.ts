@@ -5,6 +5,7 @@ import {
   Topic,
   Tournament,
   TournamentMember,
+  TournamentPreview,
 } from "@/types/projects";
 import { LeaderboardDetails } from "@/types/scoring";
 import { del, get, patch, post } from "@/utils/fetch";
@@ -33,8 +34,8 @@ class ProjectsApi {
     return await get<Tournament>("/projects/site_main");
   }
 
-  static async getTournaments(): Promise<Tournament[]> {
-    return await get<Tournament[]>("/projects/tournaments");
+  static async getTournaments(): Promise<TournamentPreview[]> {
+    return await get<TournamentPreview[]>("/projects/tournaments");
   }
 
   static async getSlugTournament(slug: string): Promise<Tournament | null> {

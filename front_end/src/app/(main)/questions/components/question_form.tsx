@@ -16,7 +16,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import { useAuth } from "@/contexts/auth_context";
 import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
-import { Tournament } from "@/types/projects";
+import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { getQuestionStatus } from "@/utils/questions";
 
@@ -77,7 +77,7 @@ type Props = {
   allCategories: Category[];
   post?: PostWithForecasts | null;
   mode: "create" | "edit";
-  tournaments: Tournament[];
+  tournaments: TournamentPreview[];
   siteMain: Tournament;
 };
 
