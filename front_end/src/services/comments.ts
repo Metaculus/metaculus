@@ -50,12 +50,11 @@ export type CommentReportReason = "spam" | "violation";
 
 class CommentsApi {
   static async getComments(
-    url: string = "/comments",
     params?: getCommentsParams
   ): Promise<PaginatedResponse<CommentType>> {
     const queryParams = encodeQueryParams(params ?? {});
     const response = await get<PaginatedResponse<CommentType>>(
-      `${url}${queryParams}`
+      `/comments/${queryParams}`
     );
     response.results = response.results.map((comment) => {
       if (comment.included_forecast) {

@@ -40,7 +40,7 @@ export type ApprovePostParams = {
 class PostsApi {
   static async getPost(id: number): Promise<PostWithForecasts> {
     return await get<PostWithForecasts>(
-      `/posts/${id}${encodeQueryParams({ with_cp: true })}`
+      `/posts/${id}/${encodeQueryParams({ with_cp: true })}`
     );
   }
 
@@ -70,7 +70,7 @@ class PostsApi {
   }
 
   static async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
-    return await get<PostWithForecasts[]>(`/posts/${postId}/similar-posts`);
+    return await get<PostWithForecasts[]>(`/posts/${postId}/similar-posts/`);
   }
 
   static async createQuestionPost(body: any): Promise<PostWithForecasts> {
