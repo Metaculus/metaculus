@@ -1,4 +1,4 @@
-from django.db.models import Q, FilteredRelation
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -64,9 +64,6 @@ def get_posts_feed(
     if categories:
         qs = qs.filter(projects__in=categories)
 
-    if notebook_type:
-        qs = qs.filter(notebook__isnull=False).filter(notebook__type=notebook_type)
-
     if news_type:
         qs = qs.filter(projects=news_type)
 
@@ -74,13 +71,14 @@ def get_posts_feed(
         qs = qs.filter(projects=public_figure)
 
     if tournaments:
-        qs = qs.filter(Q(projects__in=tournaments) | Q(default_project__in=tournaments))
+        qs = qs.filter_projects(tournaments)
 
     if for_main_feed:
         site_main_project = get_site_main_project()
-        qs = qs.filter(
-            Q(projects=site_main_project) | Q(default_project=site_main_project)
-        )
+        qs = qs.filter_projects(site_main_project)
+
+    if notebook_type:
+        qs = qs.filter(notebook__isnull=False).filter(notebook__type=notebook_type)
 
     forecast_type = forecast_type or []
     forecast_type_q = Q()

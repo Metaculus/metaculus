@@ -282,6 +282,15 @@ class PostQuerySet(models.QuerySet):
             Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=timezone.now())
         )
 
+    def filter_projects(self, p: list[Project] | Project):
+        if isinstance(p, Project):
+            p = [p]
+
+        return self.filter(
+            Q(default_project__in=p)
+            | Q(pk__in=Post.objects.filter(Q(projects__in=p)).distinct())
+        )
+
 
 class PostManager(models.Manager.from_queryset(PostQuerySet)):
     def get_queryset(self) -> PostQuerySet:
