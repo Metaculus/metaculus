@@ -40,7 +40,8 @@ def get_posts_feed(
     TODO: implement "New Comments" ordering
     """
 
-    qs = qs or Post.objects.all()
+    if qs is None:
+        qs = Post.objects.all()
 
     # If ids provided
     if ids:
