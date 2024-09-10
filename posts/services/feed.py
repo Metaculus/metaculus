@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, FilteredRelation
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -6,7 +6,6 @@ from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
 from posts.services.search import perform_post_search, qs_filter_similar_posts
 from projects.models import Project
-from projects.permissions import ObjectPermission
 from projects.services import get_site_main_project
 from users.models import User
 from utils.cache import cache_get_or_set
@@ -26,7 +25,6 @@ def get_posts_feed(
     statuses: list[str] = None,
     order_by: str = None,
     access: PostFilterSerializer.Access = None,
-    permission: str = ObjectPermission.VIEWER,
     ids: list[int] = None,
     public_figure: Project = None,
     news_type: Project = None,
@@ -49,7 +47,7 @@ def get_posts_feed(
         qs = qs.filter(id__in=ids)
 
     # Filter by permission level
-    qs = qs.filter_permission(user=user, permission=permission)
+    qs = qs.filter_permission(user=user)
 
     # Author usernames
     if usernames:

@@ -13,7 +13,9 @@ from django.db.models import (
     Min,
     Prefetch,
     QuerySet,
+    FilteredRelation,
 )
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pgvector.django import VectorField
@@ -181,32 +183,38 @@ class PostQuerySet(models.QuerySet):
         Annotates user permission for each Post based on the related Projects.
         """
 
-        project_permissions_subquery = (
-            Project.objects.annotate_user_permission(user=user)
-            .filter(default_posts=models.OuterRef("pk"))
-            .values("user_permission")[:1]
-        )
+        user_id = user.id if user else None
 
         return self.annotate(
-            # Intermediate annotation of the default_project permissions
-            default_project_user_permission=Subquery(project_permissions_subquery),
-            # Alter permissions based on the Ownership status
+            user_permission_override=FilteredRelation(
+                "default_project__projectuserpermission",
+                condition=Q(
+                    default_project__projectuserpermission__user_id=user_id,
+                ),
+            ),
+            # Extract permission from default_project relation
+            _user_permission=Coalesce(
+                F("user_permission_override__permission"),
+                F("default_project__default_permission"),
+            ),
+        ).annotate(
+            # Calculate actual user permission by a couple of extra conditions
             user_permission=models.Case(
                 # If user is the question author
                 models.When(
                     Q(
-                        default_project_user_permission__in=[
+                        _user_permission__in=[
                             ObjectPermission.ADMIN,
                             ObjectPermission.CURATOR,
                         ]
                     ),
-                    then=F("default_project_user_permission"),
+                    then=F("_user_permission"),
                 ),
                 models.When(
                     author_id=user.id if user else None,
                     then=models.Value(ObjectPermission.CREATOR),
                 ),
-                default=F("default_project_user_permission"),
+                default=F("_user_permission"),
                 output_field=models.CharField(),
             ),
         )
@@ -227,17 +235,10 @@ class PostQuerySet(models.QuerySet):
             ObjectPermission.CREATOR
         ]
 
-        projects = Project.objects.annotate_user_permission(user=user)
-
-        return self.filter(
-            # If author -> have access to all own posts
+        return self.annotate_user_permission(user).filter(
             Q(author_id=user_id)
             | (
-                Q(
-                    default_project__in=projects.filter(
-                        user_permission__in=permissions_lookup
-                    )
-                )
+                Q(user_permission__in=permissions_lookup)
                 & (
                     Q(
                         curation_status__in=[
@@ -246,12 +247,10 @@ class PostQuerySet(models.QuerySet):
                         ]
                     )
                     | Q(
-                        default_project__in=projects.filter(
-                            user_permission__in=[
-                                ObjectPermission.ADMIN,
-                                ObjectPermission.CURATOR,
-                            ]
-                        )
+                        user_permission__in=[
+                            ObjectPermission.ADMIN,
+                            ObjectPermission.CURATOR,
+                        ]
                     )
                 )
             )

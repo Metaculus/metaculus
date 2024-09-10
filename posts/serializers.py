@@ -330,6 +330,7 @@ def serialize_post_many(
         .prefetch_questions_aggregate_forecasts()
         .annotate_comment_count()
         .select_related("author")
+        .prefetch_related("coauthors")
     )
     if current_user:
         qs = qs.annotate_user_vote(current_user)
