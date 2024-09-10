@@ -46,7 +46,7 @@ def resolve_question_and_send_notifications(question_id: int):
         question.scores.filter(user__isnull=False)
         .annotate(
             forecasts_count=SubqueryAggregate(
-                "question__forecast", filter=Q(author=OuterRef("user")), aggregate=Count
+                "question__user_forecasts", filter=Q(author=OuterRef("user")), aggregate=Count
             )
         )
         # Exclude users with disabled notifications
