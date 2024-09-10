@@ -453,6 +453,7 @@ export function generateChoiceItemsFromBinaryGroup(
       resolution: question.resolution,
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
+      scaling: question.scaling,
     };
   });
 }

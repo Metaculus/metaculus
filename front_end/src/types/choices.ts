@@ -1,5 +1,6 @@
 import { Resolution } from "@/types/post";
 import { ThemeColor } from "@/types/theme";
+import { Scaling } from "./question";
 
 export type ChoiceItem = {
   choice: string;
@@ -14,6 +15,7 @@ export type ChoiceItem = {
   displayedResolution?: Resolution | null;
   rangeMin?: number | null;
   rangeMax?: number | null;
+  scaling?: Scaling;
 };
 
 export type UserChoiceItem = {

@@ -10,7 +10,11 @@ import useChartTooltip from "@/hooks/use_chart_tooltip";
 import usePrevious from "@/hooks/use_previous";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
-import { Question, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  Question,
+  QuestionWithNumericForecasts,
+  Scaling,
+} from "@/types/question";
 import {
   findPreviousTimestamp,
   generateChoiceItemsFromBinaryGroup,
@@ -146,6 +150,22 @@ const ContinuousGroupTimeline: FC<Props> = ({
     }
   }, []);
 
+  const zeroPoints: number[] = [];
+  questions.forEach((question) => {
+    if (question.scaling.zero_point !== null) {
+      zeroPoints.push(question.scaling.zero_point);
+    }
+  });
+  const scaling: Scaling = {
+    range_max: Math.max(
+      ...questions.map((question) => question.scaling.range_max!)
+    ),
+    range_min: Math.min(
+      ...questions.map((question) => question.scaling.range_min!)
+    ),
+    zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
+  };
+
   return (
     <div
       className={classNames(
@@ -167,7 +187,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
           onCursorChange={handleCursorChange}
           userForecasts={userForecasts}
           questionType={questions[0].type}
-          scaling={questions[0].scaling}
+          scaling={scaling}
           isClosed={isClosed}
         />
       </div>
