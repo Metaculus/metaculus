@@ -40,9 +40,9 @@ def aggregation_explorer_api_view(request):
     user_ids = request.GET.get("user_ids", None)
     if user_ids:
         user_ids = user_ids.split(",")
-    # if user_ids and not request.user.is_staff:
-    #     # if user_ids provided, check user is staff
-    #     raise PermissionDenied("Current user can not view user-specific data")
+    if user_ids and not request.user.is_staff:
+        # if user_ids provided, check user is staff
+        raise PermissionDenied("Current user can not view user-specific data")
     include_bots = request.GET.get("include_bots", False)
 
     aggregations = get_aggregation_history(
