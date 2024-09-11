@@ -52,6 +52,15 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/project/:slug',
+        destination: '/tournament/:slug',
+        permanent: true,
+      },
+    ]
+  },
   rewrites: () => [
     // Django Admin rewrites
     {
