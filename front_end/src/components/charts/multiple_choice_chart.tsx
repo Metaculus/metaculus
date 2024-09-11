@@ -107,7 +107,7 @@ const MultipleChoiceChart: FC<Props> = ({
         questionType,
         scaling,
       }),
-    [timestamps, choiceItems, chartWidth, chartHeight, zoom]
+    [timestamps, choiceItems, chartWidth, chartHeight, zoom, userForecasts]
   );
 
   const isHighlightActive = useMemo(

@@ -21,6 +21,8 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
 import QuestionResolutionButton from "../resolution";
+import LoadingIndicator from "@/components/ui/loading_indicator";
+import { useServerAction } from "@/hooks/use_server_action";
 
 type Props = {
   postId: number;
@@ -43,11 +45,7 @@ const ForecastMakerContinuous: FC<Props> = ({
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
-
-  const submitIsAllowed = !isSubmitting && isDirty;
 
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
   const t = useTranslations();
@@ -92,7 +90,6 @@ const ForecastMakerContinuous: FC<Props> = ({
   };
 
   const handlePredictSubmit = async () => {
-    setIsSubmitting(true);
     const response = await createForecasts(postId, [
       {
         questionId: question.id,
@@ -112,9 +109,9 @@ const ForecastMakerContinuous: FC<Props> = ({
     }
 
     setIsDirty(false);
-    setIsSubmitting(false);
   };
-
+  const [submit, isPending] = useServerAction(handlePredictSubmit);
+  const submitIsAllowed = !isPending && isDirty;
   return (
     <>
       <ContinuousSlider
@@ -131,35 +128,38 @@ const ForecastMakerContinuous: FC<Props> = ({
       />
 
       {canPredict && (
-        <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-          {user ? (
-            <>
-              <Button
-                variant="secondary"
-                type="reset"
-                onClick={handleAddComponent}
-              >
-                {t("addComponentButton")}
-              </Button>
+        <>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
+            {user ? (
+              <>
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={handleAddComponent}
+                >
+                  {t("addComponentButton")}
+                </Button>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  onClick={submit}
+                  disabled={!submitIsAllowed}
+                >
+                  {t("saveChange")}
+                </Button>
+              </>
+            ) : (
               <Button
                 variant="primary"
-                type="submit"
-                onClick={handlePredictSubmit}
-                disabled={!submitIsAllowed}
+                type="button"
+                onClick={() => setCurrentModal({ type: "signup" })}
               >
-                {t("saveChange")}
+                {t("signUpToPredict")}
               </Button>
-            </>
-          ) : (
-            <Button
-              variant="primary"
-              type="button"
-              onClick={() => setCurrentModal({ type: "signup" })}
-            >
-              {t("signUpToPredict")}
-            </Button>
-          )}
-        </div>
+            )}
+          </div>
+          <div className="h-[32px]">{isPending && <LoadingIndicator />}</div>
+        </>
       )}
       {predictionMessage && (
         <div className="text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
