@@ -355,18 +355,20 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
 def serialize_question(
     question: Question,
     with_cp: bool = False,
-    current_user: User = None,
-    post: Post = None,
+    current_user: User | None = None,
+    post: Post | None = None,
+    aggregate_forecasts: list[AggregateForecast] = None,
+    full_forecast_values: bool = False,
 ):
     """
     Serializes question object
     """
 
     serialized_data = QuestionSerializer(question).data
-    serialized_data["post_id"] = post.id
+    serialized_data["post_id"] = post.id if post else question.get_post().id
 
     if with_cp:
-        aggregate_forecasts = sorted(
+        aggregate_forecasts = aggregate_forecasts or sorted(
             question.aggregate_forecasts.all(), key=lambda x: x.start_time
         )
         aggregate_forecasts_by_method = defaultdict(list)
@@ -389,7 +391,7 @@ def serialize_question(
                 AggregateForecastSerializer(
                     forecasts,
                     many=True,
-                    context={"include_forecast_values": False},
+                    context={"include_forecast_values": full_forecast_values},
                 ).data
             )
             serialized_data["aggregations"][method]["latest"] = (
@@ -399,7 +401,7 @@ def serialize_question(
                         context={"include_forecast_values": True},
                     ).data
                 )
-                if forecasts
+                if forecasts and not full_forecast_values
                 else None
             )
             for score in scores:

@@ -264,7 +264,7 @@ class Forecast(models.Model):
         pv = self.get_prediction_values()
         if len(pv) > 64:
             q1, q2, q3 = percent_point_function(pv, [25, 50, 75])
-            pvs = f"{round(q1, 5)} ({round(q2, 5)} - {round(q3, 5)})"
+            pvs = f"{round(q2, 5)} ({round(q1, 5)} - {round(q3, 5)})"
         else:
             pvs = str(pv)
         return (
@@ -320,7 +320,7 @@ class AggregateForecast(models.Model):
         pv = self.get_prediction_values()
         if len(pv) > 64:
             q1, q2, q3 = percent_point_function(pv, [25, 50, 75])
-            pvs = f"{round(q1, 5)} ({round(q2, 5)} - {round(q3, 5)})"
+            pvs = f"{round(q2, 5)} ({round(q1, 5)} - {round(q3, 5)})"
         else:
             pvs = str(pv)
         return (
