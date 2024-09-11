@@ -17,7 +17,7 @@ export type Props = {
 const AccountPreferences: FC<Props> = ({ user }) => {
   const t = useTranslations();
   const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
-  console.log(user);
+
   const handlePreferencesChange = useCallback(
     async (preferenceType: ProfilePreferencesType, checked: boolean) => {
       // remove after BE updates
@@ -35,11 +35,10 @@ const AccountPreferences: FC<Props> = ({ user }) => {
 
       try {
         // Update helper (BE) to handle unsubscribed_preferences_tags field
-        setTimeout(async () => {
-          await updateProfileAction({
-            unsubscribed_preferences_tags: preferences,
-          });
-        }, 5000);
+
+        await updateProfileAction({
+          unsubscribed_preferences_tags: preferences,
+        });
       } finally {
         setLoadingIndex(null);
       }
