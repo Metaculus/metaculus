@@ -12,6 +12,8 @@ import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { FormErrorMessage, Input } from "@/components/ui/form_field";
 import { ErrorResponse } from "@/types/fetch";
+import { useServerAction } from "@/hooks/use_server_action";
+import LoadingSpinner from "@/components/ui/loading_spiner";
 
 const contactUsSchema = z.object({
   email: z.string().min(1, { message: "Email is required" }),
@@ -26,7 +28,6 @@ type Props = {
 
 const ChangeEmailModal: FC<Props> = ({ isOpen, onClose }) => {
   const t = useTranslations();
-  const [isLoading, setIsLoading] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>();
 
   const {
@@ -40,7 +41,6 @@ const ChangeEmailModal: FC<Props> = ({ isOpen, onClose }) => {
   const onSubmit = useCallback(
     async ({ email, password }: ContactUsSchema) => {
       setSubmitErrors(undefined);
-      setIsLoading(true);
       try {
         const response = await changeEmail(email, password);
         if (response && "errors" in response && !!response.errors) {
@@ -50,12 +50,11 @@ const ChangeEmailModal: FC<Props> = ({ isOpen, onClose }) => {
           toast(t("settingsChangeEmailAddressSuccess"));
         }
       } finally {
-        setIsLoading(false);
       }
     },
     [onClose, t]
   );
-
+  const [submit, isPending] = useServerAction(onSubmit);
   return (
     <>
       <BaseModal
@@ -68,7 +67,7 @@ const ChangeEmailModal: FC<Props> = ({ isOpen, onClose }) => {
           <p className="my-6 text-base leading-tight">
             {t("settingsEmailChangeDescription")}
           </p>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(submit)}>
             <Input
               className="mt-4 block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
               placeholder={t("settingsNewEmail")}
@@ -84,8 +83,9 @@ const ChangeEmailModal: FC<Props> = ({ isOpen, onClose }) => {
               {...register("password")}
             />
             <FormErrorMessage errors={submitErrors} />
-            <div className="mt-4 text-right">
-              <Button variant="primary" type="submit" disabled={isLoading}>
+            <div className="mt-4 flex items-center justify-end">
+              {isPending && <LoadingSpinner className="mr-2" />}
+              <Button variant="primary" type="submit" disabled={isPending}>
                 {t("settingsChangeEmailAddress")}
               </Button>
             </div>

@@ -7,6 +7,8 @@ import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import Checkbox from "@/components/ui/checkbox";
 import { ProfilePreferencesType } from "@/types/preferences";
 import { CurrentUser } from "@/types/users";
+import { useServerAction } from "@/hooks/use_server_action";
+import LoadingSpinner from "@/components/ui/loading_spiner";
 
 export type Props = {
   user: CurrentUser;
@@ -14,8 +16,8 @@ export type Props = {
 
 const AccountPreferences: FC<Props> = ({ user }) => {
   const t = useTranslations();
-  const [isLoading, setIsLoading] = useState(false);
-
+  const [loadingIndex, setLoadingIndex] = useState<number | null>(null);
+  console.log(user);
   const handlePreferencesChange = useCallback(
     async (preferenceType: ProfilePreferencesType, checked: boolean) => {
       // remove after BE updates
@@ -31,19 +33,20 @@ const AccountPreferences: FC<Props> = ({ user }) => {
             new Set([...user.unsubscribed_preferences_tags, preferenceType])
           );
 
-      setIsLoading(true);
       try {
         // Update helper (BE) to handle unsubscribed_preferences_tags field
-        await updateProfileAction({
-          unsubscribed_preferences_tags: preferences,
-        });
+        setTimeout(async () => {
+          await updateProfileAction({
+            unsubscribed_preferences_tags: preferences,
+          });
+        }, 5000);
       } finally {
-        setIsLoading(false);
+        setLoadingIndex(null);
       }
     },
     [user]
   );
-
+  const [updateProfile, isPending] = useServerAction(handlePreferencesChange);
   const options = [
     {
       type: ProfilePreferencesType.community_prediction_default,
@@ -61,17 +64,21 @@ const AccountPreferences: FC<Props> = ({ user }) => {
       <h3 className="bg-blue-200 p-1 text-sm font-medium dark:bg-blue-200-dark">
         {t("communityPredictionLabel")}
       </h3>
-      {options.map(({ type, ...opts }) => (
-        <Checkbox
-          key={`subscriptions-${type}`}
-          checked={!user.unsubscribed_preferences_tags?.includes(type)} // if user didn`t unsubscribe check by default
-          onChange={(checked) => {
-            handlePreferencesChange(type, checked).then();
-          }}
-          className="p-1.5"
-          readOnly={isLoading}
-          {...opts}
-        />
+      {options.map(({ type, ...opts }, index) => (
+        <div className="flex items-center" key={`subscriptions-${type}`}>
+          <Checkbox
+            key={`subscriptions-${type}`}
+            checked={!user.unsubscribed_preferences_tags?.includes(type)} // if user didn`t unsubscribe check by default
+            onChange={(checked) => {
+              // handlePreferencesChange(type, checked).then();
+              updateProfile(type, checked);
+            }}
+            className="p-1.5"
+            readOnly={isPending}
+            {...opts}
+          />
+          {loadingIndex === index && isPending && <LoadingSpinner size="1x" />}
+        </div>
       ))}
     </section>
   );
