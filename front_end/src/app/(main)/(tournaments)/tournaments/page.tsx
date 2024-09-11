@@ -3,7 +3,6 @@ import { getTranslations } from "next-intl/server";
 
 import ProjectsApi from "@/services/projects";
 import {
-  Tournament,
   TournamentPreview,
   TournamentType,
 } from "@/types/projects";
@@ -70,7 +69,10 @@ function extractTournamentLists(tournaments: TournamentPreview[]) {
   const activeTournaments: TournamentPreview[] = [];
   const archivedTournaments: TournamentPreview[] = [];
   const questionSeries: TournamentPreview[] = [];
-
+  tournaments.sort(
+    (a, b) =>
+      new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+  );
   for (const tournament of tournaments) {
     if (!tournament.posts_count) {
       continue;
