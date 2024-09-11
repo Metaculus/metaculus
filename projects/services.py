@@ -1,6 +1,7 @@
 from django.db import IntegrityError
 from django.db.models import Q
 
+from notifications.constants import MailingTags
 from notifications.services import (
     NotificationPostStatusChange,
     NotificationPostParams,
@@ -134,4 +135,5 @@ def notify_project_subscriptions_post_open(post: Post):
                 event=PostSubscription.PostStatusChange.OPEN,
                 project=NotificationProjectParams.from_project(subscription.project),
             ),
+            mailing_tag=MailingTags.TOURNAMENT_NEW_QUESTIONS,
         )

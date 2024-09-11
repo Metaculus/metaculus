@@ -9,11 +9,11 @@ import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import ChangeEmailModal from "@/app/(main)/accounts/settings/components/change_email";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
+import LoadingSpinner from "@/components/ui/loading_spiner";
 import Tooltip from "@/components/ui/tooltip";
+import { useServerAction } from "@/hooks/use_server_action";
 import { SubscriptionEmailType } from "@/types/notifications";
 import { CurrentUser } from "@/types/users";
-import { useServerAction } from "@/hooks/use_server_action";;
-import LoadingSpinner from "@/components/ui/loading_spiner";
 
 export type Props = {
   user: CurrentUser;
@@ -56,6 +56,10 @@ const EmailNotifications: FC<Props> = ({ user }) => {
     {
       type: SubscriptionEmailType.question_resolution,
       label: t("settingsQuestionResolution"),
+    },
+    {
+      type: SubscriptionEmailType.tournament_new_questions,
+      label: t("settingsNewQuestionsInTournament"),
     },
     {
       type: SubscriptionEmailType.cp_change,
@@ -110,7 +114,7 @@ const EmailNotifications: FC<Props> = ({ user }) => {
             readOnly={isPending}
             {...opts}
           />
-          {loadingIndex === index && isPending && <LoadingSpinner size="1x"/>}
+          {loadingIndex === index && isPending && <LoadingSpinner size="1x" />}
         </div>
       ))}
     </section>
