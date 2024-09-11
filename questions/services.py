@@ -23,7 +23,7 @@ from questions.models import (
 )
 from questions.types import AggregationMethod
 from users.models import User
-from utils.the_math.community_prediction import get_cp_history
+from utils.the_math.community_prediction import get_aggregation_history
 from utils.the_math.single_aggregation import get_single_aggregation_history
 from utils.the_math.measures import percent_point_function
 
@@ -71,12 +71,12 @@ def build_question_forecasts(
             include_stats=True,
         )
     else:
-        aggregation_history = get_cp_history(
+        aggregation_history = get_aggregation_history(
             question,
             aggregation_method=aggregation_method,
             minimize=True,
             include_stats=True,
-        )
+        )["recency_weighted"]
 
     # overwrite old history with new history, minimizing the amount deleted and created
     previous_history = question.aggregate_forecasts.filter(method=aggregation_method)

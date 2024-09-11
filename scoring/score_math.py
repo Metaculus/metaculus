@@ -4,7 +4,7 @@ from datetime import datetime
 from scipy.stats.mstats import gmean
 import numpy as np
 
-from utils.the_math.community_prediction import get_cp_history
+from utils.the_math.community_prediction import get_aggregation_history
 from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.models import Score
@@ -328,11 +328,11 @@ def evaluate_question(
     forecast_horizon_end = question.scheduled_close_time.timestamp()
 
     user_forecasts = question.user_forecasts.all()
-    community_forecasts = get_cp_history(
+    community_forecasts = get_aggregation_history(
         question,
         minimize=False,
         aggregation_method=AggregationMethod.RECENCY_WEIGHTED,
-    )
+    )["recency_weighted"]
     geometric_means: list[AggregationEntry] = []
 
     ScoreTypes = Score.ScoreTypes

@@ -99,3 +99,43 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     create_forecast(question=question, user=request.user, probability_yes=probability)
 
     return Response({}, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+def aggregation_explorer_api_view(request, pk: int):
+    question = get_object_or_404(Question.objects.all(), pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(question.get_post(), user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+
+import numpy as np
+
+
+# def get_weighted_semivariances_by_column(
+def foo(
+    matrix: np.array,
+    weights: np.array,
+) -> np.array:
+    """takes a 2-d array, and a set of weights,
+    and returns the lower and upper semivariances
+
+    weights is a vector with length same as matrix.shape(0)
+
+    """
+    average = np.average(matrix, axis=0, weights=weights)
+    lower_semivariances = np.zeros(matrix.shape[1])
+    upper_semivariances = np.zeros(matrix.shape[1])
+    for i in range(matrix.shape[1]):
+        lower_mask = matrix[:, i] < average[i]
+        lower_semivariances[i] = np.average(
+            (average[i] - matrix[:, i][lower_mask]) ** 2,
+            weights=weights[lower_mask],
+        )
+        upper_mask = matrix[:, i] > average[i]
+        upper_semivariances[i] = np.average(
+            (matrix[:, i][upper_mask] - average[i]) ** 2,
+            weights=weights[upper_mask],
+        )
+    return lower_semivariances, upper_semivariances
