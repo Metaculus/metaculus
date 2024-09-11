@@ -11,6 +11,8 @@ import { changePassword } from "@/app/(main)/accounts/settings/actions";
 import Button from "@/components/ui/button";
 import { FormErrorMessage, Input } from "@/components/ui/form_field";
 import { ErrorResponse } from "@/types/fetch";
+import { useServerAction } from "@/hooks/use_server_action";
+import LoadingSpinner from "@/components/ui/loading_spiner";
 
 export const changePasswordSchema = z
   .object({
@@ -31,7 +33,6 @@ export type ChangePasswordSchema = z.infer<typeof changePasswordSchema>;
 
 const ChangePassword: FC = () => {
   const t = useTranslations();
-  const [isLoading, setIsLoading] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>();
 
   const {
@@ -45,7 +46,6 @@ const ChangePassword: FC = () => {
 
   const onSubmit = useCallback(
     async (data: ChangePasswordSchema) => {
-      setIsLoading(true);
       try {
         const response = await changePassword(data.password, data.new_password);
         if (response && "errors" in response && !!response.errors) {
@@ -56,18 +56,17 @@ const ChangePassword: FC = () => {
           toast(t("passwordChangeSuccess"));
         }
       } finally {
-        setIsLoading(false);
       }
     },
     [reset, t]
   );
-
+  const [submit, isPending] = useServerAction(onSubmit);
   return (
     <section className="text-sm">
       <hr />
       <h2 className="mt-3 px-1">{t("changePasswordButton")}</h2>
       <div className="grid grid-cols-2 gap-4">
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(submit)}>
           <Input
             className="mt-4 block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
             placeholder={t("currentPasswordPlaceholder")}
@@ -93,10 +92,11 @@ const ChangePassword: FC = () => {
           />
           <FormErrorMessage errors={submitErrors} />
 
-          <div className="mt-4">
-            <Button variant="secondary" type="submit" disabled={isLoading}>
+          <div className="mt-4 flex items-center">
+            <Button variant="secondary" type="submit" disabled={isPending}>
               {t("updatePasswordButton")}
             </Button>
+            {isPending && <LoadingSpinner className="ml-2" />}
           </div>
         </form>
       </div>

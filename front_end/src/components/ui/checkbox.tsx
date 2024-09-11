@@ -21,6 +21,7 @@ type Props = {
   onMouseLeave?: MouseEventHandler<HTMLDivElement>;
   onTouchStart?: TouchEventHandler<HTMLDivElement>;
   onTouchMove?: TouchEventHandler<HTMLDivElement>;
+  onClick?: MouseEventHandler<HTMLSpanElement>;
   readOnly?: boolean;
   errors?: ErrorResponse;
 };
@@ -38,6 +39,7 @@ const Checkbox: FC<Props> = ({
   onMouseLeave,
   onTouchStart,
   onTouchMove,
+  onClick,
   readOnly,
   errors,
 }) => {
@@ -59,6 +61,7 @@ const Checkbox: FC<Props> = ({
             e.preventDefault();
             return false;
           }
+          onClick && onClick(e);
         }}
         className="focus:outline-none"
       >
