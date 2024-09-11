@@ -37,6 +37,7 @@ import {
   BINARY_MIN_VALUE,
 } from "../binary_slider";
 import ForecastChoiceOption from "../forecast_choice_option";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 
 type QuestionOption = {
   id: number;
@@ -162,7 +163,9 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     setQuestionOptions((prev) =>
       prev.map((prevQuestion) => ({ ...prevQuestion, isDirty: false }))
     );
-    setIsSubmitting(false);
+    setTimeout(() => {
+      setIsSubmitting(false);
+    }, 1500);
 
     const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
@@ -237,36 +240,41 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         </div>
       )}
       {canPredict && (
-        <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-          {user ? (
-            <>
-              <Button
-                variant="secondary"
-                type="reset"
-                onClick={resetForecasts}
-                disabled={!isPickerDirty}
-              >
-                {t("discardChangesButton")}
-              </Button>
+        <>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
+            {user ? (
+              <>
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={resetForecasts}
+                  disabled={!isPickerDirty}
+                >
+                  {t("discardChangesButton")}
+                </Button>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  onClick={handlePredictSubmit}
+                  disabled={!submitIsAllowed}
+                >
+                  {t("saveChange")}
+                </Button>
+              </>
+            ) : (
               <Button
                 variant="primary"
-                type="submit"
-                onClick={handlePredictSubmit}
-                disabled={!submitIsAllowed}
+                type="button"
+                onClick={() => setCurrentModal({ type: "signup" })}
               >
-                {t("saveChange")}
+                {t("signUpToPredict")}
               </Button>
-            </>
-          ) : (
-            <Button
-              variant="primary"
-              type="button"
-              onClick={() => setCurrentModal({ type: "signup" })}
-            >
-              {t("signUpToPredict")}
-            </Button>
-          )}
-        </div>
+            )}
+          </div>
+          <div className="h-[32px] w-full">
+            {isSubmitting && <LoadingIndicator />}
+          </div>
+        </>
       )}
       {submitErrors.map((errResponse, index) => (
         <FormErrorMessage key={`error-${index}`} errors={errResponse} />

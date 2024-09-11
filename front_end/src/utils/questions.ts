@@ -231,7 +231,7 @@ export const generateUserForecastsForMultipleQuestion = (
         userForecasts?.map((forecast) => forecast.forecast_values[index]) ?? [],
       timestamps: userForecasts?.map((forecast) => forecast.start_time) ?? [],
       color:
-        MULTIPLE_CHOICE_COLOR_SCALE[choiceOrdering[index]] ??
+        MULTIPLE_CHOICE_COLOR_SCALE[choiceOrdering.indexOf(index)] ??
         METAC_COLORS.gray["400"],
     };
   });

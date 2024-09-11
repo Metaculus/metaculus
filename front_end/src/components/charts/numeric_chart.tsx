@@ -90,7 +90,8 @@ const NumericChart: FC<Props> = ({
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
 
-  const defaultCursor = Date.now();
+  const defaultCursor = Date.now() / 1000;
+
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState(defaultZoom);
@@ -106,7 +107,7 @@ const NumericChart: FC<Props> = ({
         width: chartWidth,
         zoom,
       }),
-    [height, chartWidth, zoom]
+    [height, chartWidth, zoom, aggregations]
   );
 
   const prevWidth = usePrevious(chartWidth);

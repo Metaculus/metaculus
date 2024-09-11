@@ -30,6 +30,7 @@ import {
 } from "../binary_slider";
 import ForecastChoiceOption from "../forecast_choice_option";
 import QuestionResolutionButton from "../resolution";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 
 type ChoiceOption = {
   name: string;
@@ -188,7 +189,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors[0]);
     }
-    setIsSubmitting(false);
+    setTimeout(() => {
+      setIsSubmitting(false);
+    }, 1500);
   };
 
   return (
@@ -241,7 +244,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         </tbody>
       </table>
 
-      <div className="my-5 flex flex-wrap items-center justify-center gap-4 border-b border-b-blue-400 pb-5 dark:border-b-blue-400-dark">
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-4 border-b border-b-blue-400 pb-5 dark:border-b-blue-400-dark">
         <div className="mx-auto text-center sm:ml-0 sm:text-left">
           <div>
             <span className="text-2xl font-bold">
@@ -284,6 +287,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
           </div>
         )}
         <FormErrorMessage errors={submitError} />
+      </div>
+      <div className="h-[32px] w-full">
+        {isSubmitting && <LoadingIndicator />}
       </div>
       <div className="flex flex-col items-center justify-center">
         <QuestionResolutionButton question={question} permission={permission} />

@@ -19,7 +19,7 @@ import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import QuestionResolutionButton from "../resolution";
 import { useRouter } from "next/navigation";
-import { post } from "@/utils/fetch";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 
 type Props = {
   postId: number;
@@ -88,8 +88,9 @@ const ForecastMakerBinary: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors[0]);
     }
-    setIsSubmitting(false);
-    router.push(`/questions/${postId}/refresh${Date.now()}`);
+    setTimeout(() => {
+      setIsSubmitting(false);
+    }, 1500);
   };
 
   return (
@@ -111,19 +112,24 @@ const ForecastMakerBinary: FC<Props> = ({
       )}
       <div className="flex flex-col items-center justify-center">
         {canPredict && (
-          <Button
-            variant="primary"
-            disabled={!!user && (!isForecastDirty || isSubmitting)}
-            onClick={handlePredictSubmit}
-          >
-            {user ? t("predict") : t("signUpToPredict")}
-          </Button>
+          <>
+            {" "}
+            <Button
+              variant="primary"
+              disabled={!!user && (!isForecastDirty || isSubmitting)}
+              onClick={handlePredictSubmit}
+            >
+              {user ? t("predict") : t("signUpToPredict")}
+            </Button>
+            <div className="h-[32px] w-full">
+              {isSubmitting && <LoadingIndicator />}
+            </div>
+          </>
         )}
         {canResolve && (
           <QuestionResolutionButton
             question={question}
             permission={permission}
-            className="mt-4"
           />
         )}
       </div>
