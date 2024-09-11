@@ -57,7 +57,7 @@ type Props = {
   withZoomPicker?: boolean;
   yLabel?: string;
   height?: number;
-  onCursorChange?: (value: number) => void;
+  onCursorChange?: (value: number | null) => void;
   onChartReady?: () => void;
   questionType: QuestionType;
   actualCloseTime: number | null;
@@ -184,6 +184,10 @@ const NumericChart: FC<Props> = ({
                 onMouseOutCapture: () => {
                   if (!onCursorChange) return;
                   setIsCursorActive(false);
+                },
+                onMouseLeave: () => {
+                  if (!onCursorChange) return;
+                  onCursorChange(null);
                 },
               },
             },

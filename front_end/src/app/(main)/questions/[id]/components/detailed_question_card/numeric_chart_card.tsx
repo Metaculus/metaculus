@@ -23,8 +23,8 @@ const NumericChartCard: FC<Props> = ({ question }) => {
 
   const aggregate = question.aggregations.recency_weighted;
 
-  const [cursorTimestamp, setCursorTimestamp] = useState(
-    aggregate.latest?.start_time
+  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(
+    null
   );
   const cursorData = useMemo(() => {
     const index = aggregate.history.findIndex(
@@ -34,14 +34,12 @@ const NumericChartCard: FC<Props> = ({ question }) => {
     const forecast = index === -1 ? aggregate.history[aggregate.history.length - 1] : aggregate.history[index];
     let timestamp = cursorTimestamp;
     const lastAggregate = aggregate.history[aggregate.history.length - 1];
-    console.log("RECALCULATE CURSOR DATA");
     if (
       lastAggregate &&
-      timestamp === lastAggregate.start_time &&
+      timestamp === null &&
       question.my_forecasts?.latest?.start_time &&
       lastAggregate.start_time < question.my_forecasts.latest.start_time
     ) {
-      console.log("SETTING TO MY FORECASTS LATEST");
       timestamp = question.my_forecasts.latest.start_time;
       return {
         timestamp,
@@ -65,7 +63,7 @@ const NumericChartCard: FC<Props> = ({ question }) => {
     question.aggregations.recency_weighted,
   ]);
 
-  const handleCursorChange = useCallback((value: number) => {
+  const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);
   }, []);
 
