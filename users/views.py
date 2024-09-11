@@ -75,6 +75,7 @@ def get_score_scatter_plot_data(
                 "score": score.score,
                 "score_timestamp": score.edited_at.timestamp(),
                 "question_title": score.question.title,
+                "question_id": score.question.id,
                 "question_resolution": score.question.resolution,
             }
         )
