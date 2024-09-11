@@ -57,7 +57,7 @@ type Props = {
   withZoomPicker?: boolean;
   yLabel?: string;
   height?: number;
-  onCursorChange?: (value: number) => void;
+  onCursorChange?: (value: number | null) => void;
   onChartReady?: () => void;
   questionType: QuestionType;
   actualCloseTime: number | null;
@@ -90,7 +90,8 @@ const NumericChart: FC<Props> = ({
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
 
-  const defaultCursor = Date.now();
+  const defaultCursor = Date.now() / 1000;
+
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState(defaultZoom);
@@ -106,7 +107,16 @@ const NumericChart: FC<Props> = ({
         width: chartWidth,
         zoom,
       }),
-    [height, chartWidth, zoom]
+    [
+      height,
+      chartWidth,
+      zoom,
+      aggregations,
+      actualCloseTime,
+      myForecasts,
+      questionType,
+      scaling,
+    ]
   );
 
   const prevWidth = usePrevious(chartWidth);
@@ -183,6 +193,10 @@ const NumericChart: FC<Props> = ({
                 onMouseOutCapture: () => {
                   if (!onCursorChange) return;
                   setIsCursorActive(false);
+                },
+                onMouseLeave: () => {
+                  if (!onCursorChange) return;
+                  onCursorChange(null);
                 },
               },
             },

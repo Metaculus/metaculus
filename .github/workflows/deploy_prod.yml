@@ -1,4 +1,4 @@
-name: Deploy to PRODUCTION
+name: Deploy metaculus.com (PRODUCTION)
 
 on:
   workflow_dispatch:

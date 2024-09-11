@@ -2,14 +2,11 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import ProjectsApi from "@/services/projects";
-import {
-  Tournament,
-  TournamentPreview,
-  TournamentType,
-} from "@/types/projects";
+import { TournamentPreview, TournamentType } from "@/types/projects";
 
 import TournamentFilters from "./components/tournament_filters";
 import TournamentsList from "./components/tournaments_list";
+import { differenceInMilliseconds } from "date-fns";
 
 export default async function Tournaments() {
   const t = await getTranslations();
@@ -70,8 +67,12 @@ function extractTournamentLists(tournaments: TournamentPreview[]) {
   const activeTournaments: TournamentPreview[] = [];
   const archivedTournaments: TournamentPreview[] = [];
   const questionSeries: TournamentPreview[] = [];
-
-  for (const tournament of tournaments) {
+  
+  const sortedTournaments = [...tournaments].sort((a, b) =>
+    differenceInMilliseconds(new Date(b.start_date), new Date(a.start_date))
+  );
+  
+  for (const tournament of sortedTournaments) {
     if (!tournament.posts_count) {
       continue;
     }

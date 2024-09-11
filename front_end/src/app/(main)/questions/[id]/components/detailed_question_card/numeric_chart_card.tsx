@@ -23,30 +23,54 @@ const NumericChartCard: FC<Props> = ({ question }) => {
 
   const aggregate = question.aggregations.recency_weighted;
 
-  const [cursorTimestamp, setCursorTimestamp] = useState(
-    aggregate.latest?.start_time
+  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(
+    null
   );
   const cursorData = useMemo(() => {
     const index = aggregate.history.findIndex(
       (f) => f.start_time === cursorTimestamp
     );
-    const forecast = aggregate.history[index];
+
+    const forecast = index === -1 ? aggregate.history[aggregate.history.length - 1] : aggregate.history[index];
+    let timestamp = cursorTimestamp;
+    const lastAggregate = aggregate.history[aggregate.history.length - 1];
+    if (
+      lastAggregate &&
+      timestamp === null &&
+      question.my_forecasts?.latest?.start_time &&
+      lastAggregate.start_time < question.my_forecasts.latest.start_time
+    ) {
+      timestamp = question.my_forecasts.latest.start_time;
+      return {
+        timestamp,
+        forecasterCount: forecast.forecaster_count,
+        interval_lower_bound: forecast.interval_lower_bounds![0],
+        center: forecast.centers![0],
+        interval_upper_bound: forecast.interval_upper_bounds![0],
+      };
+    }
     return {
-      timestamp: forecast.start_time,
+      timestamp: forecast.start_time ?? cursorTimestamp,
       forecasterCount: forecast.forecaster_count,
       interval_lower_bound: forecast.interval_lower_bounds![0],
       center: forecast.centers![0],
       interval_upper_bound: forecast.interval_upper_bounds![0],
     };
-  }, [cursorTimestamp, aggregate.history]);
+  }, [
+    cursorTimestamp,
+    aggregate.history,
+    question.my_forecasts,
+    question.aggregations.recency_weighted,
+  ]);
 
-  const handleCursorChange = useCallback((value: number) => {
+  const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);
   }, []);
 
   const handleChartReady = useCallback(() => {
     setIsChartReady(true);
   }, []);
+
 
   return (
     <div

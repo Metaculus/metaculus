@@ -79,7 +79,7 @@ const LeaderboardTable: FC<Props> = ({
               {category === "comments" ? t("comments") : t("questions")}
             </th>
             {leaderboardDetails.score_type === "peer_global" && (
-              <th className="w-24 px-4 py-2.5 text-right">
+              <th className="hidden w-24 px-4 py-2.5 text-right @md:!table-cell">
                 {t("totalCoverage")}
               </th>
             )}

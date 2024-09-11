@@ -27,6 +27,10 @@ def build_question_graph_image_url(question_id: int):
     return build_frontend_url(f"/questions/{question_id}/api/generate-preview")
 
 
+def build_question_embed_url(question_id: int):
+    return build_frontend_url(f"/embed/questions/{question_id}")
+
+
 def build_post_comment_url(post_id: int, post_title: str, comment_id: int):
     return build_frontend_url(
         f"/questions/{post_id}/{slugify(post_title)}#comment-{comment_id}"

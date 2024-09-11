@@ -49,11 +49,11 @@ def migrate_mailgun_notification_preferences():
     allowed_tags = [
         "comment_mentions",
         "question_resolution",
+        "tournament_new_questions",
         # All other will be deprecated:
         #   "new_tournaments",
         #   "question_halfway",
         #   "question_resolution",
-        #   "tournament_new_questions",
     ]
 
     users_to_update = []

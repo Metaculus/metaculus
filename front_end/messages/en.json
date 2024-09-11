@@ -631,6 +631,7 @@
   "settingsEmailNotifications": "Email Notifications",
   "settingsUserEmail": "User Email",
   "settingsNewEmail": "New Email",
+  "settingsNewQuestionsInTournament": "New questions in tournaments I follow",
   "settingsEmailChangeDescription": "Enter a new email address and a password, and we'll send you a link to change your email.",
   "settingsChangeEmailAddress": "Change email address",
   "settingsChangeEmailAddressSuccess": "A confirmation email has been sent to your new address. Please follow the link inside to activate it.",

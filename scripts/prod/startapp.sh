@@ -17,5 +17,7 @@ cd /app/
 source venv/bin/activate
 
 export NEXT_PUBLIC_APP_URL="http://localhost:$PORT"
-(gunicorn metaculus_web.wsgi:application --bind 0.0.0.0:8000 2>&1 | sed 's/^/[Backend]: /') &
+export UV_THREADPOOL_SIZE=6
+export NODE_OPTIONS="--max-old-space-size=2048"
+(gunicorn metaculus_web.wsgi:application --bind 0.0.0.0:8000 --workers 4 --threads 8 --timeout 25 2>&1 | sed 's/^/[Backend]: /') &
 (cd front_end && npm run start 2>&1 | sed 's/^/[Frontend]: /')
