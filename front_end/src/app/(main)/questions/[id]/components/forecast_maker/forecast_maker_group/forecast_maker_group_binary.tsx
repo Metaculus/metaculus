@@ -38,6 +38,7 @@ import {
 } from "../binary_slider";
 import ForecastChoiceOption from "../forecast_choice_option";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { useServerAction } from "@/hooks/use_server_action";
 
 type QuestionOption = {
   id: number;
@@ -66,7 +67,6 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-
   const { id: postId, user_permission: permission } = post;
 
   const prevForecastValuesMap = useMemo(
@@ -99,7 +99,6 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     );
   }, [permission, prevForecastValuesMap, questions]);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
   const questionsToSubmit = useMemo(
     () =>
@@ -108,7 +107,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       ),
     [questionOptions]
   );
-  const submitIsAllowed = !isSubmitting && !!questionsToSubmit.length;
+  
   const isPickerDirty = useMemo(
     () => questionOptions.some((option) => option.isDirty),
     [questionOptions]
@@ -141,7 +140,6 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       return;
     }
 
-    setIsSubmitting(true);
     const response = await createForecasts(
       postId,
       questionsToSubmit.map((q) => {
@@ -163,9 +161,6 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     setQuestionOptions((prev) =>
       prev.map((prevQuestion) => ({ ...prevQuestion, isDirty: false }))
     );
-    setTimeout(() => {
-      setIsSubmitting(false);
-    }, 1500);
 
     const errors: ErrorResponse[] = [];
     if (response && "errors" in response && !!response.errors) {
@@ -177,7 +172,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       setSubmitErrors(errors);
     }
   }, [postId, questionsToSubmit]);
-
+  const [submit, isPending] = useServerAction(handlePredictSubmit);
+  const submitIsAllowed = !isPending && !!questionsToSubmit.length;
   return (
     <>
       <table className="mt-3 border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
@@ -255,7 +251,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
                 <Button
                   variant="primary"
                   type="submit"
-                  onClick={handlePredictSubmit}
+                  onClick={submit}
                   disabled={!submitIsAllowed}
                 >
                   {t("saveChange")}
@@ -272,7 +268,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
             )}
           </div>
           <div className="h-[32px] w-full">
-            {isSubmitting && <LoadingIndicator />}
+            {isPending && <LoadingIndicator />}
           </div>
         </>
       )}

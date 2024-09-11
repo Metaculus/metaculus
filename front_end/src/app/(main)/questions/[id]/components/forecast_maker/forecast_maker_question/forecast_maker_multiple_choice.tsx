@@ -20,8 +20,6 @@ import {
   UserForecastHistory,
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
-import { extractPrevMultipleChoicesForecastValue } from "@/utils/forecasts";
-import { sortMultipleChoicePredictions } from "@/utils/questions";
 
 import {
   BINARY_FORECAST_PRECISION,
@@ -31,6 +29,7 @@ import {
 import ForecastChoiceOption from "../forecast_choice_option";
 import QuestionResolutionButton from "../resolution";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { useServerAction } from "@/hooks/use_server_action";
 
 type ChoiceOption = {
   name: string;
@@ -82,7 +81,6 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const remainingSum = forecastsSum ? 100 - forecastsSum : null;
   const isForecastValid = forecastHasValues && forecastsSum === 100;
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
 
   const resetForecasts = useCallback(() => {
@@ -155,7 +153,6 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     );
   };
 
-  const submitIsAllowed = !isSubmitting && isDirty && isForecastValid;
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
 
@@ -174,7 +171,6 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       );
     });
 
-    setIsSubmitting(true);
     const response = await createForecasts(postId, [
       {
         questionId: question.id,
@@ -189,11 +185,9 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors[0]);
     }
-    setTimeout(() => {
-      setIsSubmitting(false);
-    }, 1500);
   };
-
+  const [submit, isPending] = useServerAction(handlePredictSubmit);
+  const submitIsAllowed = !isPending && isDirty && isForecastValid;
   return (
     <>
       <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
@@ -280,7 +274,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               variant="primary"
               type="submit"
               disabled={!submitIsAllowed}
-              onClick={handlePredictSubmit}
+              onClick={submit}
             >
               {user ? t("saveChange") : t("signUpToPredict")}
             </Button>
@@ -288,9 +282,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         )}
         <FormErrorMessage errors={submitError} />
       </div>
-      <div className="h-[32px] w-full">
-        {isSubmitting && <LoadingIndicator />}
-      </div>
+      <div className="h-[32px] w-full">{isPending && <LoadingIndicator />}</div>
       <div className="flex flex-col items-center justify-center">
         <QuestionResolutionButton question={question} permission={permission} />
       </div>

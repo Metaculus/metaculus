@@ -22,6 +22,7 @@ import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
 import QuestionResolutionButton from "../resolution";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { useServerAction } from "@/hooks/use_server_action";
 
 type Props = {
   postId: number;
@@ -44,11 +45,7 @@ const ForecastMakerContinuous: FC<Props> = ({
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
-
-  const submitIsAllowed = !isSubmitting && isDirty;
 
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
   const t = useTranslations();
@@ -93,7 +90,6 @@ const ForecastMakerContinuous: FC<Props> = ({
   };
 
   const handlePredictSubmit = async () => {
-    setIsSubmitting(true);
     const response = await createForecasts(postId, [
       {
         questionId: question.id,
@@ -113,11 +109,9 @@ const ForecastMakerContinuous: FC<Props> = ({
     }
 
     setIsDirty(false);
-    setTimeout(() => {
-      setIsSubmitting(false);
-    }, 1500);
   };
-
+  const [submit, isPending] = useServerAction(handlePredictSubmit);
+  const submitIsAllowed = !isPending && isDirty;
   return (
     <>
       <ContinuousSlider
@@ -148,7 +142,7 @@ const ForecastMakerContinuous: FC<Props> = ({
                 <Button
                   variant="primary"
                   type="submit"
-                  onClick={handlePredictSubmit}
+                  onClick={submit}
                   disabled={!submitIsAllowed}
                 >
                   {t("saveChange")}
@@ -164,7 +158,7 @@ const ForecastMakerContinuous: FC<Props> = ({
               </Button>
             )}
           </div>
-          <div className="h-[32px]">{isSubmitting && <LoadingIndicator />}</div>
+          <div className="h-[32px]">{isPending && <LoadingIndicator />}</div>
         </>
       )}
       {predictionMessage && (

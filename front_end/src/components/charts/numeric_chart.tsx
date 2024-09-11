@@ -107,7 +107,16 @@ const NumericChart: FC<Props> = ({
         width: chartWidth,
         zoom,
       }),
-    [height, chartWidth, zoom, aggregations]
+    [
+      height,
+      chartWidth,
+      zoom,
+      aggregations,
+      actualCloseTime,
+      myForecasts,
+      questionType,
+      scaling,
+    ]
   );
 
   const prevWidth = usePrevious(chartWidth);

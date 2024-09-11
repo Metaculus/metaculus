@@ -20,6 +20,7 @@ import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import QuestionResolutionButton from "../resolution";
 import { useRouter } from "next/navigation";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { useServerAction } from "@/hooks/use_server_action";
 
 type Props = {
   postId: number;
@@ -53,7 +54,6 @@ const ForecastMakerBinary: FC<Props> = ({
 
   const [isForecastDirty, setIsForecastDirty] = useState(false);
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ErrorResponse>();
 
   useEffect(() => {
@@ -72,7 +72,6 @@ const ForecastMakerBinary: FC<Props> = ({
 
     const forecastValue = round(forecast / 100, BINARY_FORECAST_PRECISION);
 
-    setIsSubmitting(true);
     const response = await createForecasts(postId, [
       {
         questionId: question.id,
@@ -88,11 +87,8 @@ const ForecastMakerBinary: FC<Props> = ({
     if (response && "errors" in response && !!response.errors) {
       setSubmitError(response.errors[0]);
     }
-    setTimeout(() => {
-      setIsSubmitting(false);
-    }, 1500);
   };
-
+  const [submit, isPending] = useServerAction(handlePredictSubmit);
   return (
     <>
       <BinarySlider
@@ -113,16 +109,15 @@ const ForecastMakerBinary: FC<Props> = ({
       <div className="flex flex-col items-center justify-center">
         {canPredict && (
           <>
-            {" "}
             <Button
               variant="primary"
-              disabled={!!user && (!isForecastDirty || isSubmitting)}
-              onClick={handlePredictSubmit}
+              disabled={!!user && (!isForecastDirty || isPending)}
+              onClick={submit}
             >
               {user ? t("predict") : t("signUpToPredict")}
             </Button>
             <div className="h-[32px] w-full">
-              {isSubmitting && <LoadingIndicator />}
+              {isPending && <LoadingIndicator />}
             </div>
           </>
         )}
