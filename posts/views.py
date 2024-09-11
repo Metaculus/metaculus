@@ -1,13 +1,10 @@
-import os
-import tempfile
-from datetime import timedelta
-from io import BytesIO
+import requests
+import logging
 
-import django
-import django.utils
-from PIL import Image
 from django.core.files.storage import default_storage
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
+from django.conf import settings
+from django.http import HttpResponse, HttpResponseNotFound
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -16,6 +13,8 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
+
+from utils.frontend import build_question_embed_url
 
 from misc.services.itn import get_post_get_similar_articles
 from posts.models import (
@@ -551,42 +550,40 @@ def post_preview_image(request: Request, pk):
     # Check permissions
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
-    filename = f"preview-post-{pk}.png"
 
-    if not post.preview_image_generated_at or post.preview_image_generated_at < (
-        django.utils.timezone.now() - timedelta(hours=6)
-    ):
-        # This has to happen where because once we're in the playwright sync context the connection is invalidated
-        post.preview_image_generated_at = django.utils.timezone.now()
-        post.save()
-        from playwright.sync_api import sync_playwright
+    headers = {"api_key": settings.SCREENSHOT_SERVICE_API_KEY}
+    width = 1200
+    height = 630
+    theme = "dark"
 
-        with sync_playwright() as p:
+    image_url = f"{build_question_embed_url(pk)}/?ENFORCED_THEME_PARAM={theme}&HIDE_ZOOM_PICKER=true&non-interactive=true"
 
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page(viewport={"width": 1200, "height": 630})
+    try:
+        logging.error(f"elis, making a request; {image_url}")
+        response = requests.post(
+            f"{settings.SCREENSHOT_SERVICE_API_URL}/",
+            json={
+                "url": image_url,
+                "selector": "#id-used-by-screenshot-donot-change",
+                "selector_to_wait": "#id-logo-used-by-screenshot-donot-change",
+                "width": width,
+                "height": height,
+            },
+            headers=headers,
+        )
+        if response.ok:
+            image_data = response.content
+            return HttpResponse(image_data, content_type="image/png")
+        else:
+            logging.error(
+                "Screenshot service failed status_code=%s response=%s",
+                response.status_code,
+                response.content.decode("utf-8"),
+            )
 
-            origin = os.getenv("NEXT_PUBLIC_APP_URL", "http://localhost:3000")
+    except Exception:
+        logging.exception("Image generation failed question_id=%s", pk)
 
-            url = f"{origin}/embed/questions/{pk}?ENFORCED_THEME_PARAM=dark&HIDE_ZOOM_PICKER=true&non-interactive=true"
-            page.goto(url)
-            page.wait_for_load_state("networkidle")
-
-            element = page.query_selector("#id-used-by-screenshot-donot-change")
-
-            if not element:
-                browser.close()
-                return Response("Element not found", status=404)
-
-            screenshot = element.screenshot(type="png")
-            image = Image.open(BytesIO(screenshot))
-            temp_file = tempfile.NamedTemporaryFile(suffix=".png", delete=False)
-            image.save(temp_file, "PNG")
-            default_storage.save(filename, temp_file, max_length=100)
-            browser.close()
-
-    file_url = default_storage.url(filename)
-    return redirect(file_url)
-    # Do this in case redirects end up not working:
-    # response = requests.get(file_url)
-    # return HttpResponse(response.content, content_type='image/png')  #
+    return HttpResponseNotFound(
+        "HTTP 404 - Chart for this question cannot be generated."
+    )
