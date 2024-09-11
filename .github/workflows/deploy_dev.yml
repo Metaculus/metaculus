@@ -1,4 +1,4 @@
-name: Deploy dev.meteaculus.com (staging)
+name: Deploy dev.metaculus.com (staging)
 
 on:
   workflow_dispatch:
