@@ -4,7 +4,7 @@ from datetime import datetime
 from scipy.stats.mstats import gmean
 import numpy as np
 
-from utils.the_math.community_prediction import get_aggregation_history
+from utils.the_math.aggregations import get_aggregation_history
 from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.models import Score

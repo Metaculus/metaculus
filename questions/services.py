@@ -23,8 +23,7 @@ from questions.models import (
 )
 from questions.types import AggregationMethod
 from users.models import User
-from utils.the_math.community_prediction import get_aggregation_history
-from utils.the_math.single_aggregation import get_single_aggregation_history
+from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.measures import percent_point_function
 
 logger = logging.getLogger(__name__)
@@ -64,19 +63,12 @@ def build_question_forecasts(
     Builds the AggregateForecasts for a question
     Stores them in the database
     """
-    if aggregation_method == AggregationMethod.SINGLE_AGGREGATION:
-        aggregation_history = get_single_aggregation_history(
-            question,
-            minimize=True,
-            include_stats=True,
-        )
-    else:
-        aggregation_history = get_aggregation_history(
-            question,
-            aggregation_method=aggregation_method,
-            minimize=True,
-            include_stats=True,
-        )["recency_weighted"]
+    aggregation_history = get_aggregation_history(
+        question,
+        aggregation_methods=[aggregation_method],
+        minimize=True,
+        include_stats=True,
+    )[aggregation_method]
 
     # overwrite old history with new history, minimizing the amount deleted and created
     previous_history = question.aggregate_forecasts.filter(method=aggregation_method)

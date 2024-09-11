@@ -10,7 +10,6 @@ Normalise to 1 over all outcomes.
 """
 
 from bisect import bisect_left, bisect_right
-from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -20,6 +19,7 @@ from django.db.models import Q
 from questions.models import Question, Forecast, AggregateForecast
 from questions.types import AggregationMethod
 from scoring.reputation import (
+    get_reputations_at_time,
     get_reputations_during_interval,
     Reputation,
 )
@@ -66,7 +66,7 @@ def compute_weighted_semi_standard_deviations(
     forecasts_values: ForecastsValues,
     weights: Weights,
 ) -> tuple[ForecastValues, ForecastValues]:
-    """returns the upper and lower semivariances"""
+    """returns the upper and lower standard_deviations"""
     average = np.average(forecasts_values, axis=0, weights=weights)
     lower_semivariances = np.zeros(forecasts_values.shape[1])
     upper_semivariances = np.zeros(forecasts_values.shape[1])
@@ -74,14 +74,17 @@ def compute_weighted_semi_standard_deviations(
         lower_mask = forecasts_values[:, i] < average[i]
         lower_semivariances[i] = np.average(
             (average[i] - forecasts_values[:, i][lower_mask]) ** 2,
-            weights=weights[lower_mask],
+            weights=weights[lower_mask] if weights[lower_mask].size else None,
         )
         upper_mask = forecasts_values[:, i] > average[i]
         upper_semivariances[i] = np.average(
             (forecasts_values[:, i][upper_mask] - average[i]) ** 2,
-            weights=weights[upper_mask],
+            weights=weights[upper_mask] if weights[upper_mask].size else None,
         )
-    return np.sqrt(lower_semivariances).tolist(), np.sqrt(upper_semivariances).tolist()
+    # replace nans with 0s
+    lower_semivariances = np.nan_to_num(lower_semivariances)
+    upper_semivariances = np.nan_to_num(upper_semivariances)
+    return np.sqrt(lower_semivariances), np.sqrt(upper_semivariances)
 
 
 @dataclass
@@ -107,7 +110,7 @@ def calculate_aggregation_entry(
     ):
         aggregation = AggregateForecast(
             forecast_values=np.average(
-                forecast_set.forecast_values, axis=0, weights=weights
+                forecast_set.forecasts_values, axis=0, weights=weights
             ).tolist()
         )
     else:
@@ -123,9 +126,11 @@ def calculate_aggregation_entry(
         if question_type in ["binary", "multiple_choice"]:
             if method == AggregationMethod.SINGLE_AGGREGATION:
                 centers = aggregation.forecast_values
-                lowers, uppers = compute_weighted_semi_standard_deviations(
+                lowers_sd, uppers_sd = compute_weighted_semi_standard_deviations(
                     forecasts_values, weights
                 )
+                lowers = (np.array(centers) - lowers_sd).tolist()
+                uppers = (np.array(centers) + uppers_sd).tolist()
             else:
                 lowers, centers, uppers = compute_discrete_forecast_values(
                     forecast_set.forecasts_values, weights, [25.0, 50.0, 75.0]
@@ -151,44 +156,60 @@ def calculate_aggregation_entry(
     return aggregation
 
 
-def get_aggregation_at_time(
+def get_aggregations_at_time(
     question: Question,
     time: datetime,
+    aggregation_methods: list[AggregationMethod],
+    user_ids: list[int] | None = None,
     include_stats: bool = False,
     histogram: bool = False,
-    aggregation_method: AggregationMethod = AggregationMethod.RECENCY_WEIGHTED,
     include_bots: bool = False,
-) -> AggregateForecast | None:
+) -> dict[AggregationMethod, AggregateForecast]:
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
     and q3s"""
     forecasts = question.user_forecasts.filter(
         Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
     ).order_by("start_time")
+    if user_ids:
+        forecasts = forecasts.filter(author_id__in=user_ids)
     if not include_bots:
         forecasts = forecasts.exclude(author__is_bot=True)
     if forecasts.count() == 0:
-        return None
+        return dict()
     forecast_set = ForecastSet(
-        [forecast.get_prediction_values() for forecast in forecasts],
+        forecasts_values=[forecast.get_prediction_values() for forecast in forecasts],
         timestep=time,
+        users=[forecast.author for forecast in forecasts],
+        timesteps=[forecast.start_time for forecast in forecasts],
     )
-    weights = (
-        None
-        if aggregation_method == AggregationMethod.UNWEIGHTED
-        else generate_recency_weights(len(forecast_set.forecasts_values))
-    )
-    aggregation_entry = calculate_aggregation_entry(
-        forecast_set, question.type, weights, include_stats, histogram
-    )
-    return aggregation_entry
 
-
-def filter_between_dates(timestamps, start_time, end_time=None):
-    # Use bisect to find the start & end indexes
-    start_index = bisect_left(timestamps, start_time)
-    end_index = bisect_right(timestamps, end_time) - 1 if end_time else len(timestamps)
-
-    return timestamps[start_index:end_index]
+    aggregations: dict[AggregationMethod, AggregateForecast] = dict()
+    for method in aggregation_methods:
+        match method:
+            case AggregationMethod.RECENCY_WEIGHTED:
+                weights = generate_recency_weights(len(forecast_set.forecasts_values))
+            case AggregationMethod.UNWEIGHTED:
+                weights = None
+            case AggregationMethod.SINGLE_AGGREGATION:
+                repuatations = get_reputations_at_time(forecast_set.users, time)
+                weights = calculate_single_aggregation_weights(
+                    forecast_set,
+                    repuatations,
+                    question.open_time,
+                    question.scheduled_close_time,
+                )
+        new_entry: AggregateForecast = calculate_aggregation_entry(
+            forecast_set,
+            question.type,
+            weights,
+            method=method,
+            include_stats=include_stats,
+            histogram=histogram,
+        )
+        new_entry.question = question
+        new_entry.method = method
+        aggregations["method"] = new_entry
+    return aggregations
 
 
 def minimize_history(
@@ -243,40 +264,38 @@ def get_user_forecast_history(
     forecasts: list[Forecast],
     minimize: bool = False,
 ) -> list[ForecastSet]:
-
-    timestamps = set()
+    timesteps = set()
     for forecast in forecasts:
-        timestamps.add(forecast.start_time)
+        timesteps.add(forecast.start_time)
         if forecast.end_time:
-            timestamps.add(forecast.end_time)
+            timesteps.add(forecast.end_time)
 
-    timestamps = sorted(timestamps)
+    timesteps = sorted(timesteps)
     if minimize:
-        timestamps = minimize_history(timestamps)
-    values = defaultdict(list)
-    users = defaultdict(list)
-    timesteps = defaultdict(list)
+        timesteps = minimize_history(timesteps)
 
+    forecast_sets: dict[datetime, ForecastSet] = dict()
     for forecast in forecasts:
-        # Find active timestamps
-        forecast_timestamps = filter_between_dates(
-            timestamps, forecast.start_time, forecast.end_time
+        # Find active timesteps using bisect to find the start & end indexes
+        start_index = bisect_left(timesteps, forecast.start_time)
+        end_index = (
+            bisect_right(timesteps, forecast.end_time) - 1
+            if forecast.end_time
+            else len(timesteps)
         )
-
-        for timestamp in forecast_timestamps:
-            values[timestamp].append(forecast.get_prediction_values())
-            users[timestamp].append(forecast.author)
-            timesteps[timestamp].append(forecast.start_time)
-
-    return [
-        ForecastSet(
-            forecasts_values=values[key],
-            timestep=key,
-            users=users[key],
-            timesteps=timesteps[key],
-        )
-        for key in sorted(values.keys())
-    ]
+        forecast_values = forecast.get_prediction_values()
+        for timestep in timesteps[start_index:end_index]:
+            if timestep not in forecast_sets:
+                forecast_sets[timestep] = ForecastSet(
+                    forecasts_values=[],
+                    timestep=timestep,
+                    users=[],
+                    timesteps=[],
+                )
+            forecast_sets[timestep].forecasts_values.append(forecast_values)
+            forecast_sets[timestep].users.append(forecast.author)
+            forecast_sets[timestep].timesteps.append(forecast.start_time)
+    return sorted(list(forecast_sets.values()), key=lambda x: x.timestep)
 
 
 def generate_recency_weights(number_of_forecasts: int) -> np.ndarray:
@@ -309,18 +328,14 @@ def calculate_single_aggregation_weights(
 
 def get_aggregation_history(
     question: Question,
-    aggregation_method: (
-        AggregationMethod | list[AggregationMethod]
-    ) = AggregationMethod.RECENCY_WEIGHTED,
+    aggregation_methods: list[AggregationMethod],
     user_ids: list[int] | None = None,
     minimize: bool = True,
     include_stats: bool = True,
     include_bots: bool = False,
-) -> list[AggregateForecast]:
+    histogram: bool | None = None,
+) -> dict[AggregationMethod, list[AggregateForecast]]:
     full_summary: dict[AggregationMethod, list[AggregateForecast]] = dict()
-
-    if isinstance(aggregation_method, AggregationMethod):
-        aggregation_method = [aggregation_method]
 
     # get input forecasts
     forecasts = question.user_forecasts.order_by("start_time").all()
@@ -330,7 +345,7 @@ def get_aggregation_history(
         forecasts.exclude(author__is_bot=True)
     forecast_history = get_user_forecast_history(forecasts, minimize)
 
-    for method in aggregation_method:
+    for method in aggregation_methods:
         aggregation_history: list[AggregateForecast] = []
         match method:
             case AggregationMethod.RECENCY_WEIGHTED:
@@ -351,8 +366,6 @@ def get_aggregation_history(
 
                 def get_weights(forecast_set: ForecastSet) -> Weights | None:
                     reps = []
-                    # assume forecast_set.users is ordered the same as
-                    # foreacst_set.forecasts_values
                     for user in forecast_set.users:
                         for rep in reputations[user][::-1]:
                             if rep.time <= forecast_set.timestep:
@@ -365,9 +378,21 @@ def get_aggregation_history(
                         question.scheduled_close_time,
                     )
 
+            case AggregationMethod.METACULUS_PREDICTION:
+                full_summary[method] = list(
+                    AggregateForecast.objects.filter(
+                        question=question, method=method
+                    ).order_by("start_time")
+                )
+                continue
+
         for i, forecast_set in enumerate(forecast_history):
             weights = get_weights(forecast_set)
-            histogram = question.type == "binary" and i == (len(forecast_history) - 1)
+            histogram = (
+                histogram
+                if histogram is not None
+                else question.type == "binary" and i == (len(forecast_history) - 1)
+            )
             new_entry: AggregateForecast = calculate_aggregation_entry(
                 forecast_set,
                 question.type,
