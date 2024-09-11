@@ -10,7 +10,7 @@ python = "3.12.3"
 fastapi = "^0.109.1"
 playwright = "^1.33.0"
 python-decouple = "^3.8"
-sentry-sdk = {extras = ["fastapi"], version = "^1.22.2"}
+sentry-sdk = {extras = ["fastapi"], version = "^2.8.0"}
 uvicorn = "^0.22.0"
 
 [tool.poetry.group.dev.dependencies]
