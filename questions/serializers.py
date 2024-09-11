@@ -365,7 +365,7 @@ def serialize_question(
     """
 
     serialized_data = QuestionSerializer(question).data
-    serialized_data["post_id"] = post.id
+    serialized_data["post_id"] = post.id if post else question.get_post().id
 
     if with_cp:
         aggregate_forecasts = aggregate_forecasts or sorted(
