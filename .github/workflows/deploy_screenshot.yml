@@ -1,4 +1,4 @@
-name: Deploy the screenshots service
+name: Deploy the screenshot service
 
 on:
   workflow_dispatch:
@@ -16,4 +16,4 @@ jobs:
       - name: Build and deploy to Heroku
         run: |
           heroku container:login # uses the HEROKU_API_KEY
-          cd screenshots && ./deploy_to_heroku.sh
+          cd screenshot && ./deploy_to_heroku.sh
