@@ -107,6 +107,7 @@ class NotebookWriteSerializer(serializers.ModelSerializer):
 
 
 class PostWriteSerializer(serializers.ModelSerializer):
+    default_project = serializers.IntegerField(required=True)
     projects = PostProjectWriteSerializer(required=False)
     question = QuestionWriteSerializer(required=False)
     conditional = ConditionalWriteSerializer(required=False)
@@ -122,10 +123,21 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "question",
             "conditional",
             "group_of_questions",
-            "default_project_id",
+            "default_project",
             "notebook",
             "published_at",
         )
+
+    def get_user(self):
+        return self.context["user"]
+
+    def validate_default_project(self, value):
+        project = Project.objects.filter_permission(user=self.get_user()).filter(pk=value).first()
+
+        if not project:
+            raise ValidationError("Wrong default project id")
+
+        return project
 
 
 class PostFilterSerializer(serializers.Serializer):

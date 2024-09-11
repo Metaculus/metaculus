@@ -145,7 +145,7 @@ def get_posts_feed(
                 pk=similar_to_post_id
             )
         except Post.DoesNotExist:
-            raise ValidationError("similar_to_post does not exist")
+            return Post.objects.none()
 
         qs = qs_filter_similar_posts(qs, similar_to_post)
         order_by = "-rank"

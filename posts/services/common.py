@@ -47,6 +47,7 @@ def create_post(
     *,
     title: str = None,
     projects: dict[str, list[Project]] = None,
+    default_project: Project = None,
     question: dict = None,
     conditional: dict = None,
     group_of_questions: dict = None,
@@ -71,41 +72,26 @@ def create_post(
     elif notebook:
         obj.notebook = Notebook.objects.create(**notebook)
 
-    # Projects appending
-    # Tags, categories and topics
-    meta_projects = []
-    # Tournaments, Question Series etc.
-    main_projects = []
-
-    for project in flatten(projects.values()) if projects else []:
-        if Project.ProjectTypes.can_have_permissions(project.type):
-            main_projects.append(project)
-        else:
-            meta_projects.append(project)
-
-    # If no projects were provided,
-    # We need to append default ones
     site_main = get_site_main_project()
-    if not main_projects:
-        main_projects = [site_main]
-
-    if not obj.default_project:
-        obj.default_project = main_projects.pop(0)
+    obj.default_project = default_project = default_project or get_site_main_project
 
     # Save project and validate
     obj.full_clean()
     obj.save()
 
+    # Populating projects
+    projects = flatten(projects.values()) if projects else []
+    if default_project in projects:
+        projects.remove(default_project)
+
+    # Make post visible in the main feed
+    if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
+        projects.append(site_main)
+
+    obj.projects.add(*projects)
+
     # Sync status fields
     obj.update_pseudo_materialized_fields()
-
-    secondary_projects = meta_projects + main_projects
-
-    if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
-        secondary_projects.append(site_main)
-
-    # Adding projects
-    obj.projects.add(*secondary_projects)
 
     # Run async tasks
     from ..tasks import run_post_indexing

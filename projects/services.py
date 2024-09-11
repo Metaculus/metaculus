@@ -96,8 +96,6 @@ def invite_user_to_project(
 
 
 def subscribe_project(project: Project, user: User) -> ProjectSubscription:
-    # TODO: data migration!!!
-
     obj = ProjectSubscription(
         project=project,
         user=user,

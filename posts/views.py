@@ -190,7 +190,7 @@ def post_create_api_view(request):
     if not request.data.get("url_title", None):
         request.data["url_title"] = request.data["title"]
 
-    serializer = PostWriteSerializer(data=request.data)
+    serializer = PostWriteSerializer(data=request.data, context={"user": request.user})
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=request.user)
     if "categories" in request.data:
