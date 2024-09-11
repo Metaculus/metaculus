@@ -6,4 +6,4 @@ class MailingTags(models.TextChoices):
     COMMENT_MENTIONS = "comment_mentions"
     # Forecasted post CP change
     FORECASTED_CP_CHANGE = "cp_change"
-    NEW_TOURNAMENT_QUESTIONS = "tournament_new_questions"
+    TOURNAMENT_NEW_QUESTIONS = "tournament_new_questions"
