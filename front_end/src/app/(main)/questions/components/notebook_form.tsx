@@ -24,7 +24,7 @@ import { createQuestionPost, updatePost } from "../actions";
 const notebookSchema = z.object({
   title: z.string().min(4).max(200),
   url_title: z.string().min(4).max(60),
-  default_project_id: z.number(),
+  default_project: z.number(),
 });
 
 type Props = {
@@ -74,7 +74,7 @@ const NotebookForm: React.FC<Props> = ({
     let post_data = {
       title: data["title"],
       url_title: data["url_title"],
-      default_project_id: data["default_project_id"],
+      default_project: data["default_project"],
       categories: categoriesList.map((x) => x.id),
       news_type: news_type,
       notebook: {
@@ -105,8 +105,8 @@ const NotebookForm: React.FC<Props> = ({
       <form
         className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
-          if (!control.getValues("default_project_id")) {
-            control.setValue("default_project_id", siteMain.id);
+          if (!control.getValues("default_project")) {
+            control.setValue("default_project", siteMain.id);
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
@@ -130,7 +130,7 @@ const NotebookForm: React.FC<Props> = ({
             siteMain={siteMain}
             currentProject={defaultProject}
             onChange={(project) => {
-              control.setValue("default_project_id", project.id);
+              control.setValue("default_project", project.id);
             }}
           />
         </InputContainer>

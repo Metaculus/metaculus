@@ -30,7 +30,7 @@ type PostCreationData = {
   title: string;
   categories: number[];
   question: any;
-  default_project_id: number;
+  default_project: number;
 };
 
 const baseQuestionSchema = z.object({
@@ -42,7 +42,7 @@ const baseQuestionSchema = z.object({
   fine_print: z.string(),
   scheduled_close_time: z.date(),
   scheduled_resolve_time: z.date(),
-  default_project_id: z.nullable(z.union([z.number(), z.string()])),
+  default_project: z.nullable(z.union([z.number(), z.string()])),
 });
 
 const binaryQuestionSchema = baseQuestionSchema;
@@ -145,7 +145,7 @@ const QuestionForm: FC<Props> = ({
 
     let post_data: PostCreationData = {
       title: data["title"],
-      default_project_id: data["default_project_id"],
+      default_project: data["default_project"],
       categories: categoriesList.map((x) => x.id),
       question: data,
     };
@@ -199,8 +199,8 @@ const QuestionForm: FC<Props> = ({
       </div>
       <form
         onSubmit={async (e) => {
-          if (!control.getValues("default_project_id")) {
-            control.setValue("default_project_id", siteMain.id);
+          if (!control.getValues("default_project")) {
+            control.setValue("default_project", siteMain.id);
           }
 
           // e.preventDefault(); // Good for debugging
@@ -230,7 +230,7 @@ const QuestionForm: FC<Props> = ({
             siteMain={siteMain}
             currentProject={defaultProject}
             onChange={(project) => {
-              control.setValue("default_project_id", project.id);
+              control.setValue("default_project", project.id);
             }}
           />
         </InputContainer>
