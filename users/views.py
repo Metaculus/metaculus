@@ -15,7 +15,7 @@ from rest_framework.response import Response
 
 from comments.models import Comment
 from posts.models import Post
-from questions.models import Forecast, Question
+from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.models import Score
 from users.models import User
@@ -68,6 +68,7 @@ def get_score_scatter_plot_data(
             score_qs = score_qs.filter(aggregation_method=aggregation_method)
         scores = list(score_qs)
 
+    scores = sorted(scores, key=lambda s: s.edited_at)
     score_scatter_plot = []
     for score in scores:
         score_scatter_plot.append(
@@ -152,14 +153,19 @@ def get_calibration_curve_data(
     ):
         raise ValueError("Either user or aggregation_method must be provided only")
     public_questions = Question.objects.filter_public()
-    forecasts = Forecast.objects.filter(
-        question__in=public_questions,
-        question__type="binary",
-        question__resolution__in=["no", "yes"],
-    )
     if user is not None:
-        forecasts = forecasts.filter(author=user)
-    forecasts = forecasts.prefetch_related("question")
+        forecasts = Forecast.objects.filter(
+            question__in=public_questions,
+            question__type="binary",
+            question__resolution__in=["no", "yes"],
+            author=user,
+        ).prefetch_related("question")
+    else:
+        forecasts = AggregateForecast.objects.filter(
+            question__in=public_questions,
+            question__type="binary",
+            question__resolution__in=["no", "yes"],
+        ).prefetch_related("question")
 
     values = []
     weights = []
@@ -179,12 +185,38 @@ def get_calibration_curve_data(
         question_duration = forecast_horizon_end - forecast_horizon_start
         weight = forecast_duration / question_duration
 
-        values.append(forecast.probability_yes)
+        if isinstance(forecast, Forecast):
+            values.append(forecast.probability_yes)
+        else:
+            values.append(forecast.forecast_values[1])
+
         weights.append(weight)
         resolutions.append(int(question.resolution == "yes"))
 
     calibration_curve = []
-    for p_min, p_max in [(x / 20, x / 20 + 0.05) for x in range(20)]:
+    for p_min, p_max in [
+        (0.0, 0.025),
+        (0.025, 0.075),
+        (0.075, 0.125),
+        (0.125, 0.175),
+        (0.175, 0.225),
+        (0.225, 0.275),
+        (0.275, 0.325),
+        (0.325, 0.375),
+        (0.375, 0.425),
+        (0.425, 0.475),
+        (0.475, 0.525),
+        (0.525, 0.575),
+        (0.575, 0.625),
+        (0.625, 0.675),
+        (0.675, 0.725),
+        (0.725, 0.775),
+        (0.775, 0.825),
+        (0.825, 0.875),
+        (0.875, 0.925),
+        (0.925, 0.975),
+        (0.975, 1.0),
+    ]:
         res = []
         ws = []
         bin_center = p_min + 0.025
