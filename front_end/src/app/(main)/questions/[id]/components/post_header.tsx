@@ -41,21 +41,13 @@ export default function PostHeader({
     (post.user_permission === ProjectPermissions.CREATOR &&
       post.status === PostStatus.APPROVED);
 
-  const canSendBackToDrafts =
-    post.status === PostStatus.PENDING &&
-    [
-      ProjectPermissions.CURATOR,
-      ProjectPermissions.ADMIN,
-      ProjectPermissions.CREATOR,
-    ].includes(post.user_permission);
-  const canSubmitForReview =
-    post.status === PostStatus.DRAFT &&
-    [
-      ProjectPermissions.CURATOR,
-      ProjectPermissions.ADMIN,
-      ProjectPermissions.CREATOR,
-    ].includes(post.user_permission);
-  const canEdit = canSendBackToDrafts;
+  const canEdit = [
+    ProjectPermissions.CURATOR,
+    ProjectPermissions.ADMIN,
+    ProjectPermissions.CREATOR,
+  ].includes(post.user_permission);
+  const canSendBackToDrafts = post.status === PostStatus.PENDING && canEdit;
+  const canSubmitForReview = post.status === PostStatus.DRAFT && canEdit;
   const canApprove = [
     ProjectPermissions.CURATOR,
     ProjectPermissions.ADMIN,
