@@ -22,6 +22,7 @@ import { TrackRecordScatterPlotItem } from "@/types/track_record";
 import { generateNumericDomain, generateTimestampXScale } from "@/utils/charts";
 
 import TrackRecordChartHero from "../track_record_chart_hero";
+import Link from "next/link";
 
 type HistogramProps = {
   score_scatter_plot: TrackRecordScatterPlotItem[];
@@ -35,7 +36,7 @@ const ScatterPlot: React.FC<HistogramProps> = ({
   const t = useTranslations();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-
+  console.log(score_scatter_plot);
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
@@ -219,9 +220,12 @@ const ScatterPlot: React.FC<HistogramProps> = ({
       <div className="ml-16 mr-7 min-h-[80px] text-sm">
         {hoverData ? (
           <>
-            <div className="text-center underline">
+            <Link
+              href={`/question/${hoverData.question_id}`}
+              className="block text-center underline"
+            >
               {hoverData.question_title}
-            </div>
+            </Link>
             <div className="text-center capitalize">
               {t("resolutionLabel")} {hoverData.question_resolution}
             </div>
