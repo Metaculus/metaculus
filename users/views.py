@@ -228,6 +228,9 @@ def get_calibration_curve_data(
         lower_quartile = binom.ppf(0.05, max([len(res), 1]), bin_center) / max(
             [len(res), 1]
         )
+        perfect_calibration = binom.ppf(0.50, max([len(res), 1]), bin_center) / max(
+            [len(res), 1]
+        )
         upper_quartile = binom.ppf(0.95, max([len(res), 1]), bin_center) / max(
             [len(res), 1]
         )
@@ -237,7 +240,7 @@ def get_calibration_curve_data(
                 "lower_quartile": lower_quartile,
                 "middle_quartile": middle_quartile,
                 "upper_quartile": upper_quartile,
-                "perfect_calibration": bin_center,
+                "perfect_calibration": perfect_calibration,
             }
         )
 

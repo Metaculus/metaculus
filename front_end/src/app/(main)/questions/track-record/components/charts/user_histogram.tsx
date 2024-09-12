@@ -13,7 +13,6 @@ import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import useAppTheme from "@/hooks/use_app_theme";
 import { TrackRecordHistogramItem } from "@/types/track_record";
 
-import TrackRecordChartHero from "../track_record_chart_hero";
 import dynamic from "next/dynamic";
 import { range } from "lodash";
 import { generateTicksY } from "@/utils/charts";
@@ -58,18 +57,9 @@ const UserHistogram: React.FC<HistogramProps> = ({
     desiredMajorTicks,
     desiredMajorTickDistance
   );
-  
-  const averageScore = useMemo(() => {
-    const sum = histogramData.reduce((acc, { y }) => acc + y, 0);
-    return Math.round((sum / histogramData.length) * 1000) / 1000;
-  }, [histogramData]);
+
   return (
     <>
-      <TrackRecordChartHero
-        totalQuestions={histogramData.length.toString()}
-        averageScore={averageScore.toString()}
-      />
-
       <VictoryChart
         theme={chartTheme}
         domain={{
