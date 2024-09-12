@@ -36,7 +36,7 @@ const ScatterPlot: React.FC<HistogramProps> = ({
   const t = useTranslations();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-  console.log(score_scatter_plot);
+
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
