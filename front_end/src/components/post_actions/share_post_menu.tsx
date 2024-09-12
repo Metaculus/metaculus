@@ -58,7 +58,7 @@ export const SharePostMenu: FC<Props> = ({ questionTitle, questionId }) => {
               {
                 id: "image",
                 name: t("image"),
-                link: `/api/posts/preview-image/${questionId}`,
+                link: `${process.env.NEXT_PUBLIC_CDN_DOMAIN_NAME ?? ""}/api/posts/preview-image/${questionId}`,
                 openNewTab: true,
               },
             ]
