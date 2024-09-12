@@ -103,20 +103,19 @@ export function getNumericForecastDataset(
   const normalizedWeights = weights.map(
     (x) => x / weights.reduce((a, b) => a + b)
   );
-  const componentCdfs = forecast
-    .map((component) =>
-      cdfFromSliders(
-        component.left,
-        component.center,
-        component.right,
-        lowerOpen,
-        upperOpen
-      )
-    )
-    .map(
-      (component, index) =>
-        math.multiply(component, normalizedWeights[index]) as number[]
-    );
+  const componentCdfs = forecast.map(
+    (component, index) =>
+      math.multiply(
+        cdfFromSliders(
+          component.left,
+          component.center,
+          component.right,
+          lowerOpen,
+          upperOpen
+        ),
+        normalizedWeights[index]
+      ) as number[]
+  );
   let cdf = componentCdfs.reduce((acc, componentCdf) =>
     math.add(acc, componentCdf)
   );
