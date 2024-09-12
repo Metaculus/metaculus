@@ -27,8 +27,8 @@ from questions.services import (
 from questions.types import AggregationMethod
 from users.models import User
 from utils.models import model_update
-from utils.the_math.measures import prediction_difference_for_sorting
 from utils.the_math.aggregations import get_aggregations_at_time
+from utils.the_math.measures import prediction_difference_for_sorting
 from .subscriptions import notify_post_status_change
 from ..tasks import run_notify_post_status_change
 

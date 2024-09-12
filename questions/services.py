@@ -24,10 +24,8 @@ from questions.models import (
 from questions.types import AggregationMethod
 from users.models import User
 from utils.models import model_update
-from utils.the_math.community_prediction import get_cp_history
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.measures import percent_point_function
-from utils.the_math.single_aggregation import get_single_aggregation_history
 
 logger = logging.getLogger(__name__)
 
