@@ -24,10 +24,11 @@ from questions.services import (
     update_group_of_questions,
     update_notebook,
 )
+from questions.types import AggregationMethod
 from users.models import User
 from utils.models import model_update
-from utils.the_math.community_prediction import get_aggregation_at_time
 from utils.the_math.measures import prediction_difference_for_sorting
+from utils.the_math.aggregations import get_aggregations_at_time
 from .subscriptions import notify_post_status_change
 from ..tasks import run_notify_post_status_change
 
@@ -183,11 +184,14 @@ def get_post_permission_for_user(post: Post, user: User = None) -> ObjectPermiss
 def compute_movement(post: Post) -> float | None:
     questions = post.get_questions()
     movement = None
+    now = timezone.now()
     for question in questions:
-        cp_now = get_aggregation_at_time(question, timezone.now())
-        cp_previous = get_aggregation_at_time(
-            question, timezone.now() - timezone.timedelta(days=7)
-        )
+        cp_now = get_aggregations_at_time(
+            question, now, AggregationMethod.RECENCY_WEIGHTED
+        )[AggregationMethod.RECENCY_WEIGHTED]
+        cp_previous = get_aggregations_at_time(
+            question, now - timedelta(days=7), AggregationMethod.RECENCY_WEIGHTED
+        )[AggregationMethod.RECENCY_WEIGHTED]
         if cp_now is None or cp_previous is None:
             continue
         difference = prediction_difference_for_sorting(
@@ -206,7 +210,9 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
     questions = post.get_questions()
     now = timezone.now()
     for question in questions:
-        cp = get_aggregation_at_time(question, now)
+        cp = get_aggregations_at_time(
+            question, now, AggregationMethod.RECENCY_WEIGHTED
+        )[AggregationMethod.RECENCY_WEIGHTED]
         if cp is None:
             continue
 

@@ -1,4 +1,5 @@
 "use client";
+
 import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { isNil } from "lodash";
@@ -53,48 +54,42 @@ const MultipleChoiceTile: FC<Props> = ({
     !isNil(question?.resolution) &&
     choices.every((choice) => isNil(choice.resolution));
 
-  const renderSideInfo = () => {
-    if (isResolvedView) {
-      return (
-        <PredictionChip question={question} status={PostStatus.RESOLVED} />
-      );
-    }
-
-    return (
-      <div className="embed-gap flex flex-col gap-2">
-        {visibleChoices.map(
-          ({ choice, color, values, resolution, displayedResolution }) => (
-            <ChoiceOption
-              key={`choice-option-${choice}`}
-              choice={choice}
-              color={color}
-              values={values}
-              resolution={resolution}
-              displayedResolution={displayedResolution}
-            />
-          )
-        )}
-        {otherItemsCount > 0 && (
-          <div className="flex flex-row text-gray-600 dark:text-gray-600-dark">
-            <div className="self-center py-0 pr-1.5 text-center">
-              <FontAwesomeIcon
-                icon={faEllipsis}
-                size="xl"
-                className="resize-ellipsis"
-              />
-            </div>
-            <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-medium leading-4">
-              {t("otherWithCount", { count: otherItemsCount })}
-            </div>
+  return (
+    <div className="MultipleChoiceTile ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 pr-1 xs:grid">
+      <div className="resize-container">
+        {isResolvedView ? (
+          <PredictionChip question={question} status={PostStatus.RESOLVED} />
+        ) : (
+          <div className="embed-gap flex flex-col gap-2">
+            {visibleChoices.map(
+              ({ choice, color, values, resolution, displayedResolution }) => (
+                <ChoiceOption
+                  key={`choice-option-${choice}`}
+                  choice={choice}
+                  color={color}
+                  values={values}
+                  resolution={resolution}
+                  displayedResolution={displayedResolution}
+                />
+              )
+            )}
+            {otherItemsCount > 0 && (
+              <div className="flex flex-row text-gray-600 dark:text-gray-600-dark">
+                <div className="self-center py-0 pr-1.5 text-center">
+                  <FontAwesomeIcon
+                    icon={faEllipsis}
+                    size="xl"
+                    className="resize-ellipsis"
+                  />
+                </div>
+                <div className="resize-label whitespace-nowrap px-1.5 py-0.5 text-left text-sm font-medium leading-4">
+                  {t("otherWithCount", { count: otherItemsCount })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
-    );
-  };
-
-  return (
-    <div className="MultipleChoiceTile ml-0 mr-2 flex w-full grid-cols-[200px_auto] flex-col items-start gap-3 p-1 pl-0 xs:grid">
-      <div className="resize-container">{renderSideInfo()}</div>
       {!isResolvedView && (
         <MultipleChoiceChart
           timestamps={timestamps}

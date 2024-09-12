@@ -3,6 +3,11 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 import { VictoryThemeDefinition } from "victory";
 
+import ConditionalCard from "./conditional_card";
+import ConditionalChart from "./conditional_chart";
+import Arrow from "./icons/Arrow";
+import DisabledArrow from "./icons/DisabledArrow";
+
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import PredictionChip from "@/components/prediction_chip";
 import { PostConditional, PostStatus } from "@/types/post";
@@ -11,11 +16,6 @@ import {
   getConditionalQuestionTitle,
   getConditionTitle,
 } from "@/utils/questions";
-
-import ConditionalCard from "./conditional_card";
-import ConditionalChart from "./conditional_chart";
-import Arrow from "./icons/Arrow";
-import DisabledArrow from "./icons/DisabledArrow";
 
 type Props = {
   postTitle: string;
@@ -60,7 +60,7 @@ const ConditionalTile: FC<Props> = ({
     question_no.resolution === "ambiguous";
 
   return (
-    <div className="ConditionalSummary my-4 grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
+    <div className="ConditionalSummary grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
       <div
         className={classNames(
           "ConditionalSummary-condition flex flex-col justify-center",

@@ -3,7 +3,7 @@ from django.template.defaultfilters import slugify
 
 from utils.frontend import (
     build_frontend_url as _build_frontend_url,
-    build_question_graph_image_url as _build_question_graph_image_url,
+    build_question_graph_image_cdn_url as _build_question_graph_image_url,
 )
 
 register = template.Library()

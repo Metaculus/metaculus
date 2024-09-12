@@ -6,11 +6,13 @@ on:
 jobs:
   deploy-to-prod:
     runs-on: ubuntu-latest
+    environment: prod_env
     env:
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       HEROKU_APP: metaculus-web
       NEXT_PUBLIC_APP_URL: "https://beta.metaculus.com"
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+      NEXT_PUBLIC_CDN_DOMAIN_NAME: ${{ vars.NEXT_PUBLIC_CDN_DOMAIN_NAME }}
 
     steps:
       - name: Checkout code

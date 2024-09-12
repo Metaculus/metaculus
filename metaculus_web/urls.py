@@ -35,6 +35,7 @@ urlpatterns = [
     path("api/", include("questions.urls")),
     path("api/", include("comments.urls")),
     path("api/", include("scoring.urls")),
+    path("api/", include("utils.urls")),
     path("api/", include("misc.urls")),
     path("proxy/", include("fab_credits.urls")),
     # Backward compatibility endpoints
