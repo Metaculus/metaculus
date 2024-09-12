@@ -748,6 +748,7 @@
   "resolutionLabel": "Resolution:",
   "totalQuestions": "Total questions:",
   "averageScore": "Average score:",
+  "medianScore": "Median Score:",
   "communityPredictionCalibration": "Community Prediction calibration",
   "communityPredictionBaselineScore": "Community Prediction Baseline score",
   "confidenceInterval": "confidence interval",
