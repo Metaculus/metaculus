@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC } from "react";
 
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
 import NumericChart from "@/components/charts/numeric_chart";
@@ -7,10 +7,6 @@ import { ContinuousAreaType, TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus } from "@/types/post";
 import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
 import { getNumericChartTypeFromQuestion } from "@/utils/charts";
-import {
-  extractPrevNumericForecastValue,
-  getNumericForecastDataset,
-} from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
 
 const HEIGHT = 100;
@@ -29,21 +25,6 @@ const QuestionNumericTile: FC<Props> = ({
   const latest = question.aggregations.recency_weighted.latest;
   const prediction = latest?.centers![0];
 
-  const prevForecast = question.my_forecasts?.latest?.slider_values;
-  const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
-  const dataset = useMemo(
-    () =>
-      prevForecastValue?.forecast && prevForecastValue?.weights
-        ? getNumericForecastDataset(
-            prevForecastValue.forecast,
-            prevForecastValue.weights,
-            question.open_lower_bound!,
-            question.open_upper_bound!
-          )
-        : null,
-    [question.open_lower_bound, question.open_upper_bound]
-  );
-
   const continuousAreaChartData = [];
   if (latest) {
     continuousAreaChartData.push({
@@ -53,10 +34,11 @@ const QuestionNumericTile: FC<Props> = ({
     });
   }
 
-  if (!!dataset) {
+  const userForecast = question.my_forecasts?.latest;
+  if (!!userForecast) {
     continuousAreaChartData.push({
-      pmf: dataset.pmf,
-      cdf: dataset.cdf,
+      pmf: cdfToPmf(userForecast.forecast_values),
+      cdf: userForecast.forecast_values,
       type: "user" as ContinuousAreaType,
     });
   }
