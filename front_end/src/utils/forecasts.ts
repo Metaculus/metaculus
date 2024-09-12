@@ -132,14 +132,15 @@ export function getNumericForecastDataset(
           ? (F: number, x: number) => 0.989 * F + 0.01 * x
           : (F: number, x: number) => 0.99 * F + 0.01 * x;
 
+  const pdfMin = 0.01 / (result.pmf.length - 2);
   const pdfOffset =
     lowerOpen && upperOpen
-      ? (f: number) => 0.988 * f + 0.0001
+      ? (f: number) => 0.988 * f + pdfMin
       : lowerOpen
-        ? (f: number) => 0.989 * f + 0.0001
+        ? (f: number) => 0.989 * f + pdfMin
         : upperOpen
-          ? (f: number) => 0.989 * f + 0.0001
-          : (f: number) => 0.99 * f + 0.0001;
+          ? (f: number) => 0.989 * f + pdfMin
+          : (f: number) => 0.99 * f + pdfMin;
 
   result.cdf = result.cdf.map((F, index) => {
     const x = index / (result.cdf.length - 1);
