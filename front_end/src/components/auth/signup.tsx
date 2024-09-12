@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import React, { FC, useEffect, useRef, useTransition } from "react";
+import React, { FC, useEffect, useRef, useState, useTransition } from "react";
 import { useFormState } from "react-dom";
 import { useForm } from "react-hook-form";
 
@@ -32,6 +32,7 @@ export const SignupForm: FC<{
 }> = ({ forceIsBot = "ask", addToProject }) => {
   const t = useTranslations();
   const [isPending, startTransition] = useTransition();
+  const [isTranstileValidated, setIsTranstileValidate] = useState(false);
   const { setCurrentModal } = useModal();
   const { register, watch, setValue } = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
@@ -89,9 +90,9 @@ export const SignupForm: FC<{
           className="block w-full rounded-b rounded-t-none border-x border-b border-t-0 border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
           placeholder={t("registrationVerifyPasswordPlaceholder")}
           type="password"
-          errors={state?.errors}
           {...register("passwordAgain")}
         />
+        <FormError errors={state?.errors} name={"password"} />
       </div>
       <Input
         className="block w-full rounded border border-gray-700 bg-inherit px-3 py-2 dark:border-gray-700-dark"
@@ -124,7 +125,7 @@ export const SignupForm: FC<{
           variant="primary"
           className="w-full"
           type="submit"
-          disabled={isPending}
+          disabled={isPending || !isTranstileValidated}
         >
           {t("createAnAccount")}
         </Button>
@@ -140,6 +141,9 @@ export const SignupForm: FC<{
           options={{
             responseFieldName: "turnstileToken",
           }}
+          onSuccess={() => setIsTranstileValidate(true)}
+          onError={() => setIsTranstileValidate(false)}
+          onExpire={() => setIsTranstileValidate(false)}
         />
       )}
     </form>
