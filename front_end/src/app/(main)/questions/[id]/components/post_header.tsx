@@ -82,7 +82,9 @@ export default function PostHeader({
           </>
         )}
         <div className="ml-auto flex flex-row justify-self-end text-gray-700 dark:text-gray-700-dark lg:hidden">
-          <PostSubscribeButton post={post} mini />
+          {post.status == PostStatus.APPROVED && (
+            <PostSubscribeButton post={post} mini />
+          )}
           <SharePostMenu questionTitle={questionTitle} questionId={post.id} />
           <PostDropdownMenu post={post} />
         </div>

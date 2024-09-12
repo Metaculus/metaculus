@@ -115,17 +115,11 @@ export async function getPost(postId: number) {
 }
 
 export async function draftPost(postId: number) {
-  const response = await PostsApi.updatePost(postId, {
-    curation_status: PostStatus.DRAFT,
-  });
-  return response;
+  return await PostsApi.makeDraft(postId);
 }
 
 export async function submitPostForReview(postId: number) {
-  const response = await PostsApi.updatePost(postId, {
-    curation_status: PostStatus.PENDING,
-  });
-  return response;
+  return await PostsApi.submitForReview(postId);
 }
 
 export async function updateNotebook(

@@ -81,6 +81,14 @@ class PostsApi {
     return await put<any, PostWithForecasts>(`/posts/${id}/update/`, body);
   }
 
+  static async submitForReview(id: number) {
+    return await post(`/posts/${id}/submit-for-review/`, {});
+  }
+
+  static async makeDraft(id: number) {
+    return await post(`/posts/${id}/make-draft/`, {});
+  }
+
   static async approvePost(id: number, params: ApprovePostParams[]) {
     return await post(`/posts/${id}/approve/`, params);
   }
