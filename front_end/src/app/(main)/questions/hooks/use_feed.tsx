@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import {
   FeedType,
+  POST_FOR_MAIN_FEED,
   POST_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
   POST_STATUS_FILTER,
@@ -67,6 +68,8 @@ const useFeed = () => {
         }
       }
       if (feedType === FeedType.MY_QUESTIONS_AND_POSTS) {
+        setParam(POST_FOR_MAIN_FEED, "false");
+        deleteParam(POST_STATUS_FILTER);
         user && setParam(POST_USERNAMES_FILTER, user.username.toString());
       }
       if (feedType === FeedType.IN_REVIEW) {

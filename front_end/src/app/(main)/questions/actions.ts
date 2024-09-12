@@ -56,18 +56,10 @@ export async function markPostAsRead(postId: number) {
 }
 
 export async function createQuestionPost(body: any) {
-  try {
-    const post = await PostsApi.createQuestionPost(body);
-    return {
-      post: post,
-    };
-  } catch (err) {
-    const error = err as FetchError;
-
-    return {
-      errors: error.data,
-    };
-  }
+  const post = await PostsApi.createQuestionPost(body);
+  return {
+    post: post,
+  };
 }
 
 export async function updatePost(postId: number, body: any) {

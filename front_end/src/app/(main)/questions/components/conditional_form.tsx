@@ -22,8 +22,6 @@ import ProjectPicker from "./project_picker";
 import { createQuestionPost, getPost, updatePost } from "../actions";
 
 type PostCreationData = {
-  title: string;
-  url_title: string;
   default_project: number;
   conditional: {
     condition_id: number;
@@ -31,8 +29,6 @@ type PostCreationData = {
   };
 };
 const conditionalQuestionSchema = z.object({
-  title: z.string().min(4).max(200),
-  url_title: z.string().min(4).max(60),
   condition_id: z.number(),
   condition_child_id: z.number(),
   default_project: z.number(),
@@ -74,8 +70,6 @@ const ConditionalForm: React.FC<{
   const submitQuestion = async (data: any) => {
     if (conditionParent?.id && conditionChild?.id) {
       let post_data: PostCreationData = {
-        title: data["title"],
-        url_title: data["url_title"],
         default_project: data["default_project"],
         conditional: {
           condition_id: conditionParent?.question?.id as number,
