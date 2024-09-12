@@ -15,11 +15,14 @@ import useAppTheme from "@/hooks/use_app_theme";
 import { TrackRecordCalibrationCurveItem } from "@/types/track_record";
 import { METAC_COLORS } from "@/constants/colors";
 import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 
 const CalibrationChart: React.FC<{
   calibrationData: TrackRecordCalibrationCurveItem[];
   showIntervals?: boolean;
-}> = ({ calibrationData, showIntervals = true }) => {
+  username?: string;
+}> = ({ calibrationData, showIntervals = true, username }) => {
+  const t = useTranslations();
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
@@ -29,7 +32,7 @@ const CalibrationChart: React.FC<{
         theme={chartTheme}
         domain={{ x: [0, 1], y: [0, 1] }}
         containerComponent={<VictoryContainer responsive={true} />}
-        padding={{ top: 24, bottom: 24, left: 35, right: 12 }}
+        padding={{ top: 24, bottom: 45, left: 45, right: 12 }}
       >
         <VictoryAxis
           tickValues={[0, 0.2, 0.4, 0.6, 0.8, 1]}
@@ -42,6 +45,9 @@ const CalibrationChart: React.FC<{
               opacity: 0.5,
             },
           }}
+          label={
+            username ? t("userPrediction", { username }) : t("predictions")
+          }
         />
         <VictoryAxis
           tickValues={[0, 0.2, 0.4, 0.6, 0.8, 1]}
@@ -56,6 +62,7 @@ const CalibrationChart: React.FC<{
               opacity: 0.5,
             },
           }}
+          label={t("fractionResolvedYes")}
         />
         <VictoryScatter
           data={calibrationData.map(
@@ -78,14 +85,16 @@ const CalibrationChart: React.FC<{
         />
         <VictoryBar
           barRatio={1.1}
-          data={calibrationData.map((d: TrackRecordCalibrationCurveItem, index: number) => {
-            const y = d.perfect_calibration;
-            return {
-              x: (index + 0.5) / calibrationData.length,
-              y0: y - 0.01,
-              y: y,
-            };
-          })}
+          data={calibrationData.map(
+            (d: TrackRecordCalibrationCurveItem, index: number) => {
+              const y = d.perfect_calibration;
+              return {
+                x: (index + 0.5) / calibrationData.length,
+                y0: y - 0.01,
+                y: y,
+              };
+            }
+          )}
           style={{
             data: {
               fill: getThemeColor(METAC_COLORS.gray["600"]),
@@ -97,13 +106,15 @@ const CalibrationChart: React.FC<{
         {showIntervals && (
           <VictoryBar
             barRatio={1.1}
-            data={calibrationData.map((d: TrackRecordCalibrationCurveItem, index: number) => {
-              return {
-                x: (index + 0.5) / calibrationData.length,
-                y0: d.lower_quartile,
-                y: d.upper_quartile,
-              };
-            })}
+            data={calibrationData.map(
+              (d: TrackRecordCalibrationCurveItem, index: number) => {
+                return {
+                  x: (index + 0.5) / calibrationData.length,
+                  y0: d.lower_quartile,
+                  y: d.upper_quartile,
+                };
+              }
+            )}
             style={{
               data: {
                 fill: getThemeColor(METAC_COLORS.gray["300"]),
