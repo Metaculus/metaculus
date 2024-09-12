@@ -346,8 +346,8 @@ class Post(TimeStampedModel):
     )
     curation_status_updated_at = models.DateTimeField(null=True, blank=True)
 
-    title = models.CharField(max_length=2000)
-    url_title = models.CharField(max_length=2000, default="")
+    title = models.CharField(max_length=2000, blank=True)
+    url_title = models.CharField(max_length=2000, default="", blank=True)
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
     coauthors = models.ManyToManyField(
         User, related_name="coauthored_posts", blank=True
@@ -566,6 +566,9 @@ class Post(TimeStampedModel):
 
     def get_forecasters(self) -> QuerySet["User"]:
         return User.objects.filter(forecast__post=self).distinct()
+
+    def get_url_title(self):
+        return self.url_title or self.title
 
 
 class PostSubscription(TimeStampedModel):

@@ -2,14 +2,14 @@ import logging
 from datetime import datetime
 
 import django
-from django.db import transaction
-from django.utils import timezone
 import django.utils
 import django.utils.timezone
+from django.db import transaction
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from notifications.constants import MailingTags
-from posts.models import PostUserSnapshot, PostSubscription
+from posts.models import PostUserSnapshot, PostSubscription, Notebook
 from posts.services.subscriptions import create_subscription_cp_change
 from posts.tasks import run_on_post_forecast_in_dramatiq
 from projects.permissions import ObjectPermission
@@ -23,9 +23,10 @@ from questions.models import (
 )
 from questions.types import AggregationMethod
 from users.models import User
+from utils.models import model_update
 from utils.the_math.community_prediction import get_cp_history
-from utils.the_math.single_aggregation import get_single_aggregation_history
 from utils.the_math.measures import percent_point_function
+from utils.the_math.single_aggregation import get_single_aggregation_history
 
 logger = logging.getLogger(__name__)
 
@@ -139,6 +140,15 @@ def create_question(*, title: str = None, **kwargs) -> Question:
     return obj
 
 
+def update_question(question: Question, **kwargs) -> Question:
+    question, _ = model_update(
+        instance=question,
+        data=kwargs,
+    )
+
+    return question
+
+
 def create_group_of_questions(
     *, title: str = None, questions: list[dict], **kwargs
 ) -> GroupOfQuestions:
@@ -152,6 +162,47 @@ def create_group_of_questions(
         create_question(group_id=obj.id, **question_data)
 
     return obj
+
+
+def update_group_of_questions(
+    group: GroupOfQuestions,
+    delete: list[int] = None,
+    questions: list[dict] = None,
+    **kwargs,
+) -> GroupOfQuestions:
+    questions = questions or []
+    questions_map = {q.pk: q for q in group.questions.all()}
+
+    group, _ = model_update(
+        instance=group,
+        fields=[
+            "fine_print",
+            "resolution_criteria",
+            "description",
+            "group_variable",
+        ],
+        data=kwargs,
+    )
+
+    # Deleting questions
+    if delete:
+        group.questions.filter(id__in=delete).delete()
+
+    for question_data in questions:
+        question_id = question_data.get("question_id")
+
+        if question_id:
+            question_obj = questions_map.get(question_id)
+
+            if not question_obj:
+                raise ValueError("Question ID does not exist for this group")
+
+            update_question(question_obj, **question_data)
+        else:
+            create_question(group_id=group.id, **question_data)
+
+    group.save()
+    return group
 
 
 def clone_question(question: Question, title: str = None):
@@ -185,6 +236,7 @@ def create_conditional(
 ) -> Conditional:
     # Auto-generating yes/no questions
 
+    # TODO: select only questions user has access to (public only)
     condition = Question.objects.get(pk=condition_id)
     condition_child = Question.objects.get(pk=condition_child_id)
 
@@ -204,6 +256,60 @@ def create_conditional(
     obj.save()
 
     return obj
+
+
+def update_conditional(
+    obj: Conditional, condition_id: int = None, condition_child_id: int = None
+) -> Conditional:
+    post = obj.post
+
+    # TODO: select only questions user has access to (public only)
+    condition = (
+        Question.objects.get(pk=condition_id)
+        if condition_id != obj.condition_id
+        else None
+    )
+    condition_child = (
+        Question.objects.get(pk=condition_id)
+        if condition_child_id != obj.condition_child_id
+        else None
+    )
+
+    if condition or condition_child:
+        if condition:
+            obj.condition = condition
+        if condition_child:
+            obj.condition_child = condition_child
+            # Update post url_title from condition child
+            post.url_title = condition_child.get_post().get_url_title()
+            post.save(update_fields=["url_title"])
+
+        title = f"{obj.condition.title} (%s) → {obj.condition_child.title}"
+
+        question_yes = clone_question(condition_child, title=title % "Yes")
+        question_yes.save()
+        obj.question_yes = question_yes
+
+        question_no = clone_question(condition_child, title=title % "No")
+        question_no.save()
+        obj.question_no = question_no
+
+    obj.save()
+    return obj
+
+
+def update_notebook(notebook: Notebook, **kwargs):
+    notebook, _ = model_update(
+        instance=notebook,
+        fields=[
+            "markdown",
+            "type",
+            "image_url",
+        ],
+        data=kwargs,
+    )
+
+    return notebook
 
 
 @transaction.atomic()

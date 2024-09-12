@@ -25,34 +25,28 @@ from posts.models import (
     PostActivityBoost,
 )
 from posts.serializers import (
-    NotebookSerializer,
     PostFilterSerializer,
     OldQuestionFilterSerializer,
-    PostSerializer,
     PostWriteSerializer,
     serialize_post_many,
     serialize_post,
     get_subscription_serializer_by_type,
     PostRelatedArticleSerializer,
+    PostUpdateSerializer,
 )
 from posts.services.common import (
     create_post,
     get_post_permission_for_user,
-    add_categories,
     approve_post,
+    update_post,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
-from projects.models import Project
+from posts.utils import check_can_edit_post
 from projects.permissions import ObjectPermission
-from questions.models import Question
 from questions.serializers import (
-    GroupOfQuestionsSerializer,
-    QuestionSerializer,
-    QuestionWriteSerializer,
     QuestionApproveSerializer,
 )
-from questions.services import clone_question, create_question
 from utils.files import UserUploadedImage, generate_filename
 
 
@@ -187,22 +181,9 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
-    if not request.data.get("url_title", None):
-        request.data["url_title"] = request.data["title"]
-
     serializer = PostWriteSerializer(data=request.data, context={"user": request.user})
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=request.user)
-    if "categories" in request.data:
-        add_categories(request.data["categories"], post)
-    if request.data.get("news_type", None):
-        news_project = (
-            Project.objects.filter(type=Project.ProjectTypes.NEWS_CATEGORY)
-            .filter(name__iexact=request.data["news_type"])
-            .first()
-        )
-        post.projects.add(news_project)
-        post.save()
 
     return Response(
         serialize_post(post, with_cp=False, current_user=request.user),
@@ -213,8 +194,7 @@ def post_create_api_view(request):
 @api_view(["POST"])
 def remove_from_project(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    permission = get_post_permission_for_user(post, user=request.user)
-    ObjectPermission.can_edit(permission, raise_exception=True)
+    check_can_edit_post(post, request.user)
 
     project_id = request.data["project_id"]
     post.projects.set([x for x in post.projects.all() if x.id != project_id])
@@ -225,105 +205,19 @@ def remove_from_project(request, pk):
 @api_view(["PUT"])
 def post_update_api_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
-    permission = get_post_permission_for_user(post, user=request.user)
-    ObjectPermission.can_edit(permission, raise_exception=True)
+    check_can_edit_post(post, request.user)
 
-    serializer = PostSerializer(post, data=request.data, partial=True)
+    serializer = PostUpdateSerializer(
+        post, data=request.data, partial=True, context={"user": request.user}
+    )
     serializer.is_valid(raise_exception=True)
 
-    # TODO: test this!!!
-    question_data = request.data.get("question", None)
-    conditional_data = request.data.get("conditional", None)
-    group_of_questions_data = request.data.get("group_of_questions", None)
-    notebook_data = request.data.get("notebook", None)
+    post = update_post(post, **serializer.validated_data)
 
-    # TODO: currently, authors are able to publish their posts
-    #   Fix this!!!
-    # TODO: check post denial
-
-    if question_data:
-        ser = QuestionSerializer(post.question, data=question_data, partial=True)
-        ser.is_valid(raise_exception=True)
-        ser.save()
-    if conditional_data:
-        condition = None
-        condition_child = None
-        if conditional_data["condition_id"] != post.conditional.condition_id:
-            condition = Question.objects.get(pk=conditional_data["condition_id"])
-        if (
-            conditional_data["condition_child_id"]
-            != post.conditional.condition_child_id
-        ):
-            condition_child = Question.objects.get(
-                pk=conditional_data["condition_child_id"]
-            )
-
-        if condition_child or condition:
-            if condition_child:
-                post.conditional.condition_child = condition_child
-            if condition:
-                post.conditional.condition = condition
-            q = clone_question(
-                condition_child,
-                title=f"{post.conditional.condition.title} (Yes) → {post.conditional.condition_child.title}",
-            )
-            q.save()
-            post.conditional.question_yes = q
-            q = clone_question(
-                condition_child,
-                title=f"{post.conditional.condition.title} (No) → {post.conditional.condition_child.title}",
-            )
-            q.save()
-            post.conditional.question_no = q
-        post.conditional.save()
-    if group_of_questions_data:
-        sub_questions = group_of_questions_data.get("questions", None)
-        delete = group_of_questions_data.get("delete", None)
-        if delete:
-            for question_id in delete:
-                question = Question.objects.get(
-                    pk=question_id, group_id=post.group_of_questions.id
-                )
-                question.delete()
-        if sub_questions:
-            for sub_question_data in sub_questions:
-                if sub_question_data.get("id", None):
-                    sub_question = Question.objects.get(
-                        pk=sub_question_data["id"], group_id=post.group_of_questions.id
-                    )
-                    sub_ser = QuestionSerializer(
-                        sub_question,
-                        data=sub_question_data,
-                        partial=True,
-                    )
-                    sub_ser.is_valid(raise_exception=True)
-                    sub_ser.save()
-                else:
-                    sub_ser = QuestionWriteSerializer(
-                        data=sub_question_data,
-                        partial=True,
-                    )
-                    sub_ser.is_valid(raise_exception=True)
-                    create_question(group_id=post.group_of_questions.id, **sub_ser.data)
-
-        ser = GroupOfQuestionsSerializer(
-            post.group_of_questions, data=group_of_questions_data, partial=True
-        )
-        ser.is_valid(raise_exception=True)
-        ser.save()
-    if notebook_data:
-        ser = NotebookSerializer(post.notebook, data=notebook_data, partial=True)
-        ser.is_valid(raise_exception=True)
-        ser.save()
-
-    post.update_pseudo_materialized_fields()
-
-    if "categories" in request.data:
-        add_categories(request.data["categories"], post)
-    if "default_project_id" in request.data:
-        post.default_project_id = request.data["default_project_id"]
-    serializer.save()
-    return Response(serializer.data)
+    return Response(
+        serialize_post(post, with_cp=False, current_user=request.user),
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @api_view(["POST"])

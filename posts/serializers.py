@@ -12,7 +12,6 @@ from projects.serializers import (
     validate_categories,
     validate_tournaments,
     serialize_projects,
-    PostProjectWriteSerializer,
 )
 from questions.serializers import (
     QuestionWriteSerializer,
@@ -21,6 +20,7 @@ from questions.serializers import (
     serialize_group,
     ConditionalWriteSerializer,
     GroupOfQuestionsWriteSerializer,
+    GroupOfQuestionsUpdateSerializer,
 )
 from users.models import User
 from .models import Notebook, Post, PostSubscription
@@ -93,7 +93,7 @@ class PostSerializer(serializers.ModelSerializer):
             ]
             if len(open_times) == 0:
                 return None
-            return min(*open_times)
+            return min(open_times)
 
 
 class NotebookWriteSerializer(serializers.ModelSerializer):
@@ -107,37 +107,60 @@ class NotebookWriteSerializer(serializers.ModelSerializer):
 
 
 class PostWriteSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(required=False)
+    url_title = serializers.CharField(required=False)
     default_project = serializers.IntegerField(required=True)
-    projects = PostProjectWriteSerializer(required=False)
     question = QuestionWriteSerializer(required=False)
     conditional = ConditionalWriteSerializer(required=False)
     group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
     notebook = NotebookWriteSerializer(required=False)
+    categories = serializers.ListField(child=serializers.IntegerField(), required=False)
+    news_type = serializers.CharField(required=False)
 
     class Meta:
         model = Post
         fields = (
             "title",
             "url_title",
-            "projects",
             "question",
             "conditional",
             "group_of_questions",
             "default_project",
             "notebook",
             "published_at",
+            "categories",
+            "news_type",
         )
 
     def get_user(self):
         return self.context["user"]
 
     def validate_default_project(self, value):
-        project = Project.objects.filter_permission(user=self.get_user()).filter(pk=value).first()
+        project = (
+            Project.objects.filter_permission(user=self.get_user())
+            .filter(pk=value)
+            .first()
+        )
 
         if not project:
             raise ValidationError("Wrong default project id")
 
         return project
+
+    def validate_categories(self, values: list[int]) -> list[Project]:
+        return validate_categories(lookup_field="id", lookup_values=values)
+
+    def validate_news_type(self, value) -> list[Project]:
+        obj = Project.objects.filter_news().filter(name__iexact=value).first()
+
+        if not obj:
+            raise ValidationError("Wrong news type")
+
+        return obj
+
+
+class PostUpdateSerializer(PostWriteSerializer):
+    group_of_questions = GroupOfQuestionsUpdateSerializer(required=False)
 
 
 class PostFilterSerializer(serializers.Serializer):

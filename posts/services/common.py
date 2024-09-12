@@ -19,9 +19,13 @@ from questions.services import (
     create_question,
     create_conditional,
     create_group_of_questions,
+    update_question,
+    update_conditional,
+    update_group_of_questions,
+    update_notebook,
 )
 from users.models import User
-from utils.dtypes import flatten
+from utils.models import model_update
 from utils.the_math.community_prediction import get_aggregation_at_time
 from utils.the_math.measures import prediction_difference_for_sorting
 from .subscriptions import notify_post_status_change
@@ -46,7 +50,7 @@ def add_categories(categories: list[int], post: Post):
 def create_post(
     *,
     title: str = None,
-    projects: dict[str, list[Project]] = None,
+    categories: list[Project] = None,
     default_project: Project = None,
     question: dict = None,
     conditional: dict = None,
@@ -54,10 +58,16 @@ def create_post(
     notebook: dict = None,
     author: User = None,
     url_title: str = None,
+    news_type: Project = None,
 ) -> Post:
+    site_main = get_site_main_project()
+
+    categories = list(categories or [])
+    default_project = default_project or site_main
+
     obj = Post(
-        title=title,
-        url_title=url_title,
+        title=title or "",
+        url_title=url_title or title or "",
         author=author,
         curation_status=Post.CurationStatus.DRAFT,
     )
@@ -67,22 +77,24 @@ def create_post(
         obj.question = create_question(**question)
     elif conditional:
         obj.conditional = create_conditional(**conditional)
+        # Populate url_title from condition child
+        obj.url_title = obj.conditional.condition_child.get_post().get_url_title()
     elif group_of_questions:
         obj.group_of_questions = create_group_of_questions(**group_of_questions)
     elif notebook:
         obj.notebook = Notebook.objects.create(**notebook)
 
     site_main = get_site_main_project()
-    obj.default_project = default_project = default_project or get_site_main_project
+    obj.default_project = default_project
 
     # Save project and validate
     obj.full_clean()
     obj.save()
 
     # Populating projects
-    projects = flatten(projects.values()) if projects else []
-    if default_project in projects:
-        projects.remove(default_project)
+    projects = categories + ([news_type] if news_type else [])
+    if obj.default_project in projects:
+        projects.remove(obj.default_project)
 
     # Make post visible in the main feed
     if obj.default_project != site_main and obj.default_project.add_posts_to_main_feed:
@@ -99,6 +111,60 @@ def create_post(
     run_post_indexing.send(obj.id)
 
     return obj
+
+
+def update_post(
+    post: Post,
+    categories: list[Project] = None,
+    question: dict = None,
+    conditional: dict = None,
+    group_of_questions: dict = None,
+    notebook: dict = None,
+    news_type: Project = None,
+    **kwargs,
+):
+    categories = list(categories or [])
+
+    # Updating non-side effect fields
+    post, _ = model_update(
+        instance=post,
+        fields=["title", "url_title", "default_project"],
+        data=kwargs,
+    )
+
+    projects = categories + ([news_type] if news_type else [])
+    if post.default_project in projects:
+        projects.remove(post.default_project)
+
+    post.projects.set(projects)
+
+    if question:
+        if not post.question:
+            raise ValidationError("Original post does not have a question")
+
+        update_question(post.question, **question)
+
+    if conditional:
+        if not post.conditional:
+            raise ValidationError("Original post does is not a conditional")
+
+        update_conditional(post.conditional, **conditional)
+
+    if group_of_questions:
+        if not post.group_of_questions:
+            raise ValidationError("Original post does is not a group of questions")
+
+        update_group_of_questions(post.group_of_questions, **group_of_questions)
+
+    if notebook:
+        if not post.notebook:
+            raise ValidationError("Original post does is not a notebook")
+
+        update_notebook(post.notebook, **notebook)
+
+    post.update_pseudo_materialized_fields()
+
+    return post
 
 
 def get_post_permission_for_user(post: Post, user: User = None) -> ObjectPermission:
