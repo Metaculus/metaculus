@@ -42,10 +42,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: null,
     openGraph: {
       type: "article",
+      images: {
+        url: `${process.env.NEXT_PUBLIC_CDN_DOMAIN_NAME ?? ""}/api/posts/preview-image/${params.id}/`,
+        width: 1200,
+        height: 630,
+        alt: 'community predictions',
+      },
     },
     twitter: {
       site: "@metaculus",
       card: "summary_large_image",
+      images: {
+        url: `${process.env.NEXT_PUBLIC_CDN_DOMAIN_NAME ?? ""}/api/posts/preview-image/${params.id}/`,
+        width: 1200,
+        height: 630,
+        alt: 'community predictions',
+      },
     },
   };
 }
