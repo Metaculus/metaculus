@@ -2,7 +2,16 @@
 
 This is the codebase for the rewritten main [Metaculus website](https://metaculus.com), it's expected to be live by the start of September.
 
-[Feel free to suggest changes and report bugs](https://github.com/Metaculus/metaculus/issues)
+
+# Contributing
+
+**If you make a meaningful contribution to the Metaculus codebase, e.g. [solving an issue](https://github.com/Metaculus/metaculus/issues?q=is%3Aissue+is%3Aopen+label%3ASimple) we'll gift you a Metaculus hoodie (please email the shipping address to christian@metaculus.com)**
+
+If you wish to contribute try to set up a local development environment using the instructions below, and [create an issue](https://github.com/Metaculus/metaculus/issues) if you are having problems doing so.
+
+We curate a [list of issues suitable for newcomers](https://github.com/Metaculus/metaculus/issues?q=is%3Aissue+is%3Aopen+label%3ASimple), it's a great starting point.
+
+Feel free to suggest your own changes and ideas as an issue, we'll discuss it and help you get started on implementing it.
 
 # Setup dev env.
 
@@ -77,3 +86,35 @@ A few common paths on Mac are:
 7. Connect to psql and enable extension: `CREATE EXTENSION vector;`
 
 Other installations and detailed instructions - https://github.com/pgvector/pgvector
+
+# Bug Bounty
+
+Our bug bounty system classifies vulnerabilities as one of the following:
+- hard to exploit 
+	- i.e. it would take hundreds of hours of expensive compute and luck
+	- e.g. doing a DDOS attack and repeatedly accessing a specific endpoint leads to an error log being returned by the endpoint. In 1/100 cases that log might contain a user password. 
+
+- easy to exploit 
+	- i.e. it can be done reliably and in a short amount of time
+	- e.g. the user admin with password admin can access the admin panel
+
+- limited in scope 
+	- i.e. it would have only minimal effects on privacy/security
+	- e.g. you can see private first and last name data from all users that have created tournaments 
+
+- broad in scope 
+	- i.e. it would affect most users and leak significant amounts information—or give a lot of control to the attacker. 
+	- e.g. you can inspect the HTML of user profile pages and see the user's password in plain text
+
+Bounty payouts: 
+- Vulnerabilities that are hard to exploit and limited in scope: $200
+- Vulnerabilities that are hard to exploit, but broad in scope—or that are limited in scope, but easy to exploit: $400
+- Vulnerabilities that are easy to exploit and broad in scope: $2000
+
+Please email all such vulnerabilities to: engineering@metaculus.com with the subject `Security Vulnerability`
+
+Note: This bug bounty system begins September 10th, 2024. Before that point we will still award $100 for security vulnerabilities, but we expect an internal audit to catch most of these.
+
+Note: The first reporter receives the bounty. If multiple reports occur within a few minutes of each other, the prize will be split.
+
+Note: Making the exploit public will annul the bounty.
