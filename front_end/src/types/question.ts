@@ -38,6 +38,7 @@ export enum AggregationMethod {
   RecencyWeighted = "recency_weighted",
   Unweighted = "unweighted",
   SingleAggregation = "single_aggregation",
+  MetaculusPrediction = "metaculus_prediction",
 }
 
 export type Bounds = {
