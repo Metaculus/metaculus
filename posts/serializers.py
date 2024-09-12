@@ -115,7 +115,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
     group_of_questions = GroupOfQuestionsWriteSerializer(required=False)
     notebook = NotebookWriteSerializer(required=False)
     categories = serializers.ListField(child=serializers.IntegerField(), required=False)
-    news_type = serializers.CharField(required=False)
+    news_type = serializers.CharField(required=False, allow_null=True)
 
     class Meta:
         model = Post
@@ -151,6 +151,9 @@ class PostWriteSerializer(serializers.ModelSerializer):
         return validate_categories(lookup_field="id", lookup_values=values)
 
     def validate_news_type(self, value) -> list[Project]:
+        if not value:
+            return value
+
         obj = Project.objects.filter_news().filter(name__iexact=value).first()
 
         if not obj:

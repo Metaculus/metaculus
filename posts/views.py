@@ -39,6 +39,7 @@ from posts.services.common import (
     get_post_permission_for_user,
     approve_post,
     update_post,
+    submit_for_review_post, post_make_draft,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
@@ -229,7 +230,29 @@ def post_approve_api_view(request, pk):
     serializer = QuestionApproveSerializer(post, data=request.data, many=True)
     serializer.is_valid(raise_exception=True)
 
-    approve_post(post=post, questions=serializer.validated_data)
+    approve_post(post, questions=serializer.validated_data)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def post_submit_for_review_api_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_submit_for_review(permission, raise_exception=True)
+
+    submit_for_review_post(post)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(["POST"])
+def post_make_draft_api_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_submit_for_review(permission, raise_exception=True)
+
+    post_make_draft(post)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 

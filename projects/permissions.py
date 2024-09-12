@@ -116,6 +116,21 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         return can
 
     @classmethod
+    def can_submit_for_review(cls, permission: Self, raise_exception=False):
+        can = permission in (
+            cls.CURATOR,
+            cls.ADMIN,
+            cls.CREATOR,
+        )
+
+        if raise_exception and not can:
+            raise PermissionDenied(
+                "You do not have permission to submit post for review"
+            )
+
+        return can
+
+    @classmethod
     def can_resolve(cls, permission: Self, raise_exception=False):
         can = permission in (
             cls.CREATOR,
