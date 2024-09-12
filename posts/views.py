@@ -559,7 +559,6 @@ def post_preview_image(request: Request, pk):
     image_url = f"{build_question_embed_url(pk)}/?ENFORCED_THEME_PARAM={theme}&HIDE_ZOOM_PICKER=true&non-interactive=true"
 
     try:
-        logging.error(f"elis, making a request; {image_url}")
         response = requests.post(
             f"{settings.SCREENSHOT_SERVICE_API_URL}/",
             json={
