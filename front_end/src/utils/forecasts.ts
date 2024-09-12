@@ -8,7 +8,7 @@ import {
   NumericForecast,
   QuestionType,
 } from "@/types/question";
-import { binWeightsFromSliders } from "@/utils/math";
+import { cdfFromSliders, cdfToPmf } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 export function getForecastPctDisplayValue(
@@ -103,26 +103,26 @@ export function getNumericForecastDataset(
   const normalizedWeights = weights.map(
     (x) => x / weights.reduce((a, b) => a + b)
   );
-  const result: { cdf: number[]; pmf: number[] } = forecast
-    .map((x) =>
-      binWeightsFromSliders(x.left, x.center, x.right, lowerOpen, upperOpen)
+  const componentCdfs = forecast
+    .map((component) =>
+      cdfFromSliders(
+        component.left,
+        component.center,
+        component.right,
+        lowerOpen,
+        upperOpen
+      )
     )
-    .map((x, index) => {
-      return {
-        pmf: math.multiply(x.pmf, normalizedWeights[index]) as number[],
-        cdf: math.multiply(x.cdf, normalizedWeights[index]) as number[],
-      };
-    })
-    .reduce((acc, curr) => {
-      return {
-        pmf: math.add(acc.pmf, curr.pmf),
-        cdf: math.add(acc.cdf, curr.cdf),
-      };
-    });
+    .map(
+      (component, index) =>
+        math.multiply(component, normalizedWeights[index]) as number[]
+    );
+  let cdf = componentCdfs.reduce((acc, componentCdf) =>
+    math.add(acc, componentCdf)
+  );
+  cdf = cdf.map((F) => Number(F));
 
-  result.pmf = result.pmf.map((x) => Number(x));
-  result.cdf = result.cdf.map((x) => Number(x));
-
+  // standardize cdf
   const cdfOffset =
     lowerOpen && upperOpen
       ? (F: number, x: number) => 0.988 * F + 0.01 * x + 0.001
@@ -131,22 +131,10 @@ export function getNumericForecastDataset(
         : upperOpen
           ? (F: number, x: number) => 0.989 * F + 0.01 * x
           : (F: number, x: number) => 0.99 * F + 0.01 * x;
+  cdf = cdf.map((F, index) => cdfOffset(F, index / (cdf.length - 1)));
 
-  const pdfMin = 0.01 / (result.pmf.length - 2);
-  const pdfOffset =
-    lowerOpen && upperOpen
-      ? (f: number) => 0.988 * f + pdfMin
-      : lowerOpen
-        ? (f: number) => 0.989 * f + pdfMin
-        : upperOpen
-          ? (f: number) => 0.989 * f + pdfMin
-          : (f: number) => 0.99 * f + pdfMin;
-
-  result.cdf = result.cdf.map((F, index) => {
-    const x = index / (result.cdf.length - 1);
-    return cdfOffset(F, x);
-  });
-  result.pmf = result.pmf.map((f) => pdfOffset(f));
-
-  return result;
+  return {
+    cdf: cdf,
+    pmf: cdfToPmf(cdf),
+  };
 }

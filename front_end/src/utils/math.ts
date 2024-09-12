@@ -75,7 +75,7 @@ export function cdfToPmf(cdf: number[]) {
   return pdf;
 }
 
-export function binWeightsFromSliders(
+export function cdfFromSliders(
   left: number,
   center: number,
   right: number,
@@ -102,8 +102,7 @@ export function binWeightsFromSliders(
   if (cdf === null) {
     cdf = [];
   }
-  const pmf = cdfToPmf(cdf);
-  return { pmf: pmf, cdf: cdf };
+  return cdf;
 }
 
 export function computeQuartilesFromCDF(
