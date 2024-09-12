@@ -56,7 +56,7 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                   </Link>
                 </td>
                 <td className="px-2 py-1 text-right text-sm font-bold text-orange-800 dark:text-orange-800-dark">
-                  {contribution.score ? contribution.score.toFixed(2) : "-"}
+                  {contribution.score ? contribution.score.toFixed(3) : "-"}
                 </td>
                 {project.score_type === "relative_legacy_tournament" && (
                   <th className="p-2 text-right text-sm font-bold">

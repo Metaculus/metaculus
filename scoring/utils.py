@@ -514,7 +514,10 @@ def get_contributions(
         # been resolved.
         scores = [s for s in scores if s.coverage > 0]
     scores = sorted(
-        scores, key=lambda s: s.score if s.score is not None else 0, reverse=True
+        # scores, key=lambda s: s.score if s.score is not None else 0, reverse=True
+        scores,
+        key=lambda s: s.coverage if s.coverage is not None else 0,
+        reverse=True,
     )
     # User has scores on some questions
     contributions = [
