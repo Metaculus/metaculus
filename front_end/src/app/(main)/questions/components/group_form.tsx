@@ -31,7 +31,7 @@ type PostCreationData = {
   group_of_questions: any;
   title: string;
   categories: number[];
-  default_project_id: number;
+  default_project: number;
 };
 
 const groupQuestionSchema = z.object({
@@ -41,7 +41,7 @@ const groupQuestionSchema = z.object({
   description: z.string().min(10),
   resolution_criteria: z.string().min(1),
   fine_print: z.string(),
-  default_project_id: z.nullable(z.union([z.number(), z.string()])),
+  default_project: z.nullable(z.union([z.number(), z.string()])),
 });
 
 type Props = {
@@ -74,8 +74,8 @@ const GroupForm: React.FC<Props> = ({
       : siteMain;
 
   const submitQuestion = async (data: any) => {
-    if (control.getValues("default_project_id") === "") {
-      control.setValue("default_project_id", null);
+    if (control.getValues("default_project") === "") {
+      control.setValue("default_project", null);
     }
     const labels = subQuestions.map((q) => q.label);
     if (new Set(labels).size !== labels.length) {
@@ -154,7 +154,7 @@ const GroupForm: React.FC<Props> = ({
     }
     let post_data: PostCreationData = {
       title: data["title"],
-      default_project_id: data["default_project_id"],
+      default_project: data["default_project"],
       categories: categoriesList.map((x) => x.id),
       group_of_questions: {
         delete: questionToDelete,
@@ -233,8 +233,8 @@ const GroupForm: React.FC<Props> = ({
       </div>
       <form
         onSubmit={async (e) => {
-          if (!control.getValues("default_project_id")) {
-            control.setValue("default_project_id", siteMain.id);
+          if (!control.getValues("default_project")) {
+            control.setValue("default_project", siteMain.id);
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
@@ -254,7 +254,7 @@ const GroupForm: React.FC<Props> = ({
             siteMain={siteMain}
             currentProject={defaultProject}
             onChange={(project) => {
-              control.setValue("default_project_id", project.id);
+              control.setValue("default_project", project.id);
             }}
           />
         </InputContainer>

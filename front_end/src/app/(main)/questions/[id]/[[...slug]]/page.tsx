@@ -8,7 +8,7 @@ import ConditionalTimeline from "@/components/conditional_timeline";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
-import { PostConditional, ProjectPermissions } from "@/types/post";
+import { PostConditional, PostStatus, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getQuestionTitle } from "@/utils/questions";
 
@@ -16,6 +16,7 @@ import BackgroundInfo from "../components/background_info";
 import DetailedGroupCard from "../components/detailed_group_card";
 import DetailedQuestionCard from "../components/detailed_question_card";
 import ForecastMaker from "../components/forecast_maker";
+import ContinuousGroupTimeline from "../components/forecast_timeline_drawer";
 import HistogramDrawer from "../components/histogram_drawer";
 import PostHeader from "../components/post_header";
 import QuestionEmbedModal from "../components/question_embed_modal";
@@ -23,7 +24,6 @@ import QuestionHeaderInfo from "../components/question_header_info";
 import QuestionResolutionStatus from "../components/question_resolution_status";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
-import ContinuousGroupTimeline from "../components/forecast_timeline_drawer";
 
 type Props = {
   params: { id: number; slug: string[] };
@@ -86,7 +86,8 @@ export default async function IndividualQuestion({
   const allowModifications =
     postData.user_permission === ProjectPermissions.ADMIN ||
     postData.user_permission === ProjectPermissions.CURATOR ||
-    postData.user_permission === ProjectPermissions.CREATOR;
+    (postData.user_permission === ProjectPermissions.CREATOR &&
+      postData.status !== PostStatus.APPROVED);
 
   const questionTitle = getQuestionTitle(postData);
   const isClosed = postData.actual_close_time

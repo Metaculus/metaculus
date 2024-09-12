@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from posts.models import Post, PostUserSnapshot
+from projects.services import get_site_main_project
 from questions.models import Question
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
@@ -22,6 +23,7 @@ class TestPostCreate:
             self.url,
             {
                 "title": "Question Post",
+                "default_project": get_site_main_project().pk,
                 "projects": {},
                 "question": {
                     "title": "Question Post",
@@ -62,6 +64,7 @@ class TestPostCreate:
             {
                 "title": "Post Of Group",
                 "projects": {},
+                "default_project": get_site_main_project().pk,
                 "group_of_questions": {
                     "questions": [
                         {
@@ -121,6 +124,7 @@ class TestPostCreate:
             self.url,
             {
                 "title": "Post Of Conditional",
+                "default_project": get_site_main_project().pk,
                 "projects": {},
                 "conditional": {
                     "condition_id": question_binary.id,
@@ -153,6 +157,7 @@ class TestPostCreate:
             {
                 "title": "Question Post",
                 "projects": {},
+                "default_project": get_site_main_project().pk,
                 "question": {
                     "title": "Question Post",
                     "description": "Question description",

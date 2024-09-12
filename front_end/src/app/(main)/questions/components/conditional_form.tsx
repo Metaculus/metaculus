@@ -22,20 +22,16 @@ import ProjectPicker from "./project_picker";
 import { createQuestionPost, getPost, updatePost } from "../actions";
 
 type PostCreationData = {
-  title: string;
-  url_title: string;
-  default_project_id: number;
+  default_project: number;
   conditional: {
     condition_id: number;
     condition_child_id: number;
   };
 };
 const conditionalQuestionSchema = z.object({
-  title: z.string().min(4).max(200),
-  url_title: z.string().min(4).max(60),
   condition_id: z.number(),
   condition_child_id: z.number(),
-  default_project_id: z.number(),
+  default_project: z.number(),
 });
 
 const ConditionalForm: React.FC<{
@@ -74,9 +70,7 @@ const ConditionalForm: React.FC<{
   const submitQuestion = async (data: any) => {
     if (conditionParent?.id && conditionChild?.id) {
       let post_data: PostCreationData = {
-        title: data["title"],
-        url_title: data["url_title"],
-        default_project_id: data["default_project_id"],
+        default_project: data["default_project"],
         conditional: {
           condition_id: conditionParent?.question?.id as number,
           condition_child_id: conditionChild?.question?.id as number,
@@ -112,8 +106,8 @@ const ConditionalForm: React.FC<{
       <form
         className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
-          if (!control.getValues("default_project_id")) {
-            control.setValue("default_project_id", siteMain.id);
+          if (!control.getValues("default_project")) {
+            control.setValue("default_project", siteMain.id);
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
@@ -137,7 +131,7 @@ const ConditionalForm: React.FC<{
             siteMain={siteMain}
             currentProject={defaultProject}
             onChange={(project) => {
-              control.setValue("default_project_id", project.id);
+              control.setValue("default_project", project.id);
             }}
           />
         </InputContainer>

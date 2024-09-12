@@ -23,7 +23,7 @@ export type PostsParams = PaginationParams & {
   commented_by?: string;
   order_by?: string;
   tournaments?: string | string[];
-  for_main_feed?: boolean;
+  for_main_feed?: string;
   ids?: number[];
   news_type?: string;
   public_figure?: number;
@@ -79,6 +79,14 @@ class PostsApi {
 
   static async updatePost(id: number, body: any): Promise<PostWithForecasts> {
     return await put<any, PostWithForecasts>(`/posts/${id}/update/`, body);
+  }
+
+  static async submitForReview(id: number) {
+    return await post(`/posts/${id}/submit-for-review/`, {});
+  }
+
+  static async makeDraft(id: number) {
+    return await post(`/posts/${id}/make-draft/`, {});
   }
 
   static async approvePost(id: number, params: ApprovePostParams[]) {

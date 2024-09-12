@@ -1,8 +1,8 @@
 import { FC, Suspense } from "react";
 
 import PostSubscribeButton from "@/app/(main)/questions/[id]/components/subscribe_button";
-import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
-import { PostWithForecasts } from "@/types/post";
+import { PostDropdownMenu, SharePostMenu } from "@/components/post_actions";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 
 import NewsMatch from "./news_match";
 import SidebarQuestionInfo from "./sidebar_question_info";
@@ -53,7 +53,9 @@ const Sidebar: FC<Props> = ({
     <section className="hidden h-fit w-80 shrink-0 border border-transparent bg-gray-0 p-4 text-gray-700 dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-700-dark lg:block">
       <div className="mb-4 flex w-full items-center justify-between gap-2 border-b border-gray-300 pb-4 dark:border-gray-300-dark">
         <div className="flex gap-1">
-          <PostSubscribeButton post={postData} />
+          {postData.status == PostStatus.APPROVED && (
+            <PostSubscribeButton post={postData} />
+          )}
           <QuestionEmbedButton />
         </div>
 

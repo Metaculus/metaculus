@@ -14,6 +14,7 @@ import {
   POST_AUTHOR_FILTER,
   POST_CATEGORIES_FILTER,
   POST_COMMENTED_BY_FILTER,
+  POST_FOR_MAIN_FEED,
   POST_FORECASTER_ID_FILTER,
   POST_NOT_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
@@ -101,8 +102,10 @@ export function generateFiltersFromSearchParams(
     filters.usernames = searchParams[POST_USERNAMES_FILTER];
   }
 
-  if (typeof defaultForMainFeed !== "undefined") {
-    filters.for_main_feed = defaultForMainFeed;
+  if (typeof searchParams[POST_FOR_MAIN_FEED] === "string") {
+    filters.for_main_feed = searchParams[POST_FOR_MAIN_FEED];
+  } else if (typeof defaultForMainFeed !== "undefined") {
+    filters.for_main_feed = defaultForMainFeed.toString();
   }
 
   if (typeof searchParams[POST_FORECASTER_ID_FILTER] === "string") {

@@ -79,6 +79,13 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
         return data
 
 
+class QuestionUpdateSerializer(QuestionWriteSerializer):
+    id = serializers.IntegerField(required=False)
+
+    class Meta(QuestionWriteSerializer.Meta):
+        fields = QuestionWriteSerializer.Meta.fields + ("id",)
+
+
 class ConditionalSerializer(serializers.ModelSerializer):
     """
     Contains basic info about conditional questions
@@ -142,6 +149,14 @@ class GroupOfQuestionsWriteSerializer(serializers.ModelSerializer):
             "description",
             "group_variable",
         )
+
+
+class GroupOfQuestionsUpdateSerializer(GroupOfQuestionsWriteSerializer):
+    delete = serializers.ListField(child=serializers.IntegerField(), required=False)
+    questions = QuestionUpdateSerializer(many=True, required=True, partial=True)
+
+    class Meta(GroupOfQuestionsWriteSerializer.Meta):
+        fields = GroupOfQuestionsWriteSerializer.Meta.fields + ("delete",)
 
 
 class ForecastSerializer(serializers.ModelSerializer):

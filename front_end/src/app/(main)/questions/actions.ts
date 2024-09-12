@@ -56,18 +56,10 @@ export async function markPostAsRead(postId: number) {
 }
 
 export async function createQuestionPost(body: any) {
-  try {
-    const post = await PostsApi.createQuestionPost(body);
-    return {
-      post: post,
-    };
-  } catch (err) {
-    const error = err as FetchError;
-
-    return {
-      errors: error.data,
-    };
-  }
+  const post = await PostsApi.createQuestionPost(body);
+  return {
+    post: post,
+  };
 }
 
 export async function updatePost(postId: number, body: any) {
@@ -123,17 +115,11 @@ export async function getPost(postId: number) {
 }
 
 export async function draftPost(postId: number) {
-  const response = await PostsApi.updatePost(postId, {
-    curation_status: PostStatus.DRAFT,
-  });
-  return response;
+  return await PostsApi.makeDraft(postId);
 }
 
 export async function submitPostForReview(postId: number) {
-  const response = await PostsApi.updatePost(postId, {
-    curation_status: PostStatus.PENDING,
-  });
-  return response;
+  return await PostsApi.submitForReview(postId);
 }
 
 export async function updateNotebook(

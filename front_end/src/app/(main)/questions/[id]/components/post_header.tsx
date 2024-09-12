@@ -41,6 +41,18 @@ export default function PostHeader({
     (post.user_permission === ProjectPermissions.CREATOR &&
       post.status === PostStatus.APPROVED);
 
+  const canEdit = [
+    ProjectPermissions.CURATOR,
+    ProjectPermissions.ADMIN,
+    ProjectPermissions.CREATOR,
+  ].includes(post.user_permission);
+  const canSendBackToDrafts = post.status === PostStatus.PENDING && canEdit;
+  const canSubmitForReview = post.status === PostStatus.DRAFT && canEdit;
+  const canApprove = [
+    ProjectPermissions.CURATOR,
+    ProjectPermissions.ADMIN,
+  ].includes(post.user_permission);
+
   let edit_type = "question";
   if (post.group_of_questions) {
     edit_type = "group";
@@ -82,7 +94,9 @@ export default function PostHeader({
           </>
         )}
         <div className="ml-auto flex flex-row justify-self-end text-gray-700 dark:text-gray-700-dark lg:hidden">
-          <PostSubscribeButton post={post} mini />
+          {post.status == PostStatus.APPROVED && (
+            <PostSubscribeButton post={post} mini />
+          )}
           <SharePostMenu questionTitle={questionTitle} questionId={post.id} />
           <PostDropdownMenu post={post} />
         </div>
@@ -106,16 +120,20 @@ export default function PostHeader({
               )}
             </>
           )}
-          {post.status === PostStatus.DRAFT && (
+          {canSubmitForReview && (
             <>
               <h4 className="mb-2 mt-0">{t("draftStatusBox1")}</h4>
               <p className="mb-3 mt-0 leading-5">{t("draftStatusBox2")}</p>
             </>
           )}
           <div className="flex gap-2">
-            <Button href={`/questions/create/${edit_type}?post_id=${post.id}`}>
-              {t("edit")}
-            </Button>
+            {canEdit && (
+              <Button
+                href={`/questions/create/${edit_type}?post_id=${post.id}`}
+              >
+                {t("edit")}
+              </Button>
+            )}
             {post.status === PostStatus.DRAFT && (
               <Button
                 onClick={async () => {
@@ -126,7 +144,7 @@ export default function PostHeader({
                 {t("submitForReview")}
               </Button>
             )}
-            {post.status === PostStatus.PENDING && (
+            {canSendBackToDrafts && (
               <Button
                 onClick={async () => {
                   await draftPost(post.id);
@@ -136,9 +154,7 @@ export default function PostHeader({
                 {t("sendBackToDrafts")}
               </Button>
             )}
-            {[ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
-              post.user_permission
-            ) && (
+            {canApprove && (
               <Button
                 onClick={async () => {
                   setIsApprovalModalOpen(true);

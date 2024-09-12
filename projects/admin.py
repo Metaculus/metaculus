@@ -13,7 +13,7 @@ class ProjectUserPermissionInline(admin.TabularInline):
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     list_filter = ["type"]
-    search_fields = ["type", "name"]
+    search_fields = ["type", "name", "slug"]
     autocomplete_fields = ["created_by"]
     exclude = ["add_posts_to_main_feed"]
     inlines = [ProjectUserPermissionInline]
