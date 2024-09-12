@@ -10,6 +10,7 @@ import {
   NOTEBOOK_CONTENT_SECTION,
   NOTEBOOK_TITLE,
 } from "@/app/(main)/notebooks/constants/page_sections";
+import PostHeader from "@/app/(main)/questions/[id]/components/post_header";
 import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import CommentFeed from "@/components/comment_feed";
 import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
@@ -59,6 +60,8 @@ export default async function IndividualNotebook({
           quality={100}
         />
       )}
+
+      <PostHeader post={postData} questionTitle={questionTitle} />
 
       <h1
         id={NOTEBOOK_TITLE}

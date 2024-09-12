@@ -74,17 +74,20 @@ const PostApprovalModal: FC<{
   return (
     <BaseModal
       isOpen={isOpen}
-      label={t("questionApproval")}
+      label={
+        post.notebook ? t("postNotebookApproval") : t("postQuestionApproval")
+      }
       onClose={() => {
         setIsOpen(false);
       }}
     >
       <div className="flex max-w-sm flex-col gap-4">
         <p className="text-base leading-tight">
-          {t("questionApprovalSubtitle")}
+          {post.notebook
+            ? t("postNotebookApprovalSubtitle")
+            : t("postQuestionApprovalSubtitle")}
         </p>
         <div className="mb-4 flex flex-col gap-4">
-          {!approvalData.length && <p>{post.title}</p>}
           {approvalData.map(
             (
               { question_title, question_id, open_time, cp_reveal_time },
@@ -134,9 +137,18 @@ const PostApprovalModal: FC<{
             )
           )}
         </div>
-        <Button onClick={handleSubmit} disabled={isLoading}>
-          {t("approve")}
-        </Button>
+        <div className="flex w-full justify-end gap-2">
+          <Button
+            onClick={() => setIsOpen(false)}
+            disabled={isLoading}
+            variant="secondary"
+          >
+            {t("cancel")}
+          </Button>
+          <Button onClick={handleSubmit} disabled={isLoading} variant="primary">
+            {t("approve")}
+          </Button>
+        </div>
         <FormError errors={submitErrors} />
       </div>
     </BaseModal>
