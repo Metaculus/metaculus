@@ -41,17 +41,16 @@ const ContinuousPredictionChart: FC<Props> = ({
     if (!hoverState) return null;
 
     const xLabel = getDisplayValue(hoverState.x, question);
-
     return {
       xLabel,
       yUserLabel: readOnly
         ? null
         : graphType === "pmf"
-          ? (hoverState.yData.user * 200).toFixed(3) // should it be multiplied by 100 ?
+          ? (hoverState.yData.user * 200).toFixed(3)
           : getForecastPctDisplayValue(hoverState.yData.user),
       yCommunityLabel:
         graphType === "pmf"
-          ? (hoverState.yData.community * 200).toFixed(3) // should it be multiplied by 100 ?
+          ? (hoverState.yData.community * 200).toFixed(3)
           : getForecastPctDisplayValue(hoverState.yData.community),
     };
   }, [graphType, hoverState, question, readOnly]);

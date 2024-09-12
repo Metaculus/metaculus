@@ -6,7 +6,6 @@ import MultiSlider, {
   MultiSliderValue,
 } from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
-import { binWeightsFromSliders, computeQuartilesFromCDF } from "@/utils/math";
 
 export default function Questions() {
   const [multiSliderValue, setMultiSliderValue] = useState<MultiSliderValue>({
@@ -15,8 +14,6 @@ export default function Questions() {
     right: 232,
   });
   const [sliderValue, setSliderValue] = useState(50);
-
-  const dataset = binWeightsFromSliders(0.4, 0.7, 0.8, false, true);
 
   return (
     <main className="flex flex-col gap-2 p-6">
