@@ -6,6 +6,7 @@ on:
 jobs:
   deploy-to-prod:
     runs-on: ubuntu-latest
+    environment: prod_env
     env:
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       HEROKU_APP: metaculus-web
