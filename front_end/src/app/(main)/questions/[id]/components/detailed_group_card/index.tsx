@@ -18,6 +18,7 @@ type Props = {
   graphType: string;
   preselectedQuestionId?: number;
   isClosed?: boolean;
+  actualCloseTime: string | null;
 };
 
 const DetailedGroupCard: FC<Props> = ({
@@ -25,6 +26,7 @@ const DetailedGroupCard: FC<Props> = ({
   preselectedQuestionId,
   isClosed,
   graphType,
+  actualCloseTime,
 }) => {
   const groupType = questions.at(0)?.type;
 
@@ -42,6 +44,9 @@ const DetailedGroupCard: FC<Props> = ({
         case QuestionType.Binary: {
           return (
             <BinaryGroupChart
+              actualCloseTime={
+                actualCloseTime ? new Date(actualCloseTime).getTime() : null
+              }
               questions={sortedQuestions}
               timestamps={timestamps}
               preselectedQuestionId={preselectedQuestionId}
@@ -53,6 +58,9 @@ const DetailedGroupCard: FC<Props> = ({
         case QuestionType.Date:
           return (
             <ContinuousGroupTimeline
+              actualCloseTime={
+                actualCloseTime ? new Date(actualCloseTime).getTime() : null
+              }
               questions={sortedQuestions}
               timestamps={timestamps}
               isClosed={isClosed}

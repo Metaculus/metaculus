@@ -71,6 +71,7 @@ type Props = {
   preselectedQuestionId?: number;
   defaultZoom?: TimelineChartZoomOption;
   isClosed?: boolean;
+  actualCloseTime?: number | null;
 };
 
 const BinaryGroupChart: FC<Props> = ({
@@ -79,6 +80,7 @@ const BinaryGroupChart: FC<Props> = ({
   preselectedQuestionId,
   defaultZoom,
   isClosed,
+  actualCloseTime,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -90,15 +92,36 @@ const BinaryGroupChart: FC<Props> = ({
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(questions, preselectedQuestionId)
   );
-  const userForecasts = user ? generateUserForecasts(questions) : undefined;
+  const userForecasts = user
+    ? generateUserForecasts(questions)
+    : undefined;
+
   const timestampsCount = timestamps.length;
   const prevTimestampsCount = usePrevious(timestampsCount);
+  const latestUserTimestamp = userForecasts
+    ? Math.max(
+        ...userForecasts
+          .map((forecast) => forecast.timestamps?.at(-1) ?? 0)
+          .filter((timestamp) => timestamp !== undefined)
+      )
+    : undefined;
+  const prevUserTimestamp = usePrevious(latestUserTimestamp);
   // sync BE driven data with local state
   useEffect(() => {
-    if (prevTimestampsCount && prevTimestampsCount !== timestampsCount) {
+    if (
+      (prevTimestampsCount && prevTimestampsCount !== timestampsCount) ||
+      (latestUserTimestamp && latestUserTimestamp !== prevUserTimestamp)
+    ) {
       setChoiceItems(generateList(questions, preselectedQuestionId));
     }
-  }, [questions, prevTimestampsCount, timestampsCount, preselectedQuestionId]);
+  }, [
+    questions,
+    prevTimestampsCount,
+    timestampsCount,
+    preselectedQuestionId,
+    latestUserTimestamp,
+    prevUserTimestamp,
+  ]);
 
   const [cursorTimestamp, tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
@@ -194,6 +217,7 @@ const BinaryGroupChart: FC<Props> = ({
       <div ref={refs.setReference} {...getReferenceProps()}>
         <MultipleChoiceChart
           timestamps={timestamps}
+          actualCloseTime={actualCloseTime}
           choiceItems={choiceItems}
           yLabel={t("communityPredictionLabel")}
           onChartReady={handleChartReady}
