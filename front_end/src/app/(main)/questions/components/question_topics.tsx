@@ -125,11 +125,16 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
           )}
           <TopicItem
             isActive={false}
+            emoji="🤖🔭"
+            text="AI Benchmarking"
+            href="/aib"
+          />
+          <TopicItem
+            isActive={false}
             emoji="🇺🇸"
             text="2024 US Election Hub"
             href="/experiments/elections"
           />
-
           {!!hotTopics.length && (
             <>
               <Title title={t("topics")} />
