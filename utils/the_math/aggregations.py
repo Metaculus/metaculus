@@ -208,7 +208,7 @@ def get_aggregations_at_time(
         )
         new_entry.question = question
         new_entry.method = method
-        aggregations["method"] = new_entry
+        aggregations[method] = new_entry
     return aggregations
 
 
