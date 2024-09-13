@@ -24,6 +24,7 @@ import QuestionHeaderInfo from "../components/question_header_info";
 import QuestionResolutionStatus from "../components/question_resolution_status";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
+import TourWrapper from "@/components/onboarding/TourWrapper";
 
 type Props = {
   params: { id: number; slug: string[] };
@@ -125,7 +126,7 @@ export default async function IndividualQuestion({
           <section className="w-[48rem] max-w-full border-transparent bg-gray-0 px-3 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
             <PostHeader post={postData} questionTitle={questionTitle} />
             {!postData.conditional && (
-              <div className="mt-2 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2 lg:mt-4">
+              <div className="question-title mt-2 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2  lg:mt-4">
                 <h1 className="m-0 text-xl leading-tight sm:text-3xl">
                   {postData.title}
                 </h1>
@@ -157,7 +158,9 @@ export default async function IndividualQuestion({
               />
             )}
 
-            <ForecastMaker post={postData} />
+            <div className="prediction-input">
+              <ForecastMaker post={postData} />
+            </div>
             {!!postData.conditional && (
               <ConditionalTimeline
                 conditional={
@@ -182,11 +185,12 @@ export default async function IndividualQuestion({
               layout="mobile"
               questionTitle={questionTitle}
             />
-
-            <CommentFeed
-              postData={postData}
-              postPermissions={postData.user_permission}
-            />
+            <div className="comment-section">
+              <CommentFeed
+                postData={postData}
+                postPermissions={postData.user_permission}
+              />
+            </div>
           </section>
 
           <Sidebar
@@ -198,6 +202,7 @@ export default async function IndividualQuestion({
       </main>
 
       <QuestionEmbedModal postId={postData.id} postTitle={postData.title} />
+      <TourWrapper />
     </EmbedModalContextProvider>
   );
 }
