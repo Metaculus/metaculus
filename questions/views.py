@@ -19,7 +19,6 @@ from questions.serializers import (
 from questions.services import (
     resolve_question,
     create_forecast,
-    close_question,
     create_forecast_bulk,
 )
 
@@ -37,19 +36,6 @@ def resolve_api_view(request, pk: int):
         request.data.get("actual_resolve_time")
     )
     resolve_question(question, resolution, actual_resolve_time)
-
-    return Response({"post_id": question.get_post().pk})
-
-
-@api_view(["POST"])
-def close_api_view(request, pk: int):
-    question = get_object_or_404(Question.objects.all(), pk=pk)
-
-    # Check permissions
-    permission = get_post_permission_for_user(question.get_post(), user=request.user)
-    ObjectPermission.can_close(permission, raise_exception=True)
-
-    close_question(question)
 
     return Response({"post_id": question.get_post().pk})
 

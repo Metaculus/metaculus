@@ -1,6 +1,7 @@
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
+import { ProjectPermissions } from "@/types/post";
 
 import ConditionalForm from "../../components/conditional_form";
 import { extractMode } from "../helpers";
@@ -26,7 +27,11 @@ const QuestionConditionalCreator: React.FC<{
     );
   }
   const mode = extractMode(searchParams, post);
-  const allTournaments = await ProjectsApi.getTournaments();
+  const allTournaments = await ProjectsApi.getTournaments({
+    // Select only projects
+    // where user is curator/admin
+    permission: ProjectPermissions.CURATOR,
+  });
   const siteMain = await ProjectsApi.getSiteMain();
 
   return (

@@ -38,6 +38,11 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
     case QuestionType.Binary: {
       return (
         <BinaryGroupChart
+          actualCloseTime={
+            post.actual_close_time
+              ? new Date(post.actual_close_time).getTime()
+              : null
+          }
           questions={sortedQuestions}
           timestamps={timestamps}
           preselectedQuestionId={preselectedQuestionId}
@@ -49,6 +54,11 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
     case QuestionType.Date:
       return (
         <ContinuousGroupTimeline
+         actualCloseTime={
+            post.actual_close_time
+              ? new Date(post.actual_close_time).getTime()
+              : null
+          }
           questions={sortedQuestions}
           timestamps={timestamps}
           isClosed={isClosed}

@@ -48,15 +48,30 @@ const MultipleChoiceChartCard: FC<Props> = ({
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(question)
   );
-  const userForecasts = generateUserForecastsForMultipleQuestion(question);
+  const userForecasts = user
+    ? generateUserForecastsForMultipleQuestion(question)
+    : undefined;
   const timestampsCount = timestamps.length;
   const prevTimestampsCount = usePrevious(timestampsCount);
+
+
+  const userTimestampsCount = question.my_forecasts?.history.length;
+  const prevUserTimestampsCount = usePrevious(userTimestampsCount);
   // sync BE driven data with local state
   useEffect(() => {
-    if (prevTimestampsCount && prevTimestampsCount !== timestampsCount) {
+    if (
+      (prevTimestampsCount && prevTimestampsCount !== timestampsCount) ||
+      (userTimestampsCount && userTimestampsCount !== prevUserTimestampsCount)
+    ) {
       setChoiceItems(generateList(question));
     }
-  }, [prevTimestampsCount, question, timestampsCount]);
+  }, [
+    prevTimestampsCount,
+    question,
+    timestampsCount,
+    userTimestampsCount,
+    prevUserTimestampsCount,
+  ]);
 
   const [cursorTimestamp, tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
@@ -159,6 +174,11 @@ const MultipleChoiceChartCard: FC<Props> = ({
       )}
       <div ref={refs.setReference} {...getReferenceProps()}>
         <MultipleChoiceChart
+          actualCloseTime={
+            question.actual_close_time
+              ? new Date(question.actual_close_time).getTime()
+              : null
+          }
           timestamps={timestamps}
           choiceItems={choiceItems}
           yLabel={t("communityPredictionLabel")}

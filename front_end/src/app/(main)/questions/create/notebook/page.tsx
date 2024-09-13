@@ -1,6 +1,7 @@
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
+import { ProjectPermissions } from "@/types/post";
 
 import NotebookForm from "../../components/notebook_form";
 import { extractMode } from "../helpers";
@@ -18,7 +19,11 @@ const NotebookCreator: React.FC<{ searchParams: SearchParams }> = async ({
   }
   const mode = extractMode(searchParams, post);
   const allCategories = await ProjectsApi.getCategories();
-  const allTournaments = await ProjectsApi.getTournaments();
+  const allTournaments = await ProjectsApi.getTournaments({
+    // Select only projects
+    // where user is curator/admin
+    permission: ProjectPermissions.CURATOR,
+  });
   const siteMain = await ProjectsApi.getSiteMain();
 
   return (

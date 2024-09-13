@@ -79,7 +79,7 @@ class Command(BaseCommand):
         scheduler.add_job(
             close_old_connections(job_close_question.send),
             trigger=CronTrigger.from_crontab("* * * * *"),  # Every Hour
-            id="posts_job_compute_movement",
+            id="posts_job_close_question",
             max_instances=1,
             replace_existing=True,
         )
