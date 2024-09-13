@@ -386,7 +386,7 @@ def serialize_question(
     serialized_data["post_id"] = post.id if post else question.get_post().id
 
     if with_cp:
-        if question.cp_reveal_time > django.utils.timezone.now():
+        if question.cp_reveal_time and question.cp_reveal_time > django.utils.timezone.now():
             aggregate_forecasts = []
         else:
             aggregate_forecasts = aggregate_forecasts or sorted(
