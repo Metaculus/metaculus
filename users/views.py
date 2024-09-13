@@ -431,6 +431,7 @@ def update_profile_api_view(request: Request):
     serializer.is_valid(raise_exception=True)
 
     unsubscribe_tags = serializer.validated_data.get("unsubscribed_mailing_tags")
+    print(serializer.validated_data, request.data)
     if unsubscribe_tags is not None:
         user_unsubscribe_tags(user, unsubscribe_tags)
 

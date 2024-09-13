@@ -12,7 +12,6 @@ import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import {
   extractPrevNumericForecastValue,
   formatPrediction,
-  getIsForecastEmpty,
   getNumericForecastDataset,
 } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";

@@ -1,6 +1,8 @@
+"use client";
+
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import ConditionalCard from "./conditional_card";
@@ -16,6 +18,8 @@ import {
   getConditionalQuestionTitle,
   getConditionTitle,
 } from "@/utils/questions";
+import { useAuth } from "@/contexts/auth_context";
+import Button from "@/app/(main)/about/components/Button";
 
 type Props = {
   postTitle: string;
@@ -23,6 +27,7 @@ type Props = {
   curationStatus: PostStatus;
   withNavigation?: boolean;
   chartTheme?: VictoryThemeDefinition;
+  nrForecasters?: number;
 };
 
 const ConditionalTile: FC<Props> = ({
@@ -33,6 +38,34 @@ const ConditionalTile: FC<Props> = ({
   chartTheme,
 }) => {
   const t = useTranslations();
+  const { user } = useAuth();
+  const [hideCommunityPrediction, setHideCommunityPrediction] = useState(
+    user && user.hide_community_prediction
+  );
+  let oneQuestionClosed = false;
+  if (
+    conditional.question_no.actual_close_time &&
+    new Date(conditional.question_no.actual_close_time).getTime() < Date.now()
+  ) {
+    oneQuestionClosed = true;
+  }
+  if (
+    conditional.question_yes.actual_close_time &&
+    new Date(conditional.question_yes.actual_close_time).getTime() < Date.now()
+  ) {
+    oneQuestionClosed = true;
+  }
+
+  if (hideCommunityPrediction && !oneQuestionClosed) {
+    return (
+      <div>
+        <div className="text-l m-4 w-full text-center">{t("CPIsHidden")}</div>
+        <Button onClick={() => setHideCommunityPrediction(false)}>
+          {t("RevealTemporarily")}
+        </Button>
+      </div>
+    );
+  }
 
   const { condition, condition_child, question_yes, question_no } = conditional;
   const isEmbedded = !!chartTheme;

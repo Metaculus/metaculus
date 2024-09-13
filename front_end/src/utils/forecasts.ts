@@ -44,12 +44,6 @@ export function formatPrediction(
   }
 }
 
-export function getIsForecastEmpty(
-  forecast: MultipleChoiceForecast | NumericForecast | null | undefined
-): forecast is null {
-  return !forecast || !forecast.timestamps || forecast.timestamps.length === 0;
-}
-
 export function extractPrevBinaryForecastValue(
   prevForecast: any
 ): number | null {

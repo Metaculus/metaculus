@@ -1,4 +1,6 @@
-import { FC } from "react";
+"use client";
+
+import { FC, useState } from "react";
 
 import NumericGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/numeric_group_chart";
 import {
@@ -12,10 +14,14 @@ import { sortGroupPredictionOptions } from "@/utils/questions";
 import BinaryGroupChart from "./binary_group_chart";
 import ContinuousGroupTimeline from "../continuous_group_timeline";
 import { GroupOfQuestionsGraphType } from "@/types/charts";
+import { useAuth } from "@/contexts/auth_context";
+import Button from "@/app/(main)/about/components/Button";
+import { useTranslations } from "next-intl";
 
 type Props = {
   questions: QuestionWithForecasts[];
   graphType: string;
+  nrForecasters: number;
   preselectedQuestionId?: number;
   isClosed?: boolean;
 };
@@ -25,11 +31,60 @@ const DetailedGroupCard: FC<Props> = ({
   preselectedQuestionId,
   isClosed,
   graphType,
+  nrForecasters,
 }) => {
+  const t = useTranslations();
   const groupType = questions.at(0)?.type;
+  const { user } = useAuth();
+  const [hideCommunityPrediction, setHideCommunityPrediction] = useState(
+    user && user.hide_community_prediction
+  );
 
   if (!groupType) {
-    return <div>Forecasts data is empty</div>;
+    return (
+      <div className="text-l m-4 w-full text-center">
+        {t("forecastDataIsEmpty")}
+      </div>
+    );
+  }
+
+  let isForecastEmpty = true;
+  let oneQuestionClosed = false;
+  questions.forEach((question) => {
+    if (question.aggregations.recency_weighted.history.length > 0) {
+      isForecastEmpty = false;
+    }
+    if (
+      question.actual_close_time &&
+      new Date(question.actual_close_time).getTime() < Date.now()
+    ) {
+      oneQuestionClosed = true;
+    }
+  });
+
+  if (isForecastEmpty) {
+    return (
+      <>
+        {nrForecasters > 0 ? (
+          <div className="text-l m-4 w-full text-center">{t("CPIsHidden")}</div>
+        ) : (
+          <div className="text-l m-4 w-full text-center">
+            {t("forecastDataIsEmpty")}
+          </div>
+        )}
+      </>
+    );
+  }
+
+  if (hideCommunityPrediction && !oneQuestionClosed) {
+    return (
+      <div>
+        <div className="text-l m-4 w-full text-center">{t("CPIsHidden")}</div>
+        <Button onClick={() => setHideCommunityPrediction(false)}>
+          {t("RevealTemporarily")}
+        </Button>
+      </div>
+    );
   }
 
   switch (graphType) {

@@ -44,12 +44,6 @@ class PostsApi {
     );
   }
 
-  static async getPosts(params?: PostsParams): Promise<Post[]> {
-    const queryParams = encodeQueryParams(params ?? {});
-    const data = await get<PaginatedPayload<Post>>(`/posts${queryParams}`);
-    return data.results;
-  }
-
   static async removePostFromProject(postId: number, projectId: number) {
     await post<any>(`/posts/${postId}/remove_from_project/`, {
       project_id: projectId,
@@ -62,6 +56,19 @@ class PostsApi {
     const queryParams = encodeQueryParams({
       ...(params ?? {}),
       with_cp: true,
+    });
+
+    return await get<PaginatedPayload<PostWithForecasts>>(
+      `/posts${queryParams}`
+    );
+  }
+
+  static async getPosts(
+    params?: PostsParams
+  ): Promise<PaginatedPayload<PostWithForecasts>> {
+    const queryParams = encodeQueryParams({
+      ...(params ?? {}),
+      with_cp: false,
     });
 
     return await get<PaginatedPayload<PostWithForecasts>>(

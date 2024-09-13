@@ -52,4 +52,5 @@ export type CurrentUser = User & {
   is_staff: boolean;
   unsubscribed_mailing_tags: SubscriptionEmailType[];
   unsubscribed_preferences_tags: ProfilePreferencesType[];
+  hide_community_prediction: boolean;
 };

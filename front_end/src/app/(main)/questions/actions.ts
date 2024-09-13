@@ -16,6 +16,7 @@ import QuestionsApi, { ForecastPayload } from "@/services/questions";
 import { FetchError } from "@/types/fetch";
 import { PostStatus, PostSubscription } from "@/types/post";
 import { VoteDirection } from "@/types/votes";
+import { useAuth } from "@/contexts/auth_context";
 
 export async function fetchMorePosts(
   filters: PostsParams,

@@ -84,7 +84,9 @@ export async function updateProfileAction(
   profile: Partial<
     Pick<
       CurrentUser,
-      "unsubscribed_mailing_tags" | "unsubscribed_preferences_tags"
+      | "unsubscribed_mailing_tags"
+      | "unsubscribed_preferences_tags"
+      | "hide_community_prediction"
     >
   >
 ) {

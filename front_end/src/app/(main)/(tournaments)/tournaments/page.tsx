@@ -67,11 +67,11 @@ function extractTournamentLists(tournaments: TournamentPreview[]) {
   const activeTournaments: TournamentPreview[] = [];
   const archivedTournaments: TournamentPreview[] = [];
   const questionSeries: TournamentPreview[] = [];
-  
+
   const sortedTournaments = [...tournaments].sort((a, b) =>
     differenceInMilliseconds(new Date(b.start_date), new Date(a.start_date))
   );
-  
+
   for (const tournament of sortedTournaments) {
     if (!tournament.posts_count) {
       continue;

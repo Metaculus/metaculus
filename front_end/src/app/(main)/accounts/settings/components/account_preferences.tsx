@@ -45,17 +45,13 @@ const AccountPreferences: FC<Props> = ({ user }) => {
     },
     [user]
   );
-  const [updateProfile, isPending] = useServerAction(handlePreferencesChange);
-  const options = [
-    {
-      type: ProfilePreferencesType.community_prediction_default,
-      label: t("showCommunityPredictionByDefault"),
-    },
-    {
-      type: ProfilePreferencesType.community_prediction_if_predicted,
-      label: t("showCommunityPredictionIfPredicted"),
-    },
-  ];
+  const [updateProfile, isPending] = useServerAction(
+    async (hide_community_prediction: boolean) => {
+      await updateProfileAction({
+        hide_community_prediction: hide_community_prediction,
+      });
+    }
+  );
 
   return (
     <section className="text-sm">
@@ -63,22 +59,18 @@ const AccountPreferences: FC<Props> = ({ user }) => {
       <h3 className="bg-blue-200 p-1 text-sm font-medium dark:bg-blue-200-dark">
         {t("communityPredictionLabel")}
       </h3>
-      {options.map(({ type, ...opts }, index) => (
-        <div className="flex items-center" key={`subscriptions-${type}`}>
-          <Checkbox
-            key={`subscriptions-${type}`}
-            checked={!user.unsubscribed_preferences_tags?.includes(type)} // if user didn`t unsubscribe check by default
-            onChange={(checked) => {
-              // handlePreferencesChange(type, checked).then();
-              updateProfile(type, checked);
-            }}
-            className="p-1.5"
-            readOnly={isPending}
-            {...opts}
-          />
-          {loadingIndex === index && isPending && <LoadingSpinner size="1x" />}
-        </div>
-      ))}
+      <div className="flex items-center">
+        <Checkbox
+          checked={!user.hide_community_prediction}
+          onChange={(checked) => {
+            updateProfile(!user.hide_community_prediction);
+          }}
+          className="p-1.5"
+          readOnly={isPending}
+          label={t("showCommunityPredictionByDefault")}
+        />
+        {isPending && <LoadingSpinner size="1x" />}
+      </div>
     </section>
   );
 };
