@@ -259,7 +259,7 @@ def update_conditional(
         else None
     )
     condition_child = (
-        Question.objects.get(pk=condition_id)
+        Question.objects.get(pk=condition_child_id)
         if condition_child_id != obj.condition_child_id
         else None
     )

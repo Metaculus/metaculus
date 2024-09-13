@@ -13,12 +13,14 @@ from projects.permissions import ObjectPermission
 from users.models import User
 
 
-def get_projects_qs(user: User = None):
+def get_projects_qs(user: User = None, permission: ObjectPermission = None):
     """
     Returns available projects for the user
     """
 
-    return Project.objects.filter_active().filter_permission(user=user)
+    return Project.objects.filter_active().filter_permission(
+        user=user, permission=permission
+    )
 
 
 def update_with_add_posts_to_main_feed(project: Project, add_posts_to_main_feed: bool):

@@ -66,10 +66,19 @@ class ProjectsQuerySet(models.QuerySet):
             ),
         )
 
-    def filter_permission(self, user: User = None):
+    def filter_permission(self, user: User = None, permission: ObjectPermission = None):
         """
         Returns only allowed projects for the user
         """
+
+        qs = self.annotate_user_permission(user=user)
+
+        if permission:
+            return qs.filter(
+                user_permission__in=ObjectPermission.get_included_permissions(
+                    permission
+                )
+            )
 
         return self.annotate_user_permission(user=user).filter(
             user_permission__isnull=False
