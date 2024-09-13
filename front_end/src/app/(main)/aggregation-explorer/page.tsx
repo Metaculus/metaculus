@@ -10,14 +10,8 @@ export default async function AggregationExplorer({
 }: {
   searchParams: AggregationExplorerParams;
 }) {
-  const data = await AggregationExplorerAPI.getAggregations(searchParams);
-
-  //f dasfdafsd
-  //f dasfdafsd
-  //f dasfdafsd
-  //f dasfdafsd
-
-  console.log(data);
+  const questionData =
+    await AggregationExplorerAPI.getAggregations(searchParams);
 
   return (
     <Suspense fallback={<LoadingIndicator />}>
