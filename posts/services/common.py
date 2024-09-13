@@ -362,14 +362,6 @@ def resolve_post(post: Post):
     )
 
 
-def close_post(post: Post):
-    post.set_actual_close_time()
-
-    run_notify_post_status_change.send(
-        post.id, PostSubscription.PostStatusChange.CLOSED
-    )
-
-
 def handle_post_open(post: Post):
     """
     A specific handler is triggered once it's opened

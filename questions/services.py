@@ -1,9 +1,6 @@
 import logging
 from datetime import datetime
 
-import django
-import django.utils
-import django.utils.timezone
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -389,24 +386,17 @@ def resolve_question(question: Question, resolution, actual_resolve_time: dateti
 
 
 def close_question(question: Question):
-    if question.actual_close_time < timezone.now():
+    if question.actual_close_time:
         raise ValidationError("Question is already closed")
 
     question.actual_close_time = timezone.now()
     question.save()
 
     post = question.get_post()
+    # This method automatically sets post closure
+    # Based on child questions
     post.update_pseudo_materialized_fields()
     post.save()
-
-    if post.actual_close_time:
-        if post.actual_close_time < django.utils.timezone.now():
-            raise Exception(
-                f"Post has an actual close time in the future: {post.actual_close_time} !"
-            )
-        from posts.services.common import close_post
-
-        close_post(post)
 
 
 def create_forecast(
