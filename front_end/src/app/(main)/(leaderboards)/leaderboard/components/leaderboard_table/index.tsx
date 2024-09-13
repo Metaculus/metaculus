@@ -3,10 +3,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import {
-  MEDALS_PATH_FILTER,
-  MEDALS_USER_FILTER,
-} from "@/app/(main)/(leaderboards)/medals/search_params";
+import { CONTRIBUTIONS_USER_FILTER } from "@/app/(main)/(leaderboards)/contributions/search_params";
 import { useBreakpoint } from "@/hooks/tailwind";
 import { CategoryKey, LeaderboardDetails, MedalsPath } from "@/types/scoring";
 
@@ -86,18 +83,26 @@ const LeaderboardTable: FC<Props> = ({
             <th className="w-20 px-4 py-2.5 text-right">{t("score")}</th>
           </tr>
           {!!entriesToDisplay.length ? (
-            entriesToDisplay.map((entry) => (
-              <LeaderboardRow
-                key={`ranking-row-${category}-${entry.user ? entry.user.id : entry.aggregation_method!}`}
-                rowEntry={entry}
-                scoreType={leaderboardDetails.score_type}
-                href={
-                  entry.user
-                    ? `/accounts/profile/${entry.user.id}?mode=medals`
-                    : `/questions/track-record`
-                }
-              />
-            ))
+            entriesToDisplay.map((entry) => {
+              let navigationUrl: string;
+              if (cardSized) {
+                // on combined global leaderboard all table row links to the category page
+                navigationUrl = categoryUrl;
+              } else {
+                navigationUrl = entry.user
+                  ? `/contributions/?${SCORING_CATEGORY_FILTER}=${category}&${CONTRIBUTIONS_USER_FILTER}=${entry.user.id}&${SCORING_YEAR_FILTER}=${year}&duration=${duration}`
+                  : `/questions/track-record`;
+              }
+
+              return (
+                <LeaderboardRow
+                  key={`ranking-row-${category}-${entry.user ? entry.user.id : entry.aggregation_method!}`}
+                  rowEntry={entry}
+                  scoreType={leaderboardDetails.score_type}
+                  href={navigationUrl}
+                />
+              );
+            })
           ) : (
             <tr className="border-b border-gray-300  dark:border-gray-300-dark">
               <td
@@ -112,18 +117,18 @@ const LeaderboardTable: FC<Props> = ({
             <>
               <tr className="bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-100-dark dark:text-blue-600-dark dark:hover:bg-blue-200-dark">
                 <td className="p-0">
-                  <a href={categoryUrl} className="flex px-4 py-2.5" />
+                  <Link href={categoryUrl} className="flex px-4 py-2.5" />
                 </td>
                 <td className="p-0" colSpan={2}>
-                  <a
+                  <Link
                     href={categoryUrl}
                     className="flex px-4 py-2.5 text-base font-medium no-underline"
                   >
                     {t("viewMore")}
-                  </a>
+                  </Link>
                 </td>
                 <td className="hidden p-0 @md:!table-cell">
-                  <a href={categoryUrl} />
+                  <Link href={categoryUrl} />
                 </td>
               </tr>
               {/* in the single-category page, this row is on the bottom */}
