@@ -95,7 +95,7 @@ class CPChangeData:
         }.get(self.cp_change_label, self.cp_change_label)
 
     def format_value(self, value):
-        if self.question.type in ("multiple_choice", "binary"):
+        if value is not None and self.question.type in ("multiple_choice", "binary"):
             return f"{round(value * 100)}%"
 
         return value
