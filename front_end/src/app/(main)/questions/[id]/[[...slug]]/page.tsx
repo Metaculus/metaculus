@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         url: `${process.env.NEXT_PUBLIC_CDN_DOMAIN_NAME ?? ""}/api/posts/preview-image/${params.id}/`,
         width: 1200,
         height: 630,
-        alt: 'community predictions',
+        alt: "community predictions",
       },
     },
     twitter: {
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         url: `${process.env.NEXT_PUBLIC_CDN_DOMAIN_NAME ?? ""}/api/posts/preview-image/${params.id}/`,
         width: 1200,
         height: 630,
-        alt: 'community predictions',
+        alt: "community predictions",
       },
     },
   };

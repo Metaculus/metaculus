@@ -9,6 +9,7 @@ import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "react-hot-toast";
 
 import GlobalModals from "@/components/global_modals";
+import OnboardingModalWrapper from "@/components/onboarding/OnboardingModalWrapper";
 import AppThemeProvided from "@/components/theme_provider";
 import { METAC_COLORS } from "@/constants/colors";
 import AuthProvider from "@/contexts/auth_context";
@@ -140,6 +141,7 @@ export default async function RootLayout({
                   />
                   {children}
                   <GlobalModals />
+                  <OnboardingModalWrapper />
                   <Toaster />
                 </ModalProvider>
               </AuthProvider>

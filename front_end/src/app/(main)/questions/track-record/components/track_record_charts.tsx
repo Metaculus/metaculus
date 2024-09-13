@@ -39,7 +39,10 @@ const TrackRecordCharts: FC<Props> = ({
         {t("calibrationCurve")}
       </h3>
       {calibrationCurve && (
-        <CalibrationChart calibrationData={calibrationCurve} username={username}/>
+        <CalibrationChart
+          calibrationData={calibrationCurve}
+          username={username}
+        />
       )}
       <div className="flex flex-col items-center space-y-3 divide-y divide-gray-300 dark:divide-gray-700">
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 md:gap-x-8">
