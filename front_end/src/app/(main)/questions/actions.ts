@@ -64,6 +64,7 @@ export async function createQuestionPost(body: any) {
 
 export async function updatePost(postId: number, body: any) {
   const post = await PostsApi.updatePost(postId, body);
+  revalidatePath("/questions/create/group/");
   return {
     post: post,
   };

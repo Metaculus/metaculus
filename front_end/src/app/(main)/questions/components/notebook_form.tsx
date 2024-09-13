@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/form_field";
@@ -124,16 +125,14 @@ const NotebookForm: React.FC<Props> = ({
             {t("viewInDjangoAdmin")}
           </a>
         )}
-        <InputContainer labelText={t("projects")}>
-          <ProjectPicker
-            tournaments={tournaments}
-            siteMain={siteMain}
-            currentProject={defaultProject}
-            onChange={(project) => {
-              control.setValue("default_project", project.id);
-            }}
-          />
-        </InputContainer>
+        <ProjectPickerInput
+          tournaments={tournaments}
+          siteMain={siteMain}
+          currentProject={defaultProject}
+          onChange={(project) => {
+            control.setValue("default_project", project.id);
+          }}
+        />
         <InputContainer labelText={t("longTitle")}>
           <Textarea
             {...control.register("title")}

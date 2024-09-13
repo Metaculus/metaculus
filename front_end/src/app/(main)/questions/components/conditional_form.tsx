@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
@@ -18,7 +19,6 @@ import { QuestionType } from "@/types/question";
 import { getQuestionStatus } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
-import ProjectPicker from "./project_picker";
 import { createQuestionPost, getPost, updatePost } from "../actions";
 
 type PostCreationData = {
@@ -125,16 +125,14 @@ const ConditionalForm: React.FC<{
             {t("viewInDjangoAdmin")}
           </a>
         )}
-        <InputContainer>
-          <ProjectPicker
-            tournaments={tournaments}
-            siteMain={siteMain}
-            currentProject={defaultProject}
-            onChange={(project) => {
-              control.setValue("default_project", project.id);
-            }}
-          />
-        </InputContainer>
+        <ProjectPickerInput
+          tournaments={tournaments}
+          siteMain={siteMain}
+          currentProject={defaultProject}
+          onChange={(project) => {
+            control.setValue("default_project", project.id);
+          }}
+        />
         <InputContainer labelText={t("parentId")}>
           <Input
             readOnly={isLive && mode !== "create"}

@@ -10,6 +10,7 @@ import { FC } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
@@ -23,11 +24,11 @@ import { getQuestionStatus } from "@/utils/questions";
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
-import ProjectPicker from "./project_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
   title: string;
+  url_title: string;
   categories: number[];
   question: any;
   default_project: number;
@@ -145,6 +146,7 @@ const QuestionForm: FC<Props> = ({
 
     let post_data: PostCreationData = {
       title: data["title"],
+      url_title: data["url_title"],
       default_project: data["default_project"],
       categories: categoriesList.map((x) => x.id),
       question: data,
@@ -224,17 +226,14 @@ const QuestionForm: FC<Props> = ({
             {t("viewInDjangoAdmin")}
           </a>
         )}
-        <InputContainer labelText={t("projects")}>
-          <ProjectPicker
-            tournaments={tournaments}
-            siteMain={siteMain}
-            currentProject={defaultProject}
-            onChange={(project) => {
-              control.setValue("default_project", project.id);
-            }}
-          />
-        </InputContainer>
-
+        <ProjectPickerInput
+          tournaments={tournaments}
+          siteMain={siteMain}
+          currentProject={defaultProject}
+          onChange={(project) => {
+            control.setValue("default_project", project.id);
+          }}
+        />
         <FormError
           errors={control.formState.errors}
           className="text-red-500 dark:text-red-500-dark"
