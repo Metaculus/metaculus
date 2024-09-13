@@ -278,6 +278,8 @@ def get_forecasting_stats_data(
         scores = list(score_qs)
 
     average_score = np.average([score.score for score in scores])
+    if np.isnan(average_score):
+        average_score = None
     forecasts = Forecast.objects.filter(question__in=public_questions)
     if user is not None:
         forecasts = forecasts.filter(author=user)
