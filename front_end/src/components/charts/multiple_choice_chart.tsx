@@ -50,6 +50,7 @@ import { QuestionType, Scaling } from "@/types/question";
 
 type Props = {
   timestamps: number[];
+  actualCloseTime?: number | null;
   choiceItems: ChoiceItem[];
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
@@ -66,6 +67,7 @@ type Props = {
 
 const MultipleChoiceChart: FC<Props> = ({
   timestamps,
+  actualCloseTime,
   choiceItems,
   defaultZoom = TimelineChartZoomOption.All,
   withZoomPicker = false,
@@ -106,8 +108,16 @@ const MultipleChoiceChart: FC<Props> = ({
         zoom,
         questionType,
         scaling,
+        actualCloseTime,
       }),
-    [timestamps, choiceItems, chartWidth, chartHeight, zoom, userForecasts]
+    [
+      timestamps,
+      choiceItems,
+      chartWidth,
+      chartHeight,
+      zoom,
+      userForecasts,
+    ]
   );
 
   const isHighlightActive = useMemo(
@@ -315,11 +325,13 @@ function buildChartData({
   width,
   choiceItems,
   timestamps,
+  actualCloseTime,
   zoom,
   questionType,
   scaling,
 }: {
   timestamps: number[];
+  actualCloseTime?: number | null;
   choiceItems: ChoiceItem[];
   width: number;
   height: number;
@@ -327,7 +339,10 @@ function buildChartData({
   questionType?: QuestionType;
   scaling?: Scaling;
 }): ChartData {
-  const xDomain = generateNumericDomain(timestamps, zoom);
+  const latestTimestamp = actualCloseTime
+    ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
+    : Date.now() / 1000;
+  const xDomain = generateNumericDomain([...timestamps, latestTimestamp], zoom);
 
   const graphs: ChoiceGraph[] = choiceItems.map(
     ({
