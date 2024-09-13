@@ -46,6 +46,7 @@ class User(TimeStampedModel, AbstractUser):
     unsubscribed_mailing_tags = ArrayField(
         models.CharField(max_length=200), blank=True, default=list
     )
+    hide_community_prediction = models.BooleanField(default=False)
 
     objects: models.Manager["User"] = UserManager()
 
