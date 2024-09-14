@@ -74,8 +74,10 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
             onNext={handleNext}
             topicIndex={selectedTopic}
             questionData={questionData}
+            onPredictionChange={setPrediction}
           />
         );
+
       case 3:
         return (
           <Step3
