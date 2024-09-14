@@ -2,6 +2,7 @@ export const onboardingStyles = {
   container: "max-w-[560px] mt-[-16px] p-0 md:p-3",
   largeparagraph: "text-lg mb-4",
   paragraph: "text-base mb-4 opacity-80",
+  title: "text-2xl mb-4 font-semibold text-blue-800 dark:text-blue-200",
   heading: "text-xl font-bold mb-4",
   button:
     "px-6 py-4 font-semibold dark:bg-blue-700 bg-blue-400 text-blue-800 dark:text-blue-200 rounded hover:bg-blue-500 dark:hover:bg-blue-600",
