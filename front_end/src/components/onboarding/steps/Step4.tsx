@@ -1,49 +1,100 @@
-import React from "react";
-import Link from "next/link";
+import React, { useState } from "react";
+import { PostWithForecasts } from "@/types/post";
 import { onboardingTopics } from "../OnboardingSettings";
+import { onboardingStyles } from "../OnboardingStyles";
+import { faArrowLeft, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface Step4Props {
   onPrev: () => void;
   onNext: () => void;
   topicIndex: number | null;
+  questionData: PostWithForecasts | null;
+  prediction: number;
+  onPredictionChange: (value: number) => void;
 }
 
-const Step4: React.FC<Step4Props> = ({ onPrev, onNext, topicIndex }) => {
-  if (topicIndex === null) {
-    return <p>Error: No topic selected</p>;
+const Step4: React.FC<Step4Props> = ({
+  onPrev,
+  onNext,
+  topicIndex,
+  questionData,
+  prediction,
+  onPredictionChange,
+}) => {
+  const [newFactor, setNewFactor] = useState("");
+  const [userFactors, setUserFactors] = useState<string[]>([]);
+
+  if (topicIndex === null || !questionData) {
+    return <p>Loading...</p>;
   }
 
   const topic = onboardingTopics[topicIndex];
-  const thirdQuestionId = topic.questions[2]; // Get the third question ID
+  const factors = [...topic.factors, ...userFactors];
 
-  const questionUrl = `/questions/${thirdQuestionId}?tour=guided`;
+  const handleAddFactor = () => {
+    if (newFactor.trim()) {
+      setUserFactors([...userFactors, newFactor.trim()]);
+      setNewFactor("");
+    }
+  };
+
+  const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onPredictionChange(Number(event.target.value));
+  };
 
   return (
-    <div className="w-[560px]">
-      <h3 className="mb-4 text-xl font-bold">Great job on your predictions!</h3>
-      <p className="mb-4">
-        You're ready to explore more questions on Metaculus. Let's take a look
-        at another question about {topic.name}.
+    <div className={onboardingStyles.container}>
+      <button onClick={onPrev} className={onboardingStyles.backButton}>
+        <FontAwesomeIcon icon={faArrowLeft} />
+      </button>
+      <h3 className={onboardingStyles.heading}>Let's refine your prediction</h3>
+      <div className={onboardingStyles.questionContainer}>
+        <h3 className="my-4 text-xl font-bold">{questionData.title}</h3>
+      </div>
+      <p className={onboardingStyles.paragraph}>
+        Consider these factors that might influence the outcome:
       </p>
-      <p className="mb-6">
-        Click the button below to view the question and start a guided tour of
-        the question page.
-      </p>
-      <div className="flex justify-between">
+      <ul className="mb-4 list-disc pl-5">
+        {factors.map((factor, index) => (
+          <li key={index} className={onboardingStyles.paragraph}>
+            {factor}
+          </li>
+        ))}
+      </ul>
+      <div className="mb-4 flex">
+        <input
+          type="text"
+          value={newFactor}
+          onChange={(e) => setNewFactor(e.target.value)}
+          placeholder="Add your own factor"
+          className={onboardingStyles.input}
+        />
         <button
-          onClick={onPrev}
-          className="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400"
+          onClick={handleAddFactor}
+          className={onboardingStyles.smallButton}
         >
-          Back
+          <FontAwesomeIcon icon={faPlus} />
         </button>
-        <Link href={questionUrl}>
-          <button
-            onClick={onNext}
-            className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-          >
-            View Question and Start Tour
-          </button>
-        </Link>
+      </div>
+      <p className={onboardingStyles.paragraph}>
+        Now, considering these factors, how would you adjust your prediction?
+      </p>
+      <div className="my-6">
+        <input
+          type="range"
+          min="1"
+          max="99"
+          value={prediction}
+          onChange={handleSliderChange}
+          className="w-full"
+        />
+        <p className="mt-2 text-center">Your prediction: {prediction}%</p>
+      </div>
+      <div className="mt-6 flex justify-center">
+        <button onClick={onNext} className={onboardingStyles.button}>
+          Continue
+        </button>
       </div>
     </div>
   );

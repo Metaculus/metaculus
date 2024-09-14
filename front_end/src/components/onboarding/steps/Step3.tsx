@@ -1,12 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import { PostWithForecasts } from "@/types/post";
 import { onboardingTopics } from "../OnboardingSettings";
+import { onboardingStyles } from "../OnboardingStyles";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface Step3Props {
   onPrev: () => void;
   onNext: () => void;
   topicIndex: number | null;
   questionData: PostWithForecasts | null;
+  prediction: number;
+  onPredictionChange: (value: number) => void;
 }
 
 const Step3: React.FC<Step3Props> = ({
@@ -14,9 +19,9 @@ const Step3: React.FC<Step3Props> = ({
   onNext,
   topicIndex,
   questionData,
+  prediction,
+  onPredictionChange,
 }) => {
-  const [prediction, setPrediction] = useState(50);
-
   if (topicIndex === null || !questionData) {
     return <p>Loading...</p>;
   }
@@ -26,7 +31,7 @@ const Step3: React.FC<Step3Props> = ({
   const communityForecast = 0.75; // 75%
 
   const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPrediction(Number(event.target.value));
+    onPredictionChange(Number(event.target.value));
   };
 
   const handleSubmit = () => {
@@ -35,12 +40,26 @@ const Step3: React.FC<Step3Props> = ({
   };
 
   return (
-    <div className="w-[560px]">
-      <p>Great! Here's another question about {topic.name}:</p>
-      <h3 className="my-4 text-xl font-bold">{questionData.title}</h3>
-      <p className="mb-4">
-        Community prediction: {(communityForecast * 100).toFixed(2)}%
+    <div className={onboardingStyles.container}>
+      <button onClick={onPrev} className={onboardingStyles.backButton}>
+        <FontAwesomeIcon icon={faArrowLeft} />
+      </button>
+      <p className={onboardingStyles.paragraph}>
+        Great! Here's another question about {topic.name}:
       </p>
+      <div className={onboardingStyles.questionContainer}>
+        <h3 className="my-4 text-xl font-bold">{questionData.title}</h3>
+        {communityForecast !== undefined && (
+          <p className={onboardingStyles.paragraph}>
+            Other forecasters tend to think this is{" "}
+            <span className="text-blue-800 dark:text-blue-300">XXX</span>. They
+            give it{" "}
+            <span className="rounded bg-blue-700 p-1 font-semibold text-white">
+              {(communityForecast * 100).toFixed(2)}%
+            </span>
+          </p>
+        )}
+      </div>
       <p>How likely do you think this is?</p>
       <div className="my-6">
         <input
@@ -53,17 +72,8 @@ const Step3: React.FC<Step3Props> = ({
         />
         <p className="mt-2 text-center">Your prediction: {prediction}%</p>
       </div>
-      <div className="mt-6 flex justify-between">
-        <button
-          onClick={onPrev}
-          className="rounded bg-gray-300 px-4 py-2 hover:bg-gray-400"
-        >
-          Back
-        </button>
-        <button
-          onClick={handleSubmit}
-          className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-        >
+      <div className="mt-6 flex justify-center">
+        <button onClick={handleSubmit} className={onboardingStyles.button}>
           Continue
         </button>
       </div>
