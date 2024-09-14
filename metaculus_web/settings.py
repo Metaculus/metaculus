@@ -413,5 +413,5 @@ if os.environ.get("SENTRY_DNS", None):
         environment=ENV,
         integrations=[
             DramatiqIntegration(),
-        ]
+        ],
     )

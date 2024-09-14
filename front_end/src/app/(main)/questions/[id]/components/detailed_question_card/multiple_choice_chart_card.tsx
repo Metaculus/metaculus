@@ -54,7 +54,6 @@ const MultipleChoiceChartCard: FC<Props> = ({
   const timestampsCount = timestamps.length;
   const prevTimestampsCount = usePrevious(timestampsCount);
 
-
   const userTimestampsCount = question.my_forecasts?.history.length;
   const prevUserTimestampsCount = usePrevious(userTimestampsCount);
   // sync BE driven data with local state

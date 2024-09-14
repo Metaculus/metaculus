@@ -110,14 +110,7 @@ const MultipleChoiceChart: FC<Props> = ({
         scaling,
         actualCloseTime,
       }),
-    [
-      timestamps,
-      choiceItems,
-      chartWidth,
-      chartHeight,
-      zoom,
-      userForecasts,
-    ]
+    [timestamps, choiceItems, chartWidth, chartHeight, zoom, userForecasts]
   );
 
   const isHighlightActive = useMemo(

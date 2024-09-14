@@ -54,7 +54,7 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
     case QuestionType.Date:
       return (
         <ContinuousGroupTimeline
-         actualCloseTime={
+          actualCloseTime={
             post.actual_close_time
               ? new Date(post.actual_close_time).getTime()
               : null
