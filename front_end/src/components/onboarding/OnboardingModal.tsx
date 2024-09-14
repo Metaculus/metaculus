@@ -19,7 +19,8 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   const [questionData, setQuestionData] = useState<PostWithForecasts | null>(
     null
   );
-  const [prediction, setPrediction] = useState(50);
+  const [step2Prediction, setStep2Prediction] = useState(50);
+  const [step3Prediction, setStep3Prediction] = useState(50);
   const router = useRouter();
 
   useEffect(() => {
@@ -46,6 +47,10 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   const handleNext = () => {
     if (currentStep < 5) {
       setCurrentStep(currentStep + 1);
+      if (currentStep === 2) {
+        // Reset prediction when moving from Step 2 to Step 3
+        setStep3Prediction(50);
+      }
     } else {
       onClose();
       router.push("/questions/");
@@ -74,10 +79,9 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
             onNext={handleNext}
             topicIndex={selectedTopic}
             questionData={questionData}
-            onPredictionChange={setPrediction}
+            onPredictionChange={setStep2Prediction}
           />
         );
-
       case 3:
         return (
           <Step3
@@ -85,8 +89,8 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
             onNext={handleNext}
             topicIndex={selectedTopic}
             questionData={questionData}
-            prediction={prediction}
-            onPredictionChange={setPrediction}
+            prediction={step3Prediction}
+            onPredictionChange={setStep3Prediction}
           />
         );
       case 4:
@@ -96,8 +100,8 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
             onNext={handleNext}
             topicIndex={selectedTopic}
             questionData={questionData}
-            prediction={prediction}
-            onPredictionChange={setPrediction}
+            prediction={step3Prediction}
+            onPredictionChange={setStep3Prediction}
           />
         );
       case 5:
