@@ -29,7 +29,11 @@ const Step2: React.FC<Step2Props> = ({
   const [activeButton, setActiveButton] = useState<
     "less" | "about" | "more" | null
   >(null);
-
+  useEffect(() => {
+    if (prediction !== null) {
+      updateActiveButton(prediction);
+    }
+  }, [prediction]);
   if (topicIndex === null || !questionData) {
     return <p>Loading...</p>;
   }
@@ -77,12 +81,6 @@ const Step2: React.FC<Step2Props> = ({
       setActiveButton("more");
     }
   };
-
-  useEffect(() => {
-    if (prediction !== null) {
-      updateActiveButton(prediction);
-    }
-  }, [prediction]);
 
   const handleSubmit = () => {
     if (prediction !== null) {
