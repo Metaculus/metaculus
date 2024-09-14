@@ -187,10 +187,10 @@ def compute_movement(post: Post) -> float | None:
     now = timezone.now()
     for question in questions:
         cp_now = get_aggregations_at_time(
-            question, now, AggregationMethod.RECENCY_WEIGHTED
+            question, now, [AggregationMethod.RECENCY_WEIGHTED]
         )[AggregationMethod.RECENCY_WEIGHTED]
         cp_previous = get_aggregations_at_time(
-            question, now - timedelta(days=7), AggregationMethod.RECENCY_WEIGHTED
+            question, now - timedelta(days=7), [AggregationMethod.RECENCY_WEIGHTED]
         )[AggregationMethod.RECENCY_WEIGHTED]
         if cp_now is None or cp_previous is None:
             continue
@@ -211,7 +211,7 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
     now = timezone.now()
     for question in questions:
         cp = get_aggregations_at_time(
-            question, now, AggregationMethod.RECENCY_WEIGHTED
+            question, now, [AggregationMethod.RECENCY_WEIGHTED]
         )[AggregationMethod.RECENCY_WEIGHTED]
         if cp is None:
             continue
@@ -359,14 +359,6 @@ def resolve_post(post: Post):
 
     run_notify_post_status_change.send(
         post.id, PostSubscription.PostStatusChange.RESOLVED
-    )
-
-
-def close_post(post: Post):
-    post.set_actual_close_time()
-
-    run_notify_post_status_change.send(
-        post.id, PostSubscription.PostStatusChange.CLOSED
     )
 
 

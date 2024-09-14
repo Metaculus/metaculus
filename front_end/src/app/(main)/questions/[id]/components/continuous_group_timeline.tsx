@@ -62,12 +62,14 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   timestamps: number[];
   isClosed?: boolean;
+  actualCloseTime: number | null;
 };
 
 const ContinuousGroupTimeline: FC<Props> = ({
   questions,
   timestamps,
   isClosed,
+  actualCloseTime,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -180,6 +182,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
       </div>
       <div ref={refs.setReference} {...getReferenceProps()}>
         <MultipleChoiceChart
+          actualCloseTime={actualCloseTime}
           timestamps={timestamps}
           choiceItems={choiceItems}
           yLabel={t("communityPredictionLabel")}

@@ -83,7 +83,7 @@ class CPChangeData:
     user_q3: float | None = None
 
     def format_forecast_date(self):
-        return date_parse(self.forecast_date)
+        return date_parse(self.forecast_date) if self.forecast_date else None
 
     def get_cp_change_label(self):
         return {
@@ -95,7 +95,7 @@ class CPChangeData:
         }.get(self.cp_change_label, self.cp_change_label)
 
     def format_value(self, value):
-        if self.question.type in ("multiple_choice", "binary"):
+        if value is not None and self.question.type in ("multiple_choice", "binary"):
             return f"{round(value * 100)}%"
 
         return value

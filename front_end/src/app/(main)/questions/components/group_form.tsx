@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
@@ -24,12 +25,12 @@ import { getQuestionStatus } from "@/utils/questions";
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
-import ProjectPicker from "./project_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
 type PostCreationData = {
   group_of_questions: any;
   title: string;
+  url_title: string;
   categories: number[];
   default_project: number;
 };
@@ -154,6 +155,7 @@ const GroupForm: React.FC<Props> = ({
     }
     let post_data: PostCreationData = {
       title: data["title"],
+      url_title: data["url_title"],
       default_project: data["default_project"],
       categories: categoriesList.map((x) => x.id),
       group_of_questions: {
@@ -248,16 +250,14 @@ const GroupForm: React.FC<Props> = ({
         }}
         className="mt-4 flex w-full flex-col gap-4 rounded"
       >
-        <InputContainer labelText={t("projects")}>
-          <ProjectPicker
-            tournaments={tournaments}
-            siteMain={siteMain}
-            currentProject={defaultProject}
-            onChange={(project) => {
-              control.setValue("default_project", project.id);
-            }}
-          />
-        </InputContainer>
+        <ProjectPickerInput
+          tournaments={tournaments}
+          siteMain={siteMain}
+          currentProject={defaultProject}
+          onChange={(project) => {
+            control.setValue("default_project", project.id);
+          }}
+        />
         <InputContainer
           labelText={t("longTitle")}
           explanation={t("longTitleExplanation")}

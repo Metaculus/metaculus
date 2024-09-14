@@ -15,6 +15,7 @@ from pathlib import Path
 
 import dj_database_url
 import sentry_sdk
+from sentry_sdk.integrations.dramatiq import DramatiqIntegration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -410,4 +411,7 @@ if os.environ.get("SENTRY_DNS", None):
         traces_sample_rate=1.0,
         profiles_sample_rate=1.0,
         environment=ENV,
+        integrations=[
+            DramatiqIntegration(),
+        ]
     )

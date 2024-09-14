@@ -15,6 +15,11 @@ export type TagsParams = {
   search?: string;
 };
 
+export type TournamentFilterParams = {
+  // Min permission
+  permission?: ProjectPermissions;
+};
+
 class ProjectsApi {
   static async getTopics(): Promise<Topic[]> {
     return await get<Topic[]>("/projects/topics");
@@ -34,8 +39,14 @@ class ProjectsApi {
     return await get<Tournament>("/projects/site_main");
   }
 
-  static async getTournaments(): Promise<TournamentPreview[]> {
-    return await get<TournamentPreview[]>("/projects/tournaments");
+  static async getTournaments(
+    params?: TournamentFilterParams
+  ): Promise<TournamentPreview[]> {
+    const queryParams = encodeQueryParams(params ?? {});
+
+    return await get<TournamentPreview[]>(
+      `/projects/tournaments/${queryParams}`
+    );
   }
 
   static async getSlugTournament(slug: string): Promise<Tournament | null> {

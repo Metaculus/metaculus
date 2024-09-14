@@ -1,6 +1,6 @@
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
-import { PostWithForecasts } from "@/types/post";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 
 import { getPost } from "../../actions";
 import GroupForm from "../../components/group_form";
@@ -16,7 +16,11 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   }
   const mode = extractMode(searchParams, post);
   const allCategories = await ProjectsApi.getCategories();
-  const allTournaments = await ProjectsApi.getTournaments();
+  const allTournaments = await ProjectsApi.getTournaments({
+    // Select only projects
+    // where user is curator/admin
+    permission: ProjectPermissions.CURATOR,
+  });
   const siteMain = await ProjectsApi.getSiteMain();
 
   return (

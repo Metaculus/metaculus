@@ -1,6 +1,7 @@
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
+import { ProjectPermissions } from "@/types/post";
 
 import QuestionForm from "../../components/question_form";
 import { extractMode } from "../helpers";
@@ -21,7 +22,10 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
     ? (post.question?.type as string)
     : (searchParams["type"] as string);
   const mode = extractMode(searchParams, post);
-  const allTournaments = await ProjectsApi.getTournaments();
+  const allTournaments = await ProjectsApi.getTournaments({
+    // Show projects where current user is curator or admin
+    permission: ProjectPermissions.CURATOR,
+  });
   const siteMain = await ProjectsApi.getSiteMain();
 
   return (

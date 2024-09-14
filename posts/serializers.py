@@ -13,6 +13,7 @@ from projects.serializers import (
     validate_tournaments,
     serialize_projects,
 )
+from projects.services import get_site_main_project
 from questions.serializers import (
     QuestionWriteSerializer,
     serialize_question,
@@ -144,6 +145,15 @@ class PostWriteSerializer(serializers.ModelSerializer):
 
         if not project:
             raise ValidationError("Wrong default project id")
+
+        if (
+            project.user_permission
+            not in ObjectPermission.get_included_permissions(ObjectPermission.CURATOR)
+            and project != get_site_main_project()
+        ):
+            raise ValidationError(
+                "You don't have permissions to assign post to this project"
+            )
 
         return project
 

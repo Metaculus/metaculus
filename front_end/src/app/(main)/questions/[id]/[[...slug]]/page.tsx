@@ -154,6 +154,7 @@ export default async function IndividualQuestion({
             )}
             {!!postData.group_of_questions && (
               <DetailedGroupCard
+                actualCloseTime={postData.actual_close_time}
                 questions={postData.group_of_questions.questions}
                 preselectedQuestionId={preselectedGroupQuestionId}
                 isClosed={isClosed}
