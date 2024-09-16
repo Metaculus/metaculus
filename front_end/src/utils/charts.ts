@@ -51,6 +51,9 @@ export function generateNumericDomain(
   zoom: TimelineChartZoomOption
 ): Tuple<number> {
   const latestTimestamp = timestamps.at(-1);
+  if (latestTimestamp === undefined) {
+    return [0, 0];
+  }
   const latestDate = fromUnixTime(latestTimestamp!);
   let startDate: Date;
   switch (zoom) {
