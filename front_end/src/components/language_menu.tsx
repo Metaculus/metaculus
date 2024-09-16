@@ -26,7 +26,7 @@ const LanguageMenu: FC<Props> = ({ className }) => {
         )}
       >
         <span className="text-blue-500">a</span>/
-        <span className="text-red-400">あ</span>
+        <span className="text-red-400">文</span>
       </MenuButton>
       <MenuItems
         anchor="bottom"
@@ -46,6 +46,22 @@ const LanguageMenu: FC<Props> = ({ className }) => {
             value="en"
           >
             English
+          </button>
+        </MenuItem>
+        <MenuItem>
+          <button
+            className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
+            onClick={(e) => {
+              e.preventDefault();
+              params.delete("locale");
+              params.append("locale", "cs");
+              router.push(pathname + "?" + params.toString());
+              router.refresh();
+            }}
+            name="language"
+            value="cs"
+          >
+            Čeština
           </button>
         </MenuItem>
         <MenuItem>
@@ -78,22 +94,6 @@ const LanguageMenu: FC<Props> = ({ className }) => {
             value="zh"
           >
             中文
-          </button>
-        </MenuItem>
-        <MenuItem>
-          <button
-            className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
-            onClick={(e) => {
-              e.preventDefault();
-              params.delete("locale");
-              params.append("locale", "cs");
-              router.push(pathname + "?" + params.toString());
-              router.refresh();
-            }}
-            name="language"
-            value="cs"
-          >
-            Čeština
           </button>
         </MenuItem>
       </MenuItems>
