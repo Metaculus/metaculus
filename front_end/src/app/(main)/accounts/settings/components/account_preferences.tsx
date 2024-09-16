@@ -5,10 +5,10 @@ import React, { FC, useCallback, useState } from "react";
 
 import { updateProfileAction } from "@/app/(main)/accounts/profile/actions";
 import Checkbox from "@/components/ui/checkbox";
+import LoadingSpinner from "@/components/ui/loading_spiner";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ProfilePreferencesType } from "@/types/preferences";
 import { CurrentUser } from "@/types/users";
-import { useServerAction } from "@/hooks/use_server_action";
-import LoadingSpinner from "@/components/ui/loading_spiner";
 
 export type Props = {
   user: CurrentUser;
@@ -63,7 +63,7 @@ const AccountPreferences: FC<Props> = ({ user }) => {
         <Checkbox
           checked={!user.hide_community_prediction}
           onChange={(checked) => {
-            updateProfile(!user.hide_community_prediction);
+            void updateProfile(!checked);
           }}
           className="p-1.5"
           readOnly={isPending}
