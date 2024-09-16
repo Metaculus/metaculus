@@ -1,16 +1,14 @@
 "use client";
+import { useTranslations } from "next-intl";
 import React, { FC, useState } from "react";
 
+import Button from "@/app/(main)/about/components/Button";
+import { useAuth } from "@/contexts/auth_context";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 
 import DetailsQuestionCardErrorBoundary from "./error_boundary";
 import MultipleChoiceChartCard from "./multiple_choice_chart_card";
 import NumericChartCard from "./numeric_chart_card";
-import { PostWithForecasts } from "@/types/post";
-import ProfileApi from "@/services/profile";
-import { useAuth } from "@/contexts/auth_context";
-import Button from "@/app/(main)/about/components/Button";
-import { useTranslations } from "next-intl";
 
 type Props = {
   question: QuestionWithForecasts;
@@ -44,8 +42,8 @@ const DetailedQuestionCard: FC<Props> = ({ question, nrForecasters }) => {
 
   if (hideCommunityPrediction && !questionIsClosed) {
     return (
-      <div>
-        <div className="text-l m-4 w-full text-center">{t("CPIsHidden")}</div>
+      <div className="text-center">
+        <div className="text-l m-4">{t("CPIsHidden")}</div>
         <Button onClick={() => setHideCommunityPrediction(false)}>
           {t("RevealTemporarily")}
         </Button>

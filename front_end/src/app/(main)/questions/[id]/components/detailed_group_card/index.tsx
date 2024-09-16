@@ -1,8 +1,12 @@
 "use client";
 
-import { FC, useState } from "react";
+import { useTranslations } from "next-intl";
+import React, { FC, useState } from "react";
 
+import Button from "@/app/(main)/about/components/Button";
 import NumericGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/numeric_group_chart";
+import { useAuth } from "@/contexts/auth_context";
+import { GroupOfQuestionsGraphType } from "@/types/charts";
 import {
   QuestionType,
   QuestionWithForecasts,
@@ -13,10 +17,6 @@ import { sortGroupPredictionOptions } from "@/utils/questions";
 
 import BinaryGroupChart from "./binary_group_chart";
 import ContinuousGroupTimeline from "../continuous_group_timeline";
-import { GroupOfQuestionsGraphType } from "@/types/charts";
-import { useAuth } from "@/contexts/auth_context";
-import Button from "@/app/(main)/about/components/Button";
-import { useTranslations } from "next-intl";
 
 type Props = {
   questions: QuestionWithForecasts[];
@@ -80,8 +80,8 @@ const DetailedGroupCard: FC<Props> = ({
 
   if (hideCommunityPrediction && !oneQuestionClosed) {
     return (
-      <div>
-        <div className="text-l m-4 w-full text-center">{t("CPIsHidden")}</div>
+      <div className="text-center">
+        <div className="text-l m-4">{t("CPIsHidden")}</div>
         <Button onClick={() => setHideCommunityPrediction(false)}>
           {t("RevealTemporarily")}
         </Button>

@@ -2,24 +2,24 @@
 
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import React, { FC, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import ConditionalCard from "./conditional_card";
-import ConditionalChart from "./conditional_chart";
-import Arrow from "./icons/Arrow";
-import DisabledArrow from "./icons/DisabledArrow";
-
+import Button from "@/app/(main)/about/components/Button";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import PredictionChip from "@/components/prediction_chip";
+import { useAuth } from "@/contexts/auth_context";
 import { PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 import {
   getConditionalQuestionTitle,
   getConditionTitle,
 } from "@/utils/questions";
-import { useAuth } from "@/contexts/auth_context";
-import Button from "@/app/(main)/about/components/Button";
+
+import ConditionalCard from "./conditional_card";
+import ConditionalChart from "./conditional_chart";
+import Arrow from "./icons/Arrow";
+import DisabledArrow from "./icons/DisabledArrow";
 
 type Props = {
   postTitle: string;
@@ -58,8 +58,8 @@ const ConditionalTile: FC<Props> = ({
 
   if (hideCommunityPrediction && !oneQuestionClosed) {
     return (
-      <div>
-        <div className="text-l m-4 w-full text-center">{t("CPIsHidden")}</div>
+      <div className="text-center">
+        <div className="text-l m-4">{t("CPIsHidden")}</div>
         <Button onClick={() => setHideCommunityPrediction(false)}>
           {t("RevealTemporarily")}
         </Button>
