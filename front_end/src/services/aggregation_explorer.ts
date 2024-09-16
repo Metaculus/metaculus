@@ -1,23 +1,19 @@
-import { AggregationMethod, QuestionWithForecasts } from "@/types/question";
-import { encodeQueryParams } from "@/utils/navigation";
 import { get } from "@/utils/fetch";
 
 export type AggregationExplorerParams = {
-  questionId: number;
-  aggregationMethods?: AggregationMethod[];
-  userIds?: number[];
+  questionId: number | string;
   includeBots?: boolean;
 };
 
 class AggregationExplorerAPI {
-  static async getAggregations(
-    params: AggregationExplorerParams
-  ): Promise<QuestionWithForecasts> {
-    const encodedParams = encodeQueryParams(params);
-    console.log(encodedParams);
-    return await get<QuestionWithForecasts>(
-      `/aggregation_explorer/${encodedParams}`
-    );
+  static async getAggregations(params: AggregationExplorerParams) {
+    const queryString = new URLSearchParams({
+      question_id: params.questionId.toString(),
+      include_bots: params.includeBots?.toString() || "false",
+    }).toString();
+
+    // Adjust the endpoint if necessary
+    return await get(`/api/aggregation_explorer?${queryString}`);
   }
 }
 
