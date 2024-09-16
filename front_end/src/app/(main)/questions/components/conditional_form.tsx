@@ -7,6 +7,10 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+import BacktoCreate from "./back_to_create";
+import ProjectPicker from "./project_picker";
+import { createQuestionPost, getPost, updatePost } from "../actions";
+
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
 import { Input } from "@/components/ui/form_field";
@@ -16,10 +20,6 @@ import { PostWithForecasts } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { getQuestionStatus } from "@/utils/questions";
-
-import BacktoCreate from "./back_to_create";
-import ProjectPicker from "./project_picker";
-import { createQuestionPost, getPost, updatePost } from "../actions";
 
 type PostCreationData = {
   title: string;
@@ -83,7 +83,7 @@ const ConditionalForm: React.FC<{
         },
       };
 
-      if (mode == "edit") {
+      if (mode === "edit") {
         const resp = await updatePost(post?.id as number, post_data);
         router.push(`/questions/${resp.post?.id}`);
       } else {
@@ -150,7 +150,7 @@ const ConditionalForm: React.FC<{
             {...control.register("condition_id", {
               setValueAs: (value: string) => {
                 const valueAsNr = Number(value);
-                if (valueAsNr == 0) {
+                if (valueAsNr === 0) {
                   return;
                 }
                 getPost(valueAsNr).then((res) => {
@@ -186,7 +186,7 @@ const ConditionalForm: React.FC<{
             {...control.register("condition_child_id", {
               setValueAs: (value: string) => {
                 const valueAsNr = Number(value);
-                if (valueAsNr == 0) {
+                if (valueAsNr === 0) {
                   return;
                 }
                 getPost(valueAsNr).then((res) => {
