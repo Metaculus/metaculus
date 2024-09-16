@@ -34,15 +34,17 @@ const EmbedQuestionModal: FC<Props> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      setIsLoading(true);
-      const posts = await fetchEmbedPosts(debouncedSearch);
-      setPosts(posts);
-      setIsLoading(false);
-    };
+    if (isOpen) {
+      const fetchPosts = async () => {
+        setIsLoading(true);
+        const posts = await fetchEmbedPosts(debouncedSearch);
+        setPosts(posts);
+        setIsLoading(false);
+      };
 
-    void fetchPosts();
-  }, [debouncedSearch]);
+      void fetchPosts();
+    }
+  }, [isOpen, debouncedSearch]);
 
   const handlePostSelect = (id: number) => {
     onQuestionSelect(id);
