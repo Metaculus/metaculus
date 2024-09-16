@@ -40,10 +40,6 @@ export default async function TournamentSlug({
   const currentUser = await ProfileApi.getMyProfile();
 
   const questionFilters = generateFiltersFromSearchParams(searchParams);
-  const pageFilters: PostsParams = {
-    ...questionFilters,
-    tournaments: params.slug,
-  };
 
   const [categories, tags] = await Promise.all([
     ProjectsApi.getCategories(),
