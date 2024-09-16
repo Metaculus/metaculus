@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { FC, Suspense } from "react";
+import { FC } from "react";
 import invariant from "ts-invariant";
 
 import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/components/project_contributions";
@@ -12,10 +12,8 @@ import TournamentControls from "@/app/(main)/(tournaments)/tournament/components
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import HtmlContent from "@/components/html_content";
-import AwaitedPostsFeed from "@/components/posts_feed";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
-import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
@@ -23,6 +21,7 @@ import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
+import TournamentFeed from "../components/tournament_feed";
 
 const LazyProjectMembers = dynamic(() => import("../components/members"), {
   ssr: false,
@@ -158,14 +157,7 @@ export default async function TournamentSlug({
         <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
           <h2 className="mb-5">{questionsTitle}</h2>
           <TournamentFilters categories={categories} tags={tags} />
-          <Suspense
-            key={JSON.stringify(searchParams)}
-            fallback={
-              <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
-            }
-          >
-            <AwaitedPostsFeed filters={pageFilters} />
-          </Suspense>
+          <TournamentFeed slug={params.slug} />
         </section>
       </div>
       {[ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
