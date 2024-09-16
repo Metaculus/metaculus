@@ -40,6 +40,7 @@ class LeaderboardSerializer(serializers.Serializer):
     project_id = serializers.IntegerField()
     project_type = serializers.CharField(source="project.type")
     project_name = serializers.CharField(source="project.name")
+    project_slug = serializers.CharField(source="project.slug")
     score_type = serializers.CharField()
     name = serializers.CharField()
     start_time = serializers.DateTimeField()
@@ -52,6 +53,7 @@ class LeaderboardSerializer(serializers.Serializer):
             "project_id",
             "project_type",
             "project_name",
+            "project_slug",
             "score_type",
             "name",
             "start_time",
