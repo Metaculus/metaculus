@@ -50,6 +50,14 @@ class User(TimeStampedModel, AbstractUser):
 
     objects: models.Manager["User"] = UserManager()
 
+    class Meta:
+        indexes = [
+            models.Index(
+                models.Func("username", function="UPPER"),
+                name="upper_username_idx",
+            ),
+        ]
+
     def get_old_usernames(self) -> list[tuple[str, datetime]]:
         return [
             (name, dateutil.parser.parse(date)) for name, date in self.old_usernames

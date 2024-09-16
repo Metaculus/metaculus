@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from comments.models import Comment
+from comments.utils import comments_extract_user_mentions_mapping
 from posts.models import Post
 from questions.serializers import ForecastSerializer
 from users.models import User
@@ -98,7 +99,9 @@ class CommentWriteSerializer(serializers.ModelSerializer):
 def serialize_comment(
     comment: Comment,
     current_user: User | None = None,
+    mentions: list[User] | None = None,
 ) -> dict:
+    mentions = mentions or []
     serialized_data = CommentSerializer(
         comment, context={"current_user": current_user}
     ).data
@@ -109,6 +112,8 @@ def serialize_comment(
     forecast = comment.included_forecast
     if forecast is not None:
         serialized_data["included_forecast"] = ForecastSerializer(forecast).data
+
+    serialized_data["mentioned_users"] = BaseUserSerializer(mentions, many=True).data
 
     # Annotate user's vote
     serialized_data["vote_score"] = comment.vote_score
@@ -137,4 +142,9 @@ def serialize_comment_many(
     objects = list(qs.all())
     objects.sort(key=lambda obj: ids.index(obj.id))
 
-    return [serialize_comment(comment, current_user) for comment in objects]
+    mentions_map = comments_extract_user_mentions_mapping(objects)
+
+    return [
+        serialize_comment(comment, current_user, mentions=mentions_map.get(comment.id))
+        for comment in objects
+    ]

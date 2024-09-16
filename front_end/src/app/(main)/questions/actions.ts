@@ -31,6 +31,19 @@ export async function fetchMorePosts(
   return response.results;
 }
 
+export async function fetchPosts(
+  filters: PostsParams,
+  offset: number,
+  limit: number
+) {
+  const response = await PostsApi.getPostsWithCP({
+    ...filters,
+    offset,
+    limit,
+  });
+  return { questions: response.results, count: response.count };
+}
+
 export async function fetchEmbedPosts(search: string) {
   const response = await PostsApi.getPostsWithCP({
     search: search || undefined,

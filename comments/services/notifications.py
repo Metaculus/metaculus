@@ -5,8 +5,10 @@ from ..utils import comment_extract_user_mentions
 
 
 def notify_mentioned_users(comment: Comment):
+    users, _ = comment_extract_user_mentions(comment)
+
     users = (
-        comment_extract_user_mentions(comment).exclude(pk=comment.author_id)
+        users.exclude(pk=comment.author_id)
         # Exclude users with disabled notifications
         .exclude(unsubscribed_mailing_tags__contains=[MailingTags.COMMENT_MENTIONS])
     )
