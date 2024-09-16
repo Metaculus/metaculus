@@ -186,14 +186,24 @@ def compute_movement(post: Post) -> float | None:
     movement = None
     now = timezone.now()
     for question in questions:
-        cp_now = get_aggregations_at_time(
+        cp_now_agg = get_aggregations_at_time(
             question, now, [AggregationMethod.RECENCY_WEIGHTED]
-        )[AggregationMethod.RECENCY_WEIGHTED]
-        cp_previous = get_aggregations_at_time(
-            question, now - timedelta(days=7), [AggregationMethod.RECENCY_WEIGHTED]
-        )[AggregationMethod.RECENCY_WEIGHTED]
-        if cp_now is None or cp_previous is None:
+        )
+
+        if not cp_now_agg:
             continue
+
+        cp_now = cp_now_agg[AggregationMethod.RECENCY_WEIGHTED]
+
+        cp_previous_agg = get_aggregations_at_time(
+            question, now - timedelta(days=7), [AggregationMethod.RECENCY_WEIGHTED]
+        )
+
+        if not cp_previous_agg:
+            continue
+
+        cp_previous = cp_previous_agg[AggregationMethod.RECENCY_WEIGHTED]
+
         difference = prediction_difference_for_sorting(
             cp_now.get_prediction_values(),
             cp_previous.get_prediction_values(),
