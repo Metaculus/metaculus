@@ -71,6 +71,7 @@ const QuestionNumericTile: FC<Props> = ({
             scaling={question.scaling}
             defaultZoom={defaultChartZoom}
             resolution={question.resolution}
+            resolveTime={question.actual_resolve_time}
           />
         ) : (
           <ContinuousAreaChart
@@ -78,6 +79,7 @@ const QuestionNumericTile: FC<Props> = ({
             data={continuousAreaChartData}
             height={HEIGHT}
             questionType={question.type}
+            resolution={question.resolution}
           />
         )}
       </div>
