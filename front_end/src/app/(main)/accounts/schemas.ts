@@ -4,7 +4,9 @@ import { SubscriptionEmailType } from "@/types/notifications";
 
 export const signInSchema = z.object({
   login: z.string().min(1, { message: "Email/Username is required" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters"}),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters" }),
 });
 export type SignInSchema = z.infer<typeof signInSchema>;
 
@@ -24,8 +26,12 @@ export const signUpSchema = z.intersection(
   }),
   z
     .object({
-      password: z.string().min(8, { message: "Password must be at least 8 characters"}),
-      passwordAgain: z.string().min(8, { message: "Password must be at least 8 characters"}),
+      password: z
+        .string()
+        .min(8, { message: "Password must be at least 8 characters" }),
+      passwordAgain: z
+        .string()
+        .min(8, { message: "Password must be at least 8 characters" }),
     })
     .refine((data) => data.passwordAgain === data.password, {
       message: "The passwords did not match",
@@ -83,8 +89,12 @@ export const passwordResetConfirmSchema = z
   .object({
     user_id: z.any(),
     token: z.string(),
-    password: z.string().min(8, { message: "Password must be at least 8 characters"}),
-    passwordAgain: z.string().min(8, { message: "Password must be at least 8 characters"}),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters" }),
+    passwordAgain: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters" }),
   })
   .superRefine(({ passwordAgain, password }, ctx) => {
     if (passwordAgain !== password) {

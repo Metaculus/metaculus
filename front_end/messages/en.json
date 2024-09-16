@@ -771,6 +771,8 @@
   "selectAll": "select all",
   "deselectAll": "deselect all",
   "forecastDataIsEmpty": "Forecast data is empty",
+  "RevealTemporarily": "Reveal Temporarily",
+  "CPIsHidden": "Community Prediction is hidden",
   "createdByUserOnDate": "Created by {user} on {date}",
   "tournamentShowPostsToMainFeed": "Show tournament posts in main feed",
   "tournamentHidePostsToMainFeed": "Hide tournament posts in main feed",

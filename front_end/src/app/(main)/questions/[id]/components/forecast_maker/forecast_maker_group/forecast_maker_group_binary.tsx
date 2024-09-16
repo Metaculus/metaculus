@@ -107,7 +107,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       ),
     [questionOptions]
   );
-  
+
   const isPickerDirty = useMemo(
     () => questionOptions.some((option) => option.isDirty),
     [questionOptions]

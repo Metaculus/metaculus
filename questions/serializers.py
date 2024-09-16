@@ -1,6 +1,9 @@
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
 
+import django
+import django.utils
+import django.utils.timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -383,9 +386,15 @@ def serialize_question(
     serialized_data["post_id"] = post.id if post else question.get_post().id
 
     if with_cp:
-        aggregate_forecasts = aggregate_forecasts or sorted(
-            question.aggregate_forecasts.all(), key=lambda x: x.start_time
-        )
+        if (
+            question.cp_reveal_time
+            and question.cp_reveal_time > django.utils.timezone.now()
+        ):
+            aggregate_forecasts = []
+        else:
+            aggregate_forecasts = aggregate_forecasts or sorted(
+                question.aggregate_forecasts.all(), key=lambda x: x.start_time
+            )
         aggregate_forecasts_by_method = defaultdict(list)
         for aggregate in aggregate_forecasts:
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)

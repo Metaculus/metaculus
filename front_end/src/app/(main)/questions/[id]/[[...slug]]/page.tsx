@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         url: `${process.env.NEXT_PUBLIC_CDN_DOMAIN_NAME ?? ""}/api/posts/preview-image/${params.id}/`,
         width: 1200,
         height: 630,
-        alt: 'community predictions',
+        alt: "community predictions",
       },
     },
     twitter: {
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         url: `${process.env.NEXT_PUBLIC_CDN_DOMAIN_NAME ?? ""}/api/posts/preview-image/${params.id}/`,
         width: 1200,
         height: 630,
-        alt: 'community predictions',
+        alt: "community predictions",
       },
     },
   };
@@ -140,13 +140,17 @@ export default async function IndividualQuestion({
                 postTitle={postData.title}
                 conditional={postData.conditional}
                 curationStatus={postData.status}
+                nrForecasters={postData.nr_forecasters}
                 withNavigation
               />
             )}
             <QuestionHeaderInfo post={postData} />
 
             {!!postData.question && (
-              <DetailedQuestionCard question={postData.question} />
+              <DetailedQuestionCard
+                question={postData.question}
+                nrForecasters={postData.nr_forecasters}
+              />
             )}
             {!!postData.group_of_questions && (
               <DetailedGroupCard
@@ -155,6 +159,7 @@ export default async function IndividualQuestion({
                 preselectedQuestionId={preselectedGroupQuestionId}
                 isClosed={isClosed}
                 graphType={postData.group_of_questions.graph_type}
+                nrForecasters={postData.nr_forecasters}
               />
             )}
 

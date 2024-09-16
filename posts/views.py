@@ -38,7 +38,8 @@ from posts.services.common import (
     get_post_permission_for_user,
     approve_post,
     update_post,
-    submit_for_review_post, post_make_draft,
+    submit_for_review_post,
+    post_make_draft,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription

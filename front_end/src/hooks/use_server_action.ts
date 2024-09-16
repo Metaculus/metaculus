@@ -1,8 +1,8 @@
-import { useState, useEffect, useTransition, useRef } from 'react';
+import { useEffect, useRef, useState, useTransition } from "react";
 
 export const useServerAction = <P extends any[], R>(
   action: (...args: P) => Promise<R>,
-  onFinished?: (_: R | undefined) => void,
+  onFinished?: (_: R | undefined) => void
 ): [(...args: P) => Promise<R | undefined>, boolean] => {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<R>();
