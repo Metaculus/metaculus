@@ -1,3 +1,4 @@
+import { differenceInMilliseconds } from "date-fns";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
@@ -6,7 +7,6 @@ import { TournamentPreview, TournamentType } from "@/types/projects";
 
 import TournamentFilters from "./components/tournament_filters";
 import TournamentsList from "./components/tournaments_list";
-import { differenceInMilliseconds } from "date-fns";
 
 export default async function Tournaments() {
   const t = await getTranslations();

@@ -10,17 +10,16 @@ import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/comp
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
 import TournamentControls from "@/app/(main)/(tournaments)/tournament/components/tournament_controls";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
-import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
-import { PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
 import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
+
 import TournamentFeed from "../components/tournament_feed";
 
 const LazyProjectMembers = dynamic(() => import("../components/members"), {
@@ -29,7 +28,6 @@ const LazyProjectMembers = dynamic(() => import("../components/members"), {
 
 export default async function TournamentSlug({
   params,
-  searchParams,
 }: {
   params: { slug: string };
   searchParams: SearchParams;
@@ -38,8 +36,6 @@ export default async function TournamentSlug({
   invariant(tournament, `Tournament not found: ${params.slug}`);
 
   const currentUser = await ProfileApi.getMyProfile();
-
-  const questionFilters = generateFiltersFromSearchParams(searchParams);
 
   const [categories, tags] = await Promise.all([
     ProjectsApi.getCategories(),
@@ -53,9 +49,6 @@ export default async function TournamentSlug({
   const questionsTitle = isQuestionSeries
     ? t("SeriesContents")
     : t("questions");
-  const leaderboardTitle = isQuestionSeries
-    ? t("openLeaderboard")
-    : t("leaderboard");
 
   return (
     <main className="mx-auto mb-16 mt-4 min-h-min w-full max-w-[780px] flex-auto px-0">

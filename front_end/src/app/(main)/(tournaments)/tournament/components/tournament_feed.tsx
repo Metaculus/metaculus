@@ -1,14 +1,15 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
-import LoadingIndicator from "@/components/ui/loading_indicator";
-import { PostsParams } from "@/services/posts";
-import { POSTS_PER_PAGE } from "@/constants/posts_feed";
-import PaginatedPostsFeed from "@/components/posts_feed/paginated_feed";
-import { PostWithForecasts } from "@/types/post";
+
 import { fetchPosts } from "@/app/(main)/questions/actions";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
-import { useSearchParams } from "next/navigation";
+import PaginatedPostsFeed from "@/components/posts_feed/paginated_feed";
+import LoadingIndicator from "@/components/ui/loading_indicator";
+import { POSTS_PER_PAGE } from "@/constants/posts_feed";
+import { PostsParams } from "@/services/posts";
+import { PostWithForecasts } from "@/types/post";
 
 type Props = {
   slug: string;
