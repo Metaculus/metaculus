@@ -79,6 +79,7 @@ const QuestionNumericTile: FC<Props> = ({
             data={continuousAreaChartData}
             height={HEIGHT}
             questionType={question.type}
+            resolution={question.resolution}
           />
         )}
       </div>

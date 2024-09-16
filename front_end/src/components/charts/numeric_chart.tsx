@@ -64,7 +64,7 @@ type Props = {
   scaling: Scaling;
   extraTheme?: VictoryThemeDefinition;
   resolution?: Resolution | null;
-  resolveTime?: Date;
+  resolveTime?: string | null;
 };
 
 const NumericChart: FC<Props> = ({
@@ -392,7 +392,7 @@ function buildChartData({
   };
 }
 
-function getResolutionData({
+export function getResolutionData({
   questionType,
   resolution,
   resolveTime,
