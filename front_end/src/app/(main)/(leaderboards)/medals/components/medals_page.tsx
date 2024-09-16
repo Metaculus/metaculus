@@ -9,6 +9,12 @@ import { RANKING_CATEGORIES } from "../../ranking_categories";
 import { getMedalCategories } from "../helpers/medal_categories";
 import { getMedalDisplayTitle } from "../helpers/medal_title";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import Link from "next/link";
+import {
+  SCORING_CATEGORY_FILTER,
+  SCORING_DURATION_FILTER,
+  SCORING_YEAR_FILTER,
+} from "../../search_params";
 
 type Props = {
   profileId: number;
@@ -52,8 +58,14 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
             <div className="flex min-h-[65px] flex-col content-center items-center justify-center gap-3 self-stretch rounded-b bg-blue-100 p-4 pt-0 dark:bg-blue-900/75 md:flex-row md:flex-wrap md:pt-4">
               {!!category.medals.length ? (
                 category.medals.map((medal, index) => {
+                  let href =
+                    category.name === "tournament"
+                      ? `/tournaments/${medal.projectId}` // should be a tournament slug here
+                      : `/leaderboard/?${SCORING_CATEGORY_FILTER}=${category.name}&${SCORING_YEAR_FILTER}=${medal.year}&${SCORING_DURATION_FILTER}=${medal.duration}`;
+
                   return (
-                    <div
+                    <Link
+                      href={href}
                       key={index}
                       className={`relative flex w-full min-w-[210px] flex-row items-center gap-3 overflow-hidden rounded-lg px-3 py-3 shadow-none shadow-blue-500/30 dark:bg-blue-900 dark:shadow-black/25 md:w-fit md:flex-col md:px-8 md:py-4 md:shadow-lg ${getMedalClassName(medal.type)}`}
                     >
@@ -77,7 +89,7 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
                           </span>
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })
               ) : (

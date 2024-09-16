@@ -8,7 +8,7 @@ import LeaderboardApi from "@/services/leaderboard";
 
 import MedalIcon from "../../components/medal_icon";
 import { RANKING_CATEGORIES } from "../../ranking_categories";
-import { SCORING_CATEGORY_FILTER } from "../../search_params";
+import { SCORING_CATEGORY_FILTER, SCORING_DURATION_FILTER, SCORING_YEAR_FILTER } from "../../search_params";
 import { getMedalCategories } from "../helpers/medal_categories";
 import { getMedalDisplayTitle } from "../helpers/medal_title";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
@@ -66,6 +66,10 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
                       </span>
                     </div>
                   );
+                  let href =
+                    category.name === "tournament"
+                      ? `/tournaments/${medal.projectId}` // should be a tournament slug here
+                      : `/leaderboard/?${SCORING_CATEGORY_FILTER}=${category.name}&${SCORING_YEAR_FILTER}=${medal.year}&${SCORING_DURATION_FILTER}=${medal.duration}`;
 
                   return (
                     <Tooltip
@@ -74,9 +78,9 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
                       tooltipContent={tooltipContent}
                       key={index}
                     >
-                      <a href={`/accounts/profile/${profileId}?mode=medals`}>
+                      <Link href={href}>
                         <MedalIcon type={medal.type} className="size-6" />
-                      </a>
+                      </Link>
                     </Tooltip>
                   );
                 })
