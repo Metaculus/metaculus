@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, useState } from "react";
+import { FC } from "react";
 
 import SearchInput from "@/components/search_input";
 import { POST_TEXT_SEARCH_FILTER } from "@/constants/posts_feed";
@@ -13,8 +13,6 @@ const HomeSearch: FC<Props> = () => {
   const t = useTranslations();
   const router = useRouter();
 
-  const [searchQuery, setSearchQuery] = useState("");
-
   const handleSearchSubmit = (searchQuery: string) => {
     router.push(
       `/questions` +
@@ -24,11 +22,10 @@ const HomeSearch: FC<Props> = () => {
 
   return (
     <SearchInput
-      value={searchQuery}
-      onChange={(event) => setSearchQuery(event.target.value)}
-      onErase={() => setSearchQuery("")}
+      onChange={() => {}} // This is now handled internally in SearchInput
+      onErase={() => {}} // This is now handled internally in SearchInput
       onSubmit={handleSearchSubmit}
-      placeholder={t("forecastsSearchPlaceholder")}
+      placeholder={t("questionSearchPlaceholder")}
       size="lg"
       className="md:max-w-xl"
     />

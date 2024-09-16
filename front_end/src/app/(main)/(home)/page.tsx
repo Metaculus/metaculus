@@ -84,7 +84,9 @@ export default async function Home() {
             {t("homeDescription")}
           </span>
           <div className="mb-4 mt-8 inline-flex w-full flex-col items-center justify-center gap-4 md:mt-12">
-            <HomeSearch />
+            <div className="w-full md:max-w-xl" id="existing-search">
+              <HomeSearch />
+            </div>
             <div className="line-clamp-3 max-w-2xl text-center md:line-clamp-2">
               {hotTopics.map((topic) => (
                 <TopicLink
