@@ -54,7 +54,6 @@ const TournamentFilters: FC = () => {
   return (
     <div className="my-8 flex flex-col items-end justify-between gap-3 md:flex-row md:items-stretch">
       <SearchInput
-        value={searchQuery}
         onChange={handleSearchChange}
         onErase={handleSearchErase}
         placeholder="search tournaments..."

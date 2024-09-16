@@ -43,7 +43,6 @@ const NewsFilters: React.FC = () => {
   return (
     <div>
       <SearchInput
-        value={search}
         onChange={(e) => setSearch(e.target.value)}
         onErase={eraseSearch}
         placeholder={t("articlesSearchPlaceholder")}

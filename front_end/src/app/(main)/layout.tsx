@@ -8,6 +8,7 @@ import FeedbackFloat from "./(home)/components/feedback_float";
 import Bulletins from "./components/bulletins";
 import CookiesBanner from "./components/cookies_banner";
 import Footer from "./components/footer";
+import GlobalSearchVisibilityController from "./components/global_search_visibility_controller";
 import GlobalHeader from "./components/headers/global_header";
 
 config.autoAddCss = false;
@@ -24,12 +25,14 @@ export default async function RootLayout({
 }>) {
   return (
     <div className="flex min-h-screen flex-col">
-      <GlobalHeader />
-      <Bulletins />
-      <div className="flex-grow">{children}</div>
-      <FeedbackFloat />
-      <Footer />
-      <CookiesBanner />
+      <GlobalSearchVisibilityController>
+        <GlobalHeader />
+        <Bulletins />
+        <div className="flex-grow">{children}</div>
+        <FeedbackFloat />
+        <Footer />
+        <CookiesBanner />
+      </GlobalSearchVisibilityController>
     </div>
   );
 }

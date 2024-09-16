@@ -55,7 +55,6 @@ const EmbedQuestionModal: FC<Props> = ({
     <BaseModal label="Add Forecast" isOpen={isOpen} onClose={onClose}>
       <div className="max-h-full w-[520px] overflow-auto">
         <SearchInput
-          value={search}
           onChange={(e) => setSearch(e.target.value)}
           onErase={() => setSearch("")}
           placeholder={t("questionSearchPlaceholder")}
