@@ -30,7 +30,7 @@ export default function PostHeader({
   if (post.group_of_questions) {
     typeLabel = t("group");
   } else if (post.conditional) {
-    typeLabel = t("conditionalGroup");
+    typeLabel = t("conditional");
   } else if (post.question) {
     typeLabel = t("question");
   }

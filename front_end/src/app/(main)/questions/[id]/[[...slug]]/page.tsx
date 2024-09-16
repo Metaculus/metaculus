@@ -81,7 +81,7 @@ export default async function IndividualQuestion({
   if (postData.group_of_questions) {
     typeLabel = t("group");
   } else if (postData.conditional) {
-    typeLabel = t("conditionalGroup");
+    typeLabel = t("conditional");
   } else if (postData.question) {
     typeLabel = t("question");
   }

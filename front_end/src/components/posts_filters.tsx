@@ -1,4 +1,5 @@
 "use client";
+
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
@@ -18,7 +19,6 @@ import {
   POST_ORDER_BY_FILTER,
   POST_TEXT_SEARCH_FILTER,
 } from "@/constants/posts_feed";
-import { useAuth } from "@/contexts/auth_context";
 import useSearchInputState from "@/hooks/use_search_input_state";
 import useSearchParams from "@/hooks/use_search_params";
 import { QuestionOrder } from "@/types/question";
@@ -62,7 +62,6 @@ const PostsFilters: FC<Props> = ({
     replaceParams,
     navigateToSearchParams,
   } = useSearchParams();
-  const { user } = useAuth();
   defaultOrder = defaultOrder ?? QuestionOrder.ActivityDesc;
 
   const [search, setSearch] = useSearchInputState(
@@ -93,7 +92,6 @@ const PostsFilters: FC<Props> = ({
     const withNavigation = false;
 
     clearPopupFilters(withNavigation);
-    const postStatusFilters = [];
 
     if (order === defaultOrder) {
       deleteParam(POST_ORDER_BY_FILTER, withNavigation);
