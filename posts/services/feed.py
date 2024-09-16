@@ -45,7 +45,12 @@ def get_posts_feed(
 
     # If ids provided
     if ids:
-        qs = qs.filter(id__in=ids)
+        qs = qs.filter(
+            Q(id__in=ids)
+            | Q(group_of_questions__questions__in=ids)
+            | Q(conditional__question_yes_id__in=ids)
+            | Q(conditional__question_no_id__in=ids)
+        ).distinct()
 
     # Filter by permission level
     qs = qs.filter_permission(user=user)
