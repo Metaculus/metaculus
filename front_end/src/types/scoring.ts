@@ -33,6 +33,7 @@ export type Medal = {
   name: string;
   projectName: string;
   projectId: number;
+  projectSlug: string;
 };
 
 export type MedalCategory = {
@@ -65,6 +66,7 @@ export type MedalEntry = LeaderboardEntry & {
   project_id: number;
   project_type: MedalProjectType;
   project_name: string;
+  project_slug: string;
   score_type: LeaderboardType;
   name: string;
   start_time: string;
