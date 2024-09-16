@@ -23,15 +23,16 @@ const NumericChartCard: FC<Props> = ({ question }) => {
 
   const aggregate = question.aggregations.recency_weighted;
 
-  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(
-    null
-  );
+  const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(null);
   const cursorData = useMemo(() => {
     const index = aggregate.history.findIndex(
       (f) => f.start_time === cursorTimestamp
     );
 
-    const forecast = index === -1 ? aggregate.history[aggregate.history.length - 1] : aggregate.history[index];
+    const forecast =
+      index === -1
+        ? aggregate.history[aggregate.history.length - 1]
+        : aggregate.history[index];
     let timestamp = cursorTimestamp;
     const lastAggregate = aggregate.history[aggregate.history.length - 1];
     if (
@@ -71,7 +72,6 @@ const NumericChartCard: FC<Props> = ({ question }) => {
     setIsChartReady(true);
   }, []);
 
-
   return (
     <div
       className={classNames(
@@ -83,6 +83,7 @@ const NumericChartCard: FC<Props> = ({ question }) => {
         aggregations={question.aggregations}
         myForecasts={question.my_forecasts}
         resolution={question.resolution}
+        resolveTime={question.actual_resolve_time}
         onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}
