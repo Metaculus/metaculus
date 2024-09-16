@@ -42,6 +42,7 @@ type Props = {
       withNavigation?: boolean
     ) => void
   ) => void;
+  ipnutConfig?: { mode: "client" | "server"; debounceTime?: number };
 };
 
 const PostsFilters: FC<Props> = ({
@@ -50,6 +51,7 @@ const PostsFilters: FC<Props> = ({
   mainSortOptions,
   sortOptions: dropdownSortOptions,
   onOrderChange,
+  ipnutConfig,
 }) => {
   const t = useTranslations();
   const {
@@ -63,7 +65,10 @@ const PostsFilters: FC<Props> = ({
   const { user } = useAuth();
   defaultOrder = defaultOrder ?? QuestionOrder.ActivityDesc;
 
-  const [search, setSearch] = useSearchInputState(POST_TEXT_SEARCH_FILTER);
+  const [search, setSearch] = useSearchInputState(
+    POST_TEXT_SEARCH_FILTER,
+    ipnutConfig
+  );
   const eraseSearch = () => {
     setSearch("");
   };
