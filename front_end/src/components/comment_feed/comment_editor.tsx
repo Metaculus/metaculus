@@ -20,6 +20,7 @@ interface CommentEditorProps {
   parentId?: number;
   shouldIncludeForecast?: boolean;
   onSubmit?: (newComment: CommentType) => void;
+  isReplying?: boolean;
 }
 
 const CommentEditor: FC<CommentEditorProps> = ({
@@ -29,6 +30,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   parentId,
   onSubmit,
   shouldIncludeForecast,
+  isReplying = false,
 }) => {
   const t = useTranslations();
   /* TODO: Investigate the synchronization between the internal state of MDXEditor and the external state. */
@@ -116,14 +118,16 @@ const CommentEditor: FC<CommentEditorProps> = ({
       {!isEditing && <MarkdownEditor mode="read" markdown={markdown} />}
 
       <div className="my-4 flex items-center justify-end gap-3">
-        <Checkbox
-          checked={isPrivateComment}
-          onChange={(checked) => {
-            setIsPrivateComment(checked);
-          }}
-          label={t("privateComment")}
-          className="text-sm"
-        />
+        {!isReplying && (
+          <Checkbox
+            checked={isPrivateComment}
+            onChange={(checked) => {
+              setIsPrivateComment(checked);
+            }}
+            label={t("privateComment")}
+            className="text-sm"
+          />
+        )}
         <Button
           disabled={markdown.length === 0}
           className="p-2"
