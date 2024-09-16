@@ -133,20 +133,10 @@ export default async function IndividualNotebook({
             </div>
           )}
 
-          <hr className="my-6 border-gray-400 dark:border-gray-400-dark" />
-
-          <div>
-            <h2
-              id={NOTEBOOK_COMMENTS_TITLE}
-              className="mb-1 mt-0 flex scroll-mt-16 items-baseline justify-between break-anywhere"
-            >
-              {t("comments")}
-            </h2>
-            <CommentFeed
-              postData={postData}
-              postPermissions={postData.user_permission}
-            />
-          </div>
+          <CommentFeed
+            postData={postData}
+            postPermissions={postData.user_permission}
+          />
         </div>
       </div>
     </main>
