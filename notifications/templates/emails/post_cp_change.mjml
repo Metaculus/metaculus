@@ -78,16 +78,16 @@
                                     {% if item.question.type == "multiple_choice" %}
                                         {{ item.label }}
                                     {% else %}
-                                        {{ item.question.title }}
+                                        {{ item.format_question_title }}
                                     {% endif %}
                                 </td>
-                                <td style="padding: 4px 2px; text-align: right">{{ item.format_cp_change_value }}</td>
-                                <td style="padding: 4px 2px; text-align: right">
+                                <td style="padding: 4px 2px; text-align: center">{{ item.format_cp_change_value }}</td>
+                                <td style="padding: 4px 2px; text-align: center">
                                     {% with cp_median=item.format_cp_median %}
                                     {{ cp_median }}
                                     {% endwith %}
                                 </td>
-                                <td style="padding: 4px 0 4px 2px; text-align: right">
+                                <td style="padding: 4px 0 4px 2px; text-align: center">
                                     {{ item.format_user_forecast }}
                                 </td>
                             </tr>

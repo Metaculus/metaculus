@@ -12,6 +12,7 @@ from posts.models import Post, PostSubscription
 from posts.services.search import get_similar_posts_for_multiple_posts
 from projects.models import Project
 from questions.models import Question
+from questions.utils import get_question_group_title
 from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
@@ -95,7 +96,10 @@ class CPChangeData:
         }.get(self.cp_change_label, self.cp_change_label)
 
     def format_value(self, value):
-        if value is not None and self.question.type in ("multiple_choice", "binary"):
+        if value is None:
+            return "-"
+
+        if self.question.type in ("multiple_choice", "binary"):
             return f"{round(value * 100)}%"
 
         return value
@@ -103,11 +107,14 @@ class CPChangeData:
     def format_user_forecast(self):
         return self.format_value(self.user_forecast)
 
-    def get_cp_change_value(self):
+    def format_cp_change_value(self):
         return self.format_value(self.cp_change_value)
 
     def format_cp_median(self):
         return self.format_value(self.cp_median)
+
+    def format_question_title(self):
+        return get_question_group_title(self.question.title)
 
 
 class NotificationTypeBase:
@@ -482,7 +489,7 @@ class NotificationCommentReport(NotificationTypeBase):
         }
 
 
-class NotificationPostCPChange(NotificationTypeBase):
+class NotificationPostCPChange(NotificationTypeSimilarPostsMixin, NotificationTypeBase):
     type = "post_cp_change"
     email_template = "emails/post_cp_change.html"
 
@@ -500,7 +507,9 @@ class NotificationPostCPChange(NotificationTypeBase):
         return _("Significant change")
 
 
-class NotificationPredictedQuestionResolved(NotificationTypeBase):
+class NotificationPredictedQuestionResolved(
+    NotificationTypeSimilarPostsMixin, NotificationTypeBase
+):
     type = "predicted_question_resolved"
     email_template = "emails/predicted_question_resolved.html"
 
