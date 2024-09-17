@@ -150,9 +150,9 @@ export default async function IndividualQuestion({
             {!!postData.question && (
               <div className="tour-cp">
                 <DetailedQuestionCard
-                question={postData.question}
-                nrForecasters={postData.nr_forecasters}
-              />
+                  question={postData.question}
+                  nrForecasters={postData.nr_forecasters}
+                />
               </div>
             )}
             {!!postData.group_of_questions && (
