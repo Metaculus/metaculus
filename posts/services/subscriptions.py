@@ -95,7 +95,7 @@ def _get_question_data_for_cp_change_notification(
             if q3 is not None
             else None
         )
-        earth_movers_distance, assymetric = display_diff
+        earth_movers_distance, assymetric = display_diff[0]
         symmetric = earth_movers_distance - abs(assymetric)
         if abs(assymetric) > symmetric:
             # gone up / down
