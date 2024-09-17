@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import { Dispatch, FC, useCallback, useState, SetStateAction } from "react";
+import { FC, useCallback, useState } from "react";
 
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
@@ -13,7 +13,7 @@ type Props = {
   post: Post;
   // Triggered on "customise" button click
   onCustomiseClick: () => void;
-  setPostSubscriptions: Dispatch<SetStateAction<PostSubscription[]>>;
+  onPostSubscriptionChange: (subscription: PostSubscription[]) => void;
 };
 
 const PostSubscribeSuccessModal: FC<Props> = ({
@@ -21,7 +21,7 @@ const PostSubscribeSuccessModal: FC<Props> = ({
   onClose,
   post,
   onCustomiseClick,
-  setPostSubscriptions
+  onPostSubscriptionChange
 }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
@@ -29,8 +29,8 @@ const PostSubscribeSuccessModal: FC<Props> = ({
   const handleUnfollow = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await changePostSubscriptions(post.id, [], false);
-      setPostSubscriptions(response)
+      const newSubscriptions = await changePostSubscriptions(post.id, [], false);
+      onPostSubscriptionChange(newSubscriptions)
     } finally {
       setIsLoading(false);
     }

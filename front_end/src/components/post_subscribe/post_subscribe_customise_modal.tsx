@@ -36,7 +36,7 @@ type Props = {
   onClose: (open: boolean) => void;
   post: Post;
   subscriptions: PostSubscription[];
-  setPostSubscriptions?: Dispatch<SetStateAction<PostSubscription[]>>;
+  onPostSubscriptionChange?: (subscription: PostSubscription[]) => void;
   showPostLink?: boolean;
 };
 
@@ -45,7 +45,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   onClose,
   post,
   subscriptions: initialSubscriptions,
-  setPostSubscriptions,
+  onPostSubscriptionChange,
   showPostLink = false,
 }) => {
   const t = useTranslations();
@@ -100,8 +100,8 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   const handleUnfollow = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await changePostSubscriptions(post.id, [], false);
-      setPostSubscriptions && setPostSubscriptions(response);
+      const newSubscriptions = await changePostSubscriptions(post.id, [], false);
+      onPostSubscriptionChange && onPostSubscriptionChange(newSubscriptions);
     } finally {
       setIsLoading(false);
     }
@@ -113,12 +113,12 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
     // Subscribe to default notifications set
     setIsLoading(true);
     try {
-      const response = await changePostSubscriptions(
+      const newSubscriptions = await changePostSubscriptions(
         post.id,
         modalSubscriptions,
         false
       );
-      setPostSubscriptions && setPostSubscriptions(response);
+      onPostSubscriptionChange && onPostSubscriptionChange(newSubscriptions);
       onClose(true);
     } finally {
       setIsLoading(false);
