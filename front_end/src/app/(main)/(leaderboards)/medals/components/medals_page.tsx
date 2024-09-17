@@ -58,7 +58,7 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
             <div className="flex min-h-[65px] flex-col content-center items-center justify-center gap-3 self-stretch rounded-b bg-blue-100 p-4 pt-0 dark:bg-blue-900/75 md:flex-row md:flex-wrap md:pt-4">
               {!!category.medals.length ? (
                 category.medals.map((medal, index) => {
-                  let href =
+                  const href =
                     category.name === "tournament"
                       ? `/tournament/${medal.projectSlug}`
                       : `/leaderboard/?${SCORING_CATEGORY_FILTER}=${category.name}&${SCORING_YEAR_FILTER}=${medal.year}&${SCORING_DURATION_FILTER}=${medal.duration}`;
