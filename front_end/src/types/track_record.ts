@@ -15,6 +15,8 @@ export type TrackRecordScatterPlotItem = {
 };
 
 export type TrackRecordCalibrationCurveItem = {
+  bin_lower: number;
+  bin_upper: number;
   lower_quartile: number;
   middle_quartile: number;
   upper_quartile: number;

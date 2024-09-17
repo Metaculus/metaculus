@@ -165,6 +165,7 @@ def get_calibration_curve_data(
             question__in=public_questions,
             question__type="binary",
             question__resolution__in=["no", "yes"],
+            method=aggregation_method,
         ).prefetch_related("question")
 
     values = []
@@ -175,7 +176,9 @@ def get_calibration_curve_data(
         question = forecast.question
         forecast_horizon_start = question.open_time.timestamp()
         actual_close_time = question.actual_close_time.timestamp()
-        forecast_horizon_end = question.scheduled_close_time.timestamp()
+        # The following is a hack to more closely replicate the old site's behavior
+        # forecast_horizon_end = question.scheduled_close_time.timestamp()
+        forecast_horizon_end = actual_close_time
         forecast_start = max(forecast_horizon_start, forecast.start_time.timestamp())
         if forecast.end_time:
             forecast_end = min(actual_close_time, forecast.end_time.timestamp())
@@ -183,7 +186,7 @@ def get_calibration_curve_data(
             forecast_end = actual_close_time
         forecast_duration = forecast_end - forecast_start
         question_duration = forecast_horizon_end - forecast_horizon_start
-        weight = forecast_duration / question_duration
+        weight = max(0, forecast_duration / question_duration)
 
         if isinstance(forecast, Forecast):
             values.append(forecast.probability_yes)
@@ -194,10 +197,11 @@ def get_calibration_curve_data(
         resolutions.append(int(question.resolution == "yes"))
 
     calibration_curve = []
+    v = 0.125 / 3
     for p_min, p_max in [
-        (0.0, 0.025),
-        (0.025, 0.075),
-        (0.075, 0.125),
+        (0 * v, 1 * v),
+        (1 * v, 2 * v),
+        (2 * v, 3 * v),
         (0.125, 0.175),
         (0.175, 0.225),
         (0.225, 0.275),
@@ -213,13 +217,13 @@ def get_calibration_curve_data(
         (0.725, 0.775),
         (0.775, 0.825),
         (0.825, 0.875),
-        (0.875, 0.925),
-        (0.925, 0.975),
-        (0.975, 1.0),
+        (0.875 + 0 * v, 0.875 + 1 * v),
+        (0.875 + 1 * v, 0.875 + 2 * v),
+        (0.875 + 2 * v, 1.00),
     ]:
         res = []
         ws = []
-        bin_center = p_min + 0.025
+        bin_center = (p_min + p_max) / 2
         for value, weight, resolution in zip(values, weights, resolutions):
             if p_min <= value < p_max:
                 res.append(resolution)
@@ -237,6 +241,8 @@ def get_calibration_curve_data(
 
         calibration_curve.append(
             {
+                "bin_lower": p_min,
+                "bin_upper": p_max,
                 "lower_quartile": lower_quartile,
                 "middle_quartile": middle_quartile,
                 "upper_quartile": upper_quartile,
