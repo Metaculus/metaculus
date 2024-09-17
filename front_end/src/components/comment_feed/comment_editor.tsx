@@ -49,9 +49,15 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
   const handleSubmit = async () => {
     setErrorMessage("");
+
+    const userTagPattern = /@\(([^)]+)\)|@([^\s]+)/g;
+    const parsedMarkdown = markdown.replace(userTagPattern, (match) =>
+      match.replace(/[()\\]/g, "")
+    );
+
     const newComment = await createComment({
       parent: parentId,
-      text: markdown,
+      text: parsedMarkdown,
       on_post: postId,
       included_forecast: hasIncludedForecast,
       is_private: isPrivateComment,
