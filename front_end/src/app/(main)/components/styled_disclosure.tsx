@@ -1,12 +1,12 @@
-import React, { ReactNode } from "react";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Disclosure,
   DisclosureButton,
   DisclosurePanel,
   Transition,
 } from "@headlessui/react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import React, { ReactNode } from "react";
 
 interface StyledDisclosureProps {
   question: string;

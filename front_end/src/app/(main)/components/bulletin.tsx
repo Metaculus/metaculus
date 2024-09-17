@@ -3,6 +3,7 @@
 import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { FC, useState } from "react";
+
 import { cancelBulletin } from "../actions";
 
 const Bulletin: FC<{ text: string; id: number }> = ({ text, id }) => {

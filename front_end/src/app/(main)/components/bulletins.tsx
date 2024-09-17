@@ -1,5 +1,7 @@
 import { FC } from "react";
+
 import MiscApi from "@/services/misc";
+
 import Bulletin from "./bulletin";
 
 const Bulletins: FC = async () => {
