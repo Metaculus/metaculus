@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 import numpy as np
-from scipy.stats import binom
 from django.contrib.auth.password_validation import validate_password
 from django.utils import timezone
 from rest_framework import serializers, status
@@ -12,6 +11,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
+from scipy.stats import binom
 
 from comments.models import Comment
 from posts.models import Post
@@ -349,7 +349,7 @@ def serialize_profile(
         score_qs = score_qs.filter(user=user)
     else:
         score_qs = score_qs.filter(aggregation_method=aggregation_method)
-    scores = list(score_qs)
+    scores = list(score_qs.select_related("question"))
     data = {}
     data.update(
         get_score_scatter_plot_data(
