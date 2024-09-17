@@ -291,6 +291,17 @@ class PostQuerySet(models.QuerySet):
             | Q(pk__in=Post.objects.filter(Q(projects__in=p)).distinct())
         )
 
+    def filter_questions(self):
+        """
+        Filter by question post type
+        """
+
+        return self.filter(
+            Q(question_id__isnull=False)
+            | Q(conditional_id__isnull=False)
+            | Q(group_of_questions_id__isnull=False)
+        )
+
 
 class PostManager(models.Manager.from_queryset(PostQuerySet)):
     def get_queryset(self) -> PostQuerySet:
