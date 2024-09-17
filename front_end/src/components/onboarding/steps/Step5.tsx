@@ -26,21 +26,20 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
       <button onClick={onPrev} className={onboardingStyles.backButton}>
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
-      <h3 className={onboardingStyles.heading}>
-        Great job on your predictions!
-      </h3>
+      <h3 className={onboardingStyles.heading}>Great work.</h3>
       <p className={onboardingStyles.paragraph}>
-        You're ready to explore more questions on Metaculus. Let's take a look
-        at another question about {topic.name}.
+        Anyone can improve at forecasting by practicing and thinking through
+        what factors could influence outcomes. In one study, experienced
+        forecasters were able to outperform CIA intelligence analysts with
+        access to classified intel.
       </p>
       <p className={onboardingStyles.paragraph}>
-        Click the button below to view the question and start a guided tour of
-        the question page.
+        Next you’ll see how forecast questions actually appear on Metaculus.
       </p>
       <div className="flex justify-between">
         <Link href={questionUrl}>
           <button onClick={onNext} className={onboardingStyles.button}>
-            View Question and Start Tour
+            Next Question
           </button>
         </Link>
       </div>

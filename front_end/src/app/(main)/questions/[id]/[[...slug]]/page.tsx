@@ -126,8 +126,8 @@ export default async function IndividualQuestion({
           <section className="w-[48rem] max-w-full border-transparent bg-gray-0 px-3 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
             <PostHeader post={postData} questionTitle={questionTitle} />
             {!postData.conditional && (
-              <div className="question-title mt-2 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2  lg:mt-4">
-                <h1 className="m-0 text-xl leading-tight sm:text-3xl">
+              <div className="mt-2 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2  lg:mt-4">
+                <h1 className="tour-question-title m-0 text-xl leading-tight sm:text-3xl">
                   {postData.title}
                 </h1>
                 {postData.resolved && !!postData.question && (
@@ -147,7 +147,9 @@ export default async function IndividualQuestion({
             <QuestionHeaderInfo post={postData} />
 
             {!!postData.question && (
-              <DetailedQuestionCard question={postData.question} />
+              <div className="tour-cp">
+                <DetailedQuestionCard question={postData.question} />
+              </div>
             )}
             {!!postData.group_of_questions && (
               <DetailedGroupCard
@@ -159,9 +161,7 @@ export default async function IndividualQuestion({
               />
             )}
 
-            <div className="prediction-input">
-              <ForecastMaker post={postData} />
-            </div>
+            <ForecastMaker post={postData} />
             {!!postData.conditional && (
               <ConditionalTimeline
                 conditional={
@@ -186,7 +186,7 @@ export default async function IndividualQuestion({
               layout="mobile"
               questionTitle={questionTitle}
             />
-            <div className="comment-section">
+            <div className="tour-comment-section">
               <CommentFeed
                 postData={postData}
                 postPermissions={postData.user_permission}

@@ -8,6 +8,9 @@ import {
   faChevronUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import BinarySlider, {
+  BINARY_FORECAST_PRECISION,
+} from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 
 interface Step2Props {
   onPrev: () => void;
@@ -24,16 +27,11 @@ const Step2: React.FC<Step2Props> = ({
   questionData,
   onPredictionChange,
 }) => {
-  const [showSlider, setShowSlider] = useState(false);
   const [prediction, setPrediction] = useState<number | null>(null);
   const [activeButton, setActiveButton] = useState<
     "less" | "about" | "more" | null
   >(null);
-  useEffect(() => {
-    if (prediction !== null) {
-      updateActiveButton(prediction);
-    }
-  }, [prediction]);
+
   if (topicIndex === null || !questionData) {
     return <p>Loading...</p>;
   }
@@ -61,14 +59,7 @@ const Step2: React.FC<Step2Props> = ({
         break;
     }
     setPrediction(initialPrediction);
-    setShowSlider(true);
     setActiveButton(type);
-  };
-
-  const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newPrediction = Number(event.target.value);
-    setPrediction(newPrediction);
-    updateActiveButton(newPrediction);
   };
 
   const updateActiveButton = (newPrediction: number) => {
@@ -101,20 +92,14 @@ const Step2: React.FC<Step2Props> = ({
   const getActiveButtonText = () => {
     switch (activeButton) {
       case "less":
-        return "You think it's less likely than the community.";
+        return "You can adjust your prediction if you want.";
       case "about":
-        return "You agree with the community prediction.";
+        return "You can adjust your prediction if you want.";
       case "more":
-        return "You think it's more likely than the community.";
+        return "You can adjust your prediction if you want.";
       default:
         return "";
     }
-  };
-
-  const calculateChevronPosition = (percentage: number) => {
-    // Ensure the percentage is between 0 and 100
-    const clampedPercentage = Math.max(0, Math.min(100, percentage));
-    return `${clampedPercentage}%`;
   };
 
   return (
@@ -160,47 +145,36 @@ const Step2: React.FC<Step2Props> = ({
         </button>
       </div>
 
-      {showSlider && prediction !== null && (
-        <div className="relative mt-16">
-          <div
-            className="absolute top-[-36px] flex flex-col"
-            style={{
-              left: calculateChevronPosition(communityForecast * 100),
-              transform: "translateX(-50%)",
-            }}
-          >
-            <span>Community</span>
-            <FontAwesomeIcon icon={faChevronDown} />
+      {prediction !== null && (
+        <div className="mt-4">
+          <div className="bg-blue-200 py-4 dark:bg-blue-800">
+            <BinarySlider
+              forecast={prediction}
+              onChange={(value) => {
+                setPrediction(value);
+                updateActiveButton(value);
+              }}
+              isDirty={true}
+              communityForecast={communityForecast}
+              onBecomeDirty={() => {}}
+              disabled={false}
+            />
+            {activeButton && (
+              <div className="mt-[-4px]">
+                <div className="w-full animate-bounce self-center text-center opacity-50">
+                  <FontAwesomeIcon icon={faChevronUp} />
+                </div>
+                <p
+                  className={`${onboardingStyles.paragraph} mt-0 pt-0 text-center font-semibold`}
+                >
+                  {getActiveButtonText()}
+                </p>
+              </div>
+            )}
           </div>
-          <input
-            type="range"
-            min="1"
-            max="99"
-            value={prediction}
-            onChange={handleSliderChange}
-            className="w-full"
-          />
-          <div
-            className="absolute flex flex-col"
-            style={{
-              left: calculateChevronPosition(prediction),
-              transform: "translateX(-50%)",
-            }}
-          >
-            <FontAwesomeIcon icon={faChevronUp} />
-            <span>Me</span>
-          </div>
-          {activeButton && (
-            <p
-              className={`${onboardingStyles.paragraph} mt-8 text-center font-semibold`}
-            >
-              {getActiveButtonText()}
-            </p>
-          )}
           <div className="mt-4 flex flex-col items-center gap-3">
-            <span>Your Prediction: {prediction}%</span>
             <button onClick={handleSubmit} className={onboardingStyles.button}>
-              Submit Prediction
+              Predict
             </button>
           </div>
         </div>

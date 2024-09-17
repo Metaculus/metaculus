@@ -13,21 +13,22 @@ const QuestionPageTour: React.FC<QuestionPageTourProps> = ({
   const steps = useMemo(
     () => [
       {
-        selector: ".question-title",
-        content: "This is the title of the question you'll be predicting on.",
+        selector: ".tour-question-title",
+        content: "Here’s the question title.",
       },
       {
-        selector: ".prediction-input",
-        content: "Use this to input your own prediction for the question.",
+        selector: ".tour-cp",
+        content: "Here’s what other predictors expect.",
       },
       {
-        selector: ".comment-section",
+        selector: ".tour-comment-section",
         content:
-          "Review what other forecasters are saying. Consider different perspectives and arguments to refine your own predictions.",
+          "Here’s where other forecasters share their arguments and perspectives.",
       },
       {
-        selector: ".prediction-input",
-        content: "Let's try to submit a prediction now.",
+        selector: ".tour-prediction-input",
+        content:
+          "Let’s make a prediction. You can always adjust it later if you change your mind.",
       },
     ],
     []

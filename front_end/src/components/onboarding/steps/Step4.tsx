@@ -4,6 +4,7 @@ import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
 import { faArrowLeft, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 
 interface Step4Props {
   onPrev: () => void;
@@ -30,6 +31,8 @@ const Step4: React.FC<Step4Props> = ({
   }
 
   const topic = onboardingTopics[topicIndex];
+  // Hardcoded community forecast for testing
+  const communityForecast = 0.75; // 75%
   const factors = [...topic.factors, ...userFactors];
 
   const handleAddFactor = () => {
@@ -38,9 +41,9 @@ const Step4: React.FC<Step4Props> = ({
       setNewFactor("");
     }
   };
-
-  const handleSliderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    onPredictionChange(Number(event.target.value));
+  const handleSubmit = () => {
+    console.log(`Submitted prediction: ${prediction / 100}`);
+    onNext();
   };
 
   return (
@@ -48,16 +51,21 @@ const Step4: React.FC<Step4Props> = ({
       <button onClick={onPrev} className={onboardingStyles.backButton}>
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
-      <h3 className={onboardingStyles.heading}>Let's refine your prediction</h3>
+      <p className={onboardingStyles.paragraph}>
+        Let's refine your prediction.
+      </p>
       <div className={onboardingStyles.questionContainer}>
         <h3 className="my-4 text-xl font-bold">{questionData.title}</h3>
       </div>
       <p className={onboardingStyles.paragraph}>
         Consider these factors that might influence the outcome:
       </p>
-      <ul className="mb-4 list-disc pl-5">
+      <ul className="mb-4 list-none space-y-2">
         {factors.map((factor, index) => (
-          <li key={index} className={onboardingStyles.paragraph}>
+          <li
+            key={index}
+            className="rounded-sm bg-blue-400/75 p-2.5 text-sm dark:bg-blue-600/75"
+          >
             {factor}
           </li>
         ))}
@@ -67,7 +75,7 @@ const Step4: React.FC<Step4Props> = ({
           type="text"
           value={newFactor}
           onChange={(e) => setNewFactor(e.target.value)}
-          placeholder="Add your own factor"
+          placeholder="You can add your own factor here if you like"
           className={onboardingStyles.input}
         />
         <button
@@ -80,19 +88,20 @@ const Step4: React.FC<Step4Props> = ({
       <p className={onboardingStyles.paragraph}>
         Now, considering these factors, how would you adjust your prediction?
       </p>
-      <div className="my-6">
-        <input
-          type="range"
-          min="1"
-          max="99"
-          value={prediction}
-          onChange={handleSliderChange}
-          className="w-full"
-        />
-        <p className="mt-2 text-center">Your prediction: {prediction}%</p>
+      <div className="mt-2">
+        <div className="bg-blue-200 py-4 dark:bg-blue-800">
+          <BinarySlider
+            forecast={prediction}
+            onChange={onPredictionChange}
+            isDirty={true}
+            communityForecast={communityForecast}
+            onBecomeDirty={() => {}}
+            disabled={false}
+          />
+        </div>
       </div>
       <div className="mt-6 flex justify-center">
-        <button onClick={onNext} className={onboardingStyles.button}>
+        <button onClick={handleSubmit} className={onboardingStyles.button}>
           Continue
         </button>
       </div>
