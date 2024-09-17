@@ -92,6 +92,7 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
         }}
         post={post}
         onCustomiseClick={() => setActiveModal("customisation")}
+        setPostSubscriptions={setPostSubscriptions}
       />
 
       <PostSubscribeCustomizeModal
