@@ -25,6 +25,7 @@ export type BECommentType = {
     for_this_user: boolean;
     count: number;
   };
+  mentioned_users: AuthorType[];
 };
 
 export type CommentType = {
@@ -44,6 +45,7 @@ export type CommentType = {
     for_this_user: boolean;
     count: number;
   };
+  mentioned_users: AuthorType[];
 };
 
 export type ForecastType = {

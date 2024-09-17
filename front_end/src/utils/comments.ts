@@ -15,5 +15,6 @@ export function parseComment(comment: BECommentType): CommentType {
     vote_score: comment.vote_score,
     user_vote: comment.user_vote,
     changed_my_mind: comment.changed_my_mind,
+    mentioned_users: comment.mentioned_users,
   };
 }
