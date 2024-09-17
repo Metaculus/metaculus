@@ -290,11 +290,11 @@ export async function removeRelatedArticle(articleId: number) {
 
 export async function changePostSubscriptions(
   postId: number,
-  subscriptions: PostSubscription[]
+  subscriptions: PostSubscription[],
+  revalidate: boolean = false
 ) {
   const response = await PostsApi.updateSubscriptions(postId, subscriptions);
 
-  revalidatePath(`/questions/${postId}`);
-
+  revalidate &&  revalidatePath(`/questions/${postId}`);
   return response;
 }

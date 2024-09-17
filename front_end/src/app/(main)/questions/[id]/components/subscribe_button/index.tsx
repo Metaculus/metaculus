@@ -29,13 +29,8 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
   const [activeModal, setActiveModal] = useState<FollowModalType | undefined>();
   const [postSubscriptions, setPostSubscriptions] = useState<
     PostSubscription[]
-  >(() => post.subscriptions || []);
+  >(post.subscriptions || []);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Catch post.subscriptions updates coming from `revalidatePath`
-  useEffect(() => {
-    setPostSubscriptions(post.subscriptions || []);
-  }, [post.subscriptions]);
 
   const handleFollow = useCallback(async () => {
     if (!user) {
@@ -45,13 +40,13 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
       // Subscribe to default notifications set
       setIsLoading(true);
       try {
-        const response = await changePostSubscriptions(
+        const newSubscriptions = await changePostSubscriptions(
           post.id,
           getInitialSubscriptions()
         );
 
         // Click on this button automatically subscribes user to the default notifications
-        setPostSubscriptions(response);
+        setPostSubscriptions(newSubscriptions);
         // Open success modal
         setActiveModal("success");
       } finally {
@@ -97,6 +92,7 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
         }}
         post={post}
         onCustomiseClick={() => setActiveModal("customisation")}
+        onPostSubscriptionChange={setPostSubscriptions}
       />
 
       <PostSubscribeCustomizeModal
@@ -106,6 +102,7 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
         }}
         post={post}
         subscriptions={postSubscriptions}
+        onPostSubscriptionChange={setPostSubscriptions}
       />
     </>
   );

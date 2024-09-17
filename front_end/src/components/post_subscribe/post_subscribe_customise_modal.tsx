@@ -1,7 +1,15 @@
 "use client";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Dispatch,
+  FC,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
@@ -28,6 +36,7 @@ type Props = {
   onClose: (open: boolean) => void;
   post: Post;
   subscriptions: PostSubscription[];
+  onPostSubscriptionChange?: (subscription: PostSubscription[]) => void;
   showPostLink?: boolean;
 };
 
@@ -36,17 +45,17 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   onClose,
   post,
   subscriptions: initialSubscriptions,
+  onPostSubscriptionChange,
   showPostLink = false,
 }) => {
   const t = useTranslations();
 
-  const [subscriptions, setSubscriptions] = useState<PostSubscription[]>(
-    () => initialSubscriptions
-  );
+  const [modalSubscriptions, setModalSubscriptions] =
+    useState<PostSubscription[]>(initialSubscriptions);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setSubscriptions(initialSubscriptions || []);
+    setModalSubscriptions(initialSubscriptions || []);
   }, [initialSubscriptions]);
 
   const handleSwitchSubscription = useCallback(
@@ -54,44 +63,45 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
       if (checked) {
         const defaultSubscriptionProps = getDefaultSubscriptionProps();
 
-        setSubscriptions([
-          ...subscriptions,
+        setModalSubscriptions([
+          ...modalSubscriptions,
           {
             type: subscriptionType,
             ...defaultSubscriptionProps[subscriptionType],
           } as PostSubscription,
         ]);
       } else {
-        setSubscriptions([
-          ...subscriptions.filter((sub) => sub.type !== subscriptionType),
+        setModalSubscriptions([
+          ...modalSubscriptions.filter((sub) => sub.type !== subscriptionType),
         ]);
       }
     },
-    [subscriptions]
+    [modalSubscriptions]
   );
 
   const checkSubscriptionEnabled = useCallback(
     (subscriptionType: PostSubscriptionType) =>
-      subscriptions.some((sub) => sub.type === subscriptionType),
-    [subscriptions]
+      modalSubscriptions.some((sub) => sub.type === subscriptionType),
+    [modalSubscriptions]
   );
 
   const handleSubscriptionChange = useCallback(
     (type: PostSubscriptionType, name: string, value: any) => {
-      setSubscriptions(
-        subscriptions.map((sub) => ({
+      setModalSubscriptions(
+        modalSubscriptions.map((sub) => ({
           ...sub,
           ...(type === sub.type ? { [name]: value } : {}),
         }))
       );
     },
-    [subscriptions]
+    [modalSubscriptions]
   );
 
   const handleUnfollow = useCallback(async () => {
     setIsLoading(true);
     try {
-      await changePostSubscriptions(post.id, []);
+      const newSubscriptions = await changePostSubscriptions(post.id, [], false);
+      onPostSubscriptionChange && onPostSubscriptionChange(newSubscriptions);
     } finally {
       setIsLoading(false);
     }
@@ -103,12 +113,17 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
     // Subscribe to default notifications set
     setIsLoading(true);
     try {
-      await changePostSubscriptions(post.id, subscriptions);
+      const newSubscriptions = await changePostSubscriptions(
+        post.id,
+        modalSubscriptions,
+        false
+      );
+      onPostSubscriptionChange && onPostSubscriptionChange(newSubscriptions);
       onClose(true);
     } finally {
       setIsLoading(false);
     }
-  }, [onClose, post.id, subscriptions]);
+  }, [onClose, post.id, modalSubscriptions]);
 
   const subscriptionTypes = useMemo(
     () => [
@@ -208,7 +223,9 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
                 <>
                   <div>
                     {render &&
-                      render(subscriptions.find((sub) => sub.type === type)!)}
+                      render(
+                        modalSubscriptions.find((sub) => sub.type === type)!
+                      )}
                   </div>
                   {render && idx < subscriptionTypes.length - 1 && (
                     <hr className="mb-4 mt-8 border-gray-400 dark:border-gray-400-dark" />
