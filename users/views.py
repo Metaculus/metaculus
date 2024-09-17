@@ -219,7 +219,7 @@ def get_calibration_curve_data(
     ]:
         res = []
         ws = []
-        bin_center = p_min + 0.025
+        bin_center = (p_min + p_max) / 2
         for value, weight, resolution in zip(values, weights, resolutions):
             if p_min <= value < p_max:
                 res.append(resolution)
@@ -237,6 +237,8 @@ def get_calibration_curve_data(
 
         calibration_curve.append(
             {
+                "bin_lower": p_min,
+                "bin_upper": p_max,
                 "lower_quartile": lower_quartile,
                 "middle_quartile": middle_quartile,
                 "upper_quartile": upper_quartile,
