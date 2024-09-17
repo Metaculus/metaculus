@@ -25,6 +25,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { CommentPermissions, CommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
+import { parseUserMentions } from "@/utils/comments";
 import { formatDate } from "@/utils/date_formatters";
 import { canPredictQuestion } from "@/utils/questions";
 
@@ -145,7 +146,9 @@ const Comment: FC<CommentProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isReplying, setIsReplying] = useState(false);
-  const [commentMarkdown, setCommentMarkdown] = useState(comment.text);
+  const [commentMarkdown, setCommentMarkdown] = useState(
+    parseUserMentions(comment.text, comment.mentioned_users)
+  );
   const [tempCommentMarkdown, setTempCommentMarkdown] = useState("");
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 

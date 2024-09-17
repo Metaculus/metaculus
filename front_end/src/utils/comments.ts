@@ -1,4 +1,4 @@
-import { BECommentType, CommentType } from "@/types/comment";
+import { AuthorType, BECommentType, CommentType } from "@/types/comment";
 
 export function parseComment(comment: BECommentType): CommentType {
   return {
@@ -15,5 +15,38 @@ export function parseComment(comment: BECommentType): CommentType {
     vote_score: comment.vote_score,
     user_vote: comment.user_vote,
     changed_my_mind: comment.changed_my_mind,
+    mentioned_users: comment.mentioned_users,
   };
+}
+
+export function parseUserMentions(
+  markdown: string,
+  mentionedUsers?: AuthorType[]
+): string {
+  const userTagPattern = /@\(([^)]+)\)|@([^\s]+)/g;
+
+  markdown = markdown.replace(userTagPattern, (match) => {
+    const cleanedUsername = match.replace(/[@()\\]/g, "");
+    switch (cleanedUsername) {
+      case "moderators":
+        return `[@${cleanedUsername}](/faq/#moderators-tag)`;
+      case "predictors":
+        return `[@${cleanedUsername}](/faq/#predictors-tag)`;
+      case "admins":
+        return `[@${cleanedUsername}](/faq/#admins-tag)`;
+      case "members":
+        return `[@${cleanedUsername}](/faq/#members-tag)`;
+      default:
+        break;
+    }
+
+    const mentionedUser = mentionedUsers?.find(
+      (user) => user.username.toLowerCase() === cleanedUsername?.toLowerCase()
+    );
+    if (!!mentionedUser) {
+      return `[@${cleanedUsername}](/accounts/profile/${mentionedUser.id})`;
+    }
+    return match;
+  });
+  return markdown;
 }
