@@ -11,6 +11,7 @@ export const onboardingStyles = {
   divider: "border-blue-400 dark:border-blue-700/50",
   questionContainer:
     "border border-blue-400 dark:border-blue-700/50 rounded px-4 bg-blue-500/10",
+  questionTitle: "mt-4 text-xl font-bold text-blue-800 dark:text-blue-200",
   input:
     "flex-grow px-2 py-1 border border-blue-500 placeholder:text-gray-600 rounded",
   smallButton:

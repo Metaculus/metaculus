@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import QuestionPageTour from "./QuestionPageTour";
 
@@ -14,9 +14,9 @@ const TourWrapper: React.FC = () => {
     }
   }, [searchParams]);
 
-  const closeTour = () => {
+  const closeTour = useCallback(() => {
     setIsTourOpen(false);
-  };
+  }, []);
 
   return <QuestionPageTour isOpen={isTourOpen} onClose={closeTour} />;
 };

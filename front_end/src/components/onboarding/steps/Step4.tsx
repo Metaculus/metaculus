@@ -52,13 +52,8 @@ const Step4: React.FC<Step4Props> = ({
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
       <p className={onboardingStyles.paragraph}>
-        Let's refine your prediction.
-      </p>
-      <div className={onboardingStyles.questionContainer}>
-        <h3 className="my-4 text-xl font-bold">{questionData.title}</h3>
-      </div>
-      <p className={onboardingStyles.paragraph}>
-        Consider these factors that might influence the outcome:
+        Let's refine your prediction. Consider these factors that might
+        influence the outcome:
       </p>
       <ul className="mb-4 list-none space-y-2">
         {factors.map((factor, index) => (
@@ -88,7 +83,15 @@ const Step4: React.FC<Step4Props> = ({
       <p className={onboardingStyles.paragraph}>
         Now, considering these factors, how would you adjust your prediction?
       </p>
-      <div className="mt-2">
+
+      <div
+        className={`${onboardingStyles.questionContainer} rounded-none border-none bg-blue-200/100 py-1 pb-0 dark:bg-blue-800/100`}
+      >
+        <h3 className={`${onboardingStyles.questionTitle} mb-0 pb-0`}>
+          {questionData.title}
+        </h3>{" "}
+      </div>
+      <div>
         <div className="bg-blue-200 py-4 dark:bg-blue-800">
           <BinarySlider
             forecast={prediction}

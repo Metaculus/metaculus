@@ -16,6 +16,7 @@ import QuestionCarousel from "./components/questions_carousel";
 import ResearchAndUpdatesBlock from "./components/research_and_updates";
 import TopicLink from "./components/topic_link";
 import TournamentsBlock from "./components/tournaments_block";
+import OnboardingCheck from "@/components/onboarding/OnboardingCheck";
 
 // TODO: probable makes sense to receive this info from the BE
 const FOCUS_AREAS: FocusAreaItem[] = [
@@ -67,6 +68,7 @@ export default async function Home() {
 
   return (
     <main className="bg-gradient-to-b from-blue-100 from-20% to-blue-200 to-50% pt-16 dark:from-blue-100-dark dark:to-blue-200-dark sm:pt-28">
+      <OnboardingCheck />
       <div className="mx-auto mb-24 flex w-full max-w-7xl flex-1 flex-col items-stretch px-4 text-blue-700 dark:text-blue-700-dark sm:px-8 md:px-12 lg:px-16">
         <div className="mb-6 md:mb-12 lg:mb-14">
           <div className="flex flex-col items-center">

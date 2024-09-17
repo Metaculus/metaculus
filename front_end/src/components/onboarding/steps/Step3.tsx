@@ -5,6 +5,7 @@ import { onboardingStyles } from "../OnboardingStyles";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
+import VerbalForecast from "../VerbalForecast";
 
 interface Step3Props {
   onPrev: () => void;
@@ -45,14 +46,13 @@ const Step3: React.FC<Step3Props> = ({
         Great! Here's another question about {topic.name}:
       </p>
       <div className={onboardingStyles.questionContainer}>
-        <h3 className="my-4 text-xl font-bold">{questionData.title}</h3>
+        <h3 className={onboardingStyles.questionTitle}>{questionData.title}</h3>
         {communityForecast !== undefined && (
-          <p className={onboardingStyles.paragraph}>
+          <p className={onboardingStyles.largeparagraph}>
             Other forecasters tend to think this is{" "}
-            <span className="text-blue-800 dark:text-blue-300">XXX</span>. They
-            give it{" "}
-            <span className="rounded bg-blue-700 p-1 font-semibold text-white">
-              {(communityForecast * 100).toFixed(2)}%
+            <VerbalForecast forecast={communityForecast} />. They give it{" "}
+            <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800">
+              {(communityForecast * 100).toFixed(0)}%
             </span>
           </p>
         )}

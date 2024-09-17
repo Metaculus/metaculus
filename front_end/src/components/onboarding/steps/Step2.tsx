@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import BinarySlider, {
   BINARY_FORECAST_PRECISION,
 } from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
+import VerbalForecast from "../VerbalForecast";
 
 interface Step2Props {
   onPrev: () => void;
@@ -36,7 +37,7 @@ const Step2: React.FC<Step2Props> = ({
     return <p>Loading...</p>;
   }
   const topic = onboardingTopics[topicIndex];
-  const communityForecast = 0.75; // Hardcoded for testing to be replaced with line below
+  const communityForecast = 0.55; // Hardcoded for testing to be replaced with line below
   // const communityForecast = questionData.question?.aggregations?.recency_weighted?.latest?.centers?.[0];
 
   const handlePrediction = (type: "less" | "about" | "more") => {
@@ -111,14 +112,13 @@ const Step2: React.FC<Step2Props> = ({
         Here's a real Metaculus question about {topic.name}:
       </p>
       <div className={onboardingStyles.questionContainer}>
-        <h3 className="my-4 text-xl font-bold">{questionData.title}</h3>
+        <h3 className={onboardingStyles.questionTitle}>{questionData.title}</h3>
         {communityForecast !== undefined && (
-          <p className={onboardingStyles.paragraph}>
+          <p className={onboardingStyles.largeparagraph}>
             Other forecasters tend to think this is{" "}
-            <span className="text-blue-800 dark:text-blue-300">XXX</span>. They
-            give it{" "}
-            <span className="rounded bg-blue-700 p-1 font-semibold text-white">
-              {(communityForecast * 100).toFixed(2)}%
+            <VerbalForecast forecast={communityForecast} />. They give it{" "}
+            <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800">
+              {(communityForecast * 100).toFixed(0)}%
             </span>
           </p>
         )}
@@ -159,6 +159,11 @@ const Step2: React.FC<Step2Props> = ({
               onBecomeDirty={() => {}}
               disabled={false}
             />
+            {/* <div className="flex px-[25px] w-full justify-between relative top-[-112px] text-xs text-gray-500 dark:text-gray-500">
+              <span className="w-full text-left">Very Unlikely</span>
+              <span className="w-full text-center">About Even</span>
+              <span className="w-full text-right">Very Likely</span>
+            </div> */}
             {activeButton && (
               <div className="mt-[-4px]">
                 <div className="w-full animate-bounce self-center text-center opacity-50">

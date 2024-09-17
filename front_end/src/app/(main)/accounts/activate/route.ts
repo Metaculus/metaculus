@@ -18,5 +18,5 @@ export async function GET(
     setServerSession(response.token);
   } catch (err) {}
 
-  return redirect("/");
+  return redirect("/?start_onboarding=true");
 }
