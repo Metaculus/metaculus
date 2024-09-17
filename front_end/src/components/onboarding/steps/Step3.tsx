@@ -29,8 +29,10 @@ const Step3: React.FC<Step3Props> = ({
   }
 
   const topic = onboardingTopics[topicIndex];
-  // Hardcoded community forecast for testing
-  const communityForecast = 0.75; // 75%
+  // const communityForecast = 0.55; // Hardcoded for testing to be replaced with line below
+  const communityForecast =
+    questionData.question?.aggregations?.recency_weighted?.latest
+      ?.centers?.[0] ?? 0.5;
 
   const handleSubmit = () => {
     console.log(`Submitted prediction: ${prediction / 100}`);

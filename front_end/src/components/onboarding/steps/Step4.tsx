@@ -31,8 +31,10 @@ const Step4: React.FC<Step4Props> = ({
   }
 
   const topic = onboardingTopics[topicIndex];
-  // Hardcoded community forecast for testing
-  const communityForecast = 0.75; // 75%
+  // const communityForecast = 0.55; // Hardcoded for testing to be replaced with line below
+  const communityForecast =
+    questionData.question?.aggregations?.recency_weighted?.latest
+      ?.centers?.[0] ?? 0.5;
   const factors = [...topic.factors, ...userFactors];
 
   const handleAddFactor = () => {
