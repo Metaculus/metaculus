@@ -93,7 +93,7 @@ const TournamentFilters: FC<Props> = ({ categories, tags }) => {
       mainSortOptions={mainSortOptions}
       sortOptions={sortOptions}
       onOrderChange={handleOrderChange}
-      ipnutConfig={{ debounceTime: 500, mode: "client" }}
+      inputConfig={{ debounceTime: 500, mode: "client" }}
     />
   );
 };

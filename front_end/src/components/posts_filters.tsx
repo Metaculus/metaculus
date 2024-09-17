@@ -42,7 +42,7 @@ type Props = {
       withNavigation?: boolean
     ) => void
   ) => void;
-  ipnutConfig?: { mode: "client" | "server"; debounceTime?: number };
+  inputConfig?: { mode: "client" | "server"; debounceTime?: number };
 };
 
 const PostsFilters: FC<Props> = ({
@@ -51,7 +51,7 @@ const PostsFilters: FC<Props> = ({
   mainSortOptions,
   sortOptions: dropdownSortOptions,
   onOrderChange,
-  ipnutConfig,
+  inputConfig,
 }) => {
   const t = useTranslations();
   const {
@@ -66,7 +66,7 @@ const PostsFilters: FC<Props> = ({
 
   const [search, setSearch] = useSearchInputState(
     POST_TEXT_SEARCH_FILTER,
-    ipnutConfig
+    inputConfig
   );
   const eraseSearch = () => {
     setSearch("");
