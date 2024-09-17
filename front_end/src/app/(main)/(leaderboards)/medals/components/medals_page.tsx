@@ -1,20 +1,20 @@
 import classNames from "classnames";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import LeaderboardApi from "@/services/leaderboard";
 
 import MedalIcon from "../../components/medal_icon";
 import { RANKING_CATEGORIES } from "../../ranking_categories";
-import { getMedalCategories } from "../helpers/medal_categories";
-import { getMedalDisplayTitle } from "../helpers/medal_title";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
-import Link from "next/link";
 import {
   SCORING_CATEGORY_FILTER,
   SCORING_DURATION_FILTER,
   SCORING_YEAR_FILTER,
 } from "../../search_params";
+import { getMedalCategories } from "../helpers/medal_categories";
+import { getMedalDisplayTitle } from "../helpers/medal_title";
 
 type Props = {
   profileId: number;
@@ -60,7 +60,7 @@ const MedalsPage: FC<Props> = async ({ profileId }) => {
                 category.medals.map((medal, index) => {
                   let href =
                     category.name === "tournament"
-                      ? `/tournaments/${medal.projectId}` // should be a tournament slug here
+                      ? `/tournaments/${medal.projectSlug}`
                       : `/leaderboard/?${SCORING_CATEGORY_FILTER}=${category.name}&${SCORING_YEAR_FILTER}=${medal.year}&${SCORING_DURATION_FILTER}=${medal.duration}`;
 
                   return (
