@@ -121,6 +121,8 @@ const ForecastCard: FC<Props> = ({
             <NumericChart
               aggregations={question.aggregations}
               myForecasts={question.my_forecasts}
+              resolution={question.resolution}
+              resolveTime={question.actual_resolve_time}
               height={chartHeight}
               questionType={
                 getNumericChartTypeFromQuestion(question.type) ??

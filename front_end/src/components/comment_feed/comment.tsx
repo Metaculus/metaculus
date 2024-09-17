@@ -451,6 +451,7 @@ const Comment: FC<CommentProps> = ({
             addNewChildrenComment(comment, newComment);
             setIsReplying(false);
           }}
+          isReplying={isReplying}
         />
       )}
 

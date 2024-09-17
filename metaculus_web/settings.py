@@ -231,7 +231,9 @@ EMAIL_SENDER_NO_REPLY = os.environ.get(
 )
 EMAIL_FEEDBACK = os.environ.get("EMAIL_FEEDBACK", "feedback@metaculus.com")
 # TODO: reconsider after release
-EMAIL_ALLOW_SEND_TO_ALL_USERS = os.environ.get("EMAIL_ALLOW_SEND_TO_ALL_USERS", "false").lower() == "true"
+EMAIL_ALLOW_SEND_TO_ALL_USERS = (
+    os.environ.get("EMAIL_ALLOW_SEND_TO_ALL_USERS", "false").lower() == "true"
+)
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -411,5 +413,5 @@ if os.environ.get("SENTRY_DNS", None):
         environment=ENV,
         integrations=[
             DramatiqIntegration(),
-        ]
+        ],
     )

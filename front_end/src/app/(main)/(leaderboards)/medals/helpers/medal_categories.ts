@@ -121,6 +121,7 @@ const getMedalFromEntry = (medalEntry: MedalEntry): Medal | null => {
     name: medalEntry.name,
     projectType: medalEntry.project_type,
     projectName: medalEntry.project_name,
+    projectSlug: medalEntry.project_slug,
     projectId: medalEntry.project_id,
     totalEntries: medalEntry.total_entries,
   };

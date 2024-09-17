@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from scipy.stats.mstats import gmean
 import numpy as np
+from scipy.stats.mstats import gmean
 
-from utils.the_math.aggregations import get_aggregation_history
 from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.models import Score
+from utils.the_math.aggregations import get_aggregation_history
 
 
 @dataclass
@@ -331,8 +331,8 @@ def evaluate_question(
     community_forecasts = get_aggregation_history(
         question,
         minimize=False,
-        aggregation_method=AggregationMethod.RECENCY_WEIGHTED,
-    )["recency_weighted"]
+        aggregation_methods=[AggregationMethod.RECENCY_WEIGHTED],
+    )[AggregationMethod.RECENCY_WEIGHTED]
     geometric_means: list[AggregationEntry] = []
 
     ScoreTypes = Score.ScoreTypes

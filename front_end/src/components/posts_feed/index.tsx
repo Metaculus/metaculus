@@ -7,6 +7,7 @@ import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import PostsApi, { PostsParams } from "@/services/posts";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { Topic } from "@/types/projects";
+import { useAuth } from "@/contexts/auth_context";
 
 type Props = {
   filters: PostsParams;

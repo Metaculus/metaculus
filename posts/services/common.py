@@ -188,12 +188,18 @@ def compute_movement(post: Post) -> float | None:
     for question in questions:
         cp_now = get_aggregations_at_time(
             question, now, [AggregationMethod.RECENCY_WEIGHTED]
-        )[AggregationMethod.RECENCY_WEIGHTED]
+        ).get(AggregationMethod.RECENCY_WEIGHTED)
+
+        if cp_now is None:
+            continue
+
         cp_previous = get_aggregations_at_time(
             question, now - timedelta(days=7), [AggregationMethod.RECENCY_WEIGHTED]
-        )[AggregationMethod.RECENCY_WEIGHTED]
-        if cp_now is None or cp_previous is None:
+        ).get(AggregationMethod.RECENCY_WEIGHTED)
+
+        if cp_previous is None:
             continue
+
         difference = prediction_difference_for_sorting(
             cp_now.get_prediction_values(),
             cp_previous.get_prediction_values(),

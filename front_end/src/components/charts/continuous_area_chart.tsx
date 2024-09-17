@@ -7,10 +7,11 @@ import {
   VictoryAxis,
   VictoryChart,
   VictoryCursorContainer,
+  VictoryScatter,
   VictoryLine,
   VictoryThemeDefinition,
 } from "victory";
-
+import { getResolutionData } from "@/components/charts/numeric_chart";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
@@ -26,6 +27,7 @@ import { interpolateYValue, getDisplayValue } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
+import { Resolution } from "@/types/post";
 
 type ContinuousAreaColor = "orange" | "green";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {
@@ -49,6 +51,7 @@ type Props = {
   questionType?: QuestionType;
   height?: number;
   extraTheme?: VictoryThemeDefinition;
+  resolution: Resolution | null;
   onCursorChange?: (value: ContinuousAreaHoverState | null) => void;
 };
 
@@ -59,6 +62,7 @@ const ContinuousAreaChart: FC<Props> = ({
   questionType = QuestionType.Numeric,
   height = 150,
   extraTheme,
+  resolution,
   onCursorChange,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
@@ -112,6 +116,15 @@ const ContinuousAreaChart: FC<Props> = ({
     () => generateNumericAreaTicks(scaling, questionType, chartWidth),
     [chartWidth]
   );
+
+  const resolutionPoint = resolution
+    ? getResolutionData({
+        questionType,
+        resolution,
+        resolveTime: 1,
+        scaling,
+      })
+    : null;
 
   // TODO: find a nice way to display the out of bounds weights as numbers
   // const massBelowBounds = dataset[0];
@@ -208,6 +221,25 @@ const ContinuousAreaChart: FC<Props> = ({
               }}
             />
           ))}
+          {resolutionPoint && (
+            <VictoryScatter
+              data={[
+                {
+                  x: resolutionPoint[0].y,
+                  y: 0,
+                  symbol: "diamond",
+                  size: 4,
+                },
+              ]}
+              style={{
+                data: {
+                  stroke: getThemeColor(METAC_COLORS.purple["800"]),
+                  fill: "none",
+                  strokeWidth: 2.5,
+                },
+              }}
+            />
+          )}
           <VictoryAxis
             tickValues={ticks}
             tickFormat={tickFormat}

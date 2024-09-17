@@ -16,6 +16,7 @@ import QuestionsApi, { ForecastPayload } from "@/services/questions";
 import { FetchError } from "@/types/fetch";
 import { PostStatus, PostSubscription } from "@/types/post";
 import { VoteDirection } from "@/types/votes";
+import { useAuth } from "@/contexts/auth_context";
 
 export async function fetchMorePosts(
   filters: PostsParams,
@@ -28,6 +29,19 @@ export async function fetchMorePosts(
     limit,
   });
   return response.results;
+}
+
+export async function fetchPosts(
+  filters: PostsParams,
+  offset: number,
+  limit: number
+) {
+  const response = await PostsApi.getPostsWithCP({
+    ...filters,
+    offset,
+    limit,
+  });
+  return { questions: response.results, count: response.count };
 }
 
 export async function fetchEmbedPosts(search: string) {

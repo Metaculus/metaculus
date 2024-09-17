@@ -68,6 +68,7 @@ class UserPrivateSerializer(UserPublicSerializer):
             "is_superuser",
             "is_staff",
             "unsubscribed_mailing_tags",
+            "hide_community_prediction",
         )
 
 
@@ -93,6 +94,7 @@ class UserUpdateProfileSerializer(serializers.ModelSerializer):
             "location",
             "profile_picture",
             "unsubscribed_mailing_tags",
+            "hide_community_prediction",
         )
 
 

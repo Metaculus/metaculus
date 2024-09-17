@@ -83,6 +83,7 @@ const NumericChartCard: FC<Props> = ({ question }) => {
         aggregations={question.aggregations}
         myForecasts={question.my_forecasts}
         resolution={question.resolution}
+        resolveTime={question.actual_resolve_time}
         onCursorChange={handleCursorChange}
         yLabel={t("communityPredictionLabel")}
         onChartReady={handleChartReady}

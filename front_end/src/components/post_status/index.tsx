@@ -14,8 +14,7 @@ type Props = {
 const PostStatus: FC<Props> = ({ resolution, post }) => {
   const t = useTranslations();
   const locale = useLocale();
-  const { status, scheduled_close_time, scheduled_resolve_time, open_time } =
-    post;
+  const { status, scheduled_close_time, actual_close_time, open_time } = post;
 
   const statusInfo = useMemo(() => {
     if (status === PostStatusEnum.CLOSED) {
@@ -42,16 +41,16 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
     if (status === PostStatusEnum.RESOLVED) {
       return [
         t("resolved"),
-        formatRelativeDate(locale, new Date(scheduled_resolve_time), {
+        formatRelativeDate(locale, new Date(actual_close_time), {
           short: true,
         }),
       ];
     }
 
     return [];
-  }, [locale, scheduled_close_time, scheduled_resolve_time, status, t]);
+  }, [locale, scheduled_close_time, actual_close_time, status, t]);
 
-  if (!post.scheduled_close_time || !post.scheduled_resolve_time) {
+  if (!post.scheduled_close_time || !post.actual_close_time) {
     return null;
   }
 

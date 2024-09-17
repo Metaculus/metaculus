@@ -77,41 +77,6 @@ const PopoverFilter: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const renderFilter = (filter: FilterSection) => {
-    switch (filter.type) {
-      case FilterOptionType.MultiChip:
-        return (
-          <MultiChipFilter
-            filterId={filter.id}
-            options={filter.options}
-            onChange={onChange}
-          />
-        );
-      case FilterOptionType.Combobox:
-        return (
-          <ComboboxFilter
-            filterId={filter.id}
-            options={filter.options}
-            optionsFetcher={filter.optionsFetcher}
-            onChange={onChange}
-            chipColor={filter.chipColor}
-            chipFormat={filter.chipFormat}
-            shouldEnforceSearch={filter.shouldEnforceSearch}
-          />
-        );
-      case FilterOptionType.ToggleChip:
-        return (
-          <ToggleChipFilter
-            filterId={filter.id}
-            options={filter.options}
-            onChange={onChange}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
   return (
     <Popover className="relative">
       {({ open, close }) => (
@@ -130,11 +95,11 @@ const PopoverFilter: FC<Props> = ({
             className={panelClassName}
           >
             <div className="mb-6 flex w-full items-center border-b border-gray-300 sm:hidden">
-              <h3 className="m-0 grow">Filter by</h3>
+              <h3 className="capitalize m-0 grow">{t("filterBy")}</h3>
               <Button
                 variant="text"
                 size="md"
-                aria-label="Close filter"
+                aria-label={t("closeFilter")}
                 onClick={close}
               >
                 <FontAwesomeIcon icon={faXmark} />
@@ -146,14 +111,38 @@ const PopoverFilter: FC<Props> = ({
                   <h3 className="mb-2 mt-0 w-full text-xs font-bold uppercase leading-3 text-gray-700 dark:text-gray-700-dark">
                     {filter.title}
                   </h3>
-                  {renderFilter(filter)}
+                  {filter.type === FilterOptionType.MultiChip && (
+                    <MultiChipFilter
+                      filterId={filter.id}
+                      options={filter.options}
+                      onChange={onChange}
+                    />
+                  )}
+                  {filter.type === FilterOptionType.Combobox && (
+                    <ComboboxFilter
+                      filterId={filter.id}
+                      options={filter.options}
+                      optionsFetcher={filter.optionsFetcher}
+                      onChange={onChange}
+                      chipColor={filter.chipColor}
+                      chipFormat={filter.chipFormat}
+                      shouldEnforceSearch={filter.shouldEnforceSearch}
+                    />
+                  )}
+                  {filter.type === FilterOptionType.ToggleChip && (
+                    <ToggleChipFilter
+                      filterId={filter.id}
+                      options={filter.options}
+                      onChange={onChange}
+                    />
+                  )}
                 </div>
               ))}
             </div>
             <div className="ml-auto mt-4 flex w-full justify-end gap-3 border-t border-gray-300 pt-4 dark:border-gray-300-dark max-sm:sticky max-sm:bottom-0 max-sm:w-full max-sm:bg-gray-0 max-sm:py-4 max-sm:dark:bg-gray-0-dark">
-              <Button onClick={onClear}>{t("Clear")}</Button>
-              <Button variant="primary" onClick={close}>
-                {t("Done")}
+              <Button className="capitalize" onClick={onClear}>{t("clear")}</Button>
+              <Button className="capitalize" variant="primary" onClick={close}>
+                {t("done")}
               </Button>
             </div>
           </Panel>

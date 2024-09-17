@@ -33,8 +33,8 @@ import {
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { Resolution } from "@/types/post";
+import { getUnixTime } from "date-fns";
 import {
-  NumericForecast,
   QuestionType,
   Aggregations,
   UserForecastHistory,
@@ -64,6 +64,7 @@ type Props = {
   scaling: Scaling;
   extraTheme?: VictoryThemeDefinition;
   resolution?: Resolution | null;
+  resolveTime?: string | null;
 };
 
 const NumericChart: FC<Props> = ({
@@ -80,6 +81,7 @@ const NumericChart: FC<Props> = ({
   scaling,
   extraTheme,
   resolution,
+  resolveTime,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -228,12 +230,15 @@ const NumericChart: FC<Props> = ({
             dataComponent={<PredictionWithRange />}
           />
 
-          {resolution && (
+          {resolution && !!resolveTime && (
             <VictoryScatter
               data={getResolutionData({
                 questionType,
                 resolution,
-                aggregations,
+                resolveTime: Math.min(
+                  getUnixTime(resolveTime),
+                  actualCloseTime! / 1000
+                ),
                 scaling,
               })}
               style={{
@@ -387,15 +392,15 @@ function buildChartData({
   };
 }
 
-function getResolutionData({
+export function getResolutionData({
   questionType,
   resolution,
-  aggregations,
+  resolveTime,
   scaling,
 }: {
   questionType: QuestionType;
   resolution: Resolution;
-  aggregations: Aggregations;
+  resolveTime: number;
   scaling: Scaling;
 }) {
   switch (questionType) {
@@ -407,7 +412,7 @@ function getResolutionData({
             resolution === "no"
               ? scaling.range_min ?? 0
               : scaling.range_max ?? 1,
-          x: aggregations.recency_weighted.latest!.start_time,
+          x: resolveTime,
           symbol: "diamond",
           size: 4,
         },
@@ -423,7 +428,7 @@ function getResolutionData({
       return [
         {
           y: unscaledResolution,
-          x: aggregations.recency_weighted.latest!.start_time,
+          x: resolveTime,
           symbol: "diamond",
           size: 4,
         },
@@ -437,7 +442,7 @@ function getResolutionData({
       return [
         {
           y: unscaledResolution,
-          x: aggregations.recency_weighted.latest!.start_time,
+          x: resolveTime,
           symbol: "diamond",
           size: 4,
         },

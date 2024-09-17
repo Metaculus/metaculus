@@ -20,9 +20,13 @@ def migrate_archived_scores():
             | Q(group__post__projects__primary_leaderboard__score_type=rltst)
             | Q(group__post__default_project__primary_leaderboard__score_type=rltst)
             | Q(conditional_yes__post__projects__primary_leaderboard__score_type=rltst)
-            | Q(conditional_yes__post__default_project__primary_leaderboard__score_type=rltst)
+            | Q(
+                conditional_yes__post__default_project__primary_leaderboard__score_type=rltst
+            )
             | Q(conditional_no__post__projects__primary_leaderboard__score_type=rltst)
-            | Q(conditional_no__post__default_project__primary_leaderboard__score_type=rltst),
+            | Q(
+                conditional_no__post__default_project__primary_leaderboard__score_type=rltst
+            ),
             resolution__isnull=False,
         )
         .exclude(resolution__in=["ambiguous", "annulled"])

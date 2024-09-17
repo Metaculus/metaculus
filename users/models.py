@@ -46,8 +46,17 @@ class User(TimeStampedModel, AbstractUser):
     unsubscribed_mailing_tags = ArrayField(
         models.CharField(max_length=200), blank=True, default=list
     )
+    hide_community_prediction = models.BooleanField(default=False)
 
     objects: models.Manager["User"] = UserManager()
+
+    class Meta:
+        indexes = [
+            models.Index(
+                models.Func("username", function="UPPER"),
+                name="upper_username_idx",
+            ),
+        ]
 
     def get_old_usernames(self) -> list[tuple[str, datetime]]:
         return [

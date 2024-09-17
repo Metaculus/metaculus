@@ -86,7 +86,6 @@ def comments_list_api_view(request: Request):
         if use_root_comments_pagination
         else LimitOffsetPagination()
     )
-    paginator.total_count = comments.count()
     paginated_comments = paginator.paginate_queryset(comments, request)
 
     data = serialize_comment_many(paginated_comments, request.user)

@@ -169,12 +169,12 @@ def get_aggregations_at_time(
     and q3s"""
     forecasts = question.user_forecasts.filter(
         Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
-    ).order_by("start_time")
+    ).order_by("start_time").select_related("author")
     if user_ids:
         forecasts = forecasts.filter(author_id__in=user_ids)
     if not include_bots:
         forecasts = forecasts.exclude(author__is_bot=True)
-    if forecasts.count() == 0:
+    if len(forecasts) == 0:
         return dict()
     forecast_set = ForecastSet(
         forecasts_values=[forecast.get_prediction_values() for forecast in forecasts],

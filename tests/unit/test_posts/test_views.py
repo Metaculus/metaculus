@@ -227,8 +227,6 @@ def test_post_view_event_api_view(user1, user1_client):
     with freeze_time("2024-06-01"):
         user1_client.post(reverse("post-mark-read", kwargs={"pk": post.pk}))
 
-    print()
-
     snapshot = PostUserSnapshot.objects.filter(post_id=post.pk).get()
     assert snapshot.user_id == user1.id
     assert snapshot.comments_count == 1

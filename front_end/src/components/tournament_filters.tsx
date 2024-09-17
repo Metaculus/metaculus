@@ -1,4 +1,5 @@
 "use client";
+
 import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
@@ -44,7 +45,7 @@ const FORECASTER_ID_FILTERS = [
 
 const TournamentFilters: FC<Props> = ({ categories, tags }) => {
   const { user } = useAuth();
-  const { params, setParam, deleteParam, navigateToSearchParams } =
+  const { params } =
     useSearchParams();
   const t = useTranslations();
 
@@ -93,6 +94,7 @@ const TournamentFilters: FC<Props> = ({ categories, tags }) => {
       mainSortOptions={mainSortOptions}
       sortOptions={sortOptions}
       onOrderChange={handleOrderChange}
+      ipnutConfig={{ debounceTime: 500, mode: "client" }}
     />
   );
 };

@@ -87,6 +87,8 @@ const EmbeddedQuestionCard: FC<Props> = ({ postData }) => {
             <NumericChart
               aggregations={question.aggregations}
               myForecasts={question.my_forecasts}
+              resolution={question.resolution}
+              resolveTime={question.actual_resolve_time}
               questionType={question.type}
               actualCloseTime={
                 question.actual_close_time

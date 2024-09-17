@@ -82,7 +82,7 @@ export default async function IndividualQuestion({
   if (postData.group_of_questions) {
     typeLabel = t("group");
   } else if (postData.conditional) {
-    typeLabel = t("conditionalGroup");
+    typeLabel = t("conditional");
   } else if (postData.question) {
     typeLabel = t("question");
   }
@@ -141,6 +141,7 @@ export default async function IndividualQuestion({
                 postTitle={postData.title}
                 conditional={postData.conditional}
                 curationStatus={postData.status}
+                nrForecasters={postData.nr_forecasters}
                 withNavigation
               />
             )}
@@ -148,7 +149,10 @@ export default async function IndividualQuestion({
 
             {!!postData.question && (
               <div className="tour-cp">
-                <DetailedQuestionCard question={postData.question} />
+                <DetailedQuestionCard
+                question={postData.question}
+                nrForecasters={postData.nr_forecasters}
+              />
               </div>
             )}
             {!!postData.group_of_questions && (
@@ -158,6 +162,7 @@ export default async function IndividualQuestion({
                 preselectedQuestionId={preselectedGroupQuestionId}
                 isClosed={isClosed}
                 graphType={postData.group_of_questions.graph_type}
+                nrForecasters={postData.nr_forecasters}
               />
             )}
 
