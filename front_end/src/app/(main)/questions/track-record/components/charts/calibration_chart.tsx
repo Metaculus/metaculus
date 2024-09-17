@@ -92,11 +92,11 @@ const CalibrationChart: React.FC<{
                 x: (d.bin_lower + d.bin_upper) / 2,
                 y0: y - 0.005,
                 y: y + 0.005,
-                binWidth: d.bin_upper - d.bin_lower, // Add binWidth to each data point
+                binWidth: d.bin_upper - d.bin_lower,
               };
             }
           )}
-          barWidth={({ datum }) => datum.binWidth * 400} // Use binWidth to set bar width
+          barWidth={({ datum }) => datum.binWidth * 400}
           style={{
             data: {
               fill: getThemeColor(METAC_COLORS.gray["600"]),
@@ -113,11 +113,11 @@ const CalibrationChart: React.FC<{
                   x: (d.bin_lower + d.bin_upper) / 2,
                   y0: d.lower_quartile,
                   y: d.upper_quartile,
-                  binWidth: d.bin_upper - d.bin_lower, // Add binWidth to each data point
+                  binWidth: d.bin_upper - d.bin_lower,
                 };
               }
             )}
-            barWidth={({ datum }) => datum.binWidth * 400} // Use binWidth to set bar width
+            barWidth={({ datum }) => datum.binWidth * 400}
             style={{
               data: {
                 fill: getThemeColor(METAC_COLORS.gray["300"]),
