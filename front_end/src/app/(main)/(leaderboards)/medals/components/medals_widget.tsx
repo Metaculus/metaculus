@@ -72,7 +72,7 @@ const MedalsWidget: FC<Props> = async ({ profileId }) => {
                   );
                   let href =
                     category.name === "tournament"
-                      ? `/tournaments/${medal.projectSlug}`
+                      ? `/tournament/${medal.projectSlug}`
                       : `/leaderboard/?${SCORING_CATEGORY_FILTER}=${category.name}&${SCORING_YEAR_FILTER}=${medal.year}&${SCORING_DURATION_FILTER}=${medal.duration}`;
 
                   return (
