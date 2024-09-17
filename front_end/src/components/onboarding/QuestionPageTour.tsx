@@ -42,7 +42,6 @@ const QuestionPageTour: React.FC<QuestionPageTourProps> = React.memo(
         steps={tourSteps}
         isOpen={isOpen}
         onRequestClose={memoizedOnClose}
-        rounded={5}
         accentColor="#3b82f6"
       />
     );
