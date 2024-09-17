@@ -29,13 +29,8 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
   const [activeModal, setActiveModal] = useState<FollowModalType | undefined>();
   const [postSubscriptions, setPostSubscriptions] = useState<
     PostSubscription[]
-  >(() => post.subscriptions || []);
+  >(post.subscriptions || []);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Catch post.subscriptions updates coming from `revalidatePath`
-  useEffect(() => {
-    setPostSubscriptions(post.subscriptions || []);
-  }, [post.subscriptions]);
 
   const handleFollow = useCallback(async () => {
     if (!user) {
@@ -106,6 +101,7 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
         }}
         post={post}
         subscriptions={postSubscriptions}
+        setPostSubscriptions={setPostSubscriptions}
       />
     </>
   );
