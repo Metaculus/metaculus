@@ -1,15 +1,11 @@
+import numpy as np
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-import numpy as np
-
-from django.db.models import Q
-
-from users.models import User
-from users.views import serialize_profile
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -21,6 +17,8 @@ from scoring.serializers import (
     ContributionSerializer,
 )
 from scoring.utils import get_contributions
+from users.models import User
+from users.views import serialize_profile
 
 
 @api_view(["GET"])
@@ -130,7 +128,7 @@ def user_medals(
         return Response(status=status.HTTP_400_BAD_REQUEST)
     entries_with_medals = LeaderboardEntry.objects.filter(
         user_id=user_id, medal__isnull=False
-    )
+    ).select_related("leaderboard", "user")
     entries = []
     for entry in entries_with_medals:
         entry_data = LeaderboardEntrySerializer(entry).data

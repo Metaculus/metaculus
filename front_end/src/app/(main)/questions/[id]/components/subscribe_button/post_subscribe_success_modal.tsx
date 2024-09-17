@@ -5,7 +5,7 @@ import { FC, useCallback, useState } from "react";
 import { changePostSubscriptions } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
-import { Post } from "@/types/post";
+import { Post, PostSubscription } from "@/types/post";
 
 type Props = {
   isOpen: boolean;
@@ -13,6 +13,7 @@ type Props = {
   post: Post;
   // Triggered on "customise" button click
   onCustomiseClick: () => void;
+  onPostSubscriptionChange: (subscription: PostSubscription[]) => void;
 };
 
 const PostSubscribeSuccessModal: FC<Props> = ({
@@ -20,6 +21,7 @@ const PostSubscribeSuccessModal: FC<Props> = ({
   onClose,
   post,
   onCustomiseClick,
+  onPostSubscriptionChange
 }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
@@ -27,7 +29,8 @@ const PostSubscribeSuccessModal: FC<Props> = ({
   const handleUnfollow = useCallback(async () => {
     setIsLoading(true);
     try {
-      await changePostSubscriptions(post.id, []);
+      const newSubscriptions = await changePostSubscriptions(post.id, [], false);
+      onPostSubscriptionChange(newSubscriptions)
     } finally {
       setIsLoading(false);
     }

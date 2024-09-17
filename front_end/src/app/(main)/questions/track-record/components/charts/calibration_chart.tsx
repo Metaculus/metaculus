@@ -69,7 +69,7 @@ const CalibrationChart: React.FC<{
             (d: TrackRecordCalibrationCurveItem, index: number) => {
               const y = d.middle_quartile;
               return {
-                x: (index + 0.5) / calibrationData.length,
+                x: (d.bin_lower + d.bin_upper) / 2,
                 y0: y - 0.01,
                 y: y,
                 symbol: "diamond",
@@ -84,17 +84,18 @@ const CalibrationChart: React.FC<{
           }}
         />
         <VictoryBar
-          barRatio={1.1}
           data={calibrationData.map(
             (d: TrackRecordCalibrationCurveItem, index: number) => {
               const y = d.perfect_calibration;
               return {
-                x: (index + 0.5) / calibrationData.length,
-                y0: y - 0.01,
-                y: y,
+                x: (d.bin_lower + d.bin_upper) / 2,
+                y0: y - 0.005,
+                y: y + 0.005,
+                binWidth: d.bin_upper - d.bin_lower,
               };
             }
           )}
+          barWidth={({ datum }) => datum.binWidth * 400}
           style={{
             data: {
               fill: getThemeColor(METAC_COLORS.gray["600"]),
@@ -105,16 +106,17 @@ const CalibrationChart: React.FC<{
         {/* Confidence interval area */}
         {showIntervals && (
           <VictoryBar
-            barRatio={1.1}
             data={calibrationData.map(
               (d: TrackRecordCalibrationCurveItem, index: number) => {
                 return {
-                  x: (index + 0.5) / calibrationData.length,
+                  x: (d.bin_lower + d.bin_upper) / 2,
                   y0: d.lower_quartile,
                   y: d.upper_quartile,
+                  binWidth: d.bin_upper - d.bin_lower,
                 };
               }
             )}
+            barWidth={({ datum }) => datum.binWidth * 400}
             style={{
               data: {
                 fill: getThemeColor(METAC_COLORS.gray["300"]),

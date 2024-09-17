@@ -2,9 +2,6 @@ name: Deploy dev.metaculus.com (staging)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 jobs:
   deploy-to-dev:

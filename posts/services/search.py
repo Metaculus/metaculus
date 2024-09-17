@@ -139,7 +139,7 @@ def get_similar_posts_for_multiple_posts(posts: list[Post]):
 
     return (
         _qs_filter_similar_posts(
-            Post.objects.filter_permission().filter_active(), vector
+            Post.objects.filter_public().filter_active().filter_questions(), vector
         )
         .exclude(pk__in=[p.pk for p in posts])
         .order_by("-rank")

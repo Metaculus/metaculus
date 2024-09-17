@@ -64,7 +64,7 @@ const QuestionNotifications: FC<Props> = ({ user, posts }) => {
   const handleUnfollow = useCallback(async () => {
     setIsLoading(true);
     try {
-      await changePostSubscriptions(activeModal!.post.id, []);
+      await changePostSubscriptions(activeModal!.post.id, [], true);
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +102,7 @@ const QuestionNotifications: FC<Props> = ({ user, posts }) => {
               >
                 <td
                   className={classNames(
-                    "border border-blue-200 border-l-gray-300 p-2 dark:border-blue-200-dark dark:border-l-gray-300-dark",
+                    "max-w-[500px] border border-blue-200 border-l-gray-300 p-2 dark:border-blue-200-dark dark:border-l-gray-300-dark",
                     {
                       "rounded-bl border-b-gray-300 dark:border-b-gray-300-dark":
                         index === posts.length - 1,
