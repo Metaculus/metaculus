@@ -376,6 +376,11 @@ def notify_date():
             next_trigger_datetime__lte=timezone.now(),
         )
         .filter(
+            # Exclude already sent notifications
+            Q(last_sent_at__isnull=True)
+            | Q(last_sent_at__lt=F("next_trigger_datetime"))
+        )
+        .filter(
             Q(post__actual_close_time__isnull=True)
             | Q(post__actual_close_time__gt=timezone.now())
         )

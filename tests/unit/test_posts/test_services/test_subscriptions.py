@@ -1,7 +1,14 @@
+from datetime import datetime, timedelta
+
+from django.utils.timezone import make_aware
+from freezegun import freeze_time
+
 from notifications.models import Notification
 from posts.services.subscriptions import (
     create_subscription_new_comments,
     notify_new_comments,
+    create_subscription_specific_time,
+    notify_date,
 )
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
@@ -53,3 +60,68 @@ def test_notify_new_comments(user1, user2):
     assert notification.params["post"]["post_id"] == post.id
     assert notification.params["new_comment_ids"] == [c_3.id, c_4.id, c_5.id]
     assert notification.params["new_comments_count"] == 3
+
+
+class TestNotifyDate:
+    def test_notify_date__no_recurrence(self, user1):
+        post = factory_post(author=user1)
+
+        create_subscription_specific_time(
+            user=user1, post=post, next_trigger_datetime=datetime(2024, 9, 17, 12, 45)
+        )
+
+        assert Notification.objects.filter(recipient=user1).count() == 0
+
+        # Before expected date
+        with freeze_time("2024-09-17T12:44Z"):
+            notify_date()
+
+        assert Notification.objects.filter(recipient=user1).count() == 0
+
+        # After expected date
+        with freeze_time("2024-09-17T12:46Z"):
+            notify_date()
+
+        assert Notification.objects.filter(recipient=user1).count() == 1
+
+        # Shouldn't fire again
+        with freeze_time("2024-09-17T13:46Z"):
+            notify_date()
+
+        assert Notification.objects.filter(recipient=user1).count() == 1
+
+    def test_notify_date__daily(self, user1):
+        post = factory_post(author=user1)
+
+        sub = create_subscription_specific_time(
+            user=user1,
+            post=post,
+            next_trigger_datetime=make_aware(datetime(2024, 9, 17, 12, 45)),
+            recurrence_interval=timedelta(days=1),
+        )
+
+        assert Notification.objects.filter(recipient=user1).count() == 0
+
+        # Before expected date
+        with freeze_time("2024-09-17T12:44Z"):
+            notify_date()
+            assert Notification.objects.filter(recipient=user1).count() == 0
+
+        # After expected date
+        with freeze_time("2024-09-17T12:46Z"):
+            notify_date()
+            assert Notification.objects.filter(recipient=user1).count() == 1
+            sub.refresh_from_db()
+            assert sub.next_trigger_datetime == make_aware(
+                datetime(2024, 9, 18, 12, 45)
+            )
+
+        # Shouldn't fire again until the next day
+        with freeze_time("2024-09-17T13:46Z"):
+            notify_date()
+            assert Notification.objects.filter(recipient=user1).count() == 1
+
+        # Fire again until the next day
+        with freeze_time("2024-09-18T13:46Z"):
+            notify_date()
+            assert Notification.objects.filter(recipient=user1).count() == 2
