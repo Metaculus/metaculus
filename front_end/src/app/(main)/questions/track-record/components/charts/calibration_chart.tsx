@@ -26,7 +26,6 @@ const CalibrationChart: React.FC<{
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
-  console.log(calibrationData);
   return (
     <div className="mb-5 size-full">
       <VictoryChart
