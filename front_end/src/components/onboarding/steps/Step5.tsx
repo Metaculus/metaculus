@@ -38,7 +38,7 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
         Next we'll bring it all together so you can forecast on a real Metaculus
         question page.
       </p>
-      <div className="flex justify-between">
+      <div className="mx-auto flex justify-center ">
         <Link href={questionUrl}>
           <button
             onClick={onNext}

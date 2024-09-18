@@ -13,17 +13,17 @@ const tourSteps = [
   },
   {
     selector: ".tour-cp",
-    content: "Here's what other predictors expect.",
+    content:
+      "The 'Community Prediction' represents what other predictors expect overall. Your prediction will join the Community Prediction—and because of the well-studied and unusual effectiveness of the 'wisdom of the crowd,' your prediction will help make the Community Prediction more accurate!",
   },
   {
     selector: ".tour-comment-section",
-    content:
-      "Here's where other forecasters share their arguments and perspectives.",
+    content: "Here's where other forecasters share their perspectives.",
   },
   {
     selector: ".tour-prediction-input",
     content:
-      "Let's make a prediction. You can always adjust it later if you change your mind.",
+      "Okay, use the slider to make your prediction. You can always change it later.",
   },
 ];
 
