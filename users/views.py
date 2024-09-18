@@ -165,7 +165,7 @@ def get_calibration_curve_data(
             question__in=public_questions,
             question__type="binary",
             question__resolution__in=["no", "yes"],
-            method="metaculus_prediction",
+            method=aggregation_method,
         ).prefetch_related("question")
 
     values = []
