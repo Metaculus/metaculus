@@ -444,11 +444,15 @@ def post_similar_posts_api_view(request: Request, pk):
         posts = get_similar_posts(post)
         return serialize_post_many(posts, with_cp=True)
 
+    """
     data = cache_get_or_set(
         f"post_similar_posts_api_view:{post.pk}",
         get_posts,  # 2h
         timeout=3600 * 2,
     )
+    """
+    # Not to overload the redis
+    data = get_posts()
 
     return Response(data)
 
