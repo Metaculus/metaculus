@@ -74,6 +74,7 @@ def posts_list_api_view(request):
         posts,
         with_cp=with_cp,
         current_user=request.user,
+        simplified=True,
     )
 
     return paginator.get_paginated_response(data)

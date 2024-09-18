@@ -392,6 +392,16 @@ def serialize_question(
 
     serialized_data = QuestionSerializer(question).data
     serialized_data["post_id"] = post.id if post else question.get_post().id
+    serialized_data["aggregations"] = {
+        "recency_weighted": {"history": [], "latest": None, "score_data": dict()},
+        "unweighted": {"history": [], "latest": None, "score_data": dict()},
+        "single_aggregation": {"history": [], "latest": None, "score_data": dict()},
+        "metaculus_prediction": {
+            "history": [],
+            "latest": None,
+            "score_data": dict(),
+        },
+    }
 
     if with_cp:
         if (
@@ -407,17 +417,6 @@ def serialize_question(
         aggregate_forecasts_by_method = defaultdict(list)
         for aggregate in aggregate_forecasts:
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)
-
-        serialized_data["aggregations"] = {
-            "recency_weighted": {"history": [], "latest": None, "score_data": dict()},
-            "unweighted": {"history": [], "latest": None, "score_data": dict()},
-            "single_aggregation": {"history": [], "latest": None, "score_data": dict()},
-            "metaculus_prediction": {
-                "history": [],
-                "latest": None,
-                "score_data": dict(),
-            },
-        }
 
         # Appending score data
         for prefix, scores in (
@@ -546,15 +545,31 @@ def serialize_group(
     with_cp: bool = False,
     current_user: User = None,
     post: Post = None,
+    simplified: bool = False,
 ):
     # Serialization of basic data
     serialized_data = GroupOfQuestionsSerializer(group).data
     serialized_data["questions"] = []
 
-    for question in group.questions.all():
+    questions = group.questions.all()
+    if simplified:
+        questions = sorted(
+            questions,
+            key=lambda question: question.aggregate_forecasts.filter(
+                method="recency_weighted"
+            )
+            .latest("start_time")
+            .forecast_values[1],
+            reverse=True,
+        )
+
+    for i, question in enumerate(questions):
         serialized_data["questions"].append(
             serialize_question(
-                question, with_cp=with_cp, current_user=current_user, post=post
+                question,
+                with_cp=with_cp and (not simplified or i < 3),
+                current_user=current_user,
+                post=post,
             )
         )
 
