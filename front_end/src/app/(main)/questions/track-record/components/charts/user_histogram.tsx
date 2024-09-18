@@ -30,18 +30,11 @@ const UserHistogram: React.FC<HistogramProps> = ({
 }) => {
   const histogramData = mapHistogramData(rawHistogramData);
 
-  const yMax = Math.max(...histogramData.map((d) => d.y));
+  const yMax = Math.max(1, ...histogramData.map((d) => d.y));
   const t = useTranslations();
   const { theme } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
-  const ticksYFormat = (y: number) => {
-    if (y % Math.round(yMax / 5) == 0) {
-      return y.toString();
-    } else {
-      return "";
-    }
-  };
   const ticksXFormat = (x: number) => {
     if (x % 15 == 0) {
       return x.toString();
@@ -50,13 +43,17 @@ const UserHistogram: React.FC<HistogramProps> = ({
     }
   };
 
-  const desiredMajorTicks = useMemo(() => generateMajorTicks(yMax, 6), [yMax]);
-  const desiredMajorTickDistance = 20;
-  const { ticks: ticksY } = generateTicksY(
-    180,
-    desiredMajorTicks,
-    desiredMajorTickDistance
+  const yLowestTen = Math.floor(yMax / 10);
+  const ticksY = Array.from({ length: 11 }, (_, i) =>
+    Math.round(i * yLowestTen)
   );
+  ticksY.push(yMax);
+  const ticksYFormat = (y: number) => {
+    return (y % (yLowestTen * 2) === 0 && yMax - y > yLowestTen * 2) ||
+      y === yMax
+      ? Math.round(y).toString()
+      : "";
+  };
 
   return (
     <>
@@ -64,8 +61,8 @@ const UserHistogram: React.FC<HistogramProps> = ({
         theme={chartTheme}
         domain={{
           x: [
-            rawHistogramData[0].bin_start ?? 1,
-            rawHistogramData[rawHistogramData.length - 1].bin_end ?? 0,
+            rawHistogramData[0]?.bin_start ?? 1,
+            rawHistogramData[(rawHistogramData.length ?? 1) - 1]?.bin_end ?? 0,
           ],
           y: [0, yMax],
         }}
@@ -87,16 +84,13 @@ const UserHistogram: React.FC<HistogramProps> = ({
             },
             axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
           }}
-          label={
-            username
-              ? t("userPeerScore", { username })
-              : t("communityPredictionBaselineScore")
-          }
+          label={t("Count")}
         />
         <VictoryAxis
           tickValues={range(
-            rawHistogramData[0].bin_start,
-            rawHistogramData[rawHistogramData.length - 1].bin_end + 70,
+            rawHistogramData[0]?.bin_start ?? 1,
+            (rawHistogramData[(rawHistogramData.length ?? 1) - 1]?.bin_end ??
+              0) + 70,
             1
           )}
           tickFormat={ticksXFormat}
@@ -149,20 +143,6 @@ const mapHistogramData = (
     );
   });
   return mappedArray;
-};
-
-const generateMajorTicks = (maxValue: number, tickCount: number): number[] => {
-  const roundedMaxValue = Math.ceil(maxValue * 20) / 20;
-
-  const ticks = [];
-  const step = roundedMaxValue / (tickCount - 1);
-
-  for (let i = 0; i < tickCount; i++) {
-    const value = i * step;
-    ticks.push(Number(value.toFixed(2)));
-  }
-
-  return ticks;
 };
 
 export default dynamic(() => Promise.resolve(UserHistogram), {
