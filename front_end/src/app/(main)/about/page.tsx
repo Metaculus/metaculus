@@ -9,6 +9,7 @@ import { AboutHeader } from "./components/AboutHeader";
 import MetaculusLogo from "./components/MetacLogo";
 import ModalWithArrows from "./components/ModalWithArrows";
 import EngageBlock from "../(home)/components/engage_block";
+import { useTranslations } from "next-intl";
 
 type Group = "team" | "board" | "advisors";
 
@@ -337,6 +338,7 @@ const groups: Groups = {
 
 export default function AboutPage() {
   const [randomizedGroups, setRandomizedGroups] = useState(groups);
+  const t = useTranslations();
 
   useEffect(() => {
     const shuffledGroups = { ...groups };
@@ -463,12 +465,12 @@ export default function AboutPage() {
     <div className="prose container mx-auto my-0 max-w-6xl rounded bg-transparent p-3.5 pt-2 dark:bg-blue-900 dark:bg-transparent md:my-10 md:px-6 md:py-4 [&_a:hover]:text-blue-800 [&_a:hover]:underline [&_a:hover]:dark:text-blue-200 [&_a]:text-blue-700 [&_a]:dark:text-blue-400 [&_h1]:mb-4 [&_hr]:border-gray-300 [&_hr]:dark:border-blue-700">
       <div className="xl:mb-80">
         <h1 className="mt-8 text-center text-4xl md:mt-6 md:text-left md:text-5xl">
-          <span className="text-blue-600">About</span> Metaculus
+          {t.rich("aboutMetaculusTitle", {
+            link: (chunks) => <span className="text-blue-600">{chunks}</span>,
+          })}
         </h1>
         <p className="max-w-2xl text-center text-xl text-blue-700 dark:text-blue-300 md:mt-10 md:text-left md:text-2xl">
-          Metaculus is an online forecasting platform and aggregation engine
-          working to improve human reasoning and coordination on topics of
-          global importance.
+          {t("aboutMetaculusDescription")}
         </p>
       </div>
       <AboutHeader className="text-metac-blue-800 dark:text-metac-blue-800-dark absolute top-40 hidden xl:block" />
