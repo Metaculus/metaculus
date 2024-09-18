@@ -116,6 +116,7 @@ export type Aggregations = {
   recency_weighted: AggregateForecastHistory;
   unweighted?: AggregateForecastHistory;
   single_aggregation?: AggregateForecastHistory;
+  metaculus_prediction?: AggregateForecastHistory;
 };
 
 export type BaseForecast = {
@@ -210,3 +211,38 @@ export type PredictionInputMessage =
   | "predictionUnapprovedMessage"
   | "predictionClosedMessage"
   | null;
+
+export type AggregationQuestion = {
+  actual_close_time: string | null;
+  actual_resolve_time: string | null;
+  aggregations: Aggregations;
+  created_at: string;
+  description: string;
+  fine_print: string;
+  id: number;
+  label: string | null;
+  open_lower_bound: boolean | null;
+  open_time: string;
+  open_upper_bound: boolean | null;
+  options: string[] | null;
+  possibilities: {
+    format?: string;
+    high?: string;
+    low?: string;
+    type?: string;
+    scale?: {
+      max: number;
+      min: number;
+      deriv_ratio: number;
+    };
+  };
+  post_id: number;
+  resolution: string | null;
+  resolution_criteria: string;
+  resolution_set_time: string | null;
+  scaling: Scaling;
+  scheduled_close_time: string;
+  scheduled_resolve_time: string;
+  title: string;
+  type: QuestionType;
+};
