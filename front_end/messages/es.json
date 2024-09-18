@@ -749,5 +749,13 @@
   "2m": "2m",
   "1w": "1s",
   "1d": "1d",
-  "errorDeletingComment": "error al eliminar comentario:"
+  "errorDeletingComment": "error al eliminar comentario:",
+  "biosecurity": "bioseguridad",
+  "biosecurityDescription": "Mejorar la salud global mediante la comprensión de las enfermedades infecciosas y la preparación para futuras pandemias",
+  "aiProgress": "progreso de la IA",
+  "aiProgressDescription": "Explorar el futuro de las tecnologías de inteligencia artificial y sus impactos en la sociedad",
+  "nuclearSecurity": "seguridad nuclear",
+  "nuclearSecurityDescription": "Cuantificar los riesgos globales para mantenernos seguros y protegidos para un futuro próspero",
+  "climateChange": "cambio climático",
+  "climateChangeDescription": "Predecir los cambios a largo plazo en los patrones de temperatura y clima causados por la actividad humana"
 }
