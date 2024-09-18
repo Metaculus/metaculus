@@ -1,4 +1,3 @@
-import time
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
 
@@ -249,7 +248,15 @@ class AggregateForecastSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AggregateForecast
-        fields = "__all__"
+        fields = (
+            "start_time",
+            "end_time",
+            "forecast_values",
+            "interval_lower_bounds",
+            "centers",
+            "interval_upper_bounds",
+            "means",
+        )
 
     def get_start_time(self, aggregate_forecast: AggregateForecast):
         return aggregate_forecast.start_time.timestamp()
@@ -393,7 +400,9 @@ def serialize_question(
         ):
             aggregate_forecasts = []
         else:
-            aggregate_forecasts = aggregate_forecasts or question.aggregate_forecasts.all()
+            aggregate_forecasts = (
+                aggregate_forecasts or question.aggregate_forecasts.all()
+            )
 
         aggregate_forecasts_by_method = defaultdict(list)
         for aggregate in aggregate_forecasts:
