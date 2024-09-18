@@ -393,7 +393,7 @@ def serialize_question(
         ):
             aggregate_forecasts = []
         else:
-            aggregate_forecasts = question.aggregate_forecasts.all()
+            aggregate_forecasts = aggregate_forecasts or question.aggregate_forecasts.all()
 
         aggregate_forecasts_by_method = defaultdict(list)
         for aggregate in aggregate_forecasts:
