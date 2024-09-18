@@ -1,10 +1,10 @@
-import requests
 import logging
 
-from django.core.files.storage import default_storage
-from django.shortcuts import get_object_or_404
+import requests
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.http import HttpResponse, HttpResponseNotFound
+from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -13,8 +13,6 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-
-from utils.frontend import build_question_embed_url
 
 from misc.services.itn import get_post_get_similar_articles
 from posts.models import (
@@ -48,7 +46,9 @@ from projects.permissions import ObjectPermission
 from questions.serializers import (
     QuestionApproveSerializer,
 )
+from utils.cache import cache_get_or_set
 from utils.files import UserUploadedImage, generate_filename
+from utils.frontend import build_question_embed_url
 
 
 @api_view(["GET"])
@@ -440,9 +440,17 @@ def post_similar_posts_api_view(request: Request, pk):
     ObjectPermission.can_view(permission, raise_exception=True)
 
     # Retrieve cached articles
-    posts = get_similar_posts(post)
+    def get_posts():
+        posts = get_similar_posts(post)
+        return serialize_post_many(posts, with_cp=True)
 
-    return Response(serialize_post_many(posts, with_cp=True, current_user=request.user))
+    data = cache_get_or_set(
+        f"post_similar_posts_api_view:{post.pk}",
+        get_posts,  # 2h
+        timeout=3600 * 2,
+    )
+
+    return Response(data)
 
 
 @api_view(["GET"])

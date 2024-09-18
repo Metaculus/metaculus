@@ -1,3 +1,4 @@
+import time
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
 
@@ -392,12 +393,12 @@ def serialize_question(
         ):
             aggregate_forecasts = []
         else:
-            aggregate_forecasts = aggregate_forecasts or sorted(
-                question.aggregate_forecasts.all(), key=lambda x: x.start_time
-            )
+            aggregate_forecasts = question.aggregate_forecasts.all()
+
         aggregate_forecasts_by_method = defaultdict(list)
         for aggregate in aggregate_forecasts:
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)
+
         serialized_data["aggregations"] = {
             "recency_weighted": {"history": [], "latest": None, "score_data": dict()},
             "unweighted": {"history": [], "latest": None, "score_data": dict()},
@@ -408,9 +409,29 @@ def serialize_question(
                 "score_data": dict(),
             },
         }
+
+        # Appending score data
+        for prefix, scores in (
+            ("score", question.scores.all()),
+            ("archived_score", question.archived_scores.all()),
+        ):
+            for score in scores:
+                if score.aggregation_method not in serialized_data["aggregations"]:
+                    continue
+
+                serialized_data["aggregations"][score.aggregation_method]["score_data"][
+                    f"{prefix}_{score.score_type}"
+                ] = score.score
+                if score.score_type == "peer":
+                    serialized_data["aggregations"][score.aggregation_method][
+                        "score_data"
+                    ]["coverage"] = score.coverage
+                if score.score_type == "relative_legacy":
+                    serialized_data["aggregations"][score.aggregation_method][
+                        "score_data"
+                    ]["weighted_coverage"] = score.coverage
+
         for method, forecasts in aggregate_forecasts_by_method.items():
-            scores = question.scores.filter(aggregation_method=method)
-            archived_scores = question.archived_scores.filter(aggregation_method=method)
             serialized_data["aggregations"][method]["history"] = (
                 AggregateForecastSerializer(
                     forecasts,
@@ -428,30 +449,6 @@ def serialize_question(
                 if forecasts and not full_forecast_values
                 else None
             )
-            for score in scores:
-                serialized_data["aggregations"][method]["score_data"][
-                    score.score_type + "_score"
-                ] = score.score
-                if score.score_type == "peer":
-                    serialized_data["aggregations"][method]["score_data"][
-                        "coverage"
-                    ] = score.coverage
-                if score.score_type == "relative_legacy":
-                    serialized_data["aggregations"][method]["score_data"][
-                        "weighted_coverage"
-                    ] = score.coverage
-            for score in archived_scores:
-                serialized_data["aggregations"][method]["score_data"][
-                    score.score_type + "_archived_score"
-                ] = score.score
-                if score.score_type == "peer":
-                    serialized_data["aggregations"][method]["score_data"][
-                        "coverage"
-                    ] = score.coverage
-                if score.score_type == "relative_legacy":
-                    serialized_data["aggregations"][method]["score_data"][
-                        "weighted_coverage"
-                    ] = score.coverage
 
         if (
             current_user
