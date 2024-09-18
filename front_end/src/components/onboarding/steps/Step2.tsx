@@ -94,11 +94,11 @@ const Step2: React.FC<Step2Props> = ({
   const getActiveButtonText = () => {
     switch (activeButton) {
       case "less":
-        return "You can adjust your prediction if you want.";
+        return "You can adjust your prediction with the above slider if you like. Click 'Predict' when you're ready to move on.'";
       case "about":
-        return "You can adjust your prediction if you want.";
+        return "You can adjust your prediction with the above slider if you like. Click 'Predict' when you're ready to move on.'";
       case "more":
-        return "You can adjust your prediction if you want.";
+        return "You can adjust your prediction with the above slider if you like. Click 'Predict' when you're ready to move on.'";
       default:
         return "";
     }
@@ -118,7 +118,7 @@ const Step2: React.FC<Step2Props> = ({
           <p className={onboardingStyles.largeparagraph}>
             Other forecasters tend to think this is{" "}
             <VerbalForecast forecast={communityForecast} />. They give it{" "}
-            <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800">
+            <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800 dark:bg-blue-400/20 dark:text-blue-200">
               {(communityForecast * 100).toFixed(0)}%
             </span>
           </p>
@@ -166,19 +166,20 @@ const Step2: React.FC<Step2Props> = ({
               <span className="w-full text-right">Very Likely</span>
             </div> */}
             {activeButton && (
-              <div className="mt-[-4px]">
+              <div className="mt-[-4px] text-center">
                 <div className="w-full animate-bounce self-center text-center opacity-50">
                   <FontAwesomeIcon icon={faChevronUp} />
                 </div>
-                <p
-                  className={`${onboardingStyles.paragraph} mt-0 pt-0 text-center font-semibold`}
-                >
-                  {getActiveButtonText()}
-                </p>
+                <span className="mt-[-4px] block">Me</span>
               </div>
             )}
           </div>
-          <div className="mt-4 flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center">
+            <p
+              className={`${onboardingStyles.paragraph} mb-0 pb-0 text-center font-semibold`}
+            >
+              {getActiveButtonText()}
+            </p>
             <button onClick={handleSubmit} className={onboardingStyles.button}>
               Predict
             </button>

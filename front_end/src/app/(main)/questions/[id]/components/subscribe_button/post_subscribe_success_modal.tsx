@@ -21,7 +21,7 @@ const PostSubscribeSuccessModal: FC<Props> = ({
   onClose,
   post,
   onCustomiseClick,
-  onPostSubscriptionChange
+  onPostSubscriptionChange,
 }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
@@ -29,8 +29,12 @@ const PostSubscribeSuccessModal: FC<Props> = ({
   const handleUnfollow = useCallback(async () => {
     setIsLoading(true);
     try {
-      const newSubscriptions = await changePostSubscriptions(post.id, [], false);
-      onPostSubscriptionChange(newSubscriptions)
+      const newSubscriptions = await changePostSubscriptions(
+        post.id,
+        [],
+        false
+      );
+      onPostSubscriptionChange(newSubscriptions);
     } finally {
       setIsLoading(false);
     }

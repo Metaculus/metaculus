@@ -53,7 +53,7 @@ const Step3: React.FC<Step3Props> = ({
           <p className={onboardingStyles.largeparagraph}>
             Other forecasters tend to think this is{" "}
             <VerbalForecast forecast={communityForecast} />. They give it{" "}
-            <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800">
+            <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800 dark:bg-blue-400/20 dark:text-blue-200">
               {(communityForecast * 100).toFixed(0)}%
             </span>
           </p>
@@ -74,7 +74,7 @@ const Step3: React.FC<Step3Props> = ({
       </div>
       <div className="mt-6 flex justify-center">
         <button onClick={handleSubmit} className={onboardingStyles.button}>
-          Continue
+          Predict
         </button>
       </div>
     </div>

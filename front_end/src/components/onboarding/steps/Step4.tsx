@@ -54,14 +54,13 @@ const Step4: React.FC<Step4Props> = ({
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
       <p className={onboardingStyles.paragraph}>
-        Let's refine your prediction. Consider these factors that might
-        influence the outcome:
+        This time let's think through things that might influence the outcome.
       </p>
       <ul className="mb-4 list-none space-y-2">
         {factors.map((factor, index) => (
           <li
             key={index}
-            className="rounded-sm bg-blue-400/75 p-2.5 text-sm dark:bg-blue-600/75"
+            className="rounded-md bg-blue-400/75 p-2.5 text-sm dark:bg-blue-600/45"
           >
             {factor}
           </li>
@@ -83,7 +82,8 @@ const Step4: React.FC<Step4Props> = ({
         </button>
       </div>
       <p className={onboardingStyles.paragraph}>
-        Now, considering these factors, how would you adjust your prediction?
+        What do you think? Did any of those factors make you want to change your
+        prediction? If not, that's fine too.
       </p>
 
       <div
@@ -107,7 +107,7 @@ const Step4: React.FC<Step4Props> = ({
       </div>
       <div className="mt-6 flex justify-center">
         <button onClick={handleSubmit} className={onboardingStyles.button}>
-          Continue
+          Predict
         </button>
       </div>
     </div>

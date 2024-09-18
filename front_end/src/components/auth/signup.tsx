@@ -185,9 +185,6 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
           email: () => <b>{email}</b>,
         })}
       </p>
-      <Button onClick={handleStartOnboarding} className="mt-4">
-        Start Onboarding
-      </Button>
     </BaseModal>
   );
 };

@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface Step5Props {
@@ -26,20 +26,25 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
       <button onClick={onPrev} className={onboardingStyles.backButton}>
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
-      <h3 className={onboardingStyles.heading}>Great work.</h3>
+      <h3 className={onboardingStyles.heading}>Nice work.</h3>
       <p className={onboardingStyles.paragraph}>
         Anyone can improve at forecasting by practicing and thinking through
-        what factors could influence outcomes. In one study, experienced
-        forecasters were able to outperform CIA intelligence analysts with
-        access to classified intel.
+        what factors could influence outcomes. In a series of forecasting
+        competitions conducted by University of Pennsylvania professor Philip
+        Tetlock, skilled forecasters outperformed CIA analysts with access to
+        classified intelligence.
       </p>
       <p className={onboardingStyles.paragraph}>
-        Next you’ll see how forecast questions actually appear on Metaculus.
+        Next we'll bring it all together so you can forecast on a real Metaculus
+        question page.
       </p>
       <div className="flex justify-between">
         <Link href={questionUrl}>
-          <button onClick={onNext} className={onboardingStyles.button}>
-            Next Question
+          <button
+            onClick={onNext}
+            className={`${onboardingStyles.button} text-xl`}
+          >
+            <FontAwesomeIcon icon={faArrowRight} />
           </button>
         </Link>
       </div>
