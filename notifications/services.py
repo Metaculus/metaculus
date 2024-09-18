@@ -175,6 +175,7 @@ class NotificationTypeBase:
             cls.generate_subject_group(recipient),
             cls.email_template,
             context=context,
+            use_async=False,
         )
 
 
