@@ -253,10 +253,14 @@ const MultipleChoiceChart: FC<Props> = ({
             return (
               <VictoryScatter
                 key={question.choice}
-                data={question.values?.map((value, index) => ({
-                  y: value,
-                  x: question.timestamps?.[index],
-                }))}
+                data={
+                  question.values
+                    ? question.values.map((value, index) => ({
+                        y: value,
+                        x: question.timestamps?.[index],
+                      }))
+                    : []
+                }
                 style={{
                   data: {
                     stroke: getThemeColor(question.color),
@@ -411,7 +415,6 @@ function buildChartData({
           };
         }
       }
-
       return item;
     }
   );

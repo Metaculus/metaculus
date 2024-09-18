@@ -290,6 +290,7 @@ def serialize_post(
     current_user: User = None,
     with_subscriptions: bool = False,
     with_nr_forecasters: bool = False,
+    simplified: bool = False,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -315,6 +316,7 @@ def serialize_post(
             with_cp=with_cp,
             current_user=current_user,
             post=post,
+            simplified=simplified,
         )
 
     if post.notebook:
@@ -363,6 +365,7 @@ def serialize_post_many(
     current_user: User = None,
     with_subscriptions: bool = False,
     with_nr_forecasters: bool = False,
+    simplified: bool = False,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -405,6 +408,7 @@ def serialize_post_many(
             current_user=current_user,
             with_subscriptions=with_subscriptions,
             with_nr_forecasters=with_nr_forecasters,
+            simplified=simplified,
         )
         for post in objects
     ]
