@@ -1,4 +1,5 @@
 from datetime import timedelta
+from itertools import chain
 
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
@@ -23,7 +24,13 @@ from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from questions.models import Question, Conditional, GroupOfQuestions, Forecast
+from questions.models import (
+    Question,
+    Conditional,
+    GroupOfQuestions,
+    Forecast,
+    AggregateForecast,
+)
 from scoring.models import Score, ArchivedScore
 from users.models import User
 from utils.models import TimeStampedModel
@@ -79,13 +86,33 @@ class PostQuerySet(models.QuerySet):
         )
 
     def prefetch_questions_aggregate_forecasts(self):
+        question_relations = [
+            "question",
+            "conditional__question_yes",
+            "conditional__question_no",
+            "group_of_questions__questions",
+        ]
+
         return self.prefetch_related(
-            "question__aggregate_forecasts",
-            # Conditional
-            "conditional__question_yes__aggregate_forecasts",
-            "conditional__question_no__aggregate_forecasts",
-            # Group Of Questions
-            "group_of_questions__questions__aggregate_forecasts",
+            *chain.from_iterable(
+                [
+                    [
+                        Prefetch(
+                            f"{rel}__aggregate_forecasts",
+                            AggregateForecast.objects.order_by("start_time"),
+                        ),
+                        Prefetch(
+                            f"{rel}__scores",
+                            Score.objects.filter(aggregation_method__isnull=False),
+                        ),
+                        Prefetch(
+                            f"{rel}__archived_scores",
+                            Score.objects.filter(aggregation_method__isnull=False),
+                        ),
+                    ]
+                    for rel in question_relations
+                ]
+            )
         )
 
     def prefetch_user_subscriptions(self, user: User):

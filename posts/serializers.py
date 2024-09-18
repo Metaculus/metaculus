@@ -375,7 +375,6 @@ def serialize_post_many(
         .annotate_vote_score()
         .prefetch_projects()
         .prefetch_questions()
-        .prefetch_questions_aggregate_forecasts()
         .annotate_comment_count()
         .select_related("author")
         .prefetch_related("coauthors")
@@ -384,8 +383,7 @@ def serialize_post_many(
         qs = qs.annotate_user_vote(current_user)
 
     if with_cp:
-        # Clear auto-defer of the forecasts list field
-        qs = qs.defer(None)
+        qs = qs.prefetch_questions_aggregate_forecasts()
 
         if current_user:
             qs = qs.prefetch_user_forecasts(current_user.id)
