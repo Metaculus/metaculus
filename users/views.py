@@ -165,7 +165,7 @@ def get_calibration_curve_data(
             question__in=public_questions,
             question__type="binary",
             question__resolution__in=["no", "yes"],
-            method=aggregation_method,
+            method="metaculus_prediction",
         ).prefetch_related("question")
 
     values = []
@@ -229,15 +229,11 @@ def get_calibration_curve_data(
                 res.append(resolution)
                 ws.append(weight)
         middle_quartile = np.average(res, weights=ws) if res else None
-        lower_quartile = binom.ppf(0.05, max([len(res), 1]), bin_center) / max(
-            [len(res), 1]
-        )
+        lower_quartile = binom.ppf(0.05, max([len(res), 1]), p_min) / max([len(res), 1])
         perfect_calibration = binom.ppf(0.50, max([len(res), 1]), bin_center) / max(
             [len(res), 1]
         )
-        upper_quartile = binom.ppf(0.95, max([len(res), 1]), bin_center) / max(
-            [len(res), 1]
-        )
+        upper_quartile = binom.ppf(0.95, max([len(res), 1]), p_max) / max([len(res), 1])
 
         calibration_curve.append(
             {
