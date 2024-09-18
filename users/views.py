@@ -228,16 +228,11 @@ def get_calibration_curve_data(
             if p_min <= value < p_max:
                 res.append(resolution)
                 ws.append(weight)
-        middle_quartile = np.average(res, weights=ws) if res else None
-        lower_quartile = binom.ppf(0.05, max([len(res), 1]), bin_center) / max(
-            [len(res), 1]
-        )
-        perfect_calibration = binom.ppf(0.50, max([len(res), 1]), bin_center) / max(
-            [len(res), 1]
-        )
-        upper_quartile = binom.ppf(0.95, max([len(res), 1]), bin_center) / max(
-            [len(res), 1]
-        )
+        count = max(len(res), 1)
+        middle_quartile = np.average(res, weights=ws) if sum(ws) > 0 else None
+        lower_quartile = binom.ppf(0.05, count, p_min) / count
+        perfect_calibration = binom.ppf(0.50, count, bin_center) / count
+        upper_quartile = binom.ppf(0.95, count, p_max) / count
 
         calibration_curve.append(
             {
