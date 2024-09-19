@@ -1,6 +1,6 @@
 ![Metaculus logo-blue on transparent](https://github.com/user-attachments/assets/70edc5dd-f334-4d56-91a3-82b117572c30)
 
-This is the codebase for the rewritten main [Metaculus website](https://metaculus.com), it's expected to be live by the start of September.
+This is the codebase for the rewritten main [Metaculus website](https://metaculus.com), it's expected to be live in October.
 
 
 # Contributing
