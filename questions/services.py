@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Iterable
 from datetime import datetime
 
 from django.db import transaction
@@ -20,6 +21,7 @@ from questions.models import (
 )
 from questions.types import AggregationMethod
 from users.models import User
+from utils.dtypes import generate_map_from_list
 from utils.models import model_update
 from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.measures import percent_point_function
@@ -490,3 +492,68 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
     # Running forecast post triggers
     for post in posts:
         run_on_post_forecast_in_dramatiq.send(post.id)
+
+
+def get_recency_weighted_for_questions(
+    questions: Iterable[Question],
+) -> dict[Question, AggregateForecast]:
+    qs = (
+        AggregateForecast.objects.filter(
+            question__in=questions, method=AggregationMethod.RECENCY_WEIGHTED
+        )
+        .order_by("question_id", "-start_time")
+        .distinct("question_id")
+    )
+    aggregations_map = {x.question_id: x for x in qs}
+
+    return {q: aggregations_map.get(q.pk) for q in questions}
+
+
+def get_aggregated_forecasts_for_questions(
+    questions: Iterable[Question], group_cutoff: int = None
+):
+    """
+    Extracts aggregated forecasts for the given questions.
+
+    @param questions: questions to generate forecasts for
+    @param group_cutoff: generated forecasts for the top first N questions of the group
+    """
+
+    # Copy questions list
+    questions = list(questions)
+    questions_map = {q.pk: q for q in questions}
+
+    if group_cutoff is not None:
+        group_questions = [q for q in questions if q.group_id]
+
+        recently_weighted = get_recency_weighted_for_questions(questions)
+        group_questions_map = generate_map_from_list(
+            group_questions, lambda q: q.group_id
+        )
+
+        def sorting_key(q: Question):
+            """
+            Extracts question aggregation forecast value
+            """
+
+            aggregation = recently_weighted.get(q)
+
+            if (
+                not aggregation
+                or not aggregation.forecast_values
+                or len(aggregation.forecast_values) < 2
+            ):
+                return 0
+
+            return aggregation.forecast_values[1]
+
+        for group_questions in group_questions_map.values():
+            group_questions = sorted(group_questions, key=sorting_key, reverse=True)
+
+            # Exclude other questions from the list
+            for q in group_questions[group_cutoff:]:
+                questions.remove(q)
+
+    qs = AggregateForecast.objects.filter(question__in=questions)
+
+    return generate_map_from_list(qs, lambda x: questions_map[x.question_id])

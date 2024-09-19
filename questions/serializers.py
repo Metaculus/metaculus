@@ -409,10 +409,8 @@ def serialize_question(
             and question.cp_reveal_time > django.utils.timezone.now()
         ):
             aggregate_forecasts = []
-        else:
-            aggregate_forecasts = (
-                aggregate_forecasts or question.aggregate_forecasts.all()
-            )
+        elif aggregate_forecasts is None:
+            aggregate_forecasts = question.aggregate_forecasts.all()
 
         aggregate_forecasts_by_method = defaultdict(list)
         for aggregate in aggregate_forecasts:
@@ -515,6 +513,7 @@ def serialize_conditional(
     with_cp: bool = False,
     current_user: User = None,
     post: Post = None,
+    aggregate_forecasts: dict[Question, AggregateForecast] = None,
 ):
     # Serialization of basic data
     serialized_data = ConditionalSerializer(conditional).data
@@ -530,11 +529,29 @@ def serialize_conditional(
     )
 
     # Autogen questions
+    question_yes_aggregate_forecasts = (
+        aggregate_forecasts.get(conditional.question_yes) or []
+        if aggregate_forecasts
+        else None
+    )
     serialized_data["question_yes"] = serialize_question(
-        conditional.question_yes, with_cp=with_cp, current_user=current_user, post=post
+        conditional.question_yes,
+        with_cp=with_cp,
+        current_user=current_user,
+        post=post,
+        aggregate_forecasts=question_yes_aggregate_forecasts,
+    )
+    question_no_aggregate_forecasts = (
+        aggregate_forecasts.get(conditional.question_no) or []
+        if aggregate_forecasts
+        else None
     )
     serialized_data["question_no"] = serialize_question(
-        conditional.question_no, with_cp=with_cp, current_user=current_user, post=post
+        conditional.question_no,
+        with_cp=with_cp,
+        current_user=current_user,
+        post=post,
+        aggregate_forecasts=question_no_aggregate_forecasts,
     )
 
     return serialized_data
@@ -545,31 +562,25 @@ def serialize_group(
     with_cp: bool = False,
     current_user: User = None,
     post: Post = None,
-    simplified: bool = False,
+    aggregate_forecasts: dict[Question, AggregateForecast] = None,
 ):
     # Serialization of basic data
     serialized_data = GroupOfQuestionsSerializer(group).data
     serialized_data["questions"] = []
 
     questions = group.questions.all()
-    if simplified:
-        questions = sorted(
-            questions,
-            key=lambda question: question.aggregate_forecasts.filter(
-                method="recency_weighted"
-            )
-            .latest("start_time")
-            .forecast_values[1],
-            reverse=True,
-        )
-
     for i, question in enumerate(questions):
         serialized_data["questions"].append(
             serialize_question(
                 question,
-                with_cp=with_cp and (not simplified or i < 3),
+                with_cp=with_cp,
                 current_user=current_user,
                 post=post,
+                aggregate_forecasts=(
+                    aggregate_forecasts.get(question) or []
+                    if aggregate_forecasts
+                    else None
+                ),
             )
         )
 
