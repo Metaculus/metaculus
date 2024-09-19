@@ -218,7 +218,7 @@ def compute_sorting_divergence(post: Post) -> dict[int, float]:
     for question in questions:
         cp = get_aggregations_at_time(
             question, now, [AggregationMethod.RECENCY_WEIGHTED]
-        )[AggregationMethod.RECENCY_WEIGHTED]
+        ).get(AggregationMethod.RECENCY_WEIGHTED, None)
         if cp is None:
             continue
 
