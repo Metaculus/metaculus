@@ -53,9 +53,7 @@ const TrackRecordCharts: FC<Props> = ({
                 backgroundColor: getThemeColor(METAC_COLORS.gray["600"]),
               }}
             ></span>
-            {username
-              ? t("userCalibration", { username: username })
-              : t("communityPredictionCalibration")}
+            {t("perfectCalibration90CI")}
           </div>
           <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
             <span
@@ -73,7 +71,9 @@ const TrackRecordCharts: FC<Props> = ({
                 backgroundColor: getThemeColor(METAC_COLORS.gold["500"]),
               }}
             ></span>
-            {t("perfectCalibration90CI")}
+            {username
+              ? t("userCalibration", { username: username })
+              : t("communityPredictionCalibration")}
           </div>
         </div>
         <span className="pt-3 text-center text-sm text-gray-600 dark:text-gray-400">
