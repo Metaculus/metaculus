@@ -49,7 +49,7 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     if (!latest_yes) {
       return null;
     }
-    const histogramData_yes = latest_yes.histogram!.map((value, index) => ({
+    const histogramData_yes = latest_yes.histogram?.map((value, index) => ({
       x: index,
       y: value,
     }));
@@ -61,33 +61,45 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
     if (!latest_no) {
       return null;
     }
-    const histogramData_no = latest_no.histogram!.map((value, index) => ({
+    const histogramData_no = latest_no.histogram?.map((value, index) => ({
       x: index,
       y: value,
     }));
     const median_no = latest_no.centers![0];
     const mean_no = latest_no.means![0];
 
+    if (!histogramData_yes && !histogramData_no) {
+      return null;
+    }
+
     return (
       <SectionToggle title={t("histogram")}>
-        <div className="mb-2 text-center text-xs">
-          {t("parentResolvesAsYes")}
-        </div>
-        <Histogram
-          histogramData={histogramData_yes}
-          median={median_yes}
-          mean={mean_yes}
-          color="green"
-        />
-        <div className="mb-2 text-center text-xs">
-          {t("parentResolvesAsNo")}
-        </div>
-        <Histogram
-          histogramData={histogramData_no}
-          median={median_no}
-          mean={mean_no}
-          color="blue"
-        />
+        {histogramData_yes && (
+          <>
+            <div className="mb-2 text-center text-xs">
+              {t("parentResolvesAsYes")}
+            </div>
+            <Histogram
+              histogramData={histogramData_yes}
+              median={median_yes}
+              mean={mean_yes}
+              color="green"
+            />
+          </>
+        )}
+        {histogramData_no && (
+          <>
+            <div className="mb-2 text-center text-xs">
+              {t("parentResolvesAsNo")}
+            </div>
+            <Histogram
+              histogramData={histogramData_no}
+              median={median_no}
+              mean={mean_no}
+              color="blue"
+            />
+          </>
+        )}
       </SectionToggle>
     );
   }
