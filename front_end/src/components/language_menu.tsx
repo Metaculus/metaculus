@@ -1,9 +1,9 @@
 "use client";
 
-import classNames from "classnames";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { FC } from "react";
+import classNames from "classnames";
 import { usePathname, useRouter } from "next/navigation";
+import { FC } from "react";
 
 import useSearchParams from "@/hooks/use_search_params";
 
@@ -32,69 +32,65 @@ const LanguageMenu: FC<Props> = ({ className }) => {
         anchor="bottom"
         className="z-50 border border-blue-200-dark bg-blue-900 text-sm text-gray-0"
       >
-        <MenuItem>
-          <button
-            className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
-            onClick={(e) => {
-              e.preventDefault();
-              params.delete("locale");
-              params.append("locale", "en");
-              router.push(pathname + "?" + params.toString());
-              router.refresh();
-            }}
-            name="language"
-            value="en"
-          >
-            English
-          </button>
+        <MenuItem
+          as="button"
+          className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
+          onClick={(e) => {
+            e.preventDefault();
+            params.delete("locale");
+            params.append("locale", "en");
+            router.push(pathname + "?" + params.toString());
+            router.refresh();
+          }}
+          name="language"
+          value="en"
+        >
+          English
         </MenuItem>
-        <MenuItem>
-          <button
-            className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
-            onClick={(e) => {
-              e.preventDefault();
-              params.delete("locale");
-              params.append("locale", "cs");
-              router.push(pathname + "?" + params.toString());
-              router.refresh();
-            }}
-            name="language"
-            value="cs"
-          >
-            Čeština
-          </button>
+        <MenuItem
+          as="button"
+          className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
+          onClick={(e) => {
+            e.preventDefault();
+            params.delete("locale");
+            params.append("locale", "cs");
+            router.push(pathname + "?" + params.toString());
+            router.refresh();
+          }}
+          name="language"
+          value="cs"
+        >
+          Čeština
         </MenuItem>
-        <MenuItem>
-          <button
-            className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
-            onClick={(e) => {
-              e.preventDefault();
-              params.delete("locale");
-              params.append("locale", "es");
-              router.push(pathname + "?" + params.toString());
-              router.refresh();
-            }}
-            name="language"
-            value="es"
-          >
-            Español
-          </button>
+        <MenuItem
+          as="button"
+          className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
+          onClick={(e) => {
+            e.preventDefault();
+            params.delete("locale");
+            params.append("locale", "es");
+            router.push(pathname + "?" + params.toString());
+            router.refresh();
+          }}
+          name="language"
+          value="es"
+        >
+          Español
         </MenuItem>
-        <MenuItem>
-          <button
-            className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
-            onClick={(e) => {
-              e.preventDefault();
-              params.delete("locale");
-              params.append("locale", "zh");
-              router.push(pathname + "?" + params.toString());
-              router.refresh();
-            }}
-            name="language"
-            value="zh"
-          >
-            中文
-          </button>
+        <MenuItem
+          as="button"
+          className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
+          onClick={(e) => {
+            e.preventDefault();
+            params.delete("locale");
+            params.append("locale", "zh");
+            router.push(pathname + "?" + params.toString());
+            router.refresh();
+          }}
+          name="language"
+          value="zh"
+        >
+          中文
         </MenuItem>
       </MenuItems>
     </Menu>
