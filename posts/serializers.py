@@ -14,6 +14,7 @@ from projects.serializers import (
     serialize_projects,
 )
 from projects.services import get_site_main_project
+from questions.models import Question, AggregateForecast
 from questions.serializers import (
     QuestionWriteSerializer,
     serialize_question,
@@ -23,7 +24,9 @@ from questions.serializers import (
     GroupOfQuestionsWriteSerializer,
     GroupOfQuestionsUpdateSerializer,
 )
+from questions.services import get_aggregated_forecasts_for_questions
 from users.models import User
+from utils.dtypes import flatten
 from .models import Notebook, Post, PostSubscription
 
 
@@ -290,7 +293,7 @@ def serialize_post(
     current_user: User = None,
     with_subscriptions: bool = False,
     with_nr_forecasters: bool = False,
-    simplified: bool = False,
+    aggregate_forecasts: dict[Question, AggregateForecast] = None,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -299,7 +302,15 @@ def serialize_post(
 
     if post.question:
         serialized_data["question"] = serialize_question(
-            post.question, with_cp=with_cp, current_user=current_user, post=post
+            post.question,
+            with_cp=with_cp,
+            current_user=current_user,
+            post=post,
+            aggregate_forecasts=(
+                aggregate_forecasts[post.question] or []
+                if aggregate_forecasts
+                else None
+            ),
         )
 
     if post.conditional:
@@ -308,6 +319,7 @@ def serialize_post(
             with_cp=with_cp,
             current_user=current_user,
             post=post,
+            aggregate_forecasts=aggregate_forecasts,
         )
 
     if post.group_of_questions:
@@ -316,7 +328,7 @@ def serialize_post(
             with_cp=with_cp,
             current_user=current_user,
             post=post,
-            simplified=simplified,
+            aggregate_forecasts=aggregate_forecasts,
         )
 
     if post.notebook:
@@ -365,7 +377,7 @@ def serialize_post_many(
     current_user: User = None,
     with_subscriptions: bool = False,
     with_nr_forecasters: bool = False,
-    simplified: bool = False,
+    group_cutoff: int = None,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -386,7 +398,7 @@ def serialize_post_many(
         qs = qs.annotate_user_vote(current_user)
 
     if with_cp:
-        qs = qs.prefetch_questions_aggregate_forecasts()
+        qs = qs.prefetch_questions_scores()
 
         if current_user:
             qs = qs.prefetch_user_forecasts(current_user.id)
@@ -401,6 +413,13 @@ def serialize_post_many(
     objects = list(qs.all())
     objects.sort(key=lambda obj: ids.index(obj.id))
 
+    aggregate_forecasts = {}
+
+    if with_cp:
+        aggregate_forecasts = get_aggregated_forecasts_for_questions(
+            flatten([p.get_questions() for p in objects]), group_cutoff=group_cutoff
+        )
+
     return [
         serialize_post(
             post,
@@ -408,7 +427,11 @@ def serialize_post_many(
             current_user=current_user,
             with_subscriptions=with_subscriptions,
             with_nr_forecasters=with_nr_forecasters,
-            simplified=simplified,
+            aggregate_forecasts={
+                q: v
+                for q, v in aggregate_forecasts.items()
+                if q in post.get_questions()
+            },
         )
         for post in objects
     ]

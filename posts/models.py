@@ -85,7 +85,7 @@ class PostQuerySet(models.QuerySet):
             "group_of_questions__questions",
         )
 
-    def prefetch_questions_aggregate_forecasts(self):
+    def prefetch_questions_scores(self):
         question_relations = [
             "question",
             "conditional__question_yes",
@@ -97,10 +97,6 @@ class PostQuerySet(models.QuerySet):
             *chain.from_iterable(
                 [
                     [
-                        Prefetch(
-                            f"{rel}__aggregate_forecasts",
-                            AggregateForecast.objects.order_by("start_time"),
-                        ),
                         Prefetch(
                             f"{rel}__scores",
                             Score.objects.filter(aggregation_method__isnull=False),

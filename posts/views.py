@@ -46,7 +46,6 @@ from projects.permissions import ObjectPermission
 from questions.serializers import (
     QuestionApproveSerializer,
 )
-from utils.cache import cache_get_or_set
 from utils.files import UserUploadedImage, generate_filename
 from utils.frontend import build_question_embed_url
 
@@ -61,6 +60,12 @@ def posts_list_api_view(request):
     with_cp = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("with_cp")
     )
+    group_cutoff = (
+        serializers.IntegerField(
+            allow_null=True, default=3, max_value=3, min_value=0
+        ).run_validation(request.query_params.get("group_cutoff"))
+        or 3
+    )
 
     # Apply filtering
     filters_serializer = PostFilterSerializer(data=request.query_params)
@@ -74,7 +79,7 @@ def posts_list_api_view(request):
         posts,
         with_cp=with_cp,
         current_user=request.user,
-        simplified=True,
+        group_cutoff=group_cutoff,
     )
 
     return paginator.get_paginated_response(data)
@@ -443,7 +448,7 @@ def post_similar_posts_api_view(request: Request, pk):
     # Retrieve cached articles
     def get_posts():
         posts = get_similar_posts(post)
-        return serialize_post_many(posts, with_cp=True)
+        return serialize_post_many(posts, with_cp=True, group_cutoff=1)
 
     """
     data = cache_get_or_set(
