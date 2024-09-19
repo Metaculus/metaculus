@@ -40,6 +40,7 @@ type Props = {
   options: ConditionalTableOption[];
   onChange: (id: number) => void;
   questions: QuestionWithNumericForecasts[];
+  showCP?: boolean;
 };
 
 const GroupForecastTable: FC<Props> = ({
@@ -47,6 +48,7 @@ const GroupForecastTable: FC<Props> = ({
   value,
   onChange,
   questions,
+  showCP = true,
 }) => {
   const t = useTranslations();
   const locale = useLocale();
@@ -166,7 +168,7 @@ const GroupForecastTable: FC<Props> = ({
                 >
                   <PredictionCell
                     communityValue={getDisplayValue(
-                      option.communityQuartiles.lower25,
+                      showCP ? option.communityQuartiles.lower25 : undefined,
                       questions.find(
                         (question) => question.id === option.id
                       ) as Question
@@ -187,7 +189,7 @@ const GroupForecastTable: FC<Props> = ({
                 >
                   <PredictionCell
                     communityValue={getDisplayValue(
-                      option.communityQuartiles.median,
+                      showCP ? option.communityQuartiles.median : undefined,
                       questions.find(
                         (question) => question.id === option.id
                       ) as Question
@@ -210,7 +212,9 @@ const GroupForecastTable: FC<Props> = ({
                     <div className="w-full">
                       <PredictionCell
                         communityValue={getDisplayValue(
-                          option.communityQuartiles.upper75,
+                          showCP
+                            ? option.communityQuartiles.upper75
+                            : undefined,
                           questions.find(
                             (question) => question.id === option.id
                           ) as Question

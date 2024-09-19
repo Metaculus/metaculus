@@ -249,7 +249,11 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
             onChange={(forecast) => handleForecastChange(option.id, forecast)}
             isDirty={option.isDirty}
             onBecomeDirty={() => handleBecomeDirty(option.id)}
-            communityForecast={option.communitiesForecast}
+            communityForecast={
+              !user || !user.hide_community_prediction
+                ? option.communitiesForecast
+                : null
+            }
             disabled={!canPredict}
           />
         </div>

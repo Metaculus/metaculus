@@ -95,7 +95,9 @@ const ForecastMakerBinary: FC<Props> = ({
         forecast={forecast}
         onChange={setForecast}
         isDirty={isForecastDirty}
-        communityForecast={communityForecast}
+        communityForecast={
+          !!user && user.hide_community_prediction ? null : communityForecast
+        }
         onBecomeDirty={() => {
           setIsForecastDirty(true);
         }}

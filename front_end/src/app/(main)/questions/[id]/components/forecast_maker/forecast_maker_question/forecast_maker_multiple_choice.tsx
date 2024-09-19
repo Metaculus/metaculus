@@ -223,7 +223,11 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               defaultSliderValue={equalizedForecast}
               choiceName={choice.name}
               choiceColor={choice.color}
-              communityForecast={choice.communityForecast}
+              communityForecast={
+                !user || !user.hide_community_prediction
+                  ? choice.communityForecast
+                  : null
+              }
               inputMin={BINARY_MIN_VALUE}
               inputMax={BINARY_MAX_VALUE}
               onChange={handleForecastChange}
