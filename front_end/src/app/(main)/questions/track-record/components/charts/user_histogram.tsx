@@ -84,7 +84,7 @@ const UserHistogram: React.FC<HistogramProps> = ({
             },
             axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
           }}
-          label={t("Count")}
+          label={t("count")}
         />
         <VictoryAxis
           tickValues={range(

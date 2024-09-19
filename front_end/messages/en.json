@@ -50,7 +50,7 @@
   "Open": "Open",
   "Closed": "Closed",
   "Resolved": "Resolved",
-  "Count": "Count",
+  "count": "Count",
   "image": "Image",
   "resolutionAmbiguous": "Ambiguous",
   "resolutionAnnulled": "Annulled",
