@@ -153,14 +153,15 @@ def get_post_articles_cache(post_id: str):
 
 
 def get_post_get_similar_articles(post: Post):
-    articles = cache_get_or_set(
+    article_ids = cache_get_or_set(
         get_post_articles_cache(post.pk),
-        lambda: get_post_get_similar_articles_qs(post)[:9],
+        lambda: get_post_get_similar_articles_qs(post).values_list("id", flat=True)[:9],
         # 12h
         timeout=3600 * 12,
+        version=2,
     )
 
-    return articles
+    return ITNArticle.objects.filter(pk__in=article_ids)
 
 
 def remove_article(article: ITNArticle):
