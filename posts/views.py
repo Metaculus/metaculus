@@ -171,7 +171,9 @@ def post_detail_oldapi_view(request: Request, pk):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def post_detail(request: Request, pk):
-    qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
+    user = request.user if request.user.is_authenticated else None
+
+    qs = Post.objects.filter_permission(user=user).filter(pk=pk)
     posts = serialize_post_many(
         qs,
         current_user=request.user,

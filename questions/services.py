@@ -88,9 +88,9 @@ def build_question_forecasts(
         if not field.primary_key
     ]
     with transaction.atomic():
-        AggregateForecast.objects.bulk_update(overwriters, fields)
+        AggregateForecast.objects.bulk_update(overwriters, fields, batch_size=25)
         AggregateForecast.objects.filter(id__in=[old.id for old in to_delete]).delete()
-        AggregateForecast.objects.bulk_create(to_create)
+        AggregateForecast.objects.bulk_create(to_create, batch_size=25)
 
 
 def build_question_forecasts_for_user(

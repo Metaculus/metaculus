@@ -391,7 +391,7 @@ def serialize_post_many(
         .prefetch_projects()
         .prefetch_questions()
         .annotate_comment_count()
-        .select_related("author")
+        .select_related("author", "notebook")
         .prefetch_related("coauthors")
     )
     if current_user:
