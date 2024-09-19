@@ -149,16 +149,18 @@ def get_post_get_similar_articles_qs(post: Post):
 
 
 def get_post_articles_cache(post_id: str):
-    return f"post_similar_itn_article_ids:v1:{post_id}"
+    return f"post_similar_itn_article_ids:{post_id}"
 
 
 def get_post_get_similar_articles(post: Post):
     article_ids = cache_get_or_set(
         get_post_articles_cache(post.pk),
-        lambda: get_post_get_similar_articles_qs(post).values_list("id", flat=True)[:9],
+        lambda: list(
+            get_post_get_similar_articles_qs(post).values_list("id", flat=True)[:9]
+        ),
         # 12h
         timeout=3600 * 12,
-        version=2,
+        version=1,
     )
 
     return ITNArticle.objects.filter(pk__in=article_ids)
