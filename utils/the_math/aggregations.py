@@ -167,9 +167,13 @@ def get_aggregations_at_time(
 ) -> dict[AggregationMethod, AggregateForecast]:
     """set include_stats to True if you want to include num_forecasters, q1s, medians,
     and q3s"""
-    forecasts = question.user_forecasts.filter(
-        Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
-    ).order_by("start_time").select_related("author")
+    forecasts = (
+        question.user_forecasts.filter(
+            Q(end_time__isnull=True) | Q(end_time__gt=time), start_time__lte=time
+        )
+        .order_by("start_time")
+        .select_related("author")
+    )
     if user_ids:
         forecasts = forecasts.filter(author_id__in=user_ids)
     if not include_bots:
@@ -388,18 +392,19 @@ def get_aggregation_history(
 
         for i, forecast_set in enumerate(forecast_history):
             weights = get_weights(forecast_set)
-            histogram = (
-                histogram
+            include_histogram = (
+                question.type == "binary" and histogram
                 if histogram is not None
                 else question.type == "binary" and i == (len(forecast_history) - 1)
             )
+
             new_entry: AggregateForecast = calculate_aggregation_entry(
                 forecast_set,
                 question.type,
                 weights,
                 method=method,
                 include_stats=include_stats,
-                histogram=histogram,
+                histogram=include_histogram,
             )
             new_entry.question = question
             new_entry.method = method

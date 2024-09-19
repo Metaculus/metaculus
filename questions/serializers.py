@@ -252,10 +252,12 @@ class AggregateForecastSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "forecast_values",
+            "forecaster_count",
             "interval_lower_bounds",
             "centers",
             "interval_upper_bounds",
             "means",
+            "histogram",
         )
 
     def get_start_time(self, aggregate_forecast: AggregateForecast):

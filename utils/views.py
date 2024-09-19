@@ -52,7 +52,7 @@ def aggregation_explorer_api_view(request):
         minimize=False,
         include_stats=True,
         include_bots=include_bots,
-        histogram=False,
+        histogram=True,
     )
     aggregate_forecasts = []
     for aggregation in aggregations.values():

@@ -58,7 +58,7 @@ def get_forecast_initial_dict(question: Question) -> dict:
 def build_question_forecasts(
     question: Question,
     aggregation_method: str = AggregationMethod.RECENCY_WEIGHTED,
-) -> dict:
+):
     """
     Builds the AggregateForecasts for a question
     Stores them in the database
