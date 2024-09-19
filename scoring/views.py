@@ -143,6 +143,8 @@ def user_medals(
 def medal_contributions(
     request: Request,
 ):
+    # quick block to prevent abuse
+    return Response(status=status.HTTP_404_NOT_FOUND)
     user_id = request.GET.get("userId", None)
     user = get_object_or_404(User, pk=user_id)
     project_id = request.GET.get(
