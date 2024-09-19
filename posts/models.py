@@ -29,7 +29,6 @@ from questions.models import (
     Conditional,
     GroupOfQuestions,
     Forecast,
-    AggregateForecast,
 )
 from scoring.models import Score, ArchivedScore
 from users.models import User

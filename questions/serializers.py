@@ -504,7 +504,6 @@ def serialize_question(
                         "weighted_coverage"
                     ] = score.coverage
 
-
     serialized_data["resolution"] = question.resolution
     return serialized_data
 
