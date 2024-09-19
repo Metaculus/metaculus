@@ -554,6 +554,6 @@ def get_aggregated_forecasts_for_questions(
             for q in group_questions[group_cutoff:]:
                 questions.remove(q)
 
-    qs = AggregateForecast.objects.filter(question__in=questions)
+    qs = AggregateForecast.objects.filter(question__in=questions).order_by("start_time")
 
     return generate_map_from_list(qs, lambda x: questions_map[x.question_id])
