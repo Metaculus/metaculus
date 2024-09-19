@@ -81,6 +81,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(questions)
   );
+  console.log(choiceItems)
   const userForecasts = user ? generateUserForecasts(questions) : undefined;
   const timestampsCount = timestamps.length;
   const prevTimestampsCount = usePrevious(timestampsCount);

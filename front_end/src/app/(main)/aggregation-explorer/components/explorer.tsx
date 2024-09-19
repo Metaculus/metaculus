@@ -1,6 +1,10 @@
 "use client";
 
-import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons";
+import {
+  faMagnifyingGlass,
+  faXmark,
+  faArrowLeft,
+} from "@fortawesome/free-solid-svg-icons";
 import { FC, useEffect, useState } from "react";
 import { fetchAggregations } from "../actions";
 import { SearchParams } from "@/types/navigation";
@@ -10,16 +14,19 @@ import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { AggregationExplorerParams } from "@/services/aggregation_explorer";
-import Aggregations from "./aggregations";
+import AggregationsDrawer from "./aggregations";
+import { AggregationQuestion, Aggregations } from "@/types/question";
+import AggregationsTab from "./aggregation_tab";
 
 type Props = { searchParams: SearchParams };
 
 const Explorer: FC<Props> = ({ searchParams }) => {
+  const [data, setData] = useState<AggregationQuestion | null>(null);
+  const [activeTab, setActiveTab] = useState<keyof Aggregations | null>(null);
   const [questionId, setQuestionId] = useState<string>("");
   const [includeBots, setIncludeBots] = useState<boolean>(false);
-  const [data, setData] = useState<any>(null); // State to hold fetched data
-  const [loading, setLoading] = useState<boolean>(false); // State to handle loading state
-  const [error, setError] = useState<string | null>(null); // State to handle errors
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     console.log(searchParams);
@@ -129,11 +136,41 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         </div>
       </form>
 
-      {/* Display loading, error, and fetched data */}
-      {loading && <LoadingIndicator />}
+      <div className="h-10">{loading && <LoadingIndicator />}</div>
       {error && <p className="text-center text-red-600">{error}</p>}
-      
-      {data && <Aggregations questionData={data} />}
+
+      {data && (
+        <>
+          <hr className="mb-6 border-gray-400 dark:border-gray-400-dark" />
+          <div className="relative">
+            {activeTab && (
+              <Button
+                presentationType="icon"
+                className="absolute left-0 top-0 h-10"
+                onClick={() => setActiveTab(null)}
+              >
+                <FontAwesomeIcon icon={faArrowLeft} />
+              </Button>
+            )}
+            <h1 className="ml-10 text-xl leading-tight sm:text-2xl">
+              {data.title}
+            </h1>
+          </div>
+          {activeTab ? (
+            <div>
+              <p className="w-fit bg-gray-400 p-2 dark:bg-gray-400-dark">
+                {activeTab}
+              </p>
+              <AggregationsTab activeTab={activeTab} questionData={data} />
+            </div>
+          ) : (
+            <AggregationsDrawer
+              questionData={data}
+              onTabChange={setActiveTab}
+            />
+          )}
+        </>
+      )}
     </>
   );
 };

@@ -104,6 +104,7 @@ export type AggregateForecast = Forecast & {
   forecaster_count: number;
   means: number[] | null;
   histogram: number[] | null;
+  forecast_values: number[] | null;
 };
 
 export type AggregateForecastHistory = {

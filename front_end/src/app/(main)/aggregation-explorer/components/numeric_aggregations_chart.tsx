@@ -1,10 +1,30 @@
 "use client";
 
-import { merge } from "lodash";
-import React, { FC, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useState, memo, useMemo, useEffect } from "react";
+import {
+  AggregateForecastHistory,
+  AggregationQuestion,
+  Aggregations,
+  QuestionType,
+  Scaling,
+} from "@/types/question";
+import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
+import { Line, Scale, TimelineChartZoomOption } from "@/types/charts";
+import {
+  displayValue,
+  findPreviousTimestamp,
+  generateNumericDomain,
+  generateTicksY,
+  generateTimestampXScale,
+  getDisplayValue,
+  scaleInternalLocation,
+} from "@/utils/charts";
+import {
+  ChartData,
+  getResolutionData,
+} from "@/components/charts/numeric_chart";
 import {
   CursorCoordinatesPropType,
-  DomainTuple,
   LineSegment,
   Tuple,
   VictoryArea,
@@ -15,44 +35,19 @@ import {
   VictoryLabelProps,
   VictoryLine,
   VictoryScatter,
-  VictoryThemeDefinition,
 } from "victory";
-
+import XTickLabel from "@/components/charts/primitives/x_tick_label";
 import ChartContainer from "@/components/charts/primitives/chart_container";
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
-import { darkTheme, lightTheme } from "@/constants/chart_theme";
-import { METAC_COLORS } from "@/constants/colors";
+import usePrevious from "@/hooks/use_previous";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
-import usePrevious from "@/hooks/use_previous";
-import {
-  Area,
-  BaseChartData,
-  Line,
-  Scale,
-  TimelineChartZoomOption,
-} from "@/types/charts";
 import { Resolution } from "@/types/post";
+import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { getUnixTime } from "date-fns";
-import {
-  QuestionType,
-  Aggregations,
-  UserForecastHistory,
-  Scaling,
-} from "@/types/question";
-import {
-  generateNumericDomain,
-  generateTicksY,
-  generateTimestampXScale,
-  getDisplayValue,
-  unscaleNominalLocation,
-} from "@/utils/charts";
-
-import XTickLabel from "./primitives/x_tick_label";
 
 type Props = {
-  aggregations: Aggregations;
-  myForecasts?: UserForecastHistory;
+  aggregationData: AggregateForecastHistory;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
   yLabel?: string;
@@ -62,37 +57,31 @@ type Props = {
   questionType: QuestionType;
   actualCloseTime: number | null;
   scaling: Scaling;
-  extraTheme?: VictoryThemeDefinition;
   resolution?: Resolution | null;
   resolveTime?: string | null;
 };
 
-const NumericChart: FC<Props> = ({
-  aggregations,
-  myForecasts,
+const NumericAggregationChart: FC<Props> = ({
+  aggregationData,
   defaultZoom = TimelineChartZoomOption.All,
   withZoomPicker = false,
-  yLabel,
-  height = 150,
   onCursorChange,
   onChartReady,
   questionType,
   actualCloseTime,
   scaling,
-  extraTheme,
   resolution,
   resolveTime,
 }) => {
+  const height = 150;
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
 
   const { theme, getThemeColor } = useAppTheme();
-  const chartTheme = theme === "dark" ? darkTheme : lightTheme;
-  const actualTheme = extraTheme
-    ? merge({}, chartTheme, extraTheme)
-    : chartTheme;
+  const actualTheme = theme === "dark" ? darkTheme : lightTheme;
 
-  const defaultCursor = Date.now() / 1000;
+  const defaultCursor =
+    aggregationData.history[aggregationData.history.length - 1].start_time;
 
   const [isCursorActive, setIsCursorActive] = useState(false);
 
@@ -101,24 +90,13 @@ const NumericChart: FC<Props> = ({
     () =>
       buildChartData({
         questionType,
-        actualCloseTime,
         scaling,
         height,
-        aggregations,
-        myForecasts,
+        aggregationData,
         width: chartWidth,
         zoom,
       }),
-    [
-      height,
-      chartWidth,
-      zoom,
-      aggregations,
-      actualCloseTime,
-      myForecasts,
-      questionType,
-      scaling,
-    ]
+    [chartWidth, zoom, aggregationData, questionType, scaling]
   );
 
   const prevWidth = usePrevious(chartWidth);
@@ -153,8 +131,9 @@ const NumericChart: FC<Props> = ({
       }
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
+        console.log(value)
         if (typeof value === "number" && onCursorChange) {
-          const closestForecast = aggregations.recency_weighted.history.reduce(
+          const closestForecast = aggregationData.history.reduce(
             (prev, curr) =>
               Math.abs(curr.start_time - value) <
               Math.abs(prev.start_time - value)
@@ -198,7 +177,7 @@ const NumericChart: FC<Props> = ({
                 },
                 onMouseLeave: () => {
                   if (!onCursorChange) return;
-                  onCursorChange(null);
+                  onCursorChange(defaultCursor);
                 },
               },
             },
@@ -224,10 +203,6 @@ const NumericChart: FC<Props> = ({
               },
             }}
             interpolation="stepAfter"
-          />
-          <VictoryScatter
-            data={points}
-            dataComponent={<PredictionWithRange />}
           />
 
           {resolution && !!resolveTime && (
@@ -258,7 +233,7 @@ const NumericChart: FC<Props> = ({
             }}
             tickValues={yScale.ticks}
             tickFormat={yScale.tickFormat}
-            label={yLabel}
+            // label={yLabel}
             offsetX={48}
             axisLabelComponent={<VictoryLabel dy={-10} />}
           />
@@ -278,84 +253,53 @@ const NumericChart: FC<Props> = ({
   );
 };
 
-export type ChartData = BaseChartData & {
-  line: Line;
-  area: Area;
-  points: Line;
-  yDomain: DomainTuple;
-  xDomain: DomainTuple;
-};
+export default NumericAggregationChart;
 
 function buildChartData({
   questionType,
-  actualCloseTime,
+  // actualCloseTime,
   scaling,
   height,
-  aggregations,
-  myForecasts,
+  aggregationData,
   width,
   zoom,
 }: {
   questionType: QuestionType;
-  actualCloseTime: number | null;
   scaling: Scaling;
   height: number;
-  aggregations: Aggregations;
-  myForecasts?: UserForecastHistory;
+  aggregationData: AggregateForecastHistory;
   width: number;
   zoom: TimelineChartZoomOption;
 }): ChartData {
-  const aggregation = aggregations.recency_weighted;
-  const line = aggregation.history.map((forecast) => ({
+  const line = aggregationData.history.map((forecast) => ({
     x: forecast.start_time,
     y: forecast.centers![0],
   }));
-  const area = aggregation.history.map((forecast) => ({
+  const area = aggregationData.history.map((forecast) => ({
     x: forecast.start_time,
     y0: forecast.interval_lower_bounds![0],
     y: forecast.interval_upper_bounds![0],
   }));
-  const latestTimestamp = actualCloseTime
-    ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
-    : Date.now() / 1000;
-  if (aggregation.latest) {
-    line.push({
-      x: latestTimestamp,
-      y: aggregation.latest.centers![0],
-    });
-    area.push({
-      x: latestTimestamp,
-      y0: aggregation.latest.interval_lower_bounds![0],
-      y: aggregation.latest.interval_upper_bounds![0],
-    });
-  }
+
+  // const latestTimestamp = actualCloseTime
+  //   ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
+  //   : Date.now() / 1000;
+  // if (aggregationData.latest) {
+  //   line.push({
+  //     x: latestTimestamp,
+  //     y: aggregationData.latest.centers![0],
+  //   });
+  //   area.push({
+  //     x: latestTimestamp,
+  //     y0: aggregationData.latest.interval_lower_bounds![0],
+  //     y: aggregationData.latest.interval_upper_bounds![0],
+  //   });
+  // }
 
   let points: Line = [];
-  if (myForecasts?.history.length) {
-    points = myForecasts.history.map((forecast) => ({
-      x: forecast.start_time,
-      y:
-        questionType === "binary"
-          ? forecast.forecast_values[1]
-          : forecast.centers![0],
-      y1:
-        questionType === "binary"
-          ? undefined
-          : forecast.interval_lower_bounds?.[0],
-      y2:
-        questionType === "binary"
-          ? undefined
-          : forecast.interval_upper_bounds?.[0],
-    }));
-  }
-  // TODO: add quartiles if continuous
 
   const domainTimestamps = [
-    ...aggregation.history.map((f) => f.start_time),
-    ...(myForecasts?.history
-      ? myForecasts.history.map((f) => f.start_time)
-      : []),
-    latestTimestamp,
+    ...aggregationData.history.map((f) => f.start_time),
   ];
   const xDomain = generateNumericDomain(domainTimestamps, zoom);
   const xScale = generateTimestampXScale(xDomain, width);
@@ -391,99 +335,3 @@ function buildChartData({
     points,
   };
 }
-
-export function getResolutionData({
-  questionType,
-  resolution,
-  resolveTime,
-  scaling,
-}: {
-  questionType: QuestionType;
-  resolution: Resolution;
-  resolveTime: number;
-  scaling: Scaling;
-}) {
-  switch (questionType) {
-    case QuestionType.Binary: {
-      // format data for binary question
-      return [
-        {
-          y:
-            resolution === "no"
-              ? scaling.range_min ?? 0
-              : scaling.range_max ?? 1,
-          x: resolveTime,
-          symbol: "diamond",
-          size: 4,
-        },
-      ];
-    }
-    case QuestionType.Numeric: {
-      // format data for numerical question
-      const unscaledResolution = unscaleNominalLocation(
-        Number(resolution),
-        scaling
-      );
-
-      return [
-        {
-          y: unscaledResolution,
-          x: resolveTime,
-          symbol: "diamond",
-          size: 4,
-        },
-      ];
-    }
-    case QuestionType.Date: {
-      // format data for date question
-      const dateTimestamp = new Date(resolution).getTime() / 1000;
-      const unscaledResolution = unscaleNominalLocation(dateTimestamp, scaling);
-
-      return [
-        {
-          y: unscaledResolution,
-          x: resolveTime,
-          symbol: "diamond",
-          size: 4,
-        },
-      ];
-    }
-    default:
-      return;
-  }
-}
-
-const PredictionWithRange: React.FC<any> = ({
-  x,
-  y,
-  datum: { y1, y2 },
-  scale,
-}) => {
-  const { getThemeColor } = useAppTheme();
-  const y1Scaled = scale.y(y1);
-  const y2Scaled = scale.y(y2);
-  return (
-    <>
-      {y1 !== undefined && y2 !== undefined && (
-        <line
-          x1={x}
-          x2={x}
-          y1={y1Scaled}
-          y2={y2Scaled}
-          stroke={getThemeColor(METAC_COLORS.orange["700"])}
-          strokeWidth={2}
-        />
-      )}
-      <circle
-        cx={x}
-        cy={y}
-        r={3}
-        fill={getThemeColor(METAC_COLORS.gray["0"])}
-        stroke={getThemeColor(METAC_COLORS.orange["700"])}
-        strokeWidth={2}
-      />
-    </>
-  );
-};
-
-export default React.memo(NumericChart);

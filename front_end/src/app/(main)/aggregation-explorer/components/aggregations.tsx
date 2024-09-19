@@ -1,26 +1,30 @@
 "use client";
 
-import { FC, useCallback, useState } from "react";
-import DetailedQuestionCard from "../../questions/[id]/components/detailed_question_card";
-import { AggregationQuestion, Aggregations, Scaling } from "@/types/question";
-import useContainerSize from "@/hooks/use_container_size";
-import useAppTheme from "@/hooks/use_app_theme";
-import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { FC, useCallback, useState, memo, useMemo } from "react";
+import {
+  AggregationQuestion,
+  Aggregations,
+  QuestionType,
+  Scaling,
+} from "@/types/question";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import { TimelineChartZoomOption } from "@/types/charts";
-import ChoicesLegend from "../../questions/[id]/components/choices_legend";
+import useTimestampCursor from "@/hooks/use_timestamp_cursor";
+import {
+  displayValue,
+  findPreviousTimestamp,
+  scaleInternalLocation,
+} from "@/utils/charts";
+import AggregationTooltip from "../components/aggregation_tooltip";
 
 type Props = {
   questionData: AggregationQuestion;
+  onTabChange: (activeTab: keyof Aggregations) => void;
 };
 
-const AggregationsDrawer: FC<Props> = ({ questionData }) => {
-  const { ref: chartContainerRef, width: chartWidth } =
-    useContainerSize<HTMLDivElement>();
-  const { aggregations, actual_close_time, scaling } = questionData;
-  const { theme, getThemeColor } = useAppTheme();
-  const actualTheme = theme === "dark" ? darkTheme : lightTheme;
+const AggregationsDrawer: FC<Props> = memo(({ questionData, onTabChange }) => {
+  const { aggregations, actual_close_time, scaling, type } = questionData;
   const timestamps = getAggregationTimestamps(aggregations);
   const actualCloseTime = actual_close_time
     ? new Date(actual_close_time).getTime()
@@ -28,11 +32,10 @@ const AggregationsDrawer: FC<Props> = ({ questionData }) => {
   const [choiceItems, setChoiceItems] = useState(
     generateChoiceItemsFromAggregations(aggregations, scaling)
   );
-  // const choiceItems = generateChoiceItemsFromAggregations(
-  //   aggregations,
-  //   scaling
-  // );
-  console.log(timestamps);
+  const [cursorTimestamp, tooltipDate, handleCursorChange] =
+    useTimestampCursor(timestamps);
+
+  // console.log(timestamps);
   console.log(choiceItems);
 
   const handleChoiceChange = useCallback((choice: string, checked: boolean) => {
@@ -56,42 +59,51 @@ const AggregationsDrawer: FC<Props> = ({ questionData }) => {
     []
   );
 
-  const toggleSelectAll = useCallback((isAllSelected: boolean) => {
-    if (isAllSelected) {
-      setChoiceItems((prev) =>
-        prev.map((item) => ({ ...item, active: false, highlighted: false }))
-      );
-    } else {
-      setChoiceItems((prev) => prev.map((item) => ({ ...item, active: true })));
-    }
-  }, []);
+  // const toggleSelectAll = useCallback((isAllSelected: boolean) => {
+  //   if (isAllSelected) {
+  //     setChoiceItems((prev) =>
+  //       prev.map((item) => ({ ...item, active: false, highlighted: false }))
+  //     );
+  //   } else {
+  //     setChoiceItems((prev) => prev.map((item) => ({ ...item, active: true })));
+  //   }
+  // }, []);
   return (
     <>
       <MultipleChoiceChart
         timestamps={timestamps}
         actualCloseTime={actualCloseTime}
         choiceItems={choiceItems}
-        // yLabel={t("communityPredictionLabel")}
-        // onChartReady={handleChartReady}
-        // onCursorChange={handleCursorChange}
+        onCursorChange={handleCursorChange}
         defaultZoom={TimelineChartZoomOption.All}
-        // withZoomPicker
-        // userForecasts={userForecasts}
-        // isClosed={isClosed}
+        aggregation
+        withZoomPicker
+        questionType={type}
+        scaling={scaling}
       />
-
-      <div className="mt-3">
-        <ChoicesLegend
-          choices={choiceItems}
-          onChoiceChange={handleChoiceChange}
-          onChoiceHighlight={handleChoiceHighlight}
-          maxLegendChoices={4}
-          onToggleAll={toggleSelectAll}
-        />
+      <div className="my-5 flex flex-wrap justify-between space-x-5">
+        {choiceItems.map((choiceItem, idx) => {
+          return (
+            <AggregationTooltip
+              key={idx}
+              choiceItem={choiceItem}
+              valueLabel={getQuestionTooltipLabel(
+                choiceItem.timestamps ?? timestamps,
+                choiceItem.values,
+                cursorTimestamp,
+                type,
+                scaling
+              )}
+              onChoiceChange={handleChoiceChange}
+              onChoiceHighlight={handleChoiceHighlight}
+              onTabChange={onTabChange}
+            />
+          );
+        })}
       </div>
     </>
   );
-};
+});
 
 export default AggregationsDrawer;
 
@@ -144,3 +156,38 @@ const generateChoiceItemsFromAggregations = (
   }
   return choiceItems;
 };
+
+function getQuestionTooltipLabel(
+  timestamps: number[],
+  values: number[],
+  cursorTimestamp: number,
+  qType: QuestionType,
+  scaling: Scaling
+) {
+  const hasValue =
+    cursorTimestamp >= Math.min(...timestamps) &&
+    cursorTimestamp <= Math.max(...timestamps);
+  if (!hasValue) {
+    return "?";
+  }
+
+  const closestTimestamp = findPreviousTimestamp(timestamps, cursorTimestamp);
+  const cursorIndex = timestamps.findIndex(
+    (timestamp) => timestamp === closestTimestamp
+  );
+
+  if (values[cursorIndex] === undefined) {
+    return "...";
+  }
+
+  if (qType === QuestionType.Binary) {
+    return displayValue(values[cursorIndex], qType);
+  } else {
+    const scaledValue = scaleInternalLocation(values[cursorIndex], {
+      range_min: scaling.range_min ?? 0,
+      range_max: scaling.range_max ?? 1,
+      zero_point: scaling.zero_point,
+    });
+    return displayValue(scaledValue, qType);
+  }
+}

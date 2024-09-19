@@ -1,4 +1,4 @@
-import { PostWithForecasts } from "@/types/post";
+import { AggregationQuestion } from "@/types/question";
 import { get } from "@/utils/fetch";
 
 export type AggregationExplorerParams = {
@@ -19,7 +19,7 @@ class AggregationExplorerAPI {
     const queryString = new URLSearchParams(queryParams).toString();
 
     // Adjust the endpoint if necessary
-    return await get<PostWithForecasts>(`/aggregation_explorer/?${queryString}`);
+    return await get<AggregationQuestion>(`/aggregation_explorer/?${queryString}`);
   }
 }
 
