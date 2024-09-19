@@ -15,6 +15,7 @@ type Props = {
   communityBounds?: Bounds;
   communityQuartiles?: Quartiles;
   withUserQuartiles?: boolean;
+  withCommunityQuartiles?: boolean;
   hasUserForecast?: boolean;
   isDirty?: boolean;
 };
@@ -23,9 +24,10 @@ const NumericForecastTable: FC<Props> = ({
   question,
   userBounds,
   userQuartiles,
+  withUserQuartiles = true,
   communityBounds,
   communityQuartiles,
-  withUserQuartiles = true,
+  withCommunityQuartiles = true,
   hasUserForecast,
   isDirty,
 }) => {
@@ -42,28 +44,34 @@ const NumericForecastTable: FC<Props> = ({
             </div>
           </>
         )}
-        <a className="w-full text-olive-700 dark:text-olive-700-dark">
-          {t("community")}
-        </a>
+        {withCommunityQuartiles && (
+          <>
+            <a className="w-full text-olive-700 dark:text-olive-700-dark">
+              {t("community")}
+            </a>
+          </>
+        )}
       </div>
       <div className="mb-4 flex justify-between">
-        <div className="w-full text-center">
-          {question.open_lower_bound && (
-            <div className="w-full">
-              {"<"}
-              {displayValue(question.scaling.range_min!, question.type)}
-            </div>
-          )}
-          <div className="w-full">{t("firstQuartile")}</div>
-          <div className="w-full">{t("secondQuartile")}</div>
-          <div className="w-full">{t("thirdQuartile")}</div>
-          {question.open_upper_bound && (
-            <div className="w-full">
-              {">"}
-              {displayValue(question.scaling.range_max!, question.type)}
-            </div>
-          )}
-        </div>
+        {(withUserQuartiles || withCommunityQuartiles) && (
+          <div className="w-full text-center">
+            {question.open_lower_bound && (
+              <div className="w-full">
+                {"<"}
+                {displayValue(question.scaling.range_min!, question.type)}
+              </div>
+            )}
+            <div className="w-full">{t("firstQuartile")}</div>
+            <div className="w-full">{t("secondQuartile")}</div>
+            <div className="w-full">{t("thirdQuartile")}</div>
+            {question.open_upper_bound && (
+              <div className="w-full">
+                {">"}
+                {displayValue(question.scaling.range_max!, question.type)}
+              </div>
+            )}
+          </div>
+        )}
         {withUserQuartiles && (
           <div className="w-full text-center">
             {isDirty || hasUserForecast ? (
@@ -92,24 +100,27 @@ const NumericForecastTable: FC<Props> = ({
           </div>
         )}
 
-        <div className="w-full text-center">
-          {question.open_lower_bound && (
-            <div>
-              {communityBounds && (communityBounds.belowLower * 100).toFixed(1)}
-              %
-            </div>
-          )}
-          <div>{getDisplayValue(communityQuartiles?.lower25, question)}</div>
-          <div>{getDisplayValue(communityQuartiles?.median, question)}</div>
-          <div>{getDisplayValue(communityQuartiles?.upper75, question)}</div>
-          {question.open_upper_bound && (
-            <div>
-              {communityBounds &&
-                (communityBounds!.aboveUpper * 100).toFixed(1)}
-              %
-            </div>
-          )}
-        </div>
+        {withCommunityQuartiles && (
+          <div className="w-full text-center">
+            {question.open_lower_bound && (
+              <div>
+                {communityBounds &&
+                  (communityBounds.belowLower * 100).toFixed(1)}
+                %
+              </div>
+            )}
+            <div>{getDisplayValue(communityQuartiles?.lower25, question)}</div>
+            <div>{getDisplayValue(communityQuartiles?.median, question)}</div>
+            <div>{getDisplayValue(communityQuartiles?.upper75, question)}</div>
+            {question.open_upper_bound && (
+              <div>
+                {communityBounds &&
+                  (communityBounds!.aboveUpper * 100).toFixed(1)}
+                %
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </>
   );

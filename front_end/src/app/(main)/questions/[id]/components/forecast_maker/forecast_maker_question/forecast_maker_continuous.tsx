@@ -184,6 +184,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         communityQuartiles={
           communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
         }
+        withCommunityQuartiles={!user || !user.hide_community_prediction}
         isDirty={isDirty}
         hasUserForecast={!!prevForecastValue.forecast}
       />

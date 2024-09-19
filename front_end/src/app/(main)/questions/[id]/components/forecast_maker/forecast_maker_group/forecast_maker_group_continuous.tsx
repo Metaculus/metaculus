@@ -243,6 +243,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         options={groupOptions}
         onChange={setActiveTableOption}
         questions={questions}
+        showCP={!user || !user.hide_community_prediction}
       />
       {groupOptions.map((option) => {
         const dataset = getNumericForecastDataset(
@@ -332,6 +333,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             }
             communityQuartiles={activeGroupOption.communityQuartiles}
             withUserQuartiles={activeGroupOption.resolution === null}
+            withCommunityQuartiles={!user || !user.hide_community_prediction}
             isDirty={activeGroupOption.isDirty}
             hasUserForecast={
               !!prevForecastValuesMap[activeTableOption!].forecast

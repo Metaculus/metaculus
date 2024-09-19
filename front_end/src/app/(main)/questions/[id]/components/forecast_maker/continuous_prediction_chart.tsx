@@ -22,6 +22,7 @@ type Props = {
   graphType: ContinuousAreaGraphType;
   readOnly?: boolean;
   height?: number;
+  showCP?: boolean;
 };
 
 const ContinuousPredictionChart: FC<Props> = ({
@@ -30,6 +31,7 @@ const ContinuousPredictionChart: FC<Props> = ({
   graphType,
   readOnly = false,
   height = 300,
+  showCP = true,
 }) => {
   const t = useTranslations();
 
@@ -64,7 +66,7 @@ const ContinuousPredictionChart: FC<Props> = ({
 
   const data: ContinuousAreaGraphInput = useMemo(() => {
     const charts: ContinuousAreaGraphInput = [];
-    if (question.aggregations.recency_weighted.latest) {
+    if (showCP && question.aggregations.recency_weighted.latest) {
       charts.push({
         pmf: cdfToPmf(
           question.aggregations.recency_weighted.latest.forecast_values
@@ -121,14 +123,16 @@ const ContinuousPredictionChart: FC<Props> = ({
                 {")"}
               </span>
             )}
-            <span>
-              <span className="font-bold text-gray-900 dark:text-gray-900-dark">
-                {cursorDisplayData.yCommunityLabel}
+            {showCP && (
+              <span>
+                <span className="font-bold text-gray-900 dark:text-gray-900-dark">
+                  {cursorDisplayData.yCommunityLabel}
+                </span>
+                {" ("}
+                {t("community")}
+                {")"}
               </span>
-              {" ("}
-              {t("community")}
-              {")"}
-            </span>
+            )}
           </>
         )}
       </div>
