@@ -318,6 +318,11 @@ class AggregateForecast(models.Model):
     means = ArrayField(models.FloatField(), null=True)
     histogram = ArrayField(models.FloatField(), null=True, size=100)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["question", "method", "-start_time"]),
+        ]
+
     def __repr__(self):
         pv = self.get_prediction_values()
         if len(pv) > 64:

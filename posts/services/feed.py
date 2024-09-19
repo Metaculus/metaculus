@@ -210,8 +210,9 @@ def get_similar_posts(post: Post):
         f"get_similar_questions:v2:{post.id}",
         lambda: [
             p.pk
-            for p in get_posts_feed(similar_to_post_id=post.id, statuses=["open"])[:20]
+            for p in get_posts_feed(similar_to_post_id=post.id, statuses=["open"])[:8]
         ],
         # 24h
         timeout=3600 * 24,
+        version=2,
     )
