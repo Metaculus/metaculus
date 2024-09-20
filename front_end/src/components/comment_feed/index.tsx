@@ -77,7 +77,7 @@ type Props = {
   postData?: PostWithForecasts;
   postPermissions?: ProjectPermissions;
   profileId?: number;
-  rootCommentPagination?: boolean;
+  rootCommentStructure?: boolean;
 };
 
 function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
@@ -106,7 +106,7 @@ const CommentFeed: FC<Props> = ({
   postData,
   postPermissions,
   profileId,
-  rootCommentPagination = true,
+  rootCommentStructure = true,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -154,7 +154,7 @@ const CommentFeed: FC<Props> = ({
         sort: commentSort,
         limit: COMMENTS_PER_PAGE,
         offset: offset,
-        use_root_comments_pagination: rootCommentPagination,
+        use_root_comments_pagination: rootCommentStructure,
         focus_comment_id,
       });
       if ("errors" in response) {
@@ -164,7 +164,7 @@ const CommentFeed: FC<Props> = ({
 
         const sortedComments = parseCommentsArray(
           response.results as unknown as BECommentType[],
-          rootCommentPagination
+          rootCommentStructure
         );
         if (keepComments && offset > 0) {
           setComments((prevComments) => [...prevComments, ...sortedComments]);

@@ -130,7 +130,7 @@ export default async function Profile({
       )}
       {mode === "comments" && (
         <div className="flex flex-col rounded bg-white px-4 py-1 dark:bg-blue-900 md:px-6 md:py-2">
-          <CommentFeed profileId={profile.id} rootCommentPagination={false} />
+          <CommentFeed profileId={profile.id} rootCommentStructure={false} />
         </div>
       )}
     </main>
