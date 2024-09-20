@@ -9,7 +9,7 @@ from rest_framework.exceptions import ValidationError
 from notifications.constants import MailingTags
 from posts.models import PostUserSnapshot, PostSubscription, Notebook
 from posts.services.subscriptions import create_subscription_cp_change
-from posts.tasks import run_on_post_forecast_in_dramatiq
+from posts.tasks import run_on_post_forecast
 from projects.permissions import ObjectPermission
 from questions.constants import ResolutionType
 from questions.models import (
@@ -491,7 +491,7 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
 
     # Running forecast post triggers
     for post in posts:
-        run_on_post_forecast_in_dramatiq.send(post.id)
+        run_on_post_forecast.send(post.id)
 
 
 def get_recency_weighted_for_questions(

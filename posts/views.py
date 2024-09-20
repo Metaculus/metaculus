@@ -156,7 +156,6 @@ def post_detail_oldapi_view(request: Request, pk):
         current_user=request.user,
         with_cp=True,
         with_subscriptions=True,
-        with_nr_forecasters=True,
     )
 
     if not posts:
@@ -180,7 +179,6 @@ def post_detail(request: Request, pk):
         current_user=request.user,
         with_cp=True,
         with_subscriptions=True,
-        with_nr_forecasters=True,
     )
 
     if not posts:
@@ -291,9 +289,10 @@ def post_vote_api_view(request: Request, pk: int):
     if direction:
         Vote.objects.create(user=request.user, post=post, direction=direction)
 
-    return Response(
-        {"score": Post.objects.annotate_vote_score().get(pk=post.pk).vote_score}
-    )
+    # Update counters
+    vote_score = post.update_vote_score()
+
+    return Response({"score": vote_score})
 
 
 @api_view(["POST"])

@@ -1,6 +1,8 @@
 import logging
 
-from django.db.models import Q
+from django.db.models import Q, Count, F, Value
+from django.db.models.functions import Coalesce
+from sql_util.aggregates import SubqueryAggregate
 
 from posts.models import Post
 from posts.services.common import compute_post_sorting_divergence_and_update_snapshots
@@ -32,3 +34,12 @@ def post_migrate_calculate_divergence():
             print(f"Processed {idx + 1}/{posts_total} posts", end="\r")
 
     print("Finished calculate_divergence")
+
+
+def post_migrate_update_post_fields():
+    # Set total forecasters number
+    Post.objects.annotate(
+        forecasters_count_value=SubqueryAggregate(
+            "forecasts__author_id", aggregate=Count, distinct=True
+        )
+    ).update(forecasters_count=Coalesce(F("forecasters_count_value"), Value(0)))

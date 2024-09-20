@@ -1,8 +1,12 @@
+from django.db.models import Count, Value, F
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+from sql_util.aggregates import SubqueryAggregate
+
 from comments.models import Comment, CommentVote
 from migrator.utils import paginated_query
 from posts.models import Post
 from questions.models import Forecast
-from django.utils import timezone
 
 
 def create_comment_vote(vote_obj):
@@ -113,3 +117,10 @@ def migrate_comments():
     print("bulk creating...", end="\r")
     Comment.objects.bulk_create(comments)
     print("bulk creating... DONE")
+
+    # Update Post.comment_count
+    Post.objects.annotate(
+        comment_count_value=Coalesce(
+            SubqueryAggregate("comments", aggregate=Count), Value(0)
+        )
+    ).update(vote_score=F("comment_count_value"))

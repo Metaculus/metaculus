@@ -71,6 +71,7 @@ def create_comment(
 
     # Send related notifications
     if on_post:
+        on_post.update_comment_count()
         run_on_post_comment_create.send(obj.id)
 
     return obj

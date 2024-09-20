@@ -7,7 +7,6 @@ from django.db.models import (
     Sum,
     Subquery,
     OuterRef,
-    Count,
     Q,
     F,
     Max,
@@ -20,7 +19,6 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from pgvector.django import VectorField
-from sql_util.aggregates import SubqueryAggregate
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -144,13 +142,8 @@ class PostQuerySet(models.QuerySet):
         Annotate last forecast date for user on predicted questions
         """
 
-        return (
-            self.filter(snapshots__user_id=user_id)
-            .annotate_comment_count()
-            .annotate(
-                unread_comment_count=F("comment_count")
-                - F("snapshots__comments_count"),
-            )
+        return self.filter(snapshots__user_id=user_id).annotate(
+            unread_comment_count=F("comment_count") - F("snapshots__comments_count"),
         )
 
     def annotate_score(self, user_id: int, desc=True):
@@ -169,11 +162,6 @@ class PostQuerySet(models.QuerySet):
 
         return self.annotate(score=subquery)
 
-    def annotate_vote_score(self):
-        return self.annotate(
-            vote_score=SubqueryAggregate("votes__direction", aggregate=Sum)
-        )
-
     def annotate_user_vote(self, user: User):
         """
         Annotates queryset with the user's vote option
@@ -185,11 +173,6 @@ class PostQuerySet(models.QuerySet):
                     :1
                 ]
             ),
-        )
-
-    def annotate_comment_count(self):
-        return self.annotate(
-            comment_count=SubqueryAggregate("comments__id", aggregate=Count)
         )
 
     def annotate_divergence(self, user_id: int):
@@ -350,10 +333,8 @@ class Post(TimeStampedModel):
     forecasts: QuerySet["Forecast"]
 
     # Annotated fields
-    vote_score: int = 0
     user_vote = None
     user_permission: ObjectPermission = None
-    comment_count: int = 0
     user_last_forecasts_date = None
     divergence: int = None
 
@@ -560,6 +541,11 @@ class Post(TimeStampedModel):
     forecasts_count = models.PositiveIntegerField(
         default=0, editable=False, db_index=True
     )
+    forecasters_count = models.PositiveIntegerField(default=0, editable=False)
+    vote_score = models.IntegerField(default=0, db_index=True, editable=False)
+    comment_count = models.PositiveIntegerField(
+        default=0, db_index=True, editable=False
+    )
 
     # Indicates whether we triggered "handle_post_open" event
     # And guarantees idempotency of "on post open" evens
@@ -572,6 +558,22 @@ class Post(TimeStampedModel):
 
         self.forecasts_count = self.forecasts.count()
         self.save(update_fields=["forecasts_count"])
+
+    def update_forecasters_count(self):
+        self.forecasters_count = self.get_forecasters().count()
+        self.save(update_fields=["forecasters_count"])
+
+    def update_vote_score(self):
+        self.vote_score = self.get_votes_score()
+        self.save(update_fields=["vote_score"])
+
+        return self.vote_score
+
+    def update_comment_count(self):
+        self.comment_count = self.get_comment_count()
+        self.save(update_fields=["comment_count"])
+
+        return self.comment_count
 
     def __str__(self):
         return self.title
@@ -599,6 +601,12 @@ class Post(TimeStampedModel):
 
     def get_forecasters(self) -> QuerySet["User"]:
         return User.objects.filter(forecast__post=self).distinct("pk")
+
+    def get_votes_score(self) -> int:
+        return self.votes.aggregate(Sum("direction")).get("direction__sum") or 0
+
+    def get_comment_count(self) -> int:
+        return self.comments.count()
 
     def get_url_title(self):
         return self.url_title or self.title
