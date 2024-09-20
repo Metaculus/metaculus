@@ -21,6 +21,7 @@ import {
   getDisplayValue,
 } from "@/utils/charts";
 import { generateUserForecasts } from "@/utils/questions";
+
 import ChoicesLegend from "./choices_legend";
 import ChoicesTooltip from "./choices_tooltip";
 

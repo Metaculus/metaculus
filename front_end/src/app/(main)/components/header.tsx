@@ -6,11 +6,11 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import NavUserButton from "@/components/auth";
+import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 
 import MobileMenu from "./mobile_menu";
-import LanguageMenu from "@/components/language_menu";
 
 const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
   return (
@@ -102,6 +102,10 @@ const Header: FC = () => {
                 label={t("trackRecord")}
               />
               <LinkMenuItem href="/project/journal/" label={t("theJournal")} />
+              <LinkMenuItem
+                href="/aggregation-explorer"
+                label={t("aggregationExplorer")}
+              />
             </MenuItems>
           </Menu>
         </li>

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { FC, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
+import BinaryGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/binary_group_chart";
+import MultipleChoiceChartCard from "@/app/(main)/questions/[id]/components/detailed_question_card/multiple_choice_chart_card";
 import FanChart from "@/components/charts/fan_chart";
 import NumericChart from "@/components/charts/numeric_chart";
 import ConditionalTile from "@/components/conditional_tile";
@@ -19,8 +21,6 @@ import {
   getNumericChartTypeFromQuestion,
 } from "@/utils/charts";
 import { sortGroupPredictionOptions } from "@/utils/questions";
-import BinaryGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/binary_group_chart";
-import MultipleChoiceChartCard from "@/app/(main)/questions/[id]/components/detailed_question_card/multiple_choice_chart_card";
 
 type Props = {
   post: PostWithForecasts;
@@ -119,7 +119,7 @@ const ForecastCard: FC<Props> = ({
         case QuestionType.Date:
           return (
             <NumericChart
-              aggregations={question.aggregations}
+              aggregation={question.aggregations.recency_weighted}
               myForecasts={question.my_forecasts}
               resolution={question.resolution}
               resolveTime={question.actual_resolve_time}

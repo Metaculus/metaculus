@@ -38,6 +38,7 @@ export enum AggregationMethod {
   RecencyWeighted = "recency_weighted",
   Unweighted = "unweighted",
   SingleAggregation = "single_aggregation",
+  MetaculusPrediction = "metaculus_prediction",
 }
 
 export type Bounds = {
@@ -103,6 +104,7 @@ export type AggregateForecast = Forecast & {
   forecaster_count: number;
   means: number[] | null;
   histogram: number[] | null;
+  forecast_values: number[] | null;
 };
 
 export type AggregateForecastHistory = {
@@ -115,7 +117,15 @@ export type Aggregations = {
   recency_weighted: AggregateForecastHistory;
   unweighted?: AggregateForecastHistory;
   single_aggregation?: AggregateForecastHistory;
+  metaculus_prediction?: AggregateForecastHistory;
 };
+
+export enum AggregationMethod {
+  recency_weighted = "recency_weighted",
+  unweighted = "unweighted",
+  single_aggregation = "single_aggregation",
+  metaculus_prediction = "metaculus_prediction",
+}
 
 export type BaseForecast = {
   timestamps: number[];
@@ -209,3 +219,38 @@ export type PredictionInputMessage =
   | "predictionUnapprovedMessage"
   | "predictionClosedMessage"
   | null;
+
+export type AggregationQuestion = {
+  actual_close_time: string | null;
+  actual_resolve_time: string | null;
+  aggregations: Aggregations;
+  created_at: string;
+  description: string;
+  fine_print: string;
+  id: number;
+  label: string | null;
+  open_lower_bound: boolean | null;
+  open_time: string;
+  open_upper_bound: boolean | null;
+  options: string[] | null;
+  possibilities: {
+    format?: string;
+    high?: string;
+    low?: string;
+    type?: string;
+    scale?: {
+      max: number;
+      min: number;
+      deriv_ratio: number;
+    };
+  };
+  post_id: number;
+  resolution: string | null;
+  resolution_criteria: string;
+  resolution_set_time: string | null;
+  scaling: Scaling;
+  scheduled_close_time: string;
+  scheduled_resolve_time: string;
+  title: string;
+  type: QuestionType;
+};

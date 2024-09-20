@@ -1,5 +1,6 @@
 "use client";
 
+import { getUnixTime } from "date-fns";
 import { merge } from "lodash";
 import React, { FC, useEffect, useMemo, useState } from "react";
 import {
@@ -33,12 +34,12 @@ import {
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { Resolution } from "@/types/post";
-import { getUnixTime } from "date-fns";
 import {
   QuestionType,
   Aggregations,
   UserForecastHistory,
   Scaling,
+  AggregateForecastHistory,
 } from "@/types/question";
 import {
   generateNumericDomain,
@@ -51,7 +52,7 @@ import {
 import XTickLabel from "./primitives/x_tick_label";
 
 type Props = {
-  aggregations: Aggregations;
+  aggregation: AggregateForecastHistory;
   myForecasts?: UserForecastHistory;
   defaultZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
@@ -68,7 +69,7 @@ type Props = {
 };
 
 const NumericChart: FC<Props> = ({
-  aggregations,
+  aggregation,
   myForecasts,
   defaultZoom = TimelineChartZoomOption.All,
   withZoomPicker = false,
@@ -104,7 +105,7 @@ const NumericChart: FC<Props> = ({
         actualCloseTime,
         scaling,
         height,
-        aggregations,
+        aggregation,
         myForecasts,
         width: chartWidth,
         zoom,
@@ -113,7 +114,7 @@ const NumericChart: FC<Props> = ({
       height,
       chartWidth,
       zoom,
-      aggregations,
+      aggregation,
       actualCloseTime,
       myForecasts,
       questionType,
@@ -154,12 +155,11 @@ const NumericChart: FC<Props> = ({
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
-          const closestForecast = aggregations.recency_weighted.history.reduce(
-            (prev, curr) =>
-              Math.abs(curr.start_time - value) <
-              Math.abs(prev.start_time - value)
-                ? curr
-                : prev
+          const closestForecast = aggregation.history.reduce((prev, curr) =>
+            Math.abs(curr.start_time - value) <
+            Math.abs(prev.start_time - value)
+              ? curr
+              : prev
           );
 
           onCursorChange(closestForecast.start_time);
@@ -278,7 +278,7 @@ const NumericChart: FC<Props> = ({
   );
 };
 
-type ChartData = BaseChartData & {
+export type ChartData = BaseChartData & {
   line: Line;
   area: Area;
   points: Line;
@@ -291,7 +291,7 @@ function buildChartData({
   actualCloseTime,
   scaling,
   height,
-  aggregations,
+  aggregation,
   myForecasts,
   width,
   zoom,
@@ -300,20 +300,19 @@ function buildChartData({
   actualCloseTime: number | null;
   scaling: Scaling;
   height: number;
-  aggregations: Aggregations;
+  aggregation: AggregateForecastHistory;
   myForecasts?: UserForecastHistory;
   width: number;
   zoom: TimelineChartZoomOption;
 }): ChartData {
-  const aggregation = aggregations.recency_weighted;
   const line = aggregation.history.map((forecast) => ({
     x: forecast.start_time,
-    y: forecast.centers![0],
+    y: forecast.centers?.[0] ?? forecast.forecast_values?.[1] ?? 0,
   }));
   const area = aggregation.history.map((forecast) => ({
     x: forecast.start_time,
-    y0: forecast.interval_lower_bounds![0],
-    y: forecast.interval_upper_bounds![0],
+    y0: forecast.interval_lower_bounds?.[0] ?? 0,
+    y: forecast.interval_upper_bounds?.[0] ?? 0,
   }));
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
@@ -321,12 +320,12 @@ function buildChartData({
   if (aggregation.latest) {
     line.push({
       x: latestTimestamp,
-      y: aggregation.latest.centers![0],
+      y: aggregation.latest.centers?.[0] ?? 0,
     });
     area.push({
       x: latestTimestamp,
-      y0: aggregation.latest.interval_lower_bounds![0],
-      y: aggregation.latest.interval_upper_bounds![0],
+      y0: aggregation.latest.interval_lower_bounds?.[0] ?? 0,
+      y: aggregation.latest.interval_upper_bounds?.[0] ?? 0,
     });
   }
 
@@ -337,7 +336,7 @@ function buildChartData({
       y:
         questionType === "binary"
           ? forecast.forecast_values[1]
-          : forecast.centers![0],
+          : forecast.centers?.[0] ?? 0,
       y1:
         questionType === "binary"
           ? undefined

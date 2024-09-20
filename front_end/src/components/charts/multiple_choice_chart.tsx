@@ -63,6 +63,7 @@ type Props = {
   questionType?: QuestionType;
   scaling?: Scaling;
   isClosed?: boolean;
+  aggregation?: boolean;
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -80,6 +81,7 @@ const MultipleChoiceChart: FC<Props> = ({
   questionType,
   scaling,
   isClosed,
+  aggregation,
 }) => {
   const t = useTranslations();
   const {
@@ -109,10 +111,10 @@ const MultipleChoiceChart: FC<Props> = ({
         questionType,
         scaling,
         actualCloseTime,
+        aggregation,
       }),
     [timestamps, choiceItems, chartWidth, chartHeight, zoom, userForecasts]
   );
-
   const isHighlightActive = useMemo(
     () => Object.values(choiceItems).some(({ highlighted }) => highlighted),
     [choiceItems]
@@ -326,6 +328,7 @@ function buildChartData({
   zoom,
   questionType,
   scaling,
+  aggregation,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -335,11 +338,14 @@ function buildChartData({
   zoom: TimelineChartZoomOption;
   questionType?: QuestionType;
   scaling?: Scaling;
+  aggregation?: boolean;
 }): ChartData {
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
     : Date.now() / 1000;
-  const xDomain = generateNumericDomain([...timestamps, latestTimestamp], zoom);
+  const xDomain = aggregation
+    ? generateNumericDomain([...timestamps], zoom)
+    : generateNumericDomain([...timestamps, latestTimestamp], zoom);
 
   const graphs: ChoiceGraph[] = choiceItems.map(
     ({
