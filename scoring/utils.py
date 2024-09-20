@@ -3,8 +3,9 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 import numpy as np
-from django.db.models import QuerySet, Q
+from django.db.models import QuerySet, Q, Sum
 from django.utils import timezone
+from sql_util.aggregates import SubqueryAggregate
 
 from comments.models import Comment
 from posts.models import Post
@@ -422,32 +423,45 @@ def get_contributions(
         public_posts = Post.objects.filter(
             Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
         )
-        comments = Comment.objects.filter(
-            on_post__in=public_posts,
-            author=user,
-            created_at__lte=leaderboard.end_time,
-            comment_votes__isnull=False,
-        ).distinct()
+        comments = (
+            Comment.objects.filter(
+                on_post__in=public_posts,
+                author=user,
+                created_at__lte=leaderboard.end_time,
+                comment_votes__isnull=False,
+            )
+            .annotate(
+                vote_score=SubqueryAggregate(
+                    "comment_votes__direction",
+                    filter=Q(
+                        created_at__gte=leaderboard.start_time,
+                        created_at__lte=leaderboard.end_time,
+                    ),
+                    aggregate=Sum,
+                )
+            )
+            .select_related("on_post")
+            .distinct("pk")
+        )
+
         contributions: list[Contribution] = []
         for comment in comments:
-            votes = comment.comment_votes.filter(
-                created_at__gte=leaderboard.start_time,
-                created_at__lte=leaderboard.end_time,
-            )
-            score = sum([vote.direction for vote in votes])
             contribution = Contribution(
-                score=score,
+                score=comment.vote_score or 0,
                 post=comment.on_post,
                 comment=comment,
             )
+
             contributions.append(contribution)
         h_index = decimal_h_index([c.score for c in contributions])
         contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
         min_score = contributions[int(h_index)].score
         return [c for c in contributions if c.score >= min_score]
+
     questions = leaderboard.get_questions()
     if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
         forecaster_ids_for_post: dict[Post, set[int]] = {}
+
         for question in questions:
             post: Post = question.get_post()
             if post.author != user:
