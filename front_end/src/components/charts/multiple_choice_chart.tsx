@@ -115,6 +115,8 @@ const MultipleChoiceChart: FC<Props> = ({
       }),
     [timestamps, choiceItems, chartWidth, chartHeight, zoom, userForecasts]
   );
+  // console.log(xScale, yScale, graphs, xDomain);
+  console.log(graphs);
   const isHighlightActive = useMemo(
     () => Object.values(choiceItems).some(({ highlighted }) => highlighted),
     [choiceItems]

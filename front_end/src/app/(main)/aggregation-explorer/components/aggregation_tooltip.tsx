@@ -1,6 +1,5 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
@@ -24,7 +23,6 @@ const AggregationTooltip: FC<Props> = ({
   onChoiceHighlight,
   onTabChange,
 }) => {
-  const t = useTranslations();
   const { color, choice, active } = choiceItem;
   return (
     <div className="flex w-[300px] border-black bg-gray-0 p-5 dark:bg-gray-0-dark">

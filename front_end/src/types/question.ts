@@ -120,6 +120,12 @@ export type Aggregations = {
   metaculus_prediction?: AggregateForecastHistory;
 };
 
+export type AggregationMethods =
+  | "recency_weighted"
+  | "unweighted"
+  | "single_aggregation"
+  | "metaculus_prediction";
+
 export type BaseForecast = {
   timestamps: number[];
   nr_forecasters: number[];

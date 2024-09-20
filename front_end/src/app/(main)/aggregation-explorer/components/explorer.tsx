@@ -14,19 +14,34 @@ import Checkbox from "@/components/ui/checkbox";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { AggregationExplorerParams } from "@/services/aggregation_explorer";
 import { SearchParams } from "@/types/navigation";
-import { AggregationQuestion, Aggregations } from "@/types/question";
+import { AggregationQuestion, AggregationMethods } from "@/types/question";
 
 import AggregationsTab from "./aggregation_tab";
 import AggregationsDrawer from "./aggregations_drawer";
+import AggregationMethodsPicker, {
+  AggregationMethodsArray,
+} from "./aggregations_picker";
 import { fetchAggregations } from "../actions";
 
 type Props = { searchParams: SearchParams };
 
 const Explorer: FC<Props> = ({ searchParams }) => {
+  const { include_bots, question_id, aggregation_methods } = searchParams;
   const [data, setData] = useState<AggregationQuestion | null>(null);
-  const [activeTab, setActiveTab] = useState<keyof Aggregations | null>(null);
-  const [questionId, setQuestionId] = useState<string>("");
-  const [includeBots, setIncludeBots] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<AggregationMethods | null>(null);
+  const [questionId, setQuestionId] = useState<string>(
+    question_id?.toString() || ""
+  );
+  const [includeBots, setIncludeBots] = useState<boolean>(
+    include_bots === "true"
+  );
+  const [aggregationMethods, setAggregationMethods] = useState<
+    AggregationMethods[]
+  >(
+    typeof aggregation_methods === "string"
+      ? ([...aggregation_methods?.split(",")] as [AggregationMethods])
+      : ["recency_weighted"]
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,24 +58,25 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       fetchData({
         questionId: question_id as string,
         includeBots: include_bots === "true",
-        aggregationMethods: Array.isArray(aggregation_methods)
-          ? [...aggregation_methods]
-          : aggregation_methods
-            ? [aggregation_methods]
-            : undefined,
+        aggregationMethods: aggregation_methods as string,
       });
     }
   }, [searchParams]);
 
-  // Handle form submission
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    // Construct the query params
     const params = new URLSearchParams({
       question_id: questionId,
       include_bots: includeBots.toString(),
     });
+
+    if (
+      !!aggregationMethods.length &&
+      aggregationMethods.length < AggregationMethodsArray.length
+    ) {
+      params.append("aggregation_methods", aggregationMethods.join(","));
+    }
 
     // Update the URL without reloading the page
     window.history.pushState(
@@ -68,12 +84,8 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       "",
       `/aggregation-explorer?${params.toString()}`
     );
-
-    // Trigger data fetch with updated parameters
-    fetchData({ questionId, includeBots });
   };
 
-  // Fetch data function (updated to handle async and state)
   const fetchData = async ({
     questionId,
     includeBots,
@@ -88,6 +100,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         aggregationMethods,
       });
       setData(response);
+      console.log(response);
     } catch (err) {
       setError("Failed to fetch data. Please try again.");
     } finally {
@@ -151,7 +164,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
               type="search"
               value={questionId}
               onChange={(e) => setQuestionId(e.target.value)}
-              className="mx-auto block size-full rounded-full border border-blue-500 bg-gray-0 py-2 pl-3 pr-16 font-medium placeholder:text-gray-700 dark:border-blue-500 dark:bg-gray-0-dark placeholder:dark:text-gray-700-dark"
+              className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-3 pr-10 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
             />
             <span className="absolute inset-y-0 right-0 inline-flex h-full justify-center">
               {!!questionId && (
@@ -165,17 +178,27 @@ const Explorer: FC<Props> = ({ searchParams }) => {
                   <FontAwesomeIcon icon={faXmark} />
                 </Button>
               )}
-              <Button variant="text" type="submit" aria-label="Search">
-                <FontAwesomeIcon icon={faMagnifyingGlass} />
-              </Button>
             </span>
           </div>
           <Checkbox
             checked={includeBots}
             onChange={(checked) => setIncludeBots(checked)}
             label="Include bots"
-            className="ml-4 mt-4"
+            className="m-4 mr-0"
           />
+          <AggregationMethodsPicker
+            methods={aggregationMethods}
+            onChange={setAggregationMethods}
+          />
+          <Button
+            variant="primary"
+            type="submit"
+            aria-label="Search"
+            className="m-auto mt-4 w-full !rounded border-gray-500 bg-blue-200 dark:!bg-blue-700 dark:text-white"
+          >
+            Search
+            <FontAwesomeIcon icon={faMagnifyingGlass} />
+          </Button>
         </div>
       </form>
 

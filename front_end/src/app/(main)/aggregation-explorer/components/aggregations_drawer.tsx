@@ -41,6 +41,9 @@ const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
   const [cursorTimestamp, _tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
 
+  console.log(choiceItems);
+  // console.log(timestamps);
+
   const handleChoiceChange = useCallback((choice: string, checked: boolean) => {
     setChoiceItems((prev) =>
       prev.map((item) =>
@@ -73,7 +76,7 @@ const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
         aggregation
         withZoomPicker
         questionType={type}
-        scaling={scaling}
+        scaling={type === QuestionType.Binary ? undefined : scaling}
       />
       <div className="my-5 flex flex-wrap justify-between space-x-5">
         {choiceItems.map((choiceItem, idx) => {

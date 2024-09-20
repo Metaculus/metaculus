@@ -4,7 +4,7 @@ import { get } from "@/utils/fetch";
 export type AggregationExplorerParams = {
   questionId: number | string;
   includeBots?: boolean;
-  aggregationMethods?: string[];
+  aggregationMethods?: string;
 };
 
 class AggregationExplorerAPI {
@@ -12,10 +12,9 @@ class AggregationExplorerAPI {
     const queryParams: Record<string, string> = {
       question_id: params.questionId.toString(),
       include_bots: params.includeBots?.toString() || "false",
+      aggregation_methods: params.aggregationMethods || ''
     };
-    if (params.aggregationMethods) {
-      queryParams.aggregation_methods = params.aggregationMethods.join(",");
-    }
+
     const queryString = new URLSearchParams(queryParams).toString();
 
     // Adjust the endpoint if necessary
