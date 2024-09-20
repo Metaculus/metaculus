@@ -48,12 +48,13 @@ from questions.serializers import (
 )
 from utils.files import UserUploadedImage, generate_filename
 from utils.frontend import build_question_embed_url
+from utils.paginator import CountlessLimitOffsetPagination
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def posts_list_api_view(request):
-    paginator = LimitOffsetPagination()
+    paginator = CountlessLimitOffsetPagination()
     qs = Post.objects.all()
 
     # Extra params
