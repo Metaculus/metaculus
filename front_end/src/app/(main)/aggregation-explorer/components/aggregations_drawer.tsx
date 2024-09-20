@@ -1,29 +1,31 @@
 "use client";
 
 import { FC, useCallback, useState, memo, useMemo } from "react";
+
+import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
+import useTimestampCursor from "@/hooks/use_timestamp_cursor";
+import { TimelineChartZoomOption } from "@/types/charts";
 import {
   AggregationQuestion,
   Aggregations,
   QuestionType,
   Scaling,
 } from "@/types/question";
-import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
-import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
-import { TimelineChartZoomOption } from "@/types/charts";
-import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import {
   displayValue,
   findPreviousTimestamp,
   scaleInternalLocation,
 } from "@/utils/charts";
-import AggregationTooltip from "../components/aggregation_tooltip";
+
+import AggregationTooltip from "./aggregation_tooltip";
 
 type Props = {
   questionData: AggregationQuestion;
   onTabChange: (activeTab: keyof Aggregations) => void;
 };
 
-const AggregationsDrawer: FC<Props> = memo(({ questionData, onTabChange }) => {
+const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
   const { aggregations, actual_close_time, scaling, type } = questionData;
   const timestamps = getAggregationTimestamps(aggregations);
   const actualCloseTime = actual_close_time
@@ -35,7 +37,6 @@ const AggregationsDrawer: FC<Props> = memo(({ questionData, onTabChange }) => {
   const [cursorTimestamp, tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
 
-  // console.log(timestamps);
   console.log(choiceItems);
 
   const handleChoiceChange = useCallback((choice: string, checked: boolean) => {
@@ -59,15 +60,6 @@ const AggregationsDrawer: FC<Props> = memo(({ questionData, onTabChange }) => {
     []
   );
 
-  // const toggleSelectAll = useCallback((isAllSelected: boolean) => {
-  //   if (isAllSelected) {
-  //     setChoiceItems((prev) =>
-  //       prev.map((item) => ({ ...item, active: false, highlighted: false }))
-  //     );
-  //   } else {
-  //     setChoiceItems((prev) => prev.map((item) => ({ ...item, active: true })));
-  //   }
-  // }, []);
   return (
     <>
       <MultipleChoiceChart
@@ -103,9 +95,9 @@ const AggregationsDrawer: FC<Props> = memo(({ questionData, onTabChange }) => {
       </div>
     </>
   );
-});
+};
 
-export default AggregationsDrawer;
+export default memo(AggregationsDrawer);
 
 const getAggregationTimestamps = (aggregations: Aggregations) => {
   // Find populated aggregation and map timestamps

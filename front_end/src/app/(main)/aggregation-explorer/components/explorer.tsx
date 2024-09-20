@@ -5,18 +5,20 @@ import {
   faXmark,
   faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
-import { FC, useEffect, useState } from "react";
-import { fetchAggregations } from "../actions";
-import { SearchParams } from "@/types/navigation";
-import { Input } from "@headlessui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Input } from "@headlessui/react";
+import { FC, useEffect, useState } from "react";
+
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { AggregationExplorerParams } from "@/services/aggregation_explorer";
-import AggregationsDrawer from "./aggregations";
+import { SearchParams } from "@/types/navigation";
 import { AggregationQuestion, Aggregations } from "@/types/question";
+
 import AggregationsTab from "./aggregation_tab";
+import AggregationsDrawer from "./aggregations_drawer";
+import { fetchAggregations } from "../actions";
 
 type Props = { searchParams: SearchParams };
 
@@ -68,7 +70,6 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       "",
       `/aggregation-explorer?${params.toString()}`
     );
-    // router.push(`/aggregation-explorer?${params.toString()}`);
 
     // Trigger data fetch with updated parameters
     fetchData({ questionId, includeBots });

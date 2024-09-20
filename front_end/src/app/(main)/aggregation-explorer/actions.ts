@@ -12,7 +12,7 @@ export async function fetchAggregations({
   const response = await AggregationExplorerAPI.getAggregations({
     questionId,
     includeBots,
-    aggregationMethods
+    aggregationMethods,
   });
   return response;
 }

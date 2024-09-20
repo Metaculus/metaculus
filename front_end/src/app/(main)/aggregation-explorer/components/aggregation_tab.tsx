@@ -1,42 +1,27 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { FC, useCallback, useState, memo, useMemo } from "react";
+
 import {
   AggregationQuestion,
   Aggregations,
   QuestionType,
-  Scaling,
 } from "@/types/question";
-import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
-import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
-import { Line, Scale, TimelineChartZoomOption } from "@/types/charts";
-import useTimestampCursor from "@/hooks/use_timestamp_cursor";
-import {
-  displayValue,
-  findPreviousTimestamp,
-  generateNumericDomain,
-  generateTicksY,
-  generateTimestampXScale,
-  getDisplayValue,
-  scaleInternalLocation,
-} from "@/utils/charts";
-import AggregationTooltip from "./aggregation_tooltip";
-import DetailsQuestionCardErrorBoundary from "../../questions/[id]/components/detailed_question_card/error_boundary";
-import { ChartData } from "@/components/charts/numeric_chart";
-import { Tuple } from "victory";
-import NumericAggregationChart from "./numeric_aggregations_chart";
-import Histogram from "@/components/charts/histogram";
-import classNames from "classnames";
-import CursorDetailItem from "../../questions/[id]/components/detailed_question_card/numeric_cursor_item";
-import { useTranslations } from "next-intl";
+import { getDisplayValue } from "@/utils/charts";
+
 import ContinuousAggregationChart from "./continuous_aggregations_chart";
+import HistogramDrawer from "./histogram_drawer";
+import NumericAggregationChart from "./numeric_aggregations_chart";
+import DetailsQuestionCardErrorBoundary from "../../questions/[id]/components/detailed_question_card/error_boundary";
+import CursorDetailItem from "../../questions/[id]/components/detailed_question_card/numeric_cursor_item";
 
 type Props = {
   questionData: AggregationQuestion;
   activeTab: keyof Aggregations;
 };
 
-const AggregationsTab: FC<Props> = memo(({ questionData, activeTab }) => {
+const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
   const t = useTranslations();
   const {
     aggregations,
@@ -45,12 +30,7 @@ const AggregationsTab: FC<Props> = memo(({ questionData, activeTab }) => {
     type: qType,
     resolution,
   } = questionData;
-  const activeAggregation = aggregations[activeTab];
-  if (!activeAggregation) {
-    return null;
-  } else if (!activeAggregation.history.length) {
-    return <p>Aggregation data is empty!</p>;
-  }
+  const activeAggregation = aggregations[activeTab]!;
 
   const actualCloseTime = actual_close_time
     ? new Date(actual_close_time).getTime()
@@ -58,7 +38,11 @@ const AggregationsTab: FC<Props> = memo(({ questionData, activeTab }) => {
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(
     activeAggregation.history[activeAggregation.history.length - 1].start_time
   );
-  console.log(cursorTimestamp);
+
+  const [selectedTimestamp, setSelectedTimestamp] = useState(
+    activeAggregation.history[activeAggregation.history.length - 1].start_time
+  );
+
   const cursorData = useMemo(() => {
     const index = activeAggregation.history.findIndex(
       (f) => f.start_time === cursorTimestamp
@@ -81,7 +65,7 @@ const AggregationsTab: FC<Props> = memo(({ questionData, activeTab }) => {
   const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);
   }, []);
-
+  console.log(questionData);
   switch (qType) {
     case QuestionType.Binary:
       return (
@@ -93,7 +77,9 @@ const AggregationsTab: FC<Props> = memo(({ questionData, activeTab }) => {
               actualCloseTime={actualCloseTime}
               scaling={scaling}
               resolution={resolution}
+              cursorTimestamp={cursorTimestamp}
               onCursorChange={handleCursorChange}
+              onSelectTimestamp={setSelectedTimestamp}
             />
             <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
               <CursorDetailItem
@@ -108,12 +94,11 @@ const AggregationsTab: FC<Props> = memo(({ questionData, activeTab }) => {
             </div>
           </DetailsQuestionCardErrorBoundary>
           {/* check for histogram data in response */}
-          {/* <Histogram
-            histogramData={histogramData}
-            median={median}
-            mean={mean}
-            color={"green"}
-          /> */}
+          <HistogramDrawer
+            questionData={questionData}
+            activeTab={activeTab}
+            selectedTimestamp={selectedTimestamp}
+          />
         </>
       );
     case QuestionType.Numeric:
@@ -128,6 +113,8 @@ const AggregationsTab: FC<Props> = memo(({ questionData, activeTab }) => {
               scaling={scaling}
               resolution={resolution}
               onCursorChange={handleCursorChange}
+              cursorTimestamp={cursorTimestamp}
+              onSelectTimestamp={setSelectedTimestamp}
             />
             <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
               <CursorDetailItem
@@ -141,8 +128,9 @@ const AggregationsTab: FC<Props> = memo(({ questionData, activeTab }) => {
               />
             </div>
           </DetailsQuestionCardErrorBoundary>
-          
+
           <ContinuousAggregationChart
+            selectedTimestamp={selectedTimestamp as number}
             questionData={questionData}
             activeTab={activeTab}
           />
@@ -151,19 +139,6 @@ const AggregationsTab: FC<Props> = memo(({ questionData, activeTab }) => {
     default:
       return <div>Unsupported question type!</div>;
   }
-});
-
-export default AggregationsTab;
-
-const getAggregationTimestamps = (aggregations: Aggregations) => {
-  // Find populated aggregation and map timestamps
-  for (const key in aggregations) {
-    const aggregationKey = key as keyof Aggregations;
-    const aggregation = aggregations[aggregationKey];
-
-    if (aggregation?.history && !!aggregation.history.length) {
-      return aggregation.history.map((forecast) => forecast.start_time);
-    }
-  }
-  return [];
 };
+
+export default memo(AggregationsTab);

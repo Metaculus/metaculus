@@ -1,28 +1,7 @@
 "use client";
 
-import { FC, useCallback, useState, memo, useMemo, useEffect } from "react";
-import {
-  AggregateForecastHistory,
-  AggregationQuestion,
-  Aggregations,
-  QuestionType,
-  Scaling,
-} from "@/types/question";
-import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
-import { Line, Scale, TimelineChartZoomOption } from "@/types/charts";
-import {
-  displayValue,
-  findPreviousTimestamp,
-  generateNumericDomain,
-  generateTicksY,
-  generateTimestampXScale,
-  getDisplayValue,
-  scaleInternalLocation,
-} from "@/utils/charts";
-import {
-  ChartData,
-  getResolutionData,
-} from "@/components/charts/numeric_chart";
+import { getUnixTime } from "date-fns";
+import { FC, useState, useMemo, useEffect } from "react";
 import {
   CursorCoordinatesPropType,
   LineSegment,
@@ -36,15 +15,32 @@ import {
   VictoryLine,
   VictoryScatter,
 } from "victory";
-import XTickLabel from "@/components/charts/primitives/x_tick_label";
+
+import {
+  ChartData,
+  getResolutionData,
+} from "@/components/charts/numeric_chart";
 import ChartContainer from "@/components/charts/primitives/chart_container";
 import ChartCursorLabel from "@/components/charts/primitives/chart_cursor_label";
-import usePrevious from "@/hooks/use_previous";
+import XTickLabel from "@/components/charts/primitives/x_tick_label";
+import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import useContainerSize from "@/hooks/use_container_size";
+import usePrevious from "@/hooks/use_previous";
+import { Line, Scale, TimelineChartZoomOption } from "@/types/charts";
 import { Resolution } from "@/types/post";
-import { darkTheme, lightTheme } from "@/constants/chart_theme";
-import { getUnixTime } from "date-fns";
+import {
+  AggregateForecastHistory,
+  QuestionType,
+  Scaling,
+} from "@/types/question";
+import {
+  generateNumericDomain,
+  generateTicksY,
+  generateTimestampXScale,
+  getDisplayValue,
+} from "@/utils/charts";
 
 type Props = {
   aggregationData: AggregateForecastHistory;
@@ -52,8 +48,10 @@ type Props = {
   withZoomPicker?: boolean;
   yLabel?: string;
   height?: number;
+  cursorTimestamp?: number | null;
   onCursorChange?: (value: number | null) => void;
   onChartReady?: () => void;
+  onSelectTimestamp: (value: number) => void;
   questionType: QuestionType;
   actualCloseTime: number | null;
   scaling: Scaling;
@@ -65,7 +63,9 @@ const NumericAggregationChart: FC<Props> = ({
   aggregationData,
   defaultZoom = TimelineChartZoomOption.All,
   withZoomPicker = false,
+  cursorTimestamp,
   onCursorChange,
+  onSelectTimestamp,
   onChartReady,
   questionType,
   actualCloseTime,
@@ -131,7 +131,6 @@ const NumericAggregationChart: FC<Props> = ({
       }
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
-        console.log(value)
         if (typeof value === "number" && onCursorChange) {
           const closestForecast = aggregationData.history.reduce(
             (prev, curr) =>
@@ -140,7 +139,6 @@ const NumericAggregationChart: FC<Props> = ({
                 ? curr
                 : prev
           );
-
           onCursorChange(closestForecast.start_time);
         }
       }}
@@ -178,6 +176,9 @@ const NumericAggregationChart: FC<Props> = ({
                 onMouseLeave: () => {
                   if (!onCursorChange) return;
                   onCursorChange(defaultCursor);
+                },
+                onClick: () => {
+                  onSelectTimestamp(cursorTimestamp ? cursorTimestamp : 0);
                 },
               },
             },

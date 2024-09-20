@@ -115,7 +115,6 @@ const MultipleChoiceChart: FC<Props> = ({
       }),
     [timestamps, choiceItems, chartWidth, chartHeight, zoom, userForecasts]
   );
-  console.log(yScale);
   const isHighlightActive = useMemo(
     () => Object.values(choiceItems).some(({ highlighted }) => highlighted),
     [choiceItems]
@@ -341,7 +340,6 @@ function buildChartData({
   scaling?: Scaling;
   aggregation?: boolean;
 }): ChartData {
-  console.log(questionType);
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
     : Date.now() / 1000;
@@ -428,7 +426,6 @@ function buildChartData({
   );
   let yScale = generatePercentageYScale(height);
   if (!!scaling && !!questionType) {
-    console.log()
     const { ticks, majorTicks } = generateTicksY(
       height,
       [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],

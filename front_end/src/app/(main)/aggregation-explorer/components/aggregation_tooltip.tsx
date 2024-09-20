@@ -1,12 +1,13 @@
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
-import { useTranslations } from "next-intl";
-import ChoiceCheckbox from "../../questions/[id]/components/choices_legend/choice_checkbox";
 import Button from "@/components/ui/button";
+import { ChoiceItem } from "@/types/choices";
 import { Aggregations } from "@/types/question";
+
+import ChoiceCheckbox from "../../questions/[id]/components/choices_legend/choice_checkbox";
 
 type Props = {
   choiceItem: ChoiceItem;

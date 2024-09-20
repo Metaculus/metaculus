@@ -1,4 +1,5 @@
 import { SearchParams } from "@/types/navigation";
+
 import Explorer from "./components/explorer";
 
 export default function AggregationExplorer({
