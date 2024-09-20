@@ -36,12 +36,13 @@ class NotebookSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class PostSerializer(serializers.ModelSerializer):
+class PostReadSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     open_time = serializers.SerializerMethodField()
     coauthors = serializers.SerializerMethodField()
+    nr_forecasters = serializers.IntegerField(source="forecasters_count")
 
     class Meta:
         model = Post
@@ -64,6 +65,7 @@ class PostSerializer(serializers.ModelSerializer):
             "scheduled_close_time",
             "scheduled_resolve_time",
             "open_time",
+            "nr_forecasters",
         )
 
     def get_projects(self, obj: Post):
@@ -298,7 +300,7 @@ def serialize_post(
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
     )
-    serialized_data = PostSerializer(post).data
+    serialized_data = PostReadSerializer(post).data
 
     if post.question:
         serialized_data["question"] = serialize_question(
@@ -365,9 +367,6 @@ def serialize_post(
             }
         )
 
-    if with_nr_forecasters:
-        serialized_data["nr_forecasters"] = post.get_forecasters().count()
-
     return serialized_data
 
 
@@ -376,7 +375,6 @@ def serialize_post_many(
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
-    with_nr_forecasters: bool = False,
     group_cutoff: int = None,
 ) -> list[dict]:
     current_user = (
@@ -387,10 +385,8 @@ def serialize_post_many(
 
     qs = (
         qs.annotate_user_permission(user=current_user)
-        .annotate_vote_score()
         .prefetch_projects()
         .prefetch_questions()
-        .annotate_comment_count()
         .select_related("author", "notebook")
         .prefetch_related("coauthors")
     )
@@ -426,7 +422,6 @@ def serialize_post_many(
             with_cp=with_cp,
             current_user=current_user,
             with_subscriptions=with_subscriptions,
-            with_nr_forecasters=with_nr_forecasters,
             aggregate_forecasts={
                 q: v
                 for q, v in aggregate_forecasts.items()

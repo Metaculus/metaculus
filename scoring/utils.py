@@ -1,10 +1,10 @@
 from collections import defaultdict
 from dataclasses import dataclass
+from decimal import Decimal
 
 import numpy as np
 from django.db.models import QuerySet, Q
 from django.utils import timezone
-from decimal import Decimal
 
 from comments.models import Comment
 from posts.models import Post
@@ -489,25 +489,27 @@ def get_contributions(
         user=user,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
+
     if leaderboard.finalize_time:
         calculated_scores = calculated_scores.filter(
             question__scheduled_close_time__lte=leaderboard.finalize_time
-        )
+        ).prefetch_related("question")
         archived_scores = archived_scores.filter(
             question__scheduled_close_time__lte=leaderboard.finalize_time
-        )
+        ).prefetch_related("question")
     scores = list(archived_scores)
+
+    # Create a set of (question_id, aggregation_method) pairs from archived_scores
+    archived_pairs = {
+        (archived_score.question_id, archived_score.aggregation_method)
+        for archived_score in archived_scores
+    }
+
+    # Iterate over calculated_scores and append scores not in archived_pairs
     for score in calculated_scores:
-        found = False
-        for archived_score in archived_scores:
-            if (
-                score.question == archived_score.question
-                and score.aggregation_method == archived_score.aggregation_method
-            ):
-                found = True
-                break
-        if not found:
+        if (score.question_id, score.aggregation_method) not in archived_pairs:
             scores.append(score)
+
     if "global" in leaderboard.score_type:
         # There are so many questions in global leaderboards that we don't
         # need to make unpopulated contributions for questions that have not

@@ -17,14 +17,12 @@ export type PostsFeedType = "posts" | "news";
 
 type Props = {
   initialQuestions: PostWithForecasts[];
-  totalCount: number;
   filters: PostsParams;
   type?: PostsFeedType;
 };
 
 const PaginatedPostsFeed: FC<Props> = ({
   initialQuestions,
-  totalCount,
   filters,
   type = "posts",
 }) => {
@@ -34,7 +32,7 @@ const PaginatedPostsFeed: FC<Props> = ({
     useState<PostWithForecasts[]>(initialQuestions);
   const [offset, setOffset] = useState(POSTS_PER_PAGE);
   const [hasMoreData, setHasMoreData] = useState(
-    initialQuestions.length < totalCount
+    initialQuestions.length >= POSTS_PER_PAGE
   );
   const [isLoading, setIsLoading] = useState(false);
 
@@ -42,11 +40,13 @@ const PaginatedPostsFeed: FC<Props> = ({
   const loadMorePosts = async () => {
     if (hasMoreData) {
       setIsLoading(true);
-      const newPosts = await fetchMorePosts(filters, offset, POSTS_PER_PAGE);
+      const { newPosts, hasNextPage } = await fetchMorePosts(
+        filters,
+        offset,
+        POSTS_PER_PAGE
+      );
 
-      if (newPosts.length < POSTS_PER_PAGE) {
-        setHasMoreData(false);
-      }
+      if (!hasNextPage) setHasMoreData(false);
 
       setPaginatedPosts((prevPosts) => [...prevPosts, ...newPosts]);
       setOffset((prevOffset) => prevOffset + POSTS_PER_PAGE);

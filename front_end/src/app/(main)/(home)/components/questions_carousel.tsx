@@ -23,14 +23,14 @@ const QuestionCarousel: FC<Props> = ({ postIds }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const postsResponse = await fetchMorePosts(
+      const { newPosts } = await fetchMorePosts(
         {
           ids: postIds,
         },
         0,
         20
       );
-      setData(postsResponse);
+      setData(newPosts);
     };
     fetchData();
   }, [postIds]);

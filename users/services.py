@@ -47,7 +47,7 @@ def get_users_by_usernames(usernames: list[str]) -> list[User]:
     for username in usernames:
         queries |= Q(username__iexact=username)
 
-    users = User.objects.filter(queries).distinct()
+    users = User.objects.filter(queries).distinct("pk")
     fetched_usernames = {u.username for u in users}
 
     for username in usernames:

@@ -48,12 +48,13 @@ from questions.serializers import (
 )
 from utils.files import UserUploadedImage, generate_filename
 from utils.frontend import build_question_embed_url
+from utils.paginator import CountlessLimitOffsetPagination
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def posts_list_api_view(request):
-    paginator = LimitOffsetPagination()
+    paginator = CountlessLimitOffsetPagination()
     qs = Post.objects.all()
 
     # Extra params
@@ -155,7 +156,6 @@ def post_detail_oldapi_view(request: Request, pk):
         current_user=request.user,
         with_cp=True,
         with_subscriptions=True,
-        with_nr_forecasters=True,
     )
 
     if not posts:
@@ -179,7 +179,6 @@ def post_detail(request: Request, pk):
         current_user=request.user,
         with_cp=True,
         with_subscriptions=True,
-        with_nr_forecasters=True,
     )
 
     if not posts:
@@ -290,9 +289,10 @@ def post_vote_api_view(request: Request, pk: int):
     if direction:
         Vote.objects.create(user=request.user, post=post, direction=direction)
 
-    return Response(
-        {"score": Post.objects.annotate_vote_score().get(pk=post.pk).vote_score}
-    )
+    # Update counters
+    vote_score = post.update_vote_score()
+
+    return Response({"score": vote_score})
 
 
 @api_view(["POST"])
@@ -429,7 +429,7 @@ def all_post_subscriptions(request):
     posts = serialize_post_many(
         Post.objects.filter(
             subscriptions__user=request.user, subscriptions__is_global=False
-        ).distinct(),
+        ).distinct("pk"),
         with_cp=False,
         current_user=request.user,
         with_subscriptions=True,

@@ -529,7 +529,7 @@ def enable_global_cp_reminders(user: User):
         Post.objects.filter_permission(user=user)
         .filter_active()
         .filter(forecasts__author=user)
-        .distinct()
+        .distinct("pk")
     )
 
     PostSubscription.objects.bulk_create(

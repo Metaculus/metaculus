@@ -285,7 +285,7 @@ def get_forecasting_stats_data(
     if user is not None:
         forecasts = forecasts.filter(author=user)
     forecasts_count = forecasts.count()
-    questions_predicted_count = forecasts.values("question").distinct().count()
+    questions_predicted_count = forecasts.values("question").distinct("pk").count()
     score_count = len(scores)
 
     return {
