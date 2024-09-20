@@ -50,7 +50,7 @@ const TrackRecordCharts: FC<Props> = ({
             <span
               className="block h-4 w-7"
               style={{
-                backgroundColor: getThemeColor(METAC_COLORS.gray["600"]),
+                backgroundColor: getThemeColor(METAC_COLORS.gray["300"]),
               }}
             ></span>
             {t("perfectCalibration90CI")}
@@ -59,7 +59,7 @@ const TrackRecordCharts: FC<Props> = ({
             <span
               className="block h-1 w-7"
               style={{
-                backgroundColor: getThemeColor(METAC_COLORS.gray["300"]),
+                backgroundColor: getThemeColor(METAC_COLORS.gray["600"]),
               }}
             ></span>
             {t("perfectCalibration")}
