@@ -429,7 +429,7 @@ def all_post_subscriptions(request):
     posts = serialize_post_many(
         Post.objects.filter(
             subscriptions__user=request.user, subscriptions__is_global=False
-        ).distinct(),
+        ).distinct("pk"),
         with_cp=False,
         current_user=request.user,
         with_subscriptions=True,

@@ -50,7 +50,7 @@ def get_posts_feed(
             | Q(group_of_questions__questions__in=ids)
             | Q(conditional__question_yes_id__in=ids)
             | Q(conditional__question_no_id__in=ids)
-        ).distinct()
+        ).distinct("pk")
 
     # Filter by permission level
     qs = qs.filter_permission(user=user)

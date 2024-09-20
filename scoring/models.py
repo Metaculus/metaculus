@@ -131,7 +131,7 @@ class Leaderboard(TimeStampedModel):
                 | Q(conditional_no__post__projects=self.project)
                 | Q(conditional_yes__post__default_project=self.project)
                 | Q(conditional_no__post__default_project=self.project)
-            ).distinct()
+            ).distinct("pk")
         else:
             questions = Question.objects.all()
 
@@ -141,7 +141,7 @@ class Leaderboard(TimeStampedModel):
                 questions.filter(
                     Q(post__published_at__lt=self.end_time)
                     | Q(group__post__published_at__lt=self.end_time)
-                ).distinct()
+                ).distinct("pk")
             )
         elif self.score_type == self.ScoreTypes.QUESTION_WRITING:
             # post must be published, and can't be resolved before the start_time
@@ -167,7 +167,7 @@ class Leaderboard(TimeStampedModel):
                     | Q(conditional_yes__post__curation_status__in=invalid_statuses)
                     | Q(conditional_no__post__curation_status__in=invalid_statuses),
                 )
-                .distinct()
+                .distinct("pk")
             )
 
         if self.start_time and self.end_time:

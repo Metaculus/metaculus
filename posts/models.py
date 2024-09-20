@@ -598,7 +598,7 @@ class Post(TimeStampedModel):
             return []
 
     def get_forecasters(self) -> QuerySet["User"]:
-        return User.objects.filter(forecast__post=self).distinct()
+        return User.objects.filter(forecast__post=self).distinct("pk")
 
     def get_url_title(self):
         return self.url_title or self.title
