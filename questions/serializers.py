@@ -333,7 +333,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         def is_valid_probability(x):
-            return x < 1 and x > 0
+            return x <= 0.999 and x >= 0.001
 
         probability_yes = data.get("probability_yes")
         continuous_cdf = data.get("continuous_cdf")
