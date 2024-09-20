@@ -89,7 +89,6 @@ const DetailedGroupCard: FC<Props> = ({
     );
   }
 
-  console.log(graphType);
   switch (graphType) {
     case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
       const sortedQuestions = sortGroupPredictionOptions(
