@@ -507,6 +507,22 @@ class NotificationPostCPChange(NotificationTypeSimilarPostsMixin, NotificationTy
 
         return _("Significant change")
 
+    @classmethod
+    def get_email_context_group(cls, notifications: list[Notification]):
+        # Remove multiple entries of the same post
+        notifications = sorted(notifications, key=lambda x: x.created_at, reverse=True)
+        post_ids = set()
+
+        for notification in notifications[:]:
+            post_id = notification.params["post"]["post_id"]
+
+            if post_id in post_ids:
+                notifications.remove(notification)
+
+            post_ids.add(post_id)
+
+        return super().get_email_context_group(notifications)
+
 
 class NotificationPredictedQuestionResolved(
     NotificationTypeSimilarPostsMixin, NotificationTypeBase
