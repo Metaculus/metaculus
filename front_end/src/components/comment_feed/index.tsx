@@ -43,12 +43,19 @@ export function sortComments(comments: CommentType[], sort: SortOption) {
   });
 }
 
-function parseCommentsArray(beComments: BECommentType[]): CommentType[] {
+function parseCommentsArray(
+  beComments: BECommentType[],
+  rootsOnly: boolean = true
+): CommentType[] {
   const commentMap = new Map<number, CommentType>();
 
   beComments.forEach((comment) => {
     commentMap.set(comment.id, parseComment(comment));
   });
+
+  if (!rootsOnly) {
+    return Array.from(commentMap.values());
+  }
 
   const rootComments: CommentType[] = [];
 
@@ -70,6 +77,7 @@ type Props = {
   postData?: PostWithForecasts;
   postPermissions?: ProjectPermissions;
   profileId?: number;
+  rootCommentPagination?: boolean;
 };
 
 function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
@@ -94,7 +102,12 @@ function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
 
 const COMMENTS_PER_PAGE = 10;
 
-const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
+const CommentFeed: FC<Props> = ({
+  postData,
+  postPermissions,
+  profileId,
+  rootCommentPagination = true,
+}) => {
   const t = useTranslations();
   const { user } = useAuth();
 
@@ -141,16 +154,17 @@ const CommentFeed: FC<Props> = ({ postData, postPermissions, profileId }) => {
         sort: commentSort,
         limit: COMMENTS_PER_PAGE,
         offset: offset,
-        use_root_comments_pagination: true,
+        use_root_comments_pagination: rootCommentPagination,
         focus_comment_id,
       });
       if ("errors" in response) {
         console.error("Error fetching comments:", response.errors);
       } else {
-        setTotalCount(response.total_count);
+        setTotalCount(response.total_count ?? response.count);
 
         const sortedComments = parseCommentsArray(
-          response.results as unknown as BECommentType[]
+          response.results as unknown as BECommentType[],
+          rootCommentPagination
         );
         if (keepComments && offset > 0) {
           setComments((prevComments) => [...prevComments, ...sortedComments]);
