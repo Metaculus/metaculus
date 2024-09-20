@@ -64,6 +64,7 @@ type Props = {
   timestamps: number[];
   isClosed?: boolean;
   actualCloseTime: number | null;
+  withLegand?: boolean;
 };
 
 const ContinuousGroupTimeline: FC<Props> = ({
@@ -71,6 +72,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
   timestamps,
   isClosed,
   actualCloseTime,
+  withLegand = true,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -196,15 +198,17 @@ const ContinuousGroupTimeline: FC<Props> = ({
         />
       </div>
 
-      <div className="mt-3">
-        <ChoicesLegend
-          choices={choiceItems}
-          onChoiceChange={handleChoiceChange}
-          onChoiceHighlight={handleChoiceHighlight}
-          maxLegendChoices={MAX_VISIBLE_CHECKBOXES}
-          onToggleAll={toggleSelectAll}
-        />
-      </div>
+      {withLegand && (
+        <div className="mt-3">
+          <ChoicesLegend
+            choices={choiceItems}
+            onChoiceChange={handleChoiceChange}
+            onChoiceHighlight={handleChoiceHighlight}
+            maxLegendChoices={MAX_VISIBLE_CHECKBOXES}
+            onToggleAll={toggleSelectAll}
+          />
+        </div>
+      )}
 
       {isTooltipActive && !!tooltipChoices.length && (
         <div
