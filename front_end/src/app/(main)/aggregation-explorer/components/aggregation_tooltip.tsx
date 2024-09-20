@@ -27,7 +27,7 @@ const AggregationTooltip: FC<Props> = ({
   const t = useTranslations();
   const { color, choice, active } = choiceItem;
   return (
-    <div className="flex w-[300px] border-black bg-slate-500 p-5">
+    <div className="flex w-[300px] border-black bg-gray-0 p-5 dark:bg-gray-0-dark">
       <div>
         <ChoiceCheckbox
           choice={choice}

@@ -27,17 +27,19 @@ type Props = {
 
 const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
   const { aggregations, actual_close_time, scaling, type } = questionData;
-  const timestamps = getAggregationTimestamps(aggregations);
-  const actualCloseTime = actual_close_time
-    ? new Date(actual_close_time).getTime()
-    : null;
+  const timestamps = useMemo(
+    () => getAggregationTimestamps(aggregations),
+    [aggregations]
+  );
+  const actualCloseTime = useMemo(
+    () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
+    [actual_close_time]
+  );
   const [choiceItems, setChoiceItems] = useState(
     generateChoiceItemsFromAggregations(aggregations, scaling)
   );
-  const [cursorTimestamp, tooltipDate, handleCursorChange] =
+  const [cursorTimestamp, _tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
-
-  console.log(choiceItems);
 
   const handleChoiceChange = useCallback((choice: string, checked: boolean) => {
     setChoiceItems((prev) =>
@@ -96,8 +98,6 @@ const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
     </>
   );
 };
-
-export default memo(AggregationsDrawer);
 
 const getAggregationTimestamps = (aggregations: Aggregations) => {
   // Find populated aggregation and map timestamps
@@ -183,3 +183,5 @@ function getQuestionTooltipLabel(
     return displayValue(scaledValue, qType);
   }
 }
+
+export default memo(AggregationsDrawer);

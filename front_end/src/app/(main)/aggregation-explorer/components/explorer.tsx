@@ -7,7 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Input } from "@headlessui/react";
-import { FC, useEffect, useState } from "react";
+import { FC, FormEvent, useEffect, useState } from "react";
 
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
@@ -31,7 +31,6 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log(searchParams);
     const { question_id, include_bots, aggregation_methods } = searchParams;
     if (question_id) {
       setQuestionId(question_id as string);
@@ -39,7 +38,6 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     if (include_bots) {
       setIncludeBots(include_bots === "true");
     }
-    console.log(aggregation_methods);
     // If parameters exist, trigger data fetch
     if (!!question_id && !!include_bots) {
       fetchData({
@@ -52,10 +50,10 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             : undefined,
       });
     }
-  }, []);
+  }, [searchParams]);
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
     // Construct the query params
@@ -90,14 +88,58 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         aggregationMethods,
       });
       setData(response);
-      console.log("Fetched data:", response);
     } catch (err) {
-      console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  const renderContent = () => {
+    if (loading) {
+      return <LoadingIndicator />;
+    }
+    if (error) {
+      return <p className="text-center text-red-600">{error}</p>;
+    }
+    if (data) {
+      return (
+        <>
+          <hr className="mb-6 border-gray-400 dark:border-gray-400-dark" />
+          <div className="relative">
+            {activeTab && (
+              <Button
+                presentationType="icon"
+                className="absolute left-0 top-0 h-10"
+                onClick={() => setActiveTab(null)}
+              >
+                <FontAwesomeIcon icon={faArrowLeft} />
+              </Button>
+            )}
+            <h1 className="ml-10 text-xl leading-tight sm:text-2xl">
+              {data.title}
+            </h1>
+          </div>
+          {activeTab ? (
+            <div>
+              <p className="w-fit bg-gray-400 p-2 dark:bg-gray-400-dark">
+                {activeTab}
+              </p>
+              <AggregationsTab activeTab={activeTab} questionData={data} />
+            </div>
+          ) : (
+            <AggregationsDrawer
+              questionData={data}
+              onTabChange={setActiveTab}
+            />
+          )}
+        </>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <>
       <form onSubmit={handleSubmit} className="flex flex-col">
@@ -137,41 +179,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         </div>
       </form>
 
-      <div className="h-10">{loading && <LoadingIndicator />}</div>
-      {error && <p className="text-center text-red-600">{error}</p>}
-
-      {data && (
-        <>
-          <hr className="mb-6 border-gray-400 dark:border-gray-400-dark" />
-          <div className="relative">
-            {activeTab && (
-              <Button
-                presentationType="icon"
-                className="absolute left-0 top-0 h-10"
-                onClick={() => setActiveTab(null)}
-              >
-                <FontAwesomeIcon icon={faArrowLeft} />
-              </Button>
-            )}
-            <h1 className="ml-10 text-xl leading-tight sm:text-2xl">
-              {data.title}
-            </h1>
-          </div>
-          {activeTab ? (
-            <div>
-              <p className="w-fit bg-gray-400 p-2 dark:bg-gray-400-dark">
-                {activeTab}
-              </p>
-              <AggregationsTab activeTab={activeTab} questionData={data} />
-            </div>
-          ) : (
-            <AggregationsDrawer
-              questionData={data}
-              onTabChange={setActiveTab}
-            />
-          )}
-        </>
-      )}
+      {renderContent()}
     </>
   );
 };

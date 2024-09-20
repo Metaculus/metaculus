@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useState, memo, useMemo } from "react";
 
+import NumericChart from "@/components/charts/numeric_chart";
+import useDebounce from "@/hooks/use_debounce";
 import {
   AggregationQuestion,
   Aggregations,
@@ -12,7 +14,6 @@ import { getDisplayValue } from "@/utils/charts";
 
 import ContinuousAggregationChart from "./continuous_aggregations_chart";
 import HistogramDrawer from "./histogram_drawer";
-import NumericAggregationChart from "./numeric_aggregations_chart";
 import DetailsQuestionCardErrorBoundary from "../../questions/[id]/components/detailed_question_card/error_boundary";
 import CursorDetailItem from "../../questions/[id]/components/detailed_question_card/numeric_cursor_item";
 
@@ -23,6 +24,7 @@ type Props = {
 
 const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
   const t = useTranslations();
+
   const {
     aggregations,
     actual_close_time,
@@ -30,20 +32,29 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
     type: qType,
     resolution,
   } = questionData;
-  const activeAggregation = aggregations[activeTab]!;
 
-  const actualCloseTime = actual_close_time
-    ? new Date(actual_close_time).getTime()
-    : null;
+  const activeAggregation = useMemo(
+    () => aggregations[activeTab],
+    [activeTab, aggregations]
+  );
+
+  const actualCloseTime = useMemo(
+    () => (actual_close_time ? new Date(actual_close_time).getTime() : null),
+    [actual_close_time]
+  );
   const [cursorTimestamp, setCursorTimestamp] = useState<number | null>(
-    activeAggregation.history[activeAggregation.history.length - 1].start_time
+    activeAggregation
+      ? activeAggregation.history[activeAggregation.history.length - 1]
+          .start_time
+      : null
   );
-
-  const [selectedTimestamp, setSelectedTimestamp] = useState(
-    activeAggregation.history[activeAggregation.history.length - 1].start_time
-  );
+  const aggregationTimestamp = useDebounce(cursorTimestamp, 500);
 
   const cursorData = useMemo(() => {
+    if (!activeAggregation) {
+      return null;
+    }
+
     const index = activeAggregation.history.findIndex(
       (f) => f.start_time === cursorTimestamp
     );
@@ -60,85 +71,75 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
       center: forecast.centers![0],
       interval_upper_bound: forecast.interval_upper_bounds![0],
     };
-  }, [cursorTimestamp, activeAggregation.history]);
+  }, [activeAggregation, cursorTimestamp]);
 
-  const handleCursorChange = useCallback((value: number | null) => {
-    setCursorTimestamp(value);
-  }, []);
-  console.log(questionData);
-  switch (qType) {
-    case QuestionType.Binary:
-      return (
-        <>
-          <DetailsQuestionCardErrorBoundary>
-            <NumericAggregationChart
-              aggregationData={activeAggregation}
-              questionType={qType}
-              actualCloseTime={actualCloseTime}
-              scaling={scaling}
-              resolution={resolution}
-              cursorTimestamp={cursorTimestamp}
-              onCursorChange={handleCursorChange}
-              onSelectTimestamp={setSelectedTimestamp}
-            />
-            <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
-              <CursorDetailItem
-                title={t("totalForecastersLabel")}
-                text={cursorData.forecasterCount?.toString()}
-              />
-              <CursorDetailItem
-                title={t("communityPredictionLabel")}
-                text={getDisplayValue(cursorData.center, qType, scaling)}
-                variant="prediction"
-              />
-            </div>
-          </DetailsQuestionCardErrorBoundary>
-          {/* check for histogram data in response */}
+  const handleCursorChange = useCallback(
+    (value: number | null) => {
+      const fallback = activeAggregation
+        ? activeAggregation.history[activeAggregation.history.length - 1]
+            .start_time
+        : null;
+
+      setCursorTimestamp(value ?? fallback);
+    },
+    [activeAggregation]
+  );
+
+  if (!activeAggregation) {
+    return null;
+  }
+
+  const renderAggregation = () => {
+    switch (qType) {
+      case QuestionType.Binary:
+        return (
           <HistogramDrawer
             questionData={questionData}
             activeTab={activeTab}
-            selectedTimestamp={selectedTimestamp}
+            selectedTimestamp={aggregationTimestamp}
           />
-        </>
-      );
-    case QuestionType.Numeric:
-    case QuestionType.Date:
-      return (
-        <>
-          <DetailsQuestionCardErrorBoundary>
-            <NumericAggregationChart
-              aggregationData={activeAggregation}
-              questionType={qType}
-              actualCloseTime={actualCloseTime}
-              scaling={scaling}
-              resolution={resolution}
-              onCursorChange={handleCursorChange}
-              cursorTimestamp={cursorTimestamp}
-              onSelectTimestamp={setSelectedTimestamp}
-            />
-            <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
-              <CursorDetailItem
-                title={t("totalForecastersLabel")}
-                text={cursorData.forecasterCount?.toString()}
-              />
-              <CursorDetailItem
-                title={t("communityPredictionLabel")}
-                text={getDisplayValue(cursorData.center, qType, scaling)}
-                variant="prediction"
-              />
-            </div>
-          </DetailsQuestionCardErrorBoundary>
-
+        );
+      case QuestionType.Numeric:
+      case QuestionType.Date:
+        return (
           <ContinuousAggregationChart
-            selectedTimestamp={selectedTimestamp as number}
+            selectedTimestamp={aggregationTimestamp}
             questionData={questionData}
             activeTab={activeTab}
           />
-        </>
-      );
-    default:
-      return <div>Unsupported question type!</div>;
-  }
+        );
+      default:
+        return <div>Unsupported question type!</div>;
+    }
+  };
+
+  return (
+    <DetailsQuestionCardErrorBoundary>
+      <NumericChart
+        aggregation={activeAggregation}
+        questionType={qType}
+        actualCloseTime={actualCloseTime}
+        scaling={scaling}
+        resolution={resolution}
+        onCursorChange={handleCursorChange}
+      />
+      {!!cursorData && (
+        <div className="my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0">
+          <CursorDetailItem
+            title={t("totalForecastersLabel")}
+            text={cursorData.forecasterCount?.toString()}
+          />
+          <CursorDetailItem
+            title={t("communityPredictionLabel")}
+            text={getDisplayValue(cursorData.center, qType, scaling)}
+            variant="prediction"
+          />
+        </div>
+      )}
+
+      {renderAggregation()}
+    </DetailsQuestionCardErrorBoundary>
+  );
 };
 
 export default memo(AggregationsTab);

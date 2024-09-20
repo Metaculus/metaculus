@@ -1,31 +1,31 @@
-import { fromUnixTime } from "date-fns";
-import { memo } from "react";
+import { FC, memo } from "react";
 
 import Histogram from "@/components/charts/histogram";
-import { AggregationQuestion, Aggregations } from "@/types/question";
+import {
+  AggregationQuestion,
+  Aggregations,
+  QuestionType,
+} from "@/types/question";
 
 type Props = {
   questionData: AggregationQuestion;
   activeTab: keyof Aggregations;
-  selectedTimestamp: number;
+  selectedTimestamp: number | null;
 };
 
-const HistogramDrawer: React.FC<Props> = ({
+const HistogramDrawer: FC<Props> = ({
   questionData,
   activeTab,
   selectedTimestamp,
 }) => {
-  if (questionData.type === "binary") {
+  if (questionData.type === QuestionType.Binary) {
     const activeAggregation = questionData.aggregations[activeTab];
 
-    if (!activeAggregation) return null;
+    if (!activeAggregation || !selectedTimestamp) return null;
 
     const timestampIndex = activeAggregation.history.findIndex(
       (item) => item.start_time === selectedTimestamp
     );
-    console.log(selectedTimestamp);
-    console.log(timestampIndex);
-    // const lastHistogramIndex = activeAggregation.history.length - 1;
     const histogramData = activeAggregation.history[
       timestampIndex
     ].histogram!.map((value, index) => ({
@@ -36,19 +36,16 @@ const HistogramDrawer: React.FC<Props> = ({
     const mean = activeAggregation.history[timestampIndex].means![0];
 
     return (
-      <>
-        <div>
-          Selected timestamp: {fromUnixTime(selectedTimestamp).toDateString()}
-        </div>
-        <Histogram
-          histogramData={histogramData}
-          median={median}
-          mean={mean}
-          color={"green"}
-        />
-      </>
+      <Histogram
+        histogramData={histogramData}
+        median={median}
+        mean={mean}
+        color={"green"}
+      />
     );
   }
+
+  return null;
 };
 
 export default memo(HistogramDrawer);

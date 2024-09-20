@@ -18,7 +18,7 @@ import { cdfToPmf } from "@/utils/math";
 type Props = {
   questionData: AggregationQuestion;
   activeTab: keyof Aggregations;
-  selectedTimestamp: number;
+  selectedTimestamp: number | null;
 };
 
 const ContinuousAggregationChart: FC<Props> = ({
@@ -92,9 +92,6 @@ const ContinuousAggregationChart: FC<Props> = ({
             setGraphType(e.target.value as ContinuousAreaGraphType)
           }
         />
-        <p className="m-0 ml-auto">
-          Selected timestamp: {fromUnixTime(selectedTimestamp).toDateString()}
-        </p>
       </div>
       <ContinuousAreaChart
         height={150}

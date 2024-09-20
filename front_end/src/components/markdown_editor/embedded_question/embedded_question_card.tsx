@@ -85,7 +85,7 @@ const EmbeddedQuestionCard: FC<Props> = ({ postData }) => {
         case QuestionType.Binary:
           return (
             <NumericChart
-              aggregations={question.aggregations}
+              aggregation={question.aggregations.recency_weighted}
               myForecasts={question.my_forecasts}
               resolution={question.resolution}
               resolveTime={question.actual_resolve_time}
