@@ -2,6 +2,7 @@
 
 import { faX, faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useAuth } from "@/contexts/auth_context";
 import {
   Combobox,
   ComboboxInput,
@@ -12,19 +13,17 @@ import {
 import { useTranslations } from "next-intl";
 import { Fragment } from "react";
 
-import { AggregationMethod } from "@/types/question";
-
-export const aggregationMethodsArray = [
-  AggregationMethod.recency_weighted,
-  AggregationMethod.unweighted,
-  AggregationMethod.single_aggregation,
-  AggregationMethod.metaculus_prediction,
-];
+import {
+  AggregationMethod,
+  aggregationMethodsArray,
+  aggregationMethodLabel,
+} from "@/types/question";
 
 const AggregationMethodsPicker: React.FC<{
   methods: AggregationMethod[];
   onChange: (method: AggregationMethod[]) => void;
 }> = ({ methods, onChange }) => {
+  const { user } = useAuth();
   const t = useTranslations();
 
   return (
@@ -42,7 +41,7 @@ const AggregationMethodsPicker: React.FC<{
             <ComboboxInput
               className="w-full cursor-pointer border-none p-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 dark:bg-blue-950 dark:text-gray-200"
               readOnly
-              displayValue={() => t("choseAggregationsToInlude")}
+              displayValue={() => t("chooseAggregationsToInlude")}
             />
           </div>
           <Transition
@@ -52,39 +51,47 @@ const AggregationMethodsPicker: React.FC<{
             leaveTo="opacity-0"
           >
             <ComboboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-blue-950 sm:text-sm">
-              {aggregationMethodsArray.map((method, index) => (
-                <ComboboxOption
-                  key={index}
-                  className={({ active }) =>
-                    `group relative cursor-default select-none ${
-                      active
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-900 dark:text-gray-300"
-                    }`
-                  }
-                  value={method}
-                >
-                  {({ selected }) => (
-                    <div className="flex flex-row items-center">
-                      <span
-                        className={`block cursor-pointer truncate py-2 pl-4 pr-2.5 ${
-                          selected ? "font-bold" : "font-normal"
-                        }`}
-                      >
-                        {method}
-                      </span>
-                      {selected && (
-                        <span className="flex items-center">
-                          <FontAwesomeIcon
-                            icon={faCheck}
-                            className="text-blue-600 group-hover:text-white group-focus:text-white"
-                          />
+              {aggregationMethodsArray.map((method, index) => {
+                if (
+                  method === AggregationMethod.single_aggregation &&
+                  !user?.is_staff
+                ) {
+                  return null;
+                }
+                return (
+                  <ComboboxOption
+                    key={index}
+                    className={({ active }) =>
+                      `group relative cursor-default select-none ${
+                        active
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-900 dark:text-gray-300"
+                      }`
+                    }
+                    value={method}
+                  >
+                    {({ selected }) => (
+                      <div className="flex flex-row items-center">
+                        <span
+                          className={`block cursor-pointer truncate py-2 pl-4 pr-2.5 ${
+                            selected ? "font-bold" : "font-normal"
+                          }`}
+                        >
+                          {aggregationMethodLabel[method]}
                         </span>
-                      )}
-                    </div>
-                  )}
-                </ComboboxOption>
-              ))}
+                        {selected && (
+                          <span className="flex items-center">
+                            <FontAwesomeIcon
+                              icon={faCheck}
+                              className="text-blue-600 group-hover:text-white group-focus:text-white"
+                            />
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </ComboboxOption>
+                );
+              })}
             </ComboboxOptions>
           </Transition>
         </div>
@@ -106,7 +113,7 @@ const AggregationMethodsPicker: React.FC<{
                 className="mr-2 cursor-pointer text-gray-400 group-hover:text-gray-500 dark:text-blue-500 dark:group-hover:text-gray-200"
                 icon={faX}
               ></FontAwesomeIcon>
-              <span>{method}</span>
+              <span>{aggregationMethodLabel[method]}</span>
             </div>
           );
         })}
