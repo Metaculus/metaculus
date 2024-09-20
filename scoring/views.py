@@ -1,5 +1,6 @@
 import numpy as np
 from django.db.models import Q
+from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
@@ -194,6 +195,7 @@ def medal_contributions(
     return Response(return_data)
 
 
+@cache_page(60 * 60 * 24)
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def metaculus_track_record(
