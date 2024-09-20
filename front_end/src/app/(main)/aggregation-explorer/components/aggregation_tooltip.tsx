@@ -4,7 +4,7 @@ import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { ChoiceItem } from "@/types/choices";
-import { Aggregations } from "@/types/question";
+import { AggregationMethod } from "@/types/question";
 
 import ChoiceCheckbox from "../../questions/[id]/components/choices_legend/choice_checkbox";
 
@@ -13,7 +13,7 @@ type Props = {
   valueLabel: string;
   onChoiceChange: (choice: string, checked: boolean) => void;
   onChoiceHighlight: (choice: string, highlighted: boolean) => void;
-  onTabChange: (activeTab: keyof Aggregations) => void;
+  onTabChange: (activeTab: AggregationMethod) => void;
 };
 
 const AggregationTooltip: FC<Props> = ({
@@ -39,7 +39,7 @@ const AggregationTooltip: FC<Props> = ({
       </div>
       <Button
         className="ml-auto h-10"
-        onClick={() => onTabChange(choice as keyof Aggregations)}
+        onClick={() => onTabChange(choice as AggregationMethod)}
       >
         <FontAwesomeIcon icon={faArrowRight} />
       </Button>

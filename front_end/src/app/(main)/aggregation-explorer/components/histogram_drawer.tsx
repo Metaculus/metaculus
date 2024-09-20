@@ -28,20 +28,22 @@ const HistogramDrawer: FC<Props> = ({
     );
     const histogramData = activeAggregation.history[
       timestampIndex
-    ].histogram!.map((value, index) => ({
+    ].histogram?.map((value, index) => ({
       x: index,
       y: value,
     }));
-    const median = activeAggregation.history[timestampIndex].centers![0];
-    const mean = activeAggregation.history[timestampIndex].means![0];
+    const median = activeAggregation.history[timestampIndex].centers?.[0];
+    const mean = activeAggregation.history[timestampIndex].means?.[0];
 
     return (
-      <Histogram
-        histogramData={histogramData}
-        median={median}
-        mean={mean}
-        color={"green"}
-      />
+      histogramData && (
+        <Histogram
+          histogramData={histogramData}
+          median={median}
+          mean={mean}
+          color={"green"}
+        />
+      )
     );
   }
 

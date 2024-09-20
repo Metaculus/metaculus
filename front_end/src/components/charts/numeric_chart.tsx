@@ -307,12 +307,12 @@ function buildChartData({
 }): ChartData {
   const line = aggregation.history.map((forecast) => ({
     x: forecast.start_time,
-    y: forecast.centers![0],
+    y: forecast.centers?.[0] ?? forecast.forecast_values?.[1] ?? 0,
   }));
   const area = aggregation.history.map((forecast) => ({
     x: forecast.start_time,
-    y0: forecast.interval_lower_bounds![0],
-    y: forecast.interval_upper_bounds![0],
+    y0: forecast.interval_lower_bounds?.[0] ?? 0,
+    y: forecast.interval_upper_bounds?.[0] ?? 0,
   }));
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
@@ -320,12 +320,12 @@ function buildChartData({
   if (aggregation.latest) {
     line.push({
       x: latestTimestamp,
-      y: aggregation.latest.centers![0],
+      y: aggregation.latest.centers?.[0] ?? 0,
     });
     area.push({
       x: latestTimestamp,
-      y0: aggregation.latest.interval_lower_bounds![0],
-      y: aggregation.latest.interval_upper_bounds![0],
+      y0: aggregation.latest.interval_lower_bounds?.[0] ?? 0,
+      y: aggregation.latest.interval_upper_bounds?.[0] ?? 0,
     });
   }
 
@@ -336,7 +336,7 @@ function buildChartData({
       y:
         questionType === "binary"
           ? forecast.forecast_values[1]
-          : forecast.centers![0],
+          : forecast.centers?.[0] ?? 0,
       y1:
         questionType === "binary"
           ? undefined

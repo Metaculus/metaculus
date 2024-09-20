@@ -9,21 +9,24 @@ import {
   ComboboxOptions,
   Transition,
 } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 import { Fragment } from "react";
 
-import { AggregationMethods } from "@/types/question";
+import { AggregationMethod } from "@/types/question";
 
-export const AggregationMethodsArray = [
-  "recency_weighted",
-  "unweighted",
-  "single_aggregation",
-  "metaculus_prediction",
+export const aggregationMethodsArray = [
+  AggregationMethod.recency_weighted,
+  AggregationMethod.unweighted,
+  AggregationMethod.single_aggregation,
+  AggregationMethod.metaculus_prediction,
 ];
 
 const AggregationMethodsPicker: React.FC<{
-  methods: AggregationMethods[];
-  onChange: (method: AggregationMethods[]) => void;
+  methods: AggregationMethod[];
+  onChange: (method: AggregationMethod[]) => void;
 }> = ({ methods, onChange }) => {
+  const t = useTranslations();
+
   return (
     <div>
       <Combobox
@@ -39,7 +42,7 @@ const AggregationMethodsPicker: React.FC<{
             <ComboboxInput
               className="w-full cursor-pointer border-none p-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 dark:bg-blue-950 dark:text-gray-200"
               readOnly
-              displayValue={() => "Chose aggregations to include (all included by default)"}
+              displayValue={() => t("choseAggregationsToInlude")}
             />
           </div>
           <Transition
@@ -49,7 +52,7 @@ const AggregationMethodsPicker: React.FC<{
             leaveTo="opacity-0"
           >
             <ComboboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-blue-950 sm:text-sm">
-              {AggregationMethodsArray.map((method, index) => (
+              {aggregationMethodsArray.map((method, index) => (
                 <ComboboxOption
                   key={index}
                   className={({ active }) =>
@@ -87,7 +90,7 @@ const AggregationMethodsPicker: React.FC<{
         </div>
       </Combobox>
       <div className="mt-2 flex flex-wrap items-start gap-2">
-        {methods.map((method: AggregationMethods, cat_index: number) => {
+        {methods.map((method: AggregationMethod, cat_index: number) => {
           return (
             <div
               className="group flex w-auto cursor-pointer flex-row items-center rounded bg-blue-200 p-2 text-sm dark:bg-blue-700"

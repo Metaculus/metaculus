@@ -7,6 +7,7 @@ import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import {
+  AggregationMethod,
   AggregationQuestion,
   Aggregations,
   QuestionType,
@@ -22,7 +23,7 @@ import AggregationTooltip from "./aggregation_tooltip";
 
 type Props = {
   questionData: AggregationQuestion;
-  onTabChange: (activeTab: keyof Aggregations) => void;
+  onTabChange: (activeTab: AggregationMethod) => void;
 };
 
 const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
@@ -36,13 +37,10 @@ const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
     [actual_close_time]
   );
   const [choiceItems, setChoiceItems] = useState(
-    generateChoiceItemsFromAggregations(aggregations, scaling)
+    generateChoiceItemsFromAggregations(aggregations, scaling, type)
   );
   const [cursorTimestamp, _tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);
-
-  console.log(choiceItems);
-  // console.log(timestamps);
 
   const handleChoiceChange = useCallback((choice: string, checked: boolean) => {
     setChoiceItems((prev) =>
@@ -78,7 +76,7 @@ const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
         questionType={type}
         scaling={type === QuestionType.Binary ? undefined : scaling}
       />
-      <div className="my-5 flex flex-wrap justify-between space-x-5">
+      <div className="my-5 grid grid-cols-3 justify-items-center gap-x-5 gap-y-3">
         {choiceItems.map((choiceItem, idx) => {
           return (
             <AggregationTooltip
@@ -103,7 +101,6 @@ const AggregationsDrawer: FC<Props> = ({ questionData, onTabChange }) => {
 };
 
 const getAggregationTimestamps = (aggregations: Aggregations) => {
-  // Find populated aggregation and map timestamps
   for (const key in aggregations) {
     const aggregationKey = key as keyof Aggregations;
     const aggregation = aggregations[aggregationKey];
@@ -117,24 +114,31 @@ const getAggregationTimestamps = (aggregations: Aggregations) => {
 
 const generateChoiceItemsFromAggregations = (
   aggregations: Aggregations,
-  scaling: Scaling
+  scaling: Scaling,
+  qType: QuestionType
 ) => {
   const choiceItems = [];
   let index = 0;
   for (const key in aggregations) {
     const aggregationKey = key as keyof Aggregations;
-    if (aggregationKey === "metaculus_prediction") continue;
+    // if (aggregationKey === "metaculus_prediction") continue;
     const aggregation = aggregations[aggregationKey];
 
     if (aggregation?.history && !!aggregation.history.length) {
       const item = {
         choice: key,
-        values: aggregation.history.map((forecast) => forecast.centers![0]),
+        values:
+          aggregationKey === AggregationMethod.metaculus_prediction &&
+          qType === QuestionType.Binary
+            ? aggregation.history.map(
+                (forecast) => forecast.forecast_values?.[1] ?? 0
+              )
+            : aggregation.history.map((forecast) => forecast.centers?.[0] ?? 0),
         minValues: aggregation.history.map(
-          (forecast) => forecast.interval_lower_bounds![0]
+          (forecast) => forecast.interval_lower_bounds?.[0] ?? 0
         ),
         maxValues: aggregation.history.map(
-          (forecast) => forecast.interval_upper_bounds![0]
+          (forecast) => forecast.interval_upper_bounds?.[0] ?? 0
         ),
         timestamps: aggregation.history.map((forecast) => forecast.start_time),
         color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],

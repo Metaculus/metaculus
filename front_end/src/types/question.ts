@@ -120,11 +120,12 @@ export type Aggregations = {
   metaculus_prediction?: AggregateForecastHistory;
 };
 
-export type AggregationMethods =
-  | "recency_weighted"
-  | "unweighted"
-  | "single_aggregation"
-  | "metaculus_prediction";
+export enum AggregationMethod {
+  recency_weighted = "recency_weighted",
+  unweighted = "unweighted",
+  single_aggregation = "single_aggregation",
+  metaculus_prediction = "metaculus_prediction",
+}
 
 export type BaseForecast = {
   timestamps: number[];

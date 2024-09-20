@@ -67,9 +67,9 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
     return {
       timestamp: forecast.start_time ?? cursorTimestamp,
       forecasterCount: forecast.forecaster_count,
-      interval_lower_bound: forecast.interval_lower_bounds![0],
-      center: forecast.centers![0],
-      interval_upper_bound: forecast.interval_upper_bounds![0],
+      interval_lower_bound: forecast.interval_lower_bounds?.[0] ?? 0,
+      center: forecast.centers?.[0] ?? forecast.forecast_values?.[1] ?? 0,
+      interval_upper_bound: forecast.interval_upper_bounds?.[0] ?? 0,
     };
   }, [activeAggregation, cursorTimestamp]);
 
@@ -109,7 +109,7 @@ const AggregationsTab: FC<Props> = ({ questionData, activeTab }) => {
           />
         );
       default:
-        return <div>Unsupported question type!</div>;
+        return <div>{t("unsupportedQuestionType")}</div>;
     }
   };
 

@@ -7,6 +7,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Input } from "@headlessui/react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { FC, FormEvent, useEffect, useState } from "react";
 
 import Button from "@/components/ui/button";
@@ -14,12 +16,12 @@ import Checkbox from "@/components/ui/checkbox";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { AggregationExplorerParams } from "@/services/aggregation_explorer";
 import { SearchParams } from "@/types/navigation";
-import { AggregationQuestion, AggregationMethods } from "@/types/question";
+import { AggregationQuestion, AggregationMethod } from "@/types/question";
 
 import AggregationsTab from "./aggregation_tab";
 import AggregationsDrawer from "./aggregations_drawer";
 import AggregationMethodsPicker, {
-  AggregationMethodsArray,
+  aggregationMethodsArray,
 } from "./aggregations_picker";
 import { fetchAggregations } from "../actions";
 
@@ -27,8 +29,10 @@ type Props = { searchParams: SearchParams };
 
 const Explorer: FC<Props> = ({ searchParams }) => {
   const { include_bots, question_id, aggregation_methods } = searchParams;
+  const router = useRouter();
+  const t = useTranslations();
   const [data, setData] = useState<AggregationQuestion | null>(null);
-  const [activeTab, setActiveTab] = useState<AggregationMethods | null>(null);
+  const [activeTab, setActiveTab] = useState<AggregationMethod | null>(null);
   const [questionId, setQuestionId] = useState<string>(
     question_id?.toString() || ""
   );
@@ -36,11 +40,11 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     include_bots === "true"
   );
   const [aggregationMethods, setAggregationMethods] = useState<
-    AggregationMethods[]
+    AggregationMethod[]
   >(
     typeof aggregation_methods === "string"
-      ? ([...aggregation_methods?.split(",")] as [AggregationMethods])
-      : ["recency_weighted"]
+      ? ([...aggregation_methods?.split(",")] as [AggregationMethod])
+      : []
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,10 +57,14 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     if (include_bots) {
       setIncludeBots(include_bots === "true");
     }
-    // If parameters exist, trigger data fetch
+    const parsedQuestionId = parseQuestionId(question_id as string);
+    if (parsedQuestionId === false) {
+      setError("Invalid question url or id");
+      return;
+    }
     if (!!question_id && !!include_bots) {
       fetchData({
-        questionId: question_id as string,
+        questionId: parsedQuestionId as string,
         includeBots: include_bots === "true",
         aggregationMethods: aggregation_methods as string,
       });
@@ -65,25 +73,24 @@ const Explorer: FC<Props> = ({ searchParams }) => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-
+    const parsedQuestionId = parseQuestionId(questionId as string);
+    if (parsedQuestionId === false) {
+      setError("Invalid question url or id");
+      return;
+    }
     const params = new URLSearchParams({
-      question_id: questionId,
+      question_id: parsedQuestionId,
       include_bots: includeBots.toString(),
     });
 
     if (
       !!aggregationMethods.length &&
-      aggregationMethods.length < AggregationMethodsArray.length
+      aggregationMethods.length < aggregationMethodsArray.length
     ) {
       params.append("aggregation_methods", aggregationMethods.join(","));
     }
 
-    // Update the URL without reloading the page
-    window.history.pushState(
-      {},
-      "",
-      `/aggregation-explorer?${params.toString()}`
-    );
+    router.push(`/aggregation-explorer?${params.toString()}`);
   };
 
   const fetchData = async ({
@@ -100,7 +107,6 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         aggregationMethods,
       });
       setData(response);
-      console.log(response);
     } catch (err) {
       setError("Failed to fetch data. Please try again.");
     } finally {
@@ -196,7 +202,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
             aria-label="Search"
             className="m-auto mt-4 w-full !rounded border-gray-500 bg-blue-200 dark:!bg-blue-700 dark:text-white"
           >
-            Search
+            {t("search")}
             <FontAwesomeIcon icon={faMagnifyingGlass} />
           </Button>
         </div>
@@ -206,5 +212,18 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     </>
   );
 };
+
+function parseQuestionId(questionUrlOrId: string) {
+  const id = Number(questionUrlOrId);
+  if (!isNaN(id)) {
+    return id.toString();
+  }
+  const urlPattern = /\/questions\/(\d+)\//;
+  const match = questionUrlOrId.match(urlPattern);
+  if (match && match[1]) {
+    return match[1];
+  }
+  return false;
+}
 
 export default Explorer;
