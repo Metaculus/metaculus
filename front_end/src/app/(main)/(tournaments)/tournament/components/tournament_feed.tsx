@@ -25,7 +25,6 @@ const TournamentFeed: FC<Props> = ({ slug }) => {
     tournaments: slug,
   };
   const [questions, setQuestions] = useState<PostWithForecasts[]>([]);
-  const [count, setCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -38,7 +37,6 @@ const TournamentFeed: FC<Props> = ({ slug }) => {
       )) as { questions: PostWithForecasts[]; count: number };
 
       setQuestions(questions);
-      setCount(count);
       setIsLoading(false);
     };
     fetchData();
@@ -47,11 +45,7 @@ const TournamentFeed: FC<Props> = ({ slug }) => {
   return isLoading ? (
     <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
   ) : (
-    <PaginatedPostsFeed
-      filters={pageFilters}
-      initialQuestions={questions}
-      totalCount={count}
-    />
+    <PaginatedPostsFeed filters={pageFilters} initialQuestions={questions} />
   );
 };
 

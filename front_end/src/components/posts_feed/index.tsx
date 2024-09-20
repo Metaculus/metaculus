@@ -3,11 +3,10 @@ import { FC } from "react";
 import PaginatedPostsFeed, {
   PostsFeedType,
 } from "@/components/posts_feed/paginated_feed";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import PostsApi, { PostsParams } from "@/services/posts";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { Topic } from "@/types/projects";
-import { useAuth } from "@/contexts/auth_context";
 
 type Props = {
   filters: PostsParams;
@@ -28,7 +27,7 @@ const AwaitedPostsFeed: FC<Props> = async ({ filters, type, topics }) => {
     );
   }
 
-  const { results: questions, count } = await PostsApi.getPostsWithCP({
+  const { results: questions } = await PostsApi.getPostsWithCP({
     ...filters,
     limit: POSTS_PER_PAGE,
   });
@@ -37,7 +36,6 @@ const AwaitedPostsFeed: FC<Props> = async ({ filters, type, topics }) => {
     <PaginatedPostsFeed
       filters={filters}
       initialQuestions={questions}
-      totalCount={count}
       type={type}
     />
   );
