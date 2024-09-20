@@ -5,6 +5,7 @@ import { FC, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import BinaryGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/binary_group_chart";
+import ContinuousGroupTimeline from "@/app/(main)/questions/[id]/components/continuous_group_timeline";
 import MultipleChoiceChartCard from "@/app/(main)/questions/[id]/components/detailed_question_card/multiple_choice_chart_card";
 import FanChart from "@/components/charts/fan_chart";
 import NumericChart from "@/components/charts/numeric_chart";
@@ -65,17 +66,37 @@ const ForecastCard: FC<Props> = ({
       switch (groupType) {
         case QuestionType.Numeric:
         case QuestionType.Date: {
-          const predictionQuestion = getFanOptionsFromNumericGroup(
-            questions as QuestionWithNumericForecasts[]
-          );
-          return (
-            <FanChart
-              options={predictionQuestion}
-              height={chartHeight}
-              withTooltip={!nonInteractive}
-              extraTheme={chartTheme}
-            />
-          );
+          if (post.group_of_questions.graph_type === "fan_graph") {
+            const predictionQuestion = getFanOptionsFromNumericGroup(
+              questions as QuestionWithNumericForecasts[]
+            );
+            return (
+              <FanChart
+                options={predictionQuestion}
+                height={chartHeight}
+                withTooltip={!nonInteractive}
+                extraTheme={chartTheme}
+              />
+            );
+          } else if (
+            post.group_of_questions.graph_type === "multiple_choice_graph"
+          ) {
+            const sortedQuestions = sortGroupPredictionOptions(
+              questions as QuestionWithNumericForecasts[]
+            );
+            const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
+            return (
+              <ContinuousGroupTimeline
+                questions={sortedQuestions}
+                timestamps={timestamps}
+                actualCloseTime={
+                  post.scheduled_close_time
+                    ? new Date(post.scheduled_close_time).getTime()
+                    : null
+                }
+              />
+            );
+          }
         }
         case QuestionType.Binary:
           const visibleChoicesCount = 3;
