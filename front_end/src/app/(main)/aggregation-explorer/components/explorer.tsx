@@ -57,12 +57,14 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     if (include_bots) {
       setIncludeBots(include_bots === "true");
     }
-    const parsedQuestionId = parseQuestionId(question_id as string);
-    if (parsedQuestionId === false) {
-      setError("Invalid question url or id");
-      return;
-    }
+
     if (!!question_id && !!include_bots) {
+      const parsedQuestionId = parseQuestionId(question_id as string);
+      if (parsedQuestionId === false) {
+        setError("Invalid question url or id");
+        return;
+      }
+      
       fetchData({
         questionId: parsedQuestionId as string,
         includeBots: include_bots === "true",
