@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Input } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, FormEvent, useEffect, useState } from "react";
+import { FC, FormEvent, useCallback, useEffect, useState } from "react";
 
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
@@ -49,8 +49,31 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchData = useCallback(
+    async ({
+      questionId,
+      includeBots,
+      aggregationMethods,
+    }: AggregationExplorerParams) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetchAggregations({
+          questionId,
+          includeBots,
+          aggregationMethods,
+        });
+        setData(response);
+      } catch (err) {
+        setError("Failed to fetch data. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
   useEffect(() => {
-    const { question_id, include_bots, aggregation_methods } = searchParams;
     if (question_id) {
       setQuestionId(question_id as string);
     }
@@ -64,14 +87,14 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         setError("Invalid question url or id");
         return;
       }
-      
+
       fetchData({
         questionId: parsedQuestionId as string,
         includeBots: include_bots === "true",
         aggregationMethods: aggregation_methods as string,
       });
     }
-  }, [searchParams]);
+  }, [aggregation_methods, fetchData, include_bots, question_id]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -93,27 +116,6 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     }
 
     router.push(`/aggregation-explorer?${params.toString()}`);
-  };
-
-  const fetchData = async ({
-    questionId,
-    includeBots,
-    aggregationMethods,
-  }: AggregationExplorerParams) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetchAggregations({
-        questionId,
-        includeBots,
-        aggregationMethods,
-      });
-      setData(response);
-    } catch (err) {
-      setError("Failed to fetch data. Please try again.");
-    } finally {
-      setLoading(false);
-    }
   };
 
   const renderContent = () => {

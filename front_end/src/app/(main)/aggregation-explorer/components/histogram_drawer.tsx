@@ -28,7 +28,7 @@ const HistogramDrawer: FC<Props> = ({
     );
     const histogramData = activeAggregation.history[
       timestampIndex
-    ].histogram?.map((value, index) => ({
+    ]?.histogram?.map((value, index) => ({
       x: index,
       y: value,
     }));

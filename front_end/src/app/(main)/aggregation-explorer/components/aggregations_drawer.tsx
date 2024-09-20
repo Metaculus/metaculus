@@ -121,7 +121,6 @@ const generateChoiceItemsFromAggregations = (
   let index = 0;
   for (const key in aggregations) {
     const aggregationKey = key as keyof Aggregations;
-    // if (aggregationKey === "metaculus_prediction") continue;
     const aggregation = aggregations[aggregationKey];
 
     if (aggregation?.history && !!aggregation.history.length) {
