@@ -123,4 +123,4 @@ def migrate_comments():
         comment_count_value=Coalesce(
             SubqueryAggregate("comments", aggregate=Count), Value(0)
         )
-    ).update(vote_score=F("comment_count_value"))
+    ).update(comment_count=F("comment_count_value"))
