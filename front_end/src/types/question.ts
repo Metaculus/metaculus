@@ -35,11 +35,24 @@ export type Scaling = {
 };
 
 export enum AggregationMethod {
-  RecencyWeighted = "recency_weighted",
-  Unweighted = "unweighted",
-  SingleAggregation = "single_aggregation",
-  MetaculusPrediction = "metaculus_prediction",
+  recency_weighted = "recency_weighted",
+  unweighted = "unweighted",
+  single_aggregation = "single_aggregation",
+  metaculus_prediction = "metaculus_prediction",
 }
+
+export const aggregationMethodsArray = [
+  AggregationMethod.recency_weighted,
+  AggregationMethod.unweighted,
+  AggregationMethod.single_aggregation,
+  AggregationMethod.metaculus_prediction,
+];
+export const aggregationMethodLabel = {
+  recency_weighted: "Recency Weighted",
+  unweighted: "Unweighted",
+  single_aggregation: "Single Aggregation",
+  metaculus_prediction: "Metaculus Prediction",
+};
 
 export type Bounds = {
   belowLower: number;
@@ -119,13 +132,6 @@ export type Aggregations = {
   single_aggregation?: AggregateForecastHistory;
   metaculus_prediction?: AggregateForecastHistory;
 };
-
-export enum AggregationMethod {
-  recency_weighted = "recency_weighted",
-  unweighted = "unweighted",
-  single_aggregation = "single_aggregation",
-  metaculus_prediction = "metaculus_prediction",
-}
 
 export type BaseForecast = {
   timestamps: number[];

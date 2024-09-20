@@ -4,7 +4,7 @@ import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import { ChoiceItem } from "@/types/choices";
-import { AggregationMethod } from "@/types/question";
+import { AggregationMethod, aggregationMethodLabel } from "@/types/question";
 
 import ChoiceCheckbox from "../../questions/[id]/components/choices_legend/choice_checkbox";
 
@@ -28,7 +28,7 @@ const AggregationTooltip: FC<Props> = ({
     <div className="flex w-[300px] border-black bg-gray-0 p-5 dark:bg-gray-0-dark">
       <div>
         <ChoiceCheckbox
-          choice={choice}
+          choice={aggregationMethodLabel[choice as AggregationMethod]}
           color={color.DEFAULT}
           checked={active}
           onChange={(checked) => onChoiceChange(choice, checked)}

@@ -20,7 +20,7 @@
   "addComponentButton": "Add Component",
   "adminEditButton": "admin edit",
   "aggregationExplorer": "Aggregation Explorer",
-  "choseAggregationsToInlude": "Chose aggregations to include (all included by default)",
+  "chooseAggregationsToInlude": "Choose aggregations to include (all included by default)",
   "remove": "remove",
   "removed": "removed",
   "reply": "Reply",

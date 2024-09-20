@@ -16,13 +16,15 @@ import Checkbox from "@/components/ui/checkbox";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { AggregationExplorerParams } from "@/services/aggregation_explorer";
 import { SearchParams } from "@/types/navigation";
-import { AggregationQuestion, AggregationMethod } from "@/types/question";
+import {
+  AggregationQuestion,
+  AggregationMethod,
+  aggregationMethodsArray,
+} from "@/types/question";
 
 import AggregationsTab from "./aggregation_tab";
 import AggregationsDrawer from "./aggregations_drawer";
-import AggregationMethodsPicker, {
-  aggregationMethodsArray,
-} from "./aggregations_picker";
+import AggregationMethodsPicker from "./aggregations_picker";
 import { fetchAggregations } from "../actions";
 
 type Props = { searchParams: SearchParams };
