@@ -449,6 +449,12 @@ export function generateChoiceItemsFromBinaryGroup(
           forecast.interval_upper_bounds![0]
       ),
       timestamps: history.map((forecast) => forecast.start_time),
+      closeTime: Math.min(
+        new Date(question.scheduled_close_time).getTime(),
+        new Date(
+          question.actual_resolve_time ?? question.scheduled_resolve_time
+        ).getTime()
+      ),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       active: !!activeCount ? index <= activeCount - 1 : true,
       highlighted: false,

@@ -20,6 +20,7 @@ from .models import Question, Conditional, GroupOfQuestions, AggregateForecast
 
 class QuestionSerializer(serializers.ModelSerializer):
     scaling = serializers.SerializerMethodField()
+    actual_close_time = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
@@ -52,6 +53,13 @@ class QuestionSerializer(serializers.ModelSerializer):
             "range_min": question.range_min,
             "zero_point": question.zero_point,
         }
+
+    def get_actual_close_time(self, question: Question):
+        if question.actual_close_time:
+            return question.actual_close_time
+        if question.actual_resolve_time:
+            return min(question.scheduled_close_time, question.actual_resolve_time)
+        return question.scheduled_close_time
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
@@ -571,7 +579,7 @@ def serialize_group(
     serialized_data["questions"] = []
 
     questions = group.questions.all()
-    for i, question in enumerate(questions):
+    for question in questions:
         serialized_data["questions"].append(
             serialize_question(
                 question,
