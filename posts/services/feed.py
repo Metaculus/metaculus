@@ -31,6 +31,7 @@ def get_posts_feed(
     notebook_type: Notebook.NotebookType = None,
     usernames: list[str] = None,
     forecaster_id: int = None,
+    not_forecaster_id: int = None,
     similar_to_post_id: int = None,
     for_main_feed: bool = None,
 ) -> Post.objects:
@@ -136,6 +137,10 @@ def get_posts_feed(
         qs = qs.annotate_user_last_forecasts_date(forecaster_id).filter(
             user_last_forecasts_date__isnull=False
         )
+    if not_forecaster_id:
+        qs = qs.annotate_user_last_forecasts_date(not_forecaster_id).filter(
+            user_last_forecasts_date__isnull=True
+        )
 
     # Filter by access
     if access == PostFilterSerializer.Access.PRIVATE:
@@ -170,11 +175,6 @@ def get_posts_feed(
     # Ordering
     order_desc, order_type = parse_order_by(order_by)
 
-    if (
-        forecaster_id
-        and order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE
-    ):
-        qs = qs.annotate_user_last_forecasts_date(forecaster_id)
     if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
         qs = qs.annotate_unread_comment_count(user_id=user.id)
     if order_type == PostFilterSerializer.Order.SCORE:
