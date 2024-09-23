@@ -10,7 +10,6 @@ import {
   VictoryThemeDefinition,
   VictoryVoronoiContainer,
 } from "victory";
-import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
 
 import ChartFanTooltip from "@/components/charts/primitives/chart_fan_tooltip";
 import FanPoint from "@/components/charts/primitives/fan_point";
@@ -24,6 +23,8 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
+
 import { generateNumericAreaTicks } from "./continuous_area_chart";
 
 const TOOLTIP_WIDTH = 150;
@@ -207,6 +208,11 @@ function buildChartData(options: FanOption[]) {
     ),
     zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
   };
+
+  // temporary fix to handle chart render with mixed data
+  if (scaling.zero_point === scaling.range_min) {
+    scaling.zero_point = null;
+  }
 
   for (const option of options) {
     // scale up the values to nominal values
