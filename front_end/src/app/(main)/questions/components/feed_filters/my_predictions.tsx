@@ -38,7 +38,7 @@ const MyPredictionsFilters: FC = () => {
       },
     ];
     if (user) {
-      getFilterSectionParticipation({ t, params, user });
+      filters.push(getFilterSectionParticipation({ t, params, user }));
     }
     return filters;
   }, [params, t, user]);
