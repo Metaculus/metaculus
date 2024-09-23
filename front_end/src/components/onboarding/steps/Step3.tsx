@@ -69,6 +69,7 @@ const Step3: React.FC<Step3Props> = ({
             communityForecast={communityForecast}
             onBecomeDirty={() => {}}
             disabled={false}
+            helperDisplay={true}
           />
         </div>
       </div>

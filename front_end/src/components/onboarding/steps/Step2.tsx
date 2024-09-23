@@ -159,6 +159,7 @@ const Step2: React.FC<Step2Props> = ({
               communityForecast={communityForecast}
               onBecomeDirty={() => {}}
               disabled={false}
+              helperDisplay={true}
             />
             {activeButton && (
               <div className="flex flex-col items-center">
