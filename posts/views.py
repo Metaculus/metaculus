@@ -43,6 +43,7 @@ from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post
 from projects.permissions import ObjectPermission
+from questions.models import Question
 from questions.serializers import (
     QuestionApproveSerializer,
 )
@@ -173,7 +174,14 @@ def post_detail_oldapi_view(request: Request, pk):
 def post_detail(request: Request, pk):
     user = request.user if request.user.is_authenticated else None
 
+    # try to find post by pk
     qs = Post.objects.filter_permission(user=user).filter(pk=pk)
+    if not qs.exists():
+        # then try and find the post by subquestion id
+        question = Question.objects.filter(pk=pk).first()
+        if not question:
+            raise NotFound("Post not found")
+        qs = Post.objects.filter_permission(user=user).filter(pk=question.get_post().id)
     posts = serialize_post_many(
         qs,
         current_user=request.user,
