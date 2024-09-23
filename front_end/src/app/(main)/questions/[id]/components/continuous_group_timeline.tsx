@@ -170,6 +170,16 @@ const ContinuousGroupTimeline: FC<Props> = ({
     ),
     zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
   };
+  // we can have mixes of log and linear scaled options
+  // which leads to a derived zero point inside the range which is invalid
+  // so just igore the log scaling in this case
+  if (
+    scaling.zero_point !== null &&
+    scaling.range_min! <= scaling.zero_point &&
+    scaling.zero_point <= scaling.range_max!
+  ) {
+    scaling.zero_point = null;
+  }
 
   return (
     <div
