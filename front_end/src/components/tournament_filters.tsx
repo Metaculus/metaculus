@@ -45,8 +45,7 @@ const FORECASTER_ID_FILTERS = [
 
 const TournamentFilters: FC<Props> = ({ categories, tags }) => {
   const { user } = useAuth();
-  const { params } =
-    useSearchParams();
+  const { params } = useSearchParams();
   const t = useTranslations();
 
   const filters = useMemo(() => {

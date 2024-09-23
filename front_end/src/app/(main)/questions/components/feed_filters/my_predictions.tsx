@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
 import {
+  getFilterSectionParticipation,
   getFilterSectionPostType,
   POST_STATUS_LABEL_MAP,
 } from "@/app/(main)/questions/helpers/filters";
@@ -10,6 +11,7 @@ import { FilterOptionType } from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
 import { GroupButton } from "@/components/ui/button_group";
 import { POST_STATUS_FILTER } from "@/constants/posts_feed";
+import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
 import { QuestionOrder } from "@/types/question";
@@ -17,9 +19,10 @@ import { QuestionOrder } from "@/types/question";
 const MyPredictionsFilters: FC = () => {
   const { params } = useSearchParams();
   const t = useTranslations();
+  const { user } = useAuth();
 
   const filters = useMemo(() => {
-    return [
+    const filters = [
       getFilterSectionPostType({ t, params }),
       {
         id: POST_STATUS_FILTER,
@@ -34,7 +37,11 @@ const MyPredictionsFilters: FC = () => {
         ),
       },
     ];
-  }, [params, t]);
+    if (user) {
+      getFilterSectionParticipation({ t, params, user });
+    }
+    return filters;
+  }, [params, t, user]);
 
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [
