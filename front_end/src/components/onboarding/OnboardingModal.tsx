@@ -118,7 +118,7 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   };
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose}>
+    <BaseModal isOpen={isOpen} onClose={onClose} isImmersive={true}>
       {renderStep()}
     </BaseModal>
   );
