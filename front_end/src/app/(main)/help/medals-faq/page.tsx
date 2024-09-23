@@ -143,16 +143,15 @@ export default function MedalsFAQ() {
       <p>
         If the forecaster has a total coverage below 30 in a particular time
         period (e.g. they predicted 20 questions with 100% coverage, or 50
-        questions with 50% coverage), then their average score on the
-        leaderboard will include (30 - total coverage) questions with a 0 score.
-        This makes it unlikely that a user wins a medal by getting lucky on a
-        single question.
+        questions with 50% coverage), then their coverage is treated as 30. This
+        makes it unlikely that a user wins a medal by getting lucky on a single
+        question.
       </p>
       <p>
         Before 2024, the Peer accuracy was slightly different. The forecaster
         score was the average of their Peer scores, not taking Coverage into
         account. This caused some incentives problems, see{" "}
-        <a href="https://www.metaculus.com/notebooks/20027/scores-and-medals-trade-offs-and-decisions/#update-july-2024-implementing-idea-4">
+        <a href="/notebooks/20027/scores-and-medals-trade-offs-and-decisions/#update-july-2024-implementing-idea-4">
           here
         </a>{" "}
         for details. The initial handicap was also 40 instead of the current 30.
@@ -164,8 +163,8 @@ export default function MedalsFAQ() {
       </h2>
       <p>
         Tournament medals are awarded based on a user&apos;s rank on a
-        tournament leaderboard. The top 1% get gold, top 2% silver, and top 5%
-        bronze.
+        tournament leaderboard. The top 1% get gold, the next 1% silver, and
+        following 3% bronze.
       </p>
       <p>
         The three Beginner Tournaments (
@@ -381,8 +380,8 @@ H_f = H + \\frac{ \\sum_{i=1}^{H+1} \\min(v_i, H+1) - H^2 }{ (H+1)^2 - H^2 }
       </p>
       <ul className="ml-5 list-disc">
         <li>Top 1% = Gold</li>
-        <li>Top 2% = Silver</li>
-        <li>Top 5% = Bronze</li>
+        <li>1% to 2% = Silver</li>
+        <li>2% to 5% = Bronze</li>
       </ul>
       <p>
         The denominators for the percentages are the number of users who have
@@ -404,7 +403,7 @@ H_f = H + \\frac{ \\sum_{i=1}^{H+1} \\min(v_i, H+1) - H^2 }{ (H+1)^2 - H^2 }
         </li>
         <li>
           Question writing: the number of users who authored (or co-authored) a
-          public question in the time period.
+          public question that received forecasts during the time period.
         </li>
       </ul>
       <p>
@@ -416,10 +415,14 @@ H_f = H + \\frac{ \\sum_{i=1}^{H+1} \\min(v_i, H+1) - H^2 }{ (H+1)^2 - H^2 }
           The first, second, and third place finishers always receive (at least)
           a gold, silver, and bronze medals, in that order.
         </li>
-        <li>If two users are tied, they always get the same medal.</li>
         <li>
-          Metaculus staff are ineligible for medals for contributions they made
-          during the time they were on staff.
+          If two users are tied, they always get the same medal and rank (e.g.
+          if 2nd and 3rd tie, they both get 2nd place).
+        </li>
+        <li>
+          Metaculus staff and moderators are ineligible for medals for
+          contributions they made during the time they were on staff or
+          moderating.
         </li>
       </ul>
       <hr />
