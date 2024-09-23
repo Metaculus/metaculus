@@ -65,6 +65,7 @@ const Slider: FC<Props> = ({
       handleRender={(origin) => (
         <SliderThumb
           {...origin.props}
+          value={controlledValue} // Add this line
           onClickIn={() => {
             setControlledStep(step);
           }}
