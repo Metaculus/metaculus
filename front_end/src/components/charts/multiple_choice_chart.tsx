@@ -357,6 +357,7 @@ function buildChartData({
       active,
       highlighted,
       timestamps: choiceTimestamps,
+      closeTime,
       resolution,
       rangeMin,
       rangeMax,
@@ -379,6 +380,12 @@ function buildChartData({
         active,
         highlighted,
       };
+      if (item.line.length > 0) {
+        item.line.push({
+          x: closeTime ? closeTime / 1000 : latestTimestamp,
+          y: item.line.at(-1)!.y,
+        });
+      }
 
       if (minValues && maxValues) {
         item.area = actualTimestamps.map((timestamp, timestampIndex) => ({

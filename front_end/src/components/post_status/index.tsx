@@ -14,11 +14,20 @@ type Props = {
 const PostStatus: FC<Props> = ({ resolution, post }) => {
   const t = useTranslations();
   const locale = useLocale();
-  const { status, scheduled_close_time, actual_close_time, open_time } = post;
+  const {
+    status,
+    scheduled_close_time,
+    actual_close_time,
+    scheduled_resolve_time,
+    open_time,
+  } = post;
 
   const statusInfo = useMemo(() => {
     if (status === PostStatusEnum.CLOSED) {
-      return [t("resolutionPending")];
+      if (new Date(scheduled_resolve_time).getTime() < Date.now()) {
+        return [t("resolutionPending")];
+      }
+      return [t("closed")];
     }
 
     if (status === PostStatusEnum.APPROVED) {
@@ -50,7 +59,7 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
     return [];
   }, [locale, scheduled_close_time, actual_close_time, status, t]);
 
-  if (!post.scheduled_close_time || !post.actual_close_time) {
+  if (!post.scheduled_close_time && !post.actual_close_time) {
     return null;
   }
 
@@ -59,7 +68,7 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
       <PostStatusIcon
         status={status}
         published_at={post.published_at}
-        actual_close_time={scheduled_close_time}
+        scheduled_close_time={scheduled_close_time}
         resolution={resolution}
       />
       <span className="whitespace-nowrap text-sm" suppressHydrationWarning>

@@ -545,7 +545,13 @@ def get_aggregated_forecasts_for_questions(
             ):
                 return 0
 
-            return aggregation.forecast_values[1]
+            match q.type:
+                case "binary":
+                    return aggregation.forecast_values[1]
+                case "numeric" | "date":
+                    return aggregation.centers[0]
+                case "multiple_choice":
+                    return aggregation.forecast_values[0]
 
         for group_questions in group_questions_map.values():
             group_questions = sorted(group_questions, key=sorting_key, reverse=True)

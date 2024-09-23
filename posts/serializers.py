@@ -41,6 +41,8 @@ class PostReadSerializer(serializers.ModelSerializer):
     author_username = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     open_time = serializers.SerializerMethodField()
+    actual_close_time = serializers.SerializerMethodField()
+    scheduled_close_time = serializers.SerializerMethodField()
     coauthors = serializers.SerializerMethodField()
     nr_forecasters = serializers.IntegerField(source="forecasters_count")
 
@@ -60,8 +62,8 @@ class PostReadSerializer(serializers.ModelSerializer):
             "curation_status",
             "comment_count",
             "status",
-            "actual_close_time",
             "resolved",
+            "actual_close_time",
             "scheduled_close_time",
             "scheduled_resolve_time",
             "open_time",
@@ -78,9 +80,26 @@ class PostReadSerializer(serializers.ModelSerializer):
         return [{"id": u.id, "username": u.username} for u in obj.coauthors.all()]
 
     def get_status(self, obj: Post):
+        if obj.notebook:
+            return obj.curation_status
         if obj.resolved:
             return "resolved"
-        if obj.actual_close_time and obj.actual_close_time < timezone.now():
+        if obj.question:
+            scheduled_close_time = obj.question.scheduled_close_time
+        elif obj.conditional:
+            scheduled_close_time = obj.conditional.condition_child.scheduled_close_time
+        elif obj.group_of_questions:
+            scheduled_close_times = [
+                x.scheduled_close_time
+                for x in obj.group_of_questions.questions.all()
+                if x.scheduled_close_time
+            ]
+            if len(scheduled_close_times) == 0:
+                return obj.curation_status
+            scheduled_close_time = max(scheduled_close_times)
+        else:
+            return obj.curation_status
+        if scheduled_close_time and scheduled_close_time < timezone.now():
             return "closed"
         return obj.curation_status
 
@@ -100,6 +119,36 @@ class PostReadSerializer(serializers.ModelSerializer):
             if len(open_times) == 0:
                 return None
             return min(open_times)
+
+    def get_actual_close_time(self, obj: Post):
+        if obj.notebook:
+            return None
+        if obj.question:
+            return obj.question.actual_close_time
+        if obj.conditional:
+            return obj.conditional.condition_child.actual_close_time
+        if obj.group_of_questions:
+            actual_close_times = [
+                x.actual_close_time for x in obj.group_of_questions.questions.all()
+            ]
+            if len(actual_close_times) == 0 or None in actual_close_times:
+                return None
+            return max(actual_close_times)
+
+    def get_scheduled_close_time(self, obj: Post):
+        if obj.notebook:
+            return None
+        if obj.question:
+            return obj.question.scheduled_close_time
+        if obj.conditional:
+            return obj.conditional.condition_child.scheduled_close_time
+        if obj.group_of_questions:
+            scheduled_close_times = [
+                x.scheduled_close_time for x in obj.group_of_questions.questions.all()
+            ]
+            if len(scheduled_close_times) == 0 or None in scheduled_close_times:
+                return None
+            return max(scheduled_close_times)
 
 
 class NotebookWriteSerializer(serializers.ModelSerializer):
@@ -301,6 +350,7 @@ def serialize_post(
         current_user if current_user and not current_user.is_anonymous else None
     )
     serialized_data = PostReadSerializer(post).data
+    print(serialized_data)
 
     if post.question:
         serialized_data["question"] = serialize_question(
