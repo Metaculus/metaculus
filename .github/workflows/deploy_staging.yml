@@ -1,0 +1,23 @@
+name: Deploy staging.metaculus.com (Staging)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-to-staging:
+    runs-on: ubuntu-latest
+    environment: staging_env
+    env:
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_APP: staging-metaculus-web
+      NEXT_PUBLIC_APP_URL: "https://staging.metaculus.com"
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+      NEXT_PUBLIC_CDN_DOMAIN_NAME: ${{ vars.NEXT_PUBLIC_CDN_DOMAIN_NAME }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build and deploy to Heroku
+        run: |
+          heroku container:login # uses the HEROKU_API_KEY
+          ./scripts/deploy_to_heroku.sh
