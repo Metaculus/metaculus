@@ -26,7 +26,7 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
       <button onClick={onPrev} className={onboardingStyles.backButton}>
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
-      <h3 className={onboardingStyles.heading}>Nice work.</h3>
+      <h3 className={onboardingStyles.title}>Nice work.</h3>
       <p className={onboardingStyles.paragraph}>
         Anyone can improve at forecasting by practicing and thinking through
         what factors could influence outcomes. In a series of forecasting
@@ -34,9 +34,10 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
         Tetlock, skilled forecasters outperformed CIA analysts with access to
         classified intelligence.
       </p>
-      <p className={onboardingStyles.paragraph}>
-        Next we'll bring it all together so you can forecast on a real Metaculus
-        question page.
+      <p className={onboardingStyles.largeparagraph}>
+        Next we’ll take you on a tour of a real Metaculus question page. We’ll
+        introduce you to some additional features, and you’ll bring together
+        everything you’ve learned so far.
       </p>
       <div className="mx-auto flex justify-center ">
         <Link href={questionUrl}>

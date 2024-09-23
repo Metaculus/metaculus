@@ -53,14 +53,14 @@ const Step4: React.FC<Step4Props> = ({
       <button onClick={onPrev} className={onboardingStyles.backButton}>
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
-      <p className={onboardingStyles.paragraph}>
+      <p className={onboardingStyles.title}>
         This time let's think through things that might influence the outcome.
       </p>
       <ul className="mb-4 list-none space-y-2">
         {factors.map((factor, index) => (
           <li
             key={index}
-            className="rounded-md bg-blue-400/75 p-2.5 text-sm dark:bg-blue-600/45"
+            className="rounded-md bg-blue-400/45 p-2.5 text-base dark:bg-blue-600/25"
           >
             {factor}
           </li>
@@ -85,24 +85,25 @@ const Step4: React.FC<Step4Props> = ({
         What do you think? Did any of those factors make you want to change your
         prediction? If not, that's fine too.
       </p>
-
-      <div
-        className={`${onboardingStyles.questionContainer} rounded-none border-none bg-blue-200/100 py-1 pb-0 dark:bg-blue-800/100`}
-      >
-        <h3 className={`${onboardingStyles.questionTitle} mb-0 pb-0`}>
-          {questionData.title}
-        </h3>{" "}
-      </div>
-      <div>
-        <div className="bg-blue-200 py-4 dark:bg-blue-800">
-          <BinarySlider
-            forecast={prediction}
-            onChange={onPredictionChange}
-            isDirty={true}
-            communityForecast={communityForecast}
-            onBecomeDirty={() => {}}
-            disabled={false}
-          />
+      <div className="flex flex-col gap-1 bg-blue-200 dark:bg-blue-800">
+        <div
+          className={`${onboardingStyles.questionContainer} rounded-none border-none py-1 pb-0`}
+        >
+          <h3 className={`${onboardingStyles.questionTitle} mb-0 px-2 pb-0`}>
+            {questionData.title}
+          </h3>{" "}
+        </div>
+        <div>
+          <div className="py-4">
+            <BinarySlider
+              forecast={prediction}
+              onChange={onPredictionChange}
+              isDirty={true}
+              communityForecast={communityForecast}
+              onBecomeDirty={() => {}}
+              disabled={false}
+            />
+          </div>
         </div>
       </div>
       <div className="mt-6 flex justify-center">

@@ -9,7 +9,8 @@ interface Step1Props {
 const Step1: React.FC<Step1Props> = ({ onTopicSelect }) => (
   <div className={onboardingStyles.container}>
     <p className={onboardingStyles.title}>
-      Will it rain today? Will this stock go up? Will my team win?
+      Should I bring an umbrella? What’s the market outlook? Will my team win
+      today’s game?
     </p>
     <p className={onboardingStyles.paragraph}>
       You actually make predictions all the time, on topics big and small. It’s
@@ -21,13 +22,14 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect }) => (
     <p className={onboardingStyles.paragraph}>
       First, pick a topic you care about.
     </p>
-    <div className="mt-6 flex flex-row gap-3">
+    <div className="mt-1 flex flex-row gap-3">
       {onboardingTopics.map((topic, index) => (
         <button
           key={index}
           onClick={() => onTopicSelect(index)}
-          className={onboardingStyles.button}
+          className={onboardingStyles.topic}
         >
+          <p className="mb-0 pb-0 text-4xl">{topic.emoji}</p>
           {topic.name}
         </button>
       ))}

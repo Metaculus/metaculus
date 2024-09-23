@@ -44,7 +44,7 @@ const Step3: React.FC<Step3Props> = ({
       <button onClick={onPrev} className={onboardingStyles.backButton}>
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
-      <p className={onboardingStyles.paragraph}>
+      <p className={onboardingStyles.title}>
         Great! Here's another question about {topic.name}:
       </p>
       <div className={onboardingStyles.questionContainer}>

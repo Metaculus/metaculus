@@ -118,20 +118,16 @@ const BinarySlider: FC<Props> = ({
             </span>
           </div>
         )}
-        {helperDisplay && ( // Conditionally render the "Very Unlikely" and "Very Likely" labels based on helperDisplay prop
+        {/* {helperDisplay && ( // Conditionally render the "Very Unlikely" and "Very Likely" labels based on helperDisplay prop
           <>
-            {sliderValue > 22 && (
-              <div className="absolute left-0 top-4 mt-2 text-xs text-gray-500">
+              <div className="absolute left-0 top-4 mt-2 text-xs text-gray-500 z-1">
                 Very Unlikely
               </div>
-            )}
-            {sliderValue < 78 && (
-              <div className="absolute right-0 top-4 mt-2 text-xs text-gray-500">
+              <div className="absolute right-0 top-4 mt-2 text-xs text-gray-500 z-1">
                 Very Likely
               </div>
-            )}
           </>
-        )}
+        )} */}
       </div>
       {/* <div className="mb-3 block text-center">
         <ForecastTextInput

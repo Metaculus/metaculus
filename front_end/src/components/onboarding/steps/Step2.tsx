@@ -94,11 +94,11 @@ const Step2: React.FC<Step2Props> = ({
   const getActiveButtonText = () => {
     switch (activeButton) {
       case "less":
-        return "You can adjust your prediction with the above slider if you like. Click 'Predict' when you're ready to move on.'";
+        return "You can adjust your prediction with the above slider if you like. Click 'Predict' when you're ready to move on.";
       case "about":
-        return "You can adjust your prediction with the above slider if you like. Click 'Predict' when you're ready to move on.'";
+        return "You can adjust your prediction with the above slider if you like. Click 'Predict' when you're ready to move on.";
       case "more":
-        return "You can adjust your prediction with the above slider if you like. Click 'Predict' when you're ready to move on.'";
+        return "You can adjust your prediction with the above slider if you like. Click 'Predict' when you're ready to move on.";
       default:
         return "";
     }
@@ -109,7 +109,7 @@ const Step2: React.FC<Step2Props> = ({
       <button onClick={onPrev} className={onboardingStyles.backButton}>
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
-      <p className={onboardingStyles.paragraph}>
+      <p className={onboardingStyles.title}>
         Here's a real Metaculus question about {topic.name}:
       </p>
       <div className={onboardingStyles.questionContainer}>
@@ -125,7 +125,7 @@ const Step2: React.FC<Step2Props> = ({
         )}
       </div>
       <p>What do you think? Is it more likely than that? Less? About right?</p>
-      <div className="mt-6 flex justify-start gap-3">
+      <div className="flex justify-start gap-3">
         <button
           onClick={() => handlePrediction("less")}
           className={getButtonClass("less")}
@@ -164,7 +164,7 @@ const Step2: React.FC<Step2Props> = ({
             {activeButton && (
               <div className="flex flex-col items-center">
                 <p
-                  className={`${onboardingStyles.paragraph} mb-0 pb-0 text-center font-semibold`}
+                  className={`${onboardingStyles.paragraph} mb-0 text-balance py-4 text-center font-semibold`}
                 >
                   {getActiveButtonText()}
                 </p>
