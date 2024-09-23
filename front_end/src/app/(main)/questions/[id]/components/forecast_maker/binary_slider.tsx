@@ -1,5 +1,7 @@
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import Slider from "@/components/sliders/slider";
 
@@ -104,16 +106,11 @@ const BinarySlider: FC<Props> = ({
 const MarkArrow: FC<{ value: number }> = ({ value }) => {
   const t = useTranslations();
   return (
-    <div className="absolute flex -translate-x-1/2 translate-y-[-30px] flex-col items-center gap-1 whitespace-nowrap text-sm font-bold text-gray-700 dark:text-gray-700-dark">
+    <div className="absolute flex -translate-x-1/2 translate-y-[-36px] flex-col items-center gap-0 whitespace-nowrap text-sm font-bold text-gray-700 dark:text-gray-700-dark">
       <span>
         {t("community")}: {`${Math.round(1000 * value) / 10}%`}
       </span>
-      <svg width="16" height="20">
-        <path
-          d="M 1 1 L 7 16 L 13 1 Z"
-          className="fill-blue-100 stroke-gray-600 stroke-1 dark:fill-blue-100-dark dark:stroke-gray-600-dark"
-        />
-      </svg>
+      <FontAwesomeIcon icon={faChevronDown} />
     </div>
   );
 };
