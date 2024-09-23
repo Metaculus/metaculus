@@ -88,7 +88,7 @@ const ArrowButton: FC<ArrowButtonProps> = ({
 }) => (
   <button
     className={classNames(
-      "items-cente invisible flex rounded-full border bg-blue-200 px-1.5 py-1 text-center text-gray-300 hover:text-gray-600 active:text-gray-900 group-hover:visible dark:border-gray-500 dark:bg-blue-200-dark dark:text-gray-500 dark:hover:border-blue-400 dark:hover:text-blue-400 dark:active:text-gray-900-dark",
+      "items-cente invisible flex rounded-full bg-blue-200 px-1.5 py-1 text-center text-gray-300 hover:text-gray-600 active:text-gray-900 group-hover:visible dark:bg-blue-200-dark dark:text-gray-300-dark dark:hover:text-gray-600-dark dark:active:text-gray-900-dark",
       className
     )}
     onMouseDown={(e) => {

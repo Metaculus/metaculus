@@ -160,29 +160,21 @@ const Step2: React.FC<Step2Props> = ({
               onBecomeDirty={() => {}}
               disabled={false}
             />
-            {/* <div className="flex px-[25px] w-full justify-between relative top-[-112px] text-xs text-gray-500 dark:text-gray-500">
-              <span className="w-full text-left">Very Unlikely</span>
-              <span className="w-full text-center">About Even</span>
-              <span className="w-full text-right">Very Likely</span>
-            </div> */}
             {activeButton && (
-              <div className="mt-[-4px] text-center">
-                <div className="w-full animate-bounce self-center text-center opacity-50">
-                  <FontAwesomeIcon icon={faChevronUp} />
-                </div>
-                <span className="mt-[-4px] block">Me</span>
+              <div className="flex flex-col items-center">
+                <p
+                  className={`${onboardingStyles.paragraph} mb-0 pb-0 text-center font-semibold`}
+                >
+                  {getActiveButtonText()}
+                </p>
+                <button
+                  onClick={handleSubmit}
+                  className={onboardingStyles.button}
+                >
+                  Predict
+                </button>
               </div>
             )}
-          </div>
-          <div className="flex flex-col items-center">
-            <p
-              className={`${onboardingStyles.paragraph} mb-0 pb-0 text-center font-semibold`}
-            >
-              {getActiveButtonText()}
-            </p>
-            <button onClick={handleSubmit} className={onboardingStyles.button}>
-              Predict
-            </button>
           </div>
         </div>
       )}

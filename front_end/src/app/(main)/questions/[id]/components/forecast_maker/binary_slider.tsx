@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import Slider from "@/components/sliders/slider";
@@ -64,7 +64,7 @@ const BinarySlider: FC<Props> = ({
 
   return (
     <>
-      <div className="mx-6 mt-8 h-16">
+      <div className="group relative mx-6 mt-8 h-16">
         <Slider
           inputMin={BINARY_MIN_VALUE}
           inputMax={BINARY_MAX_VALUE}
@@ -85,8 +85,22 @@ const BinarySlider: FC<Props> = ({
           disabled={disabled}
           styles={disabled ? { handle: { cursor: "default" } } : {}}
         />
+        {forecast !== null && (
+          <div
+            className="absolute flex flex-col items-center opacity-100 transition-all group-hover:opacity-0"
+            style={{
+              left: `${((forecast - BINARY_MIN_VALUE) / (BINARY_MAX_VALUE - BINARY_MIN_VALUE)) * 100}%`,
+              transform: "translateX(-50%)",
+            }}
+          >
+            <div className="w-full self-center text-center text-orange-300/50">
+              <FontAwesomeIcon icon={faChevronUp} />
+            </div>
+            <span className="mt-[-4px] block text-orange-300">Me</span>
+          </div>
+        )}
       </div>
-      <div className="mb-3 block text-center">
+      {/* <div className="mb-3 block text-center">
         <ForecastTextInput
           value={inputValue}
           minValue={BINARY_MIN_VALUE}
@@ -98,7 +112,7 @@ const BinarySlider: FC<Props> = ({
           onBlur={() => setIsInputFocused(false)}
           disabled={disabled}
         />
-      </div>
+      </div> */}
     </>
   );
 };
