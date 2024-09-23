@@ -1,16 +1,16 @@
-name: Deploy staging.metaculus.com (Staging)
+name: Deploy play.metaculus.com (Experiments)
 
 on:
   workflow_dispatch:
 
 jobs:
-  deploy-to-staging:
+  deploy-to-play:
     runs-on: ubuntu-latest
-    environment: staging_env
+    environment: play_env
     env:
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      HEROKU_APP: staging-metaculus-web
-      NEXT_PUBLIC_APP_URL: "https://staging.metaculus.com"
+      HEROKU_APP: play-metaculus-web
+      NEXT_PUBLIC_APP_URL: "https://play.metaculus.com"
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
       NEXT_PUBLIC_CDN_DOMAIN_NAME: ${{ vars.NEXT_PUBLIC_CDN_DOMAIN_NAME }}
 
