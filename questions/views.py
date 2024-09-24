@@ -41,7 +41,7 @@ def resolve_api_view(request, pk: int):
     return Response({"post_id": question.get_post().pk})
 
 
-@api_view(["GET"])
+@api_view(["POST"])
 @transaction.non_atomic_requests
 def bulk_create_forecasts_api_view(request):
     serializer = ForecastWriteSerializer(data=request.data, many=True)
