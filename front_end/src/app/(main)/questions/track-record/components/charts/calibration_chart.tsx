@@ -16,6 +16,7 @@ import { TrackRecordCalibrationCurveItem } from "@/types/track_record";
 import { METAC_COLORS } from "@/constants/colors";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
+import SectionToggle from "@/components/ui/section_toggle";
 
 const CalibrationChart: React.FC<{
   calibrationData: TrackRecordCalibrationCurveItem[];
@@ -126,6 +127,57 @@ const CalibrationChart: React.FC<{
           />
         )}
       </VictoryChart>
+      <div className="flex flex-col items-center space-y-3 divide-y divide-gray-300 dark:divide-gray-700">
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 md:gap-x-8">
+          <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
+            <span
+              className="block h-4 w-7"
+              style={{
+                backgroundColor: getThemeColor(METAC_COLORS.gray["300"]),
+              }}
+            ></span>
+            {t("perfectCalibration90CI")}
+          </div>
+          <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
+            <span
+              className="block h-1 w-7"
+              style={{
+                backgroundColor: getThemeColor(METAC_COLORS.gray["600"]),
+              }}
+            ></span>
+            {t("perfectCalibration")}
+          </div>
+          <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
+            <span
+              className="block size-2 rotate-45"
+              style={{
+                backgroundColor: getThemeColor(METAC_COLORS.gold["500"]),
+              }}
+            ></span>
+            {username
+              ? t("userCalibration", { username: username })
+              : t("communityPredictionCalibration")}
+          </div>
+        </div>
+      </div>
+      <SectionToggle title="Details" defaultOpen={false}>
+        <span className="pt-3 text-sm text-gray-600 dark:text-gray-400">
+          The Calibration Chart takes into account forecasts for binary
+          questions only. Each column in the Calibration chart corresponds to
+          the predictions that were within that range (e.g. 17.5% - 22.5%)
+          showing the proportion of the questions that resolve as "Yes" within
+          that range - represented by the yellow diamond. Forecasts are weighted
+          by their <a href="/help/scores-faq/#coverage">coverage</a>. The gray
+          lines show the "perfect calibration" achievable given the number of
+          forecasts in each range. The shaded area is the 90% confidence
+          interval around the perfect calibration, meaning that if the diamond
+          is outside of the shaded area, one can say with 90% confidence that
+          the forecaster is not perfectly calibrated in that range.
+          <br />
+          <br />
+          {t("calibrationCurveInfo")}
+        </span>
+      </SectionToggle>
     </div>
   );
 };

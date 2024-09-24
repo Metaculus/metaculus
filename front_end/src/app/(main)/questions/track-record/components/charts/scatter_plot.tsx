@@ -230,13 +230,34 @@ const ScatterPlot: React.FC<HistogramProps> = ({
               {t("resolutionLabel")} {hoverData.question_resolution}
             </div>
             <div className="text-center">
-              {t("score")}: {hoverData.score}
+              {t("score")}: {Math.round(hoverData.score * 1000) / 1000}
             </div>
           </>
         ) : (
           <div className="text-center">{t("scatterPlotHoverMessage")}</div>
         )}
       </div>
+      <span className="pt-3 text-sm text-gray-600 dark:text-gray-400">
+        The Score Scatter Plot shows the set of{" "}
+        {username ? (
+          <Link
+            href="/help/scores-faq/#peer-score"
+            className="text-blue-700 hover:text-blue-800 dark:text-blue-300 hover:dark:text-blue-200"
+          >
+            Peer
+          </Link>
+        ) : (
+          <Link
+            href="/help/scores-faq/#baseline-score"
+            className="text-blue-700 hover:text-blue-800 dark:text-blue-300 hover:dark:text-blue-200"
+          >
+            Baseline
+          </Link>
+        )}{" "}
+        scores the forecaster achieved over time. Each circle represents a score
+        acheived on a particular question, and the trend line is a moving
+        average of the scores.
+      </span>
     </>
   );
 };
