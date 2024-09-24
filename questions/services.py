@@ -466,7 +466,7 @@ def create_forecast(
     # Run async tasks
     from questions.tasks import run_build_question_forecasts
 
-    run_build_question_forecasts(question.id)
+    run_build_question_forecasts.send(question.id)
 
     return forecast
 
