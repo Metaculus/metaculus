@@ -1,6 +1,7 @@
 "use client";
 
 import { isNil, merge } from "lodash";
+import { useTranslations } from "next-intl";
 import React, { FC, memo, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
@@ -30,6 +31,7 @@ import {
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { ChoiceItem, UserChoiceItem } from "@/types/choices";
+import { QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import {
   findPreviousTimestamp,
@@ -45,8 +47,6 @@ import {
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
 import XTickLabel from "./primitives/x_tick_label";
-import { useTranslations } from "next-intl";
-import { QuestionType, Scaling } from "@/types/question";
 
 type Props = {
   timestamps: number[];
@@ -96,7 +96,11 @@ const MultipleChoiceChart: FC<Props> = ({
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
 
-  const defaultCursor = timestamps[timestamps.length - 1];
+  const defaultCursor = isClosed
+    ? actualCloseTime
+      ? actualCloseTime / 1000
+      : timestamps[timestamps.length - 1]
+    : Date.now() / 1000;
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
@@ -415,7 +419,15 @@ function buildChartData({
         if (resolution === choice) {
           // multiple choice case
           item.resolutionPoint = {
-            x: actualTimestamps.at(-1),
+            x: Math.min(
+              Math.max(
+                closeTime
+                  ? closeTime / 1000
+                  : actualTimestamps[actualTimestamps.length - 1],
+                actualTimestamps[actualTimestamps.length - 1]
+              ),
+              latestTimestamp
+            ),
             y: rangeMax ?? 1,
           };
         }
@@ -423,7 +435,15 @@ function buildChartData({
         if (resolution === "yes" || resolution === "no") {
           // binary group case
           item.resolutionPoint = {
-            x: actualTimestamps.at(-1),
+            x: Math.min(
+              Math.max(
+                closeTime
+                  ? closeTime / 1000
+                  : actualTimestamps[actualTimestamps.length - 1],
+                actualTimestamps[actualTimestamps.length - 1]
+              ),
+              latestTimestamp
+            ),
             y: resolution === "no" ? rangeMin ?? 0 : rangeMax ?? 1,
           };
         }
