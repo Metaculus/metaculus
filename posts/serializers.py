@@ -344,14 +344,12 @@ def serialize_post(
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
-    with_nr_forecasters: bool = False,
     aggregate_forecasts: dict[Question, AggregateForecast] = None,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
     )
     serialized_data = PostReadSerializer(post).data
-    print(serialized_data)
 
     if post.question:
         serialized_data["question"] = serialize_question(
