@@ -419,7 +419,15 @@ function buildChartData({
         if (resolution === choice) {
           // multiple choice case
           item.resolutionPoint = {
-            x: closeTime ? closeTime / 1000 : latestTimestamp,
+            x: Math.min(
+              Math.max(
+                closeTime
+                  ? closeTime / 1000
+                  : actualTimestamps[actualTimestamps.length - 1],
+                actualTimestamps[actualTimestamps.length - 1]
+              ),
+              latestTimestamp
+            ),
             y: rangeMax ?? 1,
           };
         }
@@ -427,7 +435,15 @@ function buildChartData({
         if (resolution === "yes" || resolution === "no") {
           // binary group case
           item.resolutionPoint = {
-            x: closeTime ? closeTime / 1000 : latestTimestamp,
+            x: Math.min(
+              Math.max(
+                closeTime
+                  ? closeTime / 1000
+                  : actualTimestamps[actualTimestamps.length - 1],
+                actualTimestamps[actualTimestamps.length - 1]
+              ),
+              latestTimestamp
+            ),
             y: resolution === "no" ? rangeMin ?? 0 : rangeMax ?? 1,
           };
         }
