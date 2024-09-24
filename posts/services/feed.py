@@ -34,6 +34,7 @@ def get_posts_feed(
     not_forecaster_id: int = None,
     similar_to_post_id: int = None,
     for_main_feed: bool = None,
+    **kwargs,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
