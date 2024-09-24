@@ -115,7 +115,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
             };
           }
         ),
-    [choiceItems, cursorTimestamp, timestamps]
+    [choiceItems, cursorTimestamp, timestamps, questions]
   );
 
   const {
