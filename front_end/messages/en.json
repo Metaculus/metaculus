@@ -767,7 +767,7 @@
   "fractionResolvedYes": "Fraction resolved yes",
   "scatterPlotHoverMessage": "Hover over a circle to see how that question resolved.",
   "calibrationCurve": "Calibration Curve",
-  "calibrationCurveInfo": "If the diamonds are close to the grey lines, the predictions are well-calibrated at that confidence level. If the diamonds are closer to the 50% than the diamonds, the predictions were underconfident, and vice-versa.",
+  "calibrationCurveInfo": "If the diamonds are close to the grey lines, the predictions are well-calibrated at that confidence level. If the diamonds are closer to the 50% than the grey bars, the predictions were underconfident, and vice-versa.",
   "condition": "condition",
   "facebook": "Facebook",
   "xTwitter": "X / Twitter",

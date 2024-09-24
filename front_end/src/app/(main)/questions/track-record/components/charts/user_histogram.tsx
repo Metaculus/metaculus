@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import React, { useMemo } from "react";
+import React from "react";
 import {
   VictoryAxis,
   VictoryChart,
@@ -12,10 +12,10 @@ import {
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import useAppTheme from "@/hooks/use_app_theme";
 import { TrackRecordHistogramItem } from "@/types/track_record";
+import Link from "next/link";
 
 import dynamic from "next/dynamic";
 import { range } from "lodash";
-import { generateTicksY } from "@/utils/charts";
 
 type HistogramProps = {
   rawHistogramData: TrackRecordHistogramItem[];
@@ -67,7 +67,7 @@ const UserHistogram: React.FC<HistogramProps> = ({
           y: [0, yMax],
         }}
         containerComponent={<VictoryContainer responsive={true} />}
-        padding={{ top: 20, bottom: 65, left: 40, right: 20 }}
+        padding={{ top: 20, bottom: 40, left: 40, right: 20 }}
         height={180}
       >
         <VictoryAxis
@@ -122,6 +122,27 @@ const UserHistogram: React.FC<HistogramProps> = ({
           interpolation="stepAfter"
         />
       </VictoryChart>
+      <span className="pt-3 text-sm text-gray-600 dark:text-gray-400">
+        The Score Histogram shows the distribution of{" "}
+        {username ? (
+          <Link
+            href="/help/scores-faq/#peer-score"
+            className="text-blue-700 hover:text-blue-800 dark:text-blue-300 hover:dark:text-blue-200"
+          >
+            Peer
+          </Link>
+        ) : (
+          <Link
+            href="/help/scores-faq/#baseline-score"
+            className="text-blue-700 hover:text-blue-800 dark:text-blue-300 hover:dark:text-blue-200"
+          >
+            Baseline
+          </Link>
+        )}{" "}
+        scores the forecaster achieved.
+        <br />
+        <br />
+      </span>
     </>
   );
 };
