@@ -1,7 +1,5 @@
 "use client";
 
-import { faAdd } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -12,7 +10,6 @@ import * as z from "zod";
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
-import { Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
@@ -21,6 +18,7 @@ import { QuestionType } from "@/types/question";
 import { getQuestionStatus, parseQuestionId } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
+import ConditionalQuestionInput from "./conditional_question_inpu";
 import { createQuestionPost, getPost, updatePost } from "../actions";
 
 type PostCreationData = {
@@ -158,33 +156,15 @@ const ConditionalForm: React.FC<{
           }}
         />
         <InputContainer labelText={t("parentId")}>
-          <div className="relative m-auto w-full flex-col">
-            <Input
-              readOnly={isLive && mode !== "create"}
-              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              {...control.register("condition_id")}
-              onChange={(e) => control.setValue("condition_id", e.target.value)}
-              errors={control.formState.errors.condition_id}
-            />
-            <Button
-              variant="text"
-              onClick={() =>
-                setConditionQuestion(
-                  control,
-                  setConditionParent,
-                  "condition_id"
-                )
-              }
-              className="absolute inset-y-0 right-0 inline-flex h-[42px] justify-center pr-2"
-              aria-label="Search"
-            >
-              <FontAwesomeIcon
-                icon={faAdd}
-                size="lg"
-                className="text-gray-500"
-              />
-            </Button>
-          </div>
+          <ConditionalQuestionInput
+            isLive={isLive}
+            mode={mode}
+            control={control}
+            fieldName="condition_id"
+            setConditionQuestion={() =>
+              setConditionQuestion(control, setConditionParent, "condition_id")
+            }
+          />
           {conditionParent?.question ? (
             <QuestionChartTile
               question={conditionParent?.question}
@@ -198,35 +178,19 @@ const ConditionalForm: React.FC<{
           )}
         </InputContainer>
         <InputContainer labelText={t("childId")}>
-          <div className="relative m-auto w-full flex-col">
-            <Input
-              readOnly={isLive && mode !== "create"}
-              className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              {...control.register("condition_child_id")}
-              onChange={(e) =>
-                control.setValue("condition_child_id", e.target.value)
-              }
-              errors={control.formState.errors.condition_child_id}
-            />
-            <Button
-              variant="text"
-              onClick={() =>
-                setConditionQuestion(
-                  control,
-                  setConditionChild,
-                  "condition_child_id"
-                )
-              }
-              className="absolute inset-y-0 right-0 inline-flex h-[42px] justify-center pr-2"
-              aria-label="Search"
-            >
-              <FontAwesomeIcon
-                icon={faAdd}
-                size="lg"
-                className="text-gray-500"
-              />
-            </Button>
-          </div>
+          <ConditionalQuestionInput
+            isLive={isLive}
+            mode={mode}
+            control={control}
+            fieldName="condition_child_id"
+            setConditionQuestion={() =>
+              setConditionQuestion(
+                control,
+                setConditionChild,
+                "condition_child_id"
+              )
+            }
+          />
           {conditionChild?.question ? (
             <QuestionChartTile
               question={conditionChild?.question}
