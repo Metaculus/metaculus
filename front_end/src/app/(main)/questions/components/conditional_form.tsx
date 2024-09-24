@@ -3,22 +3,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { SetStateAction, useState } from "react";
+import { useForm, UseFormReturn } from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
-import { Input } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { useAuth } from "@/contexts/auth_context";
 import { PostWithForecasts } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
-import { getQuestionStatus } from "@/utils/questions";
+import { getQuestionStatus, parseQuestionId } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
+import ConditionalQuestionInput from "./conditional_question_inpu";
 import { createQuestionPost, getPost, updatePost } from "../actions";
 
 type PostCreationData = {
@@ -29,8 +29,8 @@ type PostCreationData = {
   };
 };
 const conditionalQuestionSchema = z.object({
-  condition_id: z.number(),
-  condition_child_id: z.number(),
+  condition_id: z.string().min(1, { message: "Required" }),
+  condition_child_id: z.string().min(1, { message: "Required" }),
   default_project: z.number(),
 });
 
@@ -65,15 +65,37 @@ const ConditionalForm: React.FC<{
 
   const control = useForm({
     resolver: zodResolver(conditionalQuestionSchema),
+    defaultValues: {
+      condition_id: conditionParentInit?.id.toString(),
+      condition_child_id: conditionChild?.id.toString(),
+      default_project: tournament_id,
+    },
   });
 
   const submitQuestion = async (data: any) => {
-    if (conditionParent?.id && conditionChild?.id) {
+    let parentId = conditionParent?.id;
+    let childId = conditionChild?.id;
+    if (!parentId) {
+      parentId = await setConditionQuestion(
+        control,
+        setConditionParent,
+        "condition_id"
+      );
+    }
+    if (!childId) {
+      childId = await setConditionQuestion(
+        control,
+        setConditionChild,
+        "condition_child_id"
+      );
+    }
+
+    if (parentId && childId) {
       let post_data: PostCreationData = {
         default_project: data["default_project"],
         conditional: {
-          condition_id: conditionParent?.question?.id as number,
-          condition_child_id: conditionChild?.question?.id as number,
+          condition_id: parentId as number,
+          condition_child_id: childId as number,
         },
       };
 
@@ -134,28 +156,14 @@ const ConditionalForm: React.FC<{
           }}
         />
         <InputContainer labelText={t("parentId")}>
-          <Input
-            readOnly={isLive && mode !== "create"}
-            value={conditionParent?.id}
-            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-            type="number"
-            {...control.register("condition_id", {
-              setValueAs: (value: string) => {
-                const valueAsNr = Number(value);
-                if (valueAsNr == 0) {
-                  return;
-                }
-                getPost(valueAsNr).then((res) => {
-                  if (res && res.question?.type === QuestionType.Binary) {
-                    setConditionParent(res);
-                  } else {
-                    setConditionParent(null);
-                  }
-                });
-                return valueAsNr;
-              },
-            })}
-            errors={control.formState.errors.condition_id}
+          <ConditionalQuestionInput
+            isLive={isLive}
+            mode={mode}
+            control={control}
+            fieldName="condition_id"
+            setConditionQuestion={() =>
+              setConditionQuestion(control, setConditionParent, "condition_id")
+            }
           />
           {conditionParent?.question ? (
             <QuestionChartTile
@@ -170,28 +178,18 @@ const ConditionalForm: React.FC<{
           )}
         </InputContainer>
         <InputContainer labelText={t("childId")}>
-          <Input
-            readOnly={isLive && mode !== "create"}
-            value={conditionChild?.id}
-            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-            type="number"
-            {...control.register("condition_child_id", {
-              setValueAs: (value: string) => {
-                const valueAsNr = Number(value);
-                if (valueAsNr == 0) {
-                  return;
-                }
-                getPost(valueAsNr).then((res) => {
-                  if (res && res.question) {
-                    setConditionChild(res);
-                  } else {
-                    setConditionChild(null);
-                  }
-                });
-                return valueAsNr;
-              },
-            })}
-            errors={control.formState.errors.condition_child_id}
+          <ConditionalQuestionInput
+            isLive={isLive}
+            mode={mode}
+            control={control}
+            fieldName="condition_child_id"
+            setConditionQuestion={() =>
+              setConditionQuestion(
+                control,
+                setConditionChild,
+                "condition_child_id"
+              )
+            }
           />
           {conditionChild?.question ? (
             <QuestionChartTile
@@ -212,5 +210,43 @@ const ConditionalForm: React.FC<{
     </main>
   );
 };
+
+async function setConditionQuestion(
+  control: UseFormReturn<
+    {
+      condition_id: string | undefined;
+      condition_child_id: string | undefined;
+      default_project: number | null;
+    },
+    any,
+    undefined
+  >,
+  setQuestionState: (value: SetStateAction<PostWithForecasts | null>) => void,
+  fieldName: "condition_id" | "condition_child_id"
+) {
+  control.clearErrors(fieldName);
+  const conditionalQuestionParentId = parseQuestionId(
+    control.getValues(fieldName) ?? ""
+  );
+  try {
+    const res = await getPost(Number(conditionalQuestionParentId));
+    if (res && res.question?.type === QuestionType.Binary) {
+      setQuestionState(res);
+      return res.id;
+    } else {
+      control.setError(fieldName, {
+        type: "manual",
+        message: "Invalid question type",
+      });
+      setQuestionState(null);
+    }
+  } catch (e) {
+    control.setError(fieldName, {
+      type: "manual",
+      message: "Invalid question ID/URL",
+    });
+    setQuestionState(null);
+  }
+}
 
 export default ConditionalForm;

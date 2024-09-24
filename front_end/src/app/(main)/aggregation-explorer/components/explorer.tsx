@@ -21,6 +21,7 @@ import {
   AggregationMethod,
   aggregationMethodsArray,
 } from "@/types/question";
+import { parseQuestionId } from "@/utils/questions";
 
 import AggregationsTab from "./aggregation_tab";
 import AggregationsDrawer from "./aggregations_drawer";
@@ -218,18 +219,5 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     </>
   );
 };
-
-function parseQuestionId(questionUrlOrId: string) {
-  const id = Number(questionUrlOrId);
-  if (!isNaN(id)) {
-    return id.toString();
-  }
-  const urlPattern = /\/questions\/(\d+)\//;
-  const match = questionUrlOrId.match(urlPattern);
-  if (match && match[1]) {
-    return match[1];
-  }
-  return false;
-}
 
 export default Explorer;
