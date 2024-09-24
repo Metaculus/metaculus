@@ -299,6 +299,7 @@ def get_user_forecast_history(
             forecast_sets[timestep].forecasts_values.append(forecast_values)
             forecast_sets[timestep].users.append(forecast.author)
             forecast_sets[timestep].timesteps.append(forecast.start_time)
+
     return sorted(list(forecast_sets.values()), key=lambda x: x.timestep)
 
 
@@ -342,11 +343,15 @@ def get_aggregation_history(
     full_summary: dict[AggregationMethod, list[AggregateForecast]] = dict()
 
     # get input forecasts
-    forecasts = question.user_forecasts.order_by("start_time").all()
+    forecasts = (
+        question.user_forecasts.order_by("start_time").select_related("author")#.all()
+    )
+
     if user_ids:
         forecasts = forecasts.filter(author_id__in=user_ids)
     if not include_bots:
-        forecasts.exclude(author__is_bot=True)
+        forecasts = forecasts.exclude(author__is_bot=True)
+
     forecast_history = get_user_forecast_history(forecasts, minimize)
 
     for method in aggregation_methods:

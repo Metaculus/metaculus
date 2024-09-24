@@ -88,9 +88,9 @@ def build_question_forecasts(
         if not field.primary_key
     ]
     with transaction.atomic():
-        AggregateForecast.objects.bulk_update(overwriters, fields, batch_size=25)
+        AggregateForecast.objects.bulk_update(overwriters, fields, batch_size=50)
         AggregateForecast.objects.filter(id__in=[old.id for old in to_delete]).delete()
-        AggregateForecast.objects.bulk_create(to_create, batch_size=25)
+        AggregateForecast.objects.bulk_create(to_create, batch_size=50)
 
 
 def build_question_forecasts_for_user(
@@ -401,6 +401,7 @@ def close_question(question: Question):
     post.save()
 
 
+@transaction.atomic()
 def create_forecast(
     *,
     question: Question = None,
@@ -465,7 +466,7 @@ def create_forecast(
     # Run async tasks
     from questions.tasks import run_build_question_forecasts
 
-    run_build_question_forecasts.send(question.id)
+    run_build_question_forecasts(question.id)
 
     return forecast
 

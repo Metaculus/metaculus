@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.http import Http404
 from django.utils import timezone
 from rest_framework import status
@@ -40,10 +41,13 @@ def resolve_api_view(request, pk: int):
     return Response({"post_id": question.get_post().pk})
 
 
-@api_view(["POST"])
+@api_view(["GET"])
+@transaction.non_atomic_requests
 def bulk_create_forecasts_api_view(request):
     serializer = ForecastWriteSerializer(data=request.data, many=True)
     serializer.is_valid()
+
+    validated_data = serializer.validated_data
 
     if serializer.errors:
         raise ValidationError({"errors": serializer.errors})
@@ -51,7 +55,20 @@ def bulk_create_forecasts_api_view(request):
     if not serializer.validated_data:
         raise ValidationError("At least one forecast is required")
 
-    create_forecast_bulk(user=request.user, forecasts=serializer.validated_data)
+    # Prefetching questions for bulk optimization
+    questions = Question.objects.filter(
+        pk__in=[f["question"] for f in validated_data]
+    ).prefetch_related_post()
+    questions_map = {q.pk: q for q in questions}
+
+    # Replacing prefetched optimized questions
+    for forecast in validated_data:
+        forecast["question"] = questions_map.get(forecast["question"])
+
+        if not forecast["question"]:
+            raise ValidationError("Wrong question id")
+
+    create_forecast_bulk(user=request.user, forecasts=validated_data)
 
     return Response({}, status=status.HTTP_201_CREATED)
 
