@@ -1,6 +1,7 @@
-import { QuestionWithForecasts } from "@/types/question";
 import { FC } from "react";
+
 import SectionToggle from "@/components/ui/section_toggle";
+import { QuestionWithForecasts } from "@/types/question";
 
 type Props = {
   question: QuestionWithForecasts;
