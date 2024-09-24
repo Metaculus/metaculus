@@ -78,7 +78,7 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     post = get_object_or_404(Post.objects.all(), pk=pk)
     question = post.question
     if question is None:
-        raise Http404(f"Question with id {pk} not foiund.")
+        raise Http404(f"Question with id {pk} not found.")
 
     # Check permissions
     permission = get_post_permission_for_user(question.get_post(), user=request.user)

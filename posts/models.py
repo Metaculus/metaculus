@@ -437,10 +437,10 @@ class Post(TimeStampedModel):
                 for question in self.group_of_questions.questions.all()
             ]
 
-            if None not in close_times:
-                self.actual_close_time = max(close_times)
-            else:
+            if None in close_times:
                 self.actual_close_time = None
+            else:
+                self.actual_close_time = max(close_times)
         elif self.conditional and (
             self.conditional.condition_child.actual_close_time
             or self.conditional.condition.actual_close_time
@@ -470,11 +470,7 @@ class Post(TimeStampedModel):
                 self.resolved = False
         elif self.group_of_questions:
             resolutions = [
-                (
-                    True
-                    if question.resolution is not None and question.resolution != ""
-                    else False
-                )
+                question.resolution is not None
                 for question in self.group_of_questions.questions.all()
             ]
             self.resolved = resolutions and all(resolutions)
