@@ -245,7 +245,7 @@ def compute_post_sorting_divergence_and_update_snapshots(post: Post):
 
     snapshots = PostUserSnapshot.objects.filter(
         post=post, user_id__in=divergence.keys()
-    )
+    ).only("user_id", "divergence")
 
     bulk_update = []
 
@@ -256,7 +256,9 @@ def compute_post_sorting_divergence_and_update_snapshots(post: Post):
             user_snapshot.divergence = div
             bulk_update.append(user_snapshot)
 
-    PostUserSnapshot.objects.bulk_update(bulk_update, fields=["divergence"])
+    PostUserSnapshot.objects.bulk_update(
+        bulk_update, fields=["divergence"], batch_size=2000
+    )
 
 
 def compute_hotness():

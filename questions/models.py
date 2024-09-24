@@ -35,6 +35,9 @@ class QuestionQuerySet(models.QuerySet):
             )
         )
 
+    def prefetch_related_post(self):
+        return self.prefetch_related("related_posts__post")
+
 
 class QuestionManager(models.Manager.from_queryset(QuestionQuerySet)):
     def get_queryset(self):
@@ -122,20 +125,7 @@ class Question(TimeStampedModel):
         return f"{self.type} {self.title}"
 
     def get_post(self) -> "Post | None":
-        # Back-rel of One2One relations does not populate None values,
-        # So we always need to check whether attr exists
-        posts = []
-        if hasattr(self, "post"):
-            posts.append(self.post)
-
-        if hasattr(self, "conditional_no"):
-            posts.append(self.conditional_no.post)
-
-        if hasattr(self, "conditional_yes"):
-            posts.append(self.conditional_yes.post)
-
-        if self.group:
-            posts.append(self.group.post)
+        posts = [x.post for x in self.related_posts.all()]
 
         if len(posts) == 0:
             return None
@@ -351,3 +341,20 @@ class AggregateForecast(models.Model):
 
     def get_prediction_values(self) -> list[float]:
         return self.forecast_values
+
+
+class QuestionPost(models.Model):
+    """
+    Postgres View of Post<>Question relations
+    """
+
+    post = models.ForeignKey(
+        "posts.Post", related_name="related_questions", on_delete=models.DO_NOTHING
+    )
+    question = models.ForeignKey(
+        Question, related_name="related_posts", on_delete=models.DO_NOTHING
+    )
+
+    class Meta:
+        managed = False
+        db_table = "questions_question_post"

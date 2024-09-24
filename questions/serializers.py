@@ -336,9 +336,6 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "slider_values",
         )
 
-    def validate_question(self, value):
-        return Question.objects.get(pk=value)
-
     def validate(self, data):
         def is_valid_probability(x):
             return x <= 0.999 and x >= 0.001
