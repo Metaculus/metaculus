@@ -5,6 +5,7 @@ import { Scaling } from "./question";
 export type ChoiceItem = {
   choice: string;
   timestamps?: number[];
+  closeTime?: number;
   values: number[];
   minValues?: number[];
   maxValues?: number[];

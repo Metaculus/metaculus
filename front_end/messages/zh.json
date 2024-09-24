@@ -727,5 +727,13 @@
   "all": "全部",
   "2m": "2月",
   "1w": "1週",
-  "1d": "1日"
+  "1d": "1日",
+  "biosecurity": "生物安全",
+  "biosecurityDescription": "通過了解傳染病和為未來的大流行做準備來改善全球健康",
+  "aiProgress": "人工智能進展",
+  "aiProgressDescription": "探索人工智能技術的未來及其對社會的影響",
+  "nuclearSecurity": "核安全",
+  "nuclearSecurityDescription": "量化全球風險以確保我們安全並實現繁榮的未來",
+  "climateChange": "氣候變化",
+  "climateChangeDescription": "預測由人類活動引起的長期溫度和天氣模式變化"
 }

@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
 import {
+  getFilterSectionParticipation,
   getFilterSectionPostType,
   getFilterSectionUsername,
   POST_STATUS_LABEL_MAP,
@@ -19,9 +20,10 @@ import { QuestionOrder } from "@/types/question";
 const MainFeedFilters: FC = () => {
   const { params } = useSearchParams();
   const t = useTranslations();
+  const { user } = useAuth();
 
   const filters = useMemo(() => {
-    return [
+    const filters = [
       getFilterSectionPostType({ t, params }),
       {
         id: POST_STATUS_FILTER,
@@ -40,7 +42,11 @@ const MainFeedFilters: FC = () => {
       },
       getFilterSectionUsername({ t, params }),
     ];
-  }, [params, t]);
+    if (user) {
+      filters.push(getFilterSectionParticipation({ t, params, user }));
+    }
+    return filters;
+  }, [params, t, user]);
 
   const mainSortOptions: GroupButton<QuestionOrder>[] = useMemo(
     () => [

@@ -26,7 +26,10 @@ from migrator.services.migrate_scoring import migrate_archived_scores, score_que
 from migrator.services.migrate_subscriptions import migrate_subscriptions
 from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
-from migrator.services.post_migrate import post_migrate_calculate_divergence
+from migrator.services.post_migrate import (
+    post_migrate_calculate_divergence,
+    post_migrate_update_post_fields,
+)
 from migrator.utils import reset_sequence
 from posts.jobs import job_compute_movement
 from posts.services.common import compute_hotness
@@ -130,6 +133,8 @@ class Command(BaseCommand):
         task_start = print_duration("built forecasts", task_start, start)
         compute_hotness()
         task_start = print_duration("computed hotness", task_start, start)
+        post_migrate_update_post_fields()
+        print_duration("Updating other post fields", task_start, start)
 
         # Reset sql sequences
         reset_sequence()

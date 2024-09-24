@@ -102,6 +102,10 @@ const Header: FC = () => {
                 label={t("trackRecord")}
               />
               <LinkMenuItem href="/project/journal/" label={t("theJournal")} />
+              <LinkMenuItem
+                href="/aggregation-explorer"
+                label={t("aggregationExplorer")}
+              />
             </MenuItems>
           </Menu>
         </li>

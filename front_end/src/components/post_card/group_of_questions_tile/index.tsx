@@ -5,7 +5,7 @@ import MultipleChoiceTile from "@/components/multiple_choice_tile";
 import GroupNumericTile from "@/components/post_card/group_of_questions_tile/group_numeric_tile";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { PostStatus } from "@/types/post";
+import { PostWithForecasts, PostStatus } from "@/types/post";
 import {
   QuestionType,
   QuestionWithForecasts,
@@ -23,9 +23,14 @@ import {
 type Props = {
   questions: QuestionWithForecasts[];
   curationStatus: PostStatus;
+  post: PostWithForecasts;
 };
 
-const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
+const GroupOfQuestionsTile: FC<Props> = ({
+  questions,
+  curationStatus,
+  post,
+}) => {
   const { user } = useAuth();
   const tileType = questions.at(0)?.type;
 
@@ -69,6 +74,7 @@ const GroupOfQuestionsTile: FC<Props> = ({ questions, curationStatus }) => {
         <GroupNumericTile
           questions={questions as QuestionWithNumericForecasts[]}
           curationStatus={curationStatus}
+          post={post}
         />
       );
     default:

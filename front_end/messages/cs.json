@@ -736,5 +736,13 @@
   "all": "vše",
   "2m": "2m",
   "1w": "1t",
-  "1d": "1d"
+  "1d": "1d",
+  "biosecurity": "biologická bezpečnost",
+  "biosecurityDescription": "Zlepšování globálního zdraví pochopením infekčních nemocí a přípravou na budoucí pandemie",
+  "aiProgress": "pokrok v oblasti umělé inteligence",
+  "aiProgressDescription": "Zkoumání budoucnosti technologií umělé inteligence a jejich dopadů na společnost",
+  "nuclearSecurity": "jaderná bezpečnost",
+  "nuclearSecurityDescription": "Kvantifikace globálních rizik pro zajištění naší bezpečnosti a ochrany pro prosperující budoucnost",
+  "climateChange": "změna klimatu",
+  "climateChangeDescription": "Předpovídání dlouhodobých změn v teplotních a povětrnostních vzorcích způsobených lidskou činností"
 }

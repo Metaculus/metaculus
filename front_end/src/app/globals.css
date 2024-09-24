@@ -9,6 +9,11 @@
     box-sizing: border-box;
     border: 0 solid #e5e7eb;
   }
+  /* required to fix a open dialog bug
+  https://github.com/tailwindlabs/headlessui/discussions/2181 */
+  html:has(#headlessui-portal-root) {
+    @apply !overflow-visible !p-0;
+  }
 }
 
 @layer utilities {

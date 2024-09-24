@@ -358,12 +358,11 @@ export default function FAQ() {
         </p>
 
         <p>
-          Second, Metaculus aggregates the forecasts into a simple{" "}
-          <a href="https://en.wikipedia.org/wiki/Median">median</a> (community)
-          prediction, and an advanced Metaculus Prediction. The Community
-          Prediction is simple to calculate: it finds the value for which half
-          of predictors predict a higher value, and half predict lower.
-          Surprisingly, the Community Prediction is often{" "}
+          Second, Metaculus aggregates the forecasts into a community prediction
+          based on the
+          <a href="https://en.wikipedia.org/wiki/Median"> median</a> of user
+          forecasts weighted by recency. Surprisingly, the Community Prediction
+          is often{" "}
           <a href="/questions/track-record/">
             better than any individual predictor
           </a>
@@ -383,9 +382,7 @@ export default function FAQ() {
           question is &quot;resolved&quot;, and forecasters receive their
           scores. By tracking these scores from many forecasts on different
           topics over a long period of time, they become an increasingly better
-          metric of how good a given forecaster is. We use this data for our
-          Metaculus Prediction, which gives greater weight to predictions by
-          forecasters with better track records. These scores also provide
+          metric of how good a given forecaster is. These scores provide
           aspiring forecasters with important feedback on how they did and where
           they can improve.
         </p>
@@ -468,26 +465,25 @@ export default function FAQ() {
           nonprofit, government agency, or other organization seeking to use
           forecasting to support effective decision making. You can find current
           and archived tournaments in our{" "}
-          <a href="https://www.metaculus.com/tournaments/">Tournaments page</a>.
+          <a href="/tournaments/">Tournaments page</a>.
         </p>
         <p>
           Tournaments are the perfect place to prove your forecasting skills,
           while helping to improve our collective decision making ability. Cash
-          prizes and{" "}
-          <a href="https://www.metaculus.com/help/medals-faq/">Medals</a> are
-          awarded to the most accurate forecasters, and sometimes for other
-          valuable contributions (like comments). Follow a Tournament (with the
-          Follow button) to never miss new questions.
+          prizes and <a href="/help/medals-faq/">Medals</a> are awarded to the
+          most accurate forecasters, and sometimes for other valuable
+          contributions (like comments). Follow a Tournament (with the Follow
+          button) to never miss new questions.
         </p>
         <p>
           After at least one question has resolved, a Leaderboard will appear on
           the tournament page displaying current scores and rankings. A personal
           score board (&quot;My Score&quot;) will also appear, detailing your
           performance for each question (see{" "}
-          <a href="https://www.metaculus.com/help/scores-faq/#tournament-scores)">
+          <a href="/help/scores-faq/#tournament-scores">
             How are Tournaments Scored?
           </a>
-          .
+          ).
         </p>
         <p>
           At the end of a tournament, the prize pool is divided among
@@ -504,10 +500,7 @@ export default function FAQ() {
           facilitate donations to various non-profits, regranting organizations,
           and funds. You can find the list of organizations we facilitate
           payments to{" "}
-          <a href="https://www.metaculus.com/questions/11556/donating-tournament-prizes/">
-            here
-          </a>
-          .
+          <a href="/questions/11556/donating-tournament-prizes/">here</a>.
         </p>
 
         <h4 className="text-lg font-semibold">Question Series</h4>
@@ -521,7 +514,7 @@ export default function FAQ() {
         </p>
         <p>
           You can find all Question Series in a special section of the{" "}
-          <a href="https://www.metaculus.com/tournaments/">Tournaments page</a>.
+          <a href="/tournaments/">Tournaments page</a>.
         </p>
 
         <h3 className="scroll-mt-nav text-xl font-semibold" id="predmarket">
@@ -569,18 +562,16 @@ export default function FAQ() {
         <p>
           In contrast, Metaculus questions are designed to be objectively
           resolvable (like in{" "}
-          <a href="https://www.metaculus.com/questions/9942/brent-oil-to-breach-140-before-may">
+          <a href="/questions/9942/brent-oil-to-breach-140-before-may">
             Will Brent Crude Oil top $140/barrel before May 2022?
           </a>
           ), and forecasters are not asked for their preferences, but for their
           predictions. Unlike in a poll, over many predictions, participants
           accrue a track record indicating their forecasting accuracy. These
           track records are incorporated into the{" "}
-          <a href="https://www.metaculus.com/faq/#metaculus-prediction">
-            Metaculus Prediction
-          </a>
-          . The accuracy of the Metaculus track record itself is tracked{" "}
-          <a href="https://www.metaculus.com/questions/track-record/">here</a>.
+          <a href="/faq/#metaculus-prediction">Metaculus Prediction</a>. The
+          accuracy of the Metaculus track record itself is tracked{" "}
+          <a href="/questions/track-record/">here</a>.
         </p>
 
         <h2
@@ -659,22 +650,11 @@ export default function FAQ() {
           Metaculus hosts questions on{" "}
           <a href="/questions/categories/">many topics</a>, but our primary
           focus areas are Science,{" "}
-          <a href="https://www.metaculus.com/questions/?categories=technology">
-            Technology
-          </a>
-          ,{" "}
-          <a href="https://www.metaculus.com/questions/?tags=effective-altruism">
-            Effective Altruism
-          </a>
-          ,{" "}
-          <a href="https://www.metaculus.com/questions/?topic=ai">
-            Artificial Intelligence
-          </a>
-          ,{" "}
-          <a href="https://www.metaculus.com/questions/?topic=biosecurity">
-            Health
-          </a>
-          , and <a href="/questions/?categories=geopolitics">Geopolitics</a>.
+          <a href="/questions/?categories=technology">Technology</a>,{" "}
+          <a href="/questions/?tags=effective-altruism">Effective Altruism</a>,{" "}
+          <a href="/questions/?topic=ai">Artificial Intelligence</a>,{" "}
+          <a href="/questions/?topic=biosecurity">Health</a>, and{" "}
+          <a href="/questions/?categories=geopolitics">Geopolitics</a>.
         </p>
 
         <h3 className="scroll-mt-nav text-xl font-semibold" id="whoedits">
@@ -726,22 +706,11 @@ export default function FAQ() {
             Metaculus hosts questions on{" "}
             <a href="/questions/categories/">many topics</a>, but our primary
             focus areas are Science,{" "}
-            <a href="https://www.metaculus.com/questions/?categories=technology">
-              Technology
-            </a>
-            ,{" "}
-            <a href="https://www.metaculus.com/questions/?tags=effective-altruism">
-              Effective Altruism
-            </a>
-            ,{" "}
-            <a href="https://www.metaculus.com/questions/?topic=ai">
-              Artificial Intelligence
-            </a>
-            ,{" "}
-            <a href="https://www.metaculus.com/questions/?topic=biosecurity">
-              Health
-            </a>
-            , and <a href="/questions/?categories=geopolitics">Geopolitics</a>.
+            <a href="/questions/?categories=technology">Technology</a>,{" "}
+            <a href="/questions/?tags=effective-altruism">Effective Altruism</a>
+            , <a href="/questions/?topic=ai">Artificial Intelligence</a>,{" "}
+            <a href="/questions/?topic=biosecurity">Health</a>, and{" "}
+            <a href="/questions/?categories=geopolitics">Geopolitics</a>.
             Questions on other topics, especially that require a lot of
             moderator effort to get launched, will be given lower priority and
             may be deferred until a later time.
@@ -769,24 +738,12 @@ export default function FAQ() {
           which are interesting and well-written. That said, we try to approve
           just enough questions that they each can get the attention they
           deserve from our forecasters. Metaculus prioritizes questions on
-          Science,{" "}
-          <a href="https://www.metaculus.com/questions/?categories=technology">
-            Technology
-          </a>
-          ,{" "}
-          <a href="https://www.metaculus.com/questions/?tags=effective-altruism">
-            Effective Altruism
-          </a>
-          ,{" "}
-          <a href="https://www.metaculus.com/questions/?topic=ai">
-            Artificial Intelligence
-          </a>
-          ,{" "}
-          <a href="https://www.metaculus.com/questions/?topic=biosecurity">
-            Health
-          </a>
-          , and <a href="/questions/?categories=geopolitics">Geopolitics</a>. If
-          your question falls into one of these categories, or is otherwise very
+          Science, <a href="/questions/?categories=technology">Technology</a>,{" "}
+          <a href="/questions/?tags=effective-altruism">Effective Altruism</a>,{" "}
+          <a href="/questions/?topic=ai">Artificial Intelligence</a>,{" "}
+          <a href="/questions/?topic=biosecurity">Health</a>, and{" "}
+          <a href="/questions/?categories=geopolitics">Geopolitics</a>. If your
+          question falls into one of these categories, or is otherwise very
           urgent or important, you can tag us with @moderators to get our
           attention.
         </p>
@@ -922,7 +879,7 @@ export default function FAQ() {
           resolve as <strong>Ambiguous</strong>). Binary questions are
           appropriate when an event can either occur or not occur. For example,
           the question &quot;
-          <a href="https://www.metaculus.com/questions/6296/us-unemployment-above-5-through-nov-2021/">
+          <a href="/questions/6296/us-unemployment-above-5-through-nov-2021/">
             Will the US unemployment rate stay above 5% through November 2021?
           </a>
           &quot; resolved as <strong>No</strong> because the unemployment rate
@@ -956,7 +913,7 @@ export default function FAQ() {
         <p>
           Numeric range questions can resolve as a numeric value. For example,
           the question &quot;
-          <a href="https://www.metaculus.com/questions/7346/initial-jobless-claims-july-2021/">
+          <a href="/questions/7346/initial-jobless-claims-july-2021/">
             What will be the 4-week average of initial jobless claims (in
             thousands) filed in July 2021?
           </a>
@@ -966,7 +923,7 @@ export default function FAQ() {
         <p>
           Questions can also resolve outside the numeric range. For example, the
           question &quot;
-          <a href="https://www.metaculus.com/questions/6645/highest-us-core-cpi-growth-in-2021/">
+          <a href="/questions/6645/highest-us-core-cpi-growth-in-2021/">
             What will the highest level of annualised core US CPI growth be, in
             2021, according to U.S. Bureau of Labor Statistics data?
           </a>
@@ -979,7 +936,7 @@ export default function FAQ() {
         <p>
           Date range questions can resolve as a certain date. For example, the
           question &quot;
-          <a href="https://www.metaculus.com/questions/8723/date-of-next-who-pheic-declaration/">
+          <a href="/questions/8723/date-of-next-who-pheic-declaration/">
             When will the next Public Health Emergency of International Concern
             be declared by the WHO?
           </a>
@@ -989,7 +946,7 @@ export default function FAQ() {
         <p>
           Questions can also resolve outside the date range. For example, the
           question &quot;
-          <a href="https://www.metaculus.com/questions/6947/first-super-heavy-flight/">
+          <a href="/questions/6947/first-super-heavy-flight/">
             When will a SpaceX Super Heavy Booster fly?
           </a>
           &quot; resolved as <strong>&gt; March 29, 2022</strong> because a
@@ -1059,15 +1016,15 @@ export default function FAQ() {
         </h4>
         <p>
           Even if there can only be one outcome for a particular question group,
-          the Community and Metaculus Predictions function as they would for
-          normal independent questions. The Community and Metaculus Predictions
-          will still display a median or a weighted aggregate of the forecasts
-          on each subquestion, respectively. These medians and weighted
-          aggregates are not constrained to sum to 100%
+          the Community Prediction functions as it would for normal independent
+          questions. The Community Prediction will still display a median or a
+          weighted aggregate of the forecasts on each subquestion, respectively.
+          These medians and weighted aggregates are not constrained to sum to
+          100%
         </p>
         <p>
           Feedback for question groups can be provided on the{" "}
-          <a href="https://www.metaculus.com/questions/9861/2022-3-9-update-forecast-question-groups/">
+          <a href="/questions/9861/2022-3-9-update-forecast-question-groups/">
             question group discussion post
           </a>
           .
@@ -1078,19 +1035,13 @@ export default function FAQ() {
         </h3>
         <p>
           A Conditional Pair is a special type of{" "}
-          <a href="https://www.metaculus.com/faq/#question-groups">
-            Question Group
-          </a>{" "}
-          that elicits{" "}
+          <a href="/faq/#question-groups">Question Group</a> that elicits{" "}
           <a href="https://en.wikipedia.org/wiki/Conditional_probability">
             conditional probabilities
           </a>
           . Each Conditional Pair sits between a Parent Question and a Child
           Question. Both Parent and Child must be existing Metaculus{" "}
-          <a href="https://www.metaculus.com/faq/#question-types">
-            Binary Questions
-          </a>
-          .
+          <a href="/faq/#question-types">Binary Questions</a>.
         </p>
 
         <p>
@@ -1132,10 +1083,7 @@ export default function FAQ() {
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
             When the Parent resolves Yes, the &quot;if No&quot; Conditional is{" "}
-            <a href="https://www.metaculus.com/faq/#ambiguous-annulled">
-              Annulled
-            </a>
-            . (And vice versa.)
+            <a href="/faq/#ambiguous-annulled">Annulled</a>. (And vice versa.)
           </li>
           <li>
             When the Child resolves, the Conditional that was not annulled
@@ -1202,9 +1150,7 @@ export default function FAQ() {
         <p>
           You can create and submit conditional pairs like any other question
           type. On the &apos;
-          <a href="https://www.metaculus.com/questions/create/">
-            Create a Question
-          </a>
+          <a href="/questions/create/">Create a Question</a>
           &apos; page, select Question Type &apos;conditional pair&apos; and
           select Parent and Child questions.
         </p>
@@ -1231,9 +1177,9 @@ export default function FAQ() {
           Questions on Metaculus are sorted by activity by default. Newer
           questions, questions with new comments, recently upvoted questions,
           and questions with many new predictions will appear at the top of the{" "}
-          <a href="https://www.metaculus.com/questions/">Metaculus homepage</a>.
-          However, there are several additional ways to find questions of
-          interest and customize the way you interact with Metaculus.
+          <a href="/questions/">Metaculus homepage</a>. However, there are
+          several additional ways to find questions of interest and customize
+          the way you interact with Metaculus.
         </p>
 
         <h4 className="scroll-mt-nav text-lg font-semibold" id="search-bar">
@@ -1327,11 +1273,9 @@ export default function FAQ() {
             will occur at an unknown time, but the outcome is likely to be
             independent of this time, then it should be specified that the
             question{" "}
-            <a href="https://www.metaculus.com/faq/#retroactive-closure">
-              retroactively closes
-            </a>{" "}
-            some appropriate time before the process begins. (Example: success
-            of a rocket launch occurring at an unknown time)
+            <a href="/faq/#retroactive-closure">retroactively closes</a> some
+            appropriate time before the process begins. (Example: success of a
+            rocket launch occurring at an unknown time)
           </li>
           <li>
             If the outcome of a question depends on a discrete event that may or
@@ -1345,7 +1289,7 @@ export default function FAQ() {
           should close between 1/2 to 2/3 of the way between the open time and
           resolution time. This was necessary due to the scoring system at the
           time, but has been replaced by the above guidelines due to an{" "}
-          <a href="https://www.metaculus.com/questions/10801/discontinuing-the-final-forecast-bonus/">
+          <a href="/questions/10801/discontinuing-the-final-forecast-bonus/">
             update to the scoring system
           </a>
           .
@@ -1366,19 +1310,15 @@ export default function FAQ() {
           text will be used.
         </p>
         <p>
-          For{" "}
-          <a href="https://www.metaculus.com/faq/#question-types">date range</a>{" "}
-          questions, the dates on the interface are in UTC. Typically the time
-          of day makes little difference as one day is miniscule in comparison
-          to the full range, but occasionally for shorter term questions the
-          time of day might materially impact scores. If it is not clear what
-          point in a specified period a date range question will be resolved as,
-          it resolves as the{" "}
-          <a href="https://www.metaculus.com/faq/#whenresolve">
-            midpoint of that period
-          </a>
-          . For example, if a question says it will resolve as a certain day,
-          but not what time of day, it will resolve as noon UTC on that day.
+          For <a href="/faq/#question-types">date range</a> questions, the dates
+          on the interface are in UTC. Typically the time of day makes little
+          difference as one day is miniscule in comparison to the full range,
+          but occasionally for shorter term questions the time of day might
+          materially impact scores. If it is not clear what point in a specified
+          period a date range question will be resolved as, it resolves as the{" "}
+          <a href="/faq/#whenresolve">midpoint of that period</a>. For example,
+          if a question says it will resolve as a certain day, but not what time
+          of day, it will resolve as noon UTC on that day.
         </p>
 
         <h3 className="scroll-mt-nav text-xl font-semibold" id="who-resolves">
@@ -1387,15 +1327,9 @@ export default function FAQ() {
         <p>
           Only Metaculus Administrators can resolve questions. Binary questions
           can resolve <strong>Yes</strong>, <strong>No</strong>,{" "}
-          <a href="https://www.metaculus.com/faq/#ambiguous-annulled">
-            Ambiguous, or Annuled
-          </a>
-          . Range questions can resolve to a specific value, an out-of-bounds
-          value,{" "}
-          <a href="https://www.metaculus.com/faq/#ambiguous-annulled">
-            Ambiguous, or Annuled
-          </a>
-          .
+          <a href="/faq/#ambiguous-annulled">Ambiguous, or Annuled</a>. Range
+          questions can resolve to a specific value, an out-of-bounds value,{" "}
+          <a href="/faq/#ambiguous-annulled">Ambiguous, or Annuled</a>.
         </p>
 
         <h3
@@ -1416,9 +1350,7 @@ export default function FAQ() {
         <p>
           In the same way, when a Conditional turns out to be based on an
           outcome that did not occur, it is Annulled. For example, when a{" "}
-          <a href="https://www.metaculus.com/faq/#conditionals">
-            Conditional Pair
-          </a>
+          <a href="/faq/#conditionals">Conditional Pair</a>
           &apos;s parent resolves Yes, the <q>if No</q> Conditional is Annulled.
         </p>
         <p>
@@ -1575,83 +1507,6 @@ export default function FAQ() {
               types of questions where Ambiguous resolution is appropriate as
               those with <a href="#no-clear-consensus">No Clear Consensus</a>.
             </p>
-
-            <h5
-              className="scroll-mt-nav text-lg font-semibold"
-              id="no-clear-consensus"
-            >
-              No Clear Consensus
-            </h5>
-            <p>
-              Questions can also resolve Ambiguous when there is not enough
-              information available to arrive at an appropriate resolution. This
-              can be because of conflicting or unclear media reports, or because
-              a data source that was expected to provide resolution information
-              is no longer available. The following are some examples where
-              there was no clear consensus.
-            </p>
-            <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
-              <li>
-                <a href="https://www.metaculus.com/questions/9459/russian-troops-in-kiev-in-2022/">
-                  <strong>
-                    <em>
-                      Will Russian troops enter Kyiv, Ukraine before December
-                      31, 2022?
-                    </em>
-                  </strong>
-                </a>
-              </li>
-              <ul className="ml-4 list-inside list-disc space-y-2">
-                <li>
-                  This question asked if at least 100 Russian troops would enter
-                  Ukraine before the end of 2022. It was clear that some Russian
-                  troops entered Ukraine, and even probable that there were more
-                  than 100 Russian troops in Ukraine. However there was no clear
-                  evidence that could be used to resolve the question, so it was
-                  necessary to resolve as Ambiguous. In addition to the lack of
-                  a clear consensus, this question is also an example of
-                  imbalanced outcomes and the need to preserve incentives.{" "}
-                  <a href="https://www.metaculus.com/questions/9459/russian-troops-in-kiev-in-2022/#comment-93915">
-                    As an Admin explains here
-                  </a>
-                  , due to the uncertainty around events in February the
-                  question could not remain open to see if a qualifying event
-                  would happen before the end of 2022. This is because the
-                  ambiguity around the events in February would necessitate that
-                  the question could only resolve as Yes or Ambiguous, which
-                  creates an incentive to forecast confidently in an outcome of
-                  Yes.
-                </li>
-              </ul>
-              <li>
-                <a
-                  href="https://www.metaculus.com/questions/10134/average-ransomware-kit-cost-in-2022/"
-                  target="_blank"
-                  rel="noopener"
-                >
-                  <strong>
-                    <em>
-                      What will the average cost of a ransomware kit be in 2022?
-                    </em>
-                  </strong>
-                </a>
-              </li>
-              <ul className="ml-4 list-inside list-disc space-y-2">
-                <li>
-                  This question relied on data published in a report by
-                  Microsoft, however Microsoft&apos;s report for the year in
-                  question no longer contained the relevant data. It&apos;s{" "}
-                  <a href="https://www.metaculus.com/faq/#ressrc">
-                    Metaculus policy
-                  </a>{" "}
-                  that by default if a resolution source is not available
-                  Metaculus may use a functionally equivalent source in its
-                  place unless otherwise specified in the resolution text, but
-                  for this question a search for alternate sources did not turn
-                  anything up, leading to Ambiguous resolution.
-                </li>
-              </ul>
-            </ul>
           </div>
         </div>
         <h5
@@ -1670,7 +1525,7 @@ export default function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <a href="https://www.metaculus.com/questions/9459/russian-troops-in-kiev-in-2022/">
+            <a href="/questions/9459/russian-troops-in-kiev-in-2022/">
               <strong>
                 <em>
                   Will Russian troops enter Kyiv, Ukraine before December 31,
@@ -1688,7 +1543,7 @@ export default function FAQ() {
                 necessary to resolve as Ambiguous. In addition to the lack of a
                 clear consensus, this question is also an example of imbalanced
                 outcomes and the need to preserve incentives.{" "}
-                <a href="https://www.metaculus.com/questions/9459/russian-troops-in-kiev-in-2022/#comment-93915">
+                <a href="/questions/9459/russian-troops-in-kiev-in-2022/#comment-93915">
                   As an Admin explains here
                 </a>
                 , due to the uncertainty around events in February the question
@@ -1702,7 +1557,7 @@ export default function FAQ() {
           </li>
           <li>
             <a
-              href="https://www.metaculus.com/questions/10134/average-ransomware-kit-cost-in-2022/"
+              href="/questions/10134/average-ransomware-kit-cost-in-2022/"
               target="_blank"
               rel="noopener"
             >
@@ -1717,14 +1572,12 @@ export default function FAQ() {
                 This question relied on data published in a report by Microsoft,
                 however Microsoft&apos;s report for the year in question no
                 longer contained the relevant data. It&apos;s{" "}
-                <a href="https://www.metaculus.com/faq/#ressrc">
-                  Metaculus policy
-                </a>{" "}
-                that by default if a resolution source is not available
-                Metaculus may use a functionally equivalent source in its place
-                unless otherwise specified in the resolution text, but for this
-                question a search for alternate sources did not turn anything
-                up, leading to Ambiguous resolution.
+                <a href="/faq/#ressrc">Metaculus policy</a> that by default if a
+                resolution source is not available Metaculus may use a
+                functionally equivalent source in its place unless otherwise
+                specified in the resolution text, but for this question a search
+                for alternate sources did not turn anything up, leading to
+                Ambiguous resolution.
               </li>
             </ul>
           </li>
@@ -1772,7 +1625,7 @@ export default function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <a href="https://www.metaculus.com/questions/12433/substacks-google-trends-at-end-of-2022/">
+            <a href="/questions/12433/substacks-google-trends-at-end-of-2022/">
               <strong>
                 <em>
                   What will Substack&apos;s Google Trends index be at end of
@@ -1786,7 +1639,7 @@ export default function FAQ() {
                 used to arrive at the average index for December of 2022,
                 because the index value depends on the date range specified in
                 Google Trends. An Admin provided more details in{" "}
-                <a href="https://www.metaculus.com/questions/12433/substacks-google-trends-at-end-of-2022/#comment-112592">
+                <a href="/questions/12433/substacks-google-trends-at-end-of-2022/#comment-112592">
                   this comment
                 </a>
                 .
@@ -1794,7 +1647,7 @@ export default function FAQ() {
             </ul>
           </li>
           <li>
-            <a href="https://www.metaculus.com/questions/3727/when-will-a-fusion-reactor-reach-ignition/">
+            <a href="/questions/3727/when-will-a-fusion-reactor-reach-ignition/">
               <strong>
                 <em>When will a fusion reactor reach ignition?</em>
               </strong>
@@ -1803,7 +1656,7 @@ export default function FAQ() {
               <li>
                 This question did not clearly define what was meant by
                 &ldquo;ignition&rdquo;. As an Admin described in{" "}
-                <a href="https://www.metaculus.com/questions/3727/when-will-a-fusion-reactor-reach-ignition/#comment-110164">
+                <a href="/questions/3727/when-will-a-fusion-reactor-reach-ignition/#comment-110164">
                   this comment
                 </a>
                 , the definition of ignition may vary depending on the
@@ -1813,7 +1666,7 @@ export default function FAQ() {
             </ul>
           </li>
           <li>
-            <a href="https://www.metaculus.com/questions/12532/russia-general-mobilization-before-2023/">
+            <a href="/questions/12532/russia-general-mobilization-before-2023/">
               <strong>
                 <em>
                   Will Russia order a general mobilization by January 1, 2023?
@@ -1831,7 +1684,7 @@ export default function FAQ() {
                 of a &ldquo;general mobilization&rdquo; and didn&rsquo;t
                 adequately account for the actual partial mobilization that was
                 eventually ordered, as{" "}
-                <a href="https://www.metaculus.com/questions/12532/russia-general-mobilization-before-2023/">
+                <a href="/questions/12532/russia-general-mobilization-before-2023/">
                   explained by an Admin here
                 </a>
                 .
@@ -1860,7 +1713,7 @@ export default function FAQ() {
         <p>Here are some examples of Annulment due to subverted assumptions:</p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <a href="https://www.metaculus.com/questions/10444/cause-of-flight-5735-crash/">
+            <a href="/questions/10444/cause-of-flight-5735-crash/">
               <strong>
                 <em>
                   Will a technical problem be identified as the cause of the
@@ -1877,7 +1730,7 @@ export default function FAQ() {
                 by which the report must be published resulting in a resolution
                 of No. Since this was not specified and the assumption of a
                 future NTSB report was violated the question was Annulled, as{" "}
-                <a href="https://www.metaculus.com/questions/10444/cause-of-flight-5735-crash/">
+                <a href="/questions/10444/cause-of-flight-5735-crash/">
                   explained by an Admin here
                 </a>
                 .
@@ -1885,7 +1738,7 @@ export default function FAQ() {
             </ul>
           </li>
           <li>
-            <a href="https://www.metaculus.com/questions/6249/november-2021-production-of-semiconductors/">
+            <a href="/questions/6249/november-2021-production-of-semiconductors/">
               <strong>
                 <em>
                   What will the Federal Reserves&apos; Industrial Production
@@ -1907,7 +1760,7 @@ export default function FAQ() {
             </ul>
           </li>
           <li>
-            <a href="https://www.metaculus.com/questions/10048/russia-to-return-to-nuclear-level-1/">
+            <a href="/questions/10048/russia-to-return-to-nuclear-level-1/">
               <strong>
                 <em>
                   When will Russia&apos;s nuclear readiness scale return to
@@ -1924,7 +1777,7 @@ export default function FAQ() {
                 readiness most likely did not change. This violated the
                 assumption of the question leading to the question being
                 Annulled, as{" "}
-                <a href="https://www.metaculus.com/questions/10048/russia-to-return-to-nuclear-level-1/#comment-100275">
+                <a href="/questions/10048/russia-to-return-to-nuclear-level-1/#comment-100275">
                   explained by an Admin here
                 </a>
                 .
@@ -1932,7 +1785,7 @@ export default function FAQ() {
             </ul>
           </li>
           <li>
-            <a href="https://www.metaculus.com/questions/9000/us-social-cost-of-carbon-in-2022/">
+            <a href="/questions/9000/us-social-cost-of-carbon-in-2022/">
               <strong>
                 <em>
                   What will be the Biden Administration&apos;s social cost of 1
@@ -1980,7 +1833,7 @@ export default function FAQ() {
         </p>
         <ul className="mb-4 ml-4 list-inside list-disc space-y-2">
           <li>
-            <a href="https://www.metaculus.com/questions/6047/1m-lost-in-prediction-market/">
+            <a href="/questions/6047/1m-lost-in-prediction-market/">
               <strong>
                 <em>
                   Will any prediction market cause users to lose at least $1M
@@ -2029,7 +1882,7 @@ export default function FAQ() {
             </ul>
           </li>
           <li>
-            <a href="https://www.metaculus.com/questions/13521/any-ftx-depositor-to-get-anything-out-by-2023/">
+            <a href="/questions/13521/any-ftx-depositor-to-get-anything-out-by-2023/">
               <strong>
                 <em>
                   Will any remaining FTX depositor withdraw any amount of
@@ -2261,7 +2114,7 @@ export default function FAQ() {
               Previously some questions on Metaculus were approved with
               inappropriate retroactive closure clauses. For example, the
               question &quot;
-              <a href="https://www.metaculus.com/questions/6662/date-earth-functional-satellites-exceed-5000/">
+              <a href="/questions/6662/date-earth-functional-satellites-exceed-5000/">
                 When will the number of functional artificial satellites in
                 orbit exceed 5,000?
               </a>
@@ -2281,7 +2134,7 @@ export default function FAQ() {
             originally scheduled close date. But in order to elicit the best
             forecasts it’s important to follow proper scoring rules. For more on
             point truncation{" "}
-            <a href="https://www.metaculus.com/help/scores-faq/#score-truncation">
+            <a href="/help/scores-faq/#score-truncation">
               this section of the FAQ
             </a>
             .
@@ -2395,8 +2248,9 @@ export default function FAQ() {
             Is there a tutorial or walkthrough?
           </h3>
           <p>
-            Yes! Start the Metaculus forecasting tutorial{" "}
-            <a href="https://www.metaculus.com/tutorials/">here</a>.
+            We are working on recreating the tutorial.
+            {/* Yes! Start the Metaculus forecasting tutorial{" "}
+            <a href="/tutorials/">here</a>. */}
           </p>
         </div>
 
@@ -2617,11 +2471,8 @@ export default function FAQ() {
             </li>
             <ul className="ml-5 list-disc">
               <li>
-                For{" "}
-                <a href="https://www.metaculus.com/faq/#question-types">
-                  Binary Questions
-                </a>
-                , the Community Prediction is a{" "}
+                For <a href="/faq/#question-types">Binary Questions</a>, the
+                Community Prediction is a{" "}
                 <a href="https://en.wikipedia.org/wiki/Weighted_median">
                   weighted median
                 </a>{" "}
@@ -2629,21 +2480,20 @@ export default function FAQ() {
               </li>
               <li>
                 For{" "}
-                <a href="https://www.metaculus.com/faq/#question-types">
-                  Numeric and Date Questions
-                </a>
-                , the Community Prediction is a weighted{" "}
+                <a href="/faq/#question-types">Numeric and Date Questions</a>,
+                the Community Prediction is a{" "}
                 <a href="https://en.wikipedia.org/wiki/Mixture_distribution">
-                  mixture
+                  weighted average
                 </a>{" "}
-                (i.e. a weighted sum) of the individual forecaster
-                distributions.
+                of the individual forecaster distributions.
               </li>
             </ul>
             <li>
-              <MathJaxContent
-                content={` The particular form of the weights means that approximately \\(\\sqrt{N}\\) forecasters need to predict or update their prediction in order to substantially change the Community Prediction on a question that already has \\(N\\) forecasters.`}
-              />
+              The particular form of the weights means that approximately{" "}
+              <MathJaxContent content={`\\(\\sqrt{N}\\)`} /> forecasters need to
+              predict or update their prediction in order to substantially
+              change the Community Prediction on a question that already has{" "}
+              <MathJaxContent content={`\\(N\\)`} /> forecasters.
             </li>
           </ul>
           <p>
@@ -2660,20 +2510,21 @@ export default function FAQ() {
             What is the Metaculus Prediction?
           </h3>
           <p>
-            The Metaculus Prediction is the Metaculus system&apos;s best
-            estimate of how a question will resolve. It&apos;s based on
-            predictions from community members, but unlike the Community
-            Prediction, it&apos;s not a simple average or median. Instead, the
-            Metaculus Prediction uses a sophisticated model to calibrate and
-            weight each user, ideally resulting in a prediction that&apos;s
-            better than the best of the community.
+            The Metaculus Prediction can only be viewed in the{" "}
+            <a href="/aggregation-explorer/">Aggregation Explorer</a>. It is
+            deprecated since November 2024, but shows a record of the Metaculus
+            system&apos;s best estimate of how a question will resolve.
+            It&apos;s based on predictions from community members, but unlike
+            the Community Prediction, it&apos;s not a simple average or median.
+            Instead, the Metaculus Prediction uses a sophisticated model to
+            calibrate and weight each user, ideally resulting in a prediction
+            that&apos;s better than the best of the community.
           </p>
           <p>
             For questions that resolved in 2021, the Metaculus Prediction has a
             Brier score of 0.107. Lower Brier scores indicate greater accuracy,
             with the MP slightly lower than the Community Prediction&apos;s
-            Brier score of 0.108. You can see some of the fine details on our{" "}
-            <a href="/questions/track-record/">track record page</a>.
+            Brier score of 0.108.
           </p>
         </div>
         <hr />
@@ -2682,13 +2533,12 @@ export default function FAQ() {
             id="visibility-of-the-cp-and-mp"
             className="mb-4 scroll-mt-nav text-3xl font-bold"
           >
-            Why can&apos;t I see the CP or MP?
+            Why can&apos;t I see the CP?
           </h2>
           <p>
             When a question first opens, nobody can see the Community Prediction
             for a while, to avoid giving inordinate weight to the very first
-            predictions, which may &quot;ground&quot; or bias later ones. The
-            Metaculus Prediction is hidden until the question closes.
+            predictions, which may &quot;ground&quot; or bias later ones.
           </p>
         </div>
 
@@ -2700,9 +2550,7 @@ export default function FAQ() {
             What Are Public Figure Predictions?
           </h3>
           <p>
-            <a href="https://www.metaculus.com/organization/public-figures/">
-              Public Figure Prediction
-            </a>{" "}
+            <a href="/organization/public-figures/">Public Figure Prediction</a>{" "}
             pages are dedicated to collecting and preserving important
             predictions made by prominent public figures and putting them into
             conversation with Metaculus community forecasts. Each figure&apos;s
@@ -2774,7 +2622,7 @@ export default function FAQ() {
               rel="noopener"
             >
               Public Figures Predictions
-            </a>
+            </a>{" "}
             discussion post. Tag @christian for a faster moderation process.
           </p>
         </div>
@@ -2787,7 +2635,7 @@ export default function FAQ() {
           <p>
             Depending on the level of specificity and clarity of the Public
             Figure Prediction, a linked Metaculus question might resolve
-            according to the exact same criteria as the prediction. For example,
+            according to the exact same criteria as the prediction. For example,{" "}
             <a
               href="/questions/8225/public-figure-prediction-by-joe-biden/"
               target="_blank"
@@ -2807,7 +2655,7 @@ export default function FAQ() {
           </p>
           <p>
             Linked questions are not required, however, to directly correspond
-            to the public figure&apos;s prediction, and
+            to the public figure&apos;s prediction, and{" "}
             <a
               href="/questions/5712/biden-2024-re-nomination/"
               target="_blank"
@@ -2815,7 +2663,7 @@ export default function FAQ() {
             >
               this question on whether Biden will be the Democratic nominee in
               2024
-            </a>
+            </a>{" "}
             is clearly relevant to public figure claim, even as it&apos;s
             further away from the claim than asking whether Biden will run.
             Relevant linked questions shed light on, create additional context
@@ -2831,7 +2679,7 @@ export default function FAQ() {
               rel="noopener"
             >
               IRS designates crypto miners as &lsquo;brokers&apos; by 2025
-            </a>
+            </a>{" "}
             follows from Biden&apos;s Infrastructure Investment and Jobs Act,
             but beyond the Biden connection, it fails to satisfy the above
             criteria for a relevant linked question.
@@ -3069,12 +2917,7 @@ export default function FAQ() {
           <h3 id="api" className="mb-4 scroll-mt-nav text-2xl font-semibold">
             Does Metaculus have an API?
           </h3>
-          <p>
-            The Metaculus API can be found here:{" "}
-            <a href="https://www.metaculus.com/api2/schema/redoc/">
-              https://www.metaculus.com/api2/schema/redoc/
-            </a>
-          </p>
+          <p>The API documentation is still being worked on.</p>
 
           <h3
             id="change-name"

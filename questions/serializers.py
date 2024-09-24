@@ -20,6 +20,7 @@ from .models import Question, Conditional, GroupOfQuestions, AggregateForecast
 
 class QuestionSerializer(serializers.ModelSerializer):
     scaling = serializers.SerializerMethodField()
+    actual_close_time = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
@@ -52,6 +53,13 @@ class QuestionSerializer(serializers.ModelSerializer):
             "range_min": question.range_min,
             "zero_point": question.zero_point,
         }
+
+    def get_actual_close_time(self, question: Question):
+        if question.actual_close_time:
+            return question.actual_close_time
+        if question.actual_resolve_time:
+            return min(question.scheduled_close_time, question.actual_resolve_time)
+        return question.scheduled_close_time
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
@@ -248,7 +256,17 @@ class AggregateForecastSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AggregateForecast
-        fields = "__all__"
+        fields = (
+            "start_time",
+            "end_time",
+            "forecast_values",
+            "forecaster_count",
+            "interval_lower_bounds",
+            "centers",
+            "interval_upper_bounds",
+            "means",
+            "histogram",
+        )
 
     def get_start_time(self, aggregate_forecast: AggregateForecast):
         return aggregate_forecast.start_time.timestamp()
@@ -318,12 +336,9 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "slider_values",
         )
 
-    def validate_question(self, value):
-        return Question.objects.get(pk=value)
-
     def validate(self, data):
         def is_valid_probability(x):
-            return x < 1 and x > 0
+            return x <= 0.999 and x >= 0.001
 
         probability_yes = data.get("probability_yes")
         continuous_cdf = data.get("continuous_cdf")
@@ -384,6 +399,16 @@ def serialize_question(
 
     serialized_data = QuestionSerializer(question).data
     serialized_data["post_id"] = post.id if post else question.get_post().id
+    serialized_data["aggregations"] = {
+        "recency_weighted": {"history": [], "latest": None, "score_data": dict()},
+        "unweighted": {"history": [], "latest": None, "score_data": dict()},
+        "single_aggregation": {"history": [], "latest": None, "score_data": dict()},
+        "metaculus_prediction": {
+            "history": [],
+            "latest": None,
+            "score_data": dict(),
+        },
+    }
 
     if with_cp:
         if (
@@ -391,26 +416,35 @@ def serialize_question(
             and question.cp_reveal_time > django.utils.timezone.now()
         ):
             aggregate_forecasts = []
-        else:
-            aggregate_forecasts = aggregate_forecasts or sorted(
-                question.aggregate_forecasts.all(), key=lambda x: x.start_time
-            )
+        elif aggregate_forecasts is None:
+            aggregate_forecasts = question.aggregate_forecasts.all()
+
         aggregate_forecasts_by_method = defaultdict(list)
         for aggregate in aggregate_forecasts:
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)
-        serialized_data["aggregations"] = {
-            "recency_weighted": {"history": [], "latest": None, "score_data": dict()},
-            "unweighted": {"history": [], "latest": None, "score_data": dict()},
-            "single_aggregation": {"history": [], "latest": None, "score_data": dict()},
-            "metaculus_prediction": {
-                "history": [],
-                "latest": None,
-                "score_data": dict(),
-            },
-        }
+
+        # Appending score data
+        for prefix, scores in (
+            ("score", question.scores.all()),
+            ("archived_score", question.archived_scores.all()),
+        ):
+            for score in scores:
+                if score.aggregation_method not in serialized_data["aggregations"]:
+                    continue
+
+                serialized_data["aggregations"][score.aggregation_method]["score_data"][
+                    f"{prefix}_{score.score_type}"
+                ] = score.score
+                if score.score_type == "peer":
+                    serialized_data["aggregations"][score.aggregation_method][
+                        "score_data"
+                    ]["coverage"] = score.coverage
+                if score.score_type == "relative_legacy":
+                    serialized_data["aggregations"][score.aggregation_method][
+                        "score_data"
+                    ]["weighted_coverage"] = score.coverage
+
         for method, forecasts in aggregate_forecasts_by_method.items():
-            scores = question.scores.filter(aggregation_method=method)
-            archived_scores = question.archived_scores.filter(aggregation_method=method)
             serialized_data["aggregations"][method]["history"] = (
                 AggregateForecastSerializer(
                     forecasts,
@@ -428,30 +462,6 @@ def serialize_question(
                 if forecasts and not full_forecast_values
                 else None
             )
-            for score in scores:
-                serialized_data["aggregations"][method]["score_data"][
-                    score.score_type + "_score"
-                ] = score.score
-                if score.score_type == "peer":
-                    serialized_data["aggregations"][method]["score_data"][
-                        "coverage"
-                    ] = score.coverage
-                if score.score_type == "relative_legacy":
-                    serialized_data["aggregations"][method]["score_data"][
-                        "weighted_coverage"
-                    ] = score.coverage
-            for score in archived_scores:
-                serialized_data["aggregations"][method]["score_data"][
-                    score.score_type + "_archived_score"
-                ] = score.score
-                if score.score_type == "peer":
-                    serialized_data["aggregations"][method]["score_data"][
-                        "coverage"
-                    ] = score.coverage
-                if score.score_type == "relative_legacy":
-                    serialized_data["aggregations"][method]["score_data"][
-                        "weighted_coverage"
-                    ] = score.coverage
 
         if (
             current_user
@@ -510,6 +520,7 @@ def serialize_conditional(
     with_cp: bool = False,
     current_user: User = None,
     post: Post = None,
+    aggregate_forecasts: dict[Question, AggregateForecast] = None,
 ):
     # Serialization of basic data
     serialized_data = ConditionalSerializer(conditional).data
@@ -525,11 +536,29 @@ def serialize_conditional(
     )
 
     # Autogen questions
+    question_yes_aggregate_forecasts = (
+        aggregate_forecasts.get(conditional.question_yes) or []
+        if aggregate_forecasts
+        else None
+    )
     serialized_data["question_yes"] = serialize_question(
-        conditional.question_yes, with_cp=with_cp, current_user=current_user, post=post
+        conditional.question_yes,
+        with_cp=with_cp,
+        current_user=current_user,
+        post=post,
+        aggregate_forecasts=question_yes_aggregate_forecasts,
+    )
+    question_no_aggregate_forecasts = (
+        aggregate_forecasts.get(conditional.question_no) or []
+        if aggregate_forecasts
+        else None
     )
     serialized_data["question_no"] = serialize_question(
-        conditional.question_no, with_cp=with_cp, current_user=current_user, post=post
+        conditional.question_no,
+        with_cp=with_cp,
+        current_user=current_user,
+        post=post,
+        aggregate_forecasts=question_no_aggregate_forecasts,
     )
 
     return serialized_data
@@ -540,15 +569,25 @@ def serialize_group(
     with_cp: bool = False,
     current_user: User = None,
     post: Post = None,
+    aggregate_forecasts: dict[Question, AggregateForecast] = None,
 ):
     # Serialization of basic data
     serialized_data = GroupOfQuestionsSerializer(group).data
     serialized_data["questions"] = []
 
-    for question in group.questions.all():
+    questions = group.questions.all()
+    for question in questions:
         serialized_data["questions"].append(
             serialize_question(
-                question, with_cp=with_cp, current_user=current_user, post=post
+                question,
+                with_cp=with_cp,
+                current_user=current_user,
+                post=post,
+                aggregate_forecasts=(
+                    aggregate_forecasts.get(question) or []
+                    if aggregate_forecasts
+                    else None
+                ),
             )
         )
 

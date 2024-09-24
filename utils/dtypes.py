@@ -1,10 +1,31 @@
+from collections import defaultdict
 from dataclasses import is_dataclass, fields
 from itertools import chain
-from typing import Iterable, get_type_hints
+from typing import Iterable, get_type_hints, TypeVar, Callable
 
 
 def flatten(lst: Iterable[Iterable]) -> list:
     return list(chain.from_iterable(lst))
+
+
+T = TypeVar("T")
+K = TypeVar("K")
+
+
+def generate_map_from_list(objects: list[T], key: Callable[[T], K]) -> dict[K, list[T]]:
+    """
+    Generate a dictionary of lists from a given list of objects using a provided key function.
+
+    :param objects: List of objects to be transformed into a map.
+    :param key: Callable that takes an object and returns a value to be used as the dictionary key.
+    :return: Dictionary where each key maps to a list of objects that correspond to that key.
+    """
+    result: dict[K, list[T]] = defaultdict(list)
+
+    for obj in objects:
+        result[key(obj)].append(obj)
+
+    return dict(result)
 
 
 def setdefaults_not_null(d: dict, **kwargs):

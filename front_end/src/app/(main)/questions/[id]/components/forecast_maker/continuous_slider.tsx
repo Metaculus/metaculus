@@ -3,6 +3,7 @@ import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
+import { useAuth } from "@/contexts/auth_context";
 
 import MultiSlider, {
   MultiSliderValue,
@@ -34,6 +35,7 @@ const ContinuousSlider: FC<Props> = ({
   question,
   disabled = false,
 }) => {
+  const { user } = useAuth();
   const t = useTranslations();
   const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
 
@@ -55,6 +57,7 @@ const ContinuousSlider: FC<Props> = ({
         graphType={graphType}
         question={question}
         readOnly={disabled}
+        showCP={!user || !user.hide_community_prediction}
       />
       {!disabled &&
         forecast.map((x, index) => {

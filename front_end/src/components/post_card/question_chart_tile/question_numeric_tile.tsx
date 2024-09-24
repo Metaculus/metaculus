@@ -56,7 +56,7 @@ const QuestionNumericTile: FC<Props> = ({
       <div className="my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
         {question.type === QuestionType.Binary ? (
           <NumericChart
-            aggregations={question.aggregations}
+            aggregation={question.aggregations.recency_weighted}
             myForecasts={question.my_forecasts}
             height={HEIGHT}
             questionType={

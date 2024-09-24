@@ -21,6 +21,7 @@ import {
   getDisplayValue,
 } from "@/utils/charts";
 import { generateUserForecasts } from "@/utils/questions";
+
 import ChoicesLegend from "./choices_legend";
 import ChoicesTooltip from "./choices_tooltip";
 
@@ -63,6 +64,7 @@ type Props = {
   timestamps: number[];
   isClosed?: boolean;
   actualCloseTime: number | null;
+  withLegand?: boolean;
 };
 
 const ContinuousGroupTimeline: FC<Props> = ({
@@ -70,6 +72,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
   timestamps,
   isClosed,
   actualCloseTime,
+  withLegand = true,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -112,7 +115,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
             };
           }
         ),
-    [choiceItems, cursorTimestamp, timestamps]
+    [choiceItems, cursorTimestamp, timestamps, questions]
   );
 
   const {
@@ -167,6 +170,16 @@ const ContinuousGroupTimeline: FC<Props> = ({
     ),
     zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
   };
+  // we can have mixes of log and linear scaled options
+  // which leads to a derived zero point inside the range which is invalid
+  // so just igore the log scaling in this case
+  if (
+    scaling.zero_point !== null &&
+    scaling.range_min! <= scaling.zero_point &&
+    scaling.zero_point <= scaling.range_max!
+  ) {
+    scaling.zero_point = null;
+  }
 
   return (
     <div
@@ -195,15 +208,17 @@ const ContinuousGroupTimeline: FC<Props> = ({
         />
       </div>
 
-      <div className="mt-3">
-        <ChoicesLegend
-          choices={choiceItems}
-          onChoiceChange={handleChoiceChange}
-          onChoiceHighlight={handleChoiceHighlight}
-          maxLegendChoices={MAX_VISIBLE_CHECKBOXES}
-          onToggleAll={toggleSelectAll}
-        />
-      </div>
+      {withLegand && (
+        <div className="mt-3">
+          <ChoicesLegend
+            choices={choiceItems}
+            onChoiceChange={handleChoiceChange}
+            onChoiceHighlight={handleChoiceHighlight}
+            maxLegendChoices={MAX_VISIBLE_CHECKBOXES}
+            onToggleAll={toggleSelectAll}
+          />
+        </div>
+      )}
 
       {isTooltipActive && !!tooltipChoices.length && (
         <div

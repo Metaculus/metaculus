@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import React, { useMemo } from "react";
+import React from "react";
 import {
   VictoryAxis,
   VictoryChart,
@@ -12,10 +12,10 @@ import {
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import useAppTheme from "@/hooks/use_app_theme";
 import { TrackRecordHistogramItem } from "@/types/track_record";
+import Link from "next/link";
 
 import dynamic from "next/dynamic";
 import { range } from "lodash";
-import { generateTicksY } from "@/utils/charts";
 
 type HistogramProps = {
   rawHistogramData: TrackRecordHistogramItem[];
@@ -30,18 +30,11 @@ const UserHistogram: React.FC<HistogramProps> = ({
 }) => {
   const histogramData = mapHistogramData(rawHistogramData);
 
-  const yMax = Math.max(...histogramData.map((d) => d.y));
+  const yMax = Math.max(1, ...histogramData.map((d) => d.y));
   const t = useTranslations();
   const { theme } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
-  const ticksYFormat = (y: number) => {
-    if (y % Math.round(yMax / 5) == 0) {
-      return y.toString();
-    } else {
-      return "";
-    }
-  };
   const ticksXFormat = (x: number) => {
     if (x % 15 == 0) {
       return x.toString();
@@ -50,13 +43,17 @@ const UserHistogram: React.FC<HistogramProps> = ({
     }
   };
 
-  const desiredMajorTicks = useMemo(() => generateMajorTicks(yMax, 6), [yMax]);
-  const desiredMajorTickDistance = 20;
-  const { ticks: ticksY } = generateTicksY(
-    180,
-    desiredMajorTicks,
-    desiredMajorTickDistance
+  const yLowestTen = Math.floor(yMax / 10);
+  const ticksY = Array.from({ length: 11 }, (_, i) =>
+    Math.round(i * yLowestTen)
   );
+  ticksY.push(yMax);
+  const ticksYFormat = (y: number) => {
+    return (y % (yLowestTen * 2) === 0 && yMax - y > yLowestTen * 2) ||
+      y === yMax
+      ? Math.round(y).toString()
+      : "";
+  };
 
   return (
     <>
@@ -64,13 +61,13 @@ const UserHistogram: React.FC<HistogramProps> = ({
         theme={chartTheme}
         domain={{
           x: [
-            rawHistogramData[0].bin_start ?? 1,
-            rawHistogramData[rawHistogramData.length - 1].bin_end ?? 0,
+            rawHistogramData[0]?.bin_start ?? 1,
+            rawHistogramData[(rawHistogramData.length ?? 1) - 1]?.bin_end ?? 0,
           ],
           y: [0, yMax],
         }}
         containerComponent={<VictoryContainer responsive={true} />}
-        padding={{ top: 20, bottom: 65, left: 40, right: 20 }}
+        padding={{ top: 20, bottom: 40, left: 40, right: 20 }}
         height={180}
       >
         <VictoryAxis
@@ -87,16 +84,13 @@ const UserHistogram: React.FC<HistogramProps> = ({
             },
             axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
           }}
-          label={
-            username
-              ? t("userPeerScore", { username })
-              : t("communityPredictionBaselineScore")
-          }
+          label={t("count")}
         />
         <VictoryAxis
           tickValues={range(
-            rawHistogramData[0].bin_start,
-            rawHistogramData[rawHistogramData.length - 1].bin_end + 70,
+            rawHistogramData[0]?.bin_start ?? 1,
+            (rawHistogramData[(rawHistogramData.length ?? 1) - 1]?.bin_end ??
+              0) + 70,
             1
           )}
           tickFormat={ticksXFormat}
@@ -128,6 +122,27 @@ const UserHistogram: React.FC<HistogramProps> = ({
           interpolation="stepAfter"
         />
       </VictoryChart>
+      <span className="pt-3 text-sm text-gray-600 dark:text-gray-400">
+        The Score Histogram shows the distribution of{" "}
+        {username ? (
+          <Link
+            href="/help/scores-faq/#peer-score"
+            className="text-blue-700 hover:text-blue-800 dark:text-blue-300 hover:dark:text-blue-200"
+          >
+            Peer
+          </Link>
+        ) : (
+          <Link
+            href="/help/scores-faq/#baseline-score"
+            className="text-blue-700 hover:text-blue-800 dark:text-blue-300 hover:dark:text-blue-200"
+          >
+            Baseline
+          </Link>
+        )}{" "}
+        scores the forecaster achieved.
+        <br />
+        <br />
+      </span>
     </>
   );
 };
@@ -149,20 +164,6 @@ const mapHistogramData = (
     );
   });
   return mappedArray;
-};
-
-const generateMajorTicks = (maxValue: number, tickCount: number): number[] => {
-  const roundedMaxValue = Math.ceil(maxValue * 20) / 20;
-
-  const ticks = [];
-  const step = roundedMaxValue / (tickCount - 1);
-
-  for (let i = 0; i < tickCount; i++) {
-    const value = i * step;
-    ticks.push(Number(value.toFixed(2)));
-  }
-
-  return ticks;
 };
 
 export default dynamic(() => Promise.resolve(UserHistogram), {

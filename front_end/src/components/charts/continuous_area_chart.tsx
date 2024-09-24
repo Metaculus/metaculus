@@ -11,6 +11,7 @@ import {
   VictoryLine,
   VictoryThemeDefinition,
 } from "victory";
+
 import { getResolutionData } from "@/components/charts/numeric_chart";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import { METAC_COLORS } from "@/constants/colors";
@@ -22,12 +23,12 @@ import {
   ContinuousAreaHoverState,
   ContinuousAreaType,
 } from "@/types/charts";
+import { Resolution } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
 import { interpolateYValue, getDisplayValue } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
-import { Resolution } from "@/types/post";
 
 type ContinuousAreaColor = "orange" | "green";
 const CHART_COLOR_MAP: Record<ContinuousAreaType, ContinuousAreaColor> = {

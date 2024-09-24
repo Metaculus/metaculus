@@ -1,6 +1,7 @@
 "use client";
 
 import { isNil, merge } from "lodash";
+import { useTranslations } from "next-intl";
 import React, { FC, memo, useEffect, useMemo, useState } from "react";
 import {
   CursorCoordinatesPropType,
@@ -30,6 +31,7 @@ import {
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { ChoiceItem, UserChoiceItem } from "@/types/choices";
+import { QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import {
   findPreviousTimestamp,
@@ -45,8 +47,6 @@ import {
 import ChartContainer from "./primitives/chart_container";
 import ChartCursorLabel from "./primitives/chart_cursor_label";
 import XTickLabel from "./primitives/x_tick_label";
-import { useTranslations } from "next-intl";
-import { QuestionType, Scaling } from "@/types/question";
 
 type Props = {
   timestamps: number[];
@@ -63,6 +63,7 @@ type Props = {
   questionType?: QuestionType;
   scaling?: Scaling;
   isClosed?: boolean;
+  aggregation?: boolean;
 };
 
 const MultipleChoiceChart: FC<Props> = ({
@@ -80,6 +81,7 @@ const MultipleChoiceChart: FC<Props> = ({
   questionType,
   scaling,
   isClosed,
+  aggregation,
 }) => {
   const t = useTranslations();
   const {
@@ -94,7 +96,11 @@ const MultipleChoiceChart: FC<Props> = ({
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
 
-  const defaultCursor = timestamps[timestamps.length - 1];
+  const defaultCursor = isClosed
+    ? actualCloseTime
+      ? actualCloseTime / 1000
+      : timestamps[timestamps.length - 1]
+    : Date.now() / 1000;
   const [isCursorActive, setIsCursorActive] = useState(false);
 
   const [zoom, setZoom] = useState<TimelineChartZoomOption>(defaultZoom);
@@ -109,10 +115,10 @@ const MultipleChoiceChart: FC<Props> = ({
         questionType,
         scaling,
         actualCloseTime,
+        aggregation,
       }),
     [timestamps, choiceItems, chartWidth, chartHeight, zoom, userForecasts]
   );
-
   const isHighlightActive = useMemo(
     () => Object.values(choiceItems).some(({ highlighted }) => highlighted),
     [choiceItems]
@@ -253,10 +259,14 @@ const MultipleChoiceChart: FC<Props> = ({
             return (
               <VictoryScatter
                 key={question.choice}
-                data={question.values?.map((value, index) => ({
-                  y: value,
-                  x: question.timestamps?.[index],
-                }))}
+                data={
+                  question.values
+                    ? question.values.map((value, index) => ({
+                        y: value,
+                        x: question.timestamps?.[index],
+                      }))
+                    : []
+                }
                 style={{
                   data: {
                     stroke: getThemeColor(question.color),
@@ -322,6 +332,7 @@ function buildChartData({
   zoom,
   questionType,
   scaling,
+  aggregation,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -331,11 +342,14 @@ function buildChartData({
   zoom: TimelineChartZoomOption;
   questionType?: QuestionType;
   scaling?: Scaling;
+  aggregation?: boolean;
 }): ChartData {
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
     : Date.now() / 1000;
-  const xDomain = generateNumericDomain([...timestamps, latestTimestamp], zoom);
+  const xDomain = aggregation
+    ? generateNumericDomain([...timestamps], zoom)
+    : generateNumericDomain([...timestamps, latestTimestamp], zoom);
 
   const graphs: ChoiceGraph[] = choiceItems.map(
     ({
@@ -347,6 +361,7 @@ function buildChartData({
       active,
       highlighted,
       timestamps: choiceTimestamps,
+      closeTime,
       resolution,
       rangeMin,
       rangeMax,
@@ -369,6 +384,12 @@ function buildChartData({
         active,
         highlighted,
       };
+      if (item.line.length > 0) {
+        item.line.push({
+          x: closeTime ? closeTime / 1000 : latestTimestamp,
+          y: item.line.at(-1)!.y,
+        });
+      }
 
       if (minValues && maxValues) {
         item.area = actualTimestamps.map((timestamp, timestampIndex) => ({
@@ -398,7 +419,15 @@ function buildChartData({
         if (resolution === choice) {
           // multiple choice case
           item.resolutionPoint = {
-            x: actualTimestamps.at(-1),
+            x: Math.min(
+              Math.max(
+                closeTime
+                  ? closeTime / 1000
+                  : actualTimestamps[actualTimestamps.length - 1],
+                actualTimestamps[actualTimestamps.length - 1]
+              ),
+              latestTimestamp
+            ),
             y: rangeMax ?? 1,
           };
         }
@@ -406,12 +435,19 @@ function buildChartData({
         if (resolution === "yes" || resolution === "no") {
           // binary group case
           item.resolutionPoint = {
-            x: actualTimestamps.at(-1),
+            x: Math.min(
+              Math.max(
+                closeTime
+                  ? closeTime / 1000
+                  : actualTimestamps[actualTimestamps.length - 1],
+                actualTimestamps[actualTimestamps.length - 1]
+              ),
+              latestTimestamp
+            ),
             y: resolution === "no" ? rangeMin ?? 0 : rangeMax ?? 1,
           };
         }
       }
-
       return item;
     }
   );

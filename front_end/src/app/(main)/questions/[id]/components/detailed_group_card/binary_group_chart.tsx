@@ -199,7 +199,6 @@ const BinaryGroupChart: FC<Props> = ({
       setChoiceItems((prev) => prev.map((item) => ({ ...item, active: true })));
     }
   }, []);
-
   return (
     <div
       className={classNames(

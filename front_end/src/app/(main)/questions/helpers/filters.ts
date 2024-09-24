@@ -219,6 +219,36 @@ export function getFilterSectionUsername({
   };
 }
 
+export function getFilterSectionParticipation({
+  t,
+  params,
+  user,
+}: {
+  t: ReturnType<typeof useTranslations>;
+  params: URLSearchParams;
+  user: CurrentUser;
+}): FilterSection {
+  return {
+    id: "userFilters",
+    title: t("myParticipation"),
+    type: FilterOptionType.ToggleChip,
+    options: [
+      {
+        id: POST_FORECASTER_ID_FILTER,
+        label: t("predicted"),
+        value: user.id.toString(),
+        active: !!params.get(POST_FORECASTER_ID_FILTER),
+      },
+      {
+        id: POST_NOT_FORECASTER_ID_FILTER,
+        label: t("notPredicted"),
+        value: user.id.toString(),
+        active: !!params.get(POST_NOT_FORECASTER_ID_FILTER),
+      },
+    ],
+  };
+}
+
 const mapForecastTypeOptions = (
   types: ForecastType[],
   params: URLSearchParams

@@ -91,44 +91,44 @@ const ForecastMakerBinary: FC<Props> = ({
   const [submit, isPending] = useServerAction(handlePredictSubmit);
   return (
     <>
-      <div className="tour-prediction-input">
-        <BinarySlider
-          forecast={forecast}
-          onChange={setForecast}
-          isDirty={isForecastDirty}
-          communityForecast={communityForecast}
-          onBecomeDirty={() => {
-            setIsForecastDirty(true);
-          }}
-          disabled={!canPredict}
-        />
-        {predictionMessage && (
-          <div className="text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
-            {t(predictionMessage)}
-          </div>
-        )}
-        <div className="flex flex-col items-center justify-center">
-          {canPredict && (
-            <>
-              <Button
-                variant="primary"
-                disabled={!!user && (!isForecastDirty || isPending)}
-                onClick={submit}
-              >
-                {user ? t("predict") : t("signUpToPredict")}
-              </Button>
-              <div className="h-[32px] w-full">
-                {isPending && <LoadingIndicator />}
-              </div>
-            </>
-          )}
-          {canResolve && (
-            <QuestionResolutionButton
-              question={question}
-              permission={permission}
-            />
-          )}
+      <BinarySlider
+        forecast={forecast}
+        onChange={setForecast}
+        isDirty={isForecastDirty}
+        communityForecast={
+          !!user && user.hide_community_prediction ? null : communityForecast
+        }
+        onBecomeDirty={() => {
+          setIsForecastDirty(true);
+        }}
+        disabled={!canPredict}
+      />
+      {predictionMessage && (
+        <div className="text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
+          {t(predictionMessage)}
         </div>
+      )}
+      <div className="flex flex-col items-center justify-center">
+        {canPredict && (
+          <>
+            <Button
+              variant="primary"
+              disabled={!!user && (!isForecastDirty || isPending)}
+              onClick={submit}
+            >
+              {user ? t("predict") : t("signUpToPredict")}
+            </Button>
+            <div className="h-[32px] w-full">
+              {isPending && <LoadingIndicator />}
+            </div>
+          </>
+        )}
+        {canResolve && (
+          <QuestionResolutionButton
+            question={question}
+            permission={permission}
+          />
+        )}
       </div>
       <FormErrorMessage errors={submitError} />
     </>

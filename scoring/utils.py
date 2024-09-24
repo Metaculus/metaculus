@@ -1,10 +1,11 @@
 from collections import defaultdict
 from dataclasses import dataclass
+from decimal import Decimal
 
 import numpy as np
-from django.db.models import QuerySet, Q
+from django.db.models import QuerySet, Q, Sum
 from django.utils import timezone
-from decimal import Decimal
+from sql_util.aggregates import SubqueryAggregate
 
 from comments.models import Comment
 from posts.models import Post
@@ -422,32 +423,45 @@ def get_contributions(
         public_posts = Post.objects.filter(
             Q(projects=leaderboard.project) | Q(default_project=leaderboard.project)
         )
-        comments = Comment.objects.filter(
-            on_post__in=public_posts,
-            author=user,
-            created_at__lte=leaderboard.end_time,
-            comment_votes__isnull=False,
-        ).distinct()
+        comments = (
+            Comment.objects.filter(
+                on_post__in=public_posts,
+                author=user,
+                created_at__lte=leaderboard.end_time,
+                comment_votes__isnull=False,
+            )
+            .annotate(
+                vote_score=SubqueryAggregate(
+                    "comment_votes__direction",
+                    filter=Q(
+                        created_at__gte=leaderboard.start_time,
+                        created_at__lte=leaderboard.end_time,
+                    ),
+                    aggregate=Sum,
+                )
+            )
+            .select_related("on_post")
+            .distinct("pk")
+        )
+
         contributions: list[Contribution] = []
         for comment in comments:
-            votes = comment.comment_votes.filter(
-                created_at__gte=leaderboard.start_time,
-                created_at__lte=leaderboard.end_time,
-            )
-            score = sum([vote.direction for vote in votes])
             contribution = Contribution(
-                score=score,
+                score=comment.vote_score or 0,
                 post=comment.on_post,
                 comment=comment,
             )
+
             contributions.append(contribution)
         h_index = decimal_h_index([c.score for c in contributions])
         contributions = sorted(contributions, key=lambda c: c.score, reverse=True)
         min_score = contributions[int(h_index)].score
         return [c for c in contributions if c.score >= min_score]
+
     questions = leaderboard.get_questions()
     if leaderboard.score_type == Leaderboard.ScoreTypes.QUESTION_WRITING:
         forecaster_ids_for_post: dict[Post, set[int]] = {}
+
         for question in questions:
             post: Post = question.get_post()
             if post.author != user:
@@ -489,25 +503,27 @@ def get_contributions(
         user=user,
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
+
     if leaderboard.finalize_time:
         calculated_scores = calculated_scores.filter(
             question__scheduled_close_time__lte=leaderboard.finalize_time
-        )
+        ).prefetch_related("question")
         archived_scores = archived_scores.filter(
             question__scheduled_close_time__lte=leaderboard.finalize_time
-        )
+        ).prefetch_related("question")
     scores = list(archived_scores)
+
+    # Create a set of (question_id, aggregation_method) pairs from archived_scores
+    archived_pairs = {
+        (archived_score.question_id, archived_score.aggregation_method)
+        for archived_score in archived_scores
+    }
+
+    # Iterate over calculated_scores and append scores not in archived_pairs
     for score in calculated_scores:
-        found = False
-        for archived_score in archived_scores:
-            if (
-                score.question == archived_score.question
-                and score.aggregation_method == archived_score.aggregation_method
-            ):
-                found = True
-                break
-        if not found:
+        if (score.question_id, score.aggregation_method) not in archived_pairs:
             scores.append(score)
+
     if "global" in leaderboard.score_type:
         # There are so many questions in global leaderboards that we don't
         # need to make unpopulated contributions for questions that have not

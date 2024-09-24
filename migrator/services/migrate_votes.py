@@ -1,6 +1,10 @@
+from django.db.models import Sum, F, Value
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+from sql_util.aggregates import SubqueryAggregate
+
 from migrator.utils import paginated_query
 from posts.models import Vote, Post
-from django.utils import timezone
 
 
 def create_vote(vote_obj, direction: int):
@@ -51,3 +55,10 @@ def migrate_votes():
     print("bulk creating...", end="\r")
     Vote.objects.bulk_create(vote_instances, ignore_conflicts=True)
     print("bulk creating... DONE")
+
+    # Update Post.vote_score
+    Post.objects.annotate(
+        vote_score_value=Coalesce(
+            SubqueryAggregate("votes__direction", aggregate=Sum), Value(0)
+        )
+    ).update(vote_score=F("vote_score_value"))

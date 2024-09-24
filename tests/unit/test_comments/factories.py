@@ -13,9 +13,14 @@ def factory_comment(
     is_soft_deleted: bool = False,
     **kwargs
 ):
-    return G(
+    c = G(
         Comment,
         **setdefaults_not_null(
             kwargs, author=author, on_post=on_post, is_soft_deleted=is_soft_deleted
         )
     )
+
+    if on_post:
+        on_post.update_comment_count()
+
+    return c

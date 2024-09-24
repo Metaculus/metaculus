@@ -3,9 +3,9 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import type { Metadata } from "next";
 
 import FeedbackFloat from "./(home)/components/feedback_float";
+import Bulletins from "./components/bulletins";
 import Footer from "./components/footer";
 import Header from "./components/header";
-import Bulletins from "./components/bulletins";
 
 config.autoAddCss = false;
 

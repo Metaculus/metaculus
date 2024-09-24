@@ -79,7 +79,9 @@ export async function middleware(request: NextRequest) {
   });
 
   if (locale_in_url && locale_in_url !== local_in_cookie) {
-    response.cookies.set("NEXT_LOCALE", locale_in_url);
+    response.cookies.set("NEXT_LOCALE", locale_in_url, {
+      maxAge: 60 * 60 * 24 * 365, // 1 year in seconds
+    });
   }
 
   if (deleteCookieToken) {

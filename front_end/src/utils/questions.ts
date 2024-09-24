@@ -311,3 +311,16 @@ export function getPredictionInputMessage(post: Post) {
       return null;
   }
 }
+
+export function parseQuestionId(questionUrlOrId: string) {
+  const id = Number(questionUrlOrId);
+  if (!isNaN(id)) {
+    return id.toString();
+  }
+  const urlPattern = /\/questions\/(\d+)\/?/;
+  const match = questionUrlOrId.match(urlPattern);
+  if (match && match[1]) {
+    return match[1];
+  }
+  return false;
+}

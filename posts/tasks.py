@@ -9,6 +9,7 @@ from posts.services.subscriptions import notify_post_cp_change
 logger = logging.getLogger(__name__)
 
 
+@dramatiq.actor
 def run_on_post_forecast(post_id):
     """
     Run async actions on post forecast
@@ -19,13 +20,11 @@ def run_on_post_forecast(post_id):
 
     post = Post.objects.get(pk=post_id)
 
+    # Update counters
+    post.update_forecasters_count()
+
     compute_post_sorting_divergence_and_update_snapshots(post)
     notify_post_cp_change(post)
-
-
-@dramatiq.actor
-def run_on_post_forecast_in_dramatiq(post_id):
-    run_on_post_forecast(post_id)
 
 
 @dramatiq.actor

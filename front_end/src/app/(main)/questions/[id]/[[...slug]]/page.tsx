@@ -103,9 +103,10 @@ export default async function IndividualQuestion({
       postData.status !== PostStatus.APPROVED);
 
   const questionTitle = getQuestionTitle(postData);
-  const isClosed = postData.actual_close_time
-    ? new Date(postData.actual_close_time).getTime() < Date.now()
-    : false;
+  const isClosed =
+    postData.status === PostStatus.CLOSED || postData.actual_close_time
+      ? new Date(postData.actual_close_time).getTime() < Date.now()
+      : false;
   return (
     <EmbedModalContextProvider>
       <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4">
@@ -155,7 +156,9 @@ export default async function IndividualQuestion({
             )}
             {!!postData.group_of_questions && (
               <DetailedGroupCard
-                actualCloseTime={postData.actual_close_time}
+                actualCloseTime={
+                  postData.actual_close_time ?? postData.scheduled_close_time
+                }
                 questions={postData.group_of_questions.questions}
                 preselectedQuestionId={preselectedGroupQuestionId}
                 isClosed={isClosed}

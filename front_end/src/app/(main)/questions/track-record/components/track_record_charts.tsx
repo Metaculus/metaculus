@@ -12,8 +12,6 @@ import {
 import CalibrationChart from "./charts/calibration_chart";
 import ScatterPlot from "./charts/scatter_plot";
 import UserHistogram from "./charts/user_histogram";
-import useAppTheme from "@/hooks/use_app_theme";
-import { METAC_COLORS } from "@/constants/colors";
 
 type Props = {
   scatterPlot?: TrackRecordScatterPlotItem[];
@@ -31,10 +29,13 @@ const TrackRecordCharts: FC<Props> = ({
   className,
 }) => {
   const t = useTranslations();
-  const { getThemeColor } = useAppTheme();
 
   return (
     <div className={classNames("flex flex-col rounded", className)}>
+      A Track Record shows some statistics about the predictor's performance.
+      The three parts displayed below are the Calibration Curve, the Score
+      Scatter Plot, and the Score Histogram.
+      <hr />
       <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
         {t("calibrationCurve")}
       </h3>
@@ -44,49 +45,14 @@ const TrackRecordCharts: FC<Props> = ({
           username={username}
         />
       )}
-      <div className="flex flex-col items-center space-y-3 divide-y divide-gray-300 dark:divide-gray-700">
-        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 md:gap-x-8">
-          <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
-            <span
-              className="block h-4 w-7"
-              style={{
-                backgroundColor: getThemeColor(METAC_COLORS.gray["600"]),
-              }}
-            ></span>
-            {username
-              ? t("userCalibration", { username: username })
-              : t("communityPredictionCalibration")}
-          </div>
-          <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
-            <span
-              className="block h-1 w-7"
-              style={{
-                backgroundColor: getThemeColor(METAC_COLORS.gray["300"]),
-              }}
-            ></span>
-            {t("perfectCalibration")}
-          </div>
-          <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
-            <span
-              className="block size-2 rotate-45"
-              style={{
-                backgroundColor: getThemeColor(METAC_COLORS.gold["500"]),
-              }}
-            ></span>
-            {t("perfectCalibration90CI")}
-          </div>
-        </div>
-        <span className="pt-3 text-center text-sm text-gray-600 dark:text-gray-400">
-          {t("calibrationCurveInfo")}
-        </span>
-      </div>
-
+      <hr />
       <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
         {t("scoreScatterPlot")}
       </h3>
       {scatterPlot && (
         <ScatterPlot score_scatter_plot={scatterPlot} username={username} />
       )}
+      <hr />
       <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
         {t("scoreHistogram")}
       </h3>

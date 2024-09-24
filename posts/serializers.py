@@ -14,6 +14,7 @@ from projects.serializers import (
     serialize_projects,
 )
 from projects.services import get_site_main_project
+from questions.models import Question, AggregateForecast
 from questions.serializers import (
     QuestionWriteSerializer,
     serialize_question,
@@ -23,7 +24,9 @@ from questions.serializers import (
     GroupOfQuestionsWriteSerializer,
     GroupOfQuestionsUpdateSerializer,
 )
+from questions.services import get_aggregated_forecasts_for_questions
 from users.models import User
+from utils.dtypes import flatten
 from .models import Notebook, Post, PostSubscription
 
 
@@ -33,12 +36,15 @@ class NotebookSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class PostSerializer(serializers.ModelSerializer):
+class PostReadSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     open_time = serializers.SerializerMethodField()
+    actual_close_time = serializers.SerializerMethodField()
+    scheduled_close_time = serializers.SerializerMethodField()
     coauthors = serializers.SerializerMethodField()
+    nr_forecasters = serializers.IntegerField(source="forecasters_count")
 
     class Meta:
         model = Post
@@ -56,11 +62,12 @@ class PostSerializer(serializers.ModelSerializer):
             "curation_status",
             "comment_count",
             "status",
-            "actual_close_time",
             "resolved",
+            "actual_close_time",
             "scheduled_close_time",
             "scheduled_resolve_time",
             "open_time",
+            "nr_forecasters",
         )
 
     def get_projects(self, obj: Post):
@@ -73,9 +80,26 @@ class PostSerializer(serializers.ModelSerializer):
         return [{"id": u.id, "username": u.username} for u in obj.coauthors.all()]
 
     def get_status(self, obj: Post):
+        if obj.notebook:
+            return obj.curation_status
         if obj.resolved:
             return "resolved"
-        if obj.actual_close_time and obj.actual_close_time < timezone.now():
+        if obj.question:
+            scheduled_close_time = obj.question.scheduled_close_time
+        elif obj.conditional:
+            scheduled_close_time = obj.conditional.condition_child.scheduled_close_time
+        elif obj.group_of_questions:
+            scheduled_close_times = [
+                x.scheduled_close_time
+                for x in obj.group_of_questions.questions.all()
+                if x.scheduled_close_time
+            ]
+            if len(scheduled_close_times) == 0:
+                return obj.curation_status
+            scheduled_close_time = max(scheduled_close_times)
+        else:
+            return obj.curation_status
+        if scheduled_close_time and scheduled_close_time < timezone.now():
             return "closed"
         return obj.curation_status
 
@@ -95,6 +119,36 @@ class PostSerializer(serializers.ModelSerializer):
             if len(open_times) == 0:
                 return None
             return min(open_times)
+
+    def get_actual_close_time(self, obj: Post):
+        if obj.notebook:
+            return None
+        if obj.question:
+            return obj.question.actual_close_time
+        if obj.conditional:
+            return obj.conditional.condition_child.actual_close_time
+        if obj.group_of_questions:
+            actual_close_times = [
+                x.actual_close_time for x in obj.group_of_questions.questions.all()
+            ]
+            if len(actual_close_times) == 0 or None in actual_close_times:
+                return None
+            return max(actual_close_times)
+
+    def get_scheduled_close_time(self, obj: Post):
+        if obj.notebook:
+            return None
+        if obj.question:
+            return obj.question.scheduled_close_time
+        if obj.conditional:
+            return obj.conditional.condition_child.scheduled_close_time
+        if obj.group_of_questions:
+            scheduled_close_times = [
+                x.scheduled_close_time for x in obj.group_of_questions.questions.all()
+            ]
+            if len(scheduled_close_times) == 0 or None in scheduled_close_times:
+                return None
+            return max(scheduled_close_times)
 
 
 class NotebookWriteSerializer(serializers.ModelSerializer):
@@ -216,6 +270,7 @@ class PostFilterSerializer(serializers.Serializer):
     public_figure = serializers.CharField(required=False)
     usernames = serializers.ListField(child=serializers.CharField(), required=False)
     forecaster_id = serializers.IntegerField(required=False, allow_null=True)
+    not_forecaster_id = serializers.IntegerField(required=False, allow_null=True)
     similar_to_post_id = serializers.IntegerField(required=False, allow_null=True)
 
     search = serializers.CharField(required=False, allow_null=True)
@@ -289,16 +344,24 @@ def serialize_post(
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
-    with_nr_forecasters: bool = False,
+    aggregate_forecasts: dict[Question, AggregateForecast] = None,
 ) -> dict:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
     )
-    serialized_data = PostSerializer(post).data
+    serialized_data = PostReadSerializer(post).data
 
     if post.question:
         serialized_data["question"] = serialize_question(
-            post.question, with_cp=with_cp, current_user=current_user, post=post
+            post.question,
+            with_cp=with_cp,
+            current_user=current_user,
+            post=post,
+            aggregate_forecasts=(
+                aggregate_forecasts[post.question] or []
+                if aggregate_forecasts
+                else None
+            ),
         )
 
     if post.conditional:
@@ -307,6 +370,7 @@ def serialize_post(
             with_cp=with_cp,
             current_user=current_user,
             post=post,
+            aggregate_forecasts=aggregate_forecasts,
         )
 
     if post.group_of_questions:
@@ -315,6 +379,7 @@ def serialize_post(
             with_cp=with_cp,
             current_user=current_user,
             post=post,
+            aggregate_forecasts=aggregate_forecasts,
         )
 
     if post.notebook:
@@ -351,9 +416,6 @@ def serialize_post(
             }
         )
 
-    if with_nr_forecasters:
-        serialized_data["nr_forecasters"] = post.get_forecasters().count()
-
     return serialized_data
 
 
@@ -362,7 +424,7 @@ def serialize_post_many(
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
-    with_nr_forecasters: bool = False,
+    group_cutoff: int = None,
 ) -> list[dict]:
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
@@ -372,20 +434,16 @@ def serialize_post_many(
 
     qs = (
         qs.annotate_user_permission(user=current_user)
-        .annotate_vote_score()
         .prefetch_projects()
         .prefetch_questions()
-        .prefetch_questions_aggregate_forecasts()
-        .annotate_comment_count()
-        .select_related("author")
+        .select_related("author", "notebook")
         .prefetch_related("coauthors")
     )
     if current_user:
         qs = qs.annotate_user_vote(current_user)
 
     if with_cp:
-        # Clear auto-defer of the forecasts list field
-        qs = qs.defer(None)
+        qs = qs.prefetch_questions_scores()
 
         if current_user:
             qs = qs.prefetch_user_forecasts(current_user.id)
@@ -400,13 +458,24 @@ def serialize_post_many(
     objects = list(qs.all())
     objects.sort(key=lambda obj: ids.index(obj.id))
 
+    aggregate_forecasts = {}
+
+    if with_cp:
+        aggregate_forecasts = get_aggregated_forecasts_for_questions(
+            flatten([p.get_questions() for p in objects]), group_cutoff=group_cutoff
+        )
+
     return [
         serialize_post(
             post,
             with_cp=with_cp,
             current_user=current_user,
             with_subscriptions=with_subscriptions,
-            with_nr_forecasters=with_nr_forecasters,
+            aggregate_forecasts={
+                q: v
+                for q, v in aggregate_forecasts.items()
+                if q in post.get_questions()
+            },
         )
         for post in objects
     ]

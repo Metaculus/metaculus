@@ -24,17 +24,24 @@ def aggregation_explorer_api_view(request):
     # get and validate aggregation_methods
     aggregation_methods = request.GET.get("aggregation_methods", None)
     if aggregation_methods:
-        aggregation_methods = aggregation_methods.split(",")
+        aggregation_methods: list[AggregationMethod] = aggregation_methods.split(",")
         for method in aggregation_methods:
             if method not in AggregationMethod.values:
                 raise PermissionDenied(f"Invalid aggregation method: {method}")
+        if not request.user.is_staff:
+            aggregation_methods = [
+                method
+                for method in aggregation_methods
+                if method != AggregationMethod.SINGLE_AGGREGATION
+            ]
     else:
         aggregation_methods = [
             AggregationMethod.RECENCY_WEIGHTED,
             AggregationMethod.UNWEIGHTED,
-            AggregationMethod.SINGLE_AGGREGATION,
             AggregationMethod.METACULUS_PREDICTION,
         ]
+        if request.user.is_staff:
+            aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
 
     # get user_ids
     user_ids = request.GET.get("user_ids", None)
@@ -52,7 +59,7 @@ def aggregation_explorer_api_view(request):
         minimize=False,
         include_stats=True,
         include_bots=include_bots,
-        histogram=False,
+        histogram=True,
     )
     aggregate_forecasts = []
     for aggregation in aggregations.values():

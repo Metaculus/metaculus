@@ -39,9 +39,14 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
   useEffect(() => {
     const loadPost = async () => {
       setIsLoading(true);
-      const post = await getPost(id);
-      setPostData(post);
-      setIsLoading(false);
+      try {
+        const post = await getPost(id);
+        setPostData(post);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     void loadPost();
@@ -76,7 +81,9 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
           </Link>
         </div>
       ) : (
-        <div>Question {id} not found</div>
+        <div className="mx-auto w-[400px] bg-blue-200 p-3 dark:bg-blue-200-dark">
+          Question {id} not found
+        </div>
       )}
     </div>
   );

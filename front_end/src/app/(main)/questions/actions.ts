@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import CommentsApi, {
   CommentReportReason,
   CreateCommentParams,
@@ -14,9 +15,8 @@ import PostsApi, { ApprovePostParams, PostsParams } from "@/services/posts";
 import ProfileApi from "@/services/profile";
 import QuestionsApi, { ForecastPayload } from "@/services/questions";
 import { FetchError } from "@/types/fetch";
-import { PostStatus, PostSubscription } from "@/types/post";
+import { PostSubscription } from "@/types/post";
 import { VoteDirection } from "@/types/votes";
-import { useAuth } from "@/contexts/auth_context";
 
 export async function fetchMorePosts(
   filters: PostsParams,
@@ -28,7 +28,10 @@ export async function fetchMorePosts(
     offset,
     limit,
   });
-  return response.results;
+  return {
+    newPosts: response.results,
+    hasNextPage: !!response.next && response.results.length >= POSTS_PER_PAGE,
+  };
 }
 
 export async function fetchPosts(

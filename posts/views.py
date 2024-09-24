@@ -1,10 +1,10 @@
-import requests
 import logging
 
-from django.core.files.storage import default_storage
-from django.shortcuts import get_object_or_404
+import requests
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.http import HttpResponse, HttpResponseNotFound
+from django.shortcuts import get_object_or_404
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -13,8 +13,6 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-
-from utils.frontend import build_question_embed_url
 
 from misc.services.itn import get_post_get_similar_articles
 from posts.models import (
@@ -49,17 +47,25 @@ from questions.serializers import (
     QuestionApproveSerializer,
 )
 from utils.files import UserUploadedImage, generate_filename
+from utils.frontend import build_question_embed_url
+from utils.paginator import CountlessLimitOffsetPagination
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def posts_list_api_view(request):
-    paginator = LimitOffsetPagination()
+    paginator = CountlessLimitOffsetPagination()
     qs = Post.objects.all()
 
     # Extra params
     with_cp = serializers.BooleanField(allow_null=True).run_validation(
         request.query_params.get("with_cp")
+    )
+    group_cutoff = (
+        serializers.IntegerField(
+            allow_null=True, default=3, max_value=3, min_value=0
+        ).run_validation(request.query_params.get("group_cutoff"))
+        or 3
     )
 
     # Apply filtering
@@ -74,6 +80,7 @@ def posts_list_api_view(request):
         posts,
         with_cp=with_cp,
         current_user=request.user,
+        group_cutoff=group_cutoff,
     )
 
     return paginator.get_paginated_response(data)
@@ -149,7 +156,6 @@ def post_detail_oldapi_view(request: Request, pk):
         current_user=request.user,
         with_cp=True,
         with_subscriptions=True,
-        with_nr_forecasters=True,
     )
 
     if not posts:
@@ -165,13 +171,14 @@ def post_detail_oldapi_view(request: Request, pk):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def post_detail(request: Request, pk):
-    qs = get_posts_feed(qs=Post.objects.all(), ids=[pk], user=request.user)
+    user = request.user if request.user.is_authenticated else None
+
+    qs = Post.objects.filter_permission(user=user).filter(pk=pk)
     posts = serialize_post_many(
         qs,
         current_user=request.user,
         with_cp=True,
         with_subscriptions=True,
-        with_nr_forecasters=True,
     )
 
     if not posts:
@@ -282,9 +289,10 @@ def post_vote_api_view(request: Request, pk: int):
     if direction:
         Vote.objects.create(user=request.user, post=post, direction=direction)
 
-    return Response(
-        {"score": Post.objects.annotate_vote_score().get(pk=post.pk).vote_score}
-    )
+    # Update counters
+    vote_score = post.update_vote_score()
+
+    return Response({"score": vote_score})
 
 
 @api_view(["POST"])
@@ -421,7 +429,7 @@ def all_post_subscriptions(request):
     posts = serialize_post_many(
         Post.objects.filter(
             subscriptions__user=request.user, subscriptions__is_global=False
-        ).distinct(),
+        ).distinct("pk"),
         with_cp=False,
         current_user=request.user,
         with_subscriptions=True,
@@ -440,9 +448,21 @@ def post_similar_posts_api_view(request: Request, pk):
     ObjectPermission.can_view(permission, raise_exception=True)
 
     # Retrieve cached articles
-    posts = get_similar_posts(post)
+    def get_posts():
+        posts = get_similar_posts(post)
+        return serialize_post_many(posts, with_cp=True, group_cutoff=1)
 
-    return Response(serialize_post_many(posts, with_cp=True, current_user=request.user))
+    """
+    data = cache_get_or_set(
+        f"post_similar_posts_api_view:{post.pk}",
+        get_posts,  # 2h
+        timeout=3600 * 2,
+    )
+    """
+    # Not to overload the redis
+    data = get_posts()
+
+    return Response(data)
 
 
 @api_view(["GET"])

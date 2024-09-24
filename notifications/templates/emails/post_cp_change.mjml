@@ -35,8 +35,8 @@
                         {% with question_data=notification.question_data.0 %}
 
                         {% if question_data.question.type == "binary" %}
-                            {% blocktrans with direction=question_data.get_cp_change_label abs_diff=question_data.absolute_difference forecast_date=question_data.format_forecast_date median=question_data.format_cp_median user_forecast=question_data.format_user_forecast %}
-                            The community prediction has {{direction}} by {{abs_diff}} since {{forecast_date}}.
+                            {% blocktrans with direction=question_data.get_cp_change_label cp_change_value=question_data.format_cp_change_value forecast_date=question_data.format_forecast_date median=question_data.format_cp_median user_forecast=question_data.format_user_forecast %}
+                            The community prediction has {{direction}} by <b>{{cp_change_value}}</b> since {{forecast_date}}.
                             It is now <b>{{median}}</b>. Your last prediction was <b>{{user_forecast}}</b>.
                             {% endblocktrans %}
                         {% elif question_data.question.type == "continuous" %}

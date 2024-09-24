@@ -1,10 +1,12 @@
 import { cookies } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 
+import { getBrowserLocale } from "./utils/translation";
+
 export default getRequestConfig(async () => {
   const locale = cookies().get("NEXT_LOCALE")
     ? cookies().get("NEXT_LOCALE")?.value
-    : "en";
+    : (await getBrowserLocale()) || "en";
   return {
     locale,
     messages: {
