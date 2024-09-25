@@ -75,7 +75,14 @@ jobs:
         run: |
           wget https://github.com/Metaculus/metaculus/releases/download/v0.0.1-alpha/test_metaculus.sql.zip
           unzip test_metaculus.sql.zip
-          psql -d $DATABASE_URL < test_metaculus.sql
+          psql $DATABASE_URL -c "CREATE EXTENSION vector;"
+          pg_restore --dbname=$DATABASE_URL \
+            --clean \
+            --no-privileges \
+            --no-owner \
+            --if-exists \
+            --schema=public \
+            test_metaculus.sql
       - name: "Install Node"
         uses: actions/setup-node@v4
         with:
