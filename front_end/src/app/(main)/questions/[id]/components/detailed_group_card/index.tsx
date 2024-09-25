@@ -119,6 +119,7 @@ const DetailedGroupCard: FC<Props> = ({
               questions={sortedQuestions}
               timestamps={timestamps}
               isClosed={isClosed}
+              preselectedQuestionId={preselectedQuestionId}
             />
           );
       }

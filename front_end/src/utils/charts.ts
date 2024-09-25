@@ -416,7 +416,7 @@ export function generateChoiceItemsFromBinaryGroup(
     preselectedQuestionId?: number;
   }
 ): ChoiceItem[] {
-  const { activeCount } = config ?? {};
+  const { activeCount, preselectedQuestionId } = config ?? {};
 
   const latests: (AggregateForecast | undefined)[] = questions.map(
     (question) => question.aggregations.recency_weighted.latest
@@ -456,7 +456,11 @@ export function generateChoiceItemsFromBinaryGroup(
         ).getTime()
       ),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      active: !!activeCount ? index <= activeCount - 1 : true,
+      active: preselectedQuestionId
+        ? preselectedQuestionId === question.id
+        : !!activeCount
+          ? index <= activeCount - 1
+          : true,
       highlighted: false,
       resolution: question.resolution,
       rangeMin: question.scaling.range_min ?? 0,

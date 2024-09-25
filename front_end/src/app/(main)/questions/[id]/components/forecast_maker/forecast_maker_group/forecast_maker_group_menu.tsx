@@ -7,6 +7,7 @@ import { ProjectPermissions } from "@/types/post";
 import { Question } from "@/types/question";
 import { canResolveQuestion } from "@/utils/questions";
 
+import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
 import QuestionResolutionModal from "../resolution/resolution_modal";
 
 type Props = {
@@ -49,7 +50,7 @@ const ForecastMakerGroupControls: FC<Props> = ({
             name: t("copyLink"),
             onClick: () => {
               copyToClipboard(
-                `${window.location.origin}${window.location.pathname}?sub-question=${question.id}`
+                `${window.location.origin}${window.location.pathname}?${SLUG_POST_SUB_QUESTION_ID}=${question.id}`
               ).then();
             },
           },

@@ -154,6 +154,8 @@ const ForecastChoiceOption = <T = string,>({
       <tr
         className={classNames({
           "bg-orange-200 dark:bg-orange-200-dark": isRowDirty,
+          "bg-blue-200 bg-fixed dark:bg-blue-200-dark":
+            highlightedOptionId === id,
           "bg-gradient-to-r from-purple-200 to-gray-0 bg-fixed dark:from-purple-200-dark dark:to-gray-0-dark":
             isQuestionResolved || isGroupResolutionHighlighted,
         })}
@@ -215,7 +217,7 @@ const ForecastChoiceOption = <T = string,>({
 const MarkArrow: FC<{
   color: ThemeColor;
 }> = ({ color }) => {
-  const { theme } = useAppTheme();
+  const { getThemeColor } = useAppTheme();
 
   return (
     <svg
@@ -227,7 +229,7 @@ const MarkArrow: FC<{
     >
       <path
         d="M5.99984 8L11.9998 0H-0.000158574L5.99984 8Z"
-        fill={theme === "dark" ? color.dark : color.DEFAULT}
+        fill={getThemeColor(color)}
       />
     </svg>
   );
