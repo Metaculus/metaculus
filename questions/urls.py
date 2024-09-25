@@ -11,6 +11,11 @@ urlpatterns = [
     path(
         "questions/<int:pk>/resolve/", views.resolve_api_view, name="question-resolve"
     ),
+    path(
+        "questions/<int:pk>/unresolve/",
+        views.unresolve_api_view,
+        name="question-unresolve",
+    ),
 ]
 old_api = [
     path(

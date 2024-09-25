@@ -180,6 +180,22 @@ export async function resolveQuestion(
   }
 }
 
+export async function unresolveQuestion(questionId: number) {
+  try {
+    const { post_id } = await QuestionsApi.unresolve(questionId);
+
+    revalidatePath(`/questions/${post_id}`);
+
+    return;
+  } catch (err) {
+    const error = err as FetchError;
+
+    return {
+      errors: error.data,
+    };
+  }
+}
+
 export async function uploadImage(formData: FormData) {
   try {
     return await PostsApi.uploadImage(formData);

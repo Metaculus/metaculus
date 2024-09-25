@@ -31,17 +31,25 @@ def resolve_question_and_send_notifications(question_id: int):
     question: Question = Question.objects.get(id=question_id)
     post = question.get_post()
 
-    # Generates Scores
+    # scoring
+    score_types = [
+        Score.ScoreTypes.BASELINE,
+        Score.ScoreTypes.PEER,
+        Score.ScoreTypes.RELATIVE_LEGACY,
+    ]
+    spot_forecast_time = question.cp_reveal_time
+    if spot_forecast_time:
+        score_types.append(Score.ScoreTypes.SPOT_PEER)
     score_question(
         question,
         question.resolution,
-        score_types=[
-            Score.ScoreTypes.PEER,
-            Score.ScoreTypes.BASELINE,
-            Score.ScoreTypes.SPOT_PEER,
-            Score.ScoreTypes.RELATIVE_LEGACY,
-        ],
+        spot_forecast_time=(
+            spot_forecast_time.timestamp() if spot_forecast_time else None
+        ),
+        score_types=score_types,
     )
+    print("WOOOO SCORING QUESTION", question)
+
     scores = (
         question.scores.filter(user__isnull=False)
         .annotate(
