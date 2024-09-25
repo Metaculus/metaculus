@@ -24,6 +24,7 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 import { extractQuestionGroupName, formatResolution } from "@/utils/questions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
+import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
 import ContinuousSlider from "../continuous_slider";
 import GroupForecastTable, {
   ConditionalTableOption,
@@ -77,7 +78,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       generateGroupOptions(questions, prevForecastValuesMap, permission)
     );
   }, [permission, prevForecastValuesMap, questions]);
-  const subQuestionId = Number(params.get("sub-question"));
+  const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
   const [activeTableOption, setActiveTableOption] = useState(
     (subQuestionId || groupOptions.at(0)?.id) ?? null
   );
