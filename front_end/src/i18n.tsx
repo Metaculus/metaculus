@@ -1,28 +1,48 @@
-import { cookies } from "next/headers";
+import { match } from "@formatjs/intl-localematcher";
+import Negotiator from "negotiator";
+import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 
-//import { getBrowserLocale } from "./utils/translation";
+const locales = ["cs", "en", "es", "zh"];
+const defaultLocale = "en";
 
-export default getRequestConfig(async () => {
-  const locale = cookies().get("NEXT_LOCALE")
-    ? cookies().get("NEXT_LOCALE")?.value
-    : "en";
-  let messages;
+function getLocale(): string {
+  const acceptLang = headers().get("accept-language");
+  const cookieLocale = cookies().get("NEXT_LOCALE")?.value;
+
+  let options = [defaultLocale];
+
+  if (cookieLocale) {
+    options = [cookieLocale];
+  } else if (acceptLang) {
+    const parsedLanguages = new Negotiator({
+      headers: {
+        "accept-language": acceptLang,
+      },
+    }).languages();
+
+    if (parsedLanguages && parsedLanguages.length > 0) {
+      options = parsedLanguages;
+    }
+  }
 
   try {
-    messages = {
-      ...(await import(`../messages/en.json`)).default, 
-      ...(await import(`../messages/${locale}.json`)).default, 
-    };
-  } catch (error) {
-    console.warn(`no translations for: ${locale}, falling back to English.`);
-    messages = {
-      ...(await import(`../messages/en.json`)).default, 
-    };
+    return match(options, locales, defaultLocale);
+  } catch (err) {
+    console.error("Error parsing locale", options);
+
+    return defaultLocale;
   }
+}
+
+export default getRequestConfig(async () => {
+  const locale = getLocale();
 
   return {
     locale,
-    messages,
+    messages: {
+      ...(await import(`../messages/en.json`)).default,
+      ...(await import(`../messages/${locale}.json`)).default,
+    },
   };
 });
