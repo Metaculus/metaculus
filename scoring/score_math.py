@@ -345,7 +345,6 @@ def evaluate_question(
 
     scores: list[Score] = []
     for score_type in score_types:
-        breakpoint()
         match score_type:
             case ScoreTypes.BASELINE:
                 open_bounds_count = bool(question.open_upper_bound) + bool(
