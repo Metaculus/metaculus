@@ -319,10 +319,12 @@ def evaluate_forecasts_legacy_relative(
 
 def evaluate_question(
     question: Question,
-    resolution_bucket: int,
+    resolution_bucket: int | None,
     score_types: list[Score.ScoreTypes],
     spot_forecast_timestamp: float | None = None,
 ) -> list[Score]:
+    if resolution_bucket is None:
+        return []
     forecast_horizon_start = question.open_time.timestamp()
     actual_close_time = question.actual_close_time.timestamp()
     forecast_horizon_end = question.scheduled_close_time.timestamp()
@@ -343,6 +345,7 @@ def evaluate_question(
 
     scores: list[Score] = []
     for score_type in score_types:
+        breakpoint()
         match score_type:
             case ScoreTypes.BASELINE:
                 open_bounds_count = bool(question.open_upper_bound) + bool(
