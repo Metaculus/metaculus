@@ -28,6 +28,7 @@ import GroupForecastTable, {
   ConditionalTableOption,
 } from "../group_forecast_table";
 import NumericForecastTable from "../numeric_table";
+import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
   post: PostWithForecasts;
@@ -82,7 +83,10 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
     () => groupOptions.find((o) => o.id === activeTableOption),
     [groupOptions, activeTableOption]
   );
-
+  const activeQuestion = useMemo(
+    () => questions.find((q) => q.id === activeTableOption),
+    [questions, activeTableOption]
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
   const questionsToSubmit = useMemo(
@@ -362,6 +366,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       {submitErrors.map((errResponse, index) => (
         <FormErrorMessage key={`error-${index}`} errors={errResponse} />
       ))}
+      {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>
   );
 };

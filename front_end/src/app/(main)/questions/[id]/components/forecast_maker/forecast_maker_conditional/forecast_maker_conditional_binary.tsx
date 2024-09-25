@@ -18,6 +18,7 @@ import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";
+import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
   postId: number;
@@ -74,7 +75,10 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const [activeTableOption, setActiveTableOption] = useState(
     questionOptions.at(0)?.id ?? null
   );
-
+  const activeQuestion = useMemo(
+    () => [question_yes, question_no].find((q) => q.id === activeTableOption),
+    [activeTableOption, question_yes, question_no]
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
   const isPickerDirty = useMemo(
@@ -308,6 +312,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       {submitErrors.map((errResponse, index) => (
         <FormErrorMessage key={`error-${index}`} errors={errResponse} />
       ))}
+      {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>
   );
 };

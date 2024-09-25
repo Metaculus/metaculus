@@ -16,9 +16,11 @@ import { createForecasts } from "@/app/(main)/questions/actions";
 import PostStatusComponent from "@/components/post_status";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import {
   PostWithForecasts,
@@ -37,8 +39,7 @@ import {
   BINARY_MIN_VALUE,
 } from "../binary_slider";
 import ForecastChoiceOption from "../forecast_choice_option";
-import LoadingIndicator from "@/components/ui/loading_indicator";
-import { useServerAction } from "@/hooks/use_server_action";
+import ScoreDisplay from "../resolution/score_display";
 
 type QuestionOption = {
   id: number;
@@ -275,6 +276,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       {submitErrors.map((errResponse, index) => (
         <FormErrorMessage key={`error-${index}`} errors={errResponse} />
       ))}
+      {highlightedQuestion && <ScoreDisplay question={highlightedQuestion} />}
     </>
   );
 };

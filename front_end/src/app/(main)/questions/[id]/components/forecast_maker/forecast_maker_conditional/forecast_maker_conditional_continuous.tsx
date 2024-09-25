@@ -23,6 +23,7 @@ import ConditionalForecastTable, {
 } from "../conditional_forecast_table";
 import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
+import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
   postId: number;
@@ -92,6 +93,10 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   ]);
   const [activeTableOption, setActiveTableOption] = useState(
     questionOptions.at(0)?.id ?? null
+  );
+  const activeQuestion = useMemo(
+    () => [question_yes, question_no].find((q) => q.id === activeTableOption),
+    [activeTableOption, question_yes, question_no]
   );
   const activeOptionData = useMemo(
     () => questionOptions.find((option) => option.id === activeTableOption),
@@ -349,7 +354,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 
       {canPredict && (
         <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-          (
           {user ? (
             <>
               <Button
@@ -403,7 +407,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               {t("signUpToPredict")}
             </Button>
           )}
-          )
         </div>
       )}
       {submitErrors.map((errResponse, index) => (
@@ -437,6 +440,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           }
         />
       )}
+      {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>
   );
 };
