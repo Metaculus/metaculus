@@ -311,6 +311,10 @@ def resolve_question(
     resolution: str,
     actual_resolve_time: datetime,
 ):
+    print(question.title)
+    print(resolution)
+    print(actual_resolve_time)
+    print()
     question.resolution = resolution
     question.resolution_set_time = timezone.now()
     question.actual_resolve_time = actual_resolve_time
@@ -354,13 +358,13 @@ def resolve_question(
                     resolve_question(
                         conditional.question_yes,
                         child.resolution,
-                        conditional.question_yes.actual_close_time,
+                        child.actual_close_time,
                     )
                 if question.resolution == "no":
                     resolve_question(
                         conditional.question_no,
                         child.resolution,
-                        conditional.question_no.actual_close_time,
+                        child.actual_close_time,
                     )
         else:  # question == child
             # handle annulment / ambiguity
@@ -396,13 +400,13 @@ def resolve_question(
                         resolve_question(
                             conditional.question_yes,
                             question.resolution,
-                            conditional.question_yes.actual_close_time,
+                            question.actual_close_time,
                         )
                     if condition.resolution == "no":
                         resolve_question(
                             conditional.question_no,
                             question.resolution,
-                            conditional.question_no.actual_close_time,
+                            question.actual_close_time,
                         )
 
     post = question.get_post()
@@ -430,24 +434,6 @@ def unresolve_question(question: Question):
     question.actual_resolve_time = None
     question.actual_close_time = None
     question.save()
-
-    # scoring
-    score_types = [
-        Score.ScoreTypes.BASELINE,
-        Score.ScoreTypes.PEER,
-        Score.ScoreTypes.RELATIVE_LEGACY,
-    ]
-    spot_forecast_time = question.cp_reveal_time
-    if spot_forecast_time:
-        score_types.append(Score.ScoreTypes.SPOT_PEER)
-    score_question(
-        question,
-        None,  # None is the equivalent of unsetting scores
-        spot_forecast_time=(
-            spot_forecast_time.timestamp() if spot_forecast_time else None
-        ),
-        score_types=score_types,
-    )
 
     # Check if the question is part of any/all conditionals
     conditional: Conditional
@@ -481,6 +467,28 @@ def unresolve_question(question: Question):
     post = question.get_post()
     post.update_pseudo_materialized_fields()
     post.save()
+
+    # TODO: set up unresolution notifications
+    # in the "resolve_question" function, scoring is handled in the same task
+    # as notifications. So this should be moved in the same way after notifications
+    # are generated
+    # scoring
+    score_types = [
+        Score.ScoreTypes.BASELINE,
+        Score.ScoreTypes.PEER,
+        Score.ScoreTypes.RELATIVE_LEGACY,
+    ]
+    spot_forecast_time = question.cp_reveal_time
+    if spot_forecast_time:
+        score_types.append(Score.ScoreTypes.SPOT_PEER)
+    score_question(
+        question,
+        None,  # None is the equivalent of unsetting scores
+        spot_forecast_time=(
+            spot_forecast_time.timestamp() if spot_forecast_time else None
+        ),
+        score_types=score_types,
+    )
 
 
 def close_question(question: Question, actual_close_time: datetime | None = None):
