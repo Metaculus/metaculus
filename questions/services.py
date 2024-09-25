@@ -330,6 +330,7 @@ def resolve_question(
         condition = conditional.condition
         child = conditional.condition_child
         if question == condition:
+            # TODO: when parent resolves, one should annul and the other should close
             # handle annulment
             if question.resolution in [
                 "yes",
