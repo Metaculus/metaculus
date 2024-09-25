@@ -75,6 +75,7 @@ jobs:
         run: |
           wget https://github.com/Metaculus/metaculus/releases/download/v0.0.1-alpha/test_metaculus.sql.zip
           unzip test_metaculus.sql.zip
+          psql $DATABASE_URL -c "CREATE EXTENSION vector;"
           pg_restore --dbname=$DATABASE_URL \
             --clean \
             --no-privileges \
