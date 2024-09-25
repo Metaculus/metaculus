@@ -1,7 +1,7 @@
 import { FC } from "react";
 
 import SectionToggle from "@/components/ui/section_toggle";
-import { QuestionWithForecasts } from "@/types/question";
+import { QuestionWithForecasts, ScoreData } from "@/types/question";
 
 type Props = {
   question: QuestionWithForecasts;
@@ -40,58 +40,64 @@ const ScoreDisplay: FC<Props> = ({ question }) => {
           </div>
         )}
       </div>
-      {user_scores &&
-        (user_scores.spot_baseline_score != null ||
-          user_scores.spot_peer_score != null ||
-          user_scores.relative_legacy_score != null ||
-          user_scores.relative_legacy_arvhived_score != null ||
-          user_scores.coverage != null ||
-          user_scores.weighted_coverage != null) && (
-          <SectionToggle title="Additional Scores" defaultOpen={false}>
-            <div className="mb-4 mt-4 grid grid-cols-4 gap-4">
-              {user_scores.spot_baseline_score != null && (
-                <div className="box border border-gray-300 p-2 text-center">
-                  <span>My Spot Baseline Score</span>
-                  <div>{user_scores.spot_baseline_score.toFixed(1)}</div>
+      {checkAdditionalScores(user_scores) && (
+        <SectionToggle title="Additional Scores" defaultOpen={false}>
+          <div className="mb-4 mt-4 grid grid-cols-4 gap-4">
+            {user_scores?.spot_baseline_score != null && (
+              <div className="box border border-gray-300 p-2 text-center">
+                <span>My Spot Baseline Score</span>
+                <div>{user_scores.spot_baseline_score.toFixed(1)}</div>
+              </div>
+            )}
+            {user_scores?.spot_peer_score != null && (
+              <div className="box border border-gray-300 p-2 text-center">
+                <span>My Spot Peer Score</span>
+                <div>{user_scores.spot_peer_score.toFixed(1)}</div>
+              </div>
+            )}
+            {user_scores?.relative_legacy_score != null && (
+              <div className="box border border-gray-300 p-2 text-center">
+                <span>My Relative Legacy Score</span>
+                <div>{user_scores.relative_legacy_score.toFixed(2)}</div>
+              </div>
+            )}
+            {user_scores?.relative_legacy_arvhived_score != null && (
+              <div className="box border border-gray-300 p-2 text-center">
+                <span>My Relative Legacy Archived Score</span>
+                <div>
+                  {user_scores.relative_legacy_arvhived_score.toFixed(2)}
                 </div>
-              )}
-              {user_scores.spot_peer_score != null && (
-                <div className="box border border-gray-300 p-2 text-center">
-                  <span>My Spot Peer Score</span>
-                  <div>{user_scores.spot_peer_score.toFixed(1)}</div>
-                </div>
-              )}
-              {user_scores.relative_legacy_score != null && (
-                <div className="box border border-gray-300 p-2 text-center">
-                  <span>My Relative Legacy Score</span>
-                  <div>{user_scores.relative_legacy_score.toFixed(2)}</div>
-                </div>
-              )}
-              {user_scores.relative_legacy_arvhived_score != null && (
-                <div className="box border border-gray-300 p-2 text-center">
-                  <span>My Relative Legacy Archived Score</span>
-                  <div>
-                    {user_scores.relative_legacy_arvhived_score.toFixed(2)}
-                  </div>
-                </div>
-              )}
-              {user_scores.coverage != null && (
-                <div className="box border border-gray-300 p-2 text-center">
-                  <span>My Coverage</span>
-                  <div>{(user_scores.coverage * 100).toFixed(1)}%</div>
-                </div>
-              )}
-              {user_scores.weighted_coverage != null && (
-                <div className="box border border-gray-300 p-2 text-center">
-                  <span>My Weighted Coverage</span>
-                  <div>{(user_scores.weighted_coverage * 100).toFixed(1)}%</div>
-                </div>
-              )}
-            </div>
-          </SectionToggle>
-        )}
+              </div>
+            )}
+            {user_scores?.coverage != null && (
+              <div className="box border border-gray-300 p-2 text-center">
+                <span>My Coverage</span>
+                <div>{(user_scores.coverage * 100).toFixed(1)}%</div>
+              </div>
+            )}
+            {user_scores?.weighted_coverage != null && (
+              <div className="box border border-gray-300 p-2 text-center">
+                <span>My Weighted Coverage</span>
+                <div>{(user_scores.weighted_coverage * 100).toFixed(1)}%</div>
+              </div>
+            )}
+          </div>
+        </SectionToggle>
+      )}
     </>
   );
 };
+
+function checkAdditionalScores(user_scores: ScoreData | undefined) {
+  if (!user_scores) return false;
+  return [
+    user_scores.spot_baseline_score,
+    user_scores.spot_peer_score,
+    user_scores.relative_legacy_score,
+    user_scores.relative_legacy_arvhived_score,
+    user_scores.coverage,
+    user_scores.weighted_coverage,
+  ].some((score) => score != null);
+}
 
 export default ScoreDisplay;

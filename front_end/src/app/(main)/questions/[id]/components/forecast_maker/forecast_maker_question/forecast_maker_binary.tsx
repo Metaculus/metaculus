@@ -6,8 +6,10 @@ import React, { FC, useEffect, useState } from "react";
 import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
 import {
@@ -18,9 +20,6 @@ import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import QuestionResolutionButton from "../resolution";
-import { useRouter } from "next/navigation";
-import LoadingIndicator from "@/components/ui/loading_indicator";
-import { useServerAction } from "@/hooks/use_server_action";
 
 type Props = {
   postId: number;
@@ -44,7 +43,6 @@ const ForecastMakerBinary: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-  const router = useRouter();
 
   const communityForecast =
     question.aggregations.recency_weighted.latest?.centers![0];
@@ -58,7 +56,7 @@ const ForecastMakerBinary: FC<Props> = ({
 
   useEffect(() => {
     setForecast(prevForecastValue);
-  }, [prevForecast]);
+  }, [prevForecastValue]);
 
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);

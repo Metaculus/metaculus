@@ -12,7 +12,7 @@ import Button from "@/components/ui/button";
 import { FormError, Input } from "@/components/ui/form_field";
 import Select from "@/components/ui/select";
 import { ErrorResponse } from "@/types/fetch";
-import { Question } from "@/types/question";
+import { Question, QuestionType } from "@/types/question";
 
 type Props = {
   question: Question;
@@ -132,7 +132,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               ]}
               className="pl-1"
             />
-            {question.type === "numeric" &&
+            {question.type === QuestionType.Numeric &&
               resolutionType === "unambiguous" && (
                 <Input
                   type="number"
@@ -140,6 +140,15 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
                   className="max-w-xs bg-transparent"
                   min={question.scaling.range_min!}
                   max={question.scaling.range_max!}
+                  {...register("resolutionValue")}
+                />
+              )}
+            {question.type === QuestionType.Date &&
+              resolutionType === "unambiguous" && (
+                <Input
+                  type="datetime-local"
+                  placeholder="date resolution"
+                  className="bg-transparent pl-1"
                   {...register("resolutionValue")}
                 />
               )}
@@ -161,8 +170,8 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
             >
               {t("resolve")}
             </Button>
-            <FormError errors={submitErrors} />
           </div>
+          <FormError errors={submitErrors} />
         </form>
       </div>
     </BaseModal>

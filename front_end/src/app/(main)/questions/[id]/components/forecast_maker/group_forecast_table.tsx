@@ -19,8 +19,8 @@ import {
   Question,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { formatResolution } from "@/utils/questions";
 import { getDisplayValue } from "@/utils/charts";
+import { formatResolution } from "@/utils/questions";
 
 export type ConditionalTableOption = {
   id: number;
