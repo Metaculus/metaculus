@@ -70,7 +70,9 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const params = useSearchParams();
+  const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
   const { setCurrentModal } = useModal();
+
   const { id: postId, user_permission: permission } = post;
 
   const prevForecastValuesMap = useMemo(
@@ -89,6 +91,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
     generateChoiceOptions(questions, prevForecastValuesMap)
   );
+
   const sortedQuestionOptions = [...questionOptions].sort((a, b) => {
     if (!!subQuestionId) {
       if (a.id === subQuestionId) {
@@ -99,7 +102,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     }
     return 0;
   });
-  const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
+
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<
     number | undefined
   >(subQuestionId || questionOptions.at(0)?.id);
