@@ -53,9 +53,11 @@ class TestPostCreate:
             response.data["scheduled_resolve_time"]
             == response.data["question"]["scheduled_resolve_time"]
         )
+        assert response.data["scheduled_close_time"] == make_aware(
+            datetime.datetime(2024, 5, 1)
+        )
         assert (
-            response.data["scheduled_close_time"]
-            == response.data["question"]["scheduled_close_time"]
+            response.data["question"]["scheduled_close_time"] == "2024-05-01T00:00:00Z"
         )
 
     def test_create__group(self, user1, user1_client):
@@ -98,7 +100,9 @@ class TestPostCreate:
         questions = response.data["group_of_questions"]["questions"]
 
         # Ensure take max dates of these data
-        assert response.data["scheduled_close_time"] == "2024-05-05T00:00:00Z"
+        assert response.data["scheduled_close_time"] == make_aware(
+            datetime.datetime(2024, 5, 5)
+        )
         assert response.data["scheduled_resolve_time"] == "2024-05-11T00:00:00Z"
 
         assert {q["title"] for q in questions} == {"Question #1", "Question #2"}
@@ -148,7 +152,9 @@ class TestPostCreate:
             == "Starship Reaches Orbit in 2024? (No) → Starship Booster Tower Catch Attempt in 2024?"
         )
         assert response.data["conditional"]["question_no"]["type"] == "numeric"
-        assert response.data["scheduled_close_time"] == "2024-04-01T00:00:00Z"
+        assert response.data["scheduled_close_time"] == make_aware(
+            datetime.datetime(2024, 4, 1)
+        )
         assert response.data["scheduled_resolve_time"] == "2024-05-02T00:00:00Z"
 
     def test_create__is_public__true(self, user1, user2, user1_client):
