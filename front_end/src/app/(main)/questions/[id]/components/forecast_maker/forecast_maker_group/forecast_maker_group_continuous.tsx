@@ -50,6 +50,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const { user } = useAuth();
   const params = useSearchParams();
   const { setCurrentModal } = useModal();
+  const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
 
   const { id: postId, user_permission: permission } = post;
 
@@ -78,7 +79,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       generateGroupOptions(questions, prevForecastValuesMap, permission)
     );
   }, [permission, prevForecastValuesMap, questions]);
-  const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
   const [activeTableOption, setActiveTableOption] = useState(
     (subQuestionId || groupOptions.at(0)?.id) ?? null
   );
