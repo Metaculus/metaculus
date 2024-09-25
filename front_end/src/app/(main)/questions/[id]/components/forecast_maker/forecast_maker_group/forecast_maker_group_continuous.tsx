@@ -3,6 +3,7 @@ import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { differenceInMilliseconds } from "date-fns";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -23,11 +24,13 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 import { extractQuestionGroupName, formatResolution } from "@/utils/questions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
+import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
 import ContinuousSlider from "../continuous_slider";
 import GroupForecastTable, {
   ConditionalTableOption,
 } from "../group_forecast_table";
 import NumericForecastTable from "../numeric_table";
+import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
   post: PostWithForecasts;
@@ -45,7 +48,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const t = useTranslations();
   const locale = useLocale();
   const { user } = useAuth();
+  const params = useSearchParams();
   const { setCurrentModal } = useModal();
+  const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
 
   const { id: postId, user_permission: permission } = post;
 
@@ -74,15 +79,17 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       generateGroupOptions(questions, prevForecastValuesMap, permission)
     );
   }, [permission, prevForecastValuesMap, questions]);
-
   const [activeTableOption, setActiveTableOption] = useState(
-    groupOptions.at(0)?.id ?? null
+    (subQuestionId || groupOptions.at(0)?.id) ?? null
   );
   const activeGroupOption = useMemo(
     () => groupOptions.find((o) => o.id === activeTableOption),
     [groupOptions, activeTableOption]
   );
-
+  const activeQuestion = useMemo(
+    () => questions.find((q) => q.id === activeTableOption),
+    [questions, activeTableOption]
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
   const questionsToSubmit = useMemo(
@@ -362,6 +369,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       {submitErrors.map((errResponse, index) => (
         <FormErrorMessage key={`error-${index}`} errors={errResponse} />
       ))}
+      {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>
   );
 };

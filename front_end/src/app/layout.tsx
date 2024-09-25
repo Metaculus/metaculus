@@ -4,11 +4,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getLocale, getMessages } from "next-intl/server";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "react-hot-toast";
-
-import { CSPostHogProvider } from "./providers";
 
 import GlobalModals from "@/components/global_modals";
 import OnboardingModalWrapper from "@/components/onboarding/OnboardingModalWrapper";
@@ -18,7 +16,8 @@ import AuthProvider from "@/contexts/auth_context";
 import ModalProvider from "@/contexts/modal_context";
 import AuthApi from "@/services/auth";
 import ProfileApi from "@/services/profile";
-import { getBrowserLocale } from "@/utils/translation";
+
+import { CSPostHogProvider } from "./providers";
 
 config.autoAddCss = false;
 
@@ -115,7 +114,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = await getBrowserLocale();
+  const locale = await getLocale();
   const messages = await getMessages();
   const user = await ProfileApi.getMyProfile();
   const socialProviders = await AuthApi.getSocialProviders(

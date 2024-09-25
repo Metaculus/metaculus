@@ -20,6 +20,8 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
+from scoring.models import Score
+from scoring.utils import score_question
 from users.models import User
 from utils.dtypes import generate_map_from_list
 from utils.models import model_update
@@ -304,12 +306,34 @@ def update_notebook(notebook: Notebook, **kwargs):
 
 
 @transaction.atomic()
-def resolve_question(question: Question, resolution, actual_resolve_time: datetime):
+def resolve_question(
+    question: Question,
+    resolution: str,
+    actual_resolve_time: datetime,
+):
     question.resolution = resolution
     question.resolution_set_time = timezone.now()
     question.actual_resolve_time = actual_resolve_time
     question.actual_close_time = min(actual_resolve_time, question.scheduled_close_time)
     question.save()
+
+    # scoring
+    score_types = [
+        Score.ScoreTypes.BASELINE,
+        Score.ScoreTypes.PEER,
+        Score.ScoreTypes.RELATIVE_LEGACY,
+    ]
+    spot_forecast_time = question.cp_reveal_time
+    if spot_forecast_time:
+        score_types.append(Score.ScoreTypes.SPOT_PEER)
+    score_question(
+        question,
+        question.resolution,
+        spot_forecast_time=(
+            spot_forecast_time.timestamp() if spot_forecast_time else None
+        ),
+        score_types=score_types,
+    )
 
     # Check if the question is part of any/all conditionals
     for conditional in [

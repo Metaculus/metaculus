@@ -2,6 +2,7 @@
 import { faEllipsis, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { round } from "lodash";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, {
   FC,
@@ -16,9 +17,11 @@ import { createForecasts } from "@/app/(main)/questions/actions";
 import PostStatusComponent from "@/components/post_status";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import {
   PostWithForecasts,
@@ -31,14 +34,14 @@ import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 import { extractQuestionGroupName } from "@/utils/questions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
+import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
 import {
   BINARY_FORECAST_PRECISION,
   BINARY_MAX_VALUE,
   BINARY_MIN_VALUE,
 } from "../binary_slider";
 import ForecastChoiceOption from "../forecast_choice_option";
-import LoadingIndicator from "@/components/ui/loading_indicator";
-import { useServerAction } from "@/hooks/use_server_action";
+import ScoreDisplay from "../resolution/score_display";
 
 type QuestionOption = {
   id: number;
@@ -66,7 +69,10 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const params = useSearchParams();
+  const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
   const { setCurrentModal } = useModal();
+
   const { id: postId, user_permission: permission } = post;
 
   const prevForecastValuesMap = useMemo(
@@ -85,9 +91,21 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
     generateChoiceOptions(questions, prevForecastValuesMap)
   );
+
+  const sortedQuestionOptions = [...questionOptions].sort((a, b) => {
+    if (!!subQuestionId) {
+      if (a.id === subQuestionId) {
+        return -1;
+      } else if (b.id === subQuestionId) {
+        return 1;
+      }
+    }
+    return 0;
+  });
+
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<
     number | undefined
-  >(questionOptions.at(0)?.id);
+  >(subQuestionId || questionOptions.at(0)?.id);
   const highlightedQuestion = useMemo(
     () => questions.find((q) => q.id === highlightedQuestionId),
     [questions, highlightedQuestionId]
@@ -201,7 +219,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
           </tr>
         </thead>
         <tbody>
-          {questionOptions.map((questionOption) => (
+          {sortedQuestionOptions.map((questionOption) => (
             <ForecastChoiceOption
               key={questionOption.id}
               id={questionOption.id}
@@ -275,6 +293,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       {submitErrors.map((errResponse, index) => (
         <FormErrorMessage key={`error-${index}`} errors={errResponse} />
       ))}
+      {highlightedQuestion && <ScoreDisplay question={highlightedQuestion} />}
     </>
   );
 };

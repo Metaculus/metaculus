@@ -1,12 +1,13 @@
 import { FC } from "react";
 
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { GroupOfQuestionsGraphType } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
 import { sortGroupPredictionOptions } from "@/utils/questions";
+
 import ContinuousGroupTimeline from "./continuous_group_timeline";
 import BinaryGroupChart from "./detailed_group_card/binary_group_chart";
-import { GroupOfQuestionsGraphType } from "@/types/charts";
 
 type Props = {
   post: PostWithForecasts;
