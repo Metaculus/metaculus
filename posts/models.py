@@ -396,14 +396,9 @@ class Post(TimeStampedModel):
                 question.scheduled_close_time
                 for question in self.group_of_questions.questions.all()
             )
-        elif (
-            self.conditional
-            and self.conditional.condition_child.scheduled_close_time
-            and self.conditional.condition.scheduled_close_time
-        ):
-            self.scheduled_close_time = min(
-                self.conditional.condition_child.scheduled_close_time,
-                self.conditional.condition.scheduled_close_time,
+        elif self.conditional:
+            self.scheduled_close_time = (
+                self.conditional.condition_child.scheduled_close_time
             )
         else:
             self.scheduled_close_time = None
@@ -416,11 +411,7 @@ class Post(TimeStampedModel):
                 question.scheduled_resolve_time
                 for question in self.group_of_questions.questions.all()
             )
-        elif (
-            self.conditional
-            and self.conditional.condition_child.scheduled_resolve_time
-            and self.conditional.condition.scheduled_resolve_time
-        ):
+        elif self.conditional:
             self.scheduled_resolve_time = max(
                 self.conditional.condition_child.scheduled_resolve_time,
                 self.conditional.condition.scheduled_resolve_time,
@@ -436,29 +427,12 @@ class Post(TimeStampedModel):
                 question.actual_close_time
                 for question in self.group_of_questions.questions.all()
             ]
-
             if None in close_times:
                 self.actual_close_time = None
             else:
                 self.actual_close_time = max(close_times)
-        elif self.conditional and (
-            self.conditional.condition_child.actual_close_time
-            or self.conditional.condition.actual_close_time
-        ):
-            if (
-                self.conditional.condition_child.actual_close_time
-                and self.conditional.condition.actual_close_time
-            ):
-                self.actual_close_time = min(
-                    self.conditional.condition_child.actual_close_time,
-                    self.conditional.condition.actual_close_time,
-                )
-            elif self.conditional.condition_child.actual_close_time:
-                self.actual_close_time = (
-                    self.conditional.condition_child.actual_close_time
-                )
-            elif self.conditional.condition.actual_close_time:
-                self.actual_close_time = self.conditional.condition.actual_close_time
+        elif self.conditional:
+            self.actual_close_time = self.conditional.condition_child.actual_close_time
         else:
             self.actual_close_time = None
 
@@ -477,9 +451,7 @@ class Post(TimeStampedModel):
         elif self.conditional:
             self.resolved = (
                 self.conditional.condition_child.resolution is not None
-                and self.conditional.condition_child.resolution != ""
                 and self.conditional.condition.resolution is not None
-                and self.conditional.condition.resolution != ""
             )
         else:
             self.resolved = False

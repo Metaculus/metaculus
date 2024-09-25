@@ -317,78 +317,93 @@ def resolve_question(
     question.actual_close_time = min(actual_resolve_time, question.scheduled_close_time)
     question.save()
 
-    # scoring
-    score_types = [
-        Score.ScoreTypes.BASELINE,
-        Score.ScoreTypes.PEER,
-        Score.ScoreTypes.RELATIVE_LEGACY,
-    ]
-    spot_forecast_time = question.cp_reveal_time
-    if spot_forecast_time:
-        score_types.append(Score.ScoreTypes.SPOT_PEER)
-    score_question(
-        question,
-        question.resolution,
-        spot_forecast_time=(
-            spot_forecast_time.timestamp() if spot_forecast_time else None
-        ),
-        score_types=score_types,
-    )
-
-    # Check if the question is part of any/all conditionals
+    # deal with related conditionals
+    conditional: Conditional
     for conditional in [
         *question.conditional_conditions.all(),
         *question.conditional_children.all(),
     ]:
-        if conditional.condition.resolution and conditional.condition_child.resolution:
-            if conditional.condition.resolution == "yes":
+        condition = conditional.condition
+        child = conditional.condition_child
+        if question == condition:
+            # handle annulment
+            if question.resolution in [
+                "yes",
+                ResolutionType.ANNULLED,
+                ResolutionType.AMBIGUOUS,
+            ]:
                 resolve_question(
                     conditional.question_no,
                     ResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
+            if question.resolution in [
+                "no",
+                ResolutionType.ANNULLED,
+                ResolutionType.AMBIGUOUS,
+            ]:
                 resolve_question(
                     conditional.question_yes,
-                    conditional.condition_child.resolution,
+                    ResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
-            elif conditional.condition.resolution == "no":
-                resolve_question(
-                    conditional.question_no,
-                    conditional.condition_child.resolution,
-                    actual_resolve_time,
-                )
+            # if the child is already resolved,
+            # we resolve the active branch
+            if child.resolution:
+                if question.resolution == "yes":
+                    resolve_question(
+                        conditional.question_yes,
+                        child.resolution,
+                        conditional.question_yes.actual_close_time,
+                    )
+                if question.resolution == "no":
+                    resolve_question(
+                        conditional.question_no,
+                        child.resolution,
+                        conditional.question_no.actual_close_time,
+                    )
+        else:  # question == child
+            # handle annulment / ambiguity
+            if question.resolution in [
+                ResolutionType.ANNULLED,
+                ResolutionType.AMBIGUOUS,
+            ]:
                 resolve_question(
                     conditional.question_yes,
                     ResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
-            elif conditional.condition.resolution == ResolutionType.ANNULLED:
                 resolve_question(
                     conditional.question_no,
                     ResolutionType.ANNULLED,
-                    actual_resolve_time,
-                )
-                resolve_question(
-                    conditional.question_yes.resolution,
-                    ResolutionType.ANNULLED,
-                    actual_resolve_time,
-                )
-            elif conditional.condition.resolution == ResolutionType.AMBIGUOUS:
-                resolve_question(
-                    conditional.question_no.resolution,
-                    ResolutionType.AMBIGUOUS,
-                    actual_resolve_time,
-                )
-                resolve_question(
-                    conditional.question_yes.resolution,
-                    ResolutionType.AMBIGUOUS,
                     actual_resolve_time,
                 )
             else:
-                raise ValueError(
-                    f"Invalid resolution for conditionals' condition: {conditional.condition.resolution}"
-                )
+                if condition.resolution is None:
+                    # condition is not resolved
+                    # both branches need to close
+                    close_question(
+                        conditional.question_no,
+                        actual_close_time=question.actual_close_time,
+                    )
+                    close_question(
+                        conditional.question_yes,
+                        actual_close_time=question.actual_close_time,
+                    )
+                else:  # condition is already resolved,
+                    # resolve the active branch
+                    if condition.resolution == "yes":
+                        resolve_question(
+                            conditional.question_yes,
+                            question.resolution,
+                            conditional.question_yes.actual_close_time,
+                        )
+                    if condition.resolution == "no":
+                        resolve_question(
+                            conditional.question_no,
+                            question.resolution,
+                            conditional.question_no.actual_close_time,
+                        )
 
     post = question.get_post()
     post.update_pseudo_materialized_fields()
@@ -408,12 +423,72 @@ def resolve_question(
             logger.exception("Error during post resolving")
 
 
-def close_question(question: Question):
+@transaction.atomic()
+def unresolve_question(question: Question):
+    question.resolution = None
+    question.resolution_set_time = None
+    question.actual_resolve_time = None
+    question.actual_close_time = None
+    question.save()
+
+    # scoring
+    score_types = [
+        Score.ScoreTypes.BASELINE,
+        Score.ScoreTypes.PEER,
+        Score.ScoreTypes.RELATIVE_LEGACY,
+    ]
+    spot_forecast_time = question.cp_reveal_time
+    if spot_forecast_time:
+        score_types.append(Score.ScoreTypes.SPOT_PEER)
+    score_question(
+        question,
+        None,  # None is the equivalent of unsetting scores
+        spot_forecast_time=(
+            spot_forecast_time.timestamp() if spot_forecast_time else None
+        ),
+        score_types=score_types,
+    )
+
+    # Check if the question is part of any/all conditionals
+    conditional: Conditional
+    for conditional in [
+        *question.conditional_conditions.all(),
+        *question.conditional_children.all(),
+    ]:
+        condition = conditional.condition
+        child = conditional.condition_child
+        if question == condition:
+            if child.resolution not in [
+                ResolutionType.ANNULLED,
+                ResolutionType.AMBIGUOUS,
+            ]:
+                # unresolve both branches (handles annulment / ambiguity automatically)
+                unresolve_question(conditional.question_yes)
+                unresolve_question(conditional.question_no)
+            if child.resolution not in [
+                None,
+                ResolutionType.ANNULLED,
+                ResolutionType.AMBIGUOUS,
+            ]:
+                # both branches should still be closed though
+                close_question(
+                    conditional.question_yes, actual_close_time=child.actual_close_time
+                )
+                close_question(
+                    conditional.question_no, actual_close_time=child.actual_close_time
+                )
+
+    post = question.get_post()
+    post.update_pseudo_materialized_fields()
+    post.save()
+
+
+def close_question(question: Question, actual_close_time: datetime | None = None):
     if question.actual_close_time:
         raise ValidationError("Question is already closed")
 
     question.actual_close_time = min(
-        timezone.now(),
+        actual_close_time or timezone.now(),
         question.scheduled_close_time,
         question.actual_resolve_time or timezone.now(),
     )
