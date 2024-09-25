@@ -137,7 +137,8 @@ class PostReadSerializer(serializers.ModelSerializer):
 
     def get_scheduled_close_time(self, obj: Post):
         if obj.notebook:
-            return None
+            return
+
         if obj.question:
             return obj.question.scheduled_close_time
         if obj.conditional:
