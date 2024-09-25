@@ -3,9 +3,9 @@ export const onboardingTopics = [
     name: "US Politics",
     questions: [6478, 20776, 21550],
     factors: [
-      "⬇️ A hearing on the Biden admin’s proposal to reclassify marijuana was delayed to December 2nd.",
-      "⬇️ Despite increasing public support for cannabis decriminalization, there remains significant political resistance, particularly from more conservative or law-and-order-focused lawmakers and constituencies.",
-      "⬇️ Some senators have raised the objection that decriminalizing marijuana would violate some trade treaties.",
+      "⬇️ There is little time left in 2024 for this change.",
+      "⬇️ Congress has repeatedly failed to pass major cannabis reform bills.",
+      "⬇️ There is growing public support, but key policymakers are concerned about potential negative social and health impacts.",
     ],
     emoji: "🇺🇸",
   },
