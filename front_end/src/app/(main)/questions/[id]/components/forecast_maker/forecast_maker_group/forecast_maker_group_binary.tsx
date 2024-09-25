@@ -2,6 +2,7 @@
 import { faEllipsis, faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { round } from "lodash";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, {
   FC,
@@ -67,6 +68,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const params = useSearchParams();
   const { setCurrentModal } = useModal();
   const { id: postId, user_permission: permission } = post;
 
@@ -86,9 +88,10 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
     generateChoiceOptions(questions, prevForecastValuesMap)
   );
+  const subQuestionId = Number(params.get("sub-question"));
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<
     number | undefined
-  >(questionOptions.at(0)?.id);
+  >(subQuestionId || questionOptions.at(0)?.id);
   const highlightedQuestion = useMemo(
     () => questions.find((q) => q.id === highlightedQuestionId),
     [questions, highlightedQuestionId]
@@ -202,30 +205,41 @@ const ForecastMakerGroupBinary: FC<Props> = ({
           </tr>
         </thead>
         <tbody>
-          {questionOptions.map((questionOption) => (
-            <ForecastChoiceOption
-              key={questionOption.id}
-              id={questionOption.id}
-              highlightedOptionId={highlightedQuestionId}
-              onOptionClick={setHighlightedQuestionId}
-              forecastValue={questionOption.forecast}
-              defaultSliderValue={50}
-              choiceName={questionOption.name}
-              choiceColor={questionOption.color}
-              communityForecast={questionOption.communityForecast}
-              inputMin={BINARY_MIN_VALUE}
-              inputMax={BINARY_MAX_VALUE}
-              onChange={handleForecastChange}
-              isDirty={questionOption.isDirty}
-              isRowDirty={questionOption.isDirty}
-              menu={questionOption.menu}
-              disabled={!canPredict}
-              optionResolution={{
-                resolution: questionOption.resolution,
-                type: "group_question",
-              }}
-            />
-          ))}
+          {questionOptions
+            .sort((a, b) => {
+              if (!!subQuestionId) {
+                if (a.id === subQuestionId) {
+                  return -1;
+                } else if (b.id === subQuestionId) {
+                  return 1;
+                }
+              }
+              return 0;
+            })
+            .map((questionOption) => (
+              <ForecastChoiceOption
+                key={questionOption.id}
+                id={questionOption.id}
+                highlightedOptionId={highlightedQuestionId}
+                onOptionClick={setHighlightedQuestionId}
+                forecastValue={questionOption.forecast}
+                defaultSliderValue={50}
+                choiceName={questionOption.name}
+                choiceColor={questionOption.color}
+                communityForecast={questionOption.communityForecast}
+                inputMin={BINARY_MIN_VALUE}
+                inputMax={BINARY_MAX_VALUE}
+                onChange={handleForecastChange}
+                isDirty={questionOption.isDirty}
+                isRowDirty={questionOption.isDirty}
+                menu={questionOption.menu}
+                disabled={!canPredict}
+                optionResolution={{
+                  resolution: questionOption.resolution,
+                  type: "group_question",
+                }}
+              />
+            ))}
         </tbody>
       </table>
       {!!highlightedQuestion?.resolution && (

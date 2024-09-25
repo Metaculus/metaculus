@@ -62,6 +62,7 @@ function generateList(
 type Props = {
   questions: QuestionWithNumericForecasts[];
   timestamps: number[];
+  preselectedQuestionId?: number;
   isClosed?: boolean;
   actualCloseTime: number | null;
   withLegand?: boolean;
@@ -70,6 +71,7 @@ type Props = {
 const ContinuousGroupTimeline: FC<Props> = ({
   questions,
   timestamps,
+  preselectedQuestionId,
   isClosed,
   actualCloseTime,
   withLegand = true,
@@ -82,7 +84,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
   }, []);
 
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
-    generateList(questions)
+    generateList(questions, preselectedQuestionId)
   );
   const userForecasts = user ? generateUserForecasts(questions) : undefined;
   const timestampsCount = timestamps.length;
@@ -90,9 +92,9 @@ const ContinuousGroupTimeline: FC<Props> = ({
   // sync BE driven data with local state
   useEffect(() => {
     if (prevTimestampsCount && prevTimestampsCount !== timestampsCount) {
-      setChoiceItems(generateList(questions));
+      setChoiceItems(generateList(questions, preselectedQuestionId));
     }
-  }, [questions, prevTimestampsCount, timestampsCount]);
+  }, [questions, prevTimestampsCount, timestampsCount, preselectedQuestionId]);
 
   const [cursorTimestamp, tooltipDate, handleCursorChange] =
     useTimestampCursor(timestamps);

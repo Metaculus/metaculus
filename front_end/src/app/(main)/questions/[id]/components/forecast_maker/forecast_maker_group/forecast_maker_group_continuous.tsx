@@ -3,6 +3,7 @@ import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { differenceInMilliseconds } from "date-fns";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -46,6 +47,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const t = useTranslations();
   const locale = useLocale();
   const { user } = useAuth();
+  const params = useSearchParams();
   const { setCurrentModal } = useModal();
 
   const { id: postId, user_permission: permission } = post;
@@ -75,9 +77,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       generateGroupOptions(questions, prevForecastValuesMap, permission)
     );
   }, [permission, prevForecastValuesMap, questions]);
-
+  const subQuestionId = Number(params.get("sub-question"));
   const [activeTableOption, setActiveTableOption] = useState(
-    groupOptions.at(0)?.id ?? null
+    (subQuestionId || groupOptions.at(0)?.id) ?? null
   );
   const activeGroupOption = useMemo(
     () => groupOptions.find((o) => o.id === activeTableOption),
