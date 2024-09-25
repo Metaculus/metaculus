@@ -80,6 +80,7 @@ jobs:
             --clean \
             --no-privileges \
             --no-owner \
+            --if-exists \
             --schema=public \
             test_metaculus.sql
       - name: "Install Node"
