@@ -27,17 +27,19 @@ const QuestionUnresolveButton: FC<Props> = ({
     unresolveQuestionAction
   );
 
-  if (canChangeQuestionResolution(question, permission, false)) {
-    return (
-      <Button
-        variant="secondary"
-        onClick={() => unresolveQuestion(question.id)}
-        className={classNames("w-[95px]", className)}
-      >
-        {isPending ? <LoadingSpinner size="1x" /> : t("unresolve")}
-      </Button>
-    );
+  if (!canChangeQuestionResolution(question, permission, false)) {
+    return null;
   }
+
+  return (
+    <Button
+      variant="secondary"
+      onClick={() => unresolveQuestion(question.id)}
+      className={classNames("w-[95px]", className)}
+    >
+      {isPending ? <LoadingSpinner size="1x" /> : t("unresolve")}
+    </Button>
+  );
 };
 
 export default QuestionUnresolveButton;

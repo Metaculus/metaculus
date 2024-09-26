@@ -23,24 +23,26 @@ const QuestionResolutionButton: FC<Props> = ({
   const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
 
-  if (canChangeQuestionResolution(question, permission)) {
-    return (
-      <>
-        <Button
-          variant="secondary"
-          onClick={() => setIsOpen(true)}
-          className={className}
-        >
-          {t("resolve")}
-        </Button>
-        <QuestionResolutionModal
-          question={question}
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-        />
-      </>
-    );
+  if (!canChangeQuestionResolution(question, permission)) {
+    return null;
   }
+
+  return (
+    <>
+      <Button
+        variant="secondary"
+        onClick={() => setIsOpen(true)}
+        className={className}
+      >
+        {t("resolve")}
+      </Button>
+      <QuestionResolutionModal
+        question={question}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      />
+    </>
+  );
 };
 
 export default QuestionResolutionButton;
