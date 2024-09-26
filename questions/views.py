@@ -125,12 +125,12 @@ def create_binary_forecast_oldapi_view(request, pk: int):
             {"error": "You cannot forecast on this question yet !"},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
-    
+
     if (question.scheduled_close_time < now) or (question.actual_close_time and question.actual_close_time < now):
-            return Response(
-                {"error": f"Question {question.id} is already closed to forecasting !"},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED,
-            )
+        return Response(
+            {"error": f"Question {question.id} is already closed to forecasting !"},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
     serializer = OldForecastWriteSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
