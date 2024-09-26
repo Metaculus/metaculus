@@ -2430,20 +2430,6 @@ export default function FAQ() {
         </div>
 
         <div>
-          <h4
-            id="asymmetric-predictions"
-            className="mb-4 scroll-mt-nav text-xl font-semibold"
-          >
-            Asymmetric Predictions
-          </h4>
-          <p>
-            The probability distributions can be entered asymmetrically by
-            dragging one side of the distribution slider. On desktop computers
-            users can hold the shift key while dragging a slider to force the
-            distribution to be symmetric.
-          </p>
-        </div>
-        <div>
           <h3
             id="community-prediction"
             className="mb-4 scroll-mt-nav text-2xl font-semibold"

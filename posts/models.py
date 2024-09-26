@@ -14,6 +14,7 @@ from django.db.models import (
     Prefetch,
     QuerySet,
     FilteredRelation,
+    Exists,
 )
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -80,6 +81,12 @@ class PostQuerySet(models.QuerySet):
             "conditional__question_no",
             # Group Of Questions
             "group_of_questions__questions",
+        )
+
+    def prefetch_condition_post(self):
+        return self.prefetch_related(
+            "conditional__condition__related_posts__post",
+            "conditional__condition_child__related_posts__post",
         )
 
     def prefetch_questions_scores(self):
@@ -293,7 +300,11 @@ class PostQuerySet(models.QuerySet):
 
         return self.filter(
             Q(default_project__in=p)
-            | Q(pk__in=Post.objects.filter(Q(projects__in=p)).distinct())
+            | Exists(
+                Post.projects.through.objects.filter(
+                    post_id=OuterRef("pk"), project__in=p
+                )
+            )
         )
 
     def filter_questions(self):

@@ -62,19 +62,19 @@ def get_posts_feed(
 
     # Filters
     if topic:
-        qs = qs.filter(projects=topic)
+        qs = qs.filter_projects(topic)
 
     if tags:
-        qs = qs.filter(projects__in=tags)
+        qs = qs.filter_projects(tags)
 
     if categories:
-        qs = qs.filter(projects__in=categories)
+        qs = qs.filter_projects(categories)
 
     if news_type:
-        qs = qs.filter(projects=news_type)
+        qs = qs.filter_projects(news_type)
 
     if public_figure:
-        qs = qs.filter(projects=public_figure)
+        qs = qs.filter_projects(public_figure)
 
     if tournaments:
         qs = qs.filter_projects(tournaments)

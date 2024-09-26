@@ -437,6 +437,7 @@ def serialize_post_many(
         qs.annotate_user_permission(user=current_user)
         .prefetch_projects()
         .prefetch_questions()
+        .prefetch_condition_post()
         .select_related("author", "notebook")
         .prefetch_related("coauthors")
     )
