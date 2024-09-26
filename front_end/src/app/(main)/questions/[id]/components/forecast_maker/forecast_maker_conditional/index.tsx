@@ -68,7 +68,7 @@ const ForecastMakerConditional: FC<Props> = ({
           prevNoForecast={question_no.my_forecasts?.latest?.forecast_values[1]}
           canPredict={
             canPredict &&
-            conditionClosedOrResolved &&
+            !conditionClosedOrResolved &&
             conditional.condition_child.open_time !== undefined &&
             new Date(conditional.condition_child.open_time) <= new Date()
           }
@@ -86,7 +86,7 @@ const ForecastMakerConditional: FC<Props> = ({
           prevNoForecast={question_no.my_forecasts?.latest?.slider_values}
           canPredict={
             canPredict &&
-            conditionClosedOrResolved &&
+            !conditionClosedOrResolved &&
             conditional.condition_child.open_time !== undefined &&
             new Date(conditional.condition_child.open_time) <= new Date()
           }
