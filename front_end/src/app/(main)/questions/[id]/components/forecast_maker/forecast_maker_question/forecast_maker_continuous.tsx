@@ -5,8 +5,10 @@ import React, { FC, use, useMemo, useState } from "react";
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ProjectPermissions } from "@/types/post";
 import {
   PredictionInputMessage,
@@ -21,8 +23,7 @@ import { computeQuartilesFromCDF } from "@/utils/math";
 import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
 import QuestionResolutionButton from "../resolution";
-import LoadingIndicator from "@/components/ui/loading_indicator";
-import { useServerAction } from "@/hooks/use_server_action";
+import QuestionUnresolveButton from "../resolution/unresolve_button";
 
 type Props = {
   postId: number;
@@ -188,14 +189,16 @@ const ForecastMakerContinuous: FC<Props> = ({
         isDirty={isDirty}
         hasUserForecast={!!prevForecastValue.forecast}
       />
-      {canResolve && (
-        <div className="flex flex-col items-center justify-center">
+
+      <div className="flex flex-col items-center justify-center">
+        <QuestionUnresolveButton question={question} permission={permission} />
+        {canResolve && (
           <QuestionResolutionButton
             question={question}
             permission={permission}
           />
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 };

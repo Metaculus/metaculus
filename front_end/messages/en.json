@@ -13,6 +13,7 @@
   "predictionUnapprovedMessage": "This question must be approved by moderators before you can begin predicting",
   "predictionClosedMessage": "This question is closed for predictions, and is waiting to be resolved",
   "resolve": "Resolve",
+  "unresolve": "Unresolve",
   "preview": "Preview",
   "updatePreviewButton": "Update Preview",
   "postButton": "Post",

@@ -20,6 +20,7 @@ import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import QuestionResolutionButton from "../resolution";
+import QuestionUnresolveButton from "../resolution/unresolve_button";
 
 type Props = {
   postId: number;
@@ -121,6 +122,9 @@ const ForecastMakerBinary: FC<Props> = ({
             </div>
           </>
         )}
+
+        <QuestionUnresolveButton question={question} permission={permission} />
+
         {canResolve && (
           <QuestionResolutionButton
             question={question}

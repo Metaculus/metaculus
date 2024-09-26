@@ -5,7 +5,7 @@ import { FC, useState } from "react";
 import Button from "@/components/ui/button";
 import { ProjectPermissions } from "@/types/post";
 import { Question } from "@/types/question";
-import { canResolveQuestion } from "@/utils/questions";
+import { canChangeQuestionResolution } from "@/utils/questions";
 
 import QuestionResolutionModal from "./resolution_modal";
 
@@ -23,7 +23,7 @@ const QuestionResolutionButton: FC<Props> = ({
   const t = useTranslations();
   const [isOpen, setIsOpen] = useState(false);
 
-  if (canResolveQuestion(question, permission)) {
+  if (canChangeQuestionResolution(question, permission)) {
     return (
       <>
         <Button
