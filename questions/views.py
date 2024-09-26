@@ -82,7 +82,7 @@ def bulk_create_forecasts_api_view(request):
 
         if not question:
             raise ValidationError(f"Wrong question id {forecast["question"]}")
-        
+
         forecast["question"] = question
 
         # Check permissions
