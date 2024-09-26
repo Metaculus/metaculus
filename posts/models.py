@@ -14,6 +14,7 @@ from django.db.models import (
     Prefetch,
     QuerySet,
     FilteredRelation,
+    Exists,
 )
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -299,7 +300,11 @@ class PostQuerySet(models.QuerySet):
 
         return self.filter(
             Q(default_project__in=p)
-            | Q(pk__in=Post.objects.filter(Q(projects__in=p)).distinct())
+            | Exists(
+                Post.projects.through.objects.filter(
+                    post_id=OuterRef("pk"), project__in=p
+                )
+            )
         )
 
     def filter_questions(self):
