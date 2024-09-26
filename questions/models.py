@@ -252,6 +252,11 @@ class Forecast(models.Model):
 
     slider_values = models.JSONField(null=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=["author", "question", "start_time"]),
+        ]
+
     def __repr__(self):
         pv = self.get_prediction_values()
         if len(pv) > 64:
@@ -310,7 +315,8 @@ class AggregateForecast(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=["question", "method", "-start_time"]),
+            models.Index(fields=["question", "start_time"]),
+            models.Index(fields=["method", "question", "-start_time"]),
         ]
 
     def __repr__(self):
