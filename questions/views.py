@@ -110,8 +110,9 @@ def bulk_create_forecasts_api_view(request):
 
 @api_view(["POST"])
 def create_binary_forecast_oldapi_view(request, pk: int):
+    now = timezone.now()
     post = get_object_or_404(Post.objects.all(), pk=pk)
-    question = post.question
+    question: Question = post.question
     if question is None:
         raise Http404(f"Question with id {pk} not found.")
 
@@ -119,9 +120,15 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_forecast(permission, raise_exception=True)
 
-    if not question.open_time or question.open_time > timezone.now():
+    if not question.open_time or question.open_time > now:
         return Response(
             {"error": "You cannot forecast on this question yet !"},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    if (question.scheduled_close_time < now) or (question.actual_close_time and question.actual_close_time < now):
+        return Response(
+            {"error": f"Question {question.id} is already closed to forecasting !"},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
