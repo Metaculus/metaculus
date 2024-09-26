@@ -682,4 +682,9 @@ def get_aggregated_forecasts_for_questions(
 
     qs = AggregateForecast.objects.filter(question__in=questions).order_by("start_time")
 
-    return generate_map_from_list(qs, lambda x: questions_map[x.question_id])
+    forecasts_map = {q: [] for q in questions}
+
+    for forecast in qs:
+        forecasts_map[questions_map[forecast.question_id]].append(forecast)
+
+    return forecasts_map

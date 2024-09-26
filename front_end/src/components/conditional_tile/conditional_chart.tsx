@@ -17,22 +17,14 @@ import {
 import { cdfToPmf } from "@/utils/math";
 
 type Props = {
-  parentResolved: boolean;
   question: QuestionWithForecasts;
-  parentStatus: PostStatus;
   disabled: boolean;
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
 };
 
-const ConditionalChart: FC<Props> = ({
-  question,
-  parentResolved,
-  parentStatus,
-  disabled,
-  chartTheme,
-}) => {
-  const resolved = parentResolved && question.resolution !== null;
+const ConditionalChart: FC<Props> = ({ question, disabled, chartTheme }) => {
+  const resolved = question.resolution !== null;
   const aggregate = question.aggregations.recency_weighted;
   const userForecasts = question.my_forecasts;
 
@@ -68,7 +60,7 @@ const ConditionalChart: FC<Props> = ({
           {resolved && (
             <PredictionChip
               question={question}
-              status={parentStatus}
+              status={PostStatus.RESOLVED}
               prediction={pctCandidate}
               size="compact"
             />
@@ -135,7 +127,7 @@ const ConditionalChart: FC<Props> = ({
           {resolved && (
             <PredictionChip
               question={question}
-              status={parentStatus}
+              status={PostStatus.RESOLVED}
               prediction={prediction}
               size="compact"
             />
