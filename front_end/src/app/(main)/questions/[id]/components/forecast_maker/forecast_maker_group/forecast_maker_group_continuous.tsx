@@ -276,7 +276,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               onChange={(forecast, weight) =>
                 handleChange(option.id, forecast, weight)
               }
-              disabled={!canPredict}
+              disabled={!canPredict || !!option.resolution}
             />
           </div>
         );
