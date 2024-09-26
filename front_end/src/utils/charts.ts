@@ -29,7 +29,7 @@ import {
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
-import { extractQuestionGroupName } from "@/utils/questions";
+import { extractQuestionGroupName, formatResolution } from "@/utils/questions";
 
 export function getNumericChartTypeFromQuestion(
   type: QuestionType
@@ -414,9 +414,10 @@ export function generateChoiceItemsFromBinaryGroup(
     withMinMax?: boolean;
     activeCount?: number;
     preselectedQuestionId?: number;
+    locale?: string;
   }
 ): ChoiceItem[] {
-  const { activeCount, preselectedQuestionId } = config ?? {};
+  const { activeCount, preselectedQuestionId, locale } = config ?? {};
 
   const latests: (AggregateForecast | undefined)[] = questions.map(
     (question) => question.aggregations.recency_weighted.latest
@@ -466,6 +467,9 @@ export function generateChoiceItemsFromBinaryGroup(
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
       scaling: question.scaling,
+      displayedResolution: !!question.resolution
+        ? formatResolution(question.resolution, question.type, locale ?? "en")
+        : null,
     };
   });
 }
