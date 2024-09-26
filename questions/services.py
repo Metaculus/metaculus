@@ -474,6 +474,23 @@ def unresolve_question(question: Question):
                 close_question(
                     conditional.question_no, actual_close_time=child.actual_close_time
                 )
+        if question == child:
+            if condition.resolution is None:
+                # unresolve both branches (handles annulment / ambiguity automatically)
+                unresolve_question(conditional.question_yes)
+                unresolve_question(conditional.question_no)
+            if condition.resolution == "yes":
+                unresolve_question(conditional.question_yes)
+                close_question(
+                    conditional.question_yes,
+                    actual_close_time=condition.actual_close_time,
+                )
+            if condition.resolution == "no":
+                unresolve_question(conditional.question_no)
+                close_question(
+                    conditional.question_no,
+                    actual_close_time=condition.actual_close_time,
+                )
 
     post = question.get_post()
     post.update_pseudo_materialized_fields()
