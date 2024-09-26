@@ -311,10 +311,6 @@ def resolve_question(
     resolution: str,
     actual_resolve_time: datetime,
 ):
-    print(question.title)
-    print(resolution)
-    print(actual_resolve_time)
-    print()
     question.resolution = resolution
     question.resolution_set_time = timezone.now()
     question.actual_resolve_time = actual_resolve_time
@@ -330,10 +326,8 @@ def resolve_question(
         condition = conditional.condition
         child = conditional.condition_child
         if question == condition:
-            # TODO: when parent resolves, one should annul and the other should close
             # handle annulment
             if question.resolution in [
-                "yes",
                 ResolutionType.ANNULLED,
                 ResolutionType.AMBIGUOUS,
             ]:
@@ -342,30 +336,46 @@ def resolve_question(
                     ResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
-            if question.resolution in [
-                "no",
-                ResolutionType.ANNULLED,
-                ResolutionType.AMBIGUOUS,
-            ]:
                 resolve_question(
                     conditional.question_yes,
                     ResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
+            if child.resolution is None:
+                if question.resolution == "yes":
+                    resolve_question(
+                        conditional.question_no,
+                        ResolutionType.ANNULLED,
+                        actual_resolve_time,
+                    )
+                    close_question(
+                        conditional.question_yes,
+                        actual_close_time=question.actual_close_time,
+                    )
+                if question.resolution == "no":
+                    resolve_question(
+                        conditional.question_yes,
+                        ResolutionType.ANNULLED,
+                        actual_resolve_time,
+                    )
+                    close_question(
+                        conditional.question_no,
+                        actual_close_time=question.actual_close_time,
+                    )
             # if the child is already resolved,
             # we resolve the active branch
-            if child.resolution:
+            if child.resolution is not None:
                 if question.resolution == "yes":
                     resolve_question(
                         conditional.question_yes,
                         child.resolution,
-                        child.actual_close_time,
+                        conditional.question_yes.actual_close_time,
                     )
                 if question.resolution == "no":
                     resolve_question(
                         conditional.question_no,
                         child.resolution,
-                        child.actual_close_time,
+                        conditional.question_no.actual_close_time,
                     )
         else:  # question == child
             # handle annulment / ambiguity
@@ -383,7 +393,7 @@ def resolve_question(
                     ResolutionType.ANNULLED,
                     actual_resolve_time,
                 )
-            else:
+            else:  # child is successfully resolved
                 if condition.resolution is None:
                     # condition is not resolved
                     # both branches need to close
@@ -401,13 +411,13 @@ def resolve_question(
                         resolve_question(
                             conditional.question_yes,
                             question.resolution,
-                            question.actual_close_time,
+                            conditional.question_yes.actual_close_time,
                         )
                     if condition.resolution == "no":
                         resolve_question(
                             conditional.question_no,
                             question.resolution,
-                            question.actual_close_time,
+                            conditional.question_no.actual_close_time,
                         )
 
     post = question.get_post()
@@ -463,6 +473,23 @@ def unresolve_question(question: Question):
                 )
                 close_question(
                     conditional.question_no, actual_close_time=child.actual_close_time
+                )
+        if question == child:
+            if condition.resolution is None:
+                # unresolve both branches (handles annulment / ambiguity automatically)
+                unresolve_question(conditional.question_yes)
+                unresolve_question(conditional.question_no)
+            if condition.resolution == "yes":
+                unresolve_question(conditional.question_yes)
+                close_question(
+                    conditional.question_yes,
+                    actual_close_time=condition.actual_close_time,
+                )
+            if condition.resolution == "no":
+                unresolve_question(conditional.question_no)
+                close_question(
+                    conditional.question_no,
+                    actual_close_time=condition.actual_close_time,
                 )
 
     post = question.get_post()
