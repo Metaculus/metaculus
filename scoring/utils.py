@@ -32,7 +32,9 @@ def score_question(
     score_types: list[str] | None = None,
 ):
     resolution_bucket = string_location_to_bucket_index(resolution, question)
-    spot_forecast_time = spot_forecast_time or question.cp_reveal_time.timestamp()
+    spot_forecast_time = spot_forecast_time or (
+        question.cp_reveal_time.timestamp() if question.cp_reveal_time else None
+    )
     score_types = score_types or [c[0] for c in Score.ScoreTypes.choices]
     seen = set()
     previous_scores = list(

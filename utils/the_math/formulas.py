@@ -150,7 +150,7 @@ def bucket_index_to_unscaled_location(bucket_index: int, question: "Question") -
 def string_location_to_bucket_index(
     string_location: str, question: "Question"
 ) -> int | None:
-    if string_location in ["ambiguous", "annulled"]:
+    if string_location in [None, "ambiguous", "annulled"]:
         return None
     scaled_location = string_location_to_scaled_location(string_location, question)
     unscaled_location = scaled_location_to_unscaled_location(scaled_location, question)

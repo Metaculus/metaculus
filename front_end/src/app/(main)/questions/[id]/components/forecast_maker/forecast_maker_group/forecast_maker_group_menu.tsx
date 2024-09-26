@@ -2,10 +2,13 @@
 import { useTranslations } from "next-intl";
 import React, { FC, ReactNode, useState } from "react";
 
+import { unresolveQuestion as unresolveQuestionAction } from "@/app/(main)/questions/actions";
 import DropdownMenu from "@/components/ui/dropdown_menu";
+import LoadingSpinner from "@/components/ui/loading_spiner";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ProjectPermissions } from "@/types/post";
 import { Question } from "@/types/question";
-import { canResolveQuestion } from "@/utils/questions";
+import { canChangeQuestionResolution } from "@/utils/questions";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
 import QuestionResolutionModal from "../resolution/resolution_modal";
@@ -23,6 +26,9 @@ const ForecastMakerGroupControls: FC<Props> = ({
 }) => {
   const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
   const t = useTranslations();
+  const [unresolveQuestion, isPending] = useServerAction(
+    unresolveQuestionAction
+  );
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -36,12 +42,21 @@ const ForecastMakerGroupControls: FC<Props> = ({
     <>
       <DropdownMenu
         items={[
-          ...(canResolveQuestion(question, permission)
+          ...(canChangeQuestionResolution(question, permission)
             ? [
                 {
                   id: "resolve",
                   name: t("resolve"),
                   onClick: () => setIsResolutionModalOpen(true),
+                },
+              ]
+            : []),
+          ...(canChangeQuestionResolution(question, permission, false)
+            ? [
+                {
+                  id: "unresolve",
+                  name: t("unresolve"),
+                  onClick: () => unresolveQuestion(question.id),
                 },
               ]
             : []),
@@ -56,7 +71,11 @@ const ForecastMakerGroupControls: FC<Props> = ({
           },
         ]}
       >
-        {button}
+        {isPending ? (
+          <LoadingSpinner size="lg" className="h-[32px] w-[32px]" />
+        ) : (
+          button
+        )}
       </DropdownMenu>
 
       <QuestionResolutionModal
