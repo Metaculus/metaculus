@@ -4,12 +4,12 @@ import classNames from "classnames";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
-import CommentStatus from "./comment_status";
-import PostVoter from "./post_voter";
-
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
 import { extractPostResolution } from "@/utils/questions";
+
+import CommentStatus from "./comment_status";
+import PostVoter from "./post_voter";
 
 type BorderVariant = "regular" | "highlighted";
 type BorderColor = "blue" | "purple";
@@ -19,6 +19,12 @@ type Props = {
   hideTitle?: boolean;
   borderVariant?: BorderVariant;
   borderColor?: BorderColor;
+};
+
+const getLink = (post: Post) => {
+  if (!!post.notebook) return `/notebooks/${post.id}`;
+
+  return `/questions/${post.id}`;
 };
 
 const BasicPostCard: FC<PropsWithChildren<Props>> = ({
@@ -47,7 +53,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         }[borderColor]
       )}
     >
-      <Link href={`/questions/${id}`} className="block p-4 no-underline">
+      <Link href={getLink(post)} className="block p-4 no-underline">
         {!hideTitle && (
           <h4 className="relative mb-3 mt-0 line-clamp-2 text-base font-semibold text-gray-900 dark:text-gray-900-dark">
             {title}
@@ -55,7 +61,6 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         )}
         {children}
       </Link>
-
       <div className="flex items-center justify-between rounded-ee border-t border-blue-400 bg-blue-100 px-2 py-0.5 font-medium dark:border-blue-400-dark dark:bg-blue-100-dark max-lg:flex-1">
         <div className="flex items-center gap-3">
           <PostVoter className="md:min-w-20" post={post} />
