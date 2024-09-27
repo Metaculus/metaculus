@@ -19,6 +19,7 @@ from questions.serializers import (
 )
 from questions.services import (
     resolve_question,
+    unresolve_question,
     create_forecast,
     create_forecast_bulk,
 )
@@ -42,8 +43,22 @@ def resolve_api_view(request, pk: int):
 
 
 @api_view(["POST"])
+def unresolve_api_view(request, pk: int):
+    question = get_object_or_404(Question.objects.all(), pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(question.get_post(), user=request.user)
+    ObjectPermission.can_resolve(permission, raise_exception=True)
+
+    unresolve_question(question)
+
+    return Response({"post_id": question.get_post().pk})
+
+
+@api_view(["POST"])
 @transaction.non_atomic_requests
 def bulk_create_forecasts_api_view(request):
+    now = timezone.now()
     serializer = ForecastWriteSerializer(data=request.data, many=True)
     serializer.is_valid()
 
@@ -59,14 +74,34 @@ def bulk_create_forecasts_api_view(request):
     questions = Question.objects.filter(
         pk__in=[f["question"] for f in validated_data]
     ).prefetch_related_post()
-    questions_map = {q.pk: q for q in questions}
+    questions_map: dict[int, Question] = {q.pk: q for q in questions}
 
     # Replacing prefetched optimized questions
     for forecast in validated_data:
-        forecast["question"] = questions_map.get(forecast["question"])
+        question = questions_map.get(forecast["question"])
 
-        if not forecast["question"]:
-            raise ValidationError("Wrong question id")
+        if not question:
+            raise ValidationError(f"Wrong question id {forecast["question"]}")
+
+        forecast["question"] = question
+
+        # Check permissions
+        permission = get_post_permission_for_user(
+            question.get_post(), user=request.user
+        )
+        ObjectPermission.can_forecast(permission, raise_exception=True)
+
+        if not question.open_time or question.open_time > now:
+            return Response(
+                {"error": f"Question {question.id} is not open for forecasting yet !"},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            )
+
+        if (question.scheduled_close_time < now) or (question.actual_close_time and question.actual_close_time < now):
+            return Response(
+                {"error": f"Question {question.id} is already closed to forecasting !"},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED,
+            )
 
     create_forecast_bulk(user=request.user, forecasts=validated_data)
 
@@ -75,8 +110,9 @@ def bulk_create_forecasts_api_view(request):
 
 @api_view(["POST"])
 def create_binary_forecast_oldapi_view(request, pk: int):
+    now = timezone.now()
     post = get_object_or_404(Post.objects.all(), pk=pk)
-    question = post.question
+    question: Question = post.question
     if question is None:
         raise Http404(f"Question with id {pk} not found.")
 
@@ -84,9 +120,15 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_forecast(permission, raise_exception=True)
 
-    if not question.open_time or question.open_time > timezone.now():
+    if not question.open_time or question.open_time > now:
         return Response(
             {"error": "You cannot forecast on this question yet !"},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    if (question.scheduled_close_time < now) or (question.actual_close_time and question.actual_close_time < now):
+        return Response(
+            {"error": f"Question {question.id} is already closed to forecasting !"},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 

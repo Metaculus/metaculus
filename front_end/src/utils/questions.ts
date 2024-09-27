@@ -71,12 +71,15 @@ export function estimateReadingTime(markdown: string) {
   return Math.ceil(words / wordsPerMinute);
 }
 
-export function canResolveQuestion(
+export function canChangeQuestionResolution(
   question: Question,
-  permission?: ProjectPermissions
+  permission?: ProjectPermissions,
+  resolve = true
 ) {
   return (
-    !question.resolution &&
+    (resolve
+      ? !isResolved(question.resolution)
+      : isResolved(question.resolution)) &&
     permission &&
     [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(permission)
   );

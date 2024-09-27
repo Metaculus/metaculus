@@ -31,7 +31,13 @@ const ForecastMakerConditional: FC<Props> = ({
   if (question_yes.type !== question_no.type) {
     return null;
   }
-
+  const parentSuccessfullyResolved =
+    condition.resolution === "yes" || condition.resolution === "no";
+  const parentIsClosed = condition.actual_close_time
+    ? new Date(condition.actual_close_time).getTime() < Date.now()
+    : false;
+  const conditionClosedOrResolved =
+    parentSuccessfullyResolved || parentIsClosed;
   return (
     <ForecastMakerContainer
       resolutionCriteria={[
@@ -62,6 +68,7 @@ const ForecastMakerConditional: FC<Props> = ({
           prevNoForecast={question_no.my_forecasts?.latest?.forecast_values[1]}
           canPredict={
             canPredict &&
+            !conditionClosedOrResolved &&
             conditional.condition_child.open_time !== undefined &&
             new Date(conditional.condition_child.open_time) <= new Date()
           }
@@ -79,6 +86,7 @@ const ForecastMakerConditional: FC<Props> = ({
           prevNoForecast={question_no.my_forecasts?.latest?.slider_values}
           canPredict={
             canPredict &&
+            !conditionClosedOrResolved &&
             conditional.condition_child.open_time !== undefined &&
             new Date(conditional.condition_child.open_time) <= new Date()
           }

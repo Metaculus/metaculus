@@ -36,6 +36,10 @@ class QuestionsApi {
       actual_resolve_time: actual_resolve_time,
     });
   }
+
+  static async unresolve(id: number) {
+    return post<{ post_id: number }>(`/questions/${id}/unresolve/`, {});
+  }
 }
 
 export default QuestionsApi;

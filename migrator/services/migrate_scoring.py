@@ -135,10 +135,5 @@ def score_questions(qty: int | None = None, start_id: int = 0):
 
 
 @dramatiq.actor
-def score_questions_async():
-    score_question()
-
-
-@dramatiq.actor
 def populate_project_leaderboards_async():
     populate_project_leaderboards()

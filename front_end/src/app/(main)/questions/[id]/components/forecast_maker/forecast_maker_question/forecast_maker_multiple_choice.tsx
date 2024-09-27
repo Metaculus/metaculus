@@ -8,9 +8,11 @@ import React, { FC, useCallback, useMemo, useState } from "react";
 import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
 import {
@@ -28,8 +30,7 @@ import {
 } from "../binary_slider";
 import ForecastChoiceOption from "../forecast_choice_option";
 import QuestionResolutionButton from "../resolution";
-import LoadingIndicator from "@/components/ui/loading_indicator";
-import { useServerAction } from "@/hooks/use_server_action";
+import QuestionUnresolveButton from "../resolution/unresolve_button";
 
 type ChoiceOption = {
   name: string;
@@ -288,7 +289,14 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
       </div>
       <div className="h-[32px] w-full">{isPending && <LoadingIndicator />}</div>
       <div className="flex flex-col items-center justify-center">
-        <QuestionResolutionButton question={question} permission={permission} />
+        <QuestionUnresolveButton question={question} permission={permission} />
+
+        {canResolve && (
+          <QuestionResolutionButton
+            question={question}
+            permission={permission}
+          />
+        )}
       </div>
     </>
   );
