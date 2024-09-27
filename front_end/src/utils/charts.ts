@@ -7,7 +7,7 @@ import {
   subDays,
   subMonths,
 } from "date-fns";
-import { findLastIndex, uniq } from "lodash";
+import { findLastIndex, isNil, uniq } from "lodash";
 import { Tuple } from "victory";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
@@ -29,7 +29,13 @@ import {
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
-import { extractQuestionGroupName } from "@/utils/questions";
+import { extractQuestionGroupName, formatResolution } from "@/utils/questions";
+
+import {
+  getForecastDateDisplayValue,
+  getForecastNumericDisplayValue,
+  getForecastPctDisplayValue,
+} from "./forecasts";
 
 export function getNumericChartTypeFromQuestion(
   type: QuestionType
@@ -274,6 +280,33 @@ export function getDisplayValue(
   return displayValue(scaledValue, qType as QuestionType);
 }
 
+export function getChoiceOptionValue(
+  value: number,
+  questionType?: QuestionType,
+  scaling?: Scaling
+) {
+  if (isNil(value)) {
+    return `?`;
+  }
+  const rMin = scaling?.range_min ?? 0;
+  const rMax = scaling?.range_max ?? 1;
+  const zPoint = scaling?.zero_point ?? null;
+  const scaledValue = scaleInternalLocation(value, {
+    range_min: rMin ?? 0,
+    range_max: rMax ?? 1,
+    zero_point: zPoint,
+  });
+  switch (questionType) {
+    case QuestionType.Numeric:
+      return getForecastNumericDisplayValue(scaledValue);
+    case QuestionType.Date:
+      return getForecastDateDisplayValue(scaledValue);
+    case QuestionType.Binary:
+    default:
+      return getForecastPctDisplayValue(value);
+  }
+}
+
 export function getDisplayUserValue(
   myForecasts: UserForecastHistory,
   value: number | undefined,
@@ -414,9 +447,10 @@ export function generateChoiceItemsFromBinaryGroup(
     withMinMax?: boolean;
     activeCount?: number;
     preselectedQuestionId?: number;
+    locale?: string;
   }
 ): ChoiceItem[] {
-  const { activeCount, preselectedQuestionId } = config ?? {};
+  const { activeCount, preselectedQuestionId, locale } = config ?? {};
 
   const latests: (AggregateForecast | undefined)[] = questions.map(
     (question) => question.aggregations.recency_weighted.latest
@@ -466,6 +500,9 @@ export function generateChoiceItemsFromBinaryGroup(
       rangeMin: question.scaling.range_min ?? 0,
       rangeMax: question.scaling.range_min ?? 1,
       scaling: question.scaling,
+      displayedResolution: !!question.resolution
+        ? formatResolution(question.resolution, question.type, locale ?? "en")
+        : null,
     };
   });
 }
