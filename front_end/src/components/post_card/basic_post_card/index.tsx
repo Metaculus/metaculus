@@ -6,6 +6,7 @@ import { FC, PropsWithChildren } from "react";
 
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
+import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions";
 
 import CommentStatus from "./comment_status";
@@ -19,12 +20,6 @@ type Props = {
   hideTitle?: boolean;
   borderVariant?: BorderVariant;
   borderColor?: BorderColor;
-};
-
-const getLink = (post: Post) => {
-  if (!!post.notebook) return `/notebooks/${post.id}`;
-
-  return `/questions/${post.id}`;
 };
 
 const BasicPostCard: FC<PropsWithChildren<Props>> = ({
@@ -53,7 +48,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         }[borderColor]
       )}
     >
-      <Link href={getLink(post)} className="block p-4 no-underline">
+      <Link href={getPostLink(post)} className="block p-4 no-underline">
         {!hideTitle && (
           <h4 className="relative mb-3 mt-0 line-clamp-2 text-base font-semibold text-gray-900 dark:text-gray-900-dark">
             {title}

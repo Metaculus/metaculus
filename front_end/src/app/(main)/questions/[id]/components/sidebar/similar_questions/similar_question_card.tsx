@@ -4,6 +4,7 @@ import { FC } from "react";
 import PostStatus from "@/components/post_status";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import { getPostLink } from "@/utils/navigation";
 import {
   extractPostResolution,
   getPredictionQuestion,
@@ -19,7 +20,7 @@ const SimilarQuestionCard: FC<Props> = ({ post }) => {
   const resolutionData = extractPostResolution(post);
 
   return (
-    <Link href={`/questions/${post.id}`} className="w-full no-underline">
+    <Link href={getPostLink(post)} className="w-full no-underline">
       <div className="gap-2 rounded border border-blue-500 px-4 py-3 dark:border-blue-600">
         <div className="flex flex-col gap-1.5">
           <h4 className="my-0 text-gray-800 dark:text-gray-800-dark">
