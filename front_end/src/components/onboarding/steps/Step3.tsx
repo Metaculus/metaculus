@@ -71,12 +71,12 @@ const Step3: React.FC<Step3Props> = ({
             disabled={false}
             helperDisplay={true}
           />
+          <div className="mt-6 flex justify-center">
+            <button onClick={handleSubmit} className={onboardingStyles.button}>
+              Predict
+            </button>
+          </div>
         </div>
-      </div>
-      <div className="mt-6 flex justify-center">
-        <button onClick={handleSubmit} className={onboardingStyles.button}>
-          Predict
-        </button>
       </div>
     </div>
   );

@@ -103,13 +103,17 @@ const Step4: React.FC<Step4Props> = ({
               onBecomeDirty={() => {}}
               disabled={false}
             />
+
+            <div className="mt-0 flex justify-center">
+              <button
+                onClick={handleSubmit}
+                className={onboardingStyles.button}
+              >
+                Predict
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="mt-6 flex justify-center">
-        <button onClick={handleSubmit} className={onboardingStyles.button}>
-          Predict
-        </button>
       </div>
     </div>
   );

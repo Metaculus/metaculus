@@ -94,11 +94,11 @@ const Step2: React.FC<Step2Props> = ({
   const getActiveButtonText = () => {
     switch (activeButton) {
       case "less":
-        return "You can adjust your prediction with the above slider if you like. Click 'Predict' when you're ready to move on.";
+        return "Excellent. Below you can see your prediction quantified next to the community’s. Does that look about right? If not, you can grab and drag the slider.";
       case "about":
-        return "You can adjust your prediction with the above slider if you like. Click 'Predict' when you're ready to move on.";
+        return "Excellent. Below you can see your prediction quantified next to the community’s. Does that look about right? If not, you can grab and drag the slider.";
       case "more":
-        return "You can adjust your prediction with the above slider if you like. Click 'Predict' when you're ready to move on.";
+        return "Excellent. Below you can see your prediction quantified next to the community’s. Does that look about right? If not, you can grab and drag the slider.";
       default:
         return "";
     }
@@ -149,6 +149,15 @@ const Step2: React.FC<Step2Props> = ({
       {prediction !== null && (
         <div className="mt-4">
           <div className="bg-blue-200 py-4 dark:bg-blue-800">
+            {activeButton && (
+              <div className="flex flex-col items-center">
+                <p
+                  className={`${onboardingStyles.paragraph} mb-5 text-balance text-center font-semibold`}
+                >
+                  {getActiveButtonText()}
+                </p>
+              </div>
+            )}
             <BinarySlider
               forecast={prediction}
               onChange={(value) => {
@@ -161,21 +170,14 @@ const Step2: React.FC<Step2Props> = ({
               disabled={false}
               helperDisplay={true}
             />
-            {activeButton && (
-              <div className="flex flex-col items-center">
-                <p
-                  className={`${onboardingStyles.paragraph} mb-0 text-balance py-4 text-center font-semibold`}
-                >
-                  {getActiveButtonText()}
-                </p>
-                <button
-                  onClick={handleSubmit}
-                  className={onboardingStyles.button}
-                >
-                  Predict
-                </button>
-              </div>
-            )}
+            <div className="mt-4 flex flex-col items-center">
+              <button
+                onClick={handleSubmit}
+                className={onboardingStyles.button}
+              >
+                Predict
+              </button>
+            </div>
           </div>
         </div>
       )}
