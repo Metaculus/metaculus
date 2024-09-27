@@ -2,7 +2,11 @@ import logging
 import time
 
 from misc.models import ITNArticle
-from misc.services.itn import update_article_embedding_vector, sync_itn_news, clear_old_itn_news
+from misc.services.itn import (
+    update_article_embedding_vector,
+    sync_itn_news,
+    clear_old_itn_news,
+)
 from utils.management import parallel_command_executor
 
 logger = logging.getLogger(__name__)
