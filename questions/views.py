@@ -11,6 +11,7 @@ from rest_framework.serializers import DateTimeField
 
 from posts.models import Post
 from posts.services.common import get_post_permission_for_user
+from posts.utils import get_post_slug
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers import (
@@ -169,4 +170,6 @@ def legacy_question_api_view(request, pk: int):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
-    return Response({"question_id": pk, "post_id": post.pk})
+    return Response(
+        {"question_id": pk, "post_id": post.pk, "post_slug": get_post_slug(post)}
+    )
