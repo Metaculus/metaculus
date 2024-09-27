@@ -6,7 +6,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 
 export default function ElectionsEmbed() {
   return (
-    <main className="mx-auto w-full max-w-[93rem] flex-1 items-stretch px-6 text-blue-700 dark:text-blue-700-dark sm:px-8 md:mt-16 md:px-12 lg:mt-20 lg:px-16">
+    <main className="mx-auto w-full max-w-[93rem] flex-1 items-stretch px-6 text-blue-700 dark:text-blue-700-dark sm:px-8 md:my-16 md:px-12 lg:my-20 lg:px-16">
       <Link href={"/experiments/elections"} className="no-underline">
         <div className="mx-auto w-full max-w-[68rem]">
           <div className="flex items-center justify-between gap-6 text-left">

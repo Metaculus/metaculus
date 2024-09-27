@@ -28,14 +28,14 @@ const DisclosureSection = () => {
         <p>
           If you&apos;d prefer to have a static image rather than an embed that
           users can interact with, navigate to the URL of the embed, e.g.{" "}
-          <a href="/questions/embed/17096/">
-            www.metaculus.com/questions/embed/17096/
+          <a href="/questions/question_embed/17096/">
+            www.metaculus.com/questions/question_embed/17096/
           </a>
           . Then save the image, generally via right click + &ldquo;save image
           as&rdquo;, and upload it to your preferred site.
         </p>
         <iframe
-          src="/questions/embed/13531/?theme=light"
+          src="/questions/question_embed/13531/?theme=light"
           style={{ maxWidth: 550, height: 430, width: "100%" }}
         />
       </StyledDisclosure>

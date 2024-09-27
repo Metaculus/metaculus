@@ -1,5 +1,6 @@
-import PageWrapper from "../../components/pagewrapper";
 import MathJaxContent from "@/components/math_jax_content";
+
+import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
   title: "Markdown Syntax | Metaculus",
@@ -361,12 +362,12 @@ def hello_world():
       </ul>
       <p>Note that this means you can embed Metaculus questions:</p>
       <pre>
-        {`<iframe src="https://www.metaculus.com/questions/embed/8/" height="320" width="550"></iframe>`}
+        {`<iframe src="https://www.metaculus.com/questions/question_embed/8/" height="320" width="550"></iframe>`}
       </pre>
       <p>will render as:</p>
       <div className="w-full overflow-x-auto">
         <iframe
-          src="https://www.metaculus.com/questions/embed/8/"
+          src="https://www.metaculus.com/questions/question_embed/8/"
           height="320"
           width="550"
         ></iframe>

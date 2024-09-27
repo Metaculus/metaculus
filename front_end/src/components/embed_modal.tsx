@@ -1,6 +1,7 @@
 "use client";
 
 import { Field, Label, Select } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
 
 import BaseModal from "@/components/base_modal";
@@ -14,7 +15,6 @@ import { TimelineChartZoomOption } from "@/types/charts";
 import { AppTheme } from "@/types/theme";
 import { getChartZoomOptions } from "@/utils/charts";
 import { addUrlParams } from "@/utils/navigation";
-import { useTranslations } from "next-intl";
 
 type Props = {
   isOpen: boolean;
