@@ -104,7 +104,7 @@ const BinarySlider: FC<Props> = ({
         />
         {forecast !== null && helperDisplay && (
           <div
-            className="absolute flex flex-col items-center opacity-100 transition-all group-hover:opacity-0"
+            className="absolute flex flex-col items-center"
             style={{
               left: `${((forecast - BINARY_MIN_VALUE) / (BINARY_MAX_VALUE - BINARY_MIN_VALUE)) * 100}%`,
               transform: "translateX(-50%)",

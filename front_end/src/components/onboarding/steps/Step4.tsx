@@ -56,30 +56,33 @@ const Step4: React.FC<Step4Props> = ({
       <p className={onboardingStyles.title}>
         This time let's think through things that might influence the outcome.
       </p>
-      <ul className="mb-4 list-none space-y-2">
-        {factors.map((factor, index) => (
-          <li
-            key={index}
-            className="rounded-md bg-blue-400/45 p-2.5 text-base dark:bg-blue-600/25"
+      <div>
+        <ul className="mb-4 list-none space-y-2">
+          {factors.map((factor, index) => (
+            <li
+              key={index}
+              className="rounded-md bg-purple-400/45 p-2.5 text-base dark:bg-purple-600/25"
+            >
+              {factor}
+            </li>
+          ))}
+        </ul>
+        <div className="flex">
+          <input
+            type="text"
+            value={newFactor}
+            onChange={(e) => setNewFactor(e.target.value)}
+            placeholder="You can add your own factor here if you like"
+            className={onboardingStyles.input}
+          />
+          <button
+            onClick={handleAddFactor}
+            className={`${onboardingStyles.smallButton} ${newFactor.trim() === "" ? "cursor-not-allowed opacity-35" : ""}`}
+            disabled={newFactor.trim() === ""}
           >
-            {factor}
-          </li>
-        ))}
-      </ul>
-      <div className="mb-4 flex">
-        <input
-          type="text"
-          value={newFactor}
-          onChange={(e) => setNewFactor(e.target.value)}
-          placeholder="You can add your own factor here if you like"
-          className={onboardingStyles.input}
-        />
-        <button
-          onClick={handleAddFactor}
-          className={onboardingStyles.smallButton}
-        >
-          <FontAwesomeIcon icon={faPlus} />
-        </button>
+            <FontAwesomeIcon icon={faPlus} /> Add
+          </button>
+        </div>
       </div>
       <p className={onboardingStyles.paragraph}>
         What do you think? Did any of those factors make you want to change your
