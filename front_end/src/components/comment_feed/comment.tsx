@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 
 import {
   softDeleteComment,
@@ -143,6 +143,7 @@ const Comment: FC<CommentProps> = ({
 }) => {
   const locale = useLocale();
   const t = useTranslations();
+  const commentRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleted, setIsDeleted] = useState(comment.is_soft_deleted);
   const [isReplying, setIsReplying] = useState(false);
@@ -199,6 +200,19 @@ const Comment: FC<CommentProps> = ({
     }
   };
 
+  useEffect(() => {
+    const match = window.location.hash.match(/#comment-(\d+)/);
+    if (!match) return;
+
+    const focus_comment_id = Number(match[1]);
+    if (focus_comment_id === comment.id) {
+      commentRef.current?.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+      });
+    }
+  }, [comment.id]);
+
   const menuItems: MenuItemProps[] = [
     {
       hidden: !isMobileScreen || !isCmmButtonVisible,
@@ -231,7 +245,8 @@ const Comment: FC<CommentProps> = ({
       id: "copyLink",
       name: t("copyLink"),
       onClick: () => {
-        copyToClipboard(`${window.location.href}#comment-${comment.id}`);
+        const urlWithoutHash = window.location.href.split("#")[0];
+        copyToClipboard(`${urlWithoutHash}#comment-${comment.id}`);
       },
     },
     {
@@ -259,7 +274,7 @@ const Comment: FC<CommentProps> = ({
 
   if (isDeleted) {
     return (
-      <div id={`comment-${comment.id}`}>
+      <div id={`comment-${comment.id}`} ref={commentRef}>
         {comment.included_forecast && (
           <IncludedForecast
             author={t("deletedAuthor")}
@@ -292,7 +307,7 @@ const Comment: FC<CommentProps> = ({
   }
 
   return (
-    <div id={`comment-${comment.id}`}>
+    <div id={`comment-${comment.id}`} ref={commentRef}>
       <div
         className={classNames("p-2", {
           "bg-blue-100 dark:bg-blue-100-dark":
