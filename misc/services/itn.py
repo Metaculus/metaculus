@@ -62,6 +62,12 @@ def itn_db():
                     yield cursor
 
 
+def clear_old_itn_news():
+    min_date = timezone.now() - timedelta(days=10)
+
+    ITNArticle.objects.filter(created_at__lt=min_date).delete()
+
+
 def sync_itn_news():
     articles_count = ITNArticle.objects.count()
     last_fetch_date = ITNArticle.objects.order_by("-created_at").values_list(
