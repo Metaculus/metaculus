@@ -34,6 +34,7 @@ class TestPostCreate:
                     "range_min": 1,
                     "range_max": 100,
                     "open_upper_bound": True,
+                    "open_time": "2024-04-01T00:00:00Z",
                     "scheduled_close_time": "2024-05-01T00:00:00Z",
                     "scheduled_resolve_time": "2024-05-02T00:00:00Z",
                 },
@@ -75,6 +76,7 @@ class TestPostCreate:
                             "type": "binary",
                             "possibilities": {"type": "binary"},
                             "resolution": "1.0",
+                            "open_time": "2024-04-01T00:00:00Z",
                             "scheduled_close_time": "2024-05-01T00:00:00Z",
                             "scheduled_resolve_time": "2024-05-11T00:00:00Z",
                         },
@@ -84,6 +86,7 @@ class TestPostCreate:
                             "type": "binary",
                             "possibilities": {"type": "binary"},
                             "resolution": "1.0",
+                            "open_time": "2024-04-01T00:00:00Z",
                             "scheduled_close_time": "2024-05-05T00:00:00Z",
                             "scheduled_resolve_time": "2024-05-10T00:00:00Z",
                         },
@@ -111,6 +114,7 @@ class TestPostCreate:
         question_binary = create_question(
             title="Starship Reaches Orbit in 2024?",
             question_type=Question.QuestionType.BINARY,
+            open_time=timezone.make_aware(datetime.datetime(2024, 3, 1)),
             scheduled_close_time=timezone.make_aware(datetime.datetime(2024, 5, 1)),
             scheduled_resolve_time=timezone.make_aware(datetime.datetime(2024, 5, 2)),
         )
@@ -119,6 +123,7 @@ class TestPostCreate:
         question_numeric = create_question(
             title="Starship Booster Tower Catch Attempt in 2024?",
             question_type=Question.QuestionType.NUMERIC,
+            open_time=timezone.make_aware(datetime.datetime(2024, 3, 1)),
             scheduled_close_time=timezone.make_aware(datetime.datetime(2024, 4, 1)),
             scheduled_resolve_time=timezone.make_aware(datetime.datetime(2024, 4, 2)),
         )
@@ -173,6 +178,7 @@ class TestPostCreate:
                     "range_min": 1,
                     "range_max": 100,
                     "open_upper_bound": True,
+                    "open_time": "2024-04-01T00:00:00Z",
                     "scheduled_close_time": "2024-05-01T00:00:00Z",
                     "scheduled_resolve_time": "2024-05-02T00:00:00Z",
                 },
