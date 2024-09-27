@@ -16,16 +16,16 @@ urlpatterns = [
         views.unresolve_api_view,
         name="question-unresolve",
     ),
+    path(
+        "questions/<int:pk>/post/",
+        views.legacy_question_api_view,
+        name="oldapi-get-question-post",
+    ),
 ]
 old_api = [
     path(
         "questions/<int:pk>/predict/",
         views.create_binary_forecast_oldapi_view,
         name="oldapi-create-forecast",
-    ),
-    path(
-        "questions/<int:pk>/post/",
-        views.legacy_question_api_view,
-        name="oldapi-get-question-post",
     ),
 ]
