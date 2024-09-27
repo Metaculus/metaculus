@@ -190,15 +190,7 @@ const CommentFeed: FC<Props> = ({
     const fetchCommentsAndFocus = async () => {
       if (window.location.hash) {
         const focus_comment_id = window.location.hash.split("-")[1];
-
         await fetchComments(sort, 0, false, focus_comment_id);
-        const questionBlock = document.getElementById(
-          window.location.hash.slice(1) // remove # symbol
-        );
-        questionBlock?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
       } else {
         void fetchComments();
       }
