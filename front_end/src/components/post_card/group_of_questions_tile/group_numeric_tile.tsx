@@ -81,6 +81,7 @@ const GroupNumericTile: FC<Props> = ({ questions, curationStatus, post }) => {
               )
             : undefined
         }
+        questionType={questions[0].type}
       />
     );
   }
