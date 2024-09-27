@@ -42,7 +42,9 @@ class QuestionsApi {
   }
 
   static async legacyGetPostId(questionId: number) {
-    return get<{ post_id: number }>(`/questions/${questionId}/post/`, {});
+    return get<{ post_id: number; post_slug: string }>(
+      `/questions/${questionId}/post/`
+    );
   }
 }
 
