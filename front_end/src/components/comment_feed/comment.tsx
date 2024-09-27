@@ -202,6 +202,8 @@ const Comment: FC<CommentProps> = ({
 
   useEffect(() => {
     const focus_comment_id = window.location.hash.split("-")[1];
+    if (!focus_comment_id) return;
+
     if (Number(focus_comment_id) === comment.id) {
       commentRef.current?.scrollIntoView({
         behavior: "smooth",

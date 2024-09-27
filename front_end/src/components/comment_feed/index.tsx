@@ -187,7 +187,7 @@ const CommentFeed: FC<Props> = ({
   };
 
   useEffect(() => {
-    const fetchCommentsAndFocus = async () => {
+    const fetchCommentsWithSelected = async () => {
       if (window.location.hash) {
         const focus_comment_id = window.location.hash.split("-")[1];
         await fetchComments(sort, 0, false, focus_comment_id);
@@ -195,7 +195,7 @@ const CommentFeed: FC<Props> = ({
         void fetchComments();
       }
     };
-    fetchCommentsAndFocus();
+    fetchCommentsWithSelected();
   }, []);
 
   let permissions: CommentPermissions = CommentPermissions.VIEWER;
