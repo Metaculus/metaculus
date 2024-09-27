@@ -1,6 +1,7 @@
 from typing import Union
 
 from django.db import models
+from django.db.models import QuerySet
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -80,28 +81,41 @@ class PostReadSerializer(serializers.ModelSerializer):
         return [{"id": u.id, "username": u.username} for u in obj.coauthors.all()]
 
     def get_status(self, obj: Post):
+        now = timezone.now()
         if obj.notebook:
             return obj.curation_status
-        if obj.resolved:
-            return "resolved"
         if obj.question:
+            if obj.question.resolution:
+                return "resolved"
+            open_time = obj.question.open_time
             scheduled_close_time = obj.question.scheduled_close_time
         elif obj.conditional:
-            scheduled_close_time = obj.conditional.condition_child.scheduled_close_time
+            if (
+                obj.conditional.condition.resolution
+                and obj.conditional.condition_child.resolution
+            ):
+                return "resolved"
+            open_time = max(
+                obj.conditional.condition.open_time,
+                obj.conditional.condition_child.open_time,
+            )
+            scheduled_close_time = min(
+                obj.conditional.condition.scheduled_close_time,
+                obj.conditional.condition_child.scheduled_close_time,
+            )
         elif obj.group_of_questions:
-            scheduled_close_times = [
-                x.scheduled_close_time
-                for x in obj.group_of_questions.questions.all()
-                if x.scheduled_close_time
-            ]
-            if len(scheduled_close_times) == 0:
-                return obj.curation_status
-            scheduled_close_time = max(scheduled_close_times)
+            questions: QuerySet[Question] = obj.group_of_questions.questions.all()
+            if all(x.resolution for x in questions):
+                return "resolved"
+            open_time = min(x.open_time for x in questions)
+            scheduled_close_time = max(x.scheduled_close_time for x in questions)
         else:
             return obj.curation_status
-        if scheduled_close_time and scheduled_close_time < timezone.now():
-            return "closed"
-        return obj.curation_status
+        if open_time < now:
+            return obj.curation_status
+        if now < scheduled_close_time:
+            return "open"
+        return "closed"
 
     def get_open_time(self, obj: Post):
         if obj.notebook:

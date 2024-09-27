@@ -11,7 +11,7 @@ const ElectionsEmbedModal: FC = () => {
   const t = useTranslations();
   const { isOpen, updateIsOpen } = useEmbedModalContext();
 
-  const embedUrl = useEmbedUrl("/embed/elections");
+  const embedUrl = useEmbedUrl("/experiments/embed/elections");
 
   if (!embedUrl) {
     return null;

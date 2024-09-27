@@ -38,9 +38,9 @@ export type ApprovePostParams = {
 };
 
 class PostsApi {
-  static async getPost(id: number): Promise<PostWithForecasts> {
+  static async getPost(id: number, with_cp = true): Promise<PostWithForecasts> {
     return await get<PostWithForecasts>(
-      `/posts/${id}/${encodeQueryParams({ with_cp: true })}`
+      `/posts/${id}/${encodeQueryParams({ with_cp })}`
     );
   }
 

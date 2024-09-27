@@ -173,11 +173,16 @@ def post_detail_oldapi_view(request: Request, pk):
 def post_detail(request: Request, pk):
     user = request.user if request.user.is_authenticated else None
 
+    # Extra params
+    with_cp = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("with_cp", True)
+    )
+
     qs = Post.objects.filter_permission(user=user).filter(pk=pk)
     posts = serialize_post_many(
         qs,
         current_user=request.user,
-        with_cp=True,
+        with_cp=with_cp,
         with_subscriptions=True,
     )
 

@@ -1,5 +1,6 @@
 import { Resolution } from "@/types/post";
 import { ThemeColor } from "@/types/theme";
+
 import { Scaling } from "./question";
 
 export type ChoiceItem = {

@@ -11,7 +11,7 @@ type Props = {
 };
 
 const QuestionEmbedModal: FC<Props> = ({ postId, postTitle }) => {
-  const embedUrl = useEmbedUrl(`/embed/questions/${postId}`);
+  const embedUrl = useEmbedUrl(`/questions/question_embed/${postId}`);
   const { isOpen, updateIsOpen } = useEmbedModalContext();
 
   if (!embedUrl) {
