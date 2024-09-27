@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { permanentRedirect } from "next/dist/client/components/redirect";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
@@ -54,10 +55,8 @@ async function getPost(id: number, with_cp = true) {
     ) {
       const { post_id } = await questions.legacyGetPostId(id);
 
-      console.log("Let's try", post_id);
-
-      // TODO: make it 301
-      return redirect(`/questions/${post_id}/?sub-question=${id}`);
+      // Permanently redirecting to the correct endpoint
+      return permanentRedirect(`/questions/${post_id}/?sub-question=${id}`);
     }
 
     throw e;
