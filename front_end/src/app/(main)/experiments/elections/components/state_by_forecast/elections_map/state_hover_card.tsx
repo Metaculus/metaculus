@@ -118,7 +118,7 @@ const StateHoverCard: FC<Props> = ({
         {mapArea.link && (
           <div className="flex w-full flex-col items-start">
             <Link
-              className="text-left text-blue-800 hover:text-blue-900 dark:text-blue-800-dark dark:hover:text-blue-900-dark"
+              className="text-left capitalize text-blue-800 hover:text-blue-900 dark:text-blue-800-dark dark:hover:text-blue-900-dark"
               href={`/questions/${mapArea.link.groupId}?${SLUG_POST_SUB_QUESTION_ID}=${mapArea.link.questionId}`}
             >
               {t("partyWinProbability", { party: favouritePartyName })}
