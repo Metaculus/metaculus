@@ -29,6 +29,7 @@ from questions.services import get_aggregated_forecasts_for_questions
 from users.models import User
 from utils.dtypes import flatten
 from .models import Notebook, Post, PostSubscription
+from .utils import get_post_slug
 
 
 class NotebookSerializer(serializers.ModelSerializer):
@@ -46,6 +47,7 @@ class PostReadSerializer(serializers.ModelSerializer):
     scheduled_close_time = serializers.SerializerMethodField()
     coauthors = serializers.SerializerMethodField()
     nr_forecasters = serializers.IntegerField(source="forecasters_count")
+    slug = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
@@ -53,6 +55,7 @@ class PostReadSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "url_title",
+            "slug",
             "author_id",
             "author_username",
             "coauthors",
@@ -164,6 +167,9 @@ class PostReadSerializer(serializers.ModelSerializer):
             if len(scheduled_close_times) == 0 or None in scheduled_close_times:
                 return None
             return max(scheduled_close_times)
+
+    def get_slug(self, obj: Post):
+        return get_post_slug(obj)
 
 
 class NotebookWriteSerializer(serializers.ModelSerializer):
