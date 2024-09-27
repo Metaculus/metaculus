@@ -9,7 +9,8 @@ interface QuestionPageTourProps {
 const tourSteps = [
   {
     selector: ".tour-question-title",
-    content: "Here's the question title.",
+    content:
+      "Here at the top of the question page is the title. This is the question we’ll be forecasting.",
   },
   {
     selector: ".tour-cp",
@@ -17,13 +18,9 @@ const tourSteps = [
       "The 'Community Prediction' represents what other predictors expect overall. Your prediction will join the Community Prediction—and because of the well-studied and unusual effectiveness of the 'wisdom of the crowd,' your prediction will help make the Community Prediction more accurate!",
   },
   {
-    selector: ".tour-comment-section",
-    content: "Here's where other forecasters share their perspectives.",
-  },
-  {
     selector: ".tour-prediction-input",
     content:
-      "Okay, use the slider to make your prediction. You can always change it later.",
+      "Just like we did before, take a moment to consider factors that could influence the outcome. What makes it more likely? What makes it less? Now drag the slider or enter a probability in the box. When you’re ready, click Predict. You can always change your prediction later.",
   },
 ];
 

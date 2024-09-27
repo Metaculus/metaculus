@@ -137,7 +137,6 @@ export default async function IndividualQuestion({
                   )}
                 </div>
               )}
-
               {!!postData.conditional && (
                 <ConditionalTile
                   postTitle={postData.title}
@@ -148,7 +147,6 @@ export default async function IndividualQuestion({
                 />
               )}
               <QuestionHeaderInfo post={postData} />
-
               {!!postData.question && (
                 <DetailedQuestionCard
                   question={postData.question}
@@ -167,7 +165,6 @@ export default async function IndividualQuestion({
                   nrForecasters={postData.nr_forecasters}
                 />
               )}
-
               <ForecastMaker post={postData} />
               {!!postData.conditional && (
                 <ConditionalTimeline
@@ -177,29 +174,25 @@ export default async function IndividualQuestion({
                   isClosed={isClosed}
                 />
               )}
-
               {!!postData.group_of_questions && (
                 <ContinuousGroupTimeline
                   post={postData}
                   preselectedQuestionId={preselectedGroupQuestionId}
                 />
               )}
-
               <BackgroundInfo post={postData} />
-            </div>
-            <HistogramDrawer post={postData} />
-            <Sidebar
-              postData={postData}
-              allowModifications={allowModifications}
-              layout="mobile"
-              questionTitle={questionTitle}
-            />
-            <div className="tour-comment-section">
-              <CommentFeed
+              <HistogramDrawer post={postData} />
+              <Sidebar
                 postData={postData}
-                postPermissions={postData.user_permission}
-              />
+                allowModifications={allowModifications}
+                layout="mobile"
+                questionTitle={questionTitle}
+              />{" "}
             </div>
+            <CommentFeed
+              postData={postData}
+              postPermissions={postData.user_permission}
+            />
           </section>
 
           <Sidebar
