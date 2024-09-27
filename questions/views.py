@@ -2,9 +2,10 @@ from django.db import transaction
 from django.http import Http404
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.serializers import DateTimeField
 
@@ -97,7 +98,9 @@ def bulk_create_forecasts_api_view(request):
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
             )
 
-        if (question.scheduled_close_time < now) or (question.actual_close_time and question.actual_close_time < now):
+        if (question.scheduled_close_time < now) or (
+            question.actual_close_time and question.actual_close_time < now
+        ):
             return Response(
                 {"error": f"Question {question.id} is already closed to forecasting !"},
                 status=status.HTTP_405_METHOD_NOT_ALLOWED,
@@ -126,7 +129,9 @@ def create_binary_forecast_oldapi_view(request, pk: int):
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
         )
 
-    if (question.scheduled_close_time < now) or (question.actual_close_time and question.actual_close_time < now):
+    if (question.scheduled_close_time < now) or (
+        question.actual_close_time and question.actual_close_time < now
+    ):
         return Response(
             {"error": f"Question {question.id} is already closed to forecasting !"},
             status=status.HTTP_405_METHOD_NOT_ALLOWED,
@@ -144,3 +149,24 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     create_forecast(question=question, user=request.user, probability_yes=probability)
 
     return Response({}, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def legacy_question_api_view(request, pk: int):
+    """
+    A legacy backward compatibility hack to replace child_question_id with its corresponding post_id.
+    This applies to old group questions that used links like /questions/<child_question_id>,
+    which were later redirected to /questions/<post_id>/?sub-question=<child_question_id>.
+
+    This functionality is planned for deprecation in the future.
+    """
+
+    question = get_object_or_404(Question.objects.all(), pk=pk)
+    post = question.get_post()
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=request.user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    return Response({"question_id": pk, "post_id": post.pk})
