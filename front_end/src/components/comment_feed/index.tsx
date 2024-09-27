@@ -189,7 +189,8 @@ const CommentFeed: FC<Props> = ({
   useEffect(() => {
     const fetchCommentsWithSelected = async () => {
       if (window.location.hash) {
-        const focus_comment_id = window.location.hash.split("-")[1];
+        const match = window.location.hash.match(/#comment-(\d+)/);
+        const focus_comment_id = match ? match[1] : undefined;
         await fetchComments(sort, 0, false, focus_comment_id);
       } else {
         void fetchComments();

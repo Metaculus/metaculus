@@ -201,10 +201,11 @@ const Comment: FC<CommentProps> = ({
   };
 
   useEffect(() => {
-    const focus_comment_id = window.location.hash.split("-")[1];
-    if (!focus_comment_id) return;
+    const match = window.location.hash.match(/#comment-(\d+)/);
+    if (!match) return;
 
-    if (Number(focus_comment_id) === comment.id) {
+    const focus_comment_id = Number(match[1]);
+    if (focus_comment_id === comment.id) {
       commentRef.current?.scrollIntoView({
         behavior: "smooth",
         inline: "center",
