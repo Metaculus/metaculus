@@ -116,17 +116,21 @@ def get_posts_feed(
         if status == "draft":
             q |= Q(curation_status=status, author=user)
         if status == "closed":
-            q |= Q(actual_close_time__isnull=False)
+            q |= Q(actual_close_time__isnull=False, resolved=False) | Q(
+                scheduled_close_time__lte=timezone.now(), resolved=False
+            )
         if status == "resolved":
             q |= Q(resolved=True, curation_status=Post.CurationStatus.APPROVED)
-
         if status == "open":
             q |= Q(
                 Q(published_at__lte=timezone.now())
                 & Q(curation_status=Post.CurationStatus.APPROVED)
                 & Q(
-                    Q(actual_close_time__isnull=True)
-                    | Q(actual_close_time__gte=timezone.now())
+                    (
+                        Q(actual_close_time__isnull=True)
+                        | Q(actual_close_time__gte=timezone.now())
+                    )
+                    & Q(scheduled_close_time__gte=timezone.now())
                 )
                 & Q(resolved=False),
             )
