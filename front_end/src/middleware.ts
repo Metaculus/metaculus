@@ -44,7 +44,6 @@ export async function middleware(request: NextRequest) {
       Boolean(request.headers.get("image-preview-request")) ||
       request.nextUrl.pathname.includes("/api/posts/preview-image/") ||
       request.nextUrl.pathname.includes("/embed/") ||
-      request.nextUrl.pathname.includes("/question_embed/") ||
       request.nextUrl.pathname.includes("/opengraph-image-") ||
       request.nextUrl.pathname.includes("/twitter-image-");
     if (
