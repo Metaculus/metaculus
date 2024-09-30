@@ -33,7 +33,7 @@ def build_question_graph_image_cdn_url(question_id: int):
 
 
 def build_question_embed_url(question_id: int):
-    return build_frontend_url(f"/embed/questions/{question_id}")
+    return build_frontend_url(f"/questions/embed/{question_id}")
 
 
 def build_post_comment_url(post_id: int, post_title: str, comment_id: int):
