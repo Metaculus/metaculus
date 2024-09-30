@@ -198,6 +198,9 @@ class Project(TimeStampedModel):
     )
     override_permissions = models.ManyToManyField(User, through="ProjectUserPermission")
 
+    # Whether we should display tournament on the homepage
+    show_on_homepage = models.BooleanField(default=False, db_index=True)
+
     objects = models.Manager.from_queryset(ProjectsQuerySet)()
 
     # Annotated fields

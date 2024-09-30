@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
+from django.views.decorators.cache import cache_page
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -84,6 +85,19 @@ def posts_list_api_view(request):
     )
 
     return paginator.get_paginated_response(data)
+
+
+@cache_page(60 * 30)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def posts_list_homeage_api_view(request):
+    """
+    Cached view of homepage posts
+    """
+
+    qs = get_posts_feed(Post.objects.all(), show_on_homepage=True)
+
+    return Response(serialize_post_many(qs, with_cp=True, group_cutoff=3))
 
 
 @api_view(["GET"])

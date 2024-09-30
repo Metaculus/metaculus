@@ -93,9 +93,16 @@ def tournaments_list_api_view(request: Request):
     permission = serializers.ChoiceField(
         choices=ObjectPermission.choices, allow_null=True
     ).run_validation(request.query_params.get("permission"))
+    show_on_homepage = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("show_on_homepage")
+    )
 
     qs = (
-        get_projects_qs(user=request.user, permission=permission)
+        get_projects_qs(
+            user=request.user,
+            permission=permission,
+            show_on_homepage=show_on_homepage,
+        )
         .filter_tournament()
         .annotate_posts_count()
         .order_by("-posts_count")

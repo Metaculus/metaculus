@@ -333,7 +333,7 @@ class Notebook(TimeStampedModel):
     markdown = models.TextField()
     type = models.CharField(max_length=100, choices=NotebookType)
     news_type = models.CharField(max_length=100, blank=True, null=True)
-    image_url = models.URLField(blank=True, null=True)
+    image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
 
 
 class Post(TimeStampedModel):
@@ -398,6 +398,9 @@ class Post(TimeStampedModel):
     )
 
     preview_image_generated_at = models.DateTimeField(null=True, blank=True)
+
+    # Whether we should display Post/Notebook on the homepage
+    show_on_homepage = models.BooleanField(default=False, db_index=True)
 
     def set_scheduled_close_time(self):
         if self.question:
