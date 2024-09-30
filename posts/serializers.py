@@ -97,7 +97,7 @@ class PostReadSerializer(serializers.ModelSerializer):
         now = timezone.now()
         open_time = obj.get_open_time()
 
-        if open_time > now:
+        if not open_time or open_time > now:
             return Post.CurationStatus.APPROVED
 
         if now < obj.scheduled_close_time:
