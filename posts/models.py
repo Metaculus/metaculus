@@ -237,8 +237,10 @@ class PostQuerySet(models.QuerySet):
         """
         Returns posts visible to the user
         """
+        from projects.services import get_site_main_project
 
         user_id = user.id if user else None
+        site_main_project = get_site_main_project()
 
         if permission == ObjectPermission.CREATOR:
             return self.filter(author_id=user_id)
@@ -248,21 +250,26 @@ class PostQuerySet(models.QuerySet):
         ]
 
         return self.annotate_user_permission(user).filter(
+            # If is owner
             Q(author_id=user_id)
             | (
                 Q(user_permission__in=permissions_lookup)
                 & (
-                    Q(
-                        curation_status__in=[
-                            Post.CurationStatus.APPROVED,
-                            Post.CurationStatus.PENDING,
-                        ]
-                    )
-                    | Q(
-                        user_permission__in=[
-                            ObjectPermission.ADMIN,
-                            ObjectPermission.CURATOR,
-                        ]
+                    # Everyone can see approved posts
+                    Q(curation_status=Post.CurationStatus.APPROVED)
+                    # Or pending posts in main project
+                    # Otherwise, only mods can access those
+                    | (
+                        Q(curation_status=Post.CurationStatus.PENDING)
+                        & (
+                            Q(default_project_id=site_main_project.pk)
+                            | Q(
+                                user_permission__in=[
+                                    ObjectPermission.ADMIN,
+                                    ObjectPermission.CURATOR,
+                                ]
+                            )
+                        )
                     )
                 )
             )
@@ -624,7 +631,7 @@ class Post(TimeStampedModel):
             exclude = set()
 
         exclude.add("embedding_vector")
-        
+
         return super().clean_fields(exclude=exclude)
 
 
