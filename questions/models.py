@@ -80,7 +80,7 @@ class Question(TimeStampedModel):
     fine_print = models.TextField(blank=True)
 
     # time fields
-    open_time = models.DateTimeField(db_index=True, null=True, blank=True)
+    open_time = models.DateTimeField(db_index=True)
     scheduled_close_time = models.DateTimeField(
         db_index=True,
         null=False,
