@@ -4,9 +4,8 @@ import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import React, { FC, useEffect, useState } from "react";
+import React, { FC } from "react";
 
-import { fetchMorePosts } from "@/app/(main)/questions/actions";
 import Carousel, { CarouselItem } from "@/components/carousel";
 import ForecastCard from "@/components/forecast_card";
 import { POST_STATUS_FILTER } from "@/constants/posts_feed";
@@ -14,26 +13,11 @@ import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 
 type Props = {
-  postIds: number[];
+  posts: PostWithForecasts[];
 };
 
-const QuestionCarousel: FC<Props> = ({ postIds }) => {
-  const [data, setData] = useState<PostWithForecasts[]>([]);
+const QuestionCarousel: FC<Props> = ({ posts }) => {
   const t = useTranslations();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const { newPosts } = await fetchMorePosts(
-        {
-          ids: postIds,
-        },
-        0,
-        20
-      );
-      setData(newPosts);
-    };
-    fetchData();
-  }, [postIds]);
 
   return (
     <Carousel
@@ -50,7 +34,7 @@ const QuestionCarousel: FC<Props> = ({ postIds }) => {
         </div>
       }
     >
-      {data.map((p) => (
+      {posts.map((p) => (
         <CarouselItem key={p.id}>
           <ForecastCard
             post={p}

@@ -1,7 +1,7 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 
-from posts.models import Post
+from posts.models import Post, Notebook
 
 
 @admin.register(Post)
@@ -20,3 +20,8 @@ class PostAdmin(admin.ModelAdmin):
     search_fields = ["title"]
     readonly_fields = ["notebook"]
     exclude = ["published_at_triggered"]
+
+
+@admin.register(Notebook)
+class NotebookAdmin(admin.ModelAdmin):
+    pass

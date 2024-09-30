@@ -34,6 +34,7 @@ def get_posts_feed(
     not_forecaster_id: int = None,
     similar_to_post_id: int = None,
     for_main_feed: bool = None,
+    show_on_homepage: bool = None,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
@@ -82,6 +83,9 @@ def get_posts_feed(
     if for_main_feed:
         site_main_project = get_site_main_project()
         qs = qs.filter_projects(site_main_project)
+
+    if show_on_homepage:
+        qs = qs.filter(show_on_homepage=True)
 
     if notebook_type:
         qs = qs.filter(notebook__isnull=False).filter(notebook__type=notebook_type)

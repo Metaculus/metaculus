@@ -503,11 +503,19 @@ def migrate_questions__notebook(root_questions: list[dict]):
             markdown = convert_notebook_content_format(
                 root_question["description_html"]
             )
+
+            image_url = root_question["image_url"] or ""
+
+            if image_url:
+                image_url = image_url.replace("https://metaculus-media.s3.amazonaws.com/", "")
+
             notebook = Notebook(
                 id=root_question["id"],
                 markdown=markdown,
                 type=notebook_type,
-                image_url=root_question["image_url"],
+                image_url=image_url,
+                created_at=root_question["created_time"],
+                edited_at=root_question["edited_time"],
             )
             # Create post from the root question, but don't create a root question
             post = create_post(root_question, notebook_id=root_question["id"])

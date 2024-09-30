@@ -35,7 +35,14 @@ from .utils import get_post_slug
 class NotebookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notebook
-        fields = "__all__"
+        fields = (
+            "id",
+            "markdown",
+            "type",
+            "image_url",
+            "created_at",
+            "edited_at",
+        )
 
 
 class PostReadSerializer(serializers.ModelSerializer):

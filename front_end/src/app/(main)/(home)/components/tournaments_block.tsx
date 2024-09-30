@@ -4,21 +4,16 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
-import TournamentCard from "@/components/tournament_card";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import TournamentCard from "@/components/tournament_card";
 import ProjectsApi from "@/services/projects";
-import { Tournament, TournamentType } from "@/types/projects";
+import { TournamentType } from "@/types/projects";
 
-type Props = {
-  postSlugs: string[];
-};
-
-const TournamentsBlock: FC<Props> = async ({ postSlugs }) => {
+const TournamentsBlock: FC = async () => {
   const t = await getTranslations();
-  const tournamentPromises = postSlugs.map(
-    (slug) => ProjectsApi.getSlugTournament(slug) as Promise<Tournament>
-  );
-  const tournaments = await Promise.all(tournamentPromises);
+  const tournaments = await ProjectsApi.getTournaments({
+    show_on_homepage: true,
+  });
 
   return (
     <div className="my-6 flex flex-col md:my-12 lg:my-16">
