@@ -615,6 +615,18 @@ class Post(TimeStampedModel):
     def get_url_title(self):
         return self.url_title or self.title
 
+    def clean_fields(self, exclude=None):
+        """
+        Ensure django won't perform boolean check against ndarray produced by pgvector
+        """
+
+        if exclude is None:
+            exclude = set()
+
+        exclude.add("embedding_vector")
+        
+        return super().clean_fields(exclude=exclude)
+
 
 class PostSubscription(TimeStampedModel):
     class SubscriptionType(models.TextChoices):
