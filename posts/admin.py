@@ -6,7 +6,7 @@ from posts.models import Post, Notebook
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_filter = [AutocompleteFilterFactory("Author", "author")]
+    list_filter = [AutocompleteFilterFactory("Author", "author"), "show_on_homepage"]
     autocomplete_fields = [
         "author",
         "default_project",
