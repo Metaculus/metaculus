@@ -7,7 +7,7 @@ from notifications.services import (
     NotificationPostParams,
     NotificationProjectParams,
 )
-from posts.models import Post, PostSubscription
+from posts.models import Post
 from projects.models import Project, ProjectUserPermission, ProjectSubscription
 from projects.permissions import ObjectPermission
 from users.models import User
@@ -141,7 +141,7 @@ def notify_project_subscriptions_post_open(post: Post):
             subscription.user,
             NotificationPostStatusChange.ParamsType(
                 post=NotificationPostParams.from_post(post),
-                event=PostSubscription.PostStatusChange.OPEN,
+                event=Post.PostStatusChange.OPEN,
                 project=NotificationProjectParams.from_project(subscription.project),
             ),
             mailing_tag=MailingTags.TOURNAMENT_NEW_QUESTIONS,
