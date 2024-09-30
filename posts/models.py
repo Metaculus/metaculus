@@ -363,6 +363,11 @@ class Post(TimeStampedModel):
         # CLOSED, all viewers can see it, no forecasts or other interactions can happen
         DELETED = "deleted"
 
+    class PostStatusChange(models.TextChoices):
+        OPEN = "open", _("Open")
+        CLOSED = "closed", _("Closed")
+        RESOLVED = "resolved", _("Resolved")
+
     curation_status = models.CharField(
         max_length=20,
         choices=CurationStatus.choices,
@@ -489,6 +494,23 @@ class Post(TimeStampedModel):
         # Note: No risk of infinite loops since conditionals can't father other conditionals
         self.updated_related_conditionals()
 
+    def get_open_time(self):
+        if self.question:
+            return self.question.open_time
+
+        if self.conditional:
+            return max(
+                self.conditional.condition.open_time,
+                self.conditional.condition_child.open_time,
+            )
+
+        if self.group_of_questions:
+            questions = self.group_of_questions.questions.all()
+            open_times = [x.open_time for x in questions if x.open_time]
+
+            if open_times:
+                return min(open_times)
+
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
     question = models.OneToOneField(
@@ -601,11 +623,6 @@ class PostSubscription(TimeStampedModel):
         MILESTONE = "milestone"
         STATUS_CHANGE = "status_change"
         SPECIFIC_TIME = "specific_time"
-
-    class PostStatusChange(models.TextChoices):
-        OPEN = "open", _("Open")
-        CLOSED = "closed", _("Closed")
-        RESOLVED = "resolved", _("Resolved")
 
     user = models.ForeignKey(User, models.CASCADE, related_name="subscriptions")
     post = models.ForeignKey(Post, models.CASCADE, related_name="subscriptions")

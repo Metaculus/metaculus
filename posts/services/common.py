@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
-from posts.models import Notebook, Post, PostSubscription, PostUserSnapshot
+from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import (
@@ -366,7 +366,7 @@ def resolve_post(post: Post):
     post.set_resolved()
 
     run_notify_post_status_change.send(
-        post.id, PostSubscription.PostStatusChange.RESOLVED
+        post.id, Post.PostStatusChange.RESOLVED
     )
 
 
@@ -376,7 +376,7 @@ def handle_post_open(post: Post):
     """
 
     # Handle post subscriptions
-    notify_post_status_change(post, PostSubscription.PostStatusChange.OPEN)
+    notify_post_status_change(post, Post.PostStatusChange.OPEN)
 
     # Handle post on followed projects subscriptions
     notify_project_subscriptions_post_open(post)
