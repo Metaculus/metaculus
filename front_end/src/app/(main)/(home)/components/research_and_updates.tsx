@@ -7,22 +7,17 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import imagePlaceholder from "@/app/assets/images/tournament.webp";
-import PostsApi from "@/services/posts";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { PostWithNotebook } from "@/types/post";
 import { getNotebookSummary } from "@/utils/questions";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
-  postIds: number[];
+  posts: PostWithNotebook[];
 };
 
-const ResearchAndUpdatesBlock: FC<Props> = async ({ postIds }) => {
+const ResearchAndUpdatesBlock: FC<Props> = async ({ posts }) => {
   const t = await getTranslations();
   const locale = await getLocale();
-  const { results } = await PostsApi.getPostsWithCP({
-    ids: postIds,
-  });
-  const posts = results as PostWithNotebook[];
 
   return (
     <div className="my-6 flex flex-col md:my-12 lg:my-16">
