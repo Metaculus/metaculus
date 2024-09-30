@@ -4,6 +4,7 @@ import classNames from "classnames";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
+import PostDefaultProject from "@/components/post_default_project";
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
 import { getPostLink } from "@/utils/navigation";
@@ -31,6 +32,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
 }) => {
   const { id, title } = post;
   const resolutionData = extractPostResolution(post);
+  const defaultProject = post.projects.default_project;
 
   let newCommentsCount = post.comment_count ? post.comment_count : 0;
   if (post.unread_comment_count !== undefined) {
@@ -64,9 +66,12 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
             url={`/questions/${id}`}
             commentColor={borderColor}
           />
-        </div>
 
-        <PostStatus post={post} resolution={resolutionData} />
+          <PostStatus post={post} resolution={resolutionData} />
+        </div>
+        <div className="hidden lg:inline-flex">
+          <PostDefaultProject defaultProject={defaultProject} />
+        </div>
       </div>
     </div>
   );
