@@ -13,7 +13,8 @@ const PostDefaultProject: FC<Props> = ({ defaultProject }) => {
       TournamentType.Tournament,
       TournamentType.GlobalLeaderboard,
       TournamentType.QuestionSeries,
-    ].includes(defaultProject.type)
+    ].includes(defaultProject.type) ||
+    !defaultProject.default_permission
   ) {
     return null;
   }

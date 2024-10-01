@@ -114,6 +114,32 @@ def create_post(
     return obj
 
 
+def update_post_projects(
+    post: Post, categories: list[Project] = None, news: list[Project] = None
+):
+    projects_map = {
+        Project.ProjectTypes.CATEGORY: categories,
+        Project.ProjectTypes.NEWS_CATEGORY: news,
+    }
+
+    existing_projects = set(post.projects.all())
+
+    for project_type, projects in projects_map.items():
+        if projects is None:
+            continue
+
+        # Clean existing project types
+        existing_projects = {p for p in existing_projects if p.type != project_type}
+
+        # Update with new ones
+        existing_projects |= set(projects)
+
+    if post.default_project in existing_projects:
+        existing_projects.remove(post.default_project)
+
+    post.projects.set(existing_projects)
+
+
 def update_post(
     post: Post,
     categories: list[Project] = None,
@@ -133,11 +159,7 @@ def update_post(
         data=kwargs,
     )
 
-    projects = categories + ([news_type] if news_type else [])
-    if post.default_project in projects:
-        projects.remove(post.default_project)
-
-    post.projects.set(projects)
+    update_post_projects(post, categories, [news_type] if news_type else [])
 
     if question:
         if not post.question:

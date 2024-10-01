@@ -407,6 +407,7 @@ class Post(TimeStampedModel):
         help_text="Vector embeddings of the Post content",
         null=True,
         blank=True,
+        editable=False,
     )
 
     preview_image_generated_at = models.DateTimeField(null=True, blank=True)
