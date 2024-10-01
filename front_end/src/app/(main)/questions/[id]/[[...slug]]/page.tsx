@@ -28,18 +28,10 @@ import QuestionResolutionStatus from "../components/question_resolution_status";
 import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 
-type Props = {
-  params: { id: number; slug: string[] };
-  searchParams: SearchParams;
-};
-
 /**
  * A backward compatibility util
  */
-async function getPost(
-  { params: { id }, searchParams }: Props,
-  with_cp = true
-) {
+async function getPost(id: number, with_cp = true) {
   try {
     return await PostsApi.getPost(id, with_cp);
   } catch (e) {
@@ -58,9 +50,6 @@ async function getPost(
     // we assume it may refer to a child question in a group.
     // If so, we attempt to replace its ID with the original post_id when possible.
     if (
-      // Ensure we are not checking self-redirect
-      // Not to go to infinite loop
-      !extractPreselectedGroupQuestionId(searchParams) &&
       lastLegacyQuestionId &&
       id <= lastLegacyQuestionId &&
       nextError?.digest === "NEXT_NOT_FOUND"
@@ -77,8 +66,13 @@ async function getPost(
   }
 }
 
-export async function generateMetadata(props: Props): Promise<Metadata> {
-  const postData = await getPost(props, false);
+type Props = {
+  params: { id: number; slug: string[] };
+  searchParams: SearchParams;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const postData = await getPost(params.id, false);
 
   if (!postData) {
     return {};
@@ -91,7 +85,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     openGraph: {
       type: "article",
       images: {
-        url: `${process.env.NEXT_PUBLIC_CDN_DOMAIN_NAME ?? ""}/api/posts/preview-image/${props.params.id}/`,
+        url: `${process.env.NEXT_PUBLIC_CDN_DOMAIN_NAME ?? ""}/api/posts/preview-image/${params.id}/`,
         width: 1200,
         height: 630,
         alt: "community predictions",
@@ -101,7 +95,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
       site: "@metaculus",
       card: "summary_large_image",
       images: {
-        url: `${process.env.NEXT_PUBLIC_CDN_DOMAIN_NAME ?? ""}/api/posts/preview-image/${props.params.id}/`,
+        url: `${process.env.NEXT_PUBLIC_CDN_DOMAIN_NAME ?? ""}/api/posts/preview-image/${params.id}/`,
         width: 1200,
         height: 630,
         alt: "community predictions",
@@ -110,9 +104,11 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   };
 }
 
-export default async function IndividualQuestion(props: Props) {
-  const { params, searchParams } = props;
-  const postData = await getPost(props);
+export default async function IndividualQuestion({
+  params,
+  searchParams,
+}: Props) {
+  const postData = await getPost(params.id);
 
   if (postData.notebook) {
     return redirect(
