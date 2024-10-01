@@ -92,18 +92,19 @@ const ProjectPicker: React.FC<{
                       const isProjectAlreadyIncluded = selectedProjects.some(
                         (item) => item.id === project.id
                       );
-                      setSelectedProjects((prev) =>
-                        isProjectAlreadyIncluded
-                          ? [...prev].filter((item) => item !== project)
-                          : [...prev, project]
-                      );
+
                       const projectsId = selectedProjects.map(
                         (item) => item.id
+                      );
+                      setSelectedProjects((prev) =>
+                        isProjectAlreadyIncluded
+                          ? [...prev].filter((item) => item.id !== project.id)
+                          : [...prev, project]
                       );
 
                       onChange(
                         isProjectAlreadyIncluded
-                          ? [...projectsId].filter((id) => id === project.id)
+                          ? [...projectsId].filter((id) => id !== project.id)
                           : [...projectsId, project.id]
                       );
                       setQuery("");
