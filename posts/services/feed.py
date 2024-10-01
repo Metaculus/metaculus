@@ -110,15 +110,13 @@ def get_posts_feed(
 
     q = Q()
     for status in statuses:
-        if status in ["pending", "rejected", "deleted"]:
+        if status in Post.CurationStatus:
             q |= Q(curation_status=status)
         if status == "upcoming":
             q |= Q(
                 Q(curation_status=Post.CurationStatus.APPROVED)
                 & (Q(published_at__gte=timezone.now()) | Q(published_at__isnull=True))
             )
-        if status == "draft":
-            q |= Q(curation_status=status, author=user)
         if status == "closed":
             q |= Q(actual_close_time__isnull=False, resolved=False) | Q(
                 scheduled_close_time__lte=timezone.now(), resolved=False

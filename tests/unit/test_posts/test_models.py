@@ -1,10 +1,11 @@
-import pytest  # noqa
 import datetime
 
+import pytest  # noqa
 from freezegun import freeze_time
 
 from posts.models import Post
 from projects.permissions import ObjectPermission
+from projects.services import get_site_main_project
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post, factory_post_snapshot
@@ -197,11 +198,59 @@ class TestPostPermissions:
 
         # Post exists for creator
         assert Post.objects.filter_permission(user=user1).filter(pk=p1.pk).exists()
-        # Post exists for the project owner
+        # Draft post should not be visible to anyone except creators
+        assert not Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
+        # Post is not visible for Forecaster
+        assert not Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
+        # Post is not visible for a random user
+        assert not Post.objects.filter_permission(user=user4).filter(pk=p1.pk).exists()
+
+        # Making it pending should change a situation
+        p1.curation_status = Post.CurationStatus.PENDING
+        p1.save()
+
+        # Post still exists for creator
+        assert Post.objects.filter_permission(user=user1).filter(pk=p1.pk).exists()
+        # Visible for admins
         assert Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
         # Post is not visible for Forecaster
         assert not Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
         # Post is not visible for a random user
+        assert not Post.objects.filter_permission(user=user4).filter(pk=p1.pk).exists()
+
+        # Change it to site main, but still draft
+        p1.default_project = get_site_main_project()
+        p1.save()
+
+        # Post is now visible for Forecaster
+        assert Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
+        # Post is now visible for a random user
+        assert Post.objects.filter_permission(user=user4).filter(pk=p1.pk).exists()
+
+        # Approve post
+        p1.curation_status = Post.CurationStatus.APPROVED
+        p1.save()
+
+        # Post is visible for creator
+        assert Post.objects.filter_permission(user=user1).filter(pk=p1.pk).exists()
+        # Visible for admins
+        assert Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
+        # Post visible for Forecaster
+        assert Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
+        # Post visible for a random user
+        assert Post.objects.filter_permission(user=user4).filter(pk=p1.pk).exists()
+
+        # Reject post
+        p1.curation_status = Post.CurationStatus.REJECTED
+        p1.save()
+
+        # Post is visible for creator only
+        assert Post.objects.filter_permission(user=user1).filter(pk=p1.pk).exists()
+        # not visible for admins
+        assert not Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
+        # Post not visible for Forecaster
+        assert not Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
+        # Post not visible for a random user
         assert not Post.objects.filter_permission(user=user4).filter(pk=p1.pk).exists()
 
     @pytest.mark.parametrize(

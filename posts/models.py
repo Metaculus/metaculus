@@ -191,28 +191,50 @@ class PostQuerySet(models.QuerySet):
     # Permissions
     #
     def annotate_user_permission(self, user: User = None):
-        """
-        Annotates user permission for each Post based on the related Projects.
-        """
+        from projects.services import get_site_main_project
 
         user_id = user.id if user else None
+        site_main_project = get_site_main_project()
 
-        return self.annotate(
+        # Annotate with user-specific permission or project's default permission
+        qs = self.annotate(
             user_permission_override=FilteredRelation(
                 "default_project__projectuserpermission",
-                condition=Q(
-                    default_project__projectuserpermission__user_id=user_id,
-                ),
+                condition=Q(default_project__projectuserpermission__user_id=user_id),
             ),
-            # Extract permission from default_project relation
             _user_permission=Coalesce(
                 F("user_permission_override__permission"),
                 F("default_project__default_permission"),
             ),
-        ).annotate(
-            # Calculate actual user permission by a couple of extra conditions
+        )
+
+        # Exclude posts user doesn't have access to
+        qs = qs.filter(
+            Q(author_id=user_id)
+            | (
+                Q(
+                    _user_permission__in=[
+                        ObjectPermission.ADMIN,
+                        ObjectPermission.CURATOR,
+                    ]
+                )
+                & Q(curation_status=Post.CurationStatus.PENDING)
+            )
+            | (
+                Q(_user_permission__isnull=False)
+                & (
+                    (
+                        Q(default_project_id=site_main_project.pk)
+                        & Q(curation_status=Post.CurationStatus.PENDING)
+                    )
+                    | Q(curation_status=Post.CurationStatus.APPROVED)
+                )
+            )
+        )
+
+        qs = qs.annotate(
             user_permission=models.Case(
-                # If user is the question author
+                # Admin/Curator is more important than Creator
                 models.When(
                     Q(
                         _user_permission__in=[
@@ -231,6 +253,8 @@ class PostQuerySet(models.QuerySet):
             ),
         )
 
+        return qs
+
     def filter_permission(
         self, user: User = None, permission: ObjectPermission = ObjectPermission.VIEWER
     ):
@@ -248,24 +272,7 @@ class PostQuerySet(models.QuerySet):
         ]
 
         return self.annotate_user_permission(user).filter(
-            Q(author_id=user_id)
-            | (
-                Q(user_permission__in=permissions_lookup)
-                & (
-                    Q(
-                        curation_status__in=[
-                            Post.CurationStatus.APPROVED,
-                            Post.CurationStatus.PENDING,
-                        ]
-                    )
-                    | Q(
-                        user_permission__in=[
-                            ObjectPermission.ADMIN,
-                            ObjectPermission.CURATOR,
-                        ]
-                    )
-                )
-            )
+            user_permission__in=permissions_lookup
         )
 
     def filter_public(self):
@@ -624,7 +631,7 @@ class Post(TimeStampedModel):
             exclude = set()
 
         exclude.add("embedding_vector")
-        
+
         return super().clean_fields(exclude=exclude)
 
 
