@@ -147,14 +147,7 @@ export function formatResolution(
 export function canPredictQuestion(post: PostWithForecasts) {
   return (
     post.user_permission !== ProjectPermissions.VIEWER &&
-    (post.question
-      ? post.question.open_time
-        ? parseISO(post.question.open_time) < new Date()
-        : false
-      : true) &&
-    !isNil(post.published_at) &&
-    parseISO(post.published_at) <= new Date() &&
-    post.status === PostStatus.APPROVED
+    post.status === PostStatus.OPEN
   );
 }
 
@@ -180,9 +173,7 @@ export function getConditionalQuestionTitle(question: Question): string {
 }
 
 export function getQuestionStatus(post: PostWithForecasts | null) {
-  const isLive =
-    post?.curation_status == PostStatus.APPROVED ||
-    post?.curation_status == PostStatus.OPEN;
+  const isLive = post?.status == PostStatus.OPEN;
   const isDone =
     post?.curation_status == PostStatus.RESOLVED ||
     post?.curation_status == PostStatus.CLOSED ||

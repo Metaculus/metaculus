@@ -141,13 +141,10 @@ export default async function IndividualQuestion({
     postData.user_permission === ProjectPermissions.ADMIN ||
     postData.user_permission === ProjectPermissions.CURATOR ||
     (postData.user_permission === ProjectPermissions.CREATOR &&
-      postData.status !== PostStatus.APPROVED);
+      postData.curation_status !== PostStatus.APPROVED);
 
   const questionTitle = getQuestionTitle(postData);
-  const isClosed =
-    postData.status === PostStatus.CLOSED || postData.actual_close_time
-      ? new Date(postData.actual_close_time).getTime() < Date.now()
-      : false;
+  const isClosed = postData.status === PostStatus.CLOSED;
   return (
     <EmbedModalContextProvider>
       <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4">
