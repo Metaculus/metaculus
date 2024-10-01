@@ -363,7 +363,10 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                     for i in range(len(continuous_cdf) - 1)
                 ]
             )
-            question: Question = data["question"]
+
+            # Small hack
+            question = Question.objects.get(pk=data["question"])
+
             if question.open_lower_bound:
                 lower_bound_ok = continuous_cdf[0] >= 0.001
             else:
