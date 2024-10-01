@@ -1,10 +1,14 @@
+import dynamic from "next/dynamic";
 import { FC } from "react";
 
 import CommentStatus from "@/components/post_card/basic_post_card/comment_status";
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
-import PostStatus from "@/components/post_status";
 import { PostWithForecasts } from "@/types/post";
 import { extractPostResolution } from "@/utils/questions";
+
+const PostStatus = dynamic(() => import("@/components/post_status"), {
+  ssr: false,
+});
 
 type Props = {
   post: PostWithForecasts;
