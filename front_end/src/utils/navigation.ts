@@ -1,3 +1,6 @@
+import { Post } from "@/types/post";
+import { Optional } from "@/types/utils";
+
 export function encodeQueryParams(params: Record<string, any>): string {
   const encodedParams = Object.entries(params)
     .filter(([, value]) => value !== undefined)
@@ -24,4 +27,12 @@ export const addUrlParams = (
     urlObject.searchParams.set(paramName, paramValue);
   });
   return urlObject.toString();
+};
+
+export const getPostLink = (
+  post: Optional<Pick<Post, "id" | "slug" | "notebook">, "notebook">
+) => {
+  if (!!post.notebook) return `/notebooks/${post.id}/${post.slug}/`;
+
+  return `/questions/${post.id}/${post.slug}/`;
 };

@@ -4,12 +4,14 @@ import classNames from "classnames";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
-import CommentStatus from "./comment_status";
-import PostVoter from "./post_voter";
-
+import PostDefaultProject from "@/components/post_default_project";
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
+import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions";
+
+import CommentStatus from "./comment_status";
+import PostVoter from "./post_voter";
 
 type BorderVariant = "regular" | "highlighted";
 type BorderColor = "blue" | "purple";
@@ -30,6 +32,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
 }) => {
   const { id, title } = post;
   const resolutionData = extractPostResolution(post);
+  const defaultProject = post.projects.default_project;
 
   let newCommentsCount = post.comment_count ? post.comment_count : 0;
   if (post.unread_comment_count !== undefined) {
@@ -47,7 +50,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         }[borderColor]
       )}
     >
-      <Link href={`/questions/${id}`} className="block p-4 no-underline">
+      <Link href={getPostLink(post)} className="block p-4 no-underline">
         {!hideTitle && (
           <h4 className="relative mb-3 mt-0 line-clamp-2 text-base font-semibold text-gray-900 dark:text-gray-900-dark">
             {title}
@@ -55,7 +58,6 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         )}
         {children}
       </Link>
-
       <div className="flex items-center justify-between rounded-ee border-t border-blue-400 bg-blue-100 px-2 py-0.5 font-medium dark:border-blue-400-dark dark:bg-blue-100-dark max-lg:flex-1">
         <div className="flex items-center gap-3">
           <PostVoter className="md:min-w-20" post={post} />
@@ -64,9 +66,12 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
             url={`/questions/${id}`}
             commentColor={borderColor}
           />
-        </div>
 
-        <PostStatus post={post} resolution={resolutionData} />
+          <PostStatus post={post} resolution={resolutionData} />
+        </div>
+        <div className="hidden lg:inline-flex">
+          <PostDefaultProject defaultProject={defaultProject} />
+        </div>
       </div>
     </div>
   );

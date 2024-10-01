@@ -1,6 +1,11 @@
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
 import { NewsArticle } from "@/types/news";
-import { Post, PostSubscription, PostWithForecasts } from "@/types/post";
+import {
+  Post,
+  PostSubscription,
+  PostWithForecasts,
+  PostWithNotebook,
+} from "@/types/post";
 import { Require } from "@/types/utils";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post, put } from "@/utils/fetch";
@@ -38,9 +43,9 @@ export type ApprovePostParams = {
 };
 
 class PostsApi {
-  static async getPost(id: number): Promise<PostWithForecasts> {
+  static async getPost(id: number, with_cp = true): Promise<PostWithForecasts> {
     return await get<PostWithForecasts>(
-      `/posts/${id}/${encodeQueryParams({ with_cp: true })}`
+      `/posts/${id}/${encodeQueryParams({ with_cp })}`
     );
   }
 
@@ -74,6 +79,12 @@ class PostsApi {
     return await get<PaginatedPayload<PostWithForecasts>>(
       `/posts${queryParams}`
     );
+  }
+
+  static async getPostsForHomepage(): Promise<
+    (PostWithForecasts | PostWithNotebook)[]
+  > {
+    return await get(`/posts/homepage/`);
   }
 
   static async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {

@@ -80,9 +80,10 @@ const ConditionalTile: FC<Props> = ({
       : `/questions/${condition_child.post_id}?${SLUG_POST_SUB_QUESTION_ID}=${condition_child.id}`;
 
   const parentSuccessfullyResolved =
-    curationStatus === PostStatus.RESOLVED &&
-    (condition.resolution === "yes" || condition.resolution === "no");
-
+    condition.resolution === "yes" || condition.resolution === "no";
+  const parentIsClosed = condition.actual_close_time
+    ? new Date(condition.actual_close_time).getTime() < Date.now()
+    : false;
   const yesHappened = condition.resolution === "yes";
   const yesDisabled =
     question_yes.resolution === "annulled" ||
@@ -106,10 +107,14 @@ const ConditionalTile: FC<Props> = ({
           resolved={parentSuccessfullyResolved}
           href={withNavigation ? conditionHref : undefined}
         >
-          {parentSuccessfullyResolved && (
+          {(parentSuccessfullyResolved || parentIsClosed) && (
             <PredictionChip
               question={condition}
-              status={curationStatus}
+              status={
+                parentSuccessfullyResolved
+                  ? PostStatus.RESOLVED
+                  : PostStatus.CLOSED
+              }
               size="compact"
             />
           )}
@@ -148,10 +153,8 @@ const ConditionalTile: FC<Props> = ({
           href={withNavigation ? conditionChildHref : undefined}
         >
           <ConditionalChart
-            parentResolved={parentSuccessfullyResolved}
             question={question_yes}
             disabled={yesDisabled}
-            parentStatus={curationStatus}
             chartTheme={chartTheme}
           />
         </ConditionalCard>
@@ -160,10 +163,8 @@ const ConditionalTile: FC<Props> = ({
           href={withNavigation ? `/questions/${condition_child.id}` : undefined}
         >
           <ConditionalChart
-            parentResolved={parentSuccessfullyResolved}
             question={question_no}
             disabled={noDisabled}
-            parentStatus={curationStatus}
             chartTheme={chartTheme}
           />
         </ConditionalCard>

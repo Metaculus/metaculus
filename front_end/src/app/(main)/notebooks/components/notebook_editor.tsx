@@ -7,10 +7,9 @@ import React, { useState } from "react";
 
 import { updateNotebook } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
+import PostDefaultProject from "@/components/post_default_project";
 import Button from "@/components/ui/button";
 import { PostWithNotebook } from "@/types/post";
-import Link from "next/link";
-import { TournamentType } from "@/types/projects";
 
 interface NotebookEditorProps {
   postData: PostWithNotebook;
@@ -38,18 +37,8 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
   return (
     <div>
       <div className="flex">
-        {[
-          TournamentType.Tournament,
-          TournamentType.GlobalLeaderboard,
-          TournamentType.QuestionSeries,
-        ].includes(defaultProject.type) && (
-          <Link
-            className="inline-flex items-center justify-center gap-1 rounded-l rounded-r border-inherit bg-orange-100 p-1.5 text-sm font-medium leading-4 text-orange-900 no-underline hover:bg-orange-200 dark:bg-orange-100-dark dark:text-orange-900-dark hover:dark:bg-orange-200-dark"
-            href={`/tournament/${defaultProject.slug}`}
-          >
-            {defaultProject.name}
-          </Link>
-        )}
+        <PostDefaultProject defaultProject={defaultProject} />
+
         <Button className="ml-auto p-2" onClick={toggleEditMode}>
           {isEditing ? "save" : "edit"}
         </Button>

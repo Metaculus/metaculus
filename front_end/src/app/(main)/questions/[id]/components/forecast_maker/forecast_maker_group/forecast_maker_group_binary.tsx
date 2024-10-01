@@ -236,7 +236,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isDirty={questionOption.isDirty}
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
-              disabled={!canPredict}
+              disabled={!canPredict || !!questionOption.resolution}
               optionResolution={{
                 resolution: questionOption.resolution,
                 type: "group_question",

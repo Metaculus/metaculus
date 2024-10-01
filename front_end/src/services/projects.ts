@@ -18,6 +18,7 @@ export type TagsParams = {
 export type TournamentFilterParams = {
   // Min permission
   permission?: ProjectPermissions;
+  show_on_homepage?: boolean;
 };
 
 class ProjectsApi {

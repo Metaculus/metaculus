@@ -23,6 +23,10 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
   } = post;
 
   const statusInfo = useMemo(() => {
+    if (status === PostStatusEnum.PENDING) {
+      return [t("inReview")];
+    }
+
     if (status === PostStatusEnum.CLOSED) {
       if (new Date(scheduled_resolve_time).getTime() < Date.now()) {
         return [t("resolutionPending")];

@@ -2,7 +2,9 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
+import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
+import { PostWithForecasts, PostWithNotebook } from "@/types/post";
 import { encodeQueryParams } from "@/utils/navigation";
 
 import EngageBlock from "./components/engage_block";
@@ -53,16 +55,13 @@ export default async function Home() {
     },
   ];
 
-  const questionCarouselIDs =
-    process.env.HOME_PAGE_QUESTION_CAROUSEL_IDS?.split(",").map((id) =>
-      Number(id)
-    );
-  const researchIDs = process.env.HOME_PAGE_RESEARCH_IDS?.split(",").map((id) =>
-    Number(id)
-  );
-  const tournamentSlugs = process.env.HOME_PAGE_TOURNAMENTS_SLUGS?.split(
-    ","
-  ).map((id) => id.trim());
+  const homepagePosts = await PostsApi.getPostsForHomepage();
+  const postQuestions = homepagePosts.filter(
+    (post) => !post.notebook
+  ) as unknown as PostWithForecasts[];
+  const postNotebooks = homepagePosts.filter(
+    (post) => !!post.notebook
+  ) as unknown as PostWithNotebook[];
 
   return (
     <main className="bg-gradient-to-b from-blue-100 from-20% to-blue-200 to-50% pt-16 dark:from-blue-100-dark dark:to-blue-200-dark sm:pt-28">
@@ -99,9 +98,9 @@ export default async function Home() {
             </div>
           </div>
         </div>
-        {questionCarouselIDs && (
+        {postQuestions.length && (
           <div className="mt-12">
-            <QuestionCarousel postIds={questionCarouselIDs} />
+            <QuestionCarousel posts={postQuestions} />
           </div>
         )}
         <div className="my-6 md:my-12 lg:my-16">
@@ -124,14 +123,12 @@ export default async function Home() {
           </div>
         </div>
 
-        {tournamentSlugs && (
+        <Suspense>
+          <TournamentsBlock />
+        </Suspense>
+        {postNotebooks.length && (
           <Suspense>
-            <TournamentsBlock postSlugs={tournamentSlugs} />
-          </Suspense>
-        )}
-        {researchIDs && (
-          <Suspense>
-            <ResearchAndUpdatesBlock postIds={researchIDs} />
+            <ResearchAndUpdatesBlock posts={postNotebooks} />
           </Suspense>
         )}
         <EngageBlock />

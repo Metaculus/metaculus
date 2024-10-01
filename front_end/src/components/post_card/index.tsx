@@ -1,15 +1,14 @@
 import { FC } from "react";
 
+import ConditionalTile from "@/components/conditional_tile";
+import NotebookTile from "@/components/post_card/notebook_tile";
+import { useAuth } from "@/contexts/auth_context";
+import { PostStatus, PostWithForecasts } from "@/types/post";
+
 import BasicPostCard from "./basic_post_card";
 import PostCardErrorBoundary from "./error_boundary";
 import GroupOfQuestionsTile from "./group_of_questions_tile";
 import QuestionChartTile from "./question_chart_tile";
-
-import ConditionalTile from "@/components/conditional_tile";
-import NotebookTile from "@/components/post_card/notebook_tile";
-import { PostStatus, PostWithForecasts } from "@/types/post";
-import ProfileApi from "@/services/profile";
-import { useAuth } from "@/contexts/auth_context";
 
 type Props = {
   post: PostWithForecasts;

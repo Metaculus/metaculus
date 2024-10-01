@@ -4,8 +4,8 @@ import Link from "next/link";
 import { FC, useEffect, useRef, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import BinaryGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/binary_group_chart";
 import ContinuousGroupTimeline from "@/app/(main)/questions/[id]/components/continuous_group_timeline";
+import BinaryGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/binary_group_chart";
 import MultipleChoiceChartCard from "@/app/(main)/questions/[id]/components/detailed_question_card/multiple_choice_chart_card";
 import FanChart from "@/components/charts/fan_chart";
 import NumericChart from "@/components/charts/numeric_chart";
@@ -21,6 +21,7 @@ import {
   getGroupQuestionsTimestamps,
   getNumericChartTypeFromQuestion,
 } from "@/utils/charts";
+import { getPostLink } from "@/utils/navigation";
 import { sortGroupPredictionOptions } from "@/utils/questions";
 
 type Props = {
@@ -221,7 +222,7 @@ const ForecastCard: FC<Props> = ({
       )}
     >
       <Link
-        href={`/questions/${post.id}`}
+        href={getPostLink(post)}
         className="absolute inset-0"
         target={navigateToNewTab ? "_blank" : "_self"}
       />

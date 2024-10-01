@@ -48,7 +48,6 @@ def resolve_question_and_send_notifications(question_id: int):
         ),
         score_types=score_types,
     )
-    print("WOOOO SCORING QUESTION", question)
 
     scores = (
         question.scores.filter(user__isnull=False)

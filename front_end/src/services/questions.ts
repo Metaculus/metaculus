@@ -1,5 +1,5 @@
 import { ForecastData, SliderValues } from "@/types/question";
-import { post } from "@/utils/fetch";
+import { get, post } from "@/utils/fetch";
 
 export type ForecastPayload = {
   questionId: number;
@@ -39,6 +39,12 @@ class QuestionsApi {
 
   static async unresolve(id: number) {
     return post<{ post_id: number }>(`/questions/${id}/unresolve/`, {});
+  }
+
+  static async legacyGetPostId(questionId: number) {
+    return get<{ post_id: number; post_slug: string }>(
+      `/questions/${questionId}/post/`
+    );
   }
 }
 

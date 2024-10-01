@@ -344,7 +344,7 @@ def notify_milestone(post: Post):
         subscription.save()
 
 
-def notify_post_status_change(post: Post, event: PostSubscription.PostStatusChange):
+def notify_post_status_change(post: Post, event: Post.PostStatusChange):
     """
     Notify about post status change
     """

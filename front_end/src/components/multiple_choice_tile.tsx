@@ -14,9 +14,9 @@ import PredictionChip from "@/components/prediction_chip";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, UserChoiceItem } from "@/types/choices";
 import { PostStatus, Resolution } from "@/types/post";
-import { Question } from "@/types/question";
+import { Question, QuestionType, Scaling } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
-import { getForecastPctDisplayValue } from "@/utils/forecasts";
+import { getChoiceOptionValue } from "@/utils/charts";
 
 type Props = {
   timestamps: number[];
@@ -28,6 +28,7 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   userForecasts?: UserChoiceItem[];
   question?: Question;
+  questionType?: QuestionType;
 };
 
 const MultipleChoiceTile: FC<Props> = ({
@@ -40,6 +41,7 @@ const MultipleChoiceTile: FC<Props> = ({
   chartTheme,
   userForecasts,
   question,
+  questionType,
 }) => {
   const t = useTranslations();
 
@@ -62,7 +64,14 @@ const MultipleChoiceTile: FC<Props> = ({
         ) : (
           <div className="embed-gap flex flex-col gap-2">
             {visibleChoices.map(
-              ({ choice, color, values, resolution, displayedResolution }) => (
+              ({
+                choice,
+                color,
+                values,
+                resolution,
+                displayedResolution,
+                scaling,
+              }) => (
                 <ChoiceOption
                   key={`choice-option-${choice}`}
                   choice={choice}
@@ -70,6 +79,8 @@ const MultipleChoiceTile: FC<Props> = ({
                   values={values}
                   resolution={resolution}
                   displayedResolution={displayedResolution}
+                  questionType={questionType}
+                  scaling={scaling}
                 />
               )
             )}
@@ -111,7 +122,17 @@ const ChoiceOption: FC<{
   values: number[];
   displayedResolution?: Resolution | null;
   resolution?: Resolution | null;
-}> = ({ choice, color, values, displayedResolution, resolution }) => {
+  questionType?: QuestionType;
+  scaling?: Scaling;
+}> = ({
+  choice,
+  color,
+  values,
+  displayedResolution,
+  resolution,
+  questionType,
+  scaling,
+}) => {
   return (
     <div
       key={`choice-option-${choice}`}
@@ -125,7 +146,11 @@ const ChoiceOption: FC<{
       </div>
       {isNil(resolution) ? (
         <div className="resize-label py-0.5 pr-1.5 text-right text-sm font-bold leading-4 text-gray-900 dark:text-gray-900-dark">
-          {getForecastPctDisplayValue(values[values.length - 1])}
+          {getChoiceOptionValue(
+            values[values.length - 1],
+            questionType,
+            scaling
+          )}
         </div>
       ) : (
         <div className="resize-label flex items-center whitespace-nowrap px-1.5 py-0.5 text-right text-sm font-bold leading-4 text-purple-800 dark:text-purple-800-dark">
