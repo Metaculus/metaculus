@@ -43,7 +43,9 @@ const baseQuestionSchema = z.object({
   fine_print: z.string(),
   scheduled_close_time: z.date(),
   scheduled_resolve_time: z.date(),
-  default_project: z.nullable(z.union([z.number(), z.string()])),
+  default_project: z
+    .array(z.number())
+    .nonempty({ message: "At least one project is required" }),
 });
 
 const binaryQuestionSchema = baseQuestionSchema;
@@ -202,7 +204,7 @@ const QuestionForm: FC<Props> = ({
       <form
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", siteMain.id);
+            control.setValue("default_project", [siteMain.id]);
           }
 
           // e.preventDefault(); // Good for debugging
@@ -231,7 +233,7 @@ const QuestionForm: FC<Props> = ({
           siteMain={siteMain}
           currentProject={defaultProject}
           onChange={(project) => {
-            control.setValue("default_project", project.id);
+            control.setValue("default_project", project);
           }}
         />
         <FormError

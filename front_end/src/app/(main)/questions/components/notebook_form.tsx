@@ -25,7 +25,9 @@ import { createQuestionPost, updatePost } from "../actions";
 const notebookSchema = z.object({
   title: z.string().min(4).max(200),
   url_title: z.string().min(4).max(60),
-  default_project: z.number(),
+  default_project: z
+    .array(z.number())
+    .nonempty({ message: "At least one project is required" }),
 });
 
 type Props = {
@@ -107,7 +109,7 @@ const NotebookForm: React.FC<Props> = ({
         className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", siteMain.id);
+            control.setValue("default_project", [siteMain.id]);
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
@@ -130,7 +132,7 @@ const NotebookForm: React.FC<Props> = ({
           siteMain={siteMain}
           currentProject={defaultProject}
           onChange={(project) => {
-            control.setValue("default_project", project.id);
+            control.setValue("default_project", project);
           }}
         />
         <InputContainer labelText={t("longTitle")}>

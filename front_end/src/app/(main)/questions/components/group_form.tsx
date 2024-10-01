@@ -32,7 +32,7 @@ type PostCreationData = {
   title: string;
   url_title: string;
   categories: number[];
-  default_project: number;
+  default_project: number[];
 };
 
 const groupQuestionSchema = z.object({
@@ -42,7 +42,9 @@ const groupQuestionSchema = z.object({
   description: z.string().min(10),
   resolution_criteria: z.string().min(1),
   fine_print: z.string(),
-  default_project: z.nullable(z.union([z.number(), z.string()])),
+  default_project: z
+    .array(z.number())
+    .nonempty({ message: "At least one project is required" }),
 });
 
 type Props = {
@@ -236,7 +238,7 @@ const GroupForm: React.FC<Props> = ({
       <form
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", siteMain.id);
+            control.setValue("default_project", [siteMain.id]);
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
@@ -255,7 +257,7 @@ const GroupForm: React.FC<Props> = ({
           siteMain={siteMain}
           currentProject={defaultProject}
           onChange={(project) => {
-            control.setValue("default_project", project.id);
+            control.setValue("default_project", project);
           }}
         />
         <InputContainer

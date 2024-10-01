@@ -22,7 +22,7 @@ import ConditionalQuestionInput from "./conditional_question_inpu";
 import { createQuestionPost, getPost, updatePost } from "../actions";
 
 type PostCreationData = {
-  default_project: number;
+  default_project: number[];
   conditional: {
     condition_id: number;
     condition_child_id: number;
@@ -31,7 +31,9 @@ type PostCreationData = {
 const conditionalQuestionSchema = z.object({
   condition_id: z.string().min(1, { message: "Required" }),
   condition_child_id: z.string().min(1, { message: "Required" }),
-  default_project: z.number(),
+  default_project: z
+    .array(z.number())
+    .nonempty({ message: "At least one project is required" }),
 });
 
 const ConditionalForm: React.FC<{
@@ -68,7 +70,7 @@ const ConditionalForm: React.FC<{
     defaultValues: {
       condition_id: conditionParentInit?.id.toString(),
       condition_child_id: conditionChild?.id.toString(),
-      default_project: tournament_id,
+      default_project: [tournament_id],
     },
   });
 
@@ -129,7 +131,7 @@ const ConditionalForm: React.FC<{
         className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", siteMain.id);
+            control.setValue("default_project", [siteMain.id]);
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
@@ -152,7 +154,7 @@ const ConditionalForm: React.FC<{
           siteMain={siteMain}
           currentProject={defaultProject}
           onChange={(project) => {
-            control.setValue("default_project", project.id);
+            control.setValue("default_project", project);
           }}
         />
         <InputContainer labelText={t("parentId")}>
@@ -216,7 +218,7 @@ async function setConditionQuestion(
     {
       condition_id: string | undefined;
       condition_child_id: string | undefined;
-      default_project: number | null;
+      default_project: (number | null)[];
     },
     any,
     undefined

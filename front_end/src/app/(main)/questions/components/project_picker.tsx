@@ -19,15 +19,16 @@ const ProjectPicker: React.FC<{
   tournaments: TournamentPreview[];
   siteMain: Tournament;
   currentProject?: TournamentPreview;
-  onChange: (project: TournamentPreview) => void;
+  onChange: (projectsId: number[]) => void;
 }> = ({ tournaments, siteMain, currentProject, onChange }) => {
   const [query, setQuery] = useState<string>("");
   const [filteredProjects, setFilteredProjects] = useState<TournamentPreview[]>(
     [siteMain, ...tournaments]
   );
   const initialProject = currentProject ? currentProject : siteMain;
-  const [selectedProject, setSelectedProject] =
-    useState<TournamentPreview>(initialProject);
+  const [selectedProjects, setSelectedProjects] = useState<TournamentPreview[]>(
+    [initialProject]
+  );
 
   useEffect(() => {
     setFilteredProjects(
@@ -42,8 +43,9 @@ const ProjectPicker: React.FC<{
       <Combobox
         immediate
         onChange={(_) => {
-          onChange(selectedProject);
+          onChange(selectedProjects.map((project) => project.id));
         }}
+        multiple
       >
         <div className="relative mt-1">
           <div className="relative w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
@@ -87,8 +89,22 @@ const ProjectPicker: React.FC<{
                     }
                     value={project}
                     onClick={(x) => {
-                      setSelectedProject(project);
-                      onChange(project);
+                      const isProjectAlreadyIncluded =
+                        selectedProjects.includes(project);
+                      setSelectedProjects((prev) =>
+                        isProjectAlreadyIncluded
+                          ? [...prev].filter((item) => item !== project)
+                          : [...prev, project]
+                      );
+                      const projectsId = selectedProjects.map(
+                        (item) => item.id
+                      );
+
+                      onChange(
+                        isProjectAlreadyIncluded
+                          ? [...projectsId].filter((id) => id === project.id)
+                          : [...projectsId, project.id]
+                      );
                       setQuery("");
                       setFilteredProjects([siteMain, ...tournaments]);
                       // we need timeout to blur the combobox after the selection is made
@@ -101,14 +117,14 @@ const ProjectPicker: React.FC<{
                       <div className="flex flex-row items-center">
                         <span
                           className={`block cursor-pointer truncate py-2 pl-4 pr-2.5 ${
-                            selectedProject === project
+                            selectedProjects.includes(project)
                               ? "font-bold"
                               : "font-normal"
                           }`}
                         >
                           {project.name}
                         </span>
-                        {selectedProject === project && (
+                        {selectedProjects.includes(project) && (
                           <span className="flex items-center">
                             <FontAwesomeIcon
                               icon={faCheck}
@@ -126,15 +142,20 @@ const ProjectPicker: React.FC<{
         </div>
       </Combobox>
       <span className="text-xs">
-        Selected project:
-        <span className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1">
-          <Link
-            href={`/tournament/${selectedProject.id}`}
-            className="text-white no-underline"
+        Selected projects:
+        {selectedProjects.map((project) => (
+          <span
+            key={project.id}
+            className="border-1 ml-1 rounded bg-blue-600 pl-1 pr-1"
           >
-            {selectedProject.name}
-          </Link>
-        </span>
+            <Link
+              href={`/tournament/${project.id}`}
+              className="text-white no-underline"
+            >
+              {project.name}
+            </Link>
+          </span>
+        ))}
       </span>
       <div></div>
       <span className="text-xs">

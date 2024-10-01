@@ -14,7 +14,7 @@ type Props = {
     {
       condition_id: string | undefined;
       condition_child_id: string | undefined;
-      default_project: number | null;
+      default_project: (number | null)[];
     },
     any,
     undefined
