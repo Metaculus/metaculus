@@ -89,8 +89,9 @@ const ProjectPicker: React.FC<{
                     }
                     value={project}
                     onClick={(x) => {
-                      const isProjectAlreadyIncluded =
-                        selectedProjects.includes(project);
+                      const isProjectAlreadyIncluded = selectedProjects.some(
+                        (item) => item.id === project.id
+                      );
                       setSelectedProjects((prev) =>
                         isProjectAlreadyIncluded
                           ? [...prev].filter((item) => item !== project)
@@ -117,14 +118,18 @@ const ProjectPicker: React.FC<{
                       <div className="flex flex-row items-center">
                         <span
                           className={`block cursor-pointer truncate py-2 pl-4 pr-2.5 ${
-                            selectedProjects.includes(project)
+                            selectedProjects.some(
+                              (item) => item.id === project.id
+                            )
                               ? "font-bold"
                               : "font-normal"
                           }`}
                         >
                           {project.name}
                         </span>
-                        {selectedProjects.includes(project) && (
+                        {selectedProjects.some(
+                          (item) => item.id === project.id
+                        ) && (
                           <span className="flex items-center">
                             <FontAwesomeIcon
                               icon={faCheck}
