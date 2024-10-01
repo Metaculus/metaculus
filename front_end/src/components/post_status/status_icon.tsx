@@ -69,6 +69,29 @@ const PostStatusIcon: FC<Props> = ({
     //   return <circle r="10" className="stroke-blue-700 stroke-1" />;
     // }
 
+    if (status === PostStatus.PENDING) {
+      return (
+        <>
+          <path d="" className="fill-mint-500" />
+          <circle
+            r="10"
+            strokeWidth="1"
+            className="stroke-blue-700 dark:stroke-blue-700-dark"
+          />
+          <text
+            x="0"
+            y="4"
+            font-size="14"
+            font-weight="bold"
+            fill="currentColor"
+            text-anchor="middle"
+          >
+            ?
+          </text>
+        </>
+      );
+    }
+
     if (showClock) {
       return (
         <>
