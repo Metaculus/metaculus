@@ -56,7 +56,7 @@ class ObjectPermission(models.TextChoices, metaclass=ChoicesType):
         can = bool(permission)
 
         if raise_exception and not can:
-            raise PermissionDenied("You do not have permission to view this project")
+            raise PermissionDenied("You do not have permission to view this object")
 
         return can
 
