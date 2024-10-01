@@ -1,12 +1,12 @@
 from collections import defaultdict
 from typing import Any
 
+from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from projects.models import Project, ProjectUserPermission
 from users.serializers import UserPublicSerializer
-from django.db.models import Q
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -66,6 +66,7 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "user_permission",
             "created_at",
             "score_type",
+            "default_permission",
         )
 
     def get_score_type(self, project: Project) -> str | None:
@@ -88,39 +89,41 @@ class TournamentSerializer(TournamentShortSerializer):
         )
 
 
+def serialize_project(obj: Project):
+    match obj.type:
+        case obj.ProjectTypes.TAG:
+            serializer = TagSerializer
+        case obj.ProjectTypes.TOPIC:
+            serializer = TopicSerializer
+        case obj.ProjectTypes.CATEGORY:
+            serializer = CategorySerializer
+        case obj.ProjectTypes.TOURNAMENT:
+            serializer = MiniTournamentSerializer
+        case obj.ProjectTypes.QUESTION_SERIES:
+            serializer = MiniTournamentSerializer
+        case obj.ProjectTypes.SITE_MAIN:
+            serializer = MiniTournamentSerializer
+        case _:
+            serializer = TagSerializer
+
+    return serializer(obj).data
+
+
 def serialize_projects(
     projects: list[Project], default_project: Project = None
 ) -> defaultdict[Any, list]:
+    projects = set(projects) | {default_project}
     data = defaultdict(list)
 
-    if (
-        default_project
-        and len([x for x in projects if x.id == default_project.id]) == 0
-    ):
-        projects = [x for x in projects] + [default_project]
     for obj in projects:
-        if obj.default_permission is None:
-            continue
+        serialized_data = serialize_project(obj)
 
-        match obj.type:
-            case obj.ProjectTypes.TAG:
-                serializer = TagSerializer
-            case obj.ProjectTypes.TOPIC:
-                serializer = TopicSerializer
-            case obj.ProjectTypes.CATEGORY:
-                serializer = CategorySerializer
-            case obj.ProjectTypes.TOURNAMENT:
-                serializer = MiniTournamentSerializer
-            case obj.ProjectTypes.QUESTION_SERIES:
-                serializer = MiniTournamentSerializer
-            case obj.ProjectTypes.SITE_MAIN:
-                serializer = MiniTournamentSerializer
-            case _:
-                continue
+        if obj.default_permission:
+            data[obj.type].append(serialized_data)
 
-        data[obj.type].append(serializer(obj).data)
-        if default_project and obj.id == default_project.id:
-            data["default_project"] = data[obj.type][-1]
+        if obj == default_project:
+            data["default_project"] = serialized_data
+
     return data
 
 

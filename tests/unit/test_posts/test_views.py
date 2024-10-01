@@ -7,11 +7,13 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from posts.models import Post, PostUserSnapshot
+from projects.models import Project
 from projects.services import get_site_main_project
 from questions.models import Question
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
+from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.factories import create_question
 
 
@@ -191,6 +193,40 @@ class TestPostCreate:
         assert Post.objects.filter(id=post_id).filter_permission().exists()
         assert Post.objects.filter(id=post_id).filter_permission(user=user2).exists()
         assert Post.objects.filter(id=post_id).filter_permission(user=user1).exists()
+
+
+class TestPostUpdate:
+    def test_dont_clear_tags(self, user1, user1_client):
+        tag = factory_project(type=Project.ProjectTypes.TAG)
+        category = factory_project(type=Project.ProjectTypes.CATEGORY)
+        tournament = factory_project(type=Project.ProjectTypes.TOURNAMENT)
+
+        post = factory_post(
+            author=user1,
+            projects=[tag, category, tournament],
+            default_project=get_site_main_project(),
+            curation_status=Post.CurationStatus.DRAFT,
+        )
+
+        category_updated = factory_project(type=Project.ProjectTypes.CATEGORY)
+
+        data = {
+            "categories": [category_updated.pk],
+            "title": "Will SpaceX land people on Mars before 2030?",
+            "url_title": "SpaceX Lands People on Mars by 2030",
+        }
+        response = user1_client.put(
+            reverse("post-update", kwargs={"pk": post.pk}), data, format="json"
+        )
+
+        assert response.status_code == 200
+
+        post.refresh_from_db()
+
+        # Assert other projects were not updated
+        assert set(post.projects.all()) == {tag, category_updated, tournament}
+        # Ensure default project
+        assert post.default_project == get_site_main_project()
 
 
 def test_posts_list(anon_client):

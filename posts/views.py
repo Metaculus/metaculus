@@ -243,7 +243,7 @@ def post_update_api_view(request, pk):
 
     return Response(
         serialize_post(post, with_cp=False, current_user=request.user),
-        status=status.HTTP_201_CREATED,
+        status=status.HTTP_200_OK,
     )
 
 

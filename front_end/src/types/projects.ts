@@ -67,4 +67,5 @@ export type Tournament = TournamentPreview & {
   meta_description: string;
   is_subscribed?: boolean;
   add_posts_to_main_feed: boolean;
+  default_permission?: ProjectPermissions | null;
 };
