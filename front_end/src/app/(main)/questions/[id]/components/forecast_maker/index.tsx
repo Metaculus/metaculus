@@ -35,7 +35,7 @@ const ForecastMaker: FC<Props> = ({ post }) => {
     ) &&
     !isNil(post.published_at) &&
     parseISO(post.published_at) <= new Date() &&
-    [PostStatus.APPROVED, PostStatus.CLOSED].includes(status);
+    [PostStatus.APPROVED, PostStatus.OPEN, PostStatus.CLOSED].includes(status);
 
   const predictionMessage = getPredictionInputMessage(post);
   if (groupOfQuestions) {

@@ -34,7 +34,7 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
       return [t("closed")];
     }
 
-    if (status === PostStatusEnum.APPROVED) {
+    if ([PostStatusEnum.APPROVED, PostStatusEnum.OPEN].includes(status)) {
       if (new Date(open_time).getTime() > Date.now()) {
         return [
           t("opens"),
