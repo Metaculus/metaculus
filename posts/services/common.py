@@ -176,7 +176,8 @@ def get_post_permission_for_user(post: Post, user: User = None) -> ObjectPermiss
     perm = (
         Post.objects.annotate_user_permission(user=user)
         .values_list("user_permission", flat=True)
-        .get(id=post.id)
+        .filter(id=post.id)
+        .first()
     )
     return perm
 
@@ -365,9 +366,7 @@ def post_make_draft(post: Post):
 def resolve_post(post: Post):
     post.set_resolved()
 
-    run_notify_post_status_change.send(
-        post.id, Post.PostStatusChange.RESOLVED
-    )
+    run_notify_post_status_change.send(post.id, Post.PostStatusChange.RESOLVED)
 
 
 def handle_post_open(post: Post):
