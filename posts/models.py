@@ -208,23 +208,18 @@ class PostQuerySet(models.QuerySet):
             ),
         )
 
-        # Exclude posts user don't have access to
+        # Exclude posts user doesn't have access to
         qs = qs.filter(
-            (
+            Q(author_id=user_id)
+            | (
                 Q(
                     _user_permission__in=[
                         ObjectPermission.ADMIN,
                         ObjectPermission.CURATOR,
                     ]
                 )
-                & Q(
-                    curation_status__in=[
-                        Post.CurationStatus.APPROVED,
-                        Post.CurationStatus.PENDING,
-                    ]
-                )
+                & Q(curation_status=Post.CurationStatus.PENDING)
             )
-            | Q(author_id=user_id)
             | (
                 Q(_user_permission__isnull=False)
                 & (
@@ -238,9 +233,8 @@ class PostQuerySet(models.QuerySet):
         )
 
         qs = qs.annotate(
-            # Calculate actual user permission by a couple of extra conditions
             user_permission=models.Case(
-                # If user is the question author
+                # Admin/Curator is more important than Creator
                 models.When(
                     Q(
                         _user_permission__in=[

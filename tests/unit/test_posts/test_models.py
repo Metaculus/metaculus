@@ -227,6 +227,33 @@ class TestPostPermissions:
         # Post is now visible for a random user
         assert Post.objects.filter_permission(user=user4).filter(pk=p1.pk).exists()
 
+        # Approve post
+        p1.curation_status = Post.CurationStatus.APPROVED
+        p1.save()
+
+        # Post is visible for creator
+        assert Post.objects.filter_permission(user=user1).filter(pk=p1.pk).exists()
+        # Visible for admins
+        assert Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
+        # Post visible for Forecaster
+        assert Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
+        # Post visible for a random user
+        assert Post.objects.filter_permission(user=user4).filter(pk=p1.pk).exists()
+
+        # Reject post
+        p1.curation_status = Post.CurationStatus.REJECTED
+        p1.save()
+
+        # Post is visible for creator only
+        assert Post.objects.filter_permission(user=user1).filter(pk=p1.pk).exists()
+        # not visible for admins
+        assert not Post.objects.filter_permission(user=user3).filter(pk=p1.pk).exists()
+        # Post not visible for Forecaster
+        assert not Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
+        # Post not visible for a random user
+        assert not Post.objects.filter_permission(user=user4).filter(pk=p1.pk).exists()
+
+
     @pytest.mark.parametrize(
         "user_project_permission,excepted_permission",
         [
