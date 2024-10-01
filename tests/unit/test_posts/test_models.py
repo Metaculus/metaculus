@@ -1,6 +1,6 @@
-import pytest  # noqa
 import datetime
 
+import pytest  # noqa
 from freezegun import freeze_time
 
 from posts.models import Post
@@ -252,7 +252,6 @@ class TestPostPermissions:
         assert not Post.objects.filter_permission(user=user2).filter(pk=p1.pk).exists()
         # Post not visible for a random user
         assert not Post.objects.filter_permission(user=user4).filter(pk=p1.pk).exists()
-
 
     @pytest.mark.parametrize(
         "user_project_permission,excepted_permission",
