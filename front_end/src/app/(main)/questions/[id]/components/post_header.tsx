@@ -95,13 +95,15 @@ export default function PostHeader({
             ) : null}
           </>
         )}
-        <div className="ml-auto flex flex-row justify-self-end text-gray-700 dark:text-gray-700-dark lg:hidden">
-          {post.curation_status == PostStatus.APPROVED && (
-            <PostSubscribeButton post={post} mini />
-          )}
-          <SharePostMenu questionTitle={questionTitle} questionId={post.id} />
-          <PostDropdownMenu post={post} />
-        </div>
+        {!post.notebook && (
+          <div className="ml-auto flex flex-row justify-self-end text-gray-700 dark:text-gray-700-dark lg:hidden">
+            {post.curation_status == PostStatus.APPROVED && (
+              <PostSubscribeButton post={post} mini />
+            )}
+            <SharePostMenu questionTitle={questionTitle} questionId={post.id} />
+            <PostDropdownMenu post={post} />
+          </div>
+        )}
       </div>
       {[PostStatus.PENDING, PostStatus.DRAFT].includes(
         post.curation_status
