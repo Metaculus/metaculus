@@ -1,4 +1,5 @@
 import { FC } from "react";
+
 import RefreshButton from "./refresh_button";
 
 const WithServerComponentErrorBoundary = <P extends {}>(
