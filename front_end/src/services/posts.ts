@@ -49,6 +49,14 @@ class PostsApi {
     );
   }
 
+  static async getPostAnonymous(id: number): Promise<PostWithForecasts> {
+    return await get<PostWithForecasts>(
+      `/posts/${id}/`,
+      {},
+      { passAuthHeader: false }
+    );
+  }
+
   static async removePostFromProject(postId: number, projectId: number) {
     await post<any>(`/posts/${postId}/remove_from_project/`, {
       project_id: projectId,

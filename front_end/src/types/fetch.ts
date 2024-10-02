@@ -1,5 +1,6 @@
 export type FetchOptions = RequestInit & {
   headers?: HeadersInit;
+  passToken?: boolean;
 };
 
 /**
