@@ -41,7 +41,7 @@ const HistogramDrawer: FC<Props> = ({
           histogramData={histogramData}
           median={median}
           mean={mean}
-          color={"green"}
+          color={"gray"}
         />
       )
     );
