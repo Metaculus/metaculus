@@ -3,11 +3,13 @@
 import { faFacebook } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import React, { FC, useEffect, useState } from "react";
 
+import { getSocialProviders } from "@/app/(main)/actions";
 import { Google } from "@/components/icons/google";
 import Button from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth_context";
+import LoadingSpinner from "@/components/ui/loading_spiner";
+import { SocialProvider } from "@/types/auth";
 
 type SocialButtonsType = {
   type: "signin" | "signup";
@@ -15,10 +17,17 @@ type SocialButtonsType = {
 
 const SocialButtons: FC<SocialButtonsType> = ({ type }) => {
   const t = useTranslations();
-  const { socialProviders } = useAuth();
+  const [socialProviders, setSocialProviders] = useState<SocialProvider[]>();
+
+  useEffect(() => {
+    getSocialProviders()
+      .then(setSocialProviders)
+      .catch(() => setSocialProviders([]));
+  }, []);
 
   return (
     <>
+      {socialProviders === undefined && <LoadingSpinner size="1x" />}
       {socialProviders &&
         socialProviders.map((provider) => {
           switch (provider.name) {

@@ -1,9 +1,9 @@
 import { FC } from "react";
 
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import PostsApi from "@/services/posts";
 
 import NewsMatchDrawer from "./news_match_drawer";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 interface Props {
   questionId: number;
