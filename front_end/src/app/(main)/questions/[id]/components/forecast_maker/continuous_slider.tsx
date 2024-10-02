@@ -3,13 +3,13 @@ import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
-import { useAuth } from "@/contexts/auth_context";
 
 import MultiSlider, {
   MultiSliderValue,
 } from "@/components/sliders/multi_slider";
 import Slider from "@/components/sliders/slider";
 import InlineSelect from "@/components/ui/inline_select";
+import { useAuth } from "@/contexts/auth_context";
 import { ContinuousAreaGraphType } from "@/types/charts";
 import { QuestionWithNumericForecasts } from "@/types/question";
 

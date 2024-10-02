@@ -76,7 +76,7 @@ const ContinuousPredictionChart: FC<Props> = ({
       });
     }
 
-    if (!readOnly) {
+    if (!readOnly || !!question.my_forecasts?.latest) {
       charts.push({
         pmf: dataset.pmf,
         cdf: dataset.cdf,
@@ -90,6 +90,8 @@ const ContinuousPredictionChart: FC<Props> = ({
     dataset.cdf,
     dataset.pmf,
     readOnly,
+    showCP,
+    question.my_forecasts?.latest,
   ]);
 
   return (
