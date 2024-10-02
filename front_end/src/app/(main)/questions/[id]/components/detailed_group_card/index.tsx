@@ -122,6 +122,8 @@ const DetailedGroupCard: FC<Props> = ({
               preselectedQuestionId={preselectedQuestionId}
             />
           );
+        default:
+          return null;
       }
     }
     case GroupOfQuestionsGraphType.FanGraph:
