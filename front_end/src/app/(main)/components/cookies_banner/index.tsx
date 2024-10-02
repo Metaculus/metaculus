@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import posthog from "posthog-js";
+// import posthog from "posthog-js";
 import { FC, useEffect, useState } from "react";
 
 import Button from "@/components/ui/button";
@@ -15,25 +15,26 @@ const STORAGE_KEY = "analytic_cookie_consent";
 const CookiesBanner: FC = () => {
   const t = useTranslations();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
   const [consentGiven, setConsentGiven] = useState<ConsentGiven | null>(null);
   const [analyticsCheckboxValue, setAnalyticsCheckboxValue] =
     useState<boolean>(true);
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  // const openModal = () => setIsModalOpen(true);
+  // const closeModal = () => setIsModalOpen(false);
 
   useEffect(() => {
     setConsentGiven(getAnalyticsCookieConsentGiven());
   }, []);
 
-  useEffect(() => {
-    if (consentGiven !== null) {
-      posthog.set_config({
-        persistence: consentGiven === "yes" ? "localStorage+cookie" : "memory",
-      });
-    }
-  }, [consentGiven]);
+  // TODO: uncomment once we want to support cookies configuration
+  // useEffect(() => {
+  //   if (consentGiven !== null) {
+  //     posthog.set_config({
+  //       persistence: consentGiven === "yes" ? "localStorage+cookie" : "memory",
+  //     });
+  //   }
+  // }, [consentGiven]);
 
   const submitBanner = () => {
     const consentValue = analyticsCheckboxValue ? "yes" : "no";
@@ -66,20 +67,21 @@ const CookiesBanner: FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={openModal}>{t("customize")}</Button>
+          {/*TODO: uncomment once we want to support cookies configuration*/}
+          {/*<Button onClick={openModal}>{t("customize")}</Button>*/}
           <Button variant="primary" onClick={submitBanner}>
             {t("acceptAndClose")}
           </Button>
         </div>
       </div>
 
-      <CookiesModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        analyticsValue={analyticsCheckboxValue}
-        onAnalyticsValueChange={setAnalyticsCheckboxValue}
-        onSubmit={submitBanner}
-      />
+      {/*<CookiesModal*/}
+      {/*  isOpen={isModalOpen}*/}
+      {/*  onClose={closeModal}*/}
+      {/*  analyticsValue={analyticsCheckboxValue}*/}
+      {/*  onAnalyticsValueChange={setAnalyticsCheckboxValue}*/}
+      {/*  onSubmit={submitBanner}*/}
+      {/*/>*/}
     </div>
   );
 };
