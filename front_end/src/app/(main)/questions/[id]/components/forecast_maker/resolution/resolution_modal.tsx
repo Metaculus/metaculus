@@ -136,6 +136,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               resolutionType === "unambiguous" && (
                 <Input
                   type="number"
+                  step="any"
                   placeholder="numeric resolution"
                   className="max-w-xs bg-transparent"
                   min={question.scaling.range_min!}
