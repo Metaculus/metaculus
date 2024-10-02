@@ -94,7 +94,11 @@ class PostsApi {
   static async getPostsForHomepage(): Promise<
     (PostWithForecasts | PostWithNotebook)[]
   > {
-    return await get(`/posts/homepage/`);
+    return await get(`/posts/homepage/`, {
+      next: {
+        revalidate: 900,
+      },
+    });
   }
 
   static async createQuestionPost(body: any): Promise<PostWithForecasts> {
