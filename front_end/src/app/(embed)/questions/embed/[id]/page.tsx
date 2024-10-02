@@ -20,7 +20,7 @@ export default async function GenerateQuestionPreview({
   searchParams: SearchParams;
 }) {
   const t = await getTranslations();
-  const post = await PostsApi.getPost(params.id);
+  const post = await PostsApi.getPostAnonymous(params.id);
   if (!post) {
     return null;
   }

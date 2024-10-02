@@ -10,10 +10,20 @@ import { ErrorResponse } from "@/types/fetch";
 import { getAlphaAccessToken } from "@/utils/alpha_access";
 
 export async function middleware(request: NextRequest) {
+  const isEmbeddingRequest =
+    Boolean(request.headers.get("image-preview-request")) ||
+    request.nextUrl.pathname.includes("/api/posts/preview-image/") ||
+    request.nextUrl.pathname.includes("/questions/embed/") ||
+    request.nextUrl.pathname.includes("/experiments/embed/") ||
+    request.nextUrl.pathname.includes("/opengraph-image-") ||
+    request.nextUrl.pathname.includes("/twitter-image-");
   let deleteCookieToken = false;
 
   // Run for pages only
-  if (request.nextUrl.pathname.match("/((?!static|.*\\..*|_next).*)")) {
+  if (
+    request.nextUrl.pathname.match("/((?!static|.*\\..*|_next).*)") &&
+    !isEmbeddingRequest
+  ) {
     const serverSession = getServerSession();
 
     if (serverSession) {
@@ -40,17 +50,10 @@ export async function middleware(request: NextRequest) {
     const alphaAccessToken = await getAlphaAccessToken();
     const alphaAuthUrl = "/alpha-auth";
 
-    const isEmbeddingRequest =
-      Boolean(request.headers.get("image-preview-request")) ||
-      request.nextUrl.pathname.includes("/api/posts/preview-image/") ||
-      request.nextUrl.pathname.includes("/embed/") ||
-      request.nextUrl.pathname.includes("/opengraph-image-") ||
-      request.nextUrl.pathname.includes("/twitter-image-");
     if (
       alphaAccessToken &&
       getAlphaTokenSession() !== alphaAccessToken &&
-      !request.nextUrl.pathname.startsWith(alphaAuthUrl) &&
-      !isEmbeddingRequest
+      !request.nextUrl.pathname.startsWith(alphaAuthUrl)
     ) {
       return NextResponse.redirect(new URL(alphaAuthUrl, request.url));
     }
@@ -61,16 +64,6 @@ export async function middleware(request: NextRequest) {
 
   const locale_in_url = request.nextUrl.searchParams.get("locale");
   const local_in_cookie = request.cookies.get("NEXT_LOCALE")?.value;
-  /*
-  if ((locale_in_url == "en" && local_in_cookie == locale_in_url) || (!locale_in_url && local_in_cookie)) {
-    if (locale_in_url == "en" && local_in_cookie == locale_in_url) {
-        request.nextUrl.searchParams.delete("locale")
-      } else if (!locale_in_url && local_in_cookie) {
-        request.nextUrl.searchParams.append("locale", local_in_cookie);
-      }
-      return NextResponse.redirect(request.nextUrl)
-  }
-  */
 
   const response = NextResponse.next({
     request: {
