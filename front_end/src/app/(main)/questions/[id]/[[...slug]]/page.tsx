@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { permanentRedirect } from "next/dist/client/components/redirect";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { cache } from "react";
 
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
@@ -66,13 +67,15 @@ async function getPost(id: number, with_cp = true) {
   }
 }
 
+const cachedGetPost = cache(getPost);
+
 type Props = {
   params: { id: number; slug: string[] };
   searchParams: SearchParams;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const postData = await getPost(params.id, false);
+  const postData = await cachedGetPost(params.id);
 
   if (!postData) {
     return {};
@@ -108,7 +111,7 @@ export default async function IndividualQuestion({
   params,
   searchParams,
 }: Props) {
-  const postData = await getPost(params.id);
+  const postData = await cachedGetPost(params.id);
 
   if (postData.notebook) {
     return redirect(
@@ -141,13 +144,10 @@ export default async function IndividualQuestion({
     postData.user_permission === ProjectPermissions.ADMIN ||
     postData.user_permission === ProjectPermissions.CURATOR ||
     (postData.user_permission === ProjectPermissions.CREATOR &&
-      postData.status !== PostStatus.APPROVED);
+      postData.curation_status !== PostStatus.APPROVED);
 
   const questionTitle = getQuestionTitle(postData);
-  const isClosed =
-    postData.status === PostStatus.CLOSED || postData.actual_close_time
-      ? new Date(postData.actual_close_time).getTime() < Date.now()
-      : false;
+  const isClosed = postData.status === PostStatus.CLOSED;
   return (
     <EmbedModalContextProvider>
       <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4">

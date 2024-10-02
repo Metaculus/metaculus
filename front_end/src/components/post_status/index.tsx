@@ -1,3 +1,6 @@
+"use client";
+
+import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC, useMemo } from "react";
 
@@ -34,7 +37,7 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
       return [t("closed")];
     }
 
-    if (status === PostStatusEnum.APPROVED) {
+    if ([PostStatusEnum.APPROVED, PostStatusEnum.OPEN].includes(status)) {
       if (new Date(open_time).getTime() > Date.now()) {
         return [
           t("opens"),
@@ -86,4 +89,6 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
   );
 };
 
-export default PostStatus;
+export default dynamic(() => Promise.resolve(PostStatus), {
+  ssr: false,
+});

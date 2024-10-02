@@ -11,7 +11,8 @@ import { FormError } from "./form_field";
 type Props = {
   checked?: boolean;
   defaultChecked?: boolean;
-  onChange: (checked: boolean) => void;
+  onChange?: (checked: boolean) => void;
+  disabled?: boolean;
   label: string;
   inputClassName?: string;
   className?: string;
@@ -30,6 +31,7 @@ const Checkbox: FC<Props> = ({
   checked,
   defaultChecked,
   onChange,
+  disabled,
   label,
   children,
   inputClassName,
@@ -50,6 +52,7 @@ const Checkbox: FC<Props> = ({
       onMouseLeave={onMouseLeave}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
+      disabled={disabled}
     >
       <HeadlessCheckbox
         checked={checked}
@@ -70,14 +73,18 @@ const Checkbox: FC<Props> = ({
             <FontAwesomeIcon
               icon={faSquareCheck}
               size="xl"
-              className={classNames("mr-1", inputClassName)}
+              className={classNames("mr-1", inputClassName, {
+                "opacity-20": disabled,
+              })}
               color={color}
             />
           ) : (
             <FontAwesomeIcon
               icon={faSquare}
               size="xl"
-              className={classNames("mr-1", inputClassName)}
+              className={classNames("mr-1", inputClassName, {
+                "opacity-20": disabled,
+              })}
               color={color}
             />
           )

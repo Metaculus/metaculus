@@ -36,7 +36,7 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
           histogramData={histogramData}
           median={median}
           mean={mean}
-          color={"green"}
+          color={"gray"}
         />
       </SectionToggle>
     );
@@ -83,7 +83,7 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
               histogramData={histogramData_yes}
               median={median_yes}
               mean={mean_yes}
-              color="green"
+              color="gray"
             />
           </>
         )}

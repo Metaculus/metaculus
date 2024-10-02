@@ -9,7 +9,7 @@ import { updateNotebook } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
 import PostDefaultProject from "@/components/post_default_project";
 import Button from "@/components/ui/button";
-import { PostWithNotebook } from "@/types/post";
+import { PostStatus, PostWithNotebook, ProjectPermissions } from "@/types/post";
 
 interface NotebookEditorProps {
   postData: PostWithNotebook;
@@ -26,6 +26,13 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
   const [title, setTitle] = useState(postData.title);
   const [markdown, setMarkdown] = useState(postData.notebook.markdown);
 
+  const allowModifications =
+    [ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
+      postData.user_permission
+    ) ||
+    (postData.user_permission === ProjectPermissions.CREATOR &&
+      postData.curation_status !== PostStatus.APPROVED);
+
   const toggleEditMode = () => {
     if (isEditing) {
       void updateNotebook(postData.id, markdown, title);
@@ -38,10 +45,11 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
     <div>
       <div className="flex">
         <PostDefaultProject defaultProject={defaultProject} />
-
-        <Button className="ml-auto p-2" onClick={toggleEditMode}>
-          {isEditing ? "save" : "edit"}
-        </Button>
+        {allowModifications && (
+          <Button className="ml-auto p-2" onClick={toggleEditMode}>
+            {isEditing ? "save" : "edit"}
+          </Button>
+        )}
       </div>
 
       {isEditing && (

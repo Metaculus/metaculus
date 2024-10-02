@@ -1,5 +1,6 @@
 "use client";
 
+import classNames from "classnames";
 import { range } from "lodash";
 import { useTranslations } from "next-intl";
 import React from "react";
@@ -9,17 +10,15 @@ import {
   VictoryChart,
   VictoryContainer,
 } from "victory";
-import classNames from "classnames";
 
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
-import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 
 type HistogramProps = {
   histogramData: { x: number; y: number }[];
   median: number | undefined;
   mean: number | undefined;
-  color: "blue" | "green";
+  color: "blue" | "gray";
 };
 
 const Histogram: React.FC<HistogramProps> = ({
@@ -29,7 +28,7 @@ const Histogram: React.FC<HistogramProps> = ({
   color,
 }) => {
   const t = useTranslations();
-  const { theme, getThemeColor } = useAppTheme();
+  const { theme } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
 
   const maxY = Math.max(...histogramData.map((d) => d.y));
@@ -44,7 +43,7 @@ const Histogram: React.FC<HistogramProps> = ({
               className={classNames(
                 color === "blue"
                   ? "text-conditional-blue-500 dark:text-conditional-blue-500-dark"
-                  : "text-conditional-green-500 dark:text-conditional-green-500-dark"
+                  : `placeholder:text-[light${color}]`
               )}
             >{`${(100 * median).toFixed(1)}%`}</span>
           </span>
@@ -56,7 +55,7 @@ const Histogram: React.FC<HistogramProps> = ({
               className={classNames(
                 color === "blue"
                   ? "text-conditional-blue-500 dark:text-conditional-blue-500-dark"
-                  : "text-conditional-green-500 dark:text-conditional-green-500-dark"
+                  : `text-[light${color}]`
               )}
             >{`${(100 * mean).toFixed(1)}%`}</span>
           </span>
@@ -87,16 +86,8 @@ const Histogram: React.FC<HistogramProps> = ({
           data={histogramData}
           style={{
             data: {
-              fill: getThemeColor(
-                color === "blue"
-                  ? METAC_COLORS["conditional-blue"]["500"]
-                  : METAC_COLORS["conditional-green"]["500"]
-              ),
-              stroke: getThemeColor(
-                color === "blue"
-                  ? METAC_COLORS["conditional-blue"]["700"]
-                  : METAC_COLORS["conditional-green"]["700"]
-              ),
+              fill: "light" + color,
+              stroke: "dark" + color,
               strokeWidth: 1,
             },
           }}

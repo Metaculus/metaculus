@@ -39,15 +39,17 @@ export default function PostHeader({
     post.user_permission === ProjectPermissions.ADMIN ||
     post.user_permission === ProjectPermissions.CURATOR ||
     (post.user_permission === ProjectPermissions.CREATOR &&
-      post.status === PostStatus.APPROVED);
+      post.curation_status !== PostStatus.APPROVED);
 
   const canEdit = [
     ProjectPermissions.CURATOR,
     ProjectPermissions.ADMIN,
     ProjectPermissions.CREATOR,
   ].includes(post.user_permission);
-  const canSendBackToDrafts = post.status === PostStatus.PENDING && canEdit;
-  const canSubmitForReview = post.status === PostStatus.DRAFT && canEdit;
+  const canSendBackToDrafts =
+    post.curation_status === PostStatus.PENDING && canEdit;
+  const canSubmitForReview =
+    post.curation_status === PostStatus.DRAFT && canEdit;
   const canApprove = [
     ProjectPermissions.CURATOR,
     ProjectPermissions.ADMIN,
@@ -78,7 +80,7 @@ export default function PostHeader({
             >
               {t("edit")}
             </Button>
-            {post.status === PostStatus.APPROVED &&
+            {post.curation_status === PostStatus.APPROVED &&
             [ProjectPermissions.CURATOR, ProjectPermissions.ADMIN].includes(
               post.user_permission
             ) &&
@@ -93,17 +95,21 @@ export default function PostHeader({
             ) : null}
           </>
         )}
-        <div className="ml-auto flex flex-row justify-self-end text-gray-700 dark:text-gray-700-dark lg:hidden">
-          {post.status == PostStatus.APPROVED && (
-            <PostSubscribeButton post={post} mini />
-          )}
-          <SharePostMenu questionTitle={questionTitle} questionId={post.id} />
-          <PostDropdownMenu post={post} />
-        </div>
+        {!post.notebook && (
+          <div className="ml-auto flex flex-row justify-self-end text-gray-700 dark:text-gray-700-dark lg:hidden">
+            {post.curation_status == PostStatus.APPROVED && (
+              <PostSubscribeButton post={post} mini />
+            )}
+            <SharePostMenu questionTitle={questionTitle} questionId={post.id} />
+            <PostDropdownMenu post={post} />
+          </div>
+        )}
       </div>
-      {[PostStatus.PENDING, PostStatus.DRAFT].includes(post.status) && (
+      {[PostStatus.PENDING, PostStatus.DRAFT].includes(
+        post.curation_status
+      ) && (
         <div className="mt-4 border border-gray-300 bg-gray-200 p-3 dark:border-gray-300-dark dark:bg-gray-200-dark">
-          {post.status === PostStatus.PENDING && (
+          {post.curation_status === PostStatus.PENDING && (
             <>
               <h4 className="mb-2 mt-0">{t("inReview")}</h4>
               <p className="mb-3 mt-0 leading-5">
@@ -148,7 +154,6 @@ export default function PostHeader({
               <Button
                 onClick={async () => {
                   await draftPost(post.id);
-                  router.refresh();
                 }}
               >
                 {t("sendBackToDrafts")}
