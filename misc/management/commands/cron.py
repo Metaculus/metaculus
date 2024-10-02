@@ -93,7 +93,7 @@ class Command(BaseCommand):
         )
         scheduler.add_job(
             close_old_connections(compute_hotness),
-            trigger=CronTrigger.from_crontab("15 * * * *"),  # Every Hour at :15
+            trigger=CronTrigger.from_crontab("*/10 * * * *"),  # Every 10 minutes
             id="posts_compute_hotness",
             max_instances=1,
             replace_existing=True,

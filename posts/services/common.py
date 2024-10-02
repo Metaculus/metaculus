@@ -300,7 +300,7 @@ def compute_hotness():
         )
         + (
             # Net votes in last week * 5
-            # Please note: we dind't have this before
+            # Please note: we didn't have this before
             Coalesce(
                 SubqueryAggregate(
                     "votes__direction",
@@ -326,7 +326,7 @@ def compute_hotness():
         + (
             Coalesce(
                 SubqueryAggregate(
-                    "activity_boosts",
+                    "activity_boosts__score",
                     filter=Q(created_at__gte=last_week_dt),
                     aggregate=Sum,
                 ),

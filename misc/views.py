@@ -34,7 +34,7 @@ def contact_api_view(request: Request):
 @api_view(["POST"])
 def remove_article_api_view(request, pk):
     """
-    Boots/Bury post
+    Removes article from everywhere
     """
 
     article = get_object_or_404(ITNArticle, pk=pk)
