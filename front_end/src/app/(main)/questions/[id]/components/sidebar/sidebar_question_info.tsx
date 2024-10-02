@@ -1,18 +1,17 @@
 "use client";
+
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import LocalDaytime from "@/components/ui/local_daytime";
 import { PostStatus, PostWithForecasts } from "@/types/post";
-
 
 type Props = {
   postData: PostWithForecasts;
 };
 
 const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
-  const locale = useLocale();
   const t = useTranslations();
 
   const isUpcoming = new Date(postData.open_time).getTime() > Date.now();

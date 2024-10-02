@@ -1,18 +1,17 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, formatISO, parseISO } from "date-fns";
+import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { FC } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
-import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { MarkdownText } from "@/components/ui/markdown_text";
@@ -44,9 +43,6 @@ const baseQuestionSchema = z.object({
   fine_print: z.string(),
   scheduled_close_time: z.date(),
   scheduled_resolve_time: z.date(),
-
-  // scheduled_close_time: z.string().datetime({ offset: true }),
-  // scheduled_resolve_time: z.string().datetime({ offset: true }),
   default_project: z.nullable(z.union([z.number(), z.string()])),
 });
 
@@ -147,10 +143,7 @@ const QuestionForm: FC<Props> = ({
     }
     data["type"] = questionType;
     data["options"] = optionsList;
-    // data["scheduled_close_time"] = parseISO(data["scheduled_close_time"]);
-    // data["scheduled_resolve_time"] = parseISO(data["scheduled_resolve_time"]);
 
-    console.log(data);
     let post_data: PostCreationData = {
       title: data["title"],
       url_title: data["url_title"],
@@ -284,25 +277,6 @@ const QuestionForm: FC<Props> = ({
         </InputContainer>
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <InputContainer labelText={t("closingDate")} className="w-full gap-2">
-            {/* <Controller
-              control={control.control}
-              name="scheduled_close_time"
-              render={({ field: { onChange, onBlur, value, ref } }) => (
-                <DatetimeUtc
-                  readOnly={isLive && mode !== "create"}
-                  className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                  onChange={onChange}
-                  defaultValue={
-                    post?.question?.scheduled_close_time
-                      ? format(
-                          new Date(post.question.scheduled_close_time),
-                          "yyyy-MM-dd'T'HH:mm"
-                        )
-                      : undefined
-                  }
-                />
-              )}
-            /> */}
             <Input
               readOnly={isLive && mode !== "create"}
               type="datetime-local"
@@ -312,10 +286,7 @@ const QuestionForm: FC<Props> = ({
                   if (value === "" || value == null) {
                     return null;
                   }
-                  // const localDate = new Date(value);
-                  // return formatISO(localDate, {
-                  //   representation: "complete",
-                  // });
+
                   return new Date(value);
                 },
               })}
@@ -334,25 +305,6 @@ const QuestionForm: FC<Props> = ({
             labelText={t("resolvingDate")}
             className="w-full gap-2"
           >
-            {/* <Controller
-              control={control.control}
-              name="scheduled_resolve_time"
-              render={({ field: { onChange, onBlur, value, ref } }) => (
-                <DatetimeUtc
-                  readOnly={isLive && mode !== "create"}
-                  className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                  onChange={onChange}
-                  defaultValue={
-                    post?.question?.scheduled_close_time
-                      ? format(
-                          new Date(post.question.scheduled_close_time),
-                          "yyyy-MM-dd'T'HH:mm"
-                        )
-                      : undefined
-                  }
-                />
-              )}
-            /> */}
             <Input
               readOnly={isLive && mode !== "create"}
               type="datetime-local"
@@ -362,8 +314,7 @@ const QuestionForm: FC<Props> = ({
                   if (value === "" || value == null) {
                     return null;
                   }
-                  // const localDate = new Date(value);
-                  // return formatISO(localDate, { representation: "complete" });
+
                   return new Date(value);
                 },
               })}
