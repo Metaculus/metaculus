@@ -23,7 +23,7 @@ import { abbreviatedNumber } from "@/utils/number_formatters";
 import { formatDate } from "./date_formatters";
 
 export function extractQuestionGroupName(title: string) {
-  const match = title.match(/\(([^)]*)\)[^()]*$/);
+  const match = title.match(/\(([^()]*(?:\([^()]*\)[^()]*)*)\)[^()]*$/);
   return match ? match[1] : title;
 }
 
