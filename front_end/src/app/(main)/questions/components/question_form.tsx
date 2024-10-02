@@ -286,6 +286,7 @@ const QuestionForm: FC<Props> = ({
                   if (value === "" || value == null) {
                     return null;
                   }
+
                   return new Date(value);
                 },
               })}
@@ -313,6 +314,7 @@ const QuestionForm: FC<Props> = ({
                   if (value === "" || value == null) {
                     return null;
                   }
+
                   return new Date(value);
                 },
               })}

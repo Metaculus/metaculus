@@ -1,3 +1,6 @@
+"use client";
+
+import dynamic from "next/dynamic";
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC, useMemo } from "react";
 
@@ -86,4 +89,6 @@ const PostStatus: FC<Props> = ({ resolution, post }) => {
   );
 };
 
-export default PostStatus;
+export default dynamic(() => Promise.resolve(PostStatus), {
+  ssr: false,
+});
