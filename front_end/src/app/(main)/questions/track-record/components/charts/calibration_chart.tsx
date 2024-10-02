@@ -1,5 +1,7 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import { useTranslations } from "next-intl";
 import React from "react";
 import {
   VictoryChart,
@@ -10,13 +12,11 @@ import {
   VictoryContainer,
 } from "victory";
 
+import SectionToggle from "@/components/ui/section_toggle";
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
+import { METAC_COLORS } from "@/constants/colors";
 import useAppTheme from "@/hooks/use_app_theme";
 import { TrackRecordCalibrationCurveItem } from "@/types/track_record";
-import { METAC_COLORS } from "@/constants/colors";
-import dynamic from "next/dynamic";
-import { useTranslations } from "next-intl";
-import SectionToggle from "@/components/ui/section_toggle";
 
 const CalibrationChart: React.FC<{
   calibrationData: TrackRecordCalibrationCurveItem[];
@@ -29,90 +29,70 @@ const CalibrationChart: React.FC<{
 
   return (
     <div className="mb-5 size-full">
-      <VictoryChart
-        theme={chartTheme}
-        domain={{ x: [0, 1], y: [0, 1] }}
-        containerComponent={<VictoryContainer responsive={true} />}
-        padding={{ top: 24, bottom: 45, left: 45, right: 12 }}
-      >
-        <VictoryAxis
-          tickValues={[0, 0.2, 0.4, 0.6, 0.8, 1]}
-          tickFormat={(t: number) => `${(t * 100).toFixed(0)}%`}
-          style={{
-            tickLabels: { fontSize: 10, fontWeight: 200 },
-            axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
-            grid: {
-              stroke: chartTheme.axis?.style?.axis?.stroke,
-              opacity: 0.5,
-            },
-          }}
-          label={
-            username ? t("userPrediction", { username }) : t("predictions")
-          }
-        />
-        <VictoryAxis
-          tickValues={[0, 0.2, 0.4, 0.6, 0.8, 1]}
-          tickFormat={(t: number) => `${(t * 100).toFixed(0)}%`}
-          dependentAxis
-          axisLabelComponent={<VictoryLabel dy={-12} />}
-          style={{
-            tickLabels: { fontSize: 10, fontWeight: 200 },
-            axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
-            grid: {
-              stroke: chartTheme.axis?.style?.axis?.stroke,
-              opacity: 0.5,
-            },
-          }}
-          label={t("fractionResolvedYes")}
-        />
-        <VictoryScatter
-          data={calibrationData.map(
-            (d: TrackRecordCalibrationCurveItem, index: number) => {
-              const y = d.middle_quartile;
-              return {
-                x: (d.bin_lower + d.bin_upper) / 2,
-                y0: y - 0.01,
-                y: y,
-                symbol: "diamond",
-              };
+      <div>
+        <VictoryChart
+          theme={chartTheme}
+          domain={{ x: [0, 1], y: [0, 1] }}
+          containerComponent={<VictoryContainer responsive={true} />}
+          padding={{ top: 24, bottom: 45, left: 45, right: 12 }}
+        >
+          <VictoryAxis
+            tickValues={[0, 0.2, 0.4, 0.6, 0.8, 1]}
+            tickFormat={(t: number) => `${(t * 100).toFixed(0)}%`}
+            style={{
+              tickLabels: { fontSize: 10, fontWeight: 200 },
+              axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
+              grid: {
+                stroke: chartTheme.axis?.style?.axis?.stroke,
+                opacity: 0.5,
+              },
+            }}
+            label={
+              username ? t("userPrediction", { username }) : t("predictions")
             }
-          )}
-          style={{
-            data: {
-              fill: getThemeColor(METAC_COLORS.gold["500"]),
-              stroke: "none",
-            },
-          }}
-        />
-        <VictoryBar
-          data={calibrationData.map(
-            (d: TrackRecordCalibrationCurveItem, index: number) => {
-              const y = d.perfect_calibration;
-              return {
-                x: (d.bin_lower + d.bin_upper) / 2,
-                y0: y - 0.005,
-                y: y + 0.005,
-                binWidth: d.bin_upper - d.bin_lower,
-              };
-            }
-          )}
-          barWidth={({ datum }) => datum.binWidth * 400}
-          style={{
-            data: {
-              fill: getThemeColor(METAC_COLORS.gray["600"]),
-              opacity: 1,
-            },
-          }}
-        />
-        {/* Confidence interval area */}
-        {showIntervals && (
+          />
+          <VictoryAxis
+            tickValues={[0, 0.2, 0.4, 0.6, 0.8, 1]}
+            tickFormat={(t: number) => `${(t * 100).toFixed(0)}%`}
+            dependentAxis
+            axisLabelComponent={<VictoryLabel dy={-12} />}
+            style={{
+              tickLabels: { fontSize: 10, fontWeight: 200 },
+              axis: { stroke: chartTheme.axis?.style?.axis?.stroke },
+              grid: {
+                stroke: chartTheme.axis?.style?.axis?.stroke,
+                opacity: 0.5,
+              },
+            }}
+            label={t("fractionResolvedYes")}
+          />
+          <VictoryScatter
+            data={calibrationData.map(
+              (d: TrackRecordCalibrationCurveItem, index: number) => {
+                const y = d.middle_quartile;
+                return {
+                  x: (d.bin_lower + d.bin_upper) / 2,
+                  y0: y - 0.01,
+                  y: y,
+                  symbol: "diamond",
+                };
+              }
+            )}
+            style={{
+              data: {
+                fill: getThemeColor(METAC_COLORS.gold["500"]),
+                stroke: "none",
+              },
+            }}
+          />
           <VictoryBar
             data={calibrationData.map(
               (d: TrackRecordCalibrationCurveItem, index: number) => {
+                const y = d.perfect_calibration;
                 return {
                   x: (d.bin_lower + d.bin_upper) / 2,
-                  y0: d.lower_quartile,
-                  y: d.upper_quartile,
+                  y0: y - 0.005,
+                  y: y + 0.005,
                   binWidth: d.bin_upper - d.bin_lower,
                 };
               }
@@ -120,13 +100,35 @@ const CalibrationChart: React.FC<{
             barWidth={({ datum }) => datum.binWidth * 400}
             style={{
               data: {
-                fill: getThemeColor(METAC_COLORS.gray["300"]),
-                opacity: 0.5,
+                fill: getThemeColor(METAC_COLORS.gray["600"]),
+                opacity: 1,
               },
             }}
           />
-        )}
-      </VictoryChart>
+          {/* Confidence interval area */}
+          {showIntervals && (
+            <VictoryBar
+              data={calibrationData.map(
+                (d: TrackRecordCalibrationCurveItem, index: number) => {
+                  return {
+                    x: (d.bin_lower + d.bin_upper) / 2,
+                    y0: d.lower_quartile,
+                    y: d.upper_quartile,
+                    binWidth: d.bin_upper - d.bin_lower,
+                  };
+                }
+              )}
+              barWidth={({ datum }) => datum.binWidth * 400}
+              style={{
+                data: {
+                  fill: getThemeColor(METAC_COLORS.gray["300"]),
+                  opacity: 0.5,
+                },
+              }}
+            />
+          )}
+        </VictoryChart>
+      </div>
       <div className="flex flex-col items-center space-y-3 divide-y divide-gray-300 dark:divide-gray-700">
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 md:gap-x-8">
           <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
@@ -164,15 +166,15 @@ const CalibrationChart: React.FC<{
         <span className="pt-3 text-sm text-gray-600 dark:text-gray-400">
           The Calibration Curve takes into account forecasts for binary
           questions only. The x-axis shows prediction ranges (e.g. 17.5% -
-	  22.5%) and the y-axis shows the actual "Yes" resolution rate for
-	  questions within each range. Yellow diamonds represent these
-	  observed rates. The gray lines along the diagonal (y=x) are what
-	  you would get by forecasting the "true" probability on a large
-	  number of questions. The shaded area is the 90% credible interval
-	  around the perfect calibration, the width of which depends on how
-	  many predictions the forecaster has made in that x-axis range.
-	  If the forecaster had been perfectly calibrated, the diamond would
-	  have been in that range 90% of the time.
+          22.5%) and the y-axis shows the actual "Yes" resolution rate for
+          questions within each range. Yellow diamonds represent these observed
+          rates. The gray lines along the diagonal (y=x) are what you would get
+          by forecasting the "true" probability on a large number of questions.
+          The shaded area is the 90% credible interval around the perfect
+          calibration, the width of which depends on how many predictions the
+          forecaster has made in that x-axis range. If the forecaster had been
+          perfectly calibrated, the diamond would have been in that range 90% of
+          the time.
           <br />
           <br />
           {t("calibrationCurveInfo")}

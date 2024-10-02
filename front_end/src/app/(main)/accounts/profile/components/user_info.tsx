@@ -223,33 +223,13 @@ const UserInfo: FC<UserInfoProps> = ({
                 View All
               </a>
             </div>
-            <div className="flex flex-col items-center gap-1">
-              {profile.calibration_curve && (
-                <CalibrationChart
-                  calibrationData={profile.calibration_curve}
-                  showIntervals={false}
-                  username={profile.username}
-                />
-              )}
-              <div className="flex flex-col items-center space-y-3 divide-y divide-gray-300 dark:divide-gray-700">
-                <div className="flex flex-row gap-4 md:p-6">
-                  <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
-                    <span className="block h-1 w-7 bg-gray-500"></span>perfect
-                    calibration
-                  </div>
-                  <div className="flex flex-row items-center gap-3 text-sm text-gray-800 dark:text-gray-200">
-                    <span className="block size-2 rotate-45 bg-[#ffa500]"></span>
-                    user&apos;s calibration
-                  </div>
-                </div>
-                <span className="pt-3 text-center text-sm text-gray-600 dark:text-gray-400">
-                  If the diamonds are close to the grey lines, the predictions
-                  are well-calibrated at that confidence level. If the diamonds
-                  are closer to the 50% than the diamonds, the predictions were
-                  underconfident, and vice-versa.
-                </span>
-              </div>
-            </div>
+            {profile.calibration_curve && (
+              <CalibrationChart
+                calibrationData={profile.calibration_curve}
+                showIntervals={false}
+                username={profile.username}
+              />
+            )}
           </div>
         </div>
       </div>
