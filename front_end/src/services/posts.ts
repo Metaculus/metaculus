@@ -1,3 +1,5 @@
+import { revalidateTag } from "next/cache";
+
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
 import { NewsArticle } from "@/types/news";
 import {
@@ -95,10 +97,6 @@ class PostsApi {
     return await get(`/posts/homepage/`);
   }
 
-  static async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
-    return await get<PostWithForecasts[]>(`/posts/${postId}/similar-posts/`);
-  }
-
   static async createQuestionPost(body: any): Promise<PostWithForecasts> {
     return await post<PostWithForecasts>(`/posts/create/`, body);
   }
@@ -152,12 +150,23 @@ class PostsApi {
     return get<Require<Post, "subscriptions">[]>(`/posts/subscriptions`, {});
   }
 
+  static async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
+    return await get<PostWithForecasts[]>(`/posts/${postId}/similar-posts/`, {
+      next: { revalidate: 3600 },
+    });
+  }
+
   static async getRelatedNews(postId: number) {
-    return get<NewsArticle[]>(`/posts/${postId}/related-articles/`);
+    return get<NewsArticle[]>(`/posts/${postId}/related-articles/`, {
+      next: { revalidate: 3600, tags: ["related-articles"] },
+    });
   }
 
   static async removeRelatedArticle(articleId: number) {
-    return post(`/itn-articles/${articleId}/remove`, {});
+    const response = await post(`/itn-articles/${articleId}/remove`, {});
+    revalidateTag("related-articles");
+
+    return response;
   }
 }
 
