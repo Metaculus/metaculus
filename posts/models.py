@@ -347,7 +347,6 @@ class Post(TimeStampedModel):
     # typing
     id: int
     votes: QuerySet["Vote"]
-    subscriptions: QuerySet["PostSubscription"]
     forecasts: QuerySet["Forecast"]
 
     # Annotated fields
