@@ -95,7 +95,7 @@ const appFetch = async <T>(
 
   // Warning: caching could be only applied to anonymised requests
   // To prevent user token leaks and storage spam.
-  // NextJS cache every request variant including headers (auth token) diff
+  // NextJS caches every request variant including headers (auth token) diff
   if (options.next?.revalidate !== undefined) {
     passAuthHeader = false;
   }
