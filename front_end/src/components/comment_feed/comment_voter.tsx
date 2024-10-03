@@ -47,6 +47,7 @@ const CommentVoter: FC<Props> = ({ voteData, className }) => {
       votes={voteScore}
       onVoteUp={() => handleVote(1)}
       onVoteDown={() => handleVote(-1)}
+      commentArea={true}
     />
   );
 };

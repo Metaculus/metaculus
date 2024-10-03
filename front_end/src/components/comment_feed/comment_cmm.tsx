@@ -310,11 +310,11 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
 
     return (
       <Button
-        variant="text"
-        size="md"
+        size="xxs"
+        variant="tertiary"
         onClick={onChangedMyMind}
         aria-label="Changed my mind"
-        className="hover:bg-metac-gray-100 dark:hover:bg-metac-gray-100-dark whitespace-nowrap"
+        className="hover:bg-metac-gray-100 dark:hover:bg-metac-gray-100-dark whitespace-nowrap border border-blue-400"
         disabled={isLoading || disabled}
         ref={ref}
         {...cmmContext.getReferenceProps()}
@@ -334,10 +334,37 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
           )}
         />
 
-        <span className="text-metac-gray-900 dark:text-metac-gray-900-dark">
+        <span className="text-blue-700 dark:text-blue-700-dark">
           {t("cmmButton")} ({cmmContext.count})
         </span>
       </Button>
+      // <button
+      //   onClick={onChangedMyMind}
+      //   aria-label="Changed my mind"
+      //   className="inline-flex items-center justify-center rounded-full disabled:opacity-50 hover:bg-metac-gray-100 dark:hover:bg-metac-gray-100-dark whitespace-nowrap gap-0 border rounded-sm border-blue-400 dark:border-blue-600/50 pl-0.5 pr-2"
+      //   disabled={isLoading || disabled}
+      //   ref={ref}
+      //   {...cmmContext.getReferenceProps()}
+      // >
+      //   <FontAwesomeIcon
+      //     icon={faCaretUp}
+      //     className={classNames(
+      //       "size-4 rounded-full",
+      //       {
+      //         "bg-gradient-to-b p-1 text-blue-700 group-hover:from-blue-400 group-hover:to-blue-100 dark:text-blue-700-dark dark:group-hover:from-blue-400-dark dark:group-hover:to-blue-100-dark":
+      //           !cmmContext.cmmEnabled,
+      //       },
+      //       {
+      //         "bg-gradient-to-b from-olive-400 to-blue-100 p-1 text-olive-700 group-hover:from-olive-500 group-hover:to-blue-100 dark:from-olive-300-dark dark:to-blue-100-dark dark:text-olive-700-dark dark:group-hover:from-olive-500-dark dark:group-hover:to-blue-100-dark":
+      //           cmmContext.cmmEnabled,
+      //       }
+      //     )}
+      //   />
+
+      //   <span className="text-blue-700 dark:text-blue-700-dark">
+      //     {t("cmmButton")} ({cmmContext.count})
+      //   </span>
+      // </button>
     );
   }
 );

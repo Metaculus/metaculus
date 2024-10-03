@@ -309,7 +309,7 @@ const Comment: FC<CommentProps> = ({
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
       <div
-        className={classNames("p-2", {
+        className={classNames("", {
           "bg-blue-100 dark:bg-blue-100-dark":
             lastViewedAt &&
             new Date(lastViewedAt) < new Date(comment.created_at),
@@ -336,13 +336,13 @@ const Comment: FC<CommentProps> = ({
             forecast={comment.included_forecast}
           />
         )}
-        <div className="my-2.5 flex flex-col items-start gap-1">
-          <span className="inline-flex items-center">
+        <div className="mb-1 flex flex-col items-start gap-1">
+          <span className="inline-flex items-center text-base">
             <a
               className="no-underline"
               href={`/accounts/profile/${comment.author.id}/`}
             >
-              <h4 className="my-1">{comment.author.username}</h4>
+              <h4 className="my-1 text-base">{comment.author.username}</h4>
             </a>
             {/*
           {comment.is_moderator && !comment.is_admin && (
@@ -438,18 +438,27 @@ const Comment: FC<CommentProps> = ({
               {!onProfile &&
                 (isReplying ? (
                   <Button
-                    className="ml-auto p-2"
-                    variant="text"
+                    size="xxs"
+                    variant="tertiary"
                     onClick={() => {
                       setIsReplying(false);
                     }}
                   >
-                    <FontAwesomeIcon icon={faXmark} />
+                    <FontAwesomeIcon icon={faXmark} className="size-4 p-1" />
                     {t("cancel")}
                   </Button>
                 ) : (
-                  <Button onClick={() => setIsReplying(true)} variant="text">
-                    <FontAwesomeIcon icon={faReply} />
+                  <Button
+                    size="xxs"
+                    onClick={() => setIsReplying(true)}
+                    variant="tertiary"
+                    className="gap-0.5"
+                  >
+                    <FontAwesomeIcon
+                      icon={faReply}
+                      className="size-4 p-1"
+                      size="xs"
+                    />
                     {t("reply")}
                   </Button>
                 ))}
