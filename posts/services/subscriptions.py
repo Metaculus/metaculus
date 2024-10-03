@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from datetime import datetime, timedelta
 
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -150,6 +151,30 @@ def _get_question_data_for_cp_change_notification(
     return question_data
 
 
+def get_last_user_forecasts_for_questions(
+    question_ids: Iterable[int],
+) -> dict[int, dict[int, Forecast]]:
+    """
+    Generates last user forecasts for given question ids
+    """
+
+    qs = (
+        Forecast.objects.filter(question_id__in=question_ids)
+        .order_by("question_id", "author_id", "-start_time")
+        .distinct("question_id", "author_id")
+    )
+
+    forecasts_map = {}
+
+    for forecast in qs:
+        forecasts_map[forecast.question_id] = (
+            forecasts_map.get(forecast.question_id) or {}
+        )
+        forecasts_map[forecast.question_id][forecast.author_id] = forecast
+
+    return forecasts_map
+
+
 def notify_post_cp_change(post: Post):
     """
     TODO: write description and check over
@@ -158,9 +183,8 @@ def notify_post_cp_change(post: Post):
     subscriptions = post.subscriptions.filter(
         type=PostSubscription.SubscriptionType.CP_CHANGE
     ).select_related("user")
-    questions = Question.objects.filter(
-        Q(post=post) | Q(group__post=post)
-    ).prefetch_related("user_forecasts")
+    questions = Question.objects.filter(Q(post=post) | Q(group__post=post))
+
     forecast_history = {
         question: list(
             AggregateForecast.objects.filter(
@@ -170,6 +194,9 @@ def notify_post_cp_change(post: Post):
         )
         for question in questions
     }
+    question_author_forecasts_map = get_last_user_forecasts_for_questions(
+        [q.pk for q in questions]
+    )
 
     for subscription in subscriptions:
         last_sent = subscription.last_sent_at
@@ -200,11 +227,11 @@ def notify_post_cp_change(post: Post):
                     current_forecast_values,
                     question=question,
                 )
-            user_pred: Forecast = (
-                question.user_forecasts.filter(author=subscription.user)
-                .order_by("-start_time")
-                .first()
+
+            user_pred = question_author_forecasts_map.get(question.pk, {}).get(
+                subscription.user_id
             )
+
             question_data += _get_question_data_for_cp_change_notification(
                 question,
                 current_entry,
