@@ -14,12 +14,12 @@ import { Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { useAuth } from "@/contexts/auth_context";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
-import { Category, PostWithForecasts } from "@/types/post";
+import { Category, Post, PostWithForecasts } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
+import { getPostLink } from "@/utils/navigation";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
-import ProjectPicker from "./project_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
 const notebookSchema = z.object({
@@ -58,6 +58,7 @@ const NotebookForm: React.FC<Props> = ({
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
   const [isCategoriesDirty, setIsCategoriesDirty] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>();
 
   const defaultProject = post
     ? post.projects.default_project
@@ -72,6 +73,8 @@ const NotebookForm: React.FC<Props> = ({
   const router = useRouter();
 
   const submitQuestion = async (data: any) => {
+    setIsLoading(true);
+
     let post_data = {
       title: data["title"],
       url_title: data["url_title"],
@@ -85,12 +88,18 @@ const NotebookForm: React.FC<Props> = ({
       },
     };
 
-    if (mode == "edit") {
-      const resp = await updatePost(post?.id as number, post_data);
-      router.push(`/questions/${resp.post?.id}`);
-    } else {
-      const resp = await createQuestionPost(post_data);
-      router.push(`/questions/${resp.post?.id}`);
+    let resp: { post: Post };
+
+    try {
+      if (mode === "edit" && post) {
+        resp = await updatePost(post.id, post_data);
+      } else {
+        resp = await createQuestionPost(post_data);
+      }
+
+      router.push(getPostLink(resp.post));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -170,7 +179,7 @@ const NotebookForm: React.FC<Props> = ({
             }}
           ></CategoryPicker>
         </InputContainer>
-        <Button type="submit" className="w-max capitalize">
+        <Button type="submit" className="w-max capitalize" disabled={isLoading}>
           {mode === "edit" ? t("editNotebook") : t("createNotebook")}
         </Button>
       </form>

@@ -17,10 +17,16 @@ import Button from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { MarkdownText } from "@/components/ui/markdown_text";
-import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
+import {
+  Category,
+  Post,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
-import { getQuestionStatus } from "@/utils/questions";
+import { getPostLink } from "@/utils/navigation";
+import { extractQuestionGroupName, getQuestionStatus } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
@@ -67,6 +73,7 @@ const GroupForm: React.FC<Props> = ({
   const router = useRouter();
   const t = useTranslations();
   const { isLive } = getQuestionStatus(post);
+  const [isLoading, setIsLoading] = useState<boolean>();
 
   const defaultProject = post
     ? post.projects.default_project
@@ -75,6 +82,8 @@ const GroupForm: React.FC<Props> = ({
       : siteMain;
 
   const submitQuestion = async (data: any) => {
+    setIsLoading(true);
+
     if (control.getValues("default_project") === "") {
       control.setValue("default_project", null);
     }
@@ -85,63 +94,53 @@ const GroupForm: React.FC<Props> = ({
     }
 
     let break_out = false;
-    const groupData = subQuestions
-      .filter((x) => {
-        if (mode === "edit") {
-          return !x.id;
-        }
-        return true;
-      })
-      .map((x) => {
-        if (subtype === QuestionType.Binary) {
-          return {
-            type: subtype,
-            title: x.label,
-            scheduled_close_time: x.scheduled_close_time,
-            scheduled_resolve_time: x.scheduled_resolve_time,
-          };
-        } else if (subtype === QuestionType.Numeric) {
-          if (x.scaling.range_max == null || x.scaling.range_min == null) {
-            alert(
-              "Please enter a range_max or range_min value for numeric questions"
-            );
-            break_out = true;
-            return;
-          }
-          return {
-            type: subtype,
-            title: x.label,
-            scheduled_close_time: x.scheduled_close_time,
-            scheduled_resolve_time: x.scheduled_resolve_time,
-            range_min: x.scaling.range_min,
-            range_max: x.scaling.range_max,
-            open_lower_bound: x.openLowerBound,
-            open_upper_bound: x.openUpperBound,
-            zero_point: x.zeroPoint,
-          };
-        } else if (subtype === QuestionType.Date) {
-          if (x.scaling.range_max === null || x.scaling.range_min === null) {
-            alert("Please enter a max or min value for numeric questions");
-            break_out = true;
-            return;
-          }
-          return {
-            type: subtype,
-            title: x.label,
-            scheduled_close_time: x.scheduled_close_time,
-            scheduled_resolve_time: x.scheduled_resolve_time,
-            range_min: x.scaling.range_min,
-            range_max: x.scaling.range_max,
-            open_lower_bound: x.openLowerBound,
-            open_upper_bound: x.openUpperBound,
-            zero_point: x.zeroPoint,
-          };
-        } else {
-          alert("Invalid sub-question type");
+    const groupData = subQuestions.map((x) => {
+      const subquestionData = {
+        id: x.id,
+        type: subtype,
+        title: `${data["title"]} (${x.label})`,
+        scheduled_close_time: x.scheduled_close_time,
+        scheduled_resolve_time: x.scheduled_resolve_time,
+      };
+
+      if (subtype === QuestionType.Binary) {
+        return subquestionData;
+      } else if (subtype === QuestionType.Numeric) {
+        if (x.scaling.range_max == null || x.scaling.range_min == null) {
+          alert(
+            "Please enter a range_max or range_min value for numeric questions"
+          );
           break_out = true;
           return;
         }
-      });
+        return {
+          ...subquestionData,
+          range_min: x.scaling.range_min,
+          range_max: x.scaling.range_max,
+          open_lower_bound: x.openLowerBound,
+          open_upper_bound: x.openUpperBound,
+          zero_point: x.zeroPoint,
+        };
+      } else if (subtype === QuestionType.Date) {
+        if (x.scaling.range_max === null || x.scaling.range_min === null) {
+          alert("Please enter a max or min value for numeric questions");
+          break_out = true;
+          return;
+        }
+        return {
+          ...subquestionData,
+          range_min: x.scaling.range_min,
+          range_max: x.scaling.range_max,
+          open_lower_bound: x.openLowerBound,
+          open_upper_bound: x.openUpperBound,
+          zero_point: x.zeroPoint,
+        };
+      } else {
+        alert("Invalid sub-question type");
+        break_out = true;
+        return;
+      }
+    });
     if (break_out) {
       return;
     }
@@ -168,12 +167,18 @@ const GroupForm: React.FC<Props> = ({
         questions: groupData,
       },
     };
-    if (mode === "edit" && post) {
-      const resp = await updatePost(post.id, post_data);
-      router.push(`/questions/${resp.post?.id}`);
-    } else {
-      const resp = await createQuestionPost(post_data);
-      router.push(`/questions/${resp.post?.id}`);
+    let resp: { post: Post };
+
+    try {
+      if (mode === "edit" && post) {
+        resp = await updatePost(post.id, post_data);
+      } else {
+        resp = await createQuestionPost(post_data);
+      }
+
+      router.push(getPostLink(resp.post));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -184,7 +189,7 @@ const GroupForm: React.FC<Props> = ({
             id: x.id,
             scheduled_close_time: x.scheduled_close_time,
             scheduled_resolve_time: x.scheduled_resolve_time,
-            label: x.title,
+            label: extractQuestionGroupName(x.title),
             scaling: x.scaling,
           };
         })
@@ -605,7 +610,7 @@ const GroupForm: React.FC<Props> = ({
             {t("newSubquestion")}
           </Button>
         </div>
-        <Button type="submit" className="w-max capitalize">
+        <Button type="submit" className="w-max capitalize" disabled={isLoading}>
           {mode === "create" ? t("createQuestion") : t("editQuestion")}
         </Button>
       </form>
