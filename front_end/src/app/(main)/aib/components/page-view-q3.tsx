@@ -4,6 +4,7 @@ import { faCircleQuestion, faFile } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import { useTranslations } from "next-intl";
 import { useState, FC } from "react";
 
@@ -13,9 +14,8 @@ import Button from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth_context";
 
 import { Dates, Prize } from "./cards-q3";
-import Description from "./description-q3";
-import Hero from "./hero";
 import HeroQ3 from "./hero-q3";
+import BotLeaderboard from "./leaderboard-q3";
 
 const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
   token,
@@ -40,7 +40,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
           </div>
           <div className="relative flex h-auto min-h-[8rem] w-full flex-row overflow-hidden rounded md:w-1/3 lg:h-auto">
             <Image
-              src="https://metaculus-media.s3.amazonaws.com/hires.webp"
+              src="https://metaculus-media.s3.amazonaws.com/hires-bw.webp"
               alt=""
               fill
               priority
@@ -50,9 +50,17 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
             />
           </div>
         </div>
-        <div className="flex size-full flex-col gap-3 md:flex-row">
-          <div className="w-full">Leaderboard</div>
-          <div className="w-full">Q4 Ready - Link</div>
+        <div className="flex size-full flex-col-reverse gap-3 md:flex-row">
+          <BotLeaderboard />
+          <Link href="/aib" className="flex w-full no-underline">
+            <div className="flex flex w-full cursor-pointer flex-col items-center items-center justify-center justify-center gap-2 text-balance rounded-md bg-purple-200 p-3 text-center text-base text-purple-800 transition-colors hover:bg-purple-300 dark:bg-purple-200-dark dark:text-purple-800-dark dark:hover:bg-purple-300-dark md:gap-4 md:p-6 md:text-xl">
+              <FontAwesomeIcon
+                icon={faArrowRight}
+                className="text-2xl md:text-6xl xl:text-8xl"
+              />{" "}
+              Q4 tournament is underway, check out the details!
+            </div>
+          </Link>{" "}
         </div>
         <BaseModal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
           <div className="flex max-h-full max-w-xl flex-col items-center">
