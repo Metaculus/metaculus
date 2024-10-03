@@ -31,11 +31,11 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
         Anyone can improve at forecasting by practicing and thinking through
         what factors could influence outcomes. In a series of forecasting
         competitions conducted by University of Pennsylvania professor Philip
-        Tetlock, skilled forecasters outperformed CIA analysts with access to
+        Tetlock, skilled forecasters outperformed CIA analysts without access to
         classified intelligence.
       </p>
       <p className={onboardingStyles.largeparagraph}>
-        Next we’ll take you on a tour of a real Metaculus question page. We’ll
+        <span className="font-bold">Next we’ll take you on a tour of a real Metaculus question page.</span> We’ll
         introduce you to some additional features, and you’ll bring together
         everything you’ve learned so far.
       </p>

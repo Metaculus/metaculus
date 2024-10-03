@@ -54,7 +54,7 @@ const Step4: React.FC<Step4Props> = ({
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
       <p className={onboardingStyles.title}>
-        This time let's think through things that might influence the outcome.
+        Here are some of the factors other forecasters are considering.
       </p>
       <div>
         <ul className="mb-4 list-none space-y-2">
@@ -72,7 +72,7 @@ const Step4: React.FC<Step4Props> = ({
             type="text"
             value={newFactor}
             onChange={(e) => setNewFactor(e.target.value)}
-            placeholder="You can add your own factor here if you like"
+            placeholder="Add your own factors here"
             className={onboardingStyles.input}
           />
           <button
@@ -84,6 +84,9 @@ const Step4: React.FC<Step4Props> = ({
           </button>
         </div>
       </div>
+      <p className={onboardingStyles.paragraph}>
+        Considering others' views is an important step in forecasting accurately!
+      </p>
       <p className={onboardingStyles.paragraph}>
         What do you think? Did any of those factors make you want to change your
         prediction? If not, that's fine too.
@@ -103,7 +106,7 @@ const Step4: React.FC<Step4Props> = ({
               onChange={onPredictionChange}
               isDirty={true}
               communityForecast={communityForecast}
-              onBecomeDirty={() => {}}
+              onBecomeDirty={() => { }}
               disabled={false}
             />
 

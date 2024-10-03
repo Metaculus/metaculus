@@ -84,21 +84,20 @@ const Step2: React.FC<Step2Props> = ({
   };
 
   const getButtonClass = (buttonType: "less" | "about" | "more") => {
-    return `${onboardingStyles.button} ${
-      activeButton === buttonType
+    return `${onboardingStyles.button} ${activeButton === buttonType
         ? "bg-blue-700 hover:bg-blue-800 text-white dark:text-blue-800 dark:bg-white"
         : ""
-    }`;
+      }`;
   };
 
   const getActiveButtonText = () => {
     switch (activeButton) {
       case "less":
-        return "Excellent. Below you can see your prediction quantified next to the community’s. Does that look about right? If not, you can grab and drag the slider.";
+        return "Excellent. Below you can see your prediction quantified next to the community’s. Does that look about right? If not, you can grab and drag the slider. Click ‘Predict’ when you’re ready to continue.";
       case "about":
-        return "Excellent. Below you can see your prediction quantified next to the community’s. Does that look about right? If not, you can grab and drag the slider.";
+        return "Excellent. Below you can see your prediction quantified next to the community’s. Does that look about right? If not, you can grab and drag the slider. Click ‘Predict’ when you’re ready to continue.";
       case "more":
-        return "Excellent. Below you can see your prediction quantified next to the community’s. Does that look about right? If not, you can grab and drag the slider.";
+        return "Excellent. Below you can see your prediction quantified next to the community’s. Does that look about right? If not, you can grab and drag the slider. Click ‘Predict’ when you’re ready to continue.";
       default:
         return "";
     }
@@ -124,7 +123,7 @@ const Step2: React.FC<Step2Props> = ({
           </p>
         )}
       </div>
-      <p>What do you think? Is it more likely than that? Less? About right?</p>
+      <p>What do you think? Do you agree with <span className="font-bold">{(communityForecast * 100).toFixed(0)}%</span>? Disagree?</p>
       <div className="flex justify-start gap-3">
         <button
           onClick={() => handlePrediction("less")}
@@ -152,7 +151,7 @@ const Step2: React.FC<Step2Props> = ({
             {activeButton && (
               <div className="flex flex-col items-center">
                 <p
-                  className={`${onboardingStyles.paragraph} mb-5 text-balance text-center font-semibold`}
+                  className={`${onboardingStyles.paragraph} text-sm px-5 mb-5 text-center font-semibold`}
                 >
                   {getActiveButtonText()}
                 </p>
@@ -166,7 +165,7 @@ const Step2: React.FC<Step2Props> = ({
               }}
               isDirty={true}
               communityForecast={communityForecast}
-              onBecomeDirty={() => {}}
+              onBecomeDirty={() => { }}
               disabled={false}
               helperDisplay={true}
             />
