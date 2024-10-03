@@ -297,7 +297,7 @@ const CommentFeed: FC<Props> = ({
       {shownComments.map((comment: CommentType) => (
         <div
           key={comment.id}
-          className="my-1.5 rounded-md border border-blue-400 px-2.5 py-2 dark:border-blue-600"
+          className="my-1.5 rounded-md border border-blue-400 px-2.5 py-1.5 dark:border-blue-600"
         >
           {profileId && (
             <h3 className="mb-2 text-lg font-semibold">

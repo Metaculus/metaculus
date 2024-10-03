@@ -29,7 +29,7 @@ const Voter: FC<Props> = ({
   return (
     <div
       className={classNames(
-        `inline-flex items-center text-sm leading-4 ${commentArea ? "rounded-sm border border-blue-400 dark:border-blue-600/50" : ""}`,
+        `inline-flex items-center text-sm leading-4 ${commentArea ? "rounded-sm border border-blue-500 bg-white dark:border-blue-600/50 dark:bg-gray-0-dark" : ""}`,
         className
       )}
     >
