@@ -98,7 +98,7 @@ export default async function Home() {
             </div>
           </div>
         </div>
-        {postQuestions.length && (
+        {!!postQuestions.length && (
           <div className="mt-12">
             <QuestionCarousel posts={postQuestions} />
           </div>
@@ -126,7 +126,7 @@ export default async function Home() {
         <Suspense>
           <TournamentsBlock />
         </Suspense>
-        {postNotebooks.length && (
+        {!!postNotebooks.length && (
           <Suspense>
             <ResearchAndUpdatesBlock posts={postNotebooks} />
           </Suspense>

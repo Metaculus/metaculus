@@ -39,6 +39,7 @@ from posts.services.common import (
     update_post,
     submit_for_review_post,
     post_make_draft,
+    compute_hotness,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
@@ -365,6 +366,9 @@ def activity_boost_api_view(request, pk):
     ObjectPermission.can_view(permission, raise_exception=True)
 
     PostActivityBoost.objects.create(user=request.user, post=post, score=score)
+
+    # Recalculate hotness
+    compute_hotness()
 
     return Response(
         {"score_total": PostActivityBoost.get_post_score(pk)},
