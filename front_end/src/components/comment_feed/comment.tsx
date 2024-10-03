@@ -344,7 +344,7 @@ const Comment: FC<CommentProps> = ({
             >
               <h4 className="my-1">
                 {comment.author.username}
-                {comment.author.is_bot && "🤖"}
+                {comment.author.is_bot && " 🤖"}
               </h4>
             </a>
             {/*
