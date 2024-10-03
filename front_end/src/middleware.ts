@@ -12,27 +12,23 @@ import { getAlphaAccessToken } from "@/utils/alpha_access";
 export async function middleware(request: NextRequest) {
   let deleteCookieToken = false;
 
-  // Run for pages only
-  if (request.nextUrl.pathname.match("/((?!static|.*\\..*|_next).*)")) {
-    const serverSession = getServerSession();
+  const serverSession = getServerSession();
+  if (serverSession) {
+    // Verify auth token
+    try {
+      await AuthApi.verifyToken();
+    } catch (error) {
+      const errorResponse = error as ErrorResponse;
 
-    if (serverSession) {
-      // Verify auth token
-      try {
-        await AuthApi.verifyToken();
-      } catch (error) {
-        const errorResponse = error as ErrorResponse;
-
-        if (errorResponse?.response?.status === 403) {
-          request.cookies.delete(COOKIE_NAME_TOKEN);
-          // A small workaround of deleting cookies.
-          // We need to delete cookies from request before generating response
-          // to let other services know we've eliminated the auth token.
-          // But Nextjs does not apply such cookies deletion to the response
-          // automatically, so we have to do it for both req and res
-          // https://github.com/vercel/next.js/issues/40146
-          deleteCookieToken = true;
-        }
+      if (errorResponse?.response?.status === 403) {
+        request.cookies.delete(COOKIE_NAME_TOKEN);
+        // A small workaround of deleting cookies.
+        // We need to delete cookies from request before generating response
+        // to let other services know we've eliminated the auth token.
+        // But Nextjs does not apply such cookies deletion to the response
+        // automatically, so we have to do it for both req and res
+        // https://github.com/vercel/next.js/issues/40146
+        deleteCookieToken = true;
       }
     }
 
@@ -40,17 +36,10 @@ export async function middleware(request: NextRequest) {
     const alphaAccessToken = await getAlphaAccessToken();
     const alphaAuthUrl = "/alpha-auth";
 
-    const isEmbeddingRequest =
-      Boolean(request.headers.get("image-preview-request")) ||
-      request.nextUrl.pathname.includes("/api/posts/preview-image/") ||
-      request.nextUrl.pathname.includes("/embed/") ||
-      request.nextUrl.pathname.includes("/opengraph-image-") ||
-      request.nextUrl.pathname.includes("/twitter-image-");
     if (
       alphaAccessToken &&
       getAlphaTokenSession() !== alphaAccessToken &&
-      !request.nextUrl.pathname.startsWith(alphaAuthUrl) &&
-      !isEmbeddingRequest
+      !request.nextUrl.pathname.startsWith(alphaAuthUrl)
     ) {
       return NextResponse.redirect(new URL(alphaAuthUrl, request.url));
     }
@@ -61,16 +50,6 @@ export async function middleware(request: NextRequest) {
 
   const locale_in_url = request.nextUrl.searchParams.get("locale");
   const local_in_cookie = request.cookies.get("NEXT_LOCALE")?.value;
-  /*
-  if ((locale_in_url == "en" && local_in_cookie == locale_in_url) || (!locale_in_url && local_in_cookie)) {
-    if (locale_in_url == "en" && local_in_cookie == locale_in_url) {
-        request.nextUrl.searchParams.delete("locale")
-      } else if (!locale_in_url && local_in_cookie) {
-        request.nextUrl.searchParams.append("locale", local_in_cookie);
-      }
-      return NextResponse.redirect(request.nextUrl)
-  }
-  */
 
   const response = NextResponse.next({
     request: {
@@ -90,3 +69,19 @@ export async function middleware(request: NextRequest) {
 
   return response;
 }
+
+export const config = {
+  matcher: [
+    {
+      // Run for pages only
+      // Ignores prefetch requests, all media files
+      // And embedded urls
+      source:
+        "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|questions/embed|experiments/embed|opengraph-image-|twitter-image-|.*\\..*).*)",
+      missing: [
+        { type: "header", key: "next-router-prefetch" },
+        { type: "header", key: "purpose", value: "prefetch" },
+      ],
+    },
+  ],
+};

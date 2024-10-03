@@ -1,3 +1,5 @@
+import { revalidateTag } from "next/cache";
+
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
 import { NewsArticle } from "@/types/news";
 import {
@@ -49,6 +51,14 @@ class PostsApi {
     );
   }
 
+  static async getPostAnonymous(id: number): Promise<PostWithForecasts> {
+    return await get<PostWithForecasts>(
+      `/posts/${id}/`,
+      {},
+      { passAuthHeader: false }
+    );
+  }
+
   static async removePostFromProject(postId: number, projectId: number) {
     await post<any>(`/posts/${postId}/remove_from_project/`, {
       project_id: projectId,
@@ -84,11 +94,11 @@ class PostsApi {
   static async getPostsForHomepage(): Promise<
     (PostWithForecasts | PostWithNotebook)[]
   > {
-    return await get(`/posts/homepage/`);
-  }
-
-  static async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
-    return await get<PostWithForecasts[]>(`/posts/${postId}/similar-posts/`);
+    return await get(`/posts/homepage/`, {
+      next: {
+        revalidate: 900,
+      },
+    });
   }
 
   static async createQuestionPost(body: any): Promise<PostWithForecasts> {
@@ -144,12 +154,23 @@ class PostsApi {
     return get<Require<Post, "subscriptions">[]>(`/posts/subscriptions`, {});
   }
 
+  static async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
+    return await get<PostWithForecasts[]>(`/posts/${postId}/similar-posts/`, {
+      next: { revalidate: 3600 },
+    });
+  }
+
   static async getRelatedNews(postId: number) {
-    return get<NewsArticle[]>(`/posts/${postId}/related-articles/`);
+    return get<NewsArticle[]>(`/posts/${postId}/related-articles/`, {
+      next: { revalidate: 3600, tags: ["related-articles"] },
+    });
   }
 
   static async removeRelatedArticle(articleId: number) {
-    return post(`/itn-articles/${articleId}/remove`, {});
+    const response = await post(`/itn-articles/${articleId}/remove`, {});
+    revalidateTag("related-articles");
+
+    return response;
   }
 }
 

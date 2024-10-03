@@ -33,7 +33,7 @@ const StateByForecast: FC<Props> = async ({
   isEmbed,
 }) => {
   const t = await getTranslations();
-  const post = await PostsApi.getPost(questionGroupId);
+  const post = await PostsApi.getPostAnonymous(questionGroupId);
   if (!post?.group_of_questions) {
     return null;
   }
@@ -42,8 +42,8 @@ const StateByForecast: FC<Props> = async ({
   let republicanPrediction = null;
   if (democratPostId && republicanPostId) {
     const [demPost, repPost] = await Promise.all([
-      PostsApi.getPost(democratPostId),
-      PostsApi.getPost(republicanPostId),
+      PostsApi.getPostAnonymous(democratPostId),
+      PostsApi.getPostAnonymous(republicanPostId),
     ]);
     const predictions = getDemocratRepublicanPrediction({ demPost, repPost });
     if (predictions) {

@@ -10,10 +10,11 @@ export function CSPostHogProvider({ children }: { children: any }) {
       api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
       // set to 'always' to create profiles for anonymous users as well
       person_profiles: "identified_only",
-      persistence:
-        getAnalyticsCookieConsentGiven() === "yes"
-          ? "localStorage+cookie"
-          : "memory",
+      // TODO: uncomment once we want to support cookies configuration
+      // persistence:
+      //   getAnalyticsCookieConsentGiven() === "yes"
+      //     ? "localStorage+cookie"
+      //     : "memory",
     });
   }
   return <PostHogProvider client={posthog}>{children}</PostHogProvider>;

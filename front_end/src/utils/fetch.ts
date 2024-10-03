@@ -84,15 +84,23 @@ const defaultOptions: FetchOptions = {
 
 type FetchConfig = {
   emptyContentType?: boolean;
+  passAuthHeader?: boolean;
 };
 const appFetch = async <T>(
   url: string,
   options: FetchOptions = {},
   config?: FetchConfig
 ): Promise<T> => {
-  const { emptyContentType = false } = config ?? {};
+  let { emptyContentType = false, passAuthHeader = true } = config ?? {};
 
-  const authToken = getServerSession();
+  // Warning: caching could be only applied to anonymised requests
+  // To prevent user token leaks and storage spam.
+  // NextJS caches every request variant including headers (auth token) diff
+  if (options.next?.revalidate !== undefined) {
+    passAuthHeader = false;
+  }
+
+  const authToken = passAuthHeader ? getServerSession() : null;
   const alphaToken = getAlphaTokenSession();
 
   // Default values are configured in the next.config.mjs
@@ -137,8 +145,12 @@ const appFetch = async <T>(
   }
 };
 
-const get = async <T>(url: string, options: FetchOptions = {}): Promise<T> => {
-  return appFetch<T>(url, { ...options, method: "GET" });
+const get = async <T>(
+  url: string,
+  options: FetchOptions = {},
+  config?: FetchConfig
+): Promise<T> => {
+  return appFetch<T>(url, { ...options, method: "GET" }, config);
 };
 
 const post = async <T, B = Record<string, any>>(
