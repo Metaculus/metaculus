@@ -2,6 +2,8 @@
 import {
   BlockTypeSelect,
   BoldItalicUnderlineToggles,
+  CodeBlockEditorDescriptor,
+  codeBlockPlugin,
   CreateLink,
   diffSourcePlugin,
   DiffSourceToggleWrapper,
@@ -39,8 +41,8 @@ import { linkPlugin } from "@/components/markdown_editor/plugins/link";
 import useAppTheme from "@/hooks/use_app_theme";
 
 import {
-  transformMathJax,
   revertMathJaxTransform,
+  transformMathJax,
 } from "./embedded_math_jax/helpers";
 import {
   embeddedQuestionDescriptor,
@@ -62,6 +64,20 @@ type Props = {
   onChange?: (markdown: string) => void;
   contentEditableClassName?: string;
   shouldConfirmLeave?: boolean;
+};
+
+const PlainTextCodeEditorDescriptor: CodeBlockEditorDescriptor = {
+  match: () => true,
+  priority: 0,
+  Editor: (props) => {
+    return (
+      <div>
+        <pre className="m-4 mx-5 overflow-x-auto whitespace-pre-wrap break-normal rounded border border-gray-300 bg-gray-100 p-3 dark:border-gray-300-dark dark:bg-gray-100-dark">
+          {props.code}
+        </pre>
+      </div>
+    );
+  },
 };
 
 const MarkdownEditor: FC<Props> = ({
@@ -86,6 +102,9 @@ const MarkdownEditor: FC<Props> = ({
     linkPlugin(),
     quotePlugin(),
     markdownShortcutPlugin(),
+    codeBlockPlugin({
+      codeBlockEditorDescriptors: [PlainTextCodeEditorDescriptor],
+    }),
     thematicBreakPlugin(),
     linkDialogPlugin(),
     tablePlugin(),
@@ -153,6 +172,9 @@ const MarkdownEditor: FC<Props> = ({
       onChange={(value) => {
         // Revert the MathJax transformation before passing the markdown to the parent component
         onChange && onChange(revertMathJaxTransform(value));
+      }}
+      onError={(err) => {
+        console.error(err);
       }}
       readOnly={mode === "read"}
       plugins={[

@@ -1,4 +1,5 @@
 import contextlib
+import re
 from io import StringIO
 
 from django.apps import apps
@@ -82,3 +83,27 @@ def reset_sequence():
 
         if sql_query := commands.getvalue():
             cursor.execute(sql_query)
+
+
+def cleanup_markdown(md):
+    parts = re.split(r"(<iframe[^>]*>.*?</iframe>)", md, flags=re.DOTALL)
+
+    converted_parts = []
+    for part in parts:
+        if part.startswith("<iframe"):
+            match = re.search(r"questions/question_embed/(\d+)/", part)
+            if match:
+                question_id = match.group(1)
+                part = f'<EmbeddedQuestion id="{question_id}" />'
+
+        converted_parts.append(part)
+
+    md = "".join(converted_parts)
+
+    # Remove \n since they are treated as newlines here
+    # md = re.sub(r"\n(?!\n)", " ", md)
+
+    # Close unclosed img/br tags
+    md = re.sub(r"(<(img|br)[^>]*)(?<!/)>", r"\1 />", md)
+
+    return md
