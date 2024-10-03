@@ -39,7 +39,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
           </div>
           <div className="relative flex h-auto min-h-[8rem] w-full flex-row overflow-hidden rounded md:w-1/3 lg:h-auto">
             <Image
-              src="https://metaculus-media.s3.amazonaws.com/hires.webp"
+              src="https://metaculus-media.s3.amazonaws.com/hires-q4.webp"
               alt=""
               fill
               priority
@@ -49,6 +49,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
             />
           </div>
         </div>
+        <div>Link to Q3 leaderboard</div>
         <div className="flex size-full flex-col gap-3 md:flex-row">
           {/* <div className="flex size-full grow w-full md:w-2/3 rounded bg-white p-4 dark:bg-blue-100-dark md:p-6 lg:gap-2 lg:p-8 min-[1920px]:gap-3 min-[1920px]:p-12">text</div> */}
           <Description />
@@ -113,7 +114,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
             )}
             <div className="flex flex-row gap-3">
               <Link
-                href="/project/aibq3/"
+                href="/project/aibq4/"
                 className="flex h-fit w-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
               >
                 <FontAwesomeIcon
