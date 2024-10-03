@@ -117,9 +117,6 @@ export default async function RootLayout({
   const locale = await getLocale();
   const messages = await getMessages();
   const user = await ProfileApi.getMyProfile();
-  const socialProviders = await AuthApi.getSocialProviders(
-    `${process.env.APP_URL}/accounts/social`
-  );
 
   return (
     <html
@@ -133,7 +130,7 @@ export default async function RootLayout({
         <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
           <AppThemeProvided>
             <NextIntlClientProvider messages={messages}>
-              <AuthProvider user={user} socialProviders={socialProviders}>
+              <AuthProvider user={user}>
                 <ModalProvider>
                   <NextTopLoader
                     showSpinner={false}

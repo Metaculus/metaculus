@@ -33,8 +33,6 @@ const TrackRecordCharts: FC<Props> = ({
   return (
     <div className={classNames("flex flex-col rounded", className)}>
       A Track Record shows some statistics about the predictor's performance.
-      The three parts displayed below are the Calibration Curve, the Score
-      Scatter Plot, and the Score Histogram.
       <hr />
       <h3 className="my-0 py-0 text-gray-700 dark:text-gray-300">
         {t("calibrationCurve")}

@@ -1,15 +1,19 @@
 import { Metadata } from "next";
+import { permanentRedirect } from "next/dist/client/components/redirect";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { cache } from "react";
 
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
 import ConditionalTimeline from "@/components/conditional_timeline";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import PostsApi from "@/services/posts";
+import questions from "@/services/questions";
 import { SearchParams } from "@/types/navigation";
 import { PostConditional, PostStatus, ProjectPermissions } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
+import { getPostLink } from "@/utils/navigation";
 import { getQuestionTitle } from "@/utils/questions";
 
 import BackgroundInfo from "../components/background_info";
@@ -26,13 +30,54 @@ import Sidebar from "../components/sidebar";
 import { SLUG_POST_SUB_QUESTION_ID } from "../search_params";
 import TourWrapper from "@/components/onboarding/TourWrapper";
 
+/**
+ * A backward compatibility util
+ */
+async function getPost(id: number, with_cp = true) {
+  try {
+    return await PostsApi.getPost(id, with_cp);
+  } catch (e) {
+    const lastLegacyQuestionId = parseInt(
+      process.env.LAST_LEGACY_QUESTION_ID || ""
+    );
+    const nextError = e as Error & { digest?: string };
+
+    // A backward compatibility workaround.
+    // Initially, all group question links were generated as /questions/<child_question_id>,
+    // which redirected to /questions/<post_id>/?sub-question=<child_question_id>.
+    // Now that posts and questions are differentiated, these redirects are no longer supported.
+    //
+    // This workaround tracks the last known legacy question ID.
+    // If a 404 lookup contains an ID lower than the last legacy question ID,
+    // we assume it may refer to a child question in a group.
+    // If so, we attempt to replace its ID with the original post_id when possible.
+    if (
+      lastLegacyQuestionId &&
+      id <= lastLegacyQuestionId &&
+      nextError?.digest === "NEXT_NOT_FOUND"
+    ) {
+      const { post_id, post_slug } = await questions.legacyGetPostId(id);
+
+      // Permanently redirecting to the correct endpoint
+      return permanentRedirect(
+        `${getPostLink({ id: post_id, slug: post_slug })}?${SLUG_POST_SUB_QUESTION_ID}=${id}`
+      );
+    }
+
+    throw e;
+  }
+}
+
+const cachedGetPost = cache(getPost);
+
 type Props = {
   params: { id: number; slug: string[] };
   searchParams: SearchParams;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const postData = await PostsApi.getPost(params.id);
+  const postData = await cachedGetPost(params.id);
+
   if (!postData) {
     return {};
   }
@@ -67,7 +112,7 @@ export default async function IndividualQuestion({
   params,
   searchParams,
 }: Props) {
-  const postData = await PostsApi.getPost(params.id);
+  const postData = await cachedGetPost(params.id);
 
   if (postData.notebook) {
     return redirect(
@@ -100,13 +145,10 @@ export default async function IndividualQuestion({
     postData.user_permission === ProjectPermissions.ADMIN ||
     postData.user_permission === ProjectPermissions.CURATOR ||
     (postData.user_permission === ProjectPermissions.CREATOR &&
-      postData.status !== PostStatus.APPROVED);
+      postData.curation_status !== PostStatus.APPROVED);
 
   const questionTitle = getQuestionTitle(postData);
-  const isClosed =
-    postData.status === PostStatus.CLOSED || postData.actual_close_time
-      ? new Date(postData.actual_close_time).getTime() < Date.now()
-      : false;
+  const isClosed = postData.status === PostStatus.CLOSED;
   return (
     <EmbedModalContextProvider>
       <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4">

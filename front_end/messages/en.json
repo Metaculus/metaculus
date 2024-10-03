@@ -768,7 +768,7 @@
   "fractionResolvedYes": "Fraction resolved yes",
   "scatterPlotHoverMessage": "Hover over a circle to see how that question resolved.",
   "calibrationCurve": "Calibration Curve",
-  "calibrationCurveInfo": "If the diamonds are close to the grey lines, the predictions are well-calibrated at that confidence level. If the diamonds are closer to the 50% than the grey bars, the predictions were underconfident, and vice-versa.",
+  "calibrationCurveInfo": "The closer a diamond is to the grey line, the better calibrated the predictions in that probability range. If a diamond is closer to y=50% than the grey bar, that suggests the forecaster is overconfident.",
   "condition": "condition",
   "facebook": "Facebook",
   "xTwitter": "X / Twitter",
@@ -809,5 +809,17 @@
   "nuclearSecurityDescription": "Quantifying global risks to keep us safe and secure for a flourishing future",
   "climateChange": "climate change",
   "climateChangeDescription": "Predicting long-term shifts in temperature and weather patterns caused by human activity",
-  "2024UsElectionHub": "2024 US Election Hub"
+  "2024UsElectionHub": "2024 US Election Hub",
+  "cookiesTitle": "We use cookies \uD83C\uDF6A to understand how you use Metaculus and to improve your experience.",
+  "cookiesSubtitle": "Learn more about how we use cookies in our <link>Privacy Policy</link>",
+  "customize": "Customize",
+  "acceptAndClose": "Accept and close",
+  "cookiePreferences": "Cookie Preferences",
+  "cookieServices": "Metaculus uses cookies for the following types of services.",
+  "learnMoreFromPrivacyPolicy": "Learn more from our <link>Privacy Policy</link>.",
+  "necessaryCookies": "Necessary cookies",
+  "cannotBeUnchecked": "Cannot be unchecked",
+  "analytics": "Analytics",
+  "helpsImprovePlatform": "Helps us improve the platform",
+  "saveSelected": "Save Selected"
 }

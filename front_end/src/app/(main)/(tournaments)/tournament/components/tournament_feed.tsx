@@ -9,7 +9,7 @@ import PaginatedPostsFeed from "@/components/posts_feed/paginated_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
-import { PostWithForecasts } from "@/types/post";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 
 type Props = {
   slug: string;
@@ -21,6 +21,7 @@ const TournamentFeed: FC<Props> = ({ slug }) => {
     Object.fromEntries(searchParams)
   );
   const pageFilters: PostsParams = {
+    statuses: PostStatus.APPROVED,
     ...questionFilters,
     tournaments: slug,
   };

@@ -8,7 +8,7 @@ from comments.models import Comment
 from notifications.constants import MailingTags
 from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
-from posts.models import Post, PostSubscription
+from posts.models import Post
 from posts.services.search import get_similar_posts_for_multiple_posts
 from projects.models import Project
 from questions.models import Question
@@ -366,7 +366,7 @@ class NotificationPostStatusChange(
     @dataclass
     class ParamsType:
         post: NotificationPostParams
-        event: PostSubscription.PostStatusChange
+        event: Post.PostStatusChange
         project: NotificationProjectParams = None
 
     @classmethod

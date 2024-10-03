@@ -1,3 +1,4 @@
+from django.template.defaultfilters import slugify
 from rest_framework.exceptions import PermissionDenied
 
 from posts.models import Post
@@ -16,3 +17,7 @@ def check_can_edit_post(post: Post, user: User):
         raise PermissionDenied("You do not have permission to edit active post")
 
     ObjectPermission.can_edit(permission, raise_exception=True)
+
+
+def get_post_slug(post: Post) -> str:
+    return slugify(post.url_title or post.title or "")

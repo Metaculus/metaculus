@@ -1,6 +1,13 @@
+import { revalidateTag } from "next/cache";
+
 import { PaginatedPayload, PaginationParams } from "@/types/fetch";
 import { NewsArticle } from "@/types/news";
-import { Post, PostSubscription, PostWithForecasts } from "@/types/post";
+import {
+  Post,
+  PostSubscription,
+  PostWithForecasts,
+  PostWithNotebook,
+} from "@/types/post";
 import { Require } from "@/types/utils";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post, put } from "@/utils/fetch";
@@ -38,9 +45,17 @@ export type ApprovePostParams = {
 };
 
 class PostsApi {
-  static async getPost(id: number): Promise<PostWithForecasts> {
+  static async getPost(id: number, with_cp = true): Promise<PostWithForecasts> {
     return await get<PostWithForecasts>(
-      `/posts/${id}/${encodeQueryParams({ with_cp: true })}`
+      `/posts/${id}/${encodeQueryParams({ with_cp })}`
+    );
+  }
+
+  static async getPostAnonymous(id: number): Promise<PostWithForecasts> {
+    return await get<PostWithForecasts>(
+      `/posts/${id}/`,
+      {},
+      { passAuthHeader: false }
     );
   }
 
@@ -76,8 +91,14 @@ class PostsApi {
     );
   }
 
-  static async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
-    return await get<PostWithForecasts[]>(`/posts/${postId}/similar-posts/`);
+  static async getPostsForHomepage(): Promise<
+    (PostWithForecasts | PostWithNotebook)[]
+  > {
+    return await get(`/posts/homepage/`, {
+      next: {
+        revalidate: 900,
+      },
+    });
   }
 
   static async createQuestionPost(body: any): Promise<PostWithForecasts> {
@@ -133,12 +154,23 @@ class PostsApi {
     return get<Require<Post, "subscriptions">[]>(`/posts/subscriptions`, {});
   }
 
+  static async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
+    return await get<PostWithForecasts[]>(`/posts/${postId}/similar-posts/`, {
+      next: { revalidate: 3600 },
+    });
+  }
+
   static async getRelatedNews(postId: number) {
-    return get<NewsArticle[]>(`/posts/${postId}/related-articles/`);
+    return get<NewsArticle[]>(`/posts/${postId}/related-articles/`, {
+      next: { revalidate: 3600, tags: ["related-articles"] },
+    });
   }
 
   static async removeRelatedArticle(articleId: number) {
-    return post(`/itn-articles/${articleId}/remove`, {});
+    const response = await post(`/itn-articles/${articleId}/remove`, {});
+    revalidateTag("related-articles");
+
+    return response;
   }
 }
 

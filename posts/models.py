@@ -191,28 +191,50 @@ class PostQuerySet(models.QuerySet):
     # Permissions
     #
     def annotate_user_permission(self, user: User = None):
-        """
-        Annotates user permission for each Post based on the related Projects.
-        """
+        from projects.services import get_site_main_project
 
         user_id = user.id if user else None
+        site_main_project = get_site_main_project()
 
-        return self.annotate(
+        # Annotate with user-specific permission or project's default permission
+        qs = self.annotate(
             user_permission_override=FilteredRelation(
                 "default_project__projectuserpermission",
-                condition=Q(
-                    default_project__projectuserpermission__user_id=user_id,
-                ),
+                condition=Q(default_project__projectuserpermission__user_id=user_id),
             ),
-            # Extract permission from default_project relation
             _user_permission=Coalesce(
                 F("user_permission_override__permission"),
                 F("default_project__default_permission"),
             ),
-        ).annotate(
-            # Calculate actual user permission by a couple of extra conditions
+        )
+
+        # Exclude posts user doesn't have access to
+        qs = qs.filter(
+            Q(author_id=user_id)
+            | (
+                Q(
+                    _user_permission__in=[
+                        ObjectPermission.ADMIN,
+                        ObjectPermission.CURATOR,
+                    ]
+                )
+                & Q(curation_status=Post.CurationStatus.PENDING)
+            )
+            | (
+                Q(_user_permission__isnull=False)
+                & (
+                    (
+                        Q(default_project_id=site_main_project.pk)
+                        & Q(curation_status=Post.CurationStatus.PENDING)
+                    )
+                    | Q(curation_status=Post.CurationStatus.APPROVED)
+                )
+            )
+        )
+
+        qs = qs.annotate(
             user_permission=models.Case(
-                # If user is the question author
+                # Admin/Curator is more important than Creator
                 models.When(
                     Q(
                         _user_permission__in=[
@@ -231,6 +253,8 @@ class PostQuerySet(models.QuerySet):
             ),
         )
 
+        return qs
+
     def filter_permission(
         self, user: User = None, permission: ObjectPermission = ObjectPermission.VIEWER
     ):
@@ -248,24 +272,7 @@ class PostQuerySet(models.QuerySet):
         ]
 
         return self.annotate_user_permission(user).filter(
-            Q(author_id=user_id)
-            | (
-                Q(user_permission__in=permissions_lookup)
-                & (
-                    Q(
-                        curation_status__in=[
-                            Post.CurationStatus.APPROVED,
-                            Post.CurationStatus.PENDING,
-                        ]
-                    )
-                    | Q(
-                        user_permission__in=[
-                            ObjectPermission.ADMIN,
-                            ObjectPermission.CURATOR,
-                        ]
-                    )
-                )
-            )
+            user_permission__in=permissions_lookup
         )
 
     def filter_public(self):
@@ -333,7 +340,7 @@ class Notebook(TimeStampedModel):
     markdown = models.TextField()
     type = models.CharField(max_length=100, choices=NotebookType)
     news_type = models.CharField(max_length=100, blank=True, null=True)
-    image_url = models.URLField(blank=True, null=True)
+    image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
 
 
 class Post(TimeStampedModel):
@@ -362,6 +369,11 @@ class Post(TimeStampedModel):
         APPROVED = "approved"
         # CLOSED, all viewers can see it, no forecasts or other interactions can happen
         DELETED = "deleted"
+
+    class PostStatusChange(models.TextChoices):
+        OPEN = "open", _("Open")
+        CLOSED = "closed", _("Closed")
+        RESOLVED = "resolved", _("Resolved")
 
     curation_status = models.CharField(
         max_length=20,
@@ -395,9 +407,13 @@ class Post(TimeStampedModel):
         help_text="Vector embeddings of the Post content",
         null=True,
         blank=True,
+        editable=False,
     )
 
     preview_image_generated_at = models.DateTimeField(null=True, blank=True)
+
+    # Whether we should display Post/Notebook on the homepage
+    show_on_homepage = models.BooleanField(default=False, db_index=True)
 
     def set_scheduled_close_time(self):
         if self.question:
@@ -485,6 +501,23 @@ class Post(TimeStampedModel):
         self.save()
         # Note: No risk of infinite loops since conditionals can't father other conditionals
         self.updated_related_conditionals()
+
+    def get_open_time(self):
+        if self.question:
+            return self.question.open_time
+
+        if self.conditional:
+            return max(
+                self.conditional.condition.open_time,
+                self.conditional.condition_child.open_time,
+            )
+
+        if self.group_of_questions:
+            questions = self.group_of_questions.questions.all()
+            open_times = [x.open_time for x in questions if x.open_time]
+
+            if open_times:
+                return min(open_times)
 
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
@@ -590,6 +623,18 @@ class Post(TimeStampedModel):
     def get_url_title(self):
         return self.url_title or self.title
 
+    def clean_fields(self, exclude=None):
+        """
+        Ensure django won't perform boolean check against ndarray produced by pgvector
+        """
+
+        if exclude is None:
+            exclude = set()
+
+        exclude.add("embedding_vector")
+
+        return super().clean_fields(exclude=exclude)
+
 
 class PostSubscription(TimeStampedModel):
     class SubscriptionType(models.TextChoices):
@@ -598,11 +643,6 @@ class PostSubscription(TimeStampedModel):
         MILESTONE = "milestone"
         STATUS_CHANGE = "status_change"
         SPECIFIC_TIME = "specific_time"
-
-    class PostStatusChange(models.TextChoices):
-        OPEN = "open", _("Open")
-        CLOSED = "closed", _("Closed")
-        RESOLVED = "resolved", _("Resolved")
 
     user = models.ForeignKey(User, models.CASCADE, related_name="subscriptions")
     post = models.ForeignKey(Post, models.CASCADE, related_name="subscriptions")

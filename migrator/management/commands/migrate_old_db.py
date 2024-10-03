@@ -28,7 +28,7 @@ from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
 from migrator.services.post_migrate import (
     post_migrate_calculate_divergence,
-    post_migrate_update_post_fields,
+    post_migrate_update_post_fields, post_migrate_show_on_homepage,
 )
 from migrator.utils import reset_sequence
 from posts.jobs import job_compute_movement
@@ -134,6 +134,7 @@ class Command(BaseCommand):
         compute_hotness()
         task_start = print_duration("computed hotness", task_start, start)
         post_migrate_update_post_fields()
+        post_migrate_show_on_homepage()
         print_duration("Updating other post fields", task_start, start)
 
         # Reset sql sequences

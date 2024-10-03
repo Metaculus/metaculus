@@ -65,6 +65,7 @@ const GroupOfQuestionsTile: FC<Props> = ({
                 )
               : undefined
           }
+          questionType={tileType}
         />
       );
     }

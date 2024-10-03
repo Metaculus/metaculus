@@ -3,6 +3,7 @@ import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo } from "react";
+import toast from "react-hot-toast";
 
 import { changePostActivityBoost } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
@@ -22,9 +23,9 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
     (score: number) => {
       changePostActivityBoost(post.id, score).then(({ score_total }) => {
         if (score > 0) {
-          alert(t("contentBoosted", { score, score_total }));
+          toast(t("contentBoosted", { score, score_total }));
         } else {
-          alert(t("contentBuried", { score, score_total }));
+          toast(t("contentBuried", { score, score_total }));
         }
       });
     },

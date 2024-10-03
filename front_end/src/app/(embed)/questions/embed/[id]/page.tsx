@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 
 import ForecastCard from "@/components/forecast_card";
 import {
@@ -10,7 +11,6 @@ import PostsApi from "@/services/posts";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
 import "./styles.scss";
-import { getTranslations } from "next-intl/server";
 
 export default async function GenerateQuestionPreview({
   params,
@@ -20,7 +20,7 @@ export default async function GenerateQuestionPreview({
   searchParams: SearchParams;
 }) {
   const t = await getTranslations();
-  const post = await PostsApi.getPost(params.id);
+  const post = await PostsApi.getPostAnonymous(params.id);
   if (!post) {
     return null;
   }

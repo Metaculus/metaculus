@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { FC, Suspense } from "react";
 
 import TagFilters from "@/app/(main)/questions/discovery/components/tag_filters";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProjectsApi, { TagsParams } from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
@@ -9,7 +10,6 @@ import { SearchParams } from "@/types/navigation";
 import DiscoverySection from "./section";
 import AwaitedTags from "./tags";
 import { TAGS_TEXT_SEARCH_FILTER } from "../constants/tags_feed";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 const getFilters = (searchParams: SearchParams) => {
   const filters: TagsParams = {};

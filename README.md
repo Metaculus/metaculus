@@ -31,9 +31,8 @@ Create a database called `metaculus` and then load our testing database dump (av
 ```
 wget https://github.com/Metaculus/metaculus/releases/latest/download/test_metaculus.sql.zip
 unzip test_metaculus.sql.zip
-psql -d $DATABASE_URL < test_metaculus.sql
+pg_restore -d metaculus test_metaculus.sql
 ```
-(where DATABASE_URL should be of this format: `postgres://postgres:postgres@localhost:5432/test_metaculus`).
 
 and then:
 

@@ -193,7 +193,7 @@ export type Question = {
   label: string | null;
   nr_forecasters: number;
   author_username: string;
-  post_id?: number;
+  post_id: number;
   display_divergences?: number[][];
   aggregations: Aggregations;
   my_forecasts?: UserForecastHistory;

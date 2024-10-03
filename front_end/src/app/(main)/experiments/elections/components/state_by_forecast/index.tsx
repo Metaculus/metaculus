@@ -6,6 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import ElectionsEmbedModal from "@/app/(main)/experiments/elections/components/elections_embed_modal";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import Button from "@/components/ui/button";
 import PostsApi from "@/services/posts";
 import { StateByForecastItem } from "@/types/experiments";
@@ -17,7 +18,6 @@ import { extractQuestionGroupName } from "@/utils/questions";
 import MiddleVotesArrow from "./middle_votes_arrow";
 import StateByForecastCharts from "./state_by_forecast_charts";
 import { US_MAP_AREAS } from "./us_areas";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   questionGroupId: number;
@@ -33,7 +33,7 @@ const StateByForecast: FC<Props> = async ({
   isEmbed,
 }) => {
   const t = await getTranslations();
-  const post = await PostsApi.getPost(questionGroupId);
+  const post = await PostsApi.getPostAnonymous(questionGroupId);
   if (!post?.group_of_questions) {
     return null;
   }
@@ -42,8 +42,8 @@ const StateByForecast: FC<Props> = async ({
   let republicanPrediction = null;
   if (democratPostId && republicanPostId) {
     const [demPost, repPost] = await Promise.all([
-      PostsApi.getPost(democratPostId),
-      PostsApi.getPost(republicanPostId),
+      PostsApi.getPostAnonymous(democratPostId),
+      PostsApi.getPostAnonymous(republicanPostId),
     ]);
     const predictions = getDemocratRepublicanPrediction({ demPost, repPost });
     if (predictions) {

@@ -7,22 +7,18 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import imagePlaceholder from "@/app/assets/images/tournament.webp";
-import PostsApi from "@/services/posts";
-import { PostWithNotebook } from "@/types/post";
-import { getNotebookSummary } from "@/utils/questions";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
+import { PostWithNotebook } from "@/types/post";
+import { getPostLink } from "@/utils/navigation";
+import { getNotebookSummary } from "@/utils/questions";
 
 type Props = {
-  postIds: number[];
+  posts: PostWithNotebook[];
 };
 
-const ResearchAndUpdatesBlock: FC<Props> = async ({ postIds }) => {
+const ResearchAndUpdatesBlock: FC<Props> = async ({ posts }) => {
   const t = await getTranslations();
   const locale = await getLocale();
-  const { results } = await PostsApi.getPostsWithCP({
-    ids: postIds,
-  });
-  const posts = results as PostWithNotebook[];
 
   return (
     <div className="my-6 flex flex-col md:my-12 lg:my-16">
@@ -36,13 +32,13 @@ const ResearchAndUpdatesBlock: FC<Props> = async ({ postIds }) => {
         {t("partnersUseForecasts")}
       </p>
       <div className="mt-6 flex flex-col gap-8 lg:flex-row">
-        {posts.map(({ title, created_at, id, notebook, url_title }) => (
+        {posts.map(({ title, created_at, id, notebook, slug }) => (
           <Link
             key={id}
             className="flex-1 rounded-b-2xl bg-gray-0 no-underline hover:shadow-lg active:shadow-md dark:bg-gray-0-dark"
-            href={`/notebooks/${id}/${url_title}`}
+            href={getPostLink({ id, slug, notebook })}
           >
-            {notebook.image_url && notebook.image_url.startsWith("https:") ? (
+            {notebook.image_url ? (
               <Image
                 src={notebook.image_url}
                 alt=""

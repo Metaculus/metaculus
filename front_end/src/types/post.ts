@@ -112,6 +112,7 @@ export type Post<QT = Question> = {
   };
   title: string;
   url_title: string;
+  slug: string;
   created_at: string;
   updated_at: string;
   published_at: string;

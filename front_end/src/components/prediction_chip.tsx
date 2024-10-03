@@ -117,7 +117,6 @@ const PredictionChip: FC<Props> = ({
           )}
         </span>
       );
-    case PostStatus.APPROVED:
     default:
       return (
         <span className={classNames("inline-flex flex-col", className)}>

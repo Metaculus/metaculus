@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from sql_util.aggregates import SubqueryAggregate
 
-from posts.models import Notebook, Post, PostSubscription, PostUserSnapshot
+from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services import (
@@ -114,6 +114,32 @@ def create_post(
     return obj
 
 
+def update_post_projects(
+    post: Post, categories: list[Project] = None, news: list[Project] = None
+):
+    projects_map = {
+        Project.ProjectTypes.CATEGORY: categories,
+        Project.ProjectTypes.NEWS_CATEGORY: news,
+    }
+
+    existing_projects = set(post.projects.all())
+
+    for project_type, projects in projects_map.items():
+        if projects is None:
+            continue
+
+        # Clean existing project types
+        existing_projects = {p for p in existing_projects if p.type != project_type}
+
+        # Update with new ones
+        existing_projects |= set(projects)
+
+    if post.default_project in existing_projects:
+        existing_projects.remove(post.default_project)
+
+    post.projects.set(existing_projects)
+
+
 def update_post(
     post: Post,
     categories: list[Project] = None,
@@ -133,11 +159,7 @@ def update_post(
         data=kwargs,
     )
 
-    projects = categories + ([news_type] if news_type else [])
-    if post.default_project in projects:
-        projects.remove(post.default_project)
-
-    post.projects.set(projects)
+    update_post_projects(post, categories, [news_type] if news_type else [])
 
     if question:
         if not post.question:
@@ -176,7 +198,8 @@ def get_post_permission_for_user(post: Post, user: User = None) -> ObjectPermiss
     perm = (
         Post.objects.annotate_user_permission(user=user)
         .values_list("user_permission", flat=True)
-        .get(id=post.id)
+        .filter(id=post.id)
+        .first()
     )
     return perm
 
@@ -277,7 +300,7 @@ def compute_hotness():
         )
         + (
             # Net votes in last week * 5
-            # Please note: we dind't have this before
+            # Please note: we didn't have this before
             Coalesce(
                 SubqueryAggregate(
                     "votes__direction",
@@ -303,7 +326,7 @@ def compute_hotness():
         + (
             Coalesce(
                 SubqueryAggregate(
-                    "activity_boosts",
+                    "activity_boosts__score",
                     filter=Q(created_at__gte=last_week_dt),
                     aggregate=Sum,
                 ),
@@ -365,9 +388,7 @@ def post_make_draft(post: Post):
 def resolve_post(post: Post):
     post.set_resolved()
 
-    run_notify_post_status_change.send(
-        post.id, PostSubscription.PostStatusChange.RESOLVED
-    )
+    run_notify_post_status_change.send(post.id, Post.PostStatusChange.RESOLVED)
 
 
 def handle_post_open(post: Post):
@@ -376,7 +397,7 @@ def handle_post_open(post: Post):
     """
 
     # Handle post subscriptions
-    notify_post_status_change(post, PostSubscription.PostStatusChange.OPEN)
+    notify_post_status_change(post, Post.PostStatusChange.OPEN)
 
     # Handle post on followed projects subscriptions
     notify_project_subscriptions_post_open(post)

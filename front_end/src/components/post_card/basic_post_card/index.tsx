@@ -4,8 +4,10 @@ import classNames from "classnames";
 import Link from "next/link";
 import { FC, PropsWithChildren } from "react";
 
+import PostDefaultProject from "@/components/post_default_project";
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
+import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions";
 
 import CommentStatus from "./comment_status";
@@ -21,12 +23,6 @@ type Props = {
   borderColor?: BorderColor;
 };
 
-const getLink = (post: Post) => {
-  if (!!post.notebook) return `/notebooks/${post.id}`;
-
-  return `/questions/${post.id}`;
-};
-
 const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   post,
   hideTitle = false,
@@ -36,6 +32,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
 }) => {
   const { id, title } = post;
   const resolutionData = extractPostResolution(post);
+  const defaultProject = post.projects.default_project;
 
   let newCommentsCount = post.comment_count ? post.comment_count : 0;
   if (post.unread_comment_count !== undefined) {
@@ -53,7 +50,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
         }[borderColor]
       )}
     >
-      <Link href={getLink(post)} className="block p-4 no-underline">
+      <Link href={getPostLink(post)} className="block p-4 no-underline">
         {!hideTitle && (
           <h4 className="relative mb-3 mt-0 line-clamp-2 text-base font-semibold text-gray-900 dark:text-gray-900-dark">
             {title}
@@ -69,9 +66,12 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
             url={`/questions/${id}`}
             commentColor={borderColor}
           />
-        </div>
 
-        <PostStatus post={post} resolution={resolutionData} />
+          <PostStatus post={post} resolution={resolutionData} />
+        </div>
+        <div className="hidden lg:inline-flex">
+          <PostDefaultProject defaultProject={defaultProject} />
+        </div>
       </div>
     </div>
   );

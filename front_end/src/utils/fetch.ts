@@ -84,15 +84,23 @@ const defaultOptions: FetchOptions = {
 
 type FetchConfig = {
   emptyContentType?: boolean;
+  passAuthHeader?: boolean;
 };
 const appFetch = async <T>(
   url: string,
   options: FetchOptions = {},
   config?: FetchConfig
 ): Promise<T> => {
-  const { emptyContentType = false } = config ?? {};
+  let { emptyContentType = false, passAuthHeader = true } = config ?? {};
 
-  const authToken = getServerSession();
+  // Warning: caching could be only applied to anonymised requests
+  // To prevent user token leaks and storage spam.
+  // NextJS caches every request variant including headers (auth token) diff
+  if (options.next?.revalidate !== undefined) {
+    passAuthHeader = false;
+  }
+
+  const authToken = passAuthHeader ? getServerSession() : null;
   const alphaToken = getAlphaTokenSession();
 
   // Default values are configured in the next.config.mjs
@@ -127,15 +135,22 @@ const appFetch = async <T>(
 
   try {
     const response = await fetch(finalUrl, finalOptions);
-    return await handleResponse<T>(response);
+    // consume response in order to fix SocketError: other side is closed
+    // https://stackoverflow.com/questions/76931498/typeerror-terminated-cause-socketerror-other-side-closed-in-fetch-nodejs
+    const clonedRes = response.clone();
+    return await handleResponse<T>(clonedRes);
   } catch (error) {
     console.error("Fetch error:", error);
     throw error;
   }
 };
 
-const get = async <T>(url: string, options: FetchOptions = {}): Promise<T> => {
-  return appFetch<T>(url, { ...options, method: "GET" });
+const get = async <T>(
+  url: string,
+  options: FetchOptions = {},
+  config?: FetchConfig
+): Promise<T> => {
+  return appFetch<T>(url, { ...options, method: "GET" }, config);
 };
 
 const post = async <T, B = Record<string, any>>(

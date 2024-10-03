@@ -120,6 +120,7 @@ class Migration(migrations.Migration):
                         blank=True,
                         help_text="Vector embeddings of the Post content",
                         null=True,
+                        editable=False,
                     ),
                 ),
                 (

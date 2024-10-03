@@ -25,6 +25,7 @@ from projects.services import (
     update_with_add_posts_to_main_feed,
 )
 from users.services import get_users_by_usernames
+from utils.cache import cache_get_or_set
 
 
 @api_view(["GET"])
@@ -61,21 +62,30 @@ def categories_list_api_view(request: Request):
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def tags_list_api_view(request: Request):
-    qs = get_projects_qs(user=request.user).filter_tags().annotate_posts_count()
     search_query = serializers.CharField(allow_null=True, min_length=3).run_validation(
         request.query_params.get("search")
     )
 
-    if search_query:
-        qs = qs.filter(name__icontains=search_query)
-    else:
-        qs = qs.order_by("-posts_count")
+    def f():
+        qs = get_projects_qs().filter_tags().annotate_posts_count()
 
-    qs = qs[0:1000]
+        if search_query:
+            qs = qs.filter(name__icontains=search_query)
+        else:
+            qs = qs.order_by("-posts_count")
 
-    data = [
-        {**TagSerializer(obj).data, "posts_count": obj.posts_count} for obj in qs.all()
-    ]
+        qs = qs[0:1000]
+
+        return [
+            {**TagSerializer(obj).data, "posts_count": obj.posts_count}
+            for obj in qs.all()
+        ]
+
+    data = (
+        f()
+        if search_query
+        else cache_get_or_set("tags_list_api_view", f, timeout=3600 * 6)
+    )
 
     return Response(data)
 
@@ -93,9 +103,16 @@ def tournaments_list_api_view(request: Request):
     permission = serializers.ChoiceField(
         choices=ObjectPermission.choices, allow_null=True
     ).run_validation(request.query_params.get("permission"))
+    show_on_homepage = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("show_on_homepage")
+    )
 
     qs = (
-        get_projects_qs(user=request.user, permission=permission)
+        get_projects_qs(
+            user=request.user,
+            permission=permission,
+            show_on_homepage=show_on_homepage,
+        )
         .filter_tournament()
         .annotate_posts_count()
         .order_by("-posts_count")

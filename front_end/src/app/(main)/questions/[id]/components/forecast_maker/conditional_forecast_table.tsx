@@ -46,14 +46,8 @@ const ConditionalForecastTable: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const conditionHref =
-    condition.id === condition.post_id
-      ? `/questions/${condition.id}`
-      : `/questions/${condition.post_id}?${SLUG_POST_SUB_QUESTION_ID}=${condition.id}`;
-  const childHref =
-    conditionChild.id === conditionChild.post_id
-      ? `/questions/${conditionChild.id}`
-      : `/questions/${conditionChild.post_id}?${SLUG_POST_SUB_QUESTION_ID}=${conditionChild.id}`;
+  const conditionHref = `/questions/${condition.post_id}`;
+  const childHref = `/questions/${conditionChild.post_id}`;
 
   return (
     <table className="w-full table-fixed border-separate overflow-hidden rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">

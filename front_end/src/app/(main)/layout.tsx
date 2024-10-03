@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 
 import FeedbackFloat from "./(home)/components/feedback_float";
 import Bulletins from "./components/bulletins";
+import CookiesBanner from "./components/cookies_banner";
 import Footer from "./components/footer";
 import Header from "./components/header";
 
@@ -26,6 +27,7 @@ export default async function RootLayout({
       <div className="flex-grow">{children}</div>
       <FeedbackFloat />
       <Footer />
+      <CookiesBanner />
     </div>
   );
 }

@@ -3,8 +3,6 @@ import { CurrentUser } from "@/types/users";
 export type AuthContextType = {
   user: CurrentUser | null;
   setUser: (user: CurrentUser | null) => void;
-  socialProviders: SocialProvider[] | null;
-  setSocialProviders: (socialProviders: SocialProvider[] | null) => void;
 };
 
 export type SocialAuthResponse = {

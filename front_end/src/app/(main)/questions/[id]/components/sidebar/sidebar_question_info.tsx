@@ -1,16 +1,17 @@
+"use client";
+
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import LocalDaytime from "@/components/ui/local_daytime";
 import { PostStatus, PostWithForecasts } from "@/types/post";
-import { formatDate } from "@/utils/date_formatters";
 
 type Props = {
   postData: PostWithForecasts;
 };
 
 const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
-  const locale = useLocale();
   const t = useTranslations();
 
   const isUpcoming = new Date(postData.open_time).getTime() > Date.now();
@@ -47,12 +48,9 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
               {t(isUpcoming ? "opens" : "opened")}:
             </span>
             <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-              {formatDate(
-                locale,
-                new Date(
-                  isUpcoming ? postData.open_time : postData.published_at
-                )
-              )}
+              <LocalDaytime
+                date={isUpcoming ? postData.open_time : postData.published_at}
+              />
             </span>
           </div>
         )}
@@ -62,8 +60,9 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
             {postData.status === PostStatus.CLOSED ? t("closed") : t("closes")}:
           </span>
           <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-            {postData.scheduled_close_time &&
-              formatDate(locale, new Date(postData.scheduled_close_time))}
+            {postData.scheduled_close_time && (
+              <LocalDaytime date={postData.scheduled_close_time} />
+            )}
           </span>
         </div>
 
@@ -72,8 +71,9 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
             {postData.resolved ? t("resolves") : t("scheduledResolution")}:
           </span>
           <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-            {postData.scheduled_resolve_time &&
-              formatDate(locale, new Date(postData.scheduled_resolve_time))}
+            {postData.scheduled_resolve_time && (
+              <LocalDaytime date={postData.scheduled_resolve_time} />
+            )}
           </span>
         </div>
       </div>

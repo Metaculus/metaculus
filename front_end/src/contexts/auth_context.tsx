@@ -9,40 +9,28 @@ import {
   useState,
 } from "react";
 
-import { AuthContextType, SocialProvider } from "@/types/auth";
+import { AuthContextType } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
 
 //create a context, with createContext api
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   setUser: () => {},
-  socialProviders: null,
-  setSocialProviders: () => {},
 });
 
 const AuthProvider: FC<
   PropsWithChildren<{
     user: CurrentUser | null;
-    socialProviders: SocialProvider[] | null;
   }>
-> = ({
-  user: initialUser,
-  socialProviders: initialSocialProviders,
-  children,
-}) => {
+> = ({ user: initialUser, children }) => {
   const [user, setUser] = useState<CurrentUser | null>(initialUser);
-  const [socialProviders, setSocialProviders] = useState<
-    SocialProvider[] | null
-  >(initialSocialProviders);
 
   useEffect(() => {
     setUser(initialUser);
   }, [initialUser]);
 
   return (
-    <AuthContext.Provider
-      value={{ user, setUser, socialProviders, setSocialProviders }}
-    >
+    <AuthContext.Provider value={{ user, setUser }}>
       {children}
     </AuthContext.Provider>
   );

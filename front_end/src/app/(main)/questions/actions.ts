@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import CommentsApi, {
@@ -133,7 +134,9 @@ export async function getPost(postId: number) {
 }
 
 export async function draftPost(postId: number) {
-  return await PostsApi.makeDraft(postId);
+  await PostsApi.makeDraft(postId);
+
+  return redirect("/questions/?status=pending");
 }
 
 export async function submitPostForReview(postId: number) {

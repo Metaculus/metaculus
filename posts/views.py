@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
+from django.views.decorators.cache import cache_page
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -38,6 +39,7 @@ from posts.services.common import (
     update_post,
     submit_for_review_post,
     post_make_draft,
+    compute_hotness,
 )
 from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
@@ -84,6 +86,19 @@ def posts_list_api_view(request):
     )
 
     return paginator.get_paginated_response(data)
+
+
+@cache_page(60 * 30)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def posts_list_homeage_api_view(request):
+    """
+    Cached view of homepage posts
+    """
+
+    qs = get_posts_feed(Post.objects.all(), show_on_homepage=True)
+
+    return Response(serialize_post_many(qs, with_cp=True, group_cutoff=3))
 
 
 @api_view(["GET"])
@@ -173,11 +188,16 @@ def post_detail_oldapi_view(request: Request, pk):
 def post_detail(request: Request, pk):
     user = request.user if request.user.is_authenticated else None
 
+    # Extra params
+    with_cp = serializers.BooleanField(allow_null=True).run_validation(
+        request.query_params.get("with_cp", True)
+    )
+
     qs = Post.objects.filter_permission(user=user).filter(pk=pk)
     posts = serialize_post_many(
         qs,
         current_user=request.user,
-        with_cp=True,
+        with_cp=with_cp,
         with_subscriptions=True,
     )
 
@@ -224,7 +244,7 @@ def post_update_api_view(request, pk):
 
     return Response(
         serialize_post(post, with_cp=False, current_user=request.user),
-        status=status.HTTP_201_CREATED,
+        status=status.HTTP_200_OK,
     )
 
 
@@ -346,6 +366,9 @@ def activity_boost_api_view(request, pk):
     ObjectPermission.can_view(permission, raise_exception=True)
 
     PostActivityBoost.objects.create(user=request.user, post=post, score=score)
+
+    # Recalculate hotness
+    compute_hotness()
 
     return Response(
         {"score_total": PostActivityBoost.get_post_score(pk)},
