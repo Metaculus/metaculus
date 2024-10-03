@@ -20,7 +20,7 @@ import { MarkdownText } from "@/components/ui/markdown_text";
 import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
-import { getQuestionStatus } from "@/utils/questions";
+import { extractQuestionGroupName, getQuestionStatus } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
@@ -85,63 +85,53 @@ const GroupForm: React.FC<Props> = ({
     }
 
     let break_out = false;
-    const groupData = subQuestions
-      .filter((x) => {
-        if (mode === "edit") {
-          return !x.id;
-        }
-        return true;
-      })
-      .map((x) => {
-        if (subtype === QuestionType.Binary) {
-          return {
-            type: subtype,
-            title: x.label,
-            scheduled_close_time: x.scheduled_close_time,
-            scheduled_resolve_time: x.scheduled_resolve_time,
-          };
-        } else if (subtype === QuestionType.Numeric) {
-          if (x.scaling.range_max == null || x.scaling.range_min == null) {
-            alert(
-              "Please enter a range_max or range_min value for numeric questions"
-            );
-            break_out = true;
-            return;
-          }
-          return {
-            type: subtype,
-            title: x.label,
-            scheduled_close_time: x.scheduled_close_time,
-            scheduled_resolve_time: x.scheduled_resolve_time,
-            range_min: x.scaling.range_min,
-            range_max: x.scaling.range_max,
-            open_lower_bound: x.openLowerBound,
-            open_upper_bound: x.openUpperBound,
-            zero_point: x.zeroPoint,
-          };
-        } else if (subtype === QuestionType.Date) {
-          if (x.scaling.range_max === null || x.scaling.range_min === null) {
-            alert("Please enter a max or min value for numeric questions");
-            break_out = true;
-            return;
-          }
-          return {
-            type: subtype,
-            title: x.label,
-            scheduled_close_time: x.scheduled_close_time,
-            scheduled_resolve_time: x.scheduled_resolve_time,
-            range_min: x.scaling.range_min,
-            range_max: x.scaling.range_max,
-            open_lower_bound: x.openLowerBound,
-            open_upper_bound: x.openUpperBound,
-            zero_point: x.zeroPoint,
-          };
-        } else {
-          alert("Invalid sub-question type");
+    const groupData = subQuestions.map((x) => {
+      const subquestionData = {
+        id: x.id,
+        type: subtype,
+        title: `${data["title"]} (${x.label})`,
+        scheduled_close_time: x.scheduled_close_time,
+        scheduled_resolve_time: x.scheduled_resolve_time,
+      };
+
+      if (subtype === QuestionType.Binary) {
+        return subquestionData;
+      } else if (subtype === QuestionType.Numeric) {
+        if (x.scaling.range_max == null || x.scaling.range_min == null) {
+          alert(
+            "Please enter a range_max or range_min value for numeric questions"
+          );
           break_out = true;
           return;
         }
-      });
+        return {
+          ...subquestionData,
+          range_min: x.scaling.range_min,
+          range_max: x.scaling.range_max,
+          open_lower_bound: x.openLowerBound,
+          open_upper_bound: x.openUpperBound,
+          zero_point: x.zeroPoint,
+        };
+      } else if (subtype === QuestionType.Date) {
+        if (x.scaling.range_max === null || x.scaling.range_min === null) {
+          alert("Please enter a max or min value for numeric questions");
+          break_out = true;
+          return;
+        }
+        return {
+          ...subquestionData,
+          range_min: x.scaling.range_min,
+          range_max: x.scaling.range_max,
+          open_lower_bound: x.openLowerBound,
+          open_upper_bound: x.openUpperBound,
+          zero_point: x.zeroPoint,
+        };
+      } else {
+        alert("Invalid sub-question type");
+        break_out = true;
+        return;
+      }
+    });
     if (break_out) {
       return;
     }
@@ -184,7 +174,7 @@ const GroupForm: React.FC<Props> = ({
             id: x.id,
             scheduled_close_time: x.scheduled_close_time,
             scheduled_resolve_time: x.scheduled_resolve_time,
-            label: x.title,
+            label: extractQuestionGroupName(x.title),
             scaling: x.scaling,
           };
         })

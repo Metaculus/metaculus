@@ -36,15 +36,19 @@ const Sidebar: FC<Props> = ({
           />
         </div>
 
-        <Suspense fallback={null}>
-          <div className="flex w-full flex-col items-start gap-4 self-stretch">
-            <NewsMatch questionId={postData.id} />
-          </div>
-        </Suspense>
+        {postData.curation_status === PostStatus.APPROVED && (
+          <>
+            <Suspense fallback={null}>
+              <div className="flex w-full flex-col items-start gap-4 self-stretch">
+                <NewsMatch questionId={postData.id} />
+              </div>
+            </Suspense>
 
-        <Suspense fallback={null}>
-          <SimilarQuestions post_id={postData.id} />
-        </Suspense>
+            <Suspense fallback={null}>
+              <SimilarQuestions post_id={postData.id} />
+            </Suspense>
+          </>
+        )}
       </section>
     );
   }
@@ -77,13 +81,17 @@ const Sidebar: FC<Props> = ({
         />
       </div>
 
-      <Suspense fallback={null}>
-        <NewsMatch questionId={postData.id} />
-      </Suspense>
+      {postData.curation_status === PostStatus.APPROVED && (
+        <>
+          <Suspense fallback={null}>
+            <NewsMatch questionId={postData.id} />
+          </Suspense>
 
-      <Suspense fallback={null}>
-        <SimilarQuestions post_id={postData.id} />
-      </Suspense>
+          <Suspense fallback={null}>
+            <SimilarQuestions post_id={postData.id} />
+          </Suspense>
+        </>
+      )}
     </section>
   );
 };
