@@ -29,6 +29,15 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
 
   return (
     <div className="mx-auto h-auto w-full flex-auto items-stretch bg-gradient-to-tl from-blue-300/30 via-blue-100/30 to-blue-400/30 px-4 py-4 text-blue-700 dark:bg-blue-800 dark:from-blue-600/50 dark:via-blue-800/30 dark:to-blue-500/30 dark:text-blue-700-dark">
+      <Link href="/aib/q3" className="mb-3 flex w-full no-underline">
+        <div className="flex flex w-full cursor-pointer flex-col items-center items-center justify-center justify-center gap-2 text-balance rounded-md bg-purple-200 p-3 text-center text-base text-purple-800 transition-colors hover:bg-purple-300 dark:bg-purple-200-dark dark:text-purple-800-dark dark:hover:bg-purple-300-dark md:flex-row md:gap-4 md:p-6 md:text-xl">
+          <FontAwesomeIcon
+            icon={faTrophy}
+            className="text-lg md:text-lg min-[1920px]:text-xl"
+          />{" "}
+          Q3 tournament is over, check out the leaderboards!
+        </div>
+      </Link>{" "}
       <div className="flex size-full flex-col items-center gap-3">
         <div className="flex w-full flex-col gap-3 md:flex-row">
           <div className="flex w-full flex-col gap-3 md:w-1/3">
@@ -50,15 +59,6 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
             />
           </div>
         </div>
-        <Link href="/aib/q3" className="w-full no-underline">
-          <div className="flex flex w-full cursor-pointer flex-col items-center items-center justify-center justify-center gap-4 text-balance rounded-md bg-purple-200 p-4 text-center text-lg text-purple-800 transition-colors hover:bg-purple-300 dark:bg-purple-200-dark dark:text-purple-800-dark dark:hover:bg-purple-300-dark md:flex-row md:p-8 md:text-2xl">
-            <FontAwesomeIcon
-              icon={faTrophy}
-              className="text-lg md:text-2xl min-[1920px]:text-3xl"
-            />{" "}
-            Q3 tournament is over, check out the leaderboards!
-          </div>
-        </Link>{" "}
         <div className="flex size-full flex-col gap-3 md:flex-row">
           {/* <div className="flex size-full grow w-full md:w-2/3 rounded bg-white p-4 dark:bg-blue-100-dark md:p-6 lg:gap-2 lg:p-8 min-[1920px]:gap-3 min-[1920px]:p-12">text</div> */}
           <Description />
