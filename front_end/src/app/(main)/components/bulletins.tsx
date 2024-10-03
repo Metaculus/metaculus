@@ -15,7 +15,6 @@ const Bulletins: FC = async () => {
           key={idx}
         >
           <Bulletin text={bulletin.text} id={bulletin.id}></Bulletin>
-          <Bulletin text={bulletin.text} id={bulletin.id}></Bulletin>
         </div>
       ))}
     </div>
