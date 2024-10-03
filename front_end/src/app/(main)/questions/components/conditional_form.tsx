@@ -12,9 +12,10 @@ import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
 import { InputContainer } from "@/components/ui/input_container";
 import { useAuth } from "@/contexts/auth_context";
-import { PostWithForecasts } from "@/types/post";
+import { Post, PostWithForecasts } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
+import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus, parseQuestionId } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
@@ -62,6 +63,7 @@ const ConditionalForm: React.FC<{
     useState<PostWithForecasts | null>(conditionParentInit);
   const [conditionChild, setConditionChild] =
     useState<PostWithForecasts | null>(conditionChildInit);
+  const [isLoading, setIsLoading] = useState<boolean>();
 
   const control = useForm({
     resolver: zodResolver(conditionalQuestionSchema),
@@ -73,6 +75,7 @@ const ConditionalForm: React.FC<{
   });
 
   const submitQuestion = async (data: any) => {
+    setIsLoading(true);
     let parentId = conditionParent?.id;
     let childId = conditionChild?.id;
     if (!parentId) {
@@ -99,12 +102,18 @@ const ConditionalForm: React.FC<{
         },
       };
 
-      if (mode == "edit") {
-        const resp = await updatePost(post?.id as number, post_data);
-        router.push(`/questions/${resp.post?.id}`);
-      } else {
-        const resp = await createQuestionPost(post_data);
-        router.push(`/questions/${resp.post?.id}`);
+      let resp: { post: Post };
+
+      try {
+        if (mode == "edit") {
+          resp = await updatePost(post?.id as number, post_data);
+        } else {
+          resp = await createQuestionPost(post_data);
+        }
+
+        router.push(getPostLink(resp.post));
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -203,7 +212,7 @@ const ConditionalForm: React.FC<{
             </span>
           )}
         </InputContainer>
-        <Button type="submit" className="w-max capitalize">
+        <Button type="submit" className="w-max capitalize" disabled={isLoading}>
           {mode === "create" ? t("createQuestion") : t("editQuestion")}
         </Button>
       </form>

@@ -17,9 +17,15 @@ import Button from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { MarkdownText } from "@/components/ui/markdown_text";
-import { Category, PostWithForecasts, ProjectPermissions } from "@/types/post";
+import {
+  Category,
+  Post,
+  PostWithForecasts,
+  ProjectPermissions,
+} from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
+import { getPostLink } from "@/utils/navigation";
 import { extractQuestionGroupName, getQuestionStatus } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
@@ -67,6 +73,7 @@ const GroupForm: React.FC<Props> = ({
   const router = useRouter();
   const t = useTranslations();
   const { isLive } = getQuestionStatus(post);
+  const [isLoading, setIsLoading] = useState<boolean>();
 
   const defaultProject = post
     ? post.projects.default_project
@@ -75,6 +82,8 @@ const GroupForm: React.FC<Props> = ({
       : siteMain;
 
   const submitQuestion = async (data: any) => {
+    setIsLoading(true);
+
     if (control.getValues("default_project") === "") {
       control.setValue("default_project", null);
     }
@@ -158,12 +167,18 @@ const GroupForm: React.FC<Props> = ({
         questions: groupData,
       },
     };
-    if (mode === "edit" && post) {
-      const resp = await updatePost(post.id, post_data);
-      router.push(`/questions/${resp.post?.id}`);
-    } else {
-      const resp = await createQuestionPost(post_data);
-      router.push(`/questions/${resp.post?.id}`);
+    let resp: { post: Post };
+
+    try {
+      if (mode === "edit" && post) {
+        resp = await updatePost(post.id, post_data);
+      } else {
+        resp = await createQuestionPost(post_data);
+      }
+
+      router.push(getPostLink(resp.post));
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -595,7 +610,7 @@ const GroupForm: React.FC<Props> = ({
             {t("newSubquestion")}
           </Button>
         </div>
-        <Button type="submit" className="w-max capitalize">
+        <Button type="submit" className="w-max capitalize" disabled={isLoading}>
           {mode === "create" ? t("createQuestion") : t("editQuestion")}
         </Button>
       </form>
