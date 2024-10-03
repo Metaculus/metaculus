@@ -7,6 +7,7 @@ import ShareElectionsMenu from "@/app/(main)/experiments/elections/components/sh
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 
 import CardForecast from "./components/card_forecast";
+import ElectoralConsequences from "./components/electoral_consequences";
 import ExpectedElectoralVotesForecast from "./components/expected_electoral_votes_forecast";
 import StateByForecast from "./components/state_by_forecast";
 
@@ -67,6 +68,10 @@ export default async function ElectionsExperiment() {
 
           <Suspense fallback={<Skeleton className="mt-4" />}>
             <StateByForecast questionGroupId={18274} />
+          </Suspense>
+
+          <Suspense fallback={<Skeleton className="mt-4" />}>
+            <ElectoralConsequences />
           </Suspense>
         </div>
       </main>
