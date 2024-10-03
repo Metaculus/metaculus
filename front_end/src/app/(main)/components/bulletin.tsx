@@ -2,6 +2,7 @@
 
 import { faClose } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classNames from "classnames";
 import { FC, useState } from "react";
 
 import { cancelBulletin } from "../actions";
@@ -11,13 +12,15 @@ const Bulletin: FC<{ text: string; id: number }> = ({ text, id }) => {
 
   return (
     <div
-      className={
-        `mb-2 mt-2 flex flex-col items-start border-2 border-solid border-sky-500 p-4` +
-        (hidden ? " hidden" : "")
-      }
+      className={classNames(
+        "relative mb-2 mt-2 flex flex-col items-start rounded border-2 border-solid border-blue-700 bg-blue-400 p-4 pr-8 pt-6 dark:border-blue-700 dark:bg-blue-800",
+        {
+          hidden: hidden,
+        }
+      )}
     >
       <FontAwesomeIcon
-        className="inline cursor-pointer pl-2 pt-2 text-2xl"
+        className="absolute right-3 top-3 inline cursor-pointer text-2xl"
         icon={faClose}
         onClick={async () => {
           await cancelBulletin(id);
