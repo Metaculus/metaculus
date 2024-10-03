@@ -51,7 +51,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
           </div>
         </div>
         <Link href="/aib/q3" className="w-full no-underline">
-          <div className="flex flex w-full cursor-pointer flex-col items-center items-center justify-center justify-center gap-4 text-balance rounded-md bg-purple-300 p-4 text-center text-lg text-purple-800 transition-colors hover:bg-purple-400 dark:bg-purple-300-dark dark:text-purple-800-dark dark:hover:bg-purple-400-dark md:flex-row md:p-8 md:text-2xl">
+          <div className="flex flex w-full cursor-pointer flex-col items-center items-center justify-center justify-center gap-4 text-balance rounded-md bg-purple-200 p-4 text-center text-lg text-purple-800 transition-colors hover:bg-purple-300 dark:bg-purple-200-dark dark:text-purple-800-dark dark:hover:bg-purple-300-dark md:flex-row md:p-8 md:text-2xl">
             <FontAwesomeIcon
               icon={faTrophy}
               className="text-lg md:text-2xl min-[1920px]:text-3xl"
