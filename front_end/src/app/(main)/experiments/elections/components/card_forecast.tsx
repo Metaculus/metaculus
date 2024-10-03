@@ -1,9 +1,9 @@
 import { FC } from "react";
 
 import ForecastCard from "@/components/forecast_card";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import PostsApi from "@/services/posts";
 import { TimelineChartZoomOption } from "@/types/charts";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   postId: number;
