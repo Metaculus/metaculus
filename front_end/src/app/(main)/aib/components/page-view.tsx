@@ -1,6 +1,7 @@
 "use client";
 
 import { faCircleQuestion, faFile } from "@fortawesome/free-regular-svg-icons";
+import { faTrophy } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import Link from "next/link";
@@ -49,7 +50,15 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
             />
           </div>
         </div>
-        <div>Link to Q3 leaderboard</div>
+        <Link href="/aib/q3" className="w-full no-underline">
+          <div className="flex flex w-full cursor-pointer flex-col items-center items-center justify-center justify-center gap-4 text-balance rounded-md bg-purple-300 p-4 text-center text-lg text-purple-800 transition-colors hover:bg-purple-400 dark:bg-purple-300-dark dark:text-purple-800-dark dark:hover:bg-purple-400-dark md:flex-row md:p-8 md:text-2xl">
+            <FontAwesomeIcon
+              icon={faTrophy}
+              className="text-lg md:text-2xl min-[1920px]:text-3xl"
+            />{" "}
+            Q3 tournament is over, check out the leaderboards!
+          </div>
+        </Link>{" "}
         <div className="flex size-full flex-col gap-3 md:flex-row">
           {/* <div className="flex size-full grow w-full md:w-2/3 rounded bg-white p-4 dark:bg-blue-100-dark md:p-6 lg:gap-2 lg:p-8 min-[1920px]:gap-3 min-[1920px]:p-12">text</div> */}
           <Description />
