@@ -342,7 +342,10 @@ const Comment: FC<CommentProps> = ({
               className="no-underline"
               href={`/accounts/profile/${comment.author.id}/`}
             >
-              <h4 className="my-1">{comment.author.username}</h4>
+              <h4 className="my-1">
+                {comment.author.username}
+                {comment.author.is_bot && " 🤖"}
+              </h4>
             </a>
             {/*
           {comment.is_moderator && !comment.is_admin && (
