@@ -12,7 +12,12 @@ class AuthApi {
   ): Promise<SocialProvider[]> {
     try {
       return await get<SocialProvider[]>(
-        `/auth/social?redirect_uri=${redirect_uri}`
+        `/auth/social?redirect_uri=${redirect_uri}`,
+        {
+          next: {
+            revalidate: 3600,
+          },
+        }
       );
     } catch (err) {
       console.error("Error getting social providers:", err);
