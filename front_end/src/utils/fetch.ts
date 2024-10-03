@@ -91,7 +91,14 @@ const appFetch = async <T>(
   options: FetchOptions = {},
   config?: FetchConfig
 ): Promise<T> => {
-  const { emptyContentType = false, passAuthHeader = true } = config ?? {};
+  let { emptyContentType = false, passAuthHeader = true } = config ?? {};
+
+  // Warning: caching could be only applied to anonymised requests
+  // To prevent user token leaks and storage spam.
+  // NextJS caches every request variant including headers (auth token) diff
+  if (options.next?.revalidate !== undefined) {
+    passAuthHeader = false;
+  }
 
   const authToken = passAuthHeader ? getServerSession() : null;
   const alphaToken = getAlphaTokenSession();

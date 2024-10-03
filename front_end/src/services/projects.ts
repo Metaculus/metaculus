@@ -1,4 +1,4 @@
-import { PostSubscription, ProjectPermissions } from "@/types/post";
+import { ProjectPermissions } from "@/types/post";
 import {
   Category,
   Tag,
@@ -23,7 +23,9 @@ export type TournamentFilterParams = {
 
 class ProjectsApi {
   static async getTopics(): Promise<Topic[]> {
-    return await get<Topic[]>("/projects/topics");
+    return await get<Topic[]>("/projects/topics", {
+      next: { revalidate: 3600 },
+    });
   }
 
   static async getCategories(): Promise<Category[]> {
@@ -37,7 +39,9 @@ class ProjectsApi {
   }
 
   static async getSiteMain(): Promise<Tournament> {
-    return await get<Tournament>("/projects/site_main");
+    return await get<Tournament>("/projects/site_main", {
+      next: { revalidate: 3600 },
+    });
   }
 
   static async getTournaments(
