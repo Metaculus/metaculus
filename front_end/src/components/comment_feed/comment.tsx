@@ -322,7 +322,7 @@ const Comment: FC<CommentProps> = ({
     <div id={`comment-${comment.id}`} ref={commentRef}>
       <div
         className={classNames("", {
-          "bg-blue-100 dark:bg-blue-100-dark":
+          "":
             lastViewedAt &&
             new Date(lastViewedAt) < new Date(comment.created_at),
         })}
