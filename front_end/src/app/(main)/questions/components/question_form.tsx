@@ -14,6 +14,7 @@ import ProjectPickerInput from "@/app/(main)/questions/components/project_picker
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import { useAuth } from "@/contexts/auth_context";
 import {
@@ -47,7 +48,7 @@ const baseQuestionSchema = z.object({
   description: z.string().min(4),
   resolution_criteria: z.string().min(1),
   fine_print: z.string(),
-  scheduled_close_time: z.date(),
+  // scheduled_close_time: z.date(),
   scheduled_resolve_time: z.date(),
   default_project: z.nullable(z.union([z.number(), z.string()])),
 });
@@ -102,6 +103,9 @@ const QuestionForm: FC<Props> = ({
   const t = useTranslations();
   const { isLive, isDone } = getQuestionStatus(post);
   const [isLoading, setIsLoading] = useState<boolean>();
+  const [error, setError] = useState<
+    (Error & { digest?: string }) | undefined
+  >();
 
   const defaultProject = post
     ? post.projects.default_project
@@ -170,6 +174,9 @@ const QuestionForm: FC<Props> = ({
       }
 
       router.push(getPostLink(resp.post));
+    } catch (e) {
+      const error = e as Error & { digest?: string };
+      setError(error);
     } finally {
       setIsLoading(false);
     }
@@ -456,9 +463,20 @@ const QuestionForm: FC<Props> = ({
             }
           />
         </InputContainer>
-        <Button type="submit" className="w-max capitalize" disabled={isLoading}>
-          {mode === "create" ? t("createQuestion") : t("editQuestion")}
-        </Button>
+
+        <div className="flex-col">
+          <div className="-mt-2 min-h-[32px] flex-col">
+            {isLoading && <LoadingIndicator />}
+            {!isLoading && <FormError errors={error} />}
+          </div>
+          <Button
+            type="submit"
+            className="w-max capitalize"
+            disabled={isLoading}
+          >
+            {mode === "create" ? t("createQuestion") : t("editQuestion")}
+          </Button>
+        </div>
       </form>
     </main>
   );
