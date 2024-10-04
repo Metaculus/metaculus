@@ -76,7 +76,7 @@ const GroupForm: React.FC<Props> = ({
   const { isLive } = getQuestionStatus(post);
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
-    (Error & { digest?: string }) | undefined
+    (Error & { digest?: string }) | string | undefined
   >();
 
   const defaultProject = post
@@ -94,7 +94,7 @@ const GroupForm: React.FC<Props> = ({
     }
     const labels = subQuestions.map((q) => q.label);
     if (new Set(labels).size !== labels.length) {
-      alert("Duplicate sub question labels");
+      setError("Duplicate sub question labels");
       return;
     }
 
@@ -112,7 +112,7 @@ const GroupForm: React.FC<Props> = ({
         return subquestionData;
       } else if (subtype === QuestionType.Numeric) {
         if (x.scaling.range_max == null || x.scaling.range_min == null) {
-          alert(
+          setError(
             "Please enter a range_max or range_min value for numeric questions"
           );
           break_out = true;
@@ -128,7 +128,7 @@ const GroupForm: React.FC<Props> = ({
         };
       } else if (subtype === QuestionType.Date) {
         if (x.scaling.range_max === null || x.scaling.range_min === null) {
-          alert("Please enter a max or min value for numeric questions");
+          setError("Please enter a max or min value for numeric questions");
           break_out = true;
           return;
         }
@@ -141,7 +141,7 @@ const GroupForm: React.FC<Props> = ({
           zero_point: x.zeroPoint,
         };
       } else {
-        alert("Invalid sub-question type");
+        setError("Invalid sub-question type");
         break_out = true;
         return;
       }
@@ -623,7 +623,11 @@ const GroupForm: React.FC<Props> = ({
         <div className="flex-col">
           <div className="-mt-2 min-h-[32px] flex-col">
             {isLoading && <LoadingIndicator />}
-            {!isLoading && <FormErrorMessage errors={error?.digest} />}
+            {!isLoading && (
+              <FormErrorMessage
+                errors={typeof error === "string" ? error : error?.digest}
+              />
+            )}
           </div>
           <Button
             type="submit"
