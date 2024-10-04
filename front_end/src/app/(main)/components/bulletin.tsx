@@ -29,7 +29,12 @@ const Bulletin: FC<{ text: string; id: number }> = ({ text, id }) => {
       />
       <div>
         {text.split("\n").map((line, lineIdx) => (
-          <p key={lineIdx}>{line}</p>
+          <div
+            className="my-3"
+            key={lineIdx}
+            dangerouslySetInnerHTML={{ __html: line }}
+            suppressHydrationWarning
+          />
         ))}
       </div>
     </div>
