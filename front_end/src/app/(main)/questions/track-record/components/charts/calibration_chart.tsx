@@ -164,17 +164,7 @@ const CalibrationChart: React.FC<{
       </div>
       <SectionToggle title="Details" defaultOpen={false}>
         <span className="pt-3 text-sm text-gray-600 dark:text-gray-400">
-          The Calibration Curve takes into account forecasts for binary
-          questions only. The x-axis shows prediction ranges (e.g. 17.5% -
-          22.5%) and the y-axis shows the actual "Yes" resolution rate for
-          questions within each range. Yellow diamonds represent these observed
-          rates. The gray lines along the diagonal (y=x) are what you would get
-          by forecasting the "true" probability on a large number of questions.
-          The shaded area is the 90% credible interval around the perfect
-          calibration, the width of which depends on how many predictions the
-          forecaster has made in that x-axis range. If the forecaster had been
-          perfectly calibrated, the diamond would have been in that range 90% of
-          the time.
+          {t("calibrationCurveInfoMain")}
           <br />
           <br />
           {t("calibrationCurveInfo")}
