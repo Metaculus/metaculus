@@ -100,7 +100,11 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   const handleUnfollow = useCallback(async () => {
     setIsLoading(true);
     try {
-      const newSubscriptions = await changePostSubscriptions(post.id, [], false);
+      const newSubscriptions = await changePostSubscriptions(
+        post.id,
+        [],
+        false
+      );
       onPostSubscriptionChange && onPostSubscriptionChange(newSubscriptions);
     } finally {
       setIsLoading(false);

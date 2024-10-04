@@ -95,7 +95,7 @@ const PopoverFilter: FC<Props> = ({
             className={panelClassName}
           >
             <div className="mb-6 flex w-full items-center border-b border-gray-300 sm:hidden">
-              <h3 className="capitalize m-0 grow">{t("filterBy")}</h3>
+              <h3 className="m-0 grow capitalize">{t("filterBy")}</h3>
               <Button
                 variant="text"
                 size="md"
@@ -140,7 +140,9 @@ const PopoverFilter: FC<Props> = ({
               ))}
             </div>
             <div className="ml-auto mt-4 flex w-full justify-end gap-3 border-t border-gray-300 pt-4 dark:border-gray-300-dark max-sm:sticky max-sm:bottom-0 max-sm:w-full max-sm:bg-gray-0 max-sm:py-4 max-sm:dark:bg-gray-0-dark">
-              <Button className="capitalize" onClick={onClear}>{t("clear")}</Button>
+              <Button className="capitalize" onClick={onClear}>
+                {t("clear")}
+              </Button>
               <Button className="capitalize" variant="primary" onClick={close}>
                 {t("done")}
               </Button>
