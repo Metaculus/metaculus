@@ -59,7 +59,9 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     // Converting Django errors
     const data: ErrorResponse = normalizeApiErrors(errorData);
 
-    const error: FetchError = new ApiError(data.message ?? "An error occurred");
+    const error: FetchError = new ApiError(
+      data.message ?? "Unknown error occurred"
+    );
     error.response = response;
     error.data = data;
 
