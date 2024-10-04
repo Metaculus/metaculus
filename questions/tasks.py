@@ -13,13 +13,25 @@ from questions.services import build_question_forecasts
 from scoring.models import Score
 from scoring.utils import score_question
 from users.models import User
+from utils.dramatiq import concurrency_retries, task_concurrent_limit
 
 
-@dramatiq.actor
+@dramatiq.actor(max_backoff=10_000, retry_when=concurrency_retries(max_retries=20))
+@task_concurrent_limit(
+    lambda question_id: f"build-question-forecasts-{question_id}",
+    # We want only one task for the same question id be executed at the same time
+    # To ensure all forecasts will be included in the AggregatedForecasts model
+    limit=1,
+    # This task shouldn't take longer than 1m
+    # So it's fine to set mutex lock timeout for this duration
+    ttl=60_000,
+)
 def run_build_question_forecasts(question_id: int):
     """
-    TODO: ensure tasks of this group are executed consequent and keep the FIFO order
-        and implement a cancellation of previous task with the same type
+    The current concurrency limiter is not ideal because it does not execute consecutive tasks
+    with the same question_id sequentially. Instead,
+    it postpones their execution using exponential backoff,
+    which means there's no guarantee of maintaining the original order.
     """
 
     question = Question.objects.get(id=question_id)

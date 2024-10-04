@@ -293,9 +293,14 @@ DRAMATIQ_BROKER = {
         "dramatiq.middleware.AgeLimit",
         "dramatiq.middleware.TimeLimit",
         "dramatiq.middleware.Callbacks",
-        "django_dramatiq.middleware.DbConnectionsMiddleware",
+        "dramatiq.middleware.Retries",
         "django_dramatiq.middleware.AdminMiddleware",
+        "django_dramatiq.middleware.DbConnectionsMiddleware",
     ],
+}
+DRAMATIQ_RATE_LIMITER_BACKEND_OPTIONS = {
+    # Setting redis db to 1 for the MQ storage
+    "url": f"{REDIS_URL}/3?{REDIS_URL_CONFIG}",
 }
 
 # Setting StubBroker broker for unit tests environment
@@ -344,7 +349,9 @@ AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
 # Django-storages perform expensive operations of s3 objects signing if this setting is not defined.
 # Ideally, we need to point our cloudflare subdomain to serve media instead of direct s3 access
-AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_S3_CUSTOM_DOMAIN", f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com")
+AWS_S3_CUSTOM_DOMAIN = os.environ.get(
+    "AWS_S3_CUSTOM_DOMAIN", f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+)
 AWS_S3_FILE_OVERWRITE = False
 AWS_QUERYSTRING_AUTH = False
 
