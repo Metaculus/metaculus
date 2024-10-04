@@ -32,6 +32,9 @@ def run_build_question_forecasts(question_id: int):
     with the same question_id sequentially. Instead,
     it postpones their execution using exponential backoff,
     which means there's no guarantee of maintaining the original order.
+
+    In the future I'd consider to move to Kafka
+    https://kafka.apache.org/
     """
 
     question = Question.objects.get(id=question_id)
