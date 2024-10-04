@@ -2,12 +2,12 @@ import classNames from "classnames";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import SectionToggle from "@/components/ui/section_toggle";
 import LeaderboardApi from "@/services/leaderboard";
 import { LeaderboardType } from "@/types/scoring";
 
 import ProjectLeaderboardTable from "./project_leaderboard_table";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   projectId: number;

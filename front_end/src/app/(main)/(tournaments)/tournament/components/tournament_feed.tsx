@@ -38,7 +38,7 @@ const TournamentFeed: FC<Props> = ({ slug }) => {
       setIsLoading(true);
       setError(undefined);
       try {
-        const { questions, count } = (await fetchPosts(
+        const { questions } = (await fetchPosts(
           pageFilters,
           0,
           POSTS_PER_PAGE
@@ -54,6 +54,7 @@ const TournamentFeed: FC<Props> = ({ slug }) => {
       }
     };
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   return isLoading ? (

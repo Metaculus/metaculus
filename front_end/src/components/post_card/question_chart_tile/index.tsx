@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import MultipleChoiceTile from "@/components/multiple_choice_tile";
@@ -8,10 +9,9 @@ import { TimelineChartZoomOption } from "@/types/charts";
 import { PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
+import { generateUserForecastsForMultipleQuestion } from "@/utils/questions";
 
 import QuestionNumericTile from "./question_numeric_tile";
-import { useTranslations } from "next-intl";
-import { generateUserForecastsForMultipleQuestion } from "@/utils/questions";
 
 type Props = {
   question: QuestionWithForecasts;

@@ -1,5 +1,6 @@
-import PageWrapper from "../../components/pagewrapper";
 import MathJaxContent from "@/components/math_jax_content";
+
+import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
   title: "Medals FAQ | Metaculus",

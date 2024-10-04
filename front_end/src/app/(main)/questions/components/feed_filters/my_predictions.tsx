@@ -7,10 +7,17 @@ import {
   getFilterSectionPostType,
   POST_STATUS_LABEL_MAP,
 } from "@/app/(main)/questions/helpers/filters";
-import { FilterOptionType } from "@/components/popover_filter/types";
+import {
+  FilterOptionType,
+  FilterReplaceInfo,
+} from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
 import { GroupButton } from "@/components/ui/button_group";
-import { POST_STATUS_FILTER } from "@/constants/posts_feed";
+import {
+  POST_FORECASTER_ID_FILTER,
+  POST_ORDER_BY_FILTER,
+  POST_STATUS_FILTER,
+} from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
 import useSearchParams from "@/hooks/use_search_params";
 import { PostStatus } from "@/types/post";
@@ -78,7 +85,40 @@ const MyPredictionsFilters: FC = () => {
     [t]
   );
 
-  const onOrderChange = (
+  const handleFilterChange = (
+    change: {
+      filterId: string;
+      optionValue: string | string[] | null;
+      replaceInfo?: FilterReplaceInfo;
+    },
+    deleteParam: (
+      name: string,
+      withNavigation?: boolean,
+      value?: string
+    ) => void
+  ) => {
+    if (!change.replaceInfo) return;
+
+    const { optionId, replaceIds } = change.replaceInfo;
+    const didRemoveUserFilter =
+      optionId !== POST_FORECASTER_ID_FILTER &&
+      replaceIds.includes(POST_FORECASTER_ID_FILTER);
+    const isUserSpecificOrder = [
+      QuestionOrder.WeeklyMovementDesc,
+      QuestionOrder.DivergenceDesc,
+      QuestionOrder.ScoreDesc,
+      QuestionOrder.ScoreDesc,
+      QuestionOrder.LastPredictionTimeDesc,
+      QuestionOrder.HotAsc,
+    ].includes(params.get(POST_ORDER_BY_FILTER) as QuestionOrder);
+
+    if (didRemoveUserFilter && isUserSpecificOrder) {
+      // clear user specific order if user filter is removed
+      deleteParam(POST_ORDER_BY_FILTER, false);
+    }
+  };
+
+  const handleOrderChange = (
     order: QuestionOrder,
     setFilterParam: (
       name: string,
@@ -86,6 +126,10 @@ const MyPredictionsFilters: FC = () => {
       withNavigation?: boolean
     ) => void
   ) => {
+    if (user?.id) {
+      setFilterParam(POST_FORECASTER_ID_FILTER, user.id.toString(), false);
+    }
+
     if (
       [
         QuestionOrder.WeeklyMovementDesc,
@@ -108,7 +152,8 @@ const MyPredictionsFilters: FC = () => {
       filters={filters}
       mainSortOptions={mainSortOptions}
       sortOptions={sortOptions}
-      onOrderChange={onOrderChange}
+      onOrderChange={handleOrderChange}
+      onPopOverFilterChange={handleFilterChange}
       defaultOrder={QuestionOrder.WeeklyMovementDesc}
     />
   );

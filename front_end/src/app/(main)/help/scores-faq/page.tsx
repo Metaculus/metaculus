@@ -1,10 +1,11 @@
-import PageWrapper from "../../components/pagewrapper";
 import MathJaxContent from "@/components/math_jax_content";
+
 import BaselineMath from "./components/baseline_math";
-import PeerMath from "./components/peer_math";
 import FurtherMath from "./components/further_math";
-import TruncationExample from "./components/truncation_example";
+import PeerMath from "./components/peer_math";
 import PointsMath from "./components/points_math";
+import TruncationExample from "./components/truncation_example";
+import PageWrapper from "../../components/pagewrapper";
 
 export const metadata = {
   title: "Scores FAQ | Metaculus",
