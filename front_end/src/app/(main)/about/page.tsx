@@ -3,13 +3,13 @@
 import { faLinkedin } from "@fortawesome/free-brands-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { DialogTitle } from "@headlessui/react";
+import { useTranslations } from "next-intl";
 import { useState, useEffect } from "react";
 
 import { AboutHeader } from "./components/AboutHeader";
 import MetaculusLogo from "./components/MetacLogo";
 import ModalWithArrows from "./components/ModalWithArrows";
 import EngageBlock from "../(home)/components/engage_block";
-import { useTranslations } from "next-intl";
 
 type Group = "team" | "board" | "advisors";
 
