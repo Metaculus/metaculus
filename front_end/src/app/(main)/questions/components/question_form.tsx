@@ -12,7 +12,7 @@ import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
-import { FormError, Input, Textarea } from "@/components/ui/form_field";
+import { FormError, FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
@@ -467,7 +467,7 @@ const QuestionForm: FC<Props> = ({
         <div className="flex-col">
           <div className="-mt-2 min-h-[32px] flex-col">
             {isLoading && <LoadingIndicator />}
-            {!isLoading && <FormError errors={error} />}
+            {!isLoading && <FormErrorMessage errors={error?.digest} />}
           </div>
           <Button
             type="submit"
