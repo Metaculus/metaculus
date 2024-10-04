@@ -117,30 +117,3 @@ def _qs_filter_similar_posts(qs: QuerySet[Post], embedding_vector):
 
 def qs_filter_similar_posts(qs: QuerySet[Post], post: Post):
     return _qs_filter_similar_posts(qs, post.embedding_vector).exclude(pk=post.pk)
-
-
-def get_similar_posts_for_multiple_posts(posts: list[Post]):
-    """
-    Generates similar posts for multiple posts.
-    """
-
-    posts_with_embeddings = [
-        ch.embedding_vector for ch in posts if ch.embedding_vector is not None
-    ]
-
-    if not posts_with_embeddings:
-        return []
-
-    vector = np.average(
-        posts_with_embeddings,
-        axis=0,
-        weights=[len(x) for x in posts_with_embeddings],
-    )
-
-    return (
-        _qs_filter_similar_posts(
-            Post.objects.filter_public().filter_active().filter_questions(), vector
-        )
-        .exclude(pk__in=[p.pk for p in posts])
-        .order_by("-rank")
-    )

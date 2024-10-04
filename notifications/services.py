@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass, asdict
 
 from dateutil.parser import parse as date_parse
@@ -9,7 +10,6 @@ from notifications.constants import MailingTags
 from notifications.models import Notification
 from notifications.utils import generate_email_comment_preview_text
 from posts.models import Post
-from posts.services.search import get_similar_posts_for_multiple_posts
 from projects.models import Project
 from questions.models import Question
 from questions.utils import get_question_group_title
@@ -17,6 +17,8 @@ from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
 from utils.frontend import build_post_comment_url
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -186,8 +188,16 @@ class NotificationTypeSimilarPostsMixin:
 
     @classmethod
     def get_similar_posts(cls, post_ids: list[int]):
+        from posts.services.feed import get_similar_posts_for_posts
+
         similar_posts = []
         posts = Post.objects.filter(pk__in=post_ids).only("id", "title")
+
+        try:
+            similar_post_ids = get_similar_posts_for_posts(posts, 4)
+        except Exception:
+            logger.exception("Failed to generate similar posts")
+            similar_post_ids = []
 
         if posts:
             similar_posts = [
@@ -195,7 +205,9 @@ class NotificationTypeSimilarPostsMixin:
                     "id": p.pk,
                     "title": p.title,
                 }
-                for p in get_similar_posts_for_multiple_posts(posts)[:4]
+                for p in Post.objects.filter(pk__in=similar_post_ids).only(
+                    "id", "title"
+                )
             ]
 
         return similar_posts

@@ -15,7 +15,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from misc.services.itn import get_post_get_similar_articles
+from misc.services.itn import get_post_similar_articles
 from posts.models import (
     Post,
     Vote,
@@ -498,7 +498,7 @@ def post_related_articles_api_view(request: Request, pk):
     ObjectPermission.can_view(permission, raise_exception=True)
 
     # Retrieve cached articles
-    articles = get_post_get_similar_articles(post)
+    articles = get_post_similar_articles(post)
 
     return Response(PostRelatedArticleSerializer(articles, many=True).data)
 
