@@ -1,5 +1,6 @@
 import { FC } from "react";
 
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import MiscApi from "@/services/misc";
 
 import Bulletin from "./bulletin";
@@ -21,4 +22,4 @@ const Bulletins: FC = async () => {
   );
 };
 
-export default Bulletins;
+export default WithServerComponentErrorBoundary(Bulletins);

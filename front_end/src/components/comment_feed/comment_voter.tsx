@@ -29,15 +29,19 @@ const CommentVoter: FC<Props> = ({ voteData, className }) => {
       return;
     }
 
-    const newDirection = userVote === direction ? null : direction;
-    const response = await voteComment({
-      id: voteData.commentId,
-      vote: newDirection,
-      user: user.id,
-    });
-    if (response && "score" in response) {
-      setUserVote(newDirection);
-      setVoteScore(response.score as number);
+    try {
+      const newDirection = userVote === direction ? null : direction;
+      const response = await voteComment({
+        id: voteData.commentId,
+        vote: newDirection,
+        user: user.id,
+      });
+      if (response && "score" in response) {
+        setUserVote(newDirection);
+        setVoteScore(response.score as number);
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
   return (

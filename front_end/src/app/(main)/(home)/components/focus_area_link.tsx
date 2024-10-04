@@ -42,7 +42,7 @@ const FocusAreaLink: FC<FocusAreaItem> = ({ title, text, Icon, href, id }) => {
       >
         <Icon />
       </div>
-      <h3 className="text-2xl text-gray-900 dark:text-gray-900-dark capitalize">
+      <h3 className="text-2xl capitalize text-gray-900 dark:text-gray-900-dark">
         {title}
       </h3>
       <span className="m-0 mb-9 flex-1 text-base text-gray-700 dark:text-gray-700-dark">

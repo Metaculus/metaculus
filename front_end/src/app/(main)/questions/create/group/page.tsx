@@ -1,3 +1,4 @@
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
@@ -45,4 +46,4 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   );
 };
 
-export default GroupQuestionCreator;
+export default WithServerComponentErrorBoundary(GroupQuestionCreator);

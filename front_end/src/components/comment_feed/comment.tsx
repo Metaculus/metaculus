@@ -165,7 +165,6 @@ const Comment: FC<CommentProps> = ({
   const isCmmButtonVisible =
     user?.id !== comment.author.id && !!postData?.question;
   const isCmmButtonDisabled = !user || !userCanPredict;
-
   // TODO: find a better way to dedect whether on mobile or not. For now we need to know in JS
   // too and can't use tw classes
   const isMobileScreen = window.innerWidth < 640;

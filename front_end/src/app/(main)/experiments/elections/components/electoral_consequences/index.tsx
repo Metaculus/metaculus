@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import PostsApi from "@/services/posts";
 
 import QuestionLink from "./question_link";
@@ -61,4 +62,4 @@ const ElectoralConsequences: FC = async () => {
   );
 };
 
-export default ElectoralConsequences;
+export default WithServerComponentErrorBoundary(ElectoralConsequences);

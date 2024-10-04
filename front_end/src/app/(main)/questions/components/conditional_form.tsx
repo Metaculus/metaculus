@@ -10,7 +10,9 @@ import * as z from "zod";
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import QuestionChartTile from "@/components/post_card/question_chart_tile";
 import Button from "@/components/ui/button";
+import { FormErrorMessage } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { Post, PostWithForecasts } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
@@ -56,6 +58,11 @@ const ConditionalForm: React.FC<{
   const t = useTranslations();
   const { isLive, isDone } = getQuestionStatus(post);
   const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState<boolean>();
+  const [error, setError] = useState<
+    (Error & { digest?: string }) | undefined
+  >();
+
   if (isDone) {
     throw new Error(t("isDoneError"));
   }
@@ -63,7 +70,6 @@ const ConditionalForm: React.FC<{
     useState<PostWithForecasts | null>(conditionParentInit);
   const [conditionChild, setConditionChild] =
     useState<PostWithForecasts | null>(conditionChildInit);
-  const [isLoading, setIsLoading] = useState<boolean>();
 
   const control = useForm({
     resolver: zodResolver(conditionalQuestionSchema),
@@ -76,6 +82,7 @@ const ConditionalForm: React.FC<{
 
   const submitQuestion = async (data: any) => {
     setIsLoading(true);
+    setError(undefined);
     let parentId = conditionParent?.id;
     let childId = conditionChild?.id;
     if (!parentId) {
@@ -112,6 +119,10 @@ const ConditionalForm: React.FC<{
         }
 
         router.push(getPostLink(resp.post));
+      } catch (e) {
+        console.error(e);
+        const error = e as Error & { digest?: string };
+        setError(error);
       } finally {
         setIsLoading(false);
       }
@@ -212,9 +223,20 @@ const ConditionalForm: React.FC<{
             </span>
           )}
         </InputContainer>
-        <Button type="submit" className="w-max capitalize" disabled={isLoading}>
-          {mode === "create" ? t("createQuestion") : t("editQuestion")}
-        </Button>
+
+        <div className="flex-col">
+          <div className="-mt-2 min-h-[32px] flex-col">
+            {isLoading && <LoadingIndicator />}
+            {!isLoading && <FormErrorMessage errors={error?.digest} />}
+          </div>
+          <Button
+            type="submit"
+            className="w-max capitalize"
+            disabled={isLoading}
+          >
+            {mode === "create" ? t("createQuestion") : t("editQuestion")}
+          </Button>
+        </div>
       </form>
     </main>
   );
