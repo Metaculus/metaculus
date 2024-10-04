@@ -14,9 +14,9 @@ import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { QuestionWithMultipleChoiceForecasts } from "@/types/question";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
+import { generateUserForecastsForMultipleQuestion } from "@/utils/questions";
 
 import ChoicesTooltip from "../choices_tooltip";
-import { generateUserForecastsForMultipleQuestion } from "@/utils/questions";
 
 const MAX_VISIBLE_CHECKBOXES = 6;
 

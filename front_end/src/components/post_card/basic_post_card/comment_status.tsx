@@ -8,8 +8,8 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import Button from "@/components/ui/button";
-import { abbreviatedNumber } from "@/utils/number_formatters";
 import { useAuth } from "@/contexts/auth_context";
+import { abbreviatedNumber } from "@/utils/number_formatters";
 
 type Props = {
   url: string;

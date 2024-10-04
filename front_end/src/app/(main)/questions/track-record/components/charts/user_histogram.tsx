@@ -1,5 +1,8 @@
 "use client";
 
+import { range } from "lodash";
+import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React from "react";
 import {
@@ -12,10 +15,6 @@ import {
 import { darkTheme, lightTheme } from "@/constants/chart_theme";
 import useAppTheme from "@/hooks/use_app_theme";
 import { TrackRecordHistogramItem } from "@/types/track_record";
-import Link from "next/link";
-
-import dynamic from "next/dynamic";
-import { range } from "lodash";
 
 type HistogramProps = {
   rawHistogramData: TrackRecordHistogramItem[];
