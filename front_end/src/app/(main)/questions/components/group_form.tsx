@@ -14,8 +14,9 @@ import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
-import { Input, Textarea } from "@/components/ui/form_field";
+import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import {
   Category,
@@ -74,6 +75,9 @@ const GroupForm: React.FC<Props> = ({
   const t = useTranslations();
   const { isLive } = getQuestionStatus(post);
   const [isLoading, setIsLoading] = useState<boolean>();
+  const [error, setError] = useState<
+    (Error & { digest?: string }) | undefined
+  >();
 
   const defaultProject = post
     ? post.projects.default_project
@@ -83,6 +87,7 @@ const GroupForm: React.FC<Props> = ({
 
   const submitQuestion = async (data: any) => {
     setIsLoading(true);
+    setError(undefined);
 
     if (control.getValues("default_project") === "") {
       control.setValue("default_project", null);
@@ -177,6 +182,10 @@ const GroupForm: React.FC<Props> = ({
       }
 
       router.push(getPostLink(resp.post));
+    } catch (e) {
+      console.log(e);
+      const error = e as Error & { digest?: string };
+      setError(error);
     } finally {
       setIsLoading(false);
     }
@@ -610,9 +619,20 @@ const GroupForm: React.FC<Props> = ({
             {t("newSubquestion")}
           </Button>
         </div>
-        <Button type="submit" className="w-max capitalize" disabled={isLoading}>
-          {mode === "create" ? t("createQuestion") : t("editQuestion")}
-        </Button>
+
+        <div className="flex-col">
+          <div className="-mt-2 min-h-[32px] flex-col">
+            {isLoading && <LoadingIndicator />}
+            {!isLoading && <FormErrorMessage errors={error?.digest} />}
+          </div>
+          <Button
+            type="submit"
+            className="w-max capitalize"
+            disabled={isLoading}
+          >
+            {mode === "create" ? t("createQuestion") : t("editQuestion")}
+          </Button>
+        </div>
       </form>
     </main>
   );

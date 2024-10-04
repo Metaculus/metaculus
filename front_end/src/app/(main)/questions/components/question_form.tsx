@@ -12,7 +12,12 @@ import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
-import { FormError, FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
+import {
+  FormError,
+  FormErrorMessage,
+  Input,
+  Textarea,
+} from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
@@ -48,7 +53,7 @@ const baseQuestionSchema = z.object({
   description: z.string().min(4),
   resolution_criteria: z.string().min(1),
   fine_print: z.string(),
-  // scheduled_close_time: z.date(),
+  scheduled_close_time: z.date(),
   scheduled_resolve_time: z.date(),
   default_project: z.nullable(z.union([z.number(), z.string()])),
 });
@@ -147,6 +152,7 @@ const QuestionForm: FC<Props> = ({
 
   const submitQuestion = async (data: any) => {
     setIsLoading(true);
+    setError(undefined);
     if (
       questionType === QuestionType.Date ||
       questionType === QuestionType.Numeric
@@ -175,6 +181,7 @@ const QuestionForm: FC<Props> = ({
 
       router.push(getPostLink(resp.post));
     } catch (e) {
+      console.error(e);
       const error = e as Error & { digest?: string };
       setError(error);
     } finally {
