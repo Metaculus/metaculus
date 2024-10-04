@@ -50,7 +50,7 @@ const QuestionLink: FC<Props> = ({ question }) => {
                 "text-[#E0152B] dark:text-[#E7858F]": !isHarris,
               })}
             >
-              {moreLikely}% {t("moreLikely")}
+              {moreLikely} {t("moreLikely")}
             </span>{" "}
             {t("afterElection", { winner: isHarris ? "Harris" : "Trump" })}
           </div>
@@ -73,7 +73,7 @@ const QuestionLink: FC<Props> = ({ question }) => {
 
         <div className="text-center text-sm text-gray-500 dark:text-gray-500-dark sm:hidden">
           <span className="text-center text-gray-1000 dark:text-gray-1000-dark">
-            {moreLikely}% {t("moreLikely")}
+            {moreLikely} {t("moreLikely")}
           </span>{" "}
           {t("afterElection", { winner: isHarris ? "Harris" : "Trump" })}
         </div>
