@@ -468,26 +468,16 @@ def all_post_subscriptions(request):
 def post_similar_posts_api_view(request: Request, pk):
     post = get_object_or_404(Post, pk=pk)
 
-    # Check permissions
-    permission = get_post_permission_for_user(post, user=request.user)
-    ObjectPermission.can_view(permission, raise_exception=True)
+    # We can omit permissions check
+    # since this endpoint does not expose post content
+    # permission = get_post_permission_for_user(post, user=request.user)
+    # ObjectPermission.can_view(permission, raise_exception=True)
 
-    # Retrieve cached articles
-    def get_posts():
-        posts = get_similar_posts(post)
-        return serialize_post_many(posts, with_cp=True, group_cutoff=1)
-
-    """
-    data = cache_get_or_set(
-        f"post_similar_posts_api_view:{post.pk}",
-        get_posts,  # 2h
-        timeout=3600 * 2,
-    )
-    """
     # Not to overload the redis
-    data = get_posts()
+    posts = get_similar_posts(post)
+    posts = serialize_post_many(posts, with_cp=True, group_cutoff=1)
 
-    return Response(data)
+    return Response(posts)
 
 
 @api_view(["GET"])
@@ -495,9 +485,10 @@ def post_similar_posts_api_view(request: Request, pk):
 def post_related_articles_api_view(request: Request, pk):
     post = get_object_or_404(Post, pk=pk)
 
-    # Check permissions
-    permission = get_post_permission_for_user(post, user=request.user)
-    ObjectPermission.can_view(permission, raise_exception=True)
+    # We can omit permissions check
+    # since this endpoint does not expose post content
+    # permission = get_post_permission_for_user(post, user=request.user)
+    # ObjectPermission.can_view(permission, raise_exception=True)
 
     # Retrieve cached articles
     articles = get_post_similar_articles(post)
