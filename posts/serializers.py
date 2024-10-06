@@ -490,6 +490,7 @@ class SubscriptionStatusChangeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostSubscription
         fields = (
+            "id",
             "type",
             "created_at",
         )
