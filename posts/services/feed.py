@@ -184,6 +184,12 @@ def get_posts_feed(
     # Ordering
     order_desc, order_type = parse_order_by(order_by)
 
+    if (
+        order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE
+        and not forecaster_id
+    ):
+        order_type = "created_at"
+
     if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
         qs = qs.annotate_unread_comment_count(user_id=user.id)
     if order_type == PostFilterSerializer.Order.SCORE:
