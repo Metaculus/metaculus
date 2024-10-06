@@ -398,7 +398,7 @@ def post_subscriptions_create(request, pk):
 
     for data in serializers.ListField().run_validation(request.data):
         subscription_type = data.get("type")
-        subscription_id = data.get("id")
+        subscription_id = data.pop("id", None)
 
         serializer = get_subscription_serializer_by_type(subscription_type)(data=data)
         serializer.is_valid(raise_exception=True)
