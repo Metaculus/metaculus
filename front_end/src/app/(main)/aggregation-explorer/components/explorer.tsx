@@ -170,6 +170,11 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     <>
       <form onSubmit={handleSubmit} className="flex flex-col">
         <p className="text-center text-xl"> Enter questions ID or URL </p>
+        <p className="mt-2 text-center text-sm">
+          {" "}
+          If you are exploring a group or conditional question, please enter the
+          subquestion id.{" "}
+        </p>
         <div className="m-auto w-full max-w-[500px]">
           <div className="relative m-auto flex w-full rounded-full text-sm text-gray-900 dark:text-gray-900-dark">
             <Input
