@@ -114,12 +114,7 @@ def prediction_difference_for_display(
         return [(q - p, (q / (1 - q)) / (p / (1 - p))) for p, q in zip(p1, p2)]
     # total earth mover's distance, assymmetric earth mover's distance
     x_locations = unscaled_location_to_scaled_location(
-        np.linspace(
-            question.range_min,
-            question.range_max,
-            len(p1),
-        ),
-        question,
+        np.linspace(0, 1, len(p1)), question
     )
     diffs = np.array(p1) - np.array(p2)
     total = float(np.trapz(np.abs(diffs), x=x_locations))
