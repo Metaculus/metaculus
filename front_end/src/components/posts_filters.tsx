@@ -122,9 +122,6 @@ const PostsFilters: FC<Props> = ({
     optionValue: string | string[] | null,
     replaceInfo?: FilterReplaceInfo
   ) => {
-    console.log("filterId", filterId);
-    console.log("optionValue", optionValue);
-    console.log("replaceInfo", replaceInfo);
     onPopOverFilterChange?.(
       { filterId, optionValue, replaceInfo },
       deleteParam
