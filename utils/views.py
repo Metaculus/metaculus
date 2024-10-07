@@ -66,7 +66,7 @@ def aggregation_explorer_api_view(request):
         question,
         aggregation_methods,
         user_ids=user_ids,
-        minimize=False,
+        minimize=True,
         include_stats=True,
         include_bots=include_bots,
         histogram=True,
