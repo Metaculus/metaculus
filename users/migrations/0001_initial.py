@@ -112,7 +112,7 @@ class Migration(migrations.Migration):
                 ),
                 ("bio", models.TextField(blank=True, default="")),
                 ("is_bot", models.BooleanField(default=False)),
-                ("old_usernames", models.JSONField(default=list)),
+                ("old_usernames", models.JSONField(default=list, editable=False)),
                 (
                     "website",
                     models.CharField(
