@@ -140,6 +140,11 @@ def get_posts_feed(
                 & Q(resolved=False),
             )
 
+    # Notebooks don't support statuses filter
+    # So we add fallback condition list this
+    if statuses:
+        q |= Q(notebook_id__isnull=False)
+
     qs = qs.filter(q)
 
     if forecaster_id:
