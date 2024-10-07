@@ -40,6 +40,7 @@ type Props = {
   subscriptions: PostSubscription[];
   onPostSubscriptionChange?: (subscription: PostSubscription[]) => void;
   showPostLink?: boolean;
+  revalidate?: boolean;
 };
 
 const PostSubscribeCustomizeModal: FC<Props> = ({
@@ -49,6 +50,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   subscriptions: initialSubscriptions,
   onPostSubscriptionChange,
   showPostLink = false,
+  revalidate,
 }) => {
   const t = useTranslations();
 
@@ -127,7 +129,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
       const newSubscriptions = await changePostSubscriptions(
         post.id,
         [],
-        false
+        revalidate
       );
       onPostSubscriptionChange && onPostSubscriptionChange(newSubscriptions);
     } finally {
@@ -135,7 +137,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
     }
 
     onClose(true);
-  }, [onClose, post.id]);
+  }, [onClose, onPostSubscriptionChange, post.id, revalidate]);
 
   const handleSubscriptionsSave = useCallback(async () => {
     // Subscribe to default notifications set
@@ -145,14 +147,20 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
       const newSubscriptions = await changePostSubscriptions(
         post.id,
         subscriptionsBE,
-        false
+        revalidate
       );
       onPostSubscriptionChange && onPostSubscriptionChange(newSubscriptions);
       onClose(true);
     } finally {
       setIsLoading(false);
     }
-  }, [onClose, post.id, modalSubscriptions]);
+  }, [
+    modalSubscriptions,
+    post.id,
+    revalidate,
+    onPostSubscriptionChange,
+    onClose,
+  ]);
 
   const subscriptionTypes = useMemo(
     () => [
@@ -313,9 +321,15 @@ function parseSubscriptionForModal(
 function parseSubsForBE(
   subscriptions: PostSubscriptionConfigItem[]
 ): PostSubscription[] {
-  const specificTimeSubsArray = subscriptions.find(
+  const specificTimeSubs = subscriptions.find(
     (sub) => sub.type === PostSubscriptionType.SPECIFIC_TIME
-  )?.subscriptions;
+  );
+
+  const specificTimeSubsArray =
+    !!specificTimeSubs && "subscriptions" in specificTimeSubs
+      ? specificTimeSubs.subscriptions
+      : null;
+
   const mappedSubs = [...subscriptions].filter(
     (sub) => sub.type !== PostSubscriptionType.SPECIFIC_TIME
   ) as PostSubscription[];
