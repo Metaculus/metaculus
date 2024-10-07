@@ -2,6 +2,7 @@ import functools
 from typing import Callable
 
 from django.conf import settings
+from dramatiq import RateLimitExceeded
 from dramatiq.rate_limits import ConcurrentRateLimiter
 from dramatiq.rate_limits.backends import RedisBackend
 
@@ -17,7 +18,7 @@ def concurrency_retries(max_retries=20):
     """
 
     def f(retries_so_far, exception):
-        return isinstance(exception, Exception) or retries_so_far < max_retries
+        return isinstance(exception, RateLimitExceeded) or retries_so_far < max_retries
 
     return f
 
