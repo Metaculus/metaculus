@@ -1,10 +1,10 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import get_object_or_404
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from posts.services.common import get_post_permission_for_user
+from posts.models import Post
 from projects.permissions import ObjectPermission
 from questions.models import Question
 from questions.serializers import serialize_question
@@ -16,7 +16,17 @@ from utils.the_math.aggregations import get_aggregation_history
 @permission_classes([AllowAny])
 def aggregation_explorer_api_view(request):
     question_id = request.GET.get("question_id")
-    question: Question = get_object_or_404(Question.objects.all(), pk=question_id)
+    post: Post | None = Post.objects.filter(id=question_id).first()
+    if post is not None:
+        if not post.question:
+            raise ValidationError(
+                "Post does not have a single question, try inputing a subquestion id"
+            )
+        question: Question = post.question
+    else:
+        question = Question.objects.filter(id=question_id).first()
+        if not question:
+            raise ValidationError("Question does not exist")
     # Check permissions
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
