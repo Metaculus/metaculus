@@ -182,7 +182,7 @@ def update_group_of_questions(
         group.questions.filter(id__in=delete).delete()
 
     for question_data in questions:
-        question_id = question_data.get("question_id")
+        question_id = question_data.get("id")
 
         if question_id:
             question_obj = questions_map.get(question_id)

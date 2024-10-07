@@ -1,7 +1,8 @@
 from collections import defaultdict
 from dataclasses import is_dataclass, fields
-from itertools import chain
-from typing import Iterable, get_type_hints, TypeVar, Callable
+from itertools import chain, zip_longest
+from typing import Iterable, get_type_hints, Callable
+from typing import List, TypeVar
 
 
 def flatten(lst: Iterable[Iterable]) -> list:
@@ -79,3 +80,20 @@ def dataclass_from_dict(cls, data: dict):
             kwargs[field.name] = field_value
 
     return cls(**kwargs)
+
+
+U = TypeVar("U")
+
+
+def evenly_distribute_items(items_per_source: List[List[U]], n: int) -> List[U]:
+    """
+    Evenly distribute items from multiple lists.
+
+    :param items_per_source: List[List[U]] - A list of lists containing items of any type.
+    :param n: int - The number of items to return.
+    :return: List[U] - A list of items evenly distributed.
+    """
+    n = min(n, sum(len(lst) for lst in items_per_source))
+    zipped = zip_longest(*items_per_source)
+    result = [item for item in chain.from_iterable(zipped) if item is not None]
+    return result[:n]

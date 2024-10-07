@@ -347,7 +347,6 @@ class Post(TimeStampedModel):
     # typing
     id: int
     votes: QuerySet["Vote"]
-    subscriptions: QuerySet["PostSubscription"]
     forecasts: QuerySet["Forecast"]
 
     # Annotated fields
@@ -675,7 +674,8 @@ class PostSubscription(TimeStampedModel):
             models.UniqueConstraint(
                 name="postsubscription_unique_type_user_post",
                 fields=["type", "user_id", "post_id", "is_global"],
-            )
+                condition=~Q(type="specific_time"),
+            ),
         ]
 
 

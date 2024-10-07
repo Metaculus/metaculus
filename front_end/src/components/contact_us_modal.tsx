@@ -9,7 +9,13 @@ import { z } from "zod";
 import { submitContactForm } from "@/app/(main)/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
-import { FormError, Input, Textarea } from "@/components/ui/form_field";
+import {
+  FormError,
+  FormErrorMessage,
+  Input,
+  Textarea,
+} from "@/components/ui/form_field";
+import LoadingSpinner from "@/components/ui/loading_spiner";
 import Select from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth_context";
 
@@ -39,6 +45,9 @@ const subjects = [
 const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<
+    (Error & { digest?: string }) | undefined
+  >();
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const { user } = useAuth();
 
@@ -57,11 +66,16 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
   const onSubmit = useCallback(
     async (data: ContactUsSchema) => {
       setIsLoading(true);
+      setError(undefined);
       try {
         // use form data to send request to the email api
         await submitContactForm(data);
         onClose(false);
         setIsSuccessModalOpen(true);
+      } catch (e) {
+        console.error(e);
+        const error = e as Error & { digest?: string };
+        setError(error);
       } finally {
         setIsLoading(false);
       }
@@ -122,8 +136,14 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
             />
 
             <div className="mt-4 text-right">
-              <Button variant="primary" type="submit" disabled={isLoading}>
-                {t("submit")}
+              {!isLoading && <FormErrorMessage errors={error?.digest} />}
+              <Button
+                variant="primary"
+                type="submit"
+                disabled={isLoading}
+                className="mt-1"
+              >
+                {isLoading ? <LoadingSpinner size="sm" /> : t("submit")}
               </Button>
             </div>
           </form>

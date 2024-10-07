@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import React from "react";
 
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import { SearchParams } from "@/types/navigation";
 
 import QuestionTypePicker from "../components/question_type_picker";
@@ -112,4 +113,4 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
   );
 };
 
-export default Creator;
+export default WithServerComponentErrorBoundary(Creator);

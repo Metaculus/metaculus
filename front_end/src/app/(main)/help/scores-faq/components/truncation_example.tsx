@@ -2,8 +2,9 @@
 
 import React from "react";
 
-import StyledDisclosure from "../../../components/styled_disclosure";
 import MathJaxContent from "@/components/math_jax_content";
+
+import StyledDisclosure from "../../../components/styled_disclosure";
 
 const TruncationExample = () => {
   return (

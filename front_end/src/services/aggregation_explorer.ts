@@ -12,12 +12,14 @@ class AggregationExplorerAPI {
     const queryParams: Record<string, string> = {
       question_id: params.questionId.toString(),
       include_bots: params.includeBots?.toString() || "false",
-      aggregation_methods: params.aggregationMethods || ''
+      aggregation_methods: params.aggregationMethods || "",
     };
 
     const queryString = new URLSearchParams(queryParams).toString();
 
-    return await get<AggregationQuestion>(`/aggregation_explorer/?${queryString}`);
+    return await get<AggregationQuestion>(
+      `/aggregation_explorer/?${queryString}`
+    );
   }
 }
 

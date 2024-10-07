@@ -23,6 +23,7 @@ import { QuestionType } from "@/types/question";
 import { parseComment } from "@/utils/comments";
 
 import Button from "../ui/button";
+import { FormErrorMessage } from "../ui/form_field";
 
 export type SortOption = "created_at" | "-created_at" | "-vote_score";
 type FeedOptions = "public" | "private";
@@ -117,6 +118,9 @@ const CommentFeed: FC<Props> = ({
   const [totalCount, setTotalCount] = useState<number | "?">("?");
   const [shownComments, setShownComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<
+    (Error & { digest?: string }) | undefined
+  >();
   const [offset, setOffset] = useState<number>(0);
   const postId = postData?.id;
   const includeUserForecast = shouldIncludeForecast(postData);
@@ -147,6 +151,7 @@ const CommentFeed: FC<Props> = ({
   ) => {
     try {
       setIsLoading(true);
+      setError(undefined);
       const response = await getComments({
         post: postId,
         author: profileId,
@@ -180,9 +185,12 @@ const CommentFeed: FC<Props> = ({
           setOffset(-1);
         }
       }
-      setIsLoading(false);
     } catch (err) {
+      const error = err as Error & { digest?: string };
+      setError(error);
       console.error("Error fetching comments:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -330,6 +338,7 @@ const CommentFeed: FC<Props> = ({
         </>
       )}
       {isLoading && <LoadingIndicator className="mx-auto my-8 w-24" />}
+      {!isLoading && <FormErrorMessage errors={error?.digest} />}
       {offset !== -1 && (
         <div className="flex items-center justify-center pt-4">
           <Button

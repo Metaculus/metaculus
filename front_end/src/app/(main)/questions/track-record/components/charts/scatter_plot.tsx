@@ -1,6 +1,7 @@
 "use client";
 import { range } from "lodash";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React, { ComponentProps, useCallback, useMemo, useState } from "react";
 import {
@@ -22,7 +23,6 @@ import { TrackRecordScatterPlotItem } from "@/types/track_record";
 import { generateNumericDomain, generateTimestampXScale } from "@/utils/charts";
 
 import TrackRecordChartHero from "../track_record_chart_hero";
-import Link from "next/link";
 
 type HistogramProps = {
   score_scatter_plot: TrackRecordScatterPlotItem[];

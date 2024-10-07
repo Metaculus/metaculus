@@ -16,13 +16,14 @@ import {
   faCaretUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { useState, forwardRef, FC } from "react";
-import classNames from "classnames";
 
 import ForecastTextInput from "@/app/(main)/questions/[id]/components/forecast_maker/forecast_text_input";
 import { toggleCMMComment } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
+import { FormErrorMessage } from "@/components/ui/form_field";
 
 export const BINARY_MIN_VALUE = 0.001;
 export const BINARY_MAX_VALUE = 0.999;
@@ -290,18 +291,23 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
   ({ comment_id, disabled, cmmContext }, ref) => {
     const t = useTranslations();
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<
+      (Error & { digest?: string }) | undefined
+    >();
+
     const onChangedMyMind = async () => {
       try {
         setIsLoading(true);
+        setError(undefined);
         await toggleCMMComment({
           id: comment_id,
           enabled: !cmmContext.cmmEnabled,
         });
         cmmContext.onCMMToggled(!cmmContext.cmmEnabled);
-      } catch (error) {
-        console.error(error);
-
-        // TODO: handle the error here
+      } catch (e) {
+        console.error(e);
+        const error = e as Error & { digest?: string };
+        setError(error);
         cmmContext.onCMMToggled(cmmContext.cmmEnabled);
       } finally {
         setIsLoading(false);

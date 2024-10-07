@@ -10,6 +10,7 @@ import { resolveQuestion } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { FormError, Input } from "@/components/ui/form_field";
+import LoadingSpinner from "@/components/ui/loading_spiner";
 import Select from "@/components/ui/select";
 import { ErrorResponse } from "@/types/fetch";
 import { Question, QuestionType } from "@/types/question";
@@ -169,7 +170,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
               type="submit"
               disabled={!formState.isValid || !resolutionType || isSubmitting}
             >
-              {t("resolve")}
+              {isSubmitting ? <LoadingSpinner size="sm" /> : t("resolve")}
             </Button>
           </div>
           <FormError errors={submitErrors} />

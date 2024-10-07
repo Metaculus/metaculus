@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
@@ -9,6 +11,7 @@ from projects.models import Project
 from projects.services import get_site_main_project
 from users.models import User
 from utils.cache import cache_get_or_set
+from utils.dtypes import evenly_distribute_items
 from utils.models import build_order_by
 from utils.serializers import parse_order_by
 
@@ -181,6 +184,12 @@ def get_posts_feed(
     # Ordering
     order_desc, order_type = parse_order_by(order_by)
 
+    if (
+        order_type == PostFilterSerializer.Order.USER_LAST_FORECASTS_DATE
+        and not forecaster_id
+    ):
+        order_type = "created_at"
+
     if order_type == PostFilterSerializer.Order.UNREAD_COMMENT_COUNT and user:
         qs = qs.annotate_unread_comment_count(user_id=user.id)
     if order_type == PostFilterSerializer.Order.SCORE:
@@ -218,3 +227,9 @@ def get_similar_posts(post: Post):
         timeout=3600 * 24,
         version=2,
     )
+
+
+def get_similar_posts_for_posts(posts: Iterable[Post], n: int = 4):
+    similar_post_chunks = [get_similar_posts(post) for post in posts[:2]]
+
+    return evenly_distribute_items(similar_post_chunks, n)

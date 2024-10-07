@@ -177,7 +177,6 @@ const Comment: FC<CommentProps> = ({
   const isCmmButtonVisible =
     user?.id !== comment.author.id && !!postData?.question;
   const isCmmButtonDisabled = !user || !userCanPredict;
-
   // TODO: find a better way to dedect whether on mobile or not. For now we need to know in JS
   // too and can't use tw classes
   const isMobileScreen = window.innerWidth < 640;
@@ -354,7 +353,10 @@ const Comment: FC<CommentProps> = ({
               className="no-underline"
               href={`/accounts/profile/${comment.author.id}/`}
             >
-              <h4 className="my-1 text-base">{comment.author.username}</h4>
+              <h4 className="my-1">
+                {comment.author.username}
+                {comment.author.is_bot && " 🤖"}
+              </h4>
             </a>
             {/*
           {comment.is_moderator && !comment.is_admin && (

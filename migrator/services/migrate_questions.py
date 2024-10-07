@@ -1,14 +1,12 @@
 import json
-import re
 from collections import defaultdict
 from datetime import timedelta
 
-import html2text
 from dateutil.parser import parse as date_parse
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from migrator.utils import paginated_query
+from migrator.utils import paginated_query, cleanup_markdown
 from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
@@ -68,9 +66,9 @@ def create_question(question: dict, **kwargs) -> Question:
         open_upper_bound=open_upper_bound,
         open_lower_bound=open_lower_bound,
         options=options,
-        description=question["description"],
-        resolution_criteria=question["resolution_criteria"],
-        fine_print=question["fine_print"],
+        description=cleanup_markdown(question["description"]),
+        resolution_criteria=cleanup_markdown(question["resolution_criteria"]),
+        fine_print=cleanup_markdown(question["fine_print"]),
         created_at=question["created_time"],
         edited_at=question["edited_time"],
         open_time=question["publish_time"],
@@ -368,10 +366,10 @@ def migrate_questions__groups(root_questions: list[dict]):
             groups.append(
                 GroupOfQuestions(
                     id=root_question["id"],
-                    description=root_question["description"],
+                    description=cleanup_markdown(root_question["description"]),
                     group_variable=root_question["group_label"],
-                    resolution_criteria=root_question["resolution_criteria"],
-                    fine_print=root_question["fine_print"],
+                    resolution_criteria=cleanup_markdown(root_question["resolution_criteria"]),
+                    fine_print=cleanup_markdown(root_question["fine_print"]),
                     graph_type=(
                         GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
                         if root_question["show_as_fan_graph"]
@@ -399,28 +397,6 @@ def remove_newlines(match):
 
 def remove_spaces(match):
     return match.group(0).replace(" ", "")
-
-
-def convert_notebook_content_format(html):
-    parts = re.split(r"(<iframe[^>]*>.*?</iframe>)", html, flags=re.DOTALL)
-
-    converted_parts = []
-    for part in parts:
-        if part.startswith("<iframe"):
-            match = re.search(r"questions/question_embed/(\d+)/", part)
-            if match:
-                question_id = match.group(1)
-                converted_parts.append(f'<EmbeddedQuestion id="{question_id}" />')
-        else:
-            converted_parts.append(html2text.html2text(part))
-
-    md = "\n".join(converted_parts)
-    md = re.sub(r"\[([^\]]*)\]", remove_newlines, md)
-    md = re.sub(r"\(([^)]*)\)", remove_newlines, md)
-    md = re.sub(r"\(([^)]*)\)", remove_spaces, md)
-    md = md.replace(">", "\\>").replace("<", "\\<")
-
-    return md
 
 
 def migrate_questions__notebook(root_questions: list[dict]):
@@ -500,14 +476,14 @@ def migrate_questions__notebook(root_questions: list[dict]):
             else:
                 raise Exception("Unknown notebook type")
 
-            markdown = convert_notebook_content_format(
-                root_question["description_html"]
-            )
+            markdown = cleanup_markdown(root_question["description"])
 
             image_url = root_question["image_url"] or ""
 
             if image_url:
-                image_url = image_url.replace("https://metaculus-media.s3.amazonaws.com/", "")
+                image_url = image_url.replace(
+                    "https://metaculus-media.s3.amazonaws.com/", ""
+                )
 
             notebook = Notebook(
                 id=root_question["id"],

@@ -133,7 +133,7 @@ def update_article_embedding_vector(obj: ITNArticle):
     obj.save()
 
 
-def get_post_get_similar_articles_qs(post: Post):
+def get_post_similar_articles_qs(post: Post):
     return (
         ITNArticle.objects.annotate(
             nr_days_old=ExpressionWrapper(
@@ -158,11 +158,11 @@ def get_post_articles_cache(post_id: str):
     return f"post_similar_itn_article_ids:{post_id}"
 
 
-def get_post_get_similar_articles(post: Post):
+def get_post_similar_articles(post: Post):
     article_ids = cache_get_or_set(
         get_post_articles_cache(post.pk),
         lambda: list(
-            get_post_get_similar_articles_qs(post).values_list("id", flat=True)[:9]
+            get_post_similar_articles_qs(post).values_list("id", flat=True)[:9]
         ),
         # 12h
         timeout=3600 * 12,

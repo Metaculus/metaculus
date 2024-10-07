@@ -1,7 +1,8 @@
 "use client";
 
-import GlobalErrorBoundary from "@/components/global_error_boundary";
 import * as Sentry from "@sentry/nextjs";
+
+import GlobalErrorBoundary from "@/components/global_error_boundary";
 
 export default function RootError(props: {
   error: Error & { digest?: string };

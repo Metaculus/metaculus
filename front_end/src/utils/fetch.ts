@@ -59,7 +59,9 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     // Converting Django errors
     const data: ErrorResponse = normalizeApiErrors(errorData);
 
-    const error: FetchError = new ApiError(data.message ?? "An error occurred");
+    const error: FetchError = new ApiError(
+      data.message ?? "Unknown error occurred"
+    );
     error.response = response;
     error.data = data;
 
@@ -91,7 +93,14 @@ const appFetch = async <T>(
   options: FetchOptions = {},
   config?: FetchConfig
 ): Promise<T> => {
-  const { emptyContentType = false, passAuthHeader = true } = config ?? {};
+  let { emptyContentType = false, passAuthHeader = true } = config ?? {};
+
+  // Warning: caching could be only applied to anonymised requests
+  // To prevent user token leaks and storage spam.
+  // NextJS caches every request variant including headers (auth token) diff
+  if (options.next?.revalidate !== undefined) {
+    passAuthHeader = false;
+  }
 
   const authToken = passAuthHeader ? getServerSession() : null;
   const alphaToken = getAlphaTokenSession();
