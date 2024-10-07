@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
+import { LogOut } from "@/app/(main)/accounts/actions";
 import LanguageMenu from "@/components/language_menu";
 import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
@@ -89,7 +90,12 @@ const MobileMenu: FC = () => {
               {user.is_superuser && (
                 <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
               )}
-              <MenuLink href="/accounts/signout" regularLink>
+              <MenuLink
+                onClick={() => {
+                  void LogOut();
+                }}
+                regularLink
+              >
                 {t("logout")}
               </MenuLink>
             </>
