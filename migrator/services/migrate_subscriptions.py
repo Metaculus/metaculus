@@ -1,6 +1,5 @@
+from collections import defaultdict
 from datetime import timedelta
-
-from black.trans import defaultdict
 
 from notifications.constants import MailingTags
 from posts.models import PostSubscription, Post

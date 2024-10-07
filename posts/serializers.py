@@ -367,12 +367,18 @@ def serialize_post(
 
     if hasattr(post, "user_snapshots") and current_user and post.user_snapshots:
         snapshot = post.user_snapshots[0]
+        unread_comment_count = (post.comment_count or 0) - (
+            snapshot.comments_count or 0
+        )
+
+        # Unread comment stats were synced from the old db
+        # This workaround fixes possible discrepancies
+        if unread_comment_count < 0:
+            unread_comment_count = 0
 
         serialized_data.update(
             {
-                "unread_comment_count": (
-                    (post.comment_count or 0) - (snapshot.comments_count or 0)
-                ),
+                "unread_comment_count": unread_comment_count,
                 "last_viewed_at": snapshot.viewed_at,
             }
         )

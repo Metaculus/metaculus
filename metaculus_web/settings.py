@@ -415,10 +415,28 @@ SHELL_PLUS_IMPORTS = [
     "from datetime import datetime, timedelta, timezone as dt_timezone",
 ]
 
+
+def traces_sampler(sampling_context):
+    exclude_endpoints = [
+        "/api/get-bulletins",
+        "/api/auth/verify_token",
+        "/api/auth/social",
+    ]
+    wsgi_environ = sampling_context.get("wsgi_environ", {})
+    url = wsgi_environ.get("PATH_INFO")
+
+    if url:
+        for starts_with in exclude_endpoints:
+            if url.startswith(starts_with):
+                return 0
+
+    return 1.0
+
+
 if os.environ.get("SENTRY_DNS", None):
     sentry_sdk.init(
         dsn=os.environ.get("SENTRY_DNS"),
-        traces_sample_rate=1.0,
+        traces_sampler=traces_sampler,
         profiles_sample_rate=1.0,
         environment=ENV,
         integrations=[
