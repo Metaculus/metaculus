@@ -11,7 +11,7 @@ import { SelectOption } from "@/components/ui/listbox";
 import Select from "@/components/ui/select";
 import {
   PostSubscriptionSpecificTime,
-  PostSubscriptionSpecificTimeParsedFE,
+  PostSubscriptionSpecificTimeConfig,
   PostSubscriptionType,
 } from "@/types/post";
 import { formatDate } from "@/utils/date_formatters";
@@ -19,7 +19,7 @@ import { formatDate } from "@/utils/date_formatters";
 import { SubscriptionSectionProps } from "./types";
 
 const SubscriptionSectionSpecificTime: FC<
-  SubscriptionSectionProps<PostSubscriptionSpecificTimeParsedFE>
+  SubscriptionSectionProps<PostSubscriptionSpecificTimeConfig>
 > = ({ subscription, onChange, post }) => {
   const t = useTranslations();
   const locale = useLocale();

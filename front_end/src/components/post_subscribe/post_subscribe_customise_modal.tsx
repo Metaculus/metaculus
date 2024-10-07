@@ -24,10 +24,10 @@ import {
   PostSubscription,
   PostSubscriptionCPCHange,
   PostSubscriptionMilestone,
-  PostSubscriptionModal,
+  PostSubscriptionConfigItem,
   PostSubscriptionNewComments,
   PostSubscriptionSpecificTime,
-  PostSubscriptionSpecificTimeParsedFE,
+  PostSubscriptionSpecificTimeConfig,
   PostSubscriptionType,
 } from "@/types/post";
 
@@ -53,7 +53,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   const t = useTranslations();
 
   const [modalSubscriptions, setModalSubscriptions] = useState<
-    PostSubscriptionModal[]
+    PostSubscriptionConfigItem[]
   >(parseSubscriptionForModal(initialSubscriptions));
   const [isLoading, setIsLoading] = useState(false);
 
@@ -73,7 +73,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
           {
             type: subscriptionType,
             ...defaultSubscriptionProps[subscriptionType],
-          } as PostSubscriptionModal,
+          } as PostSubscriptionConfigItem,
         ]);
       } else {
         setModalSubscriptions([
@@ -102,7 +102,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
             type === PostSubscriptionType.SPECIFIC_TIME &&
             index !== undefined
           ) {
-            const specificTimeSub = sub as PostSubscriptionSpecificTimeParsedFE;
+            const specificTimeSub = sub as PostSubscriptionSpecificTimeConfig;
             return {
               ...specificTimeSub,
               subscriptions: specificTimeSub.subscriptions.map((el, idx) =>
@@ -159,7 +159,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
       {
         type: PostSubscriptionType.CP_CHANGE,
         title: t("followModalCommunityPredictionChanges"),
-        render: (subscription: PostSubscriptionModal) => (
+        render: (subscription: PostSubscriptionConfigItem) => (
           <SubscriptionSectionCPChange
             post={post}
             subscription={subscription as PostSubscriptionCPCHange}
@@ -172,7 +172,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
       {
         type: PostSubscriptionType.NEW_COMMENTS,
         title: t("comments"),
-        render: (subscription: PostSubscriptionModal) => (
+        render: (subscription: PostSubscriptionConfigItem) => (
           <SubscriptionSectionNewComments
             post={post}
             subscription={subscription as PostSubscriptionNewComments}
@@ -185,7 +185,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
       {
         type: PostSubscriptionType.MILESTONE,
         title: t("followModalMilestones"),
-        render: (subscription: PostSubscriptionModal) => (
+        render: (subscription: PostSubscriptionConfigItem) => (
           <SubscriptionSectionMilestone
             post={post}
             subscription={subscription as PostSubscriptionMilestone}
@@ -198,10 +198,10 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
       {
         type: PostSubscriptionType.SPECIFIC_TIME,
         title: t("followModalSpecificTime"),
-        render: (subscription: PostSubscriptionModal) => (
+        render: (subscription: PostSubscriptionConfigItem) => (
           <SubscriptionSectionSpecificTime
             post={post}
-            subscription={subscription as PostSubscriptionSpecificTimeParsedFE}
+            subscription={subscription as PostSubscriptionSpecificTimeConfig}
             onChange={(name, value, index) => {
               handleSubscriptionChange(subscription.type, name, value, index);
             }}
@@ -287,7 +287,9 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
   );
 };
 
-function parseSubscriptionForModal(subscriptions: PostSubscription[]) {
+function parseSubscriptionForModal(
+  subscriptions: PostSubscription[]
+): PostSubscriptionConfigItem[] {
   const specificTimeSubsArray = [] as PostSubscriptionSpecificTime[];
   subscriptions.forEach((sub) => {
     if (sub.type === PostSubscriptionType.SPECIFIC_TIME) {
@@ -296,7 +298,7 @@ function parseSubscriptionForModal(subscriptions: PostSubscription[]) {
   });
   const mappedSubs = [...subscriptions].filter(
     (sub) => sub.type !== PostSubscriptionType.SPECIFIC_TIME
-  ) as PostSubscriptionModal[];
+  ) as PostSubscriptionConfigItem[];
 
   if (!!specificTimeSubsArray.length) {
     mappedSubs.push({
@@ -308,7 +310,9 @@ function parseSubscriptionForModal(subscriptions: PostSubscription[]) {
   return mappedSubs;
 }
 
-function parseSubsForBE(subscriptions: PostSubscriptionModal[]) {
+function parseSubsForBE(
+  subscriptions: PostSubscriptionConfigItem[]
+): PostSubscription[] {
   const specificTimeSubsArray = subscriptions.find(
     (sub) => sub.type === PostSubscriptionType.SPECIFIC_TIME
   )?.subscriptions;

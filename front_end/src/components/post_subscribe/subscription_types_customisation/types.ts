@@ -1,6 +1,6 @@
-import { Post, PostSubscriptionModal } from "@/types/post";
+import { Post, PostSubscriptionConfigItem } from "@/types/post";
 
-export type SubscriptionSectionProps<T extends PostSubscriptionModal> = {
+export type SubscriptionSectionProps<T extends PostSubscriptionConfigItem> = {
   subscription: T;
   onChange: <K extends keyof T>(
     name: string,

@@ -168,12 +168,12 @@ export type PostSubscription =
   | PostSubscriptionSpecificTime
   | PostSubscriptionCPCHange;
 
-export type PostSubscriptionModal =
+export type PostSubscriptionConfigItem =
   | PostSubscriptionNewComments
   | PostSubscriptionMilestone
   | PostSubscriptionStatusChange
   | PostSubscriptionCPCHange
-  | PostSubscriptionSpecificTimeParsedFE;
+  | PostSubscriptionSpecificTimeConfig;
 
 export type PostSubscriptionNewComments = {
   id?: number;
@@ -205,7 +205,7 @@ export type PostSubscriptionSpecificTime = {
   recurrence_interval: string;
 };
 
-export type PostSubscriptionSpecificTimeParsedFE = {
+export type PostSubscriptionSpecificTimeConfig = {
   type: PostSubscriptionType.SPECIFIC_TIME;
   subscriptions: PostSubscriptionSpecificTime[];
 };
