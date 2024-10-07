@@ -320,7 +320,7 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
         variant="tertiary"
         onClick={onChangedMyMind}
         aria-label="Changed my mind"
-        className="hover:bg-metac-gray-100 dark:hover:bg-metac-gray-100-dark whitespace-nowrap border border-blue-400"
+        className="whitespace-nowrap border border-blue-400 hover:bg-gray-100 dark:hover:bg-gray-100-dark"
         disabled={isLoading || disabled}
         ref={ref}
         {...cmmContext.getReferenceProps()}

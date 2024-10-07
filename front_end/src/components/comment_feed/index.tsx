@@ -305,13 +305,13 @@ const CommentFeed: FC<Props> = ({
       {shownComments.map((comment: CommentType) => (
         <div
           key={comment.id}
-          className="my-1.5 rounded-md border border-blue-400 px-2.5 py-1.5 dark:border-blue-600"
+          className="my-1.5 rounded-md border border-blue-400 px-2.5 py-1.5 dark:border-blue-400-dark"
         >
           {profileId && (
             <h3 className="mb-2 text-lg font-semibold">
               <Link
                 href={`/questions/${comment.on_post}`}
-                className="text-blue-700 no-underline hover:text-blue-800 dark:text-blue-400 hover:dark:text-blue-300"
+                className="text-blue-700 no-underline hover:text-blue-800 dark:text-blue-600-dark hover:dark:text-blue-300"
               >
                 Go to question
               </Link>
