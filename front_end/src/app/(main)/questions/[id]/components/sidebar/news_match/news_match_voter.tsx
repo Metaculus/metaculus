@@ -17,11 +17,15 @@ const NewsArticleVoteButtons: FC<Props> = ({
   const [article, setArticle] = useState(initialArticle);
   async function voteSubmit(value: 1 | -1) {
     // if already voted, toggle to "not voted"
-    const vote = article.user_vote === value ? null : value;
+    try {
+      const vote = article.user_vote === value ? null : value;
 
-    const response = await Promise.resolve({ ok: true });
-    if (!response.ok) return;
-    setArticle({ ...article, user_vote: vote });
+      const response = await Promise.resolve({ ok: true });
+      if (!response.ok) return;
+      setArticle({ ...article, user_vote: vote });
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   return (

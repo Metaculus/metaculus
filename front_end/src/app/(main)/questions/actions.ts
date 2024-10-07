@@ -58,15 +58,7 @@ export async function fetchEmbedPosts(search: string) {
 }
 
 export async function votePost(postId: number, direction: VoteDirection) {
-  try {
-    return await PostsApi.votePost(postId, direction);
-  } catch (err) {
-    const error = err as FetchError;
-
-    return {
-      errors: error.data,
-    };
-  }
+  return await PostsApi.votePost(postId, direction);
 }
 
 export async function markPostAsRead(postId: number) {
@@ -260,27 +252,11 @@ export async function createComment(commentData: CreateCommentParams) {
 }
 
 export async function voteComment(voteData: VoteCommentParams) {
-  try {
-    return await CommentsApi.voteComment(voteData);
-  } catch (err) {
-    const error = err as FetchError;
-
-    return {
-      errors: error.data,
-    };
-  }
+  return await CommentsApi.voteComment(voteData);
 }
 
 export async function toggleCMMComment(cmmParam: ToggleCMMCommentParams) {
-  try {
-    return await CommentsApi.toggleCMMComment(cmmParam);
-  } catch (err) {
-    const error = err as FetchError;
-
-    return {
-      errors: error.data,
-    };
-  }
+  return await CommentsApi.toggleCMMComment(cmmParam);
 }
 
 export async function reportComment(
@@ -317,6 +293,9 @@ export async function changePostSubscriptions(
 ) {
   const response = await PostsApi.updateSubscriptions(postId, subscriptions);
 
-  revalidate && revalidatePath(`/questions/${postId}`);
+  if (revalidate) {
+    revalidatePath(`/questions/${postId}`);
+    revalidatePath("/accounts/settings");
+  }
   return response;
 }

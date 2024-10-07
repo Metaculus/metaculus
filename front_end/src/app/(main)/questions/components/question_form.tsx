@@ -12,8 +12,14 @@ import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
-import { FormError, Input, Textarea } from "@/components/ui/form_field";
+import {
+  FormError,
+  FormErrorMessage,
+  Input,
+  Textarea,
+} from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import { useAuth } from "@/contexts/auth_context";
 import {
@@ -102,6 +108,9 @@ const QuestionForm: FC<Props> = ({
   const t = useTranslations();
   const { isLive, isDone } = getQuestionStatus(post);
   const [isLoading, setIsLoading] = useState<boolean>();
+  const [error, setError] = useState<
+    (Error & { digest?: string }) | undefined
+  >();
 
   const defaultProject = post
     ? post.projects.default_project
@@ -143,6 +152,7 @@ const QuestionForm: FC<Props> = ({
 
   const submitQuestion = async (data: any) => {
     setIsLoading(true);
+    setError(undefined);
     if (
       questionType === QuestionType.Date ||
       questionType === QuestionType.Numeric
@@ -170,6 +180,10 @@ const QuestionForm: FC<Props> = ({
       }
 
       router.push(getPostLink(resp.post));
+    } catch (e) {
+      console.error(e);
+      const error = e as Error & { digest?: string };
+      setError(error);
     } finally {
       setIsLoading(false);
     }
@@ -456,9 +470,20 @@ const QuestionForm: FC<Props> = ({
             }
           />
         </InputContainer>
-        <Button type="submit" className="w-max capitalize" disabled={isLoading}>
-          {mode === "create" ? t("createQuestion") : t("editQuestion")}
-        </Button>
+
+        <div className="flex-col">
+          <div className="-mt-2 min-h-[32px] flex-col">
+            {isLoading && <LoadingIndicator />}
+            {!isLoading && <FormErrorMessage errors={error?.digest} />}
+          </div>
+          <Button
+            type="submit"
+            className="w-max capitalize"
+            disabled={isLoading}
+          >
+            {mode === "create" ? t("createQuestion") : t("editQuestion")}
+          </Button>
+        </div>
       </form>
     </main>
   );

@@ -10,8 +10,9 @@ import { z } from "zod";
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
-import { Input, Textarea } from "@/components/ui/form_field";
+import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { Category, Post, PostWithForecasts } from "@/types/post";
@@ -50,6 +51,10 @@ const NotebookForm: React.FC<Props> = ({
   const { user } = useAuth();
   const [markdown, setMarkdown] = useState(post?.notebook?.markdown ?? "");
   const [isMarkdownDirty, setIsMarkdownDirty] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>();
+  const [error, setError] = useState<
+    (Error & { digest?: string }) | undefined
+  >();
   const t = useTranslations();
   const control = useForm({
     resolver: zodResolver(notebookSchema),
@@ -58,7 +63,6 @@ const NotebookForm: React.FC<Props> = ({
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
   const [isCategoriesDirty, setIsCategoriesDirty] = useState(false);
-  const [isLoading, setIsLoading] = useState<boolean>();
 
   const defaultProject = post
     ? post.projects.default_project
@@ -74,7 +78,7 @@ const NotebookForm: React.FC<Props> = ({
 
   const submitQuestion = async (data: any) => {
     setIsLoading(true);
-
+    setError(undefined);
     let post_data = {
       title: data["title"],
       url_title: data["url_title"],
@@ -98,6 +102,10 @@ const NotebookForm: React.FC<Props> = ({
       }
 
       router.push(getPostLink(resp.post));
+    } catch (e) {
+      console.log(e);
+      const error = e as Error & { digest?: string };
+      setError(error);
     } finally {
       setIsLoading(false);
     }
@@ -179,9 +187,20 @@ const NotebookForm: React.FC<Props> = ({
             }}
           ></CategoryPicker>
         </InputContainer>
-        <Button type="submit" className="w-max capitalize" disabled={isLoading}>
-          {mode === "edit" ? t("editNotebook") : t("createNotebook")}
-        </Button>
+
+        <div className="flex-col">
+          <div className="-mt-2 min-h-[32px] flex-col">
+            {isLoading && <LoadingIndicator />}
+            {!isLoading && <FormErrorMessage errors={error?.digest} />}
+          </div>
+          <Button
+            type="submit"
+            className="w-max capitalize"
+            disabled={isLoading}
+          >
+            {mode === "create" ? t("createQuestion") : t("editQuestion")}
+          </Button>
+        </div>
       </form>
     </main>
   );

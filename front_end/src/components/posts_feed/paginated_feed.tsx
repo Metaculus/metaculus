@@ -12,6 +12,7 @@ import { PostsParams } from "@/services/posts";
 import { PostWithForecasts, PostWithNotebook } from "@/types/post";
 
 import InReviewBox from "./in_review_box";
+import { FormErrorMessage } from "../ui/form_field";
 
 export type PostsFeedType = "posts" | "news";
 
@@ -35,21 +36,32 @@ const PaginatedPostsFeed: FC<Props> = ({
     initialQuestions.length >= POSTS_PER_PAGE
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<
+    (Error & { digest?: string }) | undefined
+  >();
 
-  // TODO: handle error case
   const loadMorePosts = async () => {
     if (hasMoreData) {
       setIsLoading(true);
-      const { newPosts, hasNextPage } = await fetchMorePosts(
-        filters,
-        offset,
-        POSTS_PER_PAGE
-      );
+      setError(undefined);
+      try {
+        const { newPosts, hasNextPage } = await fetchMorePosts(
+          filters,
+          offset,
+          POSTS_PER_PAGE
+        );
 
-      if (!hasNextPage) setHasMoreData(false);
+        if (!hasNextPage) setHasMoreData(false);
 
-      setPaginatedPosts((prevPosts) => [...prevPosts, ...newPosts]);
-      setOffset((prevOffset) => prevOffset + POSTS_PER_PAGE);
+        setPaginatedPosts((prevPosts) => [...prevPosts, ...newPosts]);
+        setOffset((prevOffset) => prevOffset + POSTS_PER_PAGE);
+      } catch (e) {
+        console.error(e);
+        const error = e as Error & { digest?: string };
+        setError(error);
+      } finally {
+        setIsLoading(false);
+      }
       setIsLoading(false);
     }
   };
@@ -81,9 +93,12 @@ const PaginatedPostsFeed: FC<Props> = ({
           {isLoading ? (
             <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
           ) : (
-            <Button className="mx-auto" onClick={loadMorePosts}>
-              Load more
-            </Button>
+            <div className="mx-auto flex flex-col items-center">
+              <FormErrorMessage errors={error?.digest} />
+              <Button className="mx-auto" onClick={loadMorePosts}>
+                Load more
+              </Button>
+            </div>
           )}
         </div>
       ) : (

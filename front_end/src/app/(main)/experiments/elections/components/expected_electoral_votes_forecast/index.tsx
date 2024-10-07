@@ -5,13 +5,13 @@ import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
 import ExperimentCandleBarGraph from "@/app/(main)/experiments/components/experiment_candle_bar_graph";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import Button from "@/components/ui/button";
 import PostsApi from "@/services/posts";
 import { Candle } from "@/types/experiments";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   democratPostId: number;

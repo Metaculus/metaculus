@@ -226,7 +226,6 @@ const UserInfo: FC<UserInfoProps> = ({
             {profile.calibration_curve && (
               <CalibrationChart
                 calibrationData={profile.calibration_curve}
-                showIntervals={false}
                 username={profile.username}
               />
             )}

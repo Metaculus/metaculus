@@ -1,9 +1,9 @@
 import { FC } from "react";
 
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import TrackRecordApi from "@/services/track_record";
 
 import TrackRecordCharts from "./track_record_charts";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 const AsyncTrackRecord: FC = async () => {
   const trackRecord = await TrackRecordApi.getGlobalTrackRecord();

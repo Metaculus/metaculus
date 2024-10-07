@@ -186,6 +186,10 @@ def get_calibration_curve_data(
             forecast_end = actual_close_time
         forecast_duration = forecast_end - forecast_start
         question_duration = forecast_horizon_end - forecast_horizon_start
+
+        if question_duration == 0:
+            continue
+
         weight = max(0, forecast_duration / question_duration)
 
         if isinstance(forecast, Forecast):

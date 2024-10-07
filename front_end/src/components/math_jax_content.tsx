@@ -1,7 +1,7 @@
 "use client";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
-import React, { FC } from "react";
 import dynamic from "next/dynamic";
+import React, { FC } from "react";
 
 type Props = {
   content: string;

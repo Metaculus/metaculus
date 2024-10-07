@@ -1,7 +1,7 @@
 "use client";
 
-import { FC } from "react";
 import { useTranslations } from "next-intl";
+import { FC } from "react";
 
 import Button from "@/components/ui/button";
 import useEmbedModalContext from "@/contexts/embed_modal_context";

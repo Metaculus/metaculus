@@ -12,8 +12,8 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
-import ThemeToggle from "@/components/theme_toggle";
 import LanguageMenu from "@/components/language_menu";
+import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { Href } from "@/types/navigation";

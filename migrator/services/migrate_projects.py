@@ -29,6 +29,7 @@ def create_project(project_obj: dict) -> Project:
         "TO": Project.ProjectTypes.TOURNAMENT,
         "QS": Project.ProjectTypes.QUESTION_SERIES,
         "MP": Project.ProjectTypes.SITE_MAIN,
+        "PP": Project.ProjectTypes.PERSONAL_PROJECT,
     }.get(project_obj["type"])
 
     # https://www.notion.so/metaculus/Private-Projects-that-aren-t-tournaments-or-question-series-should-become-private-question-series-02cb0bedd6a54650869879b6323d96ff
