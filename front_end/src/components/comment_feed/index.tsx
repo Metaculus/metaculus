@@ -266,8 +266,8 @@ const CommentFeed: FC<Props> = ({
 
   return (
     <section>
-      <hr className="my-4 border-blue-400 dark:border-blue-400-dark" />
-      <div className="my-4 flex flex-row items-center gap-4">
+      <hr className="my-2 border-blue-400 dark:border-blue-400-dark" />
+      <div className="my-2 flex flex-row items-center gap-4">
         <h2
           className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
           id="comments"
@@ -303,13 +303,15 @@ const CommentFeed: FC<Props> = ({
         />
       )}
       {shownComments.map((comment: CommentType) => (
-        <div key={comment.id}>
-          <hr className="my-4 border-blue-400 dark:border-blue-700" />
+        <div
+          key={comment.id}
+          className="my-1.5 rounded-md border border-blue-400 px-2.5 py-1.5 dark:border-blue-400-dark"
+        >
           {profileId && (
             <h3 className="mb-2 text-lg font-semibold">
               <Link
                 href={`/questions/${comment.on_post}`}
-                className="text-blue-700 no-underline hover:text-blue-800 dark:text-blue-400 hover:dark:text-blue-300"
+                className="text-blue-700 no-underline hover:text-blue-800 dark:text-blue-600-dark hover:dark:text-blue-300"
               >
                 Go to question
               </Link>
