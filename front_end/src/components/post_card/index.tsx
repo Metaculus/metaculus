@@ -16,6 +16,10 @@ type Props = {
 
 const PostCard: FC<Props> = ({ post }) => {
   const { user } = useAuth();
+  const hideCP =
+    user?.hide_community_prediction &&
+    ![PostStatus.CLOSED, PostStatus.RESOLVED].includes(post.status);
+
   return (
     <PostCardErrorBoundary>
       <BasicPostCard
@@ -25,8 +29,7 @@ const PostCard: FC<Props> = ({ post }) => {
         borderColor={post.notebook ? "purple" : "blue"}
       >
         {!!post?.question &&
-          (!user?.hide_community_prediction ||
-            post.curation_status != PostStatus.APPROVED) && (
+          (!hideCP || post.curation_status != PostStatus.APPROVED) && (
             <QuestionChartTile
               question={post?.question}
               authorUsername={post.author_username}
@@ -34,8 +37,7 @@ const PostCard: FC<Props> = ({ post }) => {
             />
           )}
         {!!post.group_of_questions &&
-          (!user?.hide_community_prediction ||
-            post.curation_status != PostStatus.APPROVED) && (
+          (!hideCP || post.curation_status != PostStatus.APPROVED) && (
             <GroupOfQuestionsTile
               questions={post.group_of_questions.questions}
               curationStatus={post.status}
@@ -43,8 +45,7 @@ const PostCard: FC<Props> = ({ post }) => {
             />
           )}
         {!!post.conditional &&
-        (!user?.hide_community_prediction ||
-          post.curation_status != PostStatus.APPROVED) ? (
+        (!hideCP || post.curation_status != PostStatus.APPROVED) ? (
           <ConditionalTile
             postTitle={post.title}
             conditional={post.conditional}
