@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useState, FC } from "react";
 
+import { LogOut } from "@/app/(main)/accounts/actions";
 import { SignupForm } from "@/components/auth/signup";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
@@ -85,8 +86,9 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                   type="submit"
                   size="lg"
                   className="border-none"
-                  // TODO: create a an API to sign out the user and to update the auth state.
-                  href="/accounts/signout"
+                  onClick={() => {
+                    void LogOut();
+                  }}
                 >
                   {t("logOut")}
                 </Button>
