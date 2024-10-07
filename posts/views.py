@@ -394,19 +394,21 @@ def post_subscriptions_create(request, pk):
 
     # Validating data
     validated_data = []
-    keep_types = set()
+    keep_ids = set()
 
     for data in serializers.ListField().run_validation(request.data):
         subscription_type = data.get("type")
+        subscription_id = data.pop("id", None)
 
         serializer = get_subscription_serializer_by_type(subscription_type)(data=data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        data.pop("created_at", None)
 
         # Check changed
         # Check whether subscription was changed
         existing_subscription = next(
-            (sub for sub in existing_subscriptions if sub.type == subscription_type),
+            (sub for sub in existing_subscriptions if sub.id == subscription_id),
             None,
         )
         create = not existing_subscription
@@ -421,10 +423,10 @@ def post_subscriptions_create(request, pk):
         if create:
             validated_data.append(data)
         else:
-            keep_types.add(subscription_type)
+            keep_ids.add(subscription_id)
 
     # Deleting subscriptions
-    existing_subscriptions.exclude(type__in=keep_types).delete()
+    existing_subscriptions.exclude(id__in=keep_ids).delete()
 
     for data in validated_data:
         create_subscription(

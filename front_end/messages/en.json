@@ -19,6 +19,7 @@
   "postButton": "Post",
   "loadMoreButton": "Load More",
   "addComponentButton": "Add Component",
+  "addAnother": "Add another",
   "adminEditButton": "admin edit",
   "aggregationExplorer": "Aggregation Explorer",
   "chooseAggregationsToInlude": "Choose aggregations to include (all included by default)",

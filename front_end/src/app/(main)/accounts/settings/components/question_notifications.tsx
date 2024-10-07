@@ -19,6 +19,7 @@ type PostWithSubscriptions = Require<Post, "subscriptions">;
 type Props = {
   user: CurrentUser;
   posts: PostWithSubscriptions[];
+  revalidateSubscriptions?: boolean;
 };
 
 const getSubscriptionsLabel = (
@@ -52,7 +53,11 @@ const getSubscriptionsLabel = (
   });
 };
 
-const QuestionNotifications: FC<Props> = ({ user, posts }) => {
+const QuestionNotifications: FC<Props> = ({
+  user,
+  posts,
+  revalidateSubscriptions,
+}) => {
   const t = useTranslations();
   const locale = useLocale();
   const [isLoading, setIsLoading] = useState(false);
@@ -246,6 +251,7 @@ const QuestionNotifications: FC<Props> = ({ user, posts }) => {
           post={activeModal.post}
           subscriptions={activeModal.post.subscriptions}
           showPostLink={true}
+          revalidate={revalidateSubscriptions}
         />
       )}
     </section>
