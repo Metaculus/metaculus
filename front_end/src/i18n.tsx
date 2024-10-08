@@ -25,12 +25,11 @@ function getLocale(): string {
       options = parsedLanguages;
     }
   }
+  options = options.filter((opt) => opt != "*");
 
   try {
     return match(options, locales, defaultLocale);
   } catch (err) {
-    console.error("Error parsing locale", options);
-
     return defaultLocale;
   }
 }
