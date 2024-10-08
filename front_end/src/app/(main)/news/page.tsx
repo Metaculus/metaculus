@@ -16,6 +16,7 @@ export default async function NewsFeed({
 }) {
   const filters = {
     ...generateFiltersFromSearchParams(searchParams),
+    notebook_type: "news",
     curation_status: "approved",
   };
   return (
