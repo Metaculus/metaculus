@@ -268,7 +268,7 @@ const CommentFeed: FC<Props> = ({
   return (
     <section>
       <hr className="my-2 border-blue-400 dark:border-blue-400-dark" />
-      <div className="my-2 flex flex-row items-center gap-4">
+      <div className="my-2 flex flex-row flex-wrap items-center gap-4">
         <h2
           className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
           id="comments"
