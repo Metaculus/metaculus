@@ -380,6 +380,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 and continuous_cdf_increasing
                 and lower_bound_ok
                 and upper_bound_ok
+                and len(continuous_cdf) == 201
             )
 
         if not (prob_yes_ok or prob_yes_per_cat_ok or continuous_cdf_ok):
