@@ -30,9 +30,8 @@ const tourSteps = [
   {
     selector: ".tour-resolution",
     content:
-      "Great work. You’re thinking like a forecaster. We’ll let you know when there’s an answer to this question — likely by the resolution date below. Then, you’ll find out how your prediction stacked up against other predictors’, and you’ll be one forecast closer to skillfully, accurately predicting the future.",
+      "Great work. You’re thinking like a forecaster. We’ll let you know when there’s an answer to this question — likely by the Scheduled Resolution date here. Then, you’ll find out how your prediction stacked up against other predictors’, and you’ll be one forecast closer to skillfully, accurately predicting the future.",
   },
-
 ];
 
 const QuestionPageTour: React.FC<QuestionPageTourProps> = React.memo(

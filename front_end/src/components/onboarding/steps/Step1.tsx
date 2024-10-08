@@ -9,11 +9,12 @@ interface Step1Props {
 const Step1: React.FC<Step1Props> = ({ onTopicSelect }) => (
   <div className={onboardingStyles.container}>
     <p className={onboardingStyles.title}>
-      Should I bring an umbrella? Are we headed for a recession? Will my team come out on top?
+      Should I bring an umbrella? Are we headed for a recession? Will my team
+      come out on top?
     </p>
     <p className={onboardingStyles.paragraph}>
-      You make predictions all the time, on topics big and small. It’s
-      a skill, and Metaculus helps you hone it.
+      You make predictions all the time, on topics big and small. It’s a skill,
+      and Metaculus helps you hone it.
     </p>
     <p className={onboardingStyles.paragraph}>
       Let’s make a few quick predictions to get you started.

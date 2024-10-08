@@ -84,10 +84,11 @@ const Step2: React.FC<Step2Props> = ({
   };
 
   const getButtonClass = (buttonType: "less" | "about" | "more") => {
-    return `${onboardingStyles.button} ${activeButton === buttonType
+    return `${onboardingStyles.button} ${
+      activeButton === buttonType
         ? "bg-blue-700 hover:bg-blue-800 text-white dark:text-blue-800 dark:bg-white"
         : ""
-      }`;
+    }`;
   };
 
   const getActiveButtonText = () => {
@@ -123,7 +124,13 @@ const Step2: React.FC<Step2Props> = ({
           </p>
         )}
       </div>
-      <p>What do you think? Do you agree with <span className="font-bold">{(communityForecast * 100).toFixed(0)}%</span>? Disagree?</p>
+      <p>
+        What do you think? Do you agree with{" "}
+        <span className="font-bold">
+          {(communityForecast * 100).toFixed(0)}%
+        </span>
+        ? Disagree?
+      </p>
       <div className="flex justify-start gap-3">
         <button
           onClick={() => handlePrediction("less")}
@@ -151,7 +158,7 @@ const Step2: React.FC<Step2Props> = ({
             {activeButton && (
               <div className="flex flex-col items-center">
                 <p
-                  className={`${onboardingStyles.paragraph} text-sm px-5 mb-5 text-center font-semibold`}
+                  className={`${onboardingStyles.paragraph} mb-5 px-5 text-center text-sm font-semibold`}
                 >
                   {getActiveButtonText()}
                 </p>
@@ -165,7 +172,7 @@ const Step2: React.FC<Step2Props> = ({
               }}
               isDirty={true}
               communityForecast={communityForecast}
-              onBecomeDirty={() => { }}
+              onBecomeDirty={() => {}}
               disabled={false}
               helperDisplay={true}
             />

@@ -2,7 +2,14 @@ import React, { useState } from "react";
 import { PostWithForecasts } from "@/types/post";
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
-import { faArrowLeft, faPlus, faArrowUp, faArrowDown, faStar as fasStar, faTimes } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowLeft,
+  faPlus,
+  faArrowUp,
+  faArrowDown,
+  faStar as fasStar,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
 import { faStar as farStar } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
@@ -26,9 +33,17 @@ const Step4: React.FC<Step4Props> = ({
 }) => {
   const [newFactor, setNewFactor] = useState("");
   const [userFactors, setUserFactors] = useState<string[]>([]);
-  const [factorRatings, setFactorRatings] = useState<{ [key: string]: { direction: 'up' | 'down' | null, rating: number | null } }>({});
-  const [activeSelector, setActiveSelector] = useState<{ factor: string, direction: 'up' | 'down' } | null>(null);
-  const [selectorPosition, setSelectorPosition] = useState<{ top: number, right: number } | null>(null);
+  const [factorRatings, setFactorRatings] = useState<{
+    [key: string]: { direction: "up" | "down" | null; rating: number | null };
+  }>({});
+  const [activeSelector, setActiveSelector] = useState<{
+    factor: string;
+    direction: "up" | "down";
+  } | null>(null);
+  const [selectorPosition, setSelectorPosition] = useState<{
+    top: number;
+    right: number;
+  } | null>(null);
 
   if (topicIndex === null || !questionData) {
     return <p>Loading...</p>;
@@ -52,9 +67,14 @@ const Step4: React.FC<Step4Props> = ({
     onNext();
   };
 
-  const handleLikelihoodClick = (factor: string, direction: 'up' | 'down', event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleLikelihoodClick = (
+    factor: string,
+    direction: "up" | "down",
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const parentRect = event.currentTarget.offsetParent?.getBoundingClientRect();
+    const parentRect =
+      event.currentTarget.offsetParent?.getBoundingClientRect();
 
     if (parentRect) {
       setSelectorPosition({
@@ -74,7 +94,10 @@ const Step4: React.FC<Step4Props> = ({
     if (activeSelector) {
       setFactorRatings({
         ...factorRatings,
-        [activeSelector.factor]: { direction: activeSelector.direction, rating }
+        [activeSelector.factor]: {
+          direction: activeSelector.direction,
+          rating,
+        },
       });
       setActiveSelector(null);
     }
@@ -99,31 +122,35 @@ const Step4: React.FC<Step4Props> = ({
           {factors.map((factor, index) => (
             <li
               key={index}
-              className="flex justify-between items-center flex-row gap-4 rounded-md bg-purple-400/45 p-2.5 px-4 text-base dark:bg-purple-600/25"
+              className="flex flex-row items-center justify-between gap-4 rounded-md bg-purple-400/45 p-2.5 px-4 text-base dark:bg-purple-600/25"
             >
               {factor}
-              <div className="w-full max-w-[180px] mt-1 mb-0.5 flex gap-2 flex-col text-xs text-purple-700 items-center justify-center">
+              <div className="mb-0.5 mt-1 flex w-full max-w-[180px] flex-col items-center justify-center gap-2 text-xs text-purple-700">
                 <button
-                  className={`w-full justify-center items-center flex flex-row gap-1 text-center rounded-sm p-1 ${factorRatings[factor]?.direction === 'up'
-                      ? 'bg-purple-700 text-white'
-                      : 'bg-white/75 hover:bg-purple-100 active:bg-purple-300'
-                    } ${factorRatings[factor]?.direction === 'down' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  onClick={(e) => handleLikelihoodClick(factor, 'up', e)}
-                  disabled={factorRatings[factor]?.direction === 'down'}
+                  className={`flex w-full flex-row items-center justify-center gap-1 rounded-sm p-1 text-center ${
+                    factorRatings[factor]?.direction === "up"
+                      ? "bg-purple-700 text-white"
+                      : "bg-white/75 hover:bg-purple-100 active:bg-purple-300"
+                  } ${factorRatings[factor]?.direction === "down" ? "cursor-not-allowed opacity-50" : ""}`}
+                  onClick={(e) => handleLikelihoodClick(factor, "up", e)}
+                  disabled={factorRatings[factor]?.direction === "down"}
                 >
                   <FontAwesomeIcon icon={faArrowUp} /> Increases Likelihood
-                  {factorRatings[factor]?.direction === 'up' && ` (${factorRatings[factor].rating}★)`}
+                  {factorRatings[factor]?.direction === "up" &&
+                    ` (${factorRatings[factor].rating}★)`}
                 </button>
                 <button
-                  className={`w-full justify-center items-center flex flex-row gap-1 text-center rounded-sm p-1 ${factorRatings[factor]?.direction === 'down'
-                      ? 'bg-purple-700 text-white'
-                      : 'bg-white/75 hover:bg-purple-100 active:bg-purple-300'
-                    } ${factorRatings[factor]?.direction === 'up' ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  onClick={(e) => handleLikelihoodClick(factor, 'down', e)}
-                  disabled={factorRatings[factor]?.direction === 'up'}
+                  className={`flex w-full flex-row items-center justify-center gap-1 rounded-sm p-1 text-center ${
+                    factorRatings[factor]?.direction === "down"
+                      ? "bg-purple-700 text-white"
+                      : "bg-white/75 hover:bg-purple-100 active:bg-purple-300"
+                  } ${factorRatings[factor]?.direction === "up" ? "cursor-not-allowed opacity-50" : ""}`}
+                  onClick={(e) => handleLikelihoodClick(factor, "down", e)}
+                  disabled={factorRatings[factor]?.direction === "up"}
                 >
                   <FontAwesomeIcon icon={faArrowDown} /> Decreases Likelihood
-                  {factorRatings[factor]?.direction === 'down' && ` (${factorRatings[factor].rating}★)`}
+                  {factorRatings[factor]?.direction === "down" &&
+                    ` (${factorRatings[factor].rating}★)`}
                 </button>
               </div>
             </li>
@@ -131,33 +158,43 @@ const Step4: React.FC<Step4Props> = ({
         </ul>
         {activeSelector && selectorPosition && (
           <div
-            className="absolute bg-white p-4 rounded-md shadow-lg z-50"
+            className="absolute z-50 rounded-md bg-white p-4 shadow-lg"
             style={{
               top: `${selectorPosition.top + 4}px`,
               right: `${selectorPosition.right}px`,
             }}
           >
-            <div className="flex justify-between items-center mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <div className="text-lg font-semibold">Rate the impact</div>
-              <button onClick={() => setActiveSelector(null)} className="text-gray-500 hover:text-gray-700">
+              <button
+                onClick={() => setActiveSelector(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
                 <FontAwesomeIcon icon={faTimes} />
               </button>
             </div>
-            <div className="flex gap-2 mb-4">
+            <div className="mb-4 flex gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   onClick={() => handleStarClick(star)}
                   className="text-2xl text-yellow-400 hover:text-yellow-500"
                 >
-                  <FontAwesomeIcon icon={star <= (factorRatings[activeSelector.factor]?.rating || 0) ? fasStar : farStar} />
+                  <FontAwesomeIcon
+                    icon={
+                      star <=
+                      (factorRatings[activeSelector.factor]?.rating || 0)
+                        ? fasStar
+                        : farStar
+                    }
+                  />
                 </button>
               ))}
             </div>
             {factorRatings[activeSelector.factor] && (
               <button
                 onClick={() => handleResetRating(activeSelector.factor)}
-                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600"
               >
                 Reset
               </button>
@@ -182,7 +219,8 @@ const Step4: React.FC<Step4Props> = ({
         </div>
       </div>
       <p className={onboardingStyles.paragraph}>
-        Considering others' views is an important step in forecasting accurately!
+        Considering others' views is an important step in forecasting
+        accurately!
       </p>
       <p className={onboardingStyles.paragraph}>
         What do you think? Did any of those factors make you want to change your
@@ -203,7 +241,7 @@ const Step4: React.FC<Step4Props> = ({
               onChange={onPredictionChange}
               isDirty={true}
               communityForecast={communityForecast}
-              onBecomeDirty={() => { }}
+              onBecomeDirty={() => {}}
               disabled={false}
             />
 

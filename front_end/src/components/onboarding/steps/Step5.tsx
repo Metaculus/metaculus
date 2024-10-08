@@ -35,9 +35,11 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
         classified intelligence.
       </p>
       <p className={onboardingStyles.largeparagraph}>
-        <span className="font-bold">Next we’ll take you on a tour of a real Metaculus question page.</span> We’ll
-        introduce you to some additional features, and you’ll bring together
-        everything you’ve learned so far.
+        <span className="font-bold">
+          Next we’ll take you on a tour of a real Metaculus question page.
+        </span>{" "}
+        We’ll introduce you to some additional features, and you’ll bring
+        together everything you’ve learned so far.
       </p>
       <div className="mx-auto flex justify-center ">
         <Link href={questionUrl}>

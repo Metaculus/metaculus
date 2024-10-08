@@ -20,7 +20,7 @@ const NewsMatchDrawer: FC<Props> = ({ questionId, articles }) => {
   const [articleDisplayLimit, setArticleDisplayLimit] = useState(3);
 
   return (
-    <div className="w-full @container tour-newsmatch">
+    <div className="w-full @container">
       <SectionToggle defaultOpen title={t("newsMatch")}>
         {articles.slice(0, articleDisplayLimit).map((article: NewsArticle) => (
           <NewsMatchArticle
