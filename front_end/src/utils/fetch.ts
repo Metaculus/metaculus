@@ -1,4 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
 import { notFound } from "next/navigation";
 
 import { getAlphaTokenSession, getServerSession } from "@/services/session";
@@ -8,6 +7,8 @@ import {
   FetchError,
   FetchOptions,
 } from "@/types/fetch";
+
+import { logError } from "./errors";
 
 class ApiError extends Error {
   public digest: string;
@@ -150,7 +151,7 @@ const appFetch = async <T>(
       console.error("Fetch error:", error);
     }
 
-    Sentry.captureException(error);
+    logError(error, `Fetch error: ${error}`);
     throw error;
   }
 };

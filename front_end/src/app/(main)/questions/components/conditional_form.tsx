@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { Post, PostWithForecasts } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
+import { logError } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus, parseQuestionId } from "@/utils/questions";
 
@@ -120,7 +121,7 @@ const ConditionalForm: React.FC<{
 
         router.push(getPostLink(resp.post));
       } catch (e) {
-        console.error(e);
+        logError(e);
         const error = e as Error & { digest?: string };
         setError(error);
       } finally {

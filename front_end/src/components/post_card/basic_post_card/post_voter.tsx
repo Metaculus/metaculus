@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { Post } from "@/types/post";
 import { VoteDirection } from "@/types/votes";
+import { logError } from "@/utils/errors";
 
 type Props = {
   className?: string;
@@ -31,7 +32,7 @@ const PostVoter: FC<Props> = ({ className, post }) => {
         setVote({ user_vote: newDirection, score: response.score });
       }
     } catch (e) {
-      console.error(e);
+      logError(e);
     }
   };
   return (

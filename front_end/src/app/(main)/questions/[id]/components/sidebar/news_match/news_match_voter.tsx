@@ -3,7 +3,7 @@ import { FC, useState } from "react";
 
 import Voter from "@/components/voter";
 import { NewsArticle } from "@/types/news";
-import { VoteDirection } from "@/types/votes";
+import { logError } from "@/utils/errors";
 
 type Props = {
   article: NewsArticle;
@@ -24,7 +24,7 @@ const NewsArticleVoteButtons: FC<Props> = ({
       if (!response.ok) return;
       setArticle({ ...article, user_vote: vote });
     } catch (e) {
-      console.error(e);
+      logError(e);
     }
   }
 

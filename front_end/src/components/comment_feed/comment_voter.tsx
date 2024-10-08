@@ -5,6 +5,7 @@ import Voter from "@/components/voter";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { VoteDirection } from "@/types/votes";
+import { logError } from "@/utils/errors";
 
 type Props = {
   voteData: VoteData;
@@ -41,7 +42,7 @@ const CommentVoter: FC<Props> = ({ voteData, className }) => {
         setVoteScore(response.score as number);
       }
     } catch (e) {
-      console.error(e);
+      logError(e);
     }
   };
   return (

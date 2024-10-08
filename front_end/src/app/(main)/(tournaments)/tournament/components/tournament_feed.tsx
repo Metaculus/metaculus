@@ -11,6 +11,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { PostStatus, PostWithForecasts } from "@/types/post";
+import { logError } from "@/utils/errors";
 
 type Props = {
   slug: string;
@@ -46,7 +47,7 @@ const TournamentFeed: FC<Props> = ({ slug }) => {
 
         setQuestions(questions);
       } catch (e) {
-        console.error(e);
+        logError(e);
         const error = e as Error & { digest?: string };
         setError(error);
       } finally {

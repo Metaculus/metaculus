@@ -1,3 +1,5 @@
+import { captureException } from "@sentry/nextjs";
+
 export function extractError(field_error: any): string | undefined {
   if (typeof field_error === "string") return field_error;
 
@@ -11,4 +13,9 @@ export function extractError(field_error: any): string | undefined {
       }
     }
   }
+}
+
+export function logError(error: Error | unknown, message?: string) {
+  captureException(error);
+  console.error(message ?? error);
 }

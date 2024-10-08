@@ -21,6 +21,7 @@ import {
   AggregationMethod,
   aggregationMethodsArray,
 } from "@/types/question";
+import { logError } from "@/utils/errors";
 import { parseQuestionId } from "@/utils/questions";
 
 import AggregationsTab from "./aggregation_tab";
@@ -68,6 +69,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         });
         setData(response);
       } catch (err) {
+        logError(err);
         setError("Failed to fetch data. Please try again.");
       } finally {
         setLoading(false);

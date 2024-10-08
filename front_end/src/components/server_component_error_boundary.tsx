@@ -1,5 +1,6 @@
-import * as Sentry from "@sentry/nextjs";
 import { FC } from "react";
+
+import { logError } from "@/utils/errors";
 
 import RefreshButton from "./refresh_button";
 
@@ -10,7 +11,7 @@ const WithServerComponentErrorBoundary = <P extends {}>(
     try {
       return await Component(props);
     } catch (error) {
-      Sentry.captureException(error);
+      logError(error);
       if (error instanceof Error) {
         const { message, digest } = error as Error & { digest?: string };
         return (

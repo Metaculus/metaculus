@@ -27,6 +27,7 @@ import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { parseUserMentions } from "@/utils/comments";
 import { formatDate } from "@/utils/date_formatters";
+import { logError } from "@/utils/errors";
 import { canPredictQuestion } from "@/utils/questions";
 
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
@@ -207,7 +208,7 @@ const Comment: FC<CommentProps> = ({
     try {
       await navigator.clipboard.writeText(text);
     } catch (err) {
-      console.error(t("failedToCopyText"), err);
+      logError(err, `${t("failedToCopyText")} ${err}`);
     }
   };
 

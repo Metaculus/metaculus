@@ -26,6 +26,7 @@ import {
 } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
+import { logError } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 import { extractQuestionGroupName, getQuestionStatus } from "@/utils/questions";
 
@@ -183,7 +184,7 @@ const GroupForm: React.FC<Props> = ({
 
       router.push(getPostLink(resp.post));
     } catch (e) {
-      console.log(e);
+      logError(e);
       const error = e as Error & { digest?: string };
       setError(error);
     } finally {
