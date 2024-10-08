@@ -33,7 +33,9 @@ const StateByForecast: FC<Props> = async ({
   isEmbed,
 }) => {
   const t = await getTranslations();
-  const post = await PostsApi.getPostAnonymous(questionGroupId);
+  const post = await PostsApi.getPostAnonymous(questionGroupId, {
+    next: { revalidate: 900 },
+  });
   if (!post?.group_of_questions) {
     return null;
   }
