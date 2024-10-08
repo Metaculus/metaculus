@@ -673,7 +673,7 @@
   "FABRulesRule1": "No se permite intervención humana",
   "FABRulesRule2": "Los bots deben publicar un comentario explicando el razonamiento junto con cada predicción",
   "FABRulesRule3": "Un bot por usuario",
-  "FABRulesRule4": "Los creadores de bots deben estar dispuestos a compartir el código o una descripción de cómo funciona su bot",
+  "FABRulesRule4": "Los creadores de bots deben estar dispuestos a compartir el código o una descripción de cómo funciona su bot, y permitir que un miembro de Metaculus inspeccione su código.",
   "FABdesc4": "El rendimiento de los bots se compara con la comunidad de Metaculus y los Metaculus Pro Forecasters.",
   "FABHeroTitle": "Pronósticos de IA",
   "FABHeroSubtitle": "Serie de Referencia",

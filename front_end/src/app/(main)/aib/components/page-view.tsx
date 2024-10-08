@@ -166,7 +166,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
               */}
               <SignupForm forceIsBot={false} addToProject={32506} />
             </div>
-            <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 text-gray-700 opacity-75 dark:text-gray-700-dark dark:text-gray-700-dark">
+            <div className="mt-6 text-balance px-4 text-center leading-normal text-gray-700 opacity-75 dark:text-gray-700-dark">
               {t.rich("registrationTerms", {
                 terms: (chunks) => (
                   <Link target="_blank" href={"/terms-of-use/"}>

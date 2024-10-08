@@ -671,7 +671,7 @@
   "FABRulesRule1": "Žádný člověk v procesu",
   "FABRulesRule2": "Boti musí zveřejnit komentář vysvětlující jejich uvažování u každé předpovědi",
   "FABRulesRule3": "Jeden bot na uživatele",
-  "FABRulesRule4": "Tvůrci botů musí být ochotni sdílet kód nebo popis, jak jejich bot funguje",
+  "FABRulesRule4": "Tvůrci botů musí být ochotni sdílet kód nebo popis, jak jejich bot funguje, a umožnit členovi Metaculus nahlédnout do jejich kódu.",
   "FABdesc4": "Výkonnost botů se porovnává s komunitou Metaculus a profesionálními předpovídači Metaculus.",
   "FABHeroTitle": "AI předpovídání",
   "FABHeroSubtitle": "Benchmark Series",

@@ -662,7 +662,7 @@
   "FABRulesRule1": "無人為干預",
   "FABRulesRule2": "機器人必須留下顯示其推理過程的評論",
   "FABRulesRule3": "每位用戶/人工智能實驗室一個機器人",
-  "FABRulesRule4": "機器人製作者必須提供代碼或其機器人的描述",
+  "FABRulesRule4": "机器人制造者必须愿意分享其代码或描述机器人的工作原理，并允许 Metaculus 的成员检查其代码。",
   "FABdesc4": "机器人表现将与 Metaculus 社区和 Metaculus 专业预测者进行比较。",
   "FABHeroTitle": "人工智能預測",
   "FABHeroSubtitle": "基準系列",
