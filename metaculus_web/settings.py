@@ -294,9 +294,14 @@ DRAMATIQ_BROKER = {
         "dramatiq.middleware.AgeLimit",
         "dramatiq.middleware.TimeLimit",
         "dramatiq.middleware.Callbacks",
-        "django_dramatiq.middleware.DbConnectionsMiddleware",
+        "dramatiq.middleware.Retries",
         "django_dramatiq.middleware.AdminMiddleware",
+        "django_dramatiq.middleware.DbConnectionsMiddleware",
     ],
+}
+DRAMATIQ_RATE_LIMITER_BACKEND_OPTIONS = {
+    # Setting redis db to 1 for the MQ storage
+    "url": f"{REDIS_URL}/3?{REDIS_URL_CONFIG}",
 }
 
 # Setting StubBroker broker for unit tests environment
@@ -345,7 +350,9 @@ AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
 # Django-storages perform expensive operations of s3 objects signing if this setting is not defined.
 # Ideally, we need to point our cloudflare subdomain to serve media instead of direct s3 access
-AWS_S3_CUSTOM_DOMAIN = os.environ.get("AWS_S3_CUSTOM_DOMAIN", f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com")
+AWS_S3_CUSTOM_DOMAIN = os.environ.get(
+    "AWS_S3_CUSTOM_DOMAIN", f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+)
 AWS_S3_FILE_OVERWRITE = False
 AWS_QUERYSTRING_AUTH = False
 
@@ -409,10 +416,28 @@ SHELL_PLUS_IMPORTS = [
     "from datetime import datetime, timedelta, timezone as dt_timezone",
 ]
 
+
+def traces_sampler(sampling_context):
+    exclude_endpoints = [
+        "/api/get-bulletins",
+        "/api/auth/verify_token",
+        "/api/auth/social",
+    ]
+    wsgi_environ = sampling_context.get("wsgi_environ", {})
+    url = wsgi_environ.get("PATH_INFO")
+
+    if url:
+        for starts_with in exclude_endpoints:
+            if url.startswith(starts_with):
+                return 0
+
+    return 1.0
+
+
 if os.environ.get("SENTRY_DNS", None):
     sentry_sdk.init(
         dsn=os.environ.get("SENTRY_DNS"),
-        traces_sample_rate=1.0,
+        traces_sampler=traces_sampler,
         profiles_sample_rate=1.0,
         environment=ENV,
         integrations=[

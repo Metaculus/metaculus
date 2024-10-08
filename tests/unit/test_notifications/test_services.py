@@ -15,7 +15,7 @@ from tests.unit.test_posts.factories import factory_post
 class TestNotificationNewComments:
     def test_get_email_context_group(self, user1, user2, mocker):
         mocker.patch("utils.email.send_email_async")
-        mocker.patch("notifications.services.get_similar_posts_for_multiple_posts")
+        mocker.patch("posts.services.feed.get_similar_posts_for_posts")
         post_1 = factory_post(author=user1)
         post_2 = factory_post(author=user1)
 
@@ -106,7 +106,7 @@ class TestNotificationNewComments:
 class TestNotificationCPChange:
     def test_get_email_context_group__deduplication(self, user1, user2, mocker):
         mocker.patch("utils.email.send_email_async")
-        mocker.patch("notifications.services.get_similar_posts_for_multiple_posts")
+        mocker.patch("posts.services.feed.get_similar_posts_for_posts")
         post_1 = factory_post(author=user1)
         post_2 = factory_post(author=user1)
 

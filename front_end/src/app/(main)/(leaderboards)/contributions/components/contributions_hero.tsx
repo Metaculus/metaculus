@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { FC, PropsWithChildren, Suspense } from "react";
 
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import Button from "@/components/ui/button";
 import ProfileApi from "@/services/profile";
 import { CategoryKey } from "@/types/scoring";
@@ -16,7 +17,6 @@ import {
   SCORING_DURATION_FILTER,
   SCORING_YEAR_FILTER,
 } from "../../search_params";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   category: CategoryKey;

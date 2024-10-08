@@ -59,7 +59,9 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     // Converting Django errors
     const data: ErrorResponse = normalizeApiErrors(errorData);
 
-    const error: FetchError = new ApiError(data.message ?? "An error occurred");
+    const error: FetchError = new ApiError(
+      data.message ?? "Unknown error occurred"
+    );
     error.response = response;
     error.data = data;
 
@@ -140,7 +142,13 @@ const appFetch = async <T>(
     const clonedRes = response.clone();
     return await handleResponse<T>(clonedRes);
   } catch (error) {
-    console.error("Fetch error:", error);
+    const statusCode = (error as ErrorResponse)?.response?.status;
+    const digest = (error as ApiError)?.digest;
+
+    if (digest != "NEXT_NOT_FOUND" && (!statusCode || statusCode >= 500)) {
+      console.error("Fetch error:", error);
+    }
+
     throw error;
   }
 };

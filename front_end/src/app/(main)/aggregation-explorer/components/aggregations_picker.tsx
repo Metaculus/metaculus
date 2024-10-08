@@ -2,7 +2,6 @@
 
 import { faX, faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useAuth } from "@/contexts/auth_context";
 import {
   Combobox,
   ComboboxInput,
@@ -13,6 +12,7 @@ import {
 import { useTranslations } from "next-intl";
 import { Fragment } from "react";
 
+import { useAuth } from "@/contexts/auth_context";
 import {
   AggregationMethod,
   aggregationMethodsArray,

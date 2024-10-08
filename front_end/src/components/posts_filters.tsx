@@ -34,6 +34,18 @@ type Props = {
   filters: FilterSection[];
   mainSortOptions: GroupButton<QuestionOrder>[];
   sortOptions?: SelectOption<QuestionOrder>[];
+  onPopOverFilterChange?: (
+    change: {
+      filterId: string;
+      optionValue: string | string[] | null;
+      replaceInfo?: FilterReplaceInfo;
+    },
+    deleteParam: (
+      name: string,
+      withNavigation?: boolean,
+      value?: string
+    ) => void
+  ) => void;
   onOrderChange?: (
     order: QuestionOrder,
     setParam: (
@@ -50,6 +62,7 @@ const PostsFilters: FC<Props> = ({
   filters,
   mainSortOptions,
   sortOptions: dropdownSortOptions,
+  onPopOverFilterChange,
   onOrderChange,
   inputConfig,
 }) => {
@@ -109,6 +122,11 @@ const PostsFilters: FC<Props> = ({
     optionValue: string | string[] | null,
     replaceInfo?: FilterReplaceInfo
   ) => {
+    onPopOverFilterChange?.(
+      { filterId, optionValue, replaceInfo },
+      deleteParam
+    );
+
     if (replaceInfo) {
       const { optionId, replaceIds } = replaceInfo;
 

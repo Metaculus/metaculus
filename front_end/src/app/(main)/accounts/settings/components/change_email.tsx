@@ -11,9 +11,9 @@ import { changeEmail } from "@/app/(main)/accounts/settings/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
 import { FormErrorMessage, Input } from "@/components/ui/form_field";
-import { ErrorResponse } from "@/types/fetch";
-import { useServerAction } from "@/hooks/use_server_action";
 import LoadingSpinner from "@/components/ui/loading_spiner";
+import { useServerAction } from "@/hooks/use_server_action";
+import { ErrorResponse } from "@/types/fetch";
 
 const contactUsSchema = z.object({
   email: z.string().min(1, { message: "Email is required" }),

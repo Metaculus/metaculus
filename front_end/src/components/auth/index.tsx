@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
+import { LogOut } from "@/app/(main)/accounts/actions";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 
@@ -64,8 +65,10 @@ const NavUserButton: FC = () => {
         )}
         <MenuItem>
           <a
-            className="flex items-center justify-center whitespace-nowrap px-4 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:px-6 lg:text-right lg:hover:bg-blue-200-dark"
-            href="/accounts/signout"
+            className="flex cursor-pointer items-center justify-center whitespace-nowrap px-4 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:px-6 lg:text-right lg:hover:bg-blue-200-dark"
+            onClick={() => {
+              void LogOut();
+            }}
           >
             {t("logOut")}
           </a>

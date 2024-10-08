@@ -1,3 +1,4 @@
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
@@ -45,4 +46,4 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   );
 };
 
-export default QuestionCreator;
+export default WithServerComponentErrorBoundary(QuestionCreator);

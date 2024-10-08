@@ -57,12 +57,7 @@ const NumericChartCard: FC<Props> = ({ question }) => {
       center: forecast.centers![0],
       interval_upper_bound: forecast.interval_upper_bounds![0],
     };
-  }, [
-    cursorTimestamp,
-    aggregate.history,
-    question.my_forecasts,
-    question.aggregations.recency_weighted,
-  ]);
+  }, [cursorTimestamp, aggregate.history, question.my_forecasts]);
 
   const handleCursorChange = useCallback((value: number | null) => {
     setCursorTimestamp(value);

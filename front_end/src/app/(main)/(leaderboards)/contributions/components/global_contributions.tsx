@@ -1,9 +1,9 @@
 import { FC } from "react";
 
 import ContributionsTable from "@/app/(main)/(leaderboards)/contributions/components/contributions_table";
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import LeaderboardApi from "@/services/leaderboard";
 import { CategoryKey, LeaderboardType } from "@/types/scoring";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   startTime: string;

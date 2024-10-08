@@ -15,7 +15,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from misc.services.itn import get_post_get_similar_articles
+from misc.services.itn import get_post_similar_articles
 from posts.models import (
     Post,
     Vote,
@@ -394,19 +394,21 @@ def post_subscriptions_create(request, pk):
 
     # Validating data
     validated_data = []
-    keep_types = set()
+    keep_ids = set()
 
     for data in serializers.ListField().run_validation(request.data):
         subscription_type = data.get("type")
+        subscription_id = data.pop("id", None)
 
         serializer = get_subscription_serializer_by_type(subscription_type)(data=data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        data.pop("created_at", None)
 
         # Check changed
         # Check whether subscription was changed
         existing_subscription = next(
-            (sub for sub in existing_subscriptions if sub.type == subscription_type),
+            (sub for sub in existing_subscriptions if sub.id == subscription_id),
             None,
         )
         create = not existing_subscription
@@ -421,10 +423,10 @@ def post_subscriptions_create(request, pk):
         if create:
             validated_data.append(data)
         else:
-            keep_types.add(subscription_type)
+            keep_ids.add(subscription_id)
 
     # Deleting subscriptions
-    existing_subscriptions.exclude(type__in=keep_types).delete()
+    existing_subscriptions.exclude(id__in=keep_ids).delete()
 
     for data in validated_data:
         create_subscription(
@@ -466,26 +468,16 @@ def all_post_subscriptions(request):
 def post_similar_posts_api_view(request: Request, pk):
     post = get_object_or_404(Post, pk=pk)
 
-    # Check permissions
-    permission = get_post_permission_for_user(post, user=request.user)
-    ObjectPermission.can_view(permission, raise_exception=True)
+    # We can omit permissions check
+    # since this endpoint does not expose post content
+    # permission = get_post_permission_for_user(post, user=request.user)
+    # ObjectPermission.can_view(permission, raise_exception=True)
 
-    # Retrieve cached articles
-    def get_posts():
-        posts = get_similar_posts(post)
-        return serialize_post_many(posts, with_cp=True, group_cutoff=1)
-
-    """
-    data = cache_get_or_set(
-        f"post_similar_posts_api_view:{post.pk}",
-        get_posts,  # 2h
-        timeout=3600 * 2,
-    )
-    """
     # Not to overload the redis
-    data = get_posts()
+    posts = get_similar_posts(post)
+    posts = serialize_post_many(posts, with_cp=True, group_cutoff=1)
 
-    return Response(data)
+    return Response(posts)
 
 
 @api_view(["GET"])
@@ -493,12 +485,13 @@ def post_similar_posts_api_view(request: Request, pk):
 def post_related_articles_api_view(request: Request, pk):
     post = get_object_or_404(Post, pk=pk)
 
-    # Check permissions
-    permission = get_post_permission_for_user(post, user=request.user)
-    ObjectPermission.can_view(permission, raise_exception=True)
+    # We can omit permissions check
+    # since this endpoint does not expose post content
+    # permission = get_post_permission_for_user(post, user=request.user)
+    # ObjectPermission.can_view(permission, raise_exception=True)
 
     # Retrieve cached articles
-    articles = get_post_get_similar_articles(post)
+    articles = get_post_similar_articles(post)
 
     return Response(PostRelatedArticleSerializer(articles, many=True).data)
 

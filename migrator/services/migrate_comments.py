@@ -4,7 +4,7 @@ from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
 from comments.models import Comment, CommentVote
-from migrator.utils import paginated_query
+from migrator.utils import paginated_query, cleanup_markdown
 from posts.models import Post
 from questions.models import Forecast
 
@@ -44,7 +44,7 @@ def create_comment(comment_obj: dict) -> Comment:
         root_id=comment_obj["parent_id"],
         created_at=comment_obj["created_time"],
         is_soft_deleted=comment_obj["deleted"],
-        text=comment_obj["comment_text"],
+        text=cleanup_markdown(comment_obj["comment_text"]),
         on_post_id=comment_obj["question_id"],
         included_forecast=forecast_id,
         is_private=is_private,

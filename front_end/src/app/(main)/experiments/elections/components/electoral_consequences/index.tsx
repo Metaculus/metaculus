@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { FC } from "react";
 
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import PostsApi from "@/services/posts";
 
 import QuestionLink from "./question_link";
@@ -18,8 +19,8 @@ const ElectoralConsequences: FC = async () => {
   });
 
   return (
-    <div className="relative my-4 flex w-full flex-col rounded bg-gray-0 p-4 dark:bg-gray-0-dark lg:p-8">
-      <div className="mx-4 mb-4 flex flex-col items-center gap-2 sm:flex-row">
+    <div className="relative my-4 flex w-full flex-col rounded bg-gray-0 dark:bg-gray-0-dark">
+      <div className="mx-4 my-3 flex flex-col items-center gap-2 sm:flex-row">
         <Link
           href="/tournament/3574/"
           className="my-4 text-2xl font-medium leading-8 text-gray-700 no-underline dark:text-gray-700-dark sm:grow"
@@ -61,4 +62,4 @@ const ElectoralConsequences: FC = async () => {
   );
 };
 
-export default ElectoralConsequences;
+export default WithServerComponentErrorBoundary(ElectoralConsequences);

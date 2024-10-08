@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
 import {
@@ -6,7 +7,6 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getDisplayValue, displayValue } from "@/utils/charts";
-import { useTranslations } from "next-intl";
 
 type Props = {
   question: QuestionWithNumericForecasts;

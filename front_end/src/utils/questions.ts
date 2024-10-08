@@ -1,14 +1,14 @@
 // TODO: BE should probably return a field, that can be used as chart title
-import { differenceInMilliseconds, isValid, parseISO } from "date-fns";
+import { differenceInMilliseconds, isValid } from "date-fns";
 import { capitalize, isNil } from "lodash";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
 import {
   Post,
-  ProjectPermissions,
   PostStatus,
   PostWithForecasts,
+  ProjectPermissions,
   Resolution,
 } from "@/types/post";
 import {
@@ -24,7 +24,7 @@ import { formatDate } from "./date_formatters";
 
 export function extractQuestionGroupName(title: string) {
   const match = title.match(/\(([^()]*(?:\([^()]*\)[^()]*)*)\)[^()]*$/);
-  return match ? match[1] : title;
+  return (match ? match[1] : title) || title;
 }
 
 export function extractPostResolution(post: Post): Resolution | null {

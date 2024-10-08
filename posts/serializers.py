@@ -367,12 +367,18 @@ def serialize_post(
 
     if hasattr(post, "user_snapshots") and current_user and post.user_snapshots:
         snapshot = post.user_snapshots[0]
+        unread_comment_count = (post.comment_count or 0) - (
+            snapshot.comments_count or 0
+        )
+
+        # Unread comment stats were synced from the old db
+        # This workaround fixes possible discrepancies
+        if unread_comment_count < 0:
+            unread_comment_count = 0
 
         serialized_data.update(
             {
-                "unread_comment_count": (
-                    (post.comment_count or 0) - (snapshot.comments_count or 0)
-                ),
+                "unread_comment_count": unread_comment_count,
                 "last_viewed_at": snapshot.viewed_at,
             }
         )
@@ -444,9 +450,12 @@ def serialize_post_many(
 
 
 class SubscriptionNewCommentsSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False, allow_null=True)
+
     class Meta:
         model = PostSubscription
         fields = (
+            "id",
             "type",
             "comments_frequency",
             "created_at",
@@ -454,11 +463,13 @@ class SubscriptionNewCommentsSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionMilestoneSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False, allow_null=True)
     milestone_step = serializers.FloatField(min_value=0, max_value=1)
 
     class Meta:
         model = PostSubscription
         fields = (
+            "id",
             "type",
             "milestone_step",
             "created_at",
@@ -466,11 +477,13 @@ class SubscriptionMilestoneSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionCPChangeSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False, allow_null=True)
     cp_change_threshold = serializers.FloatField(min_value=0, max_value=1)
 
     class Meta:
         model = PostSubscription
         fields = (
+            "id",
             "type",
             "cp_change_threshold",
             "created_at",
@@ -478,20 +491,25 @@ class SubscriptionCPChangeSerializer(serializers.ModelSerializer):
 
 
 class SubscriptionStatusChangeSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False, allow_null=True)
+
     class Meta:
         model = PostSubscription
         fields = (
+            "id",
             "type",
             "created_at",
         )
 
 
 class SubscriptionSpecificTimeSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(required=False, allow_null=True)
     recurrence_interval = serializers.DurationField(required=False, allow_null=True)
 
     class Meta:
         model = PostSubscription
         fields = (
+            "id",
             "type",
             "next_trigger_datetime",
             "recurrence_interval",
