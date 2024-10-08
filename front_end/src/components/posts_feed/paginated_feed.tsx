@@ -1,4 +1,5 @@
 "use client";
+import * as Sentry from "@sentry/nextjs";
 import { useTranslations } from "next-intl";
 import { FC, Fragment, useState } from "react";
 
@@ -52,10 +53,11 @@ const PaginatedPostsFeed: FC<Props> = ({
         );
 
         if (!hasNextPage) setHasMoreData(false);
-
+        throw new Error("TEST ERROR IN PAGINATED FEED");
         setPaginatedPosts((prevPosts) => [...prevPosts, ...newPosts]);
         setOffset((prevOffset) => prevOffset + POSTS_PER_PAGE);
       } catch (e) {
+        Sentry.captureException(e);
         console.error(e);
         const error = e as Error & { digest?: string };
         setError(error);

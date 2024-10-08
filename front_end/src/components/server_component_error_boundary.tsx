@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { FC } from "react";
 
 import RefreshButton from "./refresh_button";
@@ -9,11 +10,12 @@ const WithServerComponentErrorBoundary = <P extends {}>(
     try {
       return await Component(props);
     } catch (error) {
+      Sentry.captureException(error);
       if (error instanceof Error) {
-        const { digest } = error as Error & { digest?: string };
+        const { message, digest } = error as Error & { digest?: string };
         return (
           <div className="flex h-[50vh] w-full flex-col items-center justify-center">
-            <h2>{digest ?? "Unknown error"}</h2>
+            <h2>{message ?? digest ?? "Unknown error"}</h2>
             <RefreshButton />
           </div>
         );

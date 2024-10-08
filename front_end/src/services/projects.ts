@@ -48,7 +48,7 @@ class ProjectsApi {
     params?: TournamentFilterParams
   ): Promise<TournamentPreview[]> {
     const queryParams = encodeQueryParams(params ?? {});
-
+    throw new Error("Test error!");
     return await get<TournamentPreview[]>(
       `/projects/tournaments/${queryParams}`
     );

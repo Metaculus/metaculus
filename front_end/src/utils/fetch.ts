@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { notFound } from "next/navigation";
 
 import { getAlphaTokenSession, getServerSession } from "@/services/session";
@@ -149,6 +150,7 @@ const appFetch = async <T>(
       console.error("Fetch error:", error);
     }
 
+    Sentry.captureException(error);
     throw error;
   }
 };
