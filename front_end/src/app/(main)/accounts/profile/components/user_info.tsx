@@ -203,7 +203,7 @@ const UserInfo: FC<UserInfoProps> = ({
               </div>
               <div className={keyStatStyles}>
                 <span className="text-xl font-normal text-gray-800 dark:text-gray-200 md:text-2xl">
-                  {format(new Date(profile.date_joined), "MM-yyyy")}
+                  {format(new Date(profile.date_joined), "yyyy-MM-dd")}
                 </span>
                 <span className="text-xs font-bold uppercase text-blue-900/45 dark:text-blue-100/45">
                   {t("memberSince")}

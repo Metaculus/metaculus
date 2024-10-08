@@ -124,11 +124,11 @@ export function generateTimestampXScale(
     cursorFormat = d3.timeFormat("%_I:%M %p, %b %d");
   } else if (timeRange < halfYear) {
     ticks = d3.timeDay.range(start, end);
-    format = d3.timeFormat("%b %d");
+    format = d3.timeFormat("%b %Y");
     cursorFormat = d3.timeFormat("%b %d, %Y");
   } else if (timeRange < oneYear) {
     ticks = d3.timeMonth.range(start, end);
-    format = d3.timeFormat("%b %d");
+    format = d3.timeFormat("%b %Y");
     cursorFormat = d3.timeFormat("%b %d, %Y");
   } else if (timeRange < oneYear * 2) {
     ticks = d3.timeMonth.range(start, end);
@@ -136,7 +136,7 @@ export function generateTimestampXScale(
       const isFirstMonthOfYear = date.getMonth() === 0;
       return isFirstMonthOfYear
         ? d3.timeFormat("%Y")(date)
-        : d3.timeFormat("%b %d")(date);
+        : d3.timeFormat("%b %Y")(date);
     };
     cursorFormat = d3.timeFormat("%b %d, %Y");
   } else if (timeRange < oneYear * 4) {
@@ -146,7 +146,7 @@ export function generateTimestampXScale(
       const isFirstMonthOfYear = date.getMonth() === 0;
       return isFirstMonthOfYear
         ? d3.timeFormat("%Y")(date)
-        : d3.timeFormat("%b %e")(date);
+        : d3.timeFormat("%b %Y")(date);
     };
     cursorFormat = d3.timeFormat("%b %d, %Y");
   } else {
@@ -156,7 +156,7 @@ export function generateTimestampXScale(
       const isFirstMonthOfYear = date.getMonth() === 0;
       return isFirstMonthOfYear
         ? d3.timeFormat("%Y")(date)
-        : d3.timeFormat("%b %e")(date);
+        : d3.timeFormat("%b %Y")(date);
     };
     cursorFormat = d3.timeFormat("%b %d, %Y");
   }
