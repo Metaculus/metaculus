@@ -14,6 +14,11 @@ const WithServerComponentErrorBoundary = <P extends {}>(
       logError(error);
       if (error instanceof Error) {
         const { message, digest } = error as Error & { digest?: string };
+
+        if (message === "NEXT_NOT_FOUND" || message === "NEXT_REDIRECT") {
+          return null;
+        }
+
         return (
           <div className="flex h-[50vh] w-full flex-col items-center justify-center">
             <h2>{message ?? digest ?? "Unknown error"}</h2>
