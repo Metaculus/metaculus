@@ -52,13 +52,20 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
         </div>
         <div className="flex size-full flex-col-reverse gap-3 md:flex-row">
           <BotLeaderboard />
-          <Link href="/aib" className="flex w-full no-underline">
-            <div className="flex flex w-full cursor-pointer flex-col items-center items-center justify-center justify-center gap-2 text-balance rounded-md bg-purple-200 p-3 text-center text-base text-purple-800 transition-colors hover:bg-purple-300 dark:bg-purple-200-dark dark:text-purple-800-dark dark:hover:bg-purple-300-dark md:gap-4 md:p-6 md:text-xl">
+          <Link href="/aib" className="group flex w-full no-underline">
+            <div className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 text-balance rounded-md bg-gradient-to-r from-purple-500/35 to-purple-700/35 p-3 text-center text-lg text-purple-800 transition-colors dark:text-gray-1000-dark md:gap-4 md:p-6 md:text-2xl">
               <FontAwesomeIcon
                 icon={faArrowRight}
-                className="text-2xl md:text-6xl xl:text-8xl"
+                className="text-4xl opacity-20 transition-all group-hover:opacity-80 md:text-6xl xl:text-8xl"
               />{" "}
-              Q4 tournament is underway, check out the details!
+              {t("FABQ3Conclude")}
+              <Button
+                size="lg"
+                variant="primary"
+                className="mb-3 mt-2 bg-purple-800 opacity-45 transition-all group-hover:opacity-80 md:mb-0 lg:mt-4"
+              >
+                {t("FABQ3ConcludeButton")}
+              </Button>
             </div>
           </Link>{" "}
         </div>

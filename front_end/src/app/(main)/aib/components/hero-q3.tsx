@@ -16,7 +16,7 @@ function HeroQ3() {
           </span>
         </span>
       </h1>
-      <p className="mb-0 text-lg font-light leading-tight text-blue-600 dark:text-blue-600-dark md:text-xl md:leading-snug lg:text-2xl min-[1920px]:text-3xl min-[1920px]:leading-normal">
+      <p className="mb-0 mt-2 text-lg font-light leading-tight text-blue-600 dark:text-blue-600-dark md:mt-2 md:text-xl md:leading-snug lg:text-2xl min-[1920px]:text-3xl min-[1920px]:leading-normal">
         {t("FABHeroDesc")}
       </p>
     </div>

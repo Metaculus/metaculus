@@ -36,7 +36,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
             icon={faTrophy}
             className="text-lg md:text-lg min-[1920px]:text-xl"
           />{" "}
-          Q3 tournament is over, check out the leaderboards!
+          {t("FABQ4Start")}
         </div>
       </Link>{" "}
       <div className="flex size-full flex-col items-center gap-3">
@@ -125,7 +125,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
             )}
             <div className="flex flex-row gap-3">
               <Link
-                href="/project/aibq4/"
+                href="/tournament/aibq4/"
                 className="flex h-fit w-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
               >
                 <FontAwesomeIcon
@@ -137,7 +137,7 @@ const AiBenchmarkingTournamentPage: FC<{ token: string | null }> = ({
                 </span>
               </Link>
               <Link
-                href="/notebooks/25525/-announcing-the-ai-forecasting-benchmark-series--july-8-120k-in-prizes/"
+                href="/notebooks/28752/q4-ai-forecasting-benchmark-launch/"
                 className="flex h-fit w-full flex-col items-start justify-center gap-4 rounded bg-white p-4 text-center no-underline transition-all hover:bg-blue-500/40 dark:bg-blue-100-dark dark:hover:bg-blue-600/40 md:p-5 lg:h-full lg:justify-between min-[1920px]:gap-6 min-[1920px]:p-8"
               >
                 <FontAwesomeIcon
