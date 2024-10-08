@@ -537,6 +537,7 @@ def unresolve_question(question: Question):
         global_leaderboard_window = question.get_global_leaderboard_dates()
         if global_leaderboard_window is not None:
             global_leaderboards = Leaderboard.objects.filter(
+                project__type=Project.ProjectTypes.SITE_MAIN,
                 start_time=global_leaderboard_window[0],
                 end_time=global_leaderboard_window[1],
             ).exclude(
