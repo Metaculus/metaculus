@@ -61,6 +61,7 @@ const FanChart: FC<Props> = ({
     () => buildChartData(options),
     [options]
   );
+
   const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
   const { ticks, tickFormat } = generateNumericAreaTicks(
     scaling,
@@ -208,6 +209,10 @@ function buildChartData(options: FanOption[]) {
     ),
     zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
   };
+  if (scaling.range_max === scaling.range_min && scaling.range_max === 0) {
+    scaling.range_max = 1;
+  }
+
   // we can have mixes of log and linear scaled options
   // which leads to a derived zero point inside the range which is invalid
   // so just igore the log scaling in this case
@@ -218,37 +223,61 @@ function buildChartData(options: FanOption[]) {
   ) {
     scaling.zero_point = null;
   }
+  if (scaling.range_max === 1 && scaling.range_min === 0) {
+    for (const option of options) {
+      line.push({
+        x: option.name,
+        y: option.quartiles.median,
+      });
+      area.push({
+        x: option.name,
+        y0: option.quartiles.lower25,
+        y: option.quartiles.upper75,
+      });
+      points.push({
+        x: option.name,
+        y: option.quartiles.median,
+        resolved: option.resolved,
+      });
+    }
+  } else {
+    for (const option of options) {
+      // scale up the values to nominal values
+      // then unscale by the derived scaling
+      const median = unscaleNominalLocation(
+        scaleInternalLocation(option.quartiles.median, option.question.scaling),
+        scaling
+      );
+      const lower25 = unscaleNominalLocation(
+        scaleInternalLocation(
+          option.quartiles.lower25,
+          option.question.scaling
+        ),
+        scaling
+      );
+      const upper75 = unscaleNominalLocation(
+        scaleInternalLocation(
+          option.quartiles.upper75,
+          option.question.scaling
+        ),
+        scaling
+      );
 
-  for (const option of options) {
-    // scale up the values to nominal values
-    // then unscale by the derived scaling
-    const median = unscaleNominalLocation(
-      scaleInternalLocation(option.quartiles.median, option.question.scaling),
-      scaling
-    );
-    const lower25 = unscaleNominalLocation(
-      scaleInternalLocation(option.quartiles.lower25, option.question.scaling),
-      scaling
-    );
-    const upper75 = unscaleNominalLocation(
-      scaleInternalLocation(option.quartiles.upper75, option.question.scaling),
-      scaling
-    );
-
-    line.push({
-      x: option.name,
-      y: median,
-    });
-    area.push({
-      x: option.name,
-      y0: lower25,
-      y: upper75,
-    });
-    points.push({
-      x: option.name,
-      y: median,
-      resolved: option.resolved,
-    });
+      line.push({
+        x: option.name,
+        y: median,
+      });
+      area.push({
+        x: option.name,
+        y0: lower25,
+        y: upper75,
+      });
+      points.push({
+        x: option.name,
+        y: median,
+        resolved: option.resolved,
+      });
+    }
   }
 
   return {

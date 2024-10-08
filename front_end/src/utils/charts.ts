@@ -527,6 +527,27 @@ export function getFanOptionsFromNumericGroup(
     }));
 }
 
+export function getFanOptionsFromBinaryGroup(
+  questions: QuestionWithNumericForecasts[]
+) {
+  return questions
+    .map((q) => {
+      const aggregation = q.aggregations.recency_weighted.latest;
+      return {
+        name: extractQuestionGroupName(q.title),
+        quartiles: {
+          median: aggregation?.centers?.[0] ?? 0,
+          lower25: aggregation?.interval_lower_bounds?.[0] ?? 0,
+          upper75: aggregation?.interval_upper_bounds?.[0] ?? 0,
+        },
+        resolved: q.resolution !== null,
+        question: q,
+        resolvedAt: new Date(q.scheduled_resolve_time),
+      };
+    })
+    .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));
+}
+
 export function getGroupQuestionsTimestamps(
   questions: QuestionWithNumericForecasts[]
 ): number[] {
