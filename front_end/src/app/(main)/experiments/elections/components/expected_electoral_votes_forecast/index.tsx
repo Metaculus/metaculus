@@ -24,8 +24,8 @@ const ExpectedElectoralVotesForecast: FC<Props> = async ({
 }) => {
   const t = await getTranslations();
   const [democratPost, republicanPost] = await Promise.all([
-    PostsApi.getPost(democratPostId),
-    PostsApi.getPost(republicanPostId),
+    PostsApi.getPostAnonymous(democratPostId, { next: { revalidate: 900 } }),
+    PostsApi.getPostAnonymous(republicanPostId, { next: { revalidate: 900 } }),
   ]);
   if (!democratPost?.question || !republicanPost?.question) {
     return null;
