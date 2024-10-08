@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = "force-static";
+export const revalidate = 900;
+
 export default async function ElectionsExperiment() {
   const t = await getTranslations();
   return (
