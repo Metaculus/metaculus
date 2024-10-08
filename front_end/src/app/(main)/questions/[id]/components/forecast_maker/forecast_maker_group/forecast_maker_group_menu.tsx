@@ -8,6 +8,7 @@ import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ProjectPermissions } from "@/types/post";
 import { Question } from "@/types/question";
+import { logError } from "@/utils/errors";
 import { canChangeQuestionResolution } from "@/utils/questions";
 
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
@@ -34,7 +35,7 @@ const ForecastMakerGroupControls: FC<Props> = ({
     try {
       await navigator.clipboard.writeText(text);
     } catch (err) {
-      console.error(t("failedToCopyText"), err);
+      logError(err, `${t("failedToCopyText")} ${err}`);
     }
   };
 

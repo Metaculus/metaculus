@@ -1,5 +1,6 @@
 "use client";
-import { FC } from "react";
+import * as Sentry from "@sentry/nextjs";
+import { FC, useEffect } from "react";
 
 import Button from "@/components/ui/button";
 import { extractError } from "@/utils/errors";
@@ -37,7 +38,9 @@ const GlobalErrorBoundary: FC<GlobalErrorBoundaryProps> = ({
   console.log("\n\n--- ERROR ---\n\n");
   console.log("Error message:", error);
   console.log("Stack: ", error.stack);
-
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
   return <GlobalErrorContainer error={error.digest!} reset={reset} />;
 };
 

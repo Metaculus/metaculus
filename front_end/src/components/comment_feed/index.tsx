@@ -21,6 +21,7 @@ import {
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { parseComment } from "@/utils/comments";
+import { logError } from "@/utils/errors";
 
 import Button from "../ui/button";
 import { FormErrorMessage } from "../ui/form_field";
@@ -188,7 +189,7 @@ const CommentFeed: FC<Props> = ({
     } catch (err) {
       const error = err as Error & { digest?: string };
       setError(error);
-      console.error("Error fetching comments:", err);
+      logError(err, `Error fetching comments: ${err}`);
     } finally {
       setIsLoading(false);
     }
