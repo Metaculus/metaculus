@@ -34,6 +34,7 @@ export type PostsParams = PaginationParams & {
   ids?: number[];
   news_type?: string;
   public_figure?: number;
+  curation_status?: string;
   notebook_type?: string;
   similar_to_post_id?: number;
 };

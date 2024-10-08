@@ -14,7 +14,11 @@ export default async function NewsFeed({
 }: {
   searchParams: SearchParams;
 }) {
-  const filters = generateFiltersFromSearchParams(searchParams);
+  const filters = {
+    ...generateFiltersFromSearchParams(searchParams),
+    notebook_type: "news",
+    curation_status: "approved",
+  };
   return (
     <main className="mx-auto mb-auto w-full max-w-3xl px-2 pb-4">
       <h1 className="mb-6 mt-12 text-center text-5xl font-bold text-blue-800 dark:text-blue-800-dark">
