@@ -19,10 +19,6 @@ export const GlobalErrorContainer: FC<GlobalErrorProps> = ({
   error,
   reset,
 }) => {
-  useEffect(() => {
-    Sentry.captureException(error);
-  }, [error]);
-
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center">
       <h2>{extractError(error) || "Error"}</h2>
