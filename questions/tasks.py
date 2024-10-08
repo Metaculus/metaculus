@@ -43,7 +43,7 @@ def run_build_question_forecasts(question_id: int):
     build_question_forecasts(question)
 
 
-@dramatiq.actor
+@dramatiq.actor(time_limit=1_800_000)
 def resolve_question_and_send_notifications(question_id: int):
     question: Question = Question.objects.get(id=question_id)
     post = question.get_post()
