@@ -5,11 +5,19 @@ import dramatiq
 from posts.models import Post
 from posts.services.search import update_post_search_embedding_vector
 from posts.services.subscriptions import notify_post_cp_change
+from utils.dramatiq import concurrency_retries, task_concurrent_limit
 
 logger = logging.getLogger(__name__)
 
 
-@dramatiq.actor
+@dramatiq.actor(max_backoff=180_000, retry_when=concurrency_retries(max_retries=10))
+@task_concurrent_limit(
+    lambda post_id: f"on-post-forecast-{post_id}",
+    # We want only one task for the same post id be executed at the same time
+    limit=1,
+    # This task shouldn't take longer than 3m
+    ttl=180_000,
+)
 def run_on_post_forecast(post_id):
     """
     Run async actions on post forecast
@@ -28,9 +36,7 @@ def run_on_post_forecast(post_id):
 
 
 @dramatiq.actor
-def run_notify_post_status_change(
-    post_id: int, event: Post.PostStatusChange
-):
+def run_notify_post_status_change(post_id: int, event: Post.PostStatusChange):
     from posts.services.subscriptions import notify_post_status_change
 
     notify_post_status_change(Post.objects.get(pk=post_id), event)

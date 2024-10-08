@@ -1,10 +1,7 @@
-import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
-const MarkdownEditor = dynamic(() => import("@/components/markdown_editor"), {
-  ssr: false,
-});
+import MarkdownEditor from "@/components/markdown_editor";
 import ExpandableContent from "@/components/ui/expandable_content";
 import SectionToggle from "@/components/ui/section_toggle";
 import { Post } from "@/types/post";

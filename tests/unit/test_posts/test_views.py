@@ -6,7 +6,7 @@ from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from posts.models import Post, PostUserSnapshot
+from posts.models import Post, PostUserSnapshot, PostSubscription
 from projects.models import Project
 from projects.services import get_site_main_project
 from questions.models import Question
@@ -284,3 +284,125 @@ def test_post_view_event_api_view(user1, user1_client):
     assert snapshot.user_id == user1.id
     assert snapshot.comments_count == 2
     assert snapshot.viewed_at == make_aware(datetime.datetime(2024, 6, 2))
+
+
+def test_post_subscriptions_update(user1, user1_client):
+    post = factory_post(
+        author=user1,
+        published_at=make_aware(datetime.datetime(2024, 1, 1)),
+        scheduled_close_time=make_aware(datetime.datetime(2024, 6, 1)),
+        scheduled_resolve_time=make_aware(datetime.datetime(2024, 6, 1)),
+    )
+
+    # Create subscriptions
+    data = [
+        {"type": "new_comments", "comments_frequency": 10},
+        {"type": "status_change"},
+        {"type": "milestone", "milestone_step": 0.2},
+        {"type": "cp_change", "cp_change_threshold": 0.25},
+        {
+            "type": "specific_time",
+            "next_trigger_datetime": "2024-10-13T16:59:14Z",
+            "recurrence_interval": "",
+        },
+    ]
+
+    url = reverse("post-subscriptions", kwargs={"pk": post.pk})
+    response = user1_client.post(url, data, format="json")
+    assert response.status_code == status.HTTP_201_CREATED
+
+    qs = PostSubscription.objects.filter(post_id=post.pk, user=user1)
+    assert qs.count() == 5
+
+    created_new_comments = qs.get(type="new_comments")
+    created_status_change = qs.get(type="status_change")
+    qs.get(type="milestone")
+    created_cp_change = qs.get(type="cp_change")
+    created_specific_time = qs.get(type="specific_time")
+
+    # Update subscriptions
+    data = [
+        # No change
+        {
+            "id": created_new_comments.pk,
+            "type": "new_comments",
+            "comments_frequency": 10,
+        },
+        # No change
+        {"id": created_status_change.pk, "type": "status_change"},
+        # CP change was changed
+        {"id": created_cp_change.pk, "type": "cp_change", "cp_change_threshold": 0.4},
+        # No change extra
+        {
+            "id": created_specific_time.pk,
+            "type": "specific_time",
+            "next_trigger_datetime": "2024-10-13T16:59:14Z",
+            "recurrence_interval": "",
+        },
+        # Adding extra reminder
+        {
+            "next_trigger_datetime": "2024-10-15T16:59:14Z",
+            "recurrence_interval": "7 00:00:00",
+            "type": "specific_time",
+        },
+        # Milestone will be deleted
+    ]
+
+    response = user1_client.post(url, data, format="json")
+    assert response.status_code == status.HTTP_201_CREATED
+    assert qs.count() == 5
+
+    # Not changed
+    updated_new_comments = qs.get(type="new_comments")
+    assert updated_new_comments.edited_at == created_new_comments.edited_at
+    assert (
+        updated_new_comments.comments_frequency
+        == created_new_comments.comments_frequency
+        == 10
+    )
+
+    # TODO: remove create_at for specific time notification
+    updated_status_change = qs.get(type="status_change")
+    assert updated_status_change.edited_at == created_status_change.edited_at
+
+    # CP changes
+    updated_cp_change = qs.get(type="cp_change")
+    assert updated_cp_change.pk != created_cp_change.pk
+    assert updated_cp_change.edited_at != created_cp_change.edited_at
+    assert updated_cp_change.cp_change_threshold == 0.4
+
+    # Date changes
+    updated_specific_time = qs.get(type="specific_time", pk=created_specific_time.pk)
+    assert updated_specific_time.edited_at == created_specific_time.edited_at
+
+    # And extra change:
+    new_specific_time = qs.exclude(pk=created_specific_time.pk).get(
+        type="specific_time"
+    )
+    assert str(new_specific_time.recurrence_interval) == "7 days, 0:00:00"
+
+    assert not qs.filter(type="milestone").exists()
+
+    # And then delete specific time notification
+    # Update subscriptions
+    data = [
+        {
+            "id": created_new_comments.pk,
+            "type": "new_comments",
+            "comments_frequency": 10,
+        },
+        {"id": created_status_change.pk, "type": "status_change"},
+        {"id": created_cp_change.pk, "type": "cp_change", "cp_change_threshold": 0.4},
+        # Keep extra reminder
+        {
+            "id": new_specific_time.pk,
+            "next_trigger_datetime": "2024-10-15T16:59:14Z",
+            "recurrence_interval": "7 00:00:00",
+            "type": "specific_time",
+        },
+    ]
+    response = user1_client.post(url, data, format="json")
+    assert response.status_code == status.HTTP_201_CREATED
+    assert qs.count() == 4
+
+    assert qs.get(type="specific_time").pk == new_specific_time.pk

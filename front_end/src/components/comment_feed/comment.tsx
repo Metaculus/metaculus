@@ -2,7 +2,7 @@
 
 import {
   faXmark,
-  faChevronRight,
+  faChevronDown,
   faReply,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -74,32 +74,42 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
 
   return (
     <>
-      <Button
-        variant="link"
-        size="sm"
-        className="mt-2 w-full"
+      <button
+        className={classNames(
+          "mb-1 mt-2.5 flex w-full items-center justify-center gap-2 rounded-sm rounded-sm px-2 py-1 text-sm text-blue-700 no-underline hover:bg-blue-400 disabled:bg-gray-0 dark:text-blue-700-dark dark:hover:bg-blue-700/65 disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark",
+          {
+            "border border-transparent bg-blue-400/50 dark:bg-blue-700/30":
+              !childrenExpanded,
+            "border border-blue-400 bg-transparent hover:bg-blue-400/50 dark:border-blue-600/50 dark:hover:bg-blue-700/50":
+              childrenExpanded,
+          }
+        )}
         onClick={() => {
           setChildrenExpanded(!childrenExpanded);
         }}
       >
         <FontAwesomeIcon
-          icon={faChevronRight}
+          icon={faChevronDown}
           className={classNames("inline-block transition-transform", {
-            "-rotate-90": childrenExpanded,
+            "-rotate-180": childrenExpanded,
           })}
         />
-        <span className="flex-1 text-left">
+        <span className="no-underline">
           {childrenExpanded
             ? t("hideReplyWithCount", { count: getTreeSize(commentChildren) })
             : t("showReplyWithCount", { count: getTreeSize(commentChildren) })}
         </span>
-      </Button>
+      </button>
       <div
-        className={classNames("relative", treeDepth < 5 ? "mt-3 pl-4" : null)}
+        className={classNames(
+          "relative",
+          treeDepth < 5 ? "pl-3" : null,
+          childrenExpanded ? "pt-1.5" : null
+        )}
       >
         {treeDepth < 5 && (
           <div
-            className="absolute inset-y-0 -left-2 w-4 cursor-pointer after:absolute after:inset-y-0 after:left-2 after:block after:w-px after:border-l after:border-gray-600 after:content-[''] after:hover:border-gray-800 after:dark:border-gray-600-dark after:hover:dark:border-gray-800-dark"
+            className="absolute inset-y-0 -left-2 top-2 w-4 cursor-pointer after:absolute after:inset-y-0 after:left-2 after:block after:w-px after:border-l after:border-blue-400 after:content-[''] after:hover:border-blue-600 after:dark:border-blue-600/80 after:hover:dark:border-blue-400/80"
             onClick={() => {
               setChildrenExpanded(!childrenExpanded);
             }}
@@ -107,8 +117,10 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
         )}
         {childrenExpanded &&
           commentChildren.map((child: CommentType) => (
-            <div key={child.id}>
-              <hr className="my-4" />
+            <div
+              key={child.id}
+              className="my-1 rounded-md bg-blue-500/15 px-2.5 py-1.5 dark:bg-blue-500/10"
+            >
               <Comment
                 comment={child}
                 permissions={permissions}
@@ -165,7 +177,6 @@ const Comment: FC<CommentProps> = ({
   const isCmmButtonVisible =
     user?.id !== comment.author.id && !!postData?.question;
   const isCmmButtonDisabled = !user || !userCanPredict;
-
   // TODO: find a better way to dedect whether on mobile or not. For now we need to know in JS
   // too and can't use tw classes
   const isMobileScreen = window.innerWidth < 640;
@@ -309,8 +320,8 @@ const Comment: FC<CommentProps> = ({
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
       <div
-        className={classNames("p-2", {
-          "bg-blue-100 dark:bg-blue-100-dark":
+        className={classNames("", {
+          "":
             lastViewedAt &&
             new Date(lastViewedAt) < new Date(comment.created_at),
         })}
@@ -336,13 +347,13 @@ const Comment: FC<CommentProps> = ({
             forecast={comment.included_forecast}
           />
         )}
-        <div className="my-2.5 flex flex-col items-start gap-1">
-          <span className="inline-flex items-center">
+        <div className="mb-1 flex flex-col items-start gap-1">
+          <span className="inline-flex items-center text-base">
             <a
               className="no-underline"
               href={`/accounts/profile/${comment.author.id}/`}
             >
-              <h4 className="my-1">
+              <h4 className="my-1 text-base">
                 {comment.author.username}
                 {comment.author.is_bot && " 🤖"}
               </h4>
@@ -353,8 +364,10 @@ const Comment: FC<CommentProps> = ({
           )}
           {comment.is_admin && <Admin className="ml-2 text-lg" />}
           */}
-            <span className="mx-1">·</span>
-            {formatDate(locale, new Date(comment.created_at))}
+            <span className="mx-1 opacity-55">·</span>
+            <span className="opacity-55">
+              {formatDate(locale, new Date(comment.created_at))}
+            </span>
           </span>
           {/*
         <span className="text-gray-600 dark:text-gray-600-dark block text-xs leading-3">
@@ -420,7 +433,7 @@ const Comment: FC<CommentProps> = ({
         )}
         <div className="mb-2 mt-1 h-7 overflow-visible">
           <div className="flex items-center justify-between text-sm leading-4 text-gray-900 dark:text-gray-900-dark">
-            <div className="inline-flex items-center gap-3">
+            <div className="inline-flex items-center gap-2.5">
               <CommentVoter
                 voteData={{
                   commentId: comment.id,
@@ -441,18 +454,27 @@ const Comment: FC<CommentProps> = ({
               {!onProfile &&
                 (isReplying ? (
                   <Button
-                    className="ml-auto p-2"
-                    variant="text"
+                    size="xxs"
+                    variant="tertiary"
                     onClick={() => {
                       setIsReplying(false);
                     }}
                   >
-                    <FontAwesomeIcon icon={faXmark} />
+                    <FontAwesomeIcon icon={faXmark} className="size-4 p-1" />
                     {t("cancel")}
                   </Button>
                 ) : (
-                  <Button onClick={() => setIsReplying(true)} variant="text">
-                    <FontAwesomeIcon icon={faReply} />
+                  <Button
+                    size="xxs"
+                    onClick={() => setIsReplying(true)}
+                    variant="tertiary"
+                    className="gap-0.5"
+                  >
+                    <FontAwesomeIcon
+                      icon={faReply}
+                      className="size-4 p-1"
+                      size="xs"
+                    />
                     {t("reply")}
                   </Button>
                 ))}

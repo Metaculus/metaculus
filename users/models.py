@@ -17,7 +17,7 @@ class User(TimeStampedModel, AbstractUser):
     bio = models.TextField(default="", blank=True)
     is_bot = models.BooleanField(default=False)
 
-    old_usernames = models.JSONField(default=list, null=False)
+    old_usernames = models.JSONField(default=list, null=False, editable=False)
 
     # Social Link
     website = models.CharField(max_length=100, default=None, null=True, blank=True)

@@ -23,6 +23,7 @@ import { QuestionType } from "@/types/question";
 import { parseComment } from "@/utils/comments";
 
 import Button from "../ui/button";
+import { FormErrorMessage } from "../ui/form_field";
 
 export type SortOption = "created_at" | "-created_at" | "-vote_score";
 type FeedOptions = "public" | "private";
@@ -117,6 +118,9 @@ const CommentFeed: FC<Props> = ({
   const [totalCount, setTotalCount] = useState<number | "?">("?");
   const [shownComments, setShownComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<
+    (Error & { digest?: string }) | undefined
+  >();
   const [offset, setOffset] = useState<number>(0);
   const postId = postData?.id;
   const includeUserForecast = shouldIncludeForecast(postData);
@@ -147,6 +151,7 @@ const CommentFeed: FC<Props> = ({
   ) => {
     try {
       setIsLoading(true);
+      setError(undefined);
       const response = await getComments({
         post: postId,
         author: profileId,
@@ -180,9 +185,12 @@ const CommentFeed: FC<Props> = ({
           setOffset(-1);
         }
       }
-      setIsLoading(false);
     } catch (err) {
+      const error = err as Error & { digest?: string };
+      setError(error);
       console.error("Error fetching comments:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -258,8 +266,8 @@ const CommentFeed: FC<Props> = ({
 
   return (
     <section>
-      <hr className="my-4 border-blue-400 dark:border-blue-400-dark" />
-      <div className="my-4 flex flex-row items-center gap-4">
+      <hr className="my-2 border-blue-400 dark:border-blue-400-dark" />
+      <div className="my-2 flex flex-row items-center gap-4">
         <h2
           className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
           id="comments"
@@ -295,13 +303,15 @@ const CommentFeed: FC<Props> = ({
         />
       )}
       {shownComments.map((comment: CommentType) => (
-        <div key={comment.id}>
-          <hr className="my-4 border-blue-400 dark:border-blue-700" />
+        <div
+          key={comment.id}
+          className="my-1.5 rounded-md border border-blue-400 px-2.5 py-1.5 dark:border-blue-400-dark"
+        >
           {profileId && (
             <h3 className="mb-2 text-lg font-semibold">
               <Link
                 href={`/questions/${comment.on_post}`}
-                className="text-blue-700 no-underline hover:text-blue-800 dark:text-blue-400 hover:dark:text-blue-300"
+                className="text-blue-700 no-underline hover:text-blue-800 dark:text-blue-600-dark hover:dark:text-blue-300"
               >
                 Go to question
               </Link>
@@ -328,6 +338,7 @@ const CommentFeed: FC<Props> = ({
         </>
       )}
       {isLoading && <LoadingIndicator className="mx-auto my-8 w-24" />}
+      {!isLoading && <FormErrorMessage errors={error?.digest} />}
       {offset !== -1 && (
         <div className="flex items-center justify-center pt-4">
           <Button

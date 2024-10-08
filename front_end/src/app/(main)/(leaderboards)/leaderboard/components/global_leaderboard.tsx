@@ -1,10 +1,10 @@
 import { FC } from "react";
 
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import LeaderboardApi from "@/services/leaderboard";
 import { CategoryKey, LeaderboardType } from "@/types/scoring";
 
 import LeaderboardTable from "./leaderboard_table";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 
 type Props = {
   startTime: string;

@@ -168,27 +168,44 @@ export type PostSubscription =
   | PostSubscriptionSpecificTime
   | PostSubscriptionCPCHange;
 
+export type PostSubscriptionConfigItem =
+  | PostSubscriptionNewComments
+  | PostSubscriptionMilestone
+  | PostSubscriptionStatusChange
+  | PostSubscriptionCPCHange
+  | PostSubscriptionSpecificTimeConfig;
+
 export type PostSubscriptionNewComments = {
+  id?: number;
   type: PostSubscriptionType.NEW_COMMENTS;
   comments_frequency: number;
 };
 
 export type PostSubscriptionMilestone = {
+  id?: number;
   type: PostSubscriptionType.MILESTONE;
   milestone_step: number;
 };
 
 export type PostSubscriptionStatusChange = {
+  id?: number;
   type: PostSubscriptionType.STATUS_CHANGE;
 };
 
 export type PostSubscriptionCPCHange = {
+  id?: number;
   type: PostSubscriptionType.CP_CHANGE;
   cp_change_threshold: CPChangeThreshold;
 };
 
 export type PostSubscriptionSpecificTime = {
+  id?: number;
   type: PostSubscriptionType.SPECIFIC_TIME;
   next_trigger_datetime: string;
   recurrence_interval: string;
+};
+
+export type PostSubscriptionSpecificTimeConfig = {
+  type: PostSubscriptionType.SPECIFIC_TIME;
+  subscriptions: PostSubscriptionSpecificTime[];
 };

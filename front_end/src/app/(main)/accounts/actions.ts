@@ -1,10 +1,11 @@
 "use server";
 
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { signInSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
 import AuthApi from "@/services/auth";
-import { setServerSession } from "@/services/session";
+import { deleteServerSession, setServerSession } from "@/services/session";
 import { AuthResponse } from "@/types/auth";
 import { FetchError } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
@@ -96,4 +97,9 @@ export async function signUpAction(
       errors: error.data,
     };
   }
+}
+
+export async function LogOut() {
+  deleteServerSession();
+  return redirect("/");
 }

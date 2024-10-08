@@ -190,7 +190,7 @@ def notify_post_cp_change(post: Post):
             AggregateForecast.objects.filter(
                 question=question,
                 method=AggregationMethod.RECENCY_WEIGHTED,
-            )
+            ).order_by("start_time")
         )
         for question in questions
     }

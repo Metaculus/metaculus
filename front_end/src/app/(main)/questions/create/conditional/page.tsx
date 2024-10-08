@@ -1,3 +1,4 @@
+import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
@@ -51,4 +52,4 @@ const QuestionConditionalCreator: React.FC<{
   );
 };
 
-export default QuestionConditionalCreator;
+export default WithServerComponentErrorBoundary(QuestionConditionalCreator);

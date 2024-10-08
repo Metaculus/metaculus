@@ -110,7 +110,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
       fromQuestionId: inactiveOption.id,
       toQuestionId: activeTableOption,
     };
-  }, [activeTableOption, questionOptions]);
+  }, [activeTableOption, questionOptions, t]);
 
   const copyForecast = useCallback(
     (fromQuestionId: number, toQuestionId: number) => {
