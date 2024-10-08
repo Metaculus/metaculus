@@ -522,10 +522,10 @@ def unresolve_question(question: Question):
 
     # Update leaderboards
     post = question.get_post()
-    projects: QuerySet[Project] = [post.default_project] + list(
-        post.projects.all().exclude(type=Project.ProjectTypes.SITE_MAIN)
-    )
+    projects: QuerySet[Project] = [post.default_project] + list(post.projects.all())
     for project in projects:
+        if project.type == Project.ProjectTypes.SITE_MAIN:
+            continue
         leaderboards = project.leaderboards.all()
         for leaderboard in leaderboards:
             update_project_leaderboard(project, leaderboard)
@@ -537,8 +537,14 @@ def unresolve_question(question: Question):
         global_leaderboard_window = question.get_global_leaderboard_dates()
         if global_leaderboard_window is not None:
             global_leaderboards = Leaderboard.objects.filter(
+                project__type=Project.ProjectTypes.SITE_MAIN,
                 start_time=global_leaderboard_window[0],
                 end_time=global_leaderboard_window[1],
+            ).exclude(
+                score_type__in=[
+                    Leaderboard.ScoreTypes.COMMENT_INSIGHT,
+                    Leaderboard.ScoreTypes.QUESTION_WRITING,
+                ]
             )
             for leaderboard in global_leaderboards:
                 update_project_leaderboard(main_site_project, leaderboard)
