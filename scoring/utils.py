@@ -390,8 +390,6 @@ def update_project_leaderboard(
     # new entries
     new_entries = generate_project_leaderboard(project, leaderboard)
 
-    return
-
     # assign ranks - also applies exclusions
     new_entries = assign_ranks(
         new_entries,
