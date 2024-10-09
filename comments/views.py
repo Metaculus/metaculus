@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.request import Request
@@ -169,6 +169,10 @@ def comment_edit_api_view(request: Request, pk: int):
 @api_view(["POST"])
 def comment_vote_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
+
+    if comment.author_id == request.user.pk:
+        raise ValidationError("You can not vote your own comment.")
+
     direction = serializers.ChoiceField(
         required=False, allow_null=True, choices=CommentVote.VoteDirection.choices
     ).run_validation(request.data.get("vote"))
