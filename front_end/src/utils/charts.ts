@@ -99,7 +99,7 @@ export function generateTimestampXScale(
   const start = fromUnixTime(xDomain[0]);
   const end = fromUnixTime(xDomain[1]);
   const timeRange = differenceInMilliseconds(end, start);
-  const maxTicks = Math.floor(width / 60);
+  const maxTicks = Math.floor(width / 80);
   if (timeRange < oneHour) {
     ticks = d3.timeMinute.range(start, end);
     format = d3.timeFormat("%_I:%M %p");
@@ -175,6 +175,42 @@ export function generateTimestampXScale(
       return format(fromUnixTime(x));
     },
     cursorFormat: (x: number) => cursorFormat(fromUnixTime(x)),
+  };
+}
+
+export function generateNumericAreaTicks(
+  scaling: Scaling,
+  questionType: QuestionType,
+  chartWidth: number
+): Scale {
+  const minPixelPerTick = 50;
+  const maxMajorTicks = Math.floor(chartWidth / minPixelPerTick);
+  const minorTicksPerMajor = 9;
+
+  let majorTicks = Array.from(
+    { length: maxMajorTicks + 1 },
+    (_, i) => i / maxMajorTicks
+  );
+  const ticks = [];
+  for (let i = 0; i < majorTicks.length - 1; i++) {
+    ticks.push(majorTicks[i]);
+    const minorStep =
+      (majorTicks[i + 1] - majorTicks[i]) / (minorTicksPerMajor + 1);
+    for (let j = 1; j <= minorTicksPerMajor; j++) {
+      ticks.push(majorTicks[i] + minorStep * j);
+    }
+  }
+  ticks.push(majorTicks[majorTicks.length - 1]);
+
+  return {
+    ticks,
+    tickFormat: (value: number) => {
+      if (majorTicks.includes(value)) {
+        return getDisplayValue(value, questionType, scaling);
+      }
+
+      return "";
+    },
   };
 }
 
