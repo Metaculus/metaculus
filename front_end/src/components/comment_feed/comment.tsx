@@ -492,6 +492,7 @@ const Comment: FC<CommentProps> = ({
         <CommentEditor
           parentId={comment.id}
           postId={comment.on_post}
+          text={formatMention(comment)}
           onSubmit={(newComment: CommentType) => {
             addNewChildrenComment(comment, newComment);
             setIsReplying(false);
@@ -526,6 +527,10 @@ function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
   comment.children.map((nestedComment) => {
     addNewChildrenComment(nestedComment, newComment);
   });
+}
+
+function formatMention(comment: CommentType) {
+  return `[@${comment.author.username}](/accounts/profile/${comment.author.id})`;
 }
 
 export default Comment;
