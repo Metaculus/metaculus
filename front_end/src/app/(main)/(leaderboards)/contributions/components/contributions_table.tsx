@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 
+import MarkdownEditor from "@/components/markdown_editor";
 import { QuestionType } from "@/types/question";
 import { CategoryKey, Contribution, LeaderboardEntry } from "@/types/scoring";
 import { abbreviatedNumber } from "@/utils/number_formatters";
@@ -196,11 +197,17 @@ const ContributionsTable: FC<Props> = ({
               )}
               {category === "comments" && (
                 <Link
-                  className="no-underline"
+                  className="block max-h-[15px] truncate no-underline"
                   /* TODO: change to actual comment url once BE support it */
                   href={`/questions/${contribution.post_id!}/#comment-${contribution.comment_id}`}
                 >
-                  {contribution.comment_text}
+                  <MarkdownEditor
+                    mode="read"
+                    markdown={getCommentSummary(
+                      contribution.comment_text as string
+                    )}
+                    contentEditableClassName="font-serif !text-gray-700 !dark:text-gray-700-dark *:m-0"
+                  />
                 </Link>
               )}
             </td>
@@ -260,5 +267,11 @@ const getIsResolved = (contribution: Contribution) =>
   !!contribution.question_resolution &&
   (contribution.question_resolution !== "ambiguous" ??
     contribution.question_resolution !== "annulled");
+
+const getCommentSummary = (markdown: string) => {
+  markdown = markdown.replace(/\<.*?\>/g, "");
+  const normalized = markdown.split("\n").join(" ");
+  return normalized;
+};
 
 export default ContributionsTable;
