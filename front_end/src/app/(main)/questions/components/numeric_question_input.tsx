@@ -213,7 +213,7 @@ const NumericQuestionInput: React.FC<{
             <Input
               disabled={isLive}
               type="checkbox"
-              onClick={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 if (e.target.checked) {
                   if (questionType == QuestionType.Numeric) {
                     setZeroPoint(0);
