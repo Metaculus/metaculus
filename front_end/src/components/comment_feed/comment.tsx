@@ -437,6 +437,7 @@ const Comment: FC<CommentProps> = ({
             <div className="inline-flex items-center gap-2.5">
               <CommentVoter
                 voteData={{
+                  commentAuthorId: comment.author.id,
                   commentId: comment.id,
                   voteScore: comment.vote_score,
                   userVote: comment.user_vote ?? null,

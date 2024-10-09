@@ -13,6 +13,7 @@ type Props = {
 };
 
 type VoteData = {
+  commentAuthorId: number;
   commentId: number;
   voteScore?: number | null;
   userVote: VoteDirection;
@@ -53,6 +54,7 @@ const CommentVoter: FC<Props> = ({ voteData, className }) => {
       onVoteUp={() => handleVote(1)}
       onVoteDown={() => handleVote(-1)}
       commentArea={true}
+      disabled={user?.id === voteData.commentAuthorId}
     />
   );
 };
