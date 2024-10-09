@@ -355,7 +355,6 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 [is_valid_probability(p) for p in probability_yes_per_category.values()]
             )
         )
-        breakpoint()
 
         continuous_cdf_ok = False
         if continuous_cdf is not None:
