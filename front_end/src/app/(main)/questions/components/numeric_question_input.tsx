@@ -443,20 +443,52 @@ const NumericQuestionInput: React.FC<{
                 ],
               }}
               graphType={"pmf"}
-              question={{
-                resolution: null,
-                type: questionType,
-                scaling: {
-                  range_max: max!,
-                  range_min: min!,
-                  zero_point: zeroPoint,
-                },
-                open_lower_bound: openLowerBound,
-                open_upper_bound: openUpperBound,
-                aggregations: {
-                  recency_weighted: { history: [], latest: undefined },
-                },
-              }}
+              question={
+                {
+                  id: 1,
+                  title: "",
+                  description: "",
+                  created_at: "",
+                  updated_at: "",
+                  scheduled_close_time: "",
+                  scheduled_resolve_time: "",
+                  possibilities: {},
+                  fine_print: "",
+                  resolution_criteria: "",
+                  label: "",
+                  nr_forecasters: 0,
+                  author_username: "",
+                  post_id: 0,
+                  resolution: "",
+                  forecasts: {
+                    timestamps: [],
+                    nr_forecasters: [],
+                    my_forecasts: {
+                      timestamps: [],
+                      medians: [],
+                      slider_values: null,
+                    },
+                    medians: [],
+                    q3s: [],
+                    q1s: [],
+                    means: [],
+                    latest_pmf: [],
+                    latest_cdf: [],
+                    histogram: [],
+                  },
+                  type: questionType,
+                  scaling: {
+                    range_max: max!,
+                    range_min: min!,
+                    zero_point: zeroPoint,
+                  },
+                  open_lower_bound: openLowerBound,
+                  open_upper_bound: openUpperBound,
+                  aggregations: {
+                    recency_weighted: { history: [], latest: undefined },
+                  },
+                } as QuestionWithNumericForecasts
+              }
               readOnly={false}
               height={100}
               showCP={false}
