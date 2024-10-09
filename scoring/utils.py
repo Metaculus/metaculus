@@ -3,8 +3,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 import numpy as np
-from django.db.models import QuerySet, Q, Sum, IntegerField
-from django.db.models.functions import Coalesce
+from django.db.models import QuerySet, Q, Sum
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
