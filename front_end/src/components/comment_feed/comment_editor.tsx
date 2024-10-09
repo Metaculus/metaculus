@@ -50,7 +50,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const handleSubmit = async () => {
     setErrorMessage("");
 
-    const userTagPattern = /@\(([^)]+)\)|@([^\s]+)/g;
+    const userTagPattern = /@(?!\[)(?:\(([^)]+)\)|([^\s(]+)(?!\]))/g;
     const parsedMarkdown = markdown.replace(userTagPattern, (match) =>
       match.replace(/[()\\]/g, "")
     );
