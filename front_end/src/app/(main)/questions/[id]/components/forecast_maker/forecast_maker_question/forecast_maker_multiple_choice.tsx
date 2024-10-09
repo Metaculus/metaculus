@@ -17,6 +17,7 @@ import { ErrorResponse } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
 import {
   AggregateForecastHistory,
+  PredictionInputMessage,
   Question,
   QuestionWithMultipleChoiceForecasts,
   UserForecastHistory,
@@ -45,6 +46,7 @@ type Props = {
   permission?: ProjectPermissions;
   canPredict: boolean;
   canResolve: boolean;
+  predictionMessage: PredictionInputMessage;
 };
 
 const ForecastMakerMultipleChoice: FC<Props> = ({
@@ -53,6 +55,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   permission,
   canPredict,
   canResolve,
+  predictionMessage,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -242,7 +245,11 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
           ))}
         </tbody>
       </table>
-
+      {predictionMessage && (
+        <div className="my-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
+          {t(predictionMessage)}
+        </div>
+      )}
       <div className="mt-5 flex flex-wrap items-center justify-center gap-4 border-b border-b-blue-400 pb-5 dark:border-b-blue-400-dark">
         <div className="mx-auto text-center sm:ml-0 sm:text-left">
           <div>

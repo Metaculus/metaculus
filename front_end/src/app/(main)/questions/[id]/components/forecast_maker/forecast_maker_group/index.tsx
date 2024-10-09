@@ -3,6 +3,7 @@ import { FC } from "react";
 
 import { PostWithForecasts } from "@/types/post";
 import {
+  PredictionInputMessage,
   QuestionType,
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
@@ -20,6 +21,7 @@ type Props = {
   post: PostWithForecasts;
   canPredict: boolean;
   canResolve: boolean;
+  predictionMessage: PredictionInputMessage;
 };
 
 const ForecastMakerGroup: FC<Props> = ({
@@ -29,6 +31,7 @@ const ForecastMakerGroup: FC<Props> = ({
   questions,
   canResolve,
   canPredict,
+  predictionMessage,
 }) => {
   const t = useTranslations();
 
@@ -56,6 +59,7 @@ const ForecastMakerGroup: FC<Props> = ({
           )}
           canResolve={canResolve}
           canPredict={canPredict}
+          predictionMessage={predictionMessage}
         />
       )}
       {(tileType === QuestionType.Date ||
@@ -65,6 +69,7 @@ const ForecastMakerGroup: FC<Props> = ({
           questions={questions as QuestionWithNumericForecasts[]}
           canResolve={canResolve}
           canPredict={canPredict}
+          predictionMessage={predictionMessage}
         />
       )}
     </ForecastMakerContainer>

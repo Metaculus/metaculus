@@ -15,7 +15,10 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import {
+  PredictionInputMessage,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
@@ -37,6 +40,7 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   canPredict: boolean;
   canResolve: boolean;
+  predictionMessage: PredictionInputMessage;
 };
 
 const ForecastMakerGroupContinuous: FC<Props> = ({
@@ -44,6 +48,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   questions,
   canPredict,
   canResolve,
+  predictionMessage,
 }) => {
   const t = useTranslations();
   const locale = useLocale();
@@ -281,6 +286,11 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           </div>
         );
       })}
+      {predictionMessage && (
+        <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
+          {t(predictionMessage)}
+        </div>
+      )}
       {!!activeGroupOption && !activeGroupOption?.resolution && (
         <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
           {canPredict &&
