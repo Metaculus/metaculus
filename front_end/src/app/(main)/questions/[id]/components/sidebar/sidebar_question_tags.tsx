@@ -57,7 +57,7 @@ const SidebarQuestionTags: FC<Props> = ({
           <Chip
             color="orange"
             key={element.id}
-            href={`/tournament/${element.slug}/`}
+            href={`/tournament/${element.slug ?? element.id}/`}
           >
             {element.name}
           </Chip>
@@ -67,7 +67,7 @@ const SidebarQuestionTags: FC<Props> = ({
           <Chip
             color="orange"
             key={element.id}
-            href={`/tournament/${element.slug}/`}
+            href={`/tournament/${element.slug ?? element.id}/`}
           >
             {element.name}
           </Chip>
