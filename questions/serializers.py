@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
+import numpy as np
 
 import django
 import django.utils
@@ -349,11 +350,12 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         )
         prob_yes_per_cat_ok = (
             probability_yes_per_category is not None
-            and sum(probability_yes_per_category.values()) == 1
+            and np.isclose(sum(probability_yes_per_category.values()), 1)
             and all(
                 [is_valid_probability(p) for p in probability_yes_per_category.values()]
             )
         )
+        breakpoint()
 
         continuous_cdf_ok = False
         if continuous_cdf is not None:
