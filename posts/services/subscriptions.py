@@ -183,7 +183,13 @@ def notify_post_cp_change(post: Post):
     subscriptions = post.subscriptions.filter(
         type=PostSubscription.SubscriptionType.CP_CHANGE
     ).select_related("user")
-    questions = Question.objects.filter(Q(post=post) | Q(group__post=post))
+    questions = Question.objects.filter(Q(post=post) | Q(group__post=post)).filter(
+        # Don't send notifications before the CP is revealed
+        Q(cp_reveal_time__lte=timezone.now())
+    )
+
+    if not questions:
+        return
 
     forecast_history = {
         question: list(
