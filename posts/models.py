@@ -15,6 +15,7 @@ from django.db.models import (
     QuerySet,
     FilteredRelation,
     Exists,
+    Value,
 )
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -139,9 +140,14 @@ class PostQuerySet(models.QuerySet):
         """
         Annotate last forecast date for user
         """
+        last_forecast_date_subquery = PostUserSnapshot.objects.filter(
+            user_id=author_id, post_id=OuterRef("pk")
+        ).values("last_forecast_date")[:1]
 
-        return self.filter(snapshots__user_id=author_id).annotate(
-            user_last_forecasts_date=F("snapshots__last_forecast_date")
+        return self.annotate(
+            user_last_forecasts_date=Coalesce(
+                Subquery(last_forecast_date_subquery), Value(None)
+            )
         )
 
     def annotate_unread_comment_count(self, user_id: int):

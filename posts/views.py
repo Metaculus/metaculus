@@ -138,6 +138,8 @@ def posts_list_oldapi_view(request):
     status = filters_serializer.validated_data.get("status", None)
     projects = filters_serializer.validated_data.get("project", None)
     order_by = filters_serializer.validated_data.get("order_by", None)
+    guessed_by = filters_serializer.validated_data.get("guessed_by", None)
+    not_guessed_by = filters_serializer.validated_data.get("not_guessed_by", None)
 
     qs = get_posts_feed(
         qs,
@@ -146,6 +148,8 @@ def posts_list_oldapi_view(request):
         statuses=status,
         order_by=order_by,
         forecast_type=["binary"],
+        forecaster_id=guessed_by,
+        not_forecaster_id=not_guessed_by,
     )
     # Paginating queryset
     posts = paginator.paginate_queryset(qs, request)

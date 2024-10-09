@@ -289,6 +289,8 @@ class OldQuestionFilterSerializer(PostFilterSerializer):
         required=False,
     )
     project = serializers.IntegerField(required=False)
+    guessed_by = serializers.IntegerField(required=False)
+    not_guessed_by = serializers.IntegerField(required=False)
 
     def validate_project(self, value):
         return validate_tournaments(lookup_values=[str(value)])
