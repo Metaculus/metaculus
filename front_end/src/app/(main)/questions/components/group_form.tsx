@@ -213,6 +213,7 @@ const GroupForm: React.FC<Props> = ({
   );
 
   const control = useForm({
+    mode: "all",
     // @ts-ignore
     resolver: zodResolver(groupQuestionSchema),
   });

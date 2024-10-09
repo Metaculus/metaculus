@@ -212,6 +212,7 @@ const QuestionForm: FC<Props> = ({
   };
 
   const control = useForm({
+    mode: "all",
     resolver: zodResolver(getFormSchema(questionType)),
   });
 
