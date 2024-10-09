@@ -293,6 +293,12 @@ export function getPredictionInputMessage(post: Post) {
     case PostStatus.UPCOMING: {
       return "predictionUpcomingMessage";
     }
+    case PostStatus.APPROVED: {
+      if (Date.parse(post.open_time) > Date.now()) {
+        return "predictionUpcomingMessage";
+      }
+      return null;
+    }
     case PostStatus.REJECTED:
     case PostStatus.PENDING:
     case PostStatus.DRAFT: {

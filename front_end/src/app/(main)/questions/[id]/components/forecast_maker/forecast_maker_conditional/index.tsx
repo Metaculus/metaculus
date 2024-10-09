@@ -3,6 +3,7 @@ import { FC } from "react";
 
 import { PostConditional, PostWithForecasts } from "@/types/post";
 import {
+  PredictionInputMessage,
   QuestionType,
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
@@ -16,12 +17,14 @@ type Props = {
   post: PostWithForecasts;
   conditional: PostConditional<QuestionWithForecasts>;
   canPredict: boolean;
+  predictionMessage: PredictionInputMessage;
 };
 
 const ForecastMakerConditional: FC<Props> = ({
   post,
   conditional,
   canPredict,
+  predictionMessage,
 }) => {
   const t = useTranslations();
 
@@ -72,6 +75,7 @@ const ForecastMakerConditional: FC<Props> = ({
             conditional.condition_child.open_time !== undefined &&
             new Date(conditional.condition_child.open_time) <= new Date()
           }
+          predictionMessage={predictionMessage}
         />
       )}
       {(question_yes.type === QuestionType.Date ||
@@ -90,6 +94,7 @@ const ForecastMakerConditional: FC<Props> = ({
             conditional.condition_child.open_time !== undefined &&
             new Date(conditional.condition_child.open_time) <= new Date()
           }
+          predictionMessage={predictionMessage}
         />
       )}
     </ForecastMakerContainer>

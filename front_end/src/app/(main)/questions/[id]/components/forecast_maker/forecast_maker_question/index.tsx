@@ -94,6 +94,7 @@ const QuestionForecastMaker: FC<Props> = ({
               parseISO(question.open_time) < new Date()
             }
             canResolve={canResolve}
+            predictionMessage={predictionMessage}
           />
           <QuestionResolutionText question={question} />
         </>

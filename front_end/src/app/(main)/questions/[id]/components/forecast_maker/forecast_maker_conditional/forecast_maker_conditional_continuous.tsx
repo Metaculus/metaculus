@@ -11,7 +11,11 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import { PostConditional } from "@/types/post";
-import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
+import {
+  PredictionInputMessage,
+  Quartiles,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
@@ -32,6 +36,7 @@ type Props = {
   prevYesForecast?: any;
   prevNoForecast?: any;
   canPredict: boolean;
+  predictionMessage: PredictionInputMessage;
 };
 
 const ForecastMakerConditionalContinuous: FC<Props> = ({
@@ -41,6 +46,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   prevYesForecast,
   prevNoForecast,
   canPredict,
+  predictionMessage,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -351,7 +357,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           />
         </div>
       ))}
-
+      {predictionMessage && (
+        <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
+          {t(predictionMessage)}
+        </div>
+      )}
       {canPredict && (
         <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
           {user ? (
