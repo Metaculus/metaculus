@@ -18,6 +18,7 @@ import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
+import OnboardingModal from "@/components/onboarding/OnboardingModal";
 
 type SignInModalType = {
   isOpen: boolean;
@@ -162,6 +163,12 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
   email,
 }: SignUpModalSuccessProps) => {
   const t = useTranslations();
+  const { setCurrentModal } = useModal();
+
+  const handleStartOnboarding = () => {
+    onClose(false);
+    setCurrentModal({ type: "onboarding" });
+  };
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} className="max-w-xs">

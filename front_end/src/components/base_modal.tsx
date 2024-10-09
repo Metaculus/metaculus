@@ -11,6 +11,7 @@ type Props = {
   label?: string;
   onClose?: (isOpen: boolean) => void;
   className?: string;
+  isImmersive?: boolean; // Add this line
 };
 
 const BaseModal: FC<PropsWithChildren<Props>> = ({
@@ -19,15 +20,23 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
   onClose = () => {},
   children,
   className,
+  isImmersive = false, // Add this line with a default value
 }) => {
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <div className="fixed inset-0 bg-blue-900/50 dark:bg-gray-1000/50" />
+        <div
+          className={classNames(
+            "fixed inset-0",
+            isImmersive
+              ? "bg-blue-900/60 backdrop-blur-md dark:bg-gray-1000/60"
+              : "bg-blue-900/50 dark:bg-gray-1000/50"
+          )}
+        />
         <div className="fixed inset-0 flex min-h-full justify-center overflow-y-auto sm:p-4">
           <DialogPanel
             className={classNames(
-              "my-auto h-fit w-full max-w-fit transform overflow-y-scroll rounded bg-gray-0 p-7 text-left align-middle text-sm text-blue-900 shadow-xl transition-all dark:bg-gray-0-dark dark:text-blue-900-dark",
+              "my-auto h-fit w-full max-w-fit transform overflow-y-auto rounded bg-gray-0 p-7 text-left align-middle text-sm text-blue-900 shadow-xl transition-all dark:bg-gray-0-dark dark:text-blue-900-dark",
               className
             )}
           >
@@ -38,7 +47,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
             )}
             <button
               onClick={() => onClose(false)}
-              className="absolute right-0 top-0 px-3 py-2 text-2xl text-blue-800 no-underline hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 disabled:opacity-30 dark:text-blue-800-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark dark:disabled:text-blue-800-dark"
+              className="absolute right-0 top-0 px-3 py-2 text-xl text-blue-800 no-underline opacity-50 hover:text-blue-900 active:text-blue-700 disabled:text-blue-800 disabled:opacity-30 dark:text-blue-800-dark dark:hover:text-blue-900-dark dark:active:text-blue-700-dark dark:disabled:text-blue-800-dark"
             >
               <FontAwesomeIcon icon={faXmark} />
             </button>
