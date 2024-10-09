@@ -222,7 +222,7 @@ export function displayValue(
   questionType: QuestionType
 ): string {
   if (questionType === QuestionType.Date) {
-    return format(fromUnixTime(value), "yyyy-MM");
+    return format(fromUnixTime(value), "yyyy-MM-dd");
   } else if (questionType === QuestionType.Numeric) {
     return abbreviatedNumber(value);
   } else {
@@ -358,7 +358,7 @@ export function getDisplayUserValue(
     zero_point: zPoint,
   });
   if (qType === QuestionType.Date) {
-    return format(fromUnixTime(scaledValue), "yyyy-MM");
+    return format(fromUnixTime(scaledValue), "yyyy-MM-dd");
   } else if (qType === QuestionType.Numeric) {
     return abbreviatedNumber(scaledValue);
   } else {
