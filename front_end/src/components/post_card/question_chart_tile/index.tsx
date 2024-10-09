@@ -39,7 +39,10 @@ const QuestionChartTile: FC<Props> = ({
   }
 
   if (question.aggregations.recency_weighted.history.length === 0) {
-    return <div>{t("forecastDataIsEmpty")}</div>;
+    if (curationStatus === PostStatus.OPEN) {
+      return <div>{t("forecastDataIsEmpty")}</div>;
+    }
+    return null;
   }
 
   const defaultChartZoom: TimelineChartZoomOption = user

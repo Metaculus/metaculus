@@ -134,7 +134,7 @@ export function generateFiltersFromSearchParams(
     filters.order_by = defaultOrderBy;
 
     if (!filters.statuses && !filters.search) {
-      filters.statuses = [PostStatus.OPEN];
+      filters.statuses = [PostStatus.OPEN, PostStatus.RESOLVED];
     }
   }
 

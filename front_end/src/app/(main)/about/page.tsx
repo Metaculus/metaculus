@@ -466,7 +466,7 @@ export default function AboutPage() {
       <div className="xl:mb-80">
         <h1 className="mt-8 text-center text-4xl md:mt-6 md:text-left md:text-5xl">
           {t.rich("aboutMetaculusTitle", {
-            link: (chunks) => <span className="text-blue-600">{chunks}</span>,
+            blue: (chunks) => <span className="text-blue-600">{chunks}</span>,
           })}
         </h1>
         <p className="max-w-2xl text-center text-xl text-blue-700 dark:text-blue-300 md:mt-10 md:text-left md:text-2xl">

@@ -4,6 +4,7 @@ import React, { FC, useState } from "react";
 
 import Button from "@/app/(main)/about/components/Button";
 import { useAuth } from "@/contexts/auth_context";
+import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 
 import DetailsQuestionCardErrorBoundary from "./error_boundary";
@@ -11,11 +12,16 @@ import MultipleChoiceChartCard from "./multiple_choice_chart_card";
 import NumericChartCard from "./numeric_chart_card";
 
 type Props = {
+  postStatus: PostStatus;
   question: QuestionWithForecasts;
   nrForecasters: number;
 };
 
-const DetailedQuestionCard: FC<Props> = ({ question, nrForecasters }) => {
+const DetailedQuestionCard: FC<Props> = ({
+  postStatus,
+  question,
+  nrForecasters,
+}) => {
   const isForecastEmpty =
     question.aggregations.recency_weighted.history.length === 0;
   const { user } = useAuth();
@@ -23,7 +29,11 @@ const DetailedQuestionCard: FC<Props> = ({ question, nrForecasters }) => {
     user && user.hide_community_prediction
   );
   const t = useTranslations();
+
   if (isForecastEmpty) {
+    if (postStatus !== PostStatus.OPEN) {
+      return null;
+    }
     return (
       <>
         {nrForecasters > 0 ? (

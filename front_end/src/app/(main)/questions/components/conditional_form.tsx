@@ -73,6 +73,7 @@ const ConditionalForm: React.FC<{
     useState<PostWithForecasts | null>(conditionChildInit);
 
   const control = useForm({
+    mode: "all",
     resolver: zodResolver(conditionalQuestionSchema),
     defaultValues: {
       condition_id: conditionParentInit?.id.toString(),

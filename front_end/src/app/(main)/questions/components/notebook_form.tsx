@@ -58,6 +58,7 @@ const NotebookForm: React.FC<Props> = ({
   >();
   const t = useTranslations();
   const control = useForm({
+    mode: "all",
     resolver: zodResolver(notebookSchema),
   });
   const [categoriesList, setCategoriesList] = useState<Category[]>(

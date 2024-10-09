@@ -1,6 +1,10 @@
 import { revalidateTag } from "next/cache";
 
-import { PaginatedPayload, PaginationParams } from "@/types/fetch";
+import {
+  FetchOptions,
+  PaginatedPayload,
+  PaginationParams,
+} from "@/types/fetch";
 import { NewsArticle } from "@/types/news";
 import {
   Post,
@@ -34,6 +38,7 @@ export type PostsParams = PaginationParams & {
   ids?: number[];
   news_type?: string;
   public_figure?: number;
+  curation_status?: string;
   notebook_type?: string;
   similar_to_post_id?: number;
 };
@@ -51,12 +56,13 @@ class PostsApi {
     );
   }
 
-  static async getPostAnonymous(id: number): Promise<PostWithForecasts> {
-    return await get<PostWithForecasts>(
-      `/posts/${id}/`,
-      {},
-      { passAuthHeader: false }
-    );
+  static async getPostAnonymous(
+    id: number,
+    options?: FetchOptions
+  ): Promise<PostWithForecasts> {
+    return await get<PostWithForecasts>(`/posts/${id}/`, options, {
+      passAuthHeader: false,
+    });
   }
 
   static async removePostFromProject(postId: number, projectId: number) {
@@ -75,6 +81,22 @@ class PostsApi {
 
     return await get<PaginatedPayload<PostWithForecasts>>(
       `/posts${queryParams}`
+    );
+  }
+
+  static async getPostsWithCPAnonymous(
+    params?: PostsParams,
+    options?: FetchOptions
+  ): Promise<PaginatedPayload<PostWithForecasts>> {
+    const queryParams = encodeQueryParams({
+      ...(params ?? {}),
+      with_cp: true,
+    });
+
+    return await get<PaginatedPayload<PostWithForecasts>>(
+      `/posts${queryParams}`,
+      options,
+      { passAuthHeader: false }
     );
   }
 

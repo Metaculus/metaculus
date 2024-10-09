@@ -191,6 +191,7 @@ export default async function IndividualQuestion({
 
             {!!postData.question && (
               <DetailedQuestionCard
+                postStatus={postData.status}
                 question={postData.question}
                 nrForecasters={postData.nr_forecasters}
               />
@@ -205,6 +206,7 @@ export default async function IndividualQuestion({
                 isClosed={isClosed}
                 graphType={postData.group_of_questions.graph_type}
                 nrForecasters={postData.nr_forecasters}
+                postStatus={postData.status}
               />
             )}
 

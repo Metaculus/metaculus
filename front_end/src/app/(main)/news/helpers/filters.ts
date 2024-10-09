@@ -27,6 +27,7 @@ export function generateFiltersFromSearchParams(
 ): PostsParams {
   const filters: PostsParams = {
     forecast_type: NotebookType.Notebook,
+    notebook_type: "news",
   };
 
   if (typeof searchParams[POST_TEXT_SEARCH_FILTER] === "string") {

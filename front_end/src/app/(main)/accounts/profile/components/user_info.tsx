@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 import { FC, ReactNode, useEffect, useState } from "react";
 import { useFormState } from "react-dom";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import {
   updateProfileFormAction,
@@ -16,6 +16,7 @@ import {
   updateProfileSchema,
 } from "@/app/(main)/accounts/schemas";
 import CalibrationChart from "@/app/(main)/questions/track-record/components/charts/calibration_chart";
+import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import { FormError, Input, Textarea } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
@@ -37,7 +38,7 @@ const UserInfo: FC<UserInfoProps> = ({
   const t = useTranslations();
   const { setUser } = useAuth();
   const [editMode, setEditMode] = useState(false);
-  const { register } = useForm<UpdateProfileSchema>({
+  const { register, setValue, control } = useForm<UpdateProfileSchema>({
     resolver: zodResolver(updateProfileSchema),
   });
   const [state, formAction] = useFormState<UpdateProfileState, FormData>(
@@ -80,21 +81,34 @@ const UserInfo: FC<UserInfoProps> = ({
               <div className="text-sm uppercase text-blue-900/45 dark:text-blue-100/45">
                 {t("bio")}
               </div>
-              <div className="flex content-center justify-between">
+              <div className="flex w-full content-center justify-between">
                 {editMode ? (
                   <>
                     <Textarea
-                      style={{ height: "150px" }}
-                      className="w-full rounded border border-gray-700 px-3 py-2 text-sm placeholder:italic dark:border-gray-700-dark"
-                      placeholder={t("profileBioPlaceholder")}
+                      className="hidden"
                       defaultValue={profile.bio}
                       {...register("bio")}
+                    />
+                    <Controller
+                      control={control}
+                      name="bio"
+                      defaultValue={profile.bio}
+                      render={({ field: { value } }) => (
+                        <MarkdownEditor
+                          mode="write"
+                          markdown={value as string}
+                          onChange={(markdown: string) => {
+                            setValue("bio", markdown);
+                          }}
+                          className="w-full"
+                        />
+                      )}
                     />
                     <FormError errors={state?.errors} name={"bio"} />
                   </>
                 ) : (
                   <div className="flex items-center whitespace-pre-line text-base font-light">
-                    {profile.bio}
+                    <MarkdownEditor mode="read" markdown={profile.bio} />
                   </div>
                 )}
               </div>

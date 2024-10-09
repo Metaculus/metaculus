@@ -7,6 +7,7 @@ import Button from "@/app/(main)/about/components/Button";
 import NumericGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/numeric_group_chart";
 import { useAuth } from "@/contexts/auth_context";
 import { GroupOfQuestionsGraphType } from "@/types/charts";
+import { PostStatus } from "@/types/post";
 import {
   QuestionType,
   QuestionWithForecasts,
@@ -25,6 +26,7 @@ type Props = {
   preselectedQuestionId?: number;
   isClosed?: boolean;
   actualCloseTime: string | null;
+  postStatus: PostStatus;
 };
 
 const DetailedGroupCard: FC<Props> = ({
@@ -34,6 +36,7 @@ const DetailedGroupCard: FC<Props> = ({
   graphType,
   nrForecasters,
   actualCloseTime,
+  postStatus,
 }) => {
   const t = useTranslations();
   const groupType = questions.at(0)?.type;
@@ -65,6 +68,9 @@ const DetailedGroupCard: FC<Props> = ({
   });
 
   if (isForecastEmpty) {
+    if (postStatus !== PostStatus.OPEN) {
+      return null;
+    }
     return (
       <>
         {nrForecasters > 0 ? (

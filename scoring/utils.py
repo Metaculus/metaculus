@@ -10,7 +10,7 @@ from sql_util.aggregates import SubqueryAggregate
 from comments.models import Comment
 from posts.models import Post
 from projects.models import Project
-from questions.models import Question
+from questions.models import Question, Forecast, QuestionPost
 from questions.types import AggregationMethod
 from scoring.models import (
     ArchivedScore,
@@ -21,6 +21,7 @@ from scoring.models import (
 )
 from scoring.score_math import evaluate_question
 from users.models import User
+from utils.dtypes import generate_map_from_list
 from utils.the_math.formulas import string_location_to_bucket_index
 from utils.the_math.measures import decimal_h_index
 
@@ -89,6 +90,8 @@ def generate_scoring_leaderboard_entries(
         archived_scores = archived_scores.filter(
             question__scheduled_close_time__lte=leaderboard.finalize_time
         )
+    calculated_scores = calculated_scores.select_related("question")
+
     scores: list[Score | ArchivedScore]
     if archived_scores.exists():
         scores = list(archived_scores)
@@ -198,14 +201,26 @@ def generate_question_writing_leaderboard_entries(
 ) -> list[LeaderboardEntry]:
     now = timezone.now()
 
-    forecaster_ids_for_post: dict[Post, set[int]] = defaultdict(set)
-    for question in questions:
-        forecasts_during_period = question.user_forecasts.filter(
+    user_forecasts_map = generate_map_from_list(
+        Forecast.objects.filter(
+            question__in=questions,
             start_time__gte=leaderboard.start_time,
             start_time__lte=leaderboard.end_time,
+        ).only("question_id", "author_id"),
+        key=lambda forecast: forecast.question_id,
+    )
+    question_post_map = {
+        obj.question_id: obj.post
+        for obj in QuestionPost.objects.filter(question__in=questions).select_related(
+            "post__author"
         )
+    }
+
+    forecaster_ids_for_post: dict[Post, set[int]] = defaultdict(set)
+    for question in questions:
+        forecasts_during_period = user_forecasts_map.get(question.pk) or []
         forecasters = set(forecast.author_id for forecast in forecasts_during_period)
-        post = question.get_post()
+        post = question_post_map.get(question.id)
         forecaster_ids_for_post[post].update(forecasters)
 
     scores_for_author: dict[User, list[float]] = defaultdict(list)

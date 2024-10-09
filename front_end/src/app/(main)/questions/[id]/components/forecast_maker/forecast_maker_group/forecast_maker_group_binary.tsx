@@ -28,7 +28,10 @@ import {
   ProjectPermissions,
   Resolution,
 } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import {
+  PredictionInputMessage,
+  QuestionWithNumericForecasts,
+} from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 import { extractQuestionGroupName } from "@/utils/questions";
@@ -59,6 +62,7 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   canPredict: boolean;
   canResolve: boolean;
+  predictionMessage: PredictionInputMessage;
 };
 
 const ForecastMakerGroupBinary: FC<Props> = ({
@@ -66,6 +70,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
   questions,
   canPredict,
   canResolve,
+  predictionMessage,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -245,6 +250,11 @@ const ForecastMakerGroupBinary: FC<Props> = ({
           ))}
         </tbody>
       </table>
+      {predictionMessage && (
+        <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
+          {t(predictionMessage)}
+        </div>
+      )}
       {!!highlightedQuestion?.resolution && (
         <div className="flex flex-row items-center justify-center gap-1.5 truncate py-2 text-gray-900 dark:text-gray-900-dark">
           <PostStatusComponent
