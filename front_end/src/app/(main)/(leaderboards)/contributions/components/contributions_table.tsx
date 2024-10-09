@@ -269,6 +269,9 @@ const getIsResolved = (contribution: Contribution) =>
     contribution.question_resolution !== "annulled");
 
 const getCommentSummary = (markdown: string) => {
+  if ([">", "*"].includes(markdown[0])) {
+    markdown = markdown.slice(1);
+  }
   markdown = markdown.replace(/\<.*?\>/g, "");
   const normalized = markdown.split("\n").join(" ");
   return normalized;
