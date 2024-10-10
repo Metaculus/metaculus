@@ -72,16 +72,18 @@ def normal_response(
 
 
 def make_request(
-    request,
+    user,
+    data,
     platform: UserUsage.UsagePlatform,
     model_name: str,
     headers: dict[str, str],
     url: str,
     get_io_tokens_fn: Callable[dict[Any], tuple[int, int]],
     get_io_tokens_streaming_fn: Callable[dict[Any], tuple[int, int]],
+    streaming_mode: bool,
 ):
     user_usage = UserUsage.objects.filter(
-        user=request.user, platform=platform, model_name=model_name
+        user=user, platform=platform, model_name=model_name
     ).first()
 
     if user_usage is None:
@@ -101,9 +103,6 @@ def make_request(
         )
 
     try:
-        data = json.loads(request.body)
-        streaming_mode = data.get("stream", False)
-
         if streaming_mode:
             return streaming_response(
                 url, headers, data, platform, user_usage, get_io_tokens_streaming_fn
@@ -113,10 +112,6 @@ def make_request(
                 url, headers, data, platform, user_usage, get_io_tokens_fn
             )
 
-    except json.JSONDecodeError as e:
-        return JsonResponse(
-                    {"error": f"Invalid JSON data: {request.body}. Error: {e}"}, status=400
-                )
     except requests.exceptions.RequestException as e:
         error_msg = f"Error forwarding request to {'Anthropic' if platform == UserUsage.UsagePlatform.Anthropic else 'OpenAI'} API: {e}"
         logging.error(error_msg)
@@ -136,8 +131,15 @@ def openai_v1_chat_completions(request):
     headers["Authorization"] = f"Bearer {settings.FAB_CREDITS_OPENAI_API_KEY}"
     headers.pop("Host")
 
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError as e:
+        return JsonResponse(
+            {"error": f"Invalid JSON data: {request.body}. Error: {e}"}, status=400
+        )
+
     model_name = data.get("model", None)
+    streaming_mode = data.get("stream", False)
 
     def get_io_tokens_fn(data):
         return (
@@ -162,13 +164,15 @@ def openai_v1_chat_completions(request):
             return None, None
 
     response = make_request(
-        request,
-        UserUsage.UsagePlatform.OpenAI,
+        user=request.user,
+        data=data,
+        platform=UserUsage.UsagePlatform.OpenAI,
         headers=headers,
         url="https://api.openai.com/v1/chat/completions",
         model_name=model_name,
         get_io_tokens_fn=get_io_tokens_fn,
         get_io_tokens_streaming_fn=get_io_tokens_streaming_fn,
+        streaming_mode=streaming_mode,
     )
 
     return response
@@ -183,8 +187,15 @@ def anthropic_v1_messages(request):
     headers.pop("Authorization")
     headers.pop("Host")
 
-    data = json.loads(request.body)
+    try:
+        data = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError as e:
+        return JsonResponse(
+            {"error": f"Invalid JSON data: {request.body}. Error: {e}"}, status=400
+        )
+
     model_name = data.get("model", None)
+    streaming_mode = data.get("stream", False)
 
     def get_io_tokens_fn(data):
         return (
@@ -214,13 +225,15 @@ def anthropic_v1_messages(request):
             raise e
 
     response = make_request(
-        request=request,
+        user=request.user,
+        data=data,
         platform=UserUsage.UsagePlatform.Anthropic,
         headers=headers,
         url="https://api.anthropic.com/v1/messages",
         get_io_tokens_fn=get_io_tokens_fn,
         get_io_tokens_streaming_fn=get_io_tokens_streaming_fn,
         model_name=model_name,
+        streaming_mode=streaming_mode,
     )
 
     return response
