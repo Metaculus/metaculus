@@ -5,7 +5,7 @@ on:
 
 jobs:
   deploy-to-play:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     environment: play_env
     env:
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
