@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import { range, set } from "lodash";
 import { useEffect, useState } from "react";
 import { QuestionWithNumericForecasts } from "@/types/question";
 

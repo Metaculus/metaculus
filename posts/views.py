@@ -213,6 +213,11 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
+    qdata = request.data["question"]
+    scaling = qdata.pop("scaling", {})
+    qdata["range_min"] = scaling.get("range_min")
+    qdata["range_max"] = scaling.get("range_max")
+    qdata["zero_point"] = scaling.get("zero_point")
     serializer = PostWriteSerializer(data=request.data, context={"user": request.user})
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=request.user)
