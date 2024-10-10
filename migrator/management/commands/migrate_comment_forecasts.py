@@ -29,8 +29,10 @@ class Command(BaseCommand):
                 continue
 
             related_forecast = Forecast.objects.filter(
-                question_id=old_comment["question_id"], author_id=new_comment.author_id
-            ).first()
+                question_id=old_comment["question_id"],
+                author_id=new_comment.author_id,
+                start_time__lte=old_comment["created_time"],
+            ).order_by("-start_time").first()
 
             if not related_forecast:
                 stats["missing_forecasts"] += 1
