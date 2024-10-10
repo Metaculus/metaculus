@@ -188,7 +188,7 @@ const NotebookContentSections: FC<Props> = ({
                   "font-bold": activeHeading?.id === NOTEBOOK_COMMENTS_TITLE,
                   "font-medium":
                     activeHeading?.id !== NOTEBOOK_COMMENTS_TITLE &&
-                    hash === "#comment-section",
+                    hash === `#${NOTEBOOK_COMMENTS_TITLE}`,
                 })}
                 onClick={close}
               >

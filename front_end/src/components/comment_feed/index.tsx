@@ -80,6 +80,7 @@ type Props = {
   postPermissions?: ProjectPermissions;
   profileId?: number;
   rootCommentStructure?: boolean;
+  id?: string;
 };
 
 function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
@@ -109,6 +110,7 @@ const CommentFeed: FC<Props> = ({
   postPermissions,
   profileId,
   rootCommentStructure = true,
+  id,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -266,7 +268,7 @@ const CommentFeed: FC<Props> = ({
   ];
 
   return (
-    <section>
+    <section id={id}>
       <hr className="my-2 border-blue-400 dark:border-blue-400-dark" />
       <div className="my-2 flex flex-row flex-wrap items-center gap-4">
         <h2

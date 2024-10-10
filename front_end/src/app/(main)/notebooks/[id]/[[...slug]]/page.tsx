@@ -6,6 +6,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import NotebookContentSections from "@/app/(main)/notebooks/components/notebook_content_sections";
 import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
 import {
+  NOTEBOOK_COMMENTS_TITLE,
   NOTEBOOK_CONTENT_SECTION,
   NOTEBOOK_TITLE,
 } from "@/app/(main)/notebooks/constants/page_sections";
@@ -134,6 +135,7 @@ export default async function IndividualNotebook({
           <CommentFeed
             postData={postData}
             postPermissions={postData.user_permission}
+            id={NOTEBOOK_COMMENTS_TITLE}
           />
         </div>
       </div>
