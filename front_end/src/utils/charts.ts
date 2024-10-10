@@ -192,6 +192,8 @@ export function scaleInternalLocation(x: number, scaling: Scaling) {
     scaled_location =
       range_min! +
       ((range_max! - range_min!) * (derivRatio ** x - 1)) / (derivRatio - 1);
+  } else if (range_min === null || range_max === null) {
+    scaled_location = x;
   } else {
     scaled_location = range_min! + (range_max! - range_min!) * x;
   }

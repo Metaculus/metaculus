@@ -67,6 +67,13 @@ const NumericChartCard: FC<Props> = ({ question }) => {
     setIsChartReady(true);
   }, []);
 
+  console.log({
+    center: cursorData.center,
+    type: question.type,
+    scaling: question.scaling,
+    thing: getDisplayValue(cursorData.center, question.type, question.scaling),
+  });
+
   return (
     <div
       className={classNames(
