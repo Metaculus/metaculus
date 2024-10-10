@@ -15,7 +15,7 @@ export function toScientificNotation(
   );
   if (!trailingZeros) {
     // if there is a decimal point, remove trailing zeros (and the point itself if no digits follow)
-    mantissa = mantissa.replace(/(\.\d*?)0+$/, "");
+    mantissa = mantissa.replace(/(\.\d*?[1-9])0+$|\.0*$/, "$1");
   }
   if (pow !== 0) {
     return `${mantissa}e${pow}`;

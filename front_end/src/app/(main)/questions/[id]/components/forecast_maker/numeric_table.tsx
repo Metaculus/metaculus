@@ -85,21 +85,24 @@ const NumericForecastTable: FC<Props> = ({
                   {getDisplayValue(
                     userQuartiles?.lower25,
                     question.type,
-                    question.scaling
+                    question.scaling,
+                    4
                   )}
                 </div>
                 <div>
                   {getDisplayValue(
                     userQuartiles?.median,
                     question.type,
-                    question.scaling
+                    question.scaling,
+                    4
                   )}
                 </div>
                 <div>
                   {getDisplayValue(
                     userQuartiles?.upper75,
                     question.type,
-                    question.scaling
+                    question.scaling,
+                    4
                   )}
                 </div>
                 {question.open_upper_bound && (
@@ -131,21 +134,24 @@ const NumericForecastTable: FC<Props> = ({
               {getDisplayValue(
                 communityQuartiles?.lower25,
                 question.type,
-                question.scaling
+                question.scaling,
+                4
               )}
             </div>
             <div>
               {getDisplayValue(
                 communityQuartiles?.median,
                 question.type,
-                question.scaling
+                question.scaling,
+                4
               )}
             </div>
             <div>
               {getDisplayValue(
                 communityQuartiles?.upper75,
                 question.type,
-                question.scaling
+                question.scaling,
+                4
               )}
             </div>
             {question.open_upper_bound && (

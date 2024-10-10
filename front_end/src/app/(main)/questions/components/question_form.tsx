@@ -82,7 +82,11 @@ export const createQuestionSchemas = (
 
   const continuousQuestionSchema = baseQuestionSchema.merge(
     z.object({
-      zero_point: z.number().nullable().default(null),
+      scaling: z.object({
+        range_min: z.number().optional(),
+        range_max: z.number().optional(),
+        zero_point: z.number().optional(),
+      }),
       open_upper_bound: z.boolean().default(true),
       open_lower_bound: z.boolean().default(true),
     })
@@ -420,11 +424,13 @@ const QuestionForm: FC<Props> = ({
               openUpperBound,
               zeroPoint
             ) => {
-              control.setValue("rangeMin", rangeMin);
-              control.setValue("rangeMax", rangeMax);
+              control.setValue("scaling", {
+                range_min: rangeMin,
+                range_max: rangeMax,
+                zero_point: zeroPoint,
+              });
               control.setValue("open_lower_bound", openLowerBound);
               control.setValue("open_upper_bound", openUpperBound);
-              control.setValue("zero_point", zeroPoint);
             }}
           />
         )}

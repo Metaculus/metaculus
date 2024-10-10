@@ -473,30 +473,19 @@ export function generateScale({
   }
   const tickCount = (maxLabelCount! - 1) * 5 + 1;
 
-  // console.log(
-  //   "\n displayType:",
+  // console.log({
   //   displayType,
-  //   "\n axisLength:",
   //   axisLength,
-  //   "\n domain:",
   //   domain,
-  //   "\n scaling:",
   //   scaling,
-  //   "\n displayLabel:",
   //   displayLabel,
-  //   "\n withCursorFormat:",
   //   withCursorFormat,
-  //   "\n cursorDisplayLabel:",
   //   cursorDisplayLabel,
-  //   "\n maxLabelCount:",
   //   maxLabelCount,
-  //   "\n tickCount:",
   //   tickCount,
-  //   "\n domainScaling:",
   //   domainScaling,
-  //   "\n rangeScaling:",
-  //   rangeScaling
-  // );
+  //   rangeScaling,
+  // });
 
   if (displayType === "percent") {
     // special case for "percent" situation
@@ -533,8 +522,12 @@ export function generateScale({
       if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
         const unscaled = unscaleNominalLocation(x, domainScaling);
         return (
-          getDisplayValue(unscaled, displayType as QuestionType, rangeScaling) +
-          displayLabel
+          getDisplayValue(
+            unscaled,
+            displayType as QuestionType,
+            rangeScaling,
+            3
+          ) + displayLabel
         );
       }
       return "";
