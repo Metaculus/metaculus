@@ -43,6 +43,7 @@ import {
 } from "@/types/question";
 import {
   generateNumericDomain,
+  generateScale,
   generateTicksY,
   generateTimestampXScale,
   getDisplayValue,
@@ -358,27 +359,23 @@ function buildChartData({
   ];
   const xDomain = generateNumericDomain(domainTimestamps, zoom);
   const xScale = generateTimestampXScale(xDomain, width);
+  // TODO: implement general scaling:
+  // const xScale: Scale = generateScale({
+  //   displayType: QuestionType.Date,
+  //   axisLength: width,
+  //   direction: "horizontal",
+  //   domain: xDomain,
+  // });
 
   const yDomain: Tuple<number> = [0, 1];
 
-  const desiredMajorTicks = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
-  const desiredMajorTickDistance = 20;
-
-  const { ticks, majorTicks } = generateTicksY(
-    height,
-    desiredMajorTicks,
-    desiredMajorTickDistance
-  );
-  const tickFormat = (value: number): string => {
-    if (!majorTicks.includes(value)) {
-      return "";
-    }
-    return getDisplayValue(value, questionType, scaling);
-  };
-  const yScale: Scale = {
-    ticks,
-    tickFormat,
-  };
+  const yScale: Scale = generateScale({
+    displayType: questionType,
+    axisLength: height,
+    direction: "vertical",
+    domain: yDomain,
+    scaling,
+  });
 
   return {
     line,

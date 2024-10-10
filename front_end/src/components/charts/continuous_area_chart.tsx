@@ -25,7 +25,7 @@ import {
 } from "@/types/charts";
 import { Resolution } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
-import { interpolateYValue, getDisplayValue } from "@/utils/charts";
+import { interpolateYValue, generateScale } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
@@ -51,6 +51,7 @@ type Props = {
   graphType?: ContinuousAreaGraphType;
   questionType?: QuestionType;
   height?: number;
+  width?: number;
   extraTheme?: VictoryThemeDefinition;
   resolution: Resolution | null;
   onCursorChange?: (value: ContinuousAreaHoverState | null) => void;
@@ -62,12 +63,14 @@ const ContinuousAreaChart: FC<Props> = ({
   graphType = "pmf",
   questionType = QuestionType.Numeric,
   height = 150,
+  width = undefined,
   extraTheme,
   resolution,
   onCursorChange,
 }) => {
-  const { ref: chartContainerRef, width: chartWidth } =
+  const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
+  const chartWidth = width || containerWidth;
 
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
@@ -114,7 +117,14 @@ const ContinuousAreaChart: FC<Props> = ({
     [data, graphType]
   );
   const { ticks, tickFormat } = useMemo(
-    () => generateNumericAreaTicks(scaling, questionType, chartWidth),
+    () =>
+      generateScale({
+        displayType: questionType,
+        axisLength: chartWidth,
+        direction: "horizontal",
+        domain: xDomain,
+        scaling: scaling,
+      }),
     [chartWidth]
   );
 
@@ -324,42 +334,6 @@ function generateNumericAreaGraph(data: {
     verticalLines,
     color: CHART_COLOR_MAP[type],
     type,
-  };
-}
-
-export function generateNumericAreaTicks(
-  scaling: Scaling,
-  questionType: QuestionType,
-  chartWidth: number
-) {
-  const minPixelPerTick = 50;
-  const maxMajorTicks = Math.floor(chartWidth / minPixelPerTick);
-  const minorTicksPerMajor = 9;
-
-  let majorTicks = Array.from(
-    { length: maxMajorTicks + 1 },
-    (_, i) => i / maxMajorTicks
-  );
-  const ticks = [];
-  for (let i = 0; i < majorTicks.length - 1; i++) {
-    ticks.push(majorTicks[i]);
-    const minorStep =
-      (majorTicks[i + 1] - majorTicks[i]) / (minorTicksPerMajor + 1);
-    for (let j = 1; j <= minorTicksPerMajor; j++) {
-      ticks.push(majorTicks[i] + minorStep * j);
-    }
-  }
-  ticks.push(majorTicks[majorTicks.length - 1]);
-
-  return {
-    ticks,
-    tickFormat: (value: number) => {
-      if (majorTicks.includes(value)) {
-        return getDisplayValue(value, questionType, scaling);
-      }
-
-      return "";
-    },
   };
 }
 

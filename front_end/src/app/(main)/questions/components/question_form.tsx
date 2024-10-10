@@ -82,7 +82,7 @@ export const createQuestionSchemas = (
 
   const continuousQuestionSchema = baseQuestionSchema.merge(
     z.object({
-      zero_point: z.number().default(0),
+      zero_point: z.number().nullable().default(null),
       open_upper_bound: z.boolean().default(true),
       open_lower_bound: z.boolean().default(true),
     })

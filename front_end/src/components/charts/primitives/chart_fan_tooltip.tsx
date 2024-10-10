@@ -53,15 +53,27 @@ const ChartFanTooltip: FC<Props> = ({
         <div className="flex flex-col rounded-sm border border-olive-700 bg-gray-0 p-1 dark:border-olive-700-dark dark:bg-gray-0-dark">
           <TooltipItem
             label={t("fanGraphThirdQuartileLabel")}
-            value={getDisplayValue(quartiles.upper75, question)}
+            value={getDisplayValue(
+              quartiles.upper75,
+              question.type,
+              question.scaling
+            )}
           />
           <TooltipItem
             label={t("fanGraphSecondQuartileLabel")}
-            value={getDisplayValue(quartiles.median, question)}
+            value={getDisplayValue(
+              quartiles.median,
+              question.type,
+              question.scaling
+            )}
           />
           <TooltipItem
             label={t("fanGraphFirstQuartileLabel")}
-            value={getDisplayValue(quartiles.lower25, question)}
+            value={getDisplayValue(
+              quartiles.lower25,
+              question.type,
+              question.scaling
+            )}
           />
         </div>
       </foreignObject>

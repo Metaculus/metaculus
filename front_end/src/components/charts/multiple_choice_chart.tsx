@@ -37,6 +37,7 @@ import {
   findPreviousTimestamp,
   generateNumericDomain,
   generatePercentageYScale,
+  generateScale,
   generateTicksY,
   generateTimestampXScale,
   getDisplayValue,
@@ -451,25 +452,13 @@ function buildChartData({
       return item;
     }
   );
-  let yScale = generatePercentageYScale(height);
-  if (!!scaling && !!questionType) {
-    const { ticks, majorTicks } = generateTicksY(
-      height,
-      [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
-      20
-    );
-    const tickFormat = (value: number): string => {
-      if (!majorTicks.includes(value)) {
-        return "";
-      }
-      return getDisplayValue(value, questionType!, scaling!);
-    };
-    yScale = { ticks, tickFormat };
-  }
 
   return {
     xScale: generateTimestampXScale(xDomain, width),
-    yScale,
+    yScale: generateScale({
+      displayType: "percent",
+      axisLength: height,
+    }),
     graphs: graphs,
     xDomain,
   };

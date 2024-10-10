@@ -81,9 +81,27 @@ const NumericForecastTable: FC<Props> = ({
                     {userBounds && (userBounds.belowLower * 100).toFixed(1)}%
                   </div>
                 )}
-                <div>{getDisplayValue(userQuartiles?.lower25, question)}</div>
-                <div>{getDisplayValue(userQuartiles?.median, question)}</div>
-                <div>{getDisplayValue(userQuartiles?.upper75, question)}</div>
+                <div>
+                  {getDisplayValue(
+                    userQuartiles?.lower25,
+                    question.type,
+                    question.scaling
+                  )}
+                </div>
+                <div>
+                  {getDisplayValue(
+                    userQuartiles?.median,
+                    question.type,
+                    question.scaling
+                  )}
+                </div>
+                <div>
+                  {getDisplayValue(
+                    userQuartiles?.upper75,
+                    question.type,
+                    question.scaling
+                  )}
+                </div>
                 {question.open_upper_bound && (
                   <div>{(userBounds!.aboveUpper * 100).toFixed(1)}%</div>
                 )}
@@ -109,9 +127,27 @@ const NumericForecastTable: FC<Props> = ({
                 %
               </div>
             )}
-            <div>{getDisplayValue(communityQuartiles?.lower25, question)}</div>
-            <div>{getDisplayValue(communityQuartiles?.median, question)}</div>
-            <div>{getDisplayValue(communityQuartiles?.upper75, question)}</div>
+            <div>
+              {getDisplayValue(
+                communityQuartiles?.lower25,
+                question.type,
+                question.scaling
+              )}
+            </div>
+            <div>
+              {getDisplayValue(
+                communityQuartiles?.median,
+                question.type,
+                question.scaling
+              )}
+            </div>
+            <div>
+              {getDisplayValue(
+                communityQuartiles?.upper75,
+                question.type,
+                question.scaling
+              )}
+            </div>
             {question.open_upper_bound && (
               <div>
                 {communityBounds &&

@@ -22,6 +22,7 @@ type Props = {
   graphType: ContinuousAreaGraphType;
   readOnly?: boolean;
   height?: number;
+  width?: number;
   showCP?: boolean;
 };
 
@@ -32,6 +33,7 @@ const ContinuousPredictionChart: FC<Props> = ({
   readOnly = false,
   height = 300,
   showCP = true,
+  width = undefined,
 }) => {
   const t = useTranslations();
 
@@ -42,7 +44,12 @@ const ContinuousPredictionChart: FC<Props> = ({
   const cursorDisplayData = useMemo(() => {
     if (!hoverState) return null;
 
-    const xLabel = getDisplayValue(hoverState.x, question);
+    const xLabel = getDisplayValue(
+      hoverState.x,
+      question.type,
+      question.scaling,
+      5
+    );
     return {
       xLabel,
       yUserLabel: readOnly
@@ -98,6 +105,7 @@ const ContinuousPredictionChart: FC<Props> = ({
     <>
       <ContinuousAreaChart
         height={height}
+        width={width}
         scaling={question.scaling}
         questionType={question.type}
         graphType={graphType}

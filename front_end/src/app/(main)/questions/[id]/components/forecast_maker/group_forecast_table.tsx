@@ -169,15 +169,29 @@ const GroupForecastTable: FC<Props> = ({
                   <PredictionCell
                     communityValue={getDisplayValue(
                       showCP ? option.communityQuartiles.lower25 : undefined,
-                      questions.find(
-                        (question) => question.id === option.id
-                      ) as Question
+                      (
+                        questions.find(
+                          (question) => question.id === option.id
+                        ) as Question
+                      ).type,
+                      (
+                        questions.find(
+                          (question) => question.id === option.id
+                        ) as Question
+                      ).scaling
                     )}
                     userValue={getDisplayValue(
                       option.userQuartiles?.lower25,
-                      questions.find(
-                        (question) => question.id === option.id
-                      ) as Question
+                      (
+                        questions.find(
+                          (question) => question.id === option.id
+                        ) as Question
+                      ).type,
+                      (
+                        questions.find(
+                          (question) => question.id === option.id
+                        ) as Question
+                      ).scaling
                     )}
                     isDirty={option.isDirty}
                   />
@@ -190,15 +204,29 @@ const GroupForecastTable: FC<Props> = ({
                   <PredictionCell
                     communityValue={getDisplayValue(
                       showCP ? option.communityQuartiles.median : undefined,
-                      questions.find(
-                        (question) => question.id === option.id
-                      ) as Question
+                      (
+                        questions.find(
+                          (question) => question.id === option.id
+                        ) as Question
+                      ).type,
+                      (
+                        questions.find(
+                          (question) => question.id === option.id
+                        ) as Question
+                      ).scaling
                     )}
                     userValue={getDisplayValue(
                       option.userQuartiles?.median,
-                      questions.find(
-                        (question) => question.id === option.id
-                      ) as Question
+                      (
+                        questions.find(
+                          (question) => question.id === option.id
+                        ) as Question
+                      ).type,
+                      (
+                        questions.find(
+                          (question) => question.id === option.id
+                        ) as Question
+                      ).scaling
                     )}
                     isDirty={option.isDirty}
                   />
@@ -215,15 +243,29 @@ const GroupForecastTable: FC<Props> = ({
                           showCP
                             ? option.communityQuartiles.upper75
                             : undefined,
-                          questions.find(
-                            (question) => question.id === option.id
-                          ) as Question
+                          (
+                            questions.find(
+                              (question) => question.id === option.id
+                            ) as Question
+                          ).type,
+                          (
+                            questions.find(
+                              (question) => question.id === option.id
+                            ) as Question
+                          ).scaling
                         )}
                         userValue={getDisplayValue(
                           option.userQuartiles?.upper75,
-                          questions.find(
-                            (question) => question.id === option.id
-                          ) as Question
+                          (
+                            questions.find(
+                              (question) => question.id === option.id
+                            ) as Question
+                          ).type,
+                          (
+                            questions.find(
+                              (question) => question.id === option.id
+                            ) as Question
+                          ).scaling
                         )}
                         isDirty={option.isDirty}
                       />
