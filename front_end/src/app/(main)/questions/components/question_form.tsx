@@ -102,7 +102,19 @@ export const createQuestionSchemas = (
     })
   );
 
-  const multipleChoiceQuestionSchema = baseQuestionSchema;
+  const multipleChoiceQuestionSchema = baseQuestionSchema.merge(
+    z.object({
+      options: z
+        .string()
+        .min(1, { message: t("errorRequired") })
+        .refine(
+          (value) => !value.split(",").some((option) => option.trim() === ""),
+          {
+            message: t("emptyOptionError"),
+          }
+        ),
+    })
+  );
 
   return {
     baseQuestionSchema,
@@ -183,14 +195,9 @@ const QuestionForm: FC<Props> = ({
   const submitQuestion = async (data: any) => {
     setIsLoading(true);
     setError(undefined);
-    if (
-      questionType === QuestionType.Date ||
-      questionType === QuestionType.Numeric
-    ) {
-      data["options"] = optionsList;
-    }
+
     data["type"] = questionType;
-    data["options"] = optionsList;
+    data["options"] = optionsList.map((option) => option.trim());
 
     let post_data: PostCreationData = {
       title: data["title"],
@@ -219,7 +226,7 @@ const QuestionForm: FC<Props> = ({
     }
   };
   const [optionsList, setOptionsList] = useState<string[]>(
-    post?.question?.options ? post?.question?.options : []
+    post?.question?.options ? post.question.options : []
   );
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
@@ -434,15 +441,17 @@ const QuestionForm: FC<Props> = ({
         {questionType === "multiple_choice" && (
           <InputContainer labelText={t("choicesSeparatedBy")}>
             <Input
+              {...control.register("options", {
+                setValueAs: (value: string) => {
+                  const options = value.split(",");
+                  setOptionsList(options);
+
+                  return value;
+                },
+              })}
               readOnly={isLive && mode !== "create"}
               type="text"
               className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              onChange={(event) => {
-                const options = String(event.target.value)
-                  .split(",")
-                  .map((option) => option.trim());
-                setOptionsList(options);
-              }}
               errors={control.formState.errors.options}
               value={optionsList.join(",")}
             />

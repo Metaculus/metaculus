@@ -208,6 +208,7 @@
   "registrationFacebook": "Continue with Facebook",
   "registrationGoogle": "Continue with Google",
   "registrationByEmail": "Sign Up",
+  "emptyOptionError": "option can't be empty",
   "errorRequired": "required field",
   "errorMinLength": "{field} must be at least {minLength} characters",
   "errorMaxLength": "{field} must be at most {maxLength} characters",
