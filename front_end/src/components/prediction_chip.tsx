@@ -128,7 +128,9 @@ const PredictionChip: FC<Props> = ({
             )}
           >
             <FontAwesomeIcon icon={faUserGroup} size="xs" />
-            {prediction ? getDisplayValue(prediction, question) : ""}
+            {prediction
+              ? getDisplayValue(prediction, question.type, question.scaling)
+              : ""}
           </Chip>
           {!!nr_forecasters && (
             <p>

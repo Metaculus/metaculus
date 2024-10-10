@@ -221,10 +221,18 @@ function getDemocratRepublicanPrediction({
 
   return {
     democratPrediction: rawDemocratPrediction
-      ? getDisplayValue(rawDemocratPrediction, demQuestion)
+      ? getDisplayValue(
+          rawDemocratPrediction,
+          demQuestion.type,
+          demQuestion.scaling
+        )
       : null,
     republicanPrediction: rawRepublicanPrediction
-      ? getDisplayValue(rawRepublicanPrediction, repQuestion)
+      ? getDisplayValue(
+          rawRepublicanPrediction,
+          repQuestion.type,
+          repQuestion.scaling
+        )
       : null,
   };
 }

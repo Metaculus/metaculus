@@ -331,7 +331,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         onChange={setActiveTableOption}
         formatForecastValue={(value) => {
           if (activeOptionData && value) {
-            return getDisplayValue(value, activeOptionData.question);
+            return getDisplayValue(
+              value,
+              activeOptionData.question.type,
+              activeOptionData.question.scaling
+            );
           } else {
             return "-";
           }

@@ -49,7 +49,9 @@ const NumericQuestionInput: React.FC<{
       : defaultOpenLowerBound
   );
   const [zeroPoint, setZeroPoint] = useState(
-    defaultZeroPoint === undefined || defaultZeroPoint === null
+    defaultZeroPoint === undefined ||
+      defaultZeroPoint === null ||
+      Number.isNaN(defaultZeroPoint)
       ? null
       : defaultZeroPoint
   );
@@ -132,7 +134,6 @@ const NumericQuestionInput: React.FC<{
   };
 
   useEffect(() => {
-    console.log("IN USE EFFECT", min, max, zeroPoint, question.scaling);
     const ok = runChecks();
     if (!ok) {
       return;
@@ -177,7 +178,6 @@ const NumericQuestionInput: React.FC<{
                 type="float"
                 defaultValue={min}
                 onChange={(e) => {
-                  console.log("HEELLLLLLLP");
                   e.preventDefault();
                   setMin(Number(e.target.value));
                 }}
@@ -207,7 +207,7 @@ const NumericQuestionInput: React.FC<{
                   type="datetime-local"
                   className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                   defaultValue={
-                    min !== undefined
+                    min !== undefined && !Number.isNaN(min)
                       ? format(new Date(min * 1000), "yyyy-MM-dd'T'HH:mm")
                       : undefined
                   }
@@ -223,7 +223,7 @@ const NumericQuestionInput: React.FC<{
                   type="datetime-local"
                   className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                   defaultValue={
-                    max !== undefined
+                    max !== undefined && !Number.isNaN(max)
                       ? format(new Date(max * 1000), "yyyy-MM-dd'T'HH:mm")
                       : undefined
                   }
@@ -306,7 +306,7 @@ const NumericQuestionInput: React.FC<{
                       setZeroPoint(new Date(e.target.value).getTime() / 1000);
                     }}
                     defaultValue={format(
-                      new Date(zeroPoint * 1000),
+                      new Date(!Number.isNaN(zeroPoint) ? zeroPoint * 1000 : 0),
                       "yyyy-MM-dd'T'HH:mm"
                     )}
                   />
@@ -503,6 +503,7 @@ const NumericQuestionInput: React.FC<{
               question={question}
               readOnly={false}
               height={100}
+              width={650}
               showCP={false}
             />
           </>

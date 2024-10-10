@@ -271,12 +271,34 @@ export function rescaleNominalLocation(
 
 export function displayValue(
   value: number,
-  questionType: QuestionType
+  questionType: QuestionType,
+  precision?: number,
+  truncation?: number
 ): string {
+  precision = precision ?? 3;
+  truncation = truncation ?? 0;
   if (questionType === QuestionType.Date) {
-    return format(fromUnixTime(value), "yyyy-MM-dd");
+    let dateFormat: string;
+    if (precision <= 1) {
+      dateFormat = "yyyy";
+    } else if (precision <= 2) {
+      dateFormat = truncation < 1 ? "yyyy-MM" : "MM";
+    } else if (precision <= 3) {
+      dateFormat =
+        truncation < 1 ? "yyyy-MM-dd" : truncation < 2 ? "MM-dd" : "dd";
+    } else {
+      dateFormat =
+        truncation < 1
+          ? "yyyy-MM-dd HH:mm"
+          : truncation < 2
+            ? "MM-dd HH:mm"
+            : truncation < 3
+              ? "dd HH:mm"
+              : "HH:mm";
+    }
+    return format(fromUnixTime(value), dateFormat);
   } else if (questionType === QuestionType.Numeric) {
-    return abbreviatedNumber(value);
+    return abbreviatedNumber(value, precision);
   } else {
     return `${Math.round(value * 100)}%`;
   }
@@ -290,46 +312,16 @@ export function displayValue(
  */
 export function getDisplayValue(
   value: number | undefined,
-  question: Question
-): string;
-export function getDisplayValue(
-  value: number | undefined,
   questionType: QuestionType,
-  scaling: Scaling
-): string;
-export function getDisplayValue(
-  value: number | undefined,
-  questionOrQuestionType: Question | QuestionType,
-  scaling?: Scaling
+  scaling: Scaling,
+  precision?: number,
+  truncation?: number
 ): string {
-  let qType: string;
-  let rMin: number | null;
-  let rMax: number | null;
-  let zPoint: number | null;
-
-  if (typeof questionOrQuestionType === "object") {
-    // Handle the case where the input is a Question object
-    qType = questionOrQuestionType.type;
-    rMin = questionOrQuestionType.scaling.range_min;
-    rMax = questionOrQuestionType.scaling.range_max;
-    zPoint = questionOrQuestionType.scaling.zero_point;
-  } else {
-    // Handle the case where the input is individual parameters
-    qType = questionOrQuestionType;
-    rMin = scaling!.range_min ?? 0;
-    rMax = scaling!.range_max ?? 1;
-    zPoint = scaling!.zero_point ?? null;
-  }
-
   if (value === undefined) {
     return "...";
   }
-  const scaledValue = scaleInternalLocation(value, {
-    range_min: rMin ?? 0,
-    range_max: rMax ?? 1,
-    zero_point: zPoint,
-  });
-  return displayValue(scaledValue, qType as QuestionType);
+  const scaledValue = scaleInternalLocation(value, scaling);
+  return displayValue(scaledValue, questionType, precision, truncation);
 }
 
 export function getChoiceOptionValue(
@@ -450,8 +442,9 @@ export function generatePercentageYScale(containerHeight: number): Scale {
 }
 
 type GenerateScaleParams = {
-  displayType: "date" | "numeric" | "percent";
+  displayType: QuestionType | "percent";
   axisLength: number;
+  direction?: "horizontal" | "vertical";
   domain?: Tuple<number>;
   scaling?: Scaling | null;
   displayLabel?: string;
@@ -484,30 +477,13 @@ type GenerateScaleParams = {
 export function generateScale({
   displayType,
   axisLength,
+  direction = "horizontal",
   domain = [0, 1],
   scaling = null,
   displayLabel = "",
   withCursorFormat = false,
   cursorDisplayLabel = null,
 }: GenerateScaleParams): Scale {
-  console.log();
-  console.log(
-    "\n displayType:",
-    displayType,
-    "\n axisLength:",
-    axisLength,
-    "\n domain:",
-    domain,
-    "\n scaling:",
-    scaling,
-    "\n displayLabel:",
-    displayLabel,
-    "\n withCursorFormat:",
-    withCursorFormat,
-    "\n cursorDisplayLabel:",
-    cursorDisplayLabel
-  );
-
   const domainMin = domain[0];
   const domainMax = domain[1];
   const domainSize = domainMax - domainMin;
@@ -527,43 +503,50 @@ export function generateScale({
     zero_point: zeroPoint,
   };
 
-  // assume linear for now
-  const orderOfMagnitude = Math.floor(Math.log10(rangeSize));
-
+  // determine the number of ticks to label
+  // based on the axis length and direction
   let maxLabelCount: number;
   if (axisLength < 100) {
-    maxLabelCount = 3;
+    maxLabelCount = direction === "horizontal" ? 2 : 3;
   } else if (axisLength < 150) {
-    maxLabelCount = 5;
+    maxLabelCount = direction === "horizontal" ? 3 : 5;
+  } else if (axisLength < 300) {
+    maxLabelCount = direction === "horizontal" ? 5 : 6;
   } else if (axisLength < 500) {
-    maxLabelCount = 6;
-  } else if (axisLength < 1600) {
-    maxLabelCount = 11;
+    maxLabelCount = direction === "horizontal" ? 6 : 11;
+  } else if (axisLength < 800) {
+    maxLabelCount = direction === "horizontal" ? 6 : 21;
+  } else if (axisLength < 1200) {
+    maxLabelCount = direction === "horizontal" ? 11 : 21;
   } else {
-    maxLabelCount = 21;
+    maxLabelCount = direction === "horizontal" ? 21 : 26;
   }
   const tickCount = (maxLabelCount! - 1) * 5 + 1;
 
-  console.log(
-    "\n maxLabelCount:",
-    maxLabelCount,
-    "\n tickCount:",
-    tickCount,
-    "\n domainMin:",
-    domainMin,
-    "\n domainMax:",
-    domainMax,
-    "\n domainSize:",
-    domainSize,
-    "\n rangeMin:",
-    rangeMin,
-    "\n rangeMax:",
-    rangeMax,
-    "\n rangeSize:",
-    rangeSize,
-    "\n zeroPoint:",
-    zeroPoint
-  );
+  // console.log(
+  //   "\n displayType:",
+  //   displayType,
+  //   "\n axisLength:",
+  //   axisLength,
+  //   "\n domain:",
+  //   domain,
+  //   "\n scaling:",
+  //   scaling,
+  //   "\n displayLabel:",
+  //   displayLabel,
+  //   "\n withCursorFormat:",
+  //   withCursorFormat,
+  //   "\n cursorDisplayLabel:",
+  //   cursorDisplayLabel,
+  //   "\n maxLabelCount:",
+  //   maxLabelCount,
+  //   "\n tickCount:",
+  //   tickCount,
+  //   "\n domainScaling:",
+  //   domainScaling,
+  //   "\n rangeScaling:",
+  //   rangeScaling
+  // );
 
   if (displayType === "percent") {
     // special case for "percent" situation
@@ -584,48 +567,39 @@ export function generateScale({
     };
   }
 
-  if (displayType === "numeric") {
-    const tickInterval = domainMax / (tickCount - 1);
-    const labeledTickInterval = domainMax / (maxLabelCount - 1);
-    const majorTicks: number[] = range(
-      domainMin,
-      domainMax + tickInterval / 100,
-      labeledTickInterval
-    );
-    const allTicks: number[] = range(
-      domainMin,
-      domainMax + tickInterval / 100,
-      tickInterval
-    );
-    console.log("Major Ticks:", majorTicks, "\nAll Ticks:", allTicks);
-    return {
-      ticks: allTicks,
-      tickFormat: (x) => {
-        console.log(x);
-        if (x in majorTicks) {
-          const unscaled = unscaleNominalLocation(x, domainScaling);
-          console.log(
-            "Unscaled:",
-            unscaled,
-            getDisplayValue(unscaled, "numeric" as QuestionType, rangeScaling)
-          );
-          return (
-            getDisplayValue(unscaled, "numeric" as QuestionType, rangeScaling) +
-            displayLabel
-          );
-        }
-        return "";
-      },
-      cursorFormat: withCursorFormat
-        ? (x) => `${Math.round(x * 10000) / 100}` + displayLabel
-        : undefined,
-    };
-  }
-
+  const tickInterval = 1 / (tickCount - 1);
+  const labeledTickInterval = 1 / (maxLabelCount - 1);
+  const majorTicks: number[] = range(
+    0,
+    1 + tickInterval / 100,
+    labeledTickInterval
+  ).map((x) => Math.round(x * 1000) / 1000);
+  const allTicks: number[] = range(0, 1 + tickInterval / 100, tickInterval).map(
+    (x) => Math.round(x * 1000) / 1000
+  );
   return {
-    ticks: [],
-    tickFormat: () => "",
-    cursorFormat: undefined,
+    ticks: allTicks,
+    tickFormat: (x) => {
+      if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
+        const unscaled = unscaleNominalLocation(x, domainScaling);
+        return (
+          getDisplayValue(unscaled, displayType as QuestionType, rangeScaling) +
+          displayLabel
+        );
+      }
+      return "";
+    },
+    cursorFormat: (x) => {
+      const unscaled = unscaleNominalLocation(x, domainScaling);
+      return (
+        getDisplayValue(
+          unscaled,
+          displayType as QuestionType,
+          rangeScaling,
+          6
+        ) + displayLabel
+      );
+    },
   };
 }
 

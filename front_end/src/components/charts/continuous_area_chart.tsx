@@ -25,12 +25,7 @@ import {
 } from "@/types/charts";
 import { Resolution } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
-import {
-  interpolateYValue,
-  getDisplayValue,
-  generateNumericAreaTicks,
-  generateScale,
-} from "@/utils/charts";
+import { interpolateYValue, generateScale } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
@@ -56,6 +51,7 @@ type Props = {
   graphType?: ContinuousAreaGraphType;
   questionType?: QuestionType;
   height?: number;
+  width?: number;
   extraTheme?: VictoryThemeDefinition;
   resolution: Resolution | null;
   onCursorChange?: (value: ContinuousAreaHoverState | null) => void;
@@ -67,12 +63,14 @@ const ContinuousAreaChart: FC<Props> = ({
   graphType = "pmf",
   questionType = QuestionType.Numeric,
   height = 150,
+  width = undefined,
   extraTheme,
   resolution,
   onCursorChange,
 }) => {
-  const { ref: chartContainerRef, width: chartWidth } =
+  const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
+  const chartWidth = width || containerWidth;
 
   const { theme, getThemeColor } = useAppTheme();
   const chartTheme = theme === "dark" ? darkTheme : lightTheme;
@@ -125,7 +123,7 @@ const ContinuousAreaChart: FC<Props> = ({
   const { ticks, tickFormat } = useMemo(
     () =>
       generateScale({
-        displayType: "numeric",
+        displayType: questionType,
         axisLength: chartWidth,
         domain: xDomain,
         scaling: scaling,

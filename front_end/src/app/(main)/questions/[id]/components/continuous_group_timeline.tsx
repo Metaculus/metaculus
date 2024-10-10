@@ -45,7 +45,7 @@ function getQuestionTooltipLabel(
     (timestamp) => timestamp === closestTimestamp
   );
 
-  return getDisplayValue(values[cursorIndex], question);
+  return getDisplayValue(values[cursorIndex], question.type, question.scaling);
 }
 
 function generateList(
