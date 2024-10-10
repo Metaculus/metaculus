@@ -12,8 +12,6 @@ export type User = {
   username: string;
   is_bot?: boolean;
   is_staff?: boolean;
-  first_name?: string;
-  last_name?: string;
   date_joined: string;
   bio: string;
   website: string;

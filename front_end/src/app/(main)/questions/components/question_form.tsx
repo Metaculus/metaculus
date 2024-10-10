@@ -47,43 +47,84 @@ type PostCreationData = {
   default_project: number;
 };
 
-const baseQuestionSchema = z.object({
-  type: z.enum(["binary", "multiple_choice", "date", "numeric"]),
-  title: z.string().min(4).max(200),
-  url_title: z.string().min(4).max(60),
-  description: z.string().min(4),
-  resolution_criteria: z.string().min(1),
-  fine_print: z.string(),
-  scheduled_close_time: z.date(),
-  scheduled_resolve_time: z.date(),
-  default_project: z.nullable(z.union([z.number(), z.string()])),
-});
+export const createQuestionSchemas = (
+  t: ReturnType<typeof useTranslations>
+) => {
+  const baseQuestionSchema = z.object({
+    type: z.enum(["binary", "multiple_choice", "date", "numeric"]),
+    title: z
+      .string()
+      .min(4, {
+        message: t("errorMinLength", { field: "String", minLength: 4 }),
+      })
+      .max(200, {
+        message: t("errorMaxLength", { field: "String", maxLength: 200 }),
+      }),
+    url_title: z
+      .string()
+      .min(4, {
+        message: t("errorMinLength", { field: "String", minLength: 4 }),
+      })
+      .max(60, {
+        message: t("errorMaxLength", { field: "String", maxLength: 60 }),
+      }),
+    description: z.string().min(4, {
+      message: t("errorMinLength", { field: "String", minLength: 4 }),
+    }),
+    resolution_criteria: z.string().min(1, { message: t("errorRequired") }),
+    fine_print: z.string(),
+    scheduled_close_time: z.date(),
+    scheduled_resolve_time: z.date(),
+    default_project: z.nullable(z.union([z.number(), z.string()])),
+  });
 
-const binaryQuestionSchema = baseQuestionSchema;
+  const binaryQuestionSchema = baseQuestionSchema;
 
-const continuousQuestionSchema = baseQuestionSchema.merge(
-  z.object({
-    zero_point: z.number().nullable().default(null),
-    open_upper_bound: z.boolean().default(true),
-    open_lower_bound: z.boolean().default(true),
-  })
-);
+  const continuousQuestionSchema = baseQuestionSchema.merge(
+    z.object({
+      zero_point: z.number().nullable().default(null),
+      open_upper_bound: z.boolean().default(true),
+      open_lower_bound: z.boolean().default(true),
+    })
+  );
 
-const numericQuestionSchema = continuousQuestionSchema.merge(
-  z.object({
-    max: z.number().optional(),
-    min: z.number().optional(),
-  })
-);
+  const numericQuestionSchema = continuousQuestionSchema.merge(
+    z.object({
+      max: z.number().optional(),
+      min: z.number().optional(),
+    })
+  );
 
-const dateQuestionSchema = continuousQuestionSchema.merge(
-  z.object({
-    max: z.date().optional(),
-    min: z.date().optional(),
-  })
-);
+  const dateQuestionSchema = continuousQuestionSchema.merge(
+    z.object({
+      max: z.date().optional(),
+      min: z.date().optional(),
+    })
+  );
 
-const multipleChoiceQuestionSchema = baseQuestionSchema;
+  const multipleChoiceQuestionSchema = baseQuestionSchema.merge(
+    z.object({
+      options: z
+        .string()
+        .min(1, { message: t("errorRequired") })
+        .refine(
+          (value) => !value.split(",").some((option) => option.trim() === ""),
+          {
+            message: t("emptyOptionError"),
+          }
+        ),
+    })
+  );
+
+  return {
+    baseQuestionSchema,
+    binaryQuestionSchema,
+    continuousQuestionSchema,
+    numericQuestionSchema,
+    dateQuestionSchema,
+    multipleChoiceQuestionSchema,
+  };
+};
 
 type Props = {
   questionType: string;
@@ -154,14 +195,9 @@ const QuestionForm: FC<Props> = ({
   const submitQuestion = async (data: any) => {
     setIsLoading(true);
     setError(undefined);
-    if (
-      questionType === QuestionType.Date ||
-      questionType === QuestionType.Numeric
-    ) {
-      data["options"] = optionsList;
-    }
+
     data["type"] = questionType;
-    data["options"] = optionsList;
+    data["options"] = optionsList.map((option) => option.trim());
 
     let post_data: PostCreationData = {
       title: data["title"],
@@ -190,22 +226,23 @@ const QuestionForm: FC<Props> = ({
     }
   };
   const [optionsList, setOptionsList] = useState<string[]>(
-    post?.question?.options ? post?.question?.options : []
+    post?.question?.options ? post.question.options : []
   );
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
 
+  const schemas = createQuestionSchemas(t);
   const getFormSchema = (type: string) => {
     switch (type) {
       case "binary":
-        return binaryQuestionSchema;
+        return schemas.binaryQuestionSchema;
       case "numeric":
-        return numericQuestionSchema;
+        return schemas.numericQuestionSchema;
       case "date":
-        return dateQuestionSchema;
+        return schemas.dateQuestionSchema;
       case "multiple_choice":
-        return multipleChoiceQuestionSchema;
+        return schemas.multipleChoiceQuestionSchema;
       default:
         throw new Error("Invalid question type");
     }
@@ -404,15 +441,17 @@ const QuestionForm: FC<Props> = ({
         {questionType === "multiple_choice" && (
           <InputContainer labelText={t("choicesSeparatedBy")}>
             <Input
+              {...control.register("options", {
+                setValueAs: (value: string) => {
+                  const options = value.split(",");
+                  setOptionsList(options);
+
+                  return value;
+                },
+              })}
               readOnly={isLive && mode !== "create"}
               type="text"
               className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              onChange={(event) => {
-                const options = String(event.target.value)
-                  .split(",")
-                  .map((option) => option.trim());
-                setOptionsList(options);
-              }}
               errors={control.formState.errors.options}
               value={optionsList.join(",")}
             />

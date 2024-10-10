@@ -43,15 +43,28 @@ type PostCreationData = {
   default_project: number;
 };
 
-const groupQuestionSchema = z.object({
-  title: z.string().min(4).max(200),
-  url_title: z.string().min(1),
-  group_variable: z.string().max(200),
-  description: z.string().min(10),
-  resolution_criteria: z.string().min(1),
-  fine_print: z.string(),
-  default_project: z.nullable(z.union([z.number(), z.string()])),
-});
+const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
+  return z.object({
+    title: z
+      .string()
+      .min(4, {
+        message: t("errorMinLength", { field: "String", minLength: 4 }),
+      })
+      .max(200, {
+        message: t("errorMaxLength", { field: "String", maxLength: 200 }),
+      }),
+    url_title: z.string().min(1, { message: t("errorRequired") }),
+    group_variable: z.string().max(200, {
+      message: t("errorMaxLength", { field: "String", maxLength: 200 }),
+    }),
+    description: z.string().min(10, {
+      message: t("errorMinLength", { field: "String", minLength: 10 }),
+    }),
+    resolution_criteria: z.string().min(1, { message: t("errorRequired") }),
+    fine_print: z.string(),
+    default_project: z.nullable(z.union([z.number(), z.string()])),
+  });
+};
 
 type Props = {
   subtype: "binary" | "numeric" | "date";
@@ -211,7 +224,7 @@ const GroupForm: React.FC<Props> = ({
   const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<any[]>(
     subQuestions.map((x) => true)
   );
-
+  const groupQuestionSchema = createGroupQuestionSchema(t);
   const control = useForm({
     mode: "all",
     // @ts-ignore
