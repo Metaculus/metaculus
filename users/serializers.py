@@ -52,8 +52,6 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "occupation",
             "location",
             "profile_picture",
-            "first_name",
-            "last_name",
         )
 
     def get_formerly_known_as(self, obj: User):
