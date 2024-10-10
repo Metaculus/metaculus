@@ -114,7 +114,9 @@ def make_request(
             )
 
     except json.JSONDecodeError as e:
-        return JsonResponse({"error": f"Invalid JSON: {e}"}, status=400)
+        return JsonResponse(
+                    {"error": f"Invalid JSON data: {request.body}. Error: {e}"}, status=400
+                )
     except requests.exceptions.RequestException as e:
         error_msg = f"Error forwarding request to {'Anthropic' if platform == UserUsage.UsagePlatform.Anthropic else 'OpenAI'} API: {e}"
         logging.error(error_msg)
