@@ -4,7 +4,8 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
+import { boolean } from "zod";
 
 import { getComments, markPostAsRead } from "@/app/(main)/questions/actions";
 import Comment from "@/components/comment_feed/comment";
@@ -13,6 +14,7 @@ import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
+import { getCommentsParams } from "@/services/comments";
 import {
   BECommentType,
   CommentPermissions,
@@ -115,11 +117,14 @@ const CommentFeed: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
 
-  const [feedSection, setFeedSection] = useState<FeedOptions>("public");
-  const [sort, setSort] = useState<SortOption>("-created_at");
+  const [isInitialRender, setIsInitialRender] = useState(true);
+  const [feedFilters, setFeedFilters] = useState<getCommentsParams>(() => ({
+    is_private: false,
+    sort: "-created_at",
+  }));
+
   const [comments, setComments] = useState<CommentType[]>([]);
   const [totalCount, setTotalCount] = useState<number | "?">("?");
-  const [shownComments, setShownComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
@@ -128,29 +133,28 @@ const CommentFeed: FC<Props> = ({
   const postId = postData?.id;
   const includeUserForecast = shouldIncludeForecast(postData);
 
-  function handleSortChange(newSort: SortOption) {
-    if (newSort === sort) {
-      return null;
-    }
-    setOffset(COMMENTS_PER_PAGE);
-    setSort(newSort);
-    setComments([]);
-    fetchComments(newSort, 0, false);
-  }
+  const handleFilterChange = useCallback(
+    (
+      key: keyof getCommentsParams,
+      value: getCommentsParams[keyof getCommentsParams],
+      forceUpdate: boolean = false,
+      resetComments: boolean = true
+    ) => {
+      if (!forceUpdate && feedFilters[key] === value) return;
+      if (resetComments) setComments([]);
 
-  useEffect(() => {
-    setShownComments(
-      comments.filter((comment) =>
-        feedSection === "public" ? !comment.is_private : comment.is_private
-      )
-    );
-  }, [comments, feedSection]);
+      setOffset(0);
+      setFeedFilters({
+        ...feedFilters,
+        [key]: value,
+      });
+    },
+    [feedFilters]
+  );
 
   const fetchComments = async (
-    commentSort: SortOption = sort,
-    offset: number = 0,
-    keepComments = true,
-    focus_comment_id?: string
+    keepComments: boolean = true,
+    params: getCommentsParams
   ) => {
     try {
       setIsLoading(true);
@@ -159,11 +163,9 @@ const CommentFeed: FC<Props> = ({
         post: postId,
         author: profileId,
         /* if we're on a post, fetch only parent comments with children annotated.  if this is a profile, fetch only the author's comments, including parents and children */
-        sort: commentSort,
         limit: COMMENTS_PER_PAGE,
-        offset: offset,
         use_root_comments_pagination: rootCommentStructure,
-        focus_comment_id,
+        ...params,
       });
       if ("errors" in response) {
         console.error("Error fetching comments:", response.errors);
@@ -197,18 +199,21 @@ const CommentFeed: FC<Props> = ({
     }
   };
 
+  // Handling filters change
   useEffect(() => {
-    const fetchCommentsWithSelected = async () => {
-      if (window.location.hash) {
-        const match = window.location.hash.match(/#comment-(\d+)/);
-        const focus_comment_id = match ? match[1] : undefined;
-        await fetchComments(sort, 0, false, focus_comment_id);
-      } else {
-        void fetchComments();
-      }
+    let finalFilters = {
+      ...feedFilters,
+      offset,
     };
-    fetchCommentsWithSelected();
-  }, []);
+
+    if (isInitialRender && window.location.hash) {
+      const match = window.location.hash.match(/#comment-(\d+)/);
+      finalFilters.focus_comment_id = match ? match[1] : undefined;
+    }
+
+    setIsInitialRender(false);
+    void fetchComments(true, finalFilters);
+  }, [feedFilters]);
 
   let permissions: CommentPermissions = CommentPermissions.VIEWER;
   if (
@@ -248,21 +253,21 @@ const CommentFeed: FC<Props> = ({
       id: "-created_at",
       name: t("recent"),
       onClick: () => {
-        handleSortChange("-created_at");
+        handleFilterChange("sort", "-created_at");
       },
     },
     {
       id: "created_at",
       name: t("oldest"),
       onClick: () => {
-        handleSortChange("created_at");
+        handleFilterChange("sort", "created_at");
       },
     },
     {
       id: "-vote_score",
       name: t("best"),
       onClick: () => {
-        handleSortChange("-vote_score");
+        handleFilterChange("sort", "-vote_score");
       },
     },
   ];
@@ -279,17 +284,18 @@ const CommentFeed: FC<Props> = ({
         </h2>
         {!profileId && user && (
           <ButtonGroup
-            value={feedSection}
+            value={feedFilters.is_private ? "private" : "public"}
             buttons={feedOptions}
-            onChange={(selection) => {
-              setFeedSection(selection);
+            onChange={(section) => {
+              handleFilterChange("is_private", section === "private");
             }}
             variant="tertiary"
           />
         )}
         <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
           <Button variant="text" className="capitalize">
-            {menuItems.find((item) => item.id === sort)?.name ?? "sort"}
+            {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
+              "sort"}
             <FontAwesomeIcon icon={faChevronDown} />
           </Button>
         </DropdownMenu>
@@ -302,10 +308,12 @@ const CommentFeed: FC<Props> = ({
         <CommentEditor
           shouldIncludeForecast={includeUserForecast}
           postId={postId}
-          onSubmit={() => fetchComments(sort, 0, false)}
+          onSubmit={() =>
+            handleFilterChange("sort", "-created_at", true, false)
+          }
         />
       )}
-      {shownComments.map((comment: CommentType) => (
+      {comments.map((comment: CommentType) => (
         <div
           key={comment.id}
           className="my-1.5 rounded-md border border-blue-400 px-2.5 py-1.5 dark:border-blue-400-dark"
@@ -326,13 +334,17 @@ const CommentFeed: FC<Props> = ({
             permissions={permissions}
             treeDepth={0}
             /* comment children should switch to chronological order if the feed is in reverse-chronological order */
-            sort={sort === "-created_at" ? "created_at" : sort}
+            sort={
+              (feedFilters.sort === "-created_at"
+                ? "created_at"
+                : feedFilters.sort) as SortOption
+            }
             postData={postData}
             lastViewedAt={postData?.last_viewed_at}
           />
         </div>
       ))}
-      {shownComments.length === 0 && !isLoading && (
+      {comments.length === 0 && !isLoading && (
         <>
           <hr className="my-4" />
           <div className="text-center italic text-gray-700 dark:text-gray-700-dark">
@@ -345,7 +357,7 @@ const CommentFeed: FC<Props> = ({
       {offset !== -1 && (
         <div className="flex items-center justify-center pt-4">
           <Button
-            onClick={() => fetchComments(sort, offset, true)}
+            onClick={() => fetchComments(true, { ...feedFilters, offset })}
             disabled={isLoading}
           >
             {t("loadMoreComments")}

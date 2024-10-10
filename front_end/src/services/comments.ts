@@ -11,6 +11,7 @@ export type getCommentsParams = {
   sort?: string;
   use_root_comments_pagination?: boolean;
   focus_comment_id?: string;
+  is_private?: boolean;
 };
 
 export type CreateCommentParams = {

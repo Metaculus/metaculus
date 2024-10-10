@@ -156,9 +156,14 @@ def test_get_comments_feed_permissions(user1, user2):
     }
     assert {c.pk for c in get_comments_feed(Comment.objects.all(), user=user2)} == {
         c1.pk,
-        c2.pk,
         c3.pk,
         c_deleted.pk,
+    }
+    assert {
+        c.pk
+        for c in get_comments_feed(Comment.objects.all(), user=user2, is_private=True)
+    } == {
+        c2.pk,
     }
 
 
