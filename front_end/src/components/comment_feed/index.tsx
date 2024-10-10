@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
+import { boolean } from "zod";
 
 import { getComments, markPostAsRead } from "@/app/(main)/questions/actions";
 import Comment from "@/components/comment_feed/comment";
@@ -133,9 +134,10 @@ const CommentFeed: FC<Props> = ({
   const handleFilterChange = useCallback(
     (
       key: keyof getCommentsParams,
-      value: getCommentsParams[keyof getCommentsParams]
+      value: getCommentsParams[keyof getCommentsParams],
+      forceUpdate: boolean = false
     ) => {
-      if (feedFilters[key] === value) return;
+      if (!forceUpdate && feedFilters[key] === value) return;
 
       setComments([]);
       setOffset(0);
@@ -303,7 +305,7 @@ const CommentFeed: FC<Props> = ({
         <CommentEditor
           shouldIncludeForecast={includeUserForecast}
           postId={postId}
-          onSubmit={() => fetchComments(false, { ...feedFilters, offset: 0 })}
+          onSubmit={() => handleFilterChange("sort", "-created_at", true)}
         />
       )}
       {comments.map((comment: CommentType) => (
