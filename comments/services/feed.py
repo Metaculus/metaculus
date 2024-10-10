@@ -8,6 +8,7 @@ def get_comments_feed(
     post=None,
     author=None,
     sort=None,
+    is_private=None,
     focus_comment_id: int = None,
 ):
     user = user if user and user.is_authenticated else None
@@ -21,8 +22,8 @@ def get_comments_feed(
     if author is not None:
         qs = qs.filter(author_id=author)
 
-    if user:
-        qs = qs.filter(Q(is_private=False) | Q(author=user))
+    if is_private and user:
+        qs = qs.filter(is_private=is_private, author=user)
     else:
         qs = qs.filter(is_private=False)
 

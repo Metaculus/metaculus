@@ -623,7 +623,7 @@ class Post(TimeStampedModel):
         return self.votes.aggregate(Sum("direction")).get("direction__sum") or 0
 
     def get_comment_count(self) -> int:
-        return self.comments.count()
+        return self.comments.filter(is_private=False).count()
 
     def get_url_title(self):
         return self.url_title or self.title
@@ -726,7 +726,7 @@ class PostUserSnapshot(models.Model):
             user=user,
             post=post,
             defaults={
-                "comments_count": post.comments.count(),
+                "comments_count": post.get_comment_count(),
                 "viewed_at": timezone.now(),
             },
         )
