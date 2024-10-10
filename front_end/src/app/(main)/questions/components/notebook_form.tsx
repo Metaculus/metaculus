@@ -24,11 +24,27 @@ import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
-const notebookSchema = z.object({
-  title: z.string().min(4).max(200),
-  url_title: z.string().min(4).max(60),
-  default_project: z.number(),
-});
+const createNotebookSchema = (t: ReturnType<typeof useTranslations>) => {
+  return z.object({
+    title: z
+      .string()
+      .min(4, {
+        message: t("errorMinLength", { field: "String", minLength: 4 }),
+      })
+      .max(200, {
+        message: t("errorMaxLength", { field: "String", maxLength: 200 }),
+      }),
+    url_title: z
+      .string()
+      .min(4, {
+        message: t("errorMinLength", { field: "String", minLength: 4 }),
+      })
+      .max(60, {
+        message: t("errorMaxLength", { field: "String", maxLength: 60 }),
+      }),
+    default_project: z.number(),
+  });
+};
 
 type Props = {
   mode: "create" | "edit";
@@ -57,6 +73,7 @@ const NotebookForm: React.FC<Props> = ({
     (Error & { digest?: string }) | undefined
   >();
   const t = useTranslations();
+  const notebookSchema = createNotebookSchema(t);
   const control = useForm({
     mode: "all",
     resolver: zodResolver(notebookSchema),
