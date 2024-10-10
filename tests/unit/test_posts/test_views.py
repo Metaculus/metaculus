@@ -33,8 +33,11 @@ class TestPostCreate:
                     "type": "numeric",
                     "possibilities": {"type": "binary"},
                     "resolution": "1.0",
-                    "range_min": 1,
-                    "range_max": 100,
+                    "scaling": {
+                        "range_min": 1,
+                        "range_max": 100,
+                        "zero_point": None,
+                    },
                     "open_upper_bound": True,
                     "open_time": "2024-04-01T00:00:00Z",
                     "scheduled_close_time": "2024-05-01T00:00:00Z",
