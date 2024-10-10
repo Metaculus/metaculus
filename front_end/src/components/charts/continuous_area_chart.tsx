@@ -116,15 +116,12 @@ const ContinuousAreaChart: FC<Props> = ({
     }),
     [data, graphType]
   );
-  // const { ticks, tickFormat } = useMemo(
-  // () => generateNumericAreaTicks(scaling, questionType, chartWidth),
-  //   [chartWidth]
-  // );
   const { ticks, tickFormat } = useMemo(
     () =>
       generateScale({
         displayType: questionType,
         axisLength: chartWidth,
+        direction: "horizontal",
         domain: xDomain,
         scaling: scaling,
       }),

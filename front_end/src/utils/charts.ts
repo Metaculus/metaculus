@@ -179,42 +179,6 @@ export function generateTimestampXScale(
   };
 }
 
-export function generateNumericAreaTicks(
-  scaling: Scaling,
-  questionType: QuestionType,
-  chartWidth: number
-): Scale {
-  const minPixelPerTick = 50;
-  const maxMajorTicks = Math.floor(chartWidth / minPixelPerTick);
-  const minorTicksPerMajor = 9;
-
-  let majorTicks = Array.from(
-    { length: maxMajorTicks + 1 },
-    (_, i) => i / maxMajorTicks
-  );
-  const ticks = [];
-  for (let i = 0; i < majorTicks.length - 1; i++) {
-    ticks.push(majorTicks[i]);
-    const minorStep =
-      (majorTicks[i + 1] - majorTicks[i]) / (minorTicksPerMajor + 1);
-    for (let j = 1; j <= minorTicksPerMajor; j++) {
-      ticks.push(majorTicks[i] + minorStep * j);
-    }
-  }
-  ticks.push(majorTicks[majorTicks.length - 1]);
-
-  return {
-    ticks,
-    tickFormat: (value: number) => {
-      if (majorTicks.includes(value)) {
-        return getDisplayValue(value, questionType, scaling);
-      }
-
-      return "";
-    },
-  };
-}
-
 /**
  * scales an internal loction within a range of 0 to 1 to a location
  * within a range of range_min to range_max, taking into account any logarithmic
@@ -254,21 +218,6 @@ export function unscaleNominalLocation(x: number, scaling: Scaling) {
   return unscaled_location;
 }
 
-/**
- * rescales a nominal location with a given scaling
- * to a new nominal location within a different scaling
- */
-export function rescaleNominalLocation(
-  x: number,
-  originalScaling: Scaling,
-  newScaling: Scaling
-) {
-  return scaleInternalLocation(
-    unscaleNominalLocation(x, originalScaling),
-    newScaling
-  );
-}
-
 export function displayValue(
   value: number,
   questionType: QuestionType,
@@ -298,6 +247,7 @@ export function displayValue(
     }
     return format(fromUnixTime(value), dateFormat);
   } else if (questionType === QuestionType.Numeric) {
+    // TODO add truncation to abbreviatedNumber
     return abbreviatedNumber(value, precision);
   } else {
     return `${Math.round(value * 100)}%`;

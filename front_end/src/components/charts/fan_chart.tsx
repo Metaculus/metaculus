@@ -23,9 +23,11 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
-import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
-
-import { generateNumericAreaTicks } from "./continuous_area_chart";
+import {
+  generateScale,
+  scaleInternalLocation,
+  unscaleNominalLocation,
+} from "@/utils/charts";
 
 const TOOLTIP_WIDTH = 150;
 
@@ -63,11 +65,12 @@ const FanChart: FC<Props> = ({
   );
 
   const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
-  const { ticks, tickFormat } = generateNumericAreaTicks(
-    scaling,
-    options[0].question.type,
-    height
-  );
+  const { ticks, tickFormat } = generateScale({
+    displayType: options[0].question.type,
+    axisLength: height,
+    direction: "vertical",
+    scaling: scaling,
+  });
 
   const tooltipItems = useMemo(
     () =>
