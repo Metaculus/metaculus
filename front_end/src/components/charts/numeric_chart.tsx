@@ -155,12 +155,12 @@ const NumericChart: FC<Props> = ({
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
-          const closestForecast = aggregation.history.reduce((prev, curr) =>
-            Math.abs(curr.start_time - value) <
-            Math.abs(prev.start_time - value)
-              ? curr
-              : prev
-          );
+          const closestForecast = aggregation.history.reduce((prev, curr) => {
+            if (curr.start_time <= value) {
+              return curr.start_time > prev.start_time ? curr : prev;
+            }
+            return prev;
+          });
 
           onCursorChange(closestForecast.start_time);
         }
