@@ -53,6 +53,50 @@ const NumericQuestionInput: React.FC<{
       ? null
       : defaultZeroPoint
   );
+  const [question, setQuestion] = useState<QuestionWithNumericForecasts>({
+    id: 1,
+    title: "",
+    description: "",
+    created_at: "",
+    updated_at: "",
+    scheduled_close_time: "",
+    scheduled_resolve_time: "",
+    possibilities: {},
+    fine_print: "",
+    resolution_criteria: "",
+    label: "",
+    nr_forecasters: 0,
+    author_username: "",
+    post_id: 0,
+    resolution: "",
+    forecasts: {
+      timestamps: [],
+      nr_forecasters: [],
+      my_forecasts: {
+        timestamps: [],
+        medians: [],
+        slider_values: null,
+      },
+      medians: [],
+      q3s: [],
+      q1s: [],
+      means: [],
+      latest_pmf: [],
+      latest_cdf: [],
+      histogram: [],
+    },
+    type: questionType,
+    scaling: {
+      range_max: max!,
+      range_min: min!,
+      zero_point: zeroPoint,
+    },
+    open_lower_bound: openLowerBound,
+    open_upper_bound: openUpperBound,
+    aggregations: {
+      recency_weighted: { history: [], latest: undefined },
+    },
+  });
 
   const runChecks = () => {
     const current_errors = [];
@@ -88,6 +132,7 @@ const NumericQuestionInput: React.FC<{
   };
 
   useEffect(() => {
+    console.log("IN USE EFFECT", min, max, zeroPoint, question.scaling);
     const ok = runChecks();
     if (!ok) {
       return;
@@ -99,6 +144,16 @@ const NumericQuestionInput: React.FC<{
       openLowerBound,
       zeroPoint
     );
+    setQuestion((prevQuestion) => ({
+      ...prevQuestion,
+      open_upper_bound: openUpperBound,
+      open_lower_bound: openLowerBound,
+      scaling: {
+        range_max: max!,
+        range_min: min!,
+        zero_point: zeroPoint,
+      },
+    }));
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [min, max, openUpperBound, openLowerBound, zeroPoint]);
@@ -119,9 +174,10 @@ const NumericQuestionInput: React.FC<{
               <span className="mr-2">Min</span>
               <Input
                 readOnly={isLive}
-                type="number"
+                type="float"
                 defaultValue={min}
                 onChange={(e) => {
+                  console.log("HEELLLLLLLP");
                   e.preventDefault();
                   setMin(Number(e.target.value));
                 }}
@@ -131,7 +187,7 @@ const NumericQuestionInput: React.FC<{
               <span className="mr-2">Max</span>
               <Input
                 readOnly={isLive}
-                type="number"
+                type="float"
                 onChange={(e) => {
                   e.preventDefault();
                   setMax(Number(e.target.value));
@@ -156,7 +212,6 @@ const NumericQuestionInput: React.FC<{
                       : undefined
                   }
                   onChange={(e) => {
-                    e.preventDefault();
                     setMin(new Date(e.target.value).getTime() / 1000);
                   }}
                 />
@@ -173,7 +228,6 @@ const NumericQuestionInput: React.FC<{
                       : undefined
                   }
                   onChange={(e) => {
-                    e.preventDefault();
                     setMax(new Date(e.target.value).getTime() / 1000);
                   }}
                 />
@@ -218,7 +272,9 @@ const NumericQuestionInput: React.FC<{
                   if (questionType == QuestionType.Numeric) {
                     setZeroPoint(0);
                   } else {
-                    setZeroPoint(Date.now() / 1000);
+                    setZeroPoint(
+                      (Date.now() - 1000 * 60 * 60 * 24 * 365) / 1000
+                    );
                   }
                 } else {
                   setZeroPoint(null);
@@ -262,6 +318,7 @@ const NumericQuestionInput: React.FC<{
           <>
             Example input chart:
             <ContinuousPredictionChart
+              key={`${min}-${max}-${zeroPoint}`}
               dataset={{
                 cdf: [
                   0, 0.0003559860144382004, 0.0007273747181487132,
@@ -443,52 +500,7 @@ const NumericQuestionInput: React.FC<{
                 ],
               }}
               graphType={"pmf"}
-              question={
-                {
-                  id: 1,
-                  title: "",
-                  description: "",
-                  created_at: "",
-                  updated_at: "",
-                  scheduled_close_time: "",
-                  scheduled_resolve_time: "",
-                  possibilities: {},
-                  fine_print: "",
-                  resolution_criteria: "",
-                  label: "",
-                  nr_forecasters: 0,
-                  author_username: "",
-                  post_id: 0,
-                  resolution: "",
-                  forecasts: {
-                    timestamps: [],
-                    nr_forecasters: [],
-                    my_forecasts: {
-                      timestamps: [],
-                      medians: [],
-                      slider_values: null,
-                    },
-                    medians: [],
-                    q3s: [],
-                    q1s: [],
-                    means: [],
-                    latest_pmf: [],
-                    latest_cdf: [],
-                    histogram: [],
-                  },
-                  type: questionType,
-                  scaling: {
-                    range_max: max!,
-                    range_min: min!,
-                    zero_point: zeroPoint,
-                  },
-                  open_lower_bound: openLowerBound,
-                  open_upper_bound: openUpperBound,
-                  aggregations: {
-                    recency_weighted: { history: [], latest: undefined },
-                  },
-                } as QuestionWithNumericForecasts
-              }
+              question={question}
               readOnly={false}
               height={100}
               showCP={false}

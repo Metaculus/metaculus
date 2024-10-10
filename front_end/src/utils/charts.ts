@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { range } from "lodash";
 import {
   format,
   differenceInMilliseconds,
@@ -253,6 +254,21 @@ export function unscaleNominalLocation(x: number, scaling: Scaling) {
   return unscaled_location;
 }
 
+/**
+ * rescales a nominal location with a given scaling
+ * to a new nominal location within a different scaling
+ */
+export function rescaleNominalLocation(
+  x: number,
+  originalScaling: Scaling,
+  newScaling: Scaling
+) {
+  return scaleInternalLocation(
+    unscaleNominalLocation(x, originalScaling),
+    newScaling
+  );
+}
+
 export function displayValue(
   value: number,
   questionType: QuestionType
@@ -430,6 +446,186 @@ export function generatePercentageYScale(containerHeight: number): Scale {
     ticks,
     tickFormat: (y: number) =>
       majorTicks.includes(y) ? `${Math.round(y * 100)}%` : "",
+  };
+}
+
+type GenerateScaleParams = {
+  displayType: "date" | "numeric" | "percent";
+  axisLength: number;
+  domain?: Tuple<number>;
+  scaling?: Scaling | null;
+  displayLabel?: string;
+  withCursorFormat?: boolean;
+  cursorDisplayLabel?: string | null;
+};
+
+/**
+ * Flexible utility function for generating ticks and tick formats
+ * for any axis
+ *
+ * @param displayType the type of the data, either "date", "numeric",
+ *  or "percent". "percent" is a special case that will set other values
+ *  automatically
+ * @param axisLength the length of the axis in pixels which
+ *  can be used to determine the number of ticks
+ * @param domain the domain of the data, defaults to [0, 1],
+ *  but for dates can be the min and max unix timestamps
+ * @param scaling the Scaling related to the data, defaults to null
+ *  which in turn is the same as a linear scaling along the given domain
+ * @param displayLabel this is the label that will be appended to the
+ *  formatted tick values, defaults to an empty string
+ * @param withCursorFormat whether or not to generate a special cursor
+ *  format for the hover state
+ * @param cursorDisplayLabel specifies the label to appear on the cursor
+ *  state, which defaults to the displayLabel
+ *
+ * @returns returns a Scale object with ticks, tickFormat, and cursorFormat
+ */
+export function generateScale({
+  displayType,
+  axisLength,
+  domain = [0, 1],
+  scaling = null,
+  displayLabel = "",
+  withCursorFormat = false,
+  cursorDisplayLabel = null,
+}: GenerateScaleParams): Scale {
+  console.log();
+  console.log(
+    "\n displayType:",
+    displayType,
+    "\n axisLength:",
+    axisLength,
+    "\n domain:",
+    domain,
+    "\n scaling:",
+    scaling,
+    "\n displayLabel:",
+    displayLabel,
+    "\n withCursorFormat:",
+    withCursorFormat,
+    "\n cursorDisplayLabel:",
+    cursorDisplayLabel
+  );
+
+  const domainMin = domain[0];
+  const domainMax = domain[1];
+  const domainSize = domainMax - domainMin;
+  const domainScaling = {
+    range_min: domainMin,
+    range_max: domainMax,
+    zero_point: null,
+  };
+
+  const rangeMin = scaling?.range_min ?? domainMin;
+  const rangeMax = scaling?.range_max ?? domainMax;
+  const rangeSize = rangeMax - rangeMin;
+  const zeroPoint = scaling?.zero_point ?? null;
+  const rangeScaling = {
+    range_min: rangeMin,
+    range_max: rangeMax,
+    zero_point: zeroPoint,
+  };
+
+  // assume linear for now
+  const orderOfMagnitude = Math.floor(Math.log10(rangeSize));
+
+  let maxLabelCount: number;
+  if (axisLength < 100) {
+    maxLabelCount = 3;
+  } else if (axisLength < 150) {
+    maxLabelCount = 5;
+  } else if (axisLength < 500) {
+    maxLabelCount = 6;
+  } else if (axisLength < 1600) {
+    maxLabelCount = 11;
+  } else {
+    maxLabelCount = 21;
+  }
+  const tickCount = (maxLabelCount! - 1) * 5 + 1;
+
+  console.log(
+    "\n maxLabelCount:",
+    maxLabelCount,
+    "\n tickCount:",
+    tickCount,
+    "\n domainMin:",
+    domainMin,
+    "\n domainMax:",
+    domainMax,
+    "\n domainSize:",
+    domainSize,
+    "\n rangeMin:",
+    rangeMin,
+    "\n rangeMax:",
+    rangeMax,
+    "\n rangeSize:",
+    rangeSize,
+    "\n zeroPoint:",
+    zeroPoint
+  );
+
+  if (displayType === "percent") {
+    // special case for "percent" situation
+    displayLabel = "%";
+    const tickInterval = domainMax / (tickCount - 1);
+    const labeledTickInterval = domainMax / (maxLabelCount - 1);
+    return {
+      ticks: range(domainMin, domainMax + tickInterval / 2, tickInterval),
+      tickFormat: (x) => {
+        if (Math.round(x * 100) % Math.round(labeledTickInterval * 100) === 0) {
+          return `${Math.round(x * 100)}` + displayLabel;
+        }
+        return "";
+      },
+      cursorFormat: withCursorFormat
+        ? (x) => `${Math.round(x * 10000) / 100}` + displayLabel
+        : undefined,
+    };
+  }
+
+  if (displayType === "numeric") {
+    const tickInterval = domainMax / (tickCount - 1);
+    const labeledTickInterval = domainMax / (maxLabelCount - 1);
+    const majorTicks: number[] = range(
+      domainMin,
+      domainMax + tickInterval / 100,
+      labeledTickInterval
+    );
+    const allTicks: number[] = range(
+      domainMin,
+      domainMax + tickInterval / 100,
+      tickInterval
+    );
+    console.log("Major Ticks:", majorTicks, "\nAll Ticks:", allTicks);
+    return {
+      ticks: allTicks,
+      tickFormat: (x) => {
+        console.log(x);
+        if (x in majorTicks) {
+          const unscaled = unscaleNominalLocation(x, domainScaling);
+          console.log(
+            "Unscaled:",
+            unscaled,
+            getDisplayValue(unscaled, "numeric" as QuestionType, rangeScaling)
+          );
+          return (
+            getDisplayValue(unscaled, "numeric" as QuestionType, rangeScaling) +
+            displayLabel
+          );
+        }
+        return "";
+      },
+      cursorFormat: withCursorFormat
+        ? (x) => `${Math.round(x * 10000) / 100}` + displayLabel
+        : undefined,
+    };
+  }
+
+  return {
+    ticks: [],
+    tickFormat: () => "",
+    cursorFormat: undefined,
   };
 }
 

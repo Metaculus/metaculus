@@ -37,6 +37,7 @@ import {
   findPreviousTimestamp,
   generateNumericDomain,
   generatePercentageYScale,
+  generateScale,
   generateTicksY,
   generateTimestampXScale,
   getDisplayValue,
@@ -469,7 +470,10 @@ function buildChartData({
 
   return {
     xScale: generateTimestampXScale(xDomain, width),
-    yScale,
+    yScale: generateScale({
+      displayType: "percent",
+      axisLength: height,
+    }),
     graphs: graphs,
     xDomain,
   };

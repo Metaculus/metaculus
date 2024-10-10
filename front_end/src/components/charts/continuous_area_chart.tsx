@@ -29,6 +29,7 @@ import {
   interpolateYValue,
   getDisplayValue,
   generateNumericAreaTicks,
+  generateScale,
 } from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
@@ -117,8 +118,18 @@ const ContinuousAreaChart: FC<Props> = ({
     }),
     [data, graphType]
   );
+  // const { ticks, tickFormat } = useMemo(
+  // () => generateNumericAreaTicks(scaling, questionType, chartWidth),
+  //   [chartWidth]
+  // );
   const { ticks, tickFormat } = useMemo(
-    () => generateNumericAreaTicks(scaling, questionType, chartWidth),
+    () =>
+      generateScale({
+        displayType: "numeric",
+        axisLength: chartWidth,
+        domain: xDomain,
+        scaling: scaling,
+      }),
     [chartWidth]
   );
 
