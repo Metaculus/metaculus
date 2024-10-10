@@ -135,11 +135,12 @@ const CommentFeed: FC<Props> = ({
     (
       key: keyof getCommentsParams,
       value: getCommentsParams[keyof getCommentsParams],
-      forceUpdate: boolean = false
+      forceUpdate: boolean = false,
+      resetComments: boolean = true
     ) => {
       if (!forceUpdate && feedFilters[key] === value) return;
+      if (resetComments) setComments([]);
 
-      setComments([]);
       setOffset(0);
       setFeedFilters({
         ...feedFilters,
@@ -305,7 +306,9 @@ const CommentFeed: FC<Props> = ({
         <CommentEditor
           shouldIncludeForecast={includeUserForecast}
           postId={postId}
-          onSubmit={() => handleFilterChange("sort", "-created_at", true)}
+          onSubmit={() =>
+            handleFilterChange("sort", "-created_at", true, false)
+          }
         />
       )}
       {comments.map((comment: CommentType) => (
