@@ -16,6 +16,7 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
 } from "@/types/question";
+import { getDisplayValue } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
   getNumericForecastDataset,
@@ -176,7 +177,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
             return {
               ...option,
               value: getTableValue(
-                option.sliderForecast,
+                forecast,
                 option.weights,
                 option.question.open_lower_bound,
                 option.question.open_upper_bound
@@ -328,9 +329,13 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         options={questionOptions}
         value={activeTableOption}
         onChange={setActiveTableOption}
-        formatForecastValue={(value) =>
-          value ? `${Math.round(value * 1000) / 100}` : "—"
-        }
+        formatForecastValue={(value) => {
+          if (activeOptionData && value) {
+            return getDisplayValue(value, activeOptionData.question);
+          } else {
+            return "-";
+          }
+        }}
       />
       {questionOptions.map((option) => (
         <div
