@@ -44,4 +44,4 @@ class Command(BaseCommand):
         print("STATS: ", stats)
         print(f"Updating {len(comments_to_update)}")
         Comment.objects.bulk_update(comments_to_update, fields=["included_forecast"])
-        print(f"Updated")
+        print("Updated")
