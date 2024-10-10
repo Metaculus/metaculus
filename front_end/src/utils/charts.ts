@@ -473,19 +473,19 @@ export function generateScale({
   }
   const tickCount = (maxLabelCount! - 1) * 5 + 1;
 
-  console.log({
-    displayType,
-    axisLength,
-    domain,
-    scaling,
-    displayLabel,
-    withCursorFormat,
-    cursorDisplayLabel,
-    maxLabelCount,
-    tickCount,
-    domainScaling,
-    rangeScaling,
-  });
+  // console.log({
+  //   displayType,
+  //   axisLength,
+  //   domain,
+  //   scaling,
+  //   displayLabel,
+  //   withCursorFormat,
+  //   cursorDisplayLabel,
+  //   maxLabelCount,
+  //   tickCount,
+  //   domainScaling,
+  //   rangeScaling,
+  // });
 
   if (displayType === "percent") {
     // special case for "percent" situation
