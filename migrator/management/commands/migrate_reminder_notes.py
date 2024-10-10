@@ -75,7 +75,7 @@ class Command(BaseCommand):
         print("STATS: ", stats)
         print(f"Updating {len(comments_to_create)}")
         Comment.objects.bulk_create(comments_to_create)
-        print(f"Updating post comment counters")
+        print("Updating post comment counters")
 
         # Update Post.comment_count
         Post.objects.annotate(
@@ -87,7 +87,7 @@ class Command(BaseCommand):
             )
         ).update(comment_count=F("comment_count_value"))
 
-        print(f"Updating user snapshot comment counters")
+        print("Updating user snapshot comment counters")
         snapshots = PostUserSnapshot.objects.all()
         comments_subquery = (
             Comment.objects.filter(
