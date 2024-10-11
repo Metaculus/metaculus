@@ -127,18 +127,16 @@ const GroupForm: React.FC<Props> = ({
       } else if (subtype === QuestionType.Numeric) {
         if (x.scaling.range_max == null || x.scaling.range_min == null) {
           setError(
-            "Please enter a range_max or range_min value for numeric questions"
+            "Please enter a range_max and range_min value for numeric questions"
           );
           break_out = true;
           return;
         }
         return {
           ...subquestionData,
-          range_min: x.scaling.range_min,
-          range_max: x.scaling.range_max,
+          scaling: x.scaling,
           open_lower_bound: x.openLowerBound,
           open_upper_bound: x.openUpperBound,
-          zero_point: x.zeroPoint,
         };
       } else if (subtype === QuestionType.Date) {
         if (x.scaling.range_max === null || x.scaling.range_min === null) {
@@ -148,11 +146,9 @@ const GroupForm: React.FC<Props> = ({
         }
         return {
           ...subquestionData,
-          range_min: x.scaling.range_min,
-          range_max: x.scaling.range_max,
+          scaling: x.scaling,
           open_lower_bound: x.openLowerBound,
           open_upper_bound: x.openUpperBound,
-          zero_point: x.zeroPoint,
         };
       } else {
         setError("Invalid sub-question type");
@@ -160,6 +156,7 @@ const GroupForm: React.FC<Props> = ({
         return;
       }
     });
+
     if (break_out) {
       return;
     }
@@ -187,7 +184,6 @@ const GroupForm: React.FC<Props> = ({
       },
     };
     let resp: { post: Post };
-
     try {
       if (mode === "edit" && post) {
         resp = await updatePost(post.id, post_data);
@@ -514,7 +510,7 @@ const GroupForm: React.FC<Props> = ({
                                 subQuestion.scaling = {
                                   range_min: range_min,
                                   range_max: range_max,
-                                  zeroPoint: zeroPoint,
+                                  zero_point: zeroPoint,
                                 };
                                 subQuestion["openLowerBound"] = openLowerBound;
                                 subQuestion["openUpperBound"] = openUpperBound;

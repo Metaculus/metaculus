@@ -217,7 +217,7 @@ def post_create_api_view(request):
     qdata = request.data.get("question", None)
     if qdata:
         qdatas.append(qdata)
-    qdatas.extend(request.data.get("questions", []))
+    qdatas.extend(request.data.get("group_of_questions", {}).get("questions", []))
     for qdata in qdatas:
         scaling = qdata.pop("scaling", {})
         qdata["range_min"] = scaling.get("range_min")
