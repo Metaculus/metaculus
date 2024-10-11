@@ -3,7 +3,8 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 import numpy as np
-from django.db.models import QuerySet, Q, Sum
+from django.db.models import QuerySet, Q, Sum, IntegerField
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
@@ -164,20 +165,32 @@ def generate_comment_insight_leaderboard_entries(
             Post.CurationStatus.DELETED,
         ]
     )
-    comments = Comment.objects.filter(
-        on_post__in=posts,
-        comment_votes__isnull=False,
-    ).distinct()
+
+    comments = (
+        Comment.objects.filter(
+            on_post__in=posts,
+        )
+        .annotate(
+            vote_score=Coalesce(
+                SubqueryAggregate(
+                    "comment_votes__direction",
+                    filter=Q(
+                        created_at__gte=leaderboard.start_time,
+                        created_at__lte=leaderboard.end_time,
+                    ),
+                    aggregate=Sum,
+                ),
+                0,
+                output_field=IntegerField(),
+            )
+        )
+        .filter(vote_score__gt=0)
+        .select_related("author")
+    )
 
     scores_for_author: dict[User, list[int]] = defaultdict(list)
     for comment in comments:
-        votes = comment.comment_votes.filter(
-            created_at__gte=leaderboard.start_time,
-            created_at__lte=leaderboard.end_time,
-        )
-        score = sum([vote.direction for vote in votes])
-        if score > 0:
-            scores_for_author[comment.author].append(score)
+        scores_for_author[comment.author].append(comment.vote_score)
 
     user_entries: dict[User, LeaderboardEntry] = {}
     for user, scores in scores_for_author.items():
@@ -192,6 +205,7 @@ def generate_comment_insight_leaderboard_entries(
         user_entries[user].score = score
         user_entries[user].contribution_count = len(scores)
     results = [entry for entry in user_entries.values() if entry.score > 0]
+
     return sorted(results, key=lambda entry: entry.score, reverse=True)
 
 
