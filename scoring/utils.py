@@ -52,7 +52,7 @@ def score_question(
         is_new = True
         for previous_score in previous_scores:
             if (
-                (previous_score.user == new_score.user)
+                (previous_score.user_id == new_score.user_id)
                 and (previous_score.aggregation_method == new_score.aggregation_method)
                 and (previous_score.score_type == new_score.score_type)
             ):
