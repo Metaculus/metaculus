@@ -233,7 +233,7 @@ class TestPostUpdate:
 
 
 def test_posts_list(anon_client):
-    response = anon_client.get("/api/posts")
+    response = anon_client.get("/api/posts/")
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data
