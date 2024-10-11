@@ -29,7 +29,9 @@ const QuestionLink: FC<Props> = ({ question }) => {
       (question_no.aggregations.recency_weighted.latest?.centers?.[0] ?? 0) *
         1000
     ) / 10;
-  const moreLikely = Math.abs(ifTrumpWinProbability - ifHarrisWinProbability);
+  const moreLikely =
+    Math.round(Math.abs(ifTrumpWinProbability - ifHarrisWinProbability) * 10) /
+    10;
   const isHarris = ifHarrisWinProbability > ifTrumpWinProbability;
 
   return (
