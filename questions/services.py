@@ -663,9 +663,9 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
         # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
         # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
         #
-        # As a temporary solution, we introduce a 7-second delay before execution
+        # As a temporary solution, we introduce a 10-second delay before execution
         # to ensure all forecasts are processed.
-        run_on_post_forecast.send_with_options(args=(post.id, ), delay=7_000)
+        run_on_post_forecast.send_with_options(args=(post.id, ), delay=10_000)
 
 
 def get_recency_weighted_for_questions(
