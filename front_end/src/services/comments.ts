@@ -69,14 +69,14 @@ class CommentsApi {
   }
 
   static async softDeleteComment(id: number): Promise<Response | null> {
-    return await post<null, null>(`/comments/${id}/delete`, null);
+    return await post<null, null>(`/comments/${id}/delete/`, null);
   }
 
   static async editComment(
     commentData: EditCommentParams
   ): Promise<Response | null> {
     return await post<null, EditCommentParams>(
-      `/comments/${commentData.id}/edit`,
+      `/comments/${commentData.id}/edit/`,
       commentData
     );
   }
@@ -85,7 +85,7 @@ class CommentsApi {
     commentData: CreateCommentParams
   ): Promise<BECommentType> {
     return await post<BECommentType, CreateCommentParams>(
-      `/comments/create`,
+      `/comments/create/`,
       commentData
     );
   }
@@ -94,7 +94,7 @@ class CommentsApi {
     voteData: VoteCommentParams
   ): Promise<Response | null> {
     return await post<null, VoteCommentParams>(
-      `/comments/${voteData.id}/vote`,
+      `/comments/${voteData.id}/vote/`,
       voteData
     );
   }
@@ -103,13 +103,13 @@ class CommentsApi {
     params: ToggleCMMCommentParams
   ): Promise<Response | null> {
     return await post<null, ToggleCMMCommentParams>(
-      `/comments/${params.id}/toggle_cmm`,
+      `/comments/${params.id}/toggle_cmm/`,
       params
     );
   }
 
   static async report(commentId: number, reason: CommentReportReason) {
-    return post(`/comments/${commentId}/report`, { reason });
+    return post(`/comments/${commentId}/report/`, { reason });
   }
 }
 

@@ -12,7 +12,7 @@ class AuthApi {
   ): Promise<SocialProvider[]> {
     try {
       return await get<SocialProvider[]>(
-        `/auth/social?redirect_uri=${redirect_uri}`,
+        `/auth/social/?redirect_uri=${redirect_uri}`,
         {
           next: {
             revalidate: 3600,
@@ -26,7 +26,7 @@ class AuthApi {
   }
 
   static async verifyToken() {
-    return get("/auth/verify_token");
+    return get("/auth/verify_token/");
   }
 
   static async exchangeSocialOauthCode(
@@ -45,7 +45,7 @@ class AuthApi {
 
   static async signIn(login: string, password: string) {
     return post<AuthResponse, { login: string; password: string }>(
-      "/auth/login/token",
+      "/auth/login/token/",
       { login, password }
     );
   }
@@ -68,7 +68,7 @@ class AuthApi {
         add_to_project?: number;
       }
     >(
-      "/auth/signup",
+      "/auth/signup/",
       { email, username, password, is_bot, add_to_project },
       { headers: turnstileHeaders }
     );
@@ -76,20 +76,20 @@ class AuthApi {
 
   static async activateAccount(userId: string, token: string) {
     return post<AuthResponse, { user_id: string; token: string }>(
-      "/auth/signup/activate",
+      "/auth/signup/activate/",
       { user_id: userId, token }
     );
   }
 
   static async passwordResetRequest(login: string) {
-    return post<null, { login: string }>("/auth/password-reset", {
+    return post<null, { login: string }>("/auth/password-reset/", {
       login,
     });
   }
 
   static async passwordResetVerifyToken(user_id: number, token: string) {
     return get<null>(
-      `/auth/password-reset/change?user_id=${user_id}&token=${token}`
+      `/auth/password-reset/change/?user_id=${user_id}&token=${token}`
     );
   }
 
@@ -99,7 +99,7 @@ class AuthApi {
     password: string
   ): Promise<AuthResponse> {
     return post<AuthResponse>(
-      `/auth/password-reset/change?user_id=${user_id}&token=${token}`,
+      `/auth/password-reset/change/?user_id=${user_id}&token=${token}`,
       {
         password,
       }

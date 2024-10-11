@@ -80,7 +80,7 @@ class PostsApi {
     });
 
     return await get<PaginatedPayload<PostWithForecasts>>(
-      `/posts${queryParams}`
+      `/posts/${queryParams}`
     );
   }
 
@@ -94,7 +94,7 @@ class PostsApi {
     });
 
     return await get<PaginatedPayload<PostWithForecasts>>(
-      `/posts${queryParams}`,
+      `/posts/${queryParams}`,
       options,
       { passAuthHeader: false }
     );
@@ -109,7 +109,7 @@ class PostsApi {
     });
 
     return await get<PaginatedPayload<PostWithForecasts>>(
-      `/posts${queryParams}`
+      `/posts/${queryParams}`
     );
   }
 
@@ -147,19 +147,19 @@ class PostsApi {
     id: number,
     direction: VoteDirection
   ): Promise<VoteResponse> {
-    return await post<VoteResponse>(`/posts/${id}/vote`, { direction });
+    return await post<VoteResponse>(`/posts/${id}/vote/`, { direction });
   }
 
   static async uploadImage(formData: FormData): Promise<{ url: string }> {
-    return await post<{ url: string }>("/posts/upload-image", formData);
+    return await post<{ url: string }>("/posts/upload-image/", formData);
   }
 
   static async sendPostReadEvent(postId: number) {
-    return post(`/posts/${postId}/read`, {});
+    return post(`/posts/${postId}/read/`, {});
   }
 
   static async changePostActivityBoost(postId: number, score: number) {
-    return post<{ score_total: number }>(`/posts/${postId}/boost`, { score });
+    return post<{ score_total: number }>(`/posts/${postId}/boost/`, { score });
   }
 
   static async updateSubscriptions(
@@ -167,13 +167,13 @@ class PostsApi {
     subscriptions: PostSubscription[]
   ) {
     return post<PostSubscription[], PostSubscription[]>(
-      `/posts/${postId}/subscriptions`,
+      `/posts/${postId}/subscriptions/`,
       subscriptions
     );
   }
 
   static async getAllSubscriptions() {
-    return get<Require<Post, "subscriptions">[]>(`/posts/subscriptions`, {});
+    return get<Require<Post, "subscriptions">[]>(`/posts/subscriptions/`, {});
   }
 
   static async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
@@ -189,7 +189,7 @@ class PostsApi {
   }
 
   static async removeRelatedArticle(articleId: number) {
-    const response = await post(`/itn-articles/${articleId}/remove`, {});
+    const response = await post(`/itn-articles/${articleId}/remove/`, {});
     revalidateTag("related-articles");
 
     return response;
