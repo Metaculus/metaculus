@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
-import { boolean } from "zod";
 
 import { getComments, markPostAsRead } from "@/app/(main)/questions/actions";
 import Comment from "@/components/comment_feed/comment";
@@ -334,12 +333,8 @@ const CommentFeed: FC<Props> = ({
             comment={comment}
             permissions={permissions}
             treeDepth={0}
-            /* comment children should switch to chronological order if the feed is in reverse-chronological order */
-            sort={
-              (feedFilters.sort === "-created_at"
-                ? "created_at"
-                : feedFilters.sort) as SortOption
-            }
+            /* replies should always be sorted from oldest to newest */
+            sort={"created_at" as SortOption}
             postData={postData}
             lastViewedAt={postData?.last_viewed_at}
           />
