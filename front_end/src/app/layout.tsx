@@ -1,5 +1,6 @@
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
@@ -143,6 +144,11 @@ export default async function RootLayout({
             </NextIntlClientProvider>
           </AppThemeProvided>
         </body>
+        {!!process.env.NEXT_PUBLIC_GOOGLE_MEASUREMENT_ID && (
+          <GoogleAnalytics
+            gaId={process.env.NEXT_PUBLIC_GOOGLE_MEASUREMENT_ID}
+          />
+        )}
       </CSPostHogProvider>
     </html>
   );
