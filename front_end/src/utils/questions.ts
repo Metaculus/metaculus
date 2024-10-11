@@ -48,21 +48,79 @@ export function getNotebookSummary(
   width: number,
   height: number
 ) {
-  const approxCharWidth = 10;
+  const approxCharWidth = 8;
   const approxLineHeight = 20;
 
   const charsPerLine = Math.floor(width / approxCharWidth);
   const maxLines = Math.floor(height / approxLineHeight);
   const maxChars = charsPerLine * maxLines;
-  markdown = markdown.replace(/\[.*?\]|\(.*?\)|\<.*?\>/g, "");
-  const normalized = markdown
+  const tempMarkdown = markdown;
+  markdown = markdown
+    .replace(/!\[.*?\]\(.*?\)/g, "") // remove images
+    .replace(/^#+\s*/gm, "") // remove headings
     .split("\n")
-    .join(" ")
-    .replace(/\[([^\]]+?)\]\([^)]+?\)/g, "$1");
-  return (
-    normalized.split("\n").join(" ").slice(0, maxChars) +
-    (normalized.length > maxChars ? "..." : "")
-  );
+    .join(" ");
+
+  let rawLength = 0;
+  let result = "";
+  const tokens =
+    markdown.match(
+      /(\[.*?\]\(.*?\)|<.*?>|\*\*.*?\*\*|__.*?__|_.*?_|\*.*?\*|~~.*?~~|`.*?`|.|\n)/g
+    ) || [];
+
+  for (const token of tokens) {
+    if (token.startsWith("[") && token.includes("](")) {
+      // handle links markdown
+      const linkText = token.match(/\[(.*?)\]/)?.[1] || "";
+      if (rawLength + linkText.length > maxChars) {
+        break;
+      }
+      result += token;
+      rawLength += linkText.length;
+    } else if (
+      token.match(
+        /^(\[.*?\]\(.*?\)|<.*?>|\*\*.*?\*\*|__.*?__|_.*?_|\*.*?\*|~~.*?~~|`.*?`)$/
+      )
+    ) {
+      // handle markdown element
+      const innerText = token.replace(/[\[\]<>*_~`()]/g, "");
+      if (rawLength + innerText.length > maxChars) {
+        break;
+      }
+      result += token;
+      rawLength += innerText.length;
+    } else {
+      // handle raw text
+      if (rawLength + token.length > maxChars) {
+        result += token.slice(0, maxChars - rawLength);
+        break;
+      }
+      result += token;
+      rawLength += token.length;
+    }
+
+    if (rawLength >= maxChars) {
+      break;
+    }
+  }
+
+  result = result.trimEnd();
+  if (rawLength <= maxChars) {
+    result += "...";
+  }
+  if (result === "...") {
+    let markdownOld = tempMarkdown.replace(/\[.*?\]|\(.*?\)|\<.*?\>/g, "");
+    const normalized = markdownOld
+      .split("\n")
+      .join(" ")
+      .replace(/\[([^\]]+?)\]\([^)]+?\)/g, "$1");
+    return (
+      normalized.split("\n").join(" ").slice(0, maxChars) +
+      (normalized.length > maxChars ? "..." : "")
+    );
+    return tempMarkdown;
+  }
+  return result;
 }
 
 export function estimateReadingTime(markdown: string) {
