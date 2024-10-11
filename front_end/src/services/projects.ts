@@ -23,23 +23,23 @@ export type TournamentFilterParams = {
 
 class ProjectsApi {
   static async getTopics(): Promise<Topic[]> {
-    return await get<Topic[]>("/projects/topics", {
+    return await get<Topic[]>("/projects/topics/", {
       next: { revalidate: 3600 },
     });
   }
 
   static async getCategories(): Promise<Category[]> {
-    return await get<Category[]>("/projects/categories");
+    return await get<Category[]>("/projects/categories/");
   }
 
   static async getTags(params?: TagsParams): Promise<Tag[]> {
     const queryParams = encodeQueryParams(params ?? {});
 
-    return await get<Tag[]>(`/projects/tags${queryParams}`);
+    return await get<Tag[]>(`/projects/tags/${queryParams}`);
   }
 
   static async getSiteMain(): Promise<Tournament> {
-    return await get<Tournament>("/projects/site_main", {
+    return await get<Tournament>("/projects/site_main/", {
       next: { revalidate: 3600 },
     });
   }
@@ -55,7 +55,7 @@ class ProjectsApi {
   }
 
   static async getSlugTournament(slug: string): Promise<Tournament | null> {
-    return await get<Tournament>(`/projects/tournaments/${slug}`);
+    return await get<Tournament>(`/projects/tournaments/${slug}/`);
   }
 
   static async getProjectLeaderboard(
@@ -70,7 +70,7 @@ class ProjectsApi {
         : {}
     );
     return get<LeaderboardDetails>(
-      `/projects/${projectId}/leaderboard${queryParams}`
+      `/projects/${projectId}/leaderboard/${queryParams}`
     );
   }
 
@@ -79,7 +79,7 @@ class ProjectsApi {
     usernames: string[]
   ): Promise<null> {
     return post<null, { usernames: string[] }>(
-      `/projects/${projectId}/members/invite`,
+      `/projects/${projectId}/members/invite/`,
       {
         usernames,
       }
@@ -87,14 +87,14 @@ class ProjectsApi {
   }
 
   static async getMembers(projectId: number): Promise<TournamentMember[]> {
-    return get(`/projects/${projectId}/members`);
+    return get(`/projects/${projectId}/members/`);
   }
 
   static async deleteMember(
     projectId: number,
     userId: number
   ): Promise<Tournament | null> {
-    return del<null>(`/projects/${projectId}/members/${userId}`);
+    return del<null>(`/projects/${projectId}/members/${userId}/`);
   }
 
   static async updateMember(
@@ -103,21 +103,21 @@ class ProjectsApi {
     payload: { permission: ProjectPermissions }
   ): Promise<Tournament | null> {
     return patch<null, { permission: ProjectPermissions }>(
-      `/projects/${projectId}/members/${userId}`,
+      `/projects/${projectId}/members/${userId}/`,
       payload
     );
   }
 
   static async subscribe(projectId: number) {
-    return post(`/projects/${projectId}/subscribe`, {});
+    return post(`/projects/${projectId}/subscribe/`, {});
   }
 
   static async unsubscribe(projectId: number) {
-    return post(`/projects/${projectId}/unsubscribe`, {});
+    return post(`/projects/${projectId}/unsubscribe/`, {});
   }
 
   static async toggleAddPostsToMainFeed(projectId: number) {
-    return post(`/projects/${projectId}/toggle_add_posts_to_main_feed`, {});
+    return post(`/projects/${projectId}/toggle_add_posts_to_main_feed/`, {});
   }
 }
 
