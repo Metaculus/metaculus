@@ -13,15 +13,15 @@ class ProfileApi {
       return null;
     }
 
-    return await get<CurrentUser>("/users/me");
+    return await get<CurrentUser>("/users/me/");
   }
 
   static async getProfileById(id: number): Promise<CurrentUser> {
-    return await get<CurrentUser>(`/users/${id}`);
+    return await get<CurrentUser>(`/users/${id}/`);
   }
 
   static async changeUsername(username: string) {
-    return post<CurrentUser, { username: string }>("/users/change-username", {
+    return post<CurrentUser, { username: string }>("/users/change-username/", {
       username,
     });
   }
@@ -32,25 +32,25 @@ class ProfileApi {
     unsubscribed_mailing_tags?: SubscriptionEmailType[];
     unsubscribed_preference_tags?: ProfilePreferencesType[];
   }) {
-    return patch<CurrentUser, typeof props>("/users/me/update", props);
+    return patch<CurrentUser, typeof props>("/users/me/update/", props);
   }
 
   static async changePassword(password: string, new_password: string) {
-    return post("/users/me/password", {
+    return post("/users/me/password/", {
       password,
       new_password,
     });
   }
 
   static async changeEmail(email: string, password: string) {
-    return post("/users/me/email", {
+    return post("/users/me/email/", {
       email,
       password,
     });
   }
 
   static async changeEmailConfirm(token: string) {
-    return post("/users/me/email/confirm", {
+    return post("/users/me/email/confirm/", {
       token,
     });
   }

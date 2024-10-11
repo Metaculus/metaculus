@@ -64,7 +64,7 @@ class LeaderboardApi {
   }
 
   static async getUserMedals(userId: number) {
-    return await get<MedalEntry[]>(`/medals?userId=${userId}`);
+    return await get<MedalEntry[]>(`/medals/?userId=${userId}`);
   }
 
   static async getContributions(
@@ -73,7 +73,7 @@ class LeaderboardApi {
     const { type, ...requestParams } = params;
     const encodedParams = encodeQueryParams(requestParams);
     return await get<ContributionDetails>(
-      `/medals/contributions${encodedParams}`
+      `/medals/contributions/${encodedParams}`
     );
   }
 }

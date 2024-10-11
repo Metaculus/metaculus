@@ -3,7 +3,7 @@ import { get } from "@/utils/fetch";
 
 class TrackRecordApi {
   static async getGlobalTrackRecord() {
-    return await get<GlobalTrackRecord>("/metaculus_track_record");
+    return await get<GlobalTrackRecord>("/metaculus_track_record/");
   }
 }
 
