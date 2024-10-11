@@ -51,13 +51,10 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   sort,
 }) => {
   const t = useTranslations();
+  const sortedCommentChildren = sortComments([...commentChildren], sort);
   const [childrenExpanded, setChildrenExpanded] = useState(
     expandedChildren && treeDepth < 5
   );
-
-  useEffect(() => {
-    sortComments(commentChildren, sort);
-  }, [commentChildren, sort]);
 
   function getTreeSize(commentChildren: CommentType[]): number {
     let totalChildren = 0;
@@ -117,7 +114,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
           />
         )}
         {childrenExpanded &&
-          commentChildren.map((child: CommentType) => (
+          sortedCommentChildren.map((child: CommentType) => (
             <div
               key={child.id}
               className="my-1 rounded-md bg-blue-500/15 px-2.5 py-1.5 dark:bg-blue-500/10"

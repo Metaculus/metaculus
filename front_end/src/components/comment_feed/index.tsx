@@ -45,6 +45,7 @@ export function sortComments(comments: CommentType[], sort: SortOption) {
         return a.id - b.id;
     }
   });
+  return comments;
 }
 
 function parseCommentsArray(
