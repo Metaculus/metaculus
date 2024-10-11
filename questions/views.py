@@ -22,7 +22,6 @@ from questions.serializers import (
 from questions.services import (
     resolve_question,
     unresolve_question,
-    create_forecast,
     create_forecast_bulk,
 )
 
@@ -147,7 +146,10 @@ def create_binary_forecast_oldapi_view(request, pk: int):
     )
     serializer_new.is_valid(raise_exception=True)
 
-    create_forecast(question=question, user=request.user, probability_yes=probability)
+    create_forecast_bulk(
+        user=request.user,
+        forecasts=[{"question": question, "probability_yes": probability}],
+    )
 
     return Response({}, status=status.HTTP_201_CREATED)
 
