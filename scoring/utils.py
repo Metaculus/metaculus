@@ -310,16 +310,24 @@ def assign_ranks(
             start_time__lte=leaderboard.finalize_time
         )
     excluded_ids: set[int | None] = set(
-        exclusion_records.values_list("user", flat=True)
+        exclusion_records.values_list("user_id", flat=True)
     )
+
+    # Extracting users from LeaderboardEntries
+    # That could be included in the calculations
+    # TODO: add exclusions for moderators (not yet migrated)
+    #   Also add similar exclusions to other leaderboard types
+    included_users = User.objects.filter(
+        id__in=[x.user_id for x in entries if x.user_id], is_active=True
+    ).values_list("pk", flat=True)
+
+    if not include_bots:
+        included_users = included_users.filter(is_bot=False)
+
     for entry in entries:
-        if entry.user:
-            if not include_bots and entry.user.is_bot:
-                excluded_ids.add(entry.user_id)
-            if not entry.user.is_active:
-                excluded_ids.add(entry.user_id)
-            # TODO: add exclusions for moderators (not yet migrated)
-            # Also add similar exclusions to other leaderboard types
+        if entry.user_id and entry.user_id not in included_users:
+            excluded_ids.add(entry.user_id)
+
     excluded_ids.add(None)  # aggregates are excluded
 
     # set ranks
