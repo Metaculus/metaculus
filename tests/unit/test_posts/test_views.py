@@ -289,6 +289,7 @@ def test_post_view_event_api_view(user1, user1_client):
     assert snapshot.viewed_at == make_aware(datetime.datetime(2024, 6, 2))
 
 
+@freeze_time("2024-09-17T12:44Z")
 def test_post_subscriptions_update(user1, user1_client):
     post = factory_post(
         author=user1,
@@ -351,7 +352,8 @@ def test_post_subscriptions_update(user1, user1_client):
         # Milestone will be deleted
     ]
 
-    response = user1_client.post(url, data, format="json")
+    with freeze_time("2024-09-17T13:44Z"):
+        response = user1_client.post(url, data, format="json")
     assert response.status_code == status.HTTP_201_CREATED
     assert qs.count() == 5
 
