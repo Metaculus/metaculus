@@ -39,11 +39,10 @@ def get_posts_feed(
     similar_to_post_id: int = None,
     for_main_feed: bool = None,
     show_on_homepage: bool = None,
+    **kwargs,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
-
-    TODO: implement "New Comments" ordering
     """
 
     if qs is None:
@@ -181,6 +180,9 @@ def get_posts_feed(
             order_by = "-rank"
         else:
             qs = qs.filter(rank__gte=0.3)
+
+    # Other filters
+    qs = qs.filter(**kwargs)
 
     order_by = order_by or "-created_at"
 
