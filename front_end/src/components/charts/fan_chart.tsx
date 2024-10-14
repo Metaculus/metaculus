@@ -27,6 +27,7 @@ import {
 import {
   generateScale,
   getLeftPadding,
+  getTickLabelFontSize,
   scaleInternalLocation,
   unscaleNominalLocation,
 } from "@/utils/charts";
@@ -58,6 +59,7 @@ const FanChart: FC<Props> = ({
   const actualTheme = extraTheme
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
+  const tickLabelFontSize = getTickLabelFontSize(actualTheme);
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
 
@@ -75,8 +77,8 @@ const FanChart: FC<Props> = ({
   });
   const { ticks, tickFormat } = yScale;
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale);
-  }, [yScale]);
+    return getLeftPadding(yScale, tickLabelFontSize as number);
+  }, [yScale, tickLabelFontSize]);
 
   const tooltipItems = useMemo(
     () =>

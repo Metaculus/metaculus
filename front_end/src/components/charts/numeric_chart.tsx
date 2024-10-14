@@ -45,6 +45,7 @@ import {
   generateScale,
   generateTimestampXScale,
   getLeftPadding,
+  getTickLabelFontSize,
   unscaleNominalLocation,
 } from "@/utils/charts";
 
@@ -91,6 +92,7 @@ const NumericChart: FC<Props> = ({
   const actualTheme = extraTheme
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
+  const tickLabelFontSize = getTickLabelFontSize(actualTheme);
 
   const defaultCursor = Date.now() / 1000;
 
@@ -121,8 +123,8 @@ const NumericChart: FC<Props> = ({
     ]
   );
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale);
-  }, [yScale]);
+    return getLeftPadding(yScale, tickLabelFontSize as number);
+  }, [yScale, tickLabelFontSize]);
 
   const prevWidth = usePrevious(chartWidth);
   useEffect(() => {
@@ -281,6 +283,7 @@ const NumericChart: FC<Props> = ({
               <XTickLabel
                 chartWidth={chartWidth}
                 withCursor={!!onCursorChange}
+                fontSize={tickLabelFontSize as number}
               />
             }
           />

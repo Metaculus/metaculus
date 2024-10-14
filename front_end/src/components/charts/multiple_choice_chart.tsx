@@ -36,11 +36,9 @@ import { ThemeColor } from "@/types/theme";
 import {
   findPreviousTimestamp,
   generateNumericDomain,
-  generatePercentageYScale,
   generateScale,
-  generateTicksY,
   generateTimestampXScale,
-  getDisplayValue,
+  getTickLabelFontSize,
   scaleInternalLocation,
   unscaleNominalLocation,
 } from "@/utils/charts";
@@ -96,6 +94,7 @@ const MultipleChoiceChart: FC<Props> = ({
   const actualTheme = extraTheme
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
+  const tickLabelFontSize = getTickLabelFontSize(actualTheme);
 
   const defaultCursor = isClosed
     ? actualCloseTime
@@ -298,6 +297,7 @@ const MultipleChoiceChart: FC<Props> = ({
               <XTickLabel
                 chartWidth={chartWidth}
                 withCursor={!!onCursorChange}
+                fontSize={tickLabelFontSize as number}
               />
             }
           />

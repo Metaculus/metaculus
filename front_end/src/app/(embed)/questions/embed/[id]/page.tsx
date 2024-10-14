@@ -49,7 +49,7 @@ export default async function GenerateQuestionPreview({
         post={post}
         className="size-full flex-1 !bg-blue-100 hover:!shadow-none dark:!bg-blue-100-dark"
         chartTheme={{
-          axis: { style: { tickLabels: { fontSize: 10 } } },
+          axis: { style: { tickLabels: { fontSize: 12 } } },
           line: { style: { data: { strokeWidth: 2 } } },
         }}
         nonInteractive={!!nonInteractiveParam && nonInteractiveParam === "true"}
