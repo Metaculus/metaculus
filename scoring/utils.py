@@ -39,13 +39,12 @@ def score_question(
         question.cp_reveal_time.timestamp() if question.cp_reveal_time else None
     )
     score_types = score_types or [c[0] for c in Score.ScoreTypes.choices]
-    seen = set()
 
-    previous_scores = list(
-        Score.objects.filter(question=question, score_type__in=score_types)
+    previous_scores = Score.objects.filter(
+        question=question, score_type__in=score_types
     )
-    previous_scores_dict = {
-        (score.user_id, score.aggregation_method, score.score_type): score
+    previous_scores_map = {
+        (score.user_id, score.aggregation_method, score.score_type): score.id
         for score in previous_scores
     }
     new_scores = evaluate_question(
@@ -55,30 +54,18 @@ def score_question(
         spot_forecast_time,
     )
 
-    bulk_create_scores = []
-
     for new_score in new_scores:
-        key = (new_score.user_id, new_score.aggregation_method, new_score.score_type)
+        previous_score_id = previous_scores_map.get(
+            (new_score.user_id, new_score.aggregation_method, new_score.score_type)
+        )
 
-        if key in previous_scores_dict:
-            previous_score = previous_scores_dict[key]
-            previous_score.score = new_score.score
-            previous_score.coverage = new_score.coverage
-            previous_score.edited_at = question.resolution_set_time
-            seen.add(previous_score)
-        else:
-            new_score.question = question
-            new_score.edited_at = question.resolution_set_time
-            bulk_create_scores.append(new_score)
+        new_score.id = previous_score_id
+        new_score.question = question
+        new_score.edited_at = question.resolution_set_time
 
-    Score.objects.bulk_create(bulk_create_scores, batch_size=500)
-    Score.objects.bulk_update(
-        list(seen), fields=["score", "coverage", "edited_at"], batch_size=500
-    )
-
-    for previous_score in previous_scores:
-        if previous_score not in seen:
-            previous_score.delete()
+    with transaction.atomic():
+        previous_scores.delete()
+        Score.objects.bulk_create(new_scores, batch_size=500)
 
 
 def generate_scoring_leaderboard_entries(
@@ -441,12 +428,9 @@ def update_project_leaderboard(
 
     for new_entry in new_entries:
         new_entry.leaderboard = leaderboard
-        previous_entry_id = previous_entries_map.get(
+        new_entry.id = previous_entries_map.get(
             (new_entry.user_id, new_entry.aggregation_method)
         )
-
-        if previous_entry_id:
-            new_entry.id = previous_entry_id
 
     with transaction.atomic():
         leaderboard.entries.all().delete()
