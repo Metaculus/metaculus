@@ -1,10 +1,11 @@
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { useEffect, useRef, useState } from "react";
 
 import Checkbox from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/form_field";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { QuestionType } from "@/types/question";
+
 import ContinuousPredictionChart from "../[id]/components/forecast_maker/continuous_prediction_chart";
 
 const NumericQuestionInput: React.FC<{
@@ -131,8 +132,12 @@ const NumericQuestionInput: React.FC<{
     }
     return true;
   };
-
+  const isMounted = useRef(false);
   useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
     const ok = runChecks();
     if (!ok) {
       return;
@@ -239,22 +244,22 @@ const NumericQuestionInput: React.FC<{
             <div className="flex w-full flex-col gap-4 md:mt-[-8px] md:flex-row">
               <div className="flex w-full flex-col gap-2">
                 <Checkbox
-                  label={"Open Upper Bound"}
-                  readOnly={isLive}
-                  onChange={async (e) => {
-                    setOpenUpperBound(e);
-                  }}
-                  defaultChecked={openUpperBound}
-                />
-              </div>
-              <div className="flex w-full flex-col gap-2">
-                <Checkbox
                   label={"Open Lower Bound"}
                   readOnly={isLive}
                   onChange={(e) => {
                     setOpenLowerBound(e);
                   }}
                   defaultChecked={openLowerBound}
+                />
+              </div>
+              <div className="flex w-full flex-col gap-2">
+                <Checkbox
+                  label={"Open Upper Bound"}
+                  readOnly={isLive}
+                  onChange={async (e) => {
+                    setOpenUpperBound(e);
+                  }}
+                  defaultChecked={openUpperBound}
                 />
               </div>
             </div>
@@ -313,11 +318,11 @@ const NumericQuestionInput: React.FC<{
               ))}
           </div>
         )}
-        {errors.length === 0 && (
+        {errors.length === 0 && isMounted.current && (
           <>
             Example input chart:
             <ContinuousPredictionChart
-              key={`${min}-${max}-${zeroPoint}`}
+              key={`${question.scaling.range_min}-${question.scaling.range_max}-${question.scaling.zero_point}`}
               dataset={{
                 cdf: [
                   0, 0.0003, 0.0007, 0.0011, 0.0015, 0.0019, 0.0023, 0.0028,
