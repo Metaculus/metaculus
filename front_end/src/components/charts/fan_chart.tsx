@@ -5,6 +5,7 @@ import {
   VictoryArea,
   VictoryAxis,
   VictoryChart,
+  VictoryLabel,
   VictoryLine,
   VictoryScatter,
   VictoryThemeDefinition,
@@ -25,6 +26,8 @@ import {
 } from "@/types/question";
 import {
   generateScale,
+  getLeftPadding,
+  getTickLabelFontSize,
   scaleInternalLocation,
   unscaleNominalLocation,
 } from "@/utils/charts";
@@ -56,6 +59,7 @@ const FanChart: FC<Props> = ({
   const actualTheme = extraTheme
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
+  const tickLabelFontSize = getTickLabelFontSize(actualTheme);
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
 
@@ -65,12 +69,16 @@ const FanChart: FC<Props> = ({
   );
 
   const labels = adjustLabelsForDisplay(options, chartWidth, actualTheme);
-  const { ticks, tickFormat } = generateScale({
+  const yScale = generateScale({
     displayType: options[0].question.type,
     axisLength: height,
     direction: "vertical",
     scaling: scaling,
   });
+  const { ticks, tickFormat } = yScale;
+  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
+    return getLeftPadding(yScale, tickLabelFontSize as number);
+  }, [yScale, tickLabelFontSize]);
 
   const tooltipItems = useMemo(
     () =>
@@ -102,6 +110,12 @@ const FanChart: FC<Props> = ({
           }}
           domainPadding={{
             x: TOOLTIP_WIDTH / 2,
+          }}
+          padding={{
+            left: Math.max(leftPadding, MIN_LEFT_PADDING),
+            top: 10,
+            right: 10,
+            bottom: 20,
           }}
           containerComponent={
             withTooltip ? (
@@ -160,6 +174,12 @@ const FanChart: FC<Props> = ({
             tickValues={ticks}
             tickFormat={tickFormat}
             style={{ ticks: { strokeWidth: 1 } }}
+            offsetX={Math.max(leftPadding - 2, MIN_LEFT_PADDING - 2)}
+            axisLabelComponent={
+              <VictoryLabel
+                dy={-Math.max(leftPadding - 40, MIN_LEFT_PADDING - 40)}
+              />
+            }
           />
           <VictoryAxis tickFormat={(_, index) => labels[index]} />
           <VictoryScatter

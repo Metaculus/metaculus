@@ -1,5 +1,7 @@
 "use client";
 
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import Link from "next/link";
@@ -38,6 +40,8 @@ import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
 import { createQuestionPost, updatePost } from "../actions";
+
+const MIN_OPTIONS_AMOUNT = 2;
 
 type PostCreationData = {
   title: string;
@@ -108,15 +112,14 @@ export const createQuestionSchemas = (
 
   const multipleChoiceQuestionSchema = baseQuestionSchema.merge(
     z.object({
-      options: z
-        .string()
-        .min(1, { message: t("errorRequired") })
-        .refine(
-          (value) => !value.split(",").some((option) => option.trim() === ""),
-          {
+      options: z.array(
+        z
+          .string()
+          .min(1, { message: t("errorRequired") })
+          .refine((value) => value.trim() !== "", {
             message: t("emptyOptionError"),
-          }
-        ),
+          })
+      ),
     })
   );
 
@@ -230,8 +233,11 @@ const QuestionForm: FC<Props> = ({
     }
   };
   const [optionsList, setOptionsList] = useState<string[]>(
-    post?.question?.options ? post.question.options : []
+    post?.question?.options
+      ? post.question.options
+      : Array(MIN_OPTIONS_AMOUNT).fill("")
   );
+
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
@@ -445,45 +451,63 @@ const QuestionForm: FC<Props> = ({
           />
         </InputContainer>
         {questionType === "multiple_choice" && (
-          <InputContainer labelText={t("choicesSeparatedBy")}>
-            <Input
-              {...control.register("options", {
-                setValueAs: (value: string) => {
-                  const options = value.split(",");
-                  setOptionsList(options);
-
-                  return value;
-                },
-              })}
-              readOnly={isLive && mode !== "create"}
-              type="text"
-              className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              errors={control.formState.errors.options}
-              value={optionsList.join(",")}
-            />
+          <div className="flex-col">
+            <InputContainer labelText={t("choices")} />
             {optionsList && (
               <div className="flex flex-col">
-                {optionsList.map((option: string, opt_index: number) => (
-                  <Input
-                    readOnly={isLive && mode !== "create"}
-                    key={opt_index}
-                    className="m-2 w-min min-w-32 border p-2 text-xs"
-                    value={option}
-                    onChange={(e) => {
-                      setOptionsList(
-                        optionsList.map((opt, index) => {
-                          if (index === opt_index) {
-                            return e.target.value;
-                          }
-                          return opt;
-                        })
-                      );
-                    }}
-                  />
+                {optionsList.map((option, opt_index) => (
+                  <div key={opt_index} className="flex">
+                    <div className="w-full">
+                      <Input
+                        {...control.register(`options.${opt_index}`)}
+                        readOnly={isLive && mode !== "create"}
+                        className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                        value={option}
+                        placeholder={`Option ${opt_index + 1}`}
+                        onChange={(e) => {
+                          setOptionsList(
+                            optionsList.map((opt, index) => {
+                              if (index === opt_index) {
+                                return e.target.value;
+                              }
+                              return opt;
+                            })
+                          );
+                        }}
+                        errors={
+                          // @ts-ignore
+                          control.formState.errors.options?.[opt_index]
+                        }
+                      />
+                    </div>
+                    {opt_index >= MIN_OPTIONS_AMOUNT && !isLive && (
+                      <Button
+                        className="my-2 h-[42px] w-max self-start capitalize"
+                        variant="text"
+                        onClick={() => {
+                          setOptionsList((prev) => {
+                            const newOptionsArray = [...prev].filter(
+                              (_, index) => index !== opt_index
+                            );
+                            control.setValue("options", newOptionsArray);
+                            return newOptionsArray;
+                          });
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faXmark} />
+                      </Button>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
-          </InputContainer>
+            <Button
+              className="w-max capitalize"
+              onClick={() => setOptionsList([...optionsList, ""])}
+            >
+              + {t("addOption")}
+            </Button>
+          </div>
         )}
         <InputContainer
           labelText={t("resolutionCriteria")}

@@ -1,5 +1,4 @@
 import * as d3 from "d3";
-import { range } from "lodash";
 import {
   format,
   differenceInMilliseconds,
@@ -8,8 +7,9 @@ import {
   subDays,
   subMonths,
 } from "date-fns";
+import { range } from "lodash";
 import { findLastIndex, isNil, uniq } from "lodash";
-import { Tuple } from "victory";
+import { Tuple, VictoryThemeDefinition } from "victory";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
@@ -772,4 +772,21 @@ export function generateTicksY(
     return value.toString();
   };
   return { ticks, tickFormat, majorTicks };
+}
+
+export function getLeftPadding(yScale: Scale, labelsFontSize: number) {
+  const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
+  const longestLabelLength = Math.max(...labels.map((label) => label.length));
+
+  return {
+    leftPadding: Math.round((longestLabelLength * labelsFontSize * 9) / 10),
+    MIN_LEFT_PADDING: 50,
+  };
+}
+
+export function getTickLabelFontSize(actualTheme: VictoryThemeDefinition) {
+  const fontSize = Array.isArray(actualTheme.axis?.style?.tickLabels)
+    ? actualTheme.axis?.style?.tickLabels[0]?.fontSize
+    : actualTheme.axis?.style?.tickLabels?.fontSize;
+  return fontSize as number;
 }
