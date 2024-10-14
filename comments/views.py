@@ -161,7 +161,7 @@ def comment_edit_api_view(request: Request, pk: int):
 
     comment.edit_history.append(comment_diff.id)
     comment.text = text
-    comment.save()
+    comment.save(update_fields=["text", "edit_history"])
 
     return Response({}, status=status.HTTP_200_OK)
 

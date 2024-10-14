@@ -29,6 +29,8 @@ class TopicSerializer(serializers.ModelSerializer):
 
 
 class MiniTournamentSerializer(serializers.ModelSerializer):
+    is_current_content_translated = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Project
         fields = (
@@ -46,11 +48,16 @@ class MiniTournamentSerializer(serializers.ModelSerializer):
             "edited_at",
             "default_permission",
             "add_posts_to_main_feed",
+            "is_current_content_translated",
         )
+
+    def get_is_current_content_translated(self, project: Project) -> bool:
+        return project.is_current_content_translated()
 
 
 class TournamentShortSerializer(serializers.ModelSerializer):
     score_type = serializers.SerializerMethodField(read_only=True)
+    is_current_content_translated = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Project
@@ -68,12 +75,16 @@ class TournamentShortSerializer(serializers.ModelSerializer):
             "created_at",
             "score_type",
             "default_permission",
+            "is_current_content_translated",
         )
 
     def get_score_type(self, project: Project) -> str | None:
         if not project.primary_leaderboard_id:
             return None
         return project.primary_leaderboard.score_type
+
+    def get_is_current_content_translated(self, project: Project) -> bool:
+        return project.is_current_content_translated()
 
 
 class TournamentSerializer(TournamentShortSerializer):

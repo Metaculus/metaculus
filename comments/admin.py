@@ -2,10 +2,11 @@ from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 
 from .models import Comment
+from utils.models import CustomTranslationAdmin
 
 
 @admin.register(Comment)
-class CommentAdmin(admin.ModelAdmin):
+class CommentAdmin(CustomTranslationAdmin):
     list_display = [
         "__str__",
         "author",

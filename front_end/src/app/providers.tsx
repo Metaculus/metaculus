@@ -1,7 +1,14 @@
 "use client";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
-import { useEffect } from "react";
+import {
+  PropsWithChildren,
+  useContext,
+  useEffect,
+  useState,
+  FC,
+  createContext,
+} from "react";
 
 import { getAnalyticsCookieConsentGiven } from "@/app/(main)/components/cookies_banner";
 
@@ -23,3 +30,27 @@ export function CSPostHogProvider({ children }: { children: any }) {
 
   return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
 }
+
+interface TranslationsBannerContextProps {
+  bannerIsVissible: boolean;
+  setBannerisVisible: (a: boolean) => void;
+}
+const TranslationsBannerContext = createContext<TranslationsBannerContextProps>(
+  { bannerIsVissible: false, setBannerisVisible: (a) => {} }
+);
+
+export const TranslationsBannerProvider: FC<PropsWithChildren<{}>> = ({
+  children,
+}) => {
+  const [bannerIsVissible, setBannerisVisible] = useState(false);
+  return (
+    <TranslationsBannerContext.Provider
+      value={{ setBannerisVisible, bannerIsVissible }}
+    >
+      {children}
+    </TranslationsBannerContext.Provider>
+  );
+};
+
+export const useContentTranslatedBannerProvider = () =>
+  useContext(TranslationsBannerContext);

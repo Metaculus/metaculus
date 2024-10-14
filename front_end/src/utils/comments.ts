@@ -20,6 +20,7 @@ export function parseComment(
     user_vote: comment.user_vote,
     changed_my_mind: comment.changed_my_mind,
     mentioned_users: comment.mentioned_users,
+    is_current_content_translated: comment.is_current_content_translated,
   };
 }
 

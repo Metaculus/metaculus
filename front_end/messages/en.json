@@ -929,5 +929,7 @@
   "communitySlugDescription": "Your community can be accessed via the following URL:",
   "communityDescription": "Community Description",
   "youArePostingAPrivateComment": "You are posting a private comment",
-  "unread": "unread"
+  "unread": "unread",
+  "contentTranslatedHeaderText": "Some content on this page is automatically translated, and may be inaccurate.",
+  "showOriginalContent": "Show original"
 }
