@@ -41,6 +41,8 @@ import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
 import { createQuestionPost, updatePost } from "../actions";
 
+const MIN_OPTIONS_AMOUNT = 2;
+
 type PostCreationData = {
   title: string;
   url_title: string;
@@ -231,7 +233,9 @@ const QuestionForm: FC<Props> = ({
     }
   };
   const [optionsList, setOptionsList] = useState<string[]>(
-    post?.question?.options ? post.question.options : ["", ""]
+    post?.question?.options
+      ? post.question.options
+      : Array(MIN_OPTIONS_AMOUNT).fill("")
   );
 
   const [categoriesList, setCategoriesList] = useState<Category[]>(
@@ -476,7 +480,7 @@ const QuestionForm: FC<Props> = ({
                         }
                       />
                     </div>
-                    {opt_index >= 2 && !isLive && (
+                    {opt_index >= MIN_OPTIONS_AMOUNT && !isLive && (
                       <Button
                         className="my-2 h-[42px] w-max self-start capitalize"
                         variant="text"
