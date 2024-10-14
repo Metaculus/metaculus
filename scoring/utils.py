@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 import numpy as np
-from django.db.models import QuerySet, Q, Sum, IntegerField
+from django.db.models import QuerySet, Q, Sum, IntegerField, OuterRef, Exists
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
@@ -39,34 +39,42 @@ def score_question(
     )
     score_types = score_types or [c[0] for c in Score.ScoreTypes.choices]
     seen = set()
+
     previous_scores = list(
         Score.objects.filter(question=question, score_type__in=score_types)
     )
+    previous_scores_dict = {
+        (score.user_id, score.aggregation_method, score.score_type): score
+        for score in previous_scores
+    }
     new_scores = evaluate_question(
         question,
         resolution_bucket,
         score_types,
         spot_forecast_time,
     )
+
+    bulk_create_scores = []
+
     for new_score in new_scores:
-        is_new = True
-        for previous_score in previous_scores:
-            if (
-                (previous_score.user_id == new_score.user_id)
-                and (previous_score.aggregation_method == new_score.aggregation_method)
-                and (previous_score.score_type == new_score.score_type)
-            ):
-                is_new = False
-                previous_score.score = new_score.score
-                previous_score.coverage = new_score.coverage
-                previous_score.edited_at = question.resolution_set_time
-                previous_score.save()
-                seen.add(previous_score)
-                break
-        if is_new:
+        key = (new_score.user_id, new_score.aggregation_method, new_score.score_type)
+
+        if key in previous_scores_dict:
+            previous_score = previous_scores_dict[key]
+            previous_score.score = new_score.score
+            previous_score.coverage = new_score.coverage
+            previous_score.edited_at = question.resolution_set_time
+            seen.add(previous_score)
+        else:
             new_score.question = question
             new_score.edited_at = question.resolution_set_time
-            new_score.save()
+            bulk_create_scores.append(new_score)
+
+    Score.objects.bulk_create(bulk_create_scores, batch_size=500)
+    Score.objects.bulk_update(
+        list(seen), fields=["score", "coverage", "edited_at"], batch_size=500
+    )
+
     for previous_score in previous_scores:
         if previous_score not in seen:
             previous_score.delete()
@@ -76,38 +84,36 @@ def generate_scoring_leaderboard_entries(
     questions: list[Question],
     leaderboard: Leaderboard,
 ) -> list[LeaderboardEntry]:
-    calculated_scores: QuerySet[Score] = Score.objects.filter(
-        question__in=questions,
-        score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
-    )
-    archived_scores: QuerySet[ArchivedScore] = ArchivedScore.objects.filter(
-        question__in=questions,
+    score_type = Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type)
+    qs_filters = {
+        "question__in": questions,
+        "score_type": score_type,
+    }
+
+    if leaderboard.finalize_time:
+        qs_filters["question__scheduled_close_time__lte"] = leaderboard.finalize_time
+
+    archived_scores = ArchivedScore.objects.filter(**qs_filters)
+    calculated_scores = Score.objects.filter(**qs_filters)
+
+    archived_scores_subquery = ArchivedScore.objects.filter(
+        question_id=OuterRef("question_id"),
+        user_id=OuterRef("user_id"),
+        aggregation_method=OuterRef("aggregation_method"),
         score_type=Leaderboard.ScoreTypes.get_base_score(leaderboard.score_type),
     )
     if leaderboard.finalize_time:
-        calculated_scores = calculated_scores.filter(
+        archived_scores_subquery = archived_scores_subquery.filter(
             question__scheduled_close_time__lte=leaderboard.finalize_time
         )
-        archived_scores = archived_scores.filter(
-            question__scheduled_close_time__lte=leaderboard.finalize_time
-        )
-    calculated_scores = calculated_scores.select_related("question")
 
-    scores: list[Score | ArchivedScore]
-    if archived_scores.exists():
-        scores = list(archived_scores)
-        for score in calculated_scores:
-            if archived_scores.filter(
-                question=score.question,
-                user_id=score.user_id,
-                aggregation_method=score.aggregation_method,
-            ).exists():
-                continue
-            scores.append(score)
-    else:
-        scores = list(calculated_scores)
+    calculated_scores = calculated_scores.annotate(
+        archived_exists=Exists(archived_scores_subquery)
+    ).filter(archived_exists=False)
 
+    scores = list(archived_scores) + list(calculated_scores)
     scores = sorted(scores, key=lambda x: x.user_id or x.score)
+
     entries: dict[int | AggregationMethod, LeaderboardEntry] = {}
     now = timezone.now()
     maximum_coverage = len(
