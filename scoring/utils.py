@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 import numpy as np
+from django.db import transaction
 from django.db.models import QuerySet, Q, Sum, IntegerField, OuterRef, Exists
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -433,21 +434,24 @@ def update_project_leaderboard(
             new_entries = assign_prizes(new_entries, project.prize_pool)
 
     # save entries
-    seen = set()
-    previous_entries = list(leaderboard.entries.all())
+    previous_entries_map = {
+        (entry.user_id, entry.aggregation_method): entry.id
+        for entry in leaderboard.entries.all()
+    }
+
     for new_entry in new_entries:
         new_entry.leaderboard = leaderboard
-        for previous_entry in previous_entries:
-            if (previous_entry.user_id == new_entry.user_id) and (
-                previous_entry.aggregation_method == new_entry.aggregation_method
-            ):
-                new_entry.id = previous_entry.id
-                seen.add(previous_entry)
-                break
-        new_entry.save()
-    for previous_entry in previous_entries:
-        if previous_entry not in seen:
-            previous_entry.delete()
+        previous_entry_id = previous_entries_map.get(
+            (new_entry.user_id, new_entry.aggregation_method)
+        )
+
+        if previous_entry_id:
+            new_entry.id = previous_entry_id
+
+    with transaction.atomic():
+        leaderboard.entries.all().delete()
+        LeaderboardEntry.objects.bulk_create(new_entries, batch_size=500)
+
     return new_entries
 
 
