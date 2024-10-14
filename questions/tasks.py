@@ -1,5 +1,5 @@
 import dramatiq
-from django.db.models import Q, OuterRef, Count, QuerySet
+from django.db.models import Q, OuterRef, Count
 from sql_util.aggregates import SubqueryAggregate
 
 from notifications.constants import MailingTags
@@ -8,7 +8,6 @@ from notifications.services import (
     NotificationPostParams,
     NotificationQuestionParams,
 )
-
 from projects.models import Project
 from questions.models import Question
 from questions.services import build_question_forecasts
@@ -43,7 +42,7 @@ def run_build_question_forecasts(question_id: int):
     build_question_forecasts(question)
 
 
-@dramatiq.actor(time_limit=3_600_000)
+@dramatiq.actor()
 def resolve_question_and_send_notifications(question_id: int):
     question: Question = Question.objects.get(id=question_id)
     post = question.get_post()
@@ -89,10 +88,11 @@ def resolve_question_and_send_notifications(question_id: int):
 
     # Update leaderboards
     post = question.get_post()
-    projects: QuerySet[Project] = [post.default_project] + list(
-        post.projects.all().exclude(type=Project.ProjectTypes.SITE_MAIN)
-    )
+    projects = [post.default_project] + list(post.projects.all())
     for project in projects:
+        if project.type == Project.ProjectTypes.SITE_MAIN:
+            continue
+
         leaderboards = project.leaderboards.all()
         for leaderboard in leaderboards:
             update_project_leaderboard(project, leaderboard)
