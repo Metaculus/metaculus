@@ -39,7 +39,7 @@ export default async function GenerateQuestionPreview({
   const embedTitle = searchParams[EMBED_QUESTION_TITLE] as string | undefined;
   return (
     <div
-      className="flex size-full flex-col gap-8 bg-blue-100 p-4 text-gray-900 dark:bg-blue-100-dark dark:text-gray-900-dark xs:p-8 lg:p-14"
+      className="flex size-full max-h-[100vh] flex-col gap-8 bg-blue-100 p-4 text-gray-900 dark:bg-blue-100-dark dark:text-gray-900-dark xs:p-8 lg:p-14"
       id="id-used-by-screenshot-donot-change"
       style={{
         minHeight: "inherit",
@@ -49,7 +49,7 @@ export default async function GenerateQuestionPreview({
         post={post}
         className="size-full flex-1 !bg-blue-100 hover:!shadow-none dark:!bg-blue-100-dark"
         chartTheme={{
-          axis: { style: { tickLabels: { fontSize: 16 } } },
+          axis: { style: { tickLabels: { fontSize: 10 } } },
           line: { style: { data: { strokeWidth: 2 } } },
         }}
         nonInteractive={!!nonInteractiveParam && nonInteractiveParam === "true"}

@@ -1,5 +1,4 @@
 import * as d3 from "d3";
-import { range } from "lodash";
 import {
   format,
   differenceInMilliseconds,
@@ -8,6 +7,7 @@ import {
   subDays,
   subMonths,
 } from "date-fns";
+import { range } from "lodash";
 import { findLastIndex, isNil, uniq } from "lodash";
 import { Tuple } from "victory";
 
@@ -772,4 +772,11 @@ export function generateTicksY(
     return value.toString();
   };
   return { ticks, tickFormat, majorTicks };
+}
+
+export function getLeftPadding(yScale: Scale) {
+  const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
+  const longestLabelLength = Math.max(...labels.map((label) => label.length));
+
+  return { leftPadding: longestLabelLength * 8, MIN_LEFT_PADDING: 50 };
 }
