@@ -31,6 +31,7 @@ export type BECommentType = {
     id: number;
     title: string;
   };
+  is_current_content_translated?: boolean;
 };
 
 export type CommentType = BECommentType & {

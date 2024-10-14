@@ -7,6 +7,7 @@ from projects.models import Project, ProjectUserPermission
 from questions.models import Question
 from utils.csv_utils import export_data_for_questions
 from scoring.utils import update_project_leaderboard
+from utils.models import CustomTranslationAdmin
 
 
 class ProjectUserPermissionVisibilityFilter(admin.SimpleListFilter):
@@ -67,15 +68,15 @@ class ProjectDefaultPermissionFilter(admin.SimpleListFilter):
 
 
 @admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(CustomTranslationAdmin):
     list_display = ["name", "type", "created_at", "default_permission"]
     list_filter = ["type", "show_on_homepage", ProjectDefaultPermissionFilter]
-    search_fields = ["type", "name", "slug"]
+    search_fields = ["type", "name__original", "slug"]
     autocomplete_fields = ["created_by", "primary_leaderboard"]
     exclude = ["add_posts_to_main_feed"]
     ordering = ["-created_at"]
     inlines = [ProjectUserPermissionInline]
-    actions = ["update_leaderboards", "export_questions_data_for_projects"]
+    actions = ["update_leaderboards", "export_questions_data_for_projects", "update_translations"]
 
     change_form_template = "admin/projects/project_change_form.html"
 

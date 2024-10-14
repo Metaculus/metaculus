@@ -32,7 +32,7 @@ from questions.models import (
 )
 from scoring.models import Score, ArchivedScore
 from users.models import User
-from utils.models import TimeStampedModel
+from utils.models import TimeStampedModel, TranslatedModel
 
 
 class PostQuerySet(models.QuerySet):
@@ -338,7 +338,7 @@ class PostManager(models.Manager.from_queryset(PostQuerySet)):
         return super().get_queryset().defer("embedding_vector")
 
 
-class Notebook(TimeStampedModel):
+class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
     class NotebookType(models.TextChoices):
         DISCUSSION = "discussion"
         NEWS = "news"
@@ -353,7 +353,7 @@ class Notebook(TimeStampedModel):
         return f"{self.type} Notebook for {self.post} by {self.post.author}"
 
 
-class Post(TimeStampedModel):
+class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     # typing
     id: int
     votes: QuerySet["Vote"]

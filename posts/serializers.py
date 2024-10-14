@@ -414,6 +414,14 @@ def serialize_post(
             }
         )
 
+    is_current_content_translated = (
+        post.is_current_content_translated()
+        or (post.question is not None and post.question.is_current_content_translated())
+        or (post.notebook is not None and post.notebook.is_current_content_translated())
+    )
+
+    serialized_data["is_current_content_translated"] = is_current_content_translated
+
     return serialized_data
 
 

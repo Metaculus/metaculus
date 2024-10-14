@@ -152,7 +152,7 @@ export default async function TournamentSlug({ params }: Props) {
             )}
           </div>
           <TournamentFilters />
-          <TournamentFeed slug={params.slug} />
+          <TournamentFeed tournament={tournament} />
         </section>
       </div>
       {[ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(

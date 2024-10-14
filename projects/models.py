@@ -15,7 +15,7 @@ from sql_util.aggregates import SubqueryAggregate
 
 from projects.permissions import ObjectPermission
 from users.models import User
-from utils.models import validate_alpha_slug, TimeStampedModel
+from utils.models import validate_alpha_slug, TimeStampedModel, TranslatedModel
 
 
 class ProjectsQuerySet(models.QuerySet):
@@ -136,7 +136,7 @@ class ProjectsQuerySet(models.QuerySet):
         )
 
 
-class Project(TimeStampedModel):
+class Project(TimeStampedModel, TranslatedModel):  # type: ignore
     class ProjectTypes(models.TextChoices):
         SITE_MAIN = "site_main"
         TOURNAMENT = "tournament"

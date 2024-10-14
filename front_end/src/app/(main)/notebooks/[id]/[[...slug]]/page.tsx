@@ -78,6 +78,7 @@ export default async function IndividualNotebook({ params }: Props) {
       ) : (
         <Header />
       )}
+
       <main className="mx-auto mb-24 mt-12 flex w-full max-w-6xl flex-1 flex-col bg-gray-0 p-4 text-base text-gray-800 dark:bg-gray-0-dark dark:text-gray-800-dark xs:p-8">
         {postData.notebook.image_url &&
         postData.notebook.image_url.startsWith("https:") ? (

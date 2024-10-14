@@ -10,7 +10,7 @@ from sql_util.aggregates import SubqueryAggregate
 from questions.constants import QuestionStatus
 from questions.types import AggregationMethod
 from users.models import User
-from utils.models import TimeStampedModel
+from utils.models import TimeStampedModel, TranslatedModel
 from utils.the_math.measures import percent_point_function
 
 if TYPE_CHECKING:
@@ -45,7 +45,7 @@ class QuestionManager(models.Manager.from_queryset(QuestionQuerySet)):
         return super().get_queryset()
 
 
-class Question(TimeStampedModel):
+class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     # typing
     user_forecasts: QuerySet["Forecast"]
     aggregate_forecasts: QuerySet["AggregateForecast"]
@@ -211,7 +211,7 @@ class Conditional(TimeStampedModel):
         return f"Conditional {self.condition} -> {self.condition_child}"
 
 
-class GroupOfQuestions(TimeStampedModel):
+class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
     class GroupOfQuestionsGraphType(models.TextChoices):
         FAN_GRAPH = "fan_graph"
         MULTIPLE_CHOICE_GRAPH = "multiple_choice_graph"

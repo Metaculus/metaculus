@@ -10,12 +10,13 @@ from questions.models import (
     Forecast,
 )
 from utils.csv_utils import export_data_for_questions
+from utils.models import CustomTranslationAdmin
 
 
 @admin.register(Question)
-class QuestionAdmin(admin.ModelAdmin, DynamicArrayMixin):
+class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     list_display = ["title", "id", "type"]
-    search_fields = ["title", "description"]
+    search_fields = ["title_original", "description_original"]
     actions = ["export_selected_questions_data"]
 
     autocomplete_fields = ["group"]
@@ -56,7 +57,7 @@ class ConditionalAdmin(admin.ModelAdmin):
 
 
 @admin.register(GroupOfQuestions)
-class GroupOfQuestionsAdmin(admin.ModelAdmin):
+class GroupOfQuestionsAdmin(CustomTranslationAdmin):
     search_fields = ["id"]
 
     def get_actions(self, request):

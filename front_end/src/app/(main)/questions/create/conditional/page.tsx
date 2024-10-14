@@ -44,11 +44,8 @@ const QuestionConditionalCreator: React.FC<{
 
   return (
     <>
-      {community ? (
-        <CommunityHeader community={community} />
-      ) : (
-        <Header />
-      )}
+      {community ? <CommunityHeader community={community} /> : <Header />}
+
       <ConditionalForm
         mode={mode}
         post={post}

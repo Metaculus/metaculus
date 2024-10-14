@@ -17,7 +17,7 @@ from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast
 from users.models import User
-from utils.models import TimeStampedModel
+from utils.models import TimeStampedModel, TranslatedModel
 
 
 class CommentQuerySet(models.QuerySet):
@@ -77,7 +77,7 @@ class CommentQuerySet(models.QuerySet):
         )
 
 
-class Comment(TimeStampedModel):
+class Comment(TimeStampedModel, TranslatedModel):  # type: ignore
     comment_votes: QuerySet["CommentVote"]
 
     author = models.ForeignKey(User, models.CASCADE)

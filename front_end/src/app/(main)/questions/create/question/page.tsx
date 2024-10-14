@@ -41,6 +41,7 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   return (
     <>
       {community ? <CommunityHeader community={community} /> : <Header />}
+
       <QuestionForm
         post={post}
         questionType={question_type}
