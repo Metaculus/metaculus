@@ -36,7 +36,6 @@ import {
 import { Resolution } from "@/types/post";
 import {
   QuestionType,
-  Aggregations,
   UserForecastHistory,
   Scaling,
   AggregateForecastHistory,
@@ -44,9 +43,9 @@ import {
 import {
   generateNumericDomain,
   generateScale,
-  generateTicksY,
   generateTimestampXScale,
-  getDisplayValue,
+  getLeftPadding,
+  getTickLabelFontSize,
   unscaleNominalLocation,
 } from "@/utils/charts";
 
@@ -93,6 +92,7 @@ const NumericChart: FC<Props> = ({
   const actualTheme = extraTheme
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
+  const tickLabelFontSize = getTickLabelFontSize(actualTheme);
 
   const defaultCursor = Date.now() / 1000;
 
@@ -122,6 +122,9 @@ const NumericChart: FC<Props> = ({
       scaling,
     ]
   );
+  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
+    return getLeftPadding(yScale, tickLabelFontSize as number);
+  }, [yScale, tickLabelFontSize]);
 
   const prevWidth = usePrevious(chartWidth);
   useEffect(() => {
@@ -185,6 +188,12 @@ const NumericChart: FC<Props> = ({
           width={chartWidth}
           height={height}
           theme={actualTheme}
+          padding={{
+            left: Math.max(leftPadding, MIN_LEFT_PADDING),
+            top: 10,
+            right: 10,
+            bottom: 20,
+          }}
           events={[
             {
               target: "parent",
@@ -260,8 +269,12 @@ const NumericChart: FC<Props> = ({
             tickValues={yScale.ticks}
             tickFormat={yScale.tickFormat}
             label={yLabel}
-            offsetX={48}
-            axisLabelComponent={<VictoryLabel dy={-10} />}
+            offsetX={Math.max(leftPadding - 2, MIN_LEFT_PADDING - 2)}
+            axisLabelComponent={
+              <VictoryLabel
+                dy={-Math.max(leftPadding - 40, MIN_LEFT_PADDING - 40)}
+              />
+            }
           />
           <VictoryAxis
             tickValues={xScale.ticks}
@@ -270,6 +283,7 @@ const NumericChart: FC<Props> = ({
               <XTickLabel
                 chartWidth={chartWidth}
                 withCursor={!!onCursorChange}
+                fontSize={tickLabelFontSize as number}
               />
             }
           />
