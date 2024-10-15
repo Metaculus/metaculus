@@ -91,6 +91,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data: dict):
+        # TODO: add validation for continuous question bounds
         return data
 
 
@@ -99,6 +100,8 @@ class QuestionUpdateSerializer(QuestionWriteSerializer):
 
     class Meta(QuestionWriteSerializer.Meta):
         fields = QuestionWriteSerializer.Meta.fields + ("id",)
+
+    # TODO: add validation for updating continuous question bounds
 
 
 class ConditionalSerializer(serializers.ModelSerializer):

@@ -155,7 +155,7 @@ const QuestionForm: FC<Props> = ({
   const { user } = useAuth();
   const router = useRouter();
   const t = useTranslations();
-  const { isLive, isDone } = getQuestionStatus(post);
+  const { isLive, isDone, hasForecasts } = getQuestionStatus(post);
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
@@ -359,7 +359,7 @@ const QuestionForm: FC<Props> = ({
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <InputContainer labelText={t("closingDate")} className="w-full gap-2">
             <Input
-              readOnly={isLive && mode !== "create"}
+              readOnly={hasForecasts && mode !== "create"}
               type="datetime-local"
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               {...control.register("scheduled_close_time", {
@@ -387,7 +387,7 @@ const QuestionForm: FC<Props> = ({
             className="w-full gap-2"
           >
             <Input
-              readOnly={isLive && mode !== "create"}
+              readOnly={hasForecasts && mode !== "create"}
               type="datetime-local"
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               {...control.register("scheduled_resolve_time", {
@@ -422,7 +422,7 @@ const QuestionForm: FC<Props> = ({
             // @ts-ignore
             defaultOpenUpperBound={post?.question?.open_upper_bound}
             defaultZeroPoint={post?.question?.scaling.zero_point}
-            isLive={isLive}
+            hasForecasts={hasForecasts}
             canSeeLogarithmic={
               post?.user_permission === ProjectPermissions.ADMIN || !post
             }
@@ -463,7 +463,7 @@ const QuestionForm: FC<Props> = ({
                     <div className="w-full">
                       <Input
                         {...control.register(`options.${opt_index}`)}
-                        readOnly={isLive && mode !== "create"}
+                        readOnly={hasForecasts && mode !== "create"}
                         className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                         value={option}
                         placeholder={`Option ${opt_index + 1}`}
@@ -483,7 +483,7 @@ const QuestionForm: FC<Props> = ({
                         }
                       />
                     </div>
-                    {opt_index >= MIN_OPTIONS_AMOUNT && !isLive && (
+                    {opt_index >= MIN_OPTIONS_AMOUNT && !hasForecasts && (
                       <Button
                         className="my-2 h-[42px] w-max self-start capitalize"
                         variant="text"

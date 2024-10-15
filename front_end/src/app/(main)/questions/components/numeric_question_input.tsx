@@ -22,7 +22,7 @@ const NumericQuestionInput: React.FC<{
   defaultOpenUpperBound: boolean | undefined | null;
   defaultOpenLowerBound: boolean | undefined | null;
   defaultZeroPoint: number | undefined | null;
-  isLive: boolean;
+  hasForecasts: boolean;
   canSeeLogarithmic: boolean | undefined;
 }> = ({
   onChange,
@@ -32,7 +32,7 @@ const NumericQuestionInput: React.FC<{
   defaultOpenUpperBound,
   defaultOpenLowerBound,
   defaultZeroPoint,
-  isLive,
+  hasForecasts,
   canSeeLogarithmic,
 }) => {
   const [errors, setError] = useState<string[]>([]);
@@ -178,7 +178,8 @@ const NumericQuestionInput: React.FC<{
             <div>
               <span className="mr-2">Min</span>
               <Input
-                readOnly={isLive}
+                readOnly={hasForecasts}
+                disabled={hasForecasts}
                 type="float"
                 defaultValue={min}
                 onChange={(e) => {
@@ -190,7 +191,8 @@ const NumericQuestionInput: React.FC<{
             <div>
               <span className="mr-2">Max</span>
               <Input
-                readOnly={isLive}
+                readOnly={hasForecasts}
+                disabled={hasForecasts}
                 type="float"
                 onChange={(e) => {
                   e.preventDefault();
@@ -207,7 +209,8 @@ const NumericQuestionInput: React.FC<{
               <div className="flex w-full flex-col gap-2">
                 <span className="mr-2">Min</span>
                 <Input
-                  readOnly={isLive}
+                  readOnly={hasForecasts}
+                  disabled={hasForecasts}
                   type="datetime-local"
                   className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                   defaultValue={
@@ -223,7 +226,8 @@ const NumericQuestionInput: React.FC<{
               <div className="flex w-full flex-col gap-2">
                 <span className="mr-2">Max</span>
                 <Input
-                  readOnly={isLive}
+                  readOnly={hasForecasts}
+                  disabled={hasForecasts}
                   type="datetime-local"
                   className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                   defaultValue={
@@ -245,7 +249,8 @@ const NumericQuestionInput: React.FC<{
               <div className="flex w-full flex-col gap-2">
                 <Checkbox
                   label={"Open Lower Bound"}
-                  readOnly={isLive}
+                  readOnly={hasForecasts}
+                  disabled={hasForecasts}
                   onChange={(e) => {
                     setOpenLowerBound(e);
                   }}
@@ -255,7 +260,8 @@ const NumericQuestionInput: React.FC<{
               <div className="flex w-full flex-col gap-2">
                 <Checkbox
                   label={"Open Upper Bound"}
-                  readOnly={isLive}
+                  readOnly={hasForecasts}
+                  disabled={hasForecasts}
                   onChange={async (e) => {
                     setOpenUpperBound(e);
                   }}
@@ -269,7 +275,7 @@ const NumericQuestionInput: React.FC<{
           <div>
             <span className="mr-2">Logarithmic scaling?</span>
             <Input
-              disabled={isLive}
+              disabled={hasForecasts}
               type="checkbox"
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 if (e.target.checked) {
@@ -292,7 +298,8 @@ const NumericQuestionInput: React.FC<{
                 <div className="ml-2">
                   <span className="mr-2">Zero Point</span>
                   <Input
-                    readOnly={isLive}
+                    readOnly={hasForecasts}
+                    disabled={hasForecasts}
                     type="float"
                     onChange={(e) => {
                       setZeroPoint(Number(e.target.value));
@@ -304,7 +311,8 @@ const NumericQuestionInput: React.FC<{
                 <div className="ml-2">
                   <span className="mr-2">Zero Point</span>
                   <Input
-                    readOnly={isLive}
+                    readOnly={hasForecasts}
+                    disabled={hasForecasts}
                     type="datetime-local"
                     onChange={(e) => {
                       setZeroPoint(new Date(e.target.value).getTime() / 1000);
