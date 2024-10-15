@@ -73,7 +73,7 @@ const Sidebar: FC<Props> = ({
       </div>
 
       <div className="flex flex-col items-start gap-4 self-stretch @container">
-        <div className="tour-resolution w-full">
+        <div className="w-full">
           <SidebarQuestionInfo postData={postData} />
         </div>
         <SidebarQuestionTags
@@ -86,9 +86,7 @@ const Sidebar: FC<Props> = ({
       {postData.curation_status === PostStatus.APPROVED && (
         <>
           <Suspense fallback={null}>
-            <div className="tour-newsmatch">
-              <NewsMatch questionId={postData.id} />
-            </div>
+            <NewsMatch questionId={postData.id} />
           </Suspense>
 
           <Suspense fallback={null}>

@@ -97,7 +97,7 @@ const NumericChartCard: FC<Props> = ({ question }) => {
 
       <div
         className={classNames(
-          "tour-cp my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
+          "my-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 xs:gap-x-8 sm:mx-8 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-0",
           { "sm:grid-cols-3": !!question.my_forecasts?.history.length }
         )}
       >

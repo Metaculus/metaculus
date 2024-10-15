@@ -19,7 +19,7 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
   const topic = onboardingTopics[topicIndex];
   const thirdQuestionId = topic.questions[2]; // Get the third question ID
 
-  const questionUrl = `/questions/${thirdQuestionId}?tour=guided`;
+  const questionUrl = `/questions/${thirdQuestionId}`;
 
   return (
     <div className={onboardingStyles.container}>
