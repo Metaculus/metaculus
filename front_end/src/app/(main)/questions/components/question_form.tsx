@@ -1,5 +1,7 @@
 "use client";
 
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import Link from "next/link";
@@ -30,6 +32,7 @@ import {
 } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
+import { logError } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions";
 
@@ -37,6 +40,8 @@ import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import NumericQuestionInput from "./numeric_question_input";
 import { createQuestionPost, updatePost } from "../actions";
+
+const MIN_OPTIONS_AMOUNT = 2;
 
 type PostCreationData = {
   title: string;
@@ -46,43 +51,87 @@ type PostCreationData = {
   default_project: number;
 };
 
-const baseQuestionSchema = z.object({
-  type: z.enum(["binary", "multiple_choice", "date", "numeric"]),
-  title: z.string().min(4).max(200),
-  url_title: z.string().min(4).max(60),
-  description: z.string().min(4),
-  resolution_criteria: z.string().min(1),
-  fine_print: z.string(),
-  scheduled_close_time: z.date(),
-  scheduled_resolve_time: z.date(),
-  default_project: z.nullable(z.union([z.number(), z.string()])),
-});
+export const createQuestionSchemas = (
+  t: ReturnType<typeof useTranslations>
+) => {
+  const baseQuestionSchema = z.object({
+    type: z.enum(["binary", "multiple_choice", "date", "numeric"]),
+    title: z
+      .string()
+      .min(4, {
+        message: t("errorMinLength", { field: "String", minLength: 4 }),
+      })
+      .max(200, {
+        message: t("errorMaxLength", { field: "String", maxLength: 200 }),
+      }),
+    url_title: z
+      .string()
+      .min(4, {
+        message: t("errorMinLength", { field: "String", minLength: 4 }),
+      })
+      .max(60, {
+        message: t("errorMaxLength", { field: "String", maxLength: 60 }),
+      }),
+    description: z.string().min(4, {
+      message: t("errorMinLength", { field: "String", minLength: 4 }),
+    }),
+    resolution_criteria: z.string().min(1, { message: t("errorRequired") }),
+    fine_print: z.string(),
+    scheduled_close_time: z.date(),
+    scheduled_resolve_time: z.date(),
+    default_project: z.nullable(z.union([z.number(), z.string()])),
+  });
 
-const binaryQuestionSchema = baseQuestionSchema;
+  const binaryQuestionSchema = baseQuestionSchema;
 
-const continuousQuestionSchema = baseQuestionSchema.merge(
-  z.object({
-    zero_point: z.number().default(0),
-    open_upper_bound: z.boolean().default(true),
-    open_lower_bound: z.boolean().default(true),
-  })
-);
+  const continuousQuestionSchema = baseQuestionSchema.merge(
+    z.object({
+      scaling: z.object({
+        range_min: z.number().optional().nullable(),
+        range_max: z.number().optional().nullable(),
+        zero_point: z.number().optional().nullable(),
+      }),
+      open_upper_bound: z.boolean().default(true),
+      open_lower_bound: z.boolean().default(true),
+    })
+  );
 
-const numericQuestionSchema = continuousQuestionSchema.merge(
-  z.object({
-    max: z.number().optional(),
-    min: z.number().optional(),
-  })
-);
+  const numericQuestionSchema = continuousQuestionSchema.merge(
+    z.object({
+      max: z.number().optional(),
+      min: z.number().optional(),
+    })
+  );
 
-const dateQuestionSchema = continuousQuestionSchema.merge(
-  z.object({
-    max: z.date().optional(),
-    min: z.date().optional(),
-  })
-);
+  const dateQuestionSchema = continuousQuestionSchema.merge(
+    z.object({
+      max: z.date().optional(),
+      min: z.date().optional(),
+    })
+  );
 
-const multipleChoiceQuestionSchema = baseQuestionSchema;
+  const multipleChoiceQuestionSchema = baseQuestionSchema.merge(
+    z.object({
+      options: z.array(
+        z
+          .string()
+          .min(1, { message: t("errorRequired") })
+          .refine((value) => value.trim() !== "", {
+            message: t("emptyOptionError"),
+          })
+      ),
+    })
+  );
+
+  return {
+    baseQuestionSchema,
+    binaryQuestionSchema,
+    continuousQuestionSchema,
+    numericQuestionSchema,
+    dateQuestionSchema,
+    multipleChoiceQuestionSchema,
+  };
+};
 
 type Props = {
   questionType: string;
@@ -153,14 +202,9 @@ const QuestionForm: FC<Props> = ({
   const submitQuestion = async (data: any) => {
     setIsLoading(true);
     setError(undefined);
-    if (
-      questionType === QuestionType.Date ||
-      questionType === QuestionType.Numeric
-    ) {
-      data["options"] = optionsList;
-    }
+
     data["type"] = questionType;
-    data["options"] = optionsList;
+    data["options"] = optionsList.map((option) => option.trim());
 
     let post_data: PostCreationData = {
       title: data["title"],
@@ -181,7 +225,7 @@ const QuestionForm: FC<Props> = ({
 
       router.push(getPostLink(resp.post));
     } catch (e) {
-      console.error(e);
+      logError(e);
       const error = e as Error & { digest?: string };
       setError(error);
     } finally {
@@ -189,28 +233,33 @@ const QuestionForm: FC<Props> = ({
     }
   };
   const [optionsList, setOptionsList] = useState<string[]>(
-    post?.question?.options ? post?.question?.options : []
+    post?.question?.options
+      ? post.question.options
+      : Array(MIN_OPTIONS_AMOUNT).fill("")
   );
+
   const [categoriesList, setCategoriesList] = useState<Category[]>(
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
 
+  const schemas = createQuestionSchemas(t);
   const getFormSchema = (type: string) => {
     switch (type) {
       case "binary":
-        return binaryQuestionSchema;
+        return schemas.binaryQuestionSchema;
       case "numeric":
-        return numericQuestionSchema;
+        return schemas.numericQuestionSchema;
       case "date":
-        return dateQuestionSchema;
+        return schemas.dateQuestionSchema;
       case "multiple_choice":
-        return multipleChoiceQuestionSchema;
+        return schemas.multipleChoiceQuestionSchema;
       default:
         throw new Error("Invalid question type");
     }
   };
 
   const control = useForm({
+    mode: "all",
     resolver: zodResolver(getFormSchema(questionType)),
   });
 
@@ -381,11 +430,13 @@ const QuestionForm: FC<Props> = ({
               openUpperBound,
               zeroPoint
             ) => {
-              control.setValue("rangeMin", rangeMin);
-              control.setValue("rangeMax", rangeMax);
+              control.setValue("scaling", {
+                range_min: rangeMin,
+                range_max: rangeMax,
+                zero_point: zeroPoint,
+              });
               control.setValue("open_lower_bound", openLowerBound);
               control.setValue("open_upper_bound", openUpperBound);
-              control.setValue("zero_point", zeroPoint);
             }}
           />
         )}
@@ -400,43 +451,63 @@ const QuestionForm: FC<Props> = ({
           />
         </InputContainer>
         {questionType === "multiple_choice" && (
-          <InputContainer labelText={t("choicesSeparatedBy")}>
-            <Input
-              readOnly={isLive && mode !== "create"}
-              type="text"
-              className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-              onChange={(event) => {
-                const options = String(event.target.value)
-                  .split(",")
-                  .map((option) => option.trim());
-                setOptionsList(options);
-              }}
-              errors={control.formState.errors.options}
-              value={optionsList.join(",")}
-            />
+          <div className="flex-col">
+            <InputContainer labelText={t("choices")} />
             {optionsList && (
               <div className="flex flex-col">
-                {optionsList.map((option: string, opt_index: number) => (
-                  <Input
-                    readOnly={isLive && mode !== "create"}
-                    key={opt_index}
-                    className="m-2 w-min min-w-32 border p-2 text-xs"
-                    value={option}
-                    onChange={(e) => {
-                      setOptionsList(
-                        optionsList.map((opt, index) => {
-                          if (index === opt_index) {
-                            return e.target.value;
-                          }
-                          return opt;
-                        })
-                      );
-                    }}
-                  />
+                {optionsList.map((option, opt_index) => (
+                  <div key={opt_index} className="flex">
+                    <div className="w-full">
+                      <Input
+                        {...control.register(`options.${opt_index}`)}
+                        readOnly={isLive && mode !== "create"}
+                        className="my-2 w-full min-w-32 rounded border  border-gray-500 p-2 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                        value={option}
+                        placeholder={`Option ${opt_index + 1}`}
+                        onChange={(e) => {
+                          setOptionsList(
+                            optionsList.map((opt, index) => {
+                              if (index === opt_index) {
+                                return e.target.value;
+                              }
+                              return opt;
+                            })
+                          );
+                        }}
+                        errors={
+                          // @ts-ignore
+                          control.formState.errors.options?.[opt_index]
+                        }
+                      />
+                    </div>
+                    {opt_index >= MIN_OPTIONS_AMOUNT && !isLive && (
+                      <Button
+                        className="my-2 h-[42px] w-max self-start capitalize"
+                        variant="text"
+                        onClick={() => {
+                          setOptionsList((prev) => {
+                            const newOptionsArray = [...prev].filter(
+                              (_, index) => index !== opt_index
+                            );
+                            control.setValue("options", newOptionsArray);
+                            return newOptionsArray;
+                          });
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faXmark} />
+                      </Button>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
-          </InputContainer>
+            <Button
+              className="w-max capitalize"
+              onClick={() => setOptionsList([...optionsList, ""])}
+            >
+              + {t("addOption")}
+            </Button>
+          </div>
         )}
         <InputContainer
           labelText={t("resolutionCriteria")}

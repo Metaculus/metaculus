@@ -103,7 +103,7 @@ const ForecastMakerBinary: FC<Props> = ({
         disabled={!canPredict}
       />
       {predictionMessage && (
-        <div className="text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
+        <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
           {t(predictionMessage)}
         </div>
       )}

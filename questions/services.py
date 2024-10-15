@@ -3,6 +3,7 @@ from collections.abc import Iterable
 from datetime import datetime
 
 from django.db import transaction
+from django.db.models import QuerySet
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -11,6 +12,7 @@ from posts.models import PostUserSnapshot, PostSubscription, Notebook
 from posts.services.subscriptions import create_subscription_cp_change
 from posts.tasks import run_on_post_forecast
 from projects.permissions import ObjectPermission
+from projects.models import Project
 from questions.constants import ResolutionType
 from questions.models import (
     Question,
@@ -20,8 +22,8 @@ from questions.models import (
     AggregateForecast,
 )
 from questions.types import AggregationMethod
-from scoring.models import Score
-from scoring.utils import score_question
+from scoring.models import Score, Leaderboard
+from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
 from utils.dtypes import generate_map_from_list
 from utils.models import model_update
@@ -518,6 +520,35 @@ def unresolve_question(question: Question):
         score_types=score_types,
     )
 
+    # Update leaderboards
+    post = question.get_post()
+    projects: QuerySet[Project] = [post.default_project] + list(post.projects.all())
+    for project in projects:
+        if project.type == Project.ProjectTypes.SITE_MAIN:
+            continue
+        leaderboards = project.leaderboards.all()
+        for leaderboard in leaderboards:
+            update_project_leaderboard(project, leaderboard)
+
+    main_site_project = post.projects.filter(
+        type=Project.ProjectTypes.SITE_MAIN
+    ).first()
+    if main_site_project:
+        global_leaderboard_window = question.get_global_leaderboard_dates()
+        if global_leaderboard_window is not None:
+            global_leaderboards = Leaderboard.objects.filter(
+                project__type=Project.ProjectTypes.SITE_MAIN,
+                start_time=global_leaderboard_window[0],
+                end_time=global_leaderboard_window[1],
+            ).exclude(
+                score_type__in=[
+                    Leaderboard.ScoreTypes.COMMENT_INSIGHT,
+                    Leaderboard.ScoreTypes.QUESTION_WRITING,
+                ]
+            )
+            for leaderboard in global_leaderboards:
+                update_project_leaderboard(main_site_project, leaderboard)
+
 
 def close_question(question: Question, actual_close_time: datetime | None = None):
     if question.actual_close_time:
@@ -628,7 +659,13 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
 
     # Running forecast post triggers
     for post in posts:
-        run_on_post_forecast.send(post.id)
+        # There may be situations where async jobs from `create_forecast` complete after
+        # `run_on_post_forecast` is triggered. To maintain the correct sequence of execution,
+        # we need to ensure that `run_on_post_forecast` runs only after all forecasts have been processed.
+        #
+        # As a temporary solution, we introduce a 10-second delay before execution
+        # to ensure all forecasts are processed.
+        run_on_post_forecast.send_with_options(args=(post.id, ), delay=10_000)
 
 
 def get_recency_weighted_for_questions(

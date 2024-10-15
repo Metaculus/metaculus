@@ -2,11 +2,13 @@ from dataclasses import dataclass
 from datetime import datetime
 
 import numpy as np
+from django.db.models import Prefetch
 from scipy.stats.mstats import gmean
 
 from questions.models import AggregateForecast, Forecast, Question
 from questions.types import AggregationMethod
 from scoring.models import Score
+from users.models import User
 from utils.the_math.aggregations import get_aggregation_history
 
 
@@ -329,7 +331,9 @@ def evaluate_question(
     actual_close_time = question.actual_close_time.timestamp()
     forecast_horizon_end = question.scheduled_close_time.timestamp()
 
-    user_forecasts = question.user_forecasts.all()
+    user_forecasts = question.user_forecasts.all().prefetch_related(
+        Prefetch("author", queryset=User.objects.only("is_bot"))
+    )
     community_forecasts = get_aggregation_history(
         question,
         minimize=False,
@@ -442,18 +446,18 @@ def evaluate_question(
             case other:
                 raise NotImplementedError(f"Score type {other} not implemented")
 
-        users = {forecast.author for forecast in user_forecasts}
-        for user in users:
+        user_ids = {forecast.author_id for forecast in user_forecasts}
+        for user_id in user_ids:
             user_score = 0
             user_coverage = 0
             for forecast, score in zip(user_forecasts, user_scores):
-                if forecast.author == user:
+                if forecast.author_id == user_id:
                     user_score += score.score
                     user_coverage += score.coverage
             if user_coverage > 0:
                 scores.append(
                     Score(
-                        user=user,
+                        user_id=user_id,
                         score=user_score,
                         coverage=user_coverage,
                         score_type=score_type,

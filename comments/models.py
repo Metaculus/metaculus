@@ -106,7 +106,7 @@ class Comment(TimeStampedModel):
     included_forecast = models.ForeignKey(
         Forecast, on_delete=models.SET_NULL, null=True, default=None, blank=True
     )
-    is_private = models.BooleanField(default=False)
+    is_private = models.BooleanField(default=False, db_index=True)
     edit_history = models.JSONField(default=list, null=False, blank=True)
 
     # annotated fields

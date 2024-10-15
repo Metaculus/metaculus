@@ -1,4 +1,5 @@
 import pytest  # noqa
+from django.urls import reverse
 
 from comments.models import Comment
 from comments.services.feed import get_comments_feed
@@ -155,7 +156,24 @@ def test_get_comments_feed_permissions(user1, user2):
     }
     assert {c.pk for c in get_comments_feed(Comment.objects.all(), user=user2)} == {
         c1.pk,
-        c2.pk,
         c3.pk,
         c_deleted.pk,
     }
+    assert {
+        c.pk
+        for c in get_comments_feed(Comment.objects.all(), user=user2, is_private=True)
+    } == {
+        c2.pk,
+    }
+
+
+def test_upvote_own_comment(user1, user2, user2_client, user1_client):
+    post = factory_post(author=user1)
+    user1_comment = factory_comment(author=user1, on_post=post)
+    url = reverse("comment-vote", kwargs={"pk": user1_comment.pk})
+
+    response = user1_client.post(url, data={"vote": 1})
+    assert response.status_code == 400
+
+    response = user2_client.post(url, data={"vote": 1})
+    assert response.status_code == 200

@@ -10,7 +10,9 @@ type Props = {
 };
 
 const CardForecast: FC<Props> = async ({ postId }) => {
-  const post = await PostsApi.getPost(postId);
+  const post = await PostsApi.getPostAnonymous(postId, {
+    next: { revalidate: 900 },
+  });
   if (!post) return null;
 
   return (

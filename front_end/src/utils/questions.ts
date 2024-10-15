@@ -1,6 +1,8 @@
 // TODO: BE should probably return a field, that can be used as chart title
 import { differenceInMilliseconds, isValid } from "date-fns";
 import { capitalize, isNil } from "lodash";
+import { remark } from "remark";
+import strip from "strip-markdown";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
@@ -48,21 +50,51 @@ export function getNotebookSummary(
   width: number,
   height: number
 ) {
-  const approxCharWidth = 10;
+  const approxCharWidth = 8;
   const approxLineHeight = 20;
 
   const charsPerLine = Math.floor(width / approxCharWidth);
   const maxLines = Math.floor(height / approxLineHeight);
   const maxChars = charsPerLine * maxLines;
-  markdown = markdown.replace(/\[.*?\]|\(.*?\)|\<.*?\>/g, "");
-  const normalized = markdown
-    .split("\n")
-    .join(" ")
-    .replace(/\[([^\]]+?)\]\([^)]+?\)/g, "$1");
-  return (
-    normalized.split("\n").join(" ").slice(0, maxChars) +
-    (normalized.length > maxChars ? "..." : "")
-  );
+
+  const file = remark()
+    .use(strip, { keep: ["link"] })
+    .processSync(markdown);
+
+  markdown = String(file).split("\n").join(" ");
+
+  let rawLength = 0;
+  let result = "";
+  const tokens = markdown.match(/(\[.*?\]\(.*?\)|`.*?`|.|\n)/g) || [];
+
+  for (const token of tokens) {
+    if (token.startsWith("[") && token.includes("](")) {
+      // handle links markdown
+      const linkText = token.match(/\[(.*?)\]/)?.[1] || "";
+      const linkUrl = token.match(/\((.*?)\)/)?.[1] || "";
+
+      if (rawLength + linkText.length > maxChars) {
+        const remainingChars = maxChars - rawLength;
+        result += `[${linkText.slice(0, remainingChars)}...](${linkUrl})`;
+        break;
+      }
+
+      result += token;
+      rawLength += linkText.length;
+    } else {
+      // handle raw text
+      if (rawLength + token.length >= maxChars) {
+        result += token.slice(0, maxChars - rawLength);
+        result += "...";
+        break;
+      }
+      result += token;
+      rawLength += token.length;
+    }
+  }
+
+  result = result.trimEnd();
+  return result;
 }
 
 export function estimateReadingTime(markdown: string) {
@@ -292,6 +324,12 @@ export function getPredictionInputMessage(post: Post) {
   switch (post.status) {
     case PostStatus.UPCOMING: {
       return "predictionUpcomingMessage";
+    }
+    case PostStatus.APPROVED: {
+      if (Date.parse(post.open_time) > Date.now()) {
+        return "predictionUpcomingMessage";
+      }
+      return null;
     }
     case PostStatus.REJECTED:
     case PostStatus.PENDING:

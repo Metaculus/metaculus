@@ -37,6 +37,9 @@ export const SignupForm: FC<{
   const { setCurrentModal } = useModal();
   const { register, watch, setValue } = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
+    defaultValues: {
+          isBot: forceIsBot !== "ask" ? forceIsBot : undefined,
+    },
   });
   const turnstileRef = useRef<TurnstileInstance | undefined>();
 

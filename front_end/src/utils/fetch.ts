@@ -8,6 +8,8 @@ import {
   FetchOptions,
 } from "@/types/fetch";
 
+import { logError } from "./errors";
+
 class ApiError extends Error {
   public digest: string;
 
@@ -149,6 +151,7 @@ const appFetch = async <T>(
       console.error("Fetch error:", error);
     }
 
+    logError(error, `Fetch error: ${error}`);
     throw error;
   }
 };

@@ -8,10 +8,11 @@ from notifications.services import (
     NotificationPostParams,
     NotificationQuestionParams,
 )
+from projects.models import Project
 from questions.models import Question
 from questions.services import build_question_forecasts
-from scoring.models import Score
-from scoring.utils import score_question
+from scoring.models import Score, Leaderboard
+from scoring.utils import score_question, update_project_leaderboard
 from users.models import User
 from utils.dramatiq import concurrency_retries, task_concurrent_limit
 
@@ -41,7 +42,7 @@ def run_build_question_forecasts(question_id: int):
     build_question_forecasts(question)
 
 
-@dramatiq.actor
+@dramatiq.actor()
 def resolve_question_and_send_notifications(question_id: int):
     question: Question = Question.objects.get(id=question_id)
     post = question.get_post()
@@ -84,6 +85,30 @@ def resolve_question_and_send_notifications(question_id: int):
     user_notification_params: dict[
         User, NotificationPredictedQuestionResolved.ParamsType
     ] = {}
+
+    # Update leaderboards
+    post = question.get_post()
+    projects = [post.default_project] + list(post.projects.all())
+    for project in projects:
+        if project.type == Project.ProjectTypes.SITE_MAIN:
+            continue
+
+        leaderboards = project.leaderboards.all()
+        for leaderboard in leaderboards:
+            update_project_leaderboard(project, leaderboard)
+
+    main_site_project = post.projects.filter(
+        type=Project.ProjectTypes.SITE_MAIN
+    ).first()
+    if main_site_project:
+        global_leaderboard_window = question.get_global_leaderboard_dates()
+        if global_leaderboard_window is not None:
+            global_leaderboards = Leaderboard.objects.filter(
+                start_time=global_leaderboard_window[0],
+                end_time=global_leaderboard_window[1],
+            )
+            for leaderboard in global_leaderboards:
+                update_project_leaderboard(main_site_project, leaderboard)
 
     # Send notifications
     for score in scores:

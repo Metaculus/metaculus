@@ -18,6 +18,7 @@ import EmbedQuestionModal from "@/components/markdown_editor/embedded_question/e
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostWithForecasts } from "@/types/post";
+import { logError } from "@/utils/errors";
 
 import EmbeddedQuestionCard from "./embedded_question_card";
 import createEditorComponent from "../createJsxComponent";
@@ -43,7 +44,7 @@ const EmbeddedQuestion: FC<Props> = ({ id }) => {
         const post = await getPost(id);
         setPostData(post);
       } catch (e) {
-        console.error(e);
+        logError(e);
       } finally {
         setIsLoading(false);
       }

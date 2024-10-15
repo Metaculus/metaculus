@@ -50,9 +50,6 @@ export default async function Profile({
               <ChangeUsername />
             </span>
           )}
-          <span className="text-base font-light text-gray-500 md:text-lg">
-            {profile.first_name} {profile.last_name}
-          </span>
         </div>
         <div className="flex flex-row text-xs font-medium md:text-sm">
           <Link href={`/accounts/profile/${id}?mode=overview`}>

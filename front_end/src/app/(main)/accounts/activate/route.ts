@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import AuthApi from "@/services/auth";
 import { setServerSession } from "@/services/session";
 import { SocialProviderType } from "@/types/auth";
+import { logError } from "@/utils/errors";
 
 export async function GET(
   request: Request,
@@ -16,7 +17,9 @@ export async function GET(
   try {
     const response = await AuthApi.activateAccount(userId, token);
     setServerSession(response.token);
-  } catch (err) {}
+  } catch (err) {
+    logError(err);
+  }
 
   return redirect("/?start_onboarding=true");
 }

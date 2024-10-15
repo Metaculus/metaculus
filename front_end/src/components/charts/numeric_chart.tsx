@@ -36,16 +36,16 @@ import {
 import { Resolution } from "@/types/post";
 import {
   QuestionType,
-  Aggregations,
   UserForecastHistory,
   Scaling,
   AggregateForecastHistory,
 } from "@/types/question";
 import {
   generateNumericDomain,
-  generateTicksY,
+  generateScale,
   generateTimestampXScale,
-  getDisplayValue,
+  getLeftPadding,
+  getTickLabelFontSize,
   unscaleNominalLocation,
 } from "@/utils/charts";
 
@@ -92,6 +92,7 @@ const NumericChart: FC<Props> = ({
   const actualTheme = extraTheme
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
+  const tickLabelFontSize = getTickLabelFontSize(actualTheme);
 
   const defaultCursor = Date.now() / 1000;
 
@@ -121,6 +122,9 @@ const NumericChart: FC<Props> = ({
       scaling,
     ]
   );
+  const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
+    return getLeftPadding(yScale, tickLabelFontSize as number);
+  }, [yScale, tickLabelFontSize]);
 
   const prevWidth = usePrevious(chartWidth);
   useEffect(() => {
@@ -155,12 +159,12 @@ const NumericChart: FC<Props> = ({
       cursorLabelComponent={<ChartCursorLabel positionY={height - 10} />}
       onCursorChange={(value: CursorCoordinatesPropType) => {
         if (typeof value === "number" && onCursorChange) {
-          const closestForecast = aggregation.history.reduce((prev, curr) =>
-            Math.abs(curr.start_time - value) <
-            Math.abs(prev.start_time - value)
-              ? curr
-              : prev
-          );
+          const closestForecast = aggregation.history.reduce((prev, curr) => {
+            if (curr.start_time <= value) {
+              return curr.start_time > prev.start_time ? curr : prev;
+            }
+            return prev;
+          });
 
           onCursorChange(closestForecast.start_time);
         }
@@ -184,6 +188,12 @@ const NumericChart: FC<Props> = ({
           width={chartWidth}
           height={height}
           theme={actualTheme}
+          padding={{
+            left: Math.max(leftPadding, MIN_LEFT_PADDING),
+            top: 10,
+            right: 10,
+            bottom: 20,
+          }}
           events={[
             {
               target: "parent",
@@ -259,8 +269,12 @@ const NumericChart: FC<Props> = ({
             tickValues={yScale.ticks}
             tickFormat={yScale.tickFormat}
             label={yLabel}
-            offsetX={48}
-            axisLabelComponent={<VictoryLabel dy={-10} />}
+            offsetX={Math.max(leftPadding - 2, MIN_LEFT_PADDING - 2)}
+            axisLabelComponent={
+              <VictoryLabel
+                dy={-Math.max(leftPadding - 40, MIN_LEFT_PADDING - 40)}
+              />
+            }
           />
           <VictoryAxis
             tickValues={xScale.ticks}
@@ -269,6 +283,7 @@ const NumericChart: FC<Props> = ({
               <XTickLabel
                 chartWidth={chartWidth}
                 withCursor={!!onCursorChange}
+                fontSize={tickLabelFontSize as number}
               />
             }
           />
@@ -358,27 +373,23 @@ function buildChartData({
   ];
   const xDomain = generateNumericDomain(domainTimestamps, zoom);
   const xScale = generateTimestampXScale(xDomain, width);
+  // TODO: implement general scaling:
+  // const xScale: Scale = generateScale({
+  //   displayType: QuestionType.Date,
+  //   axisLength: width,
+  //   direction: "horizontal",
+  //   domain: xDomain,
+  // });
 
   const yDomain: Tuple<number> = [0, 1];
 
-  const desiredMajorTicks = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
-  const desiredMajorTickDistance = 20;
-
-  const { ticks, majorTicks } = generateTicksY(
-    height,
-    desiredMajorTicks,
-    desiredMajorTickDistance
-  );
-  const tickFormat = (value: number): string => {
-    if (!majorTicks.includes(value)) {
-      return "";
-    }
-    return getDisplayValue(value, questionType, scaling);
-  };
-  const yScale: Scale = {
-    ticks,
-    tickFormat,
-  };
+  const yScale: Scale = generateScale({
+    displayType: questionType,
+    axisLength: height,
+    direction: "vertical",
+    domain: yDomain,
+    scaling,
+  });
 
   return {
     line,

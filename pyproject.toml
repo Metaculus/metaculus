@@ -45,6 +45,7 @@ gspread = "^6.1.2"
 whitenoise = "^6.7.0"
 sentry-sdk = "^2.13.0"
 # playwright = "^1.46.0"
+brotli = "^1.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"

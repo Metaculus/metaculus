@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
+import numpy as np
 
 import django
 import django.utils
@@ -349,7 +350,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         )
         prob_yes_per_cat_ok = (
             probability_yes_per_category is not None
-            and sum(probability_yes_per_category.values()) == 1
+            and np.isclose(sum(probability_yes_per_category.values()), 1)
             and all(
                 [is_valid_probability(p) for p in probability_yes_per_category.values()]
             )
@@ -428,7 +429,7 @@ def serialize_question(
             aggregate_forecasts_by_method[aggregate.method].append(aggregate)
 
         # Appending score data
-        for prefix, scores in (
+        for suffix, scores in (
             ("score", question.scores.all()),
             ("archived_score", question.archived_scores.all()),
         ):
@@ -437,7 +438,7 @@ def serialize_question(
                     continue
 
                 serialized_data["aggregations"][score.aggregation_method]["score_data"][
-                    f"{prefix}_{score.score_type}"
+                    f"{score.score_type}_{suffix}"
                 ] = score.score
                 if score.score_type == "peer":
                     serialized_data["aggregations"][score.aggregation_method][

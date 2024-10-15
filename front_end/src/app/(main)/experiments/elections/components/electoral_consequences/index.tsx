@@ -14,9 +14,12 @@ const QUESTION_IDS = [
 
 const ElectoralConsequences: FC = async () => {
   const t = await getTranslations();
-  const { results: questions } = await PostsApi.getPostsWithCP({
-    ids: QUESTION_IDS,
-  });
+  const { results: questions } = await PostsApi.getPostsWithCPAnonymous(
+    {
+      ids: QUESTION_IDS,
+    },
+    { next: { revalidate: 900 } }
+  );
 
   return (
     <div className="relative my-4 flex w-full flex-col rounded bg-gray-0 dark:bg-gray-0-dark">

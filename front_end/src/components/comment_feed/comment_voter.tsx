@@ -5,6 +5,7 @@ import Voter from "@/components/voter";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { VoteDirection } from "@/types/votes";
+import { logError } from "@/utils/errors";
 
 type Props = {
   voteData: VoteData;
@@ -12,6 +13,7 @@ type Props = {
 };
 
 type VoteData = {
+  commentAuthorId: number;
   commentId: number;
   voteScore?: number | null;
   userVote: VoteDirection;
@@ -41,7 +43,7 @@ const CommentVoter: FC<Props> = ({ voteData, className }) => {
         setVoteScore(response.score as number);
       }
     } catch (e) {
-      console.error(e);
+      logError(e);
     }
   };
   return (
@@ -52,6 +54,7 @@ const CommentVoter: FC<Props> = ({ voteData, className }) => {
       onVoteUp={() => handleVote(1)}
       onVoteDown={() => handleVote(-1)}
       commentArea={true}
+      disabled={user?.id === voteData.commentAuthorId}
     />
   );
 };

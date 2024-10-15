@@ -1,6 +1,10 @@
 import { revalidateTag } from "next/cache";
 
-import { PaginatedPayload, PaginationParams } from "@/types/fetch";
+import {
+  FetchOptions,
+  PaginatedPayload,
+  PaginationParams,
+} from "@/types/fetch";
 import { NewsArticle } from "@/types/news";
 import {
   Post,
@@ -34,6 +38,7 @@ export type PostsParams = PaginationParams & {
   ids?: number[];
   news_type?: string;
   public_figure?: number;
+  curation_status?: string;
   notebook_type?: string;
   similar_to_post_id?: number;
 };
@@ -51,12 +56,13 @@ class PostsApi {
     );
   }
 
-  static async getPostAnonymous(id: number): Promise<PostWithForecasts> {
-    return await get<PostWithForecasts>(
-      `/posts/${id}/`,
-      {},
-      { passAuthHeader: false }
-    );
+  static async getPostAnonymous(
+    id: number,
+    options?: FetchOptions
+  ): Promise<PostWithForecasts> {
+    return await get<PostWithForecasts>(`/posts/${id}/`, options, {
+      passAuthHeader: false,
+    });
   }
 
   static async removePostFromProject(postId: number, projectId: number) {
@@ -74,7 +80,23 @@ class PostsApi {
     });
 
     return await get<PaginatedPayload<PostWithForecasts>>(
-      `/posts${queryParams}`
+      `/posts/${queryParams}`
+    );
+  }
+
+  static async getPostsWithCPAnonymous(
+    params?: PostsParams,
+    options?: FetchOptions
+  ): Promise<PaginatedPayload<PostWithForecasts>> {
+    const queryParams = encodeQueryParams({
+      ...(params ?? {}),
+      with_cp: true,
+    });
+
+    return await get<PaginatedPayload<PostWithForecasts>>(
+      `/posts/${queryParams}`,
+      options,
+      { passAuthHeader: false }
     );
   }
 
@@ -87,7 +109,7 @@ class PostsApi {
     });
 
     return await get<PaginatedPayload<PostWithForecasts>>(
-      `/posts${queryParams}`
+      `/posts/${queryParams}`
     );
   }
 
@@ -125,19 +147,19 @@ class PostsApi {
     id: number,
     direction: VoteDirection
   ): Promise<VoteResponse> {
-    return await post<VoteResponse>(`/posts/${id}/vote`, { direction });
+    return await post<VoteResponse>(`/posts/${id}/vote/`, { direction });
   }
 
   static async uploadImage(formData: FormData): Promise<{ url: string }> {
-    return await post<{ url: string }>("/posts/upload-image", formData);
+    return await post<{ url: string }>("/posts/upload-image/", formData);
   }
 
   static async sendPostReadEvent(postId: number) {
-    return post(`/posts/${postId}/read`, {});
+    return post(`/posts/${postId}/read/`, {});
   }
 
   static async changePostActivityBoost(postId: number, score: number) {
-    return post<{ score_total: number }>(`/posts/${postId}/boost`, { score });
+    return post<{ score_total: number }>(`/posts/${postId}/boost/`, { score });
   }
 
   static async updateSubscriptions(
@@ -145,13 +167,13 @@ class PostsApi {
     subscriptions: PostSubscription[]
   ) {
     return post<PostSubscription[], PostSubscription[]>(
-      `/posts/${postId}/subscriptions`,
+      `/posts/${postId}/subscriptions/`,
       subscriptions
     );
   }
 
   static async getAllSubscriptions() {
-    return get<Require<Post, "subscriptions">[]>(`/posts/subscriptions`, {});
+    return get<Require<Post, "subscriptions">[]>(`/posts/subscriptions/`, {});
   }
 
   static async getSimilarPosts(postId: number): Promise<PostWithForecasts[]> {
@@ -167,7 +189,7 @@ class PostsApi {
   }
 
   static async removeRelatedArticle(articleId: number) {
-    const response = await post(`/itn-articles/${articleId}/remove`, {});
+    const response = await post(`/itn-articles/${articleId}/remove/`, {});
     revalidateTag("related-articles");
 
     return response;

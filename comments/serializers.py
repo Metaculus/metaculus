@@ -17,6 +17,7 @@ class CommentFilterSerializer(serializers.Serializer):
     author = serializers.IntegerField(required=False, allow_null=True)
     sort = serializers.CharField(required=False, allow_null=True)
     focus_comment_id = serializers.IntegerField(required=False, allow_null=True)
+    is_private = serializers.BooleanField(required=False, allow_null=True)
 
     def validate_post(self, value: int):
         try:

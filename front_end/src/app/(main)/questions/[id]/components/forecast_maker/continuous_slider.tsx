@@ -103,6 +103,7 @@ const ContinuousSlider: FC<Props> = ({
                         onChange(forecast, newWeights);
                       }}
                       disabled={disabled}
+                      shouldSyncWithDefault
                     />
                   </div>
                   <FontAwesomeIcon

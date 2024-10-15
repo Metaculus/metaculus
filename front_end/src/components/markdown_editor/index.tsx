@@ -64,6 +64,7 @@ type Props = {
   onChange?: (markdown: string) => void;
   contentEditableClassName?: string;
   shouldConfirmLeave?: boolean;
+  className?: string;
 };
 
 const PlainTextCodeEditorDescriptor: CodeBlockEditorDescriptor = {
@@ -85,6 +86,7 @@ const MarkdownEditor: FC<Props> = ({
   mode = "read",
   onChange,
   contentEditableClassName,
+  className,
 }) => {
   const { theme } = useAppTheme();
 
@@ -161,9 +163,13 @@ const MarkdownEditor: FC<Props> = ({
   return (
     <MDXEditor
       ref={editorRef}
-      className={classNames("content markdown-editor", {
-        "dark-theme": theme === "dark",
-      })}
+      className={classNames(
+        "content markdown-editor",
+        {
+          "dark-theme": theme === "dark",
+        },
+        className
+      )}
       contentEditableClassName={classNames(
         { "!p-0": mode === "read" },
         contentEditableClassName

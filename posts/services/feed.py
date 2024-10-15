@@ -31,6 +31,7 @@ def get_posts_feed(
     ids: list[int] = None,
     public_figure: Project = None,
     news_type: Project = None,
+    curation_status: Post.CurationStatus = None,
     notebook_type: Notebook.NotebookType = None,
     usernames: list[str] = None,
     forecaster_id: int = None,
@@ -38,11 +39,10 @@ def get_posts_feed(
     similar_to_post_id: int = None,
     for_main_feed: bool = None,
     show_on_homepage: bool = None,
+    **kwargs,
 ) -> Post.objects:
     """
     Applies filtering on the Questions QuerySet
-
-    TODO: implement "New Comments" ordering
     """
 
     if qs is None:
@@ -50,12 +50,7 @@ def get_posts_feed(
 
     # If ids provided
     if ids:
-        qs = qs.filter(
-            Q(id__in=ids)
-            | Q(group_of_questions__questions__in=ids)
-            | Q(conditional__question_yes_id__in=ids)
-            | Q(conditional__question_no_id__in=ids)
-        ).distinct("pk")
+        qs = qs.filter(id__in=ids)
 
     # Filter by permission level
     qs = qs.filter_permission(user=user)
@@ -89,6 +84,9 @@ def get_posts_feed(
 
     if show_on_homepage:
         qs = qs.filter(show_on_homepage=True)
+
+    if curation_status:
+        qs = qs.filter(curation_status=curation_status)
 
     if notebook_type:
         qs = qs.filter(notebook__isnull=False).filter(notebook__type=notebook_type)
@@ -182,6 +180,9 @@ def get_posts_feed(
             order_by = "-rank"
         else:
             qs = qs.filter(rank__gte=0.3)
+
+    # Other filters
+    qs = qs.filter(**kwargs)
 
     order_by = order_by or "-created_at"
 

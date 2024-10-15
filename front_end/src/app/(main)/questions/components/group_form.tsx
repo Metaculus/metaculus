@@ -26,6 +26,7 @@ import {
 } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
+import { logError } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 import { extractQuestionGroupName, getQuestionStatus } from "@/utils/questions";
 
@@ -42,15 +43,28 @@ type PostCreationData = {
   default_project: number;
 };
 
-const groupQuestionSchema = z.object({
-  title: z.string().min(4).max(200),
-  url_title: z.string().min(1),
-  group_variable: z.string().max(200),
-  description: z.string().min(10),
-  resolution_criteria: z.string().min(1),
-  fine_print: z.string(),
-  default_project: z.nullable(z.union([z.number(), z.string()])),
-});
+const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
+  return z.object({
+    title: z
+      .string()
+      .min(4, {
+        message: t("errorMinLength", { field: "String", minLength: 4 }),
+      })
+      .max(200, {
+        message: t("errorMaxLength", { field: "String", maxLength: 200 }),
+      }),
+    url_title: z.string().min(1, { message: t("errorRequired") }),
+    group_variable: z.string().max(200, {
+      message: t("errorMaxLength", { field: "String", maxLength: 200 }),
+    }),
+    description: z.string().min(10, {
+      message: t("errorMinLength", { field: "String", minLength: 10 }),
+    }),
+    resolution_criteria: z.string().min(1, { message: t("errorRequired") }),
+    fine_print: z.string(),
+    default_project: z.nullable(z.union([z.number(), z.string()])),
+  });
+};
 
 type Props = {
   subtype: "binary" | "numeric" | "date";
@@ -113,18 +127,16 @@ const GroupForm: React.FC<Props> = ({
       } else if (subtype === QuestionType.Numeric) {
         if (x.scaling.range_max == null || x.scaling.range_min == null) {
           setError(
-            "Please enter a range_max or range_min value for numeric questions"
+            "Please enter a range_max and range_min value for numeric questions"
           );
           break_out = true;
           return;
         }
         return {
           ...subquestionData,
-          range_min: x.scaling.range_min,
-          range_max: x.scaling.range_max,
+          scaling: x.scaling,
           open_lower_bound: x.openLowerBound,
           open_upper_bound: x.openUpperBound,
-          zero_point: x.zeroPoint,
         };
       } else if (subtype === QuestionType.Date) {
         if (x.scaling.range_max === null || x.scaling.range_min === null) {
@@ -134,11 +146,9 @@ const GroupForm: React.FC<Props> = ({
         }
         return {
           ...subquestionData,
-          range_min: x.scaling.range_min,
-          range_max: x.scaling.range_max,
+          scaling: x.scaling,
           open_lower_bound: x.openLowerBound,
           open_upper_bound: x.openUpperBound,
-          zero_point: x.zeroPoint,
         };
       } else {
         setError("Invalid sub-question type");
@@ -146,6 +156,7 @@ const GroupForm: React.FC<Props> = ({
         return;
       }
     });
+
     if (break_out) {
       return;
     }
@@ -173,7 +184,6 @@ const GroupForm: React.FC<Props> = ({
       },
     };
     let resp: { post: Post };
-
     try {
       if (mode === "edit" && post) {
         resp = await updatePost(post.id, post_data);
@@ -183,7 +193,7 @@ const GroupForm: React.FC<Props> = ({
 
       router.push(getPostLink(resp.post));
     } catch (e) {
-      console.log(e);
+      logError(e);
       const error = e as Error & { digest?: string };
       setError(error);
     } finally {
@@ -210,8 +220,9 @@ const GroupForm: React.FC<Props> = ({
   const [collapsedSubQuestions, setCollapsedSubQuestions] = useState<any[]>(
     subQuestions.map((x) => true)
   );
-
+  const groupQuestionSchema = createGroupQuestionSchema(t);
   const control = useForm({
+    mode: "all",
     // @ts-ignore
     resolver: zodResolver(groupQuestionSchema),
   });
@@ -499,7 +510,7 @@ const GroupForm: React.FC<Props> = ({
                                 subQuestion.scaling = {
                                   range_min: range_min,
                                   range_max: range_max,
-                                  zeroPoint: zeroPoint,
+                                  zero_point: zeroPoint,
                                 };
                                 subQuestion["openLowerBound"] = openLowerBound;
                                 subQuestion["openUpperBound"] = openUpperBound;

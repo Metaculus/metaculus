@@ -36,10 +36,9 @@ import { ThemeColor } from "@/types/theme";
 import {
   findPreviousTimestamp,
   generateNumericDomain,
-  generatePercentageYScale,
-  generateTicksY,
+  generateScale,
   generateTimestampXScale,
-  getDisplayValue,
+  getTickLabelFontSize,
   scaleInternalLocation,
   unscaleNominalLocation,
 } from "@/utils/charts";
@@ -95,6 +94,7 @@ const MultipleChoiceChart: FC<Props> = ({
   const actualTheme = extraTheme
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
+  const tickLabelFontSize = getTickLabelFontSize(actualTheme);
 
   const defaultCursor = isClosed
     ? actualCloseTime
@@ -297,6 +297,7 @@ const MultipleChoiceChart: FC<Props> = ({
               <XTickLabel
                 chartWidth={chartWidth}
                 withCursor={!!onCursorChange}
+                fontSize={tickLabelFontSize as number}
               />
             }
           />
@@ -451,25 +452,13 @@ function buildChartData({
       return item;
     }
   );
-  let yScale = generatePercentageYScale(height);
-  if (!!scaling && !!questionType) {
-    const { ticks, majorTicks } = generateTicksY(
-      height,
-      [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
-      20
-    );
-    const tickFormat = (value: number): string => {
-      if (!majorTicks.includes(value)) {
-        return "";
-      }
-      return getDisplayValue(value, questionType!, scaling!);
-    };
-    yScale = { ticks, tickFormat };
-  }
 
   return {
     xScale: generateTimestampXScale(xDomain, width),
-    yScale,
+    yScale: generateScale({
+      displayType: "percent",
+      axisLength: height,
+    }),
     graphs: graphs,
     xDomain,
   };

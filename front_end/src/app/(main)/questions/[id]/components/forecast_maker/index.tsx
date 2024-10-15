@@ -47,6 +47,7 @@ const ForecastMaker: FC<Props> = ({ post }) => {
         questions={groupOfQuestions.questions}
         canPredict={canPredict}
         canResolve={canResolve}
+        predictionMessage={predictionMessage}
       />
     );
   }
@@ -57,6 +58,7 @@ const ForecastMaker: FC<Props> = ({ post }) => {
         post={post}
         conditional={conditional}
         canPredict={canPredict}
+        predictionMessage={predictionMessage}
       />
     );
   }

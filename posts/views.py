@@ -135,17 +135,20 @@ def posts_list_oldapi_view(request):
     # Apply filtering
     filters_serializer = OldQuestionFilterSerializer(data=request.query_params)
     filters_serializer.is_valid(raise_exception=True)
-    status = filters_serializer.validated_data.get("status", None)
-    projects = filters_serializer.validated_data.get("project", None)
-    order_by = filters_serializer.validated_data.get("order_by", None)
+    status = filters_serializer.validated_data.pop("status", None)
+    projects = filters_serializer.validated_data.pop("project", None)
+    guessed_by = filters_serializer.validated_data.pop("guessed_by", None)
+    not_guessed_by = filters_serializer.validated_data.pop("not_guessed_by", None)
 
     qs = get_posts_feed(
         qs,
         user=request.user,
         tournaments=projects,
         statuses=status,
-        order_by=order_by,
         forecast_type=["binary"],
+        forecaster_id=guessed_by,
+        not_forecaster_id=not_guessed_by,
+        **filters_serializer.validated_data,
     )
     # Paginating queryset
     posts = paginator.paginate_queryset(qs, request)
@@ -209,6 +212,16 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
+    qdatas = []
+    qdata = request.data.get("question", None)
+    if qdata:
+        qdatas.append(qdata)
+    qdatas.extend(request.data.get("group_of_questions", {}).get("questions", []))
+    for qdata in qdatas:
+        scaling = qdata.pop("scaling", {})
+        qdata["range_min"] = scaling.get("range_min")
+        qdata["range_max"] = scaling.get("range_max")
+        qdata["zero_point"] = scaling.get("zero_point")
     serializer = PostWriteSerializer(data=request.data, context={"user": request.user})
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=request.user)

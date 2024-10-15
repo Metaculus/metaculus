@@ -7,9 +7,9 @@ function Dates() {
 
   return (
     <Card
-      className="bg-blue-500/50 py-4 text-blue-800 hover:cursor-default dark:bg-blue-500-dark/50 dark:text-blue-800-dark"
+      className="rounded-md bg-blue-500/50 py-4 text-blue-800 hover:cursor-default dark:bg-blue-500-dark/50 dark:text-blue-800-dark "
       heading1={t("FABStartDate")}
-      heading2={t("FABStartDateJuly8")}
+      heading2={t("FABStartDateOct8")}
     />
   );
 }
@@ -18,7 +18,7 @@ function Prize() {
   const t = useTranslations();
   return (
     <Card
-      className="border-olive-700 bg-olive-500/50 text-olive-800 dark:bg-olive-500/30 dark:text-olive-900-dark"
+      className="rounded-md border-olive-700 bg-olive-500/50 text-olive-800 dark:bg-olive-500/30 dark:text-olive-900-dark"
       heading1={t("FABPrizePool")}
       heading2={t("FABPrizeValue")}
     />

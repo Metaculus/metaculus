@@ -52,8 +52,6 @@ class UserPublicSerializer(serializers.ModelSerializer):
             "occupation",
             "location",
             "profile_picture",
-            "first_name",
-            "last_name",
         )
 
     def get_formerly_known_as(self, obj: User):
@@ -73,7 +71,7 @@ class UserPrivateSerializer(UserPublicSerializer):
 
 
 class UserUpdateProfileSerializer(serializers.ModelSerializer):
-    website = serializers.URLField(allow_blank=True)
+    website = serializers.URLField(allow_blank=True, max_length=100)
 
     class Meta:
         model = User

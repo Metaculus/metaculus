@@ -18,6 +18,7 @@ import {
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import Select from "@/components/ui/select";
 import { useAuth } from "@/contexts/auth_context";
+import { logError } from "@/utils/errors";
 
 const contactUsSchema = z.object({
   email: z.string().min(1, { message: "Email is required" }),
@@ -73,7 +74,7 @@ const ContactUsModal: FC<Props> = ({ isOpen, onClose, defaultSubject }) => {
         onClose(false);
         setIsSuccessModalOpen(true);
       } catch (e) {
-        console.error(e);
+        logError(e);
         const error = e as Error & { digest?: string };
         setError(error);
       } finally {

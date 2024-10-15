@@ -27,6 +27,7 @@ from questions.serializers import (
 from questions.services import get_aggregated_forecasts_for_questions
 from users.models import User
 from utils.dtypes import flatten
+from utils.serializers import SerializerKeyLookupMixin
 from .models import Notebook, Post, PostSubscription
 from .utils import get_post_slug
 
@@ -191,8 +192,7 @@ class PostUpdateSerializer(PostWriteSerializer):
     group_of_questions = GroupOfQuestionsUpdateSerializer(required=False)
 
 
-class PostFilterSerializer(serializers.Serializer):
-    # TODO: ignore incorrect filter options in case of error, so users with old links could get results
+class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     class Order(models.TextChoices):
         PUBLISHED_AT = "published_at"
         VOTES = "vote_score"
@@ -224,6 +224,9 @@ class PostFilterSerializer(serializers.Serializer):
         choices=ObjectPermission.choices + [ObjectPermission.CREATOR],
     )
     order_by = serializers.CharField(required=False, allow_null=True)
+    curation_status = serializers.ChoiceField(
+        required=False, choices=Post.CurationStatus.choices
+    )
     notebook_type = serializers.ChoiceField(
         choices=Notebook.NotebookType.choices, required=False, allow_null=True
     )
@@ -236,6 +239,17 @@ class PostFilterSerializer(serializers.Serializer):
 
     search = serializers.CharField(required=False, allow_null=True)
     for_main_feed = serializers.BooleanField(required=False, allow_null=True)
+
+    # Key lookup filters
+    published_at = serializers.DateTimeField(required=False, allow_null=True)
+    scheduled_resolve_time = serializers.DateTimeField(required=False, allow_null=True)
+    scheduled_close_time = serializers.DateTimeField(required=False, allow_null=True)
+
+    key_lookup_fields = [
+        "published_at",
+        "scheduled_resolve_time",
+        "scheduled_close_time",
+    ]
 
     def validate_public_figure(self, value: int):
         try:
@@ -280,12 +294,26 @@ class PostFilterSerializer(serializers.Serializer):
         return
 
 
-class OldQuestionFilterSerializer(PostFilterSerializer):
+class OldQuestionFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     status = serializers.MultipleChoiceField(
         choices=["open", "closed"],
         required=False,
     )
     project = serializers.IntegerField(required=False)
+    guessed_by = serializers.IntegerField(required=False)
+    order_by = serializers.CharField(required=False, allow_null=True)
+    not_guessed_by = serializers.IntegerField(required=False)
+
+    # Key lookup filters
+    published_at = serializers.DateTimeField(required=False, allow_null=True)
+    scheduled_resolve_time = serializers.DateTimeField(required=False, allow_null=True)
+    scheduled_close_time = serializers.DateTimeField(required=False, allow_null=True)
+
+    key_lookup_fields = [
+        "published_at",
+        "scheduled_resolve_time",
+        "scheduled_close_time",
+    ]
 
     def validate_project(self, value):
         return validate_tournaments(lookup_values=[str(value)])
@@ -294,7 +322,7 @@ class OldQuestionFilterSerializer(PostFilterSerializer):
         order_by = value.lstrip("-")
         if order_by == "hotness":
             return "activity"
-        if order_by in self.Order:
+        if order_by in PostFilterSerializer.Order:
             return value
 
         return

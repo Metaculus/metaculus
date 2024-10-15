@@ -20,7 +20,7 @@ const NewsCard: FC<Props> = ({ post }) => {
   const t = useTranslations();
 
   const { ref, width } = useContainerSize<HTMLDivElement>();
-  const commentsCount = post.vote.score ?? 0;
+  const commentsCount = post.comment_count ?? 0;
   return (
     <div className="rounded bg-gray-0 dark:bg-gray-0-dark">
       <Link

@@ -33,8 +33,11 @@ class TestPostCreate:
                     "type": "numeric",
                     "possibilities": {"type": "binary"},
                     "resolution": "1.0",
-                    "range_min": 1,
-                    "range_max": 100,
+                    "scaling": {
+                        "range_min": 1,
+                        "range_max": 100,
+                        "zero_point": None,
+                    },
                     "open_upper_bound": True,
                     "open_time": "2024-04-01T00:00:00Z",
                     "scheduled_close_time": "2024-05-01T00:00:00Z",
@@ -230,10 +233,54 @@ class TestPostUpdate:
 
 
 def test_posts_list(anon_client):
-    response = anon_client.get("/api/posts")
+    response = anon_client.get("/api/posts/")
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data
+
+
+def test_posts_list__filters(user1, user1_client):
+    url = reverse("post-list")
+
+    factory_post(
+        author=user1,
+        published_at=make_aware(
+            datetime.datetime(2024, 10, 1),
+        ),
+        scheduled_resolve_time=make_aware(datetime.datetime(2024, 10, 14)),
+    )
+
+    assert len(user1_client.get(url).data["results"]) == 1
+    assert (
+        len(user1_client.get(f"{url}?published_at__lt=2024-10-01").data["results"]) == 0
+    )
+    assert (
+        len(user1_client.get(f"{url}?published_at__lt=2024-10-02").data["results"]) == 1
+    )
+    assert (
+        len(
+            user1_client.get(f"{url}?scheduled_resolve_time__gte=2024-10-05").data[
+                "results"
+            ]
+        )
+        == 1
+    )
+    assert (
+        len(
+            user1_client.get(
+                f"{url}?scheduled_resolve_time__gte=2024-10-05&scheduled_resolve_time__lt=2024-10-15"
+            ).data["results"]
+        )
+        == 1
+    )
+    assert (
+        len(
+            user1_client.get(
+                f"{url}?scheduled_resolve_time__gte=2024-10-05&scheduled_resolve_time__lt=2024-10-14"
+            ).data["results"]
+        )
+        == 0
+    )
 
 
 def test_question_detail(anon_client, user1):
@@ -286,6 +333,7 @@ def test_post_view_event_api_view(user1, user1_client):
     assert snapshot.viewed_at == make_aware(datetime.datetime(2024, 6, 2))
 
 
+@freeze_time("2024-09-17T12:44Z")
 def test_post_subscriptions_update(user1, user1_client):
     post = factory_post(
         author=user1,
@@ -348,7 +396,8 @@ def test_post_subscriptions_update(user1, user1_client):
         # Milestone will be deleted
     ]
 
-    response = user1_client.post(url, data, format="json")
+    with freeze_time("2024-09-17T13:44Z"):
+        response = user1_client.post(url, data, format="json")
     assert response.status_code == status.HTTP_201_CREATED
     assert qs.count() == 5
 

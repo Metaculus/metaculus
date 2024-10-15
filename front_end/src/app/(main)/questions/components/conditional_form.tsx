@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { Post, PostWithForecasts } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
+import { logError } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus, parseQuestionId } from "@/utils/questions";
 
@@ -31,11 +32,16 @@ type PostCreationData = {
     condition_child_id: number;
   };
 };
-const conditionalQuestionSchema = z.object({
-  condition_id: z.string().min(1, { message: "Required" }),
-  condition_child_id: z.string().min(1, { message: "Required" }),
-  default_project: z.number(),
-});
+
+const createConditionalQuestionSchema = (
+  t: ReturnType<typeof useTranslations>
+) => {
+  return z.object({
+    condition_id: z.string().min(1, { message: t("errorRequired") }),
+    condition_child_id: z.string().min(1, { message: t("errorRequired") }),
+    default_project: z.number(),
+  });
+};
 
 const ConditionalForm: React.FC<{
   post: PostWithForecasts | null;
@@ -71,7 +77,9 @@ const ConditionalForm: React.FC<{
   const [conditionChild, setConditionChild] =
     useState<PostWithForecasts | null>(conditionChildInit);
 
+  const conditionalQuestionSchema = createConditionalQuestionSchema(t);
   const control = useForm({
+    mode: "all",
     resolver: zodResolver(conditionalQuestionSchema),
     defaultValues: {
       condition_id: conditionParentInit?.id.toString(),
@@ -120,7 +128,7 @@ const ConditionalForm: React.FC<{
 
         router.push(getPostLink(resp.post));
       } catch (e) {
-        console.error(e);
+        logError(e);
         const error = e as Error & { digest?: string };
         setError(error);
       } finally {

@@ -17,17 +17,34 @@ import { useAuth } from "@/contexts/auth_context";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { Category, Post, PostWithForecasts } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
+import { logError } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
 import { createQuestionPost, updatePost } from "../actions";
 
-const notebookSchema = z.object({
-  title: z.string().min(4).max(200),
-  url_title: z.string().min(4).max(60),
-  default_project: z.number(),
-});
+const createNotebookSchema = (t: ReturnType<typeof useTranslations>) => {
+  return z.object({
+    title: z
+      .string()
+      .min(4, {
+        message: t("errorMinLength", { field: "String", minLength: 4 }),
+      })
+      .max(200, {
+        message: t("errorMaxLength", { field: "String", maxLength: 200 }),
+      }),
+    url_title: z
+      .string()
+      .min(4, {
+        message: t("errorMinLength", { field: "String", minLength: 4 }),
+      })
+      .max(60, {
+        message: t("errorMaxLength", { field: "String", maxLength: 60 }),
+      }),
+    default_project: z.number(),
+  });
+};
 
 type Props = {
   mode: "create" | "edit";
@@ -56,7 +73,9 @@ const NotebookForm: React.FC<Props> = ({
     (Error & { digest?: string }) | undefined
   >();
   const t = useTranslations();
+  const notebookSchema = createNotebookSchema(t);
   const control = useForm({
+    mode: "all",
     resolver: zodResolver(notebookSchema),
   });
   const [categoriesList, setCategoriesList] = useState<Category[]>(
@@ -103,7 +122,7 @@ const NotebookForm: React.FC<Props> = ({
 
       router.push(getPostLink(resp.post));
     } catch (e) {
-      console.log(e);
+      logError(e);
       const error = e as Error & { digest?: string };
       setError(error);
     } finally {

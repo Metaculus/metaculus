@@ -55,11 +55,11 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/project/:slug',
-        destination: '/tournament/:slug',
+        source: "/project/:slug",
+        destination: "/tournament/:slug",
         permanent: true,
       },
-    ]
+    ];
   },
   rewrites: () => [
     // Django Admin rewrites
@@ -99,4 +99,5 @@ export default withSentryConfig(withNextIntl(nextConfig), {
   project: "metaculus-frontend",
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: false,
+  widenClientFileUpload: true,
 });

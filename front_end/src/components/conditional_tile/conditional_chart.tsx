@@ -1,6 +1,6 @@
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { FC, useMemo } from "react";
+import { FC } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
@@ -9,9 +9,9 @@ import ProgressBar from "@/components/ui/progress_bar";
 import { ContinuousAreaType } from "@/types/charts";
 import { PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
+import { getDisplayValue } from "@/utils/charts";
 import {
   extractPrevNumericForecastValue,
-  formatPrediction,
   getNumericForecastDataset,
 } from "@/utils/forecasts";
 import { cdfToPmf } from "@/utils/math";
@@ -76,7 +76,7 @@ const ConditionalChart: FC<Props> = ({ question, disabled, chartTheme }) => {
 
       const prediction = aggregate.latest?.centers![0];
       const formattedPrediction = prediction
-        ? formatPrediction(prediction, question.type)
+        ? getDisplayValue(prediction, question.type, question.scaling)
         : "";
 
       const continuousAreaChartData = [

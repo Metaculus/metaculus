@@ -27,6 +27,7 @@ import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { parseUserMentions } from "@/utils/comments";
 import { formatDate } from "@/utils/date_formatters";
+import { logError } from "@/utils/errors";
 import { canPredictQuestion } from "@/utils/questions";
 
 import { CmmOverlay, CmmToggleButton, useCmmContext } from "./comment_cmm";
@@ -50,13 +51,10 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   sort,
 }) => {
   const t = useTranslations();
+  const sortedCommentChildren = sortComments([...commentChildren], sort);
   const [childrenExpanded, setChildrenExpanded] = useState(
     expandedChildren && treeDepth < 5
   );
-
-  useEffect(() => {
-    sortComments(commentChildren, sort);
-  }, [commentChildren, sort]);
 
   function getTreeSize(commentChildren: CommentType[]): number {
     let totalChildren = 0;
@@ -116,7 +114,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
           />
         )}
         {childrenExpanded &&
-          commentChildren.map((child: CommentType) => (
+          sortedCommentChildren.map((child: CommentType) => (
             <div
               key={child.id}
               className="my-1 rounded-md bg-blue-500/15 px-2.5 py-1.5 dark:bg-blue-500/10"
@@ -207,7 +205,7 @@ const Comment: FC<CommentProps> = ({
     try {
       await navigator.clipboard.writeText(text);
     } catch (err) {
-      console.error(t("failedToCopyText"), err);
+      logError(err, `${t("failedToCopyText")} ${err}`);
     }
   };
 
@@ -436,6 +434,7 @@ const Comment: FC<CommentProps> = ({
             <div className="inline-flex items-center gap-2.5">
               <CommentVoter
                 voteData={{
+                  commentAuthorId: comment.author.id,
                   commentId: comment.id,
                   voteScore: comment.vote_score,
                   userVote: comment.user_vote ?? null,
@@ -490,6 +489,7 @@ const Comment: FC<CommentProps> = ({
         <CommentEditor
           parentId={comment.id}
           postId={comment.on_post}
+          text={formatMention(comment)}
           onSubmit={(newComment: CommentType) => {
             addNewChildrenComment(comment, newComment);
             setIsReplying(false);
@@ -524,6 +524,10 @@ function addNewChildrenComment(comment: CommentType, newComment: CommentType) {
   comment.children.map((nestedComment) => {
     addNewChildrenComment(nestedComment, newComment);
   });
+}
+
+function formatMention(comment: CommentType) {
+  return `[@${comment.author.username}](/accounts/profile/${comment.author.id})`;
 }
 
 export default Comment;

@@ -24,6 +24,7 @@ import ForecastTextInput from "@/app/(main)/questions/[id]/components/forecast_m
 import { toggleCMMComment } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
+import { logError } from "@/utils/errors";
 
 export const BINARY_MIN_VALUE = 0.001;
 export const BINARY_MAX_VALUE = 0.999;
@@ -305,7 +306,7 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
         });
         cmmContext.onCMMToggled(!cmmContext.cmmEnabled);
       } catch (e) {
-        console.error(e);
+        logError(e);
         const error = e as Error & { digest?: string };
         setError(error);
         cmmContext.onCMMToggled(cmmContext.cmmEnabled);

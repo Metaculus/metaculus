@@ -15,6 +15,7 @@ from django.db.models import (
     QuerySet,
     FilteredRelation,
     Exists,
+    Value,
 )
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -139,9 +140,14 @@ class PostQuerySet(models.QuerySet):
         """
         Annotate last forecast date for user
         """
+        last_forecast_date_subquery = PostUserSnapshot.objects.filter(
+            user_id=author_id, post_id=OuterRef("pk")
+        ).values("last_forecast_date")[:1]
 
-        return self.filter(snapshots__user_id=author_id).annotate(
-            user_last_forecasts_date=F("snapshots__last_forecast_date")
+        return self.annotate(
+            user_last_forecasts_date=Coalesce(
+                Subquery(last_forecast_date_subquery), Value(None)
+            )
         )
 
     def annotate_unread_comment_count(self, user_id: int):
@@ -397,8 +403,8 @@ class Post(TimeStampedModel):
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    scheduled_close_time = models.DateTimeField(null=True, blank=True)
-    scheduled_resolve_time = models.DateTimeField(null=True, blank=True)
+    scheduled_close_time = models.DateTimeField(null=True, blank=True, db_index=True)
+    scheduled_resolve_time = models.DateTimeField(null=True, blank=True, db_index=True)
     actual_close_time = models.DateTimeField(null=True, blank=True)
     resolved = models.BooleanField(default=False)
 
@@ -617,7 +623,7 @@ class Post(TimeStampedModel):
         return self.votes.aggregate(Sum("direction")).get("direction__sum") or 0
 
     def get_comment_count(self) -> int:
-        return self.comments.count()
+        return self.comments.filter(is_private=False).count()
 
     def get_url_title(self):
         return self.url_title or self.title
@@ -720,7 +726,7 @@ class PostUserSnapshot(models.Model):
             user=user,
             post=post,
             defaults={
-                "comments_count": post.comments.count(),
+                "comments_count": post.get_comment_count(),
                 "viewed_at": timezone.now(),
             },
         )

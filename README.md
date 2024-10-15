@@ -1,17 +1,17 @@
 ![Metaculus logo-blue on transparent](https://github.com/user-attachments/assets/70edc5dd-f334-4d56-91a3-82b117572c30)
 
-This is the codebase for the rewritten main [Metaculus website](https://metaculus.com), it's expected to be live in October.
+This is the codebase for the rewritten main [Metaculus website](https://metaculus.com).
 
 
 # Contributing
 
-**If you make a meaningful contribution to the Metaculus codebase, e.g. [solving an issue](https://github.com/Metaculus/metaculus/issues?q=is%3Aissue+is%3Aopen+label%3ASimple) we'll gift you a Metaculus hoodie (please email the shipping address to christian@metaculus.com)**
+**If you make a meaningful contribution to the Metaculus codebase, e.g. [solving an issue](https://github.com/Metaculus/metaculus/issues?q=is%3Aissue+is%3Aopen+label%3ASimple) we'll send you a Metaculus hoodie (please email the shipping address to christian@metaculus.com)**
 
-If you wish to contribute try to set up a local development environment using the instructions below, and [create an issue](https://github.com/Metaculus/metaculus/issues) if you are having problems doing so.
+If you want to contribute, set up a local development environment using the instructions below. [Create an issue](https://github.com/Metaculus/metaculus/issues) if you are having problems doing so.
 
-We curate a [list of issues suitable for newcomers](https://github.com/Metaculus/metaculus/issues?q=is%3Aissue+is%3Aopen+label%3ASimple), it's a great starting point.
+We curate a [list of issues suitable for newcomers](https://github.com/Metaculus/metaculus/issues?q=is%3Aissue+is%3Aopen+label%3ASimple). It's a great place to start.
 
-Feel free to suggest your own changes and ideas as an issue, we'll discuss it and help you get started on implementing it.
+Feel free to suggest your own changes and ideas as an issue. We'll discuss it and help you get started on implementing it.
 
 # Setup dev env.
 

@@ -8,7 +8,7 @@ export type ContactForm = {
 
 class MiscApi {
   static async submitContactForm(data: ContactForm) {
-    return post("/contact-form", data);
+    return post("/contact-form/", data);
   }
   static async getBulletins() {
     const resp = await get<{
@@ -16,11 +16,11 @@ class MiscApi {
         text: string;
         id: number;
       }[];
-    }>("/get-bulletins");
+    }>("/get-bulletins/");
     return resp.bulletins;
   }
   static async cancelBulletin(bulletinId: number) {
-    const resp = await post(`/cancel-bulletin/${bulletinId}`, {});
+    const resp = await post(`/cancel-bulletin/${bulletinId}/`, {});
     return resp;
   }
 }

@@ -33,7 +33,9 @@ const StateByForecast: FC<Props> = async ({
   isEmbed,
 }) => {
   const t = await getTranslations();
-  const post = await PostsApi.getPostAnonymous(questionGroupId);
+  const post = await PostsApi.getPostAnonymous(questionGroupId, {
+    next: { revalidate: 900 },
+  });
   if (!post?.group_of_questions) {
     return null;
   }
@@ -219,10 +221,18 @@ function getDemocratRepublicanPrediction({
 
   return {
     democratPrediction: rawDemocratPrediction
-      ? getDisplayValue(rawDemocratPrediction, demQuestion)
+      ? getDisplayValue(
+          rawDemocratPrediction,
+          demQuestion.type,
+          demQuestion.scaling
+        )
       : null,
     republicanPrediction: rawRepublicanPrediction
-      ? getDisplayValue(rawRepublicanPrediction, repQuestion)
+      ? getDisplayValue(
+          rawRepublicanPrediction,
+          repQuestion.type,
+          repQuestion.scaling
+        )
       : null,
   };
 }

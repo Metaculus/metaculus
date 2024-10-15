@@ -7,8 +7,9 @@ import {
   subDays,
   subMonths,
 } from "date-fns";
+import { range } from "lodash";
 import { findLastIndex, isNil, uniq } from "lodash";
-import { Tuple } from "victory";
+import { Tuple, VictoryThemeDefinition } from "victory";
 
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import {
@@ -99,7 +100,7 @@ export function generateTimestampXScale(
   const start = fromUnixTime(xDomain[0]);
   const end = fromUnixTime(xDomain[1]);
   const timeRange = differenceInMilliseconds(end, start);
-  const maxTicks = Math.floor(width / 60);
+  const maxTicks = Math.floor(width / 80);
   if (timeRange < oneHour) {
     ticks = d3.timeMinute.range(start, end);
     format = d3.timeFormat("%_I:%M %p");
@@ -124,11 +125,11 @@ export function generateTimestampXScale(
     cursorFormat = d3.timeFormat("%_I:%M %p, %b %d");
   } else if (timeRange < halfYear) {
     ticks = d3.timeDay.range(start, end);
-    format = d3.timeFormat("%b %d");
+    format = d3.timeFormat("%b %Y");
     cursorFormat = d3.timeFormat("%b %d, %Y");
   } else if (timeRange < oneYear) {
     ticks = d3.timeMonth.range(start, end);
-    format = d3.timeFormat("%b %d");
+    format = d3.timeFormat("%b %Y");
     cursorFormat = d3.timeFormat("%b %d, %Y");
   } else if (timeRange < oneYear * 2) {
     ticks = d3.timeMonth.range(start, end);
@@ -136,7 +137,7 @@ export function generateTimestampXScale(
       const isFirstMonthOfYear = date.getMonth() === 0;
       return isFirstMonthOfYear
         ? d3.timeFormat("%Y")(date)
-        : d3.timeFormat("%b %d")(date);
+        : d3.timeFormat("%b %Y")(date);
     };
     cursorFormat = d3.timeFormat("%b %d, %Y");
   } else if (timeRange < oneYear * 4) {
@@ -146,7 +147,7 @@ export function generateTimestampXScale(
       const isFirstMonthOfYear = date.getMonth() === 0;
       return isFirstMonthOfYear
         ? d3.timeFormat("%Y")(date)
-        : d3.timeFormat("%b %e")(date);
+        : d3.timeFormat("%b %Y")(date);
     };
     cursorFormat = d3.timeFormat("%b %d, %Y");
   } else {
@@ -156,7 +157,7 @@ export function generateTimestampXScale(
       const isFirstMonthOfYear = date.getMonth() === 0;
       return isFirstMonthOfYear
         ? d3.timeFormat("%Y")(date)
-        : d3.timeFormat("%b %e")(date);
+        : d3.timeFormat("%b %Y")(date);
     };
     cursorFormat = d3.timeFormat("%b %d, %Y");
   }
@@ -191,6 +192,8 @@ export function scaleInternalLocation(x: number, scaling: Scaling) {
     scaled_location =
       range_min! +
       ((range_max! - range_min!) * (derivRatio ** x - 1)) / (derivRatio - 1);
+  } else if (range_min === null || range_max === null) {
+    scaled_location = x;
   } else {
     scaled_location = range_min! + (range_max! - range_min!) * x;
   }
@@ -219,12 +222,35 @@ export function unscaleNominalLocation(x: number, scaling: Scaling) {
 
 export function displayValue(
   value: number,
-  questionType: QuestionType
+  questionType: QuestionType,
+  precision?: number,
+  truncation?: number
 ): string {
+  precision = precision ?? 3;
+  truncation = truncation ?? 0;
   if (questionType === QuestionType.Date) {
-    return format(fromUnixTime(value), "yyyy-MM");
+    let dateFormat: string;
+    if (precision <= 1) {
+      dateFormat = "yyyy";
+    } else if (precision <= 2) {
+      dateFormat = truncation < 1 ? "yyyy-MM" : "MM";
+    } else if (precision <= 3) {
+      dateFormat =
+        truncation < 1 ? "yyyy-MM-dd" : truncation < 2 ? "MM-dd" : "dd";
+    } else {
+      dateFormat =
+        truncation < 1
+          ? "yyyy-MM-dd HH:mm"
+          : truncation < 2
+            ? "MM-dd HH:mm"
+            : truncation < 3
+              ? "dd HH:mm"
+              : "HH:mm";
+    }
+    return format(fromUnixTime(value), dateFormat);
   } else if (questionType === QuestionType.Numeric) {
-    return abbreviatedNumber(value);
+    // TODO add truncation to abbreviatedNumber
+    return abbreviatedNumber(value, precision);
   } else {
     return `${Math.round(value * 100)}%`;
   }
@@ -238,46 +264,16 @@ export function displayValue(
  */
 export function getDisplayValue(
   value: number | undefined,
-  question: Question
-): string;
-export function getDisplayValue(
-  value: number | undefined,
   questionType: QuestionType,
-  scaling: Scaling
-): string;
-export function getDisplayValue(
-  value: number | undefined,
-  questionOrQuestionType: Question | QuestionType,
-  scaling?: Scaling
+  scaling: Scaling,
+  precision?: number,
+  truncation?: number
 ): string {
-  let qType: string;
-  let rMin: number | null;
-  let rMax: number | null;
-  let zPoint: number | null;
-
-  if (typeof questionOrQuestionType === "object") {
-    // Handle the case where the input is a Question object
-    qType = questionOrQuestionType.type;
-    rMin = questionOrQuestionType.scaling.range_min;
-    rMax = questionOrQuestionType.scaling.range_max;
-    zPoint = questionOrQuestionType.scaling.zero_point;
-  } else {
-    // Handle the case where the input is individual parameters
-    qType = questionOrQuestionType;
-    rMin = scaling!.range_min ?? 0;
-    rMax = scaling!.range_max ?? 1;
-    zPoint = scaling!.zero_point ?? null;
-  }
-
   if (value === undefined) {
     return "...";
   }
-  const scaledValue = scaleInternalLocation(value, {
-    range_min: rMin ?? 0,
-    range_max: rMax ?? 1,
-    zero_point: zPoint,
-  });
-  return displayValue(scaledValue, qType as QuestionType);
+  const scaledValue = scaleInternalLocation(value, scaling);
+  return displayValue(scaledValue, questionType, precision, truncation);
 }
 
 export function getChoiceOptionValue(
@@ -358,7 +354,7 @@ export function getDisplayUserValue(
     zero_point: zPoint,
   });
   if (qType === QuestionType.Date) {
-    return format(fromUnixTime(scaledValue), "yyyy-MM");
+    return format(fromUnixTime(scaledValue), "yyyy-MM-dd");
   } else if (qType === QuestionType.Numeric) {
     return abbreviatedNumber(scaledValue);
   } else {
@@ -394,6 +390,161 @@ export function generatePercentageYScale(containerHeight: number): Scale {
     ticks,
     tickFormat: (y: number) =>
       majorTicks.includes(y) ? `${Math.round(y * 100)}%` : "",
+  };
+}
+
+type GenerateScaleParams = {
+  displayType: QuestionType | "percent";
+  axisLength: number;
+  direction?: "horizontal" | "vertical";
+  domain?: Tuple<number>;
+  scaling?: Scaling | null;
+  displayLabel?: string;
+  withCursorFormat?: boolean;
+  cursorDisplayLabel?: string | null;
+};
+
+/**
+ * Flexible utility function for generating ticks and tick formats
+ * for any axis
+ *
+ * @param displayType the type of the data, either "date", "numeric",
+ *  or "percent". "percent" is a special case that will set other values
+ *  automatically
+ * @param axisLength the length of the axis in pixels which
+ *  can be used to determine the number of ticks
+ * @param domain the domain of the data, defaults to [0, 1],
+ *  but for dates can be the min and max unix timestamps
+ * @param scaling the Scaling related to the data, defaults to null
+ *  which in turn is the same as a linear scaling along the given domain
+ * @param displayLabel this is the label that will be appended to the
+ *  formatted tick values, defaults to an empty string
+ * @param withCursorFormat whether or not to generate a special cursor
+ *  format for the hover state
+ * @param cursorDisplayLabel specifies the label to appear on the cursor
+ *  state, which defaults to the displayLabel
+ *
+ * @returns returns a Scale object with ticks, tickFormat, and cursorFormat
+ */
+export function generateScale({
+  displayType,
+  axisLength,
+  direction = "horizontal",
+  domain = [0, 1],
+  scaling = null,
+  displayLabel = "",
+  withCursorFormat = false,
+  cursorDisplayLabel = null,
+}: GenerateScaleParams): Scale {
+  const domainMin = domain[0];
+  const domainMax = domain[1];
+  const domainSize = domainMax - domainMin;
+  const domainScaling = {
+    range_min: domainMin,
+    range_max: domainMax,
+    zero_point: null,
+  };
+
+  const rangeMin = scaling?.range_min ?? domainMin;
+  const rangeMax = scaling?.range_max ?? domainMax;
+  const rangeSize = rangeMax - rangeMin;
+  const zeroPoint = scaling?.zero_point ?? null;
+  const rangeScaling = {
+    range_min: rangeMin,
+    range_max: rangeMax,
+    zero_point: zeroPoint,
+  };
+
+  // determine the number of ticks to label
+  // based on the axis length and direction
+  let maxLabelCount: number;
+  if (axisLength < 100) {
+    maxLabelCount = direction === "horizontal" ? 2 : 3;
+  } else if (axisLength < 150) {
+    maxLabelCount = direction === "horizontal" ? 3 : 5;
+  } else if (axisLength < 300) {
+    maxLabelCount = direction === "horizontal" ? 5 : 6;
+  } else if (axisLength < 500) {
+    maxLabelCount = direction === "horizontal" ? 6 : 11;
+  } else if (axisLength < 800) {
+    maxLabelCount = direction === "horizontal" ? 6 : 21;
+  } else if (axisLength < 1200) {
+    maxLabelCount = direction === "horizontal" ? 11 : 21;
+  } else {
+    maxLabelCount = direction === "horizontal" ? 21 : 26;
+  }
+  const tickCount = (maxLabelCount! - 1) * 5 + 1;
+
+  // console.log({
+  //   displayType,
+  //   axisLength,
+  //   domain,
+  //   scaling,
+  //   displayLabel,
+  //   withCursorFormat,
+  //   cursorDisplayLabel,
+  //   maxLabelCount,
+  //   tickCount,
+  //   domainScaling,
+  //   rangeScaling,
+  // });
+
+  if (displayType === "percent") {
+    // special case for "percent" situation
+    displayLabel = "%";
+    const tickInterval = domainMax / (tickCount - 1);
+    const labeledTickInterval = domainMax / (maxLabelCount - 1);
+    return {
+      ticks: range(domainMin, domainMax + tickInterval / 2, tickInterval),
+      tickFormat: (x) => {
+        if (Math.round(x * 100) % Math.round(labeledTickInterval * 100) === 0) {
+          return `${Math.round(x * 100)}` + displayLabel;
+        }
+        return "";
+      },
+      cursorFormat: withCursorFormat
+        ? (x) => `${Math.round(x * 10000) / 100}` + displayLabel
+        : undefined,
+    };
+  }
+
+  const tickInterval = 1 / (tickCount - 1);
+  const labeledTickInterval = 1 / (maxLabelCount - 1);
+  const majorTicks: number[] = range(
+    0,
+    1 + tickInterval / 100,
+    labeledTickInterval
+  ).map((x) => Math.round(x * 1000) / 1000);
+  const allTicks: number[] = range(0, 1 + tickInterval / 100, tickInterval).map(
+    (x) => Math.round(x * 1000) / 1000
+  );
+  return {
+    ticks: allTicks,
+    tickFormat: (x) => {
+      if (majorTicks.includes(Math.round(x * 1000) / 1000)) {
+        const unscaled = unscaleNominalLocation(x, domainScaling);
+        return (
+          getDisplayValue(
+            unscaled,
+            displayType as QuestionType,
+            rangeScaling,
+            3
+          ) + displayLabel
+        );
+      }
+      return "";
+    },
+    cursorFormat: (x) => {
+      const unscaled = unscaleNominalLocation(x, domainScaling);
+      return (
+        getDisplayValue(
+          unscaled,
+          displayType as QuestionType,
+          rangeScaling,
+          6
+        ) + displayLabel
+      );
+    },
   };
 }
 
@@ -621,4 +772,21 @@ export function generateTicksY(
     return value.toString();
   };
   return { ticks, tickFormat, majorTicks };
+}
+
+export function getLeftPadding(yScale: Scale, labelsFontSize: number) {
+  const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
+  const longestLabelLength = Math.max(...labels.map((label) => label.length));
+
+  return {
+    leftPadding: Math.round((longestLabelLength * labelsFontSize * 9) / 10),
+    MIN_LEFT_PADDING: 50,
+  };
+}
+
+export function getTickLabelFontSize(actualTheme: VictoryThemeDefinition) {
+  const fontSize = Array.isArray(actualTheme.axis?.style?.tickLabels)
+    ? actualTheme.axis?.style?.tickLabels[0]?.fontSize
+    : actualTheme.axis?.style?.tickLabels?.fontSize;
+  return fontSize as number;
 }
