@@ -545,7 +545,6 @@ const GroupForm: React.FC<Props> = ({
                   </Button>
 
                   <Button
-                    // disabled={isLive && mode !== "create"}
                     size="md"
                     presentationType="icon"
                     variant="tertiary"
