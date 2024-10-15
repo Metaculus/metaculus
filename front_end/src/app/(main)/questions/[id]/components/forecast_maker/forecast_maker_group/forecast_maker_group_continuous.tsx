@@ -24,7 +24,11 @@ import {
   getNumericForecastDataset,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
-import { extractQuestionGroupName, formatResolution } from "@/utils/questions";
+import {
+  extractQuestionGroupName,
+  formatResolution,
+  getSubquestionPredictionInputMessage,
+} from "@/utils/questions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
@@ -108,6 +112,13 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const isPickerDirty = useMemo(
     () => groupOptions.some((option) => option.isDirty),
     [groupOptions]
+  );
+  const activeGroupOptionPredictionMessage = useMemo(
+    () =>
+      activeGroupOption
+        ? getSubquestionPredictionInputMessage(activeGroupOption)
+        : null,
+    [activeGroupOption]
   );
 
   const handleChange = useCallback(
@@ -281,7 +292,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               onChange={(forecast, weight) =>
                 handleChange(option.id, forecast, weight)
               }
-              disabled={!canPredict || !!option.resolution}
+              disabled={!canPredict || !option.question.is_open}
             />
           </div>
         );
@@ -291,7 +302,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           {t(predictionMessage)}
         </div>
       )}
-      {!!activeGroupOption && !activeGroupOption?.resolution && (
+      {!!activeGroupOption && activeGroupOption.question.is_open && (
         <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
           {canPredict &&
             (user ? (
@@ -329,6 +340,11 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
                 {t("signUpToPredict")}
               </Button>
             ))}
+        </div>
+      )}
+      {activeGroupOptionPredictionMessage && (
+        <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
+          {t(activeGroupOptionPredictionMessage)}
         </div>
       )}
       {!!activeGroupOption && (

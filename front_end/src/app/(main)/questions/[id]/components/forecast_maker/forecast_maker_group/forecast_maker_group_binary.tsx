@@ -55,6 +55,7 @@ type QuestionOption = {
   isDirty: boolean;
   color: ThemeColor;
   menu: ReactNode;
+  is_open?: boolean;
 };
 
 type Props = {
@@ -241,7 +242,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isDirty={questionOption.isDirty}
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
-              disabled={!canPredict || !!questionOption.resolution}
+              disabled={!canPredict || !questionOption.is_open}
               optionResolution={{
                 resolution: questionOption.resolution,
                 type: "group_question",
@@ -323,6 +324,7 @@ function generateChoiceOptions(
       resolution: question.resolution,
       isDirty: false,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      is_open: question.is_open,
       menu: (
         <ForecastMakerGroupControls
           question={question}

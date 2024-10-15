@@ -38,6 +38,9 @@ class QuestionSerializer(serializers.ModelSerializer):
             "actual_close_time",
             "type",
             "options",
+            # Used for Group Of Questions to determine
+            # whether question is eligible for forecasting
+            "is_open",
             "possibilities",
             "resolution",
             "resolution_criteria",

@@ -4,6 +4,7 @@ import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
+import { ConditionalTableOption } from "@/app/(main)/questions/[id]/components/forecast_maker/group_forecast_table";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
 import {
@@ -136,11 +137,11 @@ export function formatResolution(
   questionType: QuestionType,
   locale: string
 ) {
-  resolution = String(resolution);
-
-  if (resolution === "null" || resolution === "undefined") {
-    return "Annulled";
+  if (resolution === null || resolution === undefined) {
+    return "-";
   }
+
+  resolution = String(resolution);
 
   if (["yes", "no"].includes(resolution)) {
     return capitalize(resolution);
@@ -342,6 +343,16 @@ export function getPredictionInputMessage(post: Post) {
     default:
       return null;
   }
+}
+
+export function getSubquestionPredictionInputMessage(
+  option: ConditionalTableOption
+) {
+  if (!option.question.is_open && !isResolved(option.resolution)) {
+    return "predictionClosedMessage";
+  }
+
+  return null;
 }
 
 export function parseQuestionId(questionUrlOrId: string) {
