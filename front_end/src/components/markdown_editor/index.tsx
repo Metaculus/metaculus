@@ -26,7 +26,6 @@ import {
   toolbarPlugin,
   UndoRedo,
 } from "@mdxeditor/editor";
-import * as Sentry from "@sentry/nextjs";
 import classNames from "classnames";
 import dynamic from "next/dynamic";
 import React, { FC, useMemo, useRef, useState } from "react";
@@ -40,6 +39,7 @@ import {
 } from "@/components/markdown_editor/embedded_math_jax";
 import { linkPlugin } from "@/components/markdown_editor/plugins/link";
 import useAppTheme from "@/hooks/use_app_theme";
+import { logErrorWithScope } from "@/utils/errors";
 
 import {
   revertMathJaxTransform,
@@ -181,11 +181,11 @@ const MarkdownEditor: FC<Props> = ({
       markdown={formattedMarkdown}
       onChange={(value) => {
         // Revert the MathJax transformation before passing the markdown to the parent component
-        onChange && onChange(revertMathJaxTransform(value));
+        onChange &&
+          onChange(escapePlainTextSymbols(revertMathJaxTransform(value)));
       }}
       onError={(err) => {
-        console.error(err);
-        Sentry.captureException(err.error);
+        logErrorWithScope(err.error, err.source);
         if (mode === "read") {
           setErrorMarkdown(markdown);
         }
@@ -200,11 +200,25 @@ const MarkdownEditor: FC<Props> = ({
     />
   );
 };
-function escapePlainTextSymbols(text: string): string {
-  return text
-    .replace(/(?<!\\)(?<!<[^>]*)</g, `\\<`)
-    .replace(/(?<!\\)(?<!{[^}]*?){/g, `\\{`);
+
+// escape < and { that is not correctly used
+function escapePlainTextSymbols(str: string) {
+  const tags: any = [];
+  const tagRegex = /<\/?\s*[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^<>]*?)?>/g;
+  let tempStr = str.replace(tagRegex, function (match) {
+    tags.push(match);
+    return "___HTML_TAG___";
+  });
+
+  tempStr = tempStr.replace(/(?<!\\)</g, "\\<");
+
+  let index = 0;
+  tempStr = tempStr.replace(/___HTML_TAG___/g, function () {
+    return tags[index++];
+  });
+  return tempStr.replace(/(?<!\\){(?![^}]*})/g, `\\{`);
 }
+
 export default dynamic(() => Promise.resolve(MarkdownEditor), {
   ssr: false,
 });
