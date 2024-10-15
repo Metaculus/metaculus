@@ -380,6 +380,9 @@ const GroupForm: React.FC<Props> = ({
           <h4 className="m-0 capitalize">{t("subquestions")}</h4>
 
           {subQuestions.map((subQuestion, index) => {
+            const subquestionHasForecasts =
+              (subQuestion.aggregations?.recency_weighted?.history?.length ??
+                0) > 0;
             return (
               <div
                 key={index}
@@ -419,7 +422,7 @@ const GroupForm: React.FC<Props> = ({
                       className="w-full"
                     >
                       <Input
-                        readOnly={hasForecasts && mode !== "create"}
+                        readOnly={subquestionHasForecasts && mode !== "create"}
                         type="datetime-local"
                         className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                         defaultValue={
@@ -450,7 +453,7 @@ const GroupForm: React.FC<Props> = ({
                       className="w-full"
                     >
                       <Input
-                        readOnly={hasForecasts && mode !== "create"}
+                        readOnly={subquestionHasForecasts && mode !== "create"}
                         type="datetime-local"
                         className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                         defaultValue={
@@ -492,7 +495,9 @@ const GroupForm: React.FC<Props> = ({
                           subQuestions[index].open_upper_bound
                         }
                         defaultZeroPoint={subQuestions[index].zero_point}
-                        hasForecasts={hasForecasts && mode !== "create"}
+                        hasForecasts={
+                          subquestionHasForecasts && mode !== "create"
+                        }
                         canSeeLogarithmic={
                           post?.user_permission === ProjectPermissions.ADMIN ||
                           !post
