@@ -137,11 +137,11 @@ def calculate_aggregation_entry(
                 )
                 if question_type == "multiple_choice":
                     s = sum(centers)
-                    lowers = [l / s for l in lowers]
-                    centers = [c / s for c in centers]
-                    uppers = [u / s for u in uppers]
+                    lowers = [lower / s for lower in lowers]
+                    centers = [center / s for center in centers]
+                    uppers = [upper / s for upper in uppers]
                     aggregation.forecast_values = [
-                        f / s for f in aggregation.forecast_values
+                        value / s for value in aggregation.forecast_values
                     ]
         else:
             lowers, centers, uppers = percent_point_function(
