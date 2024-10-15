@@ -62,7 +62,6 @@
     "react-hot-toast": "^2.4.1",
     "react-responsive-carousel": "^3.2.23",
     "react-slider": "^2.0.6",
-    "reactour": "^1.19.4",
     "remark": "^15.0.1",
     "sass": "^1.77.6",
     "strip-markdown": "^6.0.0",
@@ -71,7 +70,6 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/reactour": "^1.18.5",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.3",
     "eslint-config-prettier": "^9.1.0",
