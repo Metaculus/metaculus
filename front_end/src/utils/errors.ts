@@ -1,4 +1,4 @@
-import { captureException } from "@sentry/nextjs";
+import * as Sentry from "@sentry/nextjs";
 
 export function extractError(field_error: any): string | undefined {
   if (typeof field_error === "string") return field_error;
@@ -16,6 +16,18 @@ export function extractError(field_error: any): string | undefined {
 }
 
 export function logError(error: Error | unknown, message?: string) {
-  captureException(error);
+  Sentry.captureException(error);
+  console.error(message ?? error);
+}
+
+export function logErrorWithScope(
+  error: Error | unknown,
+  payload: any,
+  message?: string
+) {
+  Sentry.withScope(function (scope) {
+    scope.setContext("payload", { payload: JSON.stringify(payload) });
+    Sentry.captureException(error);
+  });
   console.error(message ?? error);
 }
