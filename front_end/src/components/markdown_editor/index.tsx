@@ -26,9 +26,10 @@ import {
   toolbarPlugin,
   UndoRedo,
 } from "@mdxeditor/editor";
+import * as Sentry from "@sentry/nextjs";
 import classNames from "classnames";
 import dynamic from "next/dynamic";
-import React, { FC, useMemo, useRef } from "react";
+import React, { FC, useMemo, useRef, useState } from "react";
 
 import "@mdxeditor/editor/style.css";
 
@@ -89,12 +90,12 @@ const MarkdownEditor: FC<Props> = ({
   className,
 }) => {
   const { theme } = useAppTheme();
-
+  const [errorMarkdown, setErrorMarkdown] = useState<string | null>(null);
   const editorRef = useRef<MDXEditorMethods>(null);
 
   // Transform MathJax syntax to JSX embeds to properly utilise the MarkJax renderer
   const formattedMarkdown = useMemo(
-    () => transformMathJax(markdown),
+    () => escapePlainTextSymbols(transformMathJax(markdown)),
     [markdown]
   );
 
@@ -160,6 +161,9 @@ const MarkdownEditor: FC<Props> = ({
     }
   }
 
+  if (errorMarkdown) {
+    return <div className="whitespace-pre-line">{errorMarkdown}</div>;
+  }
   return (
     <MDXEditor
       ref={editorRef}
@@ -181,6 +185,10 @@ const MarkdownEditor: FC<Props> = ({
       }}
       onError={(err) => {
         console.error(err);
+        Sentry.captureException(err.error);
+        if (mode === "read") {
+          setErrorMarkdown(markdown);
+        }
       }}
       readOnly={mode === "read"}
       plugins={[
@@ -192,7 +200,11 @@ const MarkdownEditor: FC<Props> = ({
     />
   );
 };
-
+function escapePlainTextSymbols(text: string): string {
+  return text
+    .replace(/(?<!\\)(?<!<[^>]*)</g, `\\<`)
+    .replace(/(?<!\\)(?<!{[^}]*?){/g, `\\{`);
+}
 export default dynamic(() => Promise.resolve(MarkdownEditor), {
   ssr: false,
 });
