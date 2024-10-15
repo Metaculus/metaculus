@@ -76,6 +76,7 @@ RUN --mount=type=secret,id=frontend_env,target=/app/front_end/.env cd front_end 
 RUN source venv/bin/activate && ./manage.py collectstatic --noinput
 
 ENV PORT=3000
+ENV GUNICORN_WORKERS=4
 EXPOSE 3000
 
 FROM final_env AS release
