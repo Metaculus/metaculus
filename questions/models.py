@@ -134,6 +134,24 @@ class Question(TimeStampedModel):
         if len(posts) > 1:
             raise ValueError(f"Question {self.id} has more than one post: {posts}")
 
+    @property
+    def is_open(self) -> bool:
+        """
+        Indicates whether question is open for new forecasts.
+        """
+
+        now = timezone.now()
+
+        if (
+            (self.open_time and self.open_time <= now)
+            and self.resolution is None
+            and (not self.actual_close_time or self.actual_close_time > now)
+            and (not self.actual_resolve_time or self.actual_resolve_time > now)
+        ):
+            return True
+
+        return False
+
     def get_global_leaderboard_dates(self) -> tuple[datetime, datetime] | None:
         # returns the global leaderboard dates that this question counts for
         from scoring.models import global_leaderboard_dates
