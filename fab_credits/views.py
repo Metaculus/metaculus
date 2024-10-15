@@ -126,10 +126,10 @@ def make_request(
         logging.error(error_msg)
         return JsonResponse(
             {"error": error_msg},
-            status=502,
+            status=400,
         )
     except Exception as e:
-        return JsonResponse({"error": f"An unexpected error occurred: {e}"}, status=500)
+        return JsonResponse({"error": f"An unexpected error occurred: {e}"}, status=400)
 
 
 @api_view(["POST"])
