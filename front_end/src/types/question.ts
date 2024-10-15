@@ -197,6 +197,8 @@ export type Question = {
   display_divergences?: number[][];
   aggregations: Aggregations;
   my_forecasts?: UserForecastHistory;
+  // Used for GroupOfQuestions
+  is_open?: boolean;
 };
 
 export type QuestionWithNumericForecasts = Question & {
