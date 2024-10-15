@@ -212,6 +212,8 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
+    # manually convert scaling to range_min, range_max, zero_point
+    # TODO: move scaling handling
     qdatas = []
     qdata = request.data.get("question", None)
     if qdata:
@@ -222,6 +224,7 @@ def post_create_api_view(request):
         qdata["range_min"] = scaling.get("range_min")
         qdata["range_max"] = scaling.get("range_max")
         qdata["zero_point"] = scaling.get("zero_point")
+
     serializer = PostWriteSerializer(data=request.data, context={"user": request.user})
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=request.user)
@@ -247,6 +250,19 @@ def remove_from_project(request, pk):
 def post_update_api_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
     check_can_edit_post(post, request.user)
+
+    # manually convert scaling to range_min, range_max, zero_point
+    # TODO: move scaling handling
+    qdatas = []
+    qdata = request.data.get("question", None)
+    if qdata:
+        qdatas.append(qdata)
+    qdatas.extend(request.data.get("group_of_questions", {}).get("questions", []))
+    for qdata in qdatas:
+        scaling = qdata.pop("scaling", {})
+        qdata["range_min"] = scaling.get("range_min")
+        qdata["range_max"] = scaling.get("range_max")
+        qdata["zero_point"] = scaling.get("zero_point")
 
     serializer = PostUpdateSerializer(
         post, data=request.data, partial=True, context={"user": request.user}

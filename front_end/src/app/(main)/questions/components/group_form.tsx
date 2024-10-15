@@ -87,7 +87,7 @@ const GroupForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
-  const { isLive } = getQuestionStatus(post);
+  const { isLive, hasForecasts } = getQuestionStatus(post);
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
     (Error & { digest?: string }) | string | undefined
@@ -419,7 +419,7 @@ const GroupForm: React.FC<Props> = ({
                       className="w-full"
                     >
                       <Input
-                        readOnly={isLive && mode !== "create"}
+                        readOnly={hasForecasts && mode !== "create"}
                         type="datetime-local"
                         className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                         defaultValue={
@@ -450,7 +450,7 @@ const GroupForm: React.FC<Props> = ({
                       className="w-full"
                     >
                       <Input
-                        readOnly={isLive && mode !== "create"}
+                        readOnly={hasForecasts && mode !== "create"}
                         type="datetime-local"
                         className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                         defaultValue={
@@ -492,7 +492,7 @@ const GroupForm: React.FC<Props> = ({
                           subQuestions[index].open_upper_bound
                         }
                         defaultZeroPoint={subQuestions[index].zero_point}
-                        isLive={isLive && mode !== "create"}
+                        hasForecasts={hasForecasts && mode !== "create"}
                         canSeeLogarithmic={
                           post?.user_permission === ProjectPermissions.ADMIN ||
                           !post
@@ -545,7 +545,7 @@ const GroupForm: React.FC<Props> = ({
                   </Button>
 
                   <Button
-                    disabled={isLive && mode !== "create"}
+                    // disabled={isLive && mode !== "create"}
                     size="md"
                     presentationType="icon"
                     variant="tertiary"

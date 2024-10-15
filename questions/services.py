@@ -368,12 +368,18 @@ def resolve_question(
             # we resolve the active branch
             if child.resolution is not None:
                 if question.resolution == "yes":
+                    if conditional.question_yes.actual_close_time is None:
+                        breakpoint()
+
                     resolve_question(
                         conditional.question_yes,
                         child.resolution,
                         conditional.question_yes.actual_close_time,
                     )
                 if question.resolution == "no":
+                    if conditional.question_no.actual_close_time is None:
+                        breakpoint()
+
                     resolve_question(
                         conditional.question_no,
                         child.resolution,
@@ -410,12 +416,18 @@ def resolve_question(
                 else:  # condition is already resolved,
                     # resolve the active branch
                     if condition.resolution == "yes":
+                        if conditional.question_yes.actual_close_time is None:
+                            breakpoint()
+
                         resolve_question(
                             conditional.question_yes,
                             question.resolution,
                             conditional.question_yes.actual_close_time,
                         )
                     if condition.resolution == "no":
+                        if conditional.question_no.actual_close_time is None:
+                            breakpoint()
+
                         resolve_question(
                             conditional.question_no,
                             question.resolution,
@@ -665,7 +677,7 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
         #
         # As a temporary solution, we introduce a 10-second delay before execution
         # to ensure all forecasts are processed.
-        run_on_post_forecast.send_with_options(args=(post.id, ), delay=10_000)
+        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
 
 def get_recency_weighted_for_questions(

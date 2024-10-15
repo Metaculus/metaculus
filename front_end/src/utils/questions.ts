@@ -210,8 +210,9 @@ export function getQuestionStatus(post: PostWithForecasts | null) {
     post?.curation_status == PostStatus.RESOLVED ||
     post?.curation_status == PostStatus.CLOSED ||
     post?.curation_status == PostStatus.DELETED;
+  const hasForecasts = post?.nr_forecasters ? post.nr_forecasters > 0 : false;
 
-  return { isLive, isDone };
+  return { isLive, isDone, hasForecasts };
 }
 
 export function getPredictionQuestion(
