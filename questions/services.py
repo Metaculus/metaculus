@@ -368,18 +368,12 @@ def resolve_question(
             # we resolve the active branch
             if child.resolution is not None:
                 if question.resolution == "yes":
-                    if conditional.question_yes.actual_close_time is None:
-                        breakpoint()
-
                     resolve_question(
                         conditional.question_yes,
                         child.resolution,
                         conditional.question_yes.actual_close_time,
                     )
                 if question.resolution == "no":
-                    if conditional.question_no.actual_close_time is None:
-                        breakpoint()
-
                     resolve_question(
                         conditional.question_no,
                         child.resolution,
@@ -416,18 +410,12 @@ def resolve_question(
                 else:  # condition is already resolved,
                     # resolve the active branch
                     if condition.resolution == "yes":
-                        if conditional.question_yes.actual_close_time is None:
-                            breakpoint()
-
                         resolve_question(
                             conditional.question_yes,
                             question.resolution,
                             conditional.question_yes.actual_close_time,
                         )
                     if condition.resolution == "no":
-                        if conditional.question_no.actual_close_time is None:
-                            breakpoint()
-
                         resolve_question(
                             conditional.question_no,
                             question.resolution,
