@@ -60,11 +60,20 @@ def normal_response(
     user_usage,
     get_io_tokens_fn: Callable[dict[Any], tuple[int, int]],
 ):
+    logged_headers = {k: v for k, v in headers.items() if k != "Authorization"}
+
+    logging.info(
+        f"Making a normal request to url: {url} with headers: {logged_headers} and data: {json.dumps(data)[:100]}..."
+    )
+
     platform_response = requests.post(
         url,
         headers=headers,
         json=data,
     )
+
+    logging.info(f"Received response: {vars(platform_response)}")
+
     if not platform_response.ok or not is_valid_json(platform_response.text):
         raise Exception(platform_response.text)
 
@@ -135,6 +144,10 @@ def make_request(
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def openai_v1_chat_completions(request):
+    logged_headers = {k: v for k, v in request.headers.items() if k != "Authorization"}
+    logging.info(
+        f"openai_v1_chat_completions called with request headers: {logged_headers} and body: {json.dumps(json.loads(request.body.decode('utf-8')))[:100]}..."
+    )
 
     headers = {**request.headers}
     headers["Authorization"] = f"Bearer {settings.FAB_CREDITS_OPENAI_API_KEY}"
