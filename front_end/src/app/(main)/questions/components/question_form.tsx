@@ -32,7 +32,7 @@ import {
 } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
-import { logError } from "@/utils/errors";
+import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus } from "@/utils/questions";
 
@@ -204,7 +204,10 @@ const QuestionForm: FC<Props> = ({
     setError(undefined);
 
     data["type"] = questionType;
-    data["options"] = optionsList.map((option) => option.trim());
+    data["options"] =
+      questionType === QuestionType.MultipleChoice
+        ? optionsList.map((option) => option.trim())
+        : [];
 
     let post_data: PostCreationData = {
       title: data["title"],
@@ -225,8 +228,8 @@ const QuestionForm: FC<Props> = ({
 
       router.push(getPostLink(resp.post));
     } catch (e) {
-      logError(e);
       const error = e as Error & { digest?: string };
+      logErrorWithScope(error, post_data);
       setError(error);
     } finally {
       setIsLoading(false);
