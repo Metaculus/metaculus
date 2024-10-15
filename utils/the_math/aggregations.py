@@ -135,6 +135,14 @@ def calculate_aggregation_entry(
                 lowers, centers, uppers = compute_discrete_forecast_values(
                     forecast_set.forecasts_values, weights, [25.0, 50.0, 75.0]
                 )
+                if question_type == "multiple_choice":
+                    s = sum(centers)
+                    lowers = [l / s for l in lowers]
+                    centers = [c / s for c in centers]
+                    uppers = [u / s for u in uppers]
+                    aggregation.forecast_values = [
+                        f / s for f in aggregation.forecast_values
+                    ]
         else:
             lowers, centers, uppers = percent_point_function(
                 aggregation.forecast_values, [25.0, 50.0, 75.0]
