@@ -136,6 +136,7 @@ const DetailedGroupCard: FC<Props> = ({
       return (
         <NumericGroupChart
           questions={questions as QuestionWithNumericForecasts[]}
+          withLabel
         />
       );
     default:
