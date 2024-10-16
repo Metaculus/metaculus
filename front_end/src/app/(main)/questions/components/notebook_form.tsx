@@ -143,7 +143,7 @@ const NotebookForm: React.FC<Props> = ({
         className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", siteMain.id);
+            control.setValue("default_project", defaultProject.id);
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(

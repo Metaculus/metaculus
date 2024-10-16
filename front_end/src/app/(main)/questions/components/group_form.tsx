@@ -87,7 +87,6 @@ const GroupForm: React.FC<Props> = ({
 }) => {
   const router = useRouter();
   const t = useTranslations();
-  const { isLive, hasForecasts } = getQuestionStatus(post);
   const [isLoading, setIsLoading] = useState<boolean>();
   const [error, setError] = useState<
     (Error & { digest?: string }) | string | undefined
@@ -261,7 +260,7 @@ const GroupForm: React.FC<Props> = ({
       <form
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", siteMain.id);
+            control.setValue("default_project", defaultProject.id);
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
