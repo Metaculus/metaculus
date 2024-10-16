@@ -7,6 +7,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
+from questions.constants import QuestionStatus
 from questions.types import AggregationMethod
 from users.models import User
 from utils.models import TimeStampedModel
@@ -135,22 +136,23 @@ class Question(TimeStampedModel):
             raise ValueError(f"Question {self.id} has more than one post: {posts}")
 
     @property
-    def is_open(self) -> bool:
+    def status(self) -> QuestionStatus:
         """
-        Indicates whether question is open for new forecasts.
+        Please note: this status does not represent curation status!
         """
 
         now = timezone.now()
 
-        if (
-            (self.open_time and self.open_time <= now)
-            and self.resolution is None
-            and (not self.actual_close_time or self.actual_close_time > now)
-            and (not self.actual_resolve_time or self.actual_resolve_time > now)
-        ):
-            return True
+        if not self.open_time or self.open_time > now:
+            return QuestionStatus.UPCOMING
 
-        return False
+        if self.resolution or (self.actual_resolve_time and self.actual_resolve_time < now):
+            return QuestionStatus.RESOLVED
+
+        if self.actual_close_time and self.actual_close_time < now:
+            return QuestionStatus.CLOSED
+
+        return QuestionStatus.OPEN
 
     def get_global_leaderboard_dates(self) -> tuple[datetime, datetime] | None:
         # returns the global leaderboard dates that this question counts for
