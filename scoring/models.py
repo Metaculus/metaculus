@@ -44,6 +44,13 @@ class Score(TimeStampedModel):
 
     score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
 
+    def __str__(self):
+        return (
+            f"{self.score_type} for "
+            f"{self.user.username if self.user else self.aggregation_method} "
+            f"on {self.question.id}"
+        )
+
 
 class ArchivedScore(TimeStampedModel):
     """This is a permanent copy of scores that can't be recalculated"""
@@ -67,6 +74,13 @@ class ArchivedScore(TimeStampedModel):
         RELATIVE_LEGACY = "relative_legacy"
 
     score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
+
+    def __str__(self):
+        return (
+            f"Archived {self.score_type} for "
+            f"{self.user.username if self.user else self.aggregation_method} "
+            f"on {self.question.id}"
+        )
 
 
 class Leaderboard(TimeStampedModel):
@@ -119,6 +133,11 @@ class Leaderboard(TimeStampedModel):
     start_time = models.DateTimeField(null=True)
     end_time = models.DateTimeField(null=True)
     finalize_time = models.DateTimeField(null=True)
+
+    def __str__(self):
+        if self.name:
+            return f"Leaderboard {self.name}"
+        return f"{self.score_type} Leaderboard for {self.project.name}"
 
     def get_questions(self) -> list[Question]:
         if self.project:
@@ -209,6 +228,12 @@ class LeaderboardEntry(TimeStampedModel):
     coverage = models.FloatField(null=True)
     contribution_count = models.IntegerField(default=0)
     calculated_on = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return (
+            "LeaderboardEntry for "
+            f"{self.user.username if self.user else self.aggregation_method}"
+        )
 
 
 class MedalExclusionRecord(models.Model):

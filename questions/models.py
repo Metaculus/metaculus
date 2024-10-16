@@ -146,7 +146,9 @@ class Question(TimeStampedModel):
         if not self.open_time or self.open_time > now:
             return QuestionStatus.UPCOMING
 
-        if self.resolution or (self.actual_resolve_time and self.actual_resolve_time < now):
+        if self.resolution or (
+            self.actual_resolve_time and self.actual_resolve_time < now
+        ):
             return QuestionStatus.RESOLVED
 
         if self.actual_close_time and self.actual_close_time < now:
@@ -203,6 +205,9 @@ class Conditional(TimeStampedModel):
         Question, related_name="conditional_no", on_delete=models.PROTECT
     )
 
+    def __str__(self):
+        return f"Conditional {self.condition} -> {self.condition_child}"
+
 
 class GroupOfQuestions(TimeStampedModel):
     class GroupOfQuestionsGraphType(models.TextChoices):
@@ -219,6 +224,9 @@ class GroupOfQuestions(TimeStampedModel):
         choices=GroupOfQuestionsGraphType.choices,
         default=GroupOfQuestionsGraphType.MULTIPLE_CHOICE_GRAPH,
     )
+
+    def __str__(self):
+        return f"Group of Questions {self.post}"
 
 
 class Forecast(models.Model):
@@ -277,7 +285,7 @@ class Forecast(models.Model):
             models.Index(fields=["author", "question", "start_time"]),
         ]
 
-    def __repr__(self):
+    def __str__(self):
         pv = self.get_prediction_values()
         if len(pv) > 64:
             q1, q2, q3 = percent_point_function(pv, [25, 50, 75])
@@ -285,8 +293,8 @@ class Forecast(models.Model):
         else:
             pvs = str(pv)
         return (
-            f"<Forecast at {str(self.start_time).split(".")[0]} "
-            f"by {self.author.username}: {pvs}>"
+            f"Forecast at {str(self.start_time).split(".")[0]} "
+            f"by {self.author.username} on {self.question.id}: {pvs}"
         )
 
     def get_prediction_values(self) -> list[float]:
