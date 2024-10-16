@@ -12,6 +12,7 @@ import {
   PostStatus,
   PostWithForecasts,
   ProjectPermissions,
+  QuestionStatus,
   Resolution,
 } from "@/types/post";
 import {
@@ -356,11 +357,14 @@ export function getPredictionInputMessage(post: Post) {
 export function getSubquestionPredictionInputMessage(
   option: ConditionalTableOption
 ) {
-  if (!option.question.is_open && !isResolved(option.resolution)) {
-    return "predictionClosedMessage";
+  switch (option.question.status) {
+    case QuestionStatus.CLOSED:
+      return "predictionClosedMessage";
+    case QuestionStatus.UPCOMING:
+      return "predictionUpcomingMessage";
+    default:
+      return null;
   }
-
-  return null;
 }
 
 export function parseQuestionId(questionUrlOrId: string) {

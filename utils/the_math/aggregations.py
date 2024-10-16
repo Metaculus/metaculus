@@ -113,12 +113,25 @@ def calculate_aggregation_entry(
                 forecast_set.forecasts_values, axis=0, weights=weights
             ).tolist()
         )
-    else:
+    elif question_type == "binary":
         aggregation = AggregateForecast(
             forecast_values=compute_discrete_forecast_values(
                 forecast_set.forecasts_values, weights, 50.0
             )[0]
         )
+    else:  # multiple_choice
+        medians = np.array(
+            compute_discrete_forecast_values(
+                forecast_set.forecasts_values, weights, 50.0
+            )[0]
+        )
+        floored_medians = medians - 0.001
+        normalized_floored_medians = floored_medians / sum(floored_medians)
+        normalized_medians = (
+            normalized_floored_medians * (1 - len(medians) * 0.001) + 0.001
+        )
+        aggregation = AggregateForecast(forecast_values=normalized_medians.tolist())
+
     if include_stats:
         forecasts_values = np.array(forecast_set.forecasts_values)
         aggregation.start_time = forecast_set.timestep
@@ -136,13 +149,17 @@ def calculate_aggregation_entry(
                     forecast_set.forecasts_values, weights, [25.0, 50.0, 75.0]
                 )
                 if question_type == "multiple_choice":
-                    s = sum(centers)
-                    lowers = [lower / s for lower in lowers]
-                    centers = [center / s for center in centers]
-                    uppers = [upper / s for upper in uppers]
-                    aggregation.forecast_values = [
-                        value / s for value in aggregation.forecast_values
-                    ]
+                    centers_array = np.array(centers)
+                    normalized_centers = np.array(aggregation.forecast_values)
+                    normalized_lowers = (
+                        np.array(lowers) * normalized_centers / centers_array
+                    )
+                    normalized_uppers = (
+                        np.array(uppers) * normalized_centers / centers_array
+                    )
+                    centers = normalized_centers.tolist()
+                    lowers = normalized_lowers.tolist()
+                    uppers = normalized_uppers.tolist()
         else:
             lowers, centers, uppers = percent_point_function(
                 aggregation.forecast_values, [25.0, 50.0, 75.0]

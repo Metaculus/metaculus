@@ -12,13 +12,9 @@ class QuestionAdmin(admin.ModelAdmin):
 
 @admin.register(Conditional)
 class ConditionalAdmin(admin.ModelAdmin):
+    list_display = ["__str__"]
     search_fields = ["id"]
-    autocomplete_fields = [
-        "condition",
-        "condition_child",
-        "question_yes",
-        "question_no",
-    ]
+    autocomplete_fields = ["condition", "condition_child"]
 
 
 @admin.register(GroupOfQuestions)
@@ -28,4 +24,5 @@ class GroupOfQuestionsAdmin(admin.ModelAdmin):
 
 @admin.register(Forecast)
 class ForecastsAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "author", "question", "start_time", "end_time"]
     autocomplete_fields = ["author", "question"]

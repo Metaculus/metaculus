@@ -40,7 +40,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "options",
             # Used for Group Of Questions to determine
             # whether question is eligible for forecasting
-            "is_open",
+            "status",
             "possibilities",
             "resolution",
             "resolution_criteria",

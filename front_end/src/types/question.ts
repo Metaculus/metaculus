@@ -1,4 +1,4 @@
-import { Resolution } from "@/types/post";
+import { QuestionStatus, Resolution } from "@/types/post";
 
 export enum QuestionType {
   Numeric = "numeric",
@@ -200,7 +200,7 @@ export type Question = {
   open_lower_bound: boolean | null;
   open_upper_bound: boolean | null;
   // Used for GroupOfQuestions
-  is_open?: boolean;
+  status?: QuestionStatus;
 };
 
 export type QuestionWithNumericForecasts = Question & {

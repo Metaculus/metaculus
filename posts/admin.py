@@ -6,6 +6,13 @@ from posts.models import Post, Notebook
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
+    list_display = [
+        "title",
+        "author",
+        "curation_status",
+        "published_at",
+        "show_on_homepage",
+    ]
     list_filter = [AutocompleteFilterFactory("Author", "author"), "show_on_homepage"]
     autocomplete_fields = [
         "author",
@@ -24,4 +31,4 @@ class PostAdmin(admin.ModelAdmin):
 
 @admin.register(Notebook)
 class NotebookAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["__str__", "post"]

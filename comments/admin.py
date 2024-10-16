@@ -6,6 +6,12 @@ from .models import Comment
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
+    list_display = [
+        "__str__",
+        "author",
+        "on_post",
+        "on_project",
+    ]
     list_filter = [
         AutocompleteFilterFactory("Post", "on_post"),
         AutocompleteFilterFactory("Project", "on_project"),
