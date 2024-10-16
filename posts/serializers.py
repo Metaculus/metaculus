@@ -162,15 +162,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
         if not project:
             raise ValidationError("Wrong default project id")
 
-        if (
-            project.user_permission
-            not in ObjectPermission.get_included_permissions(ObjectPermission.CURATOR)
-            and project != get_site_main_project()
-        ):
-            raise ValidationError(
-                "You don't have permissions to assign post to this project"
-            )
-
         return project
 
     def validate_categories(self, values: list[int]) -> list[Project]:
