@@ -4,6 +4,24 @@ from django.contrib import admin
 from projects.models import Project, ProjectUserPermission
 
 
+class ProjectUserPermissionVisibilityFilter(admin.SimpleListFilter):
+    title = "Project Visibility"  # Display title in the admin
+    parameter_name = "project__default_permission"  # Query parameter
+
+    def lookups(self, request, model_admin):
+        return (
+            ("private", "Private"),
+            ("public", "Public"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "private":
+            return queryset.filter(project__default_permission__isnull=True)
+        if self.value() == "public":
+            return queryset.filter(project__default_permission__isnull=False)
+        return queryset
+
+
 @admin.register(ProjectUserPermission)
 class ProjectUserPermissionAdmin(admin.ModelAdmin):
     list_display = ["user", "permission", "project"]
@@ -11,6 +29,7 @@ class ProjectUserPermissionAdmin(admin.ModelAdmin):
         AutocompleteFilterFactory("Project", "project"),
         AutocompleteFilterFactory("User", "user"),
         "permission",
+        ProjectUserPermissionVisibilityFilter,
     ]
     autocomplete_fields = ["user", "project"]
 
@@ -24,9 +43,27 @@ class ProjectUserPermissionInline(admin.TabularInline):
         return super().get_queryset(request).none()
 
 
+class ProjectDefaultPermissionFilter(admin.SimpleListFilter):
+    title = "Visibility"  # Display title in the admin
+    parameter_name = "default_permission"  # Query parameter
+
+    def lookups(self, request, model_admin):
+        return (
+            ("private", "Private"),
+            ("public", "Public"),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == "private":
+            return queryset.filter(default_permission__isnull=True)
+        if self.value() == "public":
+            return queryset.filter(default_permission__isnull=False)
+        return queryset
+
+
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    list_filter = ["type", "show_on_homepage"]
+    list_filter = ["type", "show_on_homepage", ProjectDefaultPermissionFilter]
     search_fields = ["type", "name", "slug"]
     autocomplete_fields = ["created_by"]
     exclude = ["add_posts_to_main_feed"]
@@ -40,7 +77,7 @@ class ProjectAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
 
         type_filters = request.GET.getlist("type__exact")
-        if not type_filters:
+        if not type_filters and "/change" not in request.path:
             qs = qs.exclude(type=Project.ProjectTypes.PERSONAL_PROJECT)
 
         return qs
