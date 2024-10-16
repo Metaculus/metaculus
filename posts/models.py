@@ -348,6 +348,9 @@ class Notebook(TimeStampedModel):
     news_type = models.CharField(max_length=100, blank=True, null=True)
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
 
+    def __str__(self):
+        return f"{self.type} Notebook for {self.post} by {self.post.author}"
+
 
 class Post(TimeStampedModel):
     # typing
