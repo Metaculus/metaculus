@@ -90,9 +90,13 @@ class Leaderboard(TimeStampedModel):
     objects: models.Manager["Leaderboard"]
     entries: QuerySet["LeaderboardEntry"]
 
-    name = models.CharField(max_length=200, null=True)
+    name = models.CharField(max_length=200, null=True, blank=True)
     project = models.ForeignKey(
-        Project, null=True, on_delete=models.CASCADE, related_name="leaderboards"
+        Project,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="leaderboards",
     )
 
     class ScoreTypes(models.TextChoices):
@@ -205,16 +209,16 @@ class LeaderboardEntry(TimeStampedModel):
     objects: models.Manager["LeaderboardEntry"]
     user_id: int | None
 
-    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE, blank=True)
     aggregation_method = models.CharField(
-        max_length=200, null=True, choices=AggregationMethod.choices
+        max_length=200, null=True, choices=AggregationMethod.choices, blank=True
     )
     leaderboard = models.ForeignKey(
         Leaderboard, on_delete=models.CASCADE, related_name="entries", null=True
     )
     score = models.FloatField()
-    take = models.FloatField(null=True)
-    rank = models.IntegerField(null=True)
+    take = models.FloatField(null=True, blank=True)
+    rank = models.IntegerField(null=True, blank=True)
     excluded = models.BooleanField(default=False)
 
     class Medals(models.TextChoices):
@@ -222,10 +226,12 @@ class LeaderboardEntry(TimeStampedModel):
         SILVER = "silver"
         BRONZE = "bronze"
 
-    medal = models.CharField(max_length=200, null=True, choices=Medals.choices)
-    percent_prize = models.FloatField(null=True)
-    prize = models.FloatField(null=True)
-    coverage = models.FloatField(null=True)
+    medal = models.CharField(
+        max_length=200, null=True, blank=True, choices=Medals.choices
+    )
+    percent_prize = models.FloatField(null=True, blank=True)
+    prize = models.FloatField(null=True, blank=True)
+    coverage = models.FloatField(null=True, blank=True)
     contribution_count = models.IntegerField(default=0)
     calculated_on = models.DateTimeField(auto_now=True)
 
@@ -242,14 +248,16 @@ class MedalExclusionRecord(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     start_time = models.DateTimeField()
-    end_time = models.DateTimeField(null=True)
+    end_time = models.DateTimeField(null=True, blank=True)
 
     class ExclusionTypes(models.TextChoices):
         STAFF = "staff"
         PROJECT_OWNER = "project_owner"
 
     exclusion_type = models.CharField(max_length=200, choices=ExclusionTypes.choices)
-    project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True)
+    project = models.ForeignKey(
+        Project, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     def __str__(self) -> str:
         return (
