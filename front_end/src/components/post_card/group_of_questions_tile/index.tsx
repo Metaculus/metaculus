@@ -21,9 +21,6 @@ const GroupOfQuestionsTile: FC<Props> = ({
   curationStatus,
   post,
 }) => {
-  if (post.id === 11480 || post.id === 13125) {
-    post.group_of_questions!.graph_type = GroupOfQuestionsGraphType.FanGraph;
-  }
   const t = useTranslations();
   const groupType = questions.at(0)?.type;
 
