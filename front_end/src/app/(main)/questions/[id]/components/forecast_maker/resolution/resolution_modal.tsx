@@ -86,21 +86,16 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
   }, [question.options, question.type]);
 
   const unambiguousOptions = useMemo(() => {
-    let options = [{ value: "knownValue", label: "Known value" }];
+    const options = [{ value: "knownValue", label: "Known value" }];
     if (open_lower_bound) {
-      options = [
-        { value: "below_lower_bound", label: "Unknown < range" },
-        ...options,
-      ];
+      options.unshift({ value: "below_lower_bound", label: "Unknown < range" });
     }
+
     if (open_upper_bound) {
-      options = [
-        ...options,
-        {
-          value: "above_upper_bound",
-          label: "Unknown > range",
-        },
-      ];
+      options.push({
+        value: "above_upper_bound",
+        label: "Unknown > range",
+      });
     }
     return options;
   }, [open_lower_bound, open_upper_bound]);
