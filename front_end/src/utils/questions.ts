@@ -151,6 +151,13 @@ export function formatResolution(
     return capitalize(resolution);
   }
 
+  if (resolution === "below_lower_bound") {
+    return "Below lower bound";
+  }
+  if (resolution === "above_upper_bound") {
+    return "Above upper bound";
+  }
+
   if (questionType === QuestionType.Date) {
     if (!isNaN(Number(resolution)) && resolution.trim() !== "") {
       const date = new Date(Number(resolution));
