@@ -56,7 +56,7 @@ type QuestionOption = {
   isDirty: boolean;
   color: ThemeColor;
   menu: ReactNode;
-  status: QuestionStatus;
+  status?: QuestionStatus;
 };
 
 type Props = {
