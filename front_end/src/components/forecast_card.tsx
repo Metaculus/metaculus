@@ -11,12 +11,15 @@ import FanChart from "@/components/charts/fan_chart";
 import NumericChart from "@/components/charts/numeric_chart";
 import ConditionalTile from "@/components/conditional_tile";
 import PredictionChip from "@/components/prediction_chip";
-import { TimelineChartZoomOption } from "@/types/charts";
+import {
+  GroupOfQuestionsGraphType,
+  TimelineChartZoomOption,
+} from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
-  generateChoiceItemsFromBinaryGroup,
   generateChoiceItemsFromMultipleChoiceForecast,
+  getFanOptionsFromBinaryGroup,
   getFanOptionsFromNumericGroup,
   getGroupQuestionsTimestamps,
   getNumericChartTypeFromQuestion,
@@ -67,7 +70,10 @@ const ForecastCard: FC<Props> = ({
       switch (groupType) {
         case QuestionType.Numeric:
         case QuestionType.Date: {
-          if (post.group_of_questions.graph_type === "fan_graph") {
+          if (
+            post.group_of_questions.graph_type ===
+            GroupOfQuestionsGraphType.FanGraph
+          ) {
             const predictionQuestion = getFanOptionsFromNumericGroup(
               questions as QuestionWithNumericForecasts[]
             );
@@ -80,7 +86,8 @@ const ForecastCard: FC<Props> = ({
               />
             );
           } else if (
-            post.group_of_questions.graph_type === "multiple_choice_graph"
+            post.group_of_questions.graph_type ===
+            GroupOfQuestionsGraphType.MultipleChoiceGraph
           ) {
             const sortedQuestions = sortGroupPredictionOptions(
               questions as QuestionWithNumericForecasts[]
@@ -100,22 +107,38 @@ const ForecastCard: FC<Props> = ({
           }
         }
         case QuestionType.Binary:
-          const visibleChoicesCount = 3;
-          const sortedQuestions = sortGroupPredictionOptions(
-            questions as QuestionWithNumericForecasts[]
-          );
-          const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
-          const choices = generateChoiceItemsFromBinaryGroup(sortedQuestions, {
-            activeCount: visibleChoicesCount,
-          });
+          if (
+            post.group_of_questions.graph_type ===
+            GroupOfQuestionsGraphType.FanGraph
+          ) {
+            const predictionQuestion = getFanOptionsFromBinaryGroup(
+              questions as QuestionWithNumericForecasts[]
+            );
+            return (
+              <FanChart
+                options={predictionQuestion}
+                height={chartHeight}
+                withTooltip={!nonInteractive}
+                extraTheme={chartTheme}
+              />
+            );
+          } else if (
+            post.group_of_questions.graph_type ===
+            GroupOfQuestionsGraphType.MultipleChoiceGraph
+          ) {
+            const sortedQuestions = sortGroupPredictionOptions(
+              questions as QuestionWithNumericForecasts[]
+            );
+            const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
 
-          return (
-            <BinaryGroupChart
-              questions={sortedQuestions}
-              timestamps={timestamps}
-              defaultZoom={defaultChartZoom}
-            />
-          );
+            return (
+              <BinaryGroupChart
+                questions={sortedQuestions}
+                timestamps={timestamps}
+                defaultZoom={defaultChartZoom}
+              />
+            );
+          }
         default:
           return null;
       }
