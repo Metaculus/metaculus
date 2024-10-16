@@ -22,7 +22,6 @@ class ProjectUserPermissionVisibilityFilter(admin.SimpleListFilter):
         return queryset
 
 
-
 @admin.register(ProjectUserPermission)
 class ProjectUserPermissionAdmin(admin.ModelAdmin):
     list_display = ["user", "permission", "project"]
@@ -30,7 +29,7 @@ class ProjectUserPermissionAdmin(admin.ModelAdmin):
         AutocompleteFilterFactory("Project", "project"),
         AutocompleteFilterFactory("User", "user"),
         "permission",
-        ProjectUserPermissionVisibilityFilter
+        ProjectUserPermissionVisibilityFilter,
     ]
     autocomplete_fields = ["user", "project"]
 
