@@ -13,7 +13,6 @@ from projects.serializers import (
     validate_tournaments,
     serialize_projects,
 )
-from projects.services import get_site_main_project
 from questions.models import Question, AggregateForecast
 from questions.serializers import (
     QuestionWriteSerializer,
