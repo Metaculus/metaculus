@@ -283,7 +283,7 @@ const QuestionForm: FC<Props> = ({
       <form
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", siteMain.id);
+            control.setValue("default_project", defaultProject.id);
           }
 
           // e.preventDefault(); // Good for debugging

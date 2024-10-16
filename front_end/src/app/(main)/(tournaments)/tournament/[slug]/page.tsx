@@ -132,19 +132,15 @@ export default async function TournamentSlug({
           )}
         </div>
 
-        {[ProjectPermissions.ADMIN, ProjectPermissions.CURATOR].includes(
-          tournament.user_permission
-        ) && (
-          <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
-            <div className="flex w-full justify-center">
-              <Button href={`/questions/create?tournament=${tournament.id}`}>
+        <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
+          <div className="mb-5 flex flex-row justify-between">
+            <h2 className="m-0">{questionsTitle}</h2>
+            {currentUser && (
+              <Button href={`/questions/create?tournament_id=${tournament.id}`}>
                 + {t("question")}
               </Button>
-            </div>
-          </section>
-        )}
-        <section className="mx-2 border-t border-t-[#e5e7eb] px-1 py-4">
-          <h2 className="mb-5">{questionsTitle}</h2>
+            )}
+          </div>
           <TournamentFilters categories={categories} tags={tags} />
           <TournamentFeed slug={params.slug} />
         </section>
