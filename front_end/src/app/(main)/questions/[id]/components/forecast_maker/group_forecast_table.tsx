@@ -55,13 +55,16 @@ const GroupForecastTable: FC<Props> = ({
 
   const { resolvedOptions, pendingOptions } = useMemo(
     () => ({
-      resolvedOptions: options.filter((option) =>
-        [QuestionStatus.CLOSED, QuestionStatus.RESOLVED].includes(
-          option.question.status
-        )
+      resolvedOptions: options.filter(
+        (option) =>
+          option.question.status &&
+          [QuestionStatus.CLOSED, QuestionStatus.RESOLVED].includes(
+            option.question.status
+          )
       ),
       pendingOptions: options.filter(
         (option) =>
+          !option.question.status ||
           ![QuestionStatus.CLOSED, QuestionStatus.RESOLVED].includes(
             option.question.status
           )

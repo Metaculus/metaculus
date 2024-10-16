@@ -198,7 +198,7 @@ export type Question = {
   aggregations: Aggregations;
   my_forecasts?: UserForecastHistory;
   // Used for GroupOfQuestions
-  status: QuestionStatus;
+  status?: QuestionStatus;
 };
 
 export type QuestionWithNumericForecasts = Question & {
