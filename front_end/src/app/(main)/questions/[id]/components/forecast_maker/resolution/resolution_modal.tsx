@@ -89,7 +89,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
     let options = [{ value: "knownValue", label: "Known value" }];
     if (open_lower_bound) {
       options = [
-        { value: "below lover bound", label: "Unknown < range" },
+        { value: "below_lower_bound", label: "Unknown < range" },
         ...options,
       ];
     }
@@ -97,7 +97,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       options = [
         ...options,
         {
-          value: "above upper bound",
+          value: "above_upper_bound",
           label: "Unknown > range",
         },
       ];
