@@ -9,8 +9,12 @@ interface Step1Props {
 const Step1: React.FC<Step1Props> = ({ onTopicSelect }) => (
   <div className={onboardingStyles.container}>
     <p className={onboardingStyles.title}>
-      Should I bring an umbrella? Are we headed for a recession? Will my team
-      come out on top?
+      <span className="opacity-60">“</span>Should I bring an umbrella?
+      <span className="opacity-60">“</span>{" "}
+      <span className="opacity-60">“</span>Are we headed for a recession?
+      <span className="opacity-60">“</span>{" "}
+      <span className="opacity-60">“</span>Will my team come out on top?
+      <span className="opacity-50">“</span>
     </p>
     <p className={onboardingStyles.paragraph}>
       You make predictions all the time, on topics big and small. It’s a skill,
