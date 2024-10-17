@@ -20,6 +20,7 @@ type Props = {
   className?: string;
   chipClassName?: string;
   showUserForecast?: boolean;
+  hideCP?: boolean;
 };
 
 const PredictionChip: FC<Props> = ({
@@ -30,6 +31,7 @@ const PredictionChip: FC<Props> = ({
   chipClassName,
   size,
   showUserForecast,
+  hideCP,
 }) => {
   const t = useTranslations();
   const locale = useLocale();
@@ -118,6 +120,24 @@ const PredictionChip: FC<Props> = ({
         </span>
       );
     default:
+      if (hideCP) {
+        return (
+          <span className={classNames("inline-flex flex-col", className)}>
+            {showUserForecast && !!question.my_forecasts?.history.length && (
+              <p className="m-2 text-base text-orange-800 dark:text-orange-800-dark">
+                <FontAwesomeIcon icon={faUser} className="mr-1" />
+                {getDisplayUserValue(
+                  question.my_forecasts,
+                  lastUserForecast.centers![0],
+                  lastUserForecast.start_time,
+                  question.type,
+                  question.scaling
+                )}
+              </p>
+            )}
+          </span>
+        );
+      }
       return (
         <span className={classNames("inline-flex flex-col", className)}>
           <Chip

@@ -66,6 +66,7 @@ type Props = {
   extraTheme?: VictoryThemeDefinition;
   resolution?: Resolution | null;
   resolveTime?: string | null;
+  hideCP?: boolean;
 };
 
 const NumericChart: FC<Props> = ({
@@ -83,6 +84,7 @@ const NumericChart: FC<Props> = ({
   extraTheme,
   resolution,
   resolveTime,
+  hideCP,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -215,26 +217,31 @@ const NumericChart: FC<Props> = ({
           ]}
           containerComponent={onCursorChange ? CursorContainer : undefined}
         >
-          <VictoryArea
-            data={area}
-            style={{
-              data: {
-                fill: getThemeColor(METAC_COLORS.olive["500"]),
-                opacity: 0.3,
-              },
-            }}
-            interpolation="stepAfter"
-          />
-          <VictoryLine
-            data={line}
-            style={{
-              data: {
-                strokeWidth: 1.5,
-                stroke: getThemeColor(METAC_COLORS.olive["700"]),
-              },
-            }}
-            interpolation="stepAfter"
-          />
+          {!hideCP && (
+            <VictoryArea
+              data={area}
+              style={{
+                data: {
+                  fill: getThemeColor(METAC_COLORS.olive["500"]),
+                  opacity: 0.3,
+                },
+              }}
+              interpolation="stepAfter"
+            />
+          )}
+          {!hideCP && (
+            <VictoryLine
+              data={line}
+              style={{
+                data: {
+                  strokeWidth: 1.5,
+                  stroke: getThemeColor(METAC_COLORS.olive["700"]),
+                },
+              }}
+              interpolation="stepAfter"
+            />
+          )}
+
           <VictoryScatter
             data={points}
             dataComponent={<PredictionWithRange />}

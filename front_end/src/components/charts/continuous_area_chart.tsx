@@ -55,6 +55,7 @@ type Props = {
   extraTheme?: VictoryThemeDefinition;
   resolution: Resolution | null;
   onCursorChange?: (value: ContinuousAreaHoverState | null) => void;
+  hideCP?: boolean;
 };
 
 const ContinuousAreaChart: FC<Props> = ({
@@ -67,6 +68,7 @@ const ContinuousAreaChart: FC<Props> = ({
   extraTheme,
   resolution,
   onCursorChange,
+  hideCP,
 }) => {
   const { ref: chartContainerRef, width: containerWidth } =
     useContainerSize<HTMLDivElement>();
@@ -78,22 +80,24 @@ const ContinuousAreaChart: FC<Props> = ({
     ? merge({}, chartTheme, extraTheme)
     : chartTheme;
 
-  const charts = useMemo(
-    () =>
-      data.reduce<NumericPredictionGraph[]>(
-        (acc, el) => [
-          ...acc,
-          generateNumericAreaGraph({
-            pmf: el.pmf,
-            cdf: el.cdf,
-            graphType,
-            type: el.type,
-          }),
-        ],
-        []
-      ),
-    [data, graphType]
-  );
+  const charts = useMemo(() => {
+    const parsedData = hideCP
+      ? [...data].filter((el) => el.type === "user")
+      : data;
+
+    return parsedData.reduce<NumericPredictionGraph[]>(
+      (acc, el) => [
+        ...acc,
+        generateNumericAreaGraph({
+          pmf: el.pmf,
+          cdf: el.cdf,
+          graphType,
+          type: el.type,
+        }),
+      ],
+      []
+    );
+  }, [data, graphType]);
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
     yDomain: Tuple<number>;
