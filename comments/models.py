@@ -118,6 +118,9 @@ class Comment(TimeStampedModel):
 
     objects = models.Manager.from_queryset(CommentQuerySet)()
 
+    def __str__(self):
+        return f"Comment by {self.author.username} on {self.on_post or self.on_project}"
+
     def save(self, **kwargs):
         if self.parent:
             self.root = self.root or self.parent.root or self.parent

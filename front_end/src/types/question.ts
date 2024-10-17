@@ -197,6 +197,8 @@ export type Question = {
   display_divergences?: number[][];
   aggregations: Aggregations;
   my_forecasts?: UserForecastHistory;
+  open_lower_bound: boolean | null;
+  open_upper_bound: boolean | null;
   // Used for GroupOfQuestions
   status?: QuestionStatus;
 };
