@@ -71,7 +71,7 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <Step1 onTopicSelect={handleTopicSelect} />;
+        return <Step1 onTopicSelect={handleTopicSelect} onClose={onClose} />;
       case 2:
         return (
           <Step2
