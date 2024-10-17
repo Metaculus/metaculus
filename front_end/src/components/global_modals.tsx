@@ -40,7 +40,7 @@ const GlobalModals: FC = () => {
       <ConfirmModal
         isOpen={currentModal?.type === "confirm"}
         onClose={onClose}
-        onConfirm={currentModal?.data.onConfirm}
+        onConfirm={currentModal?.data?.onConfirm}
       />
     </>
   );
