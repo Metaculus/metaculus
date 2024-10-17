@@ -69,7 +69,7 @@ const Step4: React.FC<Step4Props> = ({
           {factors.map((factor, index) => (
             <li
               key={index}
-              className="flex flex-row items-center justify-between gap-4 rounded-md bg-purple-400/45 p-2.5 px-4 text-base dark:bg-purple-600/25"
+              className="flex flex-row items-center justify-between gap-4 rounded-md bg-purple-400/45 p-2.5 px-4 text-sm dark:bg-purple-600/25 md:text-base"
             >
               {factor}
             </li>

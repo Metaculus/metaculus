@@ -26,7 +26,7 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
       <button onClick={onPrev} className={onboardingStyles.backButton}>
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
-      <h3 className={onboardingStyles.title}>Nice work.</h3>
+      <h3 className={onboardingStyles.title}>Nice work!</h3>
       <p className={onboardingStyles.paragraph}>
         Anyone can improve at forecasting by practicing and thinking through
         what factors could influence outcomes. In a series of forecasting
@@ -34,20 +34,25 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
         Tetlock, skilled forecasters outperformed CIA analysts without access to
         classified intelligence.
       </p>
-      <p className={onboardingStyles.largeparagraph}>
+      <p className={onboardingStyles.paragraph}>
         <span className="font-bold">
-          Next we’ll take you on a tour of a real Metaculus question page.
+          You are now ready to explore Metaculus by yourself. What would you
+          like to do next?
         </span>{" "}
-        We’ll introduce you to some additional features, and you’ll bring
-        together everything you’ve learned so far.
       </p>
-      <div className="mx-auto flex justify-center ">
+      <div className="mx-auto flex w-full flex-col justify-stretch gap-4 md:flex-row ">
+        <Link href="/questions/" replace scroll={true}>
+          <button className={`${onboardingStyles.button} w-full`}>
+            View Question Feed
+          </button>
+        </Link>
         <Link href={questionUrl}>
           <button
             onClick={onNext}
-            className={`${onboardingStyles.button} text-xl`}
+            className={`${onboardingStyles.button} w-full font-light`}
           >
-            <FontAwesomeIcon icon={faArrowRight} />
+            View Another <span className="font-bold">{topic.name}</span>{" "}
+            Question
           </button>
         </Link>
       </div>
