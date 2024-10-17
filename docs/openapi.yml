@@ -60,7 +60,7 @@ components:
           format: date-time
         curation_status:
           type: string
-          enum: [draft, pending, rejected, approved]
+          enum: [ draft, pending, rejected, approved ]
           example: "pending"
         comment_count:
           type: integer
@@ -69,7 +69,7 @@ components:
           type: string
           example: "pending"
           description: "Combination of curation status and post lifecycle statuses"
-          enum: [open, upcoming, closed, resolved, draft, pending, rejected]
+          enum: [ open, upcoming, closed, resolved, draft, pending, rejected ]
         nr_forecasters:
           type: integer
           example: 5
@@ -81,7 +81,7 @@ components:
           $ref: '#/components/schemas/GroupOfQuestions'
         user_permission:
           type: string
-          enum: [forecaster, viewer]
+          enum: [ forecaster, viewer ]
           example: "forecaster"
         vote:
           $ref: '#/components/schemas/Vote'
@@ -184,7 +184,7 @@ components:
           type: string
         graph_type:
           type: string
-          enum: [multiple_choice_graph, fan_graph]
+          enum: [ multiple_choice_graph, fan_graph ]
         questions:
           type: array
           items:
@@ -227,7 +227,7 @@ components:
           format: date-time
         type:
           type: string
-          enum: [binary, numeric, date, multiple_choice]
+          enum: [ binary, numeric, date, multiple_choice ]
           example: "binary"
         options:
           type: array
@@ -236,7 +236,7 @@ components:
           description: "List of options for categorical questions"
         status:
           type: string
-          enum: [upcoming, open, closed, resolved]
+          enum: [ upcoming, open, closed, resolved ]
           example: "upcoming"
         possibilities:
           $ref: '#/components/schemas/QuestionPossibilities'
@@ -293,13 +293,13 @@ components:
           properties:
             type:
               type: string
-              enum: ["binary"]
+              enum: [ "binary" ]
               example: "binary"
         - type: object
           properties:
             "type":
               type: string
-              enum: ["continuous"]
+              enum: [ "continuous" ]
               example: "continuous"
             low:
               type: string
@@ -468,21 +468,84 @@ components:
 
     GroupForecast:
       type: array
-      description: Group forecast for binary questions
+      description: Group forecast of Binary, Numeric or Date subquestions
       items:
-        type: object
-        required:
-          - question
-          - probability_yes
-        properties:
-          question:
-            type: integer
-          probability_yes:
-            type: number
-            format: float
+        oneOf:
+          - $ref: '#/components/schemas/BinaryForecast'
+          - $ref: '#/components/schemas/NumericForecast'
+          - $ref: '#/components/schemas/DateForecast'
 
-
-
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the comment.
+        author:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: Author's user ID.
+            username:
+              type: string
+              description: Author's username.
+            is_bot:
+              type: boolean
+              description: If the author is a bot.
+            is_staff:
+              type: boolean
+              description: If the author is a staff member.
+        parent_id:
+          type: integer
+          nullable: true
+          description: ID of the comment being replied to (if applicable).
+        root_id:
+          type: integer
+          nullable: true
+          description: ID of the root comment in the thread.
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the comment was created.
+        text:
+          type: string
+          description: The content of the comment.
+        on_post:
+          type: integer
+          description: ID of the post the comment belongs to.
+        included_forecast:
+          type: boolean
+          description: If the user's last forecast is included.
+        is_private:
+          type: boolean
+          description: If the comment is private.
+        vote_score:
+          type: integer
+          description: Total vote score for the comment.
+        changed_my_mind:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of users who changed their mind based on this comment.
+            for_this_user:
+              type: boolean
+              description: If the current user changed their mind based on this comment.
+        mentioned_users:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: ID of the mentioned user.
+              username:
+                type: string
+                description: Username of the mentioned user.
+        user_vote:
+          type: integer
+          description: Current user's vote on this comment (-1, 0, 1).
 paths:
   /api/posts/:
     get:
@@ -495,7 +558,7 @@ paths:
             type: array
             items:
               type: string
-            example: ['quarterly-cup', 'aibq3']
+            example: [ 'quarterly-cup', 'aibq3' ]
           description: Tournament slug. You can apply multiple filters.
         - in: query
           name: statuses
@@ -503,8 +566,8 @@ paths:
             type: array
             items:
               type: string
-              enum: [upcoming, closed, resolved, open]
-            example: ['closed', 'resolved']
+              enum: [ upcoming, closed, resolved, open ]
+            example: [ 'closed', 'resolved' ]
           description: Post statuses. You can apply multiple filters.
         - in: query
           name: forecaster_id
@@ -544,8 +607,8 @@ paths:
             type: array
             items:
               type: string
-              enum: [binary, numeric, date, multiple_choice, conditional, group_of_questions, notebook]
-            example: ['numeric', 'binary']
+              enum: [ binary, numeric, date, multiple_choice, conditional, group_of_questions, notebook ]
+            example: [ 'numeric', 'binary' ]
           description: Forecast type. You can apply multiple filters.
         - in: query
           name: order_by
@@ -599,7 +662,7 @@ paths:
                         slug: "covid-19-related-deaths-before-2021"
                         author_id: 101465
                         author_username: "Jgalt"
-                        coauthors: []
+                        coauthors: [ ]
                         projects:
                           category:
                             - id: 3685
@@ -717,13 +780,13 @@ paths:
                                 baseline_archived_score: 35.14605488073114
                                 spot_peer_archived_score: 57.555204604943135
                             unweighted:
-                              history: []
+                              history: [ ]
                               latest: null
-                              score_data: {}
+                              score_data: { }
                             single_aggregation:
-                              history: []
+                              history: [ ]
                               latest: null
-                              score_data: {}
+                              score_data: { }
                             metaculus_prediction:
                               history:
                                 - start_time: 1580129296.168167
@@ -754,7 +817,7 @@ paths:
                                   - 0.73726
                                 means: null
                                 histogram: null
-                              score_data: {}
+                              score_data: { }
                         user_permission: "forecaster"
                         vote:
                           score: 172
@@ -772,8 +835,8 @@ paths:
                         slug: "will-advanced-ligo-announce-discovery-of-gravitational-waves-by-jan-31-2016"
                         author_id: 8
                         author_username: "Anthony"
-                        coauthors: []
-                        projects: {}
+                        coauthors: [ ]
+                        projects: { }
                         created_at: "2015-10-02T02:35:57.581979Z"
                         published_at: "2015-10-02T02:34:00Z"
                         edited_at: "2024-10-03T07:58:31.800928Z"
@@ -813,7 +876,7 @@ paths:
                             range_min: null
                             zero_point: null
                           post_id: 1
-                          aggregations: {}
+                          aggregations: { }
                         user_permission: "forecaster"
                         vote:
                           score: 6
@@ -831,8 +894,8 @@ paths:
                         slug: "party-winning-the-presidency-in-2024"
                         author_id: 117502
                         author_username: "RyanBeck"
-                        coauthors: []
-                        projects: {}
+                        coauthors: [ ]
+                        projects: { }
                         created_at: "2023-12-22T04:14:45.479858Z"
                         published_at: "2024-01-01T07:00:00Z"
                         edited_at: "2024-10-03T09:16:21.660122Z"
@@ -864,16 +927,16 @@ paths:
                             - "Green"
                             - "Other"
                           status: "open"
-                          possibilities: {}
+                          possibilities: { }
                           resolution: null
                           resolution_criteria: "Resolution Criteria Copy"
                           fine_print: "Fine Print Copy"
                           label: null
                           open_upper_bound: null
                           open_lower_bound: null
-                          scaling: {}
+                          scaling: { }
                           post_id: 20772
-                          aggregations: {}
+                          aggregations: { }
                         user_permission: "forecaster"
                         vote:
                           score: 36
@@ -891,8 +954,8 @@ paths:
                         slug: "democrat-wins-2024-us-presidential-election"
                         author_id: 130973
                         author_username: "NMorrison"
-                        coauthors: []
-                        projects: {}
+                        coauthors: [ ]
+                        projects: { }
                         created_at: "2024-02-21T01:37:23.166501Z"
                         published_at: "2024-02-21T07:00:00Z"
                         edited_at: "2024-09-30T15:59:05.961173Z"
@@ -934,7 +997,7 @@ paths:
                               range_min: null
                               zero_point: null
                             post_id: 11379
-                            aggregations: {}
+                            aggregations: { }
                           condition_child:
                             id: 6478
                             title: "Will a Democrat win the 2024 US presidential election?"
@@ -962,7 +1025,7 @@ paths:
                               range_min: null
                               zero_point: null
                             post_id: 6478
-                            aggregations: {}
+                            aggregations: { }
                           question_yes:
                             id: 21477
                             title: "2024 Democratic Presidential Nominee (Joe Biden) (Yes) → Democrat Wins 2024 US Presidential Election?"
@@ -990,7 +1053,7 @@ paths:
                               range_min: null
                               zero_point: null
                             post_id: 21475
-                            aggregations: {}
+                            aggregations: { }
                           question_no:
                             id: 21476
                             title: "2024 Democratic Presidential Nominee? (Joe Biden) (No) → Democrat Wins 2024 US Presidential Election?"
@@ -1018,7 +1081,7 @@ paths:
                               range_min: null
                               zero_point: null
                             post_id: 21475
-                            aggregations: {}
+                            aggregations: { }
                         user_permission: "forecaster"
                         vote:
                           score: 25
@@ -1036,8 +1099,8 @@ paths:
                         slug: "chinese-invasion-of-taiwan"
                         author_id: 104161
                         author_username: "casens"
-                        coauthors: []
-                        projects: {}
+                        coauthors: [ ]
+                        projects: { }
                         created_at: "2022-06-21T17:44:44.092940Z"
                         published_at: "2022-05-06T04:00:00Z"
                         edited_at: "2024-09-29T14:14:15.433250Z"
@@ -1084,7 +1147,7 @@ paths:
                                 range_min: null
                                 zero_point: null
                               post_id: 11480
-                              aggregations: {}
+                              aggregations: { }
                             - id: 10923
                               title: "Will China launch a full-scale invasion of Taiwan by the following years? (2035)"
                               description: "description"
@@ -1111,7 +1174,7 @@ paths:
                                 range_min: null
                                 zero_point: null
                               post_id: 11480
-                              aggregations: {}
+                              aggregations: { }
                         user_permission: "forecaster"
                         vote:
                           score: 69
@@ -1219,5 +1282,53 @@ paths:
       responses:
         '201':
           description: Forecasts submitted successfully
+        '400':
+          description: Invalid request format
+  /api/comments/create/:
+    post:
+      summary: Create a new comment
+      description: Submit a new comment on a post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - included_forecast
+                - is_private
+                - on_post
+                - text
+              properties:
+                included_forecast:
+                  type: boolean
+                  description: Include the user's last forecast.
+                is_private:
+                  type: boolean
+                  description: If the comment is private or public.
+                on_post:
+                  type: integer
+                  description: ID of the post.
+                parent:
+                  type: integer
+                  description: ID of the comment you're replying to.
+                text:
+                  type: string
+                  description: The content of the comment.
+            examples:
+              CreateCommentExample:
+                summary: Example of a comment creation
+                value:
+                  included_forecast: false
+                  is_private: false
+                  on_post: 1
+                  text: "Bot comment"
+      responses:
+        '201':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
         '400':
           description: Invalid request format
