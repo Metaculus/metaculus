@@ -28,14 +28,14 @@ const PostCard: FC<Props> = ({ post }) => {
         borderVariant={post.notebook ? "highlighted" : "regular"}
         borderColor={post.notebook ? "purple" : "blue"}
       >
-        {!!post?.question &&
-          (!hideCP || post.curation_status != PostStatus.APPROVED) && (
-            <QuestionChartTile
-              question={post?.question}
-              authorUsername={post.author_username}
-              curationStatus={post.status}
-            />
-          )}
+        {!!post?.question && (
+          <QuestionChartTile
+            question={post?.question}
+            authorUsername={post.author_username}
+            curationStatus={post.status}
+            hideCP={hideCP}
+          />
+        )}
         {!!post.group_of_questions &&
           (!hideCP || post.curation_status != PostStatus.APPROVED) && (
             <GroupOfQuestionsTile
