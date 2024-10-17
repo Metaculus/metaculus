@@ -80,6 +80,10 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/Category'
+            tag:
+              type: array
+              items: 
+                $ref: "#/components/schemas/Tag"
             question_series:
               type: array
               items:
@@ -191,6 +195,13 @@ components:
         description:
           type: string
           example: "Nuclear Technology & Risks"
+
+    Tag:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Space"
 
     Conditional:
       type: object
@@ -367,14 +378,6 @@ components:
 
     Forecast:
       type: object
-      properties:
-        question:
-          type: integer
-          description: The ID of the question being forecasted
-        probability_yes:
-          type: number
-          format: float
-          description: Probability for binary questions
       oneOf:
         - $ref: '#/components/schemas/BinaryForecast'
         - $ref: '#/components/schemas/NumericForecast'
@@ -716,7 +719,6 @@ paths:
                         slug: "covid-19-related-deaths-before-2021"
                         author_id: 101465
                         author_username: "Jgalt"
-                        coauthors: [ ]
                         projects:
                           category:
                             - id: 3685
@@ -1234,7 +1236,7 @@ paths:
                           score: 69
                           user_vote: null
                         forecasts_count: 4670
-  /api/posts/{postId}/:
+  /api/posts/{postId}:
     get:
       summary: Retrieve post details
       tags:
@@ -1279,7 +1281,7 @@ paths:
                   - question: 1
                     continuous_cdf:
                       [
-                        0, 9.424125589231841e-05, 0.00019647063437408003, ..., 1
+                        0, 9.424125589231841e-05, 0.00019647063437408003, 1
                       ]
                     slider_values:
                       forecast:
@@ -1295,7 +1297,7 @@ paths:
                   - question: 1
                     continuous_cdf:
                       [
-                        0.001000000000014897, 0.0010500000000204029, 0.0011000000000279584, ...
+                        0.001000000000014897, 0.0010500000000204029, 0.0011000000000279584
                       ]
                     slider_values:
                       forecast:
