@@ -14,7 +14,8 @@ export type ModalType =
   | "signupSuccess"
   | "resetPassword"
   | "resetPasswordConfirm"
-  | "contactUs";
+  | "contactUs"
+  | "confirm";
 
 export type CurrentModal = {
   type: ModalType;

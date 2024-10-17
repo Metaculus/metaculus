@@ -5,6 +5,7 @@ import React, { FC, ReactNode, useState } from "react";
 import { unresolveQuestion as unresolveQuestionAction } from "@/app/(main)/questions/actions";
 import DropdownMenu from "@/components/ui/dropdown_menu";
 import LoadingSpinner from "@/components/ui/loading_spiner";
+import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ProjectPermissions } from "@/types/post";
 import { Question } from "@/types/question";
@@ -27,6 +28,7 @@ const ForecastMakerGroupControls: FC<Props> = ({
 }) => {
   const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
   const t = useTranslations();
+  const { setCurrentModal } = useModal();
   const [unresolveQuestion, isPending] = useServerAction(
     unresolveQuestionAction
   );
@@ -57,7 +59,11 @@ const ForecastMakerGroupControls: FC<Props> = ({
                 {
                   id: "unresolve",
                   name: t("unresolve"),
-                  onClick: () => unresolveQuestion(question.id),
+                  onClick: () =>
+                    setCurrentModal({
+                      type: "confirm",
+                      data: { onConfirm: () => unresolveQuestion(question.id) },
+                    }),
                 },
               ]
             : []),
