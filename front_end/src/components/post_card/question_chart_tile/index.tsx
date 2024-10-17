@@ -17,12 +17,14 @@ type Props = {
   question: QuestionWithForecasts;
   authorUsername: string;
   curationStatus: PostStatus;
+  hideCP?: boolean;
 };
 
 const QuestionChartTile: FC<Props> = ({
   question,
   authorUsername,
   curationStatus,
+  hideCP,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -58,6 +60,7 @@ const QuestionChartTile: FC<Props> = ({
           question={question}
           curationStatus={curationStatus}
           defaultChartZoom={defaultChartZoom}
+          hideCP={hideCP}
         />
       );
     case QuestionType.MultipleChoice: {
@@ -78,6 +81,7 @@ const QuestionChartTile: FC<Props> = ({
           defaultChartZoom={defaultChartZoom}
           question={question}
           userForecasts={userForecasts}
+          hideCP={hideCP}
         />
       );
     }

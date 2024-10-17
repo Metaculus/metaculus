@@ -15,12 +15,14 @@ type Props = {
   question: QuestionWithNumericForecasts;
   curationStatus: PostStatus;
   defaultChartZoom?: TimelineChartZoomOption;
+  hideCP?: boolean;
 };
 
 const QuestionNumericTile: FC<Props> = ({
   question,
   curationStatus,
   defaultChartZoom,
+  hideCP,
 }) => {
   const latest = question.aggregations.recency_weighted.latest;
   const prediction = latest?.centers![0];
@@ -51,6 +53,7 @@ const QuestionNumericTile: FC<Props> = ({
           prediction={prediction}
           status={curationStatus}
           showUserForecast
+          hideCP={hideCP}
         />
       </div>
       <div className="my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
@@ -72,6 +75,7 @@ const QuestionNumericTile: FC<Props> = ({
             defaultZoom={defaultChartZoom}
             resolution={question.resolution}
             resolveTime={question.actual_resolve_time}
+            hideCP={hideCP}
           />
         ) : (
           <ContinuousAreaChart
@@ -80,6 +84,7 @@ const QuestionNumericTile: FC<Props> = ({
             height={HEIGHT}
             questionType={question.type}
             resolution={question.resolution}
+            hideCP={hideCP}
           />
         )}
       </div>
