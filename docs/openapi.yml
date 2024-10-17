@@ -1180,7 +1180,7 @@ paths:
                           score: 69
                           user_vote: null
                         forecasts_count: 4670
-  /api/posts/{postId}:
+  /api/posts/{postId}/:
     get:
       summary: Retrieve post details
       parameters:
@@ -1330,5 +1330,90 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Comment'
+        '400':
+          description: Invalid request format
+  /api/comments/:
+    get:
+      summary: Retrieve comments
+      description: Fetch comments with optional filters for post, author, pagination, and sorting. Either the `post` or `author` parameter is required.
+      parameters:
+        - name: post
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: ID of the post to filter comments by.
+        - name: author
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: ID of the author to filter comments by.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of comments to retrieve.
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Offset for pagination.
+        - name: is_private
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Filter between private comments (for the current user) and public comments. Defaults to false.
+        - name: use_root_comments_pagination
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: If true, pagination will only apply to root comments, and all child comments will be included for those root comments.
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ "-created_at", "created_at" ]
+          description: Sort comments by creation date. Use `-created_at` for descending order.
+        - name: focus_comment_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: The ID of a comment to place at the top of the results.
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_count:
+                    type: integer
+                    description: Total number of root and child comments.
+                  count:
+                    type: integer
+                    description: Total number of root comments only.
+                  next:
+                    type: string
+                    format: uri
+                    nullable: true
+                    description: URL for the next page of results, if available.
+                  previous:
+                    type: string
+                    format: uri
+                    nullable: true
+                    description: URL for the previous page of results, if available.
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Comment'
         '400':
           description: Invalid request format
