@@ -23,6 +23,7 @@ import {
   Scaling,
   Quartiles,
   QuestionWithNumericForecasts,
+  QuestionType,
 } from "@/types/question";
 import {
   generateScale,
@@ -238,7 +239,7 @@ function buildChartData(options: FanOption[]) {
 
   // we can have mixes of log and linear scaled options
   // which leads to a derived zero point inside the range which is invalid
-  // so just igore the log scaling in this case
+  // so just ignore the log scaling in this case
   if (
     scaling.zero_point !== null &&
     scaling.range_min! <= scaling.zero_point &&
@@ -246,7 +247,8 @@ function buildChartData(options: FanOption[]) {
   ) {
     scaling.zero_point = null;
   }
-  if (scaling.range_max === 1 && scaling.range_min === 0) {
+
+  if (options[0].question.type === QuestionType.Binary) {
     for (const option of options) {
       line.push({
         x: option.name,

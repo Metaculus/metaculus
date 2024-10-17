@@ -11,6 +11,14 @@ from rest_framework.permissions import IsAuthenticated
 from .models import UserUsage
 
 
+def is_valid_json(input_string):
+    try:
+        json.loads(input_string)
+        return True
+    except ValueError:
+        return False
+
+
 def streaming_response(
     url,
     headers,
@@ -25,7 +33,8 @@ def streaming_response(
 
     platform_response = requests.post(url, headers=headers, json=data, stream=True)
 
-    platform_response.raise_for_status()
+    if not platform_response.ok:
+        raise Exception(platform_response.text)
 
     def resp_iterator(response):
         for line in response.iter_lines():
@@ -56,8 +65,8 @@ def normal_response(
         headers=headers,
         json=data,
     )
-
-    platform_response.raise_for_status()
+    if not platform_response.ok or not is_valid_json(platform_response.text):
+        raise Exception(platform_response.text)
 
     response_data = platform_response.json()
 
@@ -117,10 +126,10 @@ def make_request(
         logging.error(error_msg)
         return JsonResponse(
             {"error": error_msg},
-            status=502,
+            status=400,
         )
     except Exception as e:
-        return JsonResponse({"error": f"An unexpected error occurred: {e}"}, status=500)
+        return JsonResponse({"error": f"An unexpected error occurred: {e}"}, status=400)
 
 
 @api_view(["POST"])

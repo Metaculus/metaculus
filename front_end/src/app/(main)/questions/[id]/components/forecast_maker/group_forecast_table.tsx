@@ -13,7 +13,7 @@ import {
 import ResolutionIcon from "@/components/icons/resolution";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import RadioButton from "@/components/ui/radio_button";
-import { Resolution } from "@/types/post";
+import { QuestionStatus, Resolution } from "@/types/post";
 import {
   Quartiles,
   Question,
@@ -55,8 +55,20 @@ const GroupForecastTable: FC<Props> = ({
 
   const { resolvedOptions, pendingOptions } = useMemo(
     () => ({
-      resolvedOptions: options.filter((option) => option.resolution !== null),
-      pendingOptions: options.filter((option) => option.resolution === null),
+      resolvedOptions: options.filter(
+        (option) =>
+          option.question.status &&
+          [QuestionStatus.CLOSED, QuestionStatus.RESOLVED].includes(
+            option.question.status
+          )
+      ),
+      pendingOptions: options.filter(
+        (option) =>
+          !option.question.status ||
+          ![QuestionStatus.CLOSED, QuestionStatus.RESOLVED].includes(
+            option.question.status
+          )
+      ),
     }),
     [options]
   );

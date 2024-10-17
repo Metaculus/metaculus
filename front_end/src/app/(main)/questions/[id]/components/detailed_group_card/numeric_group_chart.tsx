@@ -10,9 +10,17 @@ import {
 
 type Props = {
   questions: QuestionWithNumericForecasts[];
+  height?: number;
+  pointSize?: number;
+  withLabel?: boolean;
 };
 
-const NumericGroupChart: FC<Props> = ({ questions }) => {
+const NumericGroupChart: FC<Props> = ({
+  questions,
+  height,
+  pointSize,
+  withLabel,
+}) => {
   const t = useTranslations();
 
   return (
@@ -22,7 +30,9 @@ const NumericGroupChart: FC<Props> = ({ questions }) => {
           ? getFanOptionsFromBinaryGroup(questions)
           : getFanOptionsFromNumericGroup(questions)
       }
-      yLabel={t("communityPredictionLabel")}
+      height={height}
+      pointSize={pointSize}
+      yLabel={withLabel ? t("communityPredictionLabel") : undefined}
       withTooltip
     />
   );

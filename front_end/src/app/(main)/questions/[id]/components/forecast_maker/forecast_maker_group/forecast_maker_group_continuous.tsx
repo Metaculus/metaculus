@@ -14,7 +14,11 @@ import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import {
+  PostWithForecasts,
+  ProjectPermissions,
+  QuestionStatus,
+} from "@/types/post";
 import {
   PredictionInputMessage,
   QuestionWithNumericForecasts,
@@ -24,7 +28,11 @@ import {
   getNumericForecastDataset,
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
-import { extractQuestionGroupName, formatResolution } from "@/utils/questions";
+import {
+  extractQuestionGroupName,
+  formatResolution,
+  getSubquestionPredictionInputMessage,
+} from "@/utils/questions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
@@ -108,6 +116,13 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const isPickerDirty = useMemo(
     () => groupOptions.some((option) => option.isDirty),
     [groupOptions]
+  );
+  const activeGroupOptionPredictionMessage = useMemo(
+    () =>
+      activeGroupOption
+        ? getSubquestionPredictionInputMessage(activeGroupOption)
+        : null,
+    [activeGroupOption]
   );
 
   const handleChange = useCallback(
@@ -281,7 +296,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               onChange={(forecast, weight) =>
                 handleChange(option.id, forecast, weight)
               }
-              disabled={!canPredict || !!option.resolution}
+              disabled={
+                !canPredict || option.question.status != QuestionStatus.OPEN
+              }
             />
           </div>
         );
@@ -291,44 +308,50 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           {t(predictionMessage)}
         </div>
       )}
-      {!!activeGroupOption && !activeGroupOption?.resolution && (
-        <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-          {canPredict &&
-            (user ? (
-              <>
-                <Button
-                  variant="secondary"
-                  type="reset"
-                  onClick={() => handleAddComponent(activeGroupOption.id)}
-                >
-                  {t("addComponentButton")}
-                </Button>
-                <Button
-                  variant="secondary"
-                  type="reset"
-                  onClick={handleResetForecasts}
-                  disabled={!isPickerDirty}
-                >
-                  {t("discardChangesButton")}
-                </Button>
+      {!!activeGroupOption &&
+        activeGroupOption.question.status == QuestionStatus.OPEN && (
+          <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
+            {canPredict &&
+              (user ? (
+                <>
+                  <Button
+                    variant="secondary"
+                    type="reset"
+                    onClick={() => handleAddComponent(activeGroupOption.id)}
+                  >
+                    {t("addComponentButton")}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    type="reset"
+                    onClick={handleResetForecasts}
+                    disabled={!isPickerDirty}
+                  >
+                    {t("discardChangesButton")}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    onClick={handlePredictSubmit}
+                    disabled={!submitIsAllowed}
+                  >
+                    {t("saveChange")}
+                  </Button>
+                </>
+              ) : (
                 <Button
                   variant="primary"
-                  type="submit"
-                  onClick={handlePredictSubmit}
-                  disabled={!submitIsAllowed}
+                  type="button"
+                  onClick={() => setCurrentModal({ type: "signup" })}
                 >
-                  {t("saveChange")}
+                  {t("signUpToPredict")}
                 </Button>
-              </>
-            ) : (
-              <Button
-                variant="primary"
-                type="button"
-                onClick={() => setCurrentModal({ type: "signup" })}
-              >
-                {t("signUpToPredict")}
-              </Button>
-            ))}
+              ))}
+          </div>
+        )}
+      {activeGroupOptionPredictionMessage && (
+        <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
+          {t(activeGroupOptionPredictionMessage)}
         </div>
       )}
       {!!activeGroupOption && (

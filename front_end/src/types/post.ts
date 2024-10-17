@@ -60,6 +60,13 @@ export type PostVote = {
   user_vote: VoteDirection;
 };
 
+export enum QuestionStatus {
+  UPCOMING = "upcoming",
+  OPEN = "open",
+  CLOSED = "closed",
+  RESOLVED = "resolved",
+}
+
 export enum PostStatus {
   DRAFT = "draft",
   PENDING = "pending",

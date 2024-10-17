@@ -17,7 +17,7 @@ import { useAuth } from "@/contexts/auth_context";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { Category, Post, PostWithForecasts } from "@/types/post";
 import { Tournament, TournamentPreview } from "@/types/projects";
-import { logError } from "@/utils/errors";
+import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 
 import BacktoCreate from "./back_to_create";
@@ -122,8 +122,8 @@ const NotebookForm: React.FC<Props> = ({
 
       router.push(getPostLink(resp.post));
     } catch (e) {
-      logError(e);
       const error = e as Error & { digest?: string };
+      logErrorWithScope(error, post_data);
       setError(error);
     } finally {
       setIsLoading(false);
@@ -143,7 +143,7 @@ const NotebookForm: React.FC<Props> = ({
         className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", siteMain.id);
+            control.setValue("default_project", defaultProject.id);
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(

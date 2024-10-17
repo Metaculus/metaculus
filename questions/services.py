@@ -665,7 +665,7 @@ def create_forecast_bulk(*, user: User = None, forecasts: list[dict] = None):
         #
         # As a temporary solution, we introduce a 10-second delay before execution
         # to ensure all forecasts are processed.
-        run_on_post_forecast.send_with_options(args=(post.id, ), delay=10_000)
+        run_on_post_forecast.send_with_options(args=(post.id,), delay=10_000)
 
 
 def get_recency_weighted_for_questions(

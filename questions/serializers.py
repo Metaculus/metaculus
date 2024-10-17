@@ -38,6 +38,9 @@ class QuestionSerializer(serializers.ModelSerializer):
             "actual_close_time",
             "type",
             "options",
+            # Used for Group Of Questions to determine
+            # whether question is eligible for forecasting
+            "status",
             "possibilities",
             "resolution",
             "resolution_criteria",
@@ -88,6 +91,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data: dict):
+        # TODO: add validation for continuous question bounds
         return data
 
 
@@ -96,6 +100,8 @@ class QuestionUpdateSerializer(QuestionWriteSerializer):
 
     class Meta(QuestionWriteSerializer.Meta):
         fields = QuestionWriteSerializer.Meta.fields + ("id",)
+
+    # TODO: add validation for updating continuous question bounds
 
 
 class ConditionalSerializer(serializers.ModelSerializer):
@@ -611,6 +617,19 @@ def validate_question_resolution(question: Question, resolution: str) -> str:
         )
 
     # Continuous question
+    if resolution == "above_upper_bound":
+        if not question.open_upper_bound:
+            raise ValidationError(
+                "Resolution must be below the upper bound due to a closed upper bound."
+            )
+        return resolution
+    if resolution == "below_lower_bound":
+        if not question.open_lower_bound:
+            raise ValidationError(
+                "Resolution must be above the lower bound due to a closed lower bound."
+            )
+        return resolution
+
     if question.type == Question.QuestionType.NUMERIC:
         resolution = serializers.FloatField().run_validation(resolution)
         range_min = question.range_min

@@ -28,11 +28,7 @@ const QuestionConditionalCreator: React.FC<{
     );
   }
   const mode = extractMode(searchParams, post);
-  const allTournaments = await ProjectsApi.getTournaments({
-    // Select only projects
-    // where user is curator/admin
-    permission: ProjectPermissions.CURATOR,
-  });
+  const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
 
   return (

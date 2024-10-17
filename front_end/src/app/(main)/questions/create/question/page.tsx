@@ -23,10 +23,7 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
     ? (post.question?.type as string)
     : (searchParams["type"] as string);
   const mode = extractMode(searchParams, post);
-  const allTournaments = await ProjectsApi.getTournaments({
-    // Show projects where current user is curator or admin
-    permission: ProjectPermissions.CURATOR,
-  });
+  const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
 
   return (

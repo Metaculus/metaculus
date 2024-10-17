@@ -1,16 +1,18 @@
 import { useLocale } from "next-intl";
 import { FC } from "react";
 
-import FanChart from "@/components/charts/fan_chart";
+import NumericGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/numeric_group_chart";
 import MultipleChoiceTile from "@/components/multiple_choice_tile";
 import PredictionChip from "@/components/prediction_chip";
 import { useAuth } from "@/contexts/auth_context";
-import { FanOption, TimelineChartZoomOption } from "@/types/charts";
+import {
+  GroupOfQuestionsGraphType,
+  TimelineChartZoomOption,
+} from "@/types/charts";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import {
   generateChoiceItemsFromBinaryGroup,
-  getFanOptionsFromNumericGroup,
   getGroupQuestionsTimestamps,
 } from "@/utils/charts";
 import {
@@ -31,8 +33,9 @@ const GroupNumericTile: FC<Props> = ({ questions, curationStatus, post }) => {
   const { user } = useAuth();
   const locale = useLocale();
 
-  if (post.group_of_questions?.graph_type === "fan_graph") {
-    const sortedQuestions = getFanOptionsFromNumericGroup(questions);
+  if (
+    post.group_of_questions?.graph_type === GroupOfQuestionsGraphType.FanGraph
+  ) {
     const predictionQuestion = getPredictionQuestion(questions, curationStatus);
     return (
       <div className="flex justify-between">
@@ -49,15 +52,19 @@ const GroupNumericTile: FC<Props> = ({ questions, curationStatus, post }) => {
             status={curationStatus}
           />
         </div>
-
-        <FanChart
-          options={sortedQuestions as FanOption[]}
-          height={CHART_HEIGHT}
-          pointSize={8}
-        />
+        <div className="my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
+          <NumericGroupChart
+            questions={questions}
+            height={CHART_HEIGHT}
+            pointSize={8}
+          />
+        </div>
       </div>
     );
-  } else if (post.group_of_questions?.graph_type === "multiple_choice_graph") {
+  } else if (
+    post.group_of_questions?.graph_type ===
+    GroupOfQuestionsGraphType.MultipleChoiceGraph
+  ) {
     const visibleChoicesCount = 3;
     const sortedQuestions = sortGroupPredictionOptions(questions);
     const timestamps = getGroupQuestionsTimestamps(sortedQuestions);

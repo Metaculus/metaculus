@@ -26,6 +26,7 @@ import { ErrorResponse } from "@/types/fetch";
 import {
   PostWithForecasts,
   ProjectPermissions,
+  QuestionStatus,
   Resolution,
 } from "@/types/post";
 import {
@@ -55,6 +56,7 @@ type QuestionOption = {
   isDirty: boolean;
   color: ThemeColor;
   menu: ReactNode;
+  status?: QuestionStatus;
 };
 
 type Props = {
@@ -241,7 +243,9 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isDirty={questionOption.isDirty}
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
-              disabled={!canPredict || !!questionOption.resolution}
+              disabled={
+                !canPredict || questionOption.status != QuestionStatus.OPEN
+              }
               optionResolution={{
                 resolution: questionOption.resolution,
                 type: "group_question",
@@ -323,6 +327,7 @@ function generateChoiceOptions(
       resolution: question.resolution,
       isDirty: false,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      status: question.status,
       menu: (
         <ForecastMakerGroupControls
           question={question}
