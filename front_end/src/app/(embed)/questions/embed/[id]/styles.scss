@@ -36,6 +36,9 @@ $plot-stroke-width: 2;
 a {
   text-decoration: auto;
 }
+body {
+  overflow: hidden;
+}
 
 .ForecastCard {
   @apply p-0;
