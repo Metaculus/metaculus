@@ -34,8 +34,10 @@ info:
 servers:
   - url: https://www.metaculus.com
     description: Production Server
+  - url: http://localhost:8000
+    description: Local Server
 security:
-  - TokenAuth: []
+  - TokenAuth: [ ]
 components:
   securitySchemes:
     TokenAuth:
@@ -82,7 +84,7 @@ components:
                 $ref: '#/components/schemas/Category'
             tag:
               type: array
-              items: 
+              items:
                 $ref: "#/components/schemas/Tag"
             question_series:
               type: array
@@ -645,19 +647,19 @@ paths:
             example: 123
           description: Filters posts where the specified user has not submitted a forecast on a question within the post.
         - in: query
-          name: published_at__<operator>
+          name: published_at__gt
           schema:
             type: string
             format: date-time
             example: '2024-01-01'
-          description: "Post publication timestamp filter. Supported operators: `gt`, `gte`, `lt`, `lte`."
+          description: "Post publication timestamp filter: `published_at__<operator>`. Supported operators: `gt`, `gte`, `lt`, `lte`."
         - in: query
-          name: scheduled_resolve_time__<operator>
+          name: scheduled_resolve_time__gt
           schema:
             type: string
             format: date-time
             example: '2024-01-01'
-          description: "Scheduled resolution timestamp filter. Supported operators: `gt`, `gte`, `lt`, `lte`."
+          description: "Scheduled resolution timestamp filter: `scheduled_resolve_time__<operator>`. Supported operators: `gt`, `gte`, `lt`, `lte`."
         - in: query
           name: forecast_type
           schema:
