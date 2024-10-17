@@ -56,7 +56,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
           <DialogPanel
             className={classNames(
               "my-auto max-h-screen w-full max-w-fit transform overflow-y-auto rounded bg-gray-0 p-5 text-left align-middle text-sm text-blue-900 shadow-xl transition-all dark:bg-gray-0-dark dark:text-blue-900-dark md:p-7",
-              isImmersive ? "h-screen md:h-fit" : "",
+              isImmersive ? "h-svh md:h-fit" : "",
               className
             )}
           >
