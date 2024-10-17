@@ -326,6 +326,162 @@ components:
               type: string
               example: "num"
 
+    Forecast:
+      type: object
+      properties:
+        question:
+          type: integer
+          description: The ID of the question being forecasted
+        probability_yes:
+          type: number
+          format: float
+          description: Probability for binary questions
+      oneOf:
+        - $ref: '#/components/schemas/BinaryForecast'
+        - $ref: '#/components/schemas/NumericForecast'
+        - $ref: '#/components/schemas/DateForecast'
+        - $ref: '#/components/schemas/MultipleChoiceForecast'
+        - $ref: '#/components/schemas/ConditionalForecast'
+        - $ref: '#/components/schemas/GroupForecast'
+
+    BinaryForecast:
+      type: object
+      required:
+        - question
+        - probability_yes
+      properties:
+        question:
+          type: integer
+        probability_yes:
+          type: number
+          format: float
+          description: Probability for a binary outcome
+
+    NumericForecast:
+      type: object
+      required:
+        - question
+        - continuous_cdf
+        - slider_values
+      properties:
+        question:
+          type: integer
+        continuous_cdf:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Cumulative density function (CDF) for the numeric question
+        slider_values:
+          type: object
+          required:
+            - forecast
+            - weights
+          properties:
+            forecast:
+              type: array
+              items:
+                type: object
+                properties:
+                  center:
+                    type: number
+                    format: float
+                  left:
+                    type: number
+                    format: float
+                  right:
+                    type: number
+                    format: float
+            weights:
+              type: array
+              items:
+                type: integer
+
+    DateForecast:
+      type: object
+      required:
+        - question
+        - continuous_cdf
+        - slider_values
+      properties:
+        question:
+          type: integer
+        continuous_cdf:
+          type: array
+          items:
+            type: number
+            format: float
+        slider_values:
+          type: object
+          required:
+            - forecast
+            - weights
+          properties:
+            forecast:
+              type: array
+              items:
+                type: object
+                properties:
+                  center:
+                    type: number
+                    format: float
+                  left:
+                    type: number
+                    format: float
+                  right:
+                    type: number
+                    format: float
+            weights:
+              type: array
+              items:
+                type: integer
+
+    MultipleChoiceForecast:
+      type: object
+      required:
+        - question
+        - probability_yes_per_category
+      properties:
+        question:
+          type: integer
+        probability_yes_per_category:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+          description: Probability distribution for multiple categories. Sum of values must equal 1.0.
+
+    ConditionalForecast:
+      type: array
+      description: Forecast for conditional questions (if Yes/No scenarios)
+      items:
+        type: object
+        required:
+          - question
+          - probability_yes
+        properties:
+          question:
+            type: integer
+          probability_yes:
+            type: number
+            format: float
+
+    GroupForecast:
+      type: array
+      description: Group forecast for binary questions
+      items:
+        type: object
+        required:
+          - question
+          - probability_yes
+        properties:
+          question:
+            type: integer
+          probability_yes:
+            type: number
+            format: float
+
+
 
 paths:
   /api/posts/:
@@ -961,3 +1117,90 @@ paths:
                           score: 69
                           user_vote: null
                         forecasts_count: 4670
+  /api/questions/forecast/:
+    post:
+      summary: Submit question forecasts
+      description: Pass one forecast object for single questions and multiple forecast objects for group of questions or conditional forecasts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Forecast'
+            examples:
+              BinaryQuestionExample:
+                summary: Binary question forecast example
+                value:
+                  - question: 1
+                    probability_yes: 0.63
+              NumericQuestionExample:
+                summary: Numeric question forecast with 3 slider components
+                value:
+                  - question: 1
+                    continuous_cdf:
+                      [
+                        0, 9.424125589231841e-05, 0.00019647063437408003, ..., 1
+                      ]
+                    slider_values:
+                      forecast:
+                        [
+                          { "center": 0.51739, "left": 0.48239, "right": 0.55239 },
+                          { "center": 0.28696, "left": 0.18696, "right": 0.34928 },
+                          { "center": 0.71305, "left": 0.64782, "right": 0.78406 }
+                        ]
+                      weights: [ 1, 1, 1 ]
+              DateQuestionExample:
+                summary: Date question forecast with 2 slider components
+                value:
+                  - question: 1
+                    continuous_cdf:
+                      [
+                        0.001000000000014897, 0.0010500000000204029, 0.0011000000000279584, ...
+                      ]
+                    slider_values:
+                      forecast:
+                        [
+                          { "center": 0.5, "left": 0.42609, "right": 0.54348 },
+                          { "center": 0.3, "left": 0.265, "right": 0.335 }
+                        ]
+                      weights: [ 1, 1 ]
+              MultipleChoiceQuestionExample:
+                summary: Multiple choices forecast example
+                value:
+                  - question: 1
+                    probability_yes_per_category:
+                      {
+                        "Futurama": 0.5,
+                        "Paperclipalypse": 0.3,
+                        "Singularia": 0.2
+                      }
+              ConditionalQuestionExample:
+                summary: Conditional question forecast example
+                value:
+                  [
+                    # Forecast for question "if Yes"
+                    {
+                      "question": 1,
+                      "probability_yes": 0.499,
+                    },
+                    # Forecast for question "if No"
+                    {
+                      "question": 1,
+                      "probability_yes": 0.501,
+                    }
+                  ]
+              BinaryGroupExample:
+                summary: Binary group of questions forecast example
+                value:
+                  [
+                    { "question": 1, "probability_yes": 0.11 },
+                    { "question": 2, "probability_yes": 0.22 },
+                    { "question": 3, "probability_yes": 0.33 }
+                  ]
+      responses:
+        '200':
+          description: Forecasts submitted successfully
+        '400':
+          description: Invalid request format
