@@ -1,8 +1,36 @@
 openapi: 3.0.0
 info:
-  title: Posts API
-  description: This API retrieves a feed of posts.
-  version: 1.0.0
+  title: Metaculus API
+  description: |
+    <b>Welcome to the official Metaculus API!</b>
+    
+    If you have questions, ideas, or feedback, please contact our team at
+    <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>. We are excited to keep building upon this
+    initial version of the API, and we’d like to keep making it more useful
+    to you. Our aim is to support the forecasting community – we’re listening!
+    
+    <b>Get Started in 15 Seconds</b>
+    
+    <ol>
+    <li>Most of the API is (hopefully) self-explanatory. You’ll find all the documentation below.
+    <li>If you’re testing the waters or doing a one-off analysis, you can dive right in!
+    <li>If you’re building an application that connects to the Metaculus API, you’ll need to authenticate.
+    </ol>
+    
+    <b>How to Authenticate</b>
+    
+    You can see your current API token (or generate one) at your <a href="https://www.metaculus.com/accounts/settings/">settings</a> page, under the header "API Access".
+    
+    You can then add the token to your requests using the <i>Authorization</i> HTTP header. The token should be prefixed by the string literal "Token", with whitespace separating the two strings.
+    
+    Example:
+    
+    <blockquote>
+    Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b
+    </blockquote>
+    
+    Please note that we throttle requests to 1000 requests per hour to prevent abuse.
+  version: 2.0.0
 components:
   schemas:
     Post:
@@ -546,11 +574,26 @@ components:
         user_vote:
           type: integer
           description: Current user's vote on this comment (-1, 0, 1).
+tags:
+  - name: Feed
+    description: |
+      In the updated version of Metaculus, standalone questions no longer exist. Instead, the feed is made up of Post entities, where each post can contain various types of content objects. These include:
+      
+      - Individual questions
+      - Groups of questions
+      - Conditional pairs
+      - Notebooks
+      
+      The primary entry point for retrieving feed data and interacting with both Posts and Questions is the `/api/posts` endpoint.
+  - name: Questions & Forecasts
+  - name: Comments
 paths:
   /api/posts/:
     get:
       summary: Retrieve posts feed
       description: Retrieves a feed of posts with various filters.
+      tags:
+        - Feed
       parameters:
         - in: query
           name: tournaments
@@ -1183,6 +1226,8 @@ paths:
   /api/posts/{postId}/:
     get:
       summary: Retrieve post details
+      tags:
+        - Feed
       parameters:
         - name: postId
           in: path
@@ -1201,6 +1246,8 @@ paths:
     post:
       summary: Submit question forecasts
       description: Pass one forecast object for single questions and multiple forecast objects for group of questions or conditional forecasts.
+      tags:
+        - Questions & Forecasts
       requestBody:
         required: true
         content:
@@ -1288,6 +1335,8 @@ paths:
     post:
       summary: Create a new comment
       description: Submit a new comment on a post
+      tags:
+        - Comments
       requestBody:
         required: true
         content:
@@ -1336,6 +1385,8 @@ paths:
     get:
       summary: Retrieve comments
       description: Fetch comments with optional filters for post, author, pagination, and sorting. Either the `post` or `author` parameter is required.
+      tags:
+        - Comments
       parameters:
         - name: post
           in: query
