@@ -517,7 +517,7 @@ paths:
           schema:
             type: boolean
             example: true
-          description: Include Community Predictions in Payload
+          description: "When this flag is enabled, each post with a group of questions will return community predictions for only the top 3 subquestions. To retrieve predictions for all subquestions, please use the post details endpoint."
         - in: query
           name: not_forecaster_id
           schema:
@@ -1117,6 +1117,23 @@ paths:
                           score: 69
                           user_vote: null
                         forecasts_count: 4670
+  /api/posts/{postId}:
+    get:
+      summary: Retrieve post details
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the post to retrieve
+      responses:
+        '200':
+          description: Post details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
   /api/questions/forecast/:
     post:
       summary: Submit question forecasts
@@ -1200,7 +1217,7 @@ paths:
                     { "question": 3, "probability_yes": 0.33 }
                   ]
       responses:
-        '200':
+        '201':
           description: Forecasts submitted successfully
         '400':
           description: Invalid request format
