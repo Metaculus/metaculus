@@ -33,17 +33,6 @@ const Step4: React.FC<Step4Props> = ({
 }) => {
   const [newFactor, setNewFactor] = useState("");
   const [userFactors, setUserFactors] = useState<string[]>([]);
-  const [factorRatings, setFactorRatings] = useState<{
-    [key: string]: { direction: "up" | "down" | null; rating: number | null };
-  }>({});
-  const [activeSelector, setActiveSelector] = useState<{
-    factor: string;
-    direction: "up" | "down";
-  } | null>(null);
-  const [selectorPosition, setSelectorPosition] = useState<{
-    top: number;
-    right: number;
-  } | null>(null);
 
   if (topicIndex === null || !questionData) {
     return <p>Loading...</p>;
@@ -67,48 +56,6 @@ const Step4: React.FC<Step4Props> = ({
     onNext();
   };
 
-  const handleLikelihoodClick = (
-    factor: string,
-    direction: "up" | "down",
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const parentRect =
-      event.currentTarget.offsetParent?.getBoundingClientRect();
-
-    if (parentRect) {
-      setSelectorPosition({
-        top: rect.bottom - parentRect.top + window.scrollY,
-        right: parentRect.right - rect.right,
-      });
-    }
-
-    if (factorRatings[factor]?.direction === direction) {
-      setActiveSelector({ factor, direction });
-    } else {
-      setActiveSelector({ factor, direction });
-    }
-  };
-
-  const handleStarClick = (rating: number) => {
-    if (activeSelector) {
-      setFactorRatings({
-        ...factorRatings,
-        [activeSelector.factor]: {
-          direction: activeSelector.direction,
-          rating,
-        },
-      });
-      setActiveSelector(null);
-    }
-  };
-
-  const handleResetRating = (factor: string) => {
-    const { [factor]: _, ...rest } = factorRatings;
-    setFactorRatings(rest);
-    setActiveSelector(null);
-  };
-
   return (
     <div className={onboardingStyles.container}>
       <button onClick={onPrev} className={onboardingStyles.backButton}>
@@ -125,82 +72,9 @@ const Step4: React.FC<Step4Props> = ({
               className="flex flex-row items-center justify-between gap-4 rounded-md bg-purple-400/45 p-2.5 px-4 text-base dark:bg-purple-600/25"
             >
               {factor}
-              <div className="mb-0.5 mt-1 flex w-full max-w-[180px] flex-col items-center justify-center gap-2 text-xs text-purple-700">
-                <button
-                  className={`flex w-full flex-row items-center justify-center gap-1 rounded-sm p-1 text-center ${
-                    factorRatings[factor]?.direction === "up"
-                      ? "bg-purple-700 text-white"
-                      : "bg-white/75 hover:bg-purple-100 active:bg-purple-300"
-                  } ${factorRatings[factor]?.direction === "down" ? "cursor-not-allowed opacity-50" : ""}`}
-                  onClick={(e) => handleLikelihoodClick(factor, "up", e)}
-                  disabled={factorRatings[factor]?.direction === "down"}
-                >
-                  <FontAwesomeIcon icon={faArrowUp} /> Increases Likelihood
-                  {factorRatings[factor]?.direction === "up" &&
-                    ` (${factorRatings[factor].rating}★)`}
-                </button>
-                <button
-                  className={`flex w-full flex-row items-center justify-center gap-1 rounded-sm p-1 text-center ${
-                    factorRatings[factor]?.direction === "down"
-                      ? "bg-purple-700 text-white"
-                      : "bg-white/75 hover:bg-purple-100 active:bg-purple-300"
-                  } ${factorRatings[factor]?.direction === "up" ? "cursor-not-allowed opacity-50" : ""}`}
-                  onClick={(e) => handleLikelihoodClick(factor, "down", e)}
-                  disabled={factorRatings[factor]?.direction === "up"}
-                >
-                  <FontAwesomeIcon icon={faArrowDown} /> Decreases Likelihood
-                  {factorRatings[factor]?.direction === "down" &&
-                    ` (${factorRatings[factor].rating}★)`}
-                </button>
-              </div>
             </li>
           ))}
         </ul>
-        {activeSelector && selectorPosition && (
-          <div
-            className="absolute z-50 rounded-md bg-white p-4 shadow-lg"
-            style={{
-              top: `${selectorPosition.top + 4}px`,
-              right: `${selectorPosition.right}px`,
-            }}
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <div className="text-lg font-semibold">Rate the impact</div>
-              <button
-                onClick={() => setActiveSelector(null)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <FontAwesomeIcon icon={faTimes} />
-              </button>
-            </div>
-            <div className="mb-4 flex gap-2">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onClick={() => handleStarClick(star)}
-                  className="text-2xl text-yellow-400 hover:text-yellow-500"
-                >
-                  <FontAwesomeIcon
-                    icon={
-                      star <=
-                      (factorRatings[activeSelector.factor]?.rating || 0)
-                        ? fasStar
-                        : farStar
-                    }
-                  />
-                </button>
-              ))}
-            </div>
-            {factorRatings[activeSelector.factor] && (
-              <button
-                onClick={() => handleResetRating(activeSelector.factor)}
-                className="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-600"
-              >
-                Reset
-              </button>
-            )}
-          </div>
-        )}
         <div className="flex">
           <input
             type="text"

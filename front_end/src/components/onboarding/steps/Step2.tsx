@@ -86,8 +86,8 @@ const Step2: React.FC<Step2Props> = ({
   const getButtonClass = (buttonType: "less" | "about" | "more") => {
     return `${onboardingStyles.button} ${
       activeButton === buttonType
-        ? "bg-blue-700 hover:bg-blue-800 text-white dark:text-blue-800 dark:bg-white"
-        : ""
+        ? "w-full bg-blue-700 hover:bg-blue-800 text-white dark:text-blue-800 dark:bg-white"
+        : "w-full"
     }`;
   };
 
@@ -131,7 +131,7 @@ const Step2: React.FC<Step2Props> = ({
         </span>
         ? Disagree?
       </p>
-      <div className="flex justify-start gap-3">
+      <div className="flex justify-start gap-1.5 md:gap-3">
         <button
           onClick={() => handlePrediction("less")}
           className={getButtonClass("less")}
