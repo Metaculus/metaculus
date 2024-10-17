@@ -1,5 +1,6 @@
 openapi: 3.0.0
 info:
+  version: 2.0.0
   title: Metaculus API
   description: |
     <b>Welcome to the official Metaculus API!</b>
@@ -30,8 +31,18 @@ info:
     </blockquote>
     
     Please note that we throttle requests to 1000 requests per hour to prevent abuse.
-  version: 2.0.0
+servers:
+  - url: https://www.metaculus.com
+    description: Production Server
+security:
+  - TokenAuth: []
 components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: "Token-based authentication. Use format: `Token <input token>`"
   schemas:
     Post:
       type: object
