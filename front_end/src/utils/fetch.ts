@@ -1,3 +1,4 @@
+import fetchRetry from "fetch-retry";
 import { notFound } from "next/navigation";
 
 import { getAlphaTokenSession, getServerSession } from "@/services/session";
@@ -137,8 +138,25 @@ const appFetch = async <T>(
     delete finalOptions.headers["Content-Type"];
   }
 
+  const fetchWithRetry = fetchRetry(fetch, {
+    retries: 2,
+    retryOn: (attempt, error) => {
+      const isSocketError =
+        (error as NodeJS.ErrnoException)?.code === "UND_ERR_SOCKET";
+
+      if (isSocketError) {
+        console.warn(
+          `Retrying fetch (attempt ${attempt + 1}) due to network error: ${error?.message}`
+        );
+        return true;
+      }
+
+      return false;
+    },
+  });
+
   try {
-    const response = await fetch(finalUrl, finalOptions);
+    const response = await fetchWithRetry(finalUrl, finalOptions);
     // consume response in order to fix SocketError: other side is closed
     // https://stackoverflow.com/questions/76931498/typeerror-terminated-cause-socketerror-other-side-closed-in-fetch-nodejs
     const clonedRes = response.clone();
