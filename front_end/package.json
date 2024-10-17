@@ -39,7 +39,7 @@
     "axios": "^1.7.2",
     "better-react-mathjax": "^2.0.3",
     "classnames": "^2.5.1",
-    "cookies-next": "^4.2.1",
+    "cookies-next": "^4.3.0",
     "d3": "^7.9.0",
     "date-fns": "^3.6.0",
     "date-fns-tz": "^3.1.3",
