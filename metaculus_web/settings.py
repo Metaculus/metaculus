@@ -24,6 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ENV = os.environ.get("METACULUS_ENV", "").strip()
 ENV_DEV = "dev"
 ENV_PROD = "prod"
+ENV_PLAY = "play"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/

@@ -18,6 +18,7 @@ import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { FormError, Input } from "@/components/ui/form_field";
 import { useModal } from "@/contexts/modal_context";
+import OnboardingModal from "@/components/onboarding/OnboardingModal";
 
 type SignInModalType = {
   isOpen: boolean;
@@ -37,7 +38,7 @@ export const SignupForm: FC<{
   const { register, watch, setValue } = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-          isBot: forceIsBot !== "ask" ? forceIsBot : undefined,
+      isBot: forceIsBot !== "ask" ? forceIsBot : undefined,
     },
   });
   const turnstileRef = useRef<TurnstileInstance | undefined>();
@@ -165,6 +166,12 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
   email,
 }: SignUpModalSuccessProps) => {
   const t = useTranslations();
+  const { setCurrentModal } = useModal();
+
+  const handleStartOnboarding = () => {
+    onClose(false);
+    setCurrentModal({ type: "onboarding" });
+  };
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} className="max-w-xs">
