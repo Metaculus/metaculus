@@ -55,8 +55,8 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
         >
           <DialogPanel
             className={classNames(
-              "my-auto w-full max-w-fit transform overflow-y-auto rounded bg-gray-0 p-7 text-left align-middle text-sm text-blue-900 shadow-xl transition-all dark:bg-gray-0-dark dark:text-blue-900-dark",
-              isImmersive ? "h-screen md:h-fit" : "max-h-screen",
+              "my-auto max-h-screen w-full max-w-fit transform overflow-y-auto rounded bg-gray-0 p-7 text-left align-middle text-sm text-blue-900 shadow-xl transition-all dark:bg-gray-0-dark dark:text-blue-900-dark",
+              isImmersive ? "h-screen md:h-fit" : "",
               className
             )}
           >
