@@ -1,0 +1,1485 @@
+openapi: 3.0.0
+info:
+  version: 2.0.0
+  title: Metaculus API
+  description: |
+    <b>Welcome to the official Metaculus API!</b>
+    
+    If you have questions, ideas, or feedback, please contact our team at
+    <a href="mailto:api-requests@metaculus.com">api-requests@metaculus.com</a>. We are excited to keep building upon this
+    initial version of the API, and we’d like to keep making it more useful
+    to you. Our aim is to support the forecasting community – we’re listening!
+    
+    <b>Get Started in 15 Seconds</b>
+    
+    <ol>
+    <li>Most of the API is (hopefully) self-explanatory. You’ll find all the documentation below.
+    <li>If you’re testing the waters or doing a one-off analysis, you can dive right in!
+    <li>If you’re building an application that connects to the Metaculus API, you’ll need to authenticate.
+    </ol>
+    
+    <b>How to Authenticate</b>
+    
+    You can see your current API token (or generate one) at your <a href="https://www.metaculus.com/accounts/settings/">settings</a> page, under the header "API Access".
+    
+    You can then add the token to your requests using the <i>Authorization</i> HTTP header. The token should be prefixed by the string literal "Token", with whitespace separating the two strings.
+    
+    Example:
+    
+    <blockquote>
+    Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b
+    </blockquote>
+    
+    Please note that we throttle requests to 1000 requests per hour to prevent abuse.
+servers:
+  - url: https://www.metaculus.com
+    description: Production Server
+  - url: http://localhost:8000
+    description: Local Server
+security:
+  - TokenAuth: [ ]
+components:
+  securitySchemes:
+    TokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: "Token-based authentication. Use format: `Token <input token>`"
+  schemas:
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "Binary Post title"
+        url_title:
+          type: string
+          example: "Binary Post url title"
+        slug:
+          type: string
+          example: "numeric-post"
+        author_id:
+          type: integer
+          example: 1000
+        author_username:
+          type: string
+          example: "metaculus"
+        projects:
+          type: object
+          properties:
+            site_main:
+              type: array
+              items:
+                $ref: '#/components/schemas/Project'
+            tournament:
+              type: array
+              items:
+                $ref: '#/components/schemas/Project'
+            category:
+              type: array
+              items:
+                $ref: '#/components/schemas/Category'
+            tag:
+              type: array
+              items:
+                $ref: "#/components/schemas/Tag"
+            question_series:
+              type: array
+              items:
+                $ref: '#/components/schemas/Project'
+            default_project:
+              $ref: '#/components/schemas/Project'
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-10-16T12:56:51.751385Z"
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        edited_at:
+          type: string
+          format: date-time
+        curation_status:
+          type: string
+          enum: [ draft, pending, rejected, approved ]
+          example: "pending"
+        comment_count:
+          type: integer
+          example: 10
+        status:
+          type: string
+          example: "pending"
+          description: "Combination of curation status and post lifecycle statuses"
+          enum: [ open, upcoming, closed, resolved, draft, pending, rejected ]
+        nr_forecasters:
+          type: integer
+          example: 5
+        question:
+          $ref: '#/components/schemas/Question'
+        conditional:
+          $ref: '#/components/schemas/Conditional'
+        group_of_questions:
+          $ref: '#/components/schemas/GroupOfQuestions'
+        user_permission:
+          type: string
+          enum: [ forecaster, viewer ]
+          example: "forecaster"
+        vote:
+          $ref: '#/components/schemas/Vote'
+        forecasts_count:
+          type: integer
+          example: 0
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 144
+        type:
+          type: string
+          example: "site_main"
+        name:
+          type: string
+          example: "Metaculus Community"
+        slug:
+          type: string
+          nullable: true
+        prize_pool:
+          type: string
+          example: "0.00"
+        start_date:
+          type: string
+          format: date-time
+          nullable: true
+        close_date:
+          type: string
+          format: date-time
+          nullable: true
+        meta_description:
+          type: string
+          example: ""
+        is_ongoing:
+          type: boolean
+          nullable: true
+        user_permission:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        edited_at:
+          type: string
+          format: date-time
+        default_permission:
+          type: string
+          example: "forecaster"
+        add_posts_to_main_feed:
+          type: boolean
+          example: true
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 3690
+        name:
+          type: string
+          example: "Nuclear Technology & Risks"
+        slug:
+          type: string
+          example: "nuclear"
+        description:
+          type: string
+          example: "Nuclear Technology & Risks"
+
+    Tag:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Space"
+
+    Conditional:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        condition:
+          $ref: '#/components/schemas/Question'
+        condition_child:
+          $ref: '#/components/schemas/Question'
+        question_yes:
+          $ref: '#/components/schemas/Question'
+        question_no:
+          $ref: '#/components/schemas/Question'
+
+    GroupOfQuestions:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        description:
+          type: string
+        resolution_criteria:
+          type: string
+        fine_print:
+          type: string
+        group_variable:
+          type: string
+        graph_type:
+          type: string
+          enum: [ multiple_choice_graph, fan_graph ]
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 2
+        title:
+          type: string
+          example: "Binary Question"
+        description:
+          type: string
+          example: "string"
+        created_at:
+          type: string
+          format: date-time
+        open_time:
+          type: string
+          format: date-time
+        scheduled_resolve_time:
+          type: string
+          format: date-time
+        actual_resolve_time:
+          type: string
+          format: date-time
+          nullable: true
+        resolution_set_time:
+          type: string
+          format: date-time
+          nullable: true
+        scheduled_close_time:
+          type: string
+          format: date-time
+        actual_close_time:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum: [ binary, numeric, date, multiple_choice ]
+          example: "binary"
+        options:
+          type: array
+          items:
+            type: string
+          description: "List of options for categorical questions"
+        status:
+          type: string
+          enum: [ upcoming, open, closed, resolved ]
+          example: "upcoming"
+        possibilities:
+          $ref: '#/components/schemas/QuestionPossibilities'
+        resolution:
+          type: string
+          nullable: true
+        open_upper_bound:
+          type: boolean
+          nullable: false
+        open_lower_bound:
+          type: boolean
+          nullable: false
+        resolution_criteria:
+          type: string
+          example: "string"
+        fine_print:
+          type: string
+          example: "string"
+        label:
+          type: string
+          nullable: true
+        scaling:
+          $ref: '#/components/schemas/QuestionScaling'
+
+    Vote:
+      type: object
+      properties:
+        score:
+          type: integer
+          example: 0
+        user_vote:
+          type: string
+          nullable: true
+
+    QuestionScaling:
+      type: object
+      properties:
+        range_max:
+          type: number
+          format: float
+          nullable: true
+        range_min:
+          type: number
+          format: float
+          nullable: true
+        zero_point:
+          type: number
+          format: float
+          nullable: true
+
+    QuestionPossibilities:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [ "binary" ]
+              example: "binary"
+        - type: object
+          properties:
+            "type":
+              type: string
+              enum: [ "continuous" ]
+              example: "continuous"
+            low:
+              type: string
+              example: "tail"
+            high:
+              type: string
+              example: "tail"
+            scale:
+              type: object
+              properties:
+                max:
+                  type: number
+                  format: float
+                  example: 1
+                min:
+                  type: number
+                  format: float
+                  example: 100
+                deriv_ratio:
+                  type: number
+                  format: float
+                  example: 1
+            format:
+              type: string
+              example: "num"
+
+    Forecast:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/BinaryForecast'
+        - $ref: '#/components/schemas/NumericForecast'
+        - $ref: '#/components/schemas/DateForecast'
+        - $ref: '#/components/schemas/MultipleChoiceForecast'
+        - $ref: '#/components/schemas/ConditionalForecast'
+        - $ref: '#/components/schemas/GroupForecast'
+
+    BinaryForecast:
+      type: object
+      required:
+        - question
+        - probability_yes
+      properties:
+        question:
+          type: integer
+        probability_yes:
+          type: number
+          format: float
+          description: Probability for a binary outcome
+
+    NumericForecast:
+      type: object
+      required:
+        - question
+        - continuous_cdf
+        - slider_values
+      properties:
+        question:
+          type: integer
+        continuous_cdf:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Cumulative density function (CDF) for the numeric question
+        slider_values:
+          type: object
+          required:
+            - forecast
+            - weights
+          properties:
+            forecast:
+              type: array
+              items:
+                type: object
+                properties:
+                  center:
+                    type: number
+                    format: float
+                  left:
+                    type: number
+                    format: float
+                  right:
+                    type: number
+                    format: float
+            weights:
+              type: array
+              items:
+                type: integer
+
+    DateForecast:
+      type: object
+      required:
+        - question
+        - continuous_cdf
+        - slider_values
+      properties:
+        question:
+          type: integer
+        continuous_cdf:
+          type: array
+          items:
+            type: number
+            format: float
+        slider_values:
+          type: object
+          required:
+            - forecast
+            - weights
+          properties:
+            forecast:
+              type: array
+              items:
+                type: object
+                properties:
+                  center:
+                    type: number
+                    format: float
+                  left:
+                    type: number
+                    format: float
+                  right:
+                    type: number
+                    format: float
+            weights:
+              type: array
+              items:
+                type: integer
+
+    MultipleChoiceForecast:
+      type: object
+      required:
+        - question
+        - probability_yes_per_category
+      properties:
+        question:
+          type: integer
+        probability_yes_per_category:
+          type: object
+          additionalProperties:
+            type: number
+            format: float
+          description: Probability distribution for multiple categories. Sum of values must equal 1.0.
+
+    ConditionalForecast:
+      type: array
+      description: Forecast for conditional questions (if Yes/No scenarios)
+      items:
+        type: object
+        required:
+          - question
+          - probability_yes
+        properties:
+          question:
+            type: integer
+          probability_yes:
+            type: number
+            format: float
+
+    GroupForecast:
+      type: array
+      description: Group forecast of Binary, Numeric or Date subquestions
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/BinaryForecast'
+          - $ref: '#/components/schemas/NumericForecast'
+          - $ref: '#/components/schemas/DateForecast'
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the comment.
+        author:
+          type: object
+          properties:
+            id:
+              type: integer
+              description: Author's user ID.
+            username:
+              type: string
+              description: Author's username.
+            is_bot:
+              type: boolean
+              description: If the author is a bot.
+            is_staff:
+              type: boolean
+              description: If the author is a staff member.
+        parent_id:
+          type: integer
+          nullable: true
+          description: ID of the comment being replied to (if applicable).
+        root_id:
+          type: integer
+          nullable: true
+          description: ID of the root comment in the thread.
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the comment was created.
+        text:
+          type: string
+          description: The content of the comment.
+        on_post:
+          type: integer
+          description: ID of the post the comment belongs to.
+        included_forecast:
+          type: boolean
+          description: If the user's last forecast is included.
+        is_private:
+          type: boolean
+          description: If the comment is private.
+        vote_score:
+          type: integer
+          description: Total vote score for the comment.
+        changed_my_mind:
+          type: object
+          properties:
+            count:
+              type: integer
+              description: Number of users who changed their mind based on this comment.
+            for_this_user:
+              type: boolean
+              description: If the current user changed their mind based on this comment.
+        mentioned_users:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                description: ID of the mentioned user.
+              username:
+                type: string
+                description: Username of the mentioned user.
+        user_vote:
+          type: integer
+          description: Current user's vote on this comment (-1, 0, 1).
+tags:
+  - name: Feed
+    description: |
+      In the updated version of Metaculus, standalone questions no longer exist. Instead, the feed is made up of Post entities, where each post can contain various types of content objects. These include:
+      
+      - Individual questions
+      - Groups of questions
+      - Conditional pairs
+      - Notebooks
+      
+      The primary entry point for retrieving feed data and interacting with both Posts and Questions is the `/api/posts` endpoint.
+  - name: Questions & Forecasts
+  - name: Comments
+paths:
+  /api/posts/:
+    get:
+      summary: Retrieve posts feed
+      description: Retrieves a feed of posts with various filters.
+      tags:
+        - Feed
+      parameters:
+        - in: query
+          name: tournaments
+          schema:
+            type: array
+            items:
+              type: string
+            example: [ 'quarterly-cup', 'aibq3' ]
+          description: Tournament slug. You can apply multiple filters.
+        - in: query
+          name: statuses
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ upcoming, closed, resolved, open ]
+            example: [ 'closed', 'resolved' ]
+          description: Post statuses. You can apply multiple filters.
+        - in: query
+          name: forecaster_id
+          schema:
+            type: integer
+            example: 123
+          description: Filters posts where the specified user has submitted a forecast on a question within the post.
+        - in: query
+          name: with_cp
+          schema:
+            type: boolean
+            example: true
+          description: "When this flag is enabled, each post with a group of questions will return community predictions for only the top 3 subquestions. To retrieve predictions for all subquestions, please use the post details endpoint."
+        - in: query
+          name: not_forecaster_id
+          schema:
+            type: integer
+            example: 123
+          description: Filters posts where the specified user has not submitted a forecast on a question within the post.
+        - in: query
+          name: published_at__gt
+          schema:
+            type: string
+            format: date-time
+            example: '2024-01-01'
+          description: "Post publication timestamp filter: `published_at__<operator>`. Supported operators: `gt`, `gte`, `lt`, `lte`."
+        - in: query
+          name: scheduled_resolve_time__gt
+          schema:
+            type: string
+            format: date-time
+            example: '2024-01-01'
+          description: "Scheduled resolution timestamp filter: `scheduled_resolve_time__<operator>`. Supported operators: `gt`, `gte`, `lt`, `lte`."
+        - in: query
+          name: forecast_type
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ binary, numeric, date, multiple_choice, conditional, group_of_questions, notebook ]
+            example: [ 'numeric', 'binary' ]
+          description: Forecast type. You can apply multiple filters.
+        - in: query
+          name: order_by
+          schema:
+            type: string
+            enum:
+              - published_at
+              - vote_score
+              - comment_count
+              - forecasts_count
+              - scheduled_close_time
+              - scheduled_resolve_time
+              - user_last_forecasts_date
+              - unread_comment_count
+              - weekly_movement
+              - divergence
+              - hotness
+              - score
+            example: '-published_at'
+          description: Order by specific fields. For DESC sorting, add `-` prefix, e.g. `-published_at`.
+      responses:
+        '200':
+          description: A paginated list of posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  next:
+                    type: string
+                    nullable: true
+                    example: "https://metaculus.com/api/posts/?forecast_type=binary&limit=1&offset=1"
+                  previous:
+                    type: string
+                    nullable: true
+                    example: null
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Post'
+              examples:
+                NumericRequestExample:
+                  summary: Post With Numeric Question
+                  value:
+                    next: "https://metaculus.com/api/posts/"
+                    previous: null
+                    results:
+                      - id: 3530
+                        title: "How many people will die as a result of the 2019 novel coronavirus (COVID-19) before 2021?"
+                        url_title: "COVID-19 Related Deaths before 2021"
+                        slug: "covid-19-related-deaths-before-2021"
+                        author_id: 101465
+                        author_username: "Jgalt"
+                        projects:
+                          category:
+                            - id: 3685
+                              name: "Health & Pandemics"
+                              slug: "health-pandemics"
+                              description: "Health & Pandemics"
+                          tag:
+                            - id: 5262
+                              name: "Public health"
+                              slug: "public-health"
+                          default_project:
+                            id: 144
+                            type: "site_main"
+                            name: "Metaculus Community"
+                            slug: null
+                            prize_pool: "0.00"
+                            start_date: null
+                            close_date: null
+                            meta_description: ""
+                            is_ongoing: null
+                            user_permission: null
+                            created_at: "2023-11-08T16:55:29.484707Z"
+                            edited_at: "2023-11-08T16:55:29.537784Z"
+                            default_permission: "forecaster"
+                            add_posts_to_main_feed: true
+                          topic:
+                            - id: 15858
+                              name: "Health & Pandemics"
+                              slug: "biosecurity"
+                              emoji: "🧬"
+                              section: "hot_categories"
+                        created_at: "2020-01-25T04:09:23.208127Z"
+                        published_at: "2020-01-27T00:00:00Z"
+                        edited_at: "2024-10-03T08:38:21.381658Z"
+                        curation_status: "approved"
+                        comment_count: 270
+                        status: "resolved"
+                        resolved: true
+                        actual_close_time: "2020-11-01T00:00:00Z"
+                        scheduled_close_time: "2020-11-01T00:00:00Z"
+                        scheduled_resolve_time: "2022-05-06T16:00:00Z"
+                        open_time: "2020-01-27T00:00:00Z"
+                        nr_forecasters: 546
+                        question:
+                          id: 3530
+                          title: "How many people will die as a result of the 2019 novel coronavirus (COVID-19) before 2021?"
+                          description: ""
+                          created_at: "2020-01-25T04:09:23.208127Z"
+                          open_time: "2020-01-27T00:00:00Z"
+                          scheduled_resolve_time: "2022-05-06T16:00:00Z"
+                          actual_resolve_time: "2022-05-06T16:00:00Z"
+                          resolution_set_time: "2022-05-06T16:00:00Z"
+                          scheduled_close_time: "2020-11-01T00:00:00Z"
+                          actual_close_time: "2020-11-01T00:00:00Z"
+                          type: "numeric"
+                          options: null
+                          status: "resolved"
+                          possibilities:
+                            low: "tail"
+                            high: "tail"
+                            type: "continuous"
+                            scale:
+                              max: 100000000
+                              min: 200
+                              deriv_ratio: 500000
+                            format: "num"
+                          resolution: "77289125.94957079"
+                          resolution_criteria: "Resolution Criteria Copy"
+                          fine_print: ""
+                          label: null
+                          open_upper_bound: true
+                          open_lower_bound: true
+                          scaling:
+                            range_max: 100000000.0
+                            range_min: 200.0
+                            zero_point: 0.0
+                          post_id: 3530
+                          aggregations:
+                            recency_weighted:
+                              history:
+                                - start_time: 1580307151.25848
+                                  end_time: 1580486372.895453
+                                  forecast_values: null
+                                  forecaster_count: 24
+                                  interval_lower_bounds:
+                                    - 0.12959500321439227
+                                  centers:
+                                    - 0.25918927393346786
+                                  interval_upper_bounds:
+                                    - 0.4362854344258292
+                                  means: null
+                                  histogram: null
+                              latest:
+                                start_time: 1604186008.116567
+                                end_time: null
+                                forecast_values:
+                                  - 0.0023223077886532994
+                                  - 0.002387641461850537
+                                  - 0.0024531345535807863
+                                forecaster_count: 545
+                                interval_lower_bounds:
+                                  - 0.6809976958737698
+                                centers:
+                                  - 0.703534857578826
+                                interval_upper_bounds:
+                                  - 0.7304231105944988
+                                means: null
+                                histogram: null
+                              score_data:
+                                peer_score: 51.665686599518814
+                                coverage: 0.9980877695216895
+                                baseline_score: 35.14605488073114
+                                spot_peer_score: 57.555204604943135
+                                peer_archived_score: 51.665686599518814
+                                baseline_archived_score: 35.14605488073114
+                                spot_peer_archived_score: 57.555204604943135
+                            unweighted:
+                              history: [ ]
+                              latest: null
+                              score_data: { }
+                            single_aggregation:
+                              history: [ ]
+                              latest: null
+                              score_data: { }
+                            metaculus_prediction:
+                              history:
+                                - start_time: 1580129296.168167
+                                  end_time: 1580280255.056228
+                                  forecast_values: null
+                                  forecaster_count: 1
+                                  interval_lower_bounds:
+                                    - 0.15523
+                                  centers:
+                                    - 0.17581
+                                  interval_upper_bounds:
+                                    - 0.19643
+                                  means: null
+                                  histogram: null
+                              latest:
+                                start_time: 1604186009.588382
+                                end_time: null
+                                forecast_values:
+                                  - 0.01088
+                                  - 0.010930492245919658
+                                  - 0.010980984491839312
+                                forecaster_count: 545
+                                interval_lower_bounds:
+                                  - 0.69824
+                                centers:
+                                  - 0.71735
+                                interval_upper_bounds:
+                                  - 0.73726
+                                means: null
+                                histogram: null
+                              score_data: { }
+                        user_permission: "forecaster"
+                        vote:
+                          score: 172
+                          user_vote: null
+                        forecasts_count: 2760
+                BinaryRequestExample:
+                  summary: Post With Binary Question
+                  value:
+                    next: "https://www.metaculus.com/api/posts/"
+                    previous: null
+                    results:
+                      - id: 1
+                        title: "Will advanced LIGO announce discovery of gravitational waves by Jan. 31 2016?"
+                        url_title: ""
+                        slug: "will-advanced-ligo-announce-discovery-of-gravitational-waves-by-jan-31-2016"
+                        author_id: 8
+                        author_username: "Anthony"
+                        coauthors: [ ]
+                        projects: { }
+                        created_at: "2015-10-02T02:35:57.581979Z"
+                        published_at: "2015-10-02T02:34:00Z"
+                        edited_at: "2024-10-03T07:58:31.800928Z"
+                        curation_status: "approved"
+                        comment_count: 5
+                        status: "resolved"
+                        resolved: true
+                        actual_close_time: "2015-12-15T03:34:00Z"
+                        scheduled_close_time: "2015-12-15T03:34:00Z"
+                        scheduled_resolve_time: "2016-02-01T03:34:00Z"
+                        open_time: "2015-10-02T02:34:00Z"
+                        nr_forecasters: 10
+                        question:
+                          id: 1
+                          title: "Will advanced LIGO announce discovery of gravitational waves by Jan. 31 2016?"
+                          description: ""
+                          created_at: "2015-10-02T02:35:57.581979Z"
+                          open_time: "2015-10-02T02:34:00Z"
+                          scheduled_resolve_time: "2016-02-01T03:34:00Z"
+                          actual_resolve_time: "2016-02-01T03:34:00Z"
+                          resolution_set_time: "2016-02-01T03:34:00Z"
+                          scheduled_close_time: "2015-12-15T03:34:00Z"
+                          actual_close_time: "2015-12-15T03:34:00Z"
+                          type: "binary"
+                          options: null
+                          status: "resolved"
+                          possibilities:
+                            type: "binary"
+                          resolution: "no"
+                          resolution_criteria: "Resolution Criteria Copy"
+                          fine_print: ""
+                          label: null
+                          open_upper_bound: null
+                          open_lower_bound: null
+                          scaling:
+                            range_max: null
+                            range_min: null
+                            zero_point: null
+                          post_id: 1
+                          aggregations: { }
+                        user_permission: "forecaster"
+                        vote:
+                          score: 6
+                          user_vote: null
+                        forecasts_count: 16
+                MultipleChoiceRequestExample:
+                  summary: Post With Multiple-Choice Question
+                  value:
+                    next: "https://www.metaculus.com/api/posts/"
+                    previous: null
+                    results:
+                      - id: 20772
+                        title: "Which party will win the 2024 US presidential election?"
+                        url_title: "Party Winning the Presidency in 2024?"
+                        slug: "party-winning-the-presidency-in-2024"
+                        author_id: 117502
+                        author_username: "RyanBeck"
+                        coauthors: [ ]
+                        projects: { }
+                        created_at: "2023-12-22T04:14:45.479858Z"
+                        published_at: "2024-01-01T07:00:00Z"
+                        edited_at: "2024-10-03T09:16:21.660122Z"
+                        curation_status: "approved"
+                        comment_count: 12
+                        status: "open"
+                        resolved: false
+                        actual_close_time: null
+                        scheduled_close_time: "2024-11-07T16:00:00Z"
+                        scheduled_resolve_time: "2025-01-06T14:00:00Z"
+                        open_time: "2024-01-01T07:00:00Z"
+                        nr_forecasters: 984
+                        question:
+                          id: 20772
+                          title: "Which party will win the 2024 US presidential election?"
+                          description: "Long description"
+                          created_at: "2023-12-22T04:14:45.479858Z"
+                          open_time: "2024-01-01T07:00:00Z"
+                          scheduled_resolve_time: "2025-01-06T14:00:00Z"
+                          actual_resolve_time: null
+                          resolution_set_time: null
+                          scheduled_close_time: "2024-11-07T16:00:00Z"
+                          actual_close_time: "2024-11-07T16:00:00Z"
+                          type: "multiple_choice"
+                          options:
+                            - "Democratic"
+                            - "Republican"
+                            - "Libertarian"
+                            - "Green"
+                            - "Other"
+                          status: "open"
+                          possibilities: { }
+                          resolution: null
+                          resolution_criteria: "Resolution Criteria Copy"
+                          fine_print: "Fine Print Copy"
+                          label: null
+                          open_upper_bound: null
+                          open_lower_bound: null
+                          scaling: { }
+                          post_id: 20772
+                          aggregations: { }
+                        user_permission: "forecaster"
+                        vote:
+                          score: 36
+                          user_vote: null
+                        forecasts_count: 2057
+                ConditionalRequestExample:
+                  summary: Post With Conditional Questions
+                  value:
+                    next: "https://www.metaculus.com/api/posts/"
+                    previous: null
+                    results:
+                      - id: 21475
+                        title: "2024 Democratic Presidential Nominee? (Joe Biden) → Democrat Wins 2024 US Presidential Election?"
+                        url_title: "Democrat Wins 2024 US Presidential Election?"
+                        slug: "democrat-wins-2024-us-presidential-election"
+                        author_id: 130973
+                        author_username: "NMorrison"
+                        coauthors: [ ]
+                        projects: { }
+                        created_at: "2024-02-21T01:37:23.166501Z"
+                        published_at: "2024-02-21T07:00:00Z"
+                        edited_at: "2024-09-30T15:59:05.961173Z"
+                        curation_status: "approved"
+                        comment_count: 7
+                        status: "open"
+                        resolved: false
+                        actual_close_time: null
+                        scheduled_close_time: "2024-11-05T13:00:00Z"
+                        scheduled_resolve_time: "2025-01-21T05:00:00Z"
+                        open_time: "2021-03-11T05:00:00Z"
+                        nr_forecasters: 121
+                        conditional:
+                          id: 21475
+                          condition:
+                            id: 5712
+                            title: "Who will be the Democratic nominee for the 2024 US Presidential Election? (Joe Biden)"
+                            description: "Description"
+                            created_at: "2020-11-13T05:21:18.530122Z"
+                            open_time: "2021-03-11T05:00:00Z"
+                            scheduled_resolve_time: "2024-09-01T04:00:00Z"
+                            actual_resolve_time: "2024-08-21T01:30:00Z"
+                            resolution_set_time: "2024-08-21T01:30:00Z"
+                            scheduled_close_time: "2024-09-01T04:00:00Z"
+                            actual_close_time: "2024-08-21T01:30:00Z"
+                            type: "binary"
+                            options: null
+                            status: "resolved"
+                            possibilities:
+                              type: "binary"
+                            resolution: "no"
+                            resolution_criteria: "resolution_criteria"
+                            fine_print: "fine_print"
+                            label: null
+                            open_upper_bound: null
+                            open_lower_bound: null
+                            scaling:
+                              range_max: null
+                              range_min: null
+                              zero_point: null
+                            post_id: 11379
+                            aggregations: { }
+                          condition_child:
+                            id: 6478
+                            title: "Will a Democrat win the 2024 US presidential election?"
+                            description: "Description"
+                            created_at: "2021-02-03T17:46:46.976981Z"
+                            open_time: "2021-02-08T05:00:00Z"
+                            scheduled_resolve_time: "2025-01-21T05:00:00Z"
+                            actual_resolve_time: null
+                            resolution_set_time: null
+                            scheduled_close_time: "2024-11-05T13:00:00Z"
+                            actual_close_time: "2024-11-05T13:00:00Z"
+                            type: "binary"
+                            options: null
+                            status: "open"
+                            possibilities:
+                              type: "binary"
+                            resolution: null
+                            resolution_criteria: "Resolution Criteria"
+                            fine_print: ""
+                            label: null
+                            open_upper_bound: null
+                            open_lower_bound: null
+                            scaling:
+                              range_max: null
+                              range_min: null
+                              zero_point: null
+                            post_id: 6478
+                            aggregations: { }
+                          question_yes:
+                            id: 21477
+                            title: "2024 Democratic Presidential Nominee (Joe Biden) (Yes) → Democrat Wins 2024 US Presidential Election?"
+                            description: ""
+                            created_at: "2024-02-21T01:37:24.033782Z"
+                            open_time: "2024-02-21T07:00:00Z"
+                            scheduled_resolve_time: "2024-09-01T04:00:00Z"
+                            actual_resolve_time: "2024-08-21T01:30:00Z"
+                            resolution_set_time: "2024-08-21T01:30:00Z"
+                            scheduled_close_time: "2024-09-01T04:00:00Z"
+                            actual_close_time: "2024-08-21T01:30:00Z"
+                            type: "binary"
+                            options: null
+                            status: "resolved"
+                            possibilities:
+                              type: "binary"
+                            resolution: "annulled"
+                            resolution_criteria: ""
+                            fine_print: ""
+                            label: null
+                            open_upper_bound: null
+                            open_lower_bound: null
+                            scaling:
+                              range_max: null
+                              range_min: null
+                              zero_point: null
+                            post_id: 21475
+                            aggregations: { }
+                          question_no:
+                            id: 21476
+                            title: "2024 Democratic Presidential Nominee? (Joe Biden) (No) → Democrat Wins 2024 US Presidential Election?"
+                            description: ""
+                            created_at: "2024-02-21T01:37:24.033665Z"
+                            open_time: "2024-02-21T07:00:00Z"
+                            scheduled_resolve_time: "2025-01-21T05:00:00Z"
+                            actual_resolve_time: null
+                            resolution_set_time: null
+                            scheduled_close_time: "2024-09-01T04:00:00Z"
+                            actual_close_time: "2024-08-21T01:30:00Z"
+                            type: "binary"
+                            options: null
+                            status: "closed"
+                            possibilities:
+                              type: "binary"
+                            resolution: null
+                            resolution_criteria: ""
+                            fine_print: ""
+                            label: null
+                            open_upper_bound: null
+                            open_lower_bound: null
+                            scaling:
+                              range_max: null
+                              range_min: null
+                              zero_point: null
+                            post_id: 21475
+                            aggregations: { }
+                        user_permission: "forecaster"
+                        vote:
+                          score: 25
+                          user_vote: null
+                        forecasts_count: 466
+                GroupOfQuestionsRequestExample:
+                  summary: Post With Group Of Questions
+                  value:
+                    next: "https://www.metaculus.com/api/posts/"
+                    previous: null
+                    results:
+                      - id: 11480
+                        title: "Will China launch a full-scale invasion of Taiwan by the following years?"
+                        url_title: "Chinese Invasion of Taiwan?"
+                        slug: "chinese-invasion-of-taiwan"
+                        author_id: 104161
+                        author_username: "casens"
+                        coauthors: [ ]
+                        projects: { }
+                        created_at: "2022-06-21T17:44:44.092940Z"
+                        published_at: "2022-05-06T04:00:00Z"
+                        edited_at: "2024-09-29T14:14:15.433250Z"
+                        curation_status: "approved"
+                        comment_count: 338
+                        status: "open"
+                        resolved: false
+                        actual_close_time: null
+                        scheduled_close_time: "2035-01-01T05:00:00Z"
+                        scheduled_resolve_time: "2035-01-01T05:00:00Z"
+                        open_time: "2022-05-06T04:00:00Z"
+                        nr_forecasters: 764
+                        group_of_questions:
+                          id: 11480
+                          description: "description"
+                          resolution_criteria: "resolution_criteria"
+                          fine_print: ""
+                          group_variable: "Date"
+                          graph_type: "multiple_choice_graph"
+                          questions:
+                            - id: 10880
+                              title: "Will China launch a full-scale invasion of Taiwan by the following years? (2030)"
+                              description: "description"
+                              created_at: "2022-05-08T03:15:15.689218Z"
+                              open_time: "2022-05-10T04:00:00Z"
+                              scheduled_resolve_time: "2030-01-01T05:00:00Z"
+                              actual_resolve_time: null
+                              resolution_set_time: null
+                              scheduled_close_time: "2030-01-01T05:00:00Z"
+                              actual_close_time: "2030-01-01T05:00:00Z"
+                              type: "binary"
+                              options: null
+                              status: "open"
+                              possibilities:
+                                type: "binary"
+                              resolution: null
+                              resolution_criteria: "resolution_criteria"
+                              fine_print: ""
+                              label: null
+                              open_upper_bound: null
+                              open_lower_bound: null
+                              scaling:
+                                range_max: null
+                                range_min: null
+                                zero_point: null
+                              post_id: 11480
+                              aggregations: { }
+                            - id: 10923
+                              title: "Will China launch a full-scale invasion of Taiwan by the following years? (2035)"
+                              description: "description"
+                              created_at: "2022-05-10T19:13:46.688335Z"
+                              open_time: "2022-05-13T04:00:00Z"
+                              scheduled_resolve_time: "2035-01-01T05:00:00Z"
+                              actual_resolve_time: null
+                              resolution_set_time: null
+                              scheduled_close_time: "2035-01-01T05:00:00Z"
+                              actual_close_time: "2035-01-01T05:00:00Z"
+                              type: "binary"
+                              options: null
+                              status: "open"
+                              possibilities:
+                                type: "binary"
+                              resolution: null
+                              resolution_criteria: "resolution_criteria"
+                              fine_print: ""
+                              label: null
+                              open_upper_bound: null
+                              open_lower_bound: null
+                              scaling:
+                                range_max: null
+                                range_min: null
+                                zero_point: null
+                              post_id: 11480
+                              aggregations: { }
+                        user_permission: "forecaster"
+                        vote:
+                          score: 69
+                          user_vote: null
+                        forecasts_count: 4670
+  /api/posts/{postId}:
+    get:
+      summary: Retrieve post details
+      tags:
+        - Feed
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the post to retrieve
+      responses:
+        '200':
+          description: Post details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+  /api/questions/forecast/:
+    post:
+      summary: Submit question forecasts
+      description: Pass one forecast object for single questions and multiple forecast objects for group of questions or conditional forecasts.
+      tags:
+        - Questions & Forecasts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Forecast'
+            examples:
+              BinaryQuestionExample:
+                summary: Binary question forecast example
+                value:
+                  - question: 1
+                    probability_yes: 0.63
+              NumericQuestionExample:
+                summary: Numeric question forecast with 3 slider components
+                value:
+                  - question: 1
+                    continuous_cdf:
+                      [
+                        0, 9.424125589231841e-05, 0.00019647063437408003, 1
+                      ]
+                    slider_values:
+                      forecast:
+                        [
+                          { "center": 0.51739, "left": 0.48239, "right": 0.55239 },
+                          { "center": 0.28696, "left": 0.18696, "right": 0.34928 },
+                          { "center": 0.71305, "left": 0.64782, "right": 0.78406 }
+                        ]
+                      weights: [ 1, 1, 1 ]
+              DateQuestionExample:
+                summary: Date question forecast with 2 slider components
+                value:
+                  - question: 1
+                    continuous_cdf:
+                      [
+                        0.001000000000014897, 0.0010500000000204029, 0.0011000000000279584
+                      ]
+                    slider_values:
+                      forecast:
+                        [
+                          { "center": 0.5, "left": 0.42609, "right": 0.54348 },
+                          { "center": 0.3, "left": 0.265, "right": 0.335 }
+                        ]
+                      weights: [ 1, 1 ]
+              MultipleChoiceQuestionExample:
+                summary: Multiple choices forecast example
+                value:
+                  - question: 1
+                    probability_yes_per_category:
+                      {
+                        "Futurama": 0.5,
+                        "Paperclipalypse": 0.3,
+                        "Singularia": 0.2
+                      }
+              ConditionalQuestionExample:
+                summary: Conditional question forecast example
+                value:
+                  [
+                    # Forecast for question "if Yes"
+                    {
+                      "question": 1,
+                      "probability_yes": 0.499,
+                    },
+                    # Forecast for question "if No"
+                    {
+                      "question": 1,
+                      "probability_yes": 0.501,
+                    }
+                  ]
+              BinaryGroupExample:
+                summary: Binary group of questions forecast example
+                value:
+                  [
+                    { "question": 1, "probability_yes": 0.11 },
+                    { "question": 2, "probability_yes": 0.22 },
+                    { "question": 3, "probability_yes": 0.33 }
+                  ]
+      responses:
+        '201':
+          description: Forecasts submitted successfully
+        '400':
+          description: Invalid request format
+  /api/comments/create/:
+    post:
+      summary: Create a new comment
+      description: Submit a new comment on a post
+      tags:
+        - Comments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - included_forecast
+                - is_private
+                - on_post
+                - text
+              properties:
+                included_forecast:
+                  type: boolean
+                  description: Include the user's last forecast.
+                is_private:
+                  type: boolean
+                  description: If the comment is private or public.
+                on_post:
+                  type: integer
+                  description: ID of the post.
+                parent:
+                  type: integer
+                  description: ID of the comment you're replying to.
+                text:
+                  type: string
+                  description: The content of the comment.
+            examples:
+              CreateCommentExample:
+                summary: Example of a comment creation
+                value:
+                  included_forecast: false
+                  is_private: false
+                  on_post: 1
+                  text: "Bot comment"
+      responses:
+        '201':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          description: Invalid request format
+  /api/comments/:
+    get:
+      summary: Retrieve comments
+      description: Fetch comments with optional filters for post, author, pagination, and sorting. Either the `post` or `author` parameter is required.
+      tags:
+        - Comments
+      parameters:
+        - name: post
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: ID of the post to filter comments by.
+        - name: author
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: ID of the author to filter comments by.
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Number of comments to retrieve.
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Offset for pagination.
+        - name: is_private
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Filter between private comments (for the current user) and public comments. Defaults to false.
+        - name: use_root_comments_pagination
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: If true, pagination will only apply to root comments, and all child comments will be included for those root comments.
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ "-created_at", "created_at" ]
+          description: Sort comments by creation date. Use `-created_at` for descending order.
+        - name: focus_comment_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: The ID of a comment to place at the top of the results.
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_count:
+                    type: integer
+                    description: Total number of root and child comments.
+                  count:
+                    type: integer
+                    description: Total number of root comments only.
+                  next:
+                    type: string
+                    format: uri
+                    nullable: true
+                    description: URL for the next page of results, if available.
+                  previous:
+                    type: string
+                    format: uri
+                    nullable: true
+                    description: URL for the previous page of results, if available.
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Comment'
+        '400':
+          description: Invalid request format
