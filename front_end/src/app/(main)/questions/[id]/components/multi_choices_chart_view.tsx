@@ -6,6 +6,7 @@ import { VictoryThemeDefinition } from "victory";
 import ChoicesLegend from "@/app/(main)/questions/[id]/components/choices_legend";
 import ChoicesTooltip from "@/app/(main)/questions/[id]/components/choices_tooltip";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import { useAuth } from "@/contexts/auth_context";
 import useChartTooltip from "@/hooks/use_chart_tooltip";
 import { TickFormat, TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem, UserChoiceItem } from "@/types/choices";
@@ -57,12 +58,15 @@ const MultiChoicesChartView: FC<Props> = ({
   yLabel,
   questionType,
   scaling,
+  defaultZoom,
 
   withLegend = true,
   chartHeight,
   chartTheme,
   embedMode = false,
 }) => {
+  const { user } = useAuth();
+
   const [isChartReady, setIsChartReady] = useState(false);
   const handleChartReady = useCallback(() => {
     setIsChartReady(true);
@@ -116,6 +120,14 @@ const MultiChoicesChartView: FC<Props> = ({
           isClosed={isClosed}
           extraTheme={chartTheme}
           height={normalizedChartHeight}
+          withZoomPicker
+          defaultZoom={
+            defaultZoom
+              ? defaultZoom
+              : user
+                ? TimelineChartZoomOption.All
+                : TimelineChartZoomOption.TwoMonths
+          }
         />
       </div>
 
