@@ -12,6 +12,7 @@ type Props = {
   onClose?: (isOpen: boolean) => void;
   className?: string;
   isImmersive?: boolean;
+  modalContentRef?: React.RefObject<HTMLDivElement>;
 };
 
 const BaseModal: FC<PropsWithChildren<Props>> = ({
@@ -21,6 +22,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
   children,
   className,
   isImmersive = false,
+  modalContentRef,
 }) => {
   useEffect(() => {
     if (isOpen && isImmersive) {
@@ -54,6 +56,7 @@ const BaseModal: FC<PropsWithChildren<Props>> = ({
           className={`fixed inset-0 flex min-h-full justify-center ${isImmersive ? "overflow-hidden" : "overflow-y-auto"} sm:p-4`}
         >
           <DialogPanel
+            ref={modalContentRef}
             className={classNames(
               "my-auto max-h-screen w-full max-w-fit transform overflow-y-auto rounded bg-gray-0 p-5 text-left align-middle text-sm text-blue-900 shadow-xl transition-all dark:bg-gray-0-dark dark:text-blue-900-dark md:p-7",
               isImmersive ? "h-svh md:h-fit" : "",

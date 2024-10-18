@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import BaseModal from "@/components/base_modal";
 import Step1 from "./steps/Step1";
@@ -22,6 +22,14 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   const [step2Prediction, setStep2Prediction] = useState(50);
   const [step3Prediction, setStep3Prediction] = useState(50);
   const router = useRouter();
+
+  const modalContentRef = useRef<HTMLDivElement>(null);
+
+  const scrollToTop = () => {
+    if (modalContentRef.current) {
+      modalContentRef.current.scrollTop = 0;
+    }
+  };
 
   useEffect(() => {
     async function fetchQuestionData() {
@@ -47,6 +55,7 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   const handleNext = () => {
     if (currentStep < 5) {
       setCurrentStep(currentStep + 1);
+      scrollToTop();
       if (currentStep === 2) {
         // Reset prediction when moving from Step 2 to Step 3
         setStep3Prediction(50);
@@ -60,6 +69,7 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   const handlePrev = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+      scrollToTop();
     }
   };
 
@@ -118,7 +128,12 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   };
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} isImmersive={true}>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      isImmersive={true}
+      modalContentRef={modalContentRef}
+    >
       {renderStep()}
     </BaseModal>
   );
