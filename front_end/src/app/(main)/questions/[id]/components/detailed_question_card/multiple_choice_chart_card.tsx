@@ -7,6 +7,7 @@ import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multi_
 import { useAuth } from "@/contexts/auth_context";
 import usePrevious from "@/hooks/use_previous";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { QuestionWithMultipleChoiceForecasts } from "@/types/question";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
@@ -24,6 +25,7 @@ type Props = {
   question: QuestionWithMultipleChoiceForecasts;
   embedMode?: boolean;
   chartHeight?: number;
+  defaultZoom?: TimelineChartZoomOption;
   chartTheme?: VictoryThemeDefinition;
 };
 
@@ -31,6 +33,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
   question,
   embedMode = false,
   chartHeight,
+  defaultZoom,
   chartTheme,
 }) => {
   const t = useTranslations();
@@ -165,6 +168,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
       chartTheme={chartTheme}
       embedMode={embedMode}
       chartHeight={chartHeight}
+      defaultZoom={defaultZoom}
     />
   );
 };
