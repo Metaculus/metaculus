@@ -13,6 +13,9 @@ import BinarySlider, {
 } from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import VerbalForecast from "../VerbalForecast";
 import LoadingStep from "./LoadingStep";
+import { createForecasts } from "@/app/(main)/questions/actions";
+import { round } from "lodash";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 
 interface Step2Props {
   onPrev: () => void;
@@ -33,8 +36,10 @@ const Step2: React.FC<Step2Props> = ({
   const [activeButton, setActiveButton] = useState<
     "less" | "about" | "more" | null
   >(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  if (topicIndex === null || !questionData) {
+  if (topicIndex === null || !questionData || !questionData.question) {
     return <LoadingStep />;
   }
   const topic = onboardingTopics[topicIndex];
@@ -76,11 +81,41 @@ const Step2: React.FC<Step2Props> = ({
     }
   };
 
-  const handleSubmit = () => {
-    if (prediction !== null) {
-      console.log(`Submitted prediction: ${prediction / 100}`);
+  const handleSubmit = async () => {
+    if (prediction === null || !questionData || !questionData.question) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    const forecastValue = round(prediction / 100, BINARY_FORECAST_PRECISION);
+
+    try {
+      const response = await createForecasts(questionData.id, [
+        {
+          questionId: questionData.question.id,
+          forecastData: {
+            continuousCdf: null,
+            probabilityYes: forecastValue,
+            probabilityYesPerCategory: null,
+          },
+        },
+      ]);
+
+      if (response && "errors" in response && !!response.errors) {
+        throw new Error(response.errors[0].message);
+      }
+
       onPredictionChange(prediction);
       onNext();
+    } catch (error) {
+      console.error("Error submitting forecast:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "An error occurred while submitting your forecast."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -181,9 +216,13 @@ const Step2: React.FC<Step2Props> = ({
               <button
                 onClick={handleSubmit}
                 className={onboardingStyles.button}
+                disabled={isSubmitting}
               >
-                Predict
+                {isSubmitting ? <LoadingIndicator /> : "Predict"}
               </button>
+              {submitError && (
+                <p className="mt-2 text-red-500">{submitError}</p>
+              )}
             </div>
           </div>
         </div>

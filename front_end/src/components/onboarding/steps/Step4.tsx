@@ -4,8 +4,13 @@ import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
 import { faArrowLeft, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
+import BinarySlider, {
+  BINARY_FORECAST_PRECISION,
+} from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import LoadingStep from "./LoadingStep";
+import { createForecasts } from "@/app/(main)/questions/actions";
+import { round } from "lodash";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 
 interface Step4Props {
   onPrev: () => void;
@@ -26,13 +31,14 @@ const Step4: React.FC<Step4Props> = ({
 }) => {
   const [newFactor, setNewFactor] = useState("");
   const [userFactors, setUserFactors] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  if (topicIndex === null || !questionData) {
+  if (topicIndex === null || !questionData || !questionData.question) {
     return <LoadingStep />;
   }
 
   const topic = onboardingTopics[topicIndex];
-  // const communityForecast = 0.55; // Hardcoded for testing to be replaced with line below
   const communityForecast =
     questionData.question?.aggregations?.recency_weighted?.latest
       ?.centers?.[0] ?? 0.5;
@@ -44,9 +50,42 @@ const Step4: React.FC<Step4Props> = ({
       setNewFactor("");
     }
   };
-  const handleSubmit = () => {
-    console.log(`Submitted prediction: ${prediction / 100}`);
-    onNext();
+
+  const handleSubmit = async () => {
+    if (prediction === null || !questionData || !questionData.question) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    const forecastValue = round(prediction / 100, BINARY_FORECAST_PRECISION);
+
+    try {
+      const response = await createForecasts(questionData.id, [
+        {
+          questionId: questionData.question.id,
+          forecastData: {
+            continuousCdf: null,
+            probabilityYes: forecastValue,
+            probabilityYesPerCategory: null,
+          },
+        },
+      ]);
+
+      if (response && "errors" in response && !!response.errors) {
+        throw new Error(response.errors[0].message);
+      }
+
+      onNext();
+    } catch (error) {
+      console.error("Error submitting forecast:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "An error occurred while submitting your forecast."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -99,7 +138,7 @@ const Step4: React.FC<Step4Props> = ({
         >
           <h3 className={`${onboardingStyles.questionTitle} mb-0 px-2 pb-0`}>
             {questionData.title}
-          </h3>{" "}
+          </h3>
         </div>
         <div>
           <div className="py-4">
@@ -112,13 +151,17 @@ const Step4: React.FC<Step4Props> = ({
               disabled={false}
             />
 
-            <div className="mt-0 flex justify-center">
+            <div className="mt-4 flex flex-col items-center">
               <button
                 onClick={handleSubmit}
                 className={onboardingStyles.button}
+                disabled={isSubmitting}
               >
-                Predict
+                {isSubmitting ? <LoadingIndicator /> : "Predict"}
               </button>
+              {submitError && (
+                <p className="mt-2 text-red-500">{submitError}</p>
+              )}
             </div>
           </div>
         </div>
