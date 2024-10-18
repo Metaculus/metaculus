@@ -1,7 +1,6 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin, messages
 
-
 from projects.models import Project
 
 from scoring.models import (
@@ -12,7 +11,7 @@ from scoring.models import (
     MedalExclusionRecord,
     ArchivedScore,
 )
-from scoring.utils import update_project_leaderboard, update_leaderboard_from_csv_data
+from scoring.utils import update_project_leaderboard
 
 
 @admin.register(UserWeight)
