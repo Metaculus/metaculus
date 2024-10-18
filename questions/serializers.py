@@ -1,10 +1,10 @@
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
-import numpy as np
 
 import django
 import django.utils
 import django.utils.timezone
+import numpy as np
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -22,6 +22,7 @@ from .models import Question, Conditional, GroupOfQuestions, AggregateForecast
 class QuestionSerializer(serializers.ModelSerializer):
     scaling = serializers.SerializerMethodField()
     actual_close_time = serializers.SerializerMethodField()
+    resolution = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
@@ -64,6 +65,17 @@ class QuestionSerializer(serializers.ModelSerializer):
         if question.actual_resolve_time:
             return min(question.scheduled_close_time, question.actual_resolve_time)
         return question.scheduled_close_time
+
+    def get_resolution(self, question: Question):
+        resolution = question.resolution
+
+        # The 'resolution' field is a nullable string that may become an empty string
+        # during editing in the admin panel.
+        # This workaround ensures it is set to null if it truly hasn't been resolved.
+        if resolution == "":
+            resolution = None
+
+        return resolution
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
@@ -522,7 +534,6 @@ def serialize_question(
                         "weighted_coverage"
                     ] = score.coverage
 
-    serialized_data["resolution"] = question.resolution
     return serialized_data
 
 
