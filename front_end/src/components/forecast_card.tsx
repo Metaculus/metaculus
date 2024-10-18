@@ -113,6 +113,7 @@ const ForecastCard: FC<Props> = ({
                 }
                 chartHeight={chartHeight}
                 chartTheme={embedTheme?.chart}
+                defaultZoom={defaultChartZoom}
                 embedMode
               />
             );
@@ -216,6 +217,7 @@ const ForecastCard: FC<Props> = ({
               embedMode
               chartHeight={chartHeight}
               chartTheme={embedTheme?.chart}
+              defaultZoom={defaultChartZoom}
             />
           );
         default:
