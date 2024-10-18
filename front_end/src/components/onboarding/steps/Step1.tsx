@@ -48,12 +48,14 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => (
         </button>
       ))}
     </div>
-    <button
-      onClick={onClose}
-      className="mt-4 text-base text-blue-700 underline decoration-blue-700/70 underline-offset-4 hover:text-blue-800 hover:decoration-blue-700/90 dark:text-blue-700-dark dark:decoration-blue-700/70 dark:hover:text-blue-800-dark dark:hover:decoration-blue-700-dark/90 "
-    >
-      Skip Tutorial
-    </button>
+    <div className="mt-4 flex w-full justify-start md:mt-8 md:justify-center">
+      <button
+        onClick={onClose}
+        className="text-base text-blue-700 underline decoration-blue-700/70 underline-offset-4 hover:text-blue-800 hover:decoration-blue-700/90 dark:text-blue-700-dark dark:decoration-blue-700/70 dark:hover:text-blue-800-dark dark:hover:decoration-blue-700-dark/90 "
+      >
+        Skip Tutorial
+      </button>
+    </div>
   </div>
 );
 
