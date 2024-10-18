@@ -12,11 +12,10 @@ import React, {
 import { VictoryThemeDefinition } from "victory";
 
 import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multi_choices_chart_view";
-import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import { useAuth } from "@/contexts/auth_context";
-import useChartTooltip from "@/hooks/use_chart_tooltip";
 import usePrevious from "@/hooks/use_previous";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
+import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import {
   Question,
@@ -73,6 +72,7 @@ type Props = {
   withLegand?: boolean;
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
+  defaultZoom?: TimelineChartZoomOption;
   embedMode?: boolean;
 };
 
@@ -84,6 +84,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
   actualCloseTime,
   withLegand = true,
   chartTheme,
+  defaultZoom,
   chartHeight,
   embedMode = false,
 }) => {
@@ -203,6 +204,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
       embedMode={embedMode}
       chartHeight={chartHeight}
       withLegend={withLegand}
+      defaultZoom={defaultZoom}
     />
   );
 };
