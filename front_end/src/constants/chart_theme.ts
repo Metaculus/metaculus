@@ -5,7 +5,7 @@ import { METAC_COLORS } from "@/constants/colors";
 
 const sansSerif = "var(--font-inter-variable) var(--font-inter)";
 
-const baseChart: VictoryThemeDefinition = {
+export const baseChartTheme: VictoryThemeDefinition = {
   chart: {
     padding: {
       top: 10,
@@ -101,12 +101,12 @@ const darkChart: VictoryThemeDefinition = {
 export const lightTheme = merge(
   {},
   VictoryTheme.grayscale,
-  baseChart,
+  baseChartTheme,
   lightChart
 );
 export const darkTheme = merge(
   {},
   VictoryTheme.grayscale,
-  baseChart,
+  baseChartTheme,
   darkChart
 );
