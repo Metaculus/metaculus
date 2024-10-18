@@ -3,6 +3,7 @@
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import { useAuth } from "@/contexts/auth_context";
@@ -66,6 +67,9 @@ type Props = {
   isClosed?: boolean;
   actualCloseTime: number | null;
   withLegand?: boolean;
+  chartHeight?: number;
+  chartTheme?: VictoryThemeDefinition;
+  embedMode?: boolean;
 };
 
 const ContinuousGroupTimeline: FC<Props> = ({
@@ -75,6 +79,9 @@ const ContinuousGroupTimeline: FC<Props> = ({
   isClosed,
   actualCloseTime,
   withLegand = true,
+  chartTheme,
+  chartHeight,
+  embedMode = false,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -191,22 +198,26 @@ const ContinuousGroupTimeline: FC<Props> = ({
       )}
     >
       <div className="flex items-center">
-        <h3 className="m-0 text-base font-normal leading-5">
-          {t("forecastTimelineHeading")}
-        </h3>
+        {!embedMode && (
+          <h3 className="m-0 text-base font-normal leading-5">
+            {t("forecastTimelineHeading")}
+          </h3>
+        )}
       </div>
       <div ref={refs.setReference} {...getReferenceProps()}>
         <MultipleChoiceChart
           actualCloseTime={actualCloseTime}
           timestamps={timestamps}
           choiceItems={choiceItems}
-          yLabel={t("communityPredictionLabel")}
+          yLabel={embedMode ? undefined : t("communityPredictionLabel")}
           onChartReady={handleChartReady}
           onCursorChange={handleCursorChange}
           userForecasts={userForecasts}
           questionType={questions[0].type}
           scaling={scaling}
           isClosed={isClosed}
+          extraTheme={chartTheme}
+          height={chartHeight}
         />
       </div>
 

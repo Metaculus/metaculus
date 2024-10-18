@@ -2,6 +2,7 @@
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import ChoicesLegend from "@/app/(main)/questions/[id]/components/choices_legend";
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
@@ -28,11 +29,15 @@ const generateList = (question: QuestionWithMultipleChoiceForecasts) =>
 type Props = {
   question: QuestionWithMultipleChoiceForecasts;
   embedMode?: boolean;
+  chartHeight?: number;
+  chartTheme?: VictoryThemeDefinition;
 };
 
 const MultipleChoiceChartCard: FC<Props> = ({
   question,
   embedMode = false,
+  chartHeight,
+  chartTheme,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -180,7 +185,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
           }
           timestamps={timestamps}
           choiceItems={choiceItems}
-          yLabel={t("communityPredictionLabel")}
+          yLabel={embedMode ? undefined : t("communityPredictionLabel")}
           onChartReady={handleChartReady}
           onCursorChange={handleCursorChange}
           defaultZoom={
@@ -195,6 +200,8 @@ const MultipleChoiceChartCard: FC<Props> = ({
               : false
           }
           userForecasts={userForecasts}
+          height={chartHeight}
+          extraTheme={chartTheme}
         />
       </div>
 

@@ -3,6 +3,7 @@
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { VictoryThemeDefinition } from "victory";
 
 import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
 import { useAuth } from "@/contexts/auth_context";
@@ -72,6 +73,9 @@ type Props = {
   defaultZoom?: TimelineChartZoomOption;
   isClosed?: boolean;
   actualCloseTime?: number | null;
+  chartHeight?: number;
+  chartTheme?: VictoryThemeDefinition;
+  embedMode?: boolean;
 };
 
 const BinaryGroupChart: FC<Props> = ({
@@ -81,6 +85,9 @@ const BinaryGroupChart: FC<Props> = ({
   defaultZoom,
   isClosed,
   actualCloseTime,
+  chartTheme,
+  chartHeight,
+  embedMode = false,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -209,17 +216,20 @@ const BinaryGroupChart: FC<Props> = ({
         isChartReady ? "opacity-100" : "opacity-0"
       )}
     >
-      <div className="flex items-center">
-        <h3 className="m-0 text-base font-normal leading-5">
-          {t("forecastTimelineHeading")}
-        </h3>
-      </div>
+      {!embedMode && (
+        <div className="flex items-center">
+          <h3 className="m-0 text-base font-normal leading-5">
+            {t("forecastTimelineHeading")}
+          </h3>
+        </div>
+      )}
+
       <div ref={refs.setReference} {...getReferenceProps()}>
         <MultipleChoiceChart
           timestamps={timestamps}
           actualCloseTime={actualCloseTime}
           choiceItems={choiceItems}
-          yLabel={t("communityPredictionLabel")}
+          yLabel={embedMode ? undefined : t("communityPredictionLabel")}
           onChartReady={handleChartReady}
           onCursorChange={handleCursorChange}
           defaultZoom={
@@ -232,6 +242,8 @@ const BinaryGroupChart: FC<Props> = ({
           withZoomPicker
           userForecasts={userForecasts}
           isClosed={isClosed}
+          extraTheme={chartTheme}
+          height={chartHeight}
         />
       </div>
 
