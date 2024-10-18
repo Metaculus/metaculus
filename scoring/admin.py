@@ -66,13 +66,13 @@ class LeaderboardEntryInline(admin.TabularInline):
     autocomplete_fields = ("user",)
 
     def get_queryset(self, request):
-        return super().get_queryset(request)
+        return super().get_queryset(request).filter(rank__lte=50).order_by("rank")
 
 
 @admin.register(Leaderboard)
 class LeaderboardAdmin(admin.ModelAdmin):
     search_fields = ["name", "project", "score_type"]
-    list_display = ["__str__", "project", "score_type"]
+    list_display = ["__str__", "id", "project", "score_type"]
     autocomplete_fields = ["project"]
     list_filter = [
         AutocompleteFilterFactory("Project", "project"),
