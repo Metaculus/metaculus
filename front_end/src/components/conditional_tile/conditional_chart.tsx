@@ -35,6 +35,8 @@ const ConditionalChart: FC<Props> = ({ question, disabled, chartTheme }) => {
       const userForecast = userForecasts?.latest?.forecast_values[1];
       const userPct = userForecast ? Math.round(userForecast * 100) : null;
 
+      const themeProgressColor = chartTheme?.line?.style?.data?.stroke;
+
       return (
         <>
           <ProgressBar
@@ -56,6 +58,11 @@ const ConditionalChart: FC<Props> = ({ question, disabled, chartTheme }) => {
                 </div>
               );
             }}
+            progressColor={
+              typeof themeProgressColor === "string"
+                ? themeProgressColor
+                : undefined
+            }
           />
           {resolved && (
             <PredictionChip

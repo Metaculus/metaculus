@@ -1,6 +1,8 @@
 import { merge } from "lodash";
 import { VictoryTheme, VictoryThemeDefinition } from "victory";
 
+import { METAC_COLORS } from "@/constants/colors";
+
 const sansSerif = "var(--font-inter-variable) var(--font-inter)";
 
 const baseChart: VictoryThemeDefinition = {
@@ -47,6 +49,20 @@ const lightChart: VictoryThemeDefinition = {
       },
     },
   },
+  line: {
+    style: {
+      data: {
+        stroke: METAC_COLORS.olive["700"].DEFAULT,
+      },
+    },
+  },
+  area: {
+    style: {
+      data: {
+        fill: METAC_COLORS.olive["500"].DEFAULT,
+      },
+    },
+  },
 };
 
 const darkChart: VictoryThemeDefinition = {
@@ -63,6 +79,20 @@ const darkChart: VictoryThemeDefinition = {
       },
       axisLabel: {
         fill: "white",
+      },
+    },
+  },
+  line: {
+    style: {
+      data: {
+        stroke: METAC_COLORS.olive["700"].dark,
+      },
+    },
+  },
+  area: {
+    style: {
+      data: {
+        fill: METAC_COLORS.olive["500"].dark,
       },
     },
   },

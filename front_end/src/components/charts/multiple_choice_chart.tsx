@@ -287,7 +287,10 @@ const MultipleChoiceChart: FC<Props> = ({
             }}
             label={yLabel}
             axisLabelComponent={
-              <VictoryLabel dy={-10} style={{ fill: "white" }} />
+              <VictoryLabel
+                dy={-10}
+                style={{ fill: getThemeColor(METAC_COLORS.gray["1000"]) }}
+              />
             }
           />
           <VictoryAxis

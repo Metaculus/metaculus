@@ -219,7 +219,6 @@ const NumericChart: FC<Props> = ({
             data={area}
             style={{
               data: {
-                fill: getThemeColor(METAC_COLORS.olive["500"]),
                 opacity: 0.3,
               },
             }}
@@ -230,7 +229,6 @@ const NumericChart: FC<Props> = ({
             style={{
               data: {
                 strokeWidth: 1.5,
-                stroke: getThemeColor(METAC_COLORS.olive["700"]),
               },
             }}
             interpolation="stepAfter"
