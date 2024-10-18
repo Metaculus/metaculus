@@ -110,16 +110,18 @@ const NumericChart: FC<Props> = ({
         myForecasts,
         width: chartWidth,
         zoom,
+        extraTheme,
       }),
     [
+      questionType,
+      actualCloseTime,
+      scaling,
       height,
+      aggregation,
+      myForecasts,
       chartWidth,
       zoom,
-      aggregation,
-      actualCloseTime,
-      myForecasts,
-      questionType,
-      scaling,
+      extraTheme,
     ]
   );
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
@@ -219,7 +221,6 @@ const NumericChart: FC<Props> = ({
             data={area}
             style={{
               data: {
-                fill: getThemeColor(METAC_COLORS.olive["500"]),
                 opacity: 0.3,
               },
             }}
@@ -230,7 +231,6 @@ const NumericChart: FC<Props> = ({
             style={{
               data: {
                 strokeWidth: 1.5,
-                stroke: getThemeColor(METAC_COLORS.olive["700"]),
               },
             }}
             interpolation="stepAfter"
@@ -310,6 +310,7 @@ function buildChartData({
   myForecasts,
   width,
   zoom,
+  extraTheme,
 }: {
   questionType: QuestionType;
   actualCloseTime: number | null;
@@ -319,6 +320,7 @@ function buildChartData({
   myForecasts?: UserForecastHistory;
   width: number;
   zoom: TimelineChartZoomOption;
+  extraTheme?: VictoryThemeDefinition;
 }): ChartData {
   const line = aggregation.history.map((forecast) => ({
     x: forecast.start_time,
@@ -372,7 +374,11 @@ function buildChartData({
     latestTimestamp,
   ];
   const xDomain = generateNumericDomain(domainTimestamps, zoom);
-  const xScale = generateTimestampXScale(xDomain, width);
+  const fontSize =
+    typeof extraTheme?.axis?.style?.ticks?.fontSize === "number"
+      ? extraTheme.axis.style.ticks.fontSize
+      : undefined;
+  const xScale = generateTimestampXScale(xDomain, width, fontSize);
   // TODO: implement general scaling:
   // const xScale: Scale = generateScale({
   //   displayType: QuestionType.Date,

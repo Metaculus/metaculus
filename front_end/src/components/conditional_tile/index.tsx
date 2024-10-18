@@ -178,6 +178,7 @@ const ConditionalArrow: FC<{
   didHappen: boolean;
   disabled: boolean;
   className?: string;
+  labelClassName?: string;
 }> = ({ label, disabled, didHappen, className }) => {
   return (
     <div

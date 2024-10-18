@@ -10,7 +10,9 @@ import {
 import PostsApi from "@/services/posts";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { SearchParams } from "@/types/navigation";
+
 import "./styles.scss";
+import { getEmbedTheme } from "../../helpers/embed_theme";
 
 export default async function GenerateQuestionPreview({
   params,
@@ -24,6 +26,11 @@ export default async function GenerateQuestionPreview({
   if (!post) {
     return null;
   }
+
+  const embedTheme = getEmbedTheme(
+    searchParams["embed_theme"],
+    searchParams["css_variables"]
+  );
 
   const nonInteractiveParam = searchParams["non-interactive"];
 
@@ -43,15 +50,13 @@ export default async function GenerateQuestionPreview({
       id="id-used-by-screenshot-donot-change"
       style={{
         minHeight: "inherit",
+        ...embedTheme.card,
       }}
     >
       <ForecastCard
         post={post}
-        className="size-full flex-1 !bg-blue-100 hover:!shadow-none dark:!bg-blue-100-dark"
-        chartTheme={{
-          axis: { style: { tickLabels: { fontSize: 12 } } },
-          line: { style: { data: { strokeWidth: 2 } } },
-        }}
+        className="size-full flex-1 !bg-transparent hover:!shadow-none"
+        embedTheme={embedTheme}
         nonInteractive={!!nonInteractiveParam && nonInteractiveParam === "true"}
         defaultChartZoom={chartZoom}
         withZoomPicker={hideZoomPickerParam !== "true"}

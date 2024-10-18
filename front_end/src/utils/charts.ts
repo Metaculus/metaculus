@@ -85,7 +85,8 @@ export function generateNumericDomain(
 
 export function generateTimestampXScale(
   xDomain: Tuple<number>,
-  width: number
+  width: number,
+  fontSize = 9
 ): Scale {
   const oneMinute = 60 * 1000;
   const oneHour = 60 * oneMinute;
@@ -100,7 +101,7 @@ export function generateTimestampXScale(
   const start = fromUnixTime(xDomain[0]);
   const end = fromUnixTime(xDomain[1]);
   const timeRange = differenceInMilliseconds(end, start);
-  const maxTicks = Math.floor(width / 80);
+  const maxTicks = Math.floor(width / (fontSize * 10));
   if (timeRange < oneHour) {
     ticks = d3.timeMinute.range(start, end);
     format = d3.timeFormat("%_I:%M %p");
