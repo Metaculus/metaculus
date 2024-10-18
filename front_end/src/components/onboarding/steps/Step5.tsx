@@ -1,9 +1,14 @@
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
-import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import useFeed from "@/app/(main)/questions/hooks/use_feed";
+import useSearchParams from "@/hooks/use_search_params";
+import { FeedType, POST_FORECASTER_ID_FILTER } from "@/constants/posts_feed";
+import { useAuth } from "@/contexts/auth_context";
 
 interface Step5Props {
   onPrev: () => void;
@@ -12,14 +17,58 @@ interface Step5Props {
 }
 
 const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
+  const router = useRouter();
+  const { switchFeed, clearInReview } = useFeed();
+  const { setParam, deleteParam } = useSearchParams();
+  const { user } = useAuth();
+
   if (topicIndex === null) {
+    console.log("Error: No topic selected");
     return <p>Error: No topic selected</p>;
   }
 
   const topic = onboardingTopics[topicIndex];
-  const thirdQuestionId = topic.questions[2]; // Get the third question ID
+  const thirdQuestionId = topic.questions[2];
 
   const questionUrl = `/questions/${thirdQuestionId}`;
+
+  const forceNavigate = (url: string) => {
+    router.push(url);
+    setTimeout(() => {
+      window.location.href = url;
+    }, 100);
+  };
+
+  const handleViewQuestionFeed = () => {
+    console.log("View Question Feed clicked");
+    const url = "/questions/";
+    console.log("Redirecting to:", url);
+    forceNavigate(url);
+  };
+
+  const handleViewMyPredictions = () => {
+    console.log("View Your Predictions clicked");
+    console.log("User:", user);
+
+    if (user) {
+      console.log("Clearing in review");
+      clearInReview();
+      console.log("Switching feed to MY_PREDICTIONS");
+      switchFeed(FeedType.MY_PREDICTIONS);
+
+      console.log("Constructing URL with params");
+      const searchParams = new URLSearchParams();
+      searchParams.set(POST_FORECASTER_ID_FILTER, user.id.toString());
+      searchParams.set("order_by", "-weekly_movement");
+      const url = `/questions/?${searchParams.toString()}`;
+
+      console.log("Force redirecting to:", url);
+      forceNavigate(url);
+    } else {
+      console.log("No user found, force redirecting to /questions/");
+      forceNavigate("/questions/");
+    }
+  };
 
   return (
     <div className={onboardingStyles.container}>
@@ -46,20 +95,27 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
         </span>{" "}
       </p>
       <div className="mx-auto flex w-full flex-col justify-stretch gap-4 md:flex-row ">
-        <button className={`${onboardingStyles.smallButton} w-full md:w-fit`}>
+        <button
+          onClick={handleViewMyPredictions}
+          className={`${onboardingStyles.smallButton} w-full md:w-fit`}
+        >
           View Your Predictions
         </button>
-        <Link href={questionUrl}>
-          <button
-            onClick={onNext}
-            className={`${onboardingStyles.smallButton} w-full font-light md:w-fit`}
-          >
-            Forecast Another <span className="font-bold">{topic.name}</span>{" "}
-            Question
-          </button>
-        </Link>
-
-        <button className={`${onboardingStyles.smallButton} w-full md:w-fit`}>
+        <button
+          onClick={() => {
+            console.log("Forecast Another Question clicked");
+            console.log("Redirecting to:", questionUrl);
+            forceNavigate(questionUrl);
+          }}
+          className={`${onboardingStyles.smallButton} w-full font-light md:w-fit`}
+        >
+          Forecast Another <span className="font-bold">{topic.name}</span>{" "}
+          Question
+        </button>
+        <button
+          onClick={handleViewQuestionFeed}
+          className={`${onboardingStyles.smallButton} w-full md:w-fit`}
+        >
           View Question Feed
         </button>
       </div>
