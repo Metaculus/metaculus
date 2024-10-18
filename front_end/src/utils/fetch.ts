@@ -87,6 +87,24 @@ const defaultOptions: FetchOptions = {
   },
 };
 
+const fetchWithRetry = fetchRetry(fetch, {
+  retryOn: (attempt, error: any) => {
+    if (attempt > 3) {
+      return false;
+    }
+
+    const isSocketError = error?.cause?.code === "UND_ERR_SOCKET";
+    if (isSocketError) {
+      console.warn(
+        `Retrying fetch (attempt ${attempt + 1}) due to network error: ${error?.message}`
+      );
+      return true;
+    }
+
+    return false;
+  },
+});
+
 type FetchConfig = {
   emptyContentType?: boolean;
   passAuthHeader?: boolean;
@@ -137,23 +155,6 @@ const appFetch = async <T>(
   ) {
     delete finalOptions.headers["Content-Type"];
   }
-
-  const fetchWithRetry = fetchRetry(fetch, {
-    retries: 2,
-    retryOn: (attempt, error) => {
-      const isSocketError =
-        (error as NodeJS.ErrnoException)?.code === "UND_ERR_SOCKET";
-
-      if (isSocketError) {
-        console.warn(
-          `Retrying fetch (attempt ${attempt + 1}) due to network error: ${error?.message}`
-        );
-        return true;
-      }
-
-      return false;
-    },
-  });
 
   try {
     const response = await fetchWithRetry(finalUrl, finalOptions);
