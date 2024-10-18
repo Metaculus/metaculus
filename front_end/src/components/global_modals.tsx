@@ -8,6 +8,7 @@ import SignInModal from "@/components/auth/signin";
 import SignUpModal, { SignUpModalSuccess } from "@/components/auth/signup";
 import { useModal } from "@/contexts/modal_context";
 
+import ConfirmModal from "./confirm_modal";
 import ContactUsModal from "./contact_us_modal";
 import OnboardingModal from "@/components/onboarding/OnboardingModal";
 
@@ -36,6 +37,11 @@ const GlobalModals: FC = () => {
       <ContactUsModal
         isOpen={currentModal?.type === "contactUs"}
         onClose={onClose}
+      />
+      <ConfirmModal
+        isOpen={currentModal?.type === "confirm"}
+        onClose={onClose}
+        onConfirm={currentModal?.data?.onConfirm}
       />
     </>
   );

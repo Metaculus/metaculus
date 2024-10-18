@@ -19,15 +19,22 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import TemplateView
 
 import comments
 import posts
 import questions
 
-
 urlpatterns = [
     path("admin/fab-management/", include("fab_management.urls")),
     path("admin/", admin.site.urls),
+    path(
+        "api/",
+        TemplateView.as_view(
+            template_name="swagger-ui.html",
+        ),
+        name="swagger-ui",
+    ),
     path("api/", include("users.urls")),
     path("api/", include("authentication.urls")),
     path("api/", include("projects.urls")),
