@@ -41,6 +41,7 @@ class Score(TimeStampedModel):
         BASELINE = "baseline"
         SPOT_PEER = "spot_peer"
         SPOT_BASELINE = "spot_baseline"
+        MANUAL = "manual"
 
     score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
 
@@ -108,6 +109,7 @@ class Leaderboard(TimeStampedModel):
         BASELINE_GLOBAL = "baseline_global"
         COMMENT_INSIGHT = "comment_insight"
         QUESTION_WRITING = "question_writing"
+        MANUAL = "manual"
 
         @classmethod
         def get_base_score(cls, score_type: str) -> Score.ScoreTypes:
@@ -124,6 +126,8 @@ class Leaderboard(TimeStampedModel):
                     return Score.ScoreTypes.SPOT_PEER
                 case cls.BASELINE_GLOBAL:
                     return Score.ScoreTypes.BASELINE
+                case cls.MANUAL:
+                    return Score.ScoreTypes.MANUAL
                 case cls.COMMENT_INSIGHT:
                     raise ValueError(
                         "Comment insight leaderboards do not have base scores"
@@ -134,9 +138,9 @@ class Leaderboard(TimeStampedModel):
                     )
 
     score_type = models.CharField(max_length=200, choices=ScoreTypes.choices)
-    start_time = models.DateTimeField(null=True)
-    end_time = models.DateTimeField(null=True)
-    finalize_time = models.DateTimeField(null=True)
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    finalize_time = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         if self.name:

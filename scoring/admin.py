@@ -1,5 +1,8 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
-from django.contrib import admin
+from django.contrib import admin, messages
+
+
+from projects.models import Project
 
 from scoring.models import (
     UserWeight,
@@ -9,6 +12,7 @@ from scoring.models import (
     MedalExclusionRecord,
     ArchivedScore,
 )
+from scoring.utils import update_project_leaderboard, update_leaderboard_from_csv_data
 
 
 @admin.register(UserWeight)
@@ -56,6 +60,15 @@ class ArchivedScoreAdmin(admin.ModelAdmin):
     ]
 
 
+class LeaderboardEntryInline(admin.TabularInline):
+    model = LeaderboardEntry
+    extra = 1
+    autocomplete_fields = ("user",)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request)
+
+
 @admin.register(Leaderboard)
 class LeaderboardAdmin(admin.ModelAdmin):
     search_fields = ["name", "project", "score_type"]
@@ -64,6 +77,31 @@ class LeaderboardAdmin(admin.ModelAdmin):
     list_filter = [
         AutocompleteFilterFactory("Project", "project"),
     ]
+    inlines = [LeaderboardEntryInline]
+    actions = ["make_primary_leaderboard", "update_leaderboards"]
+
+    def make_primary_leaderboard(self, request, queryset):
+        for leaderboard in queryset:
+            project: Project = leaderboard.project
+            project.primary_leaderboard = leaderboard
+            project.save()
+            self.message_user(
+                request,
+                f"Successfully set {leaderboard} as the "
+                f"primary leaderboard for {project}.",
+                messages.SUCCESS,
+            )
+
+    make_primary_leaderboard.short_description = (
+        "Make selected leaderboards their project's primary_leaderboard"
+    )
+
+    def update_leaderboards(self, request, queryset):
+        leaderboard: Leaderboard
+        for leaderboard in queryset:
+            update_project_leaderboard(leaderboard.project, leaderboard)
+
+    update_leaderboards.short_description = "Update selected Leaderboards"
 
 
 @admin.register(LeaderboardEntry)
