@@ -3,7 +3,7 @@ export const onboardingStyles = {
   largeparagraph: "text-lg mb-4",
   paragraph: "text-sm md:text-base my-2 opacity-80 leading-normal",
   title:
-    "text-xl md:text-2xl my-2 mt-4 font-semibold text-blue-800 dark:text-blue-200",
+    "text-xl md:text-2xl my-2 mt-5 md:mt-4 font-semibold text-blue-800 dark:text-blue-200",
   heading: "text-xl font-bold mb-4",
   button:
     "px-6 py-4 font-semibold dark:bg-blue-700 bg-blue-400 text-blue-800 dark:text-blue-200 rounded hover:bg-blue-500 dark:hover:bg-blue-600",

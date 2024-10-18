@@ -6,6 +6,7 @@ import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import VerbalForecast from "../VerbalForecast";
+import LoadingStep from "./LoadingStep";
 
 interface Step3Props {
   onPrev: () => void;
@@ -25,7 +26,7 @@ const Step3: React.FC<Step3Props> = ({
   onPredictionChange,
 }) => {
   if (topicIndex === null || !questionData) {
-    return <p>Loading...</p>;
+    return <LoadingStep />;
   }
 
   const topic = onboardingTopics[topicIndex];
@@ -61,7 +62,7 @@ const Step3: React.FC<Step3Props> = ({
       </div>
       <p>How likely do you think this is?</p>
       <div className="mt-2">
-        <div className="bg-blue-200 py-4 dark:bg-blue-800">
+        <div className="rounded-md bg-blue-200 py-4 dark:bg-blue-800">
           <BinarySlider
             forecast={prediction}
             onChange={onPredictionChange}

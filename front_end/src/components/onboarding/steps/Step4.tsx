@@ -2,17 +2,10 @@ import React, { useState } from "react";
 import { PostWithForecasts } from "@/types/post";
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
-import {
-  faArrowLeft,
-  faPlus,
-  faArrowUp,
-  faArrowDown,
-  faStar as fasStar,
-  faTimes,
-} from "@fortawesome/free-solid-svg-icons";
-import { faStar as farStar } from "@fortawesome/free-regular-svg-icons";
+import { faArrowLeft, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
+import LoadingStep from "./LoadingStep";
 
 interface Step4Props {
   onPrev: () => void;
@@ -35,7 +28,7 @@ const Step4: React.FC<Step4Props> = ({
   const [userFactors, setUserFactors] = useState<string[]>([]);
 
   if (topicIndex === null || !questionData) {
-    return <p>Loading...</p>;
+    return <LoadingStep />;
   }
 
   const topic = onboardingTopics[topicIndex];
@@ -100,7 +93,7 @@ const Step4: React.FC<Step4Props> = ({
         What do you think? Did any of those factors make you want to change your
         prediction? If not, that's fine too.
       </p>
-      <div className="flex flex-col gap-1 bg-blue-200 dark:bg-blue-800">
+      <div className="flex flex-col gap-1 rounded-md bg-blue-200 dark:bg-blue-800">
         <div
           className={`${onboardingStyles.questionContainer} rounded-none border-none py-1 pb-0`}
         >

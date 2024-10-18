@@ -12,6 +12,7 @@ import BinarySlider, {
   BINARY_FORECAST_PRECISION,
 } from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import VerbalForecast from "../VerbalForecast";
+import LoadingStep from "./LoadingStep";
 
 interface Step2Props {
   onPrev: () => void;
@@ -34,7 +35,7 @@ const Step2: React.FC<Step2Props> = ({
   >(null);
 
   if (topicIndex === null || !questionData) {
-    return <p>Loading...</p>;
+    return <LoadingStep />;
   }
   const topic = onboardingTopics[topicIndex];
   // const communityForecast = 0.55; // Hardcoded for testing to be replaced with line below
@@ -154,7 +155,7 @@ const Step2: React.FC<Step2Props> = ({
 
       {prediction !== null && (
         <div className="mt-4">
-          <div className="bg-blue-200 py-4 dark:bg-blue-800">
+          <div className="rounded-md bg-blue-200 py-4 dark:bg-blue-800">
             {activeButton && (
               <div className="flex flex-col items-center">
                 <p
