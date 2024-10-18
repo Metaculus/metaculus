@@ -21,6 +21,7 @@ import { MarkdownText } from "@/components/ui/markdown_text";
 import {
   Category,
   Post,
+  PostStatus,
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
@@ -119,6 +120,8 @@ const GroupForm: React.FC<Props> = ({
         title: `${data["title"]} (${x.label})`,
         scheduled_close_time: x.scheduled_close_time,
         scheduled_resolve_time: x.scheduled_resolve_time,
+        open_time: x.open_time,
+        cp_reveal_time: x.cp_reveal_time,
       };
 
       if (subtype === QuestionType.Binary) {
@@ -207,6 +210,8 @@ const GroupForm: React.FC<Props> = ({
             id: x.id,
             scheduled_close_time: x.scheduled_close_time,
             scheduled_resolve_time: x.scheduled_resolve_time,
+            open_time: x.open_time,
+            cp_reveal_time: x.cp_reveal_time,
             label: extractQuestionGroupName(x.title),
             scaling: x.scaling,
           };
@@ -415,69 +420,143 @@ const GroupForm: React.FC<Props> = ({
                   />
                 </InputContainer>
                 {collapsedSubQuestions[index] && (
-                  <div className="flex w-full flex-col gap-4 md:flex-row">
-                    <InputContainer
-                      labelText={t("closingDate")}
-                      className="w-full"
-                    >
-                      <Input
-                        readOnly={subquestionHasForecasts && mode !== "create"}
-                        type="datetime-local"
-                        className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                        defaultValue={
-                          subQuestions[index].scheduled_close_time
-                            ? format(
-                                new Date(
-                                  subQuestions[index].scheduled_close_time
-                                ),
-                                "yyyy-MM-dd'T'HH:mm"
-                              )
-                            : undefined
-                        }
-                        onChange={(e) => {
-                          setSubQuestions(
-                            subQuestions.map((subQuestion, iter_index) => {
-                              if (index === iter_index) {
-                                subQuestion.scheduled_close_time =
-                                  e.target.value;
+                  <div className="flex w-full flex-col gap-4">
+                    <div className="flex flex-row gap-4">
+                      <InputContainer
+                        labelText={t("closingDate")}
+                        className="w-full"
+                      >
+                        <Input
+                          readOnly={
+                            subquestionHasForecasts && mode !== "create"
+                          }
+                          type="datetime-local"
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          defaultValue={
+                            subQuestions[index].scheduled_close_time
+                              ? format(
+                                  new Date(
+                                    subQuestions[index].scheduled_close_time
+                                  ),
+                                  "yyyy-MM-dd'T'HH:mm"
+                                )
+                              : undefined
+                          }
+                          onChange={(e) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index) {
+                                  subQuestion.scheduled_close_time =
+                                    e.target.value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </InputContainer>
+                      <InputContainer
+                        labelText={t("resolvingDate")}
+                        className="w-full"
+                      >
+                        <Input
+                          readOnly={
+                            subquestionHasForecasts && mode !== "create"
+                          }
+                          type="datetime-local"
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          defaultValue={
+                            subQuestions[index].scheduled_resolve_time
+                              ? format(
+                                  new Date(
+                                    subQuestions[index].scheduled_resolve_time
+                                  ),
+                                  "yyyy-MM-dd'T'HH:mm"
+                                )
+                              : undefined
+                          }
+                          onChange={(e) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index) {
+                                  subQuestion.scheduled_resolve_time =
+                                    e.target.value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </InputContainer>
+                    </div>
+                    {mode == "edit" &&
+                      post?.curation_status == PostStatus.APPROVED &&
+                      // Show only for newly added options
+                      !subQuestion.id && (
+                        <div className="flex flex-row gap-4">
+                          <InputContainer
+                            labelText={t("openTime")}
+                            className="w-full"
+                          >
+                            <Input
+                              type="datetime-local"
+                              className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                              defaultValue={
+                                subQuestions[index].open_time
+                                  ? format(
+                                      new Date(subQuestions[index].open_time),
+                                      "yyyy-MM-dd'T'HH:mm"
+                                    )
+                                  : undefined
                               }
-                              return subQuestion;
-                            })
-                          );
-                        }}
-                      />
-                    </InputContainer>
-                    <InputContainer
-                      labelText={t("resolvingDate")}
-                      className="w-full"
-                    >
-                      <Input
-                        readOnly={subquestionHasForecasts && mode !== "create"}
-                        type="datetime-local"
-                        className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                        defaultValue={
-                          subQuestions[index].scheduled_resolve_time
-                            ? format(
-                                new Date(
-                                  subQuestions[index].scheduled_resolve_time
-                                ),
-                                "yyyy-MM-dd'T'HH:mm"
-                              )
-                            : undefined
-                        }
-                        onChange={(e) => {
-                          setSubQuestions(
-                            subQuestions.map((subQuestion, iter_index) => {
-                              if (index === iter_index) {
-                                subQuestion.scheduled_resolve_time =
-                                  e.target.value;
+                              onChange={(e) => {
+                                setSubQuestions(
+                                  subQuestions.map(
+                                    (subQuestion, iter_index) => {
+                                      if (index === iter_index) {
+                                        subQuestion.open_time = e.target.value;
+                                      }
+                                      return subQuestion;
+                                    }
+                                  )
+                                );
+                              }}
+                            />
+                          </InputContainer>
+                          <InputContainer
+                            labelText={t("cpRevealTime")}
+                            className="w-full"
+                          >
+                            <Input
+                              type="datetime-local"
+                              className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                              defaultValue={
+                                subQuestions[index].cp_reveal_time
+                                  ? format(
+                                      new Date(
+                                        subQuestions[index].cp_reveal_time
+                                      ),
+                                      "yyyy-MM-dd'T'HH:mm"
+                                    )
+                                  : undefined
                               }
-                              return subQuestion;
-                            })
-                          );
-                        }}
-                      />
-                    </InputContainer>
+                              onChange={(e) => {
+                                setSubQuestions(
+                                  subQuestions.map(
+                                    (subQuestion, iter_index) => {
+                                      if (index === iter_index) {
+                                        subQuestion.cp_reveal_time =
+                                          e.target.value;
+                                      }
+                                      return subQuestion;
+                                    }
+                                  )
+                                );
+                              }}
+                            />
+                          </InputContainer>
+                        </div>
+                      )}
                     {(subtype === QuestionType.Date ||
                       subtype === QuestionType.Numeric) && (
                       <NumericQuestionInput

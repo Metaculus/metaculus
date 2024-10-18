@@ -168,6 +168,7 @@ export type Question = {
   created_at: string;
   updated_at: string;
   open_time?: string;
+  cp_reveal_time?: string;
   scheduled_resolve_time: string;
   actual_resolve_time?: string;
   resolution_set_time?: string;
