@@ -29,11 +29,16 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
       <h3 className={onboardingStyles.title}>Nice work!</h3>
       <p className={onboardingStyles.paragraph}>
         Anyone can improve at forecasting by practicing and thinking through
-        what factors could influence outcomes. In a series of forecasting
-        competitions conducted by University of Pennsylvania professor Philip
-        Tetlock, skilled forecasters outperformed CIA analysts without access to
-        classified intelligence.
+        what factors could influence outcomes.
       </p>
+      <div className="flex flex-col gap-2 rounded-md bg-blue-200 p-3 dark:bg-blue-200-dark">
+        <span className="block text-xs font-bold uppercase tracking-wide opacity-70">
+          Did you know?
+        </span>
+        In a series of forecasting competitions conducted by University of
+        Pennsylvania professor Philip Tetlock, skilled forecasters outperformed
+        CIA analysts without access to classified intelligence.
+      </div>
       <p className={onboardingStyles.paragraph}>
         <span className="font-bold">
           You are now ready to explore Metaculus by yourself. What would you
@@ -41,20 +46,22 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
         </span>{" "}
       </p>
       <div className="mx-auto flex w-full flex-col justify-stretch gap-4 md:flex-row ">
-        <Link href="/questions/" replace scroll={true}>
-          <button className={`${onboardingStyles.button} w-full`}>
-            View Question Feed
-          </button>
-        </Link>
+        <button className={`${onboardingStyles.smallButton} w-full md:w-fit`}>
+          View Your Predictions
+        </button>
         <Link href={questionUrl}>
           <button
             onClick={onNext}
-            className={`${onboardingStyles.button} w-full font-light`}
+            className={`${onboardingStyles.smallButton} w-full font-light md:w-fit`}
           >
-            View Another <span className="font-bold">{topic.name}</span>{" "}
+            Forecast Another <span className="font-bold">{topic.name}</span>{" "}
             Question
           </button>
         </Link>
+
+        <button className={`${onboardingStyles.smallButton} w-full md:w-fit`}>
+          View Question Feed
+        </button>
       </div>
     </div>
   );

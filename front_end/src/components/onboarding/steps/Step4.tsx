@@ -29,7 +29,7 @@ const Step4: React.FC<Step4Props> = ({
   prediction,
   onPredictionChange,
 }) => {
-  const [newFactor, setNewFactor] = useState("");
+  // const [newFactor, setNewFactor] = useState("");
   const [userFactors, setUserFactors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -44,12 +44,12 @@ const Step4: React.FC<Step4Props> = ({
       ?.centers?.[0] ?? 0.5;
   const factors = [...topic.factors, ...userFactors];
 
-  const handleAddFactor = () => {
-    if (newFactor.trim()) {
-      setUserFactors([...userFactors, newFactor.trim()]);
-      setNewFactor("");
-    }
-  };
+  // const handleAddFactor = () => {
+  //   if (newFactor.trim()) {
+  //     setUserFactors([...userFactors, newFactor.trim()]);
+  //     setNewFactor("");
+  //   }
+  // };
 
   const handleSubmit = async () => {
     if (prediction === null || !questionData || !questionData.question) return;
@@ -97,7 +97,7 @@ const Step4: React.FC<Step4Props> = ({
         Here are some of the factors other forecasters are considering.
       </p>
       <div>
-        <ul className="mb-4 list-none space-y-2">
+        <ul className="list-none space-y-2">
           {factors.map((factor, index) => (
             <li
               key={index}
@@ -107,7 +107,7 @@ const Step4: React.FC<Step4Props> = ({
             </li>
           ))}
         </ul>
-        <div className="flex">
+        {/* <div className="flex justify-start gap-2">
           <input
             type="text"
             value={newFactor}
@@ -117,12 +117,12 @@ const Step4: React.FC<Step4Props> = ({
           />
           <button
             onClick={handleAddFactor}
-            className={`${onboardingStyles.smallButton} ${newFactor.trim() === "" ? "cursor-not-allowed opacity-35" : ""}`}
+            className={`${onboardingStyles.smallButton} ${newFactor.trim() === "" ? "cursor-not-allowed opacity-35" : ""} flex-row flex items-center gap-2`}
             disabled={newFactor.trim() === ""}
           >
             <FontAwesomeIcon icon={faPlus} /> Add
           </button>
-        </div>
+        </div> */}
       </div>
       <p className={onboardingStyles.paragraph}>
         Considering others' views is an important step in forecasting

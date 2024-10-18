@@ -18,5 +18,5 @@ export const onboardingStyles = {
   input:
     "flex-grow px-2 py-1 border border-blue-500 placeholder:text-gray-600 rounded w-full",
   smallButton:
-    "px-2 py-1 bg-blue-600 text-white dark:text-blue-900 rounded hover:bg-blue-700 dark:bg-blue-400 dark:hover:bg-blue-300 ml-2",
+    "px-3 py-2 bg-blue-600 text-white dark:text-blue-900 rounded hover:bg-blue-700 font-medium dark:bg-blue-400 dark:hover:bg-blue-300",
 };
