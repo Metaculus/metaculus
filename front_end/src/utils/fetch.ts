@@ -140,9 +140,8 @@ const appFetch = async <T>(
 
   const fetchWithRetry = fetchRetry(fetch, {
     retries: 2,
-    retryOn: (attempt, error) => {
-      const isSocketError =
-        (error as NodeJS.ErrnoException)?.code === "UND_ERR_SOCKET";
+    retryOn: (attempt, error: any) => {
+      const isSocketError = error?.cause?.code === "UND_ERR_SOCKET";
 
       if (isSocketError) {
         console.warn(
