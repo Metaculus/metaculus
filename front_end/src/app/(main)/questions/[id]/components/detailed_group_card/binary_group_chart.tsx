@@ -1,12 +1,11 @@
 "use client";
 
-import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { VictoryThemeDefinition } from "victory";
 
-import MultipleChoiceChart from "@/components/charts/multiple_choice_chart";
+import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multi_choices_chart_view";
 import { useAuth } from "@/contexts/auth_context";
-import useChartTooltip from "@/hooks/use_chart_tooltip";
 import usePrevious from "@/hooks/use_previous";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
@@ -18,9 +17,6 @@ import {
 } from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 import { generateUserForecasts } from "@/utils/questions";
-
-import ChoicesLegend from "../choices_legend";
-import ChoicesTooltip from "../choices_tooltip";
 
 const MAX_VISIBLE_CHECKBOXES = 6;
 
@@ -72,6 +68,9 @@ type Props = {
   defaultZoom?: TimelineChartZoomOption;
   isClosed?: boolean;
   actualCloseTime?: number | null;
+  chartHeight?: number;
+  chartTheme?: VictoryThemeDefinition;
+  embedMode?: boolean;
 };
 
 const BinaryGroupChart: FC<Props> = ({
@@ -81,13 +80,12 @@ const BinaryGroupChart: FC<Props> = ({
   defaultZoom,
   isClosed,
   actualCloseTime,
+  chartTheme,
+  chartHeight,
+  embedMode = false,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const [isChartReady, setIsChartReady] = useState(false);
-  const handleChartReady = useCallback(() => {
-    setIsChartReady(true);
-  }, []);
 
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(questions, preselectedQuestionId)
@@ -166,14 +164,6 @@ const BinaryGroupChart: FC<Props> = ({
     [userForecasts, cursorTimestamp, timestamps]
   );
 
-  const {
-    isActive: isTooltipActive,
-    getReferenceProps,
-    getFloatingProps,
-    refs,
-    floatingStyles,
-  } = useChartTooltip();
-
   const handleChoiceChange = useCallback((choice: string, checked: boolean) => {
     setChoiceItems((prev) =>
       prev.map((item) =>
@@ -202,64 +192,28 @@ const BinaryGroupChart: FC<Props> = ({
       setChoiceItems((prev) => prev.map((item) => ({ ...item, active: true })));
     }
   }, []);
+
   return (
-    <div
-      className={classNames(
-        "flex w-full flex-col",
-        isChartReady ? "opacity-100" : "opacity-0"
-      )}
-    >
-      <div className="flex items-center">
-        <h3 className="m-0 text-base font-normal leading-5">
-          {t("forecastTimelineHeading")}
-        </h3>
-      </div>
-      <div ref={refs.setReference} {...getReferenceProps()}>
-        <MultipleChoiceChart
-          timestamps={timestamps}
-          actualCloseTime={actualCloseTime}
-          choiceItems={choiceItems}
-          yLabel={t("communityPredictionLabel")}
-          onChartReady={handleChartReady}
-          onCursorChange={handleCursorChange}
-          defaultZoom={
-            defaultZoom
-              ? defaultZoom
-              : user
-                ? TimelineChartZoomOption.All
-                : TimelineChartZoomOption.TwoMonths
-          }
-          withZoomPicker
-          userForecasts={userForecasts}
-          isClosed={isClosed}
-        />
-      </div>
-
-      <div className="mt-3">
-        <ChoicesLegend
-          choices={choiceItems}
-          onChoiceChange={handleChoiceChange}
-          onChoiceHighlight={handleChoiceHighlight}
-          maxLegendChoices={MAX_VISIBLE_CHECKBOXES}
-          onToggleAll={toggleSelectAll}
-        />
-      </div>
-
-      {isTooltipActive && !!tooltipChoices.length && (
-        <div
-          className="pointer-events-none z-20 rounded bg-gray-0 p-2 leading-4 shadow-lg dark:bg-gray-0-dark"
-          ref={refs.setFloating}
-          style={floatingStyles}
-          {...getFloatingProps()}
-        >
-          <ChoicesTooltip
-            date={tooltipDate}
-            choices={tooltipChoices}
-            userChoices={tooltipUserChoices}
-          />
-        </div>
-      )}
-    </div>
+    <MultiChoicesChartView
+      tooltipChoices={tooltipChoices}
+      tooltipUserChoices={tooltipUserChoices}
+      choiceItems={choiceItems}
+      timestamps={timestamps}
+      userForecasts={userForecasts}
+      tooltipDate={tooltipDate}
+      onCursorChange={handleCursorChange}
+      onChoiceItemChange={handleChoiceChange}
+      onChoiceItemHighlight={handleChoiceHighlight}
+      onToggleSelectAll={toggleSelectAll}
+      isClosed={isClosed}
+      actualCloseTime={actualCloseTime}
+      title={t("forecastTimelineHeading")}
+      yLabel={t("communityPredictionLabel")}
+      chartTheme={chartTheme}
+      embedMode={embedMode}
+      chartHeight={chartHeight}
+      defaultZoom={defaultZoom}
+    />
   );
 };
 

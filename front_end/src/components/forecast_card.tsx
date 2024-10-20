@@ -1,9 +1,9 @@
 "use client";
 import classNames from "classnames";
 import Link from "next/link";
-import { FC, useEffect, useRef, useState } from "react";
-import { VictoryThemeDefinition } from "victory";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 
+import { EmbedTheme } from "@/app/(embed)/questions/constants/embed_theme";
 import ContinuousGroupTimeline from "@/app/(main)/questions/[id]/components/continuous_group_timeline";
 import BinaryGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/binary_group_chart";
 import MultipleChoiceChartCard from "@/app/(main)/questions/[id]/components/detailed_question_card/multiple_choice_chart_card";
@@ -30,7 +30,7 @@ import { sortGroupPredictionOptions } from "@/utils/questions";
 type Props = {
   post: PostWithForecasts;
   className?: string;
-  chartTheme?: VictoryThemeDefinition;
+  embedTheme?: EmbedTheme;
   defaultChartZoom?: TimelineChartZoomOption;
   withZoomPicker?: boolean;
   nonInteractive?: boolean;
@@ -41,7 +41,7 @@ type Props = {
 const ForecastCard: FC<Props> = ({
   post,
   className,
-  chartTheme,
+  embedTheme,
   defaultChartZoom,
   withZoomPicker,
   nonInteractive = false,
@@ -51,12 +51,21 @@ const ForecastCard: FC<Props> = ({
   const [cursorValue, setCursorValue] = useState<number | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartHeight, setChartHeight] = useState(0);
+  const withLegend = useMemo(
+    () =>
+      post.group_of_questions?.graph_type ===
+        GroupOfQuestionsGraphType.MultipleChoiceGraph ||
+      post.question?.type === QuestionType.MultipleChoice,
+    [post.group_of_questions?.graph_type, post.question?.type]
+  );
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    setChartHeight(chartContainerRef.current?.clientHeight);
-  }, []);
+    setChartHeight(
+      chartContainerRef.current?.clientHeight - (withZoomPicker ? 32 : 0)
+    );
+  }, [withZoomPicker, withLegend]);
 
   const renderChart = () => {
     if (post.group_of_questions) {
@@ -82,7 +91,7 @@ const ForecastCard: FC<Props> = ({
                 options={predictionQuestion}
                 height={chartHeight}
                 withTooltip={!nonInteractive}
-                extraTheme={chartTheme}
+                extraTheme={embedTheme?.chart}
               />
             );
           } else if (
@@ -102,6 +111,10 @@ const ForecastCard: FC<Props> = ({
                     ? new Date(post.scheduled_close_time).getTime()
                     : null
                 }
+                chartHeight={chartHeight}
+                chartTheme={embedTheme?.chart}
+                defaultZoom={defaultChartZoom}
+                embedMode
               />
             );
           }
@@ -119,7 +132,7 @@ const ForecastCard: FC<Props> = ({
                 options={predictionQuestion}
                 height={chartHeight}
                 withTooltip={!nonInteractive}
-                extraTheme={chartTheme}
+                extraTheme={embedTheme?.chart}
               />
             );
           } else if (
@@ -136,9 +149,14 @@ const ForecastCard: FC<Props> = ({
                 questions={sortedQuestions}
                 timestamps={timestamps}
                 defaultZoom={defaultChartZoom}
+                chartHeight={chartHeight}
+                chartTheme={embedTheme?.chart}
+                embedMode
               />
             );
           }
+
+          return null;
         default:
           return null;
       }
@@ -150,7 +168,7 @@ const ForecastCard: FC<Props> = ({
           postTitle={post.title}
           conditional={post.conditional}
           curationStatus={post.status}
-          chartTheme={chartTheme}
+          chartTheme={embedTheme?.chart}
         />
       );
     }
@@ -180,7 +198,7 @@ const ForecastCard: FC<Props> = ({
               }
               scaling={question.scaling}
               onCursorChange={nonInteractive ? undefined : setCursorValue}
-              extraTheme={chartTheme}
+              extraTheme={embedTheme?.chart}
               defaultZoom={defaultChartZoom}
               withZoomPicker={withZoomPicker}
             />
@@ -193,7 +211,15 @@ const ForecastCard: FC<Props> = ({
               activeCount: visibleChoicesCount,
             }
           );
-          return <MultipleChoiceChartCard question={question} embedMode />;
+          return (
+            <MultipleChoiceChartCard
+              question={question}
+              embedMode
+              chartHeight={chartHeight}
+              chartTheme={embedTheme?.chart}
+              defaultZoom={defaultChartZoom}
+            />
+          );
         default:
           return null;
       }
@@ -226,6 +252,7 @@ const ForecastCard: FC<Props> = ({
               status={post.status}
               prediction={forecast?.centers![forecast.centers!.length - 1]}
               className="ForecastCard-prediction"
+              unresovledChipStyle={embedTheme?.predictionChip}
             />
           );
         }
@@ -251,7 +278,10 @@ const ForecastCard: FC<Props> = ({
       />
       <div className="ForecastCard-header flex items-start justify-between max-[288px]:flex-col">
         {!post.conditional && (
-          <h2 className="ForecastTitle m-0 line-clamp-2 text-lg font-medium leading-snug tracking-normal">
+          <h2
+            className="ForecastTitle m-0 line-clamp-2 text-lg font-medium leading-snug tracking-normal"
+            style={embedTheme?.title}
+          >
             {embedTitle ? embedTitle : post.title}
           </h2>
         )}
@@ -260,7 +290,8 @@ const ForecastCard: FC<Props> = ({
       <div
         ref={chartContainerRef}
         className={classNames(
-          "ForecastCard-graph-container flex size-full min-h-[120px] min-w-0 flex-1 items-start"
+          "ForecastCard-graph-container flex size-full min-h-[120px] min-w-0 flex-1",
+          post.conditional ? "items-center" : "items-start"
         )}
       >
         {renderChart()}

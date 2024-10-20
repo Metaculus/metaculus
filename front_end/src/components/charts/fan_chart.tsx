@@ -155,20 +155,11 @@ const FanChart: FC<Props> = ({
             data={area}
             style={{
               data: {
-                fill: getThemeColor(METAC_COLORS.olive["500"]),
                 opacity: 0.3,
               },
             }}
           />
-          <VictoryLine
-            name="fanLine"
-            data={line}
-            style={{
-              data: {
-                stroke: getThemeColor(METAC_COLORS.olive["700"]),
-              },
-            }}
-          />
+          <VictoryLine name="fanLine" data={line} />
           <VictoryAxis
             dependentAxis
             label={yLabel}

@@ -1,11 +1,12 @@
 import classNames from "classnames";
-import { FC, ReactNode } from "react";
+import { CSSProperties, FC, ReactNode } from "react";
 
 type Props = {
   value: number | null;
   userForecast: number | null;
   disabled?: boolean;
   renderLabel?: (value: number | null) => ReactNode;
+  progressColor?: string;
 };
 
 const ProgressBar: FC<Props> = ({
@@ -13,6 +14,7 @@ const ProgressBar: FC<Props> = ({
   userForecast,
   renderLabel,
   disabled = false,
+  progressColor,
 }) => {
   return (
     <div className="BinaryPredictionBar relative h-5">
@@ -36,7 +38,7 @@ const ProgressBar: FC<Props> = ({
               ? "bg-gray-500 dark:bg-gray-500-dark"
               : "bg-olive-700 dark:bg-olive-700-dark"
           )}
-          style={{ width: `${value}%` }}
+          style={{ width: `${value}%`, backgroundColor: progressColor }}
         >
           <div className="BinaryPredictionBar-value flex h-full items-center text-xs font-semibold leading-[14px]">
             {renderLabel ? renderLabel(value) : <span>{value}</span>}

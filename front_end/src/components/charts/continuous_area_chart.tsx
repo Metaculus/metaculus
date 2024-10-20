@@ -207,7 +207,7 @@ const ContinuousAreaChart: FC<Props> = ({
                   fill:
                     chart.color === "orange"
                       ? getThemeColor(METAC_COLORS.orange["700"])
-                      : getThemeColor(METAC_COLORS.olive["500"]),
+                      : undefined,
                   opacity: 0.3,
                 },
               }}
@@ -222,7 +222,7 @@ const ContinuousAreaChart: FC<Props> = ({
                   stroke:
                     chart.color === "orange"
                       ? getThemeColor(METAC_COLORS.orange["800"])
-                      : getThemeColor(METAC_COLORS.olive["700"]),
+                      : undefined,
                   strokeDasharray: chart.color === "orange" ? "2,2" : undefined,
                 },
               }}
@@ -265,7 +265,7 @@ const ContinuousAreaChart: FC<Props> = ({
                     stroke:
                       chart.color === "orange"
                         ? getThemeColor(METAC_COLORS.orange["800"])
-                        : getThemeColor(METAC_COLORS.olive["700"]),
+                        : undefined,
                     strokeDasharray: "2,1",
                   },
                 }}

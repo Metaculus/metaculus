@@ -91,7 +91,7 @@ const Checkbox: FC<Props> = ({
         }
       </HeadlessCheckbox>
       {errors && <FormError errors={errors} name={label} />}
-      <Label className="ml-1 hover:cursor-pointer">
+      <Label className="CheckboxLabel ml-1 hover:cursor-pointer">
         {children ? children : label}
       </Label>
     </Field>
