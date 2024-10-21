@@ -603,6 +603,7 @@ tags:
       The primary entry point for retrieving feed data and interacting with both Posts and Questions is the `/api/posts` endpoint.
   - name: Questions & Forecasts
   - name: Comments
+  - name: Utilities & Data
 paths:
   /api/posts/:
     get:
@@ -1238,7 +1239,7 @@ paths:
                           score: 69
                           user_vote: null
                         forecasts_count: 4670
-  /api/posts/{postId}:
+  /api/posts/{postId}/:
     get:
       summary: Retrieve post details
       tags:
@@ -1257,6 +1258,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Post'
+  /api/posts/{postId}/download-csv/:
+    get:
+      summary: Download CSV data for a Question
+      tags:
+        - Utilities & Data
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the post to retrieve
+        - name: sub-question
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: The sub-question ID if the post is for a group question
+        - name: aggregation-methods
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [ recency_weighted, unweighted, single_aggregation, metaculus_prediction ]
+          description: Aggregation methods to include in the CSV, no argument will only include recency_weighted
+      responses:
+        '200':
+          description: CSV data for the question
+          content:
+            text/csv:
+              schema:
+                type: string
   /api/questions/forecast/:
     post:
       summary: Submit question forecasts
