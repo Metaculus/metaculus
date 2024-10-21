@@ -688,17 +688,11 @@ export function getFanOptionsFromBinaryGroup(
       const resolved = q.resolution !== null;
       return {
         name: extractQuestionGroupName(q.title),
-        quartiles: resolved
-          ? {
-              median: q.resolution === "yes" ? 1 : 0,
-              lower25: aggregation?.interval_lower_bounds?.[0] ?? 0,
-              upper75: aggregation?.interval_upper_bounds?.[0] ?? 0,
-            }
-          : {
-              median: aggregation?.centers?.[0] ?? 0,
-              lower25: aggregation?.interval_lower_bounds?.[0] ?? 0,
-              upper75: aggregation?.interval_upper_bounds?.[0] ?? 0,
-            },
+        quartiles: {
+          median: aggregation?.centers?.[0] ?? 0,
+          lower25: aggregation?.interval_lower_bounds?.[0] ?? 0,
+          upper75: aggregation?.interval_upper_bounds?.[0] ?? 0,
+        },
         resolved,
         question: q,
         resolvedAt: new Date(q.scheduled_resolve_time),
