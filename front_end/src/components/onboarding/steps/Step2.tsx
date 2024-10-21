@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PostWithForecasts } from "@/types/post";
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
@@ -41,6 +41,8 @@ const Step2: React.FC<Step2Props> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const endOfModalRef = useRef<HTMLDivElement>(null);
+
   if (topicIndex === null || !questionData || !questionData.question) {
     return <LoadingStep />;
   }
@@ -70,6 +72,10 @@ const Step2: React.FC<Step2Props> = ({
     }
     setPrediction(initialPrediction);
     setActiveButton(type);
+
+    setTimeout(() => {
+      endOfModalRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
   };
 
   const updateActiveButton = (newPrediction: number) => {
@@ -190,7 +196,6 @@ const Step2: React.FC<Step2Props> = ({
           {t("onboardingStep2MoreLikely")}
         </button>
       </div>
-
       {prediction !== null && (
         <div className="mt-4">
           <div className="rounded-md bg-blue-200 py-4 dark:bg-blue-800">
@@ -236,6 +241,7 @@ const Step2: React.FC<Step2Props> = ({
           </div>
         </div>
       )}
+      <div ref={endOfModalRef} /> {/* Add this line */}
     </div>
   );
 };
