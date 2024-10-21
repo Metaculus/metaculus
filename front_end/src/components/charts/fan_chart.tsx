@@ -24,6 +24,7 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
   QuestionType,
+  Question,
 } from "@/types/question";
 import {
   generateScale,
@@ -64,7 +65,7 @@ const FanChart: FC<Props> = ({
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
 
-  const { line, area, points, scaling } = useMemo(
+  const { line, area, points, resolutionPoints, scaling } = useMemo(
     () => buildChartData(options),
     [options]
   );
@@ -177,25 +178,36 @@ const FanChart: FC<Props> = ({
           <VictoryScatter
             data={points.map((point) => ({
               ...point,
-              symbol: point.resolved ? "diamond" : "square",
+              symbol: "square",
             }))}
             style={{
               data: {
-                fill: ({ datum }) =>
-                  datum.resolved
-                    ? "none"
-                    : getThemeColor(METAC_COLORS.olive["800"]),
-                stroke: ({ datum }) =>
-                  datum.resolved
-                    ? getThemeColor(METAC_COLORS.purple["800"])
-                    : getThemeColor(METAC_COLORS.olive["800"]),
-                strokeWidth: ({ datum }) => (datum.resolved ? 2 : 6),
+                fill: () => getThemeColor(METAC_COLORS.olive["800"]),
+                stroke: () => getThemeColor(METAC_COLORS.olive["800"]),
+                strokeWidth: 6,
                 strokeOpacity: ({ datum }) =>
-                  datum.resolved ? 1 : activePoint === datum.x ? 0.3 : 0,
+                  activePoint === datum.x ? 0.3 : 0,
               },
             }}
             dataComponent={
               <FanPoint activePoint={activePoint} pointSize={pointSize} />
+            }
+          />
+          <VictoryScatter
+            data={resolutionPoints.map((point) => ({
+              ...point,
+              symbol: "diamond",
+            }))}
+            style={{
+              data: {
+                fill: "none",
+                stroke: () => getThemeColor(METAC_COLORS.purple["800"]),
+                strokeWidth: 2,
+                strokeOpacity: 1,
+              },
+            }}
+            dataComponent={
+              <FanPoint activePoint={null} pointSize={pointSize} />
             }
           />
         </VictoryChart>
@@ -208,7 +220,8 @@ function buildChartData(options: FanOption[]) {
   const line: Line<string> = [];
   const area: Area<string> = [];
   const points: Array<{ x: string; y: number; resolved: boolean }> = [];
-
+  const resolutionPoints: Array<{ x: string; y: number; resolved: boolean }> =
+    [];
   const zeroPoints: number[] = [];
   options.forEach((option) => {
     if (option.question.scaling.zero_point !== null) {
@@ -253,8 +266,15 @@ function buildChartData(options: FanOption[]) {
       points.push({
         x: option.name,
         y: option.quartiles.median,
-        resolved: option.resolved,
+        resolved: false,
       });
+      if (option.resolved) {
+        resolutionPoints.push({
+          x: option.name,
+          y: getResolutionPosition(option.question, scaling),
+          resolved: true,
+        });
+      }
     }
   } else {
     for (const option of options) {
@@ -291,8 +311,15 @@ function buildChartData(options: FanOption[]) {
       points.push({
         x: option.name,
         y: median,
-        resolved: option.resolved,
+        resolved: false,
       });
+      if (option.resolved) {
+        resolutionPoints.push({
+          x: option.name,
+          y: getResolutionPosition(option.question, scaling),
+          resolved: true,
+        });
+      }
     }
   }
 
@@ -300,6 +327,7 @@ function buildChartData(options: FanOption[]) {
     line,
     area,
     points,
+    resolutionPoints,
     scaling,
   };
 }
@@ -370,6 +398,24 @@ function adjustLabelsForDisplay(
   return options.map((option, index) =>
     index % step === 0 ? option.name : ""
   );
+}
+
+function getResolutionPosition(question: Question, scaling: Scaling) {
+  const resolution = question.resolution;
+
+  if (
+    ["no", "below_lower_bound", "annulled", "ambiguous"].includes(
+      resolution as string
+    )
+  ) {
+    return 0;
+  } else if (["yes", "above_upper_bound"].includes(resolution as string)) {
+    return 1;
+  } else {
+    return question.type === QuestionType.Numeric
+      ? unscaleNominalLocation(Number(resolution), scaling)
+      : unscaleNominalLocation(new Date(resolution!).getTime() / 1000, scaling);
+  }
 }
 
 export default FanChart;
