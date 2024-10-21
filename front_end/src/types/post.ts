@@ -7,7 +7,13 @@ import { VoteDirection } from "@/types/votes";
 
 import { Tournament } from "./projects";
 
-export type Resolution = "yes" | "no" | number | string;
+export type Resolution =
+  | "yes"
+  | "no"
+  | "below_lower_bound"
+  | "above_upper_bound"
+  | number
+  | string;
 
 export enum PostForecastType {
   Conditional = "conditional",

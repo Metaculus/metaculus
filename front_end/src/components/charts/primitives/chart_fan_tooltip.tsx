@@ -1,9 +1,10 @@
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ComponentProps, FC } from "react";
 import { VictoryLabel } from "victory";
 
 import { Quartiles, QuestionWithNumericForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
+import { formatResolution } from "@/utils/questions";
 
 const HEIGHT = 70;
 
@@ -23,7 +24,7 @@ const ChartFanTooltip: FC<Props> = ({
   ...props
 }) => {
   const t = useTranslations();
-
+  const locale = useLocale();
   const { x, y, datum } = props;
   const option = datum?.xName;
 
@@ -38,6 +39,7 @@ const ChartFanTooltip: FC<Props> = ({
 
   const quartiles = items[option].quartiles;
   const question = items[option].question;
+  const resolved = !!question.resolution;
 
   const padding = 10;
   const position = y + padding + HEIGHT > chartHeight ? "top" : "bottom";
@@ -48,7 +50,7 @@ const ChartFanTooltip: FC<Props> = ({
         x={x - width / 2}
         y={position === "bottom" ? y + padding : y - HEIGHT}
         width={width}
-        height={HEIGHT}
+        height={resolved ? HEIGHT + 20 : HEIGHT}
       >
         <div className="flex flex-col rounded-sm border border-olive-700 bg-gray-0 p-1 dark:border-olive-700-dark dark:bg-gray-0-dark">
           <TooltipItem
@@ -75,6 +77,16 @@ const ChartFanTooltip: FC<Props> = ({
               question.scaling
             )}
           />
+          {resolved && (
+            <TooltipItem
+              label={t("resolution")}
+              value={formatResolution(
+                question.resolution,
+                question.type,
+                locale
+              )}
+            />
+          )}
         </div>
       </foreignObject>
     </g>
@@ -85,7 +97,7 @@ const TooltipItem: FC<{ label: string; value: string }> = ({
   label,
   value,
 }) => (
-  <div className="flex justify-between text-xs">
+  <div className="flex justify-between text-xs capitalize">
     <div>{label}</div>
     <div className="font-semibold text-olive-700 dark:text-olive-700-dark">
       {value}
