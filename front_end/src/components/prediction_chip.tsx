@@ -3,7 +3,7 @@ import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
-import { FC, PropsWithChildren } from "react";
+import { CSSProperties, FC, PropsWithChildren } from "react";
 
 import { PostStatus } from "@/types/post";
 import { Question } from "@/types/question";
@@ -19,6 +19,7 @@ type Props = {
   size?: Size;
   className?: string;
   chipClassName?: string;
+  unresovledChipStyle?: CSSProperties;
   showUserForecast?: boolean;
 };
 
@@ -28,6 +29,7 @@ const PredictionChip: FC<Props> = ({
   prediction,
   className,
   chipClassName,
+  unresovledChipStyle,
   size,
   showUserForecast,
 }) => {
@@ -106,6 +108,7 @@ const PredictionChip: FC<Props> = ({
               "bg-olive-700 dark:bg-olive-700-dark",
               chipClassName
             )}
+            style={unresovledChipStyle}
           >
             <FontAwesomeIcon icon={faUserGroup} size="xs" />
             {t("Closed")}
@@ -126,6 +129,7 @@ const PredictionChip: FC<Props> = ({
               "bg-olive-700 dark:bg-olive-700-dark",
               chipClassName
             )}
+            style={unresovledChipStyle}
           >
             <FontAwesomeIcon icon={faUserGroup} size="xs" />
             {prediction
@@ -156,11 +160,13 @@ const PredictionChip: FC<Props> = ({
 
 type ChipProps = {
   className?: string;
+  style?: CSSProperties;
   size?: Size;
 };
 
 const Chip: FC<PropsWithChildren<ChipProps>> = ({
   className,
+  style,
   size,
   ...props
 }) => (
@@ -174,6 +180,7 @@ const Chip: FC<PropsWithChildren<ChipProps>> = ({
       },
       className
     )}
+    style={style}
     suppressHydrationWarning
     {...props}
   />

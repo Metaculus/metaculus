@@ -116,8 +116,20 @@ const MultipleChoiceChart: FC<Props> = ({
         scaling,
         actualCloseTime,
         aggregation,
+        extraTheme,
       }),
-    [timestamps, choiceItems, chartWidth, chartHeight, zoom, userForecasts]
+    [
+      timestamps,
+      choiceItems,
+      chartWidth,
+      chartHeight,
+      zoom,
+      questionType,
+      scaling,
+      actualCloseTime,
+      aggregation,
+      extraTheme,
+    ]
   );
   const isHighlightActive = useMemo(
     () => Object.values(choiceItems).some(({ highlighted }) => highlighted),
@@ -287,7 +299,10 @@ const MultipleChoiceChart: FC<Props> = ({
             }}
             label={yLabel}
             axisLabelComponent={
-              <VictoryLabel dy={-10} style={{ fill: "white" }} />
+              <VictoryLabel
+                dy={-10}
+                style={{ fill: getThemeColor(METAC_COLORS.gray["1000"]) }}
+              />
             }
           />
           <VictoryAxis
@@ -334,6 +349,7 @@ function buildChartData({
   questionType,
   scaling,
   aggregation,
+  extraTheme,
 }: {
   timestamps: number[];
   actualCloseTime?: number | null;
@@ -344,6 +360,7 @@ function buildChartData({
   questionType?: QuestionType;
   scaling?: Scaling;
   aggregation?: boolean;
+  extraTheme?: VictoryThemeDefinition;
 }): ChartData {
   const latestTimestamp = actualCloseTime
     ? Math.min(actualCloseTime / 1000, Date.now() / 1000)
@@ -453,8 +470,11 @@ function buildChartData({
     }
   );
 
+  const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
+  const xScale = generateTimestampXScale(xDomain, width, fontSize);
+
   return {
-    xScale: generateTimestampXScale(xDomain, width),
+    xScale,
     yScale: generateScale({
       displayType: "percent",
       axisLength: height,

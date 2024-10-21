@@ -102,78 +102,82 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
       )}
 
       <InfoToggle title={t("scoringTerminology")}>
-        <div className="mt-2">
-          <dl className="m-0">
-            <div className="m-2 flex text-sm">
-              <dt className="mr-2 w-20 flex-none font-bold">{t("score")}</dt>
-              {project.score_type === "peer_tournament" ? (
-                <dd>
-                  {t.rich("peerScoreInfo", {
-                    link: (chunks) => (
-                      <Link href={"/help/scores-faq/#peer-score"}>
-                        {chunks}
-                      </Link>
-                    ),
-                  })}
-                </dd>
-              ) : (
-                <dd>
-                  {t.rich("relativeScoreInfo", {
-                    link: (chunks) => (
-                      <Link href={"/help/scores-faq/#relative-score"}>
-                        {chunks}
-                      </Link>
-                    ),
-                  })}
-                </dd>
-              )}
-            </div>
-            <div className="m-2 flex text-sm">
-              <dt className="mr-2 w-20 flex-none font-bold">
-                {t("totalScore")}
-              </dt>
-              {project.score_type === "peer_tournament" ? (
-                <dd>
-                  {t.rich("totalPeerScoreInfo", {
-                    link: (chunks) => (
-                      <Link href={"/help/scores-faq/#peer-score"}>
-                        {chunks}
-                      </Link>
-                    ),
-                  })}
-                </dd>
-              ) : (
-                <dd>
-                  {t.rich("totalRelativeScoreInfo", {
-                    link: (chunks) => (
-                      <Link href={"/help/scores-faq/#relative-score"}>
-                        {chunks}
-                      </Link>
-                    ),
-                  })}
-                </dd>
-              )}
-            </div>
-            {project.score_type === "relative_legacy_tournament" && (
+        {project.score_type === "manual" ? (
+          <dd>{t("manualScoreInfo")}</dd>
+        ) : (
+          <div className="mt-2">
+            <dl className="m-0">
+              <div className="m-2 flex text-sm">
+                <dt className="mr-2 w-20 flex-none font-bold">{t("score")}</dt>
+                {project.score_type === "peer_tournament" ? (
+                  <dd>
+                    {t.rich("peerScoreInfo", {
+                      link: (chunks) => (
+                        <Link href={"/help/scores-faq/#peer-score"}>
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </dd>
+                ) : (
+                  <dd>
+                    {t.rich("relativeScoreInfo", {
+                      link: (chunks) => (
+                        <Link href={"/help/scores-faq/#relative-score"}>
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </dd>
+                )}
+              </div>
               <div className="m-2 flex text-sm">
                 <dt className="mr-2 w-20 flex-none font-bold">
-                  {t("coverage")}
+                  {t("totalScore")}
                 </dt>
-                <dd>{t("relativeCoverageInfo")}</dd>
+                {project.score_type === "peer_tournament" ? (
+                  <dd>
+                    {t.rich("totalPeerScoreInfo", {
+                      link: (chunks) => (
+                        <Link href={"/help/scores-faq/#peer-score"}>
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </dd>
+                ) : (
+                  <dd>
+                    {t.rich("totalRelativeScoreInfo", {
+                      link: (chunks) => (
+                        <Link href={"/help/scores-faq/#relative-score"}>
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </dd>
+                )}
               </div>
-            )}
-            <div className="m-2 flex text-sm">
-              <dt className="mr-2 w-20 flex-none font-bold">
-                {t("totalTake")}
-              </dt>
-              {project.score_type === "peer_tournament" ? (
-                <dd>{t("peerTakeInfo")}</dd>
-              ) : (
-                <dd>{t("relativeTakeInfo")}</dd>
+              {project.score_type === "relative_legacy_tournament" && (
+                <div className="m-2 flex text-sm">
+                  <dt className="mr-2 w-20 flex-none font-bold">
+                    {t("coverage")}
+                  </dt>
+                  <dd>{t("relativeCoverageInfo")}</dd>
+                </div>
               )}
-            </div>
-          </dl>
-        </div>
+              <div className="m-2 flex text-sm">
+                <dt className="mr-2 w-20 flex-none font-bold">
+                  {t("totalTake")}
+                </dt>
+                {project.score_type === "peer_tournament" ? (
+                  <dd>{t("peerTakeInfo")}</dd>
+                ) : (
+                  <dd>{t("relativeTakeInfo")}</dd>
+                )}
+              </div>
+            </dl>
+          </div>
+        )}
       </InfoToggle>
     </SectionToggle>
   );

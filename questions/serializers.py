@@ -1,10 +1,10 @@
 from collections import defaultdict
 from datetime import datetime, timezone as dt_timezone
-import numpy as np
 
 import django
 import django.utils
 import django.utils.timezone
+import numpy as np
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -22,6 +22,7 @@ from .models import Question, Conditional, GroupOfQuestions, AggregateForecast
 class QuestionSerializer(serializers.ModelSerializer):
     scaling = serializers.SerializerMethodField()
     actual_close_time = serializers.SerializerMethodField()
+    resolution = serializers.SerializerMethodField()
 
     class Meta:
         model = Question
@@ -38,6 +39,9 @@ class QuestionSerializer(serializers.ModelSerializer):
             "actual_close_time",
             "type",
             "options",
+            # Used for Group Of Questions to determine
+            # whether question is eligible for forecasting
+            "status",
             "possibilities",
             "resolution",
             "resolution_criteria",
@@ -61,6 +65,17 @@ class QuestionSerializer(serializers.ModelSerializer):
         if question.actual_resolve_time:
             return min(question.scheduled_close_time, question.actual_resolve_time)
         return question.scheduled_close_time
+
+    def get_resolution(self, question: Question):
+        resolution = question.resolution
+
+        # The 'resolution' field is a nullable string that may become an empty string
+        # during editing in the admin panel.
+        # This workaround ensures it is set to null if it truly hasn't been resolved.
+        if resolution == "":
+            resolution = None
+
+        return resolution
 
 
 class QuestionWriteSerializer(serializers.ModelSerializer):
@@ -88,6 +103,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data: dict):
+        # TODO: add validation for continuous question bounds
         return data
 
 
@@ -96,6 +112,8 @@ class QuestionUpdateSerializer(QuestionWriteSerializer):
 
     class Meta(QuestionWriteSerializer.Meta):
         fields = QuestionWriteSerializer.Meta.fields + ("id",)
+
+    # TODO: add validation for updating continuous question bounds
 
 
 class ConditionalSerializer(serializers.ModelSerializer):
@@ -516,7 +534,6 @@ def serialize_question(
                         "weighted_coverage"
                     ] = score.coverage
 
-    serialized_data["resolution"] = question.resolution
     return serialized_data
 
 
@@ -611,6 +628,19 @@ def validate_question_resolution(question: Question, resolution: str) -> str:
         )
 
     # Continuous question
+    if resolution == "above_upper_bound":
+        if not question.open_upper_bound:
+            raise ValidationError(
+                "Resolution must be below the upper bound due to a closed upper bound."
+            )
+        return resolution
+    if resolution == "below_lower_bound":
+        if not question.open_lower_bound:
+            raise ValidationError(
+                "Resolution must be above the lower bound due to a closed lower bound."
+            )
+        return resolution
+
     if question.type == Question.QuestionType.NUMERIC:
         resolution = serializers.FloatField().run_validation(resolution)
         range_min = question.range_min

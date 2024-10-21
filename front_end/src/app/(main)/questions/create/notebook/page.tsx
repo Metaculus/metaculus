@@ -20,11 +20,7 @@ const NotebookCreator: React.FC<{ searchParams: SearchParams }> = async ({
   }
   const mode = extractMode(searchParams, post);
   const allCategories = await ProjectsApi.getCategories();
-  const allTournaments = await ProjectsApi.getTournaments({
-    // Select only projects
-    // where user is curator/admin
-    permission: ProjectPermissions.CURATOR,
-  });
+  const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
 
   return (

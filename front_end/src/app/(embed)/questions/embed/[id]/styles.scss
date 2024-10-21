@@ -36,9 +36,20 @@ $plot-stroke-width: 2;
 a {
   text-decoration: auto;
 }
+body {
+  overflow: hidden;
+}
 
 .ForecastCard {
   @apply p-0;
+
+  .ChartZoomButton {
+    @apply text-base;
+  }
+  .CheckboxLabel {
+    @apply text-base;
+  }
+
   &-header {
     justify-content: space-between;
     gap: 10px;

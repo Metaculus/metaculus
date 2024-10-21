@@ -348,6 +348,9 @@ class Notebook(TimeStampedModel):
     news_type = models.CharField(max_length=100, blank=True, null=True)
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
 
+    def __str__(self):
+        return f"{self.type} Notebook for {self.post} by {self.post.author}"
+
 
 class Post(TimeStampedModel):
     # typing
@@ -403,8 +406,8 @@ class Post(TimeStampedModel):
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    scheduled_close_time = models.DateTimeField(null=True, blank=True)
-    scheduled_resolve_time = models.DateTimeField(null=True, blank=True)
+    scheduled_close_time = models.DateTimeField(null=True, blank=True, db_index=True)
+    scheduled_resolve_time = models.DateTimeField(null=True, blank=True, db_index=True)
     actual_close_time = models.DateTimeField(null=True, blank=True)
     resolved = models.BooleanField(default=False)
 

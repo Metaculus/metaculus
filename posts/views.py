@@ -1,6 +1,7 @@
 import logging
-
 import requests
+
+from django.utils import timezone
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.http import HttpResponse, HttpResponseNotFound
@@ -48,9 +49,13 @@ from projects.permissions import ObjectPermission
 from questions.serializers import (
     QuestionApproveSerializer,
 )
+from questions.types import AggregationMethod
+from users.models import User
 from utils.files import UserUploadedImage, generate_filename
 from utils.frontend import build_question_embed_url
 from utils.paginator import CountlessLimitOffsetPagination
+from utils.the_math.aggregations import get_aggregation_history
+from utils.csv_utils import build_csv
 
 
 @api_view(["GET"])
@@ -135,21 +140,20 @@ def posts_list_oldapi_view(request):
     # Apply filtering
     filters_serializer = OldQuestionFilterSerializer(data=request.query_params)
     filters_serializer.is_valid(raise_exception=True)
-    status = filters_serializer.validated_data.get("status", None)
-    projects = filters_serializer.validated_data.get("project", None)
-    order_by = filters_serializer.validated_data.get("order_by", None)
-    guessed_by = filters_serializer.validated_data.get("guessed_by", None)
-    not_guessed_by = filters_serializer.validated_data.get("not_guessed_by", None)
+    status = filters_serializer.validated_data.pop("status", None)
+    projects = filters_serializer.validated_data.pop("project", None)
+    guessed_by = filters_serializer.validated_data.pop("guessed_by", None)
+    not_guessed_by = filters_serializer.validated_data.pop("not_guessed_by", None)
 
     qs = get_posts_feed(
         qs,
         user=request.user,
         tournaments=projects,
         statuses=status,
-        order_by=order_by,
         forecast_type=["binary"],
         forecaster_id=guessed_by,
         not_forecaster_id=not_guessed_by,
+        **filters_serializer.validated_data,
     )
     # Paginating queryset
     posts = paginator.paginate_queryset(qs, request)
@@ -213,6 +217,8 @@ def post_detail(request: Request, pk):
 
 @api_view(["POST"])
 def post_create_api_view(request):
+    # manually convert scaling to range_min, range_max, zero_point
+    # TODO: move scaling handling
     qdatas = []
     qdata = request.data.get("question", None)
     if qdata:
@@ -223,6 +229,7 @@ def post_create_api_view(request):
         qdata["range_min"] = scaling.get("range_min")
         qdata["range_max"] = scaling.get("range_max")
         qdata["zero_point"] = scaling.get("zero_point")
+
     serializer = PostWriteSerializer(data=request.data, context={"user": request.user})
     serializer.is_valid(raise_exception=True)
     post = create_post(**serializer.validated_data, author=request.user)
@@ -248,6 +255,19 @@ def remove_from_project(request, pk):
 def post_update_api_view(request, pk):
     post = get_object_or_404(Post, pk=pk)
     check_can_edit_post(post, request.user)
+
+    # manually convert scaling to range_min, range_max, zero_point
+    # TODO: move scaling handling
+    qdatas = []
+    qdata = request.data.get("question", None)
+    if qdata:
+        qdatas.append(qdata)
+    qdatas.extend(request.data.get("group_of_questions", {}).get("questions", []))
+    for qdata in qdatas:
+        scaling = qdata.pop("scaling", {})
+        qdata["range_min"] = scaling.get("range_min")
+        qdata["range_max"] = scaling.get("range_max")
+        qdata["zero_point"] = scaling.get("zero_point")
 
     serializer = PostUpdateSerializer(
         post, data=request.data, partial=True, context={"user": request.user}
@@ -554,3 +574,89 @@ def post_preview_image(request: Request, pk):
     return HttpResponseNotFound(
         "HTTP 404 - Chart for this question cannot be generated."
     )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def download_csv(request, pk: int):
+    post = get_object_or_404(Post, pk=pk)
+    user: User = request.user
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    # Get question
+    if post.group_of_questions:
+        question_id = request.GET.get("sub-question", None)
+        if question_id is None:
+            raise ValueError("Sub-question id not provided (add ?sub-question=<id>)")
+        question = post.group_of_questions.questions.filter(pk=question_id).first()
+        if question is None:
+            raise NotFound(f"Sub-question with id {question_id} not found.")
+    elif post.conditional:
+        raise NotImplementedError("Conditional questions are not supported yet")
+    else:  # post.question
+        question = post.question
+        if question is None:
+            raise NotFound(f"Question with id {pk} not found.")
+
+    now = timezone.now()
+    if question.cp_reveal_time and question.cp_reveal_time > now:
+        if not user or not user.is_superuser:
+            raise PermissionDenied("CP is not revealed yet")
+
+    # get and validate aggregation_methods
+    aggregation_methods = request.GET.get("aggregation_methods", "recency_weighted")
+    if aggregation_methods == "all":
+        aggregation_methods = None
+    if aggregation_methods:
+        aggregation_methods: list[AggregationMethod] = aggregation_methods.split(",")
+        for method in aggregation_methods:
+            if method not in AggregationMethod.values:
+                raise PermissionDenied(f"Invalid aggregation method: {method}")
+        if not user.is_staff:
+            aggregation_methods = [
+                method
+                for method in aggregation_methods
+                if method != AggregationMethod.SINGLE_AGGREGATION
+            ]
+    else:
+        aggregation_methods = [
+            AggregationMethod.RECENCY_WEIGHTED,
+            AggregationMethod.UNWEIGHTED,
+            AggregationMethod.METACULUS_PREDICTION,
+        ]
+        if user.is_staff:
+            aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
+
+    # get user_ids
+    user_ids = request.GET.get("user_ids", None)
+    if user_ids:
+        user_ids = user_ids.split(",")
+    if user_ids and not user.is_staff:
+        # if user_ids provided, check user is staff
+        raise PermissionDenied("Current user can not view user-specific data")
+    include_bots = request.GET.get("include_bots", False)
+
+    aggregations = get_aggregation_history(
+        question,
+        aggregation_methods,
+        user_ids=user_ids,
+        minimize=True,
+        include_stats=True,
+        include_bots=include_bots,
+        histogram=True,
+    )
+    aggregate_forecasts = []
+    for aggregation in aggregations.values():
+        aggregate_forecasts.extend(aggregation)
+
+    csv_data = build_csv(question, aggregations)
+    filename = "_".join(question.title.split(" "))
+    response = HttpResponse(
+        csv_data,
+        content_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
+    )
+    return response

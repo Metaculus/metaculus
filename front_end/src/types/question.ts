@@ -1,4 +1,4 @@
-import { Resolution } from "@/types/post";
+import { QuestionStatus, Resolution } from "@/types/post";
 
 export enum QuestionType {
   Numeric = "numeric",
@@ -197,6 +197,10 @@ export type Question = {
   display_divergences?: number[][];
   aggregations: Aggregations;
   my_forecasts?: UserForecastHistory;
+  open_lower_bound: boolean | null;
+  open_upper_bound: boolean | null;
+  // Used for GroupOfQuestions
+  status?: QuestionStatus;
 };
 
 export type QuestionWithNumericForecasts = Question & {

@@ -24,8 +24,10 @@ import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import {
+  Post,
   PostWithForecasts,
   ProjectPermissions,
+  QuestionStatus,
   Resolution,
 } from "@/types/post";
 import {
@@ -55,6 +57,7 @@ type QuestionOption = {
   isDirty: boolean;
   color: ThemeColor;
   menu: ReactNode;
+  status?: QuestionStatus;
 };
 
 type Props = {
@@ -94,7 +97,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     [questions]
   );
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
-    generateChoiceOptions(questions, prevForecastValuesMap)
+    generateChoiceOptions(questions, prevForecastValuesMap, undefined, post)
   );
 
   const sortedQuestionOptions = [...questionOptions].sort((a, b) => {
@@ -118,7 +121,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 
   useEffect(() => {
     setQuestionOptions(
-      generateChoiceOptions(questions, prevForecastValuesMap, permission)
+      generateChoiceOptions(questions, prevForecastValuesMap, permission, post)
     );
   }, [permission, prevForecastValuesMap, questions]);
 
@@ -241,7 +244,9 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isDirty={questionOption.isDirty}
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
-              disabled={!canPredict || !!questionOption.resolution}
+              disabled={
+                !canPredict || questionOption.status != QuestionStatus.OPEN
+              }
               optionResolution={{
                 resolution: questionOption.resolution,
                 type: "group_question",
@@ -311,7 +316,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 function generateChoiceOptions(
   questions: QuestionWithNumericForecasts[],
   prevForecastValuesMap: Record<number, number | null>,
-  permission?: ProjectPermissions
+  permission?: ProjectPermissions,
+  post?: Post
 ): QuestionOption[] {
   return questions.map((question, index) => {
     return {
@@ -323,6 +329,7 @@ function generateChoiceOptions(
       resolution: question.resolution,
       isDirty: false,
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      status: question.status,
       menu: (
         <ForecastMakerGroupControls
           question={question}
@@ -332,6 +339,7 @@ function generateChoiceOptions(
               <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
             </Button>
           }
+          post={post}
         />
       ),
     };

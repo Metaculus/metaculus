@@ -97,8 +97,11 @@ const ConditionalTile: FC<Props> = ({
     <div className="ConditionalSummary grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
       <div
         className={classNames(
-          "ConditionalSummary-condition flex flex-col justify-center",
-          { "col-span-2 row-span-1 md:col-span-1 md:row-auto": !isEmbedded }
+          "ConditionalSummary-condition col-span-2 flex flex-col justify-center",
+          {
+            "row-span-1 md:col-span-1 md:row-auto": !isEmbedded,
+            "xs:col-span-1": isEmbedded,
+          }
         )}
       >
         <ConditionalCard
@@ -130,17 +133,21 @@ const ConditionalTile: FC<Props> = ({
           label={t("ifYes")}
           didHappen={yesHappened}
           disabled={yesDisabled}
-          className={!isEmbedded ? "flex-1 md:flex-none" : undefined}
+          className={"flex-1 md:flex-none"}
         />
         <ConditionalArrow
           label={t("ifNo")}
           didHappen={noHappened}
           disabled={noDisabled}
-          className={!isEmbedded ? "flex-1 md:flex-none" : undefined}
+          className={"flex-1 md:flex-none"}
         />
-        {!isEmbedded && (
-          <div className="absolute left-0 top-0 h-3/4 w-px bg-blue-700 dark:bg-blue-700-dark md:hidden" />
-        )}
+
+        <div
+          className={classNames(
+            "absolute left-0 top-0 h-3/4 w-px bg-blue-700 dark:bg-blue-700-dark md:hidden",
+            { "xs:hidden": isEmbedded }
+          )}
+        />
       </div>
       <div
         className={classNames(
@@ -178,6 +185,7 @@ const ConditionalArrow: FC<{
   didHappen: boolean;
   disabled: boolean;
   className?: string;
+  labelClassName?: string;
 }> = ({ label, disabled, didHappen, className }) => {
   return (
     <div

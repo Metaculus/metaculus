@@ -26,6 +26,7 @@ from users.serializers import UserPrivateSerializer
 from utils.cloudflare import validate_turnstile_from_request
 from projects.models import ProjectUserPermission
 from projects.permissions import ObjectPermission
+from fab_credits.models import UserUsage
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +74,17 @@ def signup_api_view(request):
         ProjectUserPermission.objects.create(
             user=user, project=project, permission=ObjectPermission.FORECASTER
         )
+
+        # This is a hack to automatically give new bot users 100k tokens for the Q4 AIB  so they
+        # can get started quickly before they even reach out to us to ask for more credits.
+        # TODO: Remove or update this when the Q4 AIB is over.
+        if project.id == 32506:
+            UserUsage.objects.create(
+                user=user,
+                platform=UserUsage.UsagePlatform.OpenAI,
+                model_name="gpt-4o",
+                total_allowed_tokens=100000,
+            )
 
     send_activation_email(user)
 

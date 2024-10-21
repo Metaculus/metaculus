@@ -23,6 +23,8 @@ import {
   Scaling,
   Quartiles,
   QuestionWithNumericForecasts,
+  QuestionType,
+  Question,
 } from "@/types/question";
 import {
   generateScale,
@@ -63,7 +65,7 @@ const FanChart: FC<Props> = ({
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
 
-  const { line, area, points, scaling } = useMemo(
+  const { line, area, points, resolutionPoints, scaling } = useMemo(
     () => buildChartData(options),
     [options]
   );
@@ -77,8 +79,8 @@ const FanChart: FC<Props> = ({
   });
   const { ticks, tickFormat } = yScale;
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale, tickLabelFontSize as number);
-  }, [yScale, tickLabelFontSize]);
+    return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+  }, [yScale, tickLabelFontSize, yLabel]);
 
   const tooltipItems = useMemo(
     () =>
@@ -154,20 +156,11 @@ const FanChart: FC<Props> = ({
             data={area}
             style={{
               data: {
-                fill: getThemeColor(METAC_COLORS.olive["500"]),
                 opacity: 0.3,
               },
             }}
           />
-          <VictoryLine
-            name="fanLine"
-            data={line}
-            style={{
-              data: {
-                stroke: getThemeColor(METAC_COLORS.olive["700"]),
-              },
-            }}
-          />
+          <VictoryLine name="fanLine" data={line} />
           <VictoryAxis
             dependentAxis
             label={yLabel}
@@ -185,25 +178,36 @@ const FanChart: FC<Props> = ({
           <VictoryScatter
             data={points.map((point) => ({
               ...point,
-              symbol: point.resolved ? "diamond" : "square",
+              symbol: "square",
             }))}
             style={{
               data: {
-                fill: ({ datum }) =>
-                  datum.resolved
-                    ? "none"
-                    : getThemeColor(METAC_COLORS.olive["800"]),
-                stroke: ({ datum }) =>
-                  datum.resolved
-                    ? getThemeColor(METAC_COLORS.purple["800"])
-                    : getThemeColor(METAC_COLORS.olive["800"]),
-                strokeWidth: ({ datum }) => (datum.resolved ? 2 : 6),
+                fill: () => getThemeColor(METAC_COLORS.olive["800"]),
+                stroke: () => getThemeColor(METAC_COLORS.olive["800"]),
+                strokeWidth: 6,
                 strokeOpacity: ({ datum }) =>
-                  datum.resolved ? 1 : activePoint === datum.x ? 0.3 : 0,
+                  activePoint === datum.x ? 0.3 : 0,
               },
             }}
             dataComponent={
               <FanPoint activePoint={activePoint} pointSize={pointSize} />
+            }
+          />
+          <VictoryScatter
+            data={resolutionPoints.map((point) => ({
+              ...point,
+              symbol: "diamond",
+            }))}
+            style={{
+              data: {
+                fill: "none",
+                stroke: () => getThemeColor(METAC_COLORS.purple["800"]),
+                strokeWidth: 2,
+                strokeOpacity: 1,
+              },
+            }}
+            dataComponent={
+              <FanPoint activePoint={null} pointSize={pointSize} />
             }
           />
         </VictoryChart>
@@ -216,7 +220,8 @@ function buildChartData(options: FanOption[]) {
   const line: Line<string> = [];
   const area: Area<string> = [];
   const points: Array<{ x: string; y: number; resolved: boolean }> = [];
-
+  const resolutionPoints: Array<{ x: string; y: number; resolved: boolean }> =
+    [];
   const zeroPoints: number[] = [];
   options.forEach((option) => {
     if (option.question.scaling.zero_point !== null) {
@@ -238,7 +243,7 @@ function buildChartData(options: FanOption[]) {
 
   // we can have mixes of log and linear scaled options
   // which leads to a derived zero point inside the range which is invalid
-  // so just igore the log scaling in this case
+  // so just ignore the log scaling in this case
   if (
     scaling.zero_point !== null &&
     scaling.range_min! <= scaling.zero_point &&
@@ -246,7 +251,8 @@ function buildChartData(options: FanOption[]) {
   ) {
     scaling.zero_point = null;
   }
-  if (scaling.range_max === 1 && scaling.range_min === 0) {
+
+  if (options[0].question.type === QuestionType.Binary) {
     for (const option of options) {
       line.push({
         x: option.name,
@@ -260,8 +266,15 @@ function buildChartData(options: FanOption[]) {
       points.push({
         x: option.name,
         y: option.quartiles.median,
-        resolved: option.resolved,
+        resolved: false,
       });
+      if (option.resolved) {
+        resolutionPoints.push({
+          x: option.name,
+          y: getResolutionPosition(option.question, scaling),
+          resolved: true,
+        });
+      }
     }
   } else {
     for (const option of options) {
@@ -298,8 +311,15 @@ function buildChartData(options: FanOption[]) {
       points.push({
         x: option.name,
         y: median,
-        resolved: option.resolved,
+        resolved: false,
       });
+      if (option.resolved) {
+        resolutionPoints.push({
+          x: option.name,
+          y: getResolutionPosition(option.question, scaling),
+          resolved: true,
+        });
+      }
     }
   }
 
@@ -307,6 +327,7 @@ function buildChartData(options: FanOption[]) {
     line,
     area,
     points,
+    resolutionPoints,
     scaling,
   };
 }
@@ -357,7 +378,9 @@ function adjustLabelsForDisplay(
 
   const maxLabelLength = Math.max(...labels.map((label) => label.length));
   const maxLabelWidth = maxLabelLength * charWidth + labelMargin;
-  let availableSpacePerLabel = chartWidth / labels.length;
+  const averageChartPaddingXAxis = 100;
+  let availableSpacePerLabel =
+    (chartWidth - averageChartPaddingXAxis) / labels.length;
 
   if (maxLabelWidth < availableSpacePerLabel) {
     return labels;
@@ -375,6 +398,24 @@ function adjustLabelsForDisplay(
   return options.map((option, index) =>
     index % step === 0 ? option.name : ""
   );
+}
+
+function getResolutionPosition(question: Question, scaling: Scaling) {
+  const resolution = question.resolution;
+
+  if (
+    ["no", "below_lower_bound", "annulled", "ambiguous"].includes(
+      resolution as string
+    )
+  ) {
+    return 0;
+  } else if (["yes", "above_upper_bound"].includes(resolution as string)) {
+    return 1;
+  } else {
+    return question.type === QuestionType.Numeric
+      ? unscaleNominalLocation(Number(resolution), scaling)
+      : unscaleNominalLocation(new Date(resolution!).getTime() / 1000, scaling);
+  }
 }
 
 export default FanChart;

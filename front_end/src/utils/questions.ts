@@ -4,6 +4,7 @@ import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
+import { ConditionalTableOption } from "@/app/(main)/questions/[id]/components/forecast_maker/group_forecast_table";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
 import {
@@ -11,6 +12,7 @@ import {
   PostStatus,
   PostWithForecasts,
   ProjectPermissions,
+  QuestionStatus,
   Resolution,
 } from "@/types/post";
 import {
@@ -136,11 +138,11 @@ export function formatResolution(
   questionType: QuestionType,
   locale: string
 ) {
-  resolution = String(resolution);
-
-  if (resolution === "null" || resolution === "undefined") {
-    return "Annulled";
+  if (resolution === null || resolution === undefined) {
+    return "-";
   }
+
+  resolution = String(resolution);
 
   if (["yes", "no"].includes(resolution)) {
     return capitalize(resolution);
@@ -148,6 +150,13 @@ export function formatResolution(
 
   if (resolution === "ambiguous" || resolution === "annulled") {
     return capitalize(resolution);
+  }
+
+  if (resolution === "below_lower_bound") {
+    return "Below lower bound";
+  }
+  if (resolution === "above_upper_bound") {
+    return "Above upper bound";
   }
 
   if (questionType === QuestionType.Date) {
@@ -210,8 +219,9 @@ export function getQuestionStatus(post: PostWithForecasts | null) {
     post?.curation_status == PostStatus.RESOLVED ||
     post?.curation_status == PostStatus.CLOSED ||
     post?.curation_status == PostStatus.DELETED;
+  const hasForecasts = post?.nr_forecasters ? post.nr_forecasters > 0 : false;
 
-  return { isLive, isDone };
+  return { isLive, isDone, hasForecasts };
 }
 
 export function getPredictionQuestion(
@@ -339,6 +349,19 @@ export function getPredictionInputMessage(post: Post) {
     case PostStatus.CLOSED: {
       if (!post.resolved) return "predictionClosedMessage";
     }
+    default:
+      return null;
+  }
+}
+
+export function getSubquestionPredictionInputMessage(
+  option: ConditionalTableOption
+) {
+  switch (option.question.status) {
+    case QuestionStatus.CLOSED:
+      return "predictionClosedMessage";
+    case QuestionStatus.UPCOMING:
+      return "predictionUpcomingMessage";
     default:
       return null;
   }

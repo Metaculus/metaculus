@@ -97,25 +97,21 @@ const ContinuousAreaChart: FC<Props> = ({
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
     yDomain: Tuple<number>;
-  }>(
-    () => ({
+  }>(() => {
+    const maxValue = Math.max(
+      ...data
+        .map((x) =>
+          graphType === "cdf"
+            ? x.cdf.slice(1, x.pmf.length - 1)
+            : x.pmf.slice(1, x.pmf.length - 1)
+        )
+        .flat()
+    );
+    return {
       xDomain: [0, 1],
-      yDomain: [
-        0,
-        1.2 *
-          Math.max(
-            ...data
-              .map((x) =>
-                graphType === "cdf"
-                  ? x.cdf.slice(1, x.pmf.length - 1)
-                  : x.pmf.slice(1, x.pmf.length - 1)
-              )
-              .flat()
-          ),
-      ],
-    }),
-    [data, graphType]
-  );
+      yDomain: [0, 1.2 * (maxValue <= 0 ? 1 : maxValue)],
+    };
+  }, [data, graphType]);
   const { ticks, tickFormat } = useMemo(
     () =>
       generateScale({
@@ -211,7 +207,7 @@ const ContinuousAreaChart: FC<Props> = ({
                   fill:
                     chart.color === "orange"
                       ? getThemeColor(METAC_COLORS.orange["700"])
-                      : getThemeColor(METAC_COLORS.olive["500"]),
+                      : undefined,
                   opacity: 0.3,
                 },
               }}
@@ -226,7 +222,7 @@ const ContinuousAreaChart: FC<Props> = ({
                   stroke:
                     chart.color === "orange"
                       ? getThemeColor(METAC_COLORS.orange["800"])
-                      : getThemeColor(METAC_COLORS.olive["700"]),
+                      : undefined,
                   strokeDasharray: chart.color === "orange" ? "2,2" : undefined,
                 },
               }}
@@ -269,7 +265,7 @@ const ContinuousAreaChart: FC<Props> = ({
                     stroke:
                       chart.color === "orange"
                         ? getThemeColor(METAC_COLORS.orange["800"])
-                        : getThemeColor(METAC_COLORS.olive["700"]),
+                        : undefined,
                     strokeDasharray: "2,1",
                   },
                 }}

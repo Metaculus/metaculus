@@ -9,9 +9,9 @@ import * as z from "zod";
 import { resolveQuestion } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
 import Button from "@/components/ui/button";
+import ButtonGroup from "@/components/ui/button_group";
 import { FormError, Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
-import Select from "@/components/ui/select";
 import { ErrorResponse } from "@/types/fetch";
 import { Question, QuestionType } from "@/types/question";
 
@@ -23,6 +23,7 @@ type Props = {
 
 const schema = z.object({
   resolutionType: z.string(),
+  unambiguousType: z.string().optional(),
   resolutionValue: z.string().optional(),
   actualResolveTime: z
     .string()
@@ -42,18 +43,18 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       ),
     []
   );
-
-  const { handleSubmit, register, watch, reset, formState } = useForm<FormData>(
-    {
+  const { open_lower_bound, open_upper_bound } = question;
+  const { handleSubmit, register, watch, setValue, formState } =
+    useForm<FormData>({
       resolver: zodResolver(schema),
       defaultValues: {
         resolutionType: "",
         actualResolveTime: currentDateTime,
       },
-    }
-  );
+    });
 
   const resolutionType = watch("resolutionType");
+  const unambiguousType = watch("unambiguousType");
   const resolutionTypeOptions = useMemo(() => {
     const baseQuestionOptions = [
       { value: "ambiguous", label: "Ambiguous" },
@@ -62,16 +63,16 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
 
     if (["date", "numeric"].includes(question.type)) {
       return [
-        { value: "unambiguous", label: "Unambiguous" },
         ...baseQuestionOptions,
+        { value: "unambiguous", label: "Unambiguous" },
       ];
     }
 
     if (question.type === "binary") {
       return [
+        ...baseQuestionOptions,
         { value: "yes", label: "yes" },
         { value: "no", label: "no" },
-        ...baseQuestionOptions,
       ];
     }
 
@@ -84,6 +85,21 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
     ];
   }, [question.options, question.type]);
 
+  const unambiguousOptions = useMemo(() => {
+    const options = [{ value: "knownValue", label: "Known value" }];
+    if (open_lower_bound) {
+      options.unshift({ value: "below_lower_bound", label: "Unknown < range" });
+    }
+
+    if (open_upper_bound) {
+      options.push({
+        value: "above_upper_bound",
+        label: "Unknown > range",
+      });
+    }
+    return options;
+  }, [open_lower_bound, open_upper_bound]);
+
   const onSubmit = useCallback(
     async ({
       resolutionType,
@@ -93,7 +109,6 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
       setSubmitErrors([]);
 
       setIsSubmitting(true);
-
       const responses = await resolveQuestion(
         question.id,
         resolutionValue || resolutionType,
@@ -123,38 +138,50 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
           })}
           className="flex flex-col items-center gap-4"
         >
-          <label className="flex flex-col gap-2">
-            What is the resolution?
-            <Select
-              {...register("resolutionType")}
-              options={[
-                { value: "", label: "select one", disabled: true },
-                ...resolutionTypeOptions,
-              ]}
-              className="pl-1"
+          <label className="flex flex-col gap-2">What is the resolution?</label>
+          <ButtonGroup
+            value={resolutionType}
+            buttons={resolutionTypeOptions}
+            onChange={(value) => {
+              setValue("resolutionType", value);
+              setValue("resolutionValue", undefined);
+            }}
+            variant="tertiary"
+          />
+          {resolutionType === "unambiguous" && (
+            <ButtonGroup
+              value={unambiguousType ?? ""}
+              buttons={unambiguousOptions}
+              onChange={(value) => {
+                setValue("unambiguousType", value);
+                value !== "knownValue" && setValue("resolutionValue", value);
+              }}
+              variant="tertiary"
             />
-            {question.type === QuestionType.Numeric &&
-              resolutionType === "unambiguous" && (
-                <Input
-                  type="number"
-                  step="any"
-                  placeholder="numeric resolution"
-                  className="max-w-xs bg-transparent"
-                  min={question.scaling.range_min!}
-                  max={question.scaling.range_max!}
-                  {...register("resolutionValue")}
-                />
-              )}
-            {question.type === QuestionType.Date &&
-              resolutionType === "unambiguous" && (
-                <Input
-                  type="datetime-local"
-                  placeholder="date resolution"
-                  className="bg-transparent pl-1"
-                  {...register("resolutionValue")}
-                />
-              )}
-          </label>
+          )}
+          {question.type === QuestionType.Numeric &&
+            resolutionType === "unambiguous" &&
+            unambiguousType === "knownValue" && (
+              <Input
+                type="number"
+                step="any"
+                placeholder="numeric resolution"
+                className="max-w-xs bg-transparent"
+                min={open_lower_bound ? undefined : question.scaling.range_min!}
+                max={open_upper_bound ? undefined : question.scaling.range_max!}
+                {...register("resolutionValue")}
+              />
+            )}
+          {question.type === QuestionType.Date &&
+            resolutionType === "unambiguous" &&
+            unambiguousType === "knownValue" && (
+              <Input
+                type="datetime-local"
+                placeholder="date resolution"
+                className="bg-transparent pl-1"
+                {...register("resolutionValue")}
+              />
+            )}
           <label className="flex flex-col gap-2">
             Date when resolution was known:
             <Input

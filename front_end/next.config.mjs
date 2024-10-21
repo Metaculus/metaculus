@@ -81,12 +81,8 @@ const nextConfig = {
     },
     // Assets
     {
-      source: "/static/admin/:path*",
-      destination: `${API_BASE_URL}/static/admin/:path*`,
-    },
-    {
-      source: "/static/debug_toolbar/:path*",
-      destination: `${API_BASE_URL}/static/debug_toolbar/:path*`,
+      source: "/static/:path*",
+      destination: `${API_BASE_URL}/static/:path*`,
     },
   ],
   eslint: {

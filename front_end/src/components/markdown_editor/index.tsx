@@ -28,7 +28,7 @@ import {
 } from "@mdxeditor/editor";
 import classNames from "classnames";
 import dynamic from "next/dynamic";
-import React, { FC, useMemo, useRef } from "react";
+import React, { FC, useMemo, useRef, useState } from "react";
 
 import "@mdxeditor/editor/style.css";
 
@@ -39,6 +39,7 @@ import {
 } from "@/components/markdown_editor/embedded_math_jax";
 import { linkPlugin } from "@/components/markdown_editor/plugins/link";
 import useAppTheme from "@/hooks/use_app_theme";
+import { logErrorWithScope } from "@/utils/errors";
 
 import {
   revertMathJaxTransform,
@@ -89,12 +90,12 @@ const MarkdownEditor: FC<Props> = ({
   className,
 }) => {
   const { theme } = useAppTheme();
-
+  const [errorMarkdown, setErrorMarkdown] = useState<string | null>(null);
   const editorRef = useRef<MDXEditorMethods>(null);
 
   // Transform MathJax syntax to JSX embeds to properly utilise the MarkJax renderer
   const formattedMarkdown = useMemo(
-    () => transformMathJax(markdown),
+    () => escapePlainTextSymbols(transformMathJax(markdown)),
     [markdown]
   );
 
@@ -160,6 +161,9 @@ const MarkdownEditor: FC<Props> = ({
     }
   }
 
+  if (errorMarkdown) {
+    return <div className="whitespace-pre-line">{errorMarkdown}</div>;
+  }
   return (
     <MDXEditor
       ref={editorRef}
@@ -177,10 +181,14 @@ const MarkdownEditor: FC<Props> = ({
       markdown={formattedMarkdown}
       onChange={(value) => {
         // Revert the MathJax transformation before passing the markdown to the parent component
-        onChange && onChange(revertMathJaxTransform(value));
+        onChange &&
+          onChange(escapePlainTextSymbols(revertMathJaxTransform(value)));
       }}
       onError={(err) => {
-        console.error(err);
+        logErrorWithScope(err.error, err.source);
+        if (mode === "read") {
+          setErrorMarkdown(markdown);
+        }
       }}
       readOnly={mode === "read"}
       plugins={[
@@ -192,6 +200,24 @@ const MarkdownEditor: FC<Props> = ({
     />
   );
 };
+
+// escape < and { that is not correctly used
+function escapePlainTextSymbols(str: string) {
+  const tags: any = [];
+  const tagRegex = /<\/?\s*[a-zA-Z][a-zA-Z0-9-]*(?:\s+[^<>]*?)?>/g;
+  let tempStr = str.replace(tagRegex, function (match) {
+    tags.push(match);
+    return "___HTML_TAG___";
+  });
+
+  tempStr = tempStr.replace(/(?<!\\)</g, "\\<");
+
+  let index = 0;
+  tempStr = tempStr.replace(/___HTML_TAG___/g, function () {
+    return tags[index++];
+  });
+  return tempStr.replace(/(?<!\\){(?![^}]*})/g, `\\{`);
+}
 
 export default dynamic(() => Promise.resolve(MarkdownEditor), {
   ssr: false,

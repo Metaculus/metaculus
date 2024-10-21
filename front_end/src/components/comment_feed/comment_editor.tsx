@@ -38,6 +38,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
    As a temporary workaround, we use the 'key' prop to force a re-render, creating a new instance of the component with the updated initial state.
    This ensures the editor reflects the correct markdown content. */
   const [rerenderKey, updateRerenderKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(true);
   const [isPrivateComment, setIsPrivateComment] = useState(isPrivate ?? false);
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
@@ -49,32 +50,37 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
   const handleSubmit = async () => {
     setErrorMessage("");
+    setIsLoading(true);
 
-    const userTagPattern = /@(?!\[)(?:\(([^)]+)\)|([^\s(]+)(?!\]))/g;
-    const parsedMarkdown = markdown.replace(userTagPattern, (match) =>
-      match.replace(/[()\\]/g, "")
-    );
+    try {
+      const userTagPattern = /@(?!\[)(?:\(([^)]+)\)|([^\s(]+)(?!\]))/g;
+      const parsedMarkdown = markdown.replace(userTagPattern, (match) =>
+        match.replace(/[()\\]/g, "")
+      );
 
-    const newComment = await createComment({
-      parent: parentId,
-      text: parsedMarkdown,
-      on_post: postId,
-      included_forecast: hasIncludedForecast,
-      is_private: isPrivateComment,
-    });
+      const newComment = await createComment({
+        parent: parentId,
+        text: parsedMarkdown,
+        on_post: postId,
+        included_forecast: hasIncludedForecast,
+        is_private: isPrivateComment,
+      });
 
-    if ("errors" in newComment) {
-      console.error(newComment.errors?.message);
-      setErrorMessage(newComment.errors?.message);
-      return;
+      if ("errors" in newComment) {
+        console.error(newComment.errors?.message);
+        setErrorMessage(newComment.errors?.message);
+        return;
+      }
+
+      setIsEditing(true);
+      setIsPrivateComment(isPrivate ?? false);
+      setHasIncludedForecast(false);
+      setMarkdown("");
+      updateRerenderKey((prev) => prev + 1); // completely reset mdx editor
+      onSubmit && onSubmit(parseComment(newComment));
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsEditing(true);
-    setIsPrivateComment(isPrivate ?? false);
-    setHasIncludedForecast(false);
-    setMarkdown("");
-    updateRerenderKey((prev) => prev + 1); // completely reset mdx editor
-    onSubmit && onSubmit(parseComment(newComment));
   };
 
   if (user == null)
@@ -147,7 +153,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
         <Button
           className="p-2"
-          disabled={markdown.length === 0}
+          disabled={markdown.length === 0 || isLoading}
           onClick={handleSubmit}
         >
           {t("submit")}
