@@ -101,7 +101,7 @@ export function generateTimestampXScale(
   const start = fromUnixTime(xDomain[0]);
   const end = fromUnixTime(xDomain[1]);
   const timeRange = differenceInMilliseconds(end, start);
-  const maxTicks = Math.floor(width / (fontSize * 8));
+  const maxTicks = Math.floor(width / (fontSize * 10));
   if (timeRange < oneHour) {
     ticks = d3.timeMinute.range(start, end);
     format = d3.timeFormat("%_I:%M %p");
