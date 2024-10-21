@@ -7,7 +7,7 @@ import DropdownMenu from "@/components/ui/dropdown_menu";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
-import { ProjectPermissions } from "@/types/post";
+import { Post, ProjectPermissions } from "@/types/post";
 import { Question } from "@/types/question";
 import { logError } from "@/utils/errors";
 import { canChangeQuestionResolution } from "@/utils/questions";
@@ -19,12 +19,14 @@ type Props = {
   question: Question;
   permission?: ProjectPermissions;
   button?: ReactNode;
+  post?: Post;
 };
 
 const ForecastMakerGroupControls: FC<Props> = ({
   question,
   button,
   permission,
+  post,
 }) => {
   const [isResolutionModalOpen, setIsResolutionModalOpen] = useState(false);
   const t = useTranslations();
@@ -74,6 +76,15 @@ const ForecastMakerGroupControls: FC<Props> = ({
               copyToClipboard(
                 `${window.location.origin}${window.location.pathname}?${SLUG_POST_SUB_QUESTION_ID}=${question.id}`
               ).then();
+            },
+          },
+          {
+            id: "downloadCSV",
+            name: t("downloadCSV"),
+            onClick: () => {
+              window.open(
+                `/api/posts/${post!.id}/download-csv/?sub-question=${question.id}`
+              );
             },
           },
         ]}

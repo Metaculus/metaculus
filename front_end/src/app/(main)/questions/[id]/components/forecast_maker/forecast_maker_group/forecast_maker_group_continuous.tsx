@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import {
+  Post,
   PostWithForecasts,
   ProjectPermissions,
   QuestionStatus,
@@ -84,12 +85,12 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   );
 
   const [groupOptions, setGroupOptions] = useState<ConditionalTableOption[]>(
-    generateGroupOptions(questions, prevForecastValuesMap)
+    generateGroupOptions(questions, prevForecastValuesMap, undefined, post)
   );
 
   useEffect(() => {
     setGroupOptions(
-      generateGroupOptions(questions, prevForecastValuesMap, permission)
+      generateGroupOptions(questions, prevForecastValuesMap, permission, post)
     );
   }, [permission, prevForecastValuesMap, questions]);
   const [activeTableOption, setActiveTableOption] = useState(
@@ -416,7 +417,8 @@ function generateGroupOptions(
       weights?: number[];
     }
   >,
-  permission?: ProjectPermissions
+  permission?: ProjectPermissions,
+  post?: Post
 ): ConditionalTableOption[] {
   return [...questions]
     .sort((a, b) =>
@@ -457,6 +459,7 @@ function generateGroupOptions(
                 <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
               </Button>
             }
+            post={post}
           />
         ),
       };

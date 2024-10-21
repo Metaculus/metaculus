@@ -24,6 +24,7 @@ import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import {
+  Post,
   PostWithForecasts,
   ProjectPermissions,
   QuestionStatus,
@@ -96,7 +97,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     [questions]
   );
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
-    generateChoiceOptions(questions, prevForecastValuesMap)
+    generateChoiceOptions(questions, prevForecastValuesMap, undefined, post)
   );
 
   const sortedQuestionOptions = [...questionOptions].sort((a, b) => {
@@ -120,7 +121,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 
   useEffect(() => {
     setQuestionOptions(
-      generateChoiceOptions(questions, prevForecastValuesMap, permission)
+      generateChoiceOptions(questions, prevForecastValuesMap, permission, post)
     );
   }, [permission, prevForecastValuesMap, questions]);
 
@@ -315,7 +316,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 function generateChoiceOptions(
   questions: QuestionWithNumericForecasts[],
   prevForecastValuesMap: Record<number, number | null>,
-  permission?: ProjectPermissions
+  permission?: ProjectPermissions,
+  post?: Post
 ): QuestionOption[] {
   return questions.map((question, index) => {
     return {
@@ -337,6 +339,7 @@ function generateChoiceOptions(
               <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
             </Button>
           }
+          post={post}
         />
       ),
     };
