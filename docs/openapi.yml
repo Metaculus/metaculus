@@ -590,6 +590,120 @@ components:
         user_vote:
           type: integer
           description: Current user's vote on this comment (-1, 0, 1).
+    BinaryQuestionCSV:
+      type: object
+      properties:
+        question:
+          type: string
+          description: "The title of the (sub)question"
+        forecaster:
+          type: string
+          description: "The forecaster's username or aggregation method."
+        prediction_start_time:
+          type: string
+          format: date-time
+          description: "The start time of the prediction"
+        prediction_end_time:
+          type: string
+          format: date-time
+          description: "The end time of the prediction"
+        prediction:
+          type: number
+          format: float
+          description: "The prediction value in range [0, 1]"
+        aggregate_q1:
+          type: number
+          format: float
+          description: "The first quartile of the aggregate prediction in range [0, 1]"
+        aggregate_q3:
+          type: number
+          format: float
+          description: "The third quartile of the aggregate prediction in range [0, 1]"
+    MultipleChoiceQuestionCSV:
+      type: object
+      properties:
+        question:
+          type: string
+          description: "The title of the (sub)question"
+        forecaster:
+          type: string
+          description: "The forecaster's username or aggregation method."
+        prediction_start_time:
+          type: string
+          format: date-time
+          description: "The start time of the prediction"
+        prediction_end_time:
+          type: string
+          format: date-time
+          description: "The end time of the prediction"
+      additionalProperties:
+        type: object
+        properties:
+          prediction_<CHOICE>:
+            type: number
+            format: float
+            description: "The prediction value for a specific choice"
+          aggregate_q1_<CHOICE>:
+            type: number
+            format: float
+            description: "The first quartile of the aggregate prediction for a specific choice"
+          aggregate_q3_<CHOICE>:
+            type: number
+            format: float
+            description: "The third quartile of the aggregate prediction for a specific choice"
+    ContinuousQuestionCSV:
+      type: object
+      properties:
+        question:
+          type: string
+          description: "The title of the (sub)question"
+        forecaster:
+          type: string
+          description: "The forecaster's username or aggregation method."
+        prediction_start_time:
+          type: string
+          format: date-time
+          description: "The start time of the prediction"
+        prediction_end_time:
+          type: string
+          format: date-time
+          description: "The end time of the prediction"
+        q1:
+          type: number
+          format: string
+          description: "The first quartile of the prediction in nominal units"
+        median:
+          type: number
+          format: string
+          description: "The median of the prediction in nominal units"
+        q3:
+          type: number
+          format: string
+          description: "The third quartile of the prediction in nominal units"
+        q1_unformatted:
+          type: number
+          format: float
+          description: "The unformatted first quartile of the prediction"
+        median_unformatted:
+          type: number
+          format: float
+          description: "The unformatted median of the prediction"
+        q3_unformatted:
+          type: number
+          format: float
+          description: "The unformatted third quartile of the prediction"
+        probability_mass_below_lower_bound:
+          type: number
+          format: float
+          description: "Probability mass below the lower bound"
+        probability_mass_above_upper_bound:
+          type: number
+          format: float
+          description: "Probability mass above the upper bound"
+      additionalProperties:
+        type: number
+        format: float
+        description: "CDF values at increments from 0.0 to 1.0 in steps of 0.005"
 tags:
   - name: Feed
     description: |
@@ -1260,7 +1374,7 @@ paths:
                 $ref: '#/components/schemas/Post'
   /api/posts/{postId}/download-csv/:
     get:
-      summary: Download CSV data for a Question
+      summary: Download CSV data for a Question. Will open a download prompt in the browser.
       tags:
         - Utilities & Data
       parameters:
@@ -1269,13 +1383,13 @@ paths:
           required: true
           schema:
             type: integer
-          description: The ID of the post to retrieve
+          description: The ID of the post to retrieve. This is the number after `/questions/` in the URL of a question detail page. 
         - name: sub-question
           in: query
           required: false
           schema:
             type: integer
-          description: The sub-question ID if the post is for a group question
+          description: If this is a group or conditional question, and only a certain sub-question is needed, specify the sub-question ID.
         - name: aggregation-methods
           in: query
           required: false
@@ -1283,15 +1397,18 @@ paths:
             type: array
             items:
               type: string
-              enum: [ recency_weighted, unweighted, single_aggregation, metaculus_prediction ]
-          description: Aggregation methods to include in the CSV, no argument will only include recency_weighted
+              enum: [ recency_weighted, unweighted, metaculus_prediction, single_aggregation ]
+          description: Aggregation methods to include in the CSV, no argument will only include recency_weighted. single_aggregation is in beta and not available except to site admins.
       responses:
         '200':
           description: CSV data for the question
           content:
             text/csv:
               schema:
-                type: string
+                oneOf:
+                  - $ref: '#/components/schemas/BinaryQuestionCSV'
+                  - $ref: '#/components/schemas/MultipleChoiceQuestionCSV'
+                  - $ref: '#/components/schemas/ContinuousQuestionCSV'
   /api/questions/forecast/:
     post:
       summary: Submit question forecasts
