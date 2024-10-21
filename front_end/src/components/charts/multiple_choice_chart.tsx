@@ -470,10 +470,7 @@ function buildChartData({
     }
   );
 
-  const fontSize =
-    typeof extraTheme?.axis?.style?.ticks?.fontSize === "number"
-      ? extraTheme.axis.style.ticks.fontSize
-      : undefined;
+  const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
 
   return {

@@ -78,8 +78,8 @@ const FanChart: FC<Props> = ({
   });
   const { ticks, tickFormat } = yScale;
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale, tickLabelFontSize as number);
-  }, [yScale, tickLabelFontSize]);
+    return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+  }, [yScale, tickLabelFontSize, yLabel]);
 
   const tooltipItems = useMemo(
     () =>
@@ -350,7 +350,9 @@ function adjustLabelsForDisplay(
 
   const maxLabelLength = Math.max(...labels.map((label) => label.length));
   const maxLabelWidth = maxLabelLength * charWidth + labelMargin;
-  let availableSpacePerLabel = chartWidth / labels.length;
+  const averageChartPaddingXAxis = 100;
+  let availableSpacePerLabel =
+    (chartWidth - averageChartPaddingXAxis) / labels.length;
 
   if (maxLabelWidth < availableSpacePerLabel) {
     return labels;
