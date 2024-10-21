@@ -125,8 +125,8 @@ const NumericChart: FC<Props> = ({
     ]
   );
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale, tickLabelFontSize as number);
-  }, [yScale, tickLabelFontSize]);
+    return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+  }, [yScale, tickLabelFontSize, yLabel]);
 
   const prevWidth = usePrevious(chartWidth);
   useEffect(() => {
@@ -374,10 +374,8 @@ function buildChartData({
     latestTimestamp,
   ];
   const xDomain = generateNumericDomain(domainTimestamps, zoom);
-  const fontSize =
-    typeof extraTheme?.axis?.style?.ticks?.fontSize === "number"
-      ? extraTheme.axis.style.ticks.fontSize
-      : undefined;
+  const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
+
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
   // TODO: implement general scaling:
   // const xScale: Scale = generateScale({

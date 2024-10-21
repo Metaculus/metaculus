@@ -101,7 +101,7 @@ export function generateTimestampXScale(
   const start = fromUnixTime(xDomain[0]);
   const end = fromUnixTime(xDomain[1]);
   const timeRange = differenceInMilliseconds(end, start);
-  const maxTicks = Math.floor(width / (fontSize * 10));
+  const maxTicks = Math.floor(width / (fontSize * 8));
   if (timeRange < oneHour) {
     ticks = d3.timeMinute.range(start, end);
     format = d3.timeFormat("%_I:%M %p");
@@ -782,12 +782,18 @@ export function generateTicksY(
   return { ticks, tickFormat, majorTicks };
 }
 
-export function getLeftPadding(yScale: Scale, labelsFontSize: number) {
+export function getLeftPadding(
+  yScale: Scale,
+  labelsFontSize: number,
+  yLabel?: string | undefined
+) {
   const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
   const longestLabelLength = Math.max(...labels.map((label) => label.length));
-
+  const fontSizeScale = yLabel ? 9 : 8;
   return {
-    leftPadding: Math.round((longestLabelLength * labelsFontSize * 9) / 10),
+    leftPadding: Math.round(
+      (longestLabelLength * labelsFontSize * fontSizeScale) / 10
+    ),
     MIN_LEFT_PADDING: 50,
   };
 }
