@@ -135,19 +135,6 @@ const Step2: React.FC<Step2Props> = ({
     }`;
   };
 
-  const getActiveButtonText = () => {
-    switch (activeButton) {
-      case "less":
-        return "Excellent. Below you can see your prediction quantified next to the community’s. Does that look about right? If not, you can grab and drag the slider. Click ‘Predict’ when you’re ready to continue.";
-      case "about":
-        return "Excellent. Below you can see your prediction quantified next to the community’s. Does that look about right? If not, you can grab and drag the slider. Click ‘Predict’ when you’re ready to continue.";
-      case "more":
-        return "Excellent. Below you can see your prediction quantified next to the community’s. Does that look about right? If not, you can grab and drag the slider. Click ‘Predict’ when you’re ready to continue.";
-      default:
-        return "";
-    }
-  };
-
   return (
     <div className={onboardingStyles.container}>
       <button onClick={onPrev} className={onboardingStyles.backButton}>

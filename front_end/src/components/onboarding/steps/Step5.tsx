@@ -1,5 +1,4 @@
 import React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";

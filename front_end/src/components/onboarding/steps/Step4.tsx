@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { PostWithForecasts } from "@/types/post";
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
-import { faArrowLeft, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import BinarySlider, {
   BINARY_FORECAST_PRECISION,
@@ -31,7 +31,6 @@ const Step4: React.FC<Step4Props> = ({
   onPredictionChange,
 }) => {
   const t = useTranslations();
-  const [userFactors, setUserFactors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -43,7 +42,7 @@ const Step4: React.FC<Step4Props> = ({
   const communityForecast =
     questionData.question?.aggregations?.recency_weighted?.latest
       ?.centers?.[0] ?? 0.5;
-  const factors = [...topic.factors, ...userFactors];
+  const factors = [...topic.factors];
 
   const handleSubmit = async () => {
     if (prediction === null || !questionData || !questionData.question) return;

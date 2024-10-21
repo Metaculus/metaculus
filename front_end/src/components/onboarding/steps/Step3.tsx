@@ -38,7 +38,6 @@ const Step3: React.FC<Step3Props> = ({
       ?.centers?.[0] ?? 0.5;
 
   const handleSubmit = () => {
-    console.log(`Submitted prediction: ${prediction / 100}`);
     onNext();
   };
 

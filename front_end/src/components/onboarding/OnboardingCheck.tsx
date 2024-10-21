@@ -1,22 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useModal } from "@/contexts/modal_context";
 import { useAuth } from "@/contexts/auth_context";
 
 const OnboardingCheck: React.FC = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { setCurrentModal } = useModal();
   const { user } = useAuth();
 
-  useEffect(() => {
+  const handleOnboarding = useCallback(() => {
     const startOnboarding = searchParams.get("start_onboarding");
     if (startOnboarding === "true") {
       // Remove the query parameter
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.delete("start_onboarding");
-      window.history.replaceState({}, "", newUrl);
+      router.replace(newUrl.toString());
 
       // Check if the user is logged in
       if (user) {
@@ -27,7 +28,11 @@ const OnboardingCheck: React.FC = () => {
         setCurrentModal({ type: "signup" });
       }
     }
-  }, [searchParams, setCurrentModal, user]);
+  }, [searchParams, router, user, setCurrentModal]);
+
+  useEffect(() => {
+    handleOnboarding();
+  }, [handleOnboarding]);
 
   return null; // This component doesn't render anything
 };
