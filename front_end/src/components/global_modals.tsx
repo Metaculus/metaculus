@@ -10,6 +10,7 @@ import { useModal } from "@/contexts/modal_context";
 
 import ConfirmModal from "./confirm_modal";
 import ContactUsModal from "./contact_us_modal";
+import OnboardingModal from "@/components/onboarding/OnboardingModal";
 
 const GlobalModals: FC = () => {
   const { currentModal, setCurrentModal } = useModal();
