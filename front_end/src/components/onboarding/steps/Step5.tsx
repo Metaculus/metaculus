@@ -9,6 +9,7 @@ import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import useSearchParams from "@/hooks/use_search_params";
 import { FeedType, POST_FORECASTER_ID_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
+import { useTranslations } from "next-intl";
 
 interface Step5Props {
   onPrev: () => void;
@@ -21,6 +22,7 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
   const { switchFeed, clearInReview } = useFeed();
   const { setParam, deleteParam } = useSearchParams();
   const { user } = useAuth();
+  const t = useTranslations();
 
   if (topicIndex === null) {
     console.log("Error: No topic selected");
@@ -75,31 +77,25 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
       <button onClick={onPrev} className={onboardingStyles.backButton}>
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
-      <h3 className={onboardingStyles.title}>Nice work!</h3>
+      <h3 className={onboardingStyles.title}>{t("onboardingStep5NiceWork")}</h3>
       <p className={onboardingStyles.paragraph}>
-        Anyone can improve at forecasting by practicing and thinking through
-        what factors could influence outcomes.
+        {t("onboardingStep5AnyoneCanImprove")}
       </p>
       <div className="flex flex-col gap-2 rounded-md bg-blue-200 p-3 dark:bg-blue-200-dark">
         <span className="block text-xs font-bold uppercase tracking-wide opacity-70">
-          Did you know?
+          {t("onboardingStep5DidYouKnow")}
         </span>
-        In a series of forecasting competitions conducted by University of
-        Pennsylvania professor Philip Tetlock, skilled forecasters outperformed
-        CIA analysts without access to classified intelligence.
+        {t("onboardingStep5ForecastingCompetition")}
       </div>
       <p className={onboardingStyles.paragraph}>
-        <span className="font-bold">
-          You are now ready to explore Metaculus by yourself. What would you
-          like to do next?
-        </span>{" "}
+        <span className="font-bold">{t("onboardingStep5ReadyToExplore")}</span>{" "}
       </p>
       <div className="mx-auto flex w-full flex-col justify-stretch gap-4 md:flex-row ">
         <button
           onClick={handleViewMyPredictions}
           className={`${onboardingStyles.smallButton} w-full md:w-fit`}
         >
-          View Your Predictions
+          {t("onboardingStep5ViewYourPredictions")}
         </button>
         <button
           onClick={() => {
@@ -109,14 +105,15 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
           }}
           className={`${onboardingStyles.smallButton} w-full font-light md:w-fit`}
         >
-          Forecast Another <span className="font-bold">{topic.name}</span>{" "}
-          Question
+          {t("onboardingStep5ForecastAnother")}{" "}
+          <span className="font-bold">{topic.name}</span>{" "}
+          {t("onboardingStep5Question")}
         </button>
         <button
           onClick={handleViewQuestionFeed}
           className={`${onboardingStyles.smallButton} w-full md:w-fit`}
         >
-          View Question Feed
+          {t("onboardingStep5ViewQuestionFeed")}
         </button>
       </div>
     </div>

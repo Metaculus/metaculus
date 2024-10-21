@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import VerbalForecast from "../VerbalForecast";
 import LoadingStep from "./LoadingStep";
+import { useTranslations } from "next-intl";
 
 interface Step3Props {
   onPrev: () => void;
@@ -25,12 +26,13 @@ const Step3: React.FC<Step3Props> = ({
   prediction,
   onPredictionChange,
 }) => {
+  const t = useTranslations();
+
   if (topicIndex === null || !questionData) {
     return <LoadingStep />;
   }
 
   const topic = onboardingTopics[topicIndex];
-  // const communityForecast = 0.55; // Hardcoded for testing to be replaced with line below
   const communityForecast =
     questionData.question?.aggregations?.recency_weighted?.latest
       ?.centers?.[0] ?? 0.5;
@@ -46,21 +48,22 @@ const Step3: React.FC<Step3Props> = ({
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
       <p className={onboardingStyles.title}>
-        Great! Here's another question about {topic.name}:
+        {t("onboardingStep3Title", { topicName: topic.name })}
       </p>
       <div className={onboardingStyles.questionContainer}>
         <h3 className={onboardingStyles.questionTitle}>{questionData.title}</h3>
         {communityForecast !== undefined && (
           <p className={onboardingStyles.largeparagraph}>
-            Other forecasters tend to think this is{" "}
-            <VerbalForecast forecast={communityForecast} />. They give it{" "}
+            {t("onboardingStep3CommunityThinks")}{" "}
+            <VerbalForecast forecast={communityForecast} />.{" "}
+            {t("onboardingStep3CommunityGives")}{" "}
             <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800 dark:bg-blue-400/20 dark:text-blue-200">
               {(communityForecast * 100).toFixed(0)}%
             </span>
           </p>
         )}
       </div>
-      <p>How likely do you think this is?</p>
+      <p>{t("onboardingStep3WhatDoYouThink")}</p>
       <div className="mt-2">
         <div className="rounded-md bg-blue-200 py-4 dark:bg-blue-800">
           <BinarySlider
@@ -74,7 +77,7 @@ const Step3: React.FC<Step3Props> = ({
           />
           <div className="mt-6 flex justify-center">
             <button onClick={handleSubmit} className={onboardingStyles.button}>
-              Predict
+              {t("onboardingStep3Predict")}
             </button>
           </div>
         </div>

@@ -16,6 +16,7 @@ import LoadingStep from "./LoadingStep";
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { round } from "lodash";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { useTranslations } from "next-intl";
 
 interface Step2Props {
   onPrev: () => void;
@@ -32,6 +33,7 @@ const Step2: React.FC<Step2Props> = ({
   questionData,
   onPredictionChange,
 }) => {
+  const t = useTranslations();
   const [prediction, setPrediction] = useState<number | null>(null);
   const [activeButton, setActiveButton] = useState<
     "less" | "about" | "more" | null
@@ -146,14 +148,15 @@ const Step2: React.FC<Step2Props> = ({
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
       <p className={onboardingStyles.title}>
-        Here's a real Metaculus question about {topic.name}:
+        {t("onboardingStep2Title", { topicName: topic.name })}
       </p>
       <div className={onboardingStyles.questionContainer}>
         <h3 className={onboardingStyles.questionTitle}>{questionData.title}</h3>
         {communityForecast !== undefined && (
           <p className={onboardingStyles.largeparagraph}>
-            Other forecasters tend to think this is{" "}
-            <VerbalForecast forecast={communityForecast} />. They give it{" "}
+            {t("onboardingStep2CommunityThinks")}{" "}
+            <VerbalForecast forecast={communityForecast} />.{" "}
+            {t("onboardingStep2CommunityGives")}{" "}
             <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800 dark:bg-blue-400/20 dark:text-blue-200">
               {(communityForecast * 100).toFixed(0)}%
             </span>
@@ -161,30 +164,30 @@ const Step2: React.FC<Step2Props> = ({
         )}
       </div>
       <p>
-        What do you think? Do you agree with{" "}
+        {t("onboardingStep2WhatDoYouThink")}{" "}
         <span className="font-bold">
           {(communityForecast * 100).toFixed(0)}%
         </span>
-        ? Disagree?
+        ? {t("onboardingStep2Disagree")}
       </p>
       <div className="flex justify-start gap-1.5 md:gap-3">
         <button
           onClick={() => handlePrediction("less")}
           className={getButtonClass("less")}
         >
-          Less likely
+          {t("onboardingStep2LessLikely")}
         </button>
         <button
           onClick={() => handlePrediction("about")}
           className={getButtonClass("about")}
         >
-          About right
+          {t("onboardingStep2AboutRight")}
         </button>
         <button
           onClick={() => handlePrediction("more")}
           className={getButtonClass("more")}
         >
-          More likely
+          {t("onboardingStep2MoreLikely")}
         </button>
       </div>
 
@@ -196,7 +199,7 @@ const Step2: React.FC<Step2Props> = ({
                 <p
                   className={`${onboardingStyles.paragraph} mb-5 px-5 text-center text-sm font-semibold`}
                 >
-                  {getActiveButtonText()}
+                  {t("onboardingStep2Excellent")}
                 </p>
               </div>
             )}
@@ -218,10 +221,16 @@ const Step2: React.FC<Step2Props> = ({
                 className={onboardingStyles.button}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? <LoadingIndicator /> : "Predict"}
+                {isSubmitting ? (
+                  <LoadingIndicator />
+                ) : (
+                  t("onboardingStep2Predict")
+                )}
               </button>
               {submitError && (
-                <p className="mt-2 text-red-500">{submitError}</p>
+                <p className="mt-2 text-red-500">
+                  {submitError || t("onboardingStep2Error")}
+                </p>
               )}
             </div>
           </div>

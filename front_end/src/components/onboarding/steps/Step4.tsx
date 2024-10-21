@@ -11,6 +11,7 @@ import LoadingStep from "./LoadingStep";
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { round } from "lodash";
 import LoadingIndicator from "@/components/ui/loading_indicator";
+import { useTranslations } from "next-intl";
 
 interface Step4Props {
   onPrev: () => void;
@@ -29,7 +30,7 @@ const Step4: React.FC<Step4Props> = ({
   prediction,
   onPredictionChange,
 }) => {
-  // const [newFactor, setNewFactor] = useState("");
+  const t = useTranslations();
   const [userFactors, setUserFactors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -43,13 +44,6 @@ const Step4: React.FC<Step4Props> = ({
     questionData.question?.aggregations?.recency_weighted?.latest
       ?.centers?.[0] ?? 0.5;
   const factors = [...topic.factors, ...userFactors];
-
-  // const handleAddFactor = () => {
-  //   if (newFactor.trim()) {
-  //     setUserFactors([...userFactors, newFactor.trim()]);
-  //     setNewFactor("");
-  //   }
-  // };
 
   const handleSubmit = async () => {
     if (prediction === null || !questionData || !questionData.question) return;
@@ -79,9 +73,7 @@ const Step4: React.FC<Step4Props> = ({
     } catch (error) {
       console.error("Error submitting forecast:", error);
       setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "An error occurred while submitting your forecast."
+        error instanceof Error ? error.message : t("onboardingStep4Error")
       );
     } finally {
       setIsSubmitting(false);
@@ -93,9 +85,7 @@ const Step4: React.FC<Step4Props> = ({
       <button onClick={onPrev} className={onboardingStyles.backButton}>
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
-      <p className={onboardingStyles.title}>
-        Here are some of the factors other forecasters are considering.
-      </p>
+      <p className={onboardingStyles.title}>{t("onboardingStep4Factors")}</p>
       <div>
         <ul className="list-none space-y-2">
           {factors.map((factor, index) => (
@@ -107,30 +97,12 @@ const Step4: React.FC<Step4Props> = ({
             </li>
           ))}
         </ul>
-        {/* <div className="flex justify-start gap-2">
-          <input
-            type="text"
-            value={newFactor}
-            onChange={(e) => setNewFactor(e.target.value)}
-            placeholder="Add your own factors here"
-            className={onboardingStyles.input}
-          />
-          <button
-            onClick={handleAddFactor}
-            className={`${onboardingStyles.smallButton} ${newFactor.trim() === "" ? "cursor-not-allowed opacity-35" : ""} flex-row flex items-center gap-2`}
-            disabled={newFactor.trim() === ""}
-          >
-            <FontAwesomeIcon icon={faPlus} /> Add
-          </button>
-        </div> */}
       </div>
       <p className={onboardingStyles.paragraph}>
-        Considering others' views is an important step in forecasting
-        accurately!
+        {t("onboardingStep4ConsideringOthers")}
       </p>
       <p className={onboardingStyles.paragraph}>
-        What do you think? Did any of those factors make you want to change your
-        prediction? If not, that's fine too.
+        {t("onboardingStep4WhatDoYouThink")}
       </p>
       <div className="flex flex-col gap-1 rounded-md bg-blue-200 dark:bg-blue-800">
         <div
@@ -157,7 +129,11 @@ const Step4: React.FC<Step4Props> = ({
                 className={onboardingStyles.button}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? <LoadingIndicator /> : "Predict"}
+                {isSubmitting ? (
+                  <LoadingIndicator />
+                ) : (
+                  t("onboardingStep4Predict")
+                )}
               </button>
               {submitError && (
                 <p className="mt-2 text-red-500">{submitError}</p>
