@@ -1,6 +1,6 @@
 export const onboardingStyles = {
   container: "max-w-[800px] mt-2 md:mt-[-16px] p-0 md:p-5 flex flex-col gap-3",
-  largeparagraph: "text-lg mb-4",
+  largeparagraph: "text-base md:text-lg mb-4",
   paragraph: "text-sm md:text-base my-2 opacity-80 leading-normal",
   title:
     "text-xl md:text-2xl my-2 mt-5 md:mt-4 font-semibold text-blue-800 dark:text-blue-200",
@@ -14,7 +14,8 @@ export const onboardingStyles = {
   divider: "border-blue-400 dark:border-blue-700/50",
   questionContainer:
     "border border-blue-400 dark:border-blue-700/50 rounded px-4 md:px-6 py-0 md:py-1.5 bg-blue-200 dark:bg-blue-800 ",
-  questionTitle: "mt-4 text-xl font-medium text-blue-800 dark:text-blue-200",
+  questionTitle:
+    "mt-4 text-lg md:text-xl font-medium text-blue-800 dark:text-blue-200",
   input:
     "flex-grow px-2 py-1 border border-blue-500 placeholder:text-gray-600 rounded w-full",
   smallButton:

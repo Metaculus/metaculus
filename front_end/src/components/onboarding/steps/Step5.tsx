@@ -77,11 +77,13 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
       <button onClick={onPrev} className={onboardingStyles.backButton}>
         <FontAwesomeIcon icon={faArrowLeft} />
       </button>
-      <h3 className={onboardingStyles.title}>{t("onboardingStep5NiceWork")}</h3>
+      <h3 className={`${onboardingStyles.title}`}>
+        {t("onboardingStep5NiceWork")}
+      </h3>
       <p className={onboardingStyles.paragraph}>
         {t("onboardingStep5AnyoneCanImprove")}
       </p>
-      <div className="flex flex-col gap-2 rounded-md bg-blue-200 p-3 dark:bg-blue-200-dark">
+      <div className="flex flex-col gap-2 rounded-md bg-blue-200 p-3 dark:bg-blue-200-dark md:p-5">
         <span className="block text-xs font-bold uppercase tracking-wide opacity-70">
           {t("onboardingStep5DidYouKnow")}
         </span>

@@ -13,7 +13,7 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
 
   return (
     <div className="mt-[-16px] max-w-[800px] flex-row gap-3 p-0 md:flex-col md:p-5">
-      <p className="my-2 mt-4 text-left text-xl font-semibold leading-relaxed text-blue-800  dark:text-blue-200  md:text-2xl ">
+      <p className="my-2 mt-4 text-left text-xl font-semibold leading-relaxed text-blue-800  dark:text-blue-200  md:text-3xl md:leading-relaxed ">
         <span className="opacity-60">"</span>
         {t("onboardingStep1Question1")}
         <span className="opacity-60">"</span> <br />
@@ -29,7 +29,7 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
           <span className="opacity-50">"</span>
         </span>
       </p>
-      <div className="my-4">
+      <div className="my-4 md:my-6">
         <p className={onboardingStyles.paragraph}>
           {t("onboardingStep1Paragraph1")}
         </p>
@@ -40,7 +40,7 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
           {t("onboardingStep1Paragraph3")}
         </p>
       </div>
-      <div className="mt-1 flex w-full flex-col gap-2 md:flex-row md:gap-3">
+      <div className="mt-1 flex w-full flex-col gap-2 md:mt-5 md:flex-row md:gap-4">
         {onboardingTopics.map((topic, index) => (
           <button
             key={index}

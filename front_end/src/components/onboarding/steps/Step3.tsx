@@ -64,22 +64,20 @@ const Step3: React.FC<Step3Props> = ({
         )}
       </div>
       <p>{t("onboardingStep3WhatDoYouThink")}</p>
-      <div className="mt-2">
-        <div className="rounded-md bg-blue-200 py-4 dark:bg-blue-800">
-          <BinarySlider
-            forecast={prediction}
-            onChange={onPredictionChange}
-            isDirty={true}
-            communityForecast={communityForecast}
-            onBecomeDirty={() => {}}
-            disabled={false}
-            helperDisplay={true}
-          />
-          <div className="mt-6 flex justify-center">
-            <button onClick={handleSubmit} className={onboardingStyles.button}>
-              {t("onboardingStep3Predict")}
-            </button>
-          </div>
+      <div className="rounded-md bg-blue-200 py-4 dark:bg-blue-800">
+        <BinarySlider
+          forecast={prediction}
+          onChange={onPredictionChange}
+          isDirty={true}
+          communityForecast={communityForecast}
+          onBecomeDirty={() => {}}
+          disabled={false}
+          helperDisplay={true}
+        />
+        <div className="mt-6 flex justify-center">
+          <button onClick={handleSubmit} className={onboardingStyles.button}>
+            {t("onboardingStep3Predict")}
+          </button>
         </div>
       </div>
     </div>
