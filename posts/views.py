@@ -1,5 +1,6 @@
 import logging
 import requests
+from collections import defaultdict
 
 from django.utils import timezone
 from django.conf import settings
@@ -50,6 +51,7 @@ from questions.serializers import (
     QuestionApproveSerializer,
 )
 from questions.types import AggregationMethod
+from questions.models import AggregateForecast, Question
 from users.models import User
 from utils.files import UserUploadedImage, generate_filename
 from utils.frontend import build_question_embed_url
@@ -590,21 +592,15 @@ def download_csv(request, pk: int):
     if post.group_of_questions:
         question_id = request.GET.get("sub-question", None)
         if question_id is None:
-            raise ValueError("Sub-question id not provided (add ?sub-question=<id>)")
-        question = post.group_of_questions.questions.filter(pk=question_id).first()
-        if question is None:
-            raise NotFound(f"Sub-question with id {question_id} not found.")
+            questions = list(post.group_of_questions.questions.all())
+        else:
+            questions = list(post.group_of_questions.questions.filter(pk=question_id))
+            if not questions:
+                raise NotFound(f"Sub-question with id {question_id} not found.")
     elif post.conditional:
-        raise NotImplementedError("Conditional questions are not supported yet")
+        questions = [post.conditional.question_yes, post.conditional.question_no]
     else:  # post.question
-        question = post.question
-        if question is None:
-            raise NotFound(f"Question with id {pk} not found.")
-
-    now = timezone.now()
-    if question.cp_reveal_time and question.cp_reveal_time > now:
-        if not user or not user.is_superuser:
-            raise PermissionDenied("CP is not revealed yet")
+        questions = [post.question]
 
     # get and validate aggregation_methods
     aggregation_methods = request.GET.get("aggregation_methods", "recency_weighted")
@@ -639,21 +635,28 @@ def download_csv(request, pk: int):
         raise PermissionDenied("Current user can not view user-specific data")
     include_bots = request.GET.get("include_bots", False)
 
-    aggregations = get_aggregation_history(
-        question,
-        aggregation_methods,
-        user_ids=user_ids,
-        minimize=True,
-        include_stats=True,
-        include_bots=include_bots,
-        histogram=True,
-    )
-    aggregate_forecasts = []
-    for aggregation in aggregations.values():
-        aggregate_forecasts.extend(aggregation)
+    now = timezone.now()
+    aggregation_dict: dict[Question, dict[str, AggregateForecast]] = defaultdict(dict)
+    for question in questions:
+        if (
+            question.cp_reveal_time
+            and question.cp_reveal_time > now
+            and (not user or not user.is_superuser)
+        ):
+            continue
 
-    csv_data = build_csv(question, aggregations)
-    filename = "_".join(question.title.split(" "))
+        aggregation_dict[question] = get_aggregation_history(
+            question,
+            aggregation_methods,
+            user_ids=user_ids,
+            minimize=True,
+            include_stats=True,
+            include_bots=include_bots,
+            histogram=True,
+        )
+
+    csv_data = build_csv(aggregation_dict)
+    filename = "_".join(post.title.split(" "))
     response = HttpResponse(
         csv_data,
         content_type="text/csv",
