@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from unittest.mock import Mock
 
 from questions.models import Question
 from utils.the_math.measures import (
