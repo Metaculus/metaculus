@@ -36,28 +36,21 @@ const PostCard: FC<Props> = ({ post }) => {
             hideCP={hideCP}
           />
         )}
-        {!!post.group_of_questions &&
-          (!hideCP || post.curation_status != PostStatus.APPROVED) && (
-            <GroupOfQuestionsTile
-              questions={post.group_of_questions.questions}
-              curationStatus={post.status}
-              post={post}
-            />
-          )}
-        {!!post.conditional &&
-        (!hideCP || post.curation_status != PostStatus.APPROVED) ? (
+        {!!post.group_of_questions && (
+          <GroupOfQuestionsTile
+            questions={post.group_of_questions.questions}
+            curationStatus={post.status}
+            post={post}
+            hideCP={hideCP}
+          />
+        )}
+        {!!post.conditional && (
           <ConditionalTile
             postTitle={post.title}
             conditional={post.conditional}
             curationStatus={post.status}
+            hideCP={hideCP}
           />
-        ) : (
-          !!post.conditional && (
-            <div>
-              {post.conditional?.condition_child.title} - Conditional on -{" "}
-              {post.conditional?.condition.title}
-            </div>
-          )
         )}
         {!!post.notebook && <NotebookTile notebook={post.notebook} />}
       </BasicPostCard>

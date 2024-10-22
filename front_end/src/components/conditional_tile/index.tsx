@@ -2,13 +2,11 @@
 
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import React, { FC, useState } from "react";
+import React, { FC } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import Button from "@/app/(main)/about/components/Button";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import PredictionChip from "@/components/prediction_chip";
-import { useAuth } from "@/contexts/auth_context";
 import { PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 import {
@@ -28,6 +26,7 @@ type Props = {
   withNavigation?: boolean;
   chartTheme?: VictoryThemeDefinition;
   nrForecasters?: number;
+  hideCP?: boolean;
 };
 
 const ConditionalTile: FC<Props> = ({
@@ -36,36 +35,9 @@ const ConditionalTile: FC<Props> = ({
   curationStatus,
   withNavigation,
   chartTheme,
+  hideCP,
 }) => {
   const t = useTranslations();
-  const { user } = useAuth();
-  const [hideCommunityPrediction, setHideCommunityPrediction] = useState(
-    user && user.hide_community_prediction
-  );
-  let oneQuestionClosed = false;
-  if (
-    conditional.question_no.actual_close_time &&
-    new Date(conditional.question_no.actual_close_time).getTime() < Date.now()
-  ) {
-    oneQuestionClosed = true;
-  }
-  if (
-    conditional.question_yes.actual_close_time &&
-    new Date(conditional.question_yes.actual_close_time).getTime() < Date.now()
-  ) {
-    oneQuestionClosed = true;
-  }
-
-  if (hideCommunityPrediction && !oneQuestionClosed) {
-    return (
-      <div className="text-center">
-        <div className="text-l m-4">{t("CPIsHidden")}</div>
-        <Button onClick={() => setHideCommunityPrediction(false)}>
-          {t("RevealTemporarily")}
-        </Button>
-      </div>
-    );
-  }
 
   const { condition, condition_child, question_yes, question_no } = conditional;
   const isEmbedded = !!chartTheme;
@@ -119,6 +91,7 @@ const ConditionalTile: FC<Props> = ({
                   : PostStatus.CLOSED
               }
               size="compact"
+              hideCP={hideCP}
             />
           )}
         </ConditionalCard>
@@ -163,6 +136,7 @@ const ConditionalTile: FC<Props> = ({
             question={question_yes}
             disabled={yesDisabled}
             chartTheme={chartTheme}
+            hideCP={hideCP}
           />
         </ConditionalCard>
         <ConditionalCard
@@ -173,6 +147,7 @@ const ConditionalTile: FC<Props> = ({
             question={question_no}
             disabled={noDisabled}
             chartTheme={chartTheme}
+            hideCP={hideCP}
           />
         </ConditionalCard>
       </div>

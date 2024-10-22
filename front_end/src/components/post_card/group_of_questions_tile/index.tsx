@@ -3,7 +3,6 @@ import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import GroupNumericTile from "@/components/post_card/group_of_questions_tile/group_numeric_tile";
-import { GroupOfQuestionsGraphType } from "@/types/charts";
 import { PostWithForecasts, PostStatus } from "@/types/post";
 import {
   QuestionWithForecasts,
@@ -14,12 +13,14 @@ type Props = {
   questions: QuestionWithForecasts[];
   curationStatus: PostStatus;
   post: PostWithForecasts;
+  hideCP?: boolean;
 };
 
 const GroupOfQuestionsTile: FC<Props> = ({
   questions,
   curationStatus,
   post,
+  hideCP,
 }) => {
   const t = useTranslations();
   const groupType = questions.at(0)?.type;
@@ -33,6 +34,7 @@ const GroupOfQuestionsTile: FC<Props> = ({
       questions={questions as QuestionWithNumericForecasts[]}
       curationStatus={curationStatus}
       post={post}
+      hideCP={hideCP}
     />
   );
 };
