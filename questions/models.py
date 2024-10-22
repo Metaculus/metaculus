@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING
 
-from django.contrib.postgres.fields import ArrayField
+from django_better_admin_arrayfield.models.fields import ArrayField
 from django.db import models
 from django.db.models import Count, Q
 from django.utils import timezone
