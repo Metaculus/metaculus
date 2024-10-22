@@ -247,7 +247,7 @@
   "newUsernamePlaceholder": "new username",
   "confirm": "Confirm",
   "confirmUsernamePlaceholder": "confirm username",
-  "confirmAction": "Please confirm this action",
+  "confirmUnresolveQuestion": "Are you sure you want to unresolve this question?",
   "usernamesNotMatching": "usernames don't match",
   "projectContents": "Project Contents",
   "question": "Question",
