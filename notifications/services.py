@@ -519,6 +519,7 @@ class NotificationPostCPChange(NotificationTypeSimilarPostsMixin, NotificationTy
     class ParamsType:
         post: NotificationPostParams
         question_data: list[CPChangeData]
+        last_sent: str
 
     @classmethod
     def generate_subject_group(cls, recipient: User):
