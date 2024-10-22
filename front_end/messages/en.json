@@ -471,6 +471,7 @@
   "postQuestionApproval": "Question Approval",
   "postNotebookApproval": "Notebook Approval",
   "postQuestionApprovalSubtitle": "Make any necessary adjustments to the general settings for each question in this section.",
+  "postGroupOfQuestionsApprovalSubtitle": "Set the Open Time and CP Reveal Time for all subquestions. You can adjust these settings for individual questions later during editing.",
   "postNotebookApprovalSubtitle": "Are you sure you want to approve this notebook?",
   "questionApprovalSubtitle": "Make any necessary adjustments to the general settings for each question in this section.",
   "submitForReview": "Submit for review",
