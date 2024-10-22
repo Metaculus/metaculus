@@ -42,7 +42,7 @@
                         {% elif question_data.question.type == "continuous" %}
                             {% blocktrans with direction=question_data.get_direction_label cp_median=question_data.cp_median user_forecast_date=question_data.format_forecast_date last_sent=notification.last_sent cp_median=question_data.cp_median cp_q1=question_data.cp_q1 cp_q3=question_data.cp_q3 user_median=question_data.user_median user_q1=question_data.user_q1 user_q3=question_data.user_q1 %}
                             The community prediction has {{direction}} by {change value} since {{last_sent}}.
-                            It is now {{cp_median}} ({{cp_q1}} – {{cp_q3}}).
+                            It is now <b>{{cp_median}}</b> ({{cp_q1}} – {{cp_q3}}).
                             Your last prediction was <b>{{user_median}}</b> ({{user_q1}} – {{user_q3}}) on {{user_forecast_date}}.
                             {% endblocktrans %}
                         {% endif %}
