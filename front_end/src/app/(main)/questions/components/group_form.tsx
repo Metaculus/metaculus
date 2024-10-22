@@ -1,10 +1,10 @@
 "use client";
 
-import { faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import { forEach } from "lodash";
+import { vacuumImpedanceDependencies } from "mathjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -14,6 +14,7 @@ import * as z from "zod";
 
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
+import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -29,7 +30,7 @@ import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
-import { extractQuestionGroupName, getQuestionStatus } from "@/utils/questions";
+import { extractQuestionGroupName } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
@@ -426,28 +427,17 @@ const GroupForm: React.FC<Props> = ({
                         labelText={t("closingDate")}
                         className="w-full"
                       >
-                        <Input
+                        <DatetimeUtc
                           readOnly={
                             subquestionHasForecasts && mode !== "create"
                           }
-                          type="datetime-local"
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                          defaultValue={
-                            subQuestions[index].scheduled_close_time
-                              ? format(
-                                  new Date(
-                                    subQuestions[index].scheduled_close_time
-                                  ),
-                                  "yyyy-MM-dd'T'HH:mm"
-                                )
-                              : undefined
-                          }
-                          onChange={(e) => {
+                          defaultValue={subQuestion.scheduled_close_time}
+                          onChange={(value) => {
                             setSubQuestions(
                               subQuestions.map((subQuestion, iter_index) => {
                                 if (index === iter_index) {
-                                  subQuestion.scheduled_close_time =
-                                    e.target.value;
+                                  subQuestion.scheduled_close_time = value;
                                 }
                                 return subQuestion;
                               })
@@ -459,28 +449,17 @@ const GroupForm: React.FC<Props> = ({
                         labelText={t("resolvingDate")}
                         className="w-full"
                       >
-                        <Input
+                        <DatetimeUtc
                           readOnly={
                             subquestionHasForecasts && mode !== "create"
                           }
-                          type="datetime-local"
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                          defaultValue={
-                            subQuestions[index].scheduled_resolve_time
-                              ? format(
-                                  new Date(
-                                    subQuestions[index].scheduled_resolve_time
-                                  ),
-                                  "yyyy-MM-dd'T'HH:mm"
-                                )
-                              : undefined
-                          }
-                          onChange={(e) => {
+                          defaultValue={subQuestion.scheduled_resolve_time}
+                          onChange={(value) => {
                             setSubQuestions(
                               subQuestions.map((subQuestion, iter_index) => {
                                 if (index === iter_index) {
-                                  subQuestion.scheduled_resolve_time =
-                                    e.target.value;
+                                  subQuestion.scheduled_resolve_time = value;
                                 }
                                 return subQuestion;
                               })
@@ -490,31 +469,22 @@ const GroupForm: React.FC<Props> = ({
                       </InputContainer>
                     </div>
                     {mode == "edit" &&
-                      post?.curation_status == PostStatus.APPROVED &&
-                      // Show only for newly added options
-                      !subQuestion.id && (
+                      post?.curation_status == PostStatus.APPROVED && (
                         <div className="flex flex-row gap-4">
                           <InputContainer
                             labelText={t("openTime")}
                             className="w-full"
                           >
-                            <Input
-                              type="datetime-local"
+                            <DatetimeUtc
                               className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                              defaultValue={
-                                subQuestions[index].open_time
-                                  ? format(
-                                      new Date(subQuestions[index].open_time),
-                                      "yyyy-MM-dd'T'HH:mm"
-                                    )
-                                  : undefined
-                              }
+                              defaultValue={subQuestion.open_time}
                               onChange={(e) => {
                                 setSubQuestions(
                                   subQuestions.map(
                                     (subQuestion, iter_index) => {
                                       if (index === iter_index) {
-                                        subQuestion.open_time = e.target.value;
+                                        subQuestion.open_time =
+                                          vacuumImpedanceDependencies;
                                       }
                                       return subQuestion;
                                     }
@@ -527,26 +497,15 @@ const GroupForm: React.FC<Props> = ({
                             labelText={t("cpRevealTime")}
                             className="w-full"
                           >
-                            <Input
-                              type="datetime-local"
+                            <DatetimeUtc
                               className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                              defaultValue={
-                                subQuestions[index].cp_reveal_time
-                                  ? format(
-                                      new Date(
-                                        subQuestions[index].cp_reveal_time
-                                      ),
-                                      "yyyy-MM-dd'T'HH:mm"
-                                    )
-                                  : undefined
-                              }
-                              onChange={(e) => {
+                              defaultValue={subQuestion.cp_reveal_time}
+                              onChange={(value) => {
                                 setSubQuestions(
                                   subQuestions.map(
                                     (subQuestion, iter_index) => {
                                       if (index === iter_index) {
-                                        subQuestion.cp_reveal_time =
-                                          e.target.value;
+                                        subQuestion.cp_reveal_time = value;
                                       }
                                       return subQuestion;
                                     }
@@ -562,17 +521,13 @@ const GroupForm: React.FC<Props> = ({
                       <NumericQuestionInput
                         // @ts-ignore
                         questionType={subtype}
-                        defaultMin={subQuestions[index].scaling.range_min}
-                        defaultMax={subQuestions[index].scaling.range_max}
+                        defaultMin={subQuestion.scaling.range_min}
+                        defaultMax={subQuestion.scaling.range_max}
                         // @ts-ignore
-                        defaultOpenLowerBound={
-                          subQuestions[index].open_lower_bound
-                        }
+                        defaultOpenLowerBound={subQuestion.open_lower_bound}
                         // @ts-ignore
-                        defaultOpenUpperBound={
-                          subQuestions[index].open_upper_bound
-                        }
-                        defaultZeroPoint={subQuestions[index].zero_point}
+                        defaultOpenUpperBound={subQuestion.open_upper_bound}
+                        defaultZeroPoint={subQuestion.zero_point}
                         hasForecasts={
                           subquestionHasForecasts && mode !== "create"
                         }
