@@ -23,6 +23,7 @@ import {
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
+import { useHideCP } from "../../cp_provider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";
@@ -51,6 +52,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const { hideCP } = useHideCP();
   const { setCurrentModal } = useModal();
 
   const { condition, condition_child, question_yes, question_no } = conditional;
@@ -450,7 +452,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
           communityQuartiles={
             communityCdf && computeQuartilesFromCDF(communityCdf)
           }
-          withCommunityQuartiles={!user || !user.hide_community_prediction}
+          withCommunityQuartiles={!user || !hideCP}
           isDirty={activeOptionData.isDirty}
           hasUserForecast={
             activeTableOption === questionYesId

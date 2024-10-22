@@ -27,9 +27,15 @@ type Props = {
   questions: QuestionWithNumericForecasts[];
   curationStatus: PostStatus;
   post: PostWithForecasts;
+  hideCP?: boolean;
 };
 
-const GroupNumericTile: FC<Props> = ({ questions, curationStatus, post }) => {
+const GroupNumericTile: FC<Props> = ({
+  questions,
+  curationStatus,
+  post,
+  hideCP,
+}) => {
   const { user } = useAuth();
   const locale = useLocale();
 
@@ -50,6 +56,7 @@ const GroupNumericTile: FC<Props> = ({ questions, curationStatus, post }) => {
                 ?.centers![0]
             }
             status={curationStatus}
+            hideCP={hideCP}
           />
         </div>
         <div className="my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
@@ -57,6 +64,7 @@ const GroupNumericTile: FC<Props> = ({ questions, curationStatus, post }) => {
             questions={questions}
             height={CHART_HEIGHT}
             pointSize={8}
+            hideCP={hideCP}
           />
         </div>
       </div>
@@ -89,6 +97,7 @@ const GroupNumericTile: FC<Props> = ({ questions, curationStatus, post }) => {
             : undefined
         }
         questionType={questions[0].type}
+        hideCP={hideCP}
       />
     );
   }

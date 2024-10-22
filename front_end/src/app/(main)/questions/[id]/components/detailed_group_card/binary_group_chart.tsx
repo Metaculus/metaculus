@@ -71,6 +71,7 @@ type Props = {
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
   embedMode?: boolean;
+  hideCP?: boolean;
 };
 
 const BinaryGroupChart: FC<Props> = ({
@@ -83,6 +84,7 @@ const BinaryGroupChart: FC<Props> = ({
   chartTheme,
   chartHeight,
   embedMode = false,
+  hideCP,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -195,9 +197,9 @@ const BinaryGroupChart: FC<Props> = ({
 
   return (
     <MultiChoicesChartView
-      tooltipChoices={tooltipChoices}
+      tooltipChoices={!!hideCP ? [] : tooltipChoices}
       tooltipUserChoices={tooltipUserChoices}
-      choiceItems={choiceItems}
+      choiceItems={!!hideCP ? [] : choiceItems}
       timestamps={timestamps}
       userForecasts={userForecasts}
       tooltipDate={tooltipDate}
