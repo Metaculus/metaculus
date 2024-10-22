@@ -97,12 +97,21 @@ class CPChangeData:
             "changed": _("changed"),
         }.get(self.cp_change_label, self.cp_change_label)
 
+    def get_cp_change_symbol(self):
+        return {
+            "goneUp": "+",
+            "goneDown": "-",
+            "expanded": "←→",
+            "contracted": "→←",
+            "changed": "↕",
+        }.get(self.cp_change_label, self.cp_change_label)
+
     def format_value(self, value):
         if value is None:
             return "-"
 
         if self.question.type in ("multiple_choice", "binary"):
-            return f"{round(value * 100)}%"
+            return f"{round(value * 100, 2)}%"
 
         return value
 
