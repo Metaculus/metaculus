@@ -13,9 +13,10 @@ import CursorDetailItem from "./numeric_cursor_item";
 
 type Props = {
   question: Question;
+  hideCP?: boolean;
 };
 
-const NumericChartCard: FC<Props> = ({ question }) => {
+const NumericChartCard: FC<Props> = ({ question, hideCP }) => {
   const t = useTranslations();
   const { user } = useAuth();
 
@@ -93,6 +94,7 @@ const NumericChartCard: FC<Props> = ({ question }) => {
           user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths
         }
         withZoomPicker
+        hideCP={hideCP}
       />
 
       <div
@@ -105,15 +107,17 @@ const NumericChartCard: FC<Props> = ({ question }) => {
           title={t("totalForecastersLabel")}
           text={cursorData.forecasterCount?.toString()}
         />
-        <CursorDetailItem
-          title={t("communityPredictionLabel")}
-          text={getDisplayValue(
-            cursorData.center,
-            question.type,
-            question.scaling
-          )}
-          variant="prediction"
-        />
+        {!hideCP && (
+          <CursorDetailItem
+            title={t("communityPredictionLabel")}
+            text={getDisplayValue(
+              cursorData.center,
+              question.type,
+              question.scaling
+            )}
+            variant="prediction"
+          />
+        )}
         {!!question.my_forecasts?.history.length && (
           <CursorDetailItem
             title={t("myPrediction")}

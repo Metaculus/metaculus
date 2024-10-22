@@ -1,5 +1,6 @@
 import { FC } from "react";
 
+import HideCPProvider from "@/app/(main)/questions/[id]/components/cp_provider";
 import ConditionalTile from "@/components/conditional_tile";
 import NotebookTile from "@/components/post_card/notebook_tile";
 import { useAuth } from "@/contexts/auth_context";
@@ -28,31 +29,32 @@ const PostCard: FC<Props> = ({ post }) => {
         borderVariant={post.notebook ? "highlighted" : "regular"}
         borderColor={post.notebook ? "purple" : "blue"}
       >
-        {!!post?.question && (
-          <QuestionChartTile
-            question={post?.question}
-            authorUsername={post.author_username}
-            curationStatus={post.status}
-            hideCP={hideCP}
-          />
-        )}
-        {!!post.group_of_questions && (
-          <GroupOfQuestionsTile
-            questions={post.group_of_questions.questions}
-            curationStatus={post.status}
-            post={post}
-            hideCP={hideCP}
-          />
-        )}
-        {!!post.conditional && (
-          <ConditionalTile
-            postTitle={post.title}
-            conditional={post.conditional}
-            curationStatus={post.status}
-            hideCP={hideCP}
-          />
-        )}
-        {!!post.notebook && <NotebookTile notebook={post.notebook} />}
+        <HideCPProvider post={post}>
+          {!!post?.question && (
+            <QuestionChartTile
+              question={post?.question}
+              authorUsername={post.author_username}
+              curationStatus={post.status}
+              hideCP={hideCP}
+            />
+          )}
+          {!!post.group_of_questions && (
+            <GroupOfQuestionsTile
+              questions={post.group_of_questions.questions}
+              curationStatus={post.status}
+              post={post}
+              hideCP={hideCP}
+            />
+          )}
+          {!!post.conditional && (
+            <ConditionalTile
+              postTitle={post.title}
+              conditional={post.conditional}
+              curationStatus={post.status}
+            />
+          )}
+          {!!post.notebook && <NotebookTile notebook={post.notebook} />}
+        </HideCPProvider>
       </BasicPostCard>
     </PostCardErrorBoundary>
   );

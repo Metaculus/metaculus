@@ -18,6 +18,7 @@ import {
 } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
+import { useHideCP } from "../../cp_provider";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
@@ -44,7 +45,7 @@ const ForecastMakerBinary: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
-
+  const { hideCP } = useHideCP();
   const communityForecast =
     question.aggregations.recency_weighted.latest?.centers![0];
 
@@ -94,9 +95,7 @@ const ForecastMakerBinary: FC<Props> = ({
         forecast={forecast}
         onChange={setForecast}
         isDirty={isForecastDirty}
-        communityForecast={
-          !!user && user.hide_community_prediction ? null : communityForecast
-        }
+        communityForecast={!!user && hideCP ? null : communityForecast}
         onBecomeDirty={() => {
           setIsForecastDirty(true);
         }}

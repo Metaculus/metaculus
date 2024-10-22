@@ -74,6 +74,7 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   defaultZoom?: TimelineChartZoomOption;
   embedMode?: boolean;
+  hideCP?: boolean;
 };
 
 const ContinuousGroupTimeline: FC<Props> = ({
@@ -87,6 +88,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
   defaultZoom,
   chartHeight,
   embedMode = false,
+  hideCP,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -185,8 +187,8 @@ const ContinuousGroupTimeline: FC<Props> = ({
 
   return (
     <MultiChoicesChartView
-      tooltipChoices={tooltipChoices}
-      choiceItems={choiceItems}
+      tooltipChoices={!!hideCP ? [] : tooltipChoices}
+      choiceItems={!!hideCP ? [] : choiceItems}
       timestamps={timestamps}
       userForecasts={userForecasts}
       tooltipDate={tooltipDate}
