@@ -1,6 +1,8 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
+import csv
+from io import StringIO
 
 import numpy as np
 from django.db import transaction
@@ -389,6 +391,9 @@ def update_project_leaderboard(
     leaderboard.project = project
     leaderboard.save()
 
+    if leaderboard.score_type == Leaderboard.ScoreTypes.MANUAL:
+        return list(leaderboard.entries.all().order_by("rank"))
+
     # new entries
     new_entries = generate_project_leaderboard(project, leaderboard)
 
@@ -419,6 +424,67 @@ def update_project_leaderboard(
         # add prize if applicable
         if project.prize_pool:
             new_entries = assign_prizes(new_entries, project.prize_pool)
+
+    # save entries
+    previous_entries_map = {
+        (entry.user_id, entry.aggregation_method): entry.id
+        for entry in leaderboard.entries.all()
+    }
+
+    for new_entry in new_entries:
+        new_entry.leaderboard = leaderboard
+        new_entry.id = previous_entries_map.get(
+            (new_entry.user_id, new_entry.aggregation_method)
+        )
+
+    with transaction.atomic():
+        leaderboard.entries.all().delete()
+        LeaderboardEntry.objects.bulk_create(new_entries, batch_size=500)
+
+    return new_entries
+
+
+def update_leaderboard_from_csv_data(
+    leaderboard: Leaderboard, csv_data: str
+) -> list[LeaderboardEntry]:
+    """
+    updates a maunal leaderboard directly from a csv file
+    """
+    if leaderboard.score_type != Leaderboard.ScoreTypes.MANUAL:
+        raise ValueError("Leaderboard is not a manual leaderboard")
+
+    reader = csv.DictReader(StringIO(csv_data))
+    new_entries: list[LeaderboardEntry] = []
+
+    for row in reader:
+        user_id = row.get("user_id")
+        aggregation_method = row.get("aggregation_method")
+        score = row.get("score")
+        take = row.get("take")
+        rank = row.get("rank")
+        excluded = row.get("excluded")
+        medal = row.get("medal")
+        percent_prize = row.get("percent_prize")
+        prize = row.get("prize")
+        coverage = row.get("coverage")
+        contribution_count = row.get("contribution_count")
+        calculated_on = row.get("calculated_on")
+
+        new_entry = LeaderboardEntry(
+            user_id=user_id,
+            aggregation_method=aggregation_method,
+            score=score,
+            take=take,
+            rank=rank,
+            excluded=excluded,
+            medal=medal,
+            percent_prize=percent_prize,
+            prize=prize,
+            coverage=coverage,
+            contribution_count=contribution_count,
+            calculated_on=calculated_on,
+        )
+        new_entries.append(new_entry)
 
     # save entries
     previous_entries_map = {

@@ -794,6 +794,17 @@ files = [
 django = "*"
 
 [[package]]
+name = "django-better-admin-arrayfield"
+version = "1.4.2"
+description = "Better ArrayField widget for admin"
+optional = false
+python-versions = "*"
+files = [
+    {file = "django-better-admin-arrayfield-1.4.2.tar.gz", hash = "sha256:b45423e51bbc0aa31ef658248c058ca8b533a541be4dee9fb8bcd059f8a10a58"},
+    {file = "django_better_admin_arrayfield-1.4.2-py2.py3-none-any.whl", hash = "sha256:bfeaa0fa8210a7ea95ee996a6caaa59ecd0c923269f573e6d8319c28dcac5c88"},
+]
+
+[[package]]
 name = "django-cors-headers"
 version = "4.4.0"
 description = "django-cors-headers is a Django application for handling the server headers required for Cross-Origin Resource Sharing (CORS)."
@@ -3330,4 +3341,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.12.3"
-content-hash = "aba224773bde2e3d0c514ecb9fa01f1c6ce41803a642cb70758d3316e5829edd"
+content-hash = "e59f4d678f261b68f7c8606cad63926a7ab854656a3b21aaa1f827a0bd700452"

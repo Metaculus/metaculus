@@ -3,6 +3,8 @@ from django.contrib import admin
 
 from projects.models import Project, ProjectUserPermission
 
+from scoring.utils import update_project_leaderboard
+
 
 class ProjectUserPermissionVisibilityFilter(admin.SimpleListFilter):
     title = "Project Visibility"  # Display title in the admin
@@ -70,6 +72,7 @@ class ProjectAdmin(admin.ModelAdmin):
     exclude = ["add_posts_to_main_feed"]
     ordering = ["-created_at"]
     inlines = [ProjectUserPermissionInline]
+    actions = ["update_leaderboards"]
 
     change_form_template = "admin/projects/project_change_form.html"
 
@@ -81,3 +84,12 @@ class ProjectAdmin(admin.ModelAdmin):
             qs = qs.exclude(type=Project.ProjectTypes.PERSONAL_PROJECT)
 
         return qs
+
+    def update_leaderboards(self, request, queryset):
+        project: Project
+        for project in queryset:
+            leaderboards = project.leaderboards.all()
+            for leaderboard in leaderboards:
+                update_project_leaderboard(project, leaderboard)
+
+    update_leaderboards.short_description = "Update All Leaderboards on Project"

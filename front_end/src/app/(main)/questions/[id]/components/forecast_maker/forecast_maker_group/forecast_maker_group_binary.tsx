@@ -24,6 +24,7 @@ import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import {
+  Post,
   PostWithForecasts,
   ProjectPermissions,
   QuestionStatus,
@@ -39,6 +40,7 @@ import { extractQuestionGroupName } from "@/utils/questions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
+import { useHideCP } from "../../cp_provider";
 import {
   BINARY_FORECAST_PRECISION,
   BINARY_MAX_VALUE,
@@ -76,6 +78,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const { hideCP } = useHideCP();
   const params = useSearchParams();
   const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
   const { setCurrentModal } = useModal();
@@ -96,7 +99,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
     [questions]
   );
   const [questionOptions, setQuestionOptions] = useState<QuestionOption[]>(
-    generateChoiceOptions(questions, prevForecastValuesMap)
+    generateChoiceOptions(questions, prevForecastValuesMap, undefined, post)
   );
 
   const sortedQuestionOptions = [...questionOptions].sort((a, b) => {
@@ -120,7 +123,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 
   useEffect(() => {
     setQuestionOptions(
-      generateChoiceOptions(questions, prevForecastValuesMap, permission)
+      generateChoiceOptions(questions, prevForecastValuesMap, permission, post)
     );
   }, [permission, prevForecastValuesMap, questions]);
 
@@ -236,7 +239,9 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               defaultSliderValue={50}
               choiceName={questionOption.name}
               choiceColor={questionOption.color}
-              communityForecast={questionOption.communityForecast}
+              communityForecast={
+                !user || !hideCP ? questionOption.communityForecast : null
+              }
               inputMin={BINARY_MIN_VALUE}
               inputMax={BINARY_MAX_VALUE}
               onChange={handleForecastChange}
@@ -315,7 +320,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 function generateChoiceOptions(
   questions: QuestionWithNumericForecasts[],
   prevForecastValuesMap: Record<number, number | null>,
-  permission?: ProjectPermissions
+  permission?: ProjectPermissions,
+  post?: Post
 ): QuestionOption[] {
   return questions.map((question, index) => {
     return {
@@ -337,6 +343,7 @@ function generateChoiceOptions(
               <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
             </Button>
           }
+          post={post}
         />
       ),
     };

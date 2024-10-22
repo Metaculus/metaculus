@@ -29,6 +29,7 @@ type Props = {
   userForecasts?: UserChoiceItem[];
   question?: Question;
   questionType?: QuestionType;
+  hideCP?: boolean;
 };
 
 const MultipleChoiceTile: FC<Props> = ({
@@ -42,6 +43,7 @@ const MultipleChoiceTile: FC<Props> = ({
   userForecasts,
   question,
   questionType,
+  hideCP,
 }) => {
   const t = useTranslations();
 
@@ -76,7 +78,7 @@ const MultipleChoiceTile: FC<Props> = ({
                   key={`choice-option-${choice}`}
                   choice={choice}
                   color={color}
-                  values={values}
+                  values={hideCP ? [null as unknown as number] : values}
                   resolution={resolution}
                   displayedResolution={displayedResolution}
                   questionType={questionType}
@@ -104,7 +106,7 @@ const MultipleChoiceTile: FC<Props> = ({
       {!isResolvedView && (
         <MultipleChoiceChart
           timestamps={timestamps}
-          choiceItems={choices}
+          choiceItems={hideCP ? [] : choices}
           height={chartHeight}
           extraTheme={chartTheme}
           defaultZoom={defaultChartZoom}

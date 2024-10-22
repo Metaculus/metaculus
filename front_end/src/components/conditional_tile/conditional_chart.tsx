@@ -21,9 +21,15 @@ type Props = {
   disabled: boolean;
   chartHeight?: number;
   chartTheme?: VictoryThemeDefinition;
+  hideCP?: boolean;
 };
 
-const ConditionalChart: FC<Props> = ({ question, disabled, chartTheme }) => {
+const ConditionalChart: FC<Props> = ({
+  question,
+  disabled,
+  chartTheme,
+  hideCP,
+}) => {
   const resolved = question.resolution !== null;
   const aggregate = question.aggregations.recency_weighted;
   const userForecasts = question.my_forecasts;
@@ -51,7 +57,9 @@ const ConditionalChart: FC<Props> = ({ question, disabled, chartTheme }) => {
                   </div>
                 );
               }
-
+              if (hideCP) {
+                return null;
+              }
               return (
                 <div className="flex items-center gap-1 pl-1">
                   <FontAwesomeIcon icon={faUserGroup} size="sm" /> {`${value}%`}
@@ -63,6 +71,7 @@ const ConditionalChart: FC<Props> = ({ question, disabled, chartTheme }) => {
                 ? themeProgressColor
                 : undefined
             }
+            hideCP={hideCP}
           />
           {resolved && (
             <PredictionChip
@@ -116,12 +125,14 @@ const ConditionalChart: FC<Props> = ({ question, disabled, chartTheme }) => {
       return (
         <>
           <div className="flex gap-2">
-            <div className="flex items-center gap-1 whitespace-nowrap text-xs font-semibold leading-none text-olive-700 dark:text-olive-700-dark">
-              <div>
-                <FontAwesomeIcon icon={faUserGroup} size="sm" />
+            {!hideCP && (
+              <div className="flex items-center gap-1 whitespace-nowrap text-xs font-semibold leading-none text-olive-700 dark:text-olive-700-dark">
+                <div>
+                  <FontAwesomeIcon icon={faUserGroup} size="sm" />
+                </div>
+                <span>{formattedPrediction}</span>
               </div>
-              <span>{formattedPrediction}</span>
-            </div>
+            )}
             <ContinuousAreaChart
               height={40}
               scaling={question.scaling}
@@ -129,6 +140,7 @@ const ConditionalChart: FC<Props> = ({ question, disabled, chartTheme }) => {
               extraTheme={chartTheme}
               questionType={question.type}
               resolution={question.resolution}
+              hideCP={hideCP}
             />
           </div>
           {resolved && (

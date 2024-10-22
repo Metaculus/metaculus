@@ -85,7 +85,8 @@ export function generateNumericDomain(
 
 export function generateTimestampXScale(
   xDomain: Tuple<number>,
-  width: number
+  width: number,
+  fontSize = 9
 ): Scale {
   const oneMinute = 60 * 1000;
   const oneHour = 60 * oneMinute;
@@ -100,7 +101,7 @@ export function generateTimestampXScale(
   const start = fromUnixTime(xDomain[0]);
   const end = fromUnixTime(xDomain[1]);
   const timeRange = differenceInMilliseconds(end, start);
-  const maxTicks = Math.floor(width / 80);
+  const maxTicks = Math.floor(width / (fontSize * 10));
   if (timeRange < oneHour) {
     ticks = d3.timeMinute.range(start, end);
     format = d3.timeFormat("%_I:%M %p");
@@ -687,17 +688,11 @@ export function getFanOptionsFromBinaryGroup(
       const resolved = q.resolution !== null;
       return {
         name: extractQuestionGroupName(q.title),
-        quartiles: resolved
-          ? {
-              median: q.resolution === "yes" ? 1 : 0,
-              lower25: aggregation?.interval_lower_bounds?.[0] ?? 0,
-              upper75: aggregation?.interval_upper_bounds?.[0] ?? 0,
-            }
-          : {
-              median: aggregation?.centers?.[0] ?? 0,
-              lower25: aggregation?.interval_lower_bounds?.[0] ?? 0,
-              upper75: aggregation?.interval_upper_bounds?.[0] ?? 0,
-            },
+        quartiles: {
+          median: aggregation?.centers?.[0] ?? 0,
+          lower25: aggregation?.interval_lower_bounds?.[0] ?? 0,
+          upper75: aggregation?.interval_upper_bounds?.[0] ?? 0,
+        },
         resolved,
         question: q,
         resolvedAt: new Date(q.scheduled_resolve_time),
@@ -781,12 +776,18 @@ export function generateTicksY(
   return { ticks, tickFormat, majorTicks };
 }
 
-export function getLeftPadding(yScale: Scale, labelsFontSize: number) {
+export function getLeftPadding(
+  yScale: Scale,
+  labelsFontSize: number,
+  yLabel?: string | undefined
+) {
   const labels = yScale.ticks.map((tick) => yScale.tickFormat(tick));
   const longestLabelLength = Math.max(...labels.map((label) => label.length));
-
+  const fontSizeScale = yLabel ? 9 : 8;
   return {
-    leftPadding: Math.round((longestLabelLength * labelsFontSize * 9) / 10),
+    leftPadding: Math.round(
+      (longestLabelLength * labelsFontSize * fontSizeScale) / 10
+    ),
     MIN_LEFT_PADDING: 50,
   };
 }

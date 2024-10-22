@@ -1,7 +1,7 @@
 "use client";
 import classNames from "classnames";
 import Link from "next/link";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 
 import { EmbedTheme } from "@/app/(embed)/questions/constants/embed_theme";
 import ContinuousGroupTimeline from "@/app/(main)/questions/[id]/components/continuous_group_timeline";
@@ -51,12 +51,21 @@ const ForecastCard: FC<Props> = ({
   const [cursorValue, setCursorValue] = useState<number | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartHeight, setChartHeight] = useState(0);
+  const withLegend = useMemo(
+    () =>
+      post.group_of_questions?.graph_type ===
+        GroupOfQuestionsGraphType.MultipleChoiceGraph ||
+      post.question?.type === QuestionType.MultipleChoice,
+    [post.group_of_questions?.graph_type, post.question?.type]
+  );
 
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    setChartHeight(chartContainerRef.current?.clientHeight);
-  }, []);
+    setChartHeight(
+      chartContainerRef.current?.clientHeight - (withZoomPicker ? 32 : 0)
+    );
+  }, [withZoomPicker, withLegend]);
 
   const renderChart = () => {
     if (post.group_of_questions) {
@@ -104,6 +113,7 @@ const ForecastCard: FC<Props> = ({
                 }
                 chartHeight={chartHeight}
                 chartTheme={embedTheme?.chart}
+                defaultZoom={defaultChartZoom}
                 embedMode
               />
             );
@@ -207,6 +217,7 @@ const ForecastCard: FC<Props> = ({
               embedMode
               chartHeight={chartHeight}
               chartTheme={embedTheme?.chart}
+              defaultZoom={defaultChartZoom}
             />
           );
         default:
