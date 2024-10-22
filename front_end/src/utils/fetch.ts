@@ -89,7 +89,7 @@ const defaultOptions: FetchOptions = {
 
 const fetchWithRetry = fetchRetry(fetch, {
   retryOn: (attempt, error: any) => {
-    if (attempt > 3) {
+    if (attempt > 2) {
       return false;
     }
 
@@ -170,7 +170,7 @@ const appFetch = async <T>(
       console.error("Fetch error:", error);
     }
 
-    logError(error, `Fetch error: ${error}`);
+    logError(error, `Fetch error: ${error}. finalUrl: ${finalUrl}`);
     throw error;
   }
 };
