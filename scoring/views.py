@@ -53,6 +53,7 @@ def global_leaderboard(
     entries = entries.filter(
         Q(medal__isnull=False)
         | Q(rank__lte=max(3, np.ceil(entries.exclude(excluded=True).count() * 0.05)))
+        | Q(user=user)
     )
 
     if not user.is_staff:
