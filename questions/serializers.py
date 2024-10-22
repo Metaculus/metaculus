@@ -680,6 +680,5 @@ class OldForecastWriteSerializer(serializers.Serializer):
 
 
 class QuestionApproveSerializer(serializers.Serializer):
-    question_id = serializers.IntegerField(required=True)
     open_time = serializers.DateTimeField(required=True)
     cp_reveal_time = serializers.DateTimeField(required=True)
