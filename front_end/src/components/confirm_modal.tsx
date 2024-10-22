@@ -21,16 +21,16 @@ const ConfirmModal: FC<Props> = ({ isOpen, onClose, onConfirm }) => {
       isOpen={isOpen}
       onClose={onClose}
     >
-      <h4 className="mb-4 mt-0 text-center">{t("confirmAction")}</h4>
+      <h4 className="mb-4 mt-0 text-center">{t("confirmUnresolveQuestion")}</h4>
       <div className="flex justify-center">
         <Button
-          className="my-auto w-32"
+          className="my-auto w-32 capitalize"
           onClick={() => {
             onConfirm();
             onClose(isOpen);
           }}
         >
-          {t("confirm")}
+          {t("yes")}
         </Button>
       </div>
     </BaseModal>
