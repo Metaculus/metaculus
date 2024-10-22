@@ -59,6 +59,37 @@ from utils.paginator import CountlessLimitOffsetPagination
 from utils.the_math.aggregations import get_aggregation_history
 from utils.csv_utils import build_csv
 
+from django.db import transaction
+from rest_framework.renderers import JSONRenderer
+
+import aiohttp
+from django.conf import settings
+
+@transaction.non_atomic_requests
+async def long_request(request):
+    print("request received. processing...")
+
+    async with aiohttp.ClientSession() as session:
+        headers = {
+            "Authorization": f"Bearer {settings.FAB_CREDITS_OPENAI_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        data = {
+            "model": "gpt-3.5-turbo",
+            "messages": [{"role": "user", "content": "Hi there, what's up. Tell me a very long story."}],
+        }
+        async with session.post(
+            "https://api.openai.com/v1/chat/completions", headers=headers, json=data
+        ) as resp:
+            openai_response = await resp.json()
+
+    response = Response(openai_response)
+    response.accepted_renderer = JSONRenderer()
+    response.accepted_media_type = "application/json"
+    response.renderer_context = {"request": request, "response": response}
+    print("request processed. returning response.")
+    return response
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
