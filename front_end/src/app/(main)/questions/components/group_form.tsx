@@ -12,6 +12,9 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+import GroupFormBulkModal, {
+  BulkBulkQuestionAttrs,
+} from "@/app/(main)/questions/components/group_form_bulk_modal";
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
 import DatetimeUtc from "@/components/ui/datetime_utc";
@@ -90,6 +93,7 @@ const GroupForm: React.FC<Props> = ({
   const router = useRouter();
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState<boolean>();
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [error, setError] = useState<
     (Error & { digest?: string }) | string | undefined
   >();
@@ -252,6 +256,18 @@ const GroupForm: React.FC<Props> = ({
 
   const { title: formattedQuestionType, description: questionDescription } =
     questionSubtypeDisplayMap[subtype] || { title: subtype, description: "" };
+
+  const onBulkEdit = (attrs: BulkBulkQuestionAttrs) => {
+    setSubQuestions(
+      subQuestions.map((subQuestion) => ({
+        ...subQuestion,
+        ...attrs,
+      }))
+    );
+  };
+
+  const isEditingActivePost =
+    mode == "edit" && post?.curation_status == PostStatus.APPROVED;
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -468,54 +484,49 @@ const GroupForm: React.FC<Props> = ({
                         />
                       </InputContainer>
                     </div>
-                    {mode == "edit" &&
-                      post?.curation_status == PostStatus.APPROVED && (
-                        <div className="flex flex-row gap-4">
-                          <InputContainer
-                            labelText={t("openTime")}
-                            className="w-full"
-                          >
-                            <DatetimeUtc
-                              className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                              defaultValue={subQuestion.open_time}
-                              onChange={(e) => {
-                                setSubQuestions(
-                                  subQuestions.map(
-                                    (subQuestion, iter_index) => {
-                                      if (index === iter_index) {
-                                        subQuestion.open_time =
-                                          vacuumImpedanceDependencies;
-                                      }
-                                      return subQuestion;
-                                    }
-                                  )
-                                );
-                              }}
-                            />
-                          </InputContainer>
-                          <InputContainer
-                            labelText={t("cpRevealTime")}
-                            className="w-full"
-                          >
-                            <DatetimeUtc
-                              className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                              defaultValue={subQuestion.cp_reveal_time}
-                              onChange={(value) => {
-                                setSubQuestions(
-                                  subQuestions.map(
-                                    (subQuestion, iter_index) => {
-                                      if (index === iter_index) {
-                                        subQuestion.cp_reveal_time = value;
-                                      }
-                                      return subQuestion;
-                                    }
-                                  )
-                                );
-                              }}
-                            />
-                          </InputContainer>
-                        </div>
-                      )}
+                    {isEditingActivePost && (
+                      <div className="flex flex-row gap-4">
+                        <InputContainer
+                          labelText={t("openTime")}
+                          className="w-full"
+                        >
+                          <DatetimeUtc
+                            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                            defaultValue={subQuestion.open_time}
+                            onChange={(e) => {
+                              setSubQuestions(
+                                subQuestions.map((subQuestion, iter_index) => {
+                                  if (index === iter_index) {
+                                    subQuestion.open_time =
+                                      vacuumImpedanceDependencies;
+                                  }
+                                  return subQuestion;
+                                })
+                              );
+                            }}
+                          />
+                        </InputContainer>
+                        <InputContainer
+                          labelText={t("cpRevealTime")}
+                          className="w-full"
+                        >
+                          <DatetimeUtc
+                            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                            defaultValue={subQuestion.cp_reveal_time}
+                            onChange={(value) => {
+                              setSubQuestions(
+                                subQuestions.map((subQuestion, iter_index) => {
+                                  if (index === iter_index) {
+                                    subQuestion.cp_reveal_time = value;
+                                  }
+                                  return subQuestion;
+                                })
+                              );
+                            }}
+                          />
+                        </InputContainer>
+                      </div>
+                    )}
                     {(subtype === QuestionType.Date ||
                       subtype === QuestionType.Numeric) && (
                       <NumericQuestionInput
@@ -606,66 +617,75 @@ const GroupForm: React.FC<Props> = ({
               </div>
             );
           })}
-          <Button
-            onClick={() => {
-              if (subtype === "numeric") {
-                setSubQuestions([
-                  ...subQuestions,
-                  {
-                    type: "numeric",
-                    label: "",
-                    scheduled_close_time:
-                      control.getValues().scheduled_close_time,
-                    scheduled_resolve_time:
-                      control.getValues().scheduled_resolve_time,
-                    scaling: {
-                      range_min: null,
-                      range_max: null,
-                      zero_point: null,
+          <div className="flex justify-between">
+            <Button
+              onClick={() => {
+                if (subtype === "numeric") {
+                  setSubQuestions([
+                    ...subQuestions,
+                    {
+                      type: "numeric",
+                      label: "",
+                      scheduled_close_time:
+                        control.getValues().scheduled_close_time,
+                      scheduled_resolve_time:
+                        control.getValues().scheduled_resolve_time,
+                      scaling: {
+                        range_min: null,
+                        range_max: null,
+                        zero_point: null,
+                      },
+                      open_lower_bound: null,
+                      open_upper_bound: null,
                     },
-                    open_lower_bound: null,
-                    open_upper_bound: null,
-                  },
-                ]);
-              } else if (subtype === "date") {
-                setSubQuestions([
-                  ...subQuestions,
-                  {
-                    type: "date",
-                    label: "",
-                    scheduled_close_time:
-                      control.getValues().scheduled_close_time,
-                    scheduled_resolve_time:
-                      control.getValues().scheduled_resolve_time,
-                    scaling: {
-                      range_min: null,
-                      range_max: null,
-                      zero_point: null,
+                  ]);
+                } else if (subtype === "date") {
+                  setSubQuestions([
+                    ...subQuestions,
+                    {
+                      type: "date",
+                      label: "",
+                      scheduled_close_time:
+                        control.getValues().scheduled_close_time,
+                      scheduled_resolve_time:
+                        control.getValues().scheduled_resolve_time,
+                      scaling: {
+                        range_min: null,
+                        range_max: null,
+                        zero_point: null,
+                      },
+                      open_lower_bound: null,
+                      open_upper_bound: null,
                     },
-                    open_lower_bound: null,
-                    open_upper_bound: null,
-                  },
-                ]);
-              } else {
-                setSubQuestions([
-                  ...subQuestions,
-                  {
-                    type: "binary",
-                    label: "",
-                    scheduled_close_time:
-                      control.getValues().scheduled_close_time,
-                    scheduled_resolve_time:
-                      control.getValues().scheduled_resolve_time,
-                  },
-                ]);
-              }
-              setCollapsedSubQuestions([...collapsedSubQuestions, true]);
-            }}
-            className="w-fit capitalize"
-          >
-            <FontAwesomeIcon icon={faPlus} />
-            {t("newSubquestion")}
-          </Button>
+                  ]);
+                } else {
+                  setSubQuestions([
+                    ...subQuestions,
+                    {
+                      type: "binary",
+                      label: "",
+                      scheduled_close_time:
+                        control.getValues().scheduled_close_time,
+                      scheduled_resolve_time:
+                        control.getValues().scheduled_resolve_time,
+                    },
+                  ]);
+                }
+                setCollapsedSubQuestions([...collapsedSubQuestions, true]);
+              }}
+              className="w-fit capitalize"
+            >
+              <FontAwesomeIcon icon={faPlus} />
+              {t("newSubquestion")}
+            </Button>
+            <Button
+              className="w-fit capitalize"
+              onClick={() => setIsBulkModalOpen(true)}
+              variant="link"
+            >
+              {t("bulkEdit")}
+            </Button>
+          </div>
         </div>
 
         <div className="flex-col">
@@ -685,6 +705,18 @@ const GroupForm: React.FC<Props> = ({
             {mode === "create" ? t("createQuestion") : t("editQuestion")}
           </Button>
         </div>
+        <GroupFormBulkModal
+          isOpen={isBulkModalOpen}
+          setIsOpen={setIsBulkModalOpen}
+          onSubmit={onBulkEdit}
+          fields={[
+            "scheduled_close_time",
+            "scheduled_resolve_time",
+            ...(isEditingActivePost
+              ? (["open_time", "cp_reveal_time"] as const)
+              : []),
+          ]}
+        />
       </form>
     </main>
   );
