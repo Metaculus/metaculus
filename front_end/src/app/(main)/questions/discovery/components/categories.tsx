@@ -24,7 +24,7 @@ const CategoriesDiscovery: FC<Props> = ({ categories }) => {
         {categoriesToDisplay.map((category) => (
           <Chip
             key={category.id}
-            href={`/questions/?${POST_CATEGORIES_FILTER}=${category.slug}`}
+            href={`/questions/?${POST_CATEGORIES_FILTER}=${category.slug}&for_main_feed=false`}
             color="olive"
             size="sm"
           >
