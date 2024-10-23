@@ -50,10 +50,12 @@ def global_leaderboard(
 
     user = request.user
     entries = leaderboard.entries.select_related("user").order_by("rank", "-score")
-    entries = entries.filter(
-        Q(medal__isnull=False)
-        | Q(rank__lte=max(3, np.ceil(entries.exclude(excluded=True).count() * 0.05)))
-    )
+
+    q = Q(medal__isnull=False) | Q(rank__lte=max(3, np.ceil(entries.exclude(excluded=True).count() * 0.05)))
+    if not user.is_anonymous:
+        q |= Q(user=user)
+
+    entries = entries.filter(q)
 
     if not user.is_staff:
         entries = entries.filter(excluded=False)

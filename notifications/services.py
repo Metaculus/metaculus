@@ -525,6 +525,9 @@ class NotificationPostCPChange(NotificationTypeSimilarPostsMixin, NotificationTy
         question_data: list[CPChangeData]
         last_sent: str
 
+        def format_last_sent(self):
+            return date_parse(self.last_sent) if self.last_sent else None
+
     @classmethod
     def generate_subject_group(cls, recipient: User):
         """

@@ -422,15 +422,15 @@ const QuestionForm: FC<Props> = ({
             // @ts-ignore
             defaultOpenUpperBound={post?.question?.open_upper_bound}
             defaultZeroPoint={post?.question?.scaling.zero_point}
-            hasForecasts={hasForecasts}
+            hasForecasts={hasForecasts && mode !== "create"}
             canSeeLogarithmic={
               post?.user_permission === ProjectPermissions.ADMIN || !post
             }
             onChange={(
               rangeMin,
               rangeMax,
-              openLowerBound,
               openUpperBound,
+              openLowerBound,
               zeroPoint
             ) => {
               control.setValue("scaling", {
