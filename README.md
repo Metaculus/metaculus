@@ -1,6 +1,7 @@
 ![Metaculus logo-blue on transparent](https://github.com/user-attachments/assets/70edc5dd-f334-4d56-91a3-82b117572c30)
 
-This is the codebase for the rewritten main [Metaculus website](https://metaculus.com).
+This is the codebase for the open source [Metaculus website](https://metaculus.com).
+This readme is a work in progress. Feel free to suggest edits or [open an issue](https://github.com/Metaculus/metaculus/issues) if you have any questions.
 
 
 # Contributing
@@ -13,78 +14,196 @@ We curate a [list of issues suitable for newcomers](https://github.com/Metaculus
 
 Feel free to suggest your own changes and ideas as an issue. We'll discuss it and help you get started on implementing it.
 
-# Setup dev env.
+# Setup
 
-### 0. Setup environment
-- Install Postgres
-- Install redis
-- Install poetry and python 3.12
-- Install node
-- Install [pgvector](https://github.com/pgvector/pgvector) database extension
+To run this project locally, you'll need python, poetry, django, postgres, redis, and npm/node. This will be a 
+quick rundown of the setup process.
+(Note: all commands written for a unix bash shell)
 
-### 1. Setup Backend
-`poetry install`
-(optional) `poetry run python manage.py mjml_compose`
+## .env file
+Create a `.env` file in the root directory of the project by copying the `.env.example` file.
+This will hold all of the environment variables that are used by the project. For example, adding `DEBUG=true` will give you access to the django debug toolbar in bowser.
 
-### 2. Setup test database
-Create a database called `metaculus` and then load our testing database dump (available as a [release](https://github.com/Metaculus/metaculus/releases/latest) artefact)
+## Database
+Install Postgres - your database manager:
+>`sudo apt install postgresql`
+
+Create a database:
+You'll need to create a database for the data. The default name will be `metaculus` which is how it is referenced throughout this codebase, but if you name yours differently you may have to change some commands and a few instances within files. (TODO: list locations in codebase to change)
+```bash
+sudo -u postgres psql # start up postgres
+```
+Then in the postgres shell:
+```sql
+CREATE DATABASE metaculus;
+```
+You may have to give metaculus a superuser as an owner, which you can do with:
+```sql
+CREATE USER postgres WITH SUPERUSER;
+ALTER USER postgres WITH PASSWORD 'postgres';
+ALTER DATABASE metaculus WITH OWNER postgres;
+```
+Note: to leave psql, type `\q`
+
+Next, add the database name to your `.env` file:
+```
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/metaculus
+```
+You may have to start postgresql manually when starting your server. You can do this by running `sudo service postgresql start`
+
+The last step in getting your database ready is adding the [pgvector](https://github.com/pgvector/pgvector) database extension:
+**Note:** Replace 16 with your Postgres server version
+```bash
+sudo apt install postgresql-16-pgvector
+```
+>Installing pgvector on Mac:
+>1. `git clone https://github.com/pgvector/pgvector.git`
+>2. `cd pgvector`
+>3. Find out your `pg_config` path\
+>A few common paths on Mac are:
+>   - EDB installer: `/Library/PostgreSQL/16/bin/pg_config`
+>   - Homebrew (arm64): `/opt/homebrew/opt/postgresql@16/bin/pg_config`
+>   - Homebrew (x86-64): `/usr/local/opt/postgresql@16/bin/pg_config`\
+>**Note:** Replace 16 with your Postgres server version
+>4. `export PG_CONFIG=path/to/pg_config`
+>5. `make`
+>6. `make install`
+>7. Connect to psql and enable extension: `CREATE EXTENSION vector;`
+>Other installations and detailed instructions - https://github.com/pgvector/pgvector
+
+Then enable the extension:
+```bash
+sudo -u postgres psql # start up postgres
+```
+```sql
+CREATE EXTENSION vector;
+```
+
+## Redis
+You'll need redis for caching and some background tasks.
+Install redis:
+```bash
+sudo apt install redis-server
+```
+You can start redis with `sudo service redis-server start`
+That should be it for redis.
+
+## Pyenv, Poetry, and Python & Dependencies
+You'll need to install python version 3.12.3 (or higher), and we use poety for dependency management.
+We recommend using pyenv to manage python versions.
+Install pyenv:
+```bash
+curl https://pyenv.run | bash
+```
+Then, install python 3.12.3:
+```bash
+pyenv install 3.12.3
+pyenv global 3.12.3
+```
+Install poetry:
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+If all is intalled properly, you should be able to run `poetry --version` and get 3.12.3.
+It is also useful to know that you can run `poetry env use 3.12.3` to switch to a specific python version. And to use `poetry shell` to enter a poetry shell so you won't have to prefix all of the python commands with `poetry run`.
+
+With that, you should be good to start installing the python dependencies.
+```bash
+poetry install
+```
+
+## Nvm/Node & Frontend
+You'll need node to build the frontend. We use nvm for managing node versions.
+Install nvm with:
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+```
+Then, install node 18.16.0:
+```bash
+nvm install 18.16.0
+nvm use 18.16.0
+```
+To install the frontend dependencies, run:
+```bash
+cd front_end
+npm install
+```
+Note: you have to switch to the front_end directory to run the npm commands as they are all nested there.
+
+## Running the server
+The first time you're booting up the server, make sure postgres is running (`sudo service postgresql start`), then you'll need to run the migrations and collect static files.
+Running migrations:
+```bash
+poetry run python manage.py migrate
+```
+Collecting static files:
+```bash
+poetry run python manage.py collectstatic
+```
+Then you can run the server with:
+```bash
+poetry run python manage.py runserver
+```
+
+## Running the frontend
+Running the front end is pretty easy. Note that you'll have to navidate to the `font_end` directory first.
+```bash
+cd front_end
+npm run dev
+```
+
+## Running the task broker
+We use dramatiq for our task broker. To run it, you'll need to run the following command:
+```bash
+poetry run python manage.py rundramatiq
+```
+This will handle asynchronous tasks such as scoring questions, evaluating metrics like "movement", and processing notifications.
+
+
+# Misc
+Here are some other useful things to know about
+
+## Testing
+To run the backend tests, you can run:
+```bash
+poetry run pytest
+```
+(TODO: add front end testing)
+When contributing to the project, adding tests is highly encouraged and will increase the likelihood of your PR being merged. We 
+
+## Mjml
+We use mjml to generate html emails. To edit emails, you'll edit a mjml template and in order to have the html automatically updated, you'll need to run the following command:
+```bash
+poetry run python manage.py mjml_compose
+```
+
+## Setup a test database
+If you want to populate your database with some example data, you can load our testing database dump (available as a [release](https://github.com/Metaculus/metaculus/releases/latest) artefact)
 ```
 wget https://github.com/Metaculus/metaculus/releases/latest/download/test_metaculus.sql.zip
 unzip test_metaculus.sql.zip
 pg_restore -d metaculus test_metaculus.sql
 ```
+and then run migrations to make sure the database is up to date:
+```bash
+poetry run python manage.py migrate
+```
 
-and then:
+## Linting
+We use Husky to run linter and typescript checks before committing (see `front_end/.husky`).
 
-`poetry run python3 manage.py migrate`
-
-
-### 3. Setup Frontend
-`cd front_end && npm install`
-`cd front_end && npm run dev`
-
-### 4. Cache & Async Tasks
-`python manage.py rundramatiq`
-
-### 5. Run tests
-`@TODO`
+## Restricted Dev Access
+To enable restricted Dev access, you need to add `ALPHA_ACCESS_TOKEN=<token>` as an env variable for both the BE and the FE (both the FE server & the env where the FE is compiled, which should be the same in most cases)
 
 
-## Misc
-- We use Husky to run linter and typescript checks before committing (see `front_end/.husky`).
-- To enable restricted Dev access, you need to add `ALPHA_ACCESS_TOKEN=<token>` as an env variable for both the BE and the FE (both the FE server & the env where the FE is compiled, which should be the same in most cases)
-
-
-### Email
+## Email
 We use Django Anymail to integrate various email providers through a single library, simplifying our email management
 By default, we use the Mailgun provider.
 
-Env Configuration:
+`.env` Configuration:
 - `MAILGUN_API_KEY`
 - `EMAIL_HOST_USER`
 
-### How to install PG vectors
-
-#### Ubuntu
-1. `sudo apt install postgresql-15-pgvector`\
-**Note:** Replace 16 with your Postgres server version
-2. Connect to psql and enable extension: `CREATE EXTENSION vector;`
-
-#### MacOS
-1. `git clone https://github.com/pgvector/pgvector.git`
-2. `cd pgvector`
-3. Find out your `pg_config` path\
-A few common paths on Mac are:
-   - EDB installer: `/Library/PostgreSQL/16/bin/pg_config`
-   - Homebrew (arm64): `/opt/homebrew/opt/postgresql@16/bin/pg_config`
-   - Homebrew (x86-64): `/usr/local/opt/postgresql@16/bin/pg_config`\
-**Note:** Replace 16 with your Postgres server version
-4. `export PG_CONFIG=path/to/pg_config`
-5. `make`
-6. `make install`
-7. Connect to psql and enable extension: `CREATE EXTENSION vector;`
-
-Other installations and detailed instructions - https://github.com/pgvector/pgvector
 
 # Bug Bounty
 
