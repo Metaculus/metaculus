@@ -39,6 +39,7 @@ const LeaderboardRow: FC<Props> = ({
     contribution_count,
     score,
     medal,
+    excluded,
   } = rowEntry;
 
   return (
@@ -51,7 +52,7 @@ const LeaderboardRow: FC<Props> = ({
         },
         {
           "bg-purple-200 hover:bg-purple-300 dark:bg-purple-200-dark hover:dark:bg-purple-300-dark":
-            !isUserRow && !!user?.is_staff,
+            !isUserRow && excluded,
         }
       )}
     >
