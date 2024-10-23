@@ -44,7 +44,6 @@ export type PostsParams = PaginationParams & {
 };
 
 export type ApprovePostParams = {
-  question_id: number;
   open_time: string;
   cp_reveal_time: string;
 };
@@ -139,7 +138,7 @@ class PostsApi {
     return await post(`/posts/${id}/make-draft/`, {});
   }
 
-  static async approvePost(id: number, params: ApprovePostParams[]) {
+  static async approvePost(id: number, params: ApprovePostParams) {
     return await post(`/posts/${id}/approve/`, params);
   }
 

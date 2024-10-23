@@ -1,10 +1,10 @@
 "use client";
 
-import { faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
 import { forEach } from "lodash";
+import { vacuumImpedanceDependencies } from "mathjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -12,8 +12,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
+import GroupFormBulkModal, {
+  BulkBulkQuestionAttrs,
+} from "@/app/(main)/questions/components/group_form_bulk_modal";
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
+import DatetimeUtc from "@/components/ui/datetime_utc";
 import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -21,6 +25,7 @@ import { MarkdownText } from "@/components/ui/markdown_text";
 import {
   Category,
   Post,
+  PostStatus,
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
@@ -28,7 +33,7 @@ import { Tournament, TournamentPreview } from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
-import { extractQuestionGroupName, getQuestionStatus } from "@/utils/questions";
+import { extractQuestionGroupName } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
@@ -88,6 +93,7 @@ const GroupForm: React.FC<Props> = ({
   const router = useRouter();
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState<boolean>();
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [error, setError] = useState<
     (Error & { digest?: string }) | string | undefined
   >();
@@ -119,6 +125,8 @@ const GroupForm: React.FC<Props> = ({
         title: `${data["title"]} (${x.label})`,
         scheduled_close_time: x.scheduled_close_time,
         scheduled_resolve_time: x.scheduled_resolve_time,
+        open_time: x.open_time,
+        cp_reveal_time: x.cp_reveal_time,
       };
 
       if (subtype === QuestionType.Binary) {
@@ -207,6 +215,8 @@ const GroupForm: React.FC<Props> = ({
             id: x.id,
             scheduled_close_time: x.scheduled_close_time,
             scheduled_resolve_time: x.scheduled_resolve_time,
+            open_time: x.open_time,
+            cp_reveal_time: x.cp_reveal_time,
             label: extractQuestionGroupName(x.title),
             scaling: x.scaling,
           };
@@ -246,6 +256,18 @@ const GroupForm: React.FC<Props> = ({
 
   const { title: formattedQuestionType, description: questionDescription } =
     questionSubtypeDisplayMap[subtype] || { title: subtype, description: "" };
+
+  const onBulkEdit = (attrs: BulkBulkQuestionAttrs) => {
+    setSubQuestions(
+      subQuestions.map((subQuestion) => ({
+        ...subQuestion,
+        ...attrs,
+      }))
+    );
+  };
+
+  const isEditingActivePost =
+    mode == "edit" && post?.curation_status == PostStatus.APPROVED;
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 py-4 pb-5 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -415,85 +437,108 @@ const GroupForm: React.FC<Props> = ({
                   />
                 </InputContainer>
                 {collapsedSubQuestions[index] && (
-                  <div className="flex w-full flex-col gap-4 md:flex-row">
-                    <InputContainer
-                      labelText={t("closingDate")}
-                      className="w-full"
-                    >
-                      <Input
-                        readOnly={subquestionHasForecasts && mode !== "create"}
-                        type="datetime-local"
-                        className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                        defaultValue={
-                          subQuestions[index].scheduled_close_time
-                            ? format(
-                                new Date(
-                                  subQuestions[index].scheduled_close_time
-                                ),
-                                "yyyy-MM-dd'T'HH:mm"
-                              )
-                            : undefined
-                        }
-                        onChange={(e) => {
-                          setSubQuestions(
-                            subQuestions.map((subQuestion, iter_index) => {
-                              if (index === iter_index) {
-                                subQuestion.scheduled_close_time =
-                                  e.target.value;
-                              }
-                              return subQuestion;
-                            })
-                          );
-                        }}
-                      />
-                    </InputContainer>
-                    <InputContainer
-                      labelText={t("resolvingDate")}
-                      className="w-full"
-                    >
-                      <Input
-                        readOnly={subquestionHasForecasts && mode !== "create"}
-                        type="datetime-local"
-                        className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
-                        defaultValue={
-                          subQuestions[index].scheduled_resolve_time
-                            ? format(
-                                new Date(
-                                  subQuestions[index].scheduled_resolve_time
-                                ),
-                                "yyyy-MM-dd'T'HH:mm"
-                              )
-                            : undefined
-                        }
-                        onChange={(e) => {
-                          setSubQuestions(
-                            subQuestions.map((subQuestion, iter_index) => {
-                              if (index === iter_index) {
-                                subQuestion.scheduled_resolve_time =
-                                  e.target.value;
-                              }
-                              return subQuestion;
-                            })
-                          );
-                        }}
-                      />
-                    </InputContainer>
+                  <div className="flex w-full flex-col gap-4">
+                    <div className="flex flex-row gap-4">
+                      <InputContainer
+                        labelText={t("closingDate")}
+                        className="w-full"
+                      >
+                        <DatetimeUtc
+                          readOnly={
+                            subquestionHasForecasts && mode !== "create"
+                          }
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          defaultValue={subQuestion.scheduled_close_time}
+                          onChange={(value) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index) {
+                                  subQuestion.scheduled_close_time = value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </InputContainer>
+                      <InputContainer
+                        labelText={t("resolvingDate")}
+                        className="w-full"
+                      >
+                        <DatetimeUtc
+                          readOnly={
+                            subquestionHasForecasts && mode !== "create"
+                          }
+                          className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                          defaultValue={subQuestion.scheduled_resolve_time}
+                          onChange={(value) => {
+                            setSubQuestions(
+                              subQuestions.map((subQuestion, iter_index) => {
+                                if (index === iter_index) {
+                                  subQuestion.scheduled_resolve_time = value;
+                                }
+                                return subQuestion;
+                              })
+                            );
+                          }}
+                        />
+                      </InputContainer>
+                    </div>
+                    {isEditingActivePost && (
+                      <div className="flex flex-row gap-4">
+                        <InputContainer
+                          labelText={t("openTime")}
+                          className="w-full"
+                        >
+                          <DatetimeUtc
+                            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                            defaultValue={subQuestion.open_time}
+                            onChange={(e) => {
+                              setSubQuestions(
+                                subQuestions.map((subQuestion, iter_index) => {
+                                  if (index === iter_index) {
+                                    subQuestion.open_time =
+                                      vacuumImpedanceDependencies;
+                                  }
+                                  return subQuestion;
+                                })
+                              );
+                            }}
+                          />
+                        </InputContainer>
+                        <InputContainer
+                          labelText={t("cpRevealTime")}
+                          className="w-full"
+                        >
+                          <DatetimeUtc
+                            className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                            defaultValue={subQuestion.cp_reveal_time}
+                            onChange={(value) => {
+                              setSubQuestions(
+                                subQuestions.map((subQuestion, iter_index) => {
+                                  if (index === iter_index) {
+                                    subQuestion.cp_reveal_time = value;
+                                  }
+                                  return subQuestion;
+                                })
+                              );
+                            }}
+                          />
+                        </InputContainer>
+                      </div>
+                    )}
                     {(subtype === QuestionType.Date ||
                       subtype === QuestionType.Numeric) && (
                       <NumericQuestionInput
                         // @ts-ignore
                         questionType={subtype}
-                        defaultMin={subQuestions[index].scaling.range_min}
-                        defaultMax={subQuestions[index].scaling.range_max}
+                        defaultMin={subQuestion.scaling.range_min}
+                        defaultMax={subQuestion.scaling.range_max}
                         // @ts-ignore
-                        defaultOpenLowerBound={
-                          subQuestions[index].open_lower_bound
-                        }
+                        defaultOpenLowerBound={subQuestion.open_lower_bound}
                         // @ts-ignore
-                        defaultOpenUpperBound={
-                          subQuestions[index].open_upper_bound
-                        }
-                        defaultZeroPoint={subQuestions[index].zero_point}
+                        defaultOpenUpperBound={subQuestion.open_upper_bound}
+                        defaultZeroPoint={subQuestion.zero_point}
                         hasForecasts={
                           subquestionHasForecasts && mode !== "create"
                         }
@@ -572,66 +617,75 @@ const GroupForm: React.FC<Props> = ({
               </div>
             );
           })}
-          <Button
-            onClick={() => {
-              if (subtype === "numeric") {
-                setSubQuestions([
-                  ...subQuestions,
-                  {
-                    type: "numeric",
-                    label: "",
-                    scheduled_close_time:
-                      control.getValues().scheduled_close_time,
-                    scheduled_resolve_time:
-                      control.getValues().scheduled_resolve_time,
-                    scaling: {
-                      range_min: null,
-                      range_max: null,
-                      zero_point: null,
+          <div className="flex justify-between">
+            <Button
+              onClick={() => {
+                if (subtype === "numeric") {
+                  setSubQuestions([
+                    ...subQuestions,
+                    {
+                      type: "numeric",
+                      label: "",
+                      scheduled_close_time:
+                        control.getValues().scheduled_close_time,
+                      scheduled_resolve_time:
+                        control.getValues().scheduled_resolve_time,
+                      scaling: {
+                        range_min: null,
+                        range_max: null,
+                        zero_point: null,
+                      },
+                      open_lower_bound: null,
+                      open_upper_bound: null,
                     },
-                    open_lower_bound: null,
-                    open_upper_bound: null,
-                  },
-                ]);
-              } else if (subtype === "date") {
-                setSubQuestions([
-                  ...subQuestions,
-                  {
-                    type: "date",
-                    label: "",
-                    scheduled_close_time:
-                      control.getValues().scheduled_close_time,
-                    scheduled_resolve_time:
-                      control.getValues().scheduled_resolve_time,
-                    scaling: {
-                      range_min: null,
-                      range_max: null,
-                      zero_point: null,
+                  ]);
+                } else if (subtype === "date") {
+                  setSubQuestions([
+                    ...subQuestions,
+                    {
+                      type: "date",
+                      label: "",
+                      scheduled_close_time:
+                        control.getValues().scheduled_close_time,
+                      scheduled_resolve_time:
+                        control.getValues().scheduled_resolve_time,
+                      scaling: {
+                        range_min: null,
+                        range_max: null,
+                        zero_point: null,
+                      },
+                      open_lower_bound: null,
+                      open_upper_bound: null,
                     },
-                    open_lower_bound: null,
-                    open_upper_bound: null,
-                  },
-                ]);
-              } else {
-                setSubQuestions([
-                  ...subQuestions,
-                  {
-                    type: "binary",
-                    label: "",
-                    scheduled_close_time:
-                      control.getValues().scheduled_close_time,
-                    scheduled_resolve_time:
-                      control.getValues().scheduled_resolve_time,
-                  },
-                ]);
-              }
-              setCollapsedSubQuestions([...collapsedSubQuestions, true]);
-            }}
-            className="w-fit capitalize"
-          >
-            <FontAwesomeIcon icon={faPlus} />
-            {t("newSubquestion")}
-          </Button>
+                  ]);
+                } else {
+                  setSubQuestions([
+                    ...subQuestions,
+                    {
+                      type: "binary",
+                      label: "",
+                      scheduled_close_time:
+                        control.getValues().scheduled_close_time,
+                      scheduled_resolve_time:
+                        control.getValues().scheduled_resolve_time,
+                    },
+                  ]);
+                }
+                setCollapsedSubQuestions([...collapsedSubQuestions, true]);
+              }}
+              className="w-fit capitalize"
+            >
+              <FontAwesomeIcon icon={faPlus} />
+              {t("newSubquestion")}
+            </Button>
+            <Button
+              className="w-fit capitalize"
+              onClick={() => setIsBulkModalOpen(true)}
+              variant="link"
+            >
+              {t("bulkEdit")}
+            </Button>
+          </div>
         </div>
 
         <div className="flex-col">
@@ -651,6 +705,18 @@ const GroupForm: React.FC<Props> = ({
             {mode === "create" ? t("createQuestion") : t("editQuestion")}
           </Button>
         </div>
+        <GroupFormBulkModal
+          isOpen={isBulkModalOpen}
+          setIsOpen={setIsBulkModalOpen}
+          onSubmit={onBulkEdit}
+          fields={[
+            "scheduled_close_time",
+            "scheduled_resolve_time",
+            ...(isEditingActivePost
+              ? (["open_time", "cp_reveal_time"] as const)
+              : []),
+          ]}
+        />
       </form>
     </main>
   );

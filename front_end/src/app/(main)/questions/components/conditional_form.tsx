@@ -108,18 +108,17 @@ const ConditionalForm: React.FC<{
       );
     }
 
-    if (parentId && childId) {
-      let post_data: PostCreationData = {
-        default_project: data["default_project"],
-        conditional: {
-          condition_id: parentId as number,
-          condition_child_id: childId as number,
-        },
-      };
+    let post_data: PostCreationData = {
+      default_project: data["default_project"],
+      conditional: {
+        condition_id: parentId as number,
+        condition_child_id: childId as number,
+      },
+    };
+    try {
+      if (parentId && childId) {
+        let resp: { post: Post };
 
-      let resp: { post: Post };
-
-      try {
         if (mode == "edit") {
           resp = await updatePost(post?.id as number, post_data);
         } else {
@@ -127,13 +126,13 @@ const ConditionalForm: React.FC<{
         }
 
         router.push(getPostLink(resp.post));
-      } catch (e) {
-        const error = e as Error & { digest?: string };
-        logErrorWithScope(error, post_data);
-        setError(error);
-      } finally {
-        setIsLoading(false);
       }
+    } catch (e) {
+      const error = e as Error & { digest?: string };
+      logErrorWithScope(error, post_data);
+      setError(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

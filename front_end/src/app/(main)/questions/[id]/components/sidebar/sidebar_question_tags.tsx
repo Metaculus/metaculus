@@ -77,7 +77,7 @@ const SidebarQuestionTags: FC<Props> = ({
           <Chip
             color="olive"
             key={element.id}
-            href={`/questions/?${POST_CATEGORIES_FILTER}=${element.slug}`}
+            href={`/questions/?${POST_CATEGORIES_FILTER}=${element.slug}&for_main_feed=false`}
           >
             {element.name}
           </Chip>
@@ -86,7 +86,7 @@ const SidebarQuestionTags: FC<Props> = ({
         {tagsToShow.map((element) => (
           <Chip
             key={element.id}
-            href={`/questions/?${POST_TAGS_FILTER}=${element.slug}`}
+            href={`/questions/?${POST_TAGS_FILTER}=${element.slug}&for_main_feed=false`}
             color="blue"
             xMark={allowModifications}
             onXMarkClick={async () => {
