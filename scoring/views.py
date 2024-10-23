@@ -53,11 +53,13 @@ def global_leaderboard(
     entries = entries.filter(
         Q(medal__isnull=False)
         | Q(rank__lte=max(3, np.ceil(entries.exclude(excluded=True).count() * 0.05)))
-        | Q(user=user)
+        | Q(user_id=user.id)
     )
 
     if not user.is_staff:
-        entries = entries.filter(excluded=False)
+        entries = entries.filter(
+            Q(excluded=False) | Q(aggregation_method__isnull=False)
+        )
 
     leaderboard_data["entries"] = LeaderboardEntrySerializer(entries, many=True).data
     # add user entry
