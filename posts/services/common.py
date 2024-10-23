@@ -1,5 +1,5 @@
 import logging
-from datetime import timedelta
+from datetime import timedelta, date
 
 from django.db.models import Q, Count, Sum, Value, Case, When, F
 from django.db.models.functions import Coalesce
@@ -349,26 +349,19 @@ def compute_hotness():
     qs.update(hotness=F("hotness_value"))
 
 
-def approve_post(post: Post, questions: list[dict] = None):
+def approve_post(post: Post, open_time: date, cp_reveal_time: date):
     if post.curation_status == Post.CurationStatus.APPROVED:
         raise ValidationError("Post is already approved")
 
     post.update_curation_status(Post.CurationStatus.APPROVED)
-    post_questions_map = {q.pk: q for q in post.get_questions()}
+    questions = post.get_questions()
 
-    for params in questions:
-        question = post_questions_map.get(params["question_id"])
-
-        if not question:
-            raise ValueError("Wrong question ID")
-
-        question.open_time = params["open_time"]
-        question.cp_reveal_time = params["cp_reveal_time"]
+    for question in questions:
+        question.open_time = open_time
+        question.cp_reveal_time = cp_reveal_time
 
     post.save()
-    Question.objects.bulk_update(
-        list(post_questions_map.values()), fields=["open_time", "cp_reveal_time"]
-    )
+    Question.objects.bulk_update(questions, fields=["open_time", "cp_reveal_time"])
 
 
 def submit_for_review_post(post: Post):
