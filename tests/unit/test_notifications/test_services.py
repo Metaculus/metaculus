@@ -126,6 +126,7 @@ class TestNotificationCPChange:
                         cp_change_value=0.3,
                     )
                 ],
+                last_sent="SOME TIME AGO",
             ),
         )
         factory_notification(
@@ -143,6 +144,7 @@ class TestNotificationCPChange:
                         cp_change_value=0.25,
                     )
                 ],
+                last_sent="SOME TIME AGO",
             ),
         )
 
@@ -162,6 +164,7 @@ class TestNotificationCPChange:
                         cp_change_value=0.7,
                     )
                 ],
+                last_sent="SOME TIME AGO",
             ),
         )
 
