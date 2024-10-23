@@ -144,9 +144,7 @@ const ConditionalTile: FC<Props> = ({
           </ConditionalCard>
           <ConditionalCard
             title={getConditionalQuestionTitle(question_no)}
-            href={
-              withNavigation ? `/questions/${condition_child.id}` : undefined
-            }
+            href={withNavigation ? conditionChildHref : undefined}
           >
             <ConditionalChart
               question={question_no}
