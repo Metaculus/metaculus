@@ -1,4 +1,6 @@
 import { format } from "date-fns";
+import { isNil } from "lodash";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 
 import Checkbox from "@/components/ui/checkbox";
@@ -6,7 +8,12 @@ import { Input } from "@/components/ui/form_field";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { QuestionType } from "@/types/question";
 
-import ContinuousPredictionChart from "../[id]/components/forecast_maker/continuous_prediction_chart";
+const ContinuousPredictionChart = dynamic(
+  () => import("../[id]/components/forecast_maker/continuous_prediction_chart"),
+  {
+    ssr: false,
+  }
+);
 
 const NumericQuestionInput: React.FC<{
   onChange: (
@@ -135,6 +142,14 @@ const NumericQuestionInput: React.FC<{
   const isMounted = useRef(false);
   useEffect(() => {
     if (!isMounted.current) {
+      onChange(
+        min as number,
+        max as number,
+        openUpperBound,
+        openLowerBound,
+        zeroPoint
+      );
+
       isMounted.current = true;
       return;
     }
@@ -165,7 +180,7 @@ const NumericQuestionInput: React.FC<{
 
   return (
     <div>
-      {errors.length > 0 && (
+      {errors.length > 0 && isMounted.current && (
         <div className="mb-4 mt-2 flex flex-col gap-2 rounded-md bg-red-400 px-2 py-1 text-white">
           {errors.map((error, index) => {
             return <div key={index}>{error}</div>;
@@ -326,7 +341,7 @@ const NumericQuestionInput: React.FC<{
               ))}
           </div>
         )}
-        {errors.length === 0 && isMounted.current && (
+        {errors.length === 0 && !isNil(max) && !isNil(min) && (
           <>
             Example input chart:
             <ContinuousPredictionChart
