@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import React, { FC, useState } from "react";
+import React, { FC } from "react";
 
 import Button from "@/app/(main)/about/components/Button";
 import NumericGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/numeric_group_chart";
@@ -18,6 +18,7 @@ import { sortGroupPredictionOptions } from "@/utils/questions";
 
 import BinaryGroupChart from "./binary_group_chart";
 import ContinuousGroupTimeline from "../continuous_group_timeline";
+import { useHideCP } from "../cp_provider";
 
 type Props = {
   questions: QuestionWithForecasts[];
@@ -40,10 +41,7 @@ const DetailedGroupCard: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const groupType = questions.at(0)?.type;
-  const { user } = useAuth();
-  const [hideCommunityPrediction, setHideCommunityPrediction] = useState(
-    user && user.hide_community_prediction
-  );
+  const { hideCP, setCurrentHideCP } = useHideCP();
 
   if (!groupType) {
     return (
@@ -84,17 +82,6 @@ const DetailedGroupCard: FC<Props> = ({
     );
   }
 
-  if (hideCommunityPrediction && !oneQuestionClosed) {
-    return (
-      <div className="text-center">
-        <div className="text-l m-4">{t("CPIsHidden")}</div>
-        <Button onClick={() => setHideCommunityPrediction(false)}>
-          {t("RevealTemporarily")}
-        </Button>
-      </div>
-    );
-  }
-
   switch (graphType) {
     case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
       const sortedQuestions = sortGroupPredictionOptions(
@@ -104,29 +91,51 @@ const DetailedGroupCard: FC<Props> = ({
       switch (groupType) {
         case QuestionType.Binary: {
           return (
-            <BinaryGroupChart
-              actualCloseTime={
-                actualCloseTime ? new Date(actualCloseTime).getTime() : null
-              }
-              questions={sortedQuestions}
-              timestamps={timestamps}
-              preselectedQuestionId={preselectedQuestionId}
-              isClosed={isClosed}
-            />
+            <>
+              <BinaryGroupChart
+                actualCloseTime={
+                  actualCloseTime ? new Date(actualCloseTime).getTime() : null
+                }
+                questions={sortedQuestions}
+                timestamps={timestamps}
+                preselectedQuestionId={preselectedQuestionId}
+                isClosed={isClosed}
+                hideCP={hideCP}
+              />
+              {hideCP && (
+                <div className="text-center">
+                  <div className="text-l m-4">{t("CPIsHidden")}</div>
+                  <Button onClick={() => setCurrentHideCP(false)}>
+                    {t("RevealTemporarily")}
+                  </Button>
+                </div>
+              )}
+            </>
           );
         }
         case QuestionType.Numeric:
         case QuestionType.Date:
           return (
-            <ContinuousGroupTimeline
-              actualCloseTime={
-                actualCloseTime ? new Date(actualCloseTime).getTime() : null
-              }
-              questions={sortedQuestions}
-              timestamps={timestamps}
-              isClosed={isClosed}
-              preselectedQuestionId={preselectedQuestionId}
-            />
+            <>
+              <ContinuousGroupTimeline
+                actualCloseTime={
+                  actualCloseTime ? new Date(actualCloseTime).getTime() : null
+                }
+                questions={sortedQuestions}
+                timestamps={timestamps}
+                isClosed={isClosed}
+                preselectedQuestionId={preselectedQuestionId}
+                hideCP={hideCP}
+              />
+              {hideCP && (
+                <div className="text-center">
+                  <div className="text-l m-4">{t("CPIsHidden")}</div>
+                  <Button onClick={() => setCurrentHideCP(false)}>
+                    {t("RevealTemporarily")}
+                  </Button>
+                </div>
+              )}
+            </>
           );
         default:
           return null;

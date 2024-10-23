@@ -72,6 +72,17 @@ const ProjectLeaderboardTable: FC<Props> = ({
           </tr>
         </thead>
         <tbody>
+          {leaderboardDetails.userEntry && (
+            <TableRow
+              key={
+                leaderboardDetails.userEntry.user?.id ??
+                leaderboardDetails.userEntry.aggregation_method
+              }
+              rowEntry={leaderboardDetails.userEntry}
+              userId={userId}
+              withCoverage={withCoverage}
+            />
+          )}
           {leaderboardEntries.map((entry) => (
             <TableRow
               key={entry.user?.id ?? entry.aggregation_method}

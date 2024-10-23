@@ -357,6 +357,7 @@ class Post(TimeStampedModel):
     id: int
     votes: QuerySet["Vote"]
     forecasts: QuerySet["Forecast"]
+    subscriptions: QuerySet["PostSubscription"]
 
     # Annotated fields
     user_vote = None
@@ -645,6 +646,9 @@ class Post(TimeStampedModel):
 
 
 class PostSubscription(TimeStampedModel):
+    # typing
+    user_id: int
+
     class SubscriptionType(models.TextChoices):
         CP_CHANGE = "cp_change"
         NEW_COMMENTS = "new_comments"

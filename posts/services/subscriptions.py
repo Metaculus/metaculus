@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from datetime import datetime, timedelta
 
+from dateutil.parser import parse as date_parse
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Q, F, OuterRef, Case, When, Value, IntegerField
 from django.db.models.functions import Coalesce
@@ -252,6 +253,7 @@ def notify_post_cp_change(post: Post):
                 NotificationPostCPChange.ParamsType(
                     post=NotificationPostParams.from_post(post),
                     question_data=question_data,
+                    last_sent=(date_parse(last_sent) if last_sent else None),
                 ),
                 # Send notifications to the users that subscribed to the post CP changes
                 # Or we automatically subscribed them for "Forecasted Questions CP change"

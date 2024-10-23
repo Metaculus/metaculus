@@ -9,6 +9,7 @@ from utils.the_math.formulas import unscaled_location_to_string_location
 
 def _get_row_headers(question: Question) -> list[str]:
     row_headers = [
+        "question",
         "forecaster",
         "prediction_start_time",
         "prediction_end_time",
@@ -48,52 +49,56 @@ def _get_row_headers(question: Question) -> list[str]:
 
 
 def build_csv(
-    question: Question,
-    aggregations: dict[str, list[AggregateForecast | Forecast]],
+    aggregation_dict: dict[Question, dict[str, list[AggregateForecast | Forecast]]],
 ) -> str:
+    if not aggregation_dict:
+        return ""
     output = StringIO()
     writer = csv.writer(output)
+    question = list(aggregation_dict.keys())[0]
     writer.writerow(_get_row_headers(question))
 
-    for method, forecasts in aggregations.items():
-        for forecast in forecasts:
-            new_row = [
-                method,
-                forecast.start_time,
-                forecast.end_time,
-            ]
-            match question.type:
-                case "binary":
-                    new_row.extend(
-                        [
-                            np.round(forecast.get_prediction_values()[1], 7),
-                            np.round(forecast.interval_lower_bounds[1], 7),
-                            np.round(forecast.interval_upper_bounds[1], 7),
-                        ]
-                    )
-                case "multiple_choice":
-                    new_row.extend(np.round(forecast.get_prediction_values(), 7))
-                    new_row.extend(np.round(forecast.interval_lower_bounds, 7))
-                    new_row.extend(np.round(forecast.interval_upper_bounds, 7))
-                case _:
-                    q1 = forecast.interval_lower_bounds[0]
-                    median = forecast.centers[0]
-                    q3 = forecast.interval_upper_bounds[0]
-                    cdf = forecast.forecast_values
-                    new_row.extend(
-                        [
-                            unscaled_location_to_string_location(q1, question),
-                            unscaled_location_to_string_location(median, question),
-                            unscaled_location_to_string_location(q3, question),
-                            np.round(q1, 7),
-                            np.round(median, 7),
-                            np.round(q3, 7),
-                            np.round(cdf[0], 7),
-                            np.round(1 - cdf[-1], 7),
-                        ]
-                    )
-                    new_row.extend(np.round(cdf, 7))
-            writer.writerow(new_row)
+    for question, aggregations in aggregation_dict.items():
+        for method, forecasts in aggregations.items():
+            for forecast in forecasts:
+                new_row = [
+                    question.title,
+                    method,
+                    forecast.start_time,
+                    forecast.end_time,
+                ]
+                match question.type:
+                    case "binary":
+                        new_row.extend(
+                            [
+                                np.round(forecast.get_prediction_values()[1], 7),
+                                np.round(forecast.interval_lower_bounds[1], 7),
+                                np.round(forecast.interval_upper_bounds[1], 7),
+                            ]
+                        )
+                    case "multiple_choice":
+                        new_row.extend(np.round(forecast.get_prediction_values(), 7))
+                        new_row.extend(np.round(forecast.interval_lower_bounds, 7))
+                        new_row.extend(np.round(forecast.interval_upper_bounds, 7))
+                    case _:
+                        q1 = forecast.interval_lower_bounds[0]
+                        median = forecast.centers[0]
+                        q3 = forecast.interval_upper_bounds[0]
+                        cdf = forecast.forecast_values
+                        new_row.extend(
+                            [
+                                unscaled_location_to_string_location(q1, question),
+                                unscaled_location_to_string_location(median, question),
+                                unscaled_location_to_string_location(q3, question),
+                                np.round(q1, 7),
+                                np.round(median, 7),
+                                np.round(q3, 7),
+                                np.round(cdf[0], 7),
+                                np.round(1 - cdf[-1], 7),
+                            ]
+                        )
+                        new_row.extend(np.round(cdf, 7))
+                writer.writerow(new_row)
 
     output.seek(0)
     return output.getvalue()
