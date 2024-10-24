@@ -9,7 +9,7 @@ Transform back to probabilities.
 Normalise to 1 over all outcomes.
 """
 
-from bisect import bisect_left, bisect_right
+from bisect import bisect_left
 from dataclasses import dataclass
 from datetime import datetime
 
