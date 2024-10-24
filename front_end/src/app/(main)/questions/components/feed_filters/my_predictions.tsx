@@ -61,7 +61,7 @@ const MyPredictionsFilters: FC = () => {
         label: t("divergence"),
       },
       {
-        value: QuestionOrder.HotAsc,
+        value: QuestionOrder.LastPredictionTimeAsc,
         label: t("stale"),
       },
       {
