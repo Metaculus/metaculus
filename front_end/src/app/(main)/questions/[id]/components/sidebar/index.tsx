@@ -73,7 +73,9 @@ const Sidebar: FC<Props> = ({
       </div>
 
       <div className="flex flex-col items-start gap-4 self-stretch @container">
-        <SidebarQuestionInfo postData={postData} />
+        <div className="w-full">
+          <SidebarQuestionInfo postData={postData} />
+        </div>
         <SidebarQuestionTags
           postId={postData.id}
           tagData={postData.projects}
