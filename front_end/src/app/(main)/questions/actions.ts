@@ -80,7 +80,7 @@ export async function updatePost(postId: number, body: any) {
   };
 }
 
-export async function approvePost(postId: number, params: ApprovePostParams[]) {
+export async function approvePost(postId: number, params: ApprovePostParams) {
   try {
     await PostsApi.approvePost(postId, params);
     revalidatePath(`/questions/${postId}/`);

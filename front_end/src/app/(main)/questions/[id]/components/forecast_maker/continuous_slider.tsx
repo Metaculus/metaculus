@@ -14,6 +14,7 @@ import { ContinuousAreaGraphType } from "@/types/charts";
 import { QuestionWithNumericForecasts } from "@/types/question";
 
 import ContinuousPredictionChart from "./continuous_prediction_chart";
+import { useHideCP } from "../cp_provider";
 
 type Props = {
   forecast: MultiSliderValue[];
@@ -36,6 +37,7 @@ const ContinuousSlider: FC<Props> = ({
   disabled = false,
 }) => {
   const { user } = useAuth();
+  const { hideCP } = useHideCP();
   const t = useTranslations();
   const [graphType, setGraphType] = useState<ContinuousAreaGraphType>("pmf");
 
@@ -57,7 +59,7 @@ const ContinuousSlider: FC<Props> = ({
         graphType={graphType}
         question={question}
         readOnly={disabled}
-        showCP={!user || !user.hide_community_prediction}
+        showCP={!user || !hideCP || !!question.resolution}
       />
       {!disabled &&
         forecast.map((x, index) => {

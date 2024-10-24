@@ -1,15 +1,15 @@
 "use client";
 import { useTranslations } from "next-intl";
-import React, { FC, useState } from "react";
+import React, { FC } from "react";
 
 import Button from "@/app/(main)/about/components/Button";
-import { useAuth } from "@/contexts/auth_context";
-import { PostStatus, PostWithForecasts } from "@/types/post";
+import { PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 
 import DetailsQuestionCardErrorBoundary from "./error_boundary";
 import MultipleChoiceChartCard from "./multiple_choice_chart_card";
 import NumericChartCard from "./numeric_chart_card";
+import { useHideCP } from "../cp_provider";
 
 type Props = {
   postStatus: PostStatus;
@@ -24,10 +24,8 @@ const DetailedQuestionCard: FC<Props> = ({
 }) => {
   const isForecastEmpty =
     question.aggregations.recency_weighted.history.length === 0;
-  const { user } = useAuth();
-  const [hideCommunityPrediction, setHideCommunityPrediction] = useState(
-    user && user.hide_community_prediction
-  );
+  const { hideCP, setCurrentHideCP } = useHideCP();
+
   const t = useTranslations();
 
   if (isForecastEmpty) {
@@ -46,20 +44,6 @@ const DetailedQuestionCard: FC<Props> = ({
       </>
     );
   }
-  const questionIsClosed = question.actual_close_time
-    ? new Date(question.actual_close_time).getTime() < Date.now()
-    : false;
-
-  if (hideCommunityPrediction && !questionIsClosed) {
-    return (
-      <div className="text-center">
-        <div className="text-l m-4">{t("CPIsHidden")}</div>
-        <Button onClick={() => setHideCommunityPrediction(false)}>
-          {t("RevealTemporarily")}
-        </Button>
-      </div>
-    );
-  }
 
   switch (question.type) {
     case QuestionType.Numeric:
@@ -67,13 +51,29 @@ const DetailedQuestionCard: FC<Props> = ({
     case QuestionType.Binary:
       return (
         <DetailsQuestionCardErrorBoundary>
-          <NumericChartCard question={question} />
+          <NumericChartCard question={question} hideCP={hideCP} />
+          {hideCP && (
+            <div className="text-center">
+              <div className="text-l m-4">{t("CPIsHidden")}</div>
+              <Button onClick={() => setCurrentHideCP(false)}>
+                {t("RevealTemporarily")}
+              </Button>
+            </div>
+          )}
         </DetailsQuestionCardErrorBoundary>
       );
     case QuestionType.MultipleChoice:
       return (
         <DetailsQuestionCardErrorBoundary>
-          <MultipleChoiceChartCard question={question} />
+          <MultipleChoiceChartCard question={question} hideCP={hideCP} />
+          {hideCP && (
+            <div className="text-center">
+              <div className="text-l m-4">{t("CPIsHidden")}</div>
+              <Button onClick={() => setCurrentHideCP(false)}>
+                {t("RevealTemporarily")}
+              </Button>
+            </div>
+          )}
         </DetailsQuestionCardErrorBoundary>
       );
     default:

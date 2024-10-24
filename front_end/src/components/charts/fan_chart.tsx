@@ -43,6 +43,7 @@ type Props = {
   withTooltip?: boolean;
   extraTheme?: VictoryThemeDefinition;
   pointSize?: number;
+  hideCP?: boolean;
 };
 
 const FanChart: FC<Props> = ({
@@ -52,6 +53,7 @@ const FanChart: FC<Props> = ({
   withTooltip = false,
   extraTheme,
   pointSize,
+  hideCP,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -151,16 +153,18 @@ const FanChart: FC<Props> = ({
             },
           ]}
         >
-          <VictoryArea
-            name="fanArea"
-            data={area}
-            style={{
-              data: {
-                opacity: 0.3,
-              },
-            }}
-          />
-          <VictoryLine name="fanLine" data={line} />
+          {!hideCP && (
+            <VictoryArea
+              name="fanArea"
+              data={area}
+              style={{
+                data: {
+                  opacity: 0.3,
+                },
+              }}
+            />
+          )}
+          {!hideCP && <VictoryLine name="fanLine" data={line} />}
           <VictoryAxis
             dependentAxis
             label={yLabel}
@@ -175,24 +179,26 @@ const FanChart: FC<Props> = ({
             }
           />
           <VictoryAxis tickFormat={(_, index) => labels[index]} />
-          <VictoryScatter
-            data={points.map((point) => ({
-              ...point,
-              symbol: "square",
-            }))}
-            style={{
-              data: {
-                fill: () => getThemeColor(METAC_COLORS.olive["800"]),
-                stroke: () => getThemeColor(METAC_COLORS.olive["800"]),
-                strokeWidth: 6,
-                strokeOpacity: ({ datum }) =>
-                  activePoint === datum.x ? 0.3 : 0,
-              },
-            }}
-            dataComponent={
-              <FanPoint activePoint={activePoint} pointSize={pointSize} />
-            }
-          />
+          {!hideCP && (
+            <VictoryScatter
+              data={points.map((point) => ({
+                ...point,
+                symbol: "square",
+              }))}
+              style={{
+                data: {
+                  fill: () => getThemeColor(METAC_COLORS.olive["800"]),
+                  stroke: () => getThemeColor(METAC_COLORS.olive["800"]),
+                  strokeWidth: 6,
+                  strokeOpacity: ({ datum }) =>
+                    activePoint === datum.x ? 0.3 : 0,
+                },
+              }}
+              dataComponent={
+                <FanPoint activePoint={activePoint} pointSize={pointSize} />
+              }
+            />
+          )}
           <VictoryScatter
             data={resolutionPoints.map((point) => ({
               ...point,

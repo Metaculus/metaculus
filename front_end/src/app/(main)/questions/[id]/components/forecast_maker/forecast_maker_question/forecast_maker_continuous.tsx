@@ -1,6 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
-import React, { FC, use, useMemo, useState } from "react";
+import React, { FC, useMemo, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
@@ -20,6 +20,7 @@ import {
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
+import { useHideCP } from "../../cp_provider";
 import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
 import QuestionResolutionButton from "../resolution";
@@ -46,8 +47,9 @@ const ForecastMakerContinuous: FC<Props> = ({
 }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
+  const { hideCP } = useHideCP();
   const [isDirty, setIsDirty] = useState(false);
-
+  const withCommunityQuartiles = !user || !hideCP;
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
   const t = useTranslations();
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
@@ -185,7 +187,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         communityQuartiles={
           communityCdf ? computeQuartilesFromCDF(communityCdf) : undefined
         }
-        withCommunityQuartiles={!user || !user.hide_community_prediction}
+        withCommunityQuartiles={withCommunityQuartiles}
         isDirty={isDirty}
         hasUserForecast={!!prevForecastValue.forecast}
       />

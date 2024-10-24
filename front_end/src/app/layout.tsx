@@ -3,6 +3,7 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import "./globals.css";
+import dynamic from "next/dynamic";
 import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
@@ -18,6 +19,13 @@ import AuthApi from "@/services/auth";
 import ProfileApi from "@/services/profile";
 
 import { CSPostHogProvider } from "./providers";
+
+const PostHogPageView = dynamic(
+  () => import("@/components/posthog_page_view"),
+  {
+    ssr: false,
+  }
+);
 
 config.autoAddCss = false;
 
@@ -128,6 +136,7 @@ export default async function RootLayout({
     >
       <CSPostHogProvider>
         <body className="min-h-screen w-full bg-blue-200 dark:bg-blue-50-dark">
+          <PostHogPageView />
           <AppThemeProvided>
             <NextIntlClientProvider messages={messages}>
               <AuthProvider user={user}>

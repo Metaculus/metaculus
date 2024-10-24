@@ -104,7 +104,10 @@ export function generateFiltersFromSearchParams(
 
   if (typeof searchParams[POST_FOR_MAIN_FEED] === "string") {
     filters.for_main_feed = searchParams[POST_FOR_MAIN_FEED];
-  } else if (typeof defaultForMainFeed !== "undefined") {
+  } else if (
+    typeof defaultForMainFeed !== "undefined" &&
+    !searchParams[POST_TEXT_SEARCH_FILTER]
+  ) {
     filters.for_main_feed = defaultForMainFeed.toString();
   }
 

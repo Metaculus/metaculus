@@ -7,6 +7,7 @@ type Props = {
   disabled?: boolean;
   renderLabel?: (value: number | null) => ReactNode;
   progressColor?: string;
+  hideCP?: boolean;
 };
 
 const ProgressBar: FC<Props> = ({
@@ -15,6 +16,7 @@ const ProgressBar: FC<Props> = ({
   renderLabel,
   disabled = false,
   progressColor,
+  hideCP,
 }) => {
   return (
     <div className="BinaryPredictionBar relative h-5">
@@ -30,7 +32,7 @@ const ProgressBar: FC<Props> = ({
           {renderLabel ? renderLabel(value) : <span>{value}</span>}
         </div>
       </div>
-      {value !== null && (
+      {value !== null && !hideCP && (
         <div
           className={classNames(
             "BinaryPredictionBar-outer absolute left-0 top-0 h-5 overflow-hidden text-gray-0 dark:text-gray-0-dark",

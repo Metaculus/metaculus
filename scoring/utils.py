@@ -233,12 +233,18 @@ def generate_question_writing_leaderboard_entries(
         post = question_post_map.get(question.id)
         forecaster_ids_for_post[post].update(forecasters)
 
+    exclusions = {e.user: e for e in MedalExclusionRecord.objects.all()}
     scores_for_author: dict[User, list[float]] = defaultdict(list)
     for post, forecaster_ids in forecaster_ids_for_post.items():
-        # TODO: support coauthorship
-        author = post.author
-        # we use the h-index by number of forecasters divided by 10
-        scores_for_author[author].append(len(forecaster_ids) / 10)
+        all_authors = [post.author] + list(post.coauthors.all())
+        for author in all_authors:
+            if exclusion := exclusions.get(author):
+                if post.published_at > exclusion.start_time and (
+                    exclusion.end_time is None or post.published_at < exclusion.end_time
+                ):
+                    continue
+            # we use the h-index by number of forecasters divided by 10
+            scores_for_author[author].append(len(forecaster_ids) / 10)
 
     user_entries: dict[User, LeaderboardEntry] = dict()
     for user, scores in scores_for_author.items():
@@ -252,7 +258,7 @@ def generate_question_writing_leaderboard_entries(
         score = decimal_h_index(scores)
         user_entries[user].score = score
         user_entries[user].contribution_count = len(scores)
-    results = [e for e in user_entries.values() if e.score > 0]
+    results = [e for e in user_entries.values()]
     return sorted(results, key=lambda e: e.score, reverse=True)
 
 

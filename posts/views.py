@@ -290,10 +290,10 @@ def post_approve_api_view(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_approve(permission, raise_exception=True)
 
-    serializer = QuestionApproveSerializer(post, data=request.data, many=True)
+    serializer = QuestionApproveSerializer(post, data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    approve_post(post, questions=serializer.validated_data)
+    approve_post(post, **serializer.validated_data)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 

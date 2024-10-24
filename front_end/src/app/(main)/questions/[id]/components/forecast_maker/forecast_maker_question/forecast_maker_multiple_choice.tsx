@@ -24,6 +24,7 @@ import {
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 
+import { useHideCP } from "../../cp_provider";
 import {
   BINARY_FORECAST_PRECISION,
   BINARY_MAX_VALUE,
@@ -59,6 +60,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const { hideCP } = useHideCP();
   const { setCurrentModal } = useModal();
 
   const [isDirty, setIsDirty] = useState(false);
@@ -228,9 +230,7 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
               choiceName={choice.name}
               choiceColor={choice.color}
               communityForecast={
-                !user || !user.hide_community_prediction
-                  ? choice.communityForecast
-                  : null
+                !user || !hideCP ? choice.communityForecast : null
               }
               inputMin={BINARY_MIN_VALUE}
               inputMax={BINARY_MAX_VALUE}

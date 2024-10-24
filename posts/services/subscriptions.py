@@ -252,6 +252,7 @@ def notify_post_cp_change(post: Post):
                 NotificationPostCPChange.ParamsType(
                     post=NotificationPostParams.from_post(post),
                     question_data=question_data,
+                    last_sent=last_sent.isoformat() if last_sent else None,
                 ),
                 # Send notifications to the users that subscribed to the post CP changes
                 # Or we automatically subscribed them for "Forecasted Questions CP change"

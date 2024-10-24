@@ -17,6 +17,7 @@ from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
 from utils.frontend import build_post_comment_url
+from utils.formatters import abbreviated_number
 
 logger = logging.getLogger(__name__)
 
@@ -97,12 +98,24 @@ class CPChangeData:
             "changed": _("changed"),
         }.get(self.cp_change_label, self.cp_change_label)
 
+    def get_cp_change_symbol(self):
+        return {
+            "goneUp": "+",
+            "goneDown": "-",
+            "expanded": "←→",
+            "contracted": "→←",
+            "changed": "↕",
+        }.get(self.cp_change_label, self.cp_change_label)
+
     def format_value(self, value):
         if value is None:
             return "-"
 
         if self.question.type in ("multiple_choice", "binary"):
-            return f"{round(value * 100)}%"
+            return f"{round(value * 100, 2)}%"
+
+        if self.question.type == "numeric":
+            return abbreviated_number(value)
 
         return value
 
@@ -510,6 +523,10 @@ class NotificationPostCPChange(NotificationTypeSimilarPostsMixin, NotificationTy
     class ParamsType:
         post: NotificationPostParams
         question_data: list[CPChangeData]
+        last_sent: str
+
+        def format_last_sent(self):
+            return date_parse(self.last_sent) if self.last_sent else None
 
     @classmethod
     def generate_subject_group(cls, recipient: User):
