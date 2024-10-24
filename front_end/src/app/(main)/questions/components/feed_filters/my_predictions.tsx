@@ -108,7 +108,7 @@ const MyPredictionsFilters: FC = () => {
       QuestionOrder.DivergenceDesc,
       QuestionOrder.ScoreDesc,
       QuestionOrder.ScoreDesc,
-      QuestionOrder.LastPredictionTimeDesc,
+      QuestionOrder.LastPredictionTimeAsc,
       QuestionOrder.HotAsc,
     ].includes(params.get(POST_ORDER_BY_FILTER) as QuestionOrder);
 
@@ -137,6 +137,7 @@ const MyPredictionsFilters: FC = () => {
         QuestionOrder.HotAsc,
         QuestionOrder.UnreadCommentCountDesc,
         QuestionOrder.CloseTimeAsc,
+        QuestionOrder.LastPredictionTimeAsc,
       ].includes(order)
     ) {
       setFilterParam(POST_STATUS_FILTER, "open", false);
