@@ -1,5 +1,6 @@
 "use client";
 
+import { sendGAEvent } from "@next/third-parties/google";
 import { useSearchParams } from "next/navigation";
 import { FC, useEffect, useState } from "react";
 
@@ -39,6 +40,7 @@ const TournamentFeed: FC<Props> = ({ slug }) => {
       setIsLoading(true);
       setError(undefined);
       try {
+        sendGAEvent("event", "feedSearch", { value: pageFilters });
         const { questions } = (await fetchPosts(
           pageFilters,
           0,
