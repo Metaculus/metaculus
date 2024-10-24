@@ -6,6 +6,7 @@ import {
   faHome,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { sendGAEvent } from "@next/third-parties/google";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, useMemo, useState } from "react";
@@ -112,13 +113,23 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               <TopicItem
                 text={t("myPredictions")}
                 emoji={"👤"}
-                onClick={() => switchFeed(FeedType.MY_PREDICTIONS)}
+                onClick={() => {
+                  sendGAEvent("event", "sidebarClick", {
+                    value: t("myPredictions"),
+                  });
+                  switchFeed(FeedType.MY_PREDICTIONS);
+                }}
                 isActive={currentFeed === FeedType.MY_PREDICTIONS}
               />
               <TopicItem
                 text={t("myQuestionsAndPosts")}
                 emoji={"✍️"}
-                onClick={() => switchFeed(FeedType.MY_QUESTIONS_AND_POSTS)}
+                onClick={() => {
+                  sendGAEvent("event", "sidebarClick", {
+                    value: t("myQuestionsAndPosts"),
+                  });
+                  switchFeed(FeedType.MY_QUESTIONS_AND_POSTS);
+                }}
                 isActive={currentFeed === FeedType.MY_QUESTIONS_AND_POSTS}
               />
             </>
@@ -128,12 +139,22 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             emoji="🤖🔭"
             text="AI Benchmarking"
             href="/aib"
+            onClick={() =>
+              sendGAEvent("event", "sidebarClick", {
+                value: "AI Benchmarking",
+              })
+            }
           />
           <TopicItem
             isActive={false}
             emoji="🇺🇸"
             text="2024 US Election Hub"
             href="/experiments/elections"
+            onClick={() =>
+              sendGAEvent("event", "sidebarClick", {
+                value: "2024 US Election Hub",
+              })
+            }
           />
           {!!hotTopics.length && (
             <>
@@ -144,7 +165,12 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                   isActive={selectedTopic === topic.slug}
                   emoji={topic.emoji}
                   text={topic.name}
-                  onClick={() => selectTopic(topic)}
+                  onClick={() => {
+                    sendGAEvent("event", "sidebarClick", {
+                      value: topic.name,
+                    });
+                    selectTopic(topic);
+                  }}
                 />
               ))}
             </>
@@ -159,7 +185,12 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                   isActive={selectedTopic === category.slug}
                   emoji={category.emoji}
                   text={category.name}
-                  onClick={() => selectTopic(category)}
+                  onClick={() => {
+                    sendGAEvent("event", "sidebarClick", {
+                      value: category.name,
+                    });
+                    selectTopic(category);
+                  }}
                 />
               ))}
             </>
@@ -170,13 +201,23 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             text={t("seeAllCategories")}
             emoji={<FontAwesomeIcon icon={faEllipsis} />}
             isActive={false}
+            onClick={() => {
+              sendGAEvent("event", "sidebarClick", {
+                value: t("seeAllCategories"),
+              });
+            }}
           />
           <hr className="mb-0 mt-0"></hr>
           {user && (
             <TopicItem
               text={t("inReview")}
               emoji={<FontAwesomeIcon icon={faFileClipboard} />}
-              onClick={() => switchFeed(FeedType.IN_REVIEW)}
+              onClick={() => {
+                sendGAEvent("event", "sidebarClick", {
+                  value: t("inReview"),
+                });
+                switchFeed(FeedType.IN_REVIEW);
+              }}
               isActive={currentFeed === FeedType.IN_REVIEW}
             />
           )}
