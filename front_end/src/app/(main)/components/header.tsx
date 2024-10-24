@@ -29,6 +29,10 @@ const Header: FC = () => {
 
   const LINKS = [
     {
+      label: "Threshold 2030",
+      href: "/conference",
+    },
+    {
       label: t("questions"),
       href: "/questions",
     },
