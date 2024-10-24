@@ -90,6 +90,8 @@ class CPChangeData:
         return date_parse(self.forecast_date) if self.forecast_date else None
 
     def get_cp_change_label(self):
+        if not self.cp_change_value:
+            return ""
         return {
             "goneUp": _("gone up"),
             "goneDown": _("gone down"),
@@ -99,6 +101,8 @@ class CPChangeData:
         }.get(self.cp_change_label, self.cp_change_label)
 
     def get_cp_change_symbol(self):
+        if not self.cp_change_value:
+            return ""
         return {
             "goneUp": "+",
             "goneDown": "-",
