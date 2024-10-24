@@ -308,7 +308,7 @@ def get_user_forecast_history(
         # Find active timesteps using bisect to find the start & end indexes
         start_index = bisect_left(timesteps, forecast.start_time)
         end_index = (
-            bisect_right(timesteps, forecast.end_time) - 1
+            bisect_left(timesteps, forecast.end_time)
             if forecast.end_time
             else len(timesteps)
         )
