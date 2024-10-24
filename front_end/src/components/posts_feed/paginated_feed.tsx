@@ -1,7 +1,7 @@
 "use client";
-import * as Sentry from "@sentry/nextjs";
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import { FC, Fragment, useState } from "react";
+import { FC, Fragment, useEffect, useState } from "react";
 
 import { fetchMorePosts } from "@/app/(main)/questions/actions";
 import NewsCard from "@/components/news_card";
@@ -42,11 +42,16 @@ const PaginatedPostsFeed: FC<Props> = ({
     (Error & { digest?: string }) | undefined
   >();
 
+  useEffect(() => {
+    // capture search event from AwaitedPostsFeed
+    sendGAEvent("event", "feedSearch", { value: filters });
+  }, [filters]);
   const loadMorePosts = async () => {
     if (hasMoreData) {
       setIsLoading(true);
       setError(undefined);
       try {
+        sendGAEvent("event", "feedSearch", { value: filters });
         const { newPosts, hasNextPage } = await fetchMorePosts(
           filters,
           offset,
