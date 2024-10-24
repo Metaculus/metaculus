@@ -47,6 +47,7 @@ sentry-sdk = "^2.13.0"
 # playwright = "^1.46.0"
 brotli = "^1.1.0"
 uvicorn = "^0.32.0"
+adrf = "^0.1.8"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"

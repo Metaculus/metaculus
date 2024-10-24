@@ -1,12 +1,12 @@
 import logging
-import requests
 from collections import defaultdict
 
-from django.utils import timezone
+import requests
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.http import HttpResponse, HttpResponseNotFound
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from rest_framework import status, serializers
 from rest_framework.decorators import api_view, permission_classes, parser_classes
@@ -47,48 +47,17 @@ from posts.services.feed import get_posts_feed, get_similar_posts
 from posts.services.subscriptions import create_subscription
 from posts.utils import check_can_edit_post
 from projects.permissions import ObjectPermission
+from questions.models import AggregateForecast, Question
 from questions.serializers import (
     QuestionApproveSerializer,
 )
 from questions.types import AggregationMethod
-from questions.models import AggregateForecast, Question
 from users.models import User
+from utils.csv_utils import build_csv
 from utils.files import UserUploadedImage, generate_filename
 from utils.frontend import build_question_embed_url
 from utils.paginator import CountlessLimitOffsetPagination
 from utils.the_math.aggregations import get_aggregation_history
-from utils.csv_utils import build_csv
-
-from django.db import transaction
-from rest_framework.renderers import JSONRenderer
-
-import aiohttp
-from django.conf import settings
-
-@transaction.non_atomic_requests
-async def long_request(request):
-    print("request received. processing...")
-
-    async with aiohttp.ClientSession() as session:
-        headers = {
-            "Authorization": f"Bearer {settings.FAB_CREDITS_OPENAI_API_KEY}",
-            "Content-Type": "application/json",
-        }
-        data = {
-            "model": "gpt-3.5-turbo",
-            "messages": [{"role": "user", "content": "Hi there, what's up. Tell me a very long story."}],
-        }
-        async with session.post(
-            "https://api.openai.com/v1/chat/completions", headers=headers, json=data
-        ) as resp:
-            openai_response = await resp.json()
-
-    response = Response(openai_response)
-    response.accepted_renderer = JSONRenderer()
-    response.accepted_media_type = "application/json"
-    response.renderer_context = {"request": request, "response": response}
-    print("request processed. returning response.")
-    return response
 
 
 @api_view(["GET"])

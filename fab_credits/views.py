@@ -1,14 +1,18 @@
 import json
 import logging
-from typing import Any, Callable  # noqa: UP035
+from typing import Any, Callable
 
-import requests
+import aiohttp
+from adrf.decorators import api_view
 from django.conf import settings
+from django.db import transaction
 from django.http import JsonResponse, StreamingHttpResponse
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 from .models import UserUsage
+
+logger = logging.getLogger(__name__)
 
 
 def is_valid_json(input_string):
@@ -19,81 +23,100 @@ def is_valid_json(input_string):
         return False
 
 
-def streaming_response(
+async def streaming_iterator(
     url,
     headers,
     data,
     platform: UserUsage.UsagePlatform,
     user_usage,
-    get_io_tokens_streaming_fn: Callable[dict[Any], tuple[int | None, int | None]],
+    get_io_tokens_streaming_fn: Callable[[str], tuple[int | None, int | None]],
 ):
-
     if platform == UserUsage.UsagePlatform.OpenAI:
         data["stream_options"] = {"include_usage": True}
 
-    platform_response = requests.post(url, headers=headers, json=data, stream=True)
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, headers=headers, json=data) as response:
+            if response.status >= 400:
+                response_text = await response.text()
+                raise Exception(response_text)
 
-    if not platform_response.ok:
-        raise Exception(platform_response.text)
+            async for line in response.content:
+                line = line.decode("utf-8").replace("\n", "")
 
-    def resp_iterator(response):
-        for line in response.iter_lines():
-            if line:
-                line = f"\n{line.decode('utf-8')}\n"
-                input_tokens, output_tokens = get_io_tokens_streaming_fn(line)
-                if input_tokens is not None or output_tokens is not None:
-                    user_usage.input_tokens_used += input_tokens or 0
-                    user_usage.output_tokens_used += output_tokens or 0
-                    user_usage.save()
-                yield line
+                if line:
+                    line = f"\n{line}\n"
+                    input_tokens, output_tokens = get_io_tokens_streaming_fn(line)
+                    if input_tokens is not None or output_tokens is not None:
+                        user_usage.input_tokens_used += input_tokens or 0
+                        user_usage.output_tokens_used += output_tokens or 0
+                        await user_usage.asave()
 
-    return StreamingHttpResponse(
-        resp_iterator(platform_response), content_type="text/event-stream"
-    )
+                    print(f"LINE: |{line}|")
+
+                    yield line
 
 
-def normal_response(
+async def streaming_response(
     url,
     headers,
     data,
     platform: UserUsage.UsagePlatform,
     user_usage,
-    get_io_tokens_fn: Callable[dict[Any], tuple[int, int]],
+    get_io_tokens_streaming_fn: Callable[[str], tuple[int | None, int | None]],
 ):
-    platform_response = requests.post(
-        url,
-        headers=headers,
-        json=data,
+    """
+    When serving under WSGI, this should be a sync iterator.
+    When serving under ASGI, then it should be an async iterator.
+    """
+
+    return StreamingHttpResponse(
+        streaming_iterator(
+            url, headers, data, platform, user_usage, get_io_tokens_streaming_fn
+        ),
+        content_type="text/event-stream",
     )
-    if not platform_response.ok or not is_valid_json(platform_response.text):
-        raise Exception(platform_response.text)
-
-    response_data = platform_response.json()
-
-    input_tokens, output_tokens = get_io_tokens_fn(response_data)
-
-    user_usage.input_tokens_used += input_tokens
-    user_usage.output_tokens_used += output_tokens
-
-    user_usage.save()
-
-    return JsonResponse(response_data)
 
 
-def make_request(
+async def normal_response(
+    url,
+    headers,
+    data,
+    platform: UserUsage.UsagePlatform,
+    user_usage,
+    get_io_tokens_fn: Callable[[Any], tuple[int, int]],
+):
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, headers=headers, json=data) as platform_response:
+            response_text = await platform_response.text()
+            if platform_response.status != 200 or not is_valid_json(response_text):
+                raise Exception(response_text)
+
+            response_data = json.loads(response_text)
+
+            input_tokens, output_tokens = get_io_tokens_fn(response_data)
+
+            user_usage.input_tokens_used += input_tokens
+            user_usage.output_tokens_used += output_tokens
+
+            user_usage.asave()
+
+            return JsonResponse(response_data)
+
+
+async def make_request(
     user,
     data,
     platform: UserUsage.UsagePlatform,
     model_name: str,
     headers: dict[str, str],
     url: str,
-    get_io_tokens_fn: Callable[dict[Any], tuple[int, int]],
-    get_io_tokens_streaming_fn: Callable[dict[Any], tuple[int, int]],
+    get_io_tokens_fn: Callable[[Any], tuple[int, int]],
+    get_io_tokens_streaming_fn: Callable[[Any], tuple[int, int]],
     streaming_mode: bool,
 ):
-    user_usage = UserUsage.objects.filter(
+    user_usage = await UserUsage.objects.filter(
         user=user, platform=platform, model_name=model_name
-    ).first()
+    ).afirst()
 
     if user_usage is None:
         return JsonResponse(
@@ -113,17 +136,17 @@ def make_request(
 
     try:
         if streaming_mode:
-            return streaming_response(
+            return await streaming_response(
                 url, headers, data, platform, user_usage, get_io_tokens_streaming_fn
             )
         else:
-            return normal_response(
+            return await normal_response(
                 url, headers, data, platform, user_usage, get_io_tokens_fn
             )
 
-    except requests.exceptions.RequestException as e:
+    except aiohttp.ClientError as e:
         error_msg = f"Error forwarding request to {'Anthropic' if platform == UserUsage.UsagePlatform.Anthropic else 'OpenAI'} API: {e}"
-        logging.error(error_msg)
+        logger.exception(error_msg)
         return JsonResponse(
             {"error": error_msg},
             status=400,
@@ -132,13 +155,14 @@ def make_request(
         return JsonResponse({"error": f"An unexpected error occurred: {e}"}, status=400)
 
 
+@transaction.non_atomic_requests
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def openai_v1_chat_completions(request):
-
+async def openai_v1_chat_completions(request):
     headers = {**request.headers}
     headers["Authorization"] = f"Bearer {settings.FAB_CREDITS_OPENAI_API_KEY}"
-    headers.pop("Host")
+    headers.pop("Host", None)
+    headers.pop("Content-Length", None)
 
     try:
         data = json.loads(request.body.decode("utf-8"))
@@ -152,27 +176,30 @@ def openai_v1_chat_completions(request):
 
     def get_io_tokens_fn(data):
         return (
-            data.get("usage").get("prompt_tokens"),
-            data.get("usage").get("completion_tokens"),
+            data.get("usage", {}).get("prompt_tokens", 0),
+            data.get("usage", {}).get("completion_tokens", 0),
         )
 
     def get_io_tokens_streaming_fn(line):
         line = line.strip()
+
+        if not line.startswith("data: "):
+            return None, None
 
         data_str = line[len("data: ") :]
 
         try:
             data = json.loads(data_str)
 
-            if data["usage"] is None:
+            if data.get("usage") is None:
                 return None, None
 
             return get_io_tokens_fn(data)
         except json.JSONDecodeError:
-            # last line is not a valid json, but a [DONE] token after Data
+            # Last line might be '[DONE]' or invalid JSON
             return None, None
 
-    response = make_request(
+    response = await make_request(
         user=request.user,
         data=data,
         platform=UserUsage.UsagePlatform.OpenAI,
@@ -187,12 +214,11 @@ def openai_v1_chat_completions(request):
     return response
 
 
+@transaction.non_atomic_requests
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def anthropic_v1_messages(request):
-
-    headers = {**request.headers}
-    headers["x-api-key"] = settings.FAB_CREDITS_ANTHROPIC_API_KEY
+async def anthropic_v1_messages(request):
+    headers = {**request.headers, "x-api-key": settings.FAB_CREDITS_ANTHROPIC_API_KEY}
     headers.pop("Authorization")
     headers.pop("Host")
 
@@ -230,10 +256,10 @@ def anthropic_v1_messages(request):
 
             return usage_data.get("input_tokens"), usage_data.get("output_tokens")
         except json.JSONDecodeError as e:
-            logging.error("Invalid json data: ", data_str)
+            logger.error("Invalid json data: ", data_str)
             raise e
 
-    response = make_request(
+    response = await make_request(
         user=request.user,
         data=data,
         platform=UserUsage.UsagePlatform.Anthropic,
