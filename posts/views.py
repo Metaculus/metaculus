@@ -1,6 +1,8 @@
 import logging
-
 import requests
+from collections import defaultdict
+
+from django.utils import timezone
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.http import HttpResponse, HttpResponseNotFound
@@ -48,9 +50,14 @@ from projects.permissions import ObjectPermission
 from questions.serializers import (
     QuestionApproveSerializer,
 )
+from questions.types import AggregationMethod
+from questions.models import AggregateForecast, Question
+from users.models import User
 from utils.files import UserUploadedImage, generate_filename
 from utils.frontend import build_question_embed_url
 from utils.paginator import CountlessLimitOffsetPagination
+from utils.the_math.aggregations import get_aggregation_history
+from utils.csv_utils import build_csv
 
 
 @api_view(["GET"])
@@ -283,10 +290,10 @@ def post_approve_api_view(request, pk):
     permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_approve(permission, raise_exception=True)
 
-    serializer = QuestionApproveSerializer(post, data=request.data, many=True)
+    serializer = QuestionApproveSerializer(post, data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    approve_post(post, questions=serializer.validated_data)
+    approve_post(post, **serializer.validated_data)
 
     return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -569,3 +576,90 @@ def post_preview_image(request: Request, pk):
     return HttpResponseNotFound(
         "HTTP 404 - Chart for this question cannot be generated."
     )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def download_csv(request, pk: int):
+    post = get_object_or_404(Post, pk=pk)
+    user: User = request.user
+
+    # Check permissions
+    permission = get_post_permission_for_user(post, user=user)
+    ObjectPermission.can_view(permission, raise_exception=True)
+
+    # Get question
+    if post.group_of_questions:
+        question_id = request.GET.get("sub-question", None)
+        if question_id is None:
+            questions = list(post.group_of_questions.questions.all())
+        else:
+            questions = list(post.group_of_questions.questions.filter(pk=question_id))
+            if not questions:
+                raise NotFound(f"Sub-question with id {question_id} not found.")
+    elif post.conditional:
+        questions = [post.conditional.question_yes, post.conditional.question_no]
+    else:  # post.question
+        questions = [post.question]
+
+    # get and validate aggregation_methods
+    aggregation_methods = request.GET.get("aggregation_methods", "recency_weighted")
+    if aggregation_methods == "all":
+        aggregation_methods = None
+    if aggregation_methods:
+        aggregation_methods: list[AggregationMethod] = aggregation_methods.split(",")
+        for method in aggregation_methods:
+            if method not in AggregationMethod.values:
+                raise PermissionDenied(f"Invalid aggregation method: {method}")
+        if not user.is_staff:
+            aggregation_methods = [
+                method
+                for method in aggregation_methods
+                if method != AggregationMethod.SINGLE_AGGREGATION
+            ]
+    else:
+        aggregation_methods = [
+            AggregationMethod.RECENCY_WEIGHTED,
+            AggregationMethod.UNWEIGHTED,
+            AggregationMethod.METACULUS_PREDICTION,
+        ]
+        if user.is_staff:
+            aggregation_methods.append(AggregationMethod.SINGLE_AGGREGATION)
+
+    # get user_ids
+    user_ids = request.GET.get("user_ids", None)
+    if user_ids:
+        user_ids = user_ids.split(",")
+    if user_ids and not user.is_staff:
+        # if user_ids provided, check user is staff
+        raise PermissionDenied("Current user can not view user-specific data")
+    include_bots = request.GET.get("include_bots", False)
+
+    now = timezone.now()
+    aggregation_dict: dict[Question, dict[str, AggregateForecast]] = defaultdict(dict)
+    for question in questions:
+        if (
+            question.cp_reveal_time
+            and question.cp_reveal_time > now
+            and (not user or not user.is_superuser)
+        ):
+            continue
+
+        aggregation_dict[question] = get_aggregation_history(
+            question,
+            aggregation_methods,
+            user_ids=user_ids,
+            minimize=True,
+            include_stats=True,
+            include_bots=include_bots,
+            histogram=True,
+        )
+
+    csv_data = build_csv(aggregation_dict)
+    filename = "_".join(post.title.split(" "))
+    response = HttpResponse(
+        csv_data,
+        content_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
+    )
+    return response

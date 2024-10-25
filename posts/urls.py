@@ -56,6 +56,7 @@ urlpatterns = [
         views.post_preview_image,
         name="post-preview-image",
     ),
+    path("posts/<int:pk>/download-csv/", views.download_csv, name="download-csv"),
 ]
 
 old_api = [

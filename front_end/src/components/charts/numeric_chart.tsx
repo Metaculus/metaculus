@@ -66,6 +66,7 @@ type Props = {
   extraTheme?: VictoryThemeDefinition;
   resolution?: Resolution | null;
   resolveTime?: string | null;
+  hideCP?: boolean;
 };
 
 const NumericChart: FC<Props> = ({
@@ -83,6 +84,7 @@ const NumericChart: FC<Props> = ({
   extraTheme,
   resolution,
   resolveTime,
+  hideCP,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -125,8 +127,8 @@ const NumericChart: FC<Props> = ({
     ]
   );
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale, tickLabelFontSize as number);
-  }, [yScale, tickLabelFontSize]);
+    return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+  }, [yScale, tickLabelFontSize, yLabel]);
 
   const prevWidth = usePrevious(chartWidth);
   useEffect(() => {
@@ -217,24 +219,29 @@ const NumericChart: FC<Props> = ({
           ]}
           containerComponent={onCursorChange ? CursorContainer : undefined}
         >
-          <VictoryArea
-            data={area}
-            style={{
-              data: {
-                opacity: 0.3,
-              },
-            }}
-            interpolation="stepAfter"
-          />
-          <VictoryLine
-            data={line}
-            style={{
-              data: {
-                strokeWidth: 1.5,
-              },
-            }}
-            interpolation="stepAfter"
-          />
+          {!hideCP && (
+            <VictoryArea
+              data={area}
+              style={{
+                data: {
+                  opacity: 0.3,
+                },
+              }}
+              interpolation="stepAfter"
+            />
+          )}
+          {!hideCP && (
+            <VictoryLine
+              data={line}
+              style={{
+                data: {
+                  strokeWidth: 1.5,
+                },
+              }}
+              interpolation="stepAfter"
+            />
+          )}
+
           <VictoryScatter
             data={points}
             dataComponent={<PredictionWithRange />}
@@ -374,10 +381,8 @@ function buildChartData({
     latestTimestamp,
   ];
   const xDomain = generateNumericDomain(domainTimestamps, zoom);
-  const fontSize =
-    typeof extraTheme?.axis?.style?.ticks?.fontSize === "number"
-      ? extraTheme.axis.style.ticks.fontSize
-      : undefined;
+  const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
+
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
   // TODO: implement general scaling:
   // const xScale: Scale = generateScale({

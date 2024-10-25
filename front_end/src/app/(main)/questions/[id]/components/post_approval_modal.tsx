@@ -32,28 +32,28 @@ const PostApprovalModal: FC<{
   const questions = useMemo(() => {
     if (post.question) return [post.question];
     if (post.group_of_questions) return post.group_of_questions.questions;
-
+    if (post.conditional) return [{ id: post.id, title: post.title }];
     return [];
-  }, [post.group_of_questions, post.question]);
+  }, [
+    post.group_of_questions,
+    post.question,
+    post.conditional,
+    post.id,
+    post.title,
+  ]);
 
-  const [approvalData, setApprovalData] = useState<
-    (ApprovePostParams & { question_title: string })[]
-  >(() =>
-    questions.map(({ id: question_id, title: question_title }) => ({
-      question_id,
-      question_title,
-      open_time: formatInTimeZone(
-        addDays(new Date(), 1),
-        "UTC",
-        "yyyy-MM-dd'T'HH:mm:ss'Z'"
-      ),
-      cp_reveal_time: formatInTimeZone(
-        addDays(new Date(), 5),
-        "UTC",
-        "yyyy-MM-dd'T'HH:mm:ss'Z'"
-      ),
-    }))
-  );
+  const [approvalData, setApprovalData] = useState<ApprovePostParams>(() => ({
+    open_time: formatInTimeZone(
+      addDays(new Date(), 1),
+      "UTC",
+      "yyyy-MM-dd'T'HH:mm:ss'Z'"
+    ),
+    cp_reveal_time: formatInTimeZone(
+      addDays(new Date(), 5),
+      "UTC",
+      "yyyy-MM-dd'T'HH:mm:ss'Z'"
+    ),
+  }));
 
   const handleSubmit = useCallback(async () => {
     setIsLoading(true);
@@ -85,57 +85,35 @@ const PostApprovalModal: FC<{
         <p className="text-base leading-tight">
           {post.notebook
             ? t("postNotebookApprovalSubtitle")
-            : t("postQuestionApprovalSubtitle")}
+            : post.group_of_questions
+              ? t("postGroupOfQuestionsApprovalSubtitle")
+              : t("postQuestionApprovalSubtitle")}
         </p>
-        <div className="mb-4 flex flex-col gap-4">
-          {approvalData.map(
-            (
-              { question_title, question_id, open_time, cp_reveal_time },
-              idx
-            ) => (
-              <div
-                key={`question-${question_id}`}
-                className="flex flex-col gap-2"
-              >
-                <h4 className="m-0">{question_title}</h4>
-                <span>{t("openTime")}</span>
-                <DatetimeUtc
-                  placeholder="date when forecasts will open"
-                  min={currentDateTime}
-                  onChange={(dt) =>
-                    setApprovalData(
-                      approvalData.map((obj) => ({
-                        ...obj,
-                        ...(obj.question_id === question_id
-                          ? { open_time: dt }
-                          : {}),
-                      }))
-                    )
-                  }
-                  defaultValue={open_time}
-                />
-                <span>{t("cpRevealTime")}</span>
-                <DatetimeUtc
-                  placeholder="time when the cp will be revealed"
-                  min={currentDateTime}
-                  onChange={(dt) =>
-                    setApprovalData(
-                      approvalData.map((obj) => ({
-                        ...obj,
-                        ...(obj.question_id === question_id
-                          ? { cp_reveal_time: dt }
-                          : {}),
-                      }))
-                    )
-                  }
-                  defaultValue={cp_reveal_time}
-                />
-                {idx < approvalData.length - 1 && (
-                  <hr className="mb-4 mt-8 border-gray-400 dark:border-gray-400-dark" />
-                )}
-              </div>
-            )
-          )}
+        <div className="mb-4 flex flex-col gap-2">
+          <span>{t("openTime")}</span>
+          <DatetimeUtc
+            placeholder="date when forecasts will open"
+            min={currentDateTime}
+            onChange={(dt) =>
+              setApprovalData({
+                ...approvalData,
+                open_time: dt,
+              })
+            }
+            defaultValue={approvalData.open_time}
+          />
+          <span>{t("cpRevealTime")}</span>
+          <DatetimeUtc
+            placeholder="time when the cp will be revealed"
+            min={currentDateTime}
+            onChange={(dt) =>
+              setApprovalData({
+                ...approvalData,
+                cp_reveal_time: dt,
+              })
+            }
+            defaultValue={approvalData.cp_reveal_time}
+          />
         </div>
         <div className="flex w-full justify-end gap-2">
           <Button

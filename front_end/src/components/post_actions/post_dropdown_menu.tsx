@@ -70,6 +70,13 @@ export const PostDropdownMenu: FC<Props> = ({ post }) => {
             },
           ]
         : []),
+      {
+        id: "downloadCSV",
+        name: t("downloadCSV"),
+        onClick: () => {
+          window.open(`/api/posts/${post!.id}/download-csv/`);
+        },
+      },
     ],
     [changePostActivity, t, user?.is_superuser]
   );

@@ -186,7 +186,11 @@ class Leaderboard(TimeStampedModel):
                     | Q(group__post__published_at__lt=self.end_time)
                     | Q(conditional_yes__post__published_at__lt=self.end_time)
                     | Q(conditional_no__post__published_at__lt=self.end_time),
-                    # Q(scheduled_close_time__gte=self.start_time),
+                    Q(scheduled_close_time__gte=self.start_time)
+                    & (
+                        Q(actual_close_time__isnull=True)
+                        | Q(actual_close_time__gte=self.start_time)
+                    ),
                 )
                 .exclude(
                     Q(post__curation_status__in=invalid_statuses)

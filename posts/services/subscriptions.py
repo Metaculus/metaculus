@@ -211,10 +211,11 @@ def notify_post_cp_change(post: Post):
         question_data: list[CPChangeData] = []
         for question, forecast_summary in forecast_history.items():
             entry: AggregateForecast | None = None
-            for entry in forecast_summary:
-                if entry.start_time <= last_sent and (
-                    entry.end_time is None or entry.end_time > last_sent
+            for forecast in forecast_summary:
+                if forecast.start_time <= last_sent and (
+                    forecast.end_time is None or forecast.end_time > last_sent
                 ):
+                    entry = forecast
                     break
             if entry is None:
                 continue
@@ -252,6 +253,7 @@ def notify_post_cp_change(post: Post):
                 NotificationPostCPChange.ParamsType(
                     post=NotificationPostParams.from_post(post),
                     question_data=question_data,
+                    last_sent=last_sent.isoformat() if last_sent else None,
                 ),
                 # Send notifications to the users that subscribed to the post CP changes
                 # Or we automatically subscribed them for "Forecasted Questions CP change"

@@ -32,6 +32,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             "description",
             "created_at",
             "open_time",
+            "cp_reveal_time",
             "scheduled_resolve_time",
             "actual_resolve_time",
             "resolution_set_time",
@@ -111,7 +112,11 @@ class QuestionUpdateSerializer(QuestionWriteSerializer):
     id = serializers.IntegerField(required=False)
 
     class Meta(QuestionWriteSerializer.Meta):
-        fields = QuestionWriteSerializer.Meta.fields + ("id",)
+        fields = QuestionWriteSerializer.Meta.fields + (
+            "id",
+            "open_time",
+            "cp_reveal_time",
+        )
 
     # TODO: add validation for updating continuous question bounds
 
@@ -675,6 +680,5 @@ class OldForecastWriteSerializer(serializers.Serializer):
 
 
 class QuestionApproveSerializer(serializers.Serializer):
-    question_id = serializers.IntegerField(required=True)
     open_time = serializers.DateTimeField(required=True)
     cp_reveal_time = serializers.DateTimeField(required=True)

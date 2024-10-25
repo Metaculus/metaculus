@@ -17,6 +17,7 @@ import {
 } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
+import { useHideCP } from "../../cp_provider";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
@@ -44,6 +45,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
+  const { hideCP } = useHideCP();
   const { setCurrentModal } = useModal();
 
   const prevYesForecastValue = extractPrevBinaryForecastValue(prevYesForecast);
@@ -259,9 +261,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
             isDirty={option.isDirty}
             onBecomeDirty={() => handleBecomeDirty(option.id)}
             communityForecast={
-              !user || !user.hide_community_prediction
-                ? option.communitiesForecast
-                : null
+              !user || !hideCP ? option.communitiesForecast : null
             }
             disabled={!canPredict}
           />

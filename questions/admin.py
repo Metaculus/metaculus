@@ -1,10 +1,11 @@
 from django.contrib import admin
+from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 
 from questions.models import Conditional, Question, GroupOfQuestions, Forecast
 
 
 @admin.register(Question)
-class QuestionAdmin(admin.ModelAdmin):
+class QuestionAdmin(admin.ModelAdmin, DynamicArrayMixin):
     search_fields = ["title", "description"]
 
     autocomplete_fields = ["group"]

@@ -27,6 +27,7 @@ type Props = {
   chartHeight?: number;
   defaultZoom?: TimelineChartZoomOption;
   chartTheme?: VictoryThemeDefinition;
+  hideCP?: boolean;
 };
 
 const MultipleChoiceChartCard: FC<Props> = ({
@@ -35,6 +36,7 @@ const MultipleChoiceChartCard: FC<Props> = ({
   chartHeight,
   defaultZoom,
   chartTheme,
+  hideCP,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -151,9 +153,9 @@ const MultipleChoiceChartCard: FC<Props> = ({
 
   return (
     <MultiChoicesChartView
-      tooltipChoices={tooltipChoices}
+      tooltipChoices={hideCP ? [] : tooltipChoices}
       tooltipUserChoices={tooltipUserChoices}
-      choiceItems={choiceItems}
+      choiceItems={hideCP ? [] : choiceItems}
       timestamps={timestamps}
       userForecasts={userForecasts}
       tooltipDate={tooltipDate}

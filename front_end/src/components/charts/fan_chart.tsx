@@ -24,6 +24,7 @@ import {
   Quartiles,
   QuestionWithNumericForecasts,
   QuestionType,
+  Question,
 } from "@/types/question";
 import {
   generateScale,
@@ -42,6 +43,7 @@ type Props = {
   withTooltip?: boolean;
   extraTheme?: VictoryThemeDefinition;
   pointSize?: number;
+  hideCP?: boolean;
 };
 
 const FanChart: FC<Props> = ({
@@ -51,6 +53,7 @@ const FanChart: FC<Props> = ({
   withTooltip = false,
   extraTheme,
   pointSize,
+  hideCP,
 }) => {
   const { ref: chartContainerRef, width: chartWidth } =
     useContainerSize<HTMLDivElement>();
@@ -64,7 +67,7 @@ const FanChart: FC<Props> = ({
 
   const [activePoint, setActivePoint] = useState<string | null>(null);
 
-  const { line, area, points, scaling } = useMemo(
+  const { line, area, points, resolutionPoints, scaling } = useMemo(
     () => buildChartData(options),
     [options]
   );
@@ -78,8 +81,8 @@ const FanChart: FC<Props> = ({
   });
   const { ticks, tickFormat } = yScale;
   const { leftPadding, MIN_LEFT_PADDING } = useMemo(() => {
-    return getLeftPadding(yScale, tickLabelFontSize as number);
-  }, [yScale, tickLabelFontSize]);
+    return getLeftPadding(yScale, tickLabelFontSize as number, yLabel);
+  }, [yScale, tickLabelFontSize, yLabel]);
 
   const tooltipItems = useMemo(
     () =>
@@ -150,16 +153,18 @@ const FanChart: FC<Props> = ({
             },
           ]}
         >
-          <VictoryArea
-            name="fanArea"
-            data={area}
-            style={{
-              data: {
-                opacity: 0.3,
-              },
-            }}
-          />
-          <VictoryLine name="fanLine" data={line} />
+          {!hideCP && (
+            <VictoryArea
+              name="fanArea"
+              data={area}
+              style={{
+                data: {
+                  opacity: 0.3,
+                },
+              }}
+            />
+          )}
+          {!hideCP && <VictoryLine name="fanLine" data={line} />}
           <VictoryAxis
             dependentAxis
             label={yLabel}
@@ -174,28 +179,41 @@ const FanChart: FC<Props> = ({
             }
           />
           <VictoryAxis tickFormat={(_, index) => labels[index]} />
+          {!hideCP && (
+            <VictoryScatter
+              data={points.map((point) => ({
+                ...point,
+                symbol: "square",
+              }))}
+              style={{
+                data: {
+                  fill: () => getThemeColor(METAC_COLORS.olive["800"]),
+                  stroke: () => getThemeColor(METAC_COLORS.olive["800"]),
+                  strokeWidth: 6,
+                  strokeOpacity: ({ datum }) =>
+                    activePoint === datum.x ? 0.3 : 0,
+                },
+              }}
+              dataComponent={
+                <FanPoint activePoint={activePoint} pointSize={pointSize} />
+              }
+            />
+          )}
           <VictoryScatter
-            data={points.map((point) => ({
+            data={resolutionPoints.map((point) => ({
               ...point,
-              symbol: point.resolved ? "diamond" : "square",
+              symbol: "diamond",
             }))}
             style={{
               data: {
-                fill: ({ datum }) =>
-                  datum.resolved
-                    ? "none"
-                    : getThemeColor(METAC_COLORS.olive["800"]),
-                stroke: ({ datum }) =>
-                  datum.resolved
-                    ? getThemeColor(METAC_COLORS.purple["800"])
-                    : getThemeColor(METAC_COLORS.olive["800"]),
-                strokeWidth: ({ datum }) => (datum.resolved ? 2 : 6),
-                strokeOpacity: ({ datum }) =>
-                  datum.resolved ? 1 : activePoint === datum.x ? 0.3 : 0,
+                fill: "none",
+                stroke: () => getThemeColor(METAC_COLORS.purple["800"]),
+                strokeWidth: 2,
+                strokeOpacity: 1,
               },
             }}
             dataComponent={
-              <FanPoint activePoint={activePoint} pointSize={pointSize} />
+              <FanPoint activePoint={null} pointSize={pointSize} />
             }
           />
         </VictoryChart>
@@ -208,7 +226,8 @@ function buildChartData(options: FanOption[]) {
   const line: Line<string> = [];
   const area: Area<string> = [];
   const points: Array<{ x: string; y: number; resolved: boolean }> = [];
-
+  const resolutionPoints: Array<{ x: string; y: number; resolved: boolean }> =
+    [];
   const zeroPoints: number[] = [];
   options.forEach((option) => {
     if (option.question.scaling.zero_point !== null) {
@@ -253,8 +272,15 @@ function buildChartData(options: FanOption[]) {
       points.push({
         x: option.name,
         y: option.quartiles.median,
-        resolved: option.resolved,
+        resolved: false,
       });
+      if (option.resolved) {
+        resolutionPoints.push({
+          x: option.name,
+          y: getResolutionPosition(option.question, scaling),
+          resolved: true,
+        });
+      }
     }
   } else {
     for (const option of options) {
@@ -291,8 +317,15 @@ function buildChartData(options: FanOption[]) {
       points.push({
         x: option.name,
         y: median,
-        resolved: option.resolved,
+        resolved: false,
       });
+      if (option.resolved) {
+        resolutionPoints.push({
+          x: option.name,
+          y: getResolutionPosition(option.question, scaling),
+          resolved: true,
+        });
+      }
     }
   }
 
@@ -300,6 +333,7 @@ function buildChartData(options: FanOption[]) {
     line,
     area,
     points,
+    resolutionPoints,
     scaling,
   };
 }
@@ -350,7 +384,9 @@ function adjustLabelsForDisplay(
 
   const maxLabelLength = Math.max(...labels.map((label) => label.length));
   const maxLabelWidth = maxLabelLength * charWidth + labelMargin;
-  let availableSpacePerLabel = chartWidth / labels.length;
+  const averageChartPaddingXAxis = 100;
+  let availableSpacePerLabel =
+    (chartWidth - averageChartPaddingXAxis) / labels.length;
 
   if (maxLabelWidth < availableSpacePerLabel) {
     return labels;
@@ -368,6 +404,24 @@ function adjustLabelsForDisplay(
   return options.map((option, index) =>
     index % step === 0 ? option.name : ""
   );
+}
+
+function getResolutionPosition(question: Question, scaling: Scaling) {
+  const resolution = question.resolution;
+
+  if (
+    ["no", "below_lower_bound", "annulled", "ambiguous"].includes(
+      resolution as string
+    )
+  ) {
+    return 0;
+  } else if (["yes", "above_upper_bound"].includes(resolution as string)) {
+    return 1;
+  } else {
+    return question.type === QuestionType.Numeric
+      ? unscaleNominalLocation(Number(resolution), scaling)
+      : unscaleNominalLocation(new Date(resolution!).getTime() / 1000, scaling);
+  }
 }
 
 export default FanChart;

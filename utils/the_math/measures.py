@@ -58,6 +58,13 @@ def weighted_percentile_2d(
 def percent_point_function(
     cdf: ForecastValues, percentiles: Percentiles | float | int
 ) -> Percentiles:
+    """returns the x-location in the cdf where it crosses the given percentiles,
+    treating the cdf as starting at x=0 and ending at x=1
+
+    e.g. cdf = [0.1, 0.5, 0.9]
+    percent_point_function(cdf, 50) -> 0.5
+    percent_point_function(cdf, [10, 50, 90]) -> [0.0, 0.5, 1.0]
+    """
     if return_float := isinstance(percentiles, float | int):
         percentiles = [percentiles]
     ppf_values = []
@@ -128,6 +135,8 @@ def prediction_difference_for_display(
 
 
 def decimal_h_index(scores) -> float:
+    """takes a list of scores and returns the decimal h-index
+    https://en.wikipedia.org/wiki/H-index#Calculation"""
     sorted_scores = sorted(list(scores), reverse=True)
     base = sum(x >= i + 1 for i, x in enumerate(sorted_scores))
     fraction_scores = sorted_scores[: base + 1]

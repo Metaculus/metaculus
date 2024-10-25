@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import {
+  Post,
   PostWithForecasts,
   ProjectPermissions,
   QuestionStatus,
@@ -36,6 +37,7 @@ import {
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
+import { useHideCP } from "../../cp_provider";
 import ContinuousSlider from "../continuous_slider";
 import GroupForecastTable, {
   ConditionalTableOption,
@@ -61,6 +63,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const t = useTranslations();
   const locale = useLocale();
   const { user } = useAuth();
+  const { hideCP } = useHideCP();
   const params = useSearchParams();
   const { setCurrentModal } = useModal();
   const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
@@ -84,12 +87,12 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   );
 
   const [groupOptions, setGroupOptions] = useState<ConditionalTableOption[]>(
-    generateGroupOptions(questions, prevForecastValuesMap)
+    generateGroupOptions(questions, prevForecastValuesMap, undefined, post)
   );
 
   useEffect(() => {
     setGroupOptions(
-      generateGroupOptions(questions, prevForecastValuesMap, permission)
+      generateGroupOptions(questions, prevForecastValuesMap, permission, post)
     );
   }, [permission, prevForecastValuesMap, questions]);
   const [activeTableOption, setActiveTableOption] = useState(
@@ -270,7 +273,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         options={groupOptions}
         onChange={setActiveTableOption}
         questions={questions}
-        showCP={!user || !user.hide_community_prediction}
+        showCP={!user || !hideCP}
       />
       {groupOptions.map((option) => {
         const dataset = getNumericForecastDataset(
@@ -373,7 +376,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             }
             communityQuartiles={activeGroupOption.communityQuartiles}
             withUserQuartiles={activeGroupOption.resolution === null}
-            withCommunityQuartiles={!user || !user.hide_community_prediction}
+            withCommunityQuartiles={!user || !hideCP}
             isDirty={activeGroupOption.isDirty}
             hasUserForecast={
               !!prevForecastValuesMap[activeTableOption!].forecast
@@ -416,7 +419,8 @@ function generateGroupOptions(
       weights?: number[];
     }
   >,
-  permission?: ProjectPermissions
+  permission?: ProjectPermissions,
+  post?: Post
 ): ConditionalTableOption[] {
   return [...questions]
     .sort((a, b) =>
@@ -457,6 +461,7 @@ function generateGroupOptions(
                 <FontAwesomeIcon icon={faEllipsis}></FontAwesomeIcon>
               </Button>
             }
+            post={post}
           />
         ),
       };

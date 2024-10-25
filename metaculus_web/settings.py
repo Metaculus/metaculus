@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "anymail",
     "django_dramatiq",
     "admin_auto_filters",
+    "django_better_admin_arrayfield",
     # TODO: disable in prod
     # first-party:
     "migrator",

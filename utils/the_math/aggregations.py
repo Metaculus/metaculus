@@ -11,7 +11,7 @@ Normalise to 1 over all outcomes.
 
 from bisect import bisect_left, bisect_right
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import numpy as np
 from django.db.models import Q
@@ -241,52 +241,140 @@ def get_aggregations_at_time(
     return aggregations
 
 
+def summarize_array(
+    array: list,
+    size: int,
+) -> list[datetime]:
+    """helper method to pick evenly distributed values from an ordered list
+    array must be sorted in ascending order
+    """
+
+    if size <= 0:
+        return []
+    elif len(array) <= size:
+        return array
+    elif size == 2 or len(array) == 2:
+        return [array[0], array[-1]]
+
+    target_values = np.linspace(array[0], array[-1], size)
+    summary = set()
+    for target in target_values:
+        index = bisect_left(array, target)
+        if index == len(array) - 1:
+            summary.add(array[-1])
+            continue
+        left = array[index]
+        right = array[index + 1]
+        if abs(left - target) <= abs(right - target):
+            summary.add(left)
+        else:
+            summary.add(right)
+    return sorted(summary)
+
+
 def minimize_history(
     history: list[datetime],
-    max_size: int = 128,
+    max_size: int = 400,
 ) -> list[datetime]:
+    """This takes a sorted list of datetimes and returns a summarized version of it
+
+    The front end graphs have zoomed views on 1 day, 1 week, 2 months, and all time
+    so this makes sure that the history contains sufficiently high resolution data
+    for each interval.
+
+    max_size dictates the maximum numer of returned datetimes.
+    """
     if len(history) <= max_size:
         return history
 
-    # this is a pretty cheap algorithm that generates a minimized history
-    # by taking the middle time of the list, then the middle
-    # of the two halves, then the middle of the four quarters, etc. 7 times,
-    # generating a maximum list of 128 datetimes close evenly spaced.
+    h = [h.timestamp() for h in history]
+    # determine how many datetimes we want to have in each interval
+    day = timedelta(days=1).total_seconds()
+    domain = h[-1] - h[0]
+    if domain <= day:
+        all_size = 0
+        month_size = 0
+        week_size = 0
+        day_size = max_size
+    elif domain <= day * 7:
+        all_size = 0
+        month_size = 0
+        even_spread = int(1 / 2 * max_size)
+        week_size = int(even_spread * (domain - day) / (day * 6))
+        remainder = even_spread - week_size
+        day_size = even_spread + remainder
+    elif domain <= day * 60:
+        all_size = 0
+        even_spread = int(1 / 3 * max_size)
+        month_size = int(even_spread * (domain - day * 7) / (day * 53))
+        remainder = even_spread - month_size
+        week_size = even_spread + int(remainder / 2)
+        day_size = even_spread + int(remainder / 2)
+    elif domain <= day * 120:
+        even_spread = int(1 / 4 * max_size)
+        all_size = int(even_spread * (domain - day * 60) / (day * 60))
+        remainder = even_spread - all_size
+        month_size = even_spread + int(remainder / 3)
+        week_size = even_spread + int(remainder / 3)
+        day_size = even_spread + int(remainder / 3)
+    else:
+        even_spread = int(1 / 4 * max_size)
+        all_size = even_spread
+        month_size = even_spread
+        week_size = even_spread
+        day_size = even_spread
 
-    def find_index_of_middle(forecasts: list[AggregateForecast]) -> int:
-        if len(forecasts) < 3:
-            return 0
-        t0 = forecasts[0]
-        t2 = forecasts[-1]
-        t1 = t0 + (t2 - t0) / 2
-        for i, forecast in enumerate(forecasts):
-            if forecast > t1:
-                if forecast - t1 < t1 - forecasts[i - 1]:
-                    return i
-                return i - 1
+    # start with smallest interval, populating it with timestamps up to it's size. If
+    # interval isn't saturated, distribute the remaining allotment to smaller intervals.
 
-    minimized = []
-    working_lists = [history]
-    for _ in range(int(np.ceil(np.log2(max_size)))):
-        new_working_lists = []
-        for working_list in working_lists:
-            middle_index = find_index_of_middle(working_list)
-            if middle_index == 0:
-                minimized.append(working_list[0])
-                continue
-            minimized.append(working_list[middle_index])
-            new_working_lists.append(working_list[:middle_index])
-            new_working_lists.append(working_list[middle_index + 1 :])
-        working_lists = new_working_lists
+    # Day interval
+    day_history = []
+    day_interval = []
+    if day_size > 0:
+        first_index = 0
+        last_index = bisect_right(h, h[0] + day)
+        day_interval = h[first_index:last_index]
+        day_history = summarize_array(day_interval, day_size)
+        remainder = day_size - len(day_history)
+        if remainder > 0:
+            week_size += remainder - 2 * int(remainder / 3)
+            month_size += int(remainder / 3)
+            all_size += int(remainder / 3)
+    # Week interval
+    week_history = []
+    week_interval = []
+    if week_size > 0:
+        first_index = bisect_left(h, h[0] + day)
+        last_index = bisect_right(h, h[0] + day * 7)
+        week_interval = h[first_index:last_index]
+        week_history = summarize_array(week_interval, week_size)
+        remainder = week_size - len(week_history)
+        if remainder > 0:
+            month_size += remainder - int(remainder / 2)
+            all_size += int(remainder / 2)
+    # Month interval
+    month_history = []
+    month_interval = []
+    if month_size > 0:
+        first_index = bisect_left(h, h[0] + day * 7)
+        last_index = bisect_right(h, h[0] + day * 60)
+        month_interval = h[first_index:last_index]
+        month_history = summarize_array(month_interval, month_size)
+        remainder = month_size - len(month_history)
+        if remainder > 0:
+            all_size += remainder
+    # All Time interval
+    all_history = []
+    all_interval = []
+    if all_size > 0:
+        first_index = bisect_left(h, h[0] + day * 60)
+        all_interval = h[first_index:]
+        all_history = summarize_array(all_interval, all_size)
+        remainder = all_size - len(all_history)
 
-    minimized: list[AggregateForecast] = sorted(minimized)
-    # make sure to always have the first and last forecast are the first
-    # and last of the original list
-    if minimized[0] != history[0]:
-        minimized.insert(0, history[0])
-    if minimized[-1] != history[-1]:
-        minimized.append(history[-1])
-    return minimized
+    # put it all together
+    minimized_history = day_history + week_history + month_history + all_history
+    return [datetime.fromtimestamp(h, tz=timezone.utc) for h in minimized_history]
 
 
 def get_user_forecast_history(
@@ -308,7 +396,7 @@ def get_user_forecast_history(
         # Find active timesteps using bisect to find the start & end indexes
         start_index = bisect_left(timesteps, forecast.start_time)
         end_index = (
-            bisect_right(timesteps, forecast.end_time) - 1
+            bisect_left(timesteps, forecast.end_time)
             if forecast.end_time
             else len(timesteps)
         )

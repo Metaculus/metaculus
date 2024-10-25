@@ -470,21 +470,22 @@ function buildChartData({
     }
   );
 
-  const fontSize =
-    typeof extraTheme?.axis?.style?.ticks?.fontSize === "number"
-      ? extraTheme.axis.style.ticks.fontSize
-      : undefined;
+  const fontSize = extraTheme ? getTickLabelFontSize(extraTheme) : undefined;
   const xScale = generateTimestampXScale(xDomain, width, fontSize);
+  const yScale =
+    questionType === "numeric" || questionType === "date"
+      ? generateScale({
+          displayType: questionType,
+          axisLength: height,
+          direction: "vertical",
+          scaling: scaling,
+        })
+      : generateScale({
+          displayType: "percent",
+          axisLength: height,
+        });
 
-  return {
-    xScale,
-    yScale: generateScale({
-      displayType: "percent",
-      axisLength: height,
-    }),
-    graphs: graphs,
-    xDomain,
-  };
+  return { xScale, yScale, graphs, xDomain };
 }
 
 export default memo(MultipleChoiceChart);

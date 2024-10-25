@@ -30,7 +30,7 @@ const AwaitedTags: FC<TagsProps> = ({ tags }) => {
         {show_tags.map((tag) => (
           <Chip
             key={tag.slug}
-            href={`/questions/?${POST_TAGS_FILTER}=${tag.slug}`}
+            href={`/questions/?${POST_TAGS_FILTER}=${tag.slug}&for_main_feed=false`}
             color="blue"
             size="sm"
             label={tag.posts_count.toString()}

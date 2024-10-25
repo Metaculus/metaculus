@@ -2,13 +2,13 @@
 
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import React, { FC, useState } from "react";
+import React, { FC } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import Button from "@/app/(main)/about/components/Button";
+import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import PredictionChip from "@/components/prediction_chip";
-import { useAuth } from "@/contexts/auth_context";
 import { PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
 import {
@@ -28,6 +28,7 @@ type Props = {
   withNavigation?: boolean;
   chartTheme?: VictoryThemeDefinition;
   nrForecasters?: number;
+  withCPRevealBtn?: boolean;
 };
 
 const ConditionalTile: FC<Props> = ({
@@ -36,37 +37,10 @@ const ConditionalTile: FC<Props> = ({
   curationStatus,
   withNavigation,
   chartTheme,
+  withCPRevealBtn,
 }) => {
   const t = useTranslations();
-  const { user } = useAuth();
-  const [hideCommunityPrediction, setHideCommunityPrediction] = useState(
-    user && user.hide_community_prediction
-  );
-  let oneQuestionClosed = false;
-  if (
-    conditional.question_no.actual_close_time &&
-    new Date(conditional.question_no.actual_close_time).getTime() < Date.now()
-  ) {
-    oneQuestionClosed = true;
-  }
-  if (
-    conditional.question_yes.actual_close_time &&
-    new Date(conditional.question_yes.actual_close_time).getTime() < Date.now()
-  ) {
-    oneQuestionClosed = true;
-  }
-
-  if (hideCommunityPrediction && !oneQuestionClosed) {
-    return (
-      <div className="text-center">
-        <div className="text-l m-4">{t("CPIsHidden")}</div>
-        <Button onClick={() => setHideCommunityPrediction(false)}>
-          {t("RevealTemporarily")}
-        </Button>
-      </div>
-    );
-  }
-
+  const { hideCP, setCurrentHideCP } = useHideCP();
   const { condition, condition_child, question_yes, question_no } = conditional;
   const isEmbedded = !!chartTheme;
 
@@ -94,82 +68,102 @@ const ConditionalTile: FC<Props> = ({
     question_no.resolution === "ambiguous";
 
   return (
-    <div className="ConditionalSummary grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
-      <div
-        className={classNames(
-          "ConditionalSummary-condition flex flex-col justify-center",
-          { "col-span-2 row-span-1 md:col-span-1 md:row-auto": !isEmbedded }
-        )}
-      >
-        <ConditionalCard
-          label={t("condition")}
-          title={getConditionTitle(postTitle, condition)}
-          resolved={parentSuccessfullyResolved}
-          href={withNavigation ? conditionHref : undefined}
-        >
-          {(parentSuccessfullyResolved || parentIsClosed) && (
-            <PredictionChip
-              question={condition}
-              status={
-                parentSuccessfullyResolved
-                  ? PostStatus.RESOLVED
-                  : PostStatus.CLOSED
-              }
-              size="compact"
-            />
+    <>
+      <div className="ConditionalSummary grid grid-cols-[72px_minmax(0,_1fr)] gap-y-3 md:grid-cols-[minmax(0,_1fr)_72px_minmax(0,_1fr)]">
+        <div
+          className={classNames(
+            "ConditionalSummary-condition col-span-2 flex flex-col justify-center",
+            {
+              "row-span-1 md:col-span-1 md:row-auto": !isEmbedded,
+              "xs:col-span-1": isEmbedded,
+            }
           )}
-        </ConditionalCard>
-      </div>
-      <div
-        className={classNames(
-          "ConditionalSummary-arrows relative flex flex-col justify-start gap-0 md:row-auto md:justify-center md:gap-12",
-          { "row-span-2 ml-3 md:ml-0": !isEmbedded }
-        )}
-      >
-        <ConditionalArrow
-          label={t("ifYes")}
-          didHappen={yesHappened}
-          disabled={yesDisabled}
-          className={!isEmbedded ? "flex-1 md:flex-none" : undefined}
-        />
-        <ConditionalArrow
-          label={t("ifNo")}
-          didHappen={noHappened}
-          disabled={noDisabled}
-          className={!isEmbedded ? "flex-1 md:flex-none" : undefined}
-        />
-        {!isEmbedded && (
-          <div className="absolute left-0 top-0 h-3/4 w-px bg-blue-700 dark:bg-blue-700-dark md:hidden" />
-        )}
-      </div>
-      <div
-        className={classNames(
-          "ConditionalSummary-conditionals flex flex-col gap-3",
-          { "row-span-2 md:row-auto": !isEmbedded }
-        )}
-      >
-        <ConditionalCard
-          title={getConditionalQuestionTitle(question_yes)}
-          href={withNavigation ? conditionChildHref : undefined}
         >
-          <ConditionalChart
-            question={question_yes}
+          <ConditionalCard
+            label={t("condition")}
+            title={getConditionTitle(postTitle, condition)}
+            resolved={parentSuccessfullyResolved}
+            href={withNavigation ? conditionHref : undefined}
+          >
+            {(parentSuccessfullyResolved || parentIsClosed) && (
+              <PredictionChip
+                question={condition}
+                status={
+                  parentSuccessfullyResolved
+                    ? PostStatus.RESOLVED
+                    : PostStatus.CLOSED
+                }
+                size="compact"
+                hideCP={hideCP}
+              />
+            )}
+          </ConditionalCard>
+        </div>
+        <div
+          className={classNames(
+            "ConditionalSummary-arrows relative flex flex-col justify-start gap-0 md:row-auto md:justify-center md:gap-12",
+            { "row-span-2 ml-3 md:ml-0": !isEmbedded }
+          )}
+        >
+          <ConditionalArrow
+            label={t("ifYes")}
+            didHappen={yesHappened}
             disabled={yesDisabled}
-            chartTheme={chartTheme}
+            className={"flex-1 md:flex-none"}
           />
-        </ConditionalCard>
-        <ConditionalCard
-          title={getConditionalQuestionTitle(question_no)}
-          href={withNavigation ? `/questions/${condition_child.id}` : undefined}
-        >
-          <ConditionalChart
-            question={question_no}
+          <ConditionalArrow
+            label={t("ifNo")}
+            didHappen={noHappened}
             disabled={noDisabled}
-            chartTheme={chartTheme}
+            className={"flex-1 md:flex-none"}
           />
-        </ConditionalCard>
+
+          <div
+            className={classNames(
+              "absolute left-0 top-0 h-3/4 w-px bg-blue-700 dark:bg-blue-700-dark md:hidden",
+              { "xs:hidden": isEmbedded }
+            )}
+          />
+        </div>
+        <div
+          className={classNames(
+            "ConditionalSummary-conditionals flex flex-col gap-3",
+            { "row-span-2 md:row-auto": !isEmbedded }
+          )}
+        >
+          <ConditionalCard
+            title={getConditionalQuestionTitle(question_yes)}
+            href={withNavigation ? conditionChildHref : undefined}
+          >
+            <ConditionalChart
+              question={question_yes}
+              disabled={yesDisabled}
+              chartTheme={chartTheme}
+              hideCP={hideCP}
+            />
+          </ConditionalCard>
+          <ConditionalCard
+            title={getConditionalQuestionTitle(question_no)}
+            href={withNavigation ? conditionChildHref : undefined}
+          >
+            <ConditionalChart
+              question={question_no}
+              disabled={noDisabled}
+              chartTheme={chartTheme}
+              hideCP={hideCP}
+            />
+          </ConditionalCard>
+        </div>
       </div>
-    </div>
+      {withCPRevealBtn && hideCP && (
+        <div className="text-center">
+          <div className="text-l m-4">{t("CPIsHidden")}</div>
+          <Button onClick={() => setCurrentHideCP(false)}>
+            {t("RevealTemporarily")}
+          </Button>
+        </div>
+      )}
+    </>
   );
 };
 
