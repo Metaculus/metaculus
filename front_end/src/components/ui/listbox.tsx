@@ -20,6 +20,7 @@ export type SelectOption<T> = {
 type Props<T> = {
   value: T;
   onChange: (option: T) => void;
+  onClick?: (value: string) => void;
   options: SelectOption<T>[];
   buttonVariant?: ButtonVariant;
   arrowPosition?: "left" | "right";
@@ -30,6 +31,7 @@ type Props<T> = {
 const Listbox = <T extends string>({
   options,
   onChange,
+  onClick,
   value,
   buttonVariant = "text",
   arrowPosition = "left",
@@ -71,6 +73,7 @@ const Listbox = <T extends string>({
                   },
                   option.className
                 )}
+                onClick={() => onClick && onClick(option.label)}
               >
                 {option.label}
               </button>
