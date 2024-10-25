@@ -633,7 +633,7 @@ def download_csv(request, pk: int):
     if user_ids and not user.is_staff:
         # if user_ids provided, check user is staff
         raise PermissionDenied("Current user can not view user-specific data")
-    include_bots = request.GET.get("include_bots", False)
+    include_bots = request.GET.get("include_bots", None)
 
     now = timezone.now()
     aggregation_dict: dict[Question, dict[str, AggregateForecast]] = defaultdict(dict)
@@ -651,7 +651,11 @@ def download_csv(request, pk: int):
             user_ids=user_ids,
             minimize=True,
             include_stats=True,
-            include_bots=include_bots,
+            include_bots=(
+                include_bots
+                if include_bots is not None
+                else question.include_bots_in_aggregates
+            ),
             histogram=True,
         )
 
