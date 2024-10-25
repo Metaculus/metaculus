@@ -1,13 +1,15 @@
-import React from "react";
-import { PostWithForecasts } from "@/types/post";
-import { onboardingTopics } from "../OnboardingSettings";
-import { onboardingStyles } from "../OnboardingStyles";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
-import VerbalForecast from "../VerbalForecast";
-import LoadingStep from "./LoadingStep";
 import { useTranslations } from "next-intl";
+import React from "react";
+
+import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
+import { PostWithForecasts } from "@/types/post";
+
+import LoadingStep from "./LoadingStep";
+import { onboardingTopics } from "../OnboardingSettings";
+import { onboardingStyles } from "../OnboardingStyles";
+import VerbalForecast from "../VerbalForecast";
 
 interface Step3Props {
   onPrev: () => void;

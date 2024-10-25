@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
-import { useModal } from "@/contexts/modal_context";
+
 import OnboardingModal from "@/components/onboarding/OnboardingModal";
+import { useModal } from "@/contexts/modal_context";
 
 const OnboardingModalWrapper: React.FC = () => {
   const { currentModal, setCurrentModal } = useModal();

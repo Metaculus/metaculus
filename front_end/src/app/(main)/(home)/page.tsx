@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
+import OnboardingCheck from "@/components/onboarding/OnboardingCheck";
 import { POST_TOPIC_FILTER } from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
@@ -18,7 +19,6 @@ import QuestionCarousel from "./components/questions_carousel";
 import ResearchAndUpdatesBlock from "./components/research_and_updates";
 import TopicLink from "./components/topic_link";
 import TournamentsBlock from "./components/tournaments_block";
-import OnboardingCheck from "@/components/onboarding/OnboardingCheck";
 
 export default async function Home() {
   const t = await getTranslations();

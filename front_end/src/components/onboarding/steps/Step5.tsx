@@ -1,14 +1,16 @@
-import React from "react";
-import { useRouter } from "next/navigation";
-import { onboardingTopics } from "../OnboardingSettings";
-import { onboardingStyles } from "../OnboardingStyles";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import React from "react";
+
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
-import useSearchParams from "@/hooks/use_search_params";
 import { FeedType, POST_FORECASTER_ID_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
-import { useTranslations } from "next-intl";
+import useSearchParams from "@/hooks/use_search_params";
+
+import { onboardingTopics } from "../OnboardingSettings";
+import { onboardingStyles } from "../OnboardingStyles";
 
 interface Step5Props {
   onPrev: () => void;

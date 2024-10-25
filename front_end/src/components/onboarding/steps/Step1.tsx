@@ -1,7 +1,8 @@
+import { useTranslations } from "next-intl";
 import React from "react";
+
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
-import { useTranslations } from "next-intl";
 
 interface Step1Props {
   onTopicSelect: (topicIndex: number) => void;
@@ -14,19 +15,19 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
   return (
     <div className="mt-[-16px] max-w-[800px] flex-row gap-3 p-0 md:flex-col md:p-5">
       <p className="my-2 mt-4 text-left text-xl font-semibold leading-relaxed text-blue-800  dark:text-blue-200  md:text-3xl md:leading-relaxed ">
-        <span className="opacity-60">"</span>
+        <span className="opacity-60">&quot;</span>
         {t("onboardingStep1Question1")}
-        <span className="opacity-60">"</span> <br />
+        <span className="opacity-60">&quot;</span> <br />
         <span className="opacity-60">
-          <span className="opacity-60">"</span>
+          <span className="opacity-60">&quot;</span>
           {t("onboardingStep1Question2")}
-          <span className="opacity-60">"</span>{" "}
+          <span className="opacity-60">&quot;</span>{" "}
         </span>
         <br />
         <span className="opacity-30">
-          <span className="opacity-60">"</span>
+          <span className="opacity-60">&quot;</span>
           {t("onboardingStep1Question3")}
-          <span className="opacity-50">"</span>
+          <span className="opacity-50">&quot;</span>
         </span>
       </p>
       <div className="my-4 md:my-6">

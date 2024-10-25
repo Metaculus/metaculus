@@ -6,11 +6,11 @@ import ResetPasswordModal, {
 } from "@/components/auth/password_reset";
 import SignInModal from "@/components/auth/signin";
 import SignUpModal, { SignUpModalSuccess } from "@/components/auth/signup";
+import OnboardingModal from "@/components/onboarding/OnboardingModal";
 import { useModal } from "@/contexts/modal_context";
 
 import ConfirmModal from "./confirm_modal";
 import ContactUsModal from "./contact_us_modal";
-import OnboardingModal from "@/components/onboarding/OnboardingModal";
 
 const GlobalModals: FC = () => {
   const { currentModal, setCurrentModal } = useModal();

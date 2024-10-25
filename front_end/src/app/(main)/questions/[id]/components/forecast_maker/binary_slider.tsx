@@ -1,7 +1,7 @@
-import { useTranslations } from "next-intl";
-import { FC, useCallback, useEffect, useState } from "react";
 import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useTranslations } from "next-intl";
+import { FC, useCallback, useEffect, useState } from "react";
 
 import Slider from "@/components/sliders/slider";
 

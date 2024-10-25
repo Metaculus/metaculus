@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useModal } from "@/contexts/modal_context";
+import { useEffect, useCallback } from "react";
+
 import { useAuth } from "@/contexts/auth_context";
+import { useModal } from "@/contexts/modal_context";
 
 const OnboardingCheck: React.FC = () => {
   const searchParams = useSearchParams();

@@ -1,17 +1,19 @@
-import React, { useState } from "react";
-import { PostWithForecasts } from "@/types/post";
-import { onboardingTopics } from "../OnboardingSettings";
-import { onboardingStyles } from "../OnboardingStyles";
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { round } from "lodash";
+import { useTranslations } from "next-intl";
+import React, { useState } from "react";
+
 import BinarySlider, {
   BINARY_FORECAST_PRECISION,
 } from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
-import LoadingStep from "./LoadingStep";
 import { createForecasts } from "@/app/(main)/questions/actions";
-import { round } from "lodash";
 import LoadingIndicator from "@/components/ui/loading_indicator";
-import { useTranslations } from "next-intl";
+import { PostWithForecasts } from "@/types/post";
+
+import LoadingStep from "./LoadingStep";
+import { onboardingTopics } from "../OnboardingSettings";
+import { onboardingStyles } from "../OnboardingStyles";
 
 interface Step4Props {
   onPrev: () => void;

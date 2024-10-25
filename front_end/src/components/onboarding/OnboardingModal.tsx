@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useRef } from "react";
+
+import { getPost } from "@/app/(main)/questions/actions";
 import BaseModal from "@/components/base_modal";
+import { PostWithForecasts } from "@/types/post";
+
+import { onboardingTopics } from "./OnboardingSettings";
 import Step1 from "./steps/Step1";
 import Step2 from "./steps/Step2";
 import Step3 from "./steps/Step3";
 import Step4 from "./steps/Step4";
 import Step5 from "./steps/Step5";
-import { getPost } from "@/app/(main)/questions/actions";
-import { PostWithForecasts } from "@/types/post";
-import { onboardingTopics } from "./OnboardingSettings";
 
 const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   isOpen,
