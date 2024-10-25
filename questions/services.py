@@ -71,6 +71,7 @@ def build_question_forecasts(
         question,
         aggregation_methods=[aggregation_method],
         minimize=True,
+        include_bots=question.include_bots_in_aggregates,
         include_stats=True,
     )[aggregation_method]
 
