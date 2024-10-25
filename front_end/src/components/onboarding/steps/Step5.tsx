@@ -26,7 +26,6 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
   const t = useTranslations();
 
   if (topicIndex === null) {
-    console.log("Error: No topic selected");
     return <p>Error: No topic selected</p>;
   }
 

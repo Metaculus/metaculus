@@ -5,8 +5,6 @@ import { FC, useCallback, useEffect, useState } from "react";
 
 import Slider from "@/components/sliders/slider";
 
-import ForecastTextInput from "./forecast_text_input";
-
 const DEFAULT_SLIDER_VALUE = 50;
 export const BINARY_FORECAST_PRECISION = 3;
 export const BINARY_MIN_VALUE = 10 ** -BINARY_FORECAST_PRECISION * 100;
@@ -37,7 +35,7 @@ const BinarySlider: FC<Props> = ({
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [sliderValue, setSliderValue] = useState(
     forecast ?? DEFAULT_SLIDER_VALUE
-  ); // Add this line to track the slider value
+  );
 
   useEffect(() => {
     if (!isInputFocused) {
@@ -48,7 +46,7 @@ const BinarySlider: FC<Props> = ({
   const handleSliderForecastChange = useCallback(
     (value: number) => {
       setInputValue(value.toString() + "%");
-      setSliderValue(value); // Add this line to update the slider value
+      setSliderValue(value);
       onBecomeDirty?.();
       onChange(value);
     },
@@ -72,7 +70,7 @@ const BinarySlider: FC<Props> = ({
   const isNearCommunityForecast =
     communityForecast !== null &&
     communityForecast !== undefined &&
-    Math.abs(sliderValue - communityForecast * 100) <= THRESHOLD; // Add this line to check if the slider value is near the community forecast
+    Math.abs(sliderValue - communityForecast * 100) <= THRESHOLD;
 
   return (
     <>
@@ -118,30 +116,7 @@ const BinarySlider: FC<Props> = ({
             </span>
           </div>
         )}
-        {/* {helperDisplay && ( // Conditionally render the "Very Unlikely" and "Very Likely" labels based on helperDisplay prop
-          <>
-              <div className="absolute left-0 top-4 mt-2 text-xs text-gray-500 z-1">
-                Very Unlikely
-              </div>
-              <div className="absolute right-0 top-4 mt-2 text-xs text-gray-500 z-1">
-                Very Likely
-              </div>
-          </>
-        )} */}
       </div>
-      {/* <div className="mb-3 block text-center">
-        <ForecastTextInput
-          value={inputValue}
-          minValue={BINARY_MIN_VALUE}
-          maxValue={BINARY_MAX_VALUE}
-          onChange={handleInputChange}
-          onForecastChange={handleInputForecastChange}
-          isDirty={isDirty}
-          onFocus={() => setIsInputFocused(true)}
-          onBlur={() => setIsInputFocused(false)}
-          disabled={disabled}
-        />
-      </div> */}
     </>
   );
 };

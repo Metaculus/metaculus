@@ -37,11 +37,6 @@ export const ModalContext = createContext<CurrentModalContextType>({
 const ModalProvider: FC<PropsWithChildren> = ({ children }) => {
   const [currentModal, setCurrentModal] = useState<CurrentModal | null>(null);
 
-  // Add this useEffect hook
-  useEffect(() => {
-    window.setCurrentModal = setCurrentModal;
-  }, []);
-
   return (
     <ModalContext.Provider value={{ currentModal, setCurrentModal }}>
       {children}
@@ -51,10 +46,3 @@ const ModalProvider: FC<PropsWithChildren> = ({ children }) => {
 
 export default ModalProvider;
 export const useModal = () => useContext(ModalContext);
-
-// Add this type declaration at the end of the file
-declare global {
-  interface Window {
-    setCurrentModal: (modal: CurrentModal | null) => void;
-  }
-}
