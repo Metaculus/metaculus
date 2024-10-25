@@ -7,7 +7,6 @@ import React from "react";
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import { FeedType, POST_FORECASTER_ID_FILTER } from "@/constants/posts_feed";
 import { useAuth } from "@/contexts/auth_context";
-import useSearchParams from "@/hooks/use_search_params";
 
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
@@ -16,12 +15,12 @@ interface Step5Props {
   onPrev: () => void;
   onNext: () => void;
   topicIndex: number | null;
+  closeModal: () => void;
 }
 
-const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
+const Step5: React.FC<Step5Props> = ({ onPrev, topicIndex, closeModal }) => {
   const router = useRouter();
   const { switchFeed, clearInReview } = useFeed();
-  const { setParam, deleteParam } = useSearchParams();
   const { user } = useAuth();
   const t = useTranslations();
 
@@ -35,39 +34,27 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
   const questionUrl = `/questions/${thirdQuestionId}`;
 
   const forceNavigate = (url: string) => {
+    closeModal();
     router.push(url);
-    setTimeout(() => {
-      window.location.href = url;
-    }, 100);
   };
 
   const handleViewQuestionFeed = () => {
-    console.log("View Question Feed clicked");
     const url = "/questions/";
-    console.log("Redirecting to:", url);
     forceNavigate(url);
   };
 
   const handleViewMyPredictions = () => {
-    console.log("View Your Predictions clicked");
-    console.log("User:", user);
-
     if (user) {
-      console.log("Clearing in review");
       clearInReview();
-      console.log("Switching feed to MY_PREDICTIONS");
       switchFeed(FeedType.MY_PREDICTIONS);
 
-      console.log("Constructing URL with params");
       const searchParams = new URLSearchParams();
       searchParams.set(POST_FORECASTER_ID_FILTER, user.id.toString());
       searchParams.set("order_by", "-weekly_movement");
       const url = `/questions/?${searchParams.toString()}`;
 
-      console.log("Force redirecting to:", url);
       forceNavigate(url);
     } else {
-      console.log("No user found, force redirecting to /questions/");
       forceNavigate("/questions/");
     }
   };
@@ -101,8 +88,6 @@ const Step5: React.FC<Step5Props> = ({ onPrev, onNext, topicIndex }) => {
         </button>
         <button
           onClick={() => {
-            console.log("Forecast Another Question clicked");
-            console.log("Redirecting to:", questionUrl);
             forceNavigate(questionUrl);
           }}
           className={`${onboardingStyles.smallButton} w-full font-light md:w-fit`}

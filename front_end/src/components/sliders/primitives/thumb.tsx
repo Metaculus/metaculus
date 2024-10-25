@@ -14,7 +14,7 @@ type Props = DetailedHTMLProps<
 > & {
   active: boolean;
   value: number;
-  showValue?: boolean; // Add this line
+  showValue?: boolean;
   onClickIn?: () => void;
   onArrowClickIn?: () => void;
   onArrowClickOut?: (direction: -1 | 1) => void;
@@ -25,7 +25,7 @@ type Props = DetailedHTMLProps<
 const SliderThumb: FC<Props> = ({
   active,
   value,
-  showValue = false, // Add this line
+  showValue = false,
   className,
   onClickIn,
   onArrowClickIn,

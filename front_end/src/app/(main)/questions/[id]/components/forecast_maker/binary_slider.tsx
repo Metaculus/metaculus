@@ -9,7 +9,7 @@ const DEFAULT_SLIDER_VALUE = 50;
 export const BINARY_FORECAST_PRECISION = 3;
 export const BINARY_MIN_VALUE = 10 ** -BINARY_FORECAST_PRECISION * 100;
 export const BINARY_MAX_VALUE = 100 - BINARY_MIN_VALUE;
-const THRESHOLD = 7; // Add this line to set the threshold value
+const THRESHOLD = 7;
 
 type Props = {
   forecast: number | null;

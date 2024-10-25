@@ -122,6 +122,7 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
             onPrev={handlePrev}
             onNext={handleNext}
             topicIndex={selectedTopic}
+            closeModal={onClose}
           />
         );
       default:
