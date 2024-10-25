@@ -20,6 +20,10 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
     userId,
     projectId: project.id,
   });
+  const hasQuestionWeights = contributionsDetails.contributions.some(
+    (contribution) =>
+      contribution.question_weight && contribution.question_weight !== 1.0
+  );
 
   return (
     <SectionToggle
@@ -37,6 +41,11 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
               {project.score_type === "relative_legacy_tournament" && (
                 <th className="p-2 text-right text-sm font-bold">
                   {t("coverage")}
+                </th>
+              )}
+              {hasQuestionWeights && (
+                <th className="p-2 text-right text-sm font-bold">
+                  {t("questionWeight")}
                 </th>
               )}
             </tr>
@@ -63,6 +72,13 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                     {contribution.coverage
                       ? `${(contribution.coverage * 100).toFixed(0)}%`
                       : "0%"}
+                  </th>
+                )}
+                {hasQuestionWeights && (
+                  <th className="p-2 text-right text-sm font-bold">
+                    {contribution.question_weight
+                      ? `${contribution.question_weight.toFixed(1)}`
+                      : "1.0"}
                   </th>
                 )}
               </tr>
@@ -163,6 +179,14 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                     {t("coverage")}
                   </dt>
                   <dd>{t("relativeCoverageInfo")}</dd>
+                </div>
+              )}
+              {hasQuestionWeights && (
+                <div className="m-2 flex text-sm">
+                  <dt className="mr-2 w-20 flex-none font-bold">
+                    {t("questionWeight")}
+                  </dt>
+                  <dd>{t("questionWeightInfo")}</dd>
                 </div>
               )}
               <div className="m-2 flex text-sm">

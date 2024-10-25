@@ -189,6 +189,8 @@ export type Question = {
     };
   }; // TODO: update type
   resolution: Resolution | null;
+  include_bots_in_aggregates: boolean;
+  question_weight: number;
   fine_print: string | null;
   resolution_criteria: string | null;
   label: string | null;

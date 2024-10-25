@@ -73,6 +73,7 @@ class Question(TimeStampedModel):
     type = models.CharField(max_length=20, choices=QuestionType.choices)
     resolution = models.TextField(null=True, blank=True)
     include_bots_in_aggregates = models.BooleanField(default=False)
+    question_weight = models.FloatField(default=1.0)
 
     # description fields
     title = models.CharField(max_length=2000)

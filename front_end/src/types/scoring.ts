@@ -112,6 +112,7 @@ export type Contribution = {
   question_resolution?: Resolution | "string";
   question_title?: string;
   question_id?: number;
+  question_weight?: number;
   post_title?: string;
   post_id?: number;
   comment_text?: string;
