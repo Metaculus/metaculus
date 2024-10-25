@@ -13,15 +13,20 @@ const QuestionManager = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [mode, setMode] = useState<ConferenceMode>(ConferenceMode.Question);
   const questionIds = [11589, 27902, 28072, 18546];
+  const tournamentId = 1;
 
   return (
-    <div className="flex h-[70vh] flex-col items-center justify-between p-4">
-      <div className="flex flex-grow items-center justify-center">
-        {mode === ConferenceMode.Question ? (
-          <ConferenceQuestion questionId={questionIds[currentQuestionIndex]} />
-        ) : (
-          <ForecastOverview />
-        )}
+    <div className="flex h-[70vh] flex-col items-center justify-between">
+      <div className="w-full flex-grow overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center p-4">
+          {mode === ConferenceMode.Question ? (
+            <ConferenceQuestion
+              questionId={questionIds[currentQuestionIndex]}
+            />
+          ) : (
+            <ForecastOverview questionIds={questionIds} />
+          )}
+        </div>
       </div>
       <BottomNavigation
         currentQuestionIndex={currentQuestionIndex}
@@ -29,6 +34,7 @@ const QuestionManager = () => {
         questionIds={questionIds}
         mode={mode}
         setMode={setMode}
+        tournamentId={tournamentId}
       />
     </div>
   );

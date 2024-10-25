@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 
 import Button from "@/components/ui/button";
@@ -10,6 +11,7 @@ interface BottomNavigationProps {
   questionIds: number[];
   mode: ConferenceMode;
   setMode: (mode: ConferenceMode) => void;
+  tournamentId: number;
 }
 
 const BottomNavigation = ({
@@ -18,6 +20,7 @@ const BottomNavigation = ({
   questionIds,
   mode,
   setMode,
+  tournamentId,
 }: BottomNavigationProps) => {
   const isLastQuestion = currentQuestionIndex === questionIds.length - 1;
 
@@ -54,9 +57,14 @@ const BottomNavigation = ({
         </>
       )}
       {mode === ConferenceMode.Overview && (
-        <Button onClick={() => setMode(ConferenceMode.Question)}>
-          Back to Questions
-        </Button>
+        <>
+          <Button onClick={() => setMode(ConferenceMode.Question)}>
+            Back to Questions
+          </Button>
+          <Link href={`/tournaments/${tournamentId}`} passHref>
+            <Button>See Results</Button>
+          </Link>
+        </>
       )}
     </div>
   );
