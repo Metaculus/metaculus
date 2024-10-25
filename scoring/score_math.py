@@ -338,6 +338,7 @@ def evaluate_question(
         question,
         minimize=False,
         aggregation_methods=[AggregationMethod.RECENCY_WEIGHTED],
+        include_bots=question.include_bots_in_aggregates,
     )[AggregationMethod.RECENCY_WEIGHTED]
     geometric_means: list[AggregationEntry] = []
 
