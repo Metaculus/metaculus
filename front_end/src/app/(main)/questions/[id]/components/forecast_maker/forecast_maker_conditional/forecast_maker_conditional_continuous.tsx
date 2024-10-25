@@ -10,7 +10,7 @@ import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
-import { PostConditional } from "@/types/post";
+import { Post, PostConditional } from "@/types/post";
 import {
   PredictionInputMessage,
   Quartiles,
@@ -23,6 +23,7 @@ import {
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
+import { sendGAConditionalPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
@@ -39,6 +40,7 @@ type Props = {
   prevNoForecast?: any;
   canPredict: boolean;
   predictionMessage: PredictionInputMessage;
+  projects: Post["projects"];
 };
 
 const ForecastMakerConditionalContinuous: FC<Props> = ({
@@ -49,6 +51,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   prevNoForecast,
   canPredict,
   predictionMessage,
+  projects,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -270,7 +273,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     if (!questionsToSubmit.length) {
       return;
     }
-
     setIsSubmitting(true);
     const response = await createForecasts(
       postId,
@@ -292,6 +294,13 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         },
       }))
     );
+    questionsToSubmit.forEach((q) => {
+      sendGAConditionalPredictEvent(
+        projects,
+        q.id === questionYesId ? !!prevYesForecast : !!prevNoForecast,
+        hideCP
+      );
+    });
     setQuestionOptions((prev) =>
       prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
     );

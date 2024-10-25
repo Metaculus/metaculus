@@ -2,6 +2,7 @@
 
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
 
@@ -44,7 +45,7 @@ const PostSubscribeButton: FC<Props> = ({ post, mini = false }) => {
           post.id,
           getInitialSubscriptions()
         );
-
+        sendGAEvent("event", "questionFollowed");
         // Click on this button automatically subscribes user to the default notifications
         setPostSubscriptions(newSubscriptions);
         // Open success modal

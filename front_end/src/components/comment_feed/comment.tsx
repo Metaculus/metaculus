@@ -6,6 +6,7 @@ import {
   faReply,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { sendGAEvent } from "@next/third-parties/google";
 import classNames from "classnames";
 import { useLocale, useTranslations } from "next-intl";
 import { FC, useState, useEffect, useRef } from "react";
@@ -195,7 +196,7 @@ const Comment: FC<CommentProps> = ({
         },
       },
     ]);
-
+    sendGAEvent("event", "commentChangedPrediction");
     if (response && "errors" in response && !!response.errors) {
       throw response.errors;
     }
