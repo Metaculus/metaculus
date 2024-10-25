@@ -44,14 +44,14 @@ const PaginatedPostsFeed: FC<Props> = ({
 
   useEffect(() => {
     // capture search event from AwaitedPostsFeed
-    sendGAEvent("event", "feedSearch", { value: filters });
+    sendGAEvent("event", "feedSearch", { value: JSON.stringify(filters) });
   }, [filters]);
   const loadMorePosts = async () => {
     if (hasMoreData) {
       setIsLoading(true);
       setError(undefined);
       try {
-        sendGAEvent("event", "feedSearch", { value: filters });
+        sendGAEvent("event", "feedSearch", { value: JSON.stringify(filters) });
         const { newPosts, hasNextPage } = await fetchMorePosts(
           filters,
           offset,

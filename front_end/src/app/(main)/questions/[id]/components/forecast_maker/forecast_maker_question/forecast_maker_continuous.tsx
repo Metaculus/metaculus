@@ -1,4 +1,5 @@
 "use client";
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { FC, useMemo, useState } from "react";
 
@@ -9,7 +10,7 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
-import { ProjectPermissions } from "@/types/post";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
   PredictionInputMessage,
   QuestionWithNumericForecasts,
@@ -20,6 +21,7 @@ import {
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
+import { sendGAPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
 import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
@@ -27,7 +29,7 @@ import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
 
 type Props = {
-  postId: number;
+  post: PostWithForecasts;
   question: QuestionWithNumericForecasts;
   prevForecast?: any;
   permission?: ProjectPermissions;
@@ -37,7 +39,7 @@ type Props = {
 };
 
 const ForecastMakerContinuous: FC<Props> = ({
-  postId,
+  post,
   question,
   permission,
   prevForecast,
@@ -93,7 +95,9 @@ const ForecastMakerContinuous: FC<Props> = ({
   };
 
   const handlePredictSubmit = async () => {
-    const response = await createForecasts(postId, [
+    sendGAPredictEvent(post, question, hideCP);
+
+    const response = await createForecasts(post.id, [
       {
         questionId: question.id,
         forecastData: {

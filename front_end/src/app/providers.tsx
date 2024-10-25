@@ -14,7 +14,6 @@ export function CSPostHogProvider({ children }: { children: any }) {
         person_profiles: "identified_only",
         // Disable automatic pageview capture, as we capture manually
         capture_pageview: false,
-        disable_session_recording: true,
         persistence:
           getAnalyticsCookieConsentGiven() === "yes"
             ? "localStorage+cookie"

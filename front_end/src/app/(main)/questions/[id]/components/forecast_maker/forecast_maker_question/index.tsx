@@ -2,7 +2,7 @@ import { parseISO } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import { FC } from "react";
 
-import { ProjectPermissions } from "@/types/post";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
   PredictionInputMessage,
   QuestionType,
@@ -17,7 +17,7 @@ import ForecastMakerContainer from "../container";
 import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
-  postId: number;
+  post: PostWithForecasts;
   question: QuestionWithForecasts;
   permission?: ProjectPermissions;
   canPredict: boolean;
@@ -30,7 +30,7 @@ const QuestionForecastMaker: FC<Props> = ({
   permission,
   canPredict,
   canResolve,
-  postId,
+  post,
   predictionMessage,
 }) => {
   const t = useTranslations();
@@ -49,7 +49,7 @@ const QuestionForecastMaker: FC<Props> = ({
         question.type === QuestionType.Date) && (
         <>
           <ForecastMakerContinuous
-            postId={postId}
+            post={post}
             question={question}
             permission={permission}
             prevForecast={question.my_forecasts?.latest?.slider_values}
@@ -67,7 +67,7 @@ const QuestionForecastMaker: FC<Props> = ({
       {question.type === QuestionType.Binary && (
         <>
           <ForecastMakerBinary
-            postId={postId}
+            post={post}
             question={question}
             permission={permission}
             prevForecast={question.my_forecasts?.latest?.forecast_values[1]}
@@ -85,7 +85,7 @@ const QuestionForecastMaker: FC<Props> = ({
       {question.type === QuestionType.MultipleChoice && (
         <>
           <ForecastMakerMultipleChoice
-            postId={postId}
+            post={post}
             question={question}
             permission={permission}
             canPredict={

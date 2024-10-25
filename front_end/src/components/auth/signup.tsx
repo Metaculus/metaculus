@@ -4,6 +4,7 @@ import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile, TurnstileInstance } from "@marsidev/react-turnstile";
+import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useRef, useState, useTransition } from "react";
@@ -37,7 +38,7 @@ export const SignupForm: FC<{
   const { register, watch, setValue } = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-          isBot: forceIsBot !== "ask" ? forceIsBot : undefined,
+      isBot: forceIsBot !== "ask" ? forceIsBot : undefined,
     },
   });
   const turnstileRef = useRef<TurnstileInstance | undefined>();
@@ -52,6 +53,9 @@ export const SignupForm: FC<{
     }
 
     if (!("errors" in state)) {
+      sendGAEvent("event", "register", {
+        value: new URLSearchParams(window.location.search).toString(),
+      });
       setCurrentModal({
         type: "signupSuccess",
         data: { email: watch("email"), username: watch("username") },

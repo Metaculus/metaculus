@@ -1,8 +1,9 @@
 "use client";
 
+import { sendGAEvent } from "@next/third-parties/google";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
 import { VictoryThemeDefinition } from "victory";
 
 import Button from "@/app/(main)/about/components/Button";
@@ -66,6 +67,20 @@ const ConditionalTile: FC<Props> = ({
   const noDisabled =
     question_no.resolution === "annulled" ||
     question_no.resolution === "ambiguous";
+
+  useEffect(() => {
+    if (
+      !!question_no.my_forecasts?.history.length ||
+      !!question_yes.my_forecasts?.history.length
+    ) {
+      sendGAEvent("event", "visitPredictedQuestion", {
+        value: "conditional",
+      });
+    }
+  }, [
+    question_no.my_forecasts?.history.length,
+    question_yes.my_forecasts?.history.length,
+  ]);
 
   return (
     <>

@@ -1,6 +1,7 @@
 "use client";
 import { faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { sendGAEvent } from "@next/third-parties/google";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
@@ -58,6 +59,11 @@ const SidebarQuestionTags: FC<Props> = ({
             color="orange"
             key={element.id}
             href={`/tournament/${element.slug ?? element.id}/`}
+            onClick={() =>
+              sendGAEvent("event", "questionTagClicked", {
+                value: element.name,
+              })
+            }
           >
             {element.name}
           </Chip>
@@ -68,6 +74,11 @@ const SidebarQuestionTags: FC<Props> = ({
             color="orange"
             key={element.id}
             href={`/tournament/${element.slug ?? element.id}/`}
+            onClick={() =>
+              sendGAEvent("event", "questionTagClicked", {
+                value: element.name,
+              })
+            }
           >
             {element.name}
           </Chip>
@@ -78,6 +89,11 @@ const SidebarQuestionTags: FC<Props> = ({
             color="olive"
             key={element.id}
             href={`/questions/?${POST_CATEGORIES_FILTER}=${element.slug}&for_main_feed=false`}
+            onClick={() =>
+              sendGAEvent("event", "questionTagClicked", {
+                value: element.name,
+              })
+            }
           >
             {element.name}
           </Chip>
@@ -93,6 +109,11 @@ const SidebarQuestionTags: FC<Props> = ({
               await removePostFromProject(postId, element.id);
               router.refresh();
             }}
+            onClick={() =>
+              sendGAEvent("event", "questionTagClicked", {
+                value: element.name,
+              })
+            }
           >
             {element.name}
           </Chip>

@@ -7,6 +7,7 @@ import ProjectsApi from "@/services/projects";
 import { PostWithForecasts, PostWithNotebook } from "@/types/post";
 import { encodeQueryParams } from "@/utils/navigation";
 
+import EmailConfirmation from "./components/email_confirmation";
 import EngageBlock from "./components/engage_block";
 import FocusAreaLink, { FocusAreaItem } from "./components/focus_area_link";
 import HomeSearch from "./components/home_search";
@@ -65,6 +66,7 @@ export default async function Home() {
 
   return (
     <main className="bg-gradient-to-b from-blue-100 from-20% to-blue-200 to-50% pt-16 dark:from-blue-100-dark dark:to-blue-200-dark sm:pt-28">
+      <EmailConfirmation />
       <div className="mx-auto mb-24 flex w-full max-w-7xl flex-1 flex-col items-stretch px-4 text-blue-700 dark:text-blue-700-dark sm:px-8 md:px-12 lg:px-16">
         <div className="mb-6 flex flex-col items-center md:mb-12 lg:mb-14">
           <h1 className="mb-5 mt-0 text-balance text-center text-4xl text-blue-800 dark:text-blue-800-dark sm:text-5xl sm:tracking-tight md:text-6xl">

@@ -1,3 +1,4 @@
+import { sendGAEvent } from "@next/third-parties/google";
 import { FC, useMemo } from "react";
 
 import Chip from "@/components/ui/chip";
@@ -22,6 +23,7 @@ const MultiChipFilter: FC<Props> = ({ filterId, options, onChange }) => {
         activeValues.filter((o) => o !== option.value)
       );
     } else {
+      sendGAEvent("event", "feedFilterActivated", { value: option.label });
       onChange(filterId, [...activeValues, option.value]);
     }
   };

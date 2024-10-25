@@ -40,7 +40,9 @@ const TournamentFeed: FC<Props> = ({ slug }) => {
       setIsLoading(true);
       setError(undefined);
       try {
-        sendGAEvent("event", "feedSearch", { value: pageFilters });
+        sendGAEvent("event", "feedSearch", {
+          value: JSON.stringify(pageFilters),
+        });
         const { questions } = (await fetchPosts(
           pageFilters,
           0,

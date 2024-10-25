@@ -1,6 +1,7 @@
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
+import { sendGAEvent } from "@next/third-parties/google";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect } from "react";
@@ -86,6 +87,11 @@ const PopoverFilter: FC<Props> = ({
             className={classNames({
               "bg-gray-300 dark:bg-gray-300-dark": open,
             })}
+            onClick={() =>
+              sendGAEvent("event", "feedFilterClick", {
+                value: new URLSearchParams(window.location.search).toString(),
+              })
+            }
           >
             {buttonLabel || t("Filter")}
           </PopoverButton>
