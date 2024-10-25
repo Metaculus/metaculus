@@ -11,7 +11,7 @@ import CookiesModal from "./cookies_modal";
 
 type ConsentGiven = "yes" | "no" | "undecided";
 
-const STORAGE_KEY = "analytic_cookie_consent";
+const STORAGE_KEY = "analytic_cookies_consent";
 
 const CookiesBanner: FC = () => {
   const t = useTranslations();
@@ -42,8 +42,12 @@ const CookiesBanner: FC = () => {
     }
   }, [consentGiven]);
 
-  const submitBanner = () => {
-    const consentValue = analyticsCheckboxValue ? "yes" : "no";
+  const submitBanner = (necessaryOnly?: boolean) => {
+    const consentValue = necessaryOnly
+      ? "no"
+      : analyticsCheckboxValue
+        ? "yes"
+        : "no";
     localStorage.setItem(STORAGE_KEY, consentValue);
     setConsentGiven(consentValue);
   };
@@ -72,9 +76,21 @@ const CookiesBanner: FC = () => {
             })}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={openModal}>{t("customize")}</Button>
-          <Button variant="primary" onClick={submitBanner}>
+        <div className="flex flex-col items-start gap-2 xs:flex-row xs:items-center">
+          <div className="flex gap-2">
+            <Button
+              className="whitespace-nowrap"
+              onClick={() => submitBanner(true)}
+            >
+              {t("necessaryOnly")}
+            </Button>
+            <Button onClick={openModal}>{t("customize")}</Button>
+          </div>
+          <Button
+            className="whitespace-nowrap"
+            variant="primary"
+            onClick={() => submitBanner()}
+          >
             {t("acceptAndClose")}
           </Button>
         </div>

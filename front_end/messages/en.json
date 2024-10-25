@@ -841,6 +841,7 @@
   "cookiePreferences": "Cookie Preferences",
   "cookieServices": "Metaculus uses cookies for the following types of services.",
   "learnMoreFromPrivacyPolicy": "Learn more from our <link>Privacy Policy</link>.",
+  "necessaryOnly": "Necessary only",
   "necessaryCookies": "Necessary cookies",
   "cannotBeUnchecked": "Cannot be unchecked",
   "analytics": "Analytics",

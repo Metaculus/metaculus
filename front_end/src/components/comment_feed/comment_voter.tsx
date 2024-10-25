@@ -1,3 +1,5 @@
+"use client";
+import { sendGAEvent } from "@next/third-parties/google";
 import { FC, useState } from "react";
 
 import { voteComment } from "@/app/(main)/questions/actions";
@@ -38,6 +40,7 @@ const CommentVoter: FC<Props> = ({ voteData, className }) => {
         vote: newDirection,
         user: user.id,
       });
+      sendGAEvent("event", "commentVoted");
       if (response && "score" in response) {
         setUserVote(newDirection);
         setVoteScore(response.score as number);

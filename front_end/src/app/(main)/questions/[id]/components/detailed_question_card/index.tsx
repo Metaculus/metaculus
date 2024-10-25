@@ -1,6 +1,7 @@
 "use client";
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
 
 import Button from "@/app/(main)/about/components/Button";
 import { PostStatus } from "@/types/post";
@@ -27,6 +28,13 @@ const DetailedQuestionCard: FC<Props> = ({
   const { hideCP, setCurrentHideCP } = useHideCP();
 
   const t = useTranslations();
+  useEffect(() => {
+    if (!!question.my_forecasts?.history.length) {
+      sendGAEvent("event", "visitPredictedQuestion", {
+        value: question.type,
+      });
+    }
+  }, [question.my_forecasts?.history.length, question.type]);
 
   if (isForecastEmpty) {
     if (postStatus !== PostStatus.OPEN) {

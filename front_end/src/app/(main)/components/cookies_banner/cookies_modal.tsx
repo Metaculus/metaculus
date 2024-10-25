@@ -64,8 +64,10 @@ const CookiesModal: FC<Props> = ({
         </li>
       </ul>
 
-      <div className="mt-5 w-full text-right" onClick={onSubmit}>
-        <Button variant="primary">{t("saveSelected")}</Button>
+      <div className="mt-5 w-full text-right">
+        <Button variant="primary" onClick={onSubmit}>
+          {t("saveSelected")}
+        </Button>
       </div>
     </BaseModal>
   );
