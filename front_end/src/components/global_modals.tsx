@@ -37,6 +37,10 @@ const GlobalModals: FC = () => {
       <ContactUsModal
         isOpen={currentModal?.type === "contactUs"}
         onClose={onClose}
+      />{" "}
+      <OnboardingModal
+        isOpen={currentModal?.type === "onboarding"}
+        onClose={() => setCurrentModal(null)}
       />
       <ConfirmModal
         isOpen={currentModal?.type === "confirm"}
