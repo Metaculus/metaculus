@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
-import { ProjectPermissions } from "@/types/post";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
   AggregateForecastHistory,
   PredictionInputMessage,
@@ -24,6 +24,7 @@ import {
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 
+import { sendGAPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
 import {
   BINARY_FORECAST_PRECISION,
@@ -42,7 +43,7 @@ type ChoiceOption = {
 };
 
 type Props = {
-  postId: number;
+  post: PostWithForecasts;
   question: QuestionWithMultipleChoiceForecasts;
   permission?: ProjectPermissions;
   canPredict: boolean;
@@ -51,7 +52,7 @@ type Props = {
 };
 
 const ForecastMakerMultipleChoice: FC<Props> = ({
-  postId,
+  post,
   question,
   permission,
   canPredict,
@@ -176,8 +177,8 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
         BINARY_FORECAST_PRECISION
       );
     });
-
-    const response = await createForecasts(postId, [
+    sendGAPredictEvent(post, question, hideCP);
+    const response = await createForecasts(post.id, [
       {
         questionId: question.id,
         forecastData: {
@@ -321,7 +322,8 @@ function generateChoiceOptions(
     const bCenter = latest?.forecast_values[b] ?? 0;
     return bCenter - aCenter;
   });
-  return choiceOrdering.map((order, index) => {
+
+  const choiceItems = choiceOrdering.map((order, index) => {
     return {
       name: question.options![order],
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
@@ -331,6 +333,14 @@ function generateChoiceOptions(
         : null,
     };
   });
+  const resolutionIndex = choiceOrdering.findIndex(
+    (order) => question.options![order] === question.resolution
+  );
+  if (resolutionIndex !== -1) {
+    const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);
+    choiceItems.unshift(resolutionItem);
+  }
+  return choiceItems;
 }
 
 function getDefaultForecast(

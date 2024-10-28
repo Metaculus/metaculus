@@ -2,6 +2,7 @@
 
 import { faCircleXmark } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, useMemo } from "react";
 
@@ -147,6 +148,7 @@ const PostsFilters: FC<Props> = ({
     setParam(filterId, optionValue);
   };
   const clearPopupFilters = (withNavigation = true) => {
+    sendGAEvent("event", "feedFiltersCleared");
     const filtersToDelete = popoverFilters.reduce<string[]>(
       (filterIds, filter) => {
         const optionIds = filter.options.reduce<string[]>(
@@ -186,12 +188,18 @@ const PostsFilters: FC<Props> = ({
             buttons={mainSortOptions}
             onChange={handleOrderChange}
             variant="tertiary"
+            onClick={(buttonLabel) =>
+              sendGAEvent("event", "feedShortcutClick", { value: buttonLabel })
+            }
           />
           <div className="flex grow justify-end gap-3">
             {dropdownSortOptions && (
               <Listbox
                 className="rounded-full"
                 onChange={handleOrderChange}
+                onClick={(value) =>
+                  sendGAEvent("event", "feedSortClick", { value })
+                }
                 options={dropdownSortOptions}
                 value={order || defaultOrder}
                 label="More"

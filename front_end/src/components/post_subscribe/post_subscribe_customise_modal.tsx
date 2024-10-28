@@ -1,4 +1,5 @@
 "use client";
+import { sendGAEvent } from "@next/third-parties/google";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
@@ -132,6 +133,7 @@ const PostSubscribeCustomizeModal: FC<Props> = ({
         revalidate
       );
       onPostSubscriptionChange && onPostSubscriptionChange(newSubscriptions);
+      sendGAEvent("event", "questionUnfollowed");
     } finally {
       setIsLoading(false);
     }

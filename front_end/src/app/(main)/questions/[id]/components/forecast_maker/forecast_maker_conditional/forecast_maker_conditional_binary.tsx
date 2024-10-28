@@ -10,13 +10,14 @@ import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
-import { PostConditional } from "@/types/post";
+import { Post, PostConditional } from "@/types/post";
 import {
   PredictionInputMessage,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
+import { sendGAConditionalPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
@@ -32,6 +33,7 @@ type Props = {
   prevNoForecast?: any;
   canPredict: boolean;
   predictionMessage: PredictionInputMessage;
+  projects: Post["projects"];
 };
 
 const ForecastMakerConditionalBinary: FC<Props> = ({
@@ -42,6 +44,7 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   prevNoForecast,
   canPredict,
   predictionMessage,
+  projects,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -219,6 +222,13 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
         };
       })
     );
+    questionsToSubmit.forEach((q) => {
+      sendGAConditionalPredictEvent(
+        projects,
+        q.id === questionYesId ? !!prevYesForecast : !!prevNoForecast,
+        hideCP
+      );
+    });
     setQuestionOptions((prev) =>
       prev.map((prevChoice) => ({ ...prevChoice, isDirty: false }))
     );

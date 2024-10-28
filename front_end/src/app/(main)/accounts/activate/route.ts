@@ -21,5 +21,5 @@ export async function GET(
     logError(err);
   }
 
-  return redirect("/?start_onboarding=true");
+  return redirect("/?event=emailConfirmed");
 }

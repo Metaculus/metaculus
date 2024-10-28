@@ -1,4 +1,5 @@
 "use client";
+import { sendGAEvent } from "@next/third-parties/google";
 import { FC, useState } from "react";
 
 import { votePost } from "@/app/(main)/questions/actions";
@@ -12,9 +13,10 @@ import { logError } from "@/utils/errors";
 type Props = {
   className?: string;
   post: Post;
+  questionPage?: boolean;
 };
 
-const PostVoter: FC<Props> = ({ className, post }) => {
+const PostVoter: FC<Props> = ({ className, post, questionPage }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
 
@@ -31,6 +33,9 @@ const PostVoter: FC<Props> = ({ className, post }) => {
       if ("score" in response) {
         setVote({ user_vote: newDirection, score: response.score });
       }
+      sendGAEvent("event", "questionVoted", {
+        label: questionPage ? "questionPage" : "questionFeed",
+      });
     } catch (e) {
       logError(e);
     }

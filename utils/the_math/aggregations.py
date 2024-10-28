@@ -331,9 +331,8 @@ def minimize_history(
     day_history = []
     day_interval = []
     if day_size > 0:
-        first_index = 0
-        last_index = bisect_right(h, h[0] + day)
-        day_interval = h[first_index:last_index]
+        first_index = bisect_left(h, h[-1] - day)
+        day_interval = h[first_index:]
         day_history = summarize_array(day_interval, day_size)
         remainder = day_size - len(day_history)
         if remainder > 0:
@@ -344,8 +343,8 @@ def minimize_history(
     week_history = []
     week_interval = []
     if week_size > 0:
-        first_index = bisect_left(h, h[0] + day)
-        last_index = bisect_right(h, h[0] + day * 7)
+        first_index = bisect_left(h, h[-1] - day * 7)
+        last_index = bisect_right(h, h[-1] - day)
         week_interval = h[first_index:last_index]
         week_history = summarize_array(week_interval, week_size)
         remainder = week_size - len(week_history)
@@ -356,8 +355,8 @@ def minimize_history(
     month_history = []
     month_interval = []
     if month_size > 0:
-        first_index = bisect_left(h, h[0] + day * 7)
-        last_index = bisect_right(h, h[0] + day * 60)
+        first_index = bisect_left(h, h[-1] - day * 60)
+        last_index = bisect_right(h, h[-1] - day * 7)
         month_interval = h[first_index:last_index]
         month_history = summarize_array(month_interval, month_size)
         remainder = month_size - len(month_history)
@@ -367,13 +366,13 @@ def minimize_history(
     all_history = []
     all_interval = []
     if all_size > 0:
-        first_index = bisect_left(h, h[0] + day * 60)
-        all_interval = h[first_index:]
+        last_index = bisect_right(h, h[-1] - day * 60)
+        all_interval = h[:last_index]
         all_history = summarize_array(all_interval, all_size)
         remainder = all_size - len(all_history)
 
     # put it all together
-    minimized_history = day_history + week_history + month_history + all_history
+    minimized_history = all_history + month_history + week_history + day_history
     return [datetime.fromtimestamp(h, tz=timezone.utc) for h in minimized_history]
 
 

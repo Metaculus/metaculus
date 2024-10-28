@@ -1,7 +1,8 @@
 "use client";
 
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
 
 import Button from "@/app/(main)/about/components/Button";
 import NumericGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/numeric_group_chart";
@@ -43,6 +44,14 @@ const DetailedGroupCard: FC<Props> = ({
   const groupType = questions.at(0)?.type;
   const { hideCP, setCurrentHideCP } = useHideCP();
 
+  useEffect(() => {
+    if (questions.some((q) => !!q.my_forecasts?.history.length)) {
+      sendGAEvent("event", "visitPredictedQuestion", {
+        value: "group",
+      });
+    }
+  }, [questions]);
+
   if (!groupType) {
     return (
       <div className="text-l m-4 w-full text-center">
@@ -64,7 +73,6 @@ const DetailedGroupCard: FC<Props> = ({
       oneQuestionClosed = true;
     }
   });
-
   if (isForecastEmpty) {
     if (postStatus !== PostStatus.OPEN) {
       return null;

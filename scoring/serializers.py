@@ -69,6 +69,9 @@ class ContributionSerializer(serializers.Serializer):
     question_resolution = serializers.CharField(
         source="question.resolution", required=False
     )
+    question_weight = serializers.FloatField(
+        source="question.question_weight", required=False
+    )
     question_title = serializers.CharField(source="question.title", required=False)
     question_id = serializers.IntegerField(source="question.id", required=False)
     post_title = serializers.CharField(source="post.title", required=False)

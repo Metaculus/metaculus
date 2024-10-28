@@ -28,7 +28,7 @@ const ForecastMakerConditional: FC<Props> = ({
 }) => {
   const t = useTranslations();
 
-  const { id: postId, title: postTitle } = post;
+  const { id: postId, title: postTitle, projects } = post;
   const { condition, condition_child, question_yes, question_no } = conditional;
 
   if (question_yes.type !== question_no.type) {
@@ -76,6 +76,7 @@ const ForecastMakerConditional: FC<Props> = ({
             new Date(conditional.condition_child.open_time) <= new Date()
           }
           predictionMessage={predictionMessage}
+          projects={projects}
         />
       )}
       {(question_yes.type === QuestionType.Date ||
@@ -95,6 +96,7 @@ const ForecastMakerConditional: FC<Props> = ({
             new Date(conditional.condition_child.open_time) <= new Date()
           }
           predictionMessage={predictionMessage}
+          projects={projects}
         />
       )}
     </ForecastMakerContainer>

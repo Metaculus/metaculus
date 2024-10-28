@@ -124,7 +124,7 @@ def generate_scoring_leaderboard_entries(
                 contribution_count=0,
                 calculated_on=now,
             )
-        entries[identifier].score += score.score
+        entries[identifier].score += score.score * score.question.question_weight
         entries[identifier].coverage += score.coverage
         entries[identifier].contribution_count += 1
     if leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL:

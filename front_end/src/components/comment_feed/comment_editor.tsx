@@ -1,5 +1,6 @@
 "use client";
 
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
@@ -51,6 +52,10 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const handleSubmit = async () => {
     setErrorMessage("");
     setIsLoading(true);
+
+    sendGAEvent("event", "postComment", {
+      label: hasIncludedForecast ? "predictionIncluded" : null,
+    });
 
     try {
       const userTagPattern = /@(?!\[)(?:\(([^)]+)\)|([^\s(]+)(?!\]))/g;

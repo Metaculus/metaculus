@@ -567,7 +567,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   });
 
   const history = question.aggregations.recency_weighted.history;
-  return choiceOrdering.map((order, index) => {
+  const choiceItems = choiceOrdering.map((order, index) => {
     const label = question.options![order];
     return {
       choice: label,
@@ -579,7 +579,6 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
         (forecast) => forecast.interval_upper_bounds![order]
       ),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
-      active: !!activeCount ? index <= activeCount - 1 : true,
       highlighted: false,
       resolution: question.resolution,
       displayedResolution: question.resolution
@@ -591,6 +590,17 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
       rangeMax: 1,
     };
   });
+  const resolutionIndex = choiceOrdering.findIndex(
+    (order) => question.options![order] === question.resolution
+  );
+  if (resolutionIndex !== -1) {
+    const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);
+    choiceItems.unshift(resolutionItem);
+  }
+  return choiceItems.map((item, index) => ({
+    ...item,
+    active: !!activeCount ? index < activeCount - 1 : true,
+  }));
 }
 
 export function generateChoiceItemsFromBinaryGroup(
@@ -722,7 +732,7 @@ export function findPreviousTimestamp(
   timestamp: number
 ): number {
   return timestamps.reduce(
-    (prev, curr) => (curr < timestamp && curr > prev ? curr : prev),
+    (prev, curr) => (curr <= timestamp && curr > prev ? curr : prev),
     0
   );
 }

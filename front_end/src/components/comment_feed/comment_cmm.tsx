@@ -16,6 +16,7 @@ import {
   faCaretUp,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { sendGAEvent } from "@next/third-parties/google";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { useState, forwardRef, FC } from "react";
@@ -305,6 +306,7 @@ const CmmToggleButton = forwardRef<HTMLButtonElement, CmmToggleButtonProps>(
           enabled: !cmmContext.cmmEnabled,
         });
         cmmContext.onCMMToggled(!cmmContext.cmmEnabled);
+        sendGAEvent("event", "commentChangedMind");
       } catch (e) {
         logError(e);
         const error = e as Error & { digest?: string };

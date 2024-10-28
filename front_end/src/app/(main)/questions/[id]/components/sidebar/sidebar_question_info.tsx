@@ -76,6 +76,28 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
             )}
           </span>
         </div>
+
+        {postData.question && postData.question.question_weight !== 1.0 && (
+          <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
+            <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+              {t("questionWeight")}:
+            </span>
+            <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+              {postData.question.question_weight}
+            </span>
+          </div>
+        )}
+
+        {postData.question?.include_bots_in_aggregates && (
+          <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
+            <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
+              {t("includeBots")}:
+            </span>
+            <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
+              {t("Yes")}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -22,9 +22,7 @@ def get_projects_qs(
     Returns available projects for the user
     """
 
-    qs = Project.objects.filter_active().filter_permission(
-        user=user, permission=permission
-    )
+    qs = Project.objects.filter_permission(user=user, permission=permission)
 
     if show_on_homepage:
         qs = qs.filter(show_on_homepage=True)

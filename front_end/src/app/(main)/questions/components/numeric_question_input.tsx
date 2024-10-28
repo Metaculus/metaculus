@@ -78,6 +78,8 @@ const NumericQuestionInput: React.FC<{
     author_username: "",
     post_id: 0,
     resolution: "",
+    include_bots_in_aggregates: false,
+    question_weight: 1.0,
     forecasts: {
       timestamps: [],
       nr_forecasters: [],

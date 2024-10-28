@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, useEffect, useTransition } from "react";
 import { useFormState } from "react-dom";
@@ -42,6 +43,7 @@ const SignInModal: FC<SignInModalType> = ({
     }
 
     if (state.user) {
+      sendGAEvent("event", "login");
       setUser(state.user);
       setCurrentModal(null);
     }

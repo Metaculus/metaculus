@@ -1,4 +1,5 @@
 "use client";
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useState } from "react";
 
@@ -34,6 +35,7 @@ const PostSubscribeSuccessModal: FC<Props> = ({
         [],
         false
       );
+      sendGAEvent("event", "questionUnfollowed");
       onPostSubscriptionChange(newSubscriptions);
     } finally {
       setIsLoading(false);

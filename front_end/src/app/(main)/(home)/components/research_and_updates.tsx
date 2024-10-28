@@ -31,7 +31,7 @@ const ResearchAndUpdatesBlock: FC<Props> = async ({ posts }) => {
       <p className="m-0 text-xl text-blue-700 dark:text-blue-700-dark">
         {t("partnersUseForecasts")}
       </p>
-      <div className="mt-6 flex flex-col gap-8 lg:flex-row">
+      <div className="mt-6 flex flex-col gap-8 xl:flex-row">
         {posts.map(({ title, created_at, id, notebook, slug }) => (
           <Link
             key={id}

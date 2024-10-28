@@ -2561,6 +2561,16 @@ export default function FAQ() {
                 of the individual forecaster probabilities.
               </li>
               <li>
+                For <a href="/faq/#question-types">Multiple Choice Questions</a>
+                , the Community Prediction is a{" "}
+                <a href="https://en.wikipedia.org/wiki/Weighted_median">
+                  weighted median
+                </a>{" "}
+                of the individual forecaster probabilities, renormalized to sum
+                to 1 and respect the bounds of{" "}
+                <MathJaxContent content={`[0.001, 0.999]`} />.
+              </li>
+              <li>
                 For{" "}
                 <a href="/faq/#question-types">Numeric and Date Questions</a>,
                 the Community Prediction is a{" "}
@@ -2581,6 +2591,16 @@ export default function FAQ() {
           <p>
             Users can hide the Community Prediction from view from within their
             settings.
+          </p>
+          <h4
+            id="include-bots"
+            className="mb-4 scroll-mt-nav text-xl font-semibold"
+          >
+            Are bots included in the Community Prediction?
+          </h4>
+          <p>
+            By default, bots are not included in any aggregations. If they are,
+            it is indicated in the sidebar as "Include Bots".
           </p>
         </div>
 

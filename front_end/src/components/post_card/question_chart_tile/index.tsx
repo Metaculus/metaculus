@@ -70,7 +70,9 @@ const QuestionChartTile: FC<Props> = ({
         activeCount: visibleChoicesCount,
       });
       const userForecasts = generateUserForecastsForMultipleQuestion(question);
-
+      const actualCloseTime = question.actual_close_time
+        ? new Date(question.actual_close_time).getTime()
+        : null;
       return (
         <MultipleChoiceTile
           timestamps={question.aggregations.recency_weighted.history.map(
@@ -82,6 +84,7 @@ const QuestionChartTile: FC<Props> = ({
           question={question}
           userForecasts={userForecasts}
           hideCP={hideCP}
+          actualCloseTime={actualCloseTime}
         />
       );
     }

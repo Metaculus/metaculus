@@ -11,20 +11,21 @@ import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
-import { ProjectPermissions } from "@/types/post";
+import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
   PredictionInputMessage,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 
+import { sendGAPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
 
 type Props = {
-  postId: number;
+  post: PostWithForecasts;
   question: QuestionWithNumericForecasts;
   prevForecast?: any;
   permission?: ProjectPermissions;
@@ -34,7 +35,7 @@ type Props = {
 };
 
 const ForecastMakerBinary: FC<Props> = ({
-  postId,
+  post,
   question,
   prevForecast,
   permission,
@@ -70,9 +71,10 @@ const ForecastMakerBinary: FC<Props> = ({
 
     if (forecast === null) return;
 
-    const forecastValue = round(forecast / 100, BINARY_FORECAST_PRECISION);
+    sendGAPredictEvent(post, question, hideCP);
 
-    const response = await createForecasts(postId, [
+    const forecastValue = round(forecast / 100, BINARY_FORECAST_PRECISION);
+    const response = await createForecasts(post.id, [
       {
         questionId: question.id,
         forecastData: {

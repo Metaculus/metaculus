@@ -1040,8 +1040,12 @@ export default function ScoresFAQ() {
       </p>
       <p>
         Your rank in the tournament is determined by the sum of your Peer scores
-        over all questions in the tournament (you get 0 for any question you
-        didn’t forecast).
+        over all questions weighted by the question's weight in the tournament
+        (you get 0 for any question you didn’t forecast). Questions that have
+        weights other than 1.0 are indicated in the sidebar of the question
+        detail page. Typically, a question weight is changed if it is determined
+        to be highly correllated with other questions included in the same
+        tournament, especially question groups.
       </p>
       <p>
         The share of the prize pool you get is proportional to that same sum of
@@ -1052,7 +1056,7 @@ export default function ScoresFAQ() {
         <MathJaxContent
           block
           content={`\\[
-\\text{your total score} = \\sum_\\text{questions} \\text{your peer score}
+\\text{your total score} = \\sum_\\text{questions} \\text{your peer score} * \\text{question weight}
 \\]`}
         />
         <MathJaxContent
