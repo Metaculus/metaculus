@@ -732,7 +732,7 @@ export function findPreviousTimestamp(
   timestamp: number
 ): number {
   return timestamps.reduce(
-    (prev, curr) => (curr < timestamp && curr > prev ? curr : prev),
+    (prev, curr) => (curr <= timestamp && curr > prev ? curr : prev),
     0
   );
 }

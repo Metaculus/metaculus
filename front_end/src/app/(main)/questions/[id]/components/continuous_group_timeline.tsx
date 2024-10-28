@@ -31,15 +31,25 @@ import { generateUserForecasts } from "@/utils/questions";
 
 const MAX_VISIBLE_CHECKBOXES = 6;
 
-function getQuestionTooltipLabel(
-  timestamps: number[],
-  values: number[],
-  cursorTimestamp: number,
-  question: Question
-) {
-  const hasValue =
-    cursorTimestamp >= Math.min(...timestamps) &&
-    cursorTimestamp <= Math.max(...timestamps);
+function getQuestionTooltipLabel({
+  timestamps,
+  values,
+  cursorTimestamp,
+  question,
+  isUserPrediction,
+  closeTime,
+}: {
+  timestamps: number[];
+  values: number[];
+  cursorTimestamp: number;
+  question: Question;
+  isUserPrediction?: boolean;
+  closeTime?: number | undefined;
+}) {
+  const hasValue = isUserPrediction
+    ? cursorTimestamp >= Math.min(...timestamps)
+    : cursorTimestamp >= Math.min(...timestamps) &&
+      cursorTimestamp <= Math.max(...timestamps, closeTime ?? 0);
   if (!hasValue) {
     return "?";
   }
@@ -92,7 +102,6 @@ const ContinuousGroupTimeline: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(questions, preselectedQuestionId)
   );
@@ -114,20 +123,49 @@ const ContinuousGroupTimeline: FC<Props> = ({
       choiceItems
         .filter(({ active }) => active)
         .map(
-          ({ choice, values, color, timestamps: optionTimestamps }, index) => {
+          (
+            { choice, values, color, timestamps: optionTimestamps, closeTime },
+            index
+          ) => {
             return {
               choiceLabel: choice,
               color,
-              valueLabel: getQuestionTooltipLabel(
-                optionTimestamps ?? timestamps,
+              valueLabel: getQuestionTooltipLabel({
+                timestamps: optionTimestamps ?? timestamps,
                 values,
                 cursorTimestamp,
-                questions[index]
-              ),
+                closeTime,
+                question: questions[index],
+              }),
             };
           }
         ),
     [choiceItems, cursorTimestamp, timestamps, questions]
+  );
+
+  const tooltipUserChoices = useMemo<ChoiceTooltipItem[]>(
+    () =>
+      userForecasts == null
+        ? []
+        : userForecasts?.map(
+            (
+              { choice, values, color, timestamps: optionTimestamps },
+              index
+            ) => {
+              return {
+                choiceLabel: choice,
+                color,
+                valueLabel: getQuestionTooltipLabel({
+                  timestamps: optionTimestamps ?? timestamps,
+                  values: values ?? [],
+                  cursorTimestamp,
+                  question: questions[index],
+                  isUserPrediction: true,
+                }),
+              };
+            }
+          ),
+    [userForecasts, cursorTimestamp, timestamps, questions]
   );
 
   const handleChoiceChange = useCallback((choice: string, checked: boolean) => {
@@ -188,6 +226,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
   return (
     <MultiChoicesChartView
       tooltipChoices={!!hideCP ? [] : tooltipChoices}
+      tooltipUserChoices={tooltipUserChoices}
       choiceItems={!!hideCP ? [] : choiceItems}
       timestamps={timestamps}
       userForecasts={userForecasts}
