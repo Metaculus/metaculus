@@ -62,17 +62,28 @@ def itn_db():
                     yield cursor
 
 
-def clear_old_itn_news():
-    min_date = timezone.now() - timedelta(days=10)
+def get_itn_max_age():
+    """
+    Max age of ITN article
+    """
 
-    ITNArticle.objects.filter(created_at__lt=min_date).delete()
+    return timezone.now() - timedelta(days=10)
+
+
+def clear_old_itn_news():
+    ITNArticle.objects.filter(created_at__lt=get_itn_max_age()).delete()
 
 
 def sync_itn_news():
     articles_count = ITNArticle.objects.count()
-    last_fetch_date = ITNArticle.objects.order_by("-created_at").values_list(
-        "created_at", flat=True
-    ).first() or timezone.now() - timedelta(days=7)
+    last_fetch_date = (
+        ITNArticle.objects.order_by("-created_at")
+        .values_list("created_at", flat=True)
+        .first()
+    )
+
+    if not last_fetch_date or last_fetch_date < get_itn_max_age():
+        last_fetch_date = get_itn_max_age()
 
     bunch = []
     itersize = 500
@@ -97,10 +108,10 @@ def sync_itn_news():
                     text=article["text"],
                     url=article["url"],
                     img_url=article["imgurl"],
-                    favicon_url=article["favicon"],
+                    favicon_url=article["favicon"] or "",
                     created_at=article["timestamp"],
                     media_name=article["medianame"],
-                    media_label=article["media_label"],
+                    media_label=article["media_label"] or "",
                 )
             )
 
