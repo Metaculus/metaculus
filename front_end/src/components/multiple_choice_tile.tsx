@@ -20,6 +20,7 @@ import { getChoiceOptionValue } from "@/utils/charts";
 
 type Props = {
   timestamps: number[];
+  actualCloseTime?: number | null;
   choices: ChoiceItem[];
   visibleChoicesCount: number;
   defaultChartZoom?: TimelineChartZoomOption;
@@ -34,6 +35,7 @@ type Props = {
 
 const MultipleChoiceTile: FC<Props> = ({
   timestamps,
+  actualCloseTime,
   choices,
   visibleChoicesCount,
   defaultChartZoom,
@@ -106,6 +108,7 @@ const MultipleChoiceTile: FC<Props> = ({
       {!isResolvedView && (
         <MultipleChoiceChart
           timestamps={timestamps}
+          actualCloseTime={actualCloseTime}
           choiceItems={hideCP ? [] : choices}
           height={chartHeight}
           extraTheme={chartTheme}

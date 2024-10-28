@@ -437,15 +437,7 @@ function buildChartData({
         if (resolution === choice) {
           // multiple choice case
           item.resolutionPoint = {
-            x: Math.min(
-              Math.max(
-                closeTime
-                  ? closeTime / 1000
-                  : actualTimestamps[actualTimestamps.length - 1],
-                actualTimestamps[actualTimestamps.length - 1]
-              ),
-              latestTimestamp
-            ),
+            x: closeTime ? closeTime / 1000 : latestTimestamp,
             y: rangeMax ?? 1,
           };
         }
@@ -465,6 +457,7 @@ function buildChartData({
             y: resolution === "no" ? rangeMin ?? 0 : rangeMax ?? 1,
           };
         }
+        // TODO: add resolution point for continuous group case
       }
       return item;
     }

@@ -81,10 +81,14 @@ const GroupNumericTile: FC<Props> = ({
       activeCount: visibleChoicesCount,
       locale,
     });
+    const actualCloseTime = post.actual_close_time
+      ? new Date(post.actual_close_time).getTime()
+      : null;
     return (
       <MultipleChoiceTile
         choices={choices}
         timestamps={timestamps}
+        actualCloseTime={actualCloseTime}
         visibleChoicesCount={visibleChoicesCount}
         defaultChartZoom={
           user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths
