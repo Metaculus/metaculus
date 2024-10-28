@@ -257,12 +257,12 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
 
     def validate_topic(self, value: str):
         try:
-            return Project.objects.filter_topic().filter_active().get(slug=value)
+            return Project.objects.filter_topic().get(slug=value)
         except Project.DoesNotExist:
             raise ValidationError("Slug does not exist")
 
     def validate_tags(self, values: list[str]):
-        tags = Project.objects.filter_tags().filter_active().filter(slug__in=values)
+        tags = Project.objects.filter_tags().filter(slug__in=values)
         slugs = {obj.slug for obj in tags}
 
         for value in values:
