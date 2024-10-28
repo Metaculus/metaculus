@@ -48,7 +48,8 @@ const ChoicesTooltip: FC<Props> = ({ date, choices, userChoices }) => {
             <td className="px-1.5 py-1 text-right text-sm">{valueLabel}</td>
             {containUserChoices && (
               <td className="px-1.5 py-1 text-right text-sm">
-                {userChoices![idx].valueLabel}
+                {userChoices!.find((item) => item.choiceLabel === choiceLabel)
+                  ?.valueLabel || "?"}
               </td>
             )}
           </tr>
