@@ -45,7 +45,6 @@ const Step2: React.FC<Step2Props> = ({
     return <LoadingStep />;
   }
   const topic = onboardingTopics[topicIndex];
-  // const communityForecast = 0.55; // Hardcoded for testing to be replaced with line below
   const communityForecast =
     questionData.question?.aggregations?.recency_weighted?.latest
       ?.centers?.[0] ?? 0.5;
