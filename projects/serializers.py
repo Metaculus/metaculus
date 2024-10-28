@@ -130,7 +130,6 @@ def serialize_projects(
 def validate_categories(lookup_field: str, lookup_values: list):
     categories = (
         Project.objects.filter_category()
-        .filter_active()
         .filter(**{f"{lookup_field}__in": lookup_values})
     )
     lookup_values_fetched = {getattr(obj, lookup_field) for obj in categories}
@@ -154,7 +153,6 @@ def validate_tournaments(lookup_values: list):
 
     tournaments = (
         Project.objects.filter_tournament()
-        .filter_active()
         .filter(Q(**{"slug__in": slug_values}) | Q(pk__in=id_values))
     )
 
