@@ -147,13 +147,21 @@ def bucket_index_to_unscaled_location(bucket_index: int, question: "Question") -
     return bucket_index / 200 - 1 / 400
 
 
+def string_location_to_unscaled_location(
+    string_location: str, question: "Question"
+) -> float:
+    if string_location in [None, "ambiguous", "annulled"]:
+        return None
+    scaled_location = string_location_to_scaled_location(string_location, question)
+    return scaled_location_to_unscaled_location(scaled_location, question)
+
+
 def string_location_to_bucket_index(
     string_location: str, question: "Question"
 ) -> int | None:
     if string_location in [None, "ambiguous", "annulled"]:
         return None
-    scaled_location = string_location_to_scaled_location(string_location, question)
-    unscaled_location = scaled_location_to_unscaled_location(scaled_location, question)
+    unscaled_location = string_location_to_unscaled_location(string_location, question)
     return unscaled_location_to_bucket_index(unscaled_location, question)
 
 

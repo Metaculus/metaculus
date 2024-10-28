@@ -93,6 +93,7 @@ def get_posts_feed(
 
     forecast_type = forecast_type or []
     forecast_type_q = Q()
+    print(forecast_type)
 
     for f_type in forecast_type:
         match f_type:
@@ -102,8 +103,8 @@ def get_posts_feed(
                 forecast_type_q |= Q(conditional__isnull=False)
             case "group_of_questions":
                 forecast_type_q |= Q(group_of_questions__isnull=False)
-            case _:
-                forecast_type_q |= Q(question__type__in=forecast_type)
+            case other:
+                forecast_type_q |= Q(question__type=other)
 
     qs = qs.filter(forecast_type_q)
 

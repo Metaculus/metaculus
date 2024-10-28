@@ -9,6 +9,9 @@ urlpatterns = [
         name="create-forecast",
     ),
     path(
+        "questions/<int:pk>/", views.question_detail_api_view, name="question-resolve"
+    ),
+    path(
         "questions/<int:pk>/resolve/", views.resolve_api_view, name="question-resolve"
     ),
     path(
