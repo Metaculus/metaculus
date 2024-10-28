@@ -322,7 +322,8 @@ function generateChoiceOptions(
     const bCenter = latest?.forecast_values[b] ?? 0;
     return bCenter - aCenter;
   });
-  return choiceOrdering.map((order, index) => {
+
+  const choiceItems = choiceOrdering.map((order, index) => {
     return {
       name: question.options![order],
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
@@ -332,6 +333,14 @@ function generateChoiceOptions(
         : null,
     };
   });
+  const resolutionIndex = choiceOrdering.findIndex(
+    (order) => question.options![order] === question.resolution
+  );
+  if (resolutionIndex !== -1) {
+    const [resolutionItem] = choiceItems.splice(resolutionIndex, 1);
+    choiceItems.unshift(resolutionItem);
+  }
+  return choiceItems;
 }
 
 function getDefaultForecast(
