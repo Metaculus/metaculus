@@ -113,7 +113,7 @@ def comment_create_api_view(request: Request):
 
     on_post = serializer.validated_data["on_post"]
     parent = serializer.validated_data.get("parent")
-    included_forecast = serializer.validated_data.pop("included_forecast", None)
+    included_forecast = serializer.validated_data.pop("included_forecast", False)
 
     # Small validation
     permission = get_post_permission_for_user(
