@@ -83,8 +83,10 @@ def generate_scoring_leaderboard_entries(
     if leaderboard.finalize_time:
         qs_filters["question__scheduled_close_time__lte"] = leaderboard.finalize_time
 
-    archived_scores = ArchivedScore.objects.filter(**qs_filters)
-    calculated_scores = Score.objects.filter(**qs_filters)
+    archived_scores = ArchivedScore.objects.filter(**qs_filters).prefetch_related(
+        "question"
+    )
+    calculated_scores = Score.objects.filter(**qs_filters).prefetch_related("question")
 
     archived_scores_subquery = ArchivedScore.objects.filter(
         question_id=OuterRef("question_id"),
@@ -106,12 +108,10 @@ def generate_scoring_leaderboard_entries(
 
     entries: dict[int | AggregationMethod, LeaderboardEntry] = {}
     now = timezone.now()
-    maximum_coverage = len(
-        [
-            q
-            for q in questions
-            if q.resolution and q.resolution not in ["annulled", "ambiguous"]
-        ]
+    maximum_coverage = sum(
+        q.question_weight
+        for q in questions
+        if q.resolution and q.resolution not in ["annulled", "ambiguous"]
     )
     for score in scores:
         identifier = score.user_id or score.aggregation_method
@@ -125,7 +125,7 @@ def generate_scoring_leaderboard_entries(
                 calculated_on=now,
             )
         entries[identifier].score += score.score * score.question.question_weight
-        entries[identifier].coverage += score.coverage
+        entries[identifier].coverage += score.coverage * score.question.question_weight
         entries[identifier].contribution_count += 1
     if leaderboard.score_type == Leaderboard.ScoreTypes.PEER_GLOBAL:
         for entry in entries.values():
