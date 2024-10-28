@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING
-
 from django.db import models
 from django.db.models import Count, FilteredRelation, Q, F
 from django.db.models.functions import Coalesce
@@ -10,9 +8,6 @@ from sql_util.aggregates import SubqueryAggregate
 from projects.permissions import ObjectPermission
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
-
-if TYPE_CHECKING:
-    from scoring.models import Leaderboard
 
 
 class ProjectsQuerySet(models.QuerySet):
@@ -35,9 +30,6 @@ class ProjectsQuerySet(models.QuerySet):
 
     def filter_tags(self):
         return self.filter(type=Project.ProjectTypes.TAG)
-
-    def filter_active(self):
-        return self.filter(is_active=True)
 
     def annotate_posts_count(self):
         return self.annotate(
@@ -86,27 +78,15 @@ class ProjectsQuerySet(models.QuerySet):
 
 
 class Project(TimeStampedModel):
-    id: int
-    leaderboards: QuerySet["Leaderboard"]
-
     class ProjectTypes(models.TextChoices):
         SITE_MAIN = "site_main"
         TOURNAMENT = "tournament"
         QUESTION_SERIES = "question_series"
         PERSONAL_PROJECT = "personal_project"
         NEWS_CATEGORY = "news_category"
-        PUBLIC_FIGURE = "public_figure"
         CATEGORY = "category"
         TAG = "tag"
         TOPIC = "topic"
-
-        @classmethod
-        def can_have_permissions(cls, tp):
-            """
-            Detects whether this project type can have permission configuration
-            """
-
-            return tp not in [cls.CATEGORY, cls.TAG, cls.TOPIC]
 
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics"
@@ -147,12 +127,6 @@ class Project(TimeStampedModel):
     order = models.IntegerField(
         help_text="Will be displayed ordered by this field inside each section",
         default=0,
-    )
-
-    is_active = models.BooleanField(
-        default=True,
-        help_text="Inactive projects are not accessible to all users",
-        db_index=True,
     )
 
     # Tournament-specific fields
