@@ -10,8 +10,8 @@ const EmailConfirmation = () => {
   useEffect(() => {
     if (searchParams.get("event") === "emailConfirmed") {
       sendGAEvent("event", "emailConfirmed");
+      router.replace("/?start_onboarding=true");
     }
-    router.replace("/?start_onboarding=true");
   }, [router, searchParams]);
 
   return null;
