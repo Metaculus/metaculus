@@ -23,7 +23,7 @@ import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import { useAuth } from "@/contexts/auth_context";
-import { CommentPermissions, CommentType } from "@/types/comment";
+import { CommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { parseUserMentions } from "@/utils/comments";
@@ -38,7 +38,6 @@ import { SortOption, sortComments } from ".";
 
 type CommentChildrenTreeProps = {
   commentChildren: CommentType[];
-  permissions: CommentPermissions;
   expandedChildren?: boolean;
   treeDepth: number;
   sort: SortOption;
@@ -46,7 +45,6 @@ type CommentChildrenTreeProps = {
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   commentChildren,
-  permissions,
   expandedChildren = false,
   treeDepth,
   sort,
@@ -120,12 +118,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
               key={child.id}
               className="my-1 rounded-md bg-blue-500/15 px-2.5 py-1.5 dark:bg-blue-500/10"
             >
-              <Comment
-                comment={child}
-                permissions={permissions}
-                treeDepth={treeDepth}
-                sort={sort}
-              />
+              <Comment comment={child} treeDepth={treeDepth} sort={sort} />
             </div>
           ))}
       </div>
@@ -135,7 +128,6 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
 
 type CommentProps = {
   comment: CommentType;
-  permissions: CommentPermissions;
   onProfile?: boolean;
   treeDepth: number;
   sort: SortOption;
@@ -145,7 +137,6 @@ type CommentProps = {
 
 const Comment: FC<CommentProps> = ({
   comment,
-  permissions,
   onProfile = false,
   treeDepth,
   sort,
@@ -165,9 +156,6 @@ const Comment: FC<CommentProps> = ({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const { user } = useAuth();
-  if (user?.id === comment.author.id) {
-    permissions = CommentPermissions.CREATOR;
-  }
 
   const userCanPredict = postData && canPredictQuestion(postData);
   const userForecast =
@@ -241,9 +229,7 @@ const Comment: FC<CommentProps> = ({
       },
     },
     {
-      hidden:
-        permissions !== CommentPermissions.CREATOR &&
-        permissions !== CommentPermissions.CURATOR,
+      hidden: !(user?.id === comment.author.id),
       id: "edit",
       name: t("edit"),
       onClick: () => {
@@ -266,7 +252,7 @@ const Comment: FC<CommentProps> = ({
       onClick: () => setIsReportModalOpen(true),
     },
     {
-      hidden: permissions !== CommentPermissions.CURATOR,
+      hidden: !user?.is_staff,
       id: "delete",
       name: t("delete"),
       onClick: async () => {
@@ -307,7 +293,6 @@ const Comment: FC<CommentProps> = ({
         {comment.children.length > 0 && (
           <CommentChildrenTree
             commentChildren={comment.children}
-            permissions={permissions}
             treeDepth={treeDepth + 1}
             sort={sort}
           />
@@ -502,7 +487,6 @@ const Comment: FC<CommentProps> = ({
       {comment.children.length > 0 && (
         <CommentChildrenTree
           commentChildren={comment.children}
-          permissions={permissions}
           expandedChildren={!onProfile}
           treeDepth={treeDepth + 1}
           sort={sort}
