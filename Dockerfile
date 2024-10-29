@@ -17,7 +17,8 @@ RUN apk add --no-cache --update python3 py3-pip bash curl git \
     xz-dev \
     python3-dev \
     py3-openssl \
-    vim
+    vim \
+    nginx
 
 RUN curl https://pyenv.run | bash && \
     chmod -R 777 "/root/.pyenv/bin"
@@ -61,6 +62,15 @@ RUN npm ci
 
 FROM base AS final_env
 WORKDIR /app
+
+# Install nginx
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+# Changing ownership and user rights to run as non-root user
+RUN mkdir -p /var/cache/nginx && chown -R 1001:0 /var/cache/nginx && \
+    mkdir -p /var/log/nginx  && chown -R 1001:0 /var/log/nginx && \
+    mkdir -p /var/lib/nginx  && chown -R 1001:0 /var/lib/nginx && \
+    touch /run/nginx.pid && chown -R 1001:0 /run/nginx.pid && \
+    chown -R 1001:0 /etc/nginx
 
 # This is done to copy only the source code from HEAD into the image to avoid a COPY . and managing a long .dockerignore
 RUN --mount=type=bind,source=.git/,target=/tmp/app/.git/ \
