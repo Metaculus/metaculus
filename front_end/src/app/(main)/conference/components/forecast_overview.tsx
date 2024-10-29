@@ -19,15 +19,19 @@ const ForecastOverview = ({ questionIds }: { questionIds: number[] }) => {
 
   useEffect(() => {
     const fetchQuestions = async () => {
-      setIsLoading(true);
-      const fetchedQuestions = await Promise.all(
-        questionIds.map(async (id) => {
-          const post = await getPost(id);
-          return post as PostWithForecasts;
-        })
-      );
-      setQuestionPosts(fetchedQuestions);
-      setIsLoading(false);
+      try {
+        // Create an array of promises for all questions at once
+        const promises = questionIds.map((id) => getPost(id));
+        
+        // Start loading all questions in parallel
+        const fetchedQuestions = await Promise.all(promises);
+        
+        setQuestionPosts(fetchedQuestions);
+      } catch (error) {
+        console.error('Error fetching questions:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchQuestions();

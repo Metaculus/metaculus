@@ -35,12 +35,13 @@ const QuestionManager = () => {
       case 'forward':
         if (currentQuestionIndex === questionIds.length - 1) {
           setMode(ConferenceMode.Overview);
-        } else {
-          const nextIndex = currentQuestionIndex + 1;
-          const nextPrediction = await fetchUserPrediction(questionIds[nextIndex]);
-          setPrediction(nextPrediction);
-          setCurrentQuestionIndex(nextIndex);
+          // Remove prediction fetching when moving to Overview
+          return;
         }
+        const nextIndex = currentQuestionIndex + 1;
+        const nextPrediction = await fetchUserPrediction(questionIds[nextIndex]);
+        setPrediction(nextPrediction);
+        setCurrentQuestionIndex(nextIndex);
         break;
       case 'previous':
         const prevIndex = Math.max(0, currentQuestionIndex - 1);
