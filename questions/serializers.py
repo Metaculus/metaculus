@@ -11,7 +11,10 @@ from rest_framework.exceptions import ValidationError
 from posts.models import Post
 from questions.models import Forecast
 from users.models import User
-from utils.the_math.formulas import get_scaled_quartiles_from_cdf
+from utils.the_math.formulas import (
+    get_scaled_quartiles_from_cdf,
+    string_location_to_unscaled_location,
+)
 from utils.the_math.measures import (
     percent_point_function,
 )
@@ -343,15 +346,18 @@ class AggregateForecastSerializer(serializers.ModelSerializer):
 
 class ForecastWriteSerializer(serializers.ModelSerializer):
     question = serializers.IntegerField()
+
+    probability_yes = serializers.FloatField(allow_null=True, required=False)
+    probability_yes_per_category = serializers.DictField(
+        child=serializers.FloatField(), allow_null=True, required=False
+    )
     continuous_cdf = serializers.ListField(
         child=serializers.FloatField(),
         allow_null=True,
         required=False,
     )
-    probability_yes = serializers.FloatField(allow_null=True, required=False)
-    probability_yes_per_category = serializers.DictField(
-        child=serializers.FloatField(), allow_null=True, required=False
-    )
+    percentiles = serializers.JSONField(allow_null=True, required=False)
+
     slider_values = serializers.JSONField(allow_null=True, required=False)
 
     class Meta:
@@ -361,40 +367,105 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             "continuous_cdf",
             "probability_yes",
             "probability_yes_per_category",
+            "percentiles",
             "slider_values",
         )
 
+    def binary_validation(self, probability_yes):
+        probability_yes = float(probability_yes)
+        if probability_yes < 0.001 or probability_yes > 0.999:
+            raise serializers.ValidationError(
+                "probability_yes should be between 0.001 and 0.999"
+            )
+        return probability_yes
+
+    def multiple_choice_validation(self, probability_yes_per_category, options):
+        if not isinstance(probability_yes_per_category, dict):
+            raise serializers.ValidationError("Forecast must be a dictionary")
+        if set(probability_yes_per_category.keys()) != set(options):
+            raise serializers.ValidationError("Forecast must include all options")
+        values = [float(probability_yes_per_category[option]) for option in options]
+        if not all([0.001 <= v <= 0.999 for v in values]) or not np.isclose(
+            sum(values), 1
+        ):
+            raise serializers.ValidationError(
+                "All probabilities must be between 0.001 and 0.999 and sum to 1.0"
+            )
+        return values
+
     def validate(self, data):
-        def is_valid_probability(x):
-            return x <= 0.999 and x >= 0.001
+        question = Question.objects.get(pk=data["question"])
 
         probability_yes = data.get("probability_yes")
-        continuous_cdf = data.get("continuous_cdf")
         probability_yes_per_category = data.get("probability_yes_per_category")
+        continuous_cdf = data.get("continuous_cdf")
+        percentiles = data.get("percentiles")
 
-        prob_yes_ok = probability_yes is not None and is_valid_probability(
-            probability_yes
-        )
-        prob_yes_per_cat_ok = (
-            probability_yes_per_category is not None
-            and np.isclose(sum(probability_yes_per_category.values()), 1)
-            and all(
-                [is_valid_probability(p) for p in probability_yes_per_category.values()]
+        if question.type == Question.QuestionType.BINARY:
+            if probability_yes_per_category or continuous_cdf or percentiles:
+                raise serializers.ValidationError(
+                    "Only probability_yes should be provided for binary questions"
+                )
+            data["probability_yes"] = self.binary_validation(probability_yes)
+        elif question.type == Question.QuestionType.MULTIPLE_CHOICE:
+            if probability_yes or continuous_cdf or percentiles:
+                raise serializers.ValidationError(
+                    "Only probability_yes_per_category should be provided for multiple choice questions"
+                )
+            data["probability_yes_per_category"] = self.multiple_choice_validation(
+                probability_yes_per_category, question.options
             )
-        )
+        else:
+            # Continuous question
+            if probability_yes or probability_yes_per_category:
+                raise serializers.ValidationError(
+                    "Probability values should not be provided for continuous questions"
+                )
+            if bool(continuous_cdf) == bool(percentiles):
+                raise serializers.ValidationError(
+                    "Either continuous_cdf or percentiles should be provided for "
+                    "continuous questions"
+                )
+            if percentiles:
+                percentile_locations = []
+                below_lower_bound = percentiles.pop("below_lower_bound", None)
+                above_upper_bound = percentiles.pop("above_upper_bound", None)
+                if below_lower_bound is not None:
+                    percentile_locations.append((0.0, below_lower_bound))
+                if above_upper_bound is not None:
+                    percentile_locations.append((1.0, 1 - above_upper_bound))
+                for label, value in percentiles.items():
+                    height = float(label.split("_")[1]) / 100
+                    location = string_location_to_unscaled_location(value, question)
+                    percentile_locations.append((location, height))
+                percentile_locations.sort()
+                # checks for validity
+                if (
+                    percentile_locations[0][0] > 0.0
+                    or percentile_locations[-1][0] < 1.0
+                ):
+                    raise serializers.ValidationError(
+                        "Percentiles must encompass bounds of the question"
+                    )
 
-        continuous_cdf_ok = False
-        if continuous_cdf is not None:
+                def get_height(location):
+                    previous = percentile_locations[0]
+                    for i in range(1, len(percentile_locations)):
+                        current = percentile_locations[i]
+                        if previous[0] <= location <= current[0]:
+                            return previous[1] + (current[1] - previous[1]) * (
+                                location - previous[0]
+                            ) / (current[0] - previous[0])
+                        previous = current
+
+                continuous_cdf = [get_height(i / 200) for i in range(201)]
+                data["continuous_cdf"] = continuous_cdf
             continuous_cdf_increasing = all(
                 [
                     continuous_cdf[i + 1] - continuous_cdf[i] >= 0.01 / 201
                     for i in range(len(continuous_cdf) - 1)
                 ]
             )
-
-            # Small hack
-            question = Question.objects.get(pk=data["question"])
-
             if question.open_lower_bound:
                 lower_bound_ok = continuous_cdf[0] >= 0.001
             else:
@@ -403,16 +474,16 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 upper_bound_ok = continuous_cdf[-1] <= 0.999
             else:
                 upper_bound_ok = continuous_cdf[-1] == 1.00
-            continuous_cdf_ok = (
-                continuous_cdf is not None
-                and continuous_cdf_increasing
+            if not (
+                continuous_cdf_increasing
                 and lower_bound_ok
                 and upper_bound_ok
                 and len(continuous_cdf) == 201
-            )
-
-        if not (prob_yes_ok or prob_yes_per_cat_ok or continuous_cdf_ok):
-            raise serializers.ValidationError("Invalid forecast values")
+            ):
+                raise serializers.ValidationError(
+                    "continuous_cdf invalid. Must be increasing, have 201 points, "
+                    "and respect the bounds of the question"
+                )
 
         return data
 
