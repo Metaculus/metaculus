@@ -47,7 +47,7 @@ const DetailedGroupCard: FC<Props> = ({
   useEffect(() => {
     if (questions.some((q) => !!q.my_forecasts?.history.length)) {
       sendGAEvent("event", "visitPredictedQuestion", {
-        value: "group",
+        event_category: "group",
       });
     }
   }, [questions]);

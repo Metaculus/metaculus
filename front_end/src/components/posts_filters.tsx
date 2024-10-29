@@ -189,7 +189,9 @@ const PostsFilters: FC<Props> = ({
             onChange={handleOrderChange}
             variant="tertiary"
             onClick={(buttonLabel) =>
-              sendGAEvent("event", "feedShortcutClick", { value: buttonLabel })
+              sendGAEvent("event", "feedShortcutClick", {
+                event_category: buttonLabel,
+              })
             }
           />
           <div className="flex grow justify-end gap-3">
@@ -198,7 +200,9 @@ const PostsFilters: FC<Props> = ({
                 className="rounded-full"
                 onChange={handleOrderChange}
                 onClick={(value) =>
-                  sendGAEvent("event", "feedSortClick", { value })
+                  sendGAEvent("event", "feedSortClick", {
+                    event_category: value,
+                  })
                 }
                 options={dropdownSortOptions}
                 value={order || defaultOrder}
