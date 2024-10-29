@@ -10,7 +10,7 @@ export function sendGAConditionalPredictEvent(
   if (!alreadyPredicted) {
     sendGAEvent("event", "predict", {
       value: "conditional",
-      label: [
+      event_label: [
         !!projects.tournament || !!projects.question_series
           ? "tournamentPrediction"
           : null,

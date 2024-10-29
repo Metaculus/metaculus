@@ -15,7 +15,7 @@ export function sendGAPredictEvent(
   if (!alreadyPredicted) {
     sendGAEvent("event", "predict", {
       value: question.type,
-      label: [
+      event_label: [
         !!post.projects.tournament || !!post.projects.question_series
           ? "tournamentPrediction"
           : null,
