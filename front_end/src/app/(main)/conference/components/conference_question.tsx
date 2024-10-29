@@ -3,6 +3,9 @@ import React, { useState, useEffect } from "react";
 import { getPost } from "@/app/(main)/conference/api-actions";
 import { PostWithForecasts } from "@/types/post";
 
+import RCSlider from "rc-slider";
+
+import Slider from "@/components/sliders/slider";
 
 import BinarySlider, {
   BINARY_FORECAST_PRECISION,
@@ -47,7 +50,16 @@ const ConferenceQuestion = ({ questionId }: { questionId: number }) => {
   return (
     <div className="text-center">
       <h2 className="mb-8 text-3xl font-bold">{question.title}</h2>
-      <BinarySlider
+      <Slider
+        inputMin={0}
+        inputMax={1}
+        defaultValue={0.5}
+        step={0.01}
+        onChange={(value) => {
+          setPrediction(value as number);
+        }}
+      />
+      {/* <BinarySlider
         forecast={prediction}
         onChange={(value) => {
           setPrediction(value);
@@ -57,7 +69,7 @@ const ConferenceQuestion = ({ questionId }: { questionId: number }) => {
         onBecomeDirty={() => {}}
         disabled={false}
         // helperDisplay={true}
-      />
+      /> */}
     </div>
   );
 };
