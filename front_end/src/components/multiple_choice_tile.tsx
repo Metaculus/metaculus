@@ -30,6 +30,7 @@ type Props = {
   userForecasts?: UserChoiceItem[];
   question?: Question;
   questionType?: QuestionType;
+  scaling?: Scaling | undefined;
   hideCP?: boolean;
 };
 
@@ -45,6 +46,7 @@ const MultipleChoiceTile: FC<Props> = ({
   userForecasts,
   question,
   questionType,
+  scaling,
   hideCP,
 }) => {
   const t = useTranslations();
@@ -115,6 +117,8 @@ const MultipleChoiceTile: FC<Props> = ({
           defaultZoom={defaultChartZoom}
           withZoomPicker={withZoomPicker}
           userForecasts={userForecasts}
+          questionType={questionType}
+          scaling={scaling}
         />
       )}
     </div>
