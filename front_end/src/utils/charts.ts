@@ -808,3 +808,34 @@ export function getTickLabelFontSize(actualTheme: VictoryThemeDefinition) {
     : actualTheme.axis?.style?.tickLabels?.fontSize;
   return fontSize as number;
 }
+
+export function getContinuousGroupScaling(
+  questions: QuestionWithNumericForecasts[]
+) {
+  const zeroPoints: number[] = [];
+  questions.forEach((question) => {
+    if (question.scaling.zero_point !== null) {
+      zeroPoints.push(question.scaling.zero_point);
+    }
+  });
+  const scaling: Scaling = {
+    range_max: Math.max(
+      ...questions.map((question) => question.scaling.range_max!)
+    ),
+    range_min: Math.min(
+      ...questions.map((question) => question.scaling.range_min!)
+    ),
+    zero_point: zeroPoints.length > 0 ? Math.min(...zeroPoints) : null,
+  };
+  // we can have mixes of log and linear scaled options
+  // which leads to a derived zero point inside the range which is invalid
+  // so just igore the log scaling in this case
+  if (
+    scaling.zero_point !== null &&
+    scaling.range_min! <= scaling.zero_point &&
+    scaling.zero_point <= scaling.range_max!
+  ) {
+    scaling.zero_point = null;
+  }
+  return scaling;
+}

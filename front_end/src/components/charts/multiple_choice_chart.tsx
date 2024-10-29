@@ -442,8 +442,12 @@ function buildChartData({
           };
         }
 
-        if (resolution === "yes" || resolution === "no") {
-          // binary group case
+        if (
+          ["yes", "no", "below_lower_bound", "above_upper_bound"].includes(
+            resolution as string
+          )
+        ) {
+          // binary group and out of borders cases
           item.resolutionPoint = {
             x: Math.min(
               Math.max(
@@ -454,11 +458,30 @@ function buildChartData({
               ),
               latestTimestamp
             ),
-            y: resolution === "no" ? rangeMin ?? 0 : rangeMax ?? 1,
+            y:
+              resolution === "no" || resolution === "below_lower_bound" ? 0 : 1,
           };
         }
-        // TODO: add resolution point for continuous group case
+
+        if (isFinite(Number(resolution))) {
+          // continuous group case
+          item.resolutionPoint = {
+            x: Math.min(
+              Math.max(
+                closeTime
+                  ? closeTime / 1000
+                  : actualTimestamps[actualTimestamps.length - 1],
+                actualTimestamps[actualTimestamps.length - 1]
+              ),
+              latestTimestamp
+            ),
+            y: scaling
+              ? unscaleNominalLocation(Number(resolution), scaling)
+              : Number(resolution) ?? 0,
+          };
+        }
       }
+
       return item;
     }
   );
