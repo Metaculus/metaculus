@@ -1,5 +1,5 @@
 server {
-    listen ${WEBSOCKET_API_URL};
+    listen ${PORT};
     server_name ~^(.+)$;
     location / {
         gzip on;
