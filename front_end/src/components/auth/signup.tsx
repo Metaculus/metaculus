@@ -169,6 +169,7 @@ export const SignUpModalSuccess: FC<SignUpModalSuccessProps> = ({
   email,
 }: SignUpModalSuccessProps) => {
   const t = useTranslations();
+  const { setCurrentModal } = useModal();
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} className="max-w-xs">

@@ -21,6 +21,7 @@ type Props = {
   marks?: Record<number, ReactNode>;
   disabled?: boolean;
   styles?: Partial<Record<SemanticName, CSSProperties>>;
+  showValue?: boolean;
 };
 
 const Slider: FC<Props> = ({
@@ -36,6 +37,7 @@ const Slider: FC<Props> = ({
   marks,
   disabled = false,
   styles,
+  showValue = false,
 }) => {
   const [controlledValue, setControlledValue] = useState(defaultValue);
   const [controlledStep, setControlledStep] = useState(step);
@@ -65,6 +67,8 @@ const Slider: FC<Props> = ({
       handleRender={(origin) => (
         <SliderThumb
           {...origin.props}
+          value={controlledValue}
+          showValue={showValue}
           onClickIn={() => {
             setControlledStep(step);
           }}
