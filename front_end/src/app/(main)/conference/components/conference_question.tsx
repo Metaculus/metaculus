@@ -31,6 +31,10 @@ const ConferenceQuestion = ({ questionId, handleNavigation, prediction, setPredi
         setLoading(true);
         const fetchedQuestion = await getPost(questionId);
         setQuestion(fetchedQuestion);
+        
+        const communityPrediction = fetchedQuestion.question?.aggregations.recency_weighted.latest?.centers?.[0];
+        setCommunityForecast(communityPrediction ? communityPrediction: .5);
+        
         setError(null);
       } catch (err) {
         console.error("Error fetching question:", err);
@@ -48,7 +52,6 @@ const ConferenceQuestion = ({ questionId, handleNavigation, prediction, setPredi
     try {
       setIsSubmitting(true);
       const forecastValue = round(prediction / 100, BINARY_FORECAST_PRECISION);
-      console.log(forecastValue);
       
       await createForecasts(question.id, [{
         questionId: question.id,
