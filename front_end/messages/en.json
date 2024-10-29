@@ -704,7 +704,7 @@
   "viewInDjangoAdmin": "View in django admin",
   "finePrintDescription": "Optional: Use the fine print for any sort of lawyerly details which don't need to be prominently displayed.",
   "createQuestion": "create question",
-  "editQuestion": "edit question",
+  "editQuestion": "Save Edits",
   "longTitle": "long title",
   "longTitleExplanation": "A single sentence that encapsulates what you're trying to predict.  Ends in a question mark.",
   "shortTitleExplanation": "This should be a shorter version of the Long Title, used where there is less space to display a title. It should end with a question mark. Examples: \"NASA 2022 spacesuit contract winner?\" or \"EU GDP from 2025 to 2035?\"",
