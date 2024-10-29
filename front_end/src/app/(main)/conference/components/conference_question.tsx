@@ -11,14 +11,25 @@ import { BINARY_FORECAST_PRECISION } from "@/app/(main)/questions/[id]/component
 
 import { round } from "lodash";
 
+import KeyFactors from "./key_factors";
+
 interface ConferenceQuestionProps {
   questionId: number;
   handleNavigation: (direction: 'forward' | 'previous' | 'back') => void;
   prediction: number | null;
-  setPrediction: (prediction: number) => void;
+  setPrediction: (value: number | null) => void;
+  showKeyFactors: boolean;
+  setShowKeyFactors: (value: boolean) => void;
 }
 
-const ConferenceQuestion = ({ questionId, handleNavigation, prediction, setPrediction }: ConferenceQuestionProps) => {
+const ConferenceQuestion = ({
+  questionId,
+  handleNavigation,
+  prediction,
+  setPrediction,
+  showKeyFactors,
+  setShowKeyFactors
+}: ConferenceQuestionProps) => {
   const [question, setQuestion] = useState<PostWithForecasts | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,8 +95,11 @@ const ConferenceQuestion = ({ questionId, handleNavigation, prediction, setPredi
   }
 
   return (
-    <div className="text-center">
-      <h2 className="mb-8 text-3xl font-bold">{question.title}</h2>
+    <div className="w-full">
+      <div className="text-center">
+        <h2 className="mb-8 text-3xl font-bold">{question.title}</h2>
+
+        <KeyFactors questionId={question} />
       
       <div className="rounded-md bg-blue-200 py-4 dark:bg-blue-800">
         <BinarySlider
@@ -105,6 +119,7 @@ const ConferenceQuestion = ({ questionId, handleNavigation, prediction, setPredi
           >
             {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
+        </div>
         </div>
       </div>
     </div>

@@ -13,6 +13,7 @@ export enum ConferenceMode {
 const QuestionManager = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [mode, setMode] = useState<ConferenceMode>(ConferenceMode.Question);
+  const [showKeyFactors, setShowKeyFactors] = useState<boolean>(false);
   const questionIds = [11589, 27902, 28072, 18546];
   const tournamentId = 1;
 
@@ -67,6 +68,8 @@ const QuestionManager = () => {
               handleNavigation={handleNavigation}
               prediction={prediction}
               setPrediction={setPrediction}
+              showKeyFactors={showKeyFactors}
+              setShowKeyFactors={setShowKeyFactors}
             />
           ) : (
             <ForecastOverview questionIds={questionIds} />
