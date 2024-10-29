@@ -6,7 +6,9 @@ import { PostWithForecasts } from "@/types/post";
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import { onboardingStyles } from "./OnboardingStyles";
 
-const ConferenceQuestion = ({ questionId }: { questionId: number }) => {
+const ConferenceQuestion = (
+  { questionId }: { questionId: number },
+) => {
   const [question, setQuestion] = useState<PostWithForecasts | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +53,7 @@ const ConferenceQuestion = ({ questionId }: { questionId: number }) => {
           forecast={prediction}
           onChange={setPrediction}
           isDirty={true}
+          // Ask if this is needed
           communityForecast={communityForecast}
           onBecomeDirty={() => {}}
           disabled={false}
@@ -58,7 +61,7 @@ const ConferenceQuestion = ({ questionId }: { questionId: number }) => {
         />
         <div className="mt-6 flex justify-center">
           <button onClick={() => {}} className={onboardingStyles.button}>
-            Predict
+            Submit
           </button>
         </div>
       </div>
