@@ -22,7 +22,7 @@ envsubst '${PORT}' < /etc/nginx/http.d/app_nginx.template > /etc/nginx/http.d/ap
 
 export UV_THREADPOOL_SIZE=6
 export NODE_OPTIONS="--max-old-space-size=2048"
-(gunicorn metaculus_web.wsgi:application --bind=unix:./gunicorn.sock --access-logfile - --workers $GUNICORN_WORKERS --threads 4 --timeout 25 2>&1 | sed 's/^/[Backend]: /') &
+(gunicorn metaculus_web.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --workers $GUNICORN_WORKERS --threads 4 --timeout 25 2>&1 | sed 's/^/[Backend]: /') &
 # TODO: monitor processes; FE could randomly exit
 # TODO: remove reverse proxy from Nextjs
 (cd front_end && PORT=3000 npm run start 2>&1 | sed 's/^/[Frontend]: /')
