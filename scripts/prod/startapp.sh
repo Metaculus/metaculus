@@ -23,6 +23,7 @@ envsubst '${PORT}' < /etc/nginx/http.d/app_nginx.template > /etc/nginx/http.d/ap
 export UV_THREADPOOL_SIZE=6
 export NODE_OPTIONS="--max-old-space-size=2048"
 (gunicorn metaculus_web.wsgi:application --bind=unix:./gunicorn.sock --access-logfile - --workers $GUNICORN_WORKERS --threads 4 --timeout 25 2>&1 | sed 's/^/[Backend]: /') &
-(cd front_end && npm run start --port 3000 2>&1 | sed 's/^/[Frontend]: /') &
+# TODO: monitor processes; FE could randomly exit
+(cd front_end && PORT=3000 npm run start 2>&1 | sed 's/^/[Frontend]: /') &
 # Starting nginx
 nginx
