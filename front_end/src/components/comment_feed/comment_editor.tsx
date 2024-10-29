@@ -54,7 +54,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
     setIsLoading(true);
 
     sendGAEvent("event", "postComment", {
-      label: hasIncludedForecast ? "predictionIncluded" : null,
+      event_label: hasIncludedForecast ? "predictionIncluded" : null,
     });
 
     try {

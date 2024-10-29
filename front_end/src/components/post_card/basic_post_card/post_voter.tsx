@@ -34,7 +34,7 @@ const PostVoter: FC<Props> = ({ className, post, questionPage }) => {
         setVote({ user_vote: newDirection, score: response.score });
       }
       sendGAEvent("event", "questionVoted", {
-        label: questionPage ? "questionPage" : "questionFeed",
+        event_label: questionPage ? "questionPage" : "questionFeed",
       });
     } catch (e) {
       logError(e);

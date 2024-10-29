@@ -74,7 +74,7 @@ const ConditionalTile: FC<Props> = ({
       !!question_yes.my_forecasts?.history.length
     ) {
       sendGAEvent("event", "visitPredictedQuestion", {
-        value: "conditional",
+        event_category: "conditional",
       });
     }
   }, [

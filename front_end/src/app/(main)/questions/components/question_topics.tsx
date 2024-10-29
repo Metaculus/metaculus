@@ -115,7 +115,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 emoji={"👤"}
                 onClick={() => {
                   sendGAEvent("event", "sidebarClick", {
-                    value: t("myPredictions"),
+                    event_category: t("myPredictions"),
                   });
                   switchFeed(FeedType.MY_PREDICTIONS);
                 }}
@@ -126,7 +126,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 emoji={"✍️"}
                 onClick={() => {
                   sendGAEvent("event", "sidebarClick", {
-                    value: t("myQuestionsAndPosts"),
+                    event_category: t("myQuestionsAndPosts"),
                   });
                   switchFeed(FeedType.MY_QUESTIONS_AND_POSTS);
                 }}
@@ -141,7 +141,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             href="/aib"
             onClick={() =>
               sendGAEvent("event", "sidebarClick", {
-                value: "AI Benchmarking",
+                event_category: "AI Benchmarking",
               })
             }
           />
@@ -152,7 +152,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             href="/experiments/elections"
             onClick={() =>
               sendGAEvent("event", "sidebarClick", {
-                value: "2024 US Election Hub",
+                event_category: "2024 US Election Hub",
               })
             }
           />
@@ -167,7 +167,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                   text={topic.name}
                   onClick={() => {
                     sendGAEvent("event", "sidebarClick", {
-                      value: topic.name,
+                      event_category: topic.name,
                     });
                     selectTopic(topic);
                   }}
@@ -187,7 +187,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                   text={category.name}
                   onClick={() => {
                     sendGAEvent("event", "sidebarClick", {
-                      value: category.name,
+                      event_category: category.name,
                     });
                     selectTopic(category);
                   }}
@@ -203,7 +203,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             isActive={false}
             onClick={() => {
               sendGAEvent("event", "sidebarClick", {
-                value: t("seeAllCategories"),
+                event_category: t("seeAllCategories"),
               });
             }}
           />
@@ -214,7 +214,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               emoji={<FontAwesomeIcon icon={faFileClipboard} />}
               onClick={() => {
                 sendGAEvent("event", "sidebarClick", {
-                  value: t("inReview"),
+                  event_category: t("inReview"),
                 });
                 switchFeed(FeedType.IN_REVIEW);
               }}

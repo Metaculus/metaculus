@@ -54,7 +54,7 @@ export const SignupForm: FC<{
 
     if (!("errors" in state)) {
       sendGAEvent("event", "register", {
-        value: new URLSearchParams(window.location.search).toString(),
+        event_category: new URLSearchParams(window.location.search).toString(),
       });
       setCurrentModal({
         type: "signupSuccess",

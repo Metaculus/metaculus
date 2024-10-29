@@ -61,7 +61,7 @@ const SidebarQuestionTags: FC<Props> = ({
             href={`/tournament/${element.slug ?? element.id}/`}
             onClick={() =>
               sendGAEvent("event", "questionTagClicked", {
-                value: element.name,
+                event_category: element.name,
               })
             }
           >
@@ -76,7 +76,7 @@ const SidebarQuestionTags: FC<Props> = ({
             href={`/tournament/${element.slug ?? element.id}/`}
             onClick={() =>
               sendGAEvent("event", "questionTagClicked", {
-                value: element.name,
+                event_category: element.name,
               })
             }
           >
@@ -91,7 +91,7 @@ const SidebarQuestionTags: FC<Props> = ({
             href={`/questions/?${POST_CATEGORIES_FILTER}=${element.slug}&for_main_feed=false`}
             onClick={() =>
               sendGAEvent("event", "questionTagClicked", {
-                value: element.name,
+                event_category: element.name,
               })
             }
           >
@@ -111,7 +111,7 @@ const SidebarQuestionTags: FC<Props> = ({
             }}
             onClick={() =>
               sendGAEvent("event", "questionTagClicked", {
-                value: element.name,
+                event_category: element.name,
               })
             }
           >

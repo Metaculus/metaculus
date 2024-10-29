@@ -89,7 +89,9 @@ const PopoverFilter: FC<Props> = ({
             })}
             onClick={() =>
               sendGAEvent("event", "feedFilterClick", {
-                value: new URLSearchParams(window.location.search).toString(),
+                event_category: new URLSearchParams(
+                  window.location.search
+                ).toString(),
               })
             }
           >
