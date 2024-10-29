@@ -1,8 +1,6 @@
 import Link from "next/link";
 import React from "react";
-
 import Button from "@/components/ui/button";
-
 import { ConferenceMode } from "./question_manager";
 
 interface BottomNavigationProps {
@@ -17,34 +15,42 @@ interface BottomNavigationProps {
 
 const BottomNavigation = ({
   currentQuestionIndex,
-  setCurrentQuestionIndex,
   questionIds,
   mode,
-  setMode,
   tournamentId,
   handleNavigation,
 }: BottomNavigationProps) => {
   const isLastQuestion = currentQuestionIndex === questionIds.length - 1;
 
   return (
-    <div className="mt-8 flex w-full items-center justify-between px-4 pb-4">
+    <div className="mt-2 flex w-full max-w-[800px] items-center justify-between px-4 mt-4 pb-6 mx-auto">
       {mode === ConferenceMode.Question && (
         <>
           <Button
             onClick={() => handleNavigation('previous')}
             disabled={currentQuestionIndex === 0}
+            size="lg"
+            className="min-w-[120px]"
           >
             Previous
           </Button>
-          <span className="text-lg">
+          <span className="text-xl">
             {currentQuestionIndex + 1} / {questionIds.length}
           </span>
           {isLastQuestion ? (
-            <Button onClick={() => handleNavigation('forward')}>
+            <Button 
+              onClick={() => handleNavigation('forward')}
+              size="lg"
+              className="min-w-[120px]"
+            >
               Finish
             </Button>
           ) : (
-            <Button onClick={() => handleNavigation('forward')}>
+            <Button 
+              onClick={() => handleNavigation('forward')}
+              size="lg"
+              className="min-w-[120px]"
+            >
               Next
             </Button>
           )}
@@ -52,11 +58,17 @@ const BottomNavigation = ({
       )}
       {mode === ConferenceMode.Overview && (
         <>
-          <Button onClick={() => handleNavigation('back')}>
+          <Button 
+            onClick={() => handleNavigation('back')}
+            size="lg"
+            className="min-w-[120px]"
+          >
             Back to Questions
           </Button>
           <Link href={`/tournaments/${tournamentId}`} passHref>
-            <Button>See Results</Button>
+            <Button size="lg" className="min-w-[120px]">
+              See Results
+            </Button>
           </Link>
         </>
       )}
