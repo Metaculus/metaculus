@@ -59,7 +59,7 @@ const QuestionManager = () => {
 
   return (
     <div className="flex h-[70vh] flex-col items-center justify-between">
-      <div className="w-full flex-grow overflow-y-auto">
+      <div className="w-full max-w-[1000px] flex-grow overflow-y-auto">
         <div className="flex min-h-full items-center justify-center p-4">
           {mode === ConferenceMode.Question ? (
             <ConferenceQuestion
