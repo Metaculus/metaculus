@@ -6,7 +6,7 @@ authors = ["George3d6 <george@cerebralab.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12.3"
+python = "3.12.3"
 django = "^5.0.8"
 djangorestframework = "^3.15.1"
 rest-social-auth = "^8.3.0"
