@@ -15,6 +15,24 @@ const QuestionManager = () => {
   const questionIds = [11589, 27902, 28072, 18546];
   const tournamentId = 1;
 
+  const handleNavigation = (direction: 'forward' | 'previous' | 'back') => {
+    switch (direction) {
+      case 'forward':
+        if (currentQuestionIndex === questionIds.length - 1) {
+          setMode(ConferenceMode.Overview);
+        } else {
+          setCurrentQuestionIndex(currentQuestionIndex + 1);
+        }
+        break;
+      case 'previous':
+        setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1));
+        break;
+      case 'back':
+        setMode(ConferenceMode.Question);
+        break;
+    }
+  };
+
   return (
     <div className="flex h-[70vh] flex-col items-center justify-between">
       <div className="w-full flex-grow overflow-y-auto">
@@ -22,6 +40,7 @@ const QuestionManager = () => {
           {mode === ConferenceMode.Question ? (
             <ConferenceQuestion
               questionId={questionIds[currentQuestionIndex]}
+              handleNavigation={handleNavigation}
             />
           ) : (
             <ForecastOverview questionIds={questionIds} />
@@ -35,6 +54,7 @@ const QuestionManager = () => {
         mode={mode}
         setMode={setMode}
         tournamentId={tournamentId}
+        handleNavigation={handleNavigation}
       />
     </div>
   );

@@ -12,6 +12,7 @@ interface BottomNavigationProps {
   mode: ConferenceMode;
   setMode: (mode: ConferenceMode) => void;
   tournamentId: number;
+  handleNavigation: (direction: 'forward' | 'previous' | 'back') => void;
 }
 
 const BottomNavigation = ({
@@ -21,17 +22,16 @@ const BottomNavigation = ({
   mode,
   setMode,
   tournamentId,
+  handleNavigation,
 }: BottomNavigationProps) => {
   const isLastQuestion = currentQuestionIndex === questionIds.length - 1;
 
   return (
-    <div className="mt-8 flex w-full items-center justify-between pb-4">
+    <div className="mt-8 flex w-full items-center justify-between px-4 pb-4">
       {mode === ConferenceMode.Question && (
         <>
           <Button
-            onClick={() =>
-              setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))
-            }
+            onClick={() => handleNavigation('previous')}
             disabled={currentQuestionIndex === 0}
           >
             Previous
@@ -40,17 +40,11 @@ const BottomNavigation = ({
             {currentQuestionIndex + 1} / {questionIds.length}
           </span>
           {isLastQuestion ? (
-            <Button onClick={() => setMode(ConferenceMode.Overview)}>
+            <Button onClick={() => handleNavigation('forward')}>
               Finish
             </Button>
           ) : (
-            <Button
-              onClick={() =>
-                setCurrentQuestionIndex(
-                  Math.min(questionIds.length - 1, currentQuestionIndex + 1)
-                )
-              }
-            >
+            <Button onClick={() => handleNavigation('forward')}>
               Next
             </Button>
           )}
@@ -58,7 +52,7 @@ const BottomNavigation = ({
       )}
       {mode === ConferenceMode.Overview && (
         <>
-          <Button onClick={() => setMode(ConferenceMode.Question)}>
+          <Button onClick={() => handleNavigation('back')}>
             Back to Questions
           </Button>
           <Link href={`/tournaments/${tournamentId}`} passHref>

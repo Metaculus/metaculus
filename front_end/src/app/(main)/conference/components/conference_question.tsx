@@ -6,9 +6,12 @@ import { PostWithForecasts } from "@/types/post";
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import { onboardingStyles } from "./OnboardingStyles";
 
-const ConferenceQuestion = (
-  { questionId }: { questionId: number },
-) => {
+interface ConferenceQuestionProps {
+  questionId: number;
+  handleNavigation: (direction: 'forward' | 'previous' | 'back') => void;
+}
+
+const ConferenceQuestion = ({ questionId, handleNavigation }: ConferenceQuestionProps) => {
   const [question, setQuestion] = useState<PostWithForecasts | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +63,7 @@ const ConferenceQuestion = (
           helperDisplay={true}
         />
         <div className="mt-6 flex justify-center">
-          <button onClick={() => {}} className={onboardingStyles.button}>
+          <button onClick={() => handleNavigation('forward')} className={onboardingStyles.button}>
             Submit
           </button>
         </div>
