@@ -3299,7 +3299,6 @@ pure-eval = "*"
 tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
 
 [[package]]
-<<<<<<< Updated upstream
 name = "tiktoken"
 version = "0.8.0"
 description = "tiktoken is a fast BPE tokeniser for use with OpenAI's models"
@@ -3347,8 +3346,6 @@ requests = ">=2.26.0"
 blobfile = ["blobfile (>=2)"]
 
 [[package]]
-=======
->>>>>>> Stashed changes
 name = "tqdm"
 version = "4.66.5"
 description = "Fast, Extensible Progress Meter"
@@ -3563,8 +3560,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12.3"
-<<<<<<< Updated upstream
 content-hash = "8910777f3038c9ecb3eabfca9cf44d3aca28c8227d69d2cf9245938d3f760a54"
-=======
-content-hash = "eb82724650a905be1729fb420418a35a8a8b1c1df4c372382809ba4f761786d0"
->>>>>>> Stashed changes
