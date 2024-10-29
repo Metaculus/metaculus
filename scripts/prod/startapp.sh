@@ -18,7 +18,7 @@ source venv/bin/activate
 
 # Propagate nginx port
 PORT="${PORT:-80}" \
-envsubst '${PORT}' < /etc/nginx/conf.d/app_nginx.template > /etc/nginx/conf.d/app_nginx.conf
+envsubst '${PORT}' < /etc/nginx/http.d/app_nginx.template > /etc/nginx/http.d/app_nginx.conf
 
 export UV_THREADPOOL_SIZE=6
 export NODE_OPTIONS="--max-old-space-size=2048"
