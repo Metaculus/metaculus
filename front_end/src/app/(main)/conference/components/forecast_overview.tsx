@@ -22,13 +22,13 @@ const ForecastOverview = ({ questionIds }: { questionIds: number[] }) => {
       try {
         // Create an array of promises for all questions at once
         const promises = questionIds.map((id) => getPost(id));
-        
+
         // Start loading all questions in parallel
         const fetchedQuestions = await Promise.all(promises);
-        
+
         setQuestionPosts(fetchedQuestions);
       } catch (error) {
-        console.error('Error fetching questions:', error);
+        console.error("Error fetching questions:", error);
       } finally {
         setIsLoading(false);
       }

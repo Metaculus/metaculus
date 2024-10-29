@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 
+import { getPost } from "@/app/(main)/questions/actions";
+
 import BottomNavigation from "./bottom_navigation";
 import ConferenceQuestion from "./conference_question";
 import ForecastOverview from "./forecast_overview";
-import { getPost } from "@/app/(main)/questions/actions";
 
 export enum ConferenceMode {
   Question = "question",
@@ -19,39 +20,50 @@ const QuestionManager = () => {
 
   const [prediction, setPrediction] = useState<number | null>(null);
 
-  const fetchUserPrediction = async (questionId: number): Promise<number | null> => {
+  const fetchUserPrediction = async (
+    questionId: number
+  ): Promise<number | null> => {
     try {
       const post = await getPost(questionId);
-      const value = post.question?.my_forecasts?.latest?.forecast_values[1] ?? null;
+      const value =
+        post.question?.my_forecasts?.latest?.forecast_values[1] ?? null;
       if (value === null) return null;
       return value * 100;
     } catch (error) {
-      console.error('Error fetching user prediction:', error);
+      console.error("Error fetching user prediction:", error);
       return null;
     }
   };
 
-  const handleNavigation = async (direction: 'forward' | 'previous' | 'back') => {
+  const handleNavigation = async (
+    direction: "forward" | "previous" | "back"
+  ) => {
     switch (direction) {
-      case 'forward':
+      case "forward":
         if (currentQuestionIndex === questionIds.length - 1) {
           setMode(ConferenceMode.Overview);
           // Remove prediction fetching when moving to Overview
           return;
         }
         const nextIndex = currentQuestionIndex + 1;
-        const nextPrediction = await fetchUserPrediction(questionIds[nextIndex]);
+        const nextPrediction = await fetchUserPrediction(
+          questionIds[nextIndex]
+        );
         setPrediction(nextPrediction);
         setCurrentQuestionIndex(nextIndex);
         break;
-      case 'previous':
+      case "previous":
         const prevIndex = Math.max(0, currentQuestionIndex - 1);
-        const prevPrediction = await fetchUserPrediction(questionIds[prevIndex]);
+        const prevPrediction = await fetchUserPrediction(
+          questionIds[prevIndex]
+        );
         setPrediction(prevPrediction);
         setCurrentQuestionIndex(prevIndex);
         break;
-      case 'back':
-        const currentPrediction = await fetchUserPrediction(questionIds[currentQuestionIndex]);
+      case "back":
+        const currentPrediction = await fetchUserPrediction(
+          questionIds[currentQuestionIndex]
+        );
         setPrediction(currentPrediction);
         setMode(ConferenceMode.Question);
         break;
