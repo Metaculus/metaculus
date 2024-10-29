@@ -54,7 +54,7 @@ const ForecastOverview = ({ questionIds }: { questionIds: number[] }) => {
                 post.question?.aggregations.recency_weighted.latest
                   ?.centers?.[0];
               const userPrediction =
-                post.question?.my_forecasts?.latest?.forecast_values[0];
+                post.question?.my_forecasts?.latest?.forecast_values[1];
 
               return (
                 <tr key={post.id} className="border-b">

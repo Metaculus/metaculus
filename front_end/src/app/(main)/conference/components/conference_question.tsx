@@ -6,17 +6,24 @@ import { PostWithForecasts } from "@/types/post";
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
 import { onboardingStyles } from "./OnboardingStyles";
 
+import { createForecasts } from "@/app/(main)/questions/actions";
+import { BINARY_FORECAST_PRECISION } from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
+
+import { round } from "lodash";
+
 interface ConferenceQuestionProps {
   questionId: number;
   handleNavigation: (direction: 'forward' | 'previous' | 'back') => void;
+  prediction: number | null;
+  setPrediction: (prediction: number) => void;
 }
 
-const ConferenceQuestion = ({ questionId, handleNavigation }: ConferenceQuestionProps) => {
+const ConferenceQuestion = ({ questionId, handleNavigation, prediction, setPrediction }: ConferenceQuestionProps) => {
   const [question, setQuestion] = useState<PostWithForecasts | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [prediction, setPrediction] = useState<number | null>(null);
   const [communityForecast, setCommunityForecast] = useState<number>(0.5);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchQuestion = async () => {
@@ -34,6 +41,32 @@ const ConferenceQuestion = ({ questionId, handleNavigation }: ConferenceQuestion
     };
     fetchQuestion();
   }, [questionId]);
+
+  const handleSubmit = async () => {
+    if (!prediction || !question) return;
+  
+    try {
+      setIsSubmitting(true);
+      const forecastValue = round(prediction / 100, BINARY_FORECAST_PRECISION);
+      console.log(forecastValue);
+      
+      await createForecasts(question.id, [{
+        questionId: question.id,
+        forecastData: {
+          continuousCdf: null,
+          probabilityYes: forecastValue,
+          probabilityYesPerCategory: null,
+        }
+      }]);
+  
+      handleNavigation('forward');
+    } catch (err) {
+      console.error("Error submitting forecast:", err);
+      setError("Failed to submit forecast. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (loading) {
     return <div className="text-center">Loading question...</div>;
@@ -56,15 +89,18 @@ const ConferenceQuestion = ({ questionId, handleNavigation }: ConferenceQuestion
           forecast={prediction}
           onChange={setPrediction}
           isDirty={true}
-          // Ask if this is needed
           communityForecast={communityForecast}
           onBecomeDirty={() => {}}
           disabled={false}
           helperDisplay={true}
         />
         <div className="mt-6 flex justify-center">
-          <button onClick={() => handleNavigation('forward')} className={onboardingStyles.button}>
-            Submit
+          <button 
+            onClick={handleSubmit}
+            disabled={isSubmitting || !prediction} 
+            className={onboardingStyles.button}
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>
         </div>
       </div>
