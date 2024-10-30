@@ -10,7 +10,6 @@ export async function fetchAggregations({
   includeBots,
   aggregationMethods,
 }: AggregationExplorerParams) {
-  console.log("fetching data", { postId, questionId, includeBots });
   const response = await AggregationExplorerAPI.getAggregations({
     postId,
     questionId,

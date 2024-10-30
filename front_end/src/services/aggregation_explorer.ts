@@ -18,7 +18,6 @@ class AggregationExplorerAPI {
     };
 
     const queryString = new URLSearchParams(queryParams).toString();
-    console.log("QUERY STRING", queryString);
 
     return await get<AggregationQuestion>(
       `/aggregation_explorer/?${queryString}`

@@ -67,7 +67,6 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       setLoading(true);
       setError(null);
       try {
-        console.log("fetching data", postId, questionId, includeBots);
         const response = await fetchAggregations({
           postId,
           questionId,
@@ -89,7 +88,6 @@ const Explorer: FC<Props> = ({ searchParams }) => {
     if (include_bots) {
       setIncludeBots(include_bots === "true");
     }
-    console.log(question_id, include_bots);
 
     if (!!post_id && !!include_bots) {
       const parsedInput = parseQuestionId(inputText as string);
