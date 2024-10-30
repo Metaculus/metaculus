@@ -31,6 +31,7 @@ export enum TournamentType {
   QuestionSeries = "question_series",
   Tournament = "tournament",
   GlobalLeaderboard = "global_leaderboard",
+  Community = "community",
 }
 
 export enum TournamentsSortBy {

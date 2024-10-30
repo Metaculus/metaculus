@@ -1,16 +1,23 @@
+"use client";
+
 import { faPlus, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useEffect } from "react";
 
 import NavUserButton from "@/components/auth";
 import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
+import { CurrentCommunity, useCommunity } from "@/contexts/community_provider";
+import { TournamentType } from "@/types/projects";
 
+import CommunitiesDropdown from "./communities_dropdown";
 import MobileMenu from "./mobile_menu";
+import { getPost } from "../questions/actions";
 
 const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
   return (
@@ -26,7 +33,8 @@ const LinkMenuItem: FC<{ href: string; label: string }> = ({ href, label }) => {
 
 const Header: FC = () => {
   const t = useTranslations();
-
+  const pathname = usePathname();
+  const { currentCommunity, setCurrentCommunity } = useCommunity();
   const LINKS = [
     {
       label: t("questions"),
@@ -37,6 +45,70 @@ const Header: FC = () => {
       href: "/tournaments",
     },
   ];
+
+  useEffect(() => {
+    console.log("Check for community in header");
+    checkCommunityPath(pathname, setCurrentCommunity);
+  }, [pathname, setCurrentCommunity]);
+
+  // header for communities
+  if (!!currentCommunity) {
+    return (
+      <header className="fixed left-0 top-0 z-50 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
+        <div className="flex items-center">
+          <Link
+            href="/questions"
+            className="inline-flex max-w-60 flex-shrink-0 flex-grow-0 basis-auto flex-col justify-center text-center no-underline"
+          >
+            <h1 className="mx-3 my-0 font-league-gothic text-[28px] font-light tracking-widest !text-gray-0 antialiased">
+              M
+            </h1>
+          </Link>
+          <span className="text-lg text-gray-700">/</span>
+          <Link
+            href={`/community/${currentCommunity.slug}`}
+            className="ml-2 mr-1 max-w-[230px] truncate no-underline hover:underline hover:underline-offset-4"
+          >
+            {currentCommunity.name}
+          </Link>
+          <CommunitiesDropdown />
+        </div>
+
+        {/*Desktop items*/}
+        <ul className="relative hidden list-none items-center justify-end text-sm font-medium lg:flex">
+          <li>
+            <NavLink
+              href={`/questions/`}
+              className="mr-2 flex h-full items-center p-3 capitalize no-underline hover:bg-blue-200-dark"
+              activeClassName="bg-blue-300-dark"
+            >
+              {t("questions")}
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              href={`/questions/create/`}
+              className="mr-2 flex h-full items-center rounded-full bg-blue-300-dark p-3 py-2 capitalize no-underline hover:bg-blue-200-dark"
+              activeClassName="bg-blue-300-dark"
+            >
+              <FontAwesomeIcon size="xs" className="mr-1" icon={faPlus} />
+              {t("create")}
+            </NavLink>
+          </li>
+          <li className="z-10 flex h-full items-center justify-center">
+            <NavUserButton />
+          </li>
+          <li className="z-10 flex items-center p-2 hover:bg-blue-200-dark">
+            <LanguageMenu />
+          </li>
+          <li className="z-10 flex items-center p-4">
+            <ThemeToggle />
+          </li>
+        </ul>
+        <MobileMenu isCommunityPage />
+      </header>
+    );
+  }
 
   return (
     <header className="fixed left-0 top-0 z-50 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
@@ -135,3 +207,24 @@ const Header: FC = () => {
 };
 
 export default Header;
+
+async function checkCommunityPath(
+  activePath: string,
+  setCurrentCommunity: (type: CurrentCommunity | null) => void
+) {
+  let isCommunityPage = false;
+  const match = activePath?.match(/^\/questions\/(\d+)(\/.*)?$/);
+  const communityPaths = ["/communities", "/community/"];
+  if (communityPaths.some((path) => activePath?.startsWith(path))) {
+    isCommunityPage = true;
+  } else if (match) {
+    const id = parseInt(match[1], 10);
+    const postData = await getPost(id);
+    isCommunityPage =
+      postData.projects.default_project.type === TournamentType.Community;
+  }
+  // TODO: fetch community info and set it in context
+  isCommunityPage
+    ? setCurrentCommunity({ name: "Test community", slug: "test-community" })
+    : setCurrentCommunity(null);
+}
