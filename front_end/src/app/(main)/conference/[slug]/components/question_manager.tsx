@@ -60,7 +60,7 @@ const QuestionManager: React.FC<QuestionManagerProps> = ({ slug }) => {
         questionIds={questionIds}
         mode={mode}
         setMode={setMode}
-        tournamentSlug={slug}  // Updated to use slug prop
+        tournamentSlug={slug}
       />
     </div>
   );
