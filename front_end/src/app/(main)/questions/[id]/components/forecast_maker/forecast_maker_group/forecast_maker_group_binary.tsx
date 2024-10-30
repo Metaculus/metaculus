@@ -14,7 +14,7 @@ import React, {
 } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
-import PostStatusComponent from "@/components/post_status";
+import GroupQuestionResolution from "@/components/group_question_resolution";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
@@ -266,8 +266,8 @@ const ForecastMakerGroupBinary: FC<Props> = ({
       )}
       {!!highlightedQuestion?.resolution && (
         <div className="flex flex-row items-center justify-center gap-1.5 truncate py-2 text-gray-900 dark:text-gray-900-dark">
-          <PostStatusComponent
-            post={post}
+          <GroupQuestionResolution
+            question={highlightedQuestion}
             resolution={highlightedQuestion.resolution}
           />
         </div>
