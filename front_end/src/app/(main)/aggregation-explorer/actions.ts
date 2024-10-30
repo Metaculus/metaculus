@@ -5,11 +5,14 @@ import AggregationExplorerAPI, {
 } from "@/services/aggregation_explorer";
 
 export async function fetchAggregations({
+  postId,
   questionId,
   includeBots,
   aggregationMethods,
 }: AggregationExplorerParams) {
+  console.log("fetching data", { postId, questionId, includeBots });
   const response = await AggregationExplorerAPI.getAggregations({
+    postId,
     questionId,
     includeBots,
     aggregationMethods,
