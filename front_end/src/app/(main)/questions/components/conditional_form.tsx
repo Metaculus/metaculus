@@ -279,7 +279,13 @@ async function setConditionQuestion(
       const post = await getPost(parsedInput.postId!);
       question = post.question!;
     }
-    if (question && question.type === QuestionType.Binary) {
+    if (
+      question &&
+      (question.type === QuestionType.Binary ||
+        (fieldName === "condition_child_id" &&
+          (question.type === QuestionType.Numeric ||
+            question.type === QuestionType.Date)))
+    ) {
       setQuestionState(question);
       return question.id;
     } else {
