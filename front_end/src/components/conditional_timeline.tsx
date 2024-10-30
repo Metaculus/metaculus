@@ -1,10 +1,10 @@
 import { FC } from "react";
 
+import ContinuousGroupTimeline from "@/app/(main)/questions/[id]/components/continuous_group_timeline";
 import BinaryGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/binary_group_chart";
 import { PostConditional } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
-import ContinuousGroupTimeline from "@/app/(main)/questions/[id]/components/continuous_group_timeline";
 
 type Props = {
   conditional: PostConditional<QuestionWithNumericForecasts>;

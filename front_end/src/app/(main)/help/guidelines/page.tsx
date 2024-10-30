@@ -69,17 +69,17 @@ export default function CommunityGuidelines() {
           the doubt if you have a misunderstanding.
         </li>
         <li>
-          Keep things civil. Offensive or insulting remarks aren't welcome.
+          Keep things civil. Offensive or insulting remarks aren&apos;t welcome.
         </li>
 
         <li>
-          Don't fuel conflicts if they occur. Just disengage and report issues
-          using the "Flag" feature on comments if you encounter content that
-          violates these guidelines.
+          Don&apos;t fuel conflicts if they occur. Just disengage and report
+          issues using the &quot;Flag&quot; feature on comments if you encounter
+          content that violates these guidelines.
         </li>
 
         <li>
-          Be constructive. It's okay to disagree with others, just keep the
+          Be constructive. It&apos;s okay to disagree with others, just keep the
           dialogue positive and respectful.
         </li>
 
@@ -147,8 +147,8 @@ export default function CommunityGuidelines() {
           but promoting products and commercial offerings is not.
         </li>
         <li>
-          Don't impersonate others. If a user claims to be someone they are not
-          in comments or in their username, Moderators may ask the user to
+          Don&apos;t impersonate others. If a user claims to be someone they are
+          not in comments or in their username, Moderators may ask the user to
           provide identifying information, and remove the misrepresentation if
           the user cannot verify their identity.
         </li>
