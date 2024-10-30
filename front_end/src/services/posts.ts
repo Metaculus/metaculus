@@ -16,6 +16,7 @@ import { Require } from "@/types/utils";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post, put } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
+import { QuestionWithForecasts } from "@/types/question";
 
 export type PostsParams = PaginationParams & {
   topic?: string;
@@ -52,6 +53,15 @@ class PostsApi {
   static async getPost(id: number, with_cp = true): Promise<PostWithForecasts> {
     return await get<PostWithForecasts>(
       `/posts/${id}/${encodeQueryParams({ with_cp })}`
+    );
+  }
+
+  static async getQuestion(
+    id: number,
+    with_cp = true
+  ): Promise<QuestionWithForecasts> {
+    return await get<QuestionWithForecasts>(
+      `/questions/${id}/${encodeQueryParams({ with_cp })}`
     );
   }
 
