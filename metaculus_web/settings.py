@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "posts",
     "questions",
     "projects",
+    "communities",
     "scoring",
     "comments",
     "notifications",

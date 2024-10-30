@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Count, FilteredRelation, Q, F
+from django.db.models import Count, FilteredRelation, Q, F, BooleanField, Exists, OuterRef
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone as django_timezone
@@ -31,10 +31,24 @@ class ProjectsQuerySet(models.QuerySet):
     def filter_tags(self):
         return self.filter(type=Project.ProjectTypes.TAG)
 
+    def filter_communities(self):
+        return self.filter(type=Project.ProjectTypes.COMMUNITY)
+
     def annotate_posts_count(self):
         return self.annotate(
             posts_count=Coalesce(SubqueryAggregate("posts__id", aggregate=Count), 0)
             + Coalesce(SubqueryAggregate("default_posts__id", aggregate=Count), 0)
+        )
+
+    def annotate_is_subscribed(self, user: User):
+        """
+        Annotates user subscription
+        """
+
+        return self.annotate(
+            is_subscribed=Exists(
+                ProjectSubscription.objects.filter(user=user, project=OuterRef("pk"))
+            )
         )
 
     # Permissions
@@ -44,6 +58,8 @@ class ProjectsQuerySet(models.QuerySet):
         """
 
         user_id = user.id if user else None
+
+        # TODO: make owner as admin!
 
         return self.annotate(
             user_permission_override=FilteredRelation(
@@ -87,6 +103,7 @@ class Project(TimeStampedModel):
         CATEGORY = "category"
         TAG = "tag"
         TOPIC = "topic"
+        COMMUNITY = "community"
 
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics"
@@ -171,6 +188,8 @@ class Project(TimeStampedModel):
         db_index=True,
     )
     override_permissions = models.ManyToManyField(User, through="ProjectUserPermission")
+    # Not discoverable, but can still be accessed via the URL
+    unlisted = BooleanField(default=False, db_index=True)
 
     # Whether we should display tournament on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
@@ -178,7 +197,10 @@ class Project(TimeStampedModel):
     objects = models.Manager.from_queryset(ProjectsQuerySet)()
 
     # Annotated fields
+    followers_count = models.PositiveIntegerField(default=0, db_index=True)
+
     posts_count: int = 0
+    is_subscribed: bool = False
     user_permission: ObjectPermission = None
 
     class Meta:
@@ -237,6 +259,9 @@ class Project(TimeStampedModel):
         """
 
         return self._get_users_for_permissions([ObjectPermission.CURATOR])
+
+    def update_followers_count(self):
+        self.followers_count = self.subscriptions.count()
 
 
 class ProjectUserPermission(TimeStampedModel):
