@@ -1,0 +1,132 @@
+"use client";
+
+import classNames from "classnames";
+import Link from "next/link";
+import React from "react";
+
+import Button from "@/components/ui/button";
+
+import { ConferenceMode } from "./question_manager";
+
+interface BottomNavigationProps {
+  currentQuestionIndex: number;
+  setCurrentQuestionIndex: (index: number) => void;
+  questionIds: number[];
+  mode: ConferenceMode;
+  setMode: (mode: ConferenceMode) => void;
+  tournamentSlug: string;
+}
+
+const BottomNavigation = ({
+  currentQuestionIndex,
+  setCurrentQuestionIndex,
+  questionIds,
+  mode,
+  setMode,
+  tournamentSlug,
+}: BottomNavigationProps) => {
+  const isLastQuestion = currentQuestionIndex === questionIds.length - 1;
+
+  const renderPageNumbers = () => {
+    const MAX_VISIBLE_PAGES = 7;
+    const ELLIPSIS_THRESHOLD = 3;
+    const VISIBLE_SIBLINGS = 1;
+    const totalPages = questionIds.length;
+    const currentPage = currentQuestionIndex + 1;
+    const pageNumbers = [];
+
+    const addPageNumber = (number: number, isCurrent = false) => (
+      <button
+        key={number}
+        onClick={() => setCurrentQuestionIndex(number - 1)}
+        className={classNames(
+          "mx-1 rounded-full px-2 py-1 text-sm font-medium",
+          isCurrent
+            ? "bg-blue-600 text-white dark:bg-blue-400 dark:text-blue-900"
+            : "text-gray-600 hover:bg-blue-100 dark:text-gray-400 dark:hover:bg-blue-800"
+        )}
+      >
+        {number}
+      </button>
+    );
+
+    if (totalPages <= MAX_VISIBLE_PAGES) {
+      // Show all page numbers if total pages is less than or equal to MAX_VISIBLE_PAGES
+      return Array.from({ length: totalPages }, (_, i) =>
+        addPageNumber(i + 1, i + 1 === currentPage)
+      );
+    }
+
+    // Always show first page
+    pageNumbers.push(addPageNumber(1, currentPage === 1));
+
+    // Show left ellipsis if needed
+    if (currentPage > ELLIPSIS_THRESHOLD) {
+      pageNumbers.push(<span key="ellipsis1">...</span>);
+    }
+
+    // Show current page and its siblings
+    for (
+      let i = Math.max(2, currentPage - VISIBLE_SIBLINGS);
+      i <= Math.min(totalPages - 1, currentPage + VISIBLE_SIBLINGS);
+      i++
+    ) {
+      pageNumbers.push(addPageNumber(i, i === currentPage));
+    }
+
+    // Show right ellipsis if needed
+    if (currentPage < totalPages - (ELLIPSIS_THRESHOLD - 1)) {
+      pageNumbers.push(<span key="ellipsis2">...</span>);
+    }
+
+    // Always show last page
+    pageNumbers.push(addPageNumber(totalPages, currentPage === totalPages));
+
+    return pageNumbers;
+  };
+
+  return (
+    <div className="mt-8 flex w-full items-center justify-between px-4 pb-4">
+      {mode === ConferenceMode.Question && (
+        <>
+          <Button
+            onClick={() =>
+              setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))
+            }
+            disabled={currentQuestionIndex === 0}
+          >
+            Previous
+          </Button>
+          <div className="flex items-center">{renderPageNumbers()}</div>
+          {isLastQuestion ? (
+            <Button onClick={() => setMode(ConferenceMode.Overview)}>
+              Finish
+            </Button>
+          ) : (
+            <Button
+              onClick={() =>
+                setCurrentQuestionIndex(
+                  Math.min(questionIds.length - 1, currentQuestionIndex + 1)
+                )
+              }
+            >
+              Next
+            </Button>
+          )}
+        </>
+      )}
+      {mode === ConferenceMode.Overview && (
+        <>
+          <Button onClick={() => setMode(ConferenceMode.Question)}>
+            Back to Questions
+          </Button>
+          <Link href={`/tournament/${tournamentSlug}`} passHref>
+            <Button>See Results</Button>
+          </Link>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default BottomNavigation;
