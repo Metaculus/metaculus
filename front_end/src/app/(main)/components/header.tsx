@@ -47,11 +47,9 @@ const Header: FC = () => {
   ];
 
   useEffect(() => {
-    console.log("Check for community in header");
     checkCommunityPath(pathname, setCurrentCommunity);
   }, [pathname, setCurrentCommunity]);
 
-  // header for communities
   if (!!currentCommunity) {
     return (
       <header className="fixed left-0 top-0 z-50 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
@@ -87,7 +85,7 @@ const Header: FC = () => {
           </li>
           <li>
             <NavLink
-              href={`/questions/create/`}
+              href={`/questions/create/?community=${currentCommunity.slug}`}
               className="mr-2 flex h-full items-center rounded-full bg-blue-300-dark p-3 py-2 capitalize no-underline hover:bg-blue-200-dark"
               activeClassName="bg-blue-300-dark"
             >
@@ -105,7 +103,7 @@ const Header: FC = () => {
             <ThemeToggle />
           </li>
         </ul>
-        <MobileMenu isCommunityPage />
+        <MobileMenu currentCommunity={currentCommunity} />
       </header>
     );
   }

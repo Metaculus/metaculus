@@ -22,6 +22,7 @@ import { LogOut } from "@/app/(main)/accounts/actions";
 import LanguageMenu from "@/components/language_menu";
 import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
+import { CurrentCommunity } from "@/contexts/community_provider";
 import { useModal } from "@/contexts/modal_context";
 import { Href } from "@/types/navigation";
 
@@ -55,15 +56,15 @@ export const MenuLink: FC<
 };
 
 type Props = {
-  isCommunityPage?: boolean;
+  currentCommunity?: CurrentCommunity;
 };
 
-const MobileMenu: FC<Props> = ({ isCommunityPage }) => {
+const MobileMenu: FC<Props> = ({ currentCommunity }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
   const t = useTranslations();
 
-  if (isCommunityPage) {
+  if (!!currentCommunity) {
     return (
       <Menu>
         <MenuButton className="color-white flex w-12 flex-col items-center justify-center hover:bg-blue-200-dark active:bg-blue-300-dark lg:hidden lg:items-end lg:justify-end">
@@ -87,7 +88,7 @@ const MobileMenu: FC<Props> = ({ isCommunityPage }) => {
             <SectionTitle>{t("community")}</SectionTitle>
             <MenuLink href={`/questions/`}>{t("questions")}</MenuLink>
             <MenuLink
-              href={`/questions/create/`}
+              href={`/questions/create/?community=${currentCommunity.slug}`}
               className="mx-auto flex !w-[max-content] items-center rounded-full bg-blue-300-dark p-3 py-2 text-sm capitalize no-underline hover:bg-blue-200-dark"
             >
               <FontAwesomeIcon size="1x" className="mr-1" icon={faPlus} />
