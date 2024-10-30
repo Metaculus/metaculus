@@ -1,67 +1,38 @@
 "use client";
-import React, { useState, useEffect } from "react";
-
+import Link from "next/link";
 
 import Button from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
-
-import QuestionManager from "./components/question_manager";
-
-// TODO: Overall
-// - Refactor this file into muliple components for cleanliness
-// - Clean the code up
-// - Clean up any UI/UX eyesores
-//   - If mobile is being used
-//     - change header.tsx links to not have Tournaments in the main links (since on mobile it overflows)
-//     - Make the "threshold 2030" wrap in a way that centers itself
-
-// TODO: ConferencePage
-// - Login allows someone to login (reuses existing login)
-// - Does not show login button if already logged in, but instead shows 'start' button
-// - Consider updating 'conference' in cs.json, es.json, and zh.json (are we supporting multiple languages)
-// - test login
-// - Add translation to all the words (t = useTranslation())if being used in the international UI (including the 'conference' header)
-// - Test making a new account
-
-// TODO: Question Component
-// - Figure out if continuous or MC questions will be asked
 
 export default function ConferencePage() {
-  const { setCurrentModal } = useModal();
-  const { user } = useAuth();
-  const [pageState, setPageState] = useState<"login" | "questions">("login");
-
-  useEffect(() => {
-    if (user && pageState === "login") {
-      setPageState("questions");
-    }
-  }, [user, pageState]);
-
-  const handleLogin = () => {
-    setCurrentModal({ type: "signin" });
-  };
-
   return (
-    <>
-      {pageState === "login" ? (
-        <div className="flex min-h-screen flex-col items-center justify-center p-4">
-          <h1 className="mb-16 text-4xl font-bold">
-            Welcome to Threshold 2030
-          </h1>
-          <div className="w-full max-w-sm space-y-4">
-            <Button
-              className="w-full"
-              variant="secondary"
-              onClick={handleLogin}
-            >
-              Login/Signup to Begin
-            </Button>
+    <main className="flex min-h-[calc(100vh-250px)] flex-col">
+      <div className="flex flex-grow items-center justify-center p-4">
+        <div className="w-full max-w-4xl">
+          <div className="flex flex-col items-center justify-center space-y-8">
+            <h1 className="text-center text-3xl font-bold text-gray-800 md:text-4xl lg:text-5xl">
+              Threshold 2030
+            </h1>
+            <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
+              <Link href="/conference/threshold2030-day-one">
+                <Button
+                  className="w-full min-w-[200px] py-3 text-lg"
+                  variant="primary"
+                >
+                  Day One
+                </Button>
+              </Link>
+              <Link href="/conference/threshold2030-day-two">
+                <Button
+                  className="w-full min-w-[200px] py-3 text-lg"
+                  variant="primary"
+                >
+                  Day Two
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
-      ) : (
-        <QuestionManager />
-      )}
-    </>
+      </div>
+    </main>
   );
 }

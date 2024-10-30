@@ -122,6 +122,7 @@ const MultiSlider: FC<Props> = ({
         return (
           <SliderThumb
             {...origin.props}
+            value={controlledValue[props.index]}
             active={props.index === 1}
             onMouseDown={() => {
               handlePressIn(props.index);
