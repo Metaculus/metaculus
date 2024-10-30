@@ -51,7 +51,7 @@ const QuestionNumericTile: FC<Props> = ({
         <PredictionChip
           question={question}
           prediction={prediction}
-          status={curationStatus}
+          status={curationStatus as PostStatus}
           showUserForecast
           hideCP={hideCP}
         />
