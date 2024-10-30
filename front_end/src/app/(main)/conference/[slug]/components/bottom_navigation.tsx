@@ -75,7 +75,6 @@ const BottomNavigation = ({
       {mode === ConferenceMode.Question && (
         <>
           <Button
-            size="lg"
             onClick={() =>
               setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))
             }
@@ -85,12 +84,11 @@ const BottomNavigation = ({
           </Button>
           <div className="flex items-center">{renderPageNumbers()}</div>
           {isLastQuestion ? (
-            <Button size="lg" onClick={() => setMode(ConferenceMode.Overview)}>
+            <Button onClick={() => setMode(ConferenceMode.Overview)}>
               Finish
             </Button>
           ) : (
             <Button
-              size="lg"
               onClick={() =>
                 setCurrentQuestionIndex(
                   Math.min(questionIds.length - 1, currentQuestionIndex + 1)
@@ -104,11 +102,11 @@ const BottomNavigation = ({
       )}
       {mode === ConferenceMode.Overview && (
         <>
-          <Button size="lg" onClick={() => setMode(ConferenceMode.Question)}>
+          <Button onClick={() => setMode(ConferenceMode.Question)}>
             Back to Questions
           </Button>
           <Link href={`/tournament/${tournamentSlug}`} passHref>
-            <Button size="lg">See Results</Button>
+            <Button>See Results</Button>
           </Link>
         </>
       )}
