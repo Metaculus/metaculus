@@ -1,6 +1,7 @@
 from typing import Union
 
 from django.db import models
+from django.db.models import QuerySet
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -419,7 +420,7 @@ def serialize_post(
 
 
 def serialize_post_many(
-    posts: Union[Post.objects, list[Post], list[int]],
+    posts: Union[QuerySet[Post], list[Post], list[int]],
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
@@ -428,8 +429,8 @@ def serialize_post_many(
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
     )
-    ids = [p.pk if isinstance(p, Post) else p for p in posts]
-    qs = Post.objects.filter(pk__in=ids)
+    ids = [p.id if isinstance(p, Post) else p for p in posts]
+    qs = Post.objects.filter(id__in=ids)
 
     qs = (
         qs.annotate_user_permission(user=current_user)
@@ -455,14 +456,14 @@ def serialize_post_many(
         qs = qs.prefetch_user_snapshots(current_user)
 
     # Restore the original ordering
-    objects = list(qs.all())
-    objects.sort(key=lambda obj: ids.index(obj.id))
+    posts: list[Post] = list(qs.all())
+    posts.sort(key=lambda obj: ids.index(obj.id))
 
     aggregate_forecasts = {}
 
     if with_cp:
         aggregate_forecasts = get_aggregated_forecasts_for_questions(
-            flatten([p.get_questions() for p in objects]), group_cutoff=group_cutoff
+            flatten([p.get_questions() for p in posts]), group_cutoff=group_cutoff
         )
 
     return [
@@ -477,7 +478,7 @@ def serialize_post_many(
                 if q in post.get_questions()
             },
         )
-        for post in objects
+        for post in posts
     ]
 
 

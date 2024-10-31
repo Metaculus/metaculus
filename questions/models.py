@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from django_better_admin_arrayfield.models.fields import ArrayField
 from django.db import models
-from django.db.models import Count, Q
+from django.db.models import Count, Q, QuerySet
 from django.utils import timezone
 from sql_util.aggregates import SubqueryAggregate
 
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 CDF_SIZE = 201
 
 
-class QuestionQuerySet(models.QuerySet):
+class QuestionQuerySet(QuerySet):
     def annotate_forecasts_count(self):
         return self.annotate(
             forecasts_count=SubqueryAggregate("forecast", aggregate=Count)
@@ -47,12 +47,13 @@ class QuestionManager(models.Manager.from_queryset(QuestionQuerySet)):
 
 class Question(TimeStampedModel):
     # typing
-    user_forecasts: models.QuerySet["Forecast"]
-    aggregate_forecasts: models.QuerySet["AggregateForecast"]
-    scores: models.QuerySet["Score"]
-    archived_scores: models.QuerySet["ArchivedScore"]
+    user_forecasts: QuerySet["Forecast"]
+    aggregate_forecasts: QuerySet["AggregateForecast"]
+    scores: QuerySet["Score"]
+    archived_scores: QuerySet["ArchivedScore"]
     objects: QuestionQuerySet["Question"]
     id: int
+    group_id: int | None
 
     # Annotated fields
     forecasts_count: int = 0
@@ -115,7 +116,7 @@ class Question(TimeStampedModel):
 
     # Group
     label = models.TextField(blank=True, null=True)
-    group = models.ForeignKey(
+    group: "GroupOfQuestions" = models.ForeignKey(
         "GroupOfQuestions",
         null=True,
         blank=True,
@@ -212,7 +213,7 @@ class Conditional(TimeStampedModel):
 
 class GroupOfQuestions(TimeStampedModel):
     # typing
-    questions: models.QuerySet[Question]
+    questions: QuerySet[Question]
 
     class GroupOfQuestionsGraphType(models.TextChoices):
         FAN_GRAPH = "fan_graph"

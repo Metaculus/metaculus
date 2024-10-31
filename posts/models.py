@@ -357,6 +357,9 @@ class Post(TimeStampedModel):
     id: int
     votes: QuerySet["Vote"]
     forecasts: QuerySet["Forecast"]
+    question_id: int | None
+    conditional_id: int | None
+    group_of_questions_id: int | None
 
     # Annotated fields
     user_vote = None
@@ -613,7 +616,7 @@ class Post(TimeStampedModel):
         if self.question_id:
             return [self.question]
         if self.group_of_questions_id:
-            return self.group_of_questions.questions.all()
+            return self.group_of_questions.questions.all().prefetch_related("group")
         elif self.conditional_id:
             return [self.conditional.question_yes, self.conditional.question_no]
         else:
