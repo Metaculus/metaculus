@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: testing_env
     env:
-      DATABASE_URL: "postgres://postgres:postgres@localhost:5432/test_metaculus"
+      TEST_DATABASE_URL: "postgres://postgres:postgres@localhost:5432/test_metaculus"
     services:
       db:
         image: pgvector/pgvector:pg16
