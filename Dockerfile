@@ -59,7 +59,6 @@ WORKDIR /app/front_end/
 ADD front_end/package*.json .
 ENV NODE_ENV=production
 RUN npm ci
-RUN npm install pm2 -g
 
 
 FROM base AS final_env
@@ -86,6 +85,7 @@ COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_module
 
 ENV NODE_ENV=production
 RUN --mount=type=secret,id=frontend_env,target=/app/front_end/.env cd front_end && npm run build
+RUN npm install pm2 -g
 
 RUN source venv/bin/activate && ./manage.py collectstatic --noinput
 
