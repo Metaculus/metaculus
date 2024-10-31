@@ -57,9 +57,3 @@ export type ForecastType = {
   quartiles: number[];
   question_type: QuestionType;
 };
-
-export enum CommentPermissions {
-  VIEWER = "VIEWER",
-  CURATOR = "CURATOR",
-  CREATOR = "CREATOR",
-}

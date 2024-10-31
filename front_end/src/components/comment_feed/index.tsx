@@ -14,11 +14,7 @@ import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { getCommentsParams } from "@/services/comments";
-import {
-  BECommentType,
-  CommentPermissions,
-  CommentType,
-} from "@/types/comment";
+import { BECommentType, CommentType } from "@/types/comment";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { parseComment } from "@/utils/comments";
@@ -215,15 +211,6 @@ const CommentFeed: FC<Props> = ({
     void fetchComments(true, finalFilters);
   }, [feedFilters]);
 
-  let permissions: CommentPermissions = CommentPermissions.VIEWER;
-  if (
-    postId &&
-    (postPermissions === ProjectPermissions.ADMIN ||
-      postPermissions === ProjectPermissions.CURATOR)
-  ) {
-    permissions = CommentPermissions.CURATOR;
-  }
-
   useEffect(() => {
     if (user?.id && postId) {
       // Send BE request that user has read the post
@@ -331,7 +318,6 @@ const CommentFeed: FC<Props> = ({
           <Comment
             onProfile={!!profileId}
             comment={comment}
-            permissions={permissions}
             treeDepth={0}
             /* replies should always be sorted from oldest to newest */
             sort={"created_at" as SortOption}
