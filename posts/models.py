@@ -364,7 +364,7 @@ class Post(TimeStampedModel):
     user_last_forecasts_date = None
     divergence: int = None
 
-    objects: PostManager = PostManager()
+    objects: QuerySet["Post"] = PostManager()
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
