@@ -145,7 +145,7 @@ def comment_edit_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
     text = serializers.CharField().run_validation(request.data.get("text"))
 
-    if not (request.user.is_staff or comment.author == request.user):
+    if not (comment.author == request.user):
         raise PermissionDenied("You do not have permission to edit this comment.")
 
     differ = difflib.Differ()
