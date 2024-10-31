@@ -1,6 +1,8 @@
+import { PaginatedPayload, PaginationParams } from "@/types/fetch";
 import { ProjectPermissions } from "@/types/post";
 import {
   Category,
+  Community,
   Tag,
   Topic,
   Tournament,
@@ -8,7 +10,7 @@ import {
   TournamentPreview,
 } from "@/types/projects";
 import { LeaderboardDetails } from "@/types/scoring";
-import { del, get, patch, post } from "@/utils/fetch";
+import { del, get, patch, post, put } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
 
 export type TagsParams = {
@@ -19,6 +21,19 @@ export type TournamentFilterParams = {
   // Min permission
   permission?: ProjectPermissions;
   show_on_homepage?: boolean;
+};
+
+export type CommunitiesParams = PaginationParams & {
+  is_subscribed?: boolean;
+  ids?: number[];
+};
+
+export type CommunityUpdateParams = PaginationParams & {
+  name?: string;
+  slug?: boolean;
+  description?: boolean;
+  default_permission?: ProjectPermissions;
+  unlisted?: boolean;
 };
 
 class ProjectsApi {
@@ -118,6 +133,27 @@ class ProjectsApi {
 
   static async toggleAddPostsToMainFeed(projectId: number) {
     return post(`/projects/${projectId}/toggle_add_posts_to_main_feed/`, {});
+  }
+
+  static async getCommunities(
+    params?: CommunitiesParams
+  ): Promise<PaginatedPayload<Community>> {
+    const queryParams = encodeQueryParams(params ?? {});
+
+    return await get<PaginatedPayload<Community>>(
+      `/projects/communities/${queryParams}`
+    );
+  }
+
+  static async getCommunity(slug: string): Promise<Community> {
+    return get<Community>(`/projects/communities/${slug}/`);
+  }
+
+  static async updateCommunity(
+    slug: string,
+    params: CommunityUpdateParams
+  ): Promise<Community> {
+    return put(`/projects/communities/${slug}/update/`, params);
   }
 }
 
