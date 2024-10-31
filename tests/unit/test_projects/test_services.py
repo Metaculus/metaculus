@@ -1,7 +1,7 @@
 from notifications.models import Notification
 from posts.models import Post
 from projects.permissions import ObjectPermission
-from projects.services import notify_project_subscriptions_post_open
+from projects.services.common import notify_project_subscriptions_post_open
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project

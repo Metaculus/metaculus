@@ -7,11 +7,14 @@ import {
 
 import { ProfilePreferencesType } from "./preferences";
 
-export type User = {
+export type UserBase = {
   id: number;
   username: string;
-  is_bot?: boolean;
-  is_staff?: boolean;
+  is_bot: boolean;
+  is_staff: boolean;
+};
+
+export type User = UserBase & {
   date_joined: string;
   bio: string;
   website: string;

@@ -522,15 +522,16 @@ export default function FAQ() {
         </h3>
         <p>
           Metaculus has some similarities to a prediction market, but ultimately
-          is not one. Metaculus aims to aggregate many people's information,
-          expertise, and predictive power into high-quality forecasts. However,
-          prediction markets generally operate using real or virtual currency,
-          where participants buy (or sell) shares if they think that the
-          standing prices reflect too low (or high) a probability of an event
-          occurring. Metaculus, in contrast, directly solicits predicted
-          probabilities from its users, then aggregates those probabilities. We
-          believe that this sort of "prediction aggregator" has both advantages
-          and disadvantages relative to a prediction market.
+          is not one. Metaculus aims to aggregate many people&apos;s
+          information, expertise, and predictive power into high-quality
+          forecasts. However, prediction markets generally operate using real or
+          virtual currency, where participants buy (or sell) shares if they
+          think that the standing prices reflect too low (or high) a probability
+          of an event occurring. Metaculus, in contrast, directly solicits
+          predicted probabilities from its users, then aggregates those
+          probabilities. We believe that this sort of &quot;prediction
+          aggregator&quot; has both advantages and disadvantages relative to a
+          prediction market.
         </p>
 
         <h4 className="text-lg font-semibold">
@@ -546,9 +547,9 @@ export default function FAQ() {
 
         <ol className="mb-4 ml-4 list-inside list-decimal space-y-2">
           <li>
-            <b>Poor incentives for longer term forecasts.</b> It's usually not a
-            good use of your funds to lock them up in a prediction market for
-            the long term, since you can usually get much better returns by
+            <b>Poor incentives for longer term forecasts.</b> It&apos;s usually
+            not a good use of your funds to lock them up in a prediction market
+            for the long term, since you can usually get much better returns by
             investing, which means longer term markets are likely to have low
             liquidity. For an example see{" "}
             <a href="https://wip.gatspress.com/wp-content/uploads/2024/05/thu9F-cumulative-traded-volume-on-the-2020-us-election-4-1024x897.png">
@@ -568,38 +569,39 @@ export default function FAQ() {
             market frictions that make them less useful for low probabilities.
             The return on using your money to bring a probability from 2% to 1%
             is negligible, or potentially negative if the prediction market
-            extract a fee from traders. That's why you get weird results like
-            Michelle Obama at 6% chance of becoming the Democratic nominee for
-            the 2024 US presidential election in June of 2024, as was the case{" "}
+            extract a fee from traders. That&apos;s why you get weird results
+            like Michelle Obama at 6% chance of becoming the Democratic nominee
+            for the 2024 US presidential election in June of 2024, as was the
+            case{" "}
             <a href="https://polymarket.com/event/democratic-nominee-2024?tid=1724174308005">
               on Polymarket
             </a>
             .
           </li>
           <li>
-            <b>The focus isn't always forecasting.</b> Prediction market
-            incentives aren't always aligned with making the most accurate
+            <b>The focus isn&apos;t always forecasting.</b> Prediction market
+            incentives aren&apos;t always aligned with making the most accurate
             predictions. Consider that one potential use for prediction markets
             is hedging against risky outcomes. Additionally, people who are
             irrational but willing to put a ton of money behind their beliefs
             may skew the outcome. Sure, ideally a liquid market will correct for
-            these skews, but it's possible that they could have an effect on the
-            price. See{" "}
+            these skews, but it&apos;s possible that they could have an effect
+            on the price. See{" "}
             <a href="https://asteriskmag.com/issues/05/prediction-markets-have-an-elections-problem-jeremiah-johnson">
               this piece in Asterisk Magazine
             </a>{" "}
-            for more on "dumb money" in prediction markets.
+            for more on &quot;dumb money&quot; in prediction markets.
           </li>
           <li>
             <b>What do individuals think will happen?</b> Participants in
             prediction markets are expressing whether they think the probability
             is higher or lower than the market price, not making a forecast. If
             someone thinks the market is too low at 35% and bets accordingly,
-            you don't know whether they think the true probability is 40% or
-            80%. This doesn't really impact the usefulness of the aggregate, but
-            it does make the data less rich and informative, and harder to see
-            the full distribution of forecasts like you can with the histograms
-            for binary questions on Metaculus.
+            you don&apos;t know whether they think the true probability is 40%
+            or 80%. This doesn&apos;t really impact the usefulness of the
+            aggregate, but it does make the data less rich and informative, and
+            harder to see the full distribution of forecasts like you can with
+            the histograms for binary questions on Metaculus.
           </li>
           <li>
             <b>
@@ -2600,7 +2602,7 @@ export default function FAQ() {
           </h4>
           <p>
             By default, bots are not included in any aggregations. If they are,
-            it is indicated in the sidebar as "Include Bots".
+            it is indicated in the sidebar as &quot;Include Bots&quot;.
           </p>
         </div>
 

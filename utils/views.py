@@ -16,19 +16,24 @@ from utils.the_math.aggregations import get_aggregation_history
 @permission_classes([AllowAny])
 def aggregation_explorer_api_view(request):
     question_id = request.GET.get("question_id")
-    post: Post | None = Post.objects.filter(id=question_id).first()
-    if post is not None:
-        if not post.question:
-            raise ValidationError(
-                "Post does not have a single question, try inputing a subquestion id"
-            )
-        question: Question = post.question
+    if question_id:
+        question: Question | None = Question.objects.filter(id=question_id).first()
+        if question is None:
+            raise ValidationError(f"Question with id {question_id} not found")
+        post = question.get_post()
     else:
-        question = Question.objects.filter(id=question_id).first()
-        if not question:
-            raise ValidationError("Question does not exist")
+        post_id = request.GET.get("post_id")
+        post: Post | None = Post.objects.filter(id=post_id).first()
+        if post is None:
+            raise ValidationError(f"Post with id {post_id} not found")
+        if post.question is None:
+            raise ValidationError(
+                f"Post with id {post_id} has no question, please submit a subquestion."
+            )
+        question = post.question
+
     # Check permissions
-    permission = get_post_permission_for_user(question.get_post(), user=request.user)
+    permission = get_post_permission_for_user(post, user=request.user)
     ObjectPermission.can_view(permission, raise_exception=True)
 
     # get and validate aggregation_methods

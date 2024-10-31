@@ -125,6 +125,11 @@ export async function getPost(postId: number) {
   return response;
 }
 
+export async function getQuestion(questionId: number) {
+  const response = await PostsApi.getQuestion(questionId);
+  return response;
+}
+
 export async function draftPost(postId: number) {
   await PostsApi.makeDraft(postId);
 

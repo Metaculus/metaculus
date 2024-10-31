@@ -6,7 +6,7 @@ from migrator.utils import paginated_query
 from posts.models import Post
 from projects.models import Project, ProjectUserPermission
 from projects.permissions import ObjectPermission
-from projects.services import get_site_main_project
+from projects.services.common import get_site_main_project
 from utils.dtypes import flatten
 
 # These types were merged with project during metaculus refactoring
