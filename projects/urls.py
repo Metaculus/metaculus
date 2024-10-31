@@ -46,12 +46,12 @@ urlpatterns = [
         name="communities-list",
     ),
     path(
-        "projects/communities/<str:slug>",
+        "projects/communities/<str:slug>/",
         views.community_detail_api_view,
         name="community-detail",
     ),
     path(
-        "projects/communities/<int:pk>/update",
+        "projects/communities/<int:pk>/update/",
         views.community_update_api_view,
         name="community-update",
     ),
