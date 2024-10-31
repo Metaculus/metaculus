@@ -6,7 +6,7 @@ import { FC } from "react";
 import MultipleChoiceTile from "@/components/multiple_choice_tile";
 import { useAuth } from "@/contexts/auth_context";
 import { TimelineChartZoomOption } from "@/types/charts";
-import { PostStatus } from "@/types/post";
+import { PostStatus, QuestionStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
 import { generateUserForecastsForMultipleQuestion } from "@/utils/questions";
@@ -16,7 +16,7 @@ import QuestionNumericTile from "./question_numeric_tile";
 type Props = {
   question: QuestionWithForecasts;
   authorUsername: string;
-  curationStatus: PostStatus;
+  curationStatus: PostStatus | QuestionStatus;
   hideCP?: boolean;
 };
 

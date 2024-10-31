@@ -68,7 +68,57 @@ export default function CommunityGuidelines() {
           show them you appreciate their service by giving them the benefit of
           the doubt if you have a misunderstanding.
         </li>
-        {/* ... other list items ... */}
+        <li>
+          Keep things civil. Offensive or insulting remarks aren&apos;t welcome.
+        </li>
+
+        <li>
+          Don&apos;t fuel conflicts if they occur. Just disengage and report
+          issues using the &quot;Flag&quot; feature on comments if you encounter
+          content that violates these guidelines.
+        </li>
+
+        <li>
+          Be constructive. It&apos;s okay to disagree with others, just keep the
+          dialogue positive and respectful.
+        </li>
+
+        <li>
+          Avoid excessive editorializing. Metaculus is ultimately a place where
+          forecasts and individual track records speak for themselves. As a
+          general rule, we encourage comments that are on topic, and free from
+          personal grievances or strong politics.
+        </li>
+
+        <li>
+          Show your appreciation. If you think something contributes to
+          conversation, upvote it!
+        </li>
+
+        <li>
+          Search first. If you have questions about how Metaculus works, check
+          to see if you can find the answer in the FAQ. There are lots of
+          technical details for those interested.
+        </li>
+
+        <li>
+          Aim for good grammar and spelling. While perfection is certainly not
+          the goal, we appreciate linguistic propriety and enjoy the fact that
+          you are more likely than not to encounter complete, legible sentences
+          here. Please mind your language.
+        </li>
+        <li>
+          Report potential conflicts of interest. At times, forecasters weigh in
+          on question resolution discussions. If you do so, it’s considered good
+          form to indicate when you have a potential conflict of interest. A
+          simple “I will win X points if this question resolves as I suggest it
+          should” will suffice.
+        </li>
+        <li>
+          Plagiarism is not tolerated. Quoting or citing other sources is very
+          welcome when you give attribution to the original source. Trying to
+          claim their work as your own is not acceptable.
+        </li>
       </ol>
 
       <h2
@@ -87,7 +137,27 @@ export default function CommunityGuidelines() {
           material. Please refrain from posting content that is blatantly
           disruptive to the discussion.
         </li>
-        {/* ... other list items ... */}
+        <li>
+          Do not be intolerant of others. Intolerance of a person’s race,
+          culture, appearance, gender, sexual preference, religion or age is
+          unacceptable.
+        </li>
+        <li>
+          Skip advertisements and spam. Linking to relevant resources is fine,
+          but promoting products and commercial offerings is not.
+        </li>
+        <li>
+          Don&apos;t impersonate others. If a user claims to be someone they are
+          not in comments or in their username, Moderators may ask the user to
+          provide identifying information, and remove the misrepresentation if
+          the user cannot verify their identity.
+        </li>
+        <li>
+          If you’ve found something wrong, please don’t jeopardize platform
+          functionality. We’re constantly working on the Metaculus platform. If
+          you have found a bug or if something isn’t working right, we
+          appreciate you letting us know via the Contact link in the footer.
+        </li>
       </ol>
       <p className="mt-4">
         For further details about our Acceptable Use Policy, check out our{" "}

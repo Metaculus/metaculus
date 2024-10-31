@@ -48,7 +48,7 @@ const people: Person[] = [
   {
     userId: 120279,
     name: "Tom Liptay",
-    position: "Product Director",
+    position: "Director of Forecasting",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/tom_liptay.webp",
     introduction:
@@ -119,14 +119,14 @@ const people: Person[] = [
     introduction:
       "Nikos advances Metaculus’ research agenda, focusing on forecast aggregation and forecast evaluation. He received his master’s in applied statistics from the University of Göttingen and is working toward his PhD in infectious disease forecasting and forecast evaluation at the London School of Hygiene and Tropical Medicine.",
   },
-   {
+  {
     name: "Leonard Barrett",
     position: "Chief of Staff",
     imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/leonard.png",
     introduction:
       "Leonard’s work spans Metaculus’ various teams and initiatives, advancing our strategic direction, growth, and operational efficiency. Prior to Metaculus, he worked in real estate development and asset management, overseeing complex real estate development projects. His forecasting background includes experience as a Good Judgment Superforecaster and consistent top performance on various forecasting platforms and competitions. Leonard is passionate about elevating the crowd forecasting ecosystem to unlock its full potential in guiding policy and decision-making to mitigate global risks.",
   },
-   {
+  {
     name: "Connor McCormick",
     position: "Collective Intelligence Specialist",
     imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/connor.webp",
