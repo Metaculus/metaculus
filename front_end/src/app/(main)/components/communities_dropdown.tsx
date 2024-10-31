@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
 
-import { CurrentCommunity } from "@/types/community";
+import { Community } from "@/types/projects";
 
 const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
   <div className="flex h-full items-start justify-start px-2.5 py-2 text-left text-xs font-normal capitalize text-gray-200 opacity-50">
@@ -20,10 +20,10 @@ const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
 );
 
 type Props = {
-  currentCommunity: CurrentCommunity | null;
+  community: Community | null;
 };
 
-const CommunitiesDropdown: FC<Props> = ({ currentCommunity }) => {
+const CommunitiesDropdown: FC<Props> = ({ community }) => {
   const t = useTranslations();
 
   // TODO: fetch followed and top communities
@@ -41,9 +41,9 @@ const CommunitiesDropdown: FC<Props> = ({ currentCommunity }) => {
         <MenuItem>
           <Link
             className="flex items-center justify-start whitespace-nowrap rounded bg-blue-200-dark p-2.5 text-left font-bold capitalize no-underline"
-            href={`/community/${currentCommunity?.slug}`}
+            href={`/community/${community?.slug}`}
           >
-            {currentCommunity?.name}
+            {community?.name}
             <FontAwesomeIcon
               size="1x"
               className="ml-auto text-gray-400 dark:text-gray-400-dark"

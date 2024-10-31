@@ -11,6 +11,7 @@ import ConditionalTile from "@/components/conditional_tile";
 import ConditionalTimeline from "@/components/conditional_timeline";
 import { EmbedModalContextProvider } from "@/contexts/embed_modal_context";
 import PostsApi from "@/services/posts";
+import ProjectsApi from "@/services/projects";
 import questions from "@/services/questions";
 import { SearchParams } from "@/types/navigation";
 import { PostConditional, PostStatus, ProjectPermissions } from "@/types/post";
@@ -127,10 +128,9 @@ export default async function IndividualQuestion({
   const isCommunityQuestion = defaultProject.type === TournamentType.Community;
   let currentCommunity = null;
   if (isCommunityQuestion) {
-    currentCommunity = {
-      slug: defaultProject.slug as string,
-      name: defaultProject.name,
-    };
+    currentCommunity = await ProjectsApi.getCommunity(
+      defaultProject.slug as string
+    );
   }
 
   const preselectedGroupQuestionId =
@@ -167,7 +167,7 @@ export default async function IndividualQuestion({
     <EmbedModalContextProvider>
       <HideCPProvider post={postData}>
         {isCommunityQuestion ? (
-          <CommunityHeader currentCommunity={currentCommunity} />
+          <CommunityHeader community={currentCommunity} />
         ) : (
           <Header />
         )}

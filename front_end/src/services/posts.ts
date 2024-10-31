@@ -12,11 +12,11 @@ import {
   PostWithForecasts,
   PostWithNotebook,
 } from "@/types/post";
+import { QuestionWithForecasts } from "@/types/question";
 import { Require } from "@/types/utils";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post, put } from "@/utils/fetch";
 import { encodeQueryParams } from "@/utils/navigation";
-import { QuestionWithForecasts } from "@/types/question";
 
 export type PostsParams = PaginationParams & {
   topic?: string;
@@ -35,6 +35,7 @@ export type PostsParams = PaginationParams & {
   commented_by?: string;
   order_by?: string;
   tournaments?: string | string[];
+  community?: string;
   for_main_feed?: string;
   ids?: number[];
   news_type?: string;
