@@ -66,7 +66,7 @@ const Header: FC = () => {
       </ul>
       {/*Desktop items*/}
       <ul className="relative hidden list-none items-center justify-end text-sm font-medium lg:flex">
-        <li>
+        <li className="h-full">
           <NavLink
             href={`/leaderboard`}
             className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
@@ -75,7 +75,7 @@ const Header: FC = () => {
             {t("leaderboards")}
           </NavLink>
         </li>
-        <li>
+        <li className="h-full">
           <NavLink
             href={`/news/`}
             className="flex h-full items-center p-3 no-underline hover:bg-blue-200-dark"
@@ -84,7 +84,7 @@ const Header: FC = () => {
             {t("news")}
           </NavLink>
         </li>
-        <li>
+        <li className="h-full">
           <Menu>
             <MenuButton className="flex h-full items-center gap-1 p-3 no-underline hover:bg-blue-200-dark">
               {t("more")}
@@ -109,7 +109,7 @@ const Header: FC = () => {
             </MenuItems>
           </Menu>
         </li>
-        <li>
+        <li className="h-full">
           <NavLink
             href={`/questions/create/`}
             className="mr-2 flex h-full items-center p-3 capitalize no-underline hover:bg-blue-200-dark"
@@ -122,7 +122,7 @@ const Header: FC = () => {
         <li className="z-10 flex h-full items-center justify-center">
           <NavUserButton />
         </li>
-        <li className="z-10 flex items-center p-2 hover:bg-blue-200-dark">
+        <li className="z-10 flex h-full items-center p-2 hover:bg-blue-200-dark">
           <LanguageMenu />
         </li>
         <li className="z-10 flex items-center p-4">

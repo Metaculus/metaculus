@@ -33,11 +33,11 @@ const CommunityHeader: FC<Props> = ({ currentCommunity }) => {
             M
           </h1>
         </Link>
-        <span className="text-lg text-gray-700">/</span>
+        <span className="text-xl font-light text-gray-600">/</span>
         {currentCommunity && (
           <Link
             href={`/community/${currentCommunity.slug}`}
-            className="ml-3 mr-1 max-w-[230px] truncate no-underline hover:underline hover:underline-offset-4"
+            className="ml-3 mr-1 max-w-[230px] truncate no-underline hover:underline hover:decoration-gray-600 hover:underline-offset-4"
           >
             {currentCommunity.name}
           </Link>
@@ -47,7 +47,7 @@ const CommunityHeader: FC<Props> = ({ currentCommunity }) => {
 
       {/*Desktop items*/}
       <ul className="relative hidden list-none items-center justify-end text-sm font-medium lg:flex">
-        <li>
+        <li className="h-full">
           <NavLink
             href={`/questions/`}
             className="mr-2 flex h-full items-center p-3 capitalize no-underline hover:bg-blue-200-dark"
@@ -59,7 +59,7 @@ const CommunityHeader: FC<Props> = ({ currentCommunity }) => {
         <li>
           <NavLink
             href={`/questions/create/?community=${currentCommunity?.slug}`}
-            className="mr-2 flex h-full items-center rounded-full bg-blue-300-dark p-3 py-2 capitalize no-underline hover:bg-blue-200-dark"
+            className="mr-2 flex h-full items-center rounded-full bg-blue-300-dark p-3 py-1 capitalize no-underline hover:bg-blue-200-dark"
             activeClassName="bg-blue-300-dark"
           >
             <FontAwesomeIcon width={14} className="mr-1" icon={faPlus} />
@@ -69,7 +69,7 @@ const CommunityHeader: FC<Props> = ({ currentCommunity }) => {
         <li className="z-10 flex h-full items-center justify-center">
           <NavUserButton />
         </li>
-        <li className="z-10 flex items-center p-2 hover:bg-blue-200-dark">
+        <li className="z-10 flex h-full items-center p-2 hover:bg-blue-200-dark">
           <LanguageMenu />
         </li>
         <li className="z-10 flex items-center p-4">
