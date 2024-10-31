@@ -42,7 +42,7 @@ class CommunityUpdateSerializer(serializers.ModelSerializer):
     def validate_slug(self, value: str):
         if (
             Project.objects.filter_communities()
-            .filter(slug__ilike=value)
+            .filter(slug__iexact=value)
             .exclude(pk=self.instance.pk)
             .exists()
         ):
