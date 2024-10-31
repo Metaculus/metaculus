@@ -1,5 +1,13 @@
 from django.db import models
-from django.db.models import Count, FilteredRelation, Q, F, BooleanField, Exists, OuterRef
+from django.db.models import (
+    Count,
+    FilteredRelation,
+    Q,
+    F,
+    BooleanField,
+    Exists,
+    OuterRef,
+)
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone as django_timezone
@@ -59,8 +67,6 @@ class ProjectsQuerySet(models.QuerySet):
 
         user_id = user.id if user else None
 
-        # TODO: make owner as admin!
-
         return self.annotate(
             user_permission_override=FilteredRelation(
                 "projectuserpermission",
@@ -68,9 +74,15 @@ class ProjectsQuerySet(models.QuerySet):
                     projectuserpermission__user_id=user_id,
                 ),
             ),
-            user_permission=Coalesce(
-                F("user_permission_override__permission"),
-                F("default_permission"),
+            user_permission=models.Case(
+                models.When(
+                    Q(created_by=user), then=models.Value(ObjectPermission.ADMIN)
+                ),
+                default=Coalesce(
+                    F("user_permission_override__permission"),
+                    F("default_permission"),
+                ),
+                output_field=models.CharField(),
             ),
         )
 
@@ -176,6 +188,7 @@ class Project(TimeStampedModel):
         default=None,
         null=True,
         blank=True,
+        db_index=True,
     )
 
     # Permissions
