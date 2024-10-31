@@ -52,7 +52,7 @@ def create_comment(
 ) -> Comment:
     on_post = parent.on_post if parent else on_post
 
-    obj = Comment.objects.create(
+    obj = Comment(
         author=user,
         parent=parent,
         is_soft_deleted=False,
