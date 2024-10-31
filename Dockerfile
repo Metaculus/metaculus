@@ -59,6 +59,7 @@ WORKDIR /app/front_end/
 ADD front_end/package*.json .
 ENV NODE_ENV=production
 RUN npm ci
+RUN npm install pm2 -g
 
 
 FROM base AS final_env
