@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 from misc.models import ITNArticle
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.serializers import (
+from projects.serializers.common import (
     validate_categories,
     validate_tournaments,
     serialize_projects,
@@ -204,6 +204,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     ids = serializers.ListField(child=serializers.IntegerField(), required=False)
     access = serializers.ChoiceField(required=False, choices=Access.choices)
     topic = serializers.CharField(required=False)
+    community = serializers.CharField(required=False)
     tags = serializers.ListField(child=serializers.CharField(), required=False)
     categories = serializers.ListField(child=serializers.CharField(), required=False)
     tournaments = serializers.ListField(child=serializers.CharField(), required=False)
@@ -260,6 +261,12 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
             return Project.objects.filter_topic().get(slug=value)
         except Project.DoesNotExist:
             raise ValidationError("Slug does not exist")
+
+    def validate_community(self, value: str):
+        try:
+            return Project.objects.filter_communities().get(slug=value)
+        except Project.DoesNotExist:
+            raise ValidationError("Community does not exist")
 
     def validate_tags(self, values: list[str]):
         tags = Project.objects.filter_tags().filter(slug__in=values)

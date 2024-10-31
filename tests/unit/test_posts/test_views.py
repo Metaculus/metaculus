@@ -8,7 +8,7 @@ from rest_framework.reverse import reverse
 
 from posts.models import Post, PostUserSnapshot, PostSubscription
 from projects.models import Project
-from projects.services import get_site_main_project
+from projects.services.common import get_site_main_project
 from questions.models import Question
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
