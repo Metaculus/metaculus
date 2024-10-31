@@ -1,4 +1,5 @@
 server {
+    listen 8000;
     listen ${PORT};
     listen [::]:${PORT};
     server_name ~^(.+)$;

@@ -2,7 +2,8 @@ import { AggregationQuestion } from "@/types/question";
 import { get } from "@/utils/fetch";
 
 export type AggregationExplorerParams = {
-  questionId: number | string;
+  postId?: number | string | null;
+  questionId?: number | string | null;
   includeBots?: boolean;
   aggregationMethods?: string;
 };
@@ -10,7 +11,8 @@ export type AggregationExplorerParams = {
 class AggregationExplorerAPI {
   static async getAggregations(params: AggregationExplorerParams) {
     const queryParams: Record<string, string> = {
-      question_id: params.questionId.toString(),
+      post_id: params.postId?.toString() || "",
+      question_id: params.questionId?.toString() || "",
       include_bots: params.includeBots?.toString() || "false",
       aggregation_methods: params.aggregationMethods || "",
     };

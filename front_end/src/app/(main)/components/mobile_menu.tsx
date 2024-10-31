@@ -1,5 +1,10 @@
 "use client";
-import { faBars, faMinus } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBars,
+  faMinus,
+  faPlus,
+  faArrowLeft,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   Menu,
@@ -8,6 +13,7 @@ import {
   MenuItems,
   Transition,
 } from "@headlessui/react";
+import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren } from "react";
@@ -17,6 +23,7 @@ import LanguageMenu from "@/components/language_menu";
 import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
+import { CurrentCommunity } from "@/types/community";
 import { Href } from "@/types/navigation";
 
 const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
@@ -30,24 +37,111 @@ export const MenuLink: FC<
     href?: Href;
     onClick?: () => void;
     regularLink?: boolean;
+    className?: string;
   }>
-> = ({ href, onClick, regularLink = false, children }) => {
+> = ({ href, onClick, regularLink = false, children, className }) => {
   return (
     <MenuItem
       as={href ? (regularLink ? "a" : Link) : "button"}
       {...(href ? { href } : {})}
       onClick={onClick}
-      className="flex size-full items-center justify-center px-4 py-1.5 capitalize no-underline hover:bg-blue-400-dark"
+      className={classNames(
+        "flex size-full items-center justify-center px-4 py-1.5 capitalize no-underline hover:bg-blue-400-dark",
+        className
+      )}
     >
       {children}
     </MenuItem>
   );
 };
 
-const MobileMenu: FC = () => {
+type Props = {
+  currentCommunity?: CurrentCommunity | null;
+};
+
+const MobileMenu: FC<Props> = ({ currentCommunity }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
   const t = useTranslations();
+
+  if (!!currentCommunity) {
+    return (
+      <Menu>
+        <MenuButton className="color-white flex w-12 flex-col items-center justify-center hover:bg-blue-200-dark active:bg-blue-300-dark lg:hidden lg:items-end lg:justify-end">
+          {({ open }) =>
+            open ? (
+              <FontAwesomeIcon icon={faMinus} size="lg" />
+            ) : (
+              <FontAwesomeIcon icon={faBars} size="lg" />
+            )
+          }
+        </MenuButton>
+        <Transition
+          enter="duration-200 ease-out"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="duration-300 ease-out"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <MenuItems className="absolute inset-x-0 top-12 max-h-[calc(100dvh-48px)] list-none flex-col items-stretch justify-end space-y-0.5 overflow-y-auto bg-blue-200-dark text-base no-underline lg:hidden">
+            <SectionTitle>{t("community")}</SectionTitle>
+            <MenuLink href={`/questions/`}>{t("questions")}</MenuLink>
+            <MenuLink
+              href={`/questions/create/?community=${currentCommunity.slug}`}
+              className="mx-auto flex !w-[max-content] items-center rounded-full bg-blue-300-dark !px-2.5 !py-1 text-sm capitalize no-underline hover:bg-blue-200-dark"
+            >
+              <FontAwesomeIcon size="1x" className="mr-1" icon={faPlus} />
+              {t("createQuestion")}
+            </MenuLink>
+
+            <SectionTitle>{t("account")}</SectionTitle>
+            {user ? (
+              <>
+                <MenuLink href={`/accounts/profile/${user.id}`}>
+                  {t("profile")}
+                </MenuLink>
+                <MenuLink href={"/accounts/settings/"}>
+                  {t("settings")}
+                </MenuLink>
+                {user.is_superuser && (
+                  <MenuLink href={"/admin"}>{t("admin")}</MenuLink>
+                )}
+                <MenuLink
+                  onClick={() => {
+                    void LogOut();
+                  }}
+                  regularLink
+                >
+                  {t("logout")}
+                </MenuLink>
+              </>
+            ) : (
+              <MenuLink onClick={() => setCurrentModal({ type: "signin" })}>
+                {t("login")}
+              </MenuLink>
+            )}
+
+            <div className="flex items-center justify-end gap-4 bg-blue-100-dark px-4 py-3">
+              <MenuLink
+                href={"/questions"}
+                className="mr-auto !w-[max-content] rounded-full bg-blue-300-dark !px-2.5 !py-1 text-sm !normal-case no-underline"
+              >
+                <FontAwesomeIcon
+                  size="1x"
+                  className="mr-1.5"
+                  icon={faArrowLeft}
+                />
+                {t("backTo")} Metaculus
+              </MenuLink>
+              <LanguageMenu />
+              <ThemeToggle />
+            </div>
+          </MenuItems>
+        </Transition>
+      </Menu>
+    );
+  }
 
   return (
     <Menu>

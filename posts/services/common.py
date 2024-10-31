@@ -10,7 +10,7 @@ from sql_util.aggregates import SubqueryAggregate
 from posts.models import Notebook, Post, PostUserSnapshot
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.services import (
+from projects.services.common import (
     notify_project_subscriptions_post_open,
     get_site_main_project,
 )
