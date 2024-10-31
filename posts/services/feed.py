@@ -8,7 +8,7 @@ from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
 from posts.services.search import perform_post_search, qs_filter_similar_posts
 from projects.models import Project
-from projects.services import get_site_main_project
+from projects.services.common import get_site_main_project
 from users.models import User
 from utils.cache import cache_get_or_set
 from utils.dtypes import evenly_distribute_items
@@ -21,6 +21,7 @@ def get_posts_feed(
     user: User = None,
     search: str = None,
     topic: Project = None,
+    community: Project = None,
     tags: list[Project] = None,
     categories: list[Project] = None,
     tournaments: list[Project] = None,
@@ -62,6 +63,9 @@ def get_posts_feed(
     # Filters
     if topic:
         qs = qs.filter_projects(topic)
+
+    if community:
+        qs = qs.filter_projects(community)
 
     if tags:
         qs = qs.filter_projects(tags)

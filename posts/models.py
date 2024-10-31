@@ -197,7 +197,7 @@ class PostQuerySet(models.QuerySet):
     # Permissions
     #
     def annotate_user_permission(self, user: User = None):
-        from projects.services import get_site_main_project
+        from projects.services.common import get_site_main_project
 
         user_id = user.id if user else None
         site_main_project = get_site_main_project()
