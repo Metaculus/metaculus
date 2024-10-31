@@ -89,9 +89,9 @@ RUN npm install pm2 -g
 
 RUN source venv/bin/activate && ./manage.py collectstatic --noinput
 
-ENV PORT=3000
+ENV PORT=80
 ENV GUNICORN_WORKERS=4
-EXPOSE 3000
+EXPOSE 80
 
 FROM final_env AS release
 CMD ["sh", "-c", "scripts/prod/release.sh"]
