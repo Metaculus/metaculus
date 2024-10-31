@@ -48,7 +48,7 @@ const people: Person[] = [
   {
     userId: 120279,
     name: "Tom Liptay",
-    position: "Product Director",
+    position: "Director of Forecasting",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/tom_liptay.webp",
     introduction:

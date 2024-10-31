@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass, asdict
 
 from dateutil.parser import parse as date_parse
+from datetime import datetime, timezone as dt_timezone, timedelta
 from django.utils.translation import gettext_lazy as _
 
 from comments.constants import CommentReportType
@@ -111,12 +112,39 @@ class CPChangeData:
             "changed": "↕",
         }.get(self.cp_change_label, self.cp_change_label)
 
-    def format_value(self, value):
+    def format_value(self, value, change: bool = False):
         if value is None:
             return "-"
 
         if self.question.type in ("multiple_choice", "binary"):
             return f"{round(value * 100, 2)}%"
+
+        if self.question.type == "date":
+            if change:
+                # value is a timedelta in seconds
+                difference = timedelta(seconds=value)
+                years = round(difference.days // 365)
+                days = round(difference.days % 365)
+                if years > 1:
+                    if days > 1:
+                        return f"{years} years, {days} days"
+                    if days == 1:
+                        return f"{years} years, 1 day"
+                    return f"{years} years"
+                if years == 1:
+                    if days > 1:
+                        return f"1 year, {days} days"
+                    if days == 1:
+                        return f"1 year, 1 day"
+                    return f"1 year"
+                if days > 1:
+                    return f"{days} days"
+                if days == 1:
+                    return f"1 day"
+                return f"<1 day"
+            return datetime.fromtimestamp(value, tz=dt_timezone.utc).strftime(
+                "%Y-%m-%d"
+            )
 
         if self.question.type == "numeric":
             return abbreviated_number(value)
@@ -127,7 +155,7 @@ class CPChangeData:
         return self.format_value(self.user_forecast)
 
     def format_cp_change_value(self):
-        return self.format_value(self.cp_change_value)
+        return self.format_value(self.cp_change_value, change=True)
 
     def format_cp_median(self):
         return self.format_value(self.cp_median)

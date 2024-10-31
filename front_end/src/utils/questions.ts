@@ -367,15 +367,36 @@ export function getSubquestionPredictionInputMessage(
   }
 }
 
-export function parseQuestionId(questionUrlOrId: string) {
+export function parseQuestionId(questionUrlOrId: string): {
+  postId: number | null;
+  questionId: number | null;
+} {
+  const result: {
+    postId: number | null;
+    questionId: number | null;
+  } = {
+    postId: null,
+    questionId: null,
+  };
+
+  // Check for subquestion ID in query params
+  const subQuestionPattern = /sub-question=(\d+)/;
+  const subQuestionMatch = questionUrlOrId.match(subQuestionPattern);
+  if (subQuestionMatch && subQuestionMatch[1]) {
+    result.questionId = Number(subQuestionMatch[1]);
+  }
+
+  // Check for post ID
   const id = Number(questionUrlOrId);
   if (!isNaN(id)) {
-    return id.toString();
+    result.postId = id;
+  } else {
+    const urlPattern = /\/questions\/(\d+)\/?/;
+    const match = questionUrlOrId.match(urlPattern);
+    if (match && match[1]) {
+      result.postId = Number(match[1]);
+    }
   }
-  const urlPattern = /\/questions\/(\d+)\/?/;
-  const match = questionUrlOrId.match(urlPattern);
-  if (match && match[1]) {
-    return match[1];
-  }
-  return false;
+
+  return result;
 }
