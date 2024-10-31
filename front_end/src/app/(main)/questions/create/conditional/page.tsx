@@ -2,7 +2,6 @@ import WithServerComponentErrorBoundary from "@/components/server_component_erro
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
-import { ProjectPermissions } from "@/types/post";
 
 import ConditionalForm from "../../components/conditional_form";
 import { extractMode } from "../helpers";
@@ -20,11 +19,11 @@ const QuestionConditionalCreator: React.FC<{
     Number(searchParams["post_id"]) !== 0
   ) {
     post = await PostsApi.getPost(Number(searchParams["post_id"]));
-    condition = await PostsApi.getPost(
-      Number(post?.conditional?.condition.post_id)
+    condition = await PostsApi.getQuestion(
+      Number(post?.conditional?.condition.id)
     );
-    conditionChild = await PostsApi.getPost(
-      Number(post?.conditional?.condition_child.post_id)
+    conditionChild = await PostsApi.getQuestion(
+      Number(post?.conditional?.condition_child.id)
     );
   }
   const mode = extractMode(searchParams, post);

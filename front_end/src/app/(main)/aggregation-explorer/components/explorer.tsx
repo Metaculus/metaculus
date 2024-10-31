@@ -32,14 +32,18 @@ import { fetchAggregations } from "../actions";
 type Props = { searchParams: SearchParams };
 
 const Explorer: FC<Props> = ({ searchParams }) => {
-  const { include_bots, question_id, aggregation_methods } = searchParams;
+  const { include_bots, post_id, question_id, aggregation_methods } =
+    searchParams;
   const router = useRouter();
   const t = useTranslations();
   const [data, setData] = useState<AggregationQuestion | null>(null);
   const [activeTab, setActiveTab] = useState<AggregationMethod | null>(null);
-  const [questionId, setQuestionId] = useState<string>(
-    question_id?.toString() || ""
-  );
+  const initialInputText = question_id
+    ? `/questions/${post_id}/?sub-question=${question_id}`
+    : post_id
+      ? `/questions/${post_id}/`
+      : "";
+  const [inputText, setInputText] = useState<string>(initialInputText);
   const [includeBots, setIncludeBots] = useState<boolean>(
     include_bots === "true"
   );
@@ -55,6 +59,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
 
   const fetchData = useCallback(
     async ({
+      postId,
       questionId,
       includeBots,
       aggregationMethods,
@@ -63,6 +68,7 @@ const Explorer: FC<Props> = ({ searchParams }) => {
       setError(null);
       try {
         const response = await fetchAggregations({
+          postId,
           questionId,
           includeBots,
           aggregationMethods,
@@ -79,22 +85,20 @@ const Explorer: FC<Props> = ({ searchParams }) => {
   );
 
   useEffect(() => {
-    if (question_id) {
-      setQuestionId(question_id as string);
-    }
     if (include_bots) {
       setIncludeBots(include_bots === "true");
     }
 
-    if (!!question_id && !!include_bots) {
-      const parsedQuestionId = parseQuestionId(question_id as string);
-      if (parsedQuestionId === false) {
+    if (!!post_id && !!include_bots) {
+      const parsedInput = parseQuestionId(inputText as string);
+      if (parsedInput.postId === null) {
         setError("Invalid question url or id");
         return;
       }
 
       fetchData({
-        questionId: parsedQuestionId as string,
+        postId: parsedInput.postId,
+        questionId: parsedInput.questionId,
         includeBots: include_bots === "true",
         aggregationMethods: aggregation_methods as string,
       });
@@ -103,13 +107,14 @@ const Explorer: FC<Props> = ({ searchParams }) => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    const parsedQuestionId = parseQuestionId(questionId as string);
-    if (parsedQuestionId === false) {
+    const parsedInput = parseQuestionId(inputText as string);
+    if (parsedInput.postId === null) {
       setError("Invalid question url or id");
       return;
     }
     const params = new URLSearchParams({
-      question_id: parsedQuestionId,
+      post_id: parsedInput.postId.toString(),
+      question_id: parsedInput.questionId?.toString() || "",
       include_bots: includeBots.toString(),
     });
 
@@ -174,23 +179,23 @@ const Explorer: FC<Props> = ({ searchParams }) => {
         <p className="text-center text-xl"> Enter questions ID or URL </p>
         <p className="mt-2 text-center text-sm">
           {" "}
-          If you are exploring a group or conditional question, please enter the
-          subquestion id.{" "}
+          If selecting a subquestion, please enter the full url e.g.
+          /questions/123/?sub-question=456.{" "}
         </p>
         <div className="m-auto w-full max-w-[500px]">
           <div className="relative m-auto flex w-full rounded-full text-sm text-gray-900 dark:text-gray-900-dark">
             <Input
               name="search"
               type="search"
-              value={questionId}
-              onChange={(e) => setQuestionId(e.target.value)}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
               className="w-full cursor-default overflow-hidden rounded border border-gray-500 bg-white p-3 pr-10 text-left text-sm leading-5 text-gray-900 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 dark:bg-blue-950 dark:text-gray-200 sm:text-sm"
             />
             <span className="absolute inset-y-0 right-0 inline-flex h-full justify-center">
-              {!!questionId && (
+              {!!inputText && (
                 <Button
                   variant="text"
-                  onClick={() => setQuestionId("")}
+                  onClick={() => setInputText("")}
                   type="button"
                   className="-mr-1.5"
                   aria-label="Clear"
