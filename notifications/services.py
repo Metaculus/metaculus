@@ -1,8 +1,8 @@
 import logging
 from dataclasses import dataclass, asdict
+from datetime import datetime, timezone as dt_timezone, timedelta
 
 from dateutil.parser import parse as date_parse
-from datetime import datetime, timezone as dt_timezone, timedelta
 from django.utils.translation import gettext_lazy as _
 
 from comments.constants import CommentReportType
@@ -17,8 +17,8 @@ from questions.utils import get_question_group_title
 from users.models import User
 from utils.dtypes import dataclass_from_dict
 from utils.email import send_email_with_template
-from utils.frontend import build_post_comment_url
 from utils.formatters import abbreviated_number
+from utils.frontend import build_post_comment_url
 
 logger = logging.getLogger(__name__)
 
@@ -135,13 +135,13 @@ class CPChangeData:
                     if days > 1:
                         return f"1 year, {days} days"
                     if days == 1:
-                        return f"1 year, 1 day"
-                    return f"1 year"
+                        return "1 year, 1 day"
+                    return "1 year"
                 if days > 1:
                     return f"{days} days"
                 if days == 1:
-                    return f"1 day"
-                return f"<1 day"
+                    return "1 day"
+                return "<1 day"
             return datetime.fromtimestamp(value, tz=dt_timezone.utc).strftime(
                 "%Y-%m-%d"
             )
