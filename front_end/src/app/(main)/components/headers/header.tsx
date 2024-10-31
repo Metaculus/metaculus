@@ -1,5 +1,3 @@
-"use client";
-
 import { faPlus, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";

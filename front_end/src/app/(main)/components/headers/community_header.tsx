@@ -4,24 +4,23 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC, useEffect } from "react";
+import { FC } from "react";
 
 import NavUserButton from "@/components/auth";
 import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
-import { useCommunity } from "@/contexts/community_provider";
+import { CurrentCommunity } from "@/types/community";
 
 import CommunitiesDropdown from "../communities_dropdown";
 import MobileMenu from "../mobile_menu";
 
-const CommunityHeader: FC = () => {
-  const t = useTranslations();
-  const { currentCommunity, setCurrentCommunity } = useCommunity();
+type Props = {
+  currentCommunity: CurrentCommunity | null;
+};
 
-  useEffect(() => {
-    setCurrentCommunity({ name: "Test community", slug: "test-community" });
-  }, [setCurrentCommunity]);
+const CommunityHeader: FC<Props> = ({ currentCommunity }) => {
+  const t = useTranslations();
 
   return (
     <header className="fixed left-0 top-0 z-50 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
@@ -38,12 +37,12 @@ const CommunityHeader: FC = () => {
         {currentCommunity && (
           <Link
             href={`/community/${currentCommunity.slug}`}
-            className="ml-2 mr-1 max-w-[230px] truncate no-underline hover:underline hover:underline-offset-4"
+            className="ml-3 mr-1 max-w-[230px] truncate no-underline hover:underline hover:underline-offset-4"
           >
             {currentCommunity.name}
           </Link>
         )}
-        <CommunitiesDropdown />
+        <CommunitiesDropdown currentCommunity={currentCommunity} />
       </div>
 
       {/*Desktop items*/}
@@ -63,7 +62,7 @@ const CommunityHeader: FC = () => {
             className="mr-2 flex h-full items-center rounded-full bg-blue-300-dark p-3 py-2 capitalize no-underline hover:bg-blue-200-dark"
             activeClassName="bg-blue-300-dark"
           >
-            <FontAwesomeIcon size="xs" className="mr-1" icon={faPlus} />
+            <FontAwesomeIcon width={14} className="mr-1" icon={faPlus} />
             {t("create")}
           </NavLink>
         </li>

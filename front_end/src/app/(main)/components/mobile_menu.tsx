@@ -22,8 +22,8 @@ import { LogOut } from "@/app/(main)/accounts/actions";
 import LanguageMenu from "@/components/language_menu";
 import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
-import { CurrentCommunity } from "@/contexts/community_provider";
 import { useModal } from "@/contexts/modal_context";
+import { CurrentCommunity } from "@/types/community";
 import { Href } from "@/types/navigation";
 
 const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
@@ -89,7 +89,7 @@ const MobileMenu: FC<Props> = ({ currentCommunity }) => {
             <MenuLink href={`/questions/`}>{t("questions")}</MenuLink>
             <MenuLink
               href={`/questions/create/?community=${currentCommunity.slug}`}
-              className="mx-auto flex !w-[max-content] items-center rounded-full bg-blue-300-dark p-3 py-2 text-sm capitalize no-underline hover:bg-blue-200-dark"
+              className="mx-auto flex !w-[max-content] items-center rounded-full bg-blue-300-dark !px-2.5 !py-1 text-sm capitalize no-underline hover:bg-blue-200-dark"
             >
               <FontAwesomeIcon size="1x" className="mr-1" icon={faPlus} />
               {t("createQuestion")}
@@ -125,11 +125,11 @@ const MobileMenu: FC<Props> = ({ currentCommunity }) => {
             <div className="flex items-center justify-end gap-4 bg-blue-100-dark px-4 py-3">
               <MenuLink
                 href={"/questions"}
-                className="mr-auto !w-[max-content] rounded-full bg-blue-300-dark !px-3 py-2 text-sm !normal-case no-underline"
+                className="mr-auto !w-[max-content] rounded-full bg-blue-300-dark !px-2.5 !py-1 text-sm !normal-case no-underline"
               >
                 <FontAwesomeIcon
                   size="1x"
-                  className="mr-1"
+                  className="mr-1.5"
                   icon={faArrowLeft}
                 />
                 {t("backTo")} Metaculus

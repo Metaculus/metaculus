@@ -116,14 +116,23 @@ export default async function IndividualQuestion({
   searchParams,
 }: Props) {
   const postData = await cachedGetPost(params.id);
-  const isCommunityQuestion =
-    postData.projects.default_project.type === TournamentType.Community;
+  const defaultProject = postData.projects.default_project;
 
   if (postData.notebook) {
     return redirect(
       `/notebooks/${postData.id}${params.slug ? `/${params.slug}` : ""}`
     );
   }
+
+  const isCommunityQuestion = defaultProject.type === TournamentType.Community;
+  let currentCommunity = null;
+  if (isCommunityQuestion) {
+    currentCommunity = {
+      slug: defaultProject.slug as string,
+      name: defaultProject.name,
+    };
+  }
+
   const preselectedGroupQuestionId =
     extractPreselectedGroupQuestionId(searchParams);
   const t = await getTranslations();
@@ -157,7 +166,11 @@ export default async function IndividualQuestion({
   return (
     <EmbedModalContextProvider>
       <HideCPProvider post={postData}>
-        {isCommunityQuestion ? <CommunityHeader /> : <Header />}
+        {isCommunityQuestion ? (
+          <CommunityHeader currentCommunity={currentCommunity} />
+        ) : (
+          <Header />
+        )}
         <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4">
           <div className="hidden gap-3 lg:flex">
             <span className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">
