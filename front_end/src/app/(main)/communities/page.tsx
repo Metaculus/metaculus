@@ -1,3 +1,7 @@
 export default async function Communities() {
-  return <div>Communities page template</div>;
+  return (
+    <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4">
+      Communities page template
+    </main>
+  );
 }

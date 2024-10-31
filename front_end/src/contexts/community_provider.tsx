@@ -36,5 +36,5 @@ const CommunityProvider: FC<PropsWithChildren> = ({ children }) => {
   );
 };
 
-export default CommunityProvider;
 export const useCommunity = () => useContext(CommunityContext);
+export default CommunityProvider;

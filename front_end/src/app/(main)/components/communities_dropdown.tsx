@@ -52,7 +52,7 @@ const CommunitiesDropdown: FC = () => {
         <MenuItem>
           <Link
             className="flex items-center justify-start whitespace-nowrap px-1 py-1.5 text-left capitalize no-underline hover:bg-blue-200-dark lg:px-3"
-            href={`/`}
+            href={`/community/followed`}
           >
             Followed community name
           </Link>
@@ -62,7 +62,7 @@ const CommunitiesDropdown: FC = () => {
         <MenuItem>
           <Link
             className="flex items-center justify-start whitespace-nowrap px-1 py-1.5 text-left capitalize no-underline hover:bg-blue-200-dark lg:px-3"
-            href={`/community/slug/`}
+            href={`/community/top-1-community/`}
           >
             Top-1 community
           </Link>

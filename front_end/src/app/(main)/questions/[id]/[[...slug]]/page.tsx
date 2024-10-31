@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { cache } from "react";
 
+import CommunityHeader from "@/app/(main)/components/headers/community_header";
+import Header from "@/app/(main)/components/headers/header";
 import CommentFeed from "@/components/comment_feed";
 import ConditionalTile from "@/components/conditional_tile";
 import ConditionalTimeline from "@/components/conditional_timeline";
@@ -12,6 +14,7 @@ import PostsApi from "@/services/posts";
 import questions from "@/services/questions";
 import { SearchParams } from "@/types/navigation";
 import { PostConditional, PostStatus, ProjectPermissions } from "@/types/post";
+import { TournamentType } from "@/types/projects";
 import { QuestionWithNumericForecasts } from "@/types/question";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionTitle } from "@/utils/questions";
@@ -113,6 +116,8 @@ export default async function IndividualQuestion({
   searchParams,
 }: Props) {
   const postData = await cachedGetPost(params.id);
+  const isCommunityQuestion =
+    postData.projects.default_project.type === TournamentType.Community;
 
   if (postData.notebook) {
     return redirect(
@@ -152,6 +157,7 @@ export default async function IndividualQuestion({
   return (
     <EmbedModalContextProvider>
       <HideCPProvider post={postData}>
+        {isCommunityQuestion ? <CommunityHeader /> : <Header />}
         <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4">
           <div className="hidden gap-3 lg:flex">
             <span className="bg-blue-400 px-1.5 py-1 text-sm font-bold uppercase text-blue-700 dark:bg-blue-400-dark dark:text-blue-700-dark">

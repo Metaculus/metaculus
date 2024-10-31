@@ -56,7 +56,7 @@ export const MenuLink: FC<
 };
 
 type Props = {
-  currentCommunity?: CurrentCommunity;
+  currentCommunity?: CurrentCommunity | null;
 };
 
 const MobileMenu: FC<Props> = ({ currentCommunity }) => {

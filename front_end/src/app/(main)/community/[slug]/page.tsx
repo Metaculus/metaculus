@@ -1,5 +1,7 @@
 import { SearchParams } from "@/types/navigation";
 
+import CommunityHeader from "../../components/headers/community_header";
+
 type Props = {
   params: { slug: string[] };
   searchParams: SearchParams;
@@ -10,9 +12,12 @@ export default async function IndividualCommunity({
   searchParams,
 }: Props) {
   return (
-    <div>
-      <h1>Individual community page template</h1>
-      <p>Community slug: {params.slug}</p>
-    </div>
+    <>
+      <CommunityHeader />
+      <main className="mx-auto flex w-full max-w-max flex-col scroll-smooth py-4">
+        <h1>Individual community page template</h1>
+        <p>Community slug: {params.slug}</p>
+      </main>
+    </>
   );
 }

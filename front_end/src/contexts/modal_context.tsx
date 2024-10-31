@@ -44,5 +44,5 @@ const ModalProvider: FC<PropsWithChildren> = ({ children }) => {
   );
 };
 
-export default ModalProvider;
 export const useModal = () => useContext(ModalContext);
+export default ModalProvider;
