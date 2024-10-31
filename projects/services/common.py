@@ -111,11 +111,17 @@ def subscribe_project(project: Project, user: User) -> ProjectSubscription:
     )
     obj.save()
 
+    project.update_followers_count()
+    project.save()
+
     return obj
 
 
 def unsubscribe_project(project: Project, user: User) -> ProjectSubscription:
     ProjectSubscription.objects.filter(project=project, user=user).delete()
+
+    project.update_followers_count()
+    project.save()
 
 
 def notify_project_subscriptions_post_open(post: Post):

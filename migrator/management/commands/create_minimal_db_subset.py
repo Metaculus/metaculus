@@ -9,7 +9,7 @@ from comments.models import Comment
 from posts.models import Notebook, Post
 from posts.services.feed import get_posts_feed
 from projects.models import Project
-from projects.services import get_site_main_project
+from projects.services.common import get_site_main_project
 from questions.models import (
     Conditional,
     Forecast,
