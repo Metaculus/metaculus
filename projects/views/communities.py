@@ -5,16 +5,16 @@ from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from communities.serializers import (
+from projects.permissions import ObjectPermission
+from projects.services.common import get_project_permission_for_user
+from projects.services.communities import get_communities_feed, update_community
+from utils.paginator import CountlessLimitOffsetPagination
+from ..serializers.communities import (
     serialize_community_many,
     CommunityFilterSerializer,
     CommunityUpdateSerializer,
     serialize_community,
 )
-from communities.services import get_communities_feed, update_community
-from projects.permissions import ObjectPermission
-from projects.services import get_project_permission_for_user
-from utils.paginator import CountlessLimitOffsetPagination
 
 
 @api_view(["GET"])

@@ -39,4 +39,20 @@ urlpatterns = [
         views.project_unsubscribe_api_view,
         name="project-unsubscribe",
     ),
+    # Communities
+    path(
+        "projects/communities/",
+        views.communities_list_api_view,
+        name="communities-list",
+    ),
+    path(
+        "projects/communities/<str:slug>",
+        views.community_detail_api_view,
+        name="community-detail",
+    ),
+    path(
+        "projects/communities/<int:pk>/update",
+        views.community_update_api_view,
+        name="community-update",
+    ),
 ]

@@ -8,7 +8,7 @@ from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
 from posts.services.search import perform_post_search, qs_filter_similar_posts
 from projects.models import Project
-from projects.services import get_site_main_project
+from projects.services.common import get_site_main_project
 from users.models import User
 from utils.cache import cache_get_or_set
 from utils.dtypes import evenly_distribute_items

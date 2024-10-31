@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError
 from misc.models import ITNArticle
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.serializers import (
+from projects.serializers.common import (
     validate_categories,
     validate_tournaments,
     serialize_projects,

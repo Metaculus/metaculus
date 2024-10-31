@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.serializers import (
+from projects.serializers.common import (
     TopicSerializer,
     CategorySerializer,
     TournamentSerializer,
@@ -16,7 +16,7 @@ from projects.serializers import (
     ProjectUserSerializer,
     TournamentShortSerializer,
 )
-from projects.services import (
+from projects.services.common import (
     get_projects_qs,
     get_project_permission_for_user,
     invite_user_to_project,

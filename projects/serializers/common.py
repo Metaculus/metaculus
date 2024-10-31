@@ -5,7 +5,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from communities.serializers import CommunitySerializer
+from projects.serializers.communities import CommunitySerializer
 from projects.models import Project, ProjectUserPermission
 from users.serializers import UserPublicSerializer
 
