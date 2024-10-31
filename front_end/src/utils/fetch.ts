@@ -62,7 +62,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     const data: ErrorResponse = normalizeApiErrors(errorData);
 
     const error: FetchError = new ApiError(
-      data.message ?? "Unknown error occurred"
+      data.message ?? `Unknown error occurred: \n ${JSON.stringify(data)}`
     );
     error.response = response;
     error.data = data;

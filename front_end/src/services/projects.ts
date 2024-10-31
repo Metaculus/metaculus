@@ -30,9 +30,9 @@ export type CommunitiesParams = PaginationParams & {
 
 export type CommunityUpdateParams = PaginationParams & {
   name?: string;
-  slug?: boolean;
-  description?: boolean;
-  default_permission?: ProjectPermissions;
+  slug?: string;
+  description?: string;
+  default_permission?: ProjectPermissions | null;
   unlisted?: boolean;
 };
 
