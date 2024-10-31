@@ -59,7 +59,8 @@ const SliderThumb: FC<Props> = ({
       }}
       className={classNames(
         "flex items-center border border-gray-900 bg-blue-100 text-center dark:border-gray-900-dark dark:bg-blue-100-dark",
-        active ? "size-5 text-center" : "size-4",
+        "active:bg-blue-400 active:dark:bg-blue-400-dark",
+        active ? "size-5 text-center" : "size-4 rounded-full",
         { "h-8 w-14 rounded-full": showValue }
       )}
     >
