@@ -6,7 +6,7 @@ import FeedbackFloat from "./(home)/components/feedback_float";
 import Bulletins from "./components/bulletins";
 import CookiesBanner from "./components/cookies_banner";
 import Footer from "./components/footer";
-import Header from "./components/header";
+import GlobalHeader from "./components/headers/global_header";
 
 config.autoAddCss = false;
 
@@ -22,7 +22,7 @@ export default async function RootLayout({
 }>) {
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      <GlobalHeader />
       <Bulletins />
       <div className="flex-grow">{children}</div>
       <FeedbackFloat />
