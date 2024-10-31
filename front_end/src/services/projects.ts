@@ -150,10 +150,10 @@ class ProjectsApi {
   }
 
   static async updateCommunity(
-    slug: string,
+    id: number,
     params: CommunityUpdateParams
   ): Promise<Community> {
-    return put(`/projects/communities/${slug}/update/`, params);
+    return put(`/projects/communities/${id}/update/`, params);
   }
 }
 
