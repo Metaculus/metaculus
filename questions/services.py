@@ -365,20 +365,34 @@ def resolve_question(
                         conditional.question_no,
                         actual_close_time=question.actual_close_time,
                     )
-            # if the child is already resolved,
-            # we resolve the active branch
-            if child.resolution is not None:
+            # if the child is already successfully resolved,
+            # we resolve the active branch and annull the other
+            if child.resolution not in [
+                None,
+                ResolutionType.ANNULLED,
+                ResolutionType.AMBIGUOUS,
+            ]:
                 if question.resolution == "yes":
                     resolve_question(
                         conditional.question_yes,
                         child.resolution,
                         conditional.question_yes.actual_close_time,
                     )
+                    resolve_question(
+                        conditional.question_no,
+                        ResolutionType.ANNULLED,
+                        conditional.question_no.actual_close_time,
+                    )
                 if question.resolution == "no":
                     resolve_question(
                         conditional.question_no,
                         child.resolution,
                         conditional.question_no.actual_close_time,
+                    )
+                    resolve_question(
+                        conditional.question_yes,
+                        ResolutionType.ANNULLED,
+                        conditional.question_yes.actual_close_time,
                     )
         else:  # question == child
             # handle annulment / ambiguity
