@@ -15,7 +15,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { Post, PostWithForecasts } from "@/types/post";
-import { Tournament, TournamentPreview } from "@/types/projects";
+import { Tournament, TournamentPreview, TournamentType } from "@/types/projects";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
@@ -54,6 +54,7 @@ const ConditionalForm: React.FC<{
   conditionParentInit: QuestionWithForecasts | null;
   conditionChildInit: QuestionWithForecasts | null;
   tournament_id: number | null;
+  community_id?: number;
   tournaments: TournamentPreview[];
   siteMain: Tournament;
 }> = ({
@@ -62,6 +63,7 @@ const ConditionalForm: React.FC<{
   conditionParentInit = null,
   conditionChildInit = null,
   tournament_id = null,
+  community_id = null,
   tournaments,
   siteMain,
 }) => {
@@ -161,7 +163,10 @@ const ConditionalForm: React.FC<{
         className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", defaultProject.id);
+            control.setValue(
+              "default_project",
+              community_id ? community_id : defaultProject.id
+            );
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
@@ -179,14 +184,17 @@ const ConditionalForm: React.FC<{
             {t("viewInDjangoAdmin")}
           </a>
         )}
-        <ProjectPickerInput
-          tournaments={tournaments}
-          siteMain={siteMain}
-          currentProject={defaultProject}
-          onChange={(project) => {
-            control.setValue("default_project", project.id);
-          }}
-        />
+        {(!community_id ||
+          defaultProject.type !== TournamentType.Community) && (
+          <ProjectPickerInput
+            tournaments={tournaments}
+            siteMain={siteMain}
+            currentProject={defaultProject}
+            onChange={(project) => {
+              control.setValue("default_project", project.id);
+            }}
+          />
+        )}
         <InputContainer labelText={t("parentId")}>
           <ConditionalQuestionInput
             isLive={isLive}

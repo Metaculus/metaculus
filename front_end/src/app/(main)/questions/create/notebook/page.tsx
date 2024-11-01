@@ -23,6 +23,16 @@ const NotebookCreator: React.FC<{ searchParams: SearchParams }> = async ({
   const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
 
+  const communityId = searchParams["community_id"]
+  ? Number(searchParams["community_id"])
+  : undefined;
+const communitiesResponse = communityId
+  ? await ProjectsApi.getCommunities({ ids: [communityId] })
+  : undefined;
+const community = communitiesResponse
+  ? communitiesResponse.results[0]
+  : undefined;
+
   return (
     <NotebookForm
       mode={mode}
@@ -33,6 +43,7 @@ const NotebookCreator: React.FC<{ searchParams: SearchParams }> = async ({
           ? Number(searchParams["tournament_id"])
           : null
       }
+      community_id={community?.id}
       tournaments={allTournaments}
       siteMain={siteMain}
       news_type={

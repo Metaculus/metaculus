@@ -29,7 +29,15 @@ const QuestionConditionalCreator: React.FC<{
   const mode = extractMode(searchParams, post);
   const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
-
+  const communityId = searchParams["community_id"]
+  ? Number(searchParams["community_id"])
+  : undefined;
+const communitiesResponse = communityId
+  ? await ProjectsApi.getCommunities({ ids: [communityId] })
+  : undefined;
+const community = communitiesResponse
+  ? communitiesResponse.results[0]
+  : undefined;
   return (
     <ConditionalForm
       mode={mode}
@@ -41,6 +49,7 @@ const QuestionConditionalCreator: React.FC<{
           ? Number(searchParams["tournament_id"])
           : null
       }
+      community_id={community?.id}
       tournaments={allTournaments}
       siteMain={siteMain}
     />
