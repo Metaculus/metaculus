@@ -16,6 +16,7 @@ import {
   editComment,
   createForecasts,
 } from "@/app/(main)/questions/actions";
+import { CommentDate } from "@/components/comment_feed/comment_date";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentReportModal from "@/components/comment_feed/comment_report_modal";
 import CommentVoter from "@/components/comment_feed/comment_voter";
@@ -27,7 +28,6 @@ import { CommentType } from "@/types/comment";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { parseUserMentions } from "@/utils/comments";
-import { formatDate } from "@/utils/date_formatters";
 import { logError } from "@/utils/errors";
 import { canPredictQuestion } from "@/utils/questions";
 
@@ -283,7 +283,7 @@ const Comment: FC<CommentProps> = ({
               {t("deleted")}
             </span>
             <span className="mx-1">·</span>
-            {formatDate(locale, new Date(comment.created_at))}
+            <CommentDate comment={comment} />
           </span>
         </div>
         <div className="italic text-gray-600 break-anywhere dark:text-gray-600-dark">
@@ -349,9 +349,7 @@ const Comment: FC<CommentProps> = ({
           {comment.is_admin && <Admin className="ml-2 text-lg" />}
           */}
             <span className="mx-1 opacity-55">·</span>
-            <span className="opacity-55">
-              {formatDate(locale, new Date(comment.created_at))}
-            </span>
+            <CommentDate comment={comment} />
           </span>
           {/*
         <span className="text-gray-600 dark:text-gray-600-dark block text-xs leading-3">
