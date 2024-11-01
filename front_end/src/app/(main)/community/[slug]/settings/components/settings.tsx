@@ -112,7 +112,7 @@ const CommunitySettings: FC<Props> = ({ community }) => {
       </div>
       <div className="flex flex-col gap-6">
         <Field>
-          <Label className="mb-1.5 block text-sm font-medium text-gray-600">
+          <Label className="mb-1.5 block text-sm font-medium text-gray-600 dark:text-gray-600-dark">
             Visibility
           </Label>
           <ButtonGroup
@@ -169,7 +169,7 @@ const CommunitySettings: FC<Props> = ({ community }) => {
             errors={formState.errors.slug}
             className="rounded border border-gray-500 px-3 py-2 text-base font-medium text-gray-800 dark:border-gray-500-dark dark:bg-blue-50-dark dark:text-gray-800-dark"
           />
-          <div className="rounded-md border border-blue-400 bg-blue-200 p-4 font-normal normal-case text-gray-800">
+          <div className="rounded-md border border-blue-400 bg-blue-200 p-4 font-normal normal-case text-gray-800 dark:border-blue-400-dark dark:bg-blue-200-dark dark:text-gray-800-dark">
             <div className="mb-1.5 text-sm">
               {t("communitySlugDescription")}
             </div>
