@@ -9,7 +9,9 @@ const GlobalHeader: FC = () => {
   const pathname = usePathname();
   const withDefaultHeader =
     !pathname.match(/^\/questions\/(\d+)(\/.*)?$/) &&
-    !pathname.startsWith("/community");
+    !pathname.match(/^\/notebooks\/(\d+)(\/.*)?$/) &&
+    !pathname.startsWith("/community") &&
+    !pathname.startsWith("/questions/create");
 
   if (withDefaultHeader) {
     return <Header />;

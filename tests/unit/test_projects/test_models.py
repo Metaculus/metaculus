@@ -1,3 +1,5 @@
+from django.contrib.auth.models import AnonymousUser
+
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from tests.unit.fixtures import *  # noqa
@@ -34,8 +36,14 @@ def test_annotate_user_permission(user1, user2, user_admin):
     assert not get_perm(project2, user_admin)
 
     # Creator gets admin permissions
-    project = factory_project(default_permission=ObjectPermission.VIEWER, created_by=user1)
+    project = factory_project(
+        default_permission=ObjectPermission.VIEWER, created_by=user1
+    )
     assert get_perm(project, user1) == ObjectPermission.ADMIN
+
+    # Anonymous user check
+    project = factory_project(default_permission=ObjectPermission.VIEWER)
+    assert get_perm(project, AnonymousUser()) == ObjectPermission.VIEWER
 
 
 def test_filter_permission(user1, user2):
