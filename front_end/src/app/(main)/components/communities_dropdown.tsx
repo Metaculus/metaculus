@@ -19,6 +19,7 @@ import { Community } from "@/types/projects";
 import { logError } from "@/utils/errors";
 
 import { fetchCommunities } from "../community/actions";
+import classNames from "classnames";
 
 const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
   <div className="flex h-full items-start justify-start px-2.5 py-2 text-left text-xs font-normal capitalize text-gray-200 opacity-50">
@@ -68,111 +69,124 @@ const CommunitiesDropdown: FC<Props> = ({ community }) => {
 
   return (
     <Menu>
-      <MenuButton className="ml-1 flex flex-col items-center justify-center gap-0 p-2 no-underline hover:bg-blue-200-dark">
-        <FontAwesomeIcon size="2xs" icon={faChevronUp} className="block" />
-        <FontAwesomeIcon size="2xs" icon={faChevronDown} className="block" />
-      </MenuButton>
-      <MenuItems
-        anchor="bottom"
-        className="z-50 w-[285px] overflow-hidden rounded-md border border-blue-200-dark bg-blue-900 p-2 py-2.5 text-sm text-gray-300"
-      >
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : (
-          <>
-            {!isFollowingActive && (
-              <MenuItem>
-                <Link
-                  className="flex items-center justify-start whitespace-nowrap rounded bg-blue-200-dark p-2.5 text-left font-bold capitalize no-underline"
-                  href={`/community/${community?.slug}`}
-                >
-                  {community?.name}
-                  <FontAwesomeIcon
-                    size="1x"
-                    className="ml-auto text-gray-400 dark:text-gray-400-dark"
-                    icon={faCheck}
-                  />
-                </Link>
-              </MenuItem>
+      {({ open }) => (
+        <>
+          <MenuButton
+            className={classNames(
+              "ml-1 flex flex-col items-center justify-center gap-0 rounded p-1 px-[6px] no-underline hover:bg-blue-700",
+              { "bg-blue-700": open }
             )}
-
-            {/* following communities - should render active community here if followed */}
-            {!!followedCommunities.length && (
-              <SectionTitle>{t("followingButton")}</SectionTitle>
-            )}
-            {followedCommunities.map((followedCommunity) =>
-              followedCommunity.id === community?.id ? (
-                <MenuItem key={followedCommunity.id}>
-                  <Link
-                    className="flex items-center justify-start whitespace-nowrap rounded bg-blue-200-dark p-2.5 text-left font-bold capitalize no-underline"
-                    href={`/community/${followedCommunity?.slug}`}
-                  >
-                    {followedCommunity?.name}
-                    <FontAwesomeIcon
-                      size="1x"
-                      className="ml-auto text-gray-400 dark:text-gray-400-dark"
-                      icon={faCheck}
-                    />
-                  </Link>
-                </MenuItem>
-              ) : (
-                <MenuItem key={followedCommunity.id}>
-                  <Link
-                    className="flex items-center justify-start whitespace-nowrap rounded p-2.5 text-left capitalize no-underline hover:bg-blue-200-dark"
-                    href={`/community/${followedCommunity.slug}`}
-                  >
-                    {followedCommunity.name}
-                  </Link>
-                </MenuItem>
-              )
-            )}
-
-            {!!topCommunities.length && (
-              <SectionTitle>{t("otherCommunities")}</SectionTitle>
-            )}
-            {topCommunities.map((topCommunity) => (
-              <MenuItem key={topCommunity.id}>
-                <Link
-                  className="flex items-center justify-start whitespace-nowrap rounded p-2.5  text-left capitalize no-underline hover:bg-blue-200-dark"
-                  href={`/community/${topCommunity.slug}/`}
-                >
-                  {topCommunity.name}
-                </Link>
-              </MenuItem>
-            ))}
-          </>
-        )}
-
-        <hr className="w-[100% + 16px] -mx-2 my-2 border-gray-0/10 dark:border-gray-0/10" />
-
-        <MenuItem>
-          <Link
-            className="flex items-center justify-start whitespace-nowrap rounded p-2.5 text-left capitalize text-blue-400 no-underline hover:bg-blue-200-dark"
-            href={"/questions/"}
-            // TODO: activate communities sidebar item on navigation
           >
+            <FontAwesomeIcon size="2xs" icon={faChevronUp} className="block" />
             <FontAwesomeIcon
-              size="1x"
-              className="mr-2.5 text-gray-400-dark"
-              icon={faMagnifyingGlass}
+              size="2xs"
+              icon={faChevronDown}
+              className="block"
             />
-            {t("browserAllCommunities")}
-          </Link>
-        </MenuItem>
-        <MenuItem>
-          <Link
-            className="flex items-center justify-start whitespace-nowrap rounded p-2.5 text-left capitalize text-blue-400 no-underline hover:bg-blue-200-dark"
-            href={"/questions/"}
+          </MenuButton>
+          <MenuItems
+            anchor="bottom"
+            className="z-50 mt-1 w-[285px] overflow-hidden rounded-md border border-blue-200-dark bg-blue-900 p-2 py-2.5 text-sm text-gray-300"
           >
-            <FontAwesomeIcon
-              width={14}
-              className="mr-2.5 text-gray-400-dark"
-              icon={faArrowLeft}
-            />
-            {t("backTo")} Metaculus
-          </Link>
-        </MenuItem>
-      </MenuItems>
+            {isLoading ? (
+              <LoadingSpinner />
+            ) : (
+              <>
+                {!isFollowingActive && (
+                  <MenuItem>
+                    <Link
+                      className="flex items-center justify-start whitespace-nowrap rounded bg-blue-200-dark p-2.5 text-left font-bold capitalize no-underline"
+                      href={`/community/${community?.slug}`}
+                    >
+                      {community?.name}
+                      <FontAwesomeIcon
+                        size="1x"
+                        className="ml-auto text-gray-400 dark:text-gray-400-dark"
+                        icon={faCheck}
+                      />
+                    </Link>
+                  </MenuItem>
+                )}
+
+                {/* following communities - should render active community here if followed */}
+                {!!followedCommunities.length && (
+                  <SectionTitle>{t("followingButton")}</SectionTitle>
+                )}
+                {followedCommunities.map((followedCommunity) =>
+                  followedCommunity.id === community?.id ? (
+                    <MenuItem key={followedCommunity.id}>
+                      <Link
+                        className="flex items-center justify-start whitespace-nowrap rounded bg-blue-200-dark p-2.5 text-left font-bold capitalize no-underline"
+                        href={`/community/${followedCommunity?.slug}`}
+                      >
+                        {followedCommunity?.name}
+                        <FontAwesomeIcon
+                          size="1x"
+                          className="ml-auto text-gray-400 dark:text-gray-400-dark"
+                          icon={faCheck}
+                        />
+                      </Link>
+                    </MenuItem>
+                  ) : (
+                    <MenuItem key={followedCommunity.id}>
+                      <Link
+                        className="flex items-center justify-start whitespace-nowrap rounded p-2.5 text-left capitalize no-underline hover:bg-blue-200-dark"
+                        href={`/community/${followedCommunity.slug}`}
+                      >
+                        {followedCommunity.name}
+                      </Link>
+                    </MenuItem>
+                  )
+                )}
+
+                {!!topCommunities.length && (
+                  <SectionTitle>{t("otherCommunities")}</SectionTitle>
+                )}
+                {topCommunities.map((topCommunity) => (
+                  <MenuItem key={topCommunity.id}>
+                    <Link
+                      className="flex items-center justify-start whitespace-nowrap rounded p-2.5  text-left capitalize no-underline hover:bg-blue-200-dark"
+                      href={`/community/${topCommunity.slug}/`}
+                    >
+                      {topCommunity.name}
+                    </Link>
+                  </MenuItem>
+                ))}
+              </>
+            )}
+
+            <hr className="w-[100% + 16px] -mx-2 my-2 border-gray-0/10 dark:border-gray-0/10" />
+
+            <MenuItem>
+              <Link
+                className="flex items-center justify-start whitespace-nowrap rounded p-2.5 text-left capitalize text-blue-400 no-underline hover:bg-blue-200-dark"
+                href={"/questions/"}
+                // TODO: activate communities sidebar item on navigation
+              >
+                <FontAwesomeIcon
+                  size="1x"
+                  className="mr-2.5 text-gray-400-dark"
+                  icon={faMagnifyingGlass}
+                />
+                {t("browserAllCommunities")}
+              </Link>
+            </MenuItem>
+            <MenuItem>
+              <Link
+                className="flex items-center justify-start whitespace-nowrap rounded p-2.5 text-left capitalize text-blue-400 no-underline hover:bg-blue-200-dark"
+                href={"/questions/"}
+              >
+                <FontAwesomeIcon
+                  width={14}
+                  className="mr-2.5 text-gray-400-dark"
+                  icon={faArrowLeft}
+                />
+                {t("backTo")} Metaculus
+              </Link>
+            </MenuItem>
+          </MenuItems>
+        </>
+      )}
     </Menu>
   );
 };

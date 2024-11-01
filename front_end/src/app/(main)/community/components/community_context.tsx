@@ -8,28 +8,30 @@ import {
   useState,
 } from "react";
 
-export type HideCPContextType = {
-  showCommunity: boolean;
-  setShowCommunity: (showCommunity: boolean) => void;
+export type ShowActiveCommunityContextType = {
+  showActiveCommunity: boolean;
+  setShowActiveCommunity: (showCommunity: boolean) => void;
 };
 
-export const ShowCommunityContext = createContext<HideCPContextType>({
-  showCommunity: false,
-  setShowCommunity: () => {},
-});
+export const ShowActiveCommunityContext =
+  createContext<ShowActiveCommunityContextType>({
+    showActiveCommunity: false,
+    setShowActiveCommunity: () => {},
+  });
 
-type CommunityProviderProps = {};
-const ShowCommunityProvider: FC<PropsWithChildren<CommunityProviderProps>> = ({
-  children,
-}) => {
-  const [showCommunity, setShowCommunity] = useState<boolean>(false);
+const ShowCommunityProvider: FC<PropsWithChildren> = ({ children }) => {
+  const [showActiveCommunity, setShowActiveCommunity] =
+    useState<boolean>(false);
 
   return (
-    <ShowCommunityContext.Provider value={{ showCommunity, setShowCommunity }}>
+    <ShowActiveCommunityContext.Provider
+      value={{ showActiveCommunity, setShowActiveCommunity }}
+    >
       {children}
-    </ShowCommunityContext.Provider>
+    </ShowActiveCommunityContext.Provider>
   );
 };
 
-export const useShowCommunity = () => useContext(ShowCommunityContext);
+export const useShowActiveCommunityContext = () =>
+  useContext(ShowActiveCommunityContext);
 export default ShowCommunityProvider;

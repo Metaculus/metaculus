@@ -12,7 +12,7 @@ import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 import { Community } from "@/types/projects";
 
-import { useShowCommunity } from "../../community/components/community_context";
+import { useShowActiveCommunityContext } from "../../community/components/community_context";
 import CommunitiesDropdown from "../communities_dropdown";
 import MobileMenu from "../mobile_menu";
 
@@ -23,7 +23,7 @@ type Props = {
 
 const CommunityHeader: FC<Props> = ({ community, alwaysShowName }) => {
   const t = useTranslations();
-  const { showCommunity } = useShowCommunity();
+  const { showActiveCommunity } = useShowActiveCommunityContext();
   const [localShowName, setLocalShowName] = useState(alwaysShowName);
 
   return (
@@ -37,8 +37,8 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName }) => {
             M
           </h1>
         </Link>
-        <span className="text-xl font-light text-gray-600">/</span>
-        {community && (showCommunity || localShowName) && (
+        <span className="text-2xl font-extralight text-gray-600">/</span>
+        {community && (showActiveCommunity || localShowName) && (
           <Link
             href={`/community/${community.slug}`}
             className="ml-3 mr-1 max-w-[230px] truncate no-underline hover:underline hover:decoration-gray-600 hover:underline-offset-4"

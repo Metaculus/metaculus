@@ -59,7 +59,7 @@ const CommunityFollow: FC<Props> = ({
   }, [community.id, setFollowersCount]);
 
   return (
-    <div className={classNames("w-[90px]", className)}>
+    <div className={classNames("w-[85px]", className)}>
       {user && isFollowing ? (
         <Button
           variant="secondary"

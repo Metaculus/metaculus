@@ -13,7 +13,7 @@ import Button from "@/components/ui/button";
 import { useNavigation } from "@/contexts/navigation_context";
 import { Community } from "@/types/projects";
 
-import { useShowCommunity } from "./community_context";
+import { useShowActiveCommunityContext } from "./community_context";
 import CommunityFollow from "./community_follow";
 
 type Props = {
@@ -26,14 +26,14 @@ const CommunityInfo: FC<Props> = ({ community }) => {
     community.followers_count
   );
   const { previousPath } = useNavigation();
-  const { setShowCommunity } = useShowCommunity();
+  const { setShowActiveCommunity } = useShowActiveCommunityContext();
   const communityNameRef = useRef<HTMLHeadingElement | null>(null);
 
   useEffect(() => {
     const currentRef = communityNameRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setShowCommunity(!entry.isIntersecting);
+        setShowActiveCommunity(!entry.isIntersecting);
       },
       { threshold: 1.0 }
     );
@@ -47,7 +47,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
         observer.unobserve(currentRef);
       }
     };
-  }, [communityNameRef, setShowCommunity]);
+  }, [communityNameRef, setShowActiveCommunity]);
 
   return (
     <div className="relative">
@@ -68,7 +68,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
         )}
         <h1
           ref={communityNameRef}
-          className="m-0 max-w-[250px] truncate text-xl font-medium text-blue-900 dark:text-blue-900-dark xs:max-w-[auto] xs:text-2xl"
+          className="m-0 max-w-[250px] truncate text-xl font-medium text-blue-900 dark:text-blue-900-dark xs:max-w-full xs:text-2xl"
         >
           {community.name}
         </h1>
@@ -128,7 +128,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
           </div>
         )}
       </div>
-      <hr className="-mx-3 xs:-mx-8" />
+      <hr className="text -mx-3 border-blue-500 dark:border-blue-600/50 xs:-mx-8" />
     </div>
   );
 };

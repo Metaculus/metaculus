@@ -10,7 +10,7 @@ import { QuestionOrder } from "@/types/question";
 import CommunityHeader from "../../components/headers/community_header";
 import FeedFilters from "../../questions/components/feed_filters";
 import { generateFiltersFromSearchParams } from "../../questions/helpers/filters";
-import ShowCommunityProvider from "../components/community_context";
+import ShowActiveCommunityProvider from "../components/community_context";
 import CommunityInfo from "../components/community_info";
 
 type Props = {
@@ -34,9 +34,9 @@ export default async function IndividualCommunity({
     community: slug,
   };
   return (
-    <ShowCommunityProvider>
+    <ShowActiveCommunityProvider>
       <CommunityHeader community={community} />
-      <main className="mx-2 my-4 min-h-min max-w-full flex-auto rounded-lg border border-blue-500 px-3 py-4 dark:border-blue-600/50 dark:bg-gray-0-dark xs:mx-5 xs:px-8 xs:py-8 md:mx-auto md:max-w-[796px]">
+      <main className="mx-2 my-4 min-h-min max-w-full flex-auto rounded-lg border border-blue-500 bg-gray-0/50 px-3 py-4 dark:border-blue-600/50 dark:bg-gray-0-dark xs:mx-5 xs:px-8 xs:py-8 md:mx-auto md:max-w-[796px]">
         <CommunityInfo community={community} />
 
         <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
@@ -51,6 +51,6 @@ export default async function IndividualCommunity({
           </Suspense>
         </div>
       </main>
-    </ShowCommunityProvider>
+    </ShowActiveCommunityProvider>
   );
 }
