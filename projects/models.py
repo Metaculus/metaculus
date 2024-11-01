@@ -76,7 +76,8 @@ class ProjectsQuerySet(models.QuerySet):
             ),
             user_permission=models.Case(
                 models.When(
-                    Q(created_by_id=user_id), then=models.Value(ObjectPermission.ADMIN)
+                    Q(created_by_id__isnull=False, created_by_id=user_id),
+                    then=models.Value(ObjectPermission.ADMIN),
                 ),
                 default=Coalesce(
                     F("user_permission_override__permission"),
