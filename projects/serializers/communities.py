@@ -1,8 +1,8 @@
 from typing import Iterable
 
 from django.utils.translation import gettext_lazy as _
-from pydantic import ValidationError
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from projects.models import Project
 from projects.permissions import ObjectPermission
