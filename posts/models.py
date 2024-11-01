@@ -197,7 +197,7 @@ class PostQuerySet(models.QuerySet):
     # Permissions
     #
     def annotate_user_permission(self, user: User = None):
-        from projects.services import get_site_main_project
+        from projects.services.common import get_site_main_project
 
         user_id = user.id if user else None
         site_main_project = get_site_main_project()
@@ -357,6 +357,9 @@ class Post(TimeStampedModel):
     id: int
     votes: QuerySet["Vote"]
     forecasts: QuerySet["Forecast"]
+    question_id: int | None
+    conditional_id: int | None
+    group_of_questions_id: int | None
 
     # Annotated fields
     user_vote = None
@@ -364,7 +367,7 @@ class Post(TimeStampedModel):
     user_last_forecasts_date = None
     divergence: int = None
 
-    objects: PostManager = PostManager()
+    objects: QuerySet["Post"] = PostManager()
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -613,7 +616,7 @@ class Post(TimeStampedModel):
         if self.question_id:
             return [self.question]
         if self.group_of_questions_id:
-            return self.group_of_questions.questions.all()
+            return self.group_of_questions.questions.all().prefetch_related("group")
         elif self.conditional_id:
             return [self.conditional.question_yes, self.conditional.question_no]
         else:

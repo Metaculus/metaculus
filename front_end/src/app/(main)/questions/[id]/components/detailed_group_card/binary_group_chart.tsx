@@ -20,16 +20,23 @@ import { generateUserForecasts } from "@/utils/questions";
 
 const MAX_VISIBLE_CHECKBOXES = 6;
 
-function getQuestionTooltipLabel(
-  timestamps: number[],
-  values: number[],
-  cursorTimestamp: number,
-  isUserPrediction: boolean = false
-) {
+function getQuestionTooltipLabel({
+  timestamps,
+  values,
+  cursorTimestamp,
+  isUserPrediction,
+  closeTime,
+}: {
+  timestamps: number[];
+  values: number[];
+  cursorTimestamp: number;
+  isUserPrediction?: boolean;
+  closeTime?: number | undefined;
+}) {
   const hasValue = isUserPrediction
     ? cursorTimestamp >= Math.min(...timestamps)
     : cursorTimestamp >= Math.min(...timestamps) &&
-      cursorTimestamp <= Math.max(...timestamps);
+      cursorTimestamp <= Math.max(...timestamps, closeTime ?? 0);
   if (!hasValue) {
     return getForecastPctDisplayValue(null);
   }
@@ -131,17 +138,27 @@ const BinaryGroupChart: FC<Props> = ({
     () =>
       choiceItems
         .filter(({ active }) => active)
-        .map(({ choice, values, color, timestamps: optionTimestamps }) => {
-          return {
-            choiceLabel: choice,
+        .map(
+          ({
+            choice,
+            values,
             color,
-            valueLabel: getQuestionTooltipLabel(
-              optionTimestamps ?? timestamps,
-              values,
-              cursorTimestamp
-            ),
-          };
-        }),
+            timestamps: optionTimestamps,
+            resolution,
+            closeTime,
+          }) => {
+            return {
+              choiceLabel: choice,
+              color,
+              valueLabel: getQuestionTooltipLabel({
+                timestamps: optionTimestamps ?? timestamps,
+                values,
+                cursorTimestamp,
+                closeTime,
+              }),
+            };
+          }
+        ),
     [choiceItems, cursorTimestamp, timestamps]
   );
 
@@ -154,12 +171,12 @@ const BinaryGroupChart: FC<Props> = ({
               return {
                 choiceLabel: choice,
                 color,
-                valueLabel: getQuestionTooltipLabel(
-                  optionTimestamps ?? timestamps,
-                  values ?? [],
+                valueLabel: getQuestionTooltipLabel({
+                  timestamps: optionTimestamps ?? timestamps,
+                  values: values ?? [],
                   cursorTimestamp,
-                  true
-                ),
+                  isUserPrediction: true,
+                }),
               };
             }
           ),

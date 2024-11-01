@@ -22,9 +22,7 @@ def get_projects_qs(
     Returns available projects for the user
     """
 
-    qs = Project.objects.filter_active().filter_permission(
-        user=user, permission=permission
-    )
+    qs = Project.objects.filter_permission(user=user, permission=permission)
 
     if show_on_homepage:
         qs = qs.filter(show_on_homepage=True)
@@ -113,11 +111,17 @@ def subscribe_project(project: Project, user: User) -> ProjectSubscription:
     )
     obj.save()
 
+    project.update_followers_count()
+    project.save()
+
     return obj
 
 
 def unsubscribe_project(project: Project, user: User) -> ProjectSubscription:
     ProjectSubscription.objects.filter(project=project, user=user).delete()
+
+    project.update_followers_count()
+    project.save()
 
 
 def notify_project_subscriptions_post_open(post: Post):

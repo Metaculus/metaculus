@@ -32,27 +32,12 @@ interface Person {
 }
 const people: Person[] = [
   {
-    userId: 109158,
-    name: "Gaia Dempsey",
-    position: "Special Advisor",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/gaia_dempsey.webp",
-    introduction:
-      "Gaia led Metaculus as CEO from 2020-2024 during which she scaled up the Metaculus team, raised funding, and oversaw the expansion of Metaculus’s userbase and audience. Now she continues to drive Metaculus’s mission forward as a board member and as Special Advisor. Before joining Metaculus, Gaia was already an experienced entrepreneur and leader in technology and innovation-based startups. She co-founded DAQRI, an AR hardware company catering to the industrial and enterprise market and served as a senior executive from 2010-2017. Gaia has published academic work in the field of AI policy and presented widely at conferences including at Inspirefest and Foresight Vision Weekend.",
-    socials: [
-      {
-        link: "https://www.linkedin.com/in/gaiadempsey/",
-        platform: "LinkedIn",
-      },
-    ],
-  },
-  {
     userId: 177019,
     name: "Deger Turan",
     position: "Chief Executive Officer",
     imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/deger.webp",
     introduction:
-      "Before joining Metaculus as CEO in 2024, Deger Turan served as President of the AI Objectives Institute, where he built an innovative team, fundraised, and developed Talk to the City, a platform that strengthens communication between under-resourced communities and the government officials serving them. Prior to AOI, he founded Cerebra Technologies, which delivers insights into public opinion trends for 300 million citizens, and which is now used by governments, hedge funds, and international retailers.",
+      "Before joining Metaculus as CEO in 2024, Deger Turan served as President of the AI Objectives Institute, developing Talk to the City, a platform that strengthens communication between under-resourced communities and the government officials serving them. Prior to AOI, he founded Cerebra Technologies, which forecasted shifts of public opinion and demand trends for 300 million citizens to support governments, hedge funds, and international retailers.",
     socials: [
       {
         link: "https://www.linkedin.com/in/vehbidegerturan/",
@@ -63,7 +48,7 @@ const people: Person[] = [
   {
     userId: 120279,
     name: "Tom Liptay",
-    position: "Product Director",
+    position: "Director of Forecasting",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/tom_liptay.webp",
     introduction:
@@ -71,21 +56,6 @@ const people: Person[] = [
     socials: [
       {
         link: "https://www.linkedin.com/in/tom-liptay-2016343/",
-        platform: "LinkedIn",
-      },
-    ],
-  },
-  {
-    userId: 130973,
-    name: "Nate Morrison",
-    position: "Chief Operating Officer",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/nate_morrison.webp",
-    introduction:
-      "Nate is an accomplished leader with extensive experience in public service. He served as Executive Director of Teach For America—New Mexico for six years and launched an initiative to expand opportunities in computer science for Native youth. Nate also co-led the NACA Inspired Schools Network as Operating Officer. His strong interest in forecasting dates back to his senior thesis at Princeton, where he ran experiments to evaluate concerns around the manipulation of prediction markets.",
-    socials: [
-      {
-        link: "https://www.linkedin.com/in/nathansmorrison/",
         platform: "LinkedIn",
       },
     ],
@@ -141,15 +111,6 @@ const people: Person[] = [
       "Juan is a Presidential Management Fellow in the Division of Biosafety, Biosecurity, and Emerging Biotechnology Policy at the National Institutes of Health. Juan received his Masters of Public Health in epidemiology/biostatistics from Columbia University. He is currently a PhD student in Health Security at Johns Hopkins University. Juan was the top-ranked forecaster in IARPA’s COVID-19 FOCUS Forecasting Tournament and is a Superforecaster with Good Judgment Open, where he was ranked #1 on COVID-19 forecast questions.",
   },
   {
-    userId: 104161,
-    name: "Rudolf Ordoyne",
-    position: "Junior Developer & Forecasting Analyst",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/rudolf_ordoyne.webp",
-    introduction:
-      "Rudolf contributes to Metaculus operations by delivering support on partner initiatives, conducting research, and expanding and refining the platform’s bank of questions. In addition to extensive moderation work – writing and resolving hundreds of rigorously operationalized forecast questions – Rudolf is also a contributor to our software engineering team. Previously, he studied mathematics.",
-  },
-  {
     userId: 109639,
     name: "Nikos Bosse",
     position: "Research Coordinator",
@@ -157,6 +118,27 @@ const people: Person[] = [
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/nikos_bosse.webp",
     introduction:
       "Nikos advances Metaculus’ research agenda, focusing on forecast aggregation and forecast evaluation. He received his master’s in applied statistics from the University of Göttingen and is working toward his PhD in infectious disease forecasting and forecast evaluation at the London School of Hygiene and Tropical Medicine.",
+  },
+  {
+    name: "Leonard Barrett",
+    position: "Chief of Staff",
+    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/leonard.png",
+    introduction:
+      "Leonard’s work spans Metaculus’ various teams and initiatives, advancing our strategic direction, growth, and operational efficiency. Prior to Metaculus, he worked in real estate development and asset management, overseeing complex real estate development projects. His forecasting background includes experience as a Good Judgment Superforecaster and consistent top performance on various forecasting platforms and competitions. Leonard is passionate about elevating the crowd forecasting ecosystem to unlock its full potential in guiding policy and decision-making to mitigate global risks.",
+  },
+  {
+    name: "Connor McCormick",
+    position: "Collective Intelligence Specialist",
+    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/connor.webp",
+    introduction:
+      "Connor is a collective intelligence strategist, focused on creating environments where the wisdom of the crowd can thrive. At Metaculus, he is making tools to help forecasters share insights and estimate base rates so that cohesive models can be collaboratively developed, tested, and scored. Before joining Metaculus, Connor founded a machine learning and computer vision hardware company. When he’s not forecasting or refining collective intelligence systems, you’ll find him exploring the mountains of Colorado.",
+  },
+  {
+    name: "Molly Hickman",
+    position: "Technical Product Manager",
+    imgSrc: "https://metaculus-public.s3.us-west-2.amazonaws.com/molly.webp",
+    introduction:
+      "Molly is a computer scientist specializing in crowdsourced intelligence. She previously worked at the MITRE Corporation, focusing on testing and evaluation for forecasting projects. At the Forecasting Research Institute, Molly concentrated on developing metrics and methods to identify the most impactful questions. She forecasts as part of the Samotsvety team and as a Pro at INFER.",
   },
   {
     userId: 137979,
@@ -176,15 +158,7 @@ const people: Person[] = [
     introduction:
       "Passionate about AI safety and fueled by a love for math and logic games, Luke previously worked as a personal assistant to Max Tegmark and conducted research at UPenn's superforecasting team under Philip Tetlock. His diverse experience, spanning AI safety research to collaborating with quantum physicists, led him to work on development for Metaculus. Beyond technology, Luke enjoys exploring nature through climbing, running, biking, and birdwatching.",
   },
-  {
-    userId: 144359,
-    name: "Will Aldred",
-    position: "Research Analyst - AI Forecasting",
-    imgSrc:
-      "https://metaculus-media.s3.us-west-2.amazonaws.com/about/will_aldred.webp",
-    introduction:
-      "Will's work is aimed at reducing the chance of bad outcomes from misaligned AI; he largely focuses on the “deployment problem.” Before joining Metaculus, Will was a co-director at the Cambridge Existential Risks Initiative and a research manager and researcher at the Stanford Existential Risks Initiative, where he mainly worked on nuclear weapons risk.",
-  },
+
   {
     userId: 8,
     name: "Anthony Aguirre",
@@ -308,26 +282,24 @@ const groups: Groups = {
   team: [
     "Deger Turan",
     "Tom Liptay",
-    "Nate Morrison",
     "Atakan Seçkin",
+    "Molly Hickman",
+    "Leonard Barrett",
+    "Connor McCormick",
     "Christian Williams",
     "Ryan Beck",
     "Sylvain Chevalier",
-    "Rudolf Ordoyne",
     "Nikos Bosse",
     "Elis Popescu",
     "Luke Sabor",
-    "Will Aldred",
   ],
   board: [
     "Anthony Aguirre",
     "Greg Laughlin",
     "Carroll “Max” Wainwright",
     "David Levine",
-    "Gaia Dempsey",
   ],
   advisors: [
-    "Gaia Dempsey",
     "Juan Cambeiro",
     "Tamay Besiroglu",
     "Welton Chang",

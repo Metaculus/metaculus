@@ -2,7 +2,7 @@ from django_dynamic_fixture import G
 
 from posts.models import Post, PostUserSnapshot
 from projects.models import Project
-from projects.services import get_site_main_project
+from projects.services.common import get_site_main_project
 from questions.models import Question, Conditional
 from users.models import User
 from utils.dtypes import setdefaults_not_null

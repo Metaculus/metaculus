@@ -5,6 +5,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from projects.serializers.communities import CommunitySerializer
 from projects.models import Project, ProjectUserPermission
 from users.serializers import UserPublicSerializer
 
@@ -103,6 +104,8 @@ def serialize_project(obj: Project):
             serializer = MiniTournamentSerializer
         case obj.ProjectTypes.SITE_MAIN:
             serializer = MiniTournamentSerializer
+        case obj.ProjectTypes.COMMUNITY:
+            serializer = CommunitySerializer
         case _:
             serializer = TagSerializer
 
@@ -128,10 +131,8 @@ def serialize_projects(
 
 
 def validate_categories(lookup_field: str, lookup_values: list):
-    categories = (
-        Project.objects.filter_category()
-        .filter_active()
-        .filter(**{f"{lookup_field}__in": lookup_values})
+    categories = Project.objects.filter_category().filter(
+        **{f"{lookup_field}__in": lookup_values}
     )
     lookup_values_fetched = {getattr(obj, lookup_field) for obj in categories}
 
@@ -152,10 +153,8 @@ def validate_tournaments(lookup_values: list):
         else:
             slug_values.append(value)
 
-    tournaments = (
-        Project.objects.filter_tournament()
-        .filter_active()
-        .filter(Q(**{"slug__in": slug_values}) | Q(pk__in=id_values))
+    tournaments = Project.objects.filter_tournament().filter(
+        Q(**{"slug__in": slug_values}) | Q(pk__in=id_values)
     )
 
     lookup_values_fetched = {obj.slug for obj in tournaments}

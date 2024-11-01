@@ -31,7 +31,7 @@ const DetailedQuestionCard: FC<Props> = ({
   useEffect(() => {
     if (!!question.my_forecasts?.history.length) {
       sendGAEvent("event", "visitPredictedQuestion", {
-        value: question.type,
+        event_category: question.type,
       });
     }
   }, [question.my_forecasts?.history.length, question.type]);

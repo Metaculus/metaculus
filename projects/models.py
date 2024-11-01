@@ -1,7 +1,13 @@
-from typing import TYPE_CHECKING
-
 from django.db import models
-from django.db.models import Count, FilteredRelation, Q, F
+from django.db.models import (
+    Count,
+    FilteredRelation,
+    Q,
+    F,
+    BooleanField,
+    Exists,
+    OuterRef,
+)
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
 from django.utils import timezone as django_timezone
@@ -10,9 +16,6 @@ from sql_util.aggregates import SubqueryAggregate
 from projects.permissions import ObjectPermission
 from users.models import User
 from utils.models import validate_alpha_slug, TimeStampedModel
-
-if TYPE_CHECKING:
-    from scoring.models import Leaderboard
 
 
 class ProjectsQuerySet(models.QuerySet):
@@ -36,13 +39,24 @@ class ProjectsQuerySet(models.QuerySet):
     def filter_tags(self):
         return self.filter(type=Project.ProjectTypes.TAG)
 
-    def filter_active(self):
-        return self.filter(is_active=True)
+    def filter_communities(self):
+        return self.filter(type=Project.ProjectTypes.COMMUNITY)
 
     def annotate_posts_count(self):
         return self.annotate(
             posts_count=Coalesce(SubqueryAggregate("posts__id", aggregate=Count), 0)
             + Coalesce(SubqueryAggregate("default_posts__id", aggregate=Count), 0)
+        )
+
+    def annotate_is_subscribed(self, user: User):
+        """
+        Annotates user subscription
+        """
+
+        return self.annotate(
+            is_subscribed=Exists(
+                ProjectSubscription.objects.filter(user=user, project=OuterRef("pk"))
+            )
         )
 
     # Permissions
@@ -60,9 +74,16 @@ class ProjectsQuerySet(models.QuerySet):
                     projectuserpermission__user_id=user_id,
                 ),
             ),
-            user_permission=Coalesce(
-                F("user_permission_override__permission"),
-                F("default_permission"),
+            user_permission=models.Case(
+                models.When(
+                    Q(created_by_id__isnull=False, created_by_id=user_id),
+                    then=models.Value(ObjectPermission.ADMIN),
+                ),
+                default=Coalesce(
+                    F("user_permission_override__permission"),
+                    F("default_permission"),
+                ),
+                output_field=models.CharField(),
             ),
         )
 
@@ -86,27 +107,16 @@ class ProjectsQuerySet(models.QuerySet):
 
 
 class Project(TimeStampedModel):
-    id: int
-    leaderboards: QuerySet["Leaderboard"]
-
     class ProjectTypes(models.TextChoices):
         SITE_MAIN = "site_main"
         TOURNAMENT = "tournament"
         QUESTION_SERIES = "question_series"
         PERSONAL_PROJECT = "personal_project"
         NEWS_CATEGORY = "news_category"
-        PUBLIC_FIGURE = "public_figure"
         CATEGORY = "category"
         TAG = "tag"
         TOPIC = "topic"
-
-        @classmethod
-        def can_have_permissions(cls, tp):
-            """
-            Detects whether this project type can have permission configuration
-            """
-
-            return tp not in [cls.CATEGORY, cls.TAG, cls.TOPIC]
+        COMMUNITY = "community"
 
     class SectionTypes(models.TextChoices):
         HOT_TOPICS = "hot_topics"
@@ -149,12 +159,6 @@ class Project(TimeStampedModel):
         default=0,
     )
 
-    is_active = models.BooleanField(
-        default=True,
-        help_text="Inactive projects are not accessible to all users",
-        db_index=True,
-    )
-
     # Tournament-specific fields
     prize_pool = models.DecimalField(
         default=None, decimal_places=2, max_digits=15, null=True, blank=True
@@ -185,6 +189,7 @@ class Project(TimeStampedModel):
         default=None,
         null=True,
         blank=True,
+        db_index=True,
     )
 
     # Permissions
@@ -197,6 +202,8 @@ class Project(TimeStampedModel):
         db_index=True,
     )
     override_permissions = models.ManyToManyField(User, through="ProjectUserPermission")
+    # Not discoverable, but can still be accessed via the URL
+    unlisted = BooleanField(default=False, db_index=True)
 
     # Whether we should display tournament on the homepage
     show_on_homepage = models.BooleanField(default=False, db_index=True)
@@ -204,7 +211,10 @@ class Project(TimeStampedModel):
     objects = models.Manager.from_queryset(ProjectsQuerySet)()
 
     # Annotated fields
+    followers_count = models.PositiveIntegerField(default=0, db_index=True)
+
     posts_count: int = 0
+    is_subscribed: bool = False
     user_permission: ObjectPermission = None
 
     class Meta:
@@ -263,6 +273,9 @@ class Project(TimeStampedModel):
         """
 
         return self._get_users_for_permissions([ObjectPermission.CURATOR])
+
+    def update_followers_count(self):
+        self.followers_count = self.subscriptions.count()
 
 
 class ProjectUserPermission(TimeStampedModel):

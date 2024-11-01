@@ -365,20 +365,34 @@ def resolve_question(
                         conditional.question_no,
                         actual_close_time=question.actual_close_time,
                     )
-            # if the child is already resolved,
-            # we resolve the active branch
-            if child.resolution is not None:
+            # if the child is already successfully resolved,
+            # we resolve the active branch and annull the other
+            if child.resolution not in [
+                None,
+                ResolutionType.ANNULLED,
+                ResolutionType.AMBIGUOUS,
+            ]:
                 if question.resolution == "yes":
                     resolve_question(
                         conditional.question_yes,
                         child.resolution,
                         conditional.question_yes.actual_close_time,
                     )
+                    resolve_question(
+                        conditional.question_no,
+                        ResolutionType.ANNULLED,
+                        conditional.question_no.actual_close_time,
+                    )
                 if question.resolution == "no":
                     resolve_question(
                         conditional.question_no,
                         child.resolution,
                         conditional.question_no.actual_close_time,
+                    )
+                    resolve_question(
+                        conditional.question_yes,
+                        ResolutionType.ANNULLED,
+                        conditional.question_yes.actual_close_time,
                     )
         else:  # question == child
             # handle annulment / ambiguity
@@ -552,13 +566,12 @@ def unresolve_question(question: Question):
 
 
 def close_question(question: Question, actual_close_time: datetime | None = None):
-    if question.actual_close_time:
-        raise ValidationError("Question is already closed")
-
+    now = timezone.now()
     question.actual_close_time = min(
-        actual_close_time or timezone.now(),
+        question.actual_close_time or now,
+        actual_close_time or now,
         question.scheduled_close_time,
-        question.actual_resolve_time or timezone.now(),
+        question.actual_resolve_time or now,
     )
     question.save()
 
@@ -576,7 +589,7 @@ def create_forecast(
     user: User = None,
     continuous_cdf: list[float] = None,
     probability_yes: float = None,
-    probability_yes_per_category: dict[str, float] = None,
+    probability_yes_per_category: list[float] = None,
     slider_values=None,
     **kwargs,
 ):
@@ -592,14 +605,6 @@ def create_forecast(
         prev_forecasts.end_time = now
         prev_forecasts.save()
 
-    probability_yes_per_category_arr = None
-    if question.options:
-        probability_yes_per_category_arr = []
-        for option in question.options:
-            probability_yes_per_category_arr.append(
-                probability_yes_per_category[option]
-            )
-
     forecast = Forecast.objects.create(
         question=question,
         author=user,
@@ -607,7 +612,7 @@ def create_forecast(
         end_time=None,
         continuous_cdf=continuous_cdf,
         probability_yes=probability_yes,
-        probability_yes_per_category=probability_yes_per_category_arr,
+        probability_yes_per_category=probability_yes_per_category,
         distribution_components=None,
         slider_values=slider_values if question.type in ["date", "numeric"] else None,
         post=post,
@@ -699,11 +704,17 @@ def get_aggregated_forecasts_for_questions(
     questions_map = {q.pk: q for q in questions}
 
     if group_cutoff is not None:
-        group_questions = [q for q in questions if q.group_id]
+        cutoff_questions = [
+            q
+            for q in questions
+            if q.group_id
+            and q.group.graph_type
+            != GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
+        ]
 
         recently_weighted = get_recency_weighted_for_questions(questions)
-        group_questions_map = generate_map_from_list(
-            group_questions, lambda q: q.group_id
+        cutoff_questions_map = generate_map_from_list(
+            cutoff_questions, lambda q: q.group_id
         )
 
         def sorting_key(q: Question):
@@ -726,13 +737,13 @@ def get_aggregated_forecasts_for_questions(
                 case "numeric" | "date":
                     return aggregation.centers[0]
                 case "multiple_choice":
-                    return aggregation.forecast_values[0]
+                    return max(aggregation.forecast_values)
 
-        for group_questions in group_questions_map.values():
-            group_questions = sorted(group_questions, key=sorting_key, reverse=True)
+        for cutoff_questions in cutoff_questions_map.values():
+            cutoff_questions = sorted(cutoff_questions, key=sorting_key, reverse=True)
 
             # Exclude other questions from the list
-            for q in group_questions[group_cutoff:]:
+            for q in cutoff_questions[group_cutoff:]:
                 questions.remove(q)
 
     qs = AggregateForecast.objects.filter(question__in=questions).order_by("start_time")

@@ -107,8 +107,8 @@ const ForecastCard: FC<Props> = ({
                 questions={sortedQuestions}
                 timestamps={timestamps}
                 actualCloseTime={
-                  post.scheduled_close_time
-                    ? new Date(post.scheduled_close_time).getTime()
+                  post.actual_close_time
+                    ? new Date(post.actual_close_time).getTime()
                     : null
                 }
                 chartHeight={chartHeight}
@@ -148,6 +148,11 @@ const ForecastCard: FC<Props> = ({
               <BinaryGroupChart
                 questions={sortedQuestions}
                 timestamps={timestamps}
+                actualCloseTime={
+                  post.actual_close_time
+                    ? new Date(post.actual_close_time).getTime()
+                    : null
+                }
                 defaultZoom={defaultChartZoom}
                 chartHeight={chartHeight}
                 chartTheme={embedTheme?.chart}

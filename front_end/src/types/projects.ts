@@ -1,5 +1,5 @@
 import { ProjectPermissions } from "@/types/post";
-import { UserProfile } from "@/types/users";
+import { UserBase, UserProfile } from "@/types/users";
 
 type TopicSection = "hot_categories" | "hot_topics";
 
@@ -31,6 +31,7 @@ export enum TournamentType {
   QuestionSeries = "question_series",
   Tournament = "tournament",
   GlobalLeaderboard = "global_leaderboard",
+  Community = "community",
 }
 
 export enum TournamentsSortBy {
@@ -68,4 +69,21 @@ export type Tournament = TournamentPreview & {
   is_subscribed?: boolean;
   add_posts_to_main_feed: boolean;
   default_permission?: ProjectPermissions | null;
+};
+
+export type Community = {
+  id: number;
+  name: string;
+  type: "community";
+  slug: string;
+  description: string;
+  header_image: string;
+  header_logo: string;
+  followers_count: number;
+  default_permission: ProjectPermissions;
+  user_permission?: ProjectPermissions;
+  unlisted: boolean;
+  posts_count: number;
+  is_subscribed?: boolean;
+  created_by: UserBase;
 };

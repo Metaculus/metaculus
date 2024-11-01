@@ -1,5 +1,4 @@
 "use client";
-import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { FC, useMemo, useState } from "react";
 

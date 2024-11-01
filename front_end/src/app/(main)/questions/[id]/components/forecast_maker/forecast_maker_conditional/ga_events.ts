@@ -9,8 +9,8 @@ export function sendGAConditionalPredictEvent(
 ) {
   if (!alreadyPredicted) {
     sendGAEvent("event", "predict", {
-      value: "conditional",
-      label: [
+      event_category: "conditional",
+      event_label: [
         !!projects.tournament || !!projects.question_series
           ? "tournamentPrediction"
           : null,
@@ -19,7 +19,7 @@ export function sendGAConditionalPredictEvent(
     });
   } else {
     sendGAEvent("event", "predictionUpdated", {
-      value: "conditional",
+      event_category: "conditional",
     });
   }
 }

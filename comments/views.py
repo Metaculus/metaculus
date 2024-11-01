@@ -113,7 +113,7 @@ def comment_create_api_view(request: Request):
 
     on_post = serializer.validated_data["on_post"]
     parent = serializer.validated_data.get("parent")
-    included_forecast = serializer.validated_data.pop("included_forecast", None)
+    included_forecast = serializer.validated_data.pop("included_forecast", False)
 
     # Small validation
     permission = get_post_permission_for_user(
@@ -145,7 +145,7 @@ def comment_edit_api_view(request: Request, pk: int):
     comment = get_object_or_404(Comment, pk=pk)
     text = serializers.CharField().run_validation(request.data.get("text"))
 
-    if not (request.user.is_staff or comment.author == request.user):
+    if not (comment.author == request.user):
         raise PermissionDenied("You do not have permission to edit this comment.")
 
     differ = difflib.Differ()

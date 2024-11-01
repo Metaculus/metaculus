@@ -8,7 +8,7 @@ from posts.models import Notebook, Post
 from posts.serializers import PostFilterSerializer
 from posts.services.search import perform_post_search, qs_filter_similar_posts
 from projects.models import Project
-from projects.services import get_site_main_project
+from projects.services.common import get_site_main_project
 from users.models import User
 from utils.cache import cache_get_or_set
 from utils.dtypes import evenly_distribute_items
@@ -21,6 +21,7 @@ def get_posts_feed(
     user: User = None,
     search: str = None,
     topic: Project = None,
+    community: Project = None,
     tags: list[Project] = None,
     categories: list[Project] = None,
     tournaments: list[Project] = None,
@@ -63,6 +64,9 @@ def get_posts_feed(
     if topic:
         qs = qs.filter_projects(topic)
 
+    if community:
+        qs = qs.filter_projects(community)
+
     if tags:
         qs = qs.filter_projects(tags)
 
@@ -93,6 +97,7 @@ def get_posts_feed(
 
     forecast_type = forecast_type or []
     forecast_type_q = Q()
+    print(forecast_type)
 
     for f_type in forecast_type:
         match f_type:
@@ -102,8 +107,8 @@ def get_posts_feed(
                 forecast_type_q |= Q(conditional__isnull=False)
             case "group_of_questions":
                 forecast_type_q |= Q(group_of_questions__isnull=False)
-            case _:
-                forecast_type_q |= Q(question__type__in=forecast_type)
+            case other:
+                forecast_type_q |= Q(question__type=other)
 
     qs = qs.filter(forecast_type_q)
 

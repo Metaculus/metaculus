@@ -15,15 +15,24 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { Post, PostWithForecasts } from "@/types/post";
-import { Tournament, TournamentPreview } from "@/types/projects";
-import { QuestionType } from "@/types/question";
+import {
+  Tournament,
+  TournamentPreview,
+  TournamentType,
+} from "@/types/projects";
+import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 import { getQuestionStatus, parseQuestionId } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
 import ConditionalQuestionInput from "./conditional_question_inpu";
-import { createQuestionPost, getPost, updatePost } from "../actions";
+import {
+  createQuestionPost,
+  getPost,
+  getQuestion,
+  updatePost,
+} from "../actions";
 
 type PostCreationData = {
   default_project: number;
@@ -46,9 +55,10 @@ const createConditionalQuestionSchema = (
 const ConditionalForm: React.FC<{
   post: PostWithForecasts | null;
   mode: "create" | "edit";
-  conditionParentInit: PostWithForecasts | null;
-  conditionChildInit: PostWithForecasts | null;
+  conditionParentInit: QuestionWithForecasts | null;
+  conditionChildInit: QuestionWithForecasts | null;
   tournament_id: number | null;
+  community_id?: number;
   tournaments: TournamentPreview[];
   siteMain: Tournament;
 }> = ({
@@ -57,6 +67,7 @@ const ConditionalForm: React.FC<{
   conditionParentInit = null,
   conditionChildInit = null,
   tournament_id = null,
+  community_id = null,
   tournaments,
   siteMain,
 }) => {
@@ -73,9 +84,9 @@ const ConditionalForm: React.FC<{
     throw new Error(t("isDoneError"));
   }
   const [conditionParent, setConditionParent] =
-    useState<PostWithForecasts | null>(conditionParentInit);
+    useState<QuestionWithForecasts | null>(conditionParentInit);
   const [conditionChild, setConditionChild] =
-    useState<PostWithForecasts | null>(conditionChildInit);
+    useState<QuestionWithForecasts | null>(conditionChildInit);
 
   const conditionalQuestionSchema = createConditionalQuestionSchema(t);
   const control = useForm({
@@ -156,7 +167,10 @@ const ConditionalForm: React.FC<{
         className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", defaultProject.id);
+            control.setValue(
+              "default_project",
+              community_id ? community_id : defaultProject.id
+            );
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
@@ -174,14 +188,16 @@ const ConditionalForm: React.FC<{
             {t("viewInDjangoAdmin")}
           </a>
         )}
-        <ProjectPickerInput
-          tournaments={tournaments}
-          siteMain={siteMain}
-          currentProject={defaultProject}
-          onChange={(project) => {
-            control.setValue("default_project", project.id);
-          }}
-        />
+        {!community_id && defaultProject.type !== TournamentType.Community && (
+          <ProjectPickerInput
+            tournaments={tournaments}
+            siteMain={siteMain}
+            currentProject={defaultProject}
+            onChange={(project) => {
+              control.setValue("default_project", project.id);
+            }}
+          />
+        )}
         <InputContainer labelText={t("parentId")}>
           <ConditionalQuestionInput
             isLive={isLive}
@@ -192,11 +208,11 @@ const ConditionalForm: React.FC<{
               setConditionQuestion(control, setConditionParent, "condition_id")
             }
           />
-          {conditionParent?.question ? (
+          {conditionParent ? (
             <QuestionChartTile
-              question={conditionParent?.question}
+              question={conditionParent}
               authorUsername={conditionParent.author_username}
-              curationStatus={conditionParent.curation_status}
+              curationStatus={conditionParent.status!}
             />
           ) : (
             <span className="text-xs normal-case text-gray-700 dark:text-gray-700-dark">
@@ -218,11 +234,11 @@ const ConditionalForm: React.FC<{
               )
             }
           />
-          {conditionChild?.question ? (
+          {conditionChild ? (
             <QuestionChartTile
-              question={conditionChild?.question}
+              question={conditionChild}
               authorUsername={conditionChild.author_username}
-              curationStatus={conditionChild.curation_status}
+              curationStatus={conditionChild.status!}
             />
           ) : (
             <span className="text-xs normal-case text-gray-700 dark:text-gray-700-dark">
@@ -259,18 +275,30 @@ async function setConditionQuestion(
     any,
     undefined
   >,
-  setQuestionState: (value: SetStateAction<PostWithForecasts | null>) => void,
+  setQuestionState: (
+    value: SetStateAction<QuestionWithForecasts | null>
+  ) => void,
   fieldName: "condition_id" | "condition_child_id"
 ) {
   control.clearErrors(fieldName);
-  const conditionalQuestionParentId = parseQuestionId(
-    control.getValues(fieldName) ?? ""
-  );
+  const parsedInput = parseQuestionId(control.getValues(fieldName) ?? "");
   try {
-    const res = await getPost(Number(conditionalQuestionParentId));
-    if (res && res.question?.type === QuestionType.Binary) {
-      setQuestionState(res);
-      return res.id;
+    let question: QuestionWithForecasts | null = null;
+    if (parsedInput.questionId) {
+      question = await getQuestion(parsedInput.questionId!);
+    } else {
+      const post = await getPost(parsedInput.postId!);
+      question = post.question!;
+    }
+    if (
+      question &&
+      (question.type === QuestionType.Binary ||
+        (fieldName === "condition_child_id" &&
+          (question.type === QuestionType.Numeric ||
+            question.type === QuestionType.Date)))
+    ) {
+      setQuestionState(question);
+      return question.id;
     } else {
       control.setError(fieldName, {
         type: "manual",

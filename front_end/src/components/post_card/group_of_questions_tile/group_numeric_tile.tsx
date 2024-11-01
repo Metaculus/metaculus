@@ -10,9 +10,10 @@ import {
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { PostStatus, PostWithForecasts } from "@/types/post";
-import { QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
   generateChoiceItemsFromBinaryGroup,
+  getContinuousGroupScaling,
   getGroupQuestionsTimestamps,
 } from "@/utils/charts";
 import {
@@ -38,6 +39,10 @@ const GroupNumericTile: FC<Props> = ({
 }) => {
   const { user } = useAuth();
   const locale = useLocale();
+  const isBinaryGroup = questions[0].type === QuestionType.Binary;
+  const scaling = isBinaryGroup
+    ? undefined
+    : getContinuousGroupScaling(questions);
 
   if (
     post.group_of_questions?.graph_type === GroupOfQuestionsGraphType.FanGraph
@@ -93,6 +98,7 @@ const GroupNumericTile: FC<Props> = ({
         defaultChartZoom={
           user ? TimelineChartZoomOption.All : TimelineChartZoomOption.TwoMonths
         }
+        scaling={scaling}
         userForecasts={
           user
             ? generateUserForecasts(

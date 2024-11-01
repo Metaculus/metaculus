@@ -18,12 +18,33 @@ from questions.serializers import (
     validate_question_resolution,
     OldForecastWriteSerializer,
     ForecastWriteSerializer,
+    serialize_question,
 )
 from questions.services import (
     resolve_question,
     unresolve_question,
     create_forecast_bulk,
 )
+
+
+@api_view(["GET"])
+def question_detail_api_view(request, pk: int):
+    question = get_object_or_404(Question.objects.all(), pk=pk)
+
+    # Check permissions
+    permission = get_post_permission_for_user(question.get_post(), user=request.user)
+    ObjectPermission.can_resolve(permission, raise_exception=True)
+
+    with_cp = request.GET.get("with_cp", False)
+
+    return Response(
+        serialize_question(
+            question,
+            with_cp=with_cp,
+            post=question.get_post(),
+            current_user=request.user,
+        )
+    )
 
 
 @api_view(["POST"])

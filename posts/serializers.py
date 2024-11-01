@@ -1,6 +1,7 @@
 from typing import Union
 
 from django.db import models
+from django.db.models import QuerySet
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -8,7 +9,7 @@ from rest_framework.exceptions import ValidationError
 from misc.models import ITNArticle
 from projects.models import Project
 from projects.permissions import ObjectPermission
-from projects.serializers import (
+from projects.serializers.common import (
     validate_categories,
     validate_tournaments,
     serialize_projects,
@@ -204,6 +205,7 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     ids = serializers.ListField(child=serializers.IntegerField(), required=False)
     access = serializers.ChoiceField(required=False, choices=Access.choices)
     topic = serializers.CharField(required=False)
+    community = serializers.CharField(required=False)
     tags = serializers.ListField(child=serializers.CharField(), required=False)
     categories = serializers.ListField(child=serializers.CharField(), required=False)
     tournaments = serializers.ListField(child=serializers.CharField(), required=False)
@@ -257,12 +259,18 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
 
     def validate_topic(self, value: str):
         try:
-            return Project.objects.filter_topic().filter_active().get(slug=value)
+            return Project.objects.filter_topic().get(slug=value)
         except Project.DoesNotExist:
             raise ValidationError("Slug does not exist")
 
+    def validate_community(self, value: str):
+        try:
+            return Project.objects.filter_communities().get(slug=value)
+        except Project.DoesNotExist:
+            raise ValidationError("Community does not exist")
+
     def validate_tags(self, values: list[str]):
-        tags = Project.objects.filter_tags().filter_active().filter(slug__in=values)
+        tags = Project.objects.filter_tags().filter(slug__in=values)
         slugs = {obj.slug for obj in tags}
 
         for value in values:
@@ -276,6 +284,13 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
 
     def validate_tournaments(self, values: list[str]):
         return validate_tournaments(lookup_values=values)
+
+    def validate_forecast_type(self, value):
+        print("in validate", value)
+        # If the value is passed as a single string, split it by commas
+        if isinstance(value, list) and len(value) == 1:
+            return [v.strip() for v in value[0].split(",")]
+        return value
 
     def validate_order_by(self, value: str):
         if value.lstrip("-") in self.Order:
@@ -405,7 +420,7 @@ def serialize_post(
 
 
 def serialize_post_many(
-    posts: Union[Post.objects, list[Post], list[int]],
+    posts: Union[QuerySet[Post], list[Post], list[int]],
     with_cp: bool = False,
     current_user: User = None,
     with_subscriptions: bool = False,
@@ -414,8 +429,8 @@ def serialize_post_many(
     current_user = (
         current_user if current_user and not current_user.is_anonymous else None
     )
-    ids = [p.pk if isinstance(p, Post) else p for p in posts]
-    qs = Post.objects.filter(pk__in=ids)
+    ids = [p.id if isinstance(p, Post) else p for p in posts]
+    qs = Post.objects.filter(id__in=ids)
 
     qs = (
         qs.annotate_user_permission(user=current_user)
@@ -441,14 +456,14 @@ def serialize_post_many(
         qs = qs.prefetch_user_snapshots(current_user)
 
     # Restore the original ordering
-    objects = list(qs.all())
-    objects.sort(key=lambda obj: ids.index(obj.id))
+    posts: list[Post] = list(qs.all())
+    posts.sort(key=lambda obj: ids.index(obj.id))
 
     aggregate_forecasts = {}
 
     if with_cp:
         aggregate_forecasts = get_aggregated_forecasts_for_questions(
-            flatten([p.get_questions() for p in objects]), group_cutoff=group_cutoff
+            flatten([p.get_questions() for p in posts]), group_cutoff=group_cutoff
         )
 
     return [
@@ -463,7 +478,7 @@ def serialize_post_many(
                 if q in post.get_questions()
             },
         )
-        for post in objects
+        for post in posts
     ]
 
 

@@ -1,8 +1,9 @@
+import CommunityHeader from "@/app/(main)/components/headers/community_header";
+import Header from "@/app/(main)/components/headers/header";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
-import { ProjectPermissions } from "@/types/post";
 
 import ConditionalForm from "../../components/conditional_form";
 import { extractMode } from "../helpers";
@@ -20,31 +21,49 @@ const QuestionConditionalCreator: React.FC<{
     Number(searchParams["post_id"]) !== 0
   ) {
     post = await PostsApi.getPost(Number(searchParams["post_id"]));
-    condition = await PostsApi.getPost(
-      Number(post?.conditional?.condition.post_id)
+    condition = await PostsApi.getQuestion(
+      Number(post?.conditional?.condition.id)
     );
-    conditionChild = await PostsApi.getPost(
-      Number(post?.conditional?.condition_child.post_id)
+    conditionChild = await PostsApi.getQuestion(
+      Number(post?.conditional?.condition_child.id)
     );
   }
   const mode = extractMode(searchParams, post);
   const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
 
+  const communityId = searchParams["community_id"]
+    ? Number(searchParams["community_id"])
+    : undefined;
+  const communitiesResponse = communityId
+    ? await ProjectsApi.getCommunities({ ids: [communityId] })
+    : undefined;
+  const community = communitiesResponse
+    ? communitiesResponse.results[0]
+    : undefined;
+
   return (
-    <ConditionalForm
-      mode={mode}
-      post={post}
-      conditionParentInit={condition}
-      conditionChildInit={conditionChild}
-      tournament_id={
-        searchParams["tournament_id"]
-          ? Number(searchParams["tournament_id"])
-          : null
-      }
-      tournaments={allTournaments}
-      siteMain={siteMain}
-    />
+    <>
+      {community ? (
+        <CommunityHeader community={community} alwaysShowName />
+      ) : (
+        <Header />
+      )}
+      <ConditionalForm
+        mode={mode}
+        post={post}
+        conditionParentInit={condition}
+        conditionChildInit={conditionChild}
+        tournament_id={
+          searchParams["tournament_id"]
+            ? Number(searchParams["tournament_id"])
+            : null
+        }
+        community_id={community?.id}
+        tournaments={allTournaments}
+        siteMain={siteMain}
+      />
+    </>
   );
 };
 

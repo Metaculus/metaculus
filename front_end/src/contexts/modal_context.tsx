@@ -6,6 +6,7 @@ import {
   PropsWithChildren,
   useContext,
   useState,
+  useEffect, // Add this import
 } from "react";
 
 export type ModalType =
@@ -15,6 +16,7 @@ export type ModalType =
   | "resetPassword"
   | "resetPasswordConfirm"
   | "contactUs"
+  | "onboarding"
   | "confirm";
 
 export type CurrentModal = {
@@ -42,5 +44,5 @@ const ModalProvider: FC<PropsWithChildren> = ({ children }) => {
   );
 };
 
-export default ModalProvider;
 export const useModal = () => useContext(ModalContext);
+export default ModalProvider;

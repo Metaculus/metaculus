@@ -14,8 +14,8 @@ export function sendGAPredictEvent(
   const alreadyPredicted = question.my_forecasts?.latest;
   if (!alreadyPredicted) {
     sendGAEvent("event", "predict", {
-      value: question.type,
-      label: [
+      event_category: question.type,
+      event_label: [
         !!post.projects.tournament || !!post.projects.question_series
           ? "tournamentPrediction"
           : null,
@@ -24,7 +24,7 @@ export function sendGAPredictEvent(
     });
   } else {
     sendGAEvent("event", "predictionUpdated", {
-      value: question.type,
+      event_category: question.type,
     });
   }
 }

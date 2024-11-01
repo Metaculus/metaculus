@@ -4,7 +4,7 @@ import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
 import NumericChart from "@/components/charts/numeric_chart";
 import PredictionChip from "@/components/prediction_chip";
 import { ContinuousAreaType, TimelineChartZoomOption } from "@/types/charts";
-import { PostStatus } from "@/types/post";
+import { PostStatus, QuestionStatus } from "@/types/post";
 import { QuestionWithNumericForecasts, QuestionType } from "@/types/question";
 import { getNumericChartTypeFromQuestion } from "@/utils/charts";
 import { cdfToPmf } from "@/utils/math";
@@ -13,7 +13,7 @@ const HEIGHT = 100;
 
 type Props = {
   question: QuestionWithNumericForecasts;
-  curationStatus: PostStatus;
+  curationStatus: PostStatus | QuestionStatus;
   defaultChartZoom?: TimelineChartZoomOption;
   hideCP?: boolean;
 };
@@ -51,7 +51,7 @@ const QuestionNumericTile: FC<Props> = ({
         <PredictionChip
           question={question}
           prediction={prediction}
-          status={curationStatus}
+          status={curationStatus as PostStatus}
           showUserForecast
           hideCP={hideCP}
         />

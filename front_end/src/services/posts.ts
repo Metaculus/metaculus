@@ -12,6 +12,7 @@ import {
   PostWithForecasts,
   PostWithNotebook,
 } from "@/types/post";
+import { QuestionWithForecasts } from "@/types/question";
 import { Require } from "@/types/utils";
 import { VoteDirection, VoteResponse } from "@/types/votes";
 import { get, post, put } from "@/utils/fetch";
@@ -34,6 +35,7 @@ export type PostsParams = PaginationParams & {
   commented_by?: string;
   order_by?: string;
   tournaments?: string | string[];
+  community?: string;
   for_main_feed?: string;
   ids?: number[];
   news_type?: string;
@@ -52,6 +54,15 @@ class PostsApi {
   static async getPost(id: number, with_cp = true): Promise<PostWithForecasts> {
     return await get<PostWithForecasts>(
       `/posts/${id}/${encodeQueryParams({ with_cp })}`
+    );
+  }
+
+  static async getQuestion(
+    id: number,
+    with_cp = true
+  ): Promise<QuestionWithForecasts> {
+    return await get<QuestionWithForecasts>(
+      `/questions/${id}/${encodeQueryParams({ with_cp })}`
     );
   }
 

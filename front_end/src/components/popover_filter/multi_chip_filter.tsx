@@ -23,7 +23,9 @@ const MultiChipFilter: FC<Props> = ({ filterId, options, onChange }) => {
         activeValues.filter((o) => o !== option.value)
       );
     } else {
-      sendGAEvent("event", "feedFilterActivated", { value: option.label });
+      sendGAEvent("event", "feedFilterActivated", {
+        event_category: option.label,
+      });
       onChange(filterId, [...activeValues, option.value]);
     }
   };

@@ -15,7 +15,7 @@ import AppThemeProvided from "@/components/theme_provider";
 import { METAC_COLORS } from "@/constants/colors";
 import AuthProvider from "@/contexts/auth_context";
 import ModalProvider from "@/contexts/modal_context";
-import AuthApi from "@/services/auth";
+import NavigationProvider from "@/contexts/navigation_context";
 import ProfileApi from "@/services/profile";
 
 import { CSPostHogProvider } from "./providers";
@@ -141,13 +141,15 @@ export default async function RootLayout({
             <NextIntlClientProvider messages={messages}>
               <AuthProvider user={user}>
                 <ModalProvider>
-                  <NextTopLoader
-                    showSpinner={false}
-                    color={METAC_COLORS.blue["500"].DEFAULT}
-                  />
-                  {children}
-                  <GlobalModals />
-                  <Toaster />
+                  <NavigationProvider>
+                    <NextTopLoader
+                      showSpinner={false}
+                      color={METAC_COLORS.blue["500"].DEFAULT}
+                    />
+                    {children}
+                    <GlobalModals />
+                    <Toaster />
+                  </NavigationProvider>
                 </ModalProvider>
               </AuthProvider>
             </NextIntlClientProvider>
