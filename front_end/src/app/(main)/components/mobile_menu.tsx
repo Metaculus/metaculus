@@ -23,8 +23,8 @@ import LanguageMenu from "@/components/language_menu";
 import ThemeToggle from "@/components/theme_toggle";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
-import { CurrentCommunity } from "@/types/community";
 import { Href } from "@/types/navigation";
+import { Community } from "@/types/projects";
 
 const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
   <div className="flex h-full items-center justify-center px-4 pb-1 pt-2 text-sm font-medium uppercase text-gray-200 opacity-50">
@@ -56,23 +56,32 @@ export const MenuLink: FC<
 };
 
 type Props = {
-  currentCommunity?: CurrentCommunity | null;
+  community?: Community | null;
+  onClick?: (state?: boolean) => void;
 };
 
-const MobileMenu: FC<Props> = ({ currentCommunity }) => {
+const MobileMenu: FC<Props> = ({ community, onClick }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
   const t = useTranslations();
 
-  if (!!currentCommunity) {
+  if (!!community) {
     return (
       <Menu>
         <MenuButton className="color-white flex w-12 flex-col items-center justify-center hover:bg-blue-200-dark active:bg-blue-300-dark lg:hidden lg:items-end lg:justify-end">
           {({ open }) =>
             open ? (
-              <FontAwesomeIcon icon={faMinus} size="lg" />
+              <FontAwesomeIcon
+                icon={faMinus}
+                size="lg"
+                onClick={() => onClick && onClick(false)}
+              />
             ) : (
-              <FontAwesomeIcon icon={faBars} size="lg" />
+              <FontAwesomeIcon
+                icon={faBars}
+                size="lg"
+                onClick={() => onClick && onClick(true)}
+              />
             )
           }
         </MenuButton>
@@ -88,7 +97,7 @@ const MobileMenu: FC<Props> = ({ currentCommunity }) => {
             <SectionTitle>{t("community")}</SectionTitle>
             <MenuLink href={`/questions/`}>{t("questions")}</MenuLink>
             <MenuLink
-              href={`/questions/create/?community=${currentCommunity.slug}`}
+              href={`/questions/create/?community=${community.slug}`}
               className="mx-auto flex !w-[max-content] items-center rounded-full bg-blue-300-dark !px-2.5 !py-1 text-sm capitalize no-underline hover:bg-blue-200-dark"
             >
               <FontAwesomeIcon size="1x" className="mr-1" icon={faPlus} />

@@ -12,7 +12,6 @@ import {
 import { AuthContextType } from "@/types/auth";
 import { CurrentUser } from "@/types/users";
 
-//create a context, with createContext api
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   setUser: () => {},
