@@ -12,15 +12,18 @@ import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 import { Community } from "@/types/projects";
 
+import { useShowCommunity } from "../../community/components/community_context";
 import CommunitiesDropdown from "../communities_dropdown";
 import MobileMenu from "../mobile_menu";
 
 type Props = {
   community: Community | null;
+  alwaysShowName?: boolean;
 };
 
-const CommunityHeader: FC<Props> = ({ community }) => {
+const CommunityHeader: FC<Props> = ({ community, alwaysShowName }) => {
   const t = useTranslations();
+  const { showCommunity } = useShowCommunity();
 
   return (
     <header className="fixed left-0 top-0 z-50 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
@@ -34,7 +37,7 @@ const CommunityHeader: FC<Props> = ({ community }) => {
           </h1>
         </Link>
         <span className="text-xl font-light text-gray-600">/</span>
-        {community && (
+        {community && (showCommunity || alwaysShowName) && (
           <Link
             href={`/community/${community.slug}`}
             className="ml-3 mr-1 max-w-[230px] truncate no-underline hover:underline hover:decoration-gray-600 hover:underline-offset-4"

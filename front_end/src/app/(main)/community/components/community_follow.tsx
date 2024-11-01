@@ -62,16 +62,16 @@ const CommunityFollow: FC<Props> = ({
     <div className={classNames("w-[90px]", className)}>
       {user && isFollowing ? (
         <Button
-          variant="primary"
+          variant="secondary"
           disabled={isLoading}
           onClick={handleUnfollow}
           className="max-h-[32px]"
         >
-          {t("followingButton")}
+          {t("unfollowButton")}
         </Button>
       ) : (
         <Button
-          variant="secondary"
+          variant="primary"
           onClick={handleFollow}
           disabled={isLoading}
           className="max-h-[32px]"
