@@ -59,7 +59,7 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                 <td className="px-2 py-1 text-sm">
                   <Link
                     className="block no-underline"
-                    href={`/questions/${contribution.question_id}`}
+                    href={`/questions/${contribution.post_id}`}
                   >
                     {contribution.question_title}
                   </Link>
