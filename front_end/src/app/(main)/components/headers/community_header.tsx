@@ -4,7 +4,7 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useState } from "react";
 
 import NavUserButton from "@/components/auth";
 import LanguageMenu from "@/components/language_menu";
@@ -24,6 +24,7 @@ type Props = {
 const CommunityHeader: FC<Props> = ({ community, alwaysShowName }) => {
   const t = useTranslations();
   const { showCommunity } = useShowCommunity();
+  const [localShowName, setLocalShowName] = useState(alwaysShowName);
 
   return (
     <header className="fixed left-0 top-0 z-50 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
@@ -37,7 +38,7 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName }) => {
           </h1>
         </Link>
         <span className="text-xl font-light text-gray-600">/</span>
-        {community && (showCommunity || alwaysShowName) && (
+        {community && (showCommunity || localShowName) && (
           <Link
             href={`/community/${community.slug}`}
             className="ml-3 mr-1 max-w-[230px] truncate no-underline hover:underline hover:decoration-gray-600 hover:underline-offset-4"
@@ -79,7 +80,10 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName }) => {
           <ThemeToggle />
         </li>
       </ul>
-      <MobileMenu community={community} />
+      <MobileMenu
+        community={community}
+        onClick={alwaysShowName ? undefined : setLocalShowName}
+      />
     </header>
   );
 };

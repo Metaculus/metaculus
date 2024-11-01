@@ -57,9 +57,10 @@ export const MenuLink: FC<
 
 type Props = {
   community?: Community | null;
+  onClick?: (state?: boolean) => void;
 };
 
-const MobileMenu: FC<Props> = ({ community }) => {
+const MobileMenu: FC<Props> = ({ community, onClick }) => {
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
   const t = useTranslations();
@@ -70,9 +71,17 @@ const MobileMenu: FC<Props> = ({ community }) => {
         <MenuButton className="color-white flex w-12 flex-col items-center justify-center hover:bg-blue-200-dark active:bg-blue-300-dark lg:hidden lg:items-end lg:justify-end">
           {({ open }) =>
             open ? (
-              <FontAwesomeIcon icon={faMinus} size="lg" />
+              <FontAwesomeIcon
+                icon={faMinus}
+                size="lg"
+                onClick={() => onClick && onClick(false)}
+              />
             ) : (
-              <FontAwesomeIcon icon={faBars} size="lg" />
+              <FontAwesomeIcon
+                icon={faBars}
+                size="lg"
+                onClick={() => onClick && onClick(true)}
+              />
             )
           }
         </MenuButton>
