@@ -138,6 +138,7 @@ def serialize_comment_many(
     qs = Comment.objects.filter(pk__in=[c.pk for c in comments])
 
     qs = qs.select_related("included_forecast", "author")
+    qs = qs.prefetch_related("comment_diffs")
     qs = qs.annotate_vote_score()
 
     if current_user and not current_user.is_anonymous:
