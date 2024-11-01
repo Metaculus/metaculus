@@ -15,6 +15,7 @@ export type BECommentType = {
   root_id: number | null;
   parent_id: number | null;
   created_at: string;
+  edited_at: string | null;
   is_soft_deleted: boolean;
   text: string;
   included_forecast?: ForecastType;
@@ -34,6 +35,7 @@ export type CommentType = {
   on_post: number;
   parent_id: number | null;
   created_at: string;
+  edited_at: string | null;
   is_soft_deleted: boolean;
   text: string;
   included_forecast?: ForecastType;

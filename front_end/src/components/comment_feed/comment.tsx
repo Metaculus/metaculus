@@ -20,6 +20,7 @@ import { CommentDate } from "@/components/comment_feed/comment_date";
 import CommentEditor from "@/components/comment_feed/comment_editor";
 import CommentReportModal from "@/components/comment_feed/comment_report_modal";
 import CommentVoter from "@/components/comment_feed/comment_voter";
+import { EditedDate } from "@/components/comment_feed/edited_date";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import DropdownMenu, { MenuItemProps } from "@/components/ui/dropdown_menu";
@@ -284,6 +285,12 @@ const Comment: FC<CommentProps> = ({
             </span>
             <span className="mx-1">·</span>
             <CommentDate comment={comment} />
+            {comment.edited_at ? (
+              <>
+                <span className="mx-1">·</span>
+                <EditedDate edited_at={comment.edited_at} />
+              </>
+            ) : null}
           </span>
         </div>
         <div className="italic text-gray-600 break-anywhere dark:text-gray-600-dark">
@@ -350,6 +357,12 @@ const Comment: FC<CommentProps> = ({
           */}
             <span className="mx-1 opacity-55">·</span>
             <CommentDate comment={comment} />
+            {comment.edited_at ? (
+              <>
+                <span className="mx-1 opacity-55">·</span>
+                <EditedDate edited_at={comment.edited_at} />
+              </>
+            ) : null}
           </span>
           {/*
         <span className="text-gray-600 dark:text-gray-600-dark block text-xs leading-3">

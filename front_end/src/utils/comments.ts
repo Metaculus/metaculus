@@ -9,6 +9,7 @@ export function parseComment(comment: BECommentType): CommentType {
     text: comment.text,
     on_post: comment.on_post,
     created_at: comment.created_at,
+    edited_at: comment.edited_at,
     is_soft_deleted: comment.is_soft_deleted,
     included_forecast: comment.included_forecast,
     is_private: comment.is_private,
