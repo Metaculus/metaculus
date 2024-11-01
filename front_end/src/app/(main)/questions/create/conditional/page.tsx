@@ -1,3 +1,5 @@
+import CommunityHeader from "@/app/(main)/components/headers/community_header";
+import Header from "@/app/(main)/components/headers/header";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
@@ -29,30 +31,39 @@ const QuestionConditionalCreator: React.FC<{
   const mode = extractMode(searchParams, post);
   const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
+
   const communityId = searchParams["community_id"]
-  ? Number(searchParams["community_id"])
-  : undefined;
-const communitiesResponse = communityId
-  ? await ProjectsApi.getCommunities({ ids: [communityId] })
-  : undefined;
-const community = communitiesResponse
-  ? communitiesResponse.results[0]
-  : undefined;
+    ? Number(searchParams["community_id"])
+    : undefined;
+  const communitiesResponse = communityId
+    ? await ProjectsApi.getCommunities({ ids: [communityId] })
+    : undefined;
+  const community = communitiesResponse
+    ? communitiesResponse.results[0]
+    : undefined;
+
   return (
-    <ConditionalForm
-      mode={mode}
-      post={post}
-      conditionParentInit={condition}
-      conditionChildInit={conditionChild}
-      tournament_id={
-        searchParams["tournament_id"]
-          ? Number(searchParams["tournament_id"])
-          : null
-      }
-      community_id={community?.id}
-      tournaments={allTournaments}
-      siteMain={siteMain}
-    />
+    <>
+      {community ? (
+        <CommunityHeader community={community} alwaysShowName />
+      ) : (
+        <Header />
+      )}
+      <ConditionalForm
+        mode={mode}
+        post={post}
+        conditionParentInit={condition}
+        conditionChildInit={conditionChild}
+        tournament_id={
+          searchParams["tournament_id"]
+            ? Number(searchParams["tournament_id"])
+            : null
+        }
+        community_id={community?.id}
+        tournaments={allTournaments}
+        siteMain={siteMain}
+      />
+    </>
   );
 };
 

@@ -1,3 +1,5 @@
+import CommunityHeader from "@/app/(main)/components/headers/community_header";
+import Header from "@/app/(main)/components/headers/header";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
@@ -31,25 +33,32 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
     : undefined;
 
   return (
-    <GroupForm
-      // @ts-ignore
-      subtype={
-        post
-          ? post.group_of_questions?.questions[0]?.type
-          : searchParams["subtype"]
-      }
-      post={post}
-      mode={mode}
-      allCategories={allCategories}
-      tournament_id={
-        searchParams["tournament_id"]
-          ? Number(searchParams["tournament_id"])
-          : undefined
-      }
-      community_id={community?.id}
-      tournaments={allTournaments}
-      siteMain={siteMain}
-    />
+    <>
+      {community ? (
+        <CommunityHeader community={community} alwaysShowName />
+      ) : (
+        <Header />
+      )}
+      <GroupForm
+        // @ts-ignore
+        subtype={
+          post
+            ? post.group_of_questions?.questions[0]?.type
+            : searchParams["subtype"]
+        }
+        post={post}
+        mode={mode}
+        allCategories={allCategories}
+        tournament_id={
+          searchParams["tournament_id"]
+            ? Number(searchParams["tournament_id"])
+            : undefined
+        }
+        community_id={community?.id}
+        tournaments={allTournaments}
+        siteMain={siteMain}
+      />
+    </>
   );
 };
 
