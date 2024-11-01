@@ -648,7 +648,9 @@ def get_contributions(
     scored_question = {score.question for score in scores}
     if "global" not in leaderboard.score_type:
         contributions += [
-            Contribution(score=None, coverage=None, question=question)
+            Contribution(
+                score=None, coverage=None, question=question, post=question.get_post()
+            )
             for question in questions
             if question not in scored_question
         ]
