@@ -121,9 +121,7 @@ const CommunitySettings: FC<Props> = ({ community }) => {
             onChange={(val) => {
               Object.entries(visibilityTypeToProps(val)).forEach(
                 ([key, value]) => {
-                  console.log(val, key, value);
-
-                  setValue(key, value);
+                  setValue(key as keyof CommunityUpdateParams, value);
                 }
               );
             }}

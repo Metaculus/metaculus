@@ -28,7 +28,7 @@ export type CommunitiesParams = PaginationParams & {
   ids?: number[];
 };
 
-export type CommunityUpdateParams = PaginationParams & {
+export type CommunityUpdateParams = {
   name?: string;
   slug?: string;
   description?: string;
