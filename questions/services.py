@@ -553,7 +553,7 @@ def unresolve_question(question: Question):
 
 def close_question(question: Question, actual_close_time: datetime | None = None):
     if question.actual_close_time:
-        raise ValidationError("Question is already closed")
+        raise ValidationError(f"Question {question.id} is already closed")
 
     question.actual_close_time = min(
         actual_close_time or timezone.now(),
@@ -691,11 +691,17 @@ def get_aggregated_forecasts_for_questions(
     questions_map = {q.pk: q for q in questions}
 
     if group_cutoff is not None:
-        group_questions = [q for q in questions if q.group_id]
+        cutoff_questions = [
+            q
+            for q in questions
+            if q.group_id
+            and q.group.graph_type
+            != GroupOfQuestions.GroupOfQuestionsGraphType.FAN_GRAPH
+        ]
 
         recently_weighted = get_recency_weighted_for_questions(questions)
-        group_questions_map = generate_map_from_list(
-            group_questions, lambda q: q.group_id
+        cutoff_questions_map = generate_map_from_list(
+            cutoff_questions, lambda q: q.group_id
         )
 
         def sorting_key(q: Question):
@@ -718,13 +724,13 @@ def get_aggregated_forecasts_for_questions(
                 case "numeric" | "date":
                     return aggregation.centers[0]
                 case "multiple_choice":
-                    return aggregation.forecast_values[0]
+                    return max(aggregation.forecast_values)
 
-        for group_questions in group_questions_map.values():
-            group_questions = sorted(group_questions, key=sorting_key, reverse=True)
+        for cutoff_questions in cutoff_questions_map.values():
+            cutoff_questions = sorted(cutoff_questions, key=sorting_key, reverse=True)
 
             # Exclude other questions from the list
-            for q in group_questions[group_cutoff:]:
+            for q in cutoff_questions[group_cutoff:]:
                 questions.remove(q)
 
     qs = AggregateForecast.objects.filter(question__in=questions).order_by("start_time")
