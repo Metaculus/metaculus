@@ -21,6 +21,7 @@ echo "PORT before: ${PORT}"
 # Propagate nginx port
 PORT="${PORT:-8080}" \
 envsubst '${PORT}' < /etc/nginx/http.d/app_nginx.template > /etc/nginx/http.d/app_nginx.conf
+rm /etc/nginx/http.d/default.conf
 
 echo "PORT after: ${PORT}"
 echo "NGIN CONFIG: "
