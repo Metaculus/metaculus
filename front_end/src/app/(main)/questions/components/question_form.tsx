@@ -30,7 +30,11 @@ import {
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
-import { Tournament, TournamentPreview } from "@/types/projects";
+import {
+  Tournament,
+  TournamentPreview,
+  TournamentType,
+} from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
@@ -136,6 +140,7 @@ export const createQuestionSchemas = (
 type Props = {
   questionType: string;
   tournament_id?: number;
+  community_id?: number;
   allCategories: Category[];
   post?: PostWithForecasts | null;
   mode: "create" | "edit";
@@ -150,6 +155,7 @@ const QuestionForm: FC<Props> = ({
   tournaments,
   siteMain,
   tournament_id = null,
+  community_id = null,
   post = null,
 }) => {
   const { user } = useAuth();
@@ -283,7 +289,10 @@ const QuestionForm: FC<Props> = ({
       <form
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", defaultProject.id);
+            control.setValue(
+              "default_project",
+              community_id ? community_id : defaultProject.id
+            );
           }
 
           // e.preventDefault(); // Good for debugging
@@ -307,14 +316,16 @@ const QuestionForm: FC<Props> = ({
             {t("viewInDjangoAdmin")}
           </a>
         )}
-        <ProjectPickerInput
-          tournaments={tournaments}
-          siteMain={siteMain}
-          currentProject={defaultProject}
-          onChange={(project) => {
-            control.setValue("default_project", project.id);
-          }}
-        />
+        {!community_id && defaultProject.type !== TournamentType.Community && (
+          <ProjectPickerInput
+            tournaments={tournaments}
+            siteMain={siteMain}
+            currentProject={defaultProject}
+            onChange={(project) => {
+              control.setValue("default_project", project.id);
+            }}
+          />
+        )}
         <FormError
           errors={control.formState.errors}
           className="text-red-500 dark:text-red-500-dark"

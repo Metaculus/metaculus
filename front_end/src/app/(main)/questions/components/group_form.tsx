@@ -29,7 +29,11 @@ import {
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
-import { Tournament, TournamentPreview } from "@/types/projects";
+import {
+  Tournament,
+  TournamentPreview,
+  TournamentType,
+} from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
@@ -74,6 +78,7 @@ const createGroupQuestionSchema = (t: ReturnType<typeof useTranslations>) => {
 type Props = {
   subtype: "binary" | "numeric" | "date";
   tournament_id?: number;
+  community_id?: number;
   post?: PostWithForecasts | null;
   mode: "create" | "edit";
   allCategories: Category[];
@@ -88,6 +93,7 @@ const GroupForm: React.FC<Props> = ({
   tournaments,
   siteMain,
   tournament_id = null,
+  community_id = null,
   post = null,
 }) => {
   const router = useRouter();
@@ -282,7 +288,10 @@ const GroupForm: React.FC<Props> = ({
       <form
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", defaultProject.id);
+            control.setValue(
+              "default_project",
+              community_id ? community_id : defaultProject.id
+            );
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
@@ -296,14 +305,16 @@ const GroupForm: React.FC<Props> = ({
         }}
         className="mt-4 flex w-full flex-col gap-4 rounded"
       >
-        <ProjectPickerInput
-          tournaments={tournaments}
-          siteMain={siteMain}
-          currentProject={defaultProject}
-          onChange={(project) => {
-            control.setValue("default_project", project.id);
-          }}
-        />
+        {!community_id && defaultProject.type !== TournamentType.Community && (
+          <ProjectPickerInput
+            tournaments={tournaments}
+            siteMain={siteMain}
+            currentProject={defaultProject}
+            onChange={(project) => {
+              control.setValue("default_project", project.id);
+            }}
+          />
+        )}
         <InputContainer
           labelText={t("longTitle")}
           explanation={t("longTitleExplanation")}

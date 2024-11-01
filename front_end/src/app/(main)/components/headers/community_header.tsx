@@ -62,7 +62,7 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName }) => {
         </li>
         <li>
           <NavLink
-            href={`/questions/create/?community=${community?.slug}`}
+            href={`/questions/create/?community_id=${community?.id}`}
             className="mr-2 flex h-full items-center rounded-full bg-blue-300-dark p-3 py-1 capitalize no-underline hover:bg-blue-200-dark"
             activeClassName="bg-blue-300-dark"
           >

@@ -97,7 +97,7 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
             <SectionTitle>{t("community")}</SectionTitle>
             <MenuLink href={`/questions/`}>{t("questions")}</MenuLink>
             <MenuLink
-              href={`/questions/create/?community=${community.slug}`}
+              href={`/questions/create/?community_id=${community.id}`}
               className="mx-auto flex !w-[max-content] items-center rounded-full bg-blue-300-dark !px-2.5 !py-1 text-sm capitalize no-underline hover:bg-blue-200-dark"
             >
               <FontAwesomeIcon size="1x" className="mr-1" icon={faPlus} />
