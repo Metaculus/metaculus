@@ -305,8 +305,7 @@ const GroupForm: React.FC<Props> = ({
         }}
         className="mt-4 flex w-full flex-col gap-4 rounded"
       >
-        {(!community_id ||
-          defaultProject.type !== TournamentType.Community) && (
+        {!community_id && defaultProject.type !== TournamentType.Community && (
           <ProjectPickerInput
             tournaments={tournaments}
             siteMain={siteMain}

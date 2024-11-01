@@ -15,7 +15,11 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { Post, PostWithForecasts } from "@/types/post";
-import { Tournament, TournamentPreview, TournamentType } from "@/types/projects";
+import {
+  Tournament,
+  TournamentPreview,
+  TournamentType,
+} from "@/types/projects";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
@@ -184,8 +188,7 @@ const ConditionalForm: React.FC<{
             {t("viewInDjangoAdmin")}
           </a>
         )}
-        {(!community_id ||
-          defaultProject.type !== TournamentType.Community) && (
+        {!community_id && defaultProject.type !== TournamentType.Community && (
           <ProjectPickerInput
             tournaments={tournaments}
             siteMain={siteMain}

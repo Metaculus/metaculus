@@ -16,7 +16,11 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { Category, Post, PostWithForecasts } from "@/types/post";
-import { Tournament, TournamentPreview, TournamentType } from "@/types/projects";
+import {
+  Tournament,
+  TournamentPreview,
+  TournamentType,
+} from "@/types/projects";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 
@@ -74,6 +78,7 @@ const NotebookForm: React.FC<Props> = ({
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
+  console.log(post);
   const t = useTranslations();
   const notebookSchema = createNotebookSchema(t);
   const control = useForm({
@@ -166,8 +171,7 @@ const NotebookForm: React.FC<Props> = ({
             {t("viewInDjangoAdmin")}
           </a>
         )}
-        {(!community_id ||
-          defaultProject.type !== TournamentType.Community) && (
+        {!community_id && defaultProject.type !== TournamentType.Community && (
           <ProjectPickerInput
             tournaments={tournaments}
             siteMain={siteMain}

@@ -30,7 +30,11 @@ import {
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
-import { Tournament, TournamentPreview, TournamentType } from "@/types/projects";
+import {
+  Tournament,
+  TournamentPreview,
+  TournamentType,
+} from "@/types/projects";
 import { QuestionType } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
@@ -312,8 +316,7 @@ const QuestionForm: FC<Props> = ({
             {t("viewInDjangoAdmin")}
           </a>
         )}
-        {(!community_id ||
-          defaultProject.type !== TournamentType.Community) && (
+        {!community_id && defaultProject.type !== TournamentType.Community && (
           <ProjectPickerInput
             tournaments={tournaments}
             siteMain={siteMain}
