@@ -553,7 +553,7 @@ def unresolve_question(question: Question):
 
 def close_question(question: Question, actual_close_time: datetime | None = None):
     if question.actual_close_time:
-        raise ValidationError("Question is already closed")
+        raise ValidationError(f"Question {question.id} is already closed")
 
     question.actual_close_time = min(
         actual_close_time or timezone.now(),

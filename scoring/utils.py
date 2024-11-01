@@ -40,7 +40,9 @@ def score_question(
     spot_forecast_time = spot_forecast_time or (
         question.cp_reveal_time.timestamp() if question.cp_reveal_time else None
     )
-    score_types = score_types or [c[0] for c in Score.ScoreTypes.choices]
+    score_types = score_types or [
+        c[0] for c in Score.ScoreTypes.choices if c[0] != Score.ScoreTypes.MANUAL
+    ]
 
     previous_scores = Score.objects.filter(
         question=question, score_type__in=score_types
