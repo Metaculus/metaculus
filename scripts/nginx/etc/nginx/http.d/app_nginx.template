@@ -19,12 +19,13 @@ server {
         client_max_body_size 10M;
     }
 
-    location /api/ {
+    location ~ ^/(api|api2|admin|proxy|static)/ {
         include proxy_params;
 
         proxy_pass http://unix:/app/gunicorn.sock;
         proxy_redirect              off;
         proxy_buffering             off;
+
         keepalive_timeout           950s;
         client_max_body_size 10M;
     }
