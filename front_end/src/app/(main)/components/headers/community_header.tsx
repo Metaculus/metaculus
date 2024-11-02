@@ -4,23 +4,27 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import { FC, useState } from "react";
 
 import NavUserButton from "@/components/auth";
 import LanguageMenu from "@/components/language_menu";
 import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
-import { CurrentCommunity } from "@/types/community";
+import { Community } from "@/types/projects";
 
+import { useShowActiveCommunityContext } from "../../community/components/community_context";
 import CommunitiesDropdown from "../communities_dropdown";
 import MobileMenu from "../mobile_menu";
 
 type Props = {
-  currentCommunity: CurrentCommunity | null;
+  community: Community | null;
+  alwaysShowName?: boolean;
 };
 
-const CommunityHeader: FC<Props> = ({ currentCommunity }) => {
+const CommunityHeader: FC<Props> = ({ community, alwaysShowName }) => {
   const t = useTranslations();
+  const { showActiveCommunity } = useShowActiveCommunityContext();
+  const [localShowName, setLocalShowName] = useState(alwaysShowName);
 
   return (
     <header className="fixed left-0 top-0 z-50 flex min-h-12 w-full flex-auto flex-wrap items-stretch justify-between border-b border-blue-200-dark bg-blue-900 text-gray-0">
@@ -33,16 +37,16 @@ const CommunityHeader: FC<Props> = ({ currentCommunity }) => {
             M
           </h1>
         </Link>
-        <span className="text-xl font-light text-gray-600">/</span>
-        {currentCommunity && (
+        <span className="text-2xl font-extralight text-gray-600">/</span>
+        {community && (showActiveCommunity || localShowName) && (
           <Link
-            href={`/community/${currentCommunity.slug}`}
+            href={`/community/${community.slug}`}
             className="ml-3 mr-1 max-w-[230px] truncate no-underline hover:underline hover:decoration-gray-600 hover:underline-offset-4"
           >
-            {currentCommunity.name}
+            {community.name}
           </Link>
         )}
-        <CommunitiesDropdown currentCommunity={currentCommunity} />
+        <CommunitiesDropdown community={community} />
       </div>
 
       {/*Desktop items*/}
@@ -58,7 +62,7 @@ const CommunityHeader: FC<Props> = ({ currentCommunity }) => {
         </li>
         <li>
           <NavLink
-            href={`/questions/create/?community=${currentCommunity?.slug}`}
+            href={`/questions/create/?community_id=${community?.id}`}
             className="mr-2 flex h-full items-center rounded-full bg-blue-300-dark p-3 py-1 capitalize no-underline hover:bg-blue-200-dark"
             activeClassName="bg-blue-300-dark"
           >
@@ -76,7 +80,10 @@ const CommunityHeader: FC<Props> = ({ currentCommunity }) => {
           <ThemeToggle />
         </li>
       </ul>
-      <MobileMenu currentCommunity={currentCommunity} />
+      <MobileMenu
+        community={community}
+        onClick={alwaysShowName ? undefined : setLocalShowName}
+      />
     </header>
   );
 };
