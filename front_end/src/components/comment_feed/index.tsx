@@ -263,7 +263,7 @@ const CommentFeed: FC<Props> = ({
   return (
     <section
       id={id}
-      className="max-w-full border-transparent bg-gray-0 px-3 py-2 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border"
+      className="w-[48rem] max-w-full border-transparent bg-gray-0 px-3 py-2 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border"
     >
       <div className="mb-4 mt-2 flex flex-col items-start gap-2">
         <div className="flex w-full flex-col justify-between gap-4 md:flex-row md:gap-3">
