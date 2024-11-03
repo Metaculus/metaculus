@@ -73,7 +73,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
     <>
       <button
         className={classNames(
-          "mb-1 mt-2.5 flex w-full items-center justify-center gap-2 rounded-sm rounded-sm px-2 py-1 text-sm text-blue-700 no-underline hover:bg-blue-400 disabled:bg-gray-0 dark:text-blue-700-dark dark:hover:bg-blue-700/65 disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark",
+          "mb-1 mt-2.5 flex w-full items-center justify-center gap-2 rounded-sm rounded-sm px-1.5 py-1 text-sm text-blue-700 no-underline hover:bg-blue-400 disabled:bg-gray-0 dark:text-blue-700-dark dark:hover:bg-blue-700/65 disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark md:px-2",
           {
             "border border-transparent bg-blue-400/50 dark:bg-blue-700/30":
               !childrenExpanded,
@@ -97,30 +97,28 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
             : t("showReplyWithCount", { count: getTreeSize(commentChildren) })}
         </span>
       </button>
-      <div
-        className={classNames(
-          "relative",
-          treeDepth < 5 ? "pl-3" : null,
-          childrenExpanded ? "pt-1.5" : null
-        )}
-      >
-        {treeDepth < 5 && (
-          <div
-            className="absolute inset-y-0 -left-2 top-2 w-4 cursor-pointer after:absolute after:inset-y-0 after:left-2 after:block after:w-px after:border-l after:border-blue-400 after:content-[''] after:hover:border-blue-600 after:dark:border-blue-600/80 after:hover:dark:border-blue-400/80"
-            onClick={() => {
-              setChildrenExpanded(!childrenExpanded);
-            }}
-          />
-        )}
+      <div className={classNames("relative", childrenExpanded ? "pt-1" : null)}>
         {childrenExpanded &&
-          sortedCommentChildren.map((child: CommentType) => (
-            <div
-              key={child.id}
-              className="my-1 rounded-md bg-blue-500/15 px-2.5 py-1.5 dark:bg-blue-500/10"
-            >
-              <Comment comment={child} treeDepth={treeDepth} sort={sort} />
-            </div>
-          ))}
+          sortedCommentChildren.map((child: CommentType) => {
+            const opacityClass =
+              treeDepth === 1
+                ? "bg-blue-100 dark:bg-blue-100-dark pr-1.5 border-r rounded-r-md"
+                : treeDepth === 2
+                  ? "bg-blue-200 dark:bg-blue-200-dark pr-1.5 border-r rounded-r-md"
+                  : "bg-blue-200 dark:bg-blue-200-dark border-r-0 pr-0.5";
+
+            return (
+              <div
+                key={child.id}
+                className={classNames(
+                  "my-1 rounded-l-md border border-blue-500/70 py-1.5 pl-1.5 dark:border-blue-400-dark md:pl-2",
+                  opacityClass
+                )}
+              >
+                <Comment comment={child} treeDepth={treeDepth} sort={sort} />
+              </div>
+            );
+          })}
       </div>
     </>
   );
@@ -457,7 +455,10 @@ const Comment: FC<CommentProps> = ({
                 ))}
             </div>
 
-            <div ref={isMobileScreen ? cmmContext.setAnchorRef : null}>
+            <div
+              ref={isMobileScreen ? cmmContext.setAnchorRef : null}
+              className={classNames(treeDepth > 1 && "pr-1.5 md:pr-2")}
+            >
               <DropdownMenu items={menuItems} />
             </div>
           </div>

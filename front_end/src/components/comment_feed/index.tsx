@@ -304,15 +304,19 @@ const CommentFeed: FC<Props> = ({
       {comments.map((comment: CommentType) => (
         <div
           key={comment.id}
-          className={classNames("my-1.5 rounded-md border px-2.5 py-1.5", {
-            "border-blue-400 dark:border-blue-400-dark": !(
-              postData?.last_viewed_at &&
-              new Date(postData.last_viewed_at) < new Date(comment.created_at)
-            ),
-            "border-blue-500 bg-gradient-to-b from-blue-300/40 to-blue-300/20 dark:border-blue-500-dark dark:from-blue-300-dark/35 dark:to-blue-300-dark/15":
-              postData?.last_viewed_at &&
-              new Date(postData.last_viewed_at) < new Date(comment.created_at),
-          })}
+          className={classNames(
+            "my-1.5 rounded-md border px-2 py-1 md:px-2.5 md:py-1.5",
+            {
+              "border-blue-400 dark:border-blue-400-dark": !(
+                postData?.last_viewed_at &&
+                new Date(postData.last_viewed_at) < new Date(comment.created_at)
+              ),
+              "border-purple-500 bg-gradient-to-b from-purple-300/30 to-purple-300/0 dark:border-purple-500-dark dark:from-purple-300-dark/20 dark:to-purple-300-dark/0":
+                postData?.last_viewed_at &&
+                new Date(postData.last_viewed_at) <
+                  new Date(comment.created_at),
+            }
+          )}
         >
           {profileId && (
             <h3 className="mb-2 text-lg font-semibold">
