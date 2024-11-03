@@ -2,6 +2,7 @@
 
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, useCallback, useEffect, useState } from "react";
@@ -19,7 +20,6 @@ import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { parseComment } from "@/utils/comments";
 import { logError } from "@/utils/errors";
-import classNames from "classnames";
 
 import Button from "../ui/button";
 import { FormErrorMessage } from "../ui/form_field";
@@ -261,36 +261,42 @@ const CommentFeed: FC<Props> = ({
   ];
 
   return (
-    <section id={id}>
-      <hr className="my-2 border-blue-400 dark:border-blue-400-dark" />
-      <div className="my-2 flex flex-row flex-wrap items-center gap-4">
-        <h2
-          className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
-          id="comments"
-        >
-          {t("comments")}
-        </h2>
-        {!profileId && user && (
-          <ButtonGroup
-            value={feedFilters.is_private ? "private" : "public"}
-            buttons={feedOptions}
-            onChange={(section) => {
-              handleFilterChange("is_private", section === "private");
-            }}
-            variant="tertiary"
-          />
-        )}
-        <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
-          <Button variant="text" className="capitalize">
-            {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
-              "sort"}
-            <FontAwesomeIcon icon={faChevronDown} />
-          </Button>
-        </DropdownMenu>
-        <span>
-          {totalCount ? `${totalCount} ` : ""}
-          {t("commentsWithCount", { count: totalCount })}
-        </span>
+    <section
+      id={id}
+      className="max-w-full border-transparent bg-gray-0 px-3 py-2 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border"
+    >
+      <div className="mb-4 mt-2 flex flex-col items-start gap-2">
+        <div className="flex w-full flex-col justify-between gap-4 md:flex-row md:gap-3">
+          <h2
+            className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
+            id="comments"
+          >
+            {t("comments")}
+          </h2>
+          {!profileId && user && (
+            <ButtonGroup
+              value={feedFilters.is_private ? "private" : "public"}
+              buttons={feedOptions}
+              onChange={(section) => {
+                handleFilterChange("is_private", section === "private");
+              }}
+              variant="tertiary"
+            />
+          )}
+        </div>
+        <div className="flex flex-row items-center justify-start gap-1">
+          <span className="text-sm text-gray-600 text-gray-600-dark">
+            {totalCount ? `${totalCount} ` : ""}
+            {t("commentsWithCount", { count: totalCount })}
+          </span>
+          <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
+            <Button variant="text" className="capitalize">
+              {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
+                "sort"}
+              <FontAwesomeIcon icon={faChevronDown} />
+            </Button>
+          </DropdownMenu>
+        </div>
       </div>
       {postId && (
         <CommentEditor

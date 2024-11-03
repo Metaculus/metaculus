@@ -90,18 +90,18 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
   if (user == null)
     return (
-      <>
-        <Textarea
-          disabled
-          placeholder={t("youMustLogInToComment")}
-          className="mt-4 w-full bg-gray-100 dark:bg-gray-100-dark"
-        />
-        <div className="my-4 flex justify-end gap-3">
-          <Button onClick={() => setCurrentModal({ type: "signin" })}>
-            {t("logIn")}
-          </Button>
-        </div>
-      </>
+      <div className="mb-4 w-full text-center text-gray-600 dark:text-gray-600-dark">
+        {t.rich("youMustLogInToComment", {
+          link: (chunks) => (
+            <span
+              className="cursor-pointer lowercase text-blue-700 underline underline-offset-2 hover:text-blue-800 dark:text-blue-700-dark hover:dark:text-blue-800-dark"
+              onClick={() => setCurrentModal({ type: "signin" })}
+            >
+              {chunks}
+            </span>
+          ),
+        })}
+      </div>
     );
 
   return (
@@ -123,7 +123,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
         <IncludedForecast author="test" forecastValue={test} />
       )*/}
       {isEditing && (
-        <div className="border border-gray-500 dark:border-gray-500-dark">
+        <div className="rounded-md border border-blue-400 dark:border-blue-400-dark">
           <MarkdownEditor
             key={rerenderKey}
             mode="write"
