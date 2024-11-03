@@ -109,7 +109,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
               new Date(lastViewedAt) < new Date(child.created_at);
 
             const opacityClass =
-              treeDepth === 1
+              treeDepth % 2 === 1 && treeDepth <= 5
                 ? "bg-blue-100 dark:bg-blue-100-dark pr-1.5 border-r rounded-r-md"
                 : treeDepth === 2
                   ? "bg-blue-200 dark:bg-blue-200-dark pr-1.5 border-r rounded-r-md"
@@ -119,7 +119,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
               <div
                 key={child.id}
                 className={classNames(
-                  "my-1 rounded-l-md border py-1.5 pl-1.5 md:pl-2",
+                  "my-1 rounded-l-md border py-1.5 pl-1.5 md:pl-2.5",
                   opacityClass,
                   {
                     "border-blue-500/70 dark:border-blue-400-dark": !isUnread,
