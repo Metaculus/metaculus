@@ -303,13 +303,7 @@ const Comment: FC<CommentProps> = ({
 
   return (
     <div id={`comment-${comment.id}`} ref={commentRef}>
-      <div
-        className={classNames("", {
-          "":
-            lastViewedAt &&
-            new Date(lastViewedAt) < new Date(comment.created_at),
-        })}
-      >
+      <div>
         <CmmOverlay
           forecast={100 * userForecast}
           updateForecast={updateForecast}

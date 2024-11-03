@@ -19,6 +19,7 @@ import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import { QuestionType } from "@/types/question";
 import { parseComment } from "@/utils/comments";
 import { logError } from "@/utils/errors";
+import classNames from "classnames";
 
 import Button from "../ui/button";
 import { FormErrorMessage } from "../ui/form_field";
@@ -303,7 +304,15 @@ const CommentFeed: FC<Props> = ({
       {comments.map((comment: CommentType) => (
         <div
           key={comment.id}
-          className="my-1.5 rounded-md border border-blue-400 px-2.5 py-1.5 dark:border-blue-400-dark"
+          className={classNames("my-1.5 rounded-md border px-2.5 py-1.5", {
+            "border-blue-400 dark:border-blue-400-dark": !(
+              postData?.last_viewed_at &&
+              new Date(postData.last_viewed_at) < new Date(comment.created_at)
+            ),
+            "border-blue-500 bg-gradient-to-b from-blue-300/40 to-blue-300/20 dark:border-blue-500-dark dark:from-blue-300-dark/35 dark:to-blue-300-dark/15":
+              postData?.last_viewed_at &&
+              new Date(postData.last_viewed_at) < new Date(comment.created_at),
+          })}
         >
           {profileId && (
             <h3 className="mb-2 text-lg font-semibold">
