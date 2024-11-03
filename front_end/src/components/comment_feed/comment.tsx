@@ -41,6 +41,8 @@ type CommentChildrenTreeProps = {
   expandedChildren?: boolean;
   treeDepth: number;
   sort: SortOption;
+  postData?: PostWithForecasts;
+  lastViewedAt?: string;
 };
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
@@ -48,6 +50,8 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   expandedChildren = false,
   treeDepth,
   sort,
+  postData,
+  lastViewedAt,
 }) => {
   const t = useTranslations();
   const sortedCommentChildren = sortComments([...commentChildren], sort);
@@ -100,6 +104,10 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
       <div className={classNames("relative", childrenExpanded ? "pt-1" : null)}>
         {childrenExpanded &&
           sortedCommentChildren.map((child: CommentType) => {
+            const isUnread =
+              lastViewedAt &&
+              new Date(lastViewedAt) < new Date(child.created_at);
+
             const opacityClass =
               treeDepth === 1
                 ? "bg-blue-100 dark:bg-blue-100-dark pr-1.5 border-r rounded-r-md"
@@ -111,11 +119,22 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
               <div
                 key={child.id}
                 className={classNames(
-                  "my-1 rounded-l-md border border-blue-500/70 py-1.5 pl-1.5 dark:border-blue-400-dark md:pl-2",
-                  opacityClass
+                  "my-1 rounded-l-md border py-1.5 pl-1.5 md:pl-2",
+                  opacityClass,
+                  {
+                    "border-blue-500/70 dark:border-blue-400-dark": !isUnread,
+                    "border-purple-500 bg-gradient-to-b from-purple-300/30 to-purple-300/0 dark:border-purple-500-dark/60 dark:from-purple-300-dark/20 dark:to-purple-300-dark/0":
+                      isUnread,
+                  }
                 )}
               >
-                <Comment comment={child} treeDepth={treeDepth} sort={sort} />
+                <Comment
+                  comment={child}
+                  treeDepth={treeDepth}
+                  sort={sort}
+                  postData={postData}
+                  lastViewedAt={lastViewedAt}
+                />
               </div>
             );
           })}
@@ -293,6 +312,8 @@ const Comment: FC<CommentProps> = ({
             commentChildren={comment.children}
             treeDepth={treeDepth + 1}
             sort={sort}
+            postData={postData}
+            lastViewedAt={lastViewedAt}
           />
         )}
       </div>
@@ -483,6 +504,8 @@ const Comment: FC<CommentProps> = ({
           expandedChildren={!onProfile}
           treeDepth={treeDepth + 1}
           sort={sort}
+          postData={postData}
+          lastViewedAt={lastViewedAt}
         />
       )}
       <CommentReportModal
