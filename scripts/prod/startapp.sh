@@ -16,8 +16,14 @@ trap "exit" INT TERM ERR
 cd /app/
 source venv/bin/activate
 
-export NEXT_PUBLIC_APP_URL="http://localhost:$PORT"
+# Propagate nginx port
+PORT="${PORT:-8080}" \
+envsubst '${PORT}' < /etc/nginx/http.d/app_nginx.template > /etc/nginx/http.d/app_nginx.conf
+rm /etc/nginx/http.d/default.conf
+
 export UV_THREADPOOL_SIZE=6
 export NODE_OPTIONS="--max-old-space-size=2048"
-(gunicorn metaculus_web.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --workers $GUNICORN_WORKERS --threads 4 --timeout 25 2>&1 | sed 's/^/[Backend]: /') &
-(cd front_end && npm run start 2>&1 | sed 's/^/[Frontend]: /')
+(gunicorn metaculus_web.wsgi:application --bind=unix:./gunicorn.sock --access-logfile - --workers $GUNICORN_WORKERS --threads 4 --timeout 25 2>&1 | sed 's/^/[Backend]: /') &
+(cd front_end && PORT=3000 pm2-runtime npm -- start 2>&1 | sed 's/^/[Frontend]: /') &
+# Starting nginx
+nginx

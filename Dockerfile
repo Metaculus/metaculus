@@ -17,7 +17,9 @@ RUN apk add --no-cache --update python3 py3-pip bash curl git \
     xz-dev \
     python3-dev \
     py3-openssl \
-    vim
+    vim \
+    gettext \
+    nginx
 
 RUN curl https://pyenv.run | bash && \
     chmod -R 777 "/root/.pyenv/bin"
@@ -62,6 +64,17 @@ RUN npm ci
 FROM base AS final_env
 WORKDIR /app
 
+# Install nginx
+COPY ./scripts/nginx/ /
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+# Changing ownership and user rights to run as non-root user
+RUN mkdir -p /var/cache/nginx && chown -R 1001:0 /var/cache/nginx && \
+    mkdir -p /var/log/nginx  && chown -R 1001:0 /var/log/nginx && \
+    mkdir -p /var/lib/nginx  && chown -R 1001:0 /var/lib/nginx && \
+    touch /run/nginx.pid && chown -R 1001:0 /run/nginx.pid && \
+    chown -R 1001:0 /etc/nginx && \
+    rm /etc/nginx/http.d/default.conf
+
 # This is done to copy only the source code from HEAD into the image to avoid a COPY . and managing a long .dockerignore
 RUN --mount=type=bind,source=.git/,target=/tmp/app/.git/ \
 git clone /tmp/app/.git/ /app/
@@ -72,12 +85,13 @@ COPY --from=frontend_deps /app/front_end/node_modules /app/front_end/node_module
 
 ENV NODE_ENV=production
 RUN --mount=type=secret,id=frontend_env,target=/app/front_end/.env cd front_end && npm run build
+RUN npm install pm2 -g
 
 RUN source venv/bin/activate && ./manage.py collectstatic --noinput
 
-ENV PORT=3000
+ENV PORT=8080
 ENV GUNICORN_WORKERS=4
-EXPOSE 3000
+EXPOSE 8080
 
 FROM final_env AS release
 CMD ["sh", "-c", "scripts/prod/release.sh"]

@@ -61,30 +61,6 @@ const nextConfig = {
       },
     ];
   },
-  rewrites: () => [
-    // Django Admin rewrites
-    {
-      source: "/admin/:path*",
-      destination: `${API_BASE_URL}/admin/:path*/`,
-    },
-    {
-      source: "/api2/:path*/",
-      destination: `${API_BASE_URL}/api2/:path*/`,
-    },
-    {
-      source: "/proxy/:path*/",
-      destination: `${API_BASE_URL}/proxy/:path*/`,
-    },
-    {
-      source: "/api/:path*/",
-      destination: `${API_BASE_URL}/api/:path*/`,
-    },
-    // Assets
-    {
-      source: "/static/:path*",
-      destination: `${API_BASE_URL}/static/:path*`,
-    },
-  ],
   eslint: {
     ignoreDuringBuilds: true,
   },
