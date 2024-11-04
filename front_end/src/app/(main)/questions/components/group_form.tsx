@@ -224,6 +224,8 @@ const GroupForm: React.FC<Props> = ({
             cp_reveal_time: x.cp_reveal_time,
             label: extractQuestionGroupName(x.title),
             scaling: x.scaling,
+            open_lower_bound: x.open_lower_bound,
+            open_upper_bound: x.open_upper_bound,
           };
         })
       : []
@@ -547,7 +549,7 @@ const GroupForm: React.FC<Props> = ({
                         defaultOpenLowerBound={subQuestion.open_lower_bound}
                         // @ts-ignore
                         defaultOpenUpperBound={subQuestion.open_upper_bound}
-                        defaultZeroPoint={subQuestion.zero_point}
+                        defaultZeroPoint={subQuestion.scaling.zero_point}
                         hasForecasts={
                           subquestionHasForecasts && mode !== "create"
                         }
