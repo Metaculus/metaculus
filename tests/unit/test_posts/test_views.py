@@ -8,13 +8,13 @@ from rest_framework.reverse import reverse
 
 from posts.models import Post, PostUserSnapshot, PostSubscription
 from projects.models import Project
+from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
-from questions.models import Question
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
-from tests.unit.test_questions.factories import create_question
+from tests.unit.test_questions.fixtures import *  # noqa
 
 
 class TestPostCreate:
@@ -455,3 +455,45 @@ def test_post_subscriptions_update(user1, user1_client):
     assert qs.count() == 4
 
     assert qs.get(type="specific_time").pk == new_specific_time.pk
+
+
+@freeze_time("2024-11-17T12:00Z")
+def test_approve_post(user1, user1_client, question_binary):
+    tournament = factory_project(
+        type=Project.ProjectTypes.TOURNAMENT,
+        override_permissions={user1.pk: ObjectPermission.ADMIN},
+    )
+    post = factory_post(
+        author=user1,
+        curation_status=Post.CurationStatus.PENDING,
+        default_project=tournament,
+        question=question_binary,
+    )
+
+    url = reverse("post-approve", kwargs={"pk": post.pk})
+    response = user1_client.post(
+        url,
+        {
+            "open_time": "2024-11-17T11:00Z",
+            "cp_reveal_time": "2024-11-18T11:00Z",
+        },
+    )
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    post.refresh_from_db()
+
+    assert post.question.open_time == make_aware(datetime.datetime(2024, 11, 17, 11))
+    assert post.question.cp_reveal_time == make_aware(
+        datetime.datetime(2024, 11, 18, 11)
+    )
+    assert post.open_time == make_aware(datetime.datetime(2024, 11, 17, 11))
+
+    # Approve again
+    response = user1_client.post(
+        url,
+        {
+            "open_time": "2024-11-17T11:00Z",
+            "cp_reveal_time": "2024-11-18T11:00Z",
+        },
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
