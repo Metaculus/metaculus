@@ -362,6 +362,7 @@ def approve_post(post: Post, open_time: date, cp_reveal_time: date):
 
     post.save()
     Question.objects.bulk_update(questions, fields=["open_time", "cp_reveal_time"])
+    post.update_pseudo_materialized_fields()
 
 
 def submit_for_review_post(post: Post):
