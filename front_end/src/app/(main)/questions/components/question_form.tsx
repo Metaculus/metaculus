@@ -434,9 +434,6 @@ const QuestionForm: FC<Props> = ({
             defaultOpenUpperBound={post?.question?.open_upper_bound}
             defaultZeroPoint={post?.question?.scaling.zero_point}
             hasForecasts={hasForecasts && mode !== "create"}
-            canSeeLogarithmic={
-              post?.user_permission === ProjectPermissions.ADMIN || !post
-            }
             onChange={(
               rangeMin,
               rangeMax,

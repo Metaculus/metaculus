@@ -553,10 +553,6 @@ const GroupForm: React.FC<Props> = ({
                         hasForecasts={
                           subquestionHasForecasts && mode !== "create"
                         }
-                        canSeeLogarithmic={
-                          post?.user_permission === ProjectPermissions.ADMIN ||
-                          !post
-                        }
                         onChange={(
                           range_min,
                           range_max,

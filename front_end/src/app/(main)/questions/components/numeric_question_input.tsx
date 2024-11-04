@@ -30,7 +30,6 @@ const NumericQuestionInput: React.FC<{
   defaultOpenLowerBound: boolean | undefined | null;
   defaultZeroPoint: number | undefined | null;
   hasForecasts: boolean;
-  canSeeLogarithmic: boolean | undefined;
 }> = ({
   onChange,
   questionType,
@@ -40,7 +39,6 @@ const NumericQuestionInput: React.FC<{
   defaultOpenLowerBound,
   defaultZeroPoint,
   hasForecasts,
-  canSeeLogarithmic,
 }) => {
   const [errors, setError] = useState<string[]>([]);
   const [max, setMax] = useState(defaultMax);
@@ -288,61 +286,57 @@ const NumericQuestionInput: React.FC<{
             </div>
           </>
         }
-        {canSeeLogarithmic && (
-          <div>
-            <span className="mr-2">Logarithmic scaling?</span>
-            <Input
-              disabled={hasForecasts}
-              type="checkbox"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                if (e.target.checked) {
-                  if (questionType == QuestionType.Numeric) {
-                    setZeroPoint(0);
-                  } else {
-                    setZeroPoint(
-                      (Date.now() - 1000 * 60 * 60 * 24 * 365) / 1000
-                    );
-                  }
+        <div>
+          <span className="mr-2">Logarithmic scaling?</span>
+          <Input
+            disabled={hasForecasts}
+            type="checkbox"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              if (e.target.checked) {
+                if (questionType == QuestionType.Numeric) {
+                  setZeroPoint(0);
                 } else {
-                  setZeroPoint(null);
+                  setZeroPoint((Date.now() - 1000 * 60 * 60 * 24 * 365) / 1000);
                 }
-              }}
-              checked={zeroPoint !== null && zeroPoint !== undefined}
-            />
-            {zeroPoint !== null &&
-              zeroPoint !== undefined &&
-              (questionType == QuestionType.Numeric ? (
-                <div className="ml-2">
-                  <span className="mr-2">Zero Point</span>
-                  <Input
-                    readOnly={hasForecasts}
-                    disabled={hasForecasts}
-                    type="float"
-                    onChange={(e) => {
-                      setZeroPoint(Number(e.target.value));
-                    }}
-                    defaultValue={zeroPoint}
-                  />
-                </div>
-              ) : (
-                <div className="ml-2">
-                  <span className="mr-2">Zero Point</span>
-                  <Input
-                    readOnly={hasForecasts}
-                    disabled={hasForecasts}
-                    type="datetime-local"
-                    onChange={(e) => {
-                      setZeroPoint(new Date(e.target.value).getTime() / 1000);
-                    }}
-                    defaultValue={format(
-                      new Date(!Number.isNaN(zeroPoint) ? zeroPoint * 1000 : 0),
-                      "yyyy-MM-dd'T'HH:mm"
-                    )}
-                  />
-                </div>
-              ))}
-          </div>
-        )}
+              } else {
+                setZeroPoint(null);
+              }
+            }}
+            checked={zeroPoint !== null && zeroPoint !== undefined}
+          />
+          {zeroPoint !== null &&
+            zeroPoint !== undefined &&
+            (questionType == QuestionType.Numeric ? (
+              <div className="ml-2">
+                <span className="mr-2">Zero Point</span>
+                <Input
+                  readOnly={hasForecasts}
+                  disabled={hasForecasts}
+                  type="float"
+                  onChange={(e) => {
+                    setZeroPoint(Number(e.target.value));
+                  }}
+                  defaultValue={zeroPoint}
+                />
+              </div>
+            ) : (
+              <div className="ml-2">
+                <span className="mr-2">Zero Point</span>
+                <Input
+                  readOnly={hasForecasts}
+                  disabled={hasForecasts}
+                  type="datetime-local"
+                  onChange={(e) => {
+                    setZeroPoint(new Date(e.target.value).getTime() / 1000);
+                  }}
+                  defaultValue={format(
+                    new Date(!Number.isNaN(zeroPoint) ? zeroPoint * 1000 : 0),
+                    "yyyy-MM-dd'T'HH:mm"
+                  )}
+                />
+              </div>
+            ))}
+        </div>
         {errors.length === 0 && !isNil(max) && !isNil(min) && (
           <>
             Example input chart:
