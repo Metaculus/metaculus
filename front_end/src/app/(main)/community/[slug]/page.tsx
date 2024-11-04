@@ -26,7 +26,6 @@ export default async function IndividualCommunity({
   const community = await ProjectsApi.getCommunity(slug);
 
   const questionFilters = generateFiltersFromSearchParams(searchParams, {
-    // Default Feed ordering should be hotness
     defaultOrderBy: QuestionOrder.HotDesc,
   });
   const pageFilters: PostsParams = {

@@ -14,6 +14,7 @@ type Props<T> = {
   onClick?: (value: string) => void;
   variant?: ButtonVariant;
   activeVariant?: ButtonVariant;
+  className?: string;
 };
 
 const ButtonGroup = <T extends string>({
@@ -23,6 +24,7 @@ const ButtonGroup = <T extends string>({
   onClick,
   variant,
   activeVariant = "primary",
+  className,
 }: Props<T>) => {
   return (
     <div className="flex">
@@ -41,7 +43,8 @@ const ButtonGroup = <T extends string>({
                 ? "rounded-r-none"
                 : index !== buttons.length - 1
                   ? "ml-[-1px] rounded-none"
-                  : "ml-[-1px] rounded-l-none")
+                  : "ml-[-1px] rounded-l-none"),
+            className
           )}
         >
           {button.label}

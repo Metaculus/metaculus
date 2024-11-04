@@ -1,31 +1,71 @@
-import React from "react";
-import invariant from "ts-invariant";
+import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import React, { Suspense } from "react";
 
 import CommunitySettings from "@/app/(main)/community/[slug]/settings/components/settings";
-import ShowActiveCommunityProvider from "@/app/(main)/community/components/community_context";
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
+import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
+import AwaitedPostsFeed from "@/components/posts_feed";
+import LoadingIndicator from "@/components/ui/loading_indicator";
+import { PostsParams } from "@/services/posts";
 import ProjectsApi from "@/services/projects";
+import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
+import { QuestionOrder } from "@/types/question";
+
+import CommunityFilters from "./components/community_filters";
+import CommunityManagement from "./components/community_management";
 
 type Props = {
   params: { slug: string };
+  searchParams: SearchParams;
 };
 
-export default async function CommunityManagementSettings({ params }: Props) {
+export default async function CommunityManagementSettings({
+  params,
+  searchParams,
+}: Props) {
   const { slug } = params;
-
+  const t = await getTranslations();
   const community = await ProjectsApi.getCommunity(slug);
-  invariant(
-    community.user_permission === ProjectPermissions.ADMIN,
-    `Permission Denied`
-  );
+  if (community.user_permission !== ProjectPermissions.ADMIN) {
+    return redirect(`/community/${community.slug}`);
+  }
 
+  const questionFilters = generateFiltersFromSearchParams(searchParams, {
+    defaultOrderBy: QuestionOrder.HotDesc,
+  });
+  const pageFilters: PostsParams = {
+    ...questionFilters,
+    community: slug,
+  };
+
+  const mode = searchParams.mode || "questions";
   return (
-    <ShowActiveCommunityProvider>
-      <CommunityHeader community={community} />
+    <>
+      <CommunityHeader community={community} alwaysShowName />
       <main className="mx-2 my-4 min-h-min max-w-full flex-auto rounded-lg border border-blue-500 bg-gray-0/50 px-3 py-4 dark:border-blue-600/50 dark:bg-gray-0-dark xs:mx-5 xs:px-8 xs:py-8 md:mx-auto md:max-w-[796px]">
-        <CommunitySettings community={community} />
+        <CommunityManagement community={community} mode={mode as string} />
+        {mode === "questions" && (
+          <>
+            <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-0 no-scrollbar sm:p-0 sm:pt-5">
+              <h1 className="m-0 truncate text-xl font-medium text-blue-900 dark:text-blue-900-dark xs:max-w-full xs:text-2xl">
+                {t("questions")}
+              </h1>
+              <CommunityFilters community={community} />
+              <Suspense
+                key={JSON.stringify(searchParams)}
+                fallback={
+                  <LoadingIndicator className="mx-auto h-8 w-24 text-gray-600 dark:text-gray-600-dark" />
+                }
+              >
+                <AwaitedPostsFeed filters={pageFilters} isCommunity />
+              </Suspense>
+            </div>
+          </>
+        )}
+        {mode === "settings" && <CommunitySettings community={community} />}
       </main>
-    </ShowActiveCommunityProvider>
+    </>
   );
 }

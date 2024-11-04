@@ -53,17 +53,23 @@ const visibilityTypeToProps = (
 const CommunitySettings: FC<Props> = ({ community }) => {
   const t = useTranslations();
   const router = useRouter();
-  const { handleSubmit, formState, getValues, register, watch, setValue } =
-    useForm<CommunitySettingsSchema>({
-      defaultValues: {
-        name: community.name,
-        description: community.description,
-        slug: community.slug,
-        default_permission: community.default_permission,
-        unlisted: community.unlisted,
-      },
-      resolver: zodResolver(communitySettingsSchema),
-    });
+  const {
+    handleSubmit,
+    formState,
+    register,
+    watch,
+    setValue,
+    reset,
+  } = useForm<CommunitySettingsSchema>({
+    defaultValues: {
+      name: community.name,
+      description: community.description,
+      slug: community.slug,
+      default_permission: community.default_permission,
+      unlisted: community.unlisted,
+    },
+    resolver: zodResolver(communitySettingsSchema),
+  });
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
@@ -81,12 +87,13 @@ const CommunitySettings: FC<Props> = ({ community }) => {
       setError(undefined);
       try {
         // use form data to send request to the email api
-        await updateCommunity(community.id, data);
+        const responseData = await updateCommunity(community.id, data);
 
         // If slug has been changed
         if (community.slug !== data.slug) {
-          router.replace(`/community/${data.slug}/settings/`);
+          router.replace(`/community/${data.slug}/settings/?mode=settings`);
         }
+        reset(responseData);
       } catch (e) {
         logError(e);
         const error = e as Error & { digest?: string };
@@ -95,7 +102,7 @@ const CommunitySettings: FC<Props> = ({ community }) => {
         setIsLoading(false);
       }
     },
-    [community.id]
+    [community.id, community.slug, router]
   );
 
   const visibilityType = watch();
@@ -105,14 +112,14 @@ const CommunitySettings: FC<Props> = ({ community }) => {
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-medium">Settings</h2>
         <div>
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading || !formState.isDirty}>
             {t("saveChanges")}
           </Button>
         </div>
       </div>
       <div className="flex flex-col gap-6">
         <Field>
-          <Label className="mb-1.5 block text-sm font-medium text-gray-600 dark:text-gray-600-dark">
+          <Label className="mb-1.5 block text-sm font-bold text-gray-600 dark:text-gray-600-dark">
             Visibility
           </Label>
           <ButtonGroup
@@ -121,7 +128,9 @@ const CommunitySettings: FC<Props> = ({ community }) => {
             onChange={(val) => {
               Object.entries(visibilityTypeToProps(val)).forEach(
                 ([key, value]) => {
-                  setValue(key as keyof CommunityUpdateParams, value);
+                  setValue(key as keyof CommunityUpdateParams, value, {
+                    shouldDirty: true,
+                  });
                 }
               );
             }}
