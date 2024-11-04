@@ -4,7 +4,6 @@ import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forEach } from "lodash";
-import { vacuumImpedanceDependencies } from "mathjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -504,12 +503,11 @@ const GroupForm: React.FC<Props> = ({
                           <DatetimeUtc
                             className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                             defaultValue={subQuestion.open_time}
-                            onChange={(e) => {
+                            onChange={(value) => {
                               setSubQuestions(
                                 subQuestions.map((subQuestion, iter_index) => {
                                   if (index === iter_index) {
-                                    subQuestion.open_time =
-                                      vacuumImpedanceDependencies;
+                                    subQuestion.open_time = value;
                                   }
                                   return subQuestion;
                                 })
