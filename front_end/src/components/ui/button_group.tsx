@@ -5,6 +5,7 @@ import Button, { ButtonVariant } from "@/components/ui/button";
 export type GroupButton<T> = {
   value: T;
   label: string;
+  href?: string;
 };
 
 type Props<T> = {
@@ -15,6 +16,7 @@ type Props<T> = {
   variant?: ButtonVariant;
   activeVariant?: ButtonVariant;
   className?: string;
+  activeClassName?: string;
 };
 
 const ButtonGroup = <T extends string>({
@@ -25,6 +27,7 @@ const ButtonGroup = <T extends string>({
   variant,
   activeVariant = "primary",
   className,
+  activeClassName,
 }: Props<T>) => {
   return (
     <div className="flex">
@@ -36,6 +39,7 @@ const ButtonGroup = <T extends string>({
             onChange(button.value);
             onClick && onClick(button.label);
           }}
+          href={button.href}
           className={classNames(
             "relative hover:z-10 focus:z-20",
             buttons.length > 1 &&
@@ -44,7 +48,7 @@ const ButtonGroup = <T extends string>({
                 : index !== buttons.length - 1
                   ? "ml-[-1px] rounded-none"
                   : "ml-[-1px] rounded-l-none"),
-            className
+            value === button.value ? activeClassName : className,
           )}
         >
           {button.label}

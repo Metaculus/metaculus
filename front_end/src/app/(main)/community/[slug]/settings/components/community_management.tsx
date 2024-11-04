@@ -3,21 +3,27 @@
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
 import Button from "@/components/ui/button";
-import { Community } from "@/types/projects";;
+import { Community, CommunitySettingsMode } from "@/types/projects";
+import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
+import { useRouter } from "next/navigation";
 
 type Props = {
   community: Community;
-  mode: string;
+  mode: CommunitySettingsMode;
 };
 
 const CommunityManagement: FC<Props> = ({ community, mode }) => {
   const t = useTranslations();
   const router = useRouter();
+
+  const managementModeButtons: GroupButton<CommunitySettingsMode>[] = [
+    { label: t("questions"), value: CommunitySettingsMode.Question },
+    { label: t("settings"), value: CommunitySettingsMode.Settings },
+  ];
 
   return (
     <div className="relative">
@@ -25,7 +31,7 @@ const CommunityManagement: FC<Props> = ({ community, mode }) => {
         <Button
           variant="text"
           className="mr-3 !p-0"
-          onClick={() => router.push(`/community/${community.slug}`)}
+          href={`/community/${community.slug}`}
         >
           <FontAwesomeIcon
             className="text-blue-700/40 dark:text-blue-700-dark/40"
@@ -41,7 +47,7 @@ const CommunityManagement: FC<Props> = ({ community, mode }) => {
       </div>
 
       <div className="mt-6 flex flex-row text-xs font-medium md:text-sm">
-        <Link href={`/community/${community.slug}/settings?mode=questions`}>
+        {/* <Link href={`/community/${community.slug}/settings?mode=questions`}>
           <button
             dir="ltr"
             className={
@@ -66,7 +72,16 @@ const CommunityManagement: FC<Props> = ({ community, mode }) => {
           >
             {t("settings")}
           </button>
-        </Link>
+        </Link> */}
+        <ButtonGroup
+          value={mode}
+          buttons={managementModeButtons}
+          onChange={(mode) =>
+            router.push(`/community/${community.slug}/settings?mode=${mode}`)
+          }
+          variant="tertiary"
+          className="capitalize"
+        />
       </div>
 
       <hr className="text -mx-3 border-blue-500 dark:border-blue-600/50 xs:-mx-8" />

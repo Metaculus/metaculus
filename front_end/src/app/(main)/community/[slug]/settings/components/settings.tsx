@@ -110,7 +110,7 @@ const CommunitySettings: FC<Props> = ({ community }) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-medium">Settings</h2>
+        <h2 className="font-medium m-0">Settings</h2>
         <div>
           <Button type="submit" disabled={isLoading || !formState.isDirty}>
             {t("saveChanges")}

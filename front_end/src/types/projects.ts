@@ -87,3 +87,8 @@ export type Community = {
   is_subscribed?: boolean;
   created_by: UserBase;
 };
+
+export enum CommunitySettingsMode {
+  Question = "questions",
+  Settings = "settings",
+}
