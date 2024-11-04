@@ -119,32 +119,40 @@ def get_posts_feed(
             q |= Q(curation_status=status)
         if status == "upcoming":
             q |= Q(
-                Q(curation_status=Post.CurationStatus.APPROVED)
-                & (Q(published_at__gte=timezone.now()) | Q(published_at__isnull=True))
+                Q(notebook__isnull=True)
+                & Q(curation_status=Post.CurationStatus.APPROVED)
+                & Q(open_time__gte=timezone.now())
             )
         if status == "closed":
-            q |= Q(actual_close_time__isnull=False, resolved=False) | Q(
-                scheduled_close_time__lte=timezone.now(), resolved=False
+            q |= Q(notebook__isnull=True) & (
+                Q(actual_close_time__isnull=False, resolved=False)
+                | Q(scheduled_close_time__lte=timezone.now(), resolved=False)
             )
         if status == "resolved":
-            q |= Q(resolved=True, curation_status=Post.CurationStatus.APPROVED)
+            q |= Q(notebook__isnull=True) & Q(
+                resolved=True, curation_status=Post.CurationStatus.APPROVED
+            )
         if status == "open":
             q |= Q(
                 Q(published_at__lte=timezone.now())
                 & Q(curation_status=Post.CurationStatus.APPROVED)
-                & Q(
-                    (
-                        Q(actual_close_time__isnull=True)
-                        | Q(actual_close_time__gte=timezone.now())
+                & (
+                    # Notebooks don't support statuses filter
+                    # So we add fallback condition list this
+                    Q(notebook_id__isnull=False)
+                    | (
+                        Q(open_time__lte=timezone.now())
+                        & Q(
+                            (
+                                Q(actual_close_time__isnull=True)
+                                | Q(actual_close_time__gte=timezone.now())
+                            )
+                            & Q(scheduled_close_time__gte=timezone.now())
+                        )
+                        & Q(resolved=False)
                     )
-                    & Q(scheduled_close_time__gte=timezone.now())
-                )
-                & Q(resolved=False),
+                ),
             )
-
-            # Notebooks don't support statuses filter
-            # So we add fallback condition list this
-            q |= Q(notebook_id__isnull=False)
 
     qs = qs.filter(q)
 
