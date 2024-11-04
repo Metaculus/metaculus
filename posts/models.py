@@ -409,10 +409,19 @@ class Post(TimeStampedModel):
         blank=True,
     )
     published_at = models.DateTimeField(db_index=True, null=True, blank=True)
-    scheduled_close_time = models.DateTimeField(null=True, blank=True, db_index=True)
-    scheduled_resolve_time = models.DateTimeField(null=True, blank=True, db_index=True)
-    actual_close_time = models.DateTimeField(null=True, blank=True)
-    resolved = models.BooleanField(default=False)
+
+    # Fields populated from Child Question objects
+    open_time = models.DateTimeField(
+        null=True, blank=True, db_index=True, editable=False
+    )
+    scheduled_close_time = models.DateTimeField(
+        null=True, blank=True, db_index=True, editable=False
+    )
+    scheduled_resolve_time = models.DateTimeField(
+        null=True, blank=True, db_index=True, editable=False
+    )
+    actual_close_time = models.DateTimeField(null=True, blank=True, editable=False)
+    resolved = models.BooleanField(default=False, editable=False)
 
     embedding_vector = VectorField(
         help_text="Vector embeddings of the Post content",
@@ -494,6 +503,25 @@ class Post(TimeStampedModel):
         else:
             self.resolved = False
 
+    def set_open_time(self):
+        open_time = None
+
+        if self.question_id:
+            open_time = self.question.open_time
+        elif self.conditional_id:
+            open_time = max(
+                self.conditional.condition.open_time,
+                self.conditional.condition_child.open_time,
+            )
+        elif self.group_of_questions_id:
+            questions = self.group_of_questions.questions.all()
+            open_times = [x.open_time for x in questions if x.open_time]
+
+            if open_times:
+                open_time = min(open_times)
+
+        self.open_time = open_time
+
     def updated_related_conditionals(self):
         if self.question:
             related_conditionals = [
@@ -508,6 +536,7 @@ class Post(TimeStampedModel):
         self.set_scheduled_close_time()
         self.set_actual_close_time()
         self.set_scheduled_resolve_time()
+        self.set_open_time()
         self.set_resolved()
         self.save()
         # Note: No risk of infinite loops since conditionals can't father other conditionals
