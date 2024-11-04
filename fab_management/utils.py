@@ -133,6 +133,7 @@ def submit_questions(
                 title=question.title,
                 author=User.objects.get(username=get_val(row, "author")),
                 published_at=question.open_time,
+                open_time=question.open_time,
                 created_at=question.created_at,
                 default_project=tournament,
                 question=question,

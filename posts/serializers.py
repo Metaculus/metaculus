@@ -139,7 +139,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "group_of_questions",
             "default_project",
             "notebook",
-            "published_at",
             "categories",
             "news_type",
         )
@@ -181,6 +180,7 @@ class PostUpdateSerializer(PostWriteSerializer):
 class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     class Order(models.TextChoices):
         PUBLISHED_AT = "published_at"
+        OPEN_TIME = "open_time"
         VOTES = "vote_score"
         COMMENT_COUNT = "comment_count"
         FORECASTS_COUNT = "forecasts_count"
@@ -228,11 +228,13 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     for_main_feed = serializers.BooleanField(required=False, allow_null=True)
 
     # Key lookup filters
+    open_time = serializers.DateTimeField(required=False, allow_null=True)
     published_at = serializers.DateTimeField(required=False, allow_null=True)
     scheduled_resolve_time = serializers.DateTimeField(required=False, allow_null=True)
     scheduled_close_time = serializers.DateTimeField(required=False, allow_null=True)
 
     key_lookup_fields = [
+        "open_time",
         "published_at",
         "scheduled_resolve_time",
         "scheduled_close_time",
