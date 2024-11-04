@@ -10,9 +10,8 @@ from django.db.models import Q
 
 from posts.models import Post
 from posts.services.subscriptions import notify_milestone, notify_date
-from questions.services import close_question
 from questions.models import Question
-
+from questions.services import close_question
 
 logger = logging.getLogger(__name__)
 
@@ -35,14 +34,14 @@ def job_check_post_open_event():
     """
     from posts.services.common import handle_post_open
 
-    for post in Post.objects.filter_active().filter(published_at_triggered=False):
+    for post in Post.objects.filter_active().filter(open_time_triggered=False):
         try:
             handle_post_open(post)
         except Exception:
             logger.exception("Failed to handle post open")
         finally:
             # Mark as triggered
-            post.published_at_triggered = True
+            post.open_time_triggered = True
             post.save()
 
 

@@ -285,8 +285,9 @@ def compute_post_sorting_divergence_and_update_snapshots(post: Post):
 
 
 def compute_hotness():
-    qs = Post.objects.filter_active() | Post.objects.filter(
-        resolved=True, curation_status=Post.CurationStatus.APPROVED
+    qs = Post.objects.filter(
+        curation_status=Post.CurationStatus.APPROVED,
+        published_at__lte=timezone.now(),
     )
     last_week_dt = timezone.now() - timedelta(days=7)
 

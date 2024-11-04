@@ -334,7 +334,7 @@ def migrate_questions__composite(site_ids: list[int] = None):
     for p in all_posts:
         p.update_pseudo_materialized_fields()
 
-        # Handle published_at_triggered field
+        # Handle open_time_triggered field
         # To ensure we won't send Open notifications for old posts
         if (
             p.published_at
@@ -342,7 +342,7 @@ def migrate_questions__composite(site_ids: list[int] = None):
             and p.curation_status == Post.CurationStatus.APPROVED
             and (not p.actual_close_time or p.actual_close_time >= timezone.now())
         ):
-            p.published_at_triggered = True
+            p.open_time_triggered = True
 
         p.save()
 
