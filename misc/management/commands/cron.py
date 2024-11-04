@@ -8,7 +8,6 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django_dramatiq.tasks import delete_old_tasks
 
-from metaculus_web.settings import MAIL_FREQUENCY_MIN
 from misc.jobs import sync_itn_articles
 from notifications.jobs import job_send_notification_groups
 from posts.jobs import (
@@ -123,16 +122,16 @@ class Command(BaseCommand):
         #
         # Notification jobs
         #
-        # TODO: uncomment this after proper testing
-        scheduler.add_job(
-            close_old_connections(job_send_notification_groups.send),
-            trigger=CronTrigger.from_crontab(
-                f"0-59/{MAIL_FREQUENCY_MIN} * * * *"
-            ),  # Every Hour at :00
-            id="notifications_job_send_notification_groups",
-            max_instances=1,
-            replace_existing=True,
-        )
+        if settings.MAIL_FREQUENCY_MIN:
+            scheduler.add_job(
+                close_old_connections(job_send_notification_groups.send),
+                trigger=CronTrigger.from_crontab(
+                    f"0-59/{settings.MAIL_FREQUENCY_MIN} * * * *"
+                ),  # Every Hour at :00
+                id="notifications_job_send_notification_groups",
+                max_instances=1,
+                replace_existing=True,
+            )
 
         #
         # ITN Sync Job
