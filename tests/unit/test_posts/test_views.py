@@ -10,11 +10,13 @@ from posts.models import Post, PostUserSnapshot, PostSubscription
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from projects.services.common import get_site_main_project
+from questions.models import Question
 from tests.unit.fixtures import *  # noqa
 from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
-from tests.unit.test_questions.fixtures import *  # noqa
+from tests.unit.test_questions.factories import create_question
+from tests.unit.test_questions.fixtures import question_binary  # noqa
 
 
 class TestPostCreate:
@@ -112,14 +114,14 @@ class TestPostCreate:
         assert {q["title"] for q in questions} == {"Question #1", "Question #2"}
 
     def test_create__conditional(self, user1, user1_client):
-        question_binary = create_question(
+        question = create_question(
             title="Starship Reaches Orbit in 2024?",
             question_type=Question.QuestionType.BINARY,
             open_time=timezone.make_aware(datetime.datetime(2024, 3, 1)),
             scheduled_close_time=timezone.make_aware(datetime.datetime(2024, 5, 1)),
             scheduled_resolve_time=timezone.make_aware(datetime.datetime(2024, 5, 2)),
         )
-        factory_post(author=user1, question=question_binary)
+        factory_post(author=user1, question=question)
 
         question_numeric = create_question(
             title="Starship Booster Tower Catch Attempt in 2024?",
