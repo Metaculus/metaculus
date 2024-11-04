@@ -8,7 +8,7 @@ import {
   FetchOptions,
 } from "@/types/fetch";
 
-import { logError } from "./errors";
+import { extractError, logError } from "./errors";
 
 class ApiError extends Error {
   public digest: string;
@@ -62,7 +62,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     const data: ErrorResponse = normalizeApiErrors(errorData);
 
     const error: FetchError = new ApiError(
-      data.message ?? "Unknown error occurred"
+      data.message ?? `Error occurred: \n ${extractError(data)}`
     );
     error.response = response;
     error.data = data;

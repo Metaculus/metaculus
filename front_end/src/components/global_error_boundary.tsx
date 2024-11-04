@@ -21,7 +21,9 @@ export const GlobalErrorContainer: FC<GlobalErrorProps> = ({
 }) => {
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center">
-      <h2>{extractError(error) || "Error"}</h2>
+      <h2 className="whitespace-break-spaces">
+        {extractError(error) || "Error"}
+      </h2>
       {reset && (
         <Button variant="primary" onClick={reset}>
           Try again
@@ -41,7 +43,12 @@ const GlobalErrorBoundary: FC<GlobalErrorBoundaryProps> = ({
   useEffect(() => {
     Sentry.captureException(error);
   }, [error]);
-  return <GlobalErrorContainer error={error.digest!} reset={reset} />;
+  return (
+    <GlobalErrorContainer
+      error={(error.toString() || error.digest)!}
+      reset={reset}
+    />
+  );
 };
 
 export default GlobalErrorBoundary;
