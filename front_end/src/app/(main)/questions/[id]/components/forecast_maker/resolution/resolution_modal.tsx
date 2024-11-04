@@ -36,11 +36,7 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const currentDateTime = useMemo(
-    () =>
-      format(
-        new Date(new Date().getTime() + new Date().getTimezoneOffset() * 60000),
-        "yyyy-MM-dd'T'HH:mm:ss'Z'"
-      ),
+    () => format(new Date(), "yyyy-MM-dd'T'HH:mm"),
     []
   );
   const { open_lower_bound, open_upper_bound } = question;
