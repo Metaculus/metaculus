@@ -2,14 +2,13 @@
 
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React, { FC } from "react";
 
 import Button from "@/components/ui/button";
-import { Community, CommunitySettingsMode } from "@/types/projects";
 import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
-import { useRouter } from "next/navigation";
+import { Community, CommunitySettingsMode } from "@/types/projects";
 
 type Props = {
   community: Community;
@@ -21,7 +20,7 @@ const CommunityManagement: FC<Props> = ({ community, mode }) => {
   const router = useRouter();
 
   const managementModeButtons: GroupButton<CommunitySettingsMode>[] = [
-    { label: t("questions"), value: CommunitySettingsMode.Question },
+    { label: t("questions"), value: CommunitySettingsMode.Questions },
     { label: t("settings"), value: CommunitySettingsMode.Settings },
   ];
 
@@ -47,32 +46,6 @@ const CommunityManagement: FC<Props> = ({ community, mode }) => {
       </div>
 
       <div className="mt-6 flex flex-row text-xs font-medium md:text-sm">
-        {/* <Link href={`/community/${community.slug}/settings?mode=questions`}>
-          <button
-            dir="ltr"
-            className={
-              "m-0 h-full rounded-s-3xl border border-e-0 border-blue-500 px-3 py-2 text-sm font-medium leading-[14px] text-blue-700 dark:border-blue-500-dark dark:text-blue-700-dark max-[340px]:px-2 " +
-              (mode === "questions"
-                ? " bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200 "
-                : " bg-gray-0 hover:bg-blue-200 dark:bg-gray-0-dark hover:dark:bg-blue-800 ")
-            }
-          >
-            {t("questions")}
-          </button>
-        </Link>
-        <Link href={`/community/${community.slug}/settings?mode=settings`}>
-          <button
-            dir="rtl"
-            className={
-              "m-0 h-full rounded-s-3xl border border-e-0 border-blue-500 px-3 py-2 text-sm font-medium leading-[14px] text-blue-700 dark:border-blue-500-dark dark:text-blue-700-dark max-[340px]:px-2 " +
-              (mode === "settings"
-                ? " bg-blue-900 text-white hover:bg-blue-800 dark:bg-blue-100 dark:text-blue-900 dark:hover:bg-blue-200 "
-                : " bg-gray-0 hover:bg-blue-200 dark:bg-gray-0-dark hover:dark:bg-blue-800")
-            }
-          >
-            {t("settings")}
-          </button>
-        </Link> */}
         <ButtonGroup
           value={mode}
           buttons={managementModeButtons}

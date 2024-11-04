@@ -49,7 +49,6 @@ const CommunityFilters: FC<Props> = ({ community }) => {
           buttons={questionStatuses}
           onChange={handleStatusChange}
           variant="tertiary"
-          className="capitalize"
           onClick={(buttonLabel) =>
             sendGAEvent("event", "feedShortcutClick", {
               event_category: buttonLabel,

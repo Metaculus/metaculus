@@ -1,16 +1,17 @@
 "use client";
 
-import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
-import { ProfilePageMode } from "@/types/users";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
+
+import ButtonGroup, { GroupButton } from "@/components/ui/button_group";
+import { ProfilePageMode } from "@/types/users";
 
 type Props = {
   mode: ProfilePageMode;
   id: number;
 };
-const ProfilePageTab: FC<Props> = ({ mode, id }) => {
+const ProfilePageTabs: FC<Props> = ({ mode, id }) => {
   const t = useTranslations();
   const managementModeButtons: GroupButton<ProfilePageMode>[] = [
     {
@@ -51,4 +52,4 @@ const ProfilePageTab: FC<Props> = ({ mode, id }) => {
   );
 };
 
-export default ProfilePageTab;
+export default ProfilePageTabs;

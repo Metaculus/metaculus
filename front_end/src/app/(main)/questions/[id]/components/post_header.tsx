@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
@@ -11,12 +12,11 @@ import {
   PostWithForecasts,
   ProjectPermissions,
 } from "@/types/post";
+import { TournamentType } from "@/types/projects";
 
 import PostApprovalModal from "./post_approval_modal";
 import PostSubscribeButton from "./subscribe_button";
 import { draftPost, submitPostForReview } from "../../actions";
-import { TournamentType } from "@/types/projects";
-import Link from "next/link";
 
 export default function PostHeader({
   post,
@@ -121,11 +121,9 @@ export default function PostHeader({
                   {t("inCommunityReviewStatus1")}
                 </p>
                 <ul className="mb-3 ml-6 mt-0 list-disc leading-6">
-                  {t("inCommunityReviewStatus2")
-                    .split("\n")
-                    .map((point, index) => (
-                      <li key={index}>{point}</li>
-                    ))}
+                  {t.rich("inCommunityReviewStatus2", {
+                    li: (chunks) => <li>{chunks}</li>,
+                  })}
                 </ul>
                 <Link
                   href={"/question-writing"}

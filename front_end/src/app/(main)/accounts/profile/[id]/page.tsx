@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 
 import MedalsPage from "@/app/(main)/(leaderboards)/medals/components/medals_page";
@@ -10,11 +8,11 @@ import CommentFeed from "@/components/comment_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProfileApi from "@/services/profile";
 import { SearchParams } from "@/types/navigation";
+import { ProfilePageMode } from "@/types/users";
 
+import ProfilePageTabs from "./components/profile_page_tab";
 import ChangeUsername from "../components/change_username";
 import TrackRecord from "../components/track_record";
-import { ProfilePageMode } from "@/types/users";
-import ProfilePageTab from "./components/profile_page_tab";
 
 export default async function Profile({
   params: { id },
@@ -39,7 +37,8 @@ export default async function Profile({
     };
   }
 
-  const mode = (searchParams.mode || "overview") as ProfilePageMode;
+  const mode = (searchParams.mode ||
+    ProfilePageMode.Overview) as ProfilePageMode;
 
   return (
     <main className="mx-auto my-4 flex min-h-min w-full max-w-5xl flex-col gap-4 px-3 lg:px-0">
@@ -55,10 +54,10 @@ export default async function Profile({
           )}
         </div>
         <div className="flex flex-row text-xs font-medium md:text-sm">
-          <ProfilePageTab id={id} mode={mode} />
+          <ProfilePageTabs id={id} mode={mode} />
         </div>
       </div>
-      {mode === "overview" && (
+      {mode === ProfilePageMode.Overview && (
         <div className="flex flex-col gap-4 rounded">
           <UserInfo
             profile={profile}
@@ -73,13 +72,15 @@ export default async function Profile({
           />
         </div>
       )}
-      {mode === "track_record" && <TrackRecord profile={profile} />}
-      {mode === "medals" && (
+      {mode === ProfilePageMode.TrackRecord && (
+        <TrackRecord profile={profile} />
+      )}
+      {mode === ProfilePageMode.Medals && (
         <div>
           <MedalsPage profileId={profile.id} />
         </div>
       )}
-      {mode === "comments" && (
+      {mode === ProfilePageMode.Comments && (
         <div className="flex flex-col rounded bg-white px-4 py-1 dark:bg-blue-900 md:px-6 md:py-2">
           <CommentFeed profileId={profile.id} rootCommentStructure={false} />
         </div>

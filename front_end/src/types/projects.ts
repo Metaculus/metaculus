@@ -89,6 +89,6 @@ export type Community = {
 };
 
 export enum CommunitySettingsMode {
-  Question = "questions",
+  Questions = "questions",
   Settings = "settings",
 }

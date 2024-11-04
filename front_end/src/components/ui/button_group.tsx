@@ -48,7 +48,7 @@ const ButtonGroup = <T extends string>({
                 : index !== buttons.length - 1
                   ? "ml-[-1px] rounded-none"
                   : "ml-[-1px] rounded-l-none"),
-            value === button.value ? activeClassName : className,
+            value === button.value ? activeClassName : className
           )}
         >
           {button.label}

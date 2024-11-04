@@ -11,11 +11,11 @@ import { PostsParams } from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
 import { ProjectPermissions } from "@/types/post";
+import { CommunitySettingsMode } from "@/types/projects";
 import { QuestionOrder } from "@/types/question";
 
 import CommunityFilters from "./components/community_filters";
 import CommunityManagement from "./components/community_management";
-import { CommunitySettingsMode } from "@/types/projects";
 
 type Props = {
   params: { slug: string };
@@ -41,13 +41,14 @@ export default async function CommunityManagementSettings({
     community: slug,
   };
 
-  const mode = (searchParams.mode || "questions") as CommunitySettingsMode;
+  const mode = (searchParams.mode ||
+    CommunitySettingsMode.Questions) as CommunitySettingsMode;
   return (
     <>
       <CommunityHeader community={community} />
       <main className="mx-2 my-4 min-h-min max-w-full flex-auto rounded-lg border border-blue-500 bg-gray-0/50 px-3 py-4 dark:border-blue-600/50 dark:bg-gray-0-dark xs:mx-5 xs:px-8 xs:py-8 md:mx-auto md:max-w-[796px]">
         <CommunityManagement community={community} mode={mode} />
-        {mode === "questions" && (
+        {mode === CommunitySettingsMode.Questions && (
           <>
             <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-0 no-scrollbar sm:p-0">
               <h1 className="m-0 truncate text-xl font-medium text-blue-900 dark:text-blue-900-dark xs:max-w-full xs:text-2xl">
@@ -65,7 +66,9 @@ export default async function CommunityManagementSettings({
             </div>
           </>
         )}
-        {mode === "settings" && <CommunitySettings community={community} />}
+        {mode === CommunitySettingsMode.Settings && (
+          <CommunitySettings community={community} />
+        )}
       </main>
     </>
   );

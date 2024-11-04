@@ -13,7 +13,7 @@ import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import { CommunityUpdateParams } from "@/services/projects";
 import { ProjectPermissions } from "@/types/post";
-import { Community } from "@/types/projects";
+import { Community, CommunitySettingsMode } from "@/types/projects";
 import { logError } from "@/utils/errors";
 
 import { updateCommunity } from "../actions";
@@ -53,23 +53,17 @@ const visibilityTypeToProps = (
 const CommunitySettings: FC<Props> = ({ community }) => {
   const t = useTranslations();
   const router = useRouter();
-  const {
-    handleSubmit,
-    formState,
-    register,
-    watch,
-    setValue,
-    reset,
-  } = useForm<CommunitySettingsSchema>({
-    defaultValues: {
-      name: community.name,
-      description: community.description,
-      slug: community.slug,
-      default_permission: community.default_permission,
-      unlisted: community.unlisted,
-    },
-    resolver: zodResolver(communitySettingsSchema),
-  });
+  const { handleSubmit, formState, register, watch, setValue, reset } =
+    useForm<CommunitySettingsSchema>({
+      defaultValues: {
+        name: community.name,
+        description: community.description,
+        slug: community.slug,
+        default_permission: community.default_permission,
+        unlisted: community.unlisted,
+      },
+      resolver: zodResolver(communitySettingsSchema),
+    });
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
@@ -91,7 +85,9 @@ const CommunitySettings: FC<Props> = ({ community }) => {
 
         // If slug has been changed
         if (community.slug !== data.slug) {
-          router.replace(`/community/${data.slug}/settings/?mode=settings`);
+          router.replace(
+            `/community/${data.slug}/settings/?mode=${CommunitySettingsMode.Settings}`
+          );
         }
         reset(responseData);
       } catch (e) {
@@ -110,7 +106,7 @@ const CommunitySettings: FC<Props> = ({ community }) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-medium m-0">Settings</h2>
+        <h2 className="m-0 font-medium">Settings</h2>
         <div>
           <Button type="submit" disabled={isLoading || !formState.isDirty}>
             {t("saveChanges")}
