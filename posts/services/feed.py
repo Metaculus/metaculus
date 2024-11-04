@@ -97,7 +97,6 @@ def get_posts_feed(
 
     forecast_type = forecast_type or []
     forecast_type_q = Q()
-    print(forecast_type)
 
     for f_type in forecast_type:
         match f_type:

@@ -3,4 +3,7 @@
 cd /app/
 source venv/bin/activate
 
-python3 manage.py rundramatiq --processes 8 --threads 16
+DRAMATIQ_PROCESSES="${DRAMATIQ_PROCESSES:-8}"
+DRAMATIQ_THREADS="${DRAMATIQ_THREADS:-16}"
+
+python3 manage.py rundramatiq --processes $DRAMATIQ_PROCESSES --threads $DRAMATIQ_THREADS

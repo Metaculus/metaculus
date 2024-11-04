@@ -268,7 +268,7 @@ FRONTEND_BASE_URL = os.environ.get("FRONTEND_BASE_URL", "http://localhost:3000")
 SEND_ALL_MAIL_TO = os.environ.get("SEND_ALL_MAIL_TO", None)
 MAIL_FREQUENCY_MIN = int(os.environ.get("MAIL_FREQUENCY_MIN", 20))
 
-if MAIL_FREQUENCY_MIN < 1 or MAIL_FREQUENCY_MIN > 59:
+if MAIL_FREQUENCY_MIN > 59:
     raise Exception(
         "MAIL_FREQUENCY_MIN must be between 1 and 59 (used in cron tab as 0-59/MAIL_FREQUENCY_MIN * * * *)"
     )

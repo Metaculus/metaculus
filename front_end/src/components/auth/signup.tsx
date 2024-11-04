@@ -33,7 +33,7 @@ export const SignupForm: FC<{
 }> = ({ forceIsBot = "ask", addToProject }) => {
   const t = useTranslations();
   const [isPending, startTransition] = useTransition();
-  const [isTranstileValidated, setIsTranstileValidate] = useState(false);
+  const [isTurnstileValidated, setIsTurnstileValidate] = useState(false);
   const { setCurrentModal } = useModal();
   const { register, watch, setValue } = useForm<SignUpSchema>({
     resolver: zodResolver(signUpSchema),
@@ -132,7 +132,7 @@ export const SignupForm: FC<{
           variant="primary"
           className="w-full"
           type="submit"
-          disabled={isPending || !isTranstileValidated}
+          disabled={isPending || !isTurnstileValidated}
         >
           {t("createAnAccount")}
         </Button>
@@ -148,9 +148,9 @@ export const SignupForm: FC<{
           options={{
             responseFieldName: "turnstileToken",
           }}
-          onSuccess={() => setIsTranstileValidate(true)}
-          onError={() => setIsTranstileValidate(false)}
-          onExpire={() => setIsTranstileValidate(false)}
+          onSuccess={() => setIsTurnstileValidate(true)}
+          onError={() => setIsTurnstileValidate(false)}
+          onExpire={() => setIsTurnstileValidate(false)}
         />
       )}
     </form>

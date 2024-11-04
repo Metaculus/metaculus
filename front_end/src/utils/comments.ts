@@ -23,30 +23,33 @@ export function parseUserMentions(
   markdown: string,
   mentionedUsers?: AuthorType[]
 ): string {
-  const userTagPattern = /@\(([^)]+)\)|@([^\s]+)/g;
+  const userTagPattern = /(?<!\[[^\]]*)@(\(([^)]+)\)|(\w+))/g;
 
-  markdown = markdown.replace(userTagPattern, (match) => {
-    const cleanedUsername = match.replace(/[@()\\]/g, "");
-    switch (cleanedUsername) {
-      case "moderators":
-        return `[@${cleanedUsername}](/faq/#moderators-tag)`;
-      case "predictors":
-        return `[@${cleanedUsername}](/faq/#predictors-tag)`;
-      case "admins":
-        return `[@${cleanedUsername}](/faq/#admins-tag)`;
-      case "members":
-        return `[@${cleanedUsername}](/faq/#members-tag)`;
-      default:
-        break;
-    }
+  markdown = markdown.replace(
+    userTagPattern,
+    (match, _group1, group2, group3) => {
+      const cleanedUsername = (group2 || group3).replace(/[@()]/g, "");
+      switch (cleanedUsername) {
+        case "moderators":
+          return `[@${cleanedUsername}](/faq/#moderators-tag)`;
+        case "predictors":
+          return `[@${cleanedUsername}](/faq/#predictors-tag)`;
+        case "admins":
+          return `[@${cleanedUsername}](/faq/#admins-tag)`;
+        case "members":
+          return `[@${cleanedUsername}](/faq/#members-tag)`;
+        default:
+          break;
+      }
 
-    const mentionedUser = mentionedUsers?.find(
-      (user) => user.username.toLowerCase() === cleanedUsername?.toLowerCase()
-    );
-    if (!!mentionedUser) {
-      return `[@${cleanedUsername}](/accounts/profile/${mentionedUser.id})`;
+      const mentionedUser = mentionedUsers?.find(
+        (user) => user.username.toLowerCase() === cleanedUsername?.toLowerCase()
+      );
+      if (!!mentionedUser) {
+        return `[@${cleanedUsername}](/accounts/profile/${mentionedUser.id})`;
+      }
+      return match;
     }
-    return match;
-  });
+  );
   return markdown;
 }
