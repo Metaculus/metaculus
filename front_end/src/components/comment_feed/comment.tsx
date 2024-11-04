@@ -101,7 +101,21 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
             : t("showReplyWithCount", { count: getTreeSize(commentChildren) })}
         </span>
       </button>
-      <div className={classNames("relative", childrenExpanded ? "pt-1" : null)}>
+      <div
+        className={classNames(
+          "relative",
+          treeDepth < 5 ? "pl-0 md:pl-3" : null,
+          childrenExpanded ? "pt-0.5" : null
+        )}
+      >
+        {treeDepth < 5 && (
+          <div
+            className="absolute inset-y-0 -left-2 top-2 hidden w-4 cursor-pointer after:absolute after:inset-y-0 after:left-2 after:block after:w-px after:border-l after:border-blue-400 after:content-[''] after:hover:border-blue-600 after:dark:border-blue-600/80 after:hover:dark:border-blue-400/80 md:block"
+            onClick={() => {
+              setChildrenExpanded(!childrenExpanded);
+            }}
+          />
+        )}{" "}
         {childrenExpanded &&
           sortedCommentChildren.map((child: CommentType) => {
             const isUnread =

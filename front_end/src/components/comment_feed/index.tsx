@@ -311,7 +311,7 @@ const CommentFeed: FC<Props> = ({
         <div
           key={comment.id}
           className={classNames(
-            "my-1.5 rounded-md border px-2 py-1 md:px-2.5 md:py-1.5",
+            "my-1.5 rounded-md border px-1.5 py-1 md:px-2.5 md:py-1.5",
             {
               "border-blue-400 dark:border-blue-400-dark": !(
                 postData?.last_viewed_at &&
