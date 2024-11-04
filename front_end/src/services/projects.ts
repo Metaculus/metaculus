@@ -28,11 +28,11 @@ export type CommunitiesParams = PaginationParams & {
   ids?: number[];
 };
 
-export type CommunityUpdateParams = PaginationParams & {
+export type CommunityUpdateParams = {
   name?: string;
-  slug?: boolean;
-  description?: boolean;
-  default_permission?: ProjectPermissions;
+  slug?: string;
+  description?: string;
+  default_permission?: ProjectPermissions | null;
   unlisted?: boolean;
 };
 
