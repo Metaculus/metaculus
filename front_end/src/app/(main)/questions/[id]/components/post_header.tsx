@@ -15,6 +15,8 @@ import {
 import PostApprovalModal from "./post_approval_modal";
 import PostSubscribeButton from "./subscribe_button";
 import { draftPost, submitPostForReview } from "../../actions";
+import { TournamentType } from "@/types/projects";
+import Link from "next/link";
 
 export default function PostHeader({
   post,
@@ -25,6 +27,8 @@ export default function PostHeader({
 }) {
   const t = useTranslations();
   const router = useRouter();
+  const isCommunity =
+    post.projects.default_project.type === TournamentType.Community;
 
   let typeLabel = t("notebook");
   if (post.group_of_questions) {
@@ -109,23 +113,48 @@ export default function PostHeader({
         post.curation_status
       ) && (
         <div className="mt-4 border border-gray-300 bg-gray-200 p-3 dark:border-gray-300-dark dark:bg-gray-200-dark">
-          {post.curation_status === PostStatus.PENDING && (
-            <>
-              <h4 className="mb-2 mt-0">{t("inReview")}</h4>
-              <p className="mb-3 mt-0 leading-5">
-                {t.rich("inReviewStatusBox1", {
-                  link1: (chunks) => <a href="/question-writing/">{chunks}</a>,
-                  link2: (chunks) => (
-                    <a href="/question-writing/#what-types">{chunks}</a>
-                  ),
-                })}
-              </p>
-              <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox2")}</p>
-              {post.conditional && (
-                <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox4")}</p>
-              )}
-            </>
-          )}
+          {post.curation_status === PostStatus.PENDING &&
+            (isCommunity ? (
+              <>
+                <h4 className="mb-2 mt-0">{t("inReview")}</h4>
+                <p className="mb-3 mt-0 leading-6">
+                  {t("inCommunityReviewStatus1")}
+                </p>
+                <ul className="mb-3 ml-6 mt-0 list-disc leading-6">
+                  {t("inCommunityReviewStatus2")
+                    .split("\n")
+                    .map((point, index) => (
+                      <li key={index}>{point}</li>
+                    ))}
+                </ul>
+                <Link
+                  href={"/question-writing"}
+                  className="mb-3 flex text-base font-normal leading-6 text-blue-700 dark:text-blue-700-dark"
+                >
+                  {t("learnMoreAboutQuestionWriting")}
+                </Link>
+              </>
+            ) : (
+              <>
+                <h4 className="mb-2 mt-0">{t("inReview")}</h4>
+                <p className="mb-3 mt-0 leading-5">
+                  {t.rich("inReviewStatusBox1", {
+                    link1: (chunks) => (
+                      <Link href="/question-writing/">{chunks}</Link>
+                    ),
+                    link2: (chunks) => (
+                      <Link href="/question-writing/#what-types">{chunks}</Link>
+                    ),
+                  })}
+                </p>
+                <p className="mb-3 mt-0 leading-5">{t("inReviewStatusBox2")}</p>
+                {post.conditional && (
+                  <p className="mb-3 mt-0 leading-5">
+                    {t("inReviewStatusBox4")}
+                  </p>
+                )}
+              </>
+            ))}
           {canSubmitForReview && (
             <>
               <h4 className="mb-2 mt-0">{t("draftStatusBox1")}</h4>
