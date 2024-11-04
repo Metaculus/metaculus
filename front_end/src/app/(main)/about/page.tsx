@@ -328,7 +328,7 @@ export default function AboutPage() {
       React.SetStateAction<{ groupName: Group; personsName: Person["name"] }>
     >;
   }) {
-    const group = randomizedGroups[groupName];
+    const group = groups[groupName];
     const previousPersonsName = group[group.indexOf(personsName) - 1];
     const nextPersonsName = group[group.indexOf(personsName) + 1];
 
