@@ -20,7 +20,7 @@ export const signUpSchema = z.intersection(
       .transform((x) => x === "true")
       .pipe(z.boolean()),
     turnstileToken: z.string({
-      required_error: "Trunstile token is required",
+      required_error: "Turnstile token is required",
     }),
     addToProject: z.string().optional(),
   }),
