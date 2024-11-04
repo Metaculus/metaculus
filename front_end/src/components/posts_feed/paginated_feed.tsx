@@ -13,6 +13,7 @@ import { PostsParams } from "@/services/posts";
 import { PostWithForecasts, PostWithNotebook } from "@/types/post";
 import { logError } from "@/utils/errors";
 
+import EmptyCommunityFeed from "./empty_community_feed";
 import InReviewBox from "./in_review_box";
 import { FormErrorMessage } from "../ui/form_field";
 
@@ -22,12 +23,14 @@ type Props = {
   initialQuestions: PostWithForecasts[];
   filters: PostsParams;
   type?: PostsFeedType;
+  isCommunity?: boolean;
 };
 
 const PaginatedPostsFeed: FC<Props> = ({
   initialQuestions,
   filters,
   type = "posts",
+  isCommunity,
 }) => {
   const t = useTranslations();
 
@@ -87,11 +90,19 @@ const PaginatedPostsFeed: FC<Props> = ({
   return (
     <>
       <div className="flex flex-col gap-3">
-        {filters.statuses && filters.statuses === "pending" && <InReviewBox />}
+        {filters.statuses && filters.statuses === "pending" && !isCommunity && (
+          <InReviewBox />
+        )}
         {!paginatedPosts.length && (
-          <span className="mt-3 text-center text-sm text-gray-900 dark:text-gray-900-dark">
-            {t("noResults") + "."}
-          </span>
+          <>
+            {isCommunity ? (
+              <EmptyCommunityFeed statuses={filters.statuses} />
+            ) : (
+              <span className="mt-3 text-center text-sm text-gray-900 dark:text-gray-900-dark">
+                {t("noResults") + "."}
+              </span>
+            )}
+          </>
         )}
         {paginatedPosts.map((p) => (
           <Fragment key={p.id}>{renderPost(p)}</Fragment>

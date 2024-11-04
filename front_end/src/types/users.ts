@@ -55,3 +55,10 @@ export type CurrentUser = User & {
   unsubscribed_preferences_tags: ProfilePreferencesType[];
   hide_community_prediction: boolean;
 };
+
+export enum ProfilePageMode {
+  Overview = "overview",
+  TrackRecord = "track_record",
+  Medals = "medals",
+  Comments = "comments",
+}
