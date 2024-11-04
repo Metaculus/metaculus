@@ -21,7 +21,7 @@ type Props = {
   alwaysShowName?: boolean;
 };
 
-const CommunityHeader: FC<Props> = ({ community, alwaysShowName }) => {
+const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
   const t = useTranslations();
   const { showActiveCommunity } = useShowActiveCommunityContext();
   const [localShowName, setLocalShowName] = useState(alwaysShowName);

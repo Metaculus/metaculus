@@ -167,7 +167,7 @@ export default async function IndividualQuestion({
     <EmbedModalContextProvider>
       <HideCPProvider post={postData}>
         {isCommunityQuestion ? (
-          <CommunityHeader community={currentCommunity} alwaysShowName />
+          <CommunityHeader community={currentCommunity} />
         ) : (
           <Header />
         )}

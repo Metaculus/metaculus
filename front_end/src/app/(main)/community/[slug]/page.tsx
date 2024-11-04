@@ -26,7 +26,6 @@ export default async function IndividualCommunity({
   const community = await ProjectsApi.getCommunity(slug);
 
   const questionFilters = generateFiltersFromSearchParams(searchParams, {
-    // Default Feed ordering should be hotness
     defaultOrderBy: QuestionOrder.HotDesc,
   });
   const pageFilters: PostsParams = {
@@ -35,7 +34,7 @@ export default async function IndividualCommunity({
   };
   return (
     <ShowActiveCommunityProvider>
-      <CommunityHeader community={community} />
+      <CommunityHeader community={community} alwaysShowName={false} />
       <main className="mx-2 my-4 min-h-min max-w-full flex-auto rounded-lg border border-blue-500 bg-gray-0/50 px-3 py-4 dark:border-blue-600/50 dark:bg-gray-0-dark xs:mx-5 xs:px-8 xs:py-8 md:mx-auto md:max-w-[796px]">
         <CommunityInfo community={community} />
 
