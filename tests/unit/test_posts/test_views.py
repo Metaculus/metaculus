@@ -340,6 +340,7 @@ def test_post_subscriptions_update(user1, user1_client):
     post = factory_post(
         author=user1,
         published_at=make_aware(datetime.datetime(2024, 1, 1)),
+        open_time=make_aware(datetime.datetime(2024, 1, 1)),
         scheduled_close_time=make_aware(datetime.datetime(2024, 6, 1)),
         scheduled_resolve_time=make_aware(datetime.datetime(2024, 6, 1)),
     )

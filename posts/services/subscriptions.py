@@ -327,11 +327,11 @@ def get_post_lifespan_pct(post: Post) -> float | None:
     Returns current post milestone
     """
 
-    if not post.published_at or not post.scheduled_resolve_time:
+    if not post.open_time or not post.scheduled_resolve_time:
         return
 
-    duration = post.scheduled_close_time - post.published_at
-    passed = timezone.now() - post.published_at
+    duration = post.scheduled_close_time - post.open_time
+    passed = timezone.now() - post.open_time
 
     return passed / duration
 

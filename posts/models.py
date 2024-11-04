@@ -302,6 +302,7 @@ class PostQuerySet(models.QuerySet):
 
         return self.filter(
             published_at__lte=timezone.now(),
+            open_time__lte=timezone.now(),
             curation_status=Post.CurationStatus.APPROVED,
         ).filter(
             Q(actual_close_time__isnull=True) | Q(actual_close_time__gte=timezone.now())
@@ -367,7 +368,7 @@ class Post(TimeStampedModel):
     user_last_forecasts_date = None
     divergence: int = None
 
-    objects: QuerySet["Post"] = PostManager()
+    objects = PostManager()
 
     class CurationStatus(models.TextChoices):
         # Draft, only the creator can see it
@@ -584,7 +585,9 @@ class Post(TimeStampedModel):
 
     # Indicates whether we triggered "handle_post_open" event
     # And guarantees idempotency of "on post open" evens
-    published_at_triggered = models.BooleanField(default=False)
+    open_time_triggered = models.BooleanField(
+        default=False, db_index=True, editable=False
+    )
 
     def update_forecasts_count(self):
         """
