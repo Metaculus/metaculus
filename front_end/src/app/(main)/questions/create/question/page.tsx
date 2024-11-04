@@ -41,7 +41,7 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   return (
     <>
       {community ? (
-        <CommunityHeader community={community} alwaysShowName />
+        <CommunityHeader community={community} />
       ) : (
         <Header />
       )}

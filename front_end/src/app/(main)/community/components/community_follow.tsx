@@ -65,7 +65,7 @@ const CommunityFollow: FC<Props> = ({
           variant="secondary"
           disabled={isLoading}
           onClick={handleUnfollow}
-          className="max-h-[32px]"
+          className="max-h-[32px] !border-blue-500 !text-blue-700 dark:!border-blue-500-dark dark:!text-blue-700-dark"
         >
           {t("unfollowButton")}
         </Button>
@@ -74,7 +74,7 @@ const CommunityFollow: FC<Props> = ({
           variant="primary"
           onClick={handleFollow}
           disabled={isLoading}
-          className="max-h-[32px]"
+          className="max-h-[32px] !border-blue-500 dark:!border-blue-500-dark"
         >
           {t("followButton")}
         </Button>

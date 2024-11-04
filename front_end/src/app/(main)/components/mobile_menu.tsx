@@ -57,7 +57,7 @@ export const MenuLink: FC<
 
 type Props = {
   community?: Community | null;
-  onClick?: (state?: boolean) => void;
+  onClick?: (state: boolean) => void;
 };
 
 const MobileMenu: FC<Props> = ({ community, onClick }) => {
