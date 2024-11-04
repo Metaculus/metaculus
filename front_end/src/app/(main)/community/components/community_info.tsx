@@ -11,6 +11,7 @@ import React, { FC, useEffect, useRef, useState } from "react";
 import communityPlaceholder from "@/app/assets/images/tournament.webp";
 import Button from "@/components/ui/button";
 import { useNavigation } from "@/contexts/navigation_context";
+import { ProjectPermissions } from "@/types/post";
 import { Community } from "@/types/projects";
 
 import { useShowActiveCommunityContext } from "./community_context";
@@ -77,11 +78,20 @@ const CommunityInfo: FC<Props> = ({ community }) => {
         {community.description}
       </p>
       <div className="flex items-center">
-        <CommunityFollow
-          community={community}
-          setFollowersCount={setFollowersCount}
-          className="absolute right-0 top-0 xs:static"
-        />
+        {community.user_permission === ProjectPermissions.ADMIN ? (
+          <Button
+            variant="secondary"
+            href={`/community/${community.slug}/settings`}
+          >
+            Manage Community
+          </Button>
+        ) : (
+          <CommunityFollow
+            community={community}
+            setFollowersCount={setFollowersCount}
+            className="absolute right-0 top-0 xs:static"
+          />
+        )}
         <p className="my-0 flex flex-col gap-1 text-xs text-blue-900/60 dark:text-blue-900-dark/60 xs:ml-5 xs:flex-row">
           <span className="order-2 font-bold text-gray-700 dark:text-gray-700-dark xs:-order-1">
             {followersCount}
