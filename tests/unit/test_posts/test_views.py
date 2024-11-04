@@ -139,7 +139,7 @@ class TestPostCreate:
                 "default_project": get_site_main_project().pk,
                 "projects": {},
                 "conditional": {
-                    "condition_id": question_binary.id,
+                    "condition_id": question.id,
                     "condition_child_id": question_numeric.id,
                 },
             },
