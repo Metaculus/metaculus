@@ -400,6 +400,8 @@
   "moderatedBy": "Moderated by",
   "visibility": "Visibility",
   "public": "Public",
+  "unlisted": "Unlisted",
+  "draft": "Draft",
   "private": "Private",
   "hot": "Hot",
   "movers": "Movers",
@@ -469,6 +471,7 @@
   "Title": "Title",
   "Access": "Access",
   "save": "Save",
+  "saveChanges": "Save Changes",
   "Candidates": "Candidates",
   "otherCommunities": "Other communities",
   "browserAllCommunities": "Browse all communities",
@@ -892,5 +895,10 @@
   "onboardingStep5ViewYourPredictions": "View Your Predictions",
   "onboardingStep5ForecastAnother": "Forecast Another",
   "onboardingStep5Question": "Question",
-  "onboardingStep5ViewQuestionFeed": "View Question Feed"
+  "onboardingStep5ViewQuestionFeed": "View Question Feed",
+  "communityName": "Community Name",
+  "communityNameDescription": "This is how your community appears to others.",
+  "communitySlug": "Community Slug",
+  "communitySlugDescription": "Your community can be accessed via the following URL:",
+  "communityDescription": "Community Description"
 }
