@@ -641,7 +641,12 @@ def get_contributions(
     )
     # User has scores on some questions
     contributions = [
-        Contribution(score=s.score, coverage=s.coverage, question=s.question)
+        Contribution(
+            score=s.score,
+            coverage=s.coverage,
+            question=s.question,
+            post=s.question.get_post(),
+        )
         for s in scores
     ]
     # add unpopulated contributions for other questions
