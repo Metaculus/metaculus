@@ -19,6 +19,12 @@ server {
         client_max_body_size 10M;
     }
 
+    location /_next/static/ {
+        alias /app/front_end/.next/static/;
+        expires 1y;
+        access_log off;
+    }
+
     location ~ ^/(api|api2|admin|proxy|static)/ {
         include proxy_params;
 
