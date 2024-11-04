@@ -1,3 +1,5 @@
+import CommunityHeader from "@/app/(main)/components/headers/community_header";
+import Header from "@/app/(main)/components/headers/header";
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
@@ -23,22 +25,42 @@ const NotebookCreator: React.FC<{ searchParams: SearchParams }> = async ({
   const allTournaments = await ProjectsApi.getTournaments();
   const siteMain = await ProjectsApi.getSiteMain();
 
+  const communityId = searchParams["community_id"]
+    ? Number(searchParams["community_id"])
+    : undefined;
+  const communitiesResponse = communityId
+    ? await ProjectsApi.getCommunities({ ids: [communityId] })
+    : undefined;
+  const community = communitiesResponse
+    ? communitiesResponse.results[0]
+    : undefined;
+
   return (
-    <NotebookForm
-      mode={mode}
-      post={post}
-      allCategories={allCategories}
-      tournament_id={
-        searchParams["tournament_id"]
-          ? Number(searchParams["tournament_id"])
-          : null
-      }
-      tournaments={allTournaments}
-      siteMain={siteMain}
-      news_type={
-        searchParams["news_type"] ? (searchParams["news_type"] as string) : null
-      }
-    />
+    <>
+      {community ? (
+        <CommunityHeader community={community} alwaysShowName />
+      ) : (
+        <Header />
+      )}
+      <NotebookForm
+        mode={mode}
+        post={post}
+        allCategories={allCategories}
+        tournament_id={
+          searchParams["tournament_id"]
+            ? Number(searchParams["tournament_id"])
+            : null
+        }
+        community_id={community?.id}
+        tournaments={allTournaments}
+        siteMain={siteMain}
+        news_type={
+          searchParams["news_type"]
+            ? (searchParams["news_type"] as string)
+            : null
+        }
+      />
+    </>
   );
 };
 

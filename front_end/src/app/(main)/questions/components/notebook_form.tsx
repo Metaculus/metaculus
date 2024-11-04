@@ -16,7 +16,11 @@ import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import useConfirmPageLeave from "@/hooks/use_confirm_page_leave";
 import { Category, Post, PostWithForecasts } from "@/types/post";
-import { Tournament, TournamentPreview } from "@/types/projects";
+import {
+  Tournament,
+  TournamentPreview,
+  TournamentType,
+} from "@/types/projects";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
 
@@ -51,6 +55,7 @@ type Props = {
   post: PostWithForecasts | null;
   allCategories: Category[];
   tournament_id: number | null;
+  community_id?: number | null;
   tournaments: TournamentPreview[];
   siteMain: Tournament;
   news_type: string | undefined | null;
@@ -61,6 +66,7 @@ const NotebookForm: React.FC<Props> = ({
   post,
   allCategories,
   tournament_id,
+  community_id,
   tournaments,
   siteMain,
   news_type,
@@ -72,6 +78,7 @@ const NotebookForm: React.FC<Props> = ({
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
+  console.log(post);
   const t = useTranslations();
   const notebookSchema = createNotebookSchema(t);
   const control = useForm({
@@ -143,7 +150,10 @@ const NotebookForm: React.FC<Props> = ({
         className="mt-4 flex w-full flex-col gap-6"
         onSubmit={async (e) => {
           if (!control.getValues("default_project")) {
-            control.setValue("default_project", defaultProject.id);
+            control.setValue(
+              "default_project",
+              community_id ? community_id : defaultProject.id
+            );
           }
           // e.preventDefault(); // Good for debugging
           await control.handleSubmit(
@@ -161,14 +171,16 @@ const NotebookForm: React.FC<Props> = ({
             {t("viewInDjangoAdmin")}
           </a>
         )}
-        <ProjectPickerInput
-          tournaments={tournaments}
-          siteMain={siteMain}
-          currentProject={defaultProject}
-          onChange={(project) => {
-            control.setValue("default_project", project.id);
-          }}
-        />
+        {!community_id && defaultProject.type !== TournamentType.Community && (
+          <ProjectPickerInput
+            tournaments={tournaments}
+            siteMain={siteMain}
+            currentProject={defaultProject}
+            onChange={(project) => {
+              control.setValue("default_project", project.id);
+            }}
+          />
+        )}
         <InputContainer labelText={t("longTitle")}>
           <Textarea
             {...control.register("title")}

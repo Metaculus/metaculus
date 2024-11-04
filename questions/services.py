@@ -365,20 +365,34 @@ def resolve_question(
                         conditional.question_no,
                         actual_close_time=question.actual_close_time,
                     )
-            # if the child is already resolved,
-            # we resolve the active branch
-            if child.resolution is not None:
+            # if the child is already successfully resolved,
+            # we resolve the active branch and annull the other
+            if child.resolution not in [
+                None,
+                ResolutionType.ANNULLED,
+                ResolutionType.AMBIGUOUS,
+            ]:
                 if question.resolution == "yes":
                     resolve_question(
                         conditional.question_yes,
                         child.resolution,
                         conditional.question_yes.actual_close_time,
                     )
+                    resolve_question(
+                        conditional.question_no,
+                        ResolutionType.ANNULLED,
+                        conditional.question_no.actual_close_time,
+                    )
                 if question.resolution == "no":
                     resolve_question(
                         conditional.question_no,
                         child.resolution,
                         conditional.question_no.actual_close_time,
+                    )
+                    resolve_question(
+                        conditional.question_yes,
+                        ResolutionType.ANNULLED,
+                        conditional.question_yes.actual_close_time,
                     )
         else:  # question == child
             # handle annulment / ambiguity
@@ -552,13 +566,12 @@ def unresolve_question(question: Question):
 
 
 def close_question(question: Question, actual_close_time: datetime | None = None):
-    if question.actual_close_time:
-        raise ValidationError(f"Question {question.id} is already closed")
-
+    now = timezone.now()
     question.actual_close_time = min(
-        actual_close_time or timezone.now(),
+        question.actual_close_time or now,
+        actual_close_time or now,
         question.scheduled_close_time,
-        question.actual_resolve_time or timezone.now(),
+        question.actual_resolve_time or now,
     )
     question.save()
 
