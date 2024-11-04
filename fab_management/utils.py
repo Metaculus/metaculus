@@ -124,12 +124,7 @@ def submit_questions(
                     f"Error on row {row_idx}{', col ' + col_name if col_name else ''}: {str(e)}"
                 )
                 continue
-            question = Question(
-                **question_data,
-                actual_resolve_time=question_data["scheduled_resolve_time"],
-                resolution_set_time=question_data["scheduled_resolve_time"],
-                actual_close_time=question_data["scheduled_close_time"],
-            )
+            question = Question(**question_data)
 
             question.cp_reveal_time = question.scheduled_close_time
             question.include_bots_in_aggregates = True
@@ -142,7 +137,6 @@ def submit_questions(
                 default_project=tournament,
                 question=question,
                 curation_status=Post.CurationStatus.APPROVED,
-                actual_close_time=question.scheduled_close_time,
                 scheduled_close_time=question.scheduled_close_time,
                 scheduled_resolve_time=question.scheduled_resolve_time,
             )
