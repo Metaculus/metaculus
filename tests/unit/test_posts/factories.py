@@ -17,7 +17,7 @@ def factory_post(
     default_project: Project = None,
     curation_status: Post.CurationStatus = Post.CurationStatus.APPROVED,
     **kwargs
-):
+) -> Post:
     projects = projects or []
     default_project = default_project or get_site_main_project()
 

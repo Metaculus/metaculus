@@ -81,7 +81,7 @@ class PostQuerySet(models.QuerySet):
             "conditional__question_yes",
             "conditional__question_no",
             # Group Of Questions
-            "group_of_questions__questions",
+            "group_of_questions__questions__group",
         )
 
     def prefetch_condition_post(self):
@@ -542,23 +542,6 @@ class Post(TimeStampedModel):
         # Note: No risk of infinite loops since conditionals can't father other conditionals
         self.updated_related_conditionals()
 
-    def get_open_time(self):
-        if self.question:
-            return self.question.open_time
-
-        if self.conditional:
-            return max(
-                self.conditional.condition.open_time,
-                self.conditional.condition_child.open_time,
-            )
-
-        if self.group_of_questions:
-            questions = self.group_of_questions.questions.all()
-            open_times = [x.open_time for x in questions if x.open_time]
-
-            if open_times:
-                return min(open_times)
-
     # Relations
     # TODO: add db constraint to have only one not-null value of these fields
     question = models.OneToOneField(
@@ -645,7 +628,7 @@ class Post(TimeStampedModel):
         if self.question_id:
             return [self.question]
         if self.group_of_questions_id:
-            return self.group_of_questions.questions.all().prefetch_related("group")
+            return self.group_of_questions.questions.all()
         elif self.conditional_id:
             return [self.conditional.question_yes, self.conditional.question_no]
         else:

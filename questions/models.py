@@ -212,9 +212,6 @@ class Conditional(TimeStampedModel):
 
 
 class GroupOfQuestions(TimeStampedModel):
-    # typing
-    questions: QuerySet[Question]
-
     class GroupOfQuestionsGraphType(models.TextChoices):
         FAN_GRAPH = "fan_graph"
         MULTIPLE_CHOICE_GRAPH = "multiple_choice_graph"
