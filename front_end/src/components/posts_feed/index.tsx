@@ -12,9 +12,15 @@ type Props = {
   filters: PostsParams;
   type?: PostsFeedType;
   topics?: Topic[];
+  isCommunity?: boolean;
 };
 
-const AwaitedPostsFeed: FC<Props> = async ({ filters, type, topics }) => {
+const AwaitedPostsFeed: FC<Props> = async ({
+  filters,
+  type,
+  topics,
+  isCommunity,
+}) => {
   if (
     topics &&
     filters.topic &&
@@ -37,6 +43,7 @@ const AwaitedPostsFeed: FC<Props> = async ({ filters, type, topics }) => {
       filters={filters}
       initialQuestions={questions}
       type={type}
+      isCommunity={isCommunity}
     />
   );
 };
