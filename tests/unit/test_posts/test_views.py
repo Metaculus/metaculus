@@ -16,7 +16,7 @@ from tests.unit.test_comments.factories import factory_comment
 from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_questions.factories import create_question
-from tests.unit.test_questions.fixtures import question_binary  # noqa
+from tests.unit.test_questions.fixtures import * # noqa
 
 
 class TestPostCreate:
