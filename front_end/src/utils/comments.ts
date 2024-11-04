@@ -23,7 +23,7 @@ export function parseUserMentions(
   markdown: string,
   mentionedUsers?: AuthorType[]
 ): string {
-  const userTagPattern = /@\(([^)]+)\)|@([^\s]+)/g;
+  const userTagPattern = /@\(([^)]+)\)|@(\w+)/g;
 
   markdown = markdown.replace(userTagPattern, (match) => {
     const cleanedUsername = match.replace(/[@()\\]/g, "");
