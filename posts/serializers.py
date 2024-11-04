@@ -451,9 +451,7 @@ def serialize_post_many(
         qs = qs.prefetch_user_snapshots(current_user)
 
     # Restore the original ordering
-    posts: list[Post] = list(qs.all())
-    posts.sort(key=lambda obj: ids.index(obj.id))
-
+    posts = sorted(qs.all(), key=lambda obj: ids.index(obj.id))
     aggregate_forecasts = {}
 
     if with_cp:

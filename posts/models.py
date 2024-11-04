@@ -81,7 +81,7 @@ class PostQuerySet(models.QuerySet):
             "conditional__question_yes",
             "conditional__question_no",
             # Group Of Questions
-            "group_of_questions__questions",
+            "group_of_questions__questions__group",
         )
 
     def prefetch_condition_post(self):
@@ -628,7 +628,7 @@ class Post(TimeStampedModel):
         if self.question_id:
             return [self.question]
         if self.group_of_questions_id:
-            return self.group_of_questions.questions.all().prefetch_related("group")
+            return self.group_of_questions.questions.all()
         elif self.conditional_id:
             return [self.conditional.question_yes, self.conditional.question_no]
         else:
