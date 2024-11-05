@@ -28,8 +28,7 @@ def build_question_graph_image_url(question_id: int):
 
 
 def build_question_graph_image_cdn_url(question_id: int):
-    cdn_domain_name = settings.CDN_DOMAIN_NAME.strip().rstrip("/")
-    return f"{cdn_domain_name}/api/posts/preview-image/{question_id}/"
+    return build_frontend_url(f"/api/posts/preview-image/{question_id}/")
 
 
 def build_question_embed_url(question_id: int):
