@@ -286,8 +286,7 @@ const CommentFeed: FC<Props> = ({
             {t("commentsWithCount", { count: totalCount })}
           </span>
           <span>
-            {newCommentCount ? " " : ""}
-            {t("newCommentsWithCount", { count: newCommentCount })}
+          {newCommentCount ? `\u00A0${t("newCommentsWithCount", { count: newCommentCount })}` : ""}
           </span> 
           <span className="opacity-50">
             , {t("sortedBy")}
