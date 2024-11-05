@@ -638,7 +638,7 @@ def download_csv(request, pk: int):
     include_bots = request.GET.get("include_bots", None)
 
     # to minimize the aggregation history or not
-    minimize = request.GET.get("minimize", True)
+    minimize = str(request.GET.get("minimize", "true")).lower() == "true"
 
     now = timezone.now()
     aggregation_dict: dict[Question, dict[str, AggregateForecast]] = defaultdict(dict)
