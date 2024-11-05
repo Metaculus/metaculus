@@ -52,7 +52,7 @@ export default async function IndividualNotebook({
   return (
     <>
       {isCommunityQuestion ? (
-        <CommunityHeader community={currentCommunity} alwaysShowName />
+        <CommunityHeader community={currentCommunity} />
       ) : (
         <Header />
       )}

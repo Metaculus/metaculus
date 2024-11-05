@@ -4,7 +4,6 @@ import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forEach } from "lodash";
-import { vacuumImpedanceDependencies } from "mathjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -225,6 +224,8 @@ const GroupForm: React.FC<Props> = ({
             cp_reveal_time: x.cp_reveal_time,
             label: extractQuestionGroupName(x.title),
             scaling: x.scaling,
+            open_lower_bound: x.open_lower_bound,
+            open_upper_bound: x.open_upper_bound,
           };
         })
       : []
@@ -504,12 +505,11 @@ const GroupForm: React.FC<Props> = ({
                           <DatetimeUtc
                             className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                             defaultValue={subQuestion.open_time}
-                            onChange={(e) => {
+                            onChange={(value) => {
                               setSubQuestions(
                                 subQuestions.map((subQuestion, iter_index) => {
                                   if (index === iter_index) {
-                                    subQuestion.open_time =
-                                      vacuumImpedanceDependencies;
+                                    subQuestion.open_time = value;
                                   }
                                   return subQuestion;
                                 })
@@ -549,13 +549,9 @@ const GroupForm: React.FC<Props> = ({
                         defaultOpenLowerBound={subQuestion.open_lower_bound}
                         // @ts-ignore
                         defaultOpenUpperBound={subQuestion.open_upper_bound}
-                        defaultZeroPoint={subQuestion.zero_point}
+                        defaultZeroPoint={subQuestion.scaling.zero_point}
                         hasForecasts={
                           subquestionHasForecasts && mode !== "create"
-                        }
-                        canSeeLogarithmic={
-                          post?.user_permission === ProjectPermissions.ADMIN ||
-                          !post
                         }
                         onChange={(
                           range_min,

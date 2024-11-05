@@ -45,7 +45,7 @@ const QuestionConditionalCreator: React.FC<{
   return (
     <>
       {community ? (
-        <CommunityHeader community={community} alwaysShowName />
+        <CommunityHeader community={community} />
       ) : (
         <Header />
       )}

@@ -100,6 +100,10 @@ components:
           type: string
           format: date-time
           nullable: true
+        open_time:
+          type: string
+          format: date-time
+          nullable: true
         edited_at:
           type: string
           format: date-time
@@ -762,6 +766,13 @@ paths:
             example: 123
           description: Filters posts where the specified user has not submitted a forecast on a question within the post.
         - in: query
+          name: open_time__gt
+          schema:
+            type: string
+            format: date-time
+            example: '2024-01-01'
+          description: "Post open timestamp filter: `open_time__<operator>`. Supported operators: `gt`, `gte`, `lt`, `lte`."
+        - in: query
           name: published_at__gt
           schema:
             type: string
@@ -790,6 +801,7 @@ paths:
             type: string
             enum:
               - published_at
+              - open_time
               - vote_score
               - comment_count
               - forecasts_count

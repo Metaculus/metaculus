@@ -303,7 +303,13 @@ def assign_ranks(
         exclusion_records = exclusion_records.filter(
             Q(end_time__isnull=True) | Q(end_time__gte=leaderboard.start_time)
         )
-    if leaderboard.finalize_time:
+    if leaderboard.end_time:
+        # only exclude by end_time if it's set
+        exclusion_records = exclusion_records.filter(
+            start_time__lte=leaderboard.end_time
+        )
+    elif leaderboard.finalize_time:
+        # if end_time is not set, use finalize_time
         exclusion_records = exclusion_records.filter(
             start_time__lte=leaderboard.finalize_time
         )
@@ -641,7 +647,12 @@ def get_contributions(
     )
     # User has scores on some questions
     contributions = [
-        Contribution(score=s.score, coverage=s.coverage, question=s.question)
+        Contribution(
+            score=s.score,
+            coverage=s.coverage,
+            question=s.question,
+            post=s.question.get_post(),
+        )
         for s in scores
     ]
     # add unpopulated contributions for other questions

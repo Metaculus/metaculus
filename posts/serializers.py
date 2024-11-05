@@ -49,7 +49,6 @@ class PostReadSerializer(serializers.ModelSerializer):
     projects = serializers.SerializerMethodField()
     author_username = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    open_time = serializers.SerializerMethodField()
     coauthors = serializers.SerializerMethodField()
     nr_forecasters = serializers.IntegerField(source="forecasters_count")
     slug = serializers.SerializerMethodField()
@@ -96,18 +95,14 @@ class PostReadSerializer(serializers.ModelSerializer):
             return Post.PostStatusChange.RESOLVED
 
         now = timezone.now()
-        open_time = obj.get_open_time()
 
-        if not open_time or open_time > now:
+        if not obj.open_time or obj.open_time > now:
             return Post.CurationStatus.APPROVED
 
         if now < obj.scheduled_close_time:
             return Post.PostStatusChange.OPEN
 
         return Post.PostStatusChange.CLOSED
-
-    def get_open_time(self, obj: Post):
-        return obj.get_open_time()
 
     def get_slug(self, obj: Post):
         return get_post_slug(obj)
@@ -144,7 +139,6 @@ class PostWriteSerializer(serializers.ModelSerializer):
             "group_of_questions",
             "default_project",
             "notebook",
-            "published_at",
             "categories",
             "news_type",
         )
@@ -186,6 +180,7 @@ class PostUpdateSerializer(PostWriteSerializer):
 class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     class Order(models.TextChoices):
         PUBLISHED_AT = "published_at"
+        OPEN_TIME = "open_time"
         VOTES = "vote_score"
         COMMENT_COUNT = "comment_count"
         FORECASTS_COUNT = "forecasts_count"
@@ -233,11 +228,13 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
     for_main_feed = serializers.BooleanField(required=False, allow_null=True)
 
     # Key lookup filters
+    open_time = serializers.DateTimeField(required=False, allow_null=True)
     published_at = serializers.DateTimeField(required=False, allow_null=True)
     scheduled_resolve_time = serializers.DateTimeField(required=False, allow_null=True)
     scheduled_close_time = serializers.DateTimeField(required=False, allow_null=True)
 
     key_lookup_fields = [
+        "open_time",
         "published_at",
         "scheduled_resolve_time",
         "scheduled_close_time",
@@ -456,9 +453,7 @@ def serialize_post_many(
         qs = qs.prefetch_user_snapshots(current_user)
 
     # Restore the original ordering
-    posts: list[Post] = list(qs.all())
-    posts.sort(key=lambda obj: ids.index(obj.id))
-
+    posts = sorted(qs.all(), key=lambda obj: ids.index(obj.id))
     aggregate_forecasts = {}
 
     if with_cp:

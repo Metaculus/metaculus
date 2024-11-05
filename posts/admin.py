@@ -26,7 +26,6 @@ class PostAdmin(admin.ModelAdmin):
     ]
     search_fields = ["title"]
     readonly_fields = ["notebook"]
-    exclude = ["published_at_triggered"]
 
 
 @admin.register(Notebook)

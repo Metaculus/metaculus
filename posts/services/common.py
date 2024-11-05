@@ -285,8 +285,9 @@ def compute_post_sorting_divergence_and_update_snapshots(post: Post):
 
 
 def compute_hotness():
-    qs = Post.objects.filter_active() | Post.objects.filter(
-        resolved=True, curation_status=Post.CurationStatus.APPROVED
+    qs = Post.objects.filter(
+        curation_status=Post.CurationStatus.APPROVED,
+        published_at__lte=timezone.now(),
     )
     last_week_dt = timezone.now() - timedelta(days=7)
 
@@ -362,6 +363,7 @@ def approve_post(post: Post, open_time: date, cp_reveal_time: date):
 
     post.save()
     Question.objects.bulk_update(questions, fields=["open_time", "cp_reveal_time"])
+    post.update_pseudo_materialized_fields()
 
 
 def submit_for_review_post(post: Post):
