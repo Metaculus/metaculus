@@ -1,6 +1,10 @@
+import logging
+
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.views import exception_handler
+
+logger = logging.getLogger(__name__)
 
 
 def custom_exception_handler(exc, context):
@@ -9,9 +13,9 @@ def custom_exception_handler(exc, context):
     We want to ensure it never returns list of errors, but structured dict object
     """
 
-    # Adapter for legacy django validation errors
-    print(f"Error:\n{exc}")
+    logger.debug(f"Error: {exc}")
 
+    # Adapter for legacy django validation errors
     # Convert django.core.exceptions.ValidationError to rest_framework.exceptions.ValidationError
     if isinstance(exc, DjangoValidationError):
         if exc.messages:
