@@ -599,8 +599,10 @@ def download_csv(request, pk: int):
                 raise NotFound(f"Sub-question with id {question_id} not found.")
     elif post.conditional:
         questions = [post.conditional.question_yes, post.conditional.question_no]
-    else:  # post.question
+    elif post.question:
         questions = [post.question]
+    else:
+        raise NotFound("Post has no questions")
 
     # get and validate aggregation_methods
     aggregation_methods = request.GET.get("aggregation_methods", "recency_weighted")
@@ -635,6 +637,9 @@ def download_csv(request, pk: int):
         raise PermissionDenied("Current user can not view user-specific data")
     include_bots = request.GET.get("include_bots", None)
 
+    # to minimize the aggregation history or not
+    minimize = str(request.GET.get("minimize", "true")).lower() == "true"
+
     now = timezone.now()
     aggregation_dict: dict[Question, dict[str, AggregateForecast]] = defaultdict(dict)
     for question in questions:
@@ -649,7 +654,7 @@ def download_csv(request, pk: int):
             question,
             aggregation_methods,
             user_ids=user_ids,
-            minimize=True,
+            minimize=minimize,
             include_stats=True,
             include_bots=(
                 include_bots
