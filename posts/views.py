@@ -599,8 +599,10 @@ def download_csv(request, pk: int):
                 raise NotFound(f"Sub-question with id {question_id} not found.")
     elif post.conditional:
         questions = [post.conditional.question_yes, post.conditional.question_no]
-    else:  # post.question
-        questions: list[Question] = [post.question]
+    elif post.question:
+        questions = [post.question]
+    else:
+        raise NotFound("Post has no questions")
 
     # get and validate aggregation_methods
     aggregation_methods = request.GET.get("aggregation_methods", "recency_weighted")
