@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import classNames from "classnames";
 import { useTranslations } from "next-intl";
+import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, useMemo, useState } from "react";
 
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
@@ -55,6 +56,10 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
   const isMobileExpandable =
     hotTopics.length + hotCategories.length > EXPAND_THRESHOLD;
   const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+
+  const isCommunitiesDiscoveryEnabled = useFeatureFlagEnabled(
+    "communitiesDiscovery"
+  );
 
   const selectTopic = (topic: Topic) => {
     clearInReview();
@@ -133,6 +138,19 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
                 isActive={currentFeed === FeedType.MY_QUESTIONS_AND_POSTS}
               />
             </>
+          )}
+          {isCommunitiesDiscoveryEnabled && (
+            <TopicItem
+              emoji="👥"
+              text={t("communities")}
+              onClick={() => {
+                sendGAEvent("event", "sidebarClick", {
+                  event_category: "Communities",
+                });
+                switchFeed(FeedType.COMMUNITIES);
+              }}
+              isActive={currentFeed === FeedType.COMMUNITIES}
+            />
           )}
           <TopicItem
             isActive={false}

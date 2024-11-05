@@ -3,6 +3,7 @@ export enum FeedType {
   MY_PREDICTIONS = "my_predictions",
   MY_QUESTIONS_AND_POSTS = "my_questions_and_posts",
   IN_REVIEW = "in_review",
+  COMMUNITIES = "communities",
 }
 
 export const POST_TOPIC_FILTER = "topic";
@@ -21,5 +22,6 @@ export const POST_COMMENTED_BY_FILTER = "commented_by";
 export const POST_ACCESS_FILTER = "access";
 export const POST_ORDER_BY_FILTER = "order_by";
 export const POST_NEWS_TYPE_FILTER = "news_type";
+export const POST_COMMUNITIES_FILTER = "communities";
 
 export const POSTS_PER_PAGE = 10;
