@@ -11,6 +11,7 @@ from rest_framework.exceptions import ValidationError
 from posts.models import Post
 from questions.models import Forecast
 from users.models import User
+from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
     string_location_to_unscaled_location,
@@ -18,8 +19,14 @@ from utils.the_math.formulas import (
 from utils.the_math.measures import (
     percent_point_function,
 )
-from .constants import ResolutionType
-from .models import Question, Conditional, GroupOfQuestions, AggregateForecast
+from questions.constants import ResolutionType
+from questions.models import (
+    Question,
+    Conditional,
+    GroupOfQuestions,
+    AggregateForecast,
+    AggregationMethod,
+)
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -495,6 +502,7 @@ def serialize_question(
     post: Post | None = None,
     aggregate_forecasts: list[AggregateForecast] = None,
     full_forecast_values: bool = False,
+    minimize: bool = True,
 ):
     """
     Serializes question object
@@ -520,7 +528,21 @@ def serialize_question(
         ):
             aggregate_forecasts = []
         elif aggregate_forecasts is None:
-            aggregate_forecasts = question.aggregate_forecasts.all()
+            if minimize:
+                aggregate_forecasts = question.aggregate_forecasts.all()
+            else:
+                # TODO: accept other url params
+                aggregate_forecasts = get_aggregation_history(
+                    question,
+                    aggregation_methods=[
+                        AggregationMethod.RECENCY_WEIGHTED,
+                        AggregationMethod.UNWEIGHTED,
+                    ],
+                    minimize=minimize,
+                    include_stats=True,
+                    include_bots=question.include_bots_in_aggregates,
+                    histogram=True,
+                )
 
         aggregate_forecasts_by_method = defaultdict(list)
         for aggregate in aggregate_forecasts:
