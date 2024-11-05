@@ -600,7 +600,7 @@ def download_csv(request, pk: int):
     elif post.conditional:
         questions = [post.conditional.question_yes, post.conditional.question_no]
     else:  # post.question
-        questions = [post.question]
+        questions: list[Question] = [post.question]
 
     # get and validate aggregation_methods
     aggregation_methods = request.GET.get("aggregation_methods", "recency_weighted")
