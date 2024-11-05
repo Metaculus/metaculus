@@ -135,6 +135,17 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
             </>
           )}
           <TopicItem
+            emoji="👥"
+            text="Communities"
+            onClick={() => {
+              sendGAEvent("event", "sidebarClick", {
+                event_category: "Communities",
+              });
+              switchFeed(FeedType.COMMUNITIES);
+            }}
+            isActive={currentFeed === FeedType.COMMUNITIES}
+          />
+          <TopicItem
             isActive={false}
             emoji="🤖🔭"
             text="AI Benchmarking"
