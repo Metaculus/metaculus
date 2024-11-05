@@ -180,7 +180,7 @@ export default function PostHeader({
             {canSendBackToDrafts && (
               <Button
                 onClick={async () => {
-                  await draftPost(post.id);
+                  await draftPost(post.id, post.projects.default_project);
                 }}
               >
                 {t("sendBackToDrafts")}

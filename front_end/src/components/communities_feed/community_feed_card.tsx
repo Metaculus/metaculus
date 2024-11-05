@@ -31,7 +31,7 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
         </h1>
         <Button
           presentationType="icon"
-          className="!h-[26px] !w-[26px] rounded-full !border-blue-400 !text-blue-700 group-hover:!bg-blue-900 group-hover:!text-gray-200 dark:!border-blue-400-dark dark:!text-blue-700-dark dark:group-hover:!bg-blue-900-dark dark:group-hover:!text-gray-200-dark"
+          className="!h-[26px] !w-[26px] min-w-[26px] rounded-full !border-blue-400 !text-blue-700 group-hover:!bg-blue-900 group-hover:!text-gray-200 dark:!border-blue-400-dark dark:!text-blue-700-dark dark:group-hover:!bg-blue-900-dark dark:group-hover:!text-gray-200-dark"
         >
           <FontAwesomeIcon icon={faArrowRight} width={12} />
         </Button>

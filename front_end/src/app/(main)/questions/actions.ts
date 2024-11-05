@@ -18,6 +18,7 @@ import QuestionsApi, { ForecastPayload } from "@/services/questions";
 import { FetchError } from "@/types/fetch";
 import { PostSubscription } from "@/types/post";
 import { VoteDirection } from "@/types/votes";
+import { Tournament, TournamentType } from "@/types/projects";
 
 export async function fetchMorePosts(
   filters: PostsParams,
@@ -130,8 +131,14 @@ export async function getQuestion(questionId: number) {
   return response;
 }
 
-export async function draftPost(postId: number) {
+export async function draftPost(postId: number, defaultProject: Tournament) {
   await PostsApi.makeDraft(postId);
+
+  if (defaultProject.type === TournamentType.Community) {
+    return redirect(
+      `/community/${defaultProject.slug}/settings/?mode=questions&status=pending`
+    );
+  }
 
   return redirect("/questions/?status=pending");
 }
