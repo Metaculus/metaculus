@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import {
   FeedType,
+  POST_COMMUNITIES_FILTER,
   POST_FOR_MAIN_FEED,
   POST_FORECASTER_ID_FILTER,
   POST_ORDER_BY_FILTER,
@@ -23,6 +24,7 @@ const useFeed = () => {
   const authorUsernames = params.getAll(POST_USERNAMES_FILTER);
   const orderBy = params.get(POST_ORDER_BY_FILTER);
   const postStatus = params.get(POST_STATUS_FILTER);
+  const communities = params.get(POST_COMMUNITIES_FILTER);
 
   const currentFeed = useMemo(() => {
     if (selectedTopic) return null;
@@ -36,9 +38,18 @@ const useFeed = () => {
     ) {
       return FeedType.MY_QUESTIONS_AND_POSTS;
     }
-
+    if (communities) {
+      return FeedType.COMMUNITIES;
+    }
     return FeedType.HOME;
-  }, [authorUsernames, guessedById, postStatus, selectedTopic, user]);
+  }, [
+    authorUsernames,
+    guessedById,
+    postStatus,
+    selectedTopic,
+    user,
+    communities,
+  ]);
 
   // TODO: cleanup status when BE supports pending status
   const clearInReview = useCallback(() => {
@@ -74,6 +85,9 @@ const useFeed = () => {
       }
       if (feedType === FeedType.IN_REVIEW) {
         user && setParam(POST_STATUS_FILTER, PostStatus.PENDING);
+      }
+      if (feedType === FeedType.COMMUNITIES) {
+        setParam(POST_COMMUNITIES_FILTER, "true");
       }
     },
     [currentFeed, clearInReview, deleteParam, params, setParam, user]

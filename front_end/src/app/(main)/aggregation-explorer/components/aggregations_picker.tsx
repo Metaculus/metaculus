@@ -41,7 +41,7 @@ const AggregationMethodsPicker: React.FC<{
             <ComboboxInput
               className="w-full cursor-pointer border-none p-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 dark:bg-blue-950 dark:text-gray-200"
               readOnly
-              displayValue={() => t("chooseAggregationsToInlude")}
+              displayValue={() => t("chooseAggregationsToInclude")}
             />
           </div>
           <Transition

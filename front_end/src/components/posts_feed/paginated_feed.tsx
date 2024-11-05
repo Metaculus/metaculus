@@ -117,7 +117,7 @@ const PaginatedPostsFeed: FC<Props> = ({
             <div className="mx-auto flex flex-col items-center">
               <FormErrorMessage errors={error?.digest} />
               <Button className="mx-auto" onClick={loadMorePosts}>
-                Load more
+                {t("loadMoreButton")}
               </Button>
             </div>
           )}
