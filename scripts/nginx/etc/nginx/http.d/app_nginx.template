@@ -25,6 +25,7 @@ server {
         access_log off;
     }
 
+    # Backend
     location ~ ^/(api|api2|admin|proxy|static)/ {
         include proxy_params;
 
@@ -34,5 +35,21 @@ server {
 
         keepalive_timeout           950s;
         client_max_body_size 10M;
+    }
+
+    # Posthog proxy
+    location /ingest/static/ {
+        proxy_pass https://us-assets.i.posthog.com/static/;
+        proxy_set_header Host us-assets.i.posthog.com;
+    }
+
+    location /ingest/ {
+        proxy_pass https://us.i.posthog.com/;
+        proxy_set_header Host us.i.posthog.com;
+    }
+
+    location = /ingest/decide {
+        proxy_pass https://us.i.posthog.com/decide;
+        proxy_set_header Host us.i.posthog.com;
     }
 }
