@@ -68,7 +68,7 @@ def aggregation_explorer_api_view(request):
     include_bots = request.GET.get("include_bots", None)
 
     # to minimize the aggregation history or not
-    minimize = request.GET.get("minimize", True)
+    minimize = str(request.GET.get("minimize", "true")).lower() == "true"
 
     aggregations = get_aggregation_history(
         question,
