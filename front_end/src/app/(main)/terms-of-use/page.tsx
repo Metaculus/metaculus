@@ -840,8 +840,8 @@ export default function TermsOfUse() {
         Only the intellectual property rights owner or person authorized to act
         on behalf of the owner can report potentially infringing content. If you
         believe your work has been infringed through the Service, please notify
-        us at Metaculus, Inc., Attention: Copyright Agent, 119 Merced Ave, Santa
-        Cruz CA 95060, or at the email address{" "}
+        us at Metaculus, Inc., Attention: Copyright Agent, 1112 Montana Avenue
+        Suite 464, Santa Monica, CA, US 90403, or at the email address{" "}
         <a
           href="mailto:copyright@metaculus.com"
           className="text-blue-600 hover:underline"
