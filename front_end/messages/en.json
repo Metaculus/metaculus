@@ -197,6 +197,8 @@
   "unreadAll": "all unread",
   "commentsWithCount": "{count, plural, =0 {no comments} =1 {comment} other {comments} }",
   "unreadWithCount": "{count, plural, =0 {no unread} other {unread} }",
+  "newCommentsWithCount": "{count, plural, =0 {} other {({count} new)}}",
+  "sortedBy": "sorted by",
   "or": "or",
   "registrationHeadingPrediction": "Make your prediction count",
   "registrationHeadingSite": "Create a Metaculus Account",

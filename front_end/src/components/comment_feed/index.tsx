@@ -128,6 +128,7 @@ const CommentFeed: FC<Props> = ({
   const [offset, setOffset] = useState<number>(0);
   const postId = postData?.id;
   const includeUserForecast = shouldIncludeForecast(postData);
+  const newCommentCount = postData?.unread_comment_count;
 
   const handleFilterChange = useCallback(
     (
@@ -279,17 +280,32 @@ const CommentFeed: FC<Props> = ({
             variant="tertiary"
           />
         )}
-        <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
-          <Button variant="text" className="capitalize">
-            {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
-              "sort"}
-            <FontAwesomeIcon icon={faChevronDown} />
-          </Button>
-        </DropdownMenu>
-        <span>
-          {totalCount ? `${totalCount} ` : ""}
-          {t("commentsWithCount", { count: totalCount })}
-        </span>
+        <div className="flex items-center text">
+          <span className="opacity-50">
+            {totalCount ? `${totalCount} ` : ""}
+            {t("commentsWithCount", { count: totalCount })}
+          </span>
+          <span>
+            {newCommentCount ? " " : ""}
+            {t("newCommentsWithCount", { count: newCommentCount })}
+          </span> 
+          <span className="opacity-50">
+            , {t("sortedBy")}
+          </span>
+          <div className="inline-flex items-center -ml-2">
+            <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
+              <Button 
+                variant="text" 
+                className="capitalize inline-flex items-center" 
+                style={{ fontSize: 'inherit' }}
+              >
+                {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
+                 "sort"}
+                <FontAwesomeIcon icon={faChevronDown} />
+              </Button>
+            </DropdownMenu>
+          </div>
+        </div>
       </div>
       {postId && (
         <CommentEditor
