@@ -136,7 +136,7 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
           )}
           <TopicItem
             emoji="👥"
-            text="Communities"
+            text={t("communities")}
             onClick={() => {
               sendGAEvent("event", "sidebarClick", {
                 event_category: "Communities",

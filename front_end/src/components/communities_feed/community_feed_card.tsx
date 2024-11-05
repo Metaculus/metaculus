@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
@@ -17,10 +18,12 @@ type Props = {
 
 const CommunityFeedCard: FC<Props> = ({ community }) => {
   const t = useTranslations();
+  const router = useRouter();
+
   return (
     <Link
       href={`/community/${community.slug}`}
-      className="flex flex-col rounded-lg border border-purple-300 bg-gray-0 p-5 no-underline hover:border-blue-700 dark:border-purple-300-dark dark:bg-gray-0-dark dark:hover:border-blue-700-dark"
+      className="group flex flex-col rounded-lg border border-purple-300 bg-gray-0 p-5 no-underline hover:border-blue-700 dark:border-purple-300-dark dark:bg-gray-0-dark dark:hover:border-blue-700-dark"
     >
       <div className="flex items-center justify-between">
         <h1 className="m-0 max-w-[250px] truncate text-lg font-medium text-blue-800 dark:text-blue-800-dark xs:max-w-full">
@@ -28,7 +31,7 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
         </h1>
         <Button
           presentationType="icon"
-          className="!h-[26px] !w-[26px] rounded-full !border-blue-400 !text-blue-700 hover:!bg-blue-900 hover:!text-gray-200 dark:!border-blue-400-dark dark:!text-blue-700-dark dark:hover:!bg-blue-900-dark dark:hover:!text-gray-200-dark"
+          className="!h-[26px] !w-[26px] rounded-full !border-blue-400 !text-blue-700 group-hover:!bg-blue-900 group-hover:!text-gray-200 dark:!border-blue-400-dark dark:!text-blue-700-dark dark:group-hover:!bg-blue-900-dark dark:group-hover:!text-gray-200-dark"
         >
           <FontAwesomeIcon icon={faArrowRight} width={12} />
         </Button>
@@ -62,12 +65,16 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
           <div className="ml-auto flex items-center">
             <p className="my-0 ml-auto flex flex-col items-end gap-1 text-xs text-gray-500 dark:text-gray-500-dark">
               {t("moderatedBy")}{" "}
-              <Link
-                className="font-medium text-blue-800 no-underline dark:text-blue-800-dark"
-                href={`/accounts/profile/${community.created_by.id}/`}
+              <Button
+                variant="text"
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push(`/accounts/profile/${community.created_by.id}/`);
+                }}
+                className="!p-0 font-medium text-blue-800 no-underline dark:text-blue-800-dark"
               >
                 {community.created_by.username}
-              </Link>
+              </Button>
             </p>
 
             <div className="relative ml-4 h-[36px] w-[36px] rounded-full border-none bg-cover bg-center">

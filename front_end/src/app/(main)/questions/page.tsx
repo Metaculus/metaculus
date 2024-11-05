@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { Suspense } from "react";
 
 import AwaitedCommunitiesFeed from "@/components/communities_feed";
@@ -27,12 +26,7 @@ export default async function Questions({
   const topics = await ProjectsApi.getTopics();
 
   return (
-    <main
-      className={classNames(
-        "mx-auto mt-4 min-h-min w-full flex-auto px-0 sm:px-2 md:px-3",
-        isCommunityFeed ? "max-w-[1074px]" : "max-w-5xl"
-      )}
-    >
+    <main className="mx-auto mt-4 min-h-min w-full max-w-5xl flex-auto px-0 sm:px-2 md:px-3">
       <div className="gap-3 p-0 sm:flex sm:flex-row sm:gap-4">
         <QuestionTopics topics={topics} />
         <div className="min-h-[calc(100vh-300px)] grow overflow-x-hidden p-2 pt-2.5 no-scrollbar sm:p-0 sm:pt-5">
