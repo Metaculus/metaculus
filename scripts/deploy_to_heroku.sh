@@ -1,7 +1,7 @@
 #! /bin/bash
 set -e
 
-required_vars=("NEXT_PUBLIC_TURNSTILE_SITE_KEY" "HEROKU_APP" "NEXT_PUBLIC_APP_URL" "SENTRY_AUTH_TOKEN")
+required_vars=("NEXT_PUBLIC_TURNSTILE_SITE_KEY" "HEROKU_APP" "NEXT_PUBLIC_APP_URL" "SENTRY_AUTH_TOKEN" "NEXT_PUBLIC_POSTHOG_KEY")
 
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
