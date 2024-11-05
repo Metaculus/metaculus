@@ -635,6 +635,9 @@ def download_csv(request, pk: int):
         raise PermissionDenied("Current user can not view user-specific data")
     include_bots = request.GET.get("include_bots", None)
 
+    # to minimize the aggregation history or not
+    minimize = request.GET.get("minimize", True)
+
     now = timezone.now()
     aggregation_dict: dict[Question, dict[str, AggregateForecast]] = defaultdict(dict)
     for question in questions:
@@ -649,7 +652,7 @@ def download_csv(request, pk: int):
             question,
             aggregation_methods,
             user_ids=user_ids,
-            minimize=True,
+            minimize=minimize,
             include_stats=True,
             include_bots=(
                 include_bots
