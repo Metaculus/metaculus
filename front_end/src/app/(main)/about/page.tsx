@@ -95,11 +95,11 @@ const people: Person[] = [
   {
     userId: 105951,
     name: "Sylvain Chevalier",
-    position: "Technical Product Manager",
+    position: "Director of Product",
     imgSrc:
       "https://metaculus-media.s3.us-west-2.amazonaws.com/about/sylvain_chevalier.webp",
     introduction:
-      "Sylvain is a Technical Product Manager at Metaculus, with a background in software engineering and expertise in forecasting methodologies. He holds two master's degrees in physical and organic chemistry from top universities in Lyon. Sylvain is dedicated to empowering forecasters and improving decision-making through advanced tools and techniques.",
+      "Sylvain is the Director of Product at Metaculus, with a background in software engineering and expertise in forecasting methodologies. He holds two master's degrees in physical and organic chemistry from top universities in Lyon. Sylvain is dedicated to empowering forecasters and improving decision-making through advanced tools and techniques.",
   },
   {
     userId: 111848,
