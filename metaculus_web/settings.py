@@ -402,6 +402,10 @@ LOGGING = {
     },
     "loggers": {
         "": {
+            "level": "DEBUG" if DEBUG else "INFO",
+            "handlers": ["console"],
+        },
+        "MARKDOWN": {
             "level": "INFO",
             "handlers": ["console"],
         },
