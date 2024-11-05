@@ -9,6 +9,7 @@ import { FC, useState } from "react";
 
 import { removeRelatedArticle } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
+import ImageWithFallback from "@/components/ui/image_with_fallback";
 import { useAuth } from "@/contexts/auth_context";
 import { NewsArticle } from "@/types/news";
 import { formatDate } from "@/utils/date_formatters";
@@ -55,16 +56,16 @@ const NewsMatchArticle: FC<Props> = ({ article }) => {
           href={article.url}
         >
           {article.favicon_url ? (
-            <object
+            <ImageWithFallback
               className="mr-3 size-8 rounded-full"
-              data={article.favicon_url}
-              type="image/png"
+              src={article.favicon_url}
+              alt={`${article.media_label} logo`}
               aria-label={`${article.media_label} logo`}
             >
               <span className="mr-3 flex size-8 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-200-dark">
                 <FontAwesomeIcon icon={faNewspaper} size="xl" />
               </span>
-            </object>
+            </ImageWithFallback>
           ) : (
             <span className="mr-3 flex size-8 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-200-dark">
               <FontAwesomeIcon icon={faNewspaper} size="xl" />
