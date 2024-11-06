@@ -137,7 +137,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
                   opacityClass,
                   {
                     "border-blue-500/70 dark:border-blue-400-dark": !isUnread,
-                    "border-purple-500 bg-gradient-to-b from-purple-300/30 to-purple-300/0 dark:border-purple-500-dark/60 dark:from-purple-300-dark/20 dark:to-purple-300-dark/0":
+                    "border-purple-500 bg-purple-100/50 dark:border-purple-500-dark/60 dark:bg-purple-100-dark/50":
                       isUnread,
                   }
                 )}

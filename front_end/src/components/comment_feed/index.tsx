@@ -348,7 +348,7 @@ const CommentFeed: FC<Props> = ({
                 postData?.last_viewed_at &&
                 new Date(postData.last_viewed_at) < new Date(comment.created_at)
               ),
-              "border-purple-500 bg-gradient-to-b from-purple-300/30 to-purple-300/0 dark:border-purple-500-dark/60 dark:from-purple-300-dark/20 dark:to-purple-300-dark/0":
+              "border-purple-500 bg-purple-100/50 dark:border-purple-500-dark/60 dark:bg-purple-100-dark/50":
                 postData?.last_viewed_at &&
                 new Date(postData.last_viewed_at) <
                   new Date(comment.created_at),
