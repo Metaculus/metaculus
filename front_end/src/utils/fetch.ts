@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { getAlphaTokenSession, getServerSession } from "@/services/session";
+// import { getAlphaTokenSession, getServerSession } from "@/services/session";
 import {
   ApiErrorResponse,
   ErrorResponse,
@@ -104,8 +104,8 @@ const appFetch = async <T>(
     passAuthHeader = false;
   }
 
-  const authToken = passAuthHeader ? getServerSession() : null;
-  const alphaToken = getAlphaTokenSession();
+  // const authToken = passAuthHeader ? getServerSession() : null;
+  // const alphaToken = getAlphaTokenSession();
 
   // Default values are configured in the next.config.mjs
   const finalUrl = `${process.env.API_BASE_URL}/api${url}`;
@@ -116,17 +116,17 @@ const appFetch = async <T>(
       ...defaultOptions.headers,
       ...options.headers,
       // Propagate current auth token
-      ...(authToken
-        ? {
-            Authorization: `Token ${authToken}`,
-          }
-        : {}),
-      // Propagate dev auth token
-      ...(alphaToken
-        ? {
-            "x-alpha-auth-token": alphaToken,
-          }
-        : {}),
+      // ...(authToken
+      //   ? {
+      //       Authorization: `Token ${authToken}`,
+      //     }
+      //   : {}),
+      // // Propagate dev auth token
+      // ...(alphaToken
+      //   ? {
+      //       "x-alpha-auth-token": alphaToken,
+      //     }
+      //   : {}),
     },
   };
   if (
