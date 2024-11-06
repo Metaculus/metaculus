@@ -64,4 +64,4 @@ const NotebookCreator: React.FC<{ searchParams: SearchParams }> = async ({
   );
 };
 
-export default WithServerComponentErrorBoundary(NotebookCreator);
+export default NotebookCreator;
