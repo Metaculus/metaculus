@@ -1,11 +1,3 @@
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
-} from "@headlessui/react";
-
 import DisclosureSection from "./components/DisclosureSection";
 import ReferenceSection from "./components/ReferenceSection";
 import PageWrapper from "../components/pagewrapper";

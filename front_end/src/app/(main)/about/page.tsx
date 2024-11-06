@@ -11,6 +11,12 @@ import MetaculusLogo from "./components/MetacLogo";
 import ModalWithArrows from "./components/ModalWithArrows";
 import EngageBlock from "../(home)/components/engage_block";
 
+export const metadata = {
+  title: "About Metaculus",
+  description:
+    "Metaculus is an online forecasting platform and aggregation engine working to improve human reasoning and coordination on topics of global importance.",
+};
+
 type Group = "team" | "board" | "advisors";
 
 type Groups = {

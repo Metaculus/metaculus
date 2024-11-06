@@ -2,7 +2,6 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import { FC, Fragment, Suspense } from "react";
 
-import LoadingIndicator from "@/components/ui/loading_indicator";
 import { SearchParams } from "@/types/navigation";
 import { CategoryKey, LeaderboardFilters } from "@/types/scoring";
 
@@ -15,6 +14,12 @@ import {
   getLeaderboardTimeInterval,
   mapCategoryKeyToLeaderboardType,
 } from "../helpers/filters";
+
+export const metadata = {
+  title: "Leaderboards | Metaculus",
+  description:
+    "Explore the top forecasters on Metaculus and see how users rank by prediction accuracy and community participation.",
+};
 
 export default function GlobalLeaderboards({
   searchParams,

@@ -12,6 +12,12 @@ import FeedFilters from "./components/feed_filters";
 import QuestionTopics from "./components/question_topics";
 import { generateFiltersFromSearchParams } from "./helpers/filters";
 
+export const metadata = {
+  title: "Question Feed | Metaculus",
+  description:
+    "Explore a diverse range of forecasting questions on Metaculus, covering global issues, scientific breakthroughs, and future events.",
+};
+
 export default async function Questions({
   searchParams,
 }: {

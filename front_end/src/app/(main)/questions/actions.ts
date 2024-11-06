@@ -17,8 +17,8 @@ import ProfileApi from "@/services/profile";
 import QuestionsApi, { ForecastPayload } from "@/services/questions";
 import { FetchError } from "@/types/fetch";
 import { PostSubscription } from "@/types/post";
-import { VoteDirection } from "@/types/votes";
 import { Tournament, TournamentType } from "@/types/projects";
+import { VoteDirection } from "@/types/votes";
 
 export async function fetchMorePosts(
   filters: PostsParams,

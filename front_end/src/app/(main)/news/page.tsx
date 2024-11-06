@@ -9,6 +9,12 @@ import { SearchParams } from "@/types/navigation";
 import NewsFilters from "./components/news_filters";
 import { generateFiltersFromSearchParams } from "./helpers/filters";
 
+export const metadata = {
+  title: "News | Metaculus",
+  description:
+    "Latest updates in forecasting, featuring expert insights, community highlights, and platform developments.",
+};
+
 export default async function NewsFeed({
   searchParams,
 }: {

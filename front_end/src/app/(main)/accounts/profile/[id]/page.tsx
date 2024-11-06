@@ -1,9 +1,13 @@
+import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { remark } from "remark";
+import strip from "strip-markdown";
 
 import MedalsPage from "@/app/(main)/(leaderboards)/medals/components/medals_page";
 import MedalsWidget from "@/app/(main)/(leaderboards)/medals/components/medals_widget";
 import UserInfo from "@/app/(main)/accounts/profile/components/user_info";
+import { defaultDescription } from "@/app/(main)/layout";
 import CommentFeed from "@/components/comment_feed";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProfileApi from "@/services/profile";
@@ -14,13 +18,26 @@ import ProfilePageTabs from "./components/profile_page_tab";
 import ChangeUsername from "../components/change_username";
 import TrackRecord from "../components/track_record";
 
-export default async function Profile({
-  params: { id },
-  searchParams,
-}: {
+type Props = {
   params: { id: number };
   searchParams: SearchParams;
-}) {
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  let profile = await ProfileApi.getProfileById(params.id);
+
+  if (!profile) {
+    return {};
+  }
+  const parsedBio = String(remark().use(strip).processSync(profile.bio));
+
+  return {
+    title: `${profile.username}'s profile | Metaculus`,
+    description: !!parsedBio ? parsedBio : defaultDescription,
+  };
+}
+
+export default async function Profile({ params: { id }, searchParams }: Props) {
   const currentUser = await ProfileApi.getMyProfile();
   const isCurrentUser = currentUser?.id === +id;
 
