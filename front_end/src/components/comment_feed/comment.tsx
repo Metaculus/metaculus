@@ -351,13 +351,6 @@ const Comment: FC<CommentProps> = ({
           cmmContext={cmmContext}
         />
 
-        {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
-        {comment.included_forecast && (
-          <IncludedForecast
-            author={comment.author.username}
-            forecast={comment.included_forecast}
-          />
-        )}
         <div className="mb-1 flex flex-col items-start gap-1">
           <span className="inline-flex items-center text-base">
             <a
@@ -385,7 +378,14 @@ const Comment: FC<CommentProps> = ({
             : t(commentTypes[comment.submit_type]?.verb ?? "commented")}{" "}
           {commentAge(comment.created_time)}
         </span>
-        */}
+        */}{" "}
+          {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
+          {comment.included_forecast && (
+            <IncludedForecast
+              author={comment.author.username}
+              forecast={comment.included_forecast}
+            />
+          )}
         </div>
 
         {/* TODO: fix TS error */}

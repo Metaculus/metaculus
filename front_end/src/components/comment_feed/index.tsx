@@ -266,7 +266,7 @@ const CommentFeed: FC<Props> = ({
       className="w-[48rem] max-w-full border-transparent bg-gray-0 px-3 py-2 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border"
     >
       <div className="mb-4 mt-2 flex flex-col items-start gap-2">
-        <div className="flex w-full flex-col justify-between gap-4 md:flex-row md:gap-3">
+        <div className="flex w-full flex-row justify-between gap-4 md:gap-3">
           <h2
             className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
             id="comments"
@@ -284,19 +284,6 @@ const CommentFeed: FC<Props> = ({
             />
           )}
         </div>
-        <div className="flex flex-row items-center justify-start gap-1">
-          <span className="text-sm text-gray-600 text-gray-600-dark">
-            {totalCount ? `${totalCount} ` : ""}
-            {t("commentsWithCount", { count: totalCount })}
-          </span>
-          <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
-            <Button variant="text" className="capitalize">
-              {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
-                "sort"}
-              <FontAwesomeIcon icon={faChevronDown} />
-            </Button>
-          </DropdownMenu>
-        </div>
       </div>
       {postId && (
         <CommentEditor
@@ -308,6 +295,20 @@ const CommentFeed: FC<Props> = ({
           isPrivateFeed={feedFilters.is_private}
         />
       )}
+
+      <div className="mb-1 mt-3 flex flex-row items-center justify-start gap-1">
+        <span className="text-sm text-gray-600 text-gray-600-dark">
+          {totalCount ? `${totalCount} ` : ""}
+          {t("commentsWithCount", { count: totalCount })}
+        </span>
+        <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
+          <Button variant="text" className="capitalize">
+            {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
+              "sort"}
+            <FontAwesomeIcon icon={faChevronDown} />
+          </Button>
+        </DropdownMenu>
+      </div>
       {comments.map((comment: CommentType) => (
         <div
           key={comment.id}

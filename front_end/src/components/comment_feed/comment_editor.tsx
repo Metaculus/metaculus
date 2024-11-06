@@ -33,10 +33,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
   isPrivateFeed = false,
 }) => {
   const t = useTranslations();
-  /* TODO: Investigate the synchronization between the internal state of MDXEditor and the external state. */
-  /* Currently, manually updating the markdown state outside of MDXEditor only affects our local state, while the editor retains its previous state.
-   As a temporary workaround, we use the 'key' prop to force a re-render, creating a new instance of the component with the updated initial state.
-   This ensures the editor reflects the correct markdown content. */
   const [rerenderKey, updateRerenderKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(true);
@@ -44,6 +40,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
   const [hasIncludedForecast, setHasIncludedForecast] = useState(false);
   const [markdown, setMarkdown] = useState(text ?? "");
   const [errorMessage, setErrorMessage] = useState<string>();
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   const { user } = useAuth();
   const { setCurrentModal } = useModal();
@@ -92,6 +89,13 @@ const CommentEditor: FC<CommentEditorProps> = ({
     }
   };
 
+  const handleMarkdownChange = (newMarkdown: string) => {
+    setMarkdown(newMarkdown);
+    if (!hasInteracted) {
+      setHasInteracted(true);
+    }
+  };
+
   if (user == null)
     return (
       <div className="mb-4 w-full text-center text-gray-600 dark:text-gray-600-dark">
@@ -110,8 +114,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
 
   return (
     <>
-      {/* TODO: this box can only be shown in create, not edit mode */}
-
       {shouldIncludeForecast && (
         <Checkbox
           checked={hasIncludedForecast}
@@ -122,57 +124,41 @@ const CommentEditor: FC<CommentEditorProps> = ({
           className="p-1 text-sm"
         />
       )}
-      {/* TODO: display in preview mode only */}
-      {/*comment.included_forecast && (
-        <IncludedForecast author="test" forecastValue={test} />
-      )*/}
+
       {isEditing && (
         <div className="rounded-md border border-blue-400 dark:border-blue-400-dark">
           <MarkdownEditor
             key={rerenderKey}
             mode="write"
             markdown={markdown}
-            onChange={setMarkdown}
+            onChange={handleMarkdownChange}
           />
         </div>
       )}
       {!isEditing && <MarkdownEditor mode="read" markdown={markdown} />}
 
-      <div className="my-4 flex items-center justify-end gap-3">
-        {!isReplying && isPrivateFeed && (
-          <span className="text-sm text-gray-600 dark:text-gray-600-dark">
-            {t("youArePostingAPrivateComment")}
-          </span>
-        )}
-        {isReplying && (
-          <Checkbox
-            checked={isPrivateComment}
-            onChange={(checked) => {
-              setIsPrivateComment(checked);
+      {(isReplying || hasInteracted) && (
+        <div className="my-4 flex items-center justify-end gap-3">
+          {!isReplying && isPrivateFeed && (
+            <span className="text-sm text-gray-600 dark:text-gray-600-dark">
+              {t("youArePostingAPrivateComment")}
+            </span>
+          )}
+          <Button
+            className="p-2"
+            onClick={() => {
+              setIsEditing((prev) => !prev);
+              !!errorMessage && setErrorMessage("");
             }}
-            label={t("privateComment")}
-            className="text-sm"
-          />
-        )}
-        <Button
-          disabled={markdown.length === 0}
-          className="p-2"
-          onClick={() => {
-            setIsEditing((prev) => !prev);
-            !!errorMessage && setErrorMessage("");
-          }}
-        >
-          {isEditing ? t("preview") : t("edit")}
-        </Button>
+          >
+            {isEditing ? t("preview") : t("edit")}
+          </Button>
 
-        <Button
-          className="p-2"
-          disabled={markdown.length === 0 || isLoading}
-          onClick={handleSubmit}
-        >
-          {t("submit")}
-        </Button>
-      </div>
+          <Button className="p-2" disabled={isLoading} onClick={handleSubmit}>
+            {t("submit")}
+          </Button>
+        </div>
+      )}
       {!!errorMessage && (
         <div className="text-end text-red-500 dark:text-red-500-dark">
           {errorMessage}
