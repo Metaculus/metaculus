@@ -70,8 +70,6 @@ export default async function IndividualNotebook({ params }: Props) {
     );
   }
 
-  console.log(postData.projects);
-
   return (
     <>
       {isCommunityQuestion ? (
