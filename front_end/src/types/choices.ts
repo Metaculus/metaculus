@@ -25,6 +25,7 @@ export type UserChoiceItem = {
   timestamps?: number[];
   values?: number[];
   color: ThemeColor;
+  unscaledValues?: number[];
 };
 
 export type ChoiceTooltipItem = {

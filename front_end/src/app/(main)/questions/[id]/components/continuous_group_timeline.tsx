@@ -153,7 +153,13 @@ const ContinuousGroupTimeline: FC<Props> = ({
         ? []
         : userForecasts?.map(
             (
-              { choice, values, color, timestamps: optionTimestamps },
+              {
+                choice,
+                values,
+                color,
+                timestamps: optionTimestamps,
+                unscaledValues,
+              },
               index
             ) => {
               return {
@@ -161,7 +167,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
                 color,
                 valueLabel: getQuestionTooltipLabel({
                   timestamps: optionTimestamps ?? timestamps,
-                  values: values ?? [],
+                  values: unscaledValues ? unscaledValues : values ?? [],
                   cursorTimestamp,
                   question: questions[index],
                   isUserPrediction: true,
