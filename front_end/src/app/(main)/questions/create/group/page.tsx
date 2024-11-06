@@ -58,4 +58,4 @@ const GroupQuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   );
 };
 
-export default WithServerComponentErrorBoundary(GroupQuestionCreator);
+export default GroupQuestionCreator;
