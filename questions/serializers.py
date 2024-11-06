@@ -478,19 +478,28 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                         previous = current
 
                 continuous_cdf = [get_height(i / 200) for i in range(201)]
-                data["continuous_cdf"] = continuous_cdf
+            continuous_cdf = np.round(continuous_cdf, 10).tolist()
+            data["continuous_cdf"] = continuous_cdf
             errors = ""
-            if not all(
+            inbound_pmf = np.round(
                 [
-                    continuous_cdf[i + 1] - continuous_cdf[i] >= 0.01 / 200
+                    continuous_cdf[i + 1] - continuous_cdf[i]
                     for i in range(len(continuous_cdf) - 1)
-                ]
-            ):
+                ],
+                10,
+            )
+            min_diff = 0.01 / 200
+            if not all(inbound_pmf >= min_diff):
                 errors += (
                     "continuous_cdf must be increasing by at least "
-                    "0.01/200 at every step.\n"
+                    f"{min_diff} at every step.\n"
                 )
-
+            max_diff = 0.59  # derived empirically from slider positions
+            if not all(inbound_pmf <= max_diff):
+                errors += (
+                    "continuous_cdf must be increasing by no more than "
+                    f"{max_diff} at every step.\n"
+                )
             if question.open_lower_bound:
                 if not continuous_cdf[0] >= 0.001:
                     errors += (
