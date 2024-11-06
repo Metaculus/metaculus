@@ -21,7 +21,10 @@ import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import CommentFeed from "@/components/comment_feed";
 import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
 import CircleDivider from "@/components/ui/circle_divider";
-import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
+import {
+  POST_CATEGORIES_FILTER,
+  POST_TAGS_FILTER,
+} from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { PostWithNotebook } from "@/types/post";
@@ -66,6 +69,8 @@ export default async function IndividualNotebook({ params }: Props) {
       defaultProject.slug as string
     );
   }
+
+  console.log(postData.projects);
 
   return (
     <>
@@ -156,15 +161,30 @@ export default async function IndividualNotebook({ params }: Props) {
             />
             {!!postData.projects.category?.length && (
               <div>
-                <div>{t("categories") + ":"}</div>
+                <div>{t("Categories") + ":"}</div>
                 <div>
                   {postData.projects.category?.map((category) => (
-                    <Link
-                      key={category.id}
-                      href={`/questions?${POST_CATEGORIES_FILTER}=${category.slug}`}
-                    >
-                      {category.name}
-                    </Link>
+                    <div key={category.id}>
+                      <Link
+                        href={`/questions?${POST_CATEGORIES_FILTER}=${category.slug}`}
+                      >
+                        {category.name}
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {!!postData.projects.tag?.length && (
+              <div>
+                <div>{t("tags") + ":"}</div>
+                <div>
+                  {postData.projects.tag?.map((tag) => (
+                    <div key={tag.id}>
+                      <Link href={`/questions?${POST_TAGS_FILTER}=${tag.slug}`}>
+                        {tag.name}
+                      </Link>
+                    </div>
                   ))}
                 </div>
               </div>
