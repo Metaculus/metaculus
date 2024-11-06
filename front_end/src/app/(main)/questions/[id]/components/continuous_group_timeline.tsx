@@ -106,7 +106,10 @@ const ContinuousGroupTimeline: FC<Props> = ({
   const [choiceItems, setChoiceItems] = useState<ChoiceItem[]>(
     generateList(questions, preselectedQuestionId)
   );
-  const userForecasts = user ? generateUserForecasts(questions) : undefined;
+  const scaling = getContinuousGroupScaling(questions);
+  const userForecasts = user
+    ? generateUserForecasts(questions, scaling)
+    : undefined;
   const timestampsCount = timestamps.length;
   const prevTimestampsCount = usePrevious(timestampsCount);
   // sync BE driven data with local state
@@ -198,7 +201,6 @@ const ContinuousGroupTimeline: FC<Props> = ({
     }
   }, []);
 
-  const scaling = getContinuousGroupScaling(questions);
   return (
     <MultiChoicesChartView
       tooltipChoices={!!hideCP ? [] : tooltipChoices}
