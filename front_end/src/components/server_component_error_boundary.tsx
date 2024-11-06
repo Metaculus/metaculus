@@ -10,7 +10,14 @@ const WithServerComponentErrorBoundary = <P extends {}>(
   const WrappedComponent = async (props: P) => {
     try {
       return await Component(props);
-    } catch (error) {
+    } catch (error: any) {
+      // Okay to ignore the error here
+      // By default this error tells next.js to switch from Static Rendering to Dynamic Rendering
+      // Therefore, we can throw the same error in our custom error boundary
+      if (error.digest === "DYNAMIC_SERVER_USAGE") {
+        throw error;
+      }
+
       logError(error);
       if (error instanceof Error) {
         const { message, digest } = error as Error & { digest?: string };
