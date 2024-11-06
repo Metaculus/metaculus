@@ -1,10 +1,14 @@
+import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
+import { remark } from "remark";
+import strip from "strip-markdown";
 
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
+import { defaultDescription } from "@/app/(main)/layout";
 import NotebookContentSections from "@/app/(main)/notebooks/components/notebook_content_sections";
 import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
 import {
@@ -25,11 +29,25 @@ import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
 
-export default async function IndividualNotebook({
-  params,
-}: {
-  params: { id: number; slug: string[] };
-}) {
+type Props = { params: { id: number; slug: string[] } };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const postData = await PostsApi.getPost(params.id);
+
+  if (!postData) {
+    return {};
+  }
+
+  const file = remark().use(strip).processSync(postData.notebook?.markdown);
+  const parsedDescription = String(file).split("\n")[0];
+
+  return {
+    title: postData.title,
+    description: !!parsedDescription ? parsedDescription : defaultDescription,
+  };
+}
+
+export default async function IndividualNotebook({ params }: Props) {
   const postData = await PostsApi.getPost(params.id);
   const defaultProject = postData.projects.default_project;
 

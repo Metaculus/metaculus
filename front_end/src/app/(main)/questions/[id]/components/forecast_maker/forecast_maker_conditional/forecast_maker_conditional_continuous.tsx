@@ -142,11 +142,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     }
 
     return {
-      label: `Copy from IF ${inactiveOption.name.toUpperCase()}`,
+      label: t("copyFromBranch", { branch: inactiveOption.name.toUpperCase() }),
       fromQuestionId: inactiveOption.id,
       toQuestionId: activeTableOption,
     };
-  }, [activeTableOption, questionOptions]);
+  }, [activeTableOption, questionOptions, t]);
 
   const copyForecast = useCallback(
     (fromQuestionId: number, toQuestionId: number) => {

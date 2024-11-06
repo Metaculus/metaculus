@@ -78,10 +78,6 @@ const TournamentFilters: FC<Props> = ({ categories, tags }) => {
       setFilterParam(POST_FORECASTER_ID_FILTER, user.id.toString(), false);
     }
 
-    if (order === QuestionOrder.ResolveTimeAsc) {
-      setFilterParam(POST_STATUS_FILTER, "open", false);
-    }
-
     if (postStatusFilters.length) {
       setFilterParam(POST_STATUS_FILTER, postStatusFilters, false);
     }

@@ -40,11 +40,7 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
 
   return (
     <>
-      {community ? (
-        <CommunityHeader community={community} />
-      ) : (
-        <Header />
-      )}
+      {community ? <CommunityHeader community={community} /> : <Header />}
       <QuestionForm
         post={post}
         questionType={question_type}
@@ -63,4 +59,4 @@ const QuestionCreator: React.FC<{ searchParams: SearchParams }> = async ({
   );
 };
 
-export default WithServerComponentErrorBoundary(QuestionCreator);
+export default QuestionCreator;

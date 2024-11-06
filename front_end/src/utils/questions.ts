@@ -21,7 +21,9 @@ import {
   QuestionType,
   QuestionWithMultipleChoiceForecasts,
   QuestionWithNumericForecasts,
+  Scaling,
 } from "@/types/question";
+import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { formatDate } from "./date_formatters";
@@ -274,19 +276,31 @@ export const generateUserForecastsForMultipleQuestion = (
 };
 
 export const generateUserForecasts = (
-  questions: QuestionWithNumericForecasts[]
+  questions: QuestionWithNumericForecasts[],
+  scaling?: Scaling
 ): UserChoiceItem[] => {
   return questions.map((question, index) => {
     const userForecasts = question.my_forecasts;
+
     return {
       choice: extractQuestionGroupName(question.title),
       values: userForecasts?.history.map((forecast) =>
         question.type === "binary"
           ? forecast.forecast_values[1]
-          : forecast.centers![0]
+          : scaling
+            ? unscaleNominalLocation(
+                scaleInternalLocation(forecast.centers![0], question.scaling),
+                scaling
+              )
+            : forecast.centers![0]
       ),
       timestamps: userForecasts?.history.map((forecast) => forecast.start_time),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      unscaledValues: userForecasts?.history.map((forecast) =>
+        question.type === "binary"
+          ? forecast.forecast_values[1]
+          : forecast.centers![0]
+      ),
     };
   });
 };

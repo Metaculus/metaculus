@@ -9,6 +9,11 @@ import { SearchParams } from "@/types/navigation";
 
 import QuestionTypePicker from "../components/question_type_picker";
 
+export const metadata = {
+  title: "Create a Question | Metaculus",
+  description: "Post your own forecasting questions on Metaculus.",
+};
+
 const Creator: React.FC<{ searchParams: SearchParams }> = async ({
   searchParams,
 }) => {
@@ -129,4 +134,4 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
   );
 };
 
-export default WithServerComponentErrorBoundary(Creator);
+export default Creator;

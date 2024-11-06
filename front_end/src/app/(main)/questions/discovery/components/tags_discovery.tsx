@@ -5,26 +5,11 @@ import TagFilters from "@/app/(main)/questions/discovery/components/tag_filters"
 import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import ProjectsApi, { TagsParams } from "@/services/projects";
-import { SearchParams } from "@/types/navigation";
 
 import DiscoverySection from "./section";
 import AwaitedTags from "./tags";
-import { TAGS_TEXT_SEARCH_FILTER } from "../constants/tags_feed";
 
-const getFilters = (searchParams: SearchParams) => {
-  const filters: TagsParams = {};
-
-  if (typeof searchParams[TAGS_TEXT_SEARCH_FILTER] === "string") {
-    filters.search = searchParams[TAGS_TEXT_SEARCH_FILTER];
-  }
-
-  return filters;
-};
-
-const TagsDiscovery: FC<{ searchParams: SearchParams }> = async ({
-  searchParams,
-}) => {
-  const filters = getFilters(searchParams);
+const TagsDiscovery: FC<{ filters: TagsParams }> = async ({ filters }) => {
   let tags = await ProjectsApi.getTags(filters);
   const t = await getTranslations();
 
@@ -32,7 +17,7 @@ const TagsDiscovery: FC<{ searchParams: SearchParams }> = async ({
     <DiscoverySection title={t("tags")}>
       <TagFilters />
       <Suspense
-        key={JSON.stringify(searchParams)}
+        key={JSON.stringify(filters)}
         fallback={<LoadingIndicator className="mx-auto my-8 w-24" />}
       >
         <AwaitedTags tags={tags} />

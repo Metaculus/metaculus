@@ -6,7 +6,7 @@ const Fallback: FC<FallbackProps> = ({ error }) => {
   return (
     <div className="text-center text-red-500 dark:text-red-500-dark">
       <p>An error has occurred when rendering the feed card.</p>
-      <pre> {error.message}</pre>
+      <pre className="whitespace-pre-wrap"> {error.message}</pre>
     </div>
   );
 };

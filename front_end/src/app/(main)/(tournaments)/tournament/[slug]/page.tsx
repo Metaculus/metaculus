@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { Metadata } from "next";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,6 +11,7 @@ import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/comp
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
 import TournamentControls from "@/app/(main)/(tournaments)/tournament/components/tournament_controls";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
+import { defaultDescription } from "@/app/(main)/layout";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
@@ -26,12 +28,25 @@ const LazyProjectMembers = dynamic(() => import("../components/members"), {
   ssr: false,
 });
 
-export default async function TournamentSlug({
-  params,
-}: {
-  params: { slug: string };
-  searchParams: SearchParams;
-}) {
+type Props = { params: { slug: string }; searchParams: SearchParams };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const tournament = await ProjectsApi.getSlugTournament(params.slug);
+
+  if (!tournament) {
+    return {};
+  }
+  const parsedDescription = tournament.description
+    .replace(/<[^>]*>/g, "")
+    .split("\n")[0];
+
+  return {
+    title: tournament.name,
+    description: !!parsedDescription ? parsedDescription : defaultDescription,
+  };
+}
+
+export default async function TournamentSlug({ params }: Props) {
   const tournament = await ProjectsApi.getSlugTournament(params.slug);
   invariant(tournament, `Tournament not found: ${params.slug}`);
 

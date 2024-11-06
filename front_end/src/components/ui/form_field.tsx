@@ -49,6 +49,8 @@ export const FormError: FC<ErrorProps> = ({ errors, name, className }) => {
       } else {
         setErrorText(undefined);
       }
+    } else {
+      setErrorText(undefined);
     }
   }, [errors, name]);
   return <FormErrorMessage errors={errorText} className={className} />;
