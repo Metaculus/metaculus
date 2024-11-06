@@ -124,7 +124,10 @@ export function getNumericForecastDataset(
         : upperOpen
           ? (F: number, x: number) => 0.989 * F + 0.01 * x
           : (F: number, x: number) => 0.99 * F + 0.01 * x;
-  cdf = cdf.map((F, index) => cdfOffset(F, index / (cdf.length - 1)));
+  cdf = cdf.map(
+    (F, index) =>
+      Math.round(cdfOffset(F, index / (cdf.length - 1)) * 1e10) / 1e10
+  );
 
   return {
     cdf: cdf,
