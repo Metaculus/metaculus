@@ -915,5 +915,6 @@
   "communitySlug": "Community Slug",
   "communitySlugDescription": "Your community can be accessed via the following URL:",
   "communityDescription": "Community Description",
-  "youArePostingAPrivateComment": "You are posting a private comment"
+  "youArePostingAPrivateComment": "You are posting a private comment",
+  "unread": "unread"
 }

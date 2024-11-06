@@ -801,5 +801,6 @@
   "onboardingStep5ForecastAnother": "Pronosticar otra",
   "onboardingStep5Question": "Pregunta",
   "onboardingStep5ViewQuestionFeed": "Ver feed de preguntas",
-  "youArePostingAPrivateComment": "Estás publicando un comentario privado"
+  "youArePostingAPrivateComment": "Estás publicando un comentario privado",
+  "unread": "sin leer"
 }

@@ -260,6 +260,26 @@ const CommentFeed: FC<Props> = ({
     },
   ];
 
+  const getUnreadCount = useCallback(
+    (comments: CommentType[]): number => {
+      if (!postData?.last_viewed_at) return 0;
+      const lastViewedDate = new Date(postData.last_viewed_at);
+
+      let unreadCount = 0;
+      const countUnread = (comment: CommentType) => {
+        if (new Date(comment.created_at) > lastViewedDate) {
+          unreadCount++;
+        }
+        // Count unread replies too
+        comment.children.forEach(countUnread);
+      };
+
+      comments.forEach(countUnread);
+      return unreadCount;
+    },
+    [postData?.last_viewed_at]
+  );
+
   return (
     <section
       id={id}
@@ -297,9 +317,18 @@ const CommentFeed: FC<Props> = ({
       )}
 
       <div className="mb-1 mt-3 flex flex-row items-center justify-start gap-1">
-        <span className="text-sm text-gray-600 text-gray-600-dark">
+        <span className="text-sm text-gray-600 dark:text-gray-600-dark">
           {totalCount ? `${totalCount} ` : ""}
           {t("commentsWithCount", { count: totalCount })}
+          {postData?.last_viewed_at && (
+            <>
+              {getUnreadCount(comments) > 0 && (
+                <span className="ml-1 font-bold text-purple-700 dark:text-purple-700-dark">
+                  ({getUnreadCount(comments)} {t("unread")})
+                </span>
+              )}
+            </>
+          )}
         </span>
         <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
           <Button variant="text" className="capitalize">
