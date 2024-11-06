@@ -25,7 +25,7 @@ export type UserChoiceItem = {
   timestamps?: number[];
   values?: number[];
   color: ThemeColor;
-  unscaledValues?: number[];
+  unscaledValues?: number[]; // This array is needed to display the correct value for the continuous group in the chart tooltip
 };
 
 export type ChoiceTooltipItem = {

@@ -167,7 +167,7 @@ const ContinuousGroupTimeline: FC<Props> = ({
                 color,
                 valueLabel: getQuestionTooltipLabel({
                   timestamps: optionTimestamps ?? timestamps,
-                  values: unscaledValues ? unscaledValues : values ?? [],
+                  values: unscaledValues ?? values ?? [],
                   cursorTimestamp,
                   question: questions[index],
                   isUserPrediction: true,
