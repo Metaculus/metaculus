@@ -102,7 +102,8 @@ const GroupNumericTile: FC<Props> = ({
         userForecasts={
           user
             ? generateUserForecasts(
-                sortedQuestions as QuestionWithNumericForecasts[]
+                sortedQuestions as QuestionWithNumericForecasts[],
+                scaling
               )
             : undefined
         }

@@ -323,30 +323,42 @@ class AggregateForecastSerializer(serializers.ModelSerializer):
     def get_interval_lower_bounds(
         self, aggregate_forecast: AggregateForecast
     ) -> list[float] | None:
+        question_type = (
+            self.context.get("question_type") or aggregate_forecast.question.type
+        )
         if (
-            len(aggregate_forecast.forecast_values) == 2
-        ) and aggregate_forecast.interval_lower_bounds:
+            question_type == Question.QuestionType.BINARY
+            and aggregate_forecast.interval_lower_bounds
+        ):
             return aggregate_forecast.interval_lower_bounds[1:]
         return aggregate_forecast.interval_lower_bounds
 
     def get_centers(self, aggregate_forecast: AggregateForecast) -> list[float] | None:
-        if (
-            len(aggregate_forecast.forecast_values) == 2
-        ) and aggregate_forecast.centers:
+        question_type = (
+            self.context.get("question_type") or aggregate_forecast.question.type
+        )
+        if question_type == Question.QuestionType.BINARY and aggregate_forecast.centers:
             return aggregate_forecast.centers[1:]
         return aggregate_forecast.centers
 
     def get_interval_upper_bounds(
         self, aggregate_forecast: AggregateForecast
     ) -> list[float] | None:
+        question_type = (
+            self.context.get("question_type") or aggregate_forecast.question.type
+        )
         if (
-            len(aggregate_forecast.forecast_values) == 2
-        ) and aggregate_forecast.interval_upper_bounds:
+            question_type == Question.QuestionType.BINARY
+            and aggregate_forecast.interval_upper_bounds
+        ):
             return aggregate_forecast.interval_upper_bounds[1:]
         return aggregate_forecast.interval_upper_bounds
 
     def get_means(self, aggregate_forecast: AggregateForecast) -> list[float] | None:
-        if (len(aggregate_forecast.forecast_values) == 2) and aggregate_forecast.means:
+        question_type = (
+            self.context.get("question_type") or aggregate_forecast.question.type
+        )
+        if question_type == Question.QuestionType.BINARY and aggregate_forecast.means:
             return aggregate_forecast.means[1:]
         return aggregate_forecast.means
 
@@ -581,14 +593,20 @@ def serialize_question(
                 AggregateForecastSerializer(
                     forecasts,
                     many=True,
-                    context={"include_forecast_values": full_forecast_values},
+                    context={
+                        "include_forecast_values": full_forecast_values,
+                        "question_type": question.type,
+                    },
                 ).data
             )
             serialized_data["aggregations"][method]["latest"] = (
                 (
                     AggregateForecastSerializer(
                         forecasts[-1],
-                        context={"include_forecast_values": True},
+                        context={
+                            "include_forecast_values": True,
+                            "question_type": question.type,
+                        },
                     ).data
                 )
                 if forecasts and not full_forecast_values
