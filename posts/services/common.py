@@ -150,8 +150,6 @@ def update_post(
     news_type: Project = None,
     **kwargs,
 ):
-    categories = list(categories or [])
-
     # Updating non-side effect fields
     post, _ = model_update(
         instance=post,
@@ -159,7 +157,7 @@ def update_post(
         data=kwargs,
     )
 
-    update_post_projects(post, categories, [news_type] if news_type else [])
+    update_post_projects(post, categories, news_type)
 
     if question:
         if not post.question:
