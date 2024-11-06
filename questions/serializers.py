@@ -413,7 +413,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         return values
 
     def validate(self, data):
-        question = Question.objects.get(pk=data["question"])
+        question = Question.objects.get(id=data["question"])
 
         probability_yes = data.get("probability_yes")
         probability_yes_per_category = data.get("probability_yes_per_category")
@@ -479,30 +479,44 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
 
                 continuous_cdf = [get_height(i / 200) for i in range(201)]
                 data["continuous_cdf"] = continuous_cdf
-            continuous_cdf_increasing = all(
+            errors = ""
+            if not all(
                 [
-                    continuous_cdf[i + 1] - continuous_cdf[i] >= 0.01 / 201
+                    continuous_cdf[i + 1] - continuous_cdf[i] >= 0.01 / 200
                     for i in range(len(continuous_cdf) - 1)
                 ]
-            )
-            if question.open_lower_bound:
-                lower_bound_ok = continuous_cdf[0] >= 0.001
-            else:
-                lower_bound_ok = continuous_cdf[0] == 0.00
-            if question.open_upper_bound:
-                upper_bound_ok = continuous_cdf[-1] <= 0.999
-            else:
-                upper_bound_ok = continuous_cdf[-1] == 1.00
-            if not (
-                continuous_cdf_increasing
-                and lower_bound_ok
-                and upper_bound_ok
-                and len(continuous_cdf) == 201
             ):
-                raise serializers.ValidationError(
-                    "continuous_cdf invalid. Must be increasing, have 201 points, "
-                    "and respect the bounds of the question"
+                errors += (
+                    "continuous_cdf must be increasing by at least "
+                    "0.01/200 at every step.\n"
                 )
+
+            if question.open_lower_bound:
+                if not continuous_cdf[0] >= 0.001:
+                    errors += (
+                        "continuous_cdf at lower bound must be at least 0.001"
+                        " due to lower bound being open.\n"
+                    )
+            else:
+                if not continuous_cdf[0] == 0.00:
+                    errors += (
+                        "continuous_cdf at lower bound must be 0.00"
+                        " due to lower bound being closed.\n"
+                    )
+            if question.open_upper_bound:
+                if not continuous_cdf[-1] <= 0.999:
+                    errors += (
+                        "continuous_cdf at upper bound must be at most 0.999"
+                        " due to upper bound being open.\n"
+                    )
+            else:
+                if not continuous_cdf[-1] == 1.00:
+                    errors += (
+                        "continuous_cdf at upper bound must be 1.00"
+                        " due to upper bound being closed.\n"
+                    )
+            if errors:
+                raise serializers.ValidationError("CDF Invalid:\n" + errors)
 
         return data
 
