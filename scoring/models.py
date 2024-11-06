@@ -150,20 +150,24 @@ class Leaderboard(TimeStampedModel):
     def get_questions(self) -> list[Question]:
         from posts.models import Post
 
+        invalid_statuses = [
+            Post.CurationStatus.DELETED,
+            Post.CurationStatus.DRAFT,
+            Post.CurationStatus.REJECTED,
+        ]
+
         if self.project:
             questions = (
                 Question.objects.filter(
                     Q(related_posts__post__projects=self.project)
                     | Q(related_posts__post__default_project=self.project)
                 )
-                .exclude(
-                    related_posts__post__curation_status=Post.CurationStatus.DELETED
-                )
+                .exclude(related_posts__post__curation_status__in=invalid_statuses)
                 .distinct("pk")
             )
         else:
             questions = Question.objects.all().exclude(
-                related_posts__post__curation_status=Post.CurationStatus.DELETED
+                related_posts__post__curation_status__in=invalid_statuses
             )
 
         if self.score_type == self.ScoreTypes.COMMENT_INSIGHT:
@@ -177,11 +181,6 @@ class Leaderboard(TimeStampedModel):
             # post must be published, and can't be resolved before the start_time
             # of the leaderboard
 
-            invalid_statuses = [
-                Post.CurationStatus.DELETED,
-                Post.CurationStatus.DRAFT,
-                Post.CurationStatus.REJECTED,
-            ]
             return list(
                 questions.filter(
                     Q(scheduled_close_time__gte=self.start_time)

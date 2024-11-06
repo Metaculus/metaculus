@@ -661,21 +661,6 @@ class Post(TimeStampedModel):
 
         return super().clean_fields(exclude=exclude)
 
-    def save(self, *args, **kwargs):
-        if self.curation_status == Post.CurationStatus.DELETED:
-            if (
-                Post.objects.filter(id=self.id)
-                .exclude(curation_status=Post.CurationStatus.DELETED)
-                .exists()
-            ):
-                # post has been set to deleted, delete scores
-                Score.objects.filter(question__related_posts__post=self).delete()
-                ArchivedScore.objects.filter(
-                    question__related_posts__post=self
-                ).delete()
-
-        super().save(*args, **kwargs)
-
 
 class PostSubscription(TimeStampedModel):
     # typing
