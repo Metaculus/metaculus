@@ -526,13 +526,24 @@ def serialize_question(
             question.cp_reveal_time
             and question.cp_reveal_time > django.utils.timezone.now()
         ):
+            # don't show any forecasts
             aggregate_forecasts = []
-        elif aggregate_forecasts is None:
+
+        aggregate_forecasts_by_method: dict[
+            AggregationMethod, list[AggregateForecast]
+        ] = defaultdict(list)
+
+        if aggregate_forecasts is not None:
+            for aggregate in aggregate_forecasts:
+                aggregate_forecasts_by_method[aggregate.method].append(aggregate)
+        else:
             if minimize:
                 aggregate_forecasts = question.aggregate_forecasts.all()
+                for aggregate in aggregate_forecasts:
+                    aggregate_forecasts_by_method[aggregate.method].append(aggregate)
             else:
                 # TODO: accept other url params
-                aggregate_forecasts = get_aggregation_history(
+                aggregate_forecasts_by_method = get_aggregation_history(
                     question,
                     aggregation_methods=[
                         AggregationMethod.RECENCY_WEIGHTED,
@@ -543,10 +554,6 @@ def serialize_question(
                     include_bots=question.include_bots_in_aggregates,
                     histogram=True,
                 )
-
-        aggregate_forecasts_by_method = defaultdict(list)
-        for aggregate in aggregate_forecasts:
-            aggregate_forecasts_by_method[aggregate.method].append(aggregate)
 
         # Appending score data
         for suffix, scores in (
