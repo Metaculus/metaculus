@@ -17,7 +17,12 @@ import GroupFormBulkModal, {
 import ProjectPickerInput from "@/app/(main)/questions/components/project_picker_input";
 import Button from "@/components/ui/button";
 import DatetimeUtc from "@/components/ui/datetime_utc";
-import { FormErrorMessage, Input, Textarea } from "@/components/ui/form_field";
+import {
+  FormError,
+  FormErrorMessage,
+  Input,
+  Textarea,
+} from "@/components/ui/form_field";
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
@@ -119,6 +124,7 @@ const GroupForm: React.FC<Props> = ({
     const labels = subQuestions.map((q) => q.label);
     if (new Set(labels).size !== labels.length) {
       setError("Duplicate sub question labels");
+      setIsLoading(false);
       return;
     }
 
@@ -133,7 +139,11 @@ const GroupForm: React.FC<Props> = ({
         open_time: x.open_time,
         cp_reveal_time: x.cp_reveal_time,
       };
-
+      if (!x.scheduled_close_time || !x.scheduled_resolve_time) {
+        setError("Please enter a closing and resolving date");
+        break_out = true;
+        return;
+      }
       if (subtype === QuestionType.Binary) {
         return subquestionData;
       } else if (subtype === QuestionType.Numeric) {
@@ -164,12 +174,12 @@ const GroupForm: React.FC<Props> = ({
         };
       } else {
         setError("Invalid sub-question type");
-        break_out = true;
         return;
       }
     });
 
     if (break_out) {
+      setIsLoading(false);
       return;
     }
     const questionToDelete: number[] = [];
@@ -462,6 +472,9 @@ const GroupForm: React.FC<Props> = ({
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           defaultValue={subQuestion.scheduled_close_time}
                           onChange={(value) => {
+                            control.clearErrors(
+                              `subQuestion-${index}-scheduled_close_time`
+                            );
                             setSubQuestions(
                               subQuestions.map((subQuestion, iter_index) => {
                                 if (index === iter_index) {
@@ -471,6 +484,23 @@ const GroupForm: React.FC<Props> = ({
                               })
                             );
                           }}
+                          onError={(error: { message: string }) => {
+                            control.setError(
+                              `subQuestion-${index}-scheduled_close_time`,
+                              {
+                                type: "manual",
+                                message: error.message,
+                              }
+                            );
+                          }}
+                        />
+                        <FormError
+                          errors={
+                            control.formState.errors[
+                              `subQuestion-${index}-scheduled_close_time`
+                            ]
+                          }
+                          name={`subQuestion-${index}-scheduled_close_time`}
                         />
                       </InputContainer>
                       <InputContainer
@@ -484,6 +514,9 @@ const GroupForm: React.FC<Props> = ({
                           className="rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                           defaultValue={subQuestion.scheduled_resolve_time}
                           onChange={(value) => {
+                            control.clearErrors(
+                              `subQuestion-${index}-scheduled_resolve_time`
+                            );
                             setSubQuestions(
                               subQuestions.map((subQuestion, iter_index) => {
                                 if (index === iter_index) {
@@ -493,6 +526,23 @@ const GroupForm: React.FC<Props> = ({
                               })
                             );
                           }}
+                          onError={(error: { message: string }) => {
+                            control.setError(
+                              `subQuestion-${index}-scheduled_resolve_time`,
+                              {
+                                type: "manual",
+                                message: error.message,
+                              }
+                            );
+                          }}
+                        />
+                        <FormError
+                          errors={
+                            control.formState.errors[
+                              `subQuestion-${index}-scheduled_resolve_time`
+                            ]
+                          }
+                          name={`subQuestion-${index}-scheduled_resolve_time`}
                         />
                       </InputContainer>
                     </div>
