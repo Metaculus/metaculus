@@ -226,10 +226,7 @@ def get_posts_feed(
 
         qs = qs.annotate_divergence(forecaster_id)
     if order_type == PostFilterSerializer.Order.SCHEDULED_RESOLVE_TIME:
-        qs = qs.filter(
-            scheduled_resolve_time__gte=timezone.now(),
-            resolved=False,
-        )
+        qs = qs.filter(resolved=False)
 
     qs = qs.order_by(build_order_by(order_type, order_desc))
 
