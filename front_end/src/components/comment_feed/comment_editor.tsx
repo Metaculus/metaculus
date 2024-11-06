@@ -108,16 +108,6 @@ const CommentEditor: FC<CommentEditorProps> = ({
     <>
       {/* TODO: this box can only be shown in create, not edit mode */}
 
-      {shouldIncludeForecast && (
-        <Checkbox
-          checked={hasIncludedForecast}
-          onChange={(checked) => {
-            setHasIncludedForecast(checked);
-          }}
-          label={t("includeMyForecast")}
-          className="p-1 text-sm"
-        />
-      )}
       {/* TODO: display in preview mode only */}
       {/*comment.included_forecast && (
         <IncludedForecast author="test" forecastValue={test} />
@@ -135,6 +125,16 @@ const CommentEditor: FC<CommentEditorProps> = ({
       {!isEditing && <MarkdownEditor mode="read" markdown={markdown} />}
 
       <div className="my-4 flex items-center justify-end gap-3">
+        {shouldIncludeForecast && (
+          <Checkbox
+            checked={hasIncludedForecast}
+            onChange={(checked) => {
+              setHasIncludedForecast(checked);
+            }}
+            label={t("includeMyForecast")}
+            className="p-1 text-sm"
+          />
+        )}
         {!isReplying && (
           <Checkbox
             checked={isPrivateComment}

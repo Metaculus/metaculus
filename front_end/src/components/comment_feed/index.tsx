@@ -239,7 +239,7 @@ const CommentFeed: FC<Props> = ({
   const menuItems: MenuItemProps[] = [
     {
       id: "-created_at",
-      name: t("recent"),
+      name: t("newest"),
       onClick: () => {
         handleFilterChange("sort", "-created_at");
       },
@@ -263,6 +263,16 @@ const CommentFeed: FC<Props> = ({
   return (
     <section id={id}>
       <hr className="my-2 border-blue-400 dark:border-blue-400-dark" />
+      <div className="mt-4 mb-1">{t("newComment")}</div>
+      {postId && (
+        <CommentEditor
+          shouldIncludeForecast={includeUserForecast}
+          postId={postId}
+          onSubmit={() =>
+            handleFilterChange("sort", "-created_at", true, false)
+          }
+        />
+      )}
       <div className="my-2 flex flex-row flex-wrap items-center gap-4">
         <h2
           className="m-0 flex scroll-mt-16 items-baseline justify-between capitalize break-anywhere"
@@ -286,35 +296,26 @@ const CommentFeed: FC<Props> = ({
             {t("commentsWithCount", { count: totalCount })}
           </span>
           <span>
-          {newCommentCount ? `\u00A0${t("newCommentsWithCount", { count: newCommentCount })}` : ""}
-          </span> 
-          <span className="opacity-50">
-            , {t("sortedBy")}
+            {newCommentCount
+              ? `\u00A0${t("newCommentsWithCount", { count: newCommentCount })}`
+              : ""}
           </span>
-          <div className="inline-flex items-center -ml-2">
-            <DropdownMenu items={menuItems} itemClassName={"capitalize"}>
-              <Button 
-                variant="text" 
-                className="capitalize inline-flex items-center" 
-                style={{ fontSize: 'inherit' }}
+          <span className="opacity-50">, {t("sortedBy")}</span>
+          <div className="inline-flex items-center -ml-2 lowercase">
+            <DropdownMenu items={menuItems} itemClassName="lowercase">
+              <Button
+                variant="text"
+                className="lowercase inline-flex items-center"
+                style={{ fontSize: "inherit" }}
               >
                 {menuItems.find((item) => item.id === feedFilters.sort)?.name ??
-                 "sort"}
+                  "sort"}
                 <FontAwesomeIcon icon={faChevronDown} />
               </Button>
             </DropdownMenu>
           </div>
         </div>
       </div>
-      {postId && (
-        <CommentEditor
-          shouldIncludeForecast={includeUserForecast}
-          postId={postId}
-          onSubmit={() =>
-            handleFilterChange("sort", "-created_at", true, false)
-          }
-        />
-      )}
       {comments.map((comment: CommentType) => (
         <div
           key={comment.id}
