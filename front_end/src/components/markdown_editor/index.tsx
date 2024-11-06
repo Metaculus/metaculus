@@ -210,13 +210,18 @@ function escapePlainTextSymbols(str: string) {
     return "___HTML_TAG___";
   });
 
-  tempStr = tempStr.replace(/(?<!\\)</g, "\\<");
+  tempStr = tempStr.replace(/([^\\])</g, "$1\\<").replace(/^</g, "\\<");
 
   let index = 0;
   tempStr = tempStr.replace(/___HTML_TAG___/g, function () {
     return tags[index++];
   });
-  return tempStr.replace(/(?<!\\){(?![^}]*})/g, `\\{`);
+
+  tempStr = tempStr
+    .replace(/([^{]){(?![^}]*})/g, "$1\\{")
+    .replace(/^{(?![^}]*})/g, "\\{");
+
+  return tempStr;
 }
 
 export default dynamic(() => Promise.resolve(MarkdownEditor), {
