@@ -914,5 +914,6 @@
   "communityNameDescription": "This is how your community appears to others.",
   "communitySlug": "Community Slug",
   "communitySlugDescription": "Your community can be accessed via the following URL:",
-  "communityDescription": "Community Description"
+  "communityDescription": "Community Description",
+  "youArePostingAPrivateComment": "You are posting a private comment"
 }

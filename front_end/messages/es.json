@@ -800,5 +800,6 @@
   "onboardingStep5ViewYourPredictions": "Ver tus predicciones",
   "onboardingStep5ForecastAnother": "Pronosticar otra",
   "onboardingStep5Question": "Pregunta",
-  "onboardingStep5ViewQuestionFeed": "Ver feed de preguntas"
+  "onboardingStep5ViewQuestionFeed": "Ver feed de preguntas",
+  "youArePostingAPrivateComment": "Estás publicando un comentario privado"
 }

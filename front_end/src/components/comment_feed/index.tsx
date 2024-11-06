@@ -305,6 +305,7 @@ const CommentFeed: FC<Props> = ({
           onSubmit={() =>
             handleFilterChange("sort", "-created_at", true, false)
           }
+          isPrivateFeed={feedFilters.is_private}
         />
       )}
       {comments.map((comment: CommentType) => (
