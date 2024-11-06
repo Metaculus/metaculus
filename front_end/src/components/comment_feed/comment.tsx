@@ -75,32 +75,36 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
 
   return (
     <>
-      <button
-        className={classNames(
-          "mb-1 mt-2.5 flex w-full items-center justify-center gap-2 rounded-sm rounded-sm px-1.5 py-1 text-sm text-blue-700 no-underline hover:bg-blue-400 disabled:bg-gray-0 dark:text-blue-700-dark dark:hover:bg-blue-700/65 disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark md:px-2",
-          {
-            "border border-transparent bg-blue-400/50 dark:bg-blue-700/30":
-              !childrenExpanded,
-            "border border-blue-400 bg-transparent hover:bg-blue-400/50 dark:border-blue-600/50 dark:hover:bg-blue-700/50":
-              childrenExpanded,
-          }
-        )}
-        onClick={() => {
-          setChildrenExpanded(!childrenExpanded);
-        }}
-      >
-        <FontAwesomeIcon
-          icon={faChevronDown}
-          className={classNames("inline-block transition-transform", {
-            "-rotate-180": childrenExpanded,
-          })}
-        />
-        <span className="no-underline">
-          {childrenExpanded
-            ? t("hideReplyWithCount", { count: getTreeSize(commentChildren) })
-            : t("showReplyWithCount", { count: getTreeSize(commentChildren) })}
-        </span>
-      </button>
+      <div className={classNames(treeDepth > 1 && "pr-1.5")}>
+        <button
+          className={classNames(
+            "mb-1 mt-2.5 flex w-full items-center justify-center gap-2 rounded-sm rounded-sm px-1.5 py-1 text-sm text-blue-700 no-underline hover:bg-blue-400 disabled:bg-gray-0 dark:text-blue-700-dark dark:hover:bg-blue-700/65 disabled:dark:border-blue-500-dark disabled:dark:bg-gray-0-dark md:px-2",
+            {
+              "border border-transparent bg-blue-400/50 dark:bg-blue-700/30":
+                !childrenExpanded,
+              "border border-blue-400 bg-transparent hover:bg-blue-400/50 dark:border-blue-600/50 dark:hover:bg-blue-700/50":
+                childrenExpanded,
+            }
+          )}
+          onClick={() => {
+            setChildrenExpanded(!childrenExpanded);
+          }}
+        >
+          <FontAwesomeIcon
+            icon={faChevronDown}
+            className={classNames("inline-block transition-transform", {
+              "-rotate-180": childrenExpanded,
+            })}
+          />
+          <span className="no-underline">
+            {childrenExpanded
+              ? t("hideReplyWithCount", { count: getTreeSize(commentChildren) })
+              : t("showReplyWithCount", {
+                  count: getTreeSize(commentChildren),
+                })}
+          </span>
+        </button>
+      </div>
       <div
         className={classNames(
           "relative",
@@ -123,17 +127,18 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
               new Date(lastViewedAt) < new Date(child.created_at);
 
             const opacityClass =
-              treeDepth % 2 === 1 && treeDepth <= 5
-                ? "bg-blue-100 dark:bg-blue-100-dark pr-1.5 border-r rounded-r-md"
+              treeDepth % 2 === 1
+                ? "bg-blue-100 dark:bg-blue-100-dark pr-0 md:pr-1.5 border-r-0 md:border-r rounded-r-none md:rounded-r-md" +
+                  (treeDepth === 1 ? " overflow-hidden" : "")
                 : treeDepth === 2
-                  ? "bg-blue-200 dark:bg-blue-200-dark pr-1.5 border-r rounded-r-md"
+                  ? "bg-blue-200 dark:bg-blue-200-dark pr-0 md:pr-1.5 border-r-0 md:border-r rounded-r-none md:rounded-r-md"
                   : "bg-blue-200 dark:bg-blue-200-dark border-r-0 pr-0.5";
 
             return (
               <div
                 key={child.id}
                 className={classNames(
-                  "my-1 rounded-l-md border py-1.5 pl-1.5 md:pl-2.5",
+                  "my-1 rounded-l-md border py-1 pl-1.5 md:py-1.5 md:pl-2.5",
                   opacityClass,
                   {
                     "border-blue-500/70 dark:border-blue-400-dark": !isUnread,
@@ -492,7 +497,7 @@ const Comment: FC<CommentProps> = ({
 
             <div
               ref={isMobileScreen ? cmmContext.setAnchorRef : null}
-              className={classNames(treeDepth > 1 && "pr-1.5 md:pr-2")}
+              className={classNames(treeDepth > 0 && "pr-1.5 md:pr-2")}
             >
               <DropdownMenu items={menuItems} />
             </div>
