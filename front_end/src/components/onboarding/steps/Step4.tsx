@@ -1,9 +1,9 @@
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { sendGAEvent } from "@next/third-parties/google";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { useState } from "react";
-import { sendGAEvent } from "@next/third-parties/google";
 
 import BinarySlider, {
   BINARY_FORECAST_PRECISION,

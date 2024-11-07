@@ -1,9 +1,9 @@
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { sendGAEvent } from "@next/third-parties/google";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React from "react";
-import { sendGAEvent } from "@next/third-parties/google";
 
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import { FeedType, POST_FORECASTER_ID_FILTER } from "@/constants/posts_feed";

@@ -1,6 +1,6 @@
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React from "react";
-import { sendGAEvent } from "@next/third-parties/google";
 
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";

@@ -4,13 +4,13 @@ import { useTranslations } from "next-intl";
 import React from "react";
 
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostWithForecasts } from "@/types/post";
 
 import LoadingStep from "./LoadingStep";
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
 import VerbalForecast from "../VerbalForecast";
-import LoadingIndicator from "@/components/ui/loading_indicator";
 
 interface Step3Props {
   onPrev: () => void;
