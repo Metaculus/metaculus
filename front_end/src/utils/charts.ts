@@ -19,6 +19,7 @@ import {
   TimelineChartZoomOption,
 } from "@/types/charts";
 import { ChoiceItem } from "@/types/choices";
+import { Resolution } from "@/types/post";
 import {
   QuestionType,
   QuestionWithNumericForecasts,
@@ -30,7 +31,11 @@ import {
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
-import { extractQuestionGroupName, formatResolution } from "@/utils/questions";
+import {
+  extractQuestionGroupName,
+  formatResolution,
+  isUnsuccessfullyResolved,
+} from "@/utils/questions";
 
 import {
   getForecastDateDisplayValue,
@@ -363,37 +368,6 @@ export function getDisplayUserValue(
   }
 }
 
-export function generatePercentageYScale(containerHeight: number): Scale {
-  const desiredMajorTicks = [0, 20, 40, 60, 80, 100].map((tick) => tick / 100);
-  const minorTicksPerMajor = 9;
-  const desiredMajorTickDistance = 20;
-
-  const maxMajorTicks = Math.floor(containerHeight / desiredMajorTickDistance);
-
-  let majorTicks = desiredMajorTicks;
-  if (maxMajorTicks < desiredMajorTicks.length) {
-    // adjust major ticks on small height
-    const step = 1 / (maxMajorTicks - 1);
-    majorTicks = Array.from({ length: maxMajorTicks }, (_, i) => i * step);
-  }
-
-  const ticks = [];
-  for (let i = 0; i < majorTicks.length - 1; i++) {
-    ticks.push(majorTicks[i]);
-    const step = (majorTicks[i + 1] - majorTicks[i]) / (minorTicksPerMajor + 1);
-    for (let j = 1; j <= minorTicksPerMajor; j++) {
-      ticks.push(majorTicks[i] + step * j);
-    }
-  }
-  ticks.push(majorTicks[majorTicks.length - 1]);
-
-  return {
-    ticks,
-    tickFormat: (y: number) =>
-      majorTicks.includes(y) ? `${Math.round(y * 100)}%` : "",
-  };
-}
-
 type GenerateScaleParams = {
   displayType: QuestionType | "percent";
   axisLength: number;
@@ -599,7 +573,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   }
   return choiceItems.map((item, index) => ({
     ...item,
-    active: !!activeCount ? index < activeCount - 1 : true,
+    active: !!activeCount ? index <= activeCount - 1 : true,
   }));
 }
 
@@ -754,38 +728,6 @@ export const interpolateYValue = (xValue: number, line: Line) => {
   return p1.y + t * (p2.y - p1.y);
 };
 
-export function generateTicksY(
-  height: number,
-  desiredMajorTicks: number[],
-  majorTickDistance?: number
-) {
-  const minorTicksPerMajor = 9;
-  const desiredMajorTickDistance = majorTickDistance ?? 50;
-  let majorTicks = desiredMajorTicks;
-  const maxMajorTicks = Math.floor(height / desiredMajorTickDistance);
-
-  if (maxMajorTicks < desiredMajorTicks.length) {
-    const step = 1 / (maxMajorTicks - 1);
-    majorTicks = Array.from({ length: maxMajorTicks }, (_, i) => i * step);
-  }
-  const ticks = [];
-  for (let i = 0; i < majorTicks.length - 1; i++) {
-    ticks.push(majorTicks[i]);
-    const step = (majorTicks[i + 1] - majorTicks[i]) / (minorTicksPerMajor + 1);
-    for (let j = 1; j <= minorTicksPerMajor; j++) {
-      ticks.push(majorTicks[i] + step * j);
-    }
-  }
-  ticks.push(majorTicks[majorTicks.length - 1]);
-  const tickFormat = (value: number): string => {
-    if (!majorTicks.includes(value)) {
-      return "";
-    }
-    return value.toString();
-  };
-  return { ticks, tickFormat, majorTicks };
-}
-
 export function getLeftPadding(
   yScale: Scale,
   labelsFontSize: number,
@@ -838,4 +780,69 @@ export function getContinuousGroupScaling(
     scaling.zero_point = null;
   }
   return scaling;
+}
+
+export function getResolutionPoint({
+  questionType,
+  resolution,
+  resolveTime,
+  scaling,
+}: {
+  questionType: QuestionType;
+  resolution: Resolution;
+  resolveTime: number;
+  scaling: Scaling;
+}) {
+  if (isUnsuccessfullyResolved(resolution)) {
+    return null;
+  }
+
+  switch (questionType) {
+    case QuestionType.Binary: {
+      // format data for binary question
+      return [
+        {
+          y:
+            resolution === "no"
+              ? scaling.range_min ?? 0
+              : scaling.range_max ?? 1,
+          x: resolveTime,
+          symbol: "diamond",
+          size: 4,
+        },
+      ];
+    }
+    case QuestionType.Numeric: {
+      // format data for numerical question
+      const unscaledResolution = unscaleNominalLocation(
+        Number(resolution),
+        scaling
+      );
+
+      return [
+        {
+          y: unscaledResolution,
+          x: resolveTime,
+          symbol: "diamond",
+          size: 4,
+        },
+      ];
+    }
+    case QuestionType.Date: {
+      // format data for date question
+      const dateTimestamp = new Date(resolution).getTime() / 1000;
+      const unscaledResolution = unscaleNominalLocation(dateTimestamp, scaling);
+
+      return [
+        {
+          y: unscaledResolution,
+          x: resolveTime,
+          symbol: "diamond",
+          size: 4,
+        },
+      ];
+    }
+    default:
+      return null;
+  }
 }

@@ -440,7 +440,11 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
         </div>
       )}
       {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
+        <FormErrorMessage
+          className="mb-2 flex justify-center"
+          key={`error-${index}`}
+          errors={errResponse}
+        />
       ))}
       {!!activeOptionData && (
         <NumericForecastTable
