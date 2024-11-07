@@ -112,7 +112,7 @@ const Step2: React.FC<Step2Props> = ({
       }
       sendGAEvent({
         event: "onboardingPredicted1",
-        category: "onboarding",
+        event_category: "onboarding",
       });
 
       onPredictionChange(prediction);

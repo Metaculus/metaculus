@@ -16,12 +16,12 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
   useEffect(() => {
     sendGAEvent({
       event: "onboardingStarted",
-      category: "onboarding",
+      event_category: "onboarding",
     });
   }, []);
 
   const handleSkipTutorial = () => {
-    sendGAEvent({ event: "onboardingSkipped", category: "onboarding" });
+    sendGAEvent({ event: "onboardingSkipped", event_category: "onboarding" });
     onClose();
   };
 
@@ -61,8 +61,8 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
             onClick={() => {
               sendGAEvent({
                 event: "onboardingTopicSelected",
-                category: "onboarding",
-                label: topic.name,
+                event_category: "onboarding",
+                event_label: topic.name,
               });
               onTopicSelect(index);
             }}

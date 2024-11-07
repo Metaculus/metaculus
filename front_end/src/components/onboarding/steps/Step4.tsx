@@ -73,7 +73,7 @@ const Step4: React.FC<Step4Props> = ({
 
       sendGAEvent({
         event: "onboardingPredicted2",
-        category: "onboarding",
+        event_category: "onboarding",
       });
 
       onNext();

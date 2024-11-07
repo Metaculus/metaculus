@@ -42,8 +42,8 @@ const Step5: React.FC<Step5Props> = ({ onPrev, topicIndex, closeModal }) => {
   const handleViewQuestionFeed = () => {
     sendGAEvent({
       event: "onboardingFinished",
-      category: "onboarding",
-      label: "Viewed Feed",
+      event_category: "onboarding",
+      event_label: "Viewed Feed",
     });
     forceNavigate("/questions/");
   };
@@ -51,8 +51,8 @@ const Step5: React.FC<Step5Props> = ({ onPrev, topicIndex, closeModal }) => {
   const handleViewMyPredictions = () => {
     sendGAEvent({
       event: "onboardingFinished",
-      category: "onboarding",
-      label: "Viewed Predictions",
+      event_category: "onboarding",
+      event_label: "Viewed Predictions",
     });
 
     if (user) {
@@ -73,8 +73,8 @@ const Step5: React.FC<Step5Props> = ({ onPrev, topicIndex, closeModal }) => {
   const handleViewAnotherQuestion = () => {
     sendGAEvent({
       event: "onboardingFinished",
-      category: "onboarding",
-      label: "Viewed Another Question",
+      event_category: "onboarding",
+      event_label: "Viewed Another Question",
     });
     forceNavigate(questionUrl);
   };
