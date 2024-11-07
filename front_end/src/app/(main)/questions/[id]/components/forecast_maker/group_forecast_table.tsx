@@ -26,7 +26,7 @@ export type ConditionalTableOption = {
   id: number;
   name: string;
   question: QuestionWithNumericForecasts;
-  userForecast: MultiSliderValue[];
+  userForecast: MultiSliderValue[] | null;
   userWeights: number[];
   userQuartiles: Quartiles | null;
   communityQuartiles: Quartiles;

@@ -584,6 +584,7 @@ export function generateChoiceItemsFromBinaryGroup(
     activeCount?: number;
     preselectedQuestionId?: number;
     locale?: string;
+    preserveOrder?: boolean;
   }
 ): ChoiceItem[] {
   const { activeCount, preselectedQuestionId, locale } = config ?? {};
@@ -595,11 +596,13 @@ export function generateChoiceItemsFromBinaryGroup(
     return [];
   }
   const choiceOrdering: number[] = latests.map((_, i) => i);
-  choiceOrdering.sort((a, b) => {
-    const aCenter = latests[a]?.centers![0] ?? 0;
-    const bCenter = latests[b]?.centers![0] ?? 0;
-    return bCenter - aCenter;
-  });
+  if (!config?.preserveOrder) {
+    choiceOrdering.sort((a, b) => {
+      const aCenter = latests[a]?.centers![0] ?? 0;
+      const bCenter = latests[b]?.centers![0] ?? 0;
+      return bCenter - aCenter;
+    });
+  }
 
   return choiceOrdering.map((order, index) => {
     const question = questions[order];
@@ -716,6 +719,19 @@ export const getChartZoomOptions = () =>
     label: zoomOption,
     value: zoomOption,
   }));
+
+export const getClosestYValue = (xValue: number, line: Line) => {
+  const i = findLastIndex(line, (point) => point.x <= xValue);
+  const p1 = line[i];
+  const p2 = line[i + 1];
+
+  if (!p1 || !p2) return 0;
+
+  if (Math.abs(p2.x - xValue) > Math.abs(p1.x - xValue)) {
+    return p1.y;
+  }
+  return p2.y;
+};
 
 export const interpolateYValue = (xValue: number, line: Line) => {
   const i = findLastIndex(line, (point) => point.x <= xValue);

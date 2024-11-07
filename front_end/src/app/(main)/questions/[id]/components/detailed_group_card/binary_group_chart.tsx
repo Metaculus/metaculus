@@ -65,6 +65,7 @@ function generateList(
     withMinMax: true,
     activeCount: MAX_VISIBLE_CHECKBOXES,
     preselectedQuestionId,
+    preserveOrder: true,
   });
 }
 

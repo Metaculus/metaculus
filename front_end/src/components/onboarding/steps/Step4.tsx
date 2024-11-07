@@ -1,5 +1,6 @@
 import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { sendGAEvent } from "@next/third-parties/google";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { useState } from "react";
@@ -69,6 +70,11 @@ const Step4: React.FC<Step4Props> = ({
       if (response && "errors" in response && !!response.errors) {
         throw new Error(response.errors[0].message);
       }
+
+      sendGAEvent({
+        event: "onboardingPredicted2",
+        event_category: "onboarding",
+      });
 
       onNext();
     } catch (error) {
