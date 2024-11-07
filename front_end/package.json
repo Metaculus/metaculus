@@ -19,6 +19,7 @@
     "@fortawesome/free-regular-svg-icons": "^6.5.2",
     "@fortawesome/free-solid-svg-icons": "^6.5.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@github/relative-time-element": "^4.4.3",
     "@google-cloud/translate": "^8.5.0",
     "@headlessui/react": "^2.0.4",
     "@hookform/resolvers": "^3.4.2",
