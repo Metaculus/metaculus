@@ -1,6 +1,6 @@
 import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
@@ -12,6 +12,13 @@ interface Step1Props {
 
 const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
   const t = useTranslations();
+
+  useEffect(() => {
+    sendGAEvent({
+      event: "onboardingStarted",
+      category: "onboarding",
+    });
+  }, []);
 
   const handleSkipTutorial = () => {
     sendGAEvent({ event: "onboardingSkipped", category: "onboarding" });
