@@ -720,6 +720,19 @@ export const getChartZoomOptions = () =>
     value: zoomOption,
   }));
 
+export const getClosestYValue = (xValue: number, line: Line) => {
+  const i = findLastIndex(line, (point) => point.x <= xValue);
+  const p1 = line[i];
+  const p2 = line[i + 1];
+
+  if (!p1 || !p2) return 0;
+
+  if (Math.abs(p2.x - xValue) > Math.abs(p1.x - xValue)) {
+    return p1.y;
+  }
+  return p2.y;
+};
+
 export const interpolateYValue = (xValue: number, line: Line) => {
   const i = findLastIndex(line, (point) => point.x <= xValue);
   const p1 = line[i];
