@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { useState } from "react";
+import { sendGAEvent } from "@next/third-parties/google";
 
 import BinarySlider, {
   BINARY_FORECAST_PRECISION,
@@ -69,6 +70,11 @@ const Step4: React.FC<Step4Props> = ({
       if (response && "errors" in response && !!response.errors) {
         throw new Error(response.errors[0].message);
       }
+
+      sendGAEvent({
+        event: "onboardingPredicted2",
+        category: "onboarding",
+      });
 
       onNext();
     } catch (error) {

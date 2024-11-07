@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import React from "react";
+import { sendGAEvent } from "@next/third-parties/google";
 
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import { FeedType, POST_FORECASTER_ID_FILTER } from "@/constants/posts_feed";
@@ -39,11 +40,21 @@ const Step5: React.FC<Step5Props> = ({ onPrev, topicIndex, closeModal }) => {
   };
 
   const handleViewQuestionFeed = () => {
-    const url = "/questions/";
-    forceNavigate(url);
+    sendGAEvent({
+      event: "onboardingFinished",
+      category: "onboarding",
+      label: "Viewed Feed",
+    });
+    forceNavigate("/questions/");
   };
 
   const handleViewMyPredictions = () => {
+    sendGAEvent({
+      event: "onboardingFinished",
+      category: "onboarding",
+      label: "Viewed Predictions",
+    });
+
     if (user) {
       clearInReview();
       switchFeed(FeedType.MY_PREDICTIONS);
@@ -57,6 +68,15 @@ const Step5: React.FC<Step5Props> = ({ onPrev, topicIndex, closeModal }) => {
     } else {
       forceNavigate("/questions/");
     }
+  };
+
+  const handleViewAnotherQuestion = () => {
+    sendGAEvent({
+      event: "onboardingFinished",
+      category: "onboarding",
+      label: "Viewed Another Question",
+    });
+    forceNavigate(questionUrl);
   };
 
   return (
@@ -87,9 +107,7 @@ const Step5: React.FC<Step5Props> = ({ onPrev, topicIndex, closeModal }) => {
           {t("onboardingStep5ViewYourPredictions")}
         </button>
         <button
-          onClick={() => {
-            forceNavigate(questionUrl);
-          }}
+          onClick={handleViewAnotherQuestion}
           className={`${onboardingStyles.smallButton} w-full font-light md:w-fit`}
         >
           {t("onboardingStep5ForecastAnother")}{" "}
