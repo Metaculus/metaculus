@@ -330,7 +330,11 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
           ))}
       </div>
       {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
+        <FormErrorMessage
+          className="flex justify-center"
+          key={`error-${index}`}
+          errors={errResponse}
+        />
       ))}
       {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>

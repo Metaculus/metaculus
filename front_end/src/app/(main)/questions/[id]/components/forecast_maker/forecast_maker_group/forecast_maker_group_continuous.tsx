@@ -352,6 +352,13 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
               ))}
           </div>
         )}
+      {submitErrors.map((errResponse, index) => (
+        <FormErrorMessage
+          className="mb-2 flex justify-center"
+          key={`error-${index}`}
+          errors={errResponse}
+        />
+      ))}
       {activeGroupOptionPredictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
           {t(activeGroupOptionPredictionMessage)}
@@ -402,9 +409,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           )}
         </>
       )}
-      {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
-      ))}
       {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>
   );
