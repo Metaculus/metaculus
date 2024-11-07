@@ -54,8 +54,8 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
   const unambiguousType = watch("unambiguousType");
   const resolutionTypeOptions = useMemo(() => {
     const baseQuestionOptions = [
-      { value: "ambiguous", label: "Ambiguous" },
-      { value: "annulled", label: "Annulled" },
+      { value: "ambiguous", label: "ambiguous" },
+      { value: "annulled", label: "annulled" },
     ];
 
     if (["date", "numeric"].includes(question.type)) {
