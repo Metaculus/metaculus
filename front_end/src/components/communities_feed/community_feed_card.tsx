@@ -22,7 +22,7 @@ const CommunityFeedCard: FC<Props> = ({ community }) => {
 
   return (
     <Link
-      href={`/community/${community.slug}`}
+      href={`/c/${community.slug}`}
       className="group flex h-[186px] flex-col rounded-lg border border-purple-300 bg-gray-0 p-5 no-underline hover:border-blue-700 dark:border-purple-300-dark dark:bg-gray-0-dark dark:hover:border-blue-700-dark"
     >
       <div className="flex items-center justify-between">
