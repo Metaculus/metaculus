@@ -1,5 +1,6 @@
 export const onboardingStyles = {
-  container: "max-w-[800px] mt-2 md:mt-[-16px] p-0 md:p-5 flex flex-col gap-3",
+  container:
+    "w-full md:w-[768px] mt-2 md:mt-[-16px] p-0 md:p-5 flex flex-col gap-3",
   largeparagraph: "text-base md:text-lg mb-4",
   paragraph: "text-sm md:text-base my-2 opacity-80 leading-normal",
   title:

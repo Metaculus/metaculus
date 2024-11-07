@@ -1,11 +1,11 @@
 export const onboardingTopics = [
   {
     name: "US Politics",
-    questions: [6478, 20776, 21550],
+    questions: [11112, 11588, 26336],
     factors: [
-      "There is little time left in 2024 for this change.",
-      "Congress has repeatedly failed to pass major cannabis reform bills.",
-      "There is growing public support, but key policymakers are concerned about potential negative social and health impacts.",
+      "JD Vance says Trump would veto a national abortion ban.",
+      "Senators like Lindsey Graham have introduced bills that would ban most abortions nationwide.",
+      'JD Vance said he "would like abortion to be illegal nationally".',
     ],
     emoji: "🇺🇸",
   },

@@ -1,5 +1,6 @@
+import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { onboardingTopics } from "../OnboardingSettings";
 import { onboardingStyles } from "../OnboardingStyles";
@@ -11,6 +12,18 @@ interface Step1Props {
 
 const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
   const t = useTranslations();
+
+  useEffect(() => {
+    sendGAEvent({
+      event: "onboardingStarted",
+      event_category: "onboarding",
+    });
+  }, []);
+
+  const handleSkipTutorial = () => {
+    sendGAEvent({ event: "onboardingSkipped", event_category: "onboarding" });
+    onClose();
+  };
 
   return (
     <div className="mt-[-16px] max-w-[800px] flex-row gap-3 p-0 md:flex-col md:p-5">
@@ -45,7 +58,14 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
         {onboardingTopics.map((topic, index) => (
           <button
             key={index}
-            onClick={() => onTopicSelect(index)}
+            onClick={() => {
+              sendGAEvent({
+                event: "onboardingTopicSelected",
+                event_category: "onboarding",
+                event_label: topic.name,
+              });
+              onTopicSelect(index);
+            }}
             className={onboardingStyles.topic}
           >
             <span className="text-xl md:text-4xl md:leading-none">
@@ -57,7 +77,7 @@ const Step1: React.FC<Step1Props> = ({ onTopicSelect, onClose }) => {
       </div>
       <div className="mt-4 flex w-full justify-start md:mt-8 md:justify-center">
         <button
-          onClick={onClose}
+          onClick={handleSkipTutorial}
           className="text-base text-blue-700 underline decoration-blue-700/70 underline-offset-4 hover:text-blue-800 hover:decoration-blue-700/90 dark:text-blue-700-dark dark:decoration-blue-700/70 dark:hover:text-blue-800-dark dark:hover:decoration-blue-700-dark/90 "
         >
           {t("skipTutorial")}
