@@ -15,6 +15,7 @@ import { FormError, Input } from "@/components/ui/form_field";
 import LoadingSpinner from "@/components/ui/loading_spiner";
 import { ErrorResponse } from "@/types/fetch";
 import { Question, QuestionType } from "@/types/question";
+import { AMBIGUOUS_RESOLUTION, ANNULED_RESOLUTION } from "@/utils/questions";
 
 type Props = {
   question: Question;
@@ -54,8 +55,8 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
   const unambiguousType = watch("unambiguousType");
   const resolutionTypeOptions = useMemo(() => {
     const baseQuestionOptions = [
-      { value: "ambiguous", label: "Ambiguous" },
-      { value: "annulled", label: "Annulled" },
+      { value: AMBIGUOUS_RESOLUTION, label: "Ambiguous" },
+      { value: ANNULED_RESOLUTION, label: "Annulled" },
     ];
 
     if (["date", "numeric"].includes(question.type)) {

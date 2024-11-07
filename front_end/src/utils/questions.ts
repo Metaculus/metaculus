@@ -4,6 +4,9 @@ import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
+export const ANNULED_RESOLUTION = "annulled";
+export const AMBIGUOUS_RESOLUTION = "ambiguous";
+
 import { ConditionalTableOption } from "@/app/(main)/questions/[id]/components/forecast_maker/group_forecast_table";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
@@ -128,7 +131,9 @@ export function isResolved(resolution: Resolution | null): boolean {
 export function isUnsuccessfullyResolved(
   resolution: Resolution | null
 ): boolean {
-  return resolution === "annulled" || resolution === "ambiguous";
+  return (
+    resolution === ANNULED_RESOLUTION || resolution === AMBIGUOUS_RESOLUTION
+  );
 }
 
 export function isSuccessfullyResolved(resolution: Resolution | null) {
@@ -150,7 +155,7 @@ export function formatResolution(
     return capitalize(resolution);
   }
 
-  if (resolution === "ambiguous" || resolution === "annulled") {
+  if (isUnsuccessfullyResolved(resolution)) {
     return capitalize(resolution);
   }
 
@@ -313,27 +318,6 @@ export function sortGroupPredictionOptions(
     const bMean = b.aggregations.recency_weighted.latest?.centers![0] ?? 0;
     return bMean - aMean;
   });
-}
-
-export function sortMultipleChoicePredictions(dataset: MultipleChoiceForecast) {
-  const {
-    timestamps,
-    nr_forecasters,
-    my_forecasts,
-    latest_pmf,
-    latest_cdf,
-    forecast_values,
-    ...choices
-  } = dataset;
-
-  const choicesArray = Object.entries(choices).sort(
-    ([_aChoice, aValue], [_bChoice, bValue]) => {
-      const aMean = aValue.at(-1)?.median ?? 0;
-      const bMean = bValue.at(-1)?.median ?? 0;
-      return bMean - aMean;
-    }
-  );
-  return choicesArray;
 }
 
 export function getQuestionTitle(post: Post) {
