@@ -97,7 +97,7 @@ const ContinuousAreaChart: FC<Props> = ({
       ],
       []
     );
-  }, [data, graphType]);
+  }, [data, graphType, hideCP]);
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
     yDomain: Tuple<number>;
@@ -125,7 +125,7 @@ const ContinuousAreaChart: FC<Props> = ({
         domain: xDomain,
         scaling: scaling,
       }),
-    [chartWidth]
+    [chartWidth, questionType, scaling, xDomain]
   );
 
   const resolutionPoint = resolution

@@ -16,6 +16,7 @@ import MarkdownEditor from "@/components/markdown_editor";
 import { QuestionType } from "@/types/question";
 import { CategoryKey, Contribution, LeaderboardEntry } from "@/types/scoring";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+import { isUnsuccessfullyResolved } from "@/utils/questions";
 
 type SortingColumn = "score" | "title" | "type";
 type SortingDirection = "asc" | "desc";
@@ -265,8 +266,7 @@ const SortArrow: FC<{ isAsc: boolean }> = ({ isAsc }) => (
 
 const getIsResolved = (contribution: Contribution) =>
   !!contribution.question_resolution &&
-  (contribution.question_resolution !== "ambiguous" ??
-    contribution.question_resolution !== "annulled");
+  !isUnsuccessfullyResolved(contribution.question_resolution);
 
 const getCommentSummary = (markdown: string) => {
   if ([">", "*"].includes(markdown[0])) {
