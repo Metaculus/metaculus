@@ -3,6 +3,7 @@ import { faEllipsis } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import classNames from "classnames";
 import { differenceInMilliseconds } from "date-fns";
+import { isNil } from "lodash";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
@@ -12,7 +13,6 @@ import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import {
   Post,
@@ -43,6 +43,7 @@ import GroupForecastTable, {
   ConditionalTableOption,
 } from "../group_forecast_table";
 import NumericForecastTable from "../numeric_table";
+import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
@@ -65,7 +66,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const { user } = useAuth();
   const { hideCP } = useHideCP();
   const params = useSearchParams();
-  const { setCurrentModal } = useModal();
   const subQuestionId = Number(params.get(SLUG_POST_SUB_QUESTION_ID));
 
   const { id: postId, user_permission: permission } = post;
@@ -85,6 +85,14 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       ),
     [questions]
   );
+  const hasUserForecast = useMemo(() => {
+    const forecastsByQuestions = Object.values(prevForecastValuesMap);
+
+    return (
+      !!forecastsByQuestions.length &&
+      forecastsByQuestions.some((v) => !isNil(v.forecast))
+    );
+  }, [prevForecastValuesMap]);
 
   const [groupOptions, setGroupOptions] = useState<ConditionalTableOption[]>(
     generateGroupOptions(questions, prevForecastValuesMap, undefined, post)
@@ -109,13 +117,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
   const questionsToSubmit = useMemo(
-    () =>
-      groupOptions.filter(
-        (option) => option.isDirty && option.userForecast !== null
-      ),
+    () => groupOptions.filter((option) => option.userForecast !== null),
     [groupOptions]
   );
-  const submitIsAllowed = !isSubmitting && !!questionsToSubmit.length;
   const isPickerDirty = useMemo(
     () => groupOptions.some((option) => option.isDirty),
     [groupOptions]
@@ -159,7 +163,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       prev.map((prevChoice) => {
         if (prevChoice.id === optionId) {
           const newUserForecast = [
-            ...prevChoice.userForecast,
+            ...getNormalizedUserForecast(prevChoice.userForecast),
             { left: 0.4, center: 0.5, right: 0.6 },
           ];
           const newWeights = [...prevChoice.userWeights, 1];
@@ -223,7 +227,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           questionId: question.id,
           forecastData: {
             continuousCdf: getNumericForecastDataset(
-              userForecast,
+              getNormalizedUserForecast(userForecast),
               userWeights,
               question.open_lower_bound!,
               question.open_upper_bound!
@@ -232,7 +236,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
             probabilityYes: null,
           },
           sliderValues: {
-            forecast: userForecast,
+            forecast: getNormalizedUserForecast(userForecast),
             weights: userWeights,
           },
         };
@@ -257,7 +261,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const userCdf: number[] | undefined =
     activeGroupOption &&
     getNumericForecastDataset(
-      activeGroupOption?.userForecast,
+      getNormalizedUserForecast(activeGroupOption.userForecast),
       activeGroupOption?.userWeights,
       activeGroupOption?.question.open_lower_bound!,
       activeGroupOption?.question.open_upper_bound!
@@ -276,8 +280,12 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         showCP={!user || !hideCP}
       />
       {groupOptions.map((option) => {
+        const normalizedUserForecast = getNormalizedUserForecast(
+          option.userForecast
+        );
+
         const dataset = getNumericForecastDataset(
-          option.userForecast,
+          normalizedUserForecast,
           option.userWeights,
           option.question.open_lower_bound!,
           option.question.open_upper_bound!
@@ -293,7 +301,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           >
             <ContinuousSlider
               question={option.question}
-              forecast={option.userForecast}
+              forecast={normalizedUserForecast}
               weights={option.userWeights}
               dataset={dataset}
               onChange={(forecast, weight) =>
@@ -314,44 +322,45 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
       {!!activeGroupOption &&
         activeGroupOption.question.status == QuestionStatus.OPEN && (
           <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-            {canPredict &&
-              (user ? (
-                <>
-                  <Button
-                    variant="secondary"
-                    type="reset"
-                    onClick={() => handleAddComponent(activeGroupOption.id)}
-                  >
-                    {t("addComponentButton")}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    type="reset"
-                    onClick={handleResetForecasts}
-                    disabled={!isPickerDirty}
-                  >
-                    {t("discardChangesButton")}
-                  </Button>
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    onClick={handlePredictSubmit}
-                    disabled={!submitIsAllowed}
-                  >
-                    {t("saveChange")}
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="primary"
-                  type="button"
-                  onClick={() => setCurrentModal({ type: "signup" })}
-                >
-                  {t("signUpToPredict")}
-                </Button>
-              ))}
+            {canPredict && (
+              <>
+                {!!user && (
+                  <>
+                    <Button
+                      variant="secondary"
+                      type="reset"
+                      onClick={() => handleAddComponent(activeGroupOption.id)}
+                    >
+                      {t("addComponentButton")}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      type="reset"
+                      onClick={handleResetForecasts}
+                      disabled={!isPickerDirty}
+                    >
+                      {t("discardChangesButton")}
+                    </Button>
+                  </>
+                )}
+                <PredictButton
+                  onSubmit={handlePredictSubmit}
+                  isDirty={isPickerDirty}
+                  hasUserForecast={hasUserForecast}
+                  isPending={isSubmitting}
+                  isDisabled={!questionsToSubmit.length}
+                />
+              </>
+            )}
           </div>
         )}
+      {submitErrors.map((errResponse, index) => (
+        <FormErrorMessage
+          className="mb-2 flex justify-center"
+          key={`error-${index}`}
+          errors={errResponse}
+        />
+      ))}
       {activeGroupOptionPredictionMessage && (
         <div className="mb-2 text-center text-sm italic text-gray-700 dark:text-gray-700-dark">
           {t(activeGroupOptionPredictionMessage)}
@@ -402,9 +411,6 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
           )}
         </>
       )}
-      {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
-      ))}
       {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>
   );
@@ -493,6 +499,10 @@ function getUserQuartiles(
 }
 
 function getSliderValue(forecast?: MultiSliderValue[]) {
+  return forecast ?? null;
+}
+
+function getNormalizedUserForecast(forecast: MultiSliderValue[] | null) {
   return (
     forecast ?? [
       {

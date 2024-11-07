@@ -67,11 +67,14 @@ def aggregation_explorer_api_view(request):
         raise PermissionDenied("Current user can not view user-specific data")
     include_bots = request.GET.get("include_bots", None)
 
+    # to minimize the aggregation history or not
+    minimize = str(request.GET.get("minimize", "true")).lower() == "true"
+
     aggregations = get_aggregation_history(
         question,
         aggregation_methods,
         user_ids=user_ids,
-        minimize=True,
+        minimize=minimize,
         include_stats=True,
         include_bots=(
             include_bots

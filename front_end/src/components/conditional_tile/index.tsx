@@ -15,6 +15,7 @@ import { QuestionWithForecasts } from "@/types/question";
 import {
   getConditionalQuestionTitle,
   getConditionTitle,
+  isUnsuccessfullyResolved,
 } from "@/utils/questions";
 
 import ConditionalCard from "./conditional_card";
@@ -60,13 +61,9 @@ const ConditionalTile: FC<Props> = ({
     ? new Date(condition.actual_close_time).getTime() < Date.now()
     : false;
   const yesHappened = condition.resolution === "yes";
-  const yesDisabled =
-    question_yes.resolution === "annulled" ||
-    question_yes.resolution === "ambiguous";
+  const yesDisabled = isUnsuccessfullyResolved(question_yes.resolution);
   const noHappened = condition.resolution === "no";
-  const noDisabled =
-    question_no.resolution === "annulled" ||
-    question_no.resolution === "ambiguous";
+  const noDisabled = isUnsuccessfullyResolved(question_no.resolution);
 
   useEffect(() => {
     if (

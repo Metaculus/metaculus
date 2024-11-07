@@ -9,6 +9,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
+import classNames from "classnames";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC, PropsWithChildren, useEffect, useState } from "react";
@@ -19,7 +20,6 @@ import { Community } from "@/types/projects";
 import { logError } from "@/utils/errors";
 
 import { fetchCommunities } from "../community/actions";
-import classNames from "classnames";
 
 const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
   <div className="flex h-full items-start justify-start px-2.5 py-2 text-left text-xs font-normal capitalize text-gray-200 opacity-50">
@@ -160,8 +160,7 @@ const CommunitiesDropdown: FC<Props> = ({ community }) => {
             <MenuItem>
               <Link
                 className="flex items-center justify-start whitespace-nowrap rounded p-2.5 text-left capitalize text-blue-400 no-underline hover:bg-blue-200-dark"
-                href={"/questions/"}
-                // TODO: activate communities sidebar item on navigation
+                href={"/questions/?communities=true"}
               >
                 <FontAwesomeIcon
                   size="1x"

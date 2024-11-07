@@ -11,6 +11,7 @@ from rest_framework.exceptions import ValidationError
 from posts.models import Post
 from questions.models import Forecast
 from users.models import User
+from utils.the_math.aggregations import get_aggregation_history
 from utils.the_math.formulas import (
     get_scaled_quartiles_from_cdf,
     string_location_to_unscaled_location,
@@ -18,8 +19,14 @@ from utils.the_math.formulas import (
 from utils.the_math.measures import (
     percent_point_function,
 )
-from .constants import ResolutionType
-from .models import Question, Conditional, GroupOfQuestions, AggregateForecast
+from questions.constants import ResolutionType
+from questions.models import (
+    Question,
+    Conditional,
+    GroupOfQuestions,
+    AggregateForecast,
+    AggregationMethod,
+)
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -316,30 +323,42 @@ class AggregateForecastSerializer(serializers.ModelSerializer):
     def get_interval_lower_bounds(
         self, aggregate_forecast: AggregateForecast
     ) -> list[float] | None:
+        question_type = (
+            self.context.get("question_type") or aggregate_forecast.question.type
+        )
         if (
-            len(aggregate_forecast.forecast_values) == 2
-        ) and aggregate_forecast.interval_lower_bounds:
+            question_type == Question.QuestionType.BINARY
+            and aggregate_forecast.interval_lower_bounds
+        ):
             return aggregate_forecast.interval_lower_bounds[1:]
         return aggregate_forecast.interval_lower_bounds
 
     def get_centers(self, aggregate_forecast: AggregateForecast) -> list[float] | None:
-        if (
-            len(aggregate_forecast.forecast_values) == 2
-        ) and aggregate_forecast.centers:
+        question_type = (
+            self.context.get("question_type") or aggregate_forecast.question.type
+        )
+        if question_type == Question.QuestionType.BINARY and aggregate_forecast.centers:
             return aggregate_forecast.centers[1:]
         return aggregate_forecast.centers
 
     def get_interval_upper_bounds(
         self, aggregate_forecast: AggregateForecast
     ) -> list[float] | None:
+        question_type = (
+            self.context.get("question_type") or aggregate_forecast.question.type
+        )
         if (
-            len(aggregate_forecast.forecast_values) == 2
-        ) and aggregate_forecast.interval_upper_bounds:
+            question_type == Question.QuestionType.BINARY
+            and aggregate_forecast.interval_upper_bounds
+        ):
             return aggregate_forecast.interval_upper_bounds[1:]
         return aggregate_forecast.interval_upper_bounds
 
     def get_means(self, aggregate_forecast: AggregateForecast) -> list[float] | None:
-        if (len(aggregate_forecast.forecast_values) == 2) and aggregate_forecast.means:
+        question_type = (
+            self.context.get("question_type") or aggregate_forecast.question.type
+        )
+        if question_type == Question.QuestionType.BINARY and aggregate_forecast.means:
             return aggregate_forecast.means[1:]
         return aggregate_forecast.means
 
@@ -394,7 +413,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         return values
 
     def validate(self, data):
-        question = Question.objects.get(pk=data["question"])
+        question = Question.objects.get(id=data["question"])
 
         probability_yes = data.get("probability_yes")
         probability_yes_per_category = data.get("probability_yes_per_category")
@@ -459,31 +478,54 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                         previous = current
 
                 continuous_cdf = [get_height(i / 200) for i in range(201)]
-                data["continuous_cdf"] = continuous_cdf
-            continuous_cdf_increasing = all(
+            continuous_cdf = np.round(continuous_cdf, 10).tolist()
+            data["continuous_cdf"] = continuous_cdf
+            errors = ""
+            inbound_pmf = np.round(
                 [
-                    continuous_cdf[i + 1] - continuous_cdf[i] >= 0.01 / 201
+                    continuous_cdf[i + 1] - continuous_cdf[i]
                     for i in range(len(continuous_cdf) - 1)
-                ]
+                ],
+                10,
             )
-            if question.open_lower_bound:
-                lower_bound_ok = continuous_cdf[0] >= 0.001
-            else:
-                lower_bound_ok = continuous_cdf[0] == 0.00
-            if question.open_upper_bound:
-                upper_bound_ok = continuous_cdf[-1] <= 0.999
-            else:
-                upper_bound_ok = continuous_cdf[-1] == 1.00
-            if not (
-                continuous_cdf_increasing
-                and lower_bound_ok
-                and upper_bound_ok
-                and len(continuous_cdf) == 201
-            ):
-                raise serializers.ValidationError(
-                    "continuous_cdf invalid. Must be increasing, have 201 points, "
-                    "and respect the bounds of the question"
+            min_diff = 0.01 / 200
+            if not all(inbound_pmf >= min_diff):
+                errors += (
+                    "continuous_cdf must be increasing by at least "
+                    f"{min_diff} at every step.\n"
                 )
+            max_diff = 0.59  # derived empirically from slider positions
+            if not all(inbound_pmf <= max_diff):
+                errors += (
+                    "continuous_cdf must be increasing by no more than "
+                    f"{max_diff} at every step.\n"
+                )
+            if question.open_lower_bound:
+                if not continuous_cdf[0] >= 0.001:
+                    errors += (
+                        "continuous_cdf at lower bound must be at least 0.001"
+                        " due to lower bound being open.\n"
+                    )
+            else:
+                if not continuous_cdf[0] == 0.00:
+                    errors += (
+                        "continuous_cdf at lower bound must be 0.00"
+                        " due to lower bound being closed.\n"
+                    )
+            if question.open_upper_bound:
+                if not continuous_cdf[-1] <= 0.999:
+                    errors += (
+                        "continuous_cdf at upper bound must be at most 0.999"
+                        " due to upper bound being open.\n"
+                    )
+            else:
+                if not continuous_cdf[-1] == 1.00:
+                    errors += (
+                        "continuous_cdf at upper bound must be 1.00"
+                        " due to upper bound being closed.\n"
+                    )
+            if errors:
+                raise serializers.ValidationError("CDF Invalid:\n" + errors)
 
         return data
 
@@ -495,6 +537,7 @@ def serialize_question(
     post: Post | None = None,
     aggregate_forecasts: list[AggregateForecast] = None,
     full_forecast_values: bool = False,
+    minimize: bool = True,
 ):
     """
     Serializes question object
@@ -518,13 +561,34 @@ def serialize_question(
             question.cp_reveal_time
             and question.cp_reveal_time > django.utils.timezone.now()
         ):
+            # don't show any forecasts
             aggregate_forecasts = []
-        elif aggregate_forecasts is None:
-            aggregate_forecasts = question.aggregate_forecasts.all()
 
-        aggregate_forecasts_by_method = defaultdict(list)
-        for aggregate in aggregate_forecasts:
-            aggregate_forecasts_by_method[aggregate.method].append(aggregate)
+        aggregate_forecasts_by_method: dict[
+            AggregationMethod, list[AggregateForecast]
+        ] = defaultdict(list)
+
+        if aggregate_forecasts is not None:
+            for aggregate in aggregate_forecasts:
+                aggregate_forecasts_by_method[aggregate.method].append(aggregate)
+        else:
+            if minimize:
+                aggregate_forecasts = question.aggregate_forecasts.all()
+                for aggregate in aggregate_forecasts:
+                    aggregate_forecasts_by_method[aggregate.method].append(aggregate)
+            else:
+                # TODO: accept other url params
+                aggregate_forecasts_by_method = get_aggregation_history(
+                    question,
+                    aggregation_methods=[
+                        AggregationMethod.RECENCY_WEIGHTED,
+                        AggregationMethod.UNWEIGHTED,
+                    ],
+                    minimize=minimize,
+                    include_stats=True,
+                    include_bots=question.include_bots_in_aggregates,
+                    histogram=True,
+                )
 
         # Appending score data
         for suffix, scores in (
@@ -552,14 +616,20 @@ def serialize_question(
                 AggregateForecastSerializer(
                     forecasts,
                     many=True,
-                    context={"include_forecast_values": full_forecast_values},
+                    context={
+                        "include_forecast_values": full_forecast_values,
+                        "question_type": question.type,
+                    },
                 ).data
             )
             serialized_data["aggregations"][method]["latest"] = (
                 (
                     AggregateForecastSerializer(
                         forecasts[-1],
-                        context={"include_forecast_values": True},
+                        context={
+                            "include_forecast_values": True,
+                            "question_type": question.type,
+                        },
                     ).data
                 )
                 if forecasts and not full_forecast_values

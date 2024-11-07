@@ -67,4 +67,4 @@ const QuestionConditionalCreator: React.FC<{
   );
 };
 
-export default WithServerComponentErrorBoundary(QuestionConditionalCreator);
+export default QuestionConditionalCreator;

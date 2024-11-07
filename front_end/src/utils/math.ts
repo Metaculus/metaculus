@@ -72,6 +72,7 @@ export function cdfToPmf(cdf: number[]) {
       pdf.push(cdf[i] - cdf[i - 1]);
     }
   }
+  pdf.push(1 - cdf[cdf.length - 1]);
   return pdf;
 }
 

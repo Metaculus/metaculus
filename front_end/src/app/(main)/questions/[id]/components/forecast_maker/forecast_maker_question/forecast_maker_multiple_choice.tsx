@@ -1,7 +1,7 @@
 "use client";
 import { faUserGroup } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { round } from "lodash";
+import { isNil, round } from "lodash";
 import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useMemo, useState } from "react";
 
@@ -11,7 +11,6 @@ import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
@@ -32,6 +31,7 @@ import {
   BINARY_MIN_VALUE,
 } from "../binary_slider";
 import ForecastChoiceOption from "../forecast_choice_option";
+import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
 
@@ -62,13 +62,25 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
-  const { setCurrentModal } = useModal();
+
+  const choiceOrdering = useMemo(() => {
+    const latest = question.aggregations.recency_weighted.latest;
+    const choiceOrdering: number[] = question.options!.map((_, i) => i);
+    choiceOrdering.sort((a, b) => {
+      const aCenter = latest?.forecast_values[a] ?? 0;
+      const bCenter = latest?.forecast_values[b] ?? 0;
+      return bCenter - aCenter;
+    });
+
+    return choiceOrdering;
+  }, [question.aggregations.recency_weighted.latest, question.options]);
 
   const [isDirty, setIsDirty] = useState(false);
   const [choicesForecasts, setChoicesForecasts] = useState<ChoiceOption[]>(
     generateChoiceOptions(
       question,
       question.aggregations.recency_weighted,
+      choiceOrdering,
       question.my_forecasts ?? { history: [] }
     )
   );
@@ -93,12 +105,20 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const resetForecasts = useCallback(() => {
     setIsDirty(false);
     setChoicesForecasts((prev) =>
-      prev.map((prevChoice, i) => ({
-        ...prevChoice,
-        forecast: question.my_forecasts?.latest?.forecast_values[i] ?? null,
-      }))
+      choiceOrdering.map((order, index) => {
+        const choiceOption = prev[index];
+        const userForecast =
+          question.my_forecasts?.latest?.forecast_values[order] ?? null;
+
+        return {
+          ...choiceOption,
+          forecast: !isNil(userForecast)
+            ? Math.round(userForecast * 1000) / 10
+            : null,
+        };
+      })
     );
-  }, [question.my_forecasts?.latest?.forecast_values]);
+  }, [choiceOrdering, question.my_forecasts?.latest?.forecast_values]);
   const handleForecastChange = useCallback(
     (choice: string, value: number) => {
       setIsDirty(true);
@@ -163,11 +183,6 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
 
-    if (!user) {
-      setCurrentModal({ type: "signup" });
-      return;
-    }
-
     if (!isForecastValid) return;
 
     const forecastValue: Record<string, number> = {};
@@ -194,7 +209,6 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
     }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
-  const submitIsAllowed = !isPending && isDirty && isForecastValid;
   return (
     <>
       <table className="border-separate rounded border border-gray-300 bg-gray-0 dark:border-gray-300-dark dark:bg-gray-0-dark">
@@ -283,18 +297,20 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
             >
               {t("discardChangesButton")}
             </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              disabled={!submitIsAllowed}
-              onClick={submit}
-            >
-              {user ? t("saveChange") : t("signUpToPredict")}
-            </Button>
+            <PredictButton
+              onSubmit={submit}
+              isDirty={isDirty}
+              hasUserForecast={forecastHasValues}
+              isPending={isPending}
+              isDisabled={!isForecastValid}
+            />
           </div>
         )}
-        <FormErrorMessage errors={submitError} />
       </div>
+      <FormErrorMessage
+        className="ml-auto mt-2 flex w-full justify-center"
+        errors={submitError}
+      />
       <div className="h-[32px] w-full">{isPending && <LoadingIndicator />}</div>
       <div className="flex flex-col items-center justify-center">
         <QuestionUnresolveButton question={question} permission={permission} />
@@ -313,15 +329,10 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
 function generateChoiceOptions(
   question: Question,
   aggregate: AggregateForecastHistory,
+  choiceOrdering: number[],
   my_forecasts: UserForecastHistory
 ): ChoiceOption[] {
   const latest = aggregate.latest;
-  const choiceOrdering: number[] = question.options!.map((_, i) => i);
-  choiceOrdering.sort((a, b) => {
-    const aCenter = latest?.forecast_values[a] ?? 0;
-    const bCenter = latest?.forecast_values[b] ?? 0;
-    return bCenter - aCenter;
-  });
 
   const choiceItems = choiceOrdering.map((order, index) => {
     return {
@@ -341,14 +352,6 @@ function generateChoiceOptions(
     choiceItems.unshift(resolutionItem);
   }
   return choiceItems;
-}
-
-function getDefaultForecast(
-  option: string,
-  defaultForecasts: Record<string, number> | null
-) {
-  const defaultForecast = defaultForecasts?.[option];
-  return defaultForecast ? round(defaultForecast * 100, 1) : null;
 }
 
 function sumForecasts(choiceOptions: ChoiceOption[]) {

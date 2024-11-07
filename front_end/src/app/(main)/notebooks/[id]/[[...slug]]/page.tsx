@@ -1,10 +1,14 @@
+import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
+import { remark } from "remark";
+import strip from "strip-markdown";
 
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
+import { defaultDescription } from "@/app/(main)/layout";
 import NotebookContentSections from "@/app/(main)/notebooks/components/notebook_content_sections";
 import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
 import {
@@ -17,7 +21,10 @@ import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import CommentFeed from "@/components/comment_feed";
 import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
 import CircleDivider from "@/components/ui/circle_divider";
-import { POST_CATEGORIES_FILTER } from "@/constants/posts_feed";
+import {
+  POST_CATEGORIES_FILTER,
+  POST_TAGS_FILTER,
+} from "@/constants/posts_feed";
 import PostsApi from "@/services/posts";
 import ProjectsApi from "@/services/projects";
 import { PostWithNotebook } from "@/types/post";
@@ -25,11 +32,25 @@ import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
 
-export default async function IndividualNotebook({
-  params,
-}: {
-  params: { id: number; slug: string[] };
-}) {
+type Props = { params: { id: number; slug: string[] } };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const postData = await PostsApi.getPost(params.id);
+
+  if (!postData) {
+    return {};
+  }
+
+  const file = remark().use(strip).processSync(postData.notebook?.markdown);
+  const parsedDescription = String(file).split("\n")[0];
+
+  return {
+    title: postData.title,
+    description: !!parsedDescription ? parsedDescription : defaultDescription,
+  };
+}
+
+export default async function IndividualNotebook({ params }: Props) {
   const postData = await PostsApi.getPost(params.id);
   const defaultProject = postData.projects.default_project;
 
@@ -138,15 +159,30 @@ export default async function IndividualNotebook({
             />
             {!!postData.projects.category?.length && (
               <div>
-                <div>{t("categories") + ":"}</div>
+                <div>{t("Categories") + ":"}</div>
                 <div>
                   {postData.projects.category?.map((category) => (
-                    <Link
-                      key={category.id}
-                      href={`/questions?${POST_CATEGORIES_FILTER}=${category.slug}`}
-                    >
-                      {category.name}
-                    </Link>
+                    <div key={category.id}>
+                      <Link
+                        href={`/questions?${POST_CATEGORIES_FILTER}=${category.slug}`}
+                      >
+                        {category.name}
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {!!postData.projects.tag?.length && (
+              <div>
+                <div>{t("tags") + ":"}</div>
+                <div>
+                  {postData.projects.tag?.map((tag) => (
+                    <div key={tag.id}>
+                      <Link href={`/questions?${POST_TAGS_FILTER}=${tag.slug}`}>
+                        {tag.name}
+                      </Link>
+                    </div>
                   ))}
                 </div>
               </div>

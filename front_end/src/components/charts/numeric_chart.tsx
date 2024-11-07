@@ -45,9 +45,11 @@ import {
   generateScale,
   generateTimestampXScale,
   getLeftPadding,
+  getResolutionPoint,
   getTickLabelFontSize,
   unscaleNominalLocation,
 } from "@/utils/charts";
+import { isUnsuccessfullyResolved } from "@/utils/questions";
 
 import XTickLabel from "./primitives/x_tick_label";
 
@@ -179,6 +181,19 @@ const NumericChart: FC<Props> = ({
   const shouldDisplayChart =
     !!chartWidth && !!xScale.ticks.length && yScale.ticks.length;
 
+  const resolutionPoint = useMemo(() => {
+    if (!resolution || !resolveTime) {
+      return null;
+    }
+
+    return getResolutionPoint({
+      questionType,
+      resolution,
+      resolveTime: Math.min(getUnixTime(resolveTime), actualCloseTime! / 1000),
+      scaling,
+    });
+  }, [actualCloseTime, questionType, resolution, resolveTime, scaling]);
+
   return (
     <ChartContainer
       ref={chartContainerRef}
@@ -247,17 +262,9 @@ const NumericChart: FC<Props> = ({
             dataComponent={<PredictionWithRange />}
           />
 
-          {resolution && !!resolveTime && (
+          {!!resolutionPoint && (
             <VictoryScatter
-              data={getResolutionData({
-                questionType,
-                resolution,
-                resolveTime: Math.min(
-                  getUnixTime(resolveTime),
-                  actualCloseTime! / 1000
-                ),
-                scaling,
-              })}
+              data={[resolutionPoint]}
               style={{
                 data: {
                   stroke: getThemeColor(METAC_COLORS.purple["800"]),
@@ -424,6 +431,10 @@ export function getResolutionData({
   resolveTime: number;
   scaling: Scaling;
 }) {
+  if (isUnsuccessfullyResolved(resolution)) {
+    return null;
+  }
+
   switch (questionType) {
     case QuestionType.Binary: {
       // format data for binary question
@@ -470,7 +481,7 @@ export function getResolutionData({
       ];
     }
     default:
-      return;
+      return null;
   }
 }
 

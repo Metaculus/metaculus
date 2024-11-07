@@ -10,9 +10,12 @@ import GlobalHeader from "./components/headers/global_header";
 
 config.autoAddCss = false;
 
+export const defaultDescription =
+  "Metaculus is an online forecasting platform and aggregation engine working to improve human reasoning and coordination on topics of global importance.";
+
 export const metadata: Metadata = {
   title: "Metaculus",
-  description: "Metaculus rewrite",
+  description: defaultDescription,
 };
 
 export default async function RootLayout({

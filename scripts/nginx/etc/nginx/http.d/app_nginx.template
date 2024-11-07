@@ -25,6 +25,7 @@ server {
         access_log off;
     }
 
+    # Backend
     location ~ ^/(api|api2|admin|proxy|static)/ {
         include proxy_params;
 

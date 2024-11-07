@@ -7,11 +7,13 @@ import React, {
 } from "react";
 
 import { Input } from "@/components/ui/form_field";
+import { logError } from "@/utils/errors";
 
 interface DatetimeUtcProps
   extends Omit<InputHTMLAttributes<HTMLInputElement>, "onChange"> {
   defaultValue?: string;
   onChange?: (value: string) => void;
+  onError?: (error: any) => void;
 }
 
 /**
@@ -21,6 +23,7 @@ interface DatetimeUtcProps
 const DatetimeUtc: React.FC<DatetimeUtcProps> = ({
   defaultValue,
   onChange,
+  onError,
   ...props
 }) => {
   const [localValue, setLocalValue] = useState<string>("");
@@ -38,12 +41,19 @@ const DatetimeUtc: React.FC<DatetimeUtcProps> = ({
     const localDateString = event.target.value;
     setLocalValue(localDateString);
 
-    // Convert local time to UTC for storage
-    const localDate = new Date(localDateString);
-    const utcDateString = formatISO(localDate, { representation: "complete" });
+    try {
+      // Convert local time to UTC for storage
+      const localDate = new Date(localDateString);
+      const utcDateString = formatISO(localDate, {
+        representation: "complete",
+      });
 
-    if (onChange) {
-      onChange(utcDateString);
+      if (onChange) {
+        onChange(utcDateString);
+      }
+    } catch (e) {
+      logError(e);
+      onError && onError(e);
     }
   };
 

@@ -5,10 +5,11 @@ import React, { FC, useMemo, useState } from "react";
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
+import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
+import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
   PredictionInputMessage,
@@ -24,6 +25,7 @@ import { sendGAPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
 import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
+import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
 
@@ -47,11 +49,12 @@ const ForecastMakerContinuous: FC<Props> = ({
   predictionMessage,
 }) => {
   const { user } = useAuth();
-  const { setCurrentModal } = useModal();
   const { hideCP } = useHideCP();
   const [isDirty, setIsDirty] = useState(false);
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const withCommunityQuartiles = !user || !hideCP;
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
+  const hasUserForecast = !!prevForecastValue.forecast;
   const t = useTranslations();
   const [forecast, setForecast] = useState<MultiSliderValue[]>(
     prevForecastValue?.forecast ?? [
@@ -94,6 +97,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   };
 
   const handlePredictSubmit = async () => {
+    setSubmitError(undefined);
     sendGAPredictEvent(post, question, hideCP);
 
     const response = await createForecasts(post.id, [
@@ -110,14 +114,12 @@ const ForecastMakerContinuous: FC<Props> = ({
         },
       },
     ]);
-    if (response && "errors" in response && !!response.errors) {
-      throw response.errors;
-    }
-
     setIsDirty(false);
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors[0]);
+    }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
-  const submitIsAllowed = !isPending && isDirty;
   return (
     <>
       <ContinuousSlider
@@ -136,34 +138,29 @@ const ForecastMakerContinuous: FC<Props> = ({
       {canPredict && (
         <>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3 px-4">
-            {user ? (
-              <>
-                <Button
-                  variant="secondary"
-                  type="reset"
-                  onClick={handleAddComponent}
-                >
-                  {t("addComponentButton")}
-                </Button>
-                <Button
-                  variant="primary"
-                  type="submit"
-                  onClick={submit}
-                  disabled={!submitIsAllowed}
-                >
-                  {t("saveChange")}
-                </Button>
-              </>
-            ) : (
+            {!!user && (
               <Button
-                variant="primary"
-                type="button"
-                onClick={() => setCurrentModal({ type: "signup" })}
+                variant="secondary"
+                type="reset"
+                onClick={handleAddComponent}
               >
-                {t("signUpToPredict")}
+                {t("addComponentButton")}
               </Button>
             )}
+
+            <PredictButton
+              onSubmit={submit}
+              isDirty={isDirty}
+              hasUserForecast={hasUserForecast}
+              isPending={isPending}
+            />
           </div>
+
+          <FormErrorMessage
+            className="mt-2 flex justify-center"
+            errors={submitError}
+          />
+
           <div className="h-[32px]">{isPending && <LoadingIndicator />}</div>
         </>
       )}
@@ -192,7 +189,7 @@ const ForecastMakerContinuous: FC<Props> = ({
         }
         withCommunityQuartiles={withCommunityQuartiles}
         isDirty={isDirty}
-        hasUserForecast={!!prevForecastValue.forecast}
+        hasUserForecast={hasUserForecast}
       />
 
       <div className="flex flex-col items-center justify-center">

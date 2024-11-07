@@ -282,7 +282,6 @@ SCREENSHOT_SERVICE_API_KEY = os.environ.get("SCREENSHOT_SERVICE_API_KEY", "")
 SCREENSHOT_SERVICE_API_URL = os.environ.get(
     "SCREENSHOT_SERVICE_API_URL", "https://screenshot.metaculus.com/api/screenshot"
 )
-CDN_DOMAIN_NAME = os.environ.get("CDN_DOMAIN_NAME", "")
 
 # django-dramatiq
 # https://github.com/Bogdanp/django_dramatiq
@@ -403,6 +402,10 @@ LOGGING = {
     },
     "loggers": {
         "": {
+            "level": "DEBUG" if DEBUG else "INFO",
+            "handlers": ["console"],
+        },
+        "MARKDOWN": {
             "level": "INFO",
             "handlers": ["console"],
         },

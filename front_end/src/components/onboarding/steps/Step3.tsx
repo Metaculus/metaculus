@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import React from "react";
 
 import BinarySlider from "@/app/(main)/questions/[id]/components/forecast_maker/binary_slider";
+import LoadingIndicator from "@/components/ui/loading_indicator";
 import { PostWithForecasts } from "@/types/post";
 
 import LoadingStep from "./LoadingStep";
@@ -18,6 +19,7 @@ interface Step3Props {
   questionData: PostWithForecasts | null;
   prediction: number;
   onPredictionChange: (value: number) => void;
+  isLoading?: boolean;
 }
 
 const Step3: React.FC<Step3Props> = ({
@@ -27,6 +29,7 @@ const Step3: React.FC<Step3Props> = ({
   questionData,
   prediction,
   onPredictionChange,
+  isLoading = false,
 }) => {
   const t = useTranslations();
 
@@ -52,16 +55,26 @@ const Step3: React.FC<Step3Props> = ({
         {t("onboardingStep3Title", { topicName: topic.name })}
       </p>
       <div className={onboardingStyles.questionContainer}>
-        <h3 className={onboardingStyles.questionTitle}>{questionData.title}</h3>
-        {communityForecast !== undefined && (
-          <p className={onboardingStyles.largeparagraph}>
-            {t("onboardingStep3CommunityThinks")}{" "}
-            <VerbalForecast forecast={communityForecast} />.{" "}
-            {t("onboardingStep3CommunityGives")}{" "}
-            <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800 dark:bg-blue-400/20 dark:text-blue-200">
-              {(communityForecast * 100).toFixed(0)}%
-            </span>
-          </p>
+        {isLoading ? (
+          <div className="flex h-32 items-center justify-center">
+            <LoadingIndicator />
+          </div>
+        ) : (
+          <>
+            <h3 className={onboardingStyles.questionTitle}>
+              {questionData.title}
+            </h3>
+            {communityForecast !== undefined && (
+              <p className={onboardingStyles.largeparagraph}>
+                {t("onboardingStep3CommunityThinks")}{" "}
+                <VerbalForecast forecast={communityForecast} />.{" "}
+                {t("onboardingStep3CommunityGives")}{" "}
+                <span className="rounded bg-blue-700/20 px-1 py-0.5 font-semibold text-blue-800 dark:bg-blue-400/20 dark:text-blue-200">
+                  {(communityForecast * 100).toFixed(0)}%
+                </span>
+              </p>
+            )}
+          </>
         )}
       </div>
       <p>{t("onboardingStep3WhatDoYouThink")}</p>

@@ -52,13 +52,13 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
     >
       <Link href={getPostLink(post)} className="block p-4 no-underline">
         {!hideTitle && (
-          <h4 className="relative mb-3 mt-0 line-clamp-2 text-base font-semibold text-gray-900 dark:text-gray-900-dark">
+          <h4 className="relative mb-3 mt-0 text-base font-semibold text-gray-900 dark:text-gray-900-dark">
             {title}
           </h4>
         )}
         {children}
       </Link>
-      <div className="flex items-center justify-between rounded-ee border-t border-blue-400 bg-blue-100 px-2 py-0.5 font-medium dark:border-blue-400-dark dark:bg-blue-100-dark max-lg:flex-1">
+      <div className="flex items-center justify-between rounded-ee rounded-es border-t border-blue-400 bg-blue-100 px-2 py-0.5 font-medium dark:border-blue-400-dark dark:bg-blue-100-dark max-lg:flex-1">
         <div className="flex items-center gap-3">
           <PostVoter className="md:min-w-20" post={post} />
           <CommentStatus

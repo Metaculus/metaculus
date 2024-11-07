@@ -4,6 +4,9 @@ import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
+export const ANNULED_RESOLUTION = "annulled";
+export const AMBIGUOUS_RESOLUTION = "ambiguous";
+
 import { ConditionalTableOption } from "@/app/(main)/questions/[id]/components/forecast_maker/group_forecast_table";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
@@ -21,7 +24,9 @@ import {
   QuestionType,
   QuestionWithMultipleChoiceForecasts,
   QuestionWithNumericForecasts,
+  Scaling,
 } from "@/types/question";
+import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { formatDate } from "./date_formatters";
@@ -126,7 +131,9 @@ export function isResolved(resolution: Resolution | null): boolean {
 export function isUnsuccessfullyResolved(
   resolution: Resolution | null
 ): boolean {
-  return resolution === "annulled" || resolution === "ambiguous";
+  return (
+    resolution === ANNULED_RESOLUTION || resolution === AMBIGUOUS_RESOLUTION
+  );
 }
 
 export function isSuccessfullyResolved(resolution: Resolution | null) {
@@ -148,7 +155,7 @@ export function formatResolution(
     return capitalize(resolution);
   }
 
-  if (resolution === "ambiguous" || resolution === "annulled") {
+  if (isUnsuccessfullyResolved(resolution)) {
     return capitalize(resolution);
   }
 
@@ -274,19 +281,31 @@ export const generateUserForecastsForMultipleQuestion = (
 };
 
 export const generateUserForecasts = (
-  questions: QuestionWithNumericForecasts[]
+  questions: QuestionWithNumericForecasts[],
+  scaling?: Scaling
 ): UserChoiceItem[] => {
   return questions.map((question, index) => {
     const userForecasts = question.my_forecasts;
+
     return {
       choice: extractQuestionGroupName(question.title),
       values: userForecasts?.history.map((forecast) =>
         question.type === "binary"
           ? forecast.forecast_values[1]
-          : forecast.centers![0]
+          : scaling
+            ? unscaleNominalLocation(
+                scaleInternalLocation(forecast.centers![0], question.scaling),
+                scaling
+              )
+            : forecast.centers![0]
       ),
       timestamps: userForecasts?.history.map((forecast) => forecast.start_time),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
+      unscaledValues: userForecasts?.history.map((forecast) =>
+        question.type === "binary"
+          ? forecast.forecast_values[1]
+          : forecast.centers![0]
+      ),
     };
   });
 };
@@ -299,27 +318,6 @@ export function sortGroupPredictionOptions(
     const bMean = b.aggregations.recency_weighted.latest?.centers![0] ?? 0;
     return bMean - aMean;
   });
-}
-
-export function sortMultipleChoicePredictions(dataset: MultipleChoiceForecast) {
-  const {
-    timestamps,
-    nr_forecasters,
-    my_forecasts,
-    latest_pmf,
-    latest_cdf,
-    forecast_values,
-    ...choices
-  } = dataset;
-
-  const choicesArray = Object.entries(choices).sort(
-    ([_aChoice, aValue], [_bChoice, bValue]) => {
-      const aMean = aValue.at(-1)?.median ?? 0;
-      const bMean = bValue.at(-1)?.median ?? 0;
-      return bMean - aMean;
-    }
-  );
-  return choicesArray;
 }
 
 export function getQuestionTitle(post: Post) {
