@@ -23,11 +23,24 @@ export function parseUserMentions(
   markdown: string,
   mentionedUsers?: AuthorType[]
 ): string {
-  const userTagPattern = /(?<!\[[^\]]*)@(\(([^)]+)\)|(\w+))/g;
+  const userTagPattern = /@(\(([^)]+)\)|(\w+))/g;
+
+  function isInsideSquareBrackets(index: number) {
+    let insideBrackets = false;
+    for (let i = 0; i < index; i++) {
+      if (markdown[i] === "[") insideBrackets = true;
+      if (markdown[i] === "]") insideBrackets = false;
+    }
+    return insideBrackets;
+  }
 
   markdown = markdown.replace(
     userTagPattern,
-    (match, _group1, group2, group3) => {
+    (match, _group1, group2, group3, offset) => {
+      if (isInsideSquareBrackets(offset)) {
+        return match;
+      }
+
       const cleanedUsername = (group2 || group3).replace(/[@()]/g, "");
       switch (cleanedUsername) {
         case "moderators":
