@@ -5,10 +5,12 @@ import React, { FC, useMemo, useState } from "react";
 import { createForecasts } from "@/app/(main)/questions/actions";
 import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
+import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
 import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
+import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
 import {
   PredictionInputMessage,
@@ -50,6 +52,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   const { setCurrentModal } = useModal();
   const { hideCP } = useHideCP();
   const [isDirty, setIsDirty] = useState(false);
+  const [submitError, setSubmitError] = useState<ErrorResponse>();
   const withCommunityQuartiles = !user || !hideCP;
   const prevForecastValue = extractPrevNumericForecastValue(prevForecast);
   const t = useTranslations();
@@ -94,6 +97,7 @@ const ForecastMakerContinuous: FC<Props> = ({
   };
 
   const handlePredictSubmit = async () => {
+    setSubmitError(undefined);
     sendGAPredictEvent(post, question, hideCP);
 
     const response = await createForecasts(post.id, [
@@ -110,11 +114,10 @@ const ForecastMakerContinuous: FC<Props> = ({
         },
       },
     ]);
-    if (response && "errors" in response && !!response.errors) {
-      throw response.errors;
-    }
-
     setIsDirty(false);
+    if (response && "errors" in response && !!response.errors) {
+      setSubmitError(response.errors[0]);
+    }
   };
   const [submit, isPending] = useServerAction(handlePredictSubmit);
   const submitIsAllowed = !isPending && isDirty;
@@ -164,6 +167,12 @@ const ForecastMakerContinuous: FC<Props> = ({
               </Button>
             )}
           </div>
+
+          <FormErrorMessage
+            className="mt-2 flex justify-center"
+            errors={submitError}
+          />
+
           <div className="h-[32px]">{isPending && <LoadingIndicator />}</div>
         </>
       )}

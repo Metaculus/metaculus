@@ -118,6 +118,10 @@ const ForecastMakerBinary: FC<Props> = ({
             >
               {user ? t("predict") : t("signUpToPredict")}
             </Button>
+            <FormErrorMessage
+              className="mt-2 flex justify-center"
+              errors={submitError}
+            />
             <div className="h-[32px] w-full">
               {isPending && <LoadingIndicator />}
             </div>
@@ -133,7 +137,6 @@ const ForecastMakerBinary: FC<Props> = ({
           />
         )}
       </div>
-      <FormErrorMessage errors={submitError} />
     </>
   );
 };
