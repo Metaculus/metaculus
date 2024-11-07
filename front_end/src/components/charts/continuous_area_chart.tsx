@@ -174,8 +174,8 @@ const ContinuousAreaChart: FC<Props> = ({
 
         const hoverState = charts.reduce<ContinuousAreaHoverState>(
           (acc, el) => {
-            // if graph is a pmf, we need to find the closest y value
             if (el.graphType === "pmf") {
+              // if graph is a pmf, we need to find the closest y value
               acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
               return acc;
             }
@@ -316,14 +316,12 @@ function generateNumericAreaGraph(data: {
   } else {
     pmf.forEach((value, index) => {
       if (index === 0) {
-        // add a point at the beginning to make the edges of the
-        // make more sense
+        // add a point at the beginning to extend pmf to the edge
         graph.push({ x: -1e-10, y: pmf[1] });
         return;
       }
       if (index === pmf.length - 1) {
-        // add a point at the beginning to make the edges of the
-        // make more sense
+        // add a point at the end to extend pmf to the edge
         graph.push({ x: 1 + 1e-10, y: pmf[pmf.length - 2] });
         return;
       }
