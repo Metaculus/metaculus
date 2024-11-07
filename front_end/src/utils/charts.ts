@@ -599,7 +599,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   }
   return choiceItems.map((item, index) => ({
     ...item,
-    active: !!activeCount ? index < activeCount - 1 : true,
+    active: !!activeCount ? index <= activeCount - 1 : true,
   }));
 }
 
