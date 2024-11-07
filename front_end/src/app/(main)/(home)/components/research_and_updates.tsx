@@ -76,7 +76,7 @@ const ResearchAndUpdatesBlock: FC<Props> = async ({ posts }) => {
         ))}
       </div>
       <a
-        href="https://metaculus.medium.com/"
+        href="https://metaculus.com/news/?news_type=research"
         className="mt-8 inline-flex items-center self-end text-right text-base font-bold text-blue-800 no-underline dark:text-blue-800-dark"
         target="_blank"
         rel="noreferrer"
