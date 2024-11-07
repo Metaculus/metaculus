@@ -293,8 +293,11 @@ const ForecastMakerMultipleChoice: FC<Props> = ({
             </Button>
           </div>
         )}
-        <FormErrorMessage errors={submitError} />
       </div>
+      <FormErrorMessage
+        className="ml-auto mt-2 flex w-full justify-center"
+        errors={submitError}
+      />
       <div className="h-[32px] w-full">{isPending && <LoadingIndicator />}</div>
       <div className="flex flex-col items-center justify-center">
         <QuestionUnresolveButton question={question} permission={permission} />

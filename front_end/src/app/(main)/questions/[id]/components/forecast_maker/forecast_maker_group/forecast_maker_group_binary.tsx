@@ -304,14 +304,18 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               </Button>
             )}
           </div>
+          {submitErrors.map((errResponse, index) => (
+            <FormErrorMessage
+              className="mt-2 flex justify-center"
+              key={`error-${index}`}
+              errors={errResponse}
+            />
+          ))}
           <div className="h-[32px] w-full">
             {isPending && <LoadingIndicator />}
           </div>
         </>
       )}
-      {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
-      ))}
       {highlightedQuestion && <ScoreDisplay question={highlightedQuestion} />}
     </>
   );
