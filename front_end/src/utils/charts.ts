@@ -584,6 +584,7 @@ export function generateChoiceItemsFromBinaryGroup(
     activeCount?: number;
     preselectedQuestionId?: number;
     locale?: string;
+    preserveOrder?: boolean;
   }
 ): ChoiceItem[] {
   const { activeCount, preselectedQuestionId, locale } = config ?? {};
@@ -595,11 +596,13 @@ export function generateChoiceItemsFromBinaryGroup(
     return [];
   }
   const choiceOrdering: number[] = latests.map((_, i) => i);
-  choiceOrdering.sort((a, b) => {
-    const aCenter = latests[a]?.centers![0] ?? 0;
-    const bCenter = latests[b]?.centers![0] ?? 0;
-    return bCenter - aCenter;
-  });
+  if (!config?.preserveOrder) {
+    choiceOrdering.sort((a, b) => {
+      const aCenter = latests[a]?.centers![0] ?? 0;
+      const bCenter = latests[b]?.centers![0] ?? 0;
+      return bCenter - aCenter;
+    });
+  }
 
   return choiceOrdering.map((order, index) => {
     const question = questions[order];
