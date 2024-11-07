@@ -8,7 +8,7 @@ import { CSSProperties, FC, PropsWithChildren } from "react";
 import { PostStatus } from "@/types/post";
 import { Question } from "@/types/question";
 import { getDisplayUserValue, getDisplayValue } from "@/utils/charts";
-import { formatResolution } from "@/utils/questions";
+import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
 
 type Size = "compact" | "large";
 
@@ -72,7 +72,7 @@ const PredictionChip: FC<Props> = ({
           <Chip
             size={size}
             className={classNames(
-              resolution === "annulled" || resolution === "ambiguous"
+              isUnsuccessfullyResolved(resolution)
                 ? "border border-purple-800 text-purple-800 dark:border-purple-800-dark dark:text-purple-800-dark"
                 : "bg-purple-800 dark:bg-purple-800-dark",
               chipClassName

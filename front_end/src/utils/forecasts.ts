@@ -50,24 +50,6 @@ export function extractPrevBinaryForecastValue(
   return typeof prevForecast === "number" ? round(prevForecast * 100, 1) : null;
 }
 
-export function extractPrevMultipleChoicesForecastValue(
-  prevForecast: any
-): Record<string, number> | null {
-  if (typeof prevForecast !== "object" || isNil(prevForecast)) {
-    return null;
-  }
-
-  const result: Record<string, number> = {};
-  for (const key in prevForecast) {
-    if (typeof prevForecast[key] !== "number") {
-      continue;
-    }
-    result[key] = prevForecast[key];
-  }
-
-  return Object.keys(result).length === 0 ? null : result;
-}
-
 export function extractPrevNumericForecastValue(prevForecast: any): {
   forecast?: MultiSliderValue[];
   weights?: number[];

@@ -8,7 +8,6 @@ import { MultiSliderValue } from "@/components/sliders/multi_slider";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
 import {
@@ -30,6 +29,7 @@ import ConditionalForecastTable, {
 } from "../conditional_forecast_table";
 import ContinuousSlider from "../continuous_slider";
 import NumericForecastTable from "../numeric_table";
+import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
@@ -56,7 +56,6 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
-  const { setCurrentModal } = useModal();
 
   const { condition, condition_child, question_yes, question_no } = conditional;
   const questionYesId = question_yes.id;
@@ -64,6 +63,8 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
 
   const prevYesForecastValue = extractPrevNumericForecastValue(prevYesForecast);
   const prevNoForecastValue = extractPrevNumericForecastValue(prevNoForecast);
+  const hasUserForecast =
+    !!prevYesForecastValue.forecast || !!prevNoForecastValue.forecast;
 
   const [questionOptions, setQuestionOptions] = useState<
     Array<
@@ -122,13 +123,9 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
     [questionOptions]
   );
   const questionsToSubmit = useMemo(
-    () =>
-      questionOptions.filter(
-        (option) => option.isDirty && option.value !== null
-      ),
+    () => questionOptions.filter((option) => option.value !== null),
     [questionOptions]
   );
-  const submitIsAllowed = !isSubmitting && !!questionsToSubmit.length;
 
   const copyForecastButton = useMemo(() => {
     if (!activeTableOption) return null;
@@ -384,7 +381,7 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
       )}
       {canPredict && (
         <div className="my-5 flex flex-wrap items-center justify-center gap-3 px-4">
-          {user ? (
+          {!!user && (
             <>
               <Button
                 variant="secondary"
@@ -419,28 +416,23 @@ const ForecastMakerConditionalContinuous: FC<Props> = ({
               >
                 {t("discardChangesButton")}
               </Button>
-              <Button
-                variant="primary"
-                type="submit"
-                onClick={handlePredictSubmit}
-                disabled={!submitIsAllowed}
-              >
-                {t("saveChange")}
-              </Button>
             </>
-          ) : (
-            <Button
-              variant="primary"
-              type="button"
-              onClick={() => setCurrentModal({ type: "signup" })}
-            >
-              {t("signUpToPredict")}
-            </Button>
           )}
+          <PredictButton
+            onSubmit={handlePredictSubmit}
+            isDirty={isPickerDirty}
+            hasUserForecast={hasUserForecast}
+            isPending={isSubmitting}
+            isDisabled={!questionsToSubmit.length}
+          />
         </div>
       )}
       {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
+        <FormErrorMessage
+          className="mb-2 flex justify-center"
+          key={`error-${index}`}
+          errors={errResponse}
+        />
       ))}
       {!!activeOptionData && (
         <NumericForecastTable

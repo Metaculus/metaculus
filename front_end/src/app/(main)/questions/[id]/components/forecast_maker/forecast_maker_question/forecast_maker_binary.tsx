@@ -4,11 +4,9 @@ import { useTranslations } from "next-intl";
 import React, { FC, useEffect, useState } from "react";
 
 import { createForecasts } from "@/app/(main)/questions/actions";
-import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { useServerAction } from "@/hooks/use_server_action";
 import { ErrorResponse } from "@/types/fetch";
 import { PostWithForecasts, ProjectPermissions } from "@/types/post";
@@ -21,6 +19,7 @@ import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
 import { sendGAPredictEvent } from "./ga_events";
 import { useHideCP } from "../../cp_provider";
 import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
+import PredictButton from "../predict_button";
 import QuestionResolutionButton from "../resolution";
 import QuestionUnresolveButton from "../resolution/unresolve_button";
 
@@ -45,12 +44,12 @@ const ForecastMakerBinary: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
-  const { setCurrentModal } = useModal();
   const { hideCP } = useHideCP();
   const communityForecast =
     question.aggregations.recency_weighted.latest?.centers![0];
 
   const prevForecastValue = extractPrevBinaryForecastValue(prevForecast);
+  const hasUserForecast = !!prevForecastValue;
   const [forecast, setForecast] = useState<number | null>(prevForecastValue);
 
   const [isForecastDirty, setIsForecastDirty] = useState(false);
@@ -63,11 +62,6 @@ const ForecastMakerBinary: FC<Props> = ({
 
   const handlePredictSubmit = async () => {
     setSubmitError(undefined);
-
-    if (!user) {
-      setCurrentModal({ type: "signup" });
-      return;
-    }
 
     if (forecast === null) return;
 
@@ -111,13 +105,17 @@ const ForecastMakerBinary: FC<Props> = ({
       <div className="flex flex-col items-center justify-center">
         {canPredict && (
           <>
-            <Button
-              variant="primary"
-              disabled={!!user && (!isForecastDirty || isPending)}
-              onClick={submit}
-            >
-              {user ? t("predict") : t("signUpToPredict")}
-            </Button>
+            <PredictButton
+              hasUserForecast={hasUserForecast}
+              isDirty={isForecastDirty}
+              isPending={isPending}
+              onSubmit={submit}
+              predictLabel={t("predict")}
+            />
+            <FormErrorMessage
+              className="mt-2 flex justify-center"
+              errors={submitError}
+            />
             <div className="h-[32px] w-full">
               {isPending && <LoadingIndicator />}
             </div>
@@ -133,7 +131,6 @@ const ForecastMakerBinary: FC<Props> = ({
           />
         )}
       </div>
-      <FormErrorMessage errors={submitError} />
     </>
   );
 };

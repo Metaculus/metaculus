@@ -25,7 +25,11 @@ import {
 } from "@/types/charts";
 import { Resolution } from "@/types/post";
 import { QuestionType, Scaling } from "@/types/question";
-import { interpolateYValue, generateScale } from "@/utils/charts";
+import {
+  getClosestYValue,
+  interpolateYValue,
+  generateScale,
+} from "@/utils/charts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 
 import LineCursorPoints from "./primitives/line_cursor_points";
@@ -97,7 +101,7 @@ const ContinuousAreaChart: FC<Props> = ({
       ],
       []
     );
-  }, [data, graphType]);
+  }, [data, graphType, hideCP]);
   const { xDomain, yDomain } = useMemo<{
     xDomain: Tuple<number>;
     yDomain: Tuple<number>;
@@ -125,7 +129,7 @@ const ContinuousAreaChart: FC<Props> = ({
         domain: xDomain,
         scaling: scaling,
       }),
-    [chartWidth]
+    [chartWidth, questionType, scaling, xDomain]
   );
 
   const resolutionPoint = resolution
@@ -170,6 +174,12 @@ const ContinuousAreaChart: FC<Props> = ({
 
         const hoverState = charts.reduce<ContinuousAreaHoverState>(
           (acc, el) => {
+            if (el.graphType === "pmf") {
+              // if graph is a pmf, we need to find the closest y value
+              acc.yData[el.type] = getClosestYValue(props?.x, el.graphLine);
+              return acc;
+            }
+            // if graph is a cdf, we need to interpolate the y value
             acc.yData[el.type] = interpolateYValue(props?.x, el.graphLine);
             return acc;
           },
@@ -287,6 +297,7 @@ type NumericPredictionGraph = {
   verticalLines: Line;
   color: ContinuousAreaColor;
   type: ContinuousAreaType;
+  graphType: ContinuousAreaGraphType;
 };
 
 function generateNumericAreaGraph(data: {
@@ -304,8 +315,14 @@ function generateNumericAreaGraph(data: {
     });
   } else {
     pmf.forEach((value, index) => {
-      if (index === 0 || index === pmf.length - 1) {
-        // first and last bins are probabilty mass out of bounds
+      if (index === 0) {
+        // add a point at the beginning to extend pmf to the edge
+        graph.push({ x: -1e-10, y: pmf[1] });
+        return;
+      }
+      if (index === pmf.length - 1) {
+        // add a point at the end to extend pmf to the edge
+        graph.push({ x: 1 + 1e-10, y: pmf[pmf.length - 2] });
         return;
       }
       graph.push({ x: (index - 0.5) / (pmf.length - 2), y: value });
@@ -334,6 +351,7 @@ function generateNumericAreaGraph(data: {
     verticalLines,
     color: CHART_COLOR_MAP[type],
     type,
+    graphType,
   };
 }
 
