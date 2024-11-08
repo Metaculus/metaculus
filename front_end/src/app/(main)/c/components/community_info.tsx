@@ -57,7 +57,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
       if (previousPath.startsWith("/c/")) {
         return router.push(`/questions/?communities=true`);
       } else {
-        return router.back;
+        return router.back();
       }
     }
   };
