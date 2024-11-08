@@ -124,7 +124,7 @@ const MultiSlider: FC<Props> = ({
             {...origin.props}
             value={controlledValue[props.index]} // Pass the correct value
             active={props.index === 1}
-            onMouseDown={() => {
+            onClickIn={() => {
               handlePressIn(props.index);
             }}
             onTouchStartCapture={() => {
