@@ -418,16 +418,15 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         probability_yes = data.get("probability_yes")
         probability_yes_per_category = data.get("probability_yes_per_category")
         continuous_cdf = data.get("continuous_cdf")
-        percentiles = data.get("percentiles")
 
         if question.type == Question.QuestionType.BINARY:
-            if probability_yes_per_category or continuous_cdf or percentiles:
+            if probability_yes_per_category or continuous_cdf:
                 raise serializers.ValidationError(
                     "Only probability_yes should be provided for binary questions"
                 )
             data["probability_yes"] = self.binary_validation(probability_yes)
         elif question.type == Question.QuestionType.MULTIPLE_CHOICE:
-            if probability_yes or continuous_cdf or percentiles:
+            if probability_yes or continuous_cdf:
                 raise serializers.ValidationError(
                     "Only probability_yes_per_category should be provided for multiple choice questions"
                 )
@@ -440,44 +439,6 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "Probability values should not be provided for continuous questions"
                 )
-            if bool(continuous_cdf) == bool(percentiles):
-                raise serializers.ValidationError(
-                    "Either continuous_cdf or percentiles should be provided for "
-                    "continuous questions"
-                )
-            if percentiles:
-                percentile_locations = []
-                below_lower_bound = percentiles.pop("below_lower_bound", None)
-                above_upper_bound = percentiles.pop("above_upper_bound", None)
-                if below_lower_bound is not None:
-                    percentile_locations.append((0.0, below_lower_bound))
-                if above_upper_bound is not None:
-                    percentile_locations.append((1.0, 1 - above_upper_bound))
-                for label, value in percentiles.items():
-                    height = float(label.split("_")[1]) / 100
-                    location = string_location_to_unscaled_location(value, question)
-                    percentile_locations.append((location, height))
-                percentile_locations.sort()
-                # checks for validity
-                if (
-                    percentile_locations[0][0] > 0.0
-                    or percentile_locations[-1][0] < 1.0
-                ):
-                    raise serializers.ValidationError(
-                        "Percentiles must encompass bounds of the question"
-                    )
-
-                def get_height(location):
-                    previous = percentile_locations[0]
-                    for i in range(1, len(percentile_locations)):
-                        current = percentile_locations[i]
-                        if previous[0] <= location <= current[0]:
-                            return previous[1] + (current[1] - previous[1]) * (
-                                location - previous[0]
-                            ) / (current[0] - previous[0])
-                        previous = current
-
-                continuous_cdf = [get_height(i / 200) for i in range(201)]
             continuous_cdf = np.round(continuous_cdf, 10).tolist()
             data["continuous_cdf"] = continuous_cdf
             errors = ""
