@@ -1,4 +1,5 @@
 import { Post } from "@/types/post";
+import { TournamentType } from "@/types/projects";
 import { Optional } from "@/types/utils";
 
 export function encodeQueryParams(params: Record<string, any>): string {
@@ -30,8 +31,15 @@ export const addUrlParams = (
 };
 
 export const getPostLink = (
-  post: Optional<Pick<Post, "id" | "slug" | "notebook">, "notebook">
+  post: Optional<
+    Pick<Post, "id" | "slug" | "notebook" | "projects">,
+    "notebook" | "projects"
+  >
 ) => {
+  const defaultProject = post.projects?.default_project;
+  if (defaultProject?.type === TournamentType.Community) {
+    return `/c/${defaultProject.slug}/${post.id}/${post.slug}/`;
+  }
   if (!!post.notebook) return `/notebooks/${post.id}/${post.slug}/`;
 
   return `/questions/${post.id}/${post.slug}/`;

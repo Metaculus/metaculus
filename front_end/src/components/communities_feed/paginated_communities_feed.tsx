@@ -2,7 +2,7 @@
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import { fetchMoreCommunities } from "@/app/(main)/community/actions";
+import { fetchMoreCommunities } from "@/app/(main)/c/actions";
 import Button from "@/components/ui/button";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { POSTS_PER_PAGE } from "@/constants/posts_feed";

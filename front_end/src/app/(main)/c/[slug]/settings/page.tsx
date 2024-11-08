@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import React, { Suspense } from "react";
 
-import CommunitySettings from "@/app/(main)/community/[slug]/settings/components/settings";
+import CommunitySettings from "@/app/(main)/c/[slug]/settings/components/settings";
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import { generateFiltersFromSearchParams } from "@/app/(main)/questions/helpers/filters";
 import AwaitedPostsFeed from "@/components/posts_feed";
@@ -30,7 +30,7 @@ export default async function CommunityManagementSettings({
   const t = await getTranslations();
   const community = await ProjectsApi.getCommunity(slug);
   if (community.user_permission !== ProjectPermissions.ADMIN) {
-    return redirect(`/community/${community.slug}`);
+    return redirect(`/c/${community.slug}`);
   }
 
   const questionFilters = generateFiltersFromSearchParams(searchParams, {

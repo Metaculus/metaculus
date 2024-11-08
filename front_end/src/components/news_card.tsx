@@ -9,6 +9,7 @@ import CircleDivider from "@/components/ui/circle_divider";
 import useContainerSize from "@/hooks/use_container_size";
 import { PostWithNotebook } from "@/types/post";
 import { formatDate } from "@/utils/date_formatters";
+import { getPostLink } from "@/utils/navigation";
 import { estimateReadingTime, getNotebookSummary } from "@/utils/questions";
 
 type Props = {
@@ -24,7 +25,7 @@ const NewsCard: FC<Props> = ({ post }) => {
   return (
     <div className="rounded bg-gray-0 dark:bg-gray-0-dark">
       <Link
-        href={`/notebooks/${post.id}`}
+        href={getPostLink(post)}
         className="flex flex-col items-stretch no-underline sm:h-64 sm:flex-row-reverse"
       >
         {post.notebook.image_url &&
