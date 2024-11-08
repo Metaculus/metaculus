@@ -33,7 +33,7 @@ def question_detail_api_view(request, pk: int):
 
     # Check permissions
     permission = get_post_permission_for_user(question.get_post(), user=request.user)
-    ObjectPermission.can_resolve(permission, raise_exception=True)
+    ObjectPermission.can_view(permission, raise_exception=True)
 
     with_cp = request.GET.get("with_cp", False)
 
