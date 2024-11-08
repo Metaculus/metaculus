@@ -1,1 +1,0 @@
-export const MOCK_QUESTIONS_IDS = [161, 349, 372, 111, 3136, 649];
