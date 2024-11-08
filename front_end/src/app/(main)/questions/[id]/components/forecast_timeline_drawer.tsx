@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import { GroupOfQuestionsGraphType } from "@/types/charts";
@@ -7,7 +10,9 @@ import { getGroupQuestionsTimestamps } from "@/utils/charts";
 import { sortGroupPredictionOptions } from "@/utils/questions";
 
 import ContinuousGroupTimeline from "./continuous_group_timeline";
+import { useHideCP } from "./cp_provider";
 import BinaryGroupChart from "./detailed_group_card/binary_group_chart";
+import RevealCPButton from "./reveal_cp_button";
 
 type Props = {
   post: PostWithForecasts;
@@ -15,6 +20,8 @@ type Props = {
 };
 
 const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
+  const { hideCP } = useHideCP();
+  const t = useTranslations();
   const questions = post.group_of_questions
     ?.questions as QuestionWithNumericForecasts[];
   const groupType = questions?.at(0)?.type;
@@ -27,6 +34,16 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
     return null;
   }
 
+  if (hideCP) {
+    return (
+      <>
+        <h3 className="m-0 text-start text-base font-normal leading-5">
+          {t("forecastTimelineHeading")}
+        </h3>
+        <RevealCPButton />
+      </>
+    );
+  }
   const sortedQuestions = sortGroupPredictionOptions(
     questions as QuestionWithNumericForecasts[]
   );

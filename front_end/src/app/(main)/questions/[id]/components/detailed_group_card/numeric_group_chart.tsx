@@ -14,6 +14,7 @@ type Props = {
   pointSize?: number;
   withLabel?: boolean;
   hideCP?: boolean;
+  withTooltip?: boolean;
 };
 
 const NumericGroupChart: FC<Props> = ({
@@ -22,6 +23,7 @@ const NumericGroupChart: FC<Props> = ({
   pointSize,
   withLabel,
   hideCP,
+  withTooltip = true,
 }) => {
   const t = useTranslations();
 
@@ -35,7 +37,7 @@ const NumericGroupChart: FC<Props> = ({
       height={height}
       pointSize={pointSize}
       yLabel={withLabel ? t("communityPredictionLabel") : undefined}
-      withTooltip
+      withTooltip={withTooltip}
       hideCP={hideCP}
     />
   );

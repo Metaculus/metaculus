@@ -10,6 +10,7 @@ import {
   VictoryScatter,
   VictoryLine,
   VictoryThemeDefinition,
+  VictoryContainer,
 } from "victory";
 
 import { getResolutionData } from "@/components/charts/numeric_chart";
@@ -210,7 +211,19 @@ const ContinuousAreaChart: FC<Props> = ({
             right: HORIZONTAL_PADDING,
           }}
           domain={{ x: xDomain, y: yDomain }}
-          containerComponent={onCursorChange ? CursorContainer : undefined}
+          containerComponent={
+            onCursorChange ? (
+              CursorContainer
+            ) : (
+              <VictoryContainer
+                style={{
+                  pointerEvents: "auto",
+                  userSelect: "auto",
+                  touchAction: "auto",
+                }}
+              />
+            )
+          }
         >
           {charts.map((chart, index) => (
             <VictoryArea

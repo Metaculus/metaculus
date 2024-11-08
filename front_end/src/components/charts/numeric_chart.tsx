@@ -11,6 +11,7 @@ import {
   VictoryArea,
   VictoryAxis,
   VictoryChart,
+  VictoryContainer,
   VictoryCursorContainer,
   VictoryLabel,
   VictoryLabelProps,
@@ -232,7 +233,19 @@ const NumericChart: FC<Props> = ({
               },
             },
           ]}
-          containerComponent={onCursorChange ? CursorContainer : undefined}
+          containerComponent={
+            onCursorChange ? (
+              CursorContainer
+            ) : (
+              <VictoryContainer
+                style={{
+                  pointerEvents: "auto",
+                  userSelect: "auto",
+                  touchAction: "auto",
+                }}
+              />
+            )
+          }
         >
           {!hideCP && (
             <VictoryArea
