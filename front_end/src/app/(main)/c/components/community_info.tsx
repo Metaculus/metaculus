@@ -60,16 +60,12 @@ const CommunityInfo: FC<Props> = ({ community }) => {
         return router.back();
       }
     }
+    return router.push(`/questions/?communities=true`);
   };
   return (
     <div className="relative">
       <div className="flex items-center">
-        <Button
-          variant="text"
-          className="mr-3 !p-0"
-          href={previousPath ? undefined : `/questions/?communities=true`}
-          onClick={handleBackClick}
-        >
+        <Button variant="text" className="mr-3 !p-0" onClick={handleBackClick}>
           <FontAwesomeIcon
             className="text-blue-700/40 dark:text-blue-700-dark/40"
             icon={faArrowLeft}

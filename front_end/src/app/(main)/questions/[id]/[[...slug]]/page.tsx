@@ -77,7 +77,6 @@ const cachedGetPost = cache(getPost);
 type Props = {
   params: { id: number; slug: string[] };
   searchParams: SearchParams;
-  isCommunityPath?: boolean;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -116,7 +115,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function IndividualQuestion({
   params,
   searchParams,
-  isCommunityPath,
 }: Props) {
   const postData = await cachedGetPost(params.id);
   const defaultProject = postData.projects.default_project;
@@ -130,9 +128,6 @@ export default async function IndividualQuestion({
   const isCommunityQuestion = defaultProject.type === TournamentType.Community;
   let currentCommunity = null;
   if (isCommunityQuestion) {
-    if (!isCommunityPath) {
-      return redirect(`/c/${defaultProject.slug}/${postData.id}`);
-    }
     currentCommunity = await ProjectsApi.getCommunity(
       defaultProject.slug as string
     );

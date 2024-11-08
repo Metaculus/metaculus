@@ -3,9 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
-import { defaultDescription } from "@/app/(main)/layout";
 import NotebookPage from "@/app/(main)/notebooks/[id]/[[...slug]]/page";
-import IndividualQuestion from "@/app/(main)/questions/[id]/[[...slug]]/page";
+import QuestionPage from "@/app/(main)/questions/[id]/[[...slug]]/page";
+import { defaultDescription } from "@/constants/metadata";
 import PostsApi from "@/services/posts";
 import { SearchParams } from "@/types/navigation";
 import { TournamentType } from "@/types/projects";
@@ -73,19 +73,13 @@ async function CommunityPost({ params, searchParams }: Props) {
   }
 
   if (postData.notebook) {
-    return (
-      <NotebookPage
-        params={{ id: params.id, slug: params.postSlug }}
-        isCommunityPath
-      />
-    );
+    return <NotebookPage params={{ id: params.id, slug: params.postSlug }} />;
   }
 
   return (
-    <IndividualQuestion
+    <QuestionPage
       params={{ id: params.id, slug: params.postSlug }}
       searchParams={searchParams}
-      isCommunityPath
     />
   );
 }

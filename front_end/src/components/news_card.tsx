@@ -8,8 +8,8 @@ import MarkdownEditor from "@/components/markdown_editor";
 import CircleDivider from "@/components/ui/circle_divider";
 import useContainerSize from "@/hooks/use_container_size";
 import { PostWithNotebook } from "@/types/post";
-import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
+import { getPostLink } from "@/utils/navigation";
 import { estimateReadingTime, getNotebookSummary } from "@/utils/questions";
 
 type Props = {
@@ -19,19 +19,13 @@ type Props = {
 const NewsCard: FC<Props> = ({ post }) => {
   const locale = useLocale();
   const t = useTranslations();
-  const defaultProject = post.projects.default_project;
-  const isCommunityNotebook = defaultProject.type === TournamentType.Community;
 
   const { ref, width } = useContainerSize<HTMLDivElement>();
   const commentsCount = post.comment_count ?? 0;
   return (
     <div className="rounded bg-gray-0 dark:bg-gray-0-dark">
       <Link
-        href={
-          isCommunityNotebook
-            ? `/c/${defaultProject.slug}/${post.id}/${post.slug}`
-            : `/notebooks/${post.id}/${post.slug}`
-        }
+        href={getPostLink(post)}
         className="flex flex-col items-stretch no-underline sm:h-64 sm:flex-row-reverse"
       >
         {post.notebook.image_url &&

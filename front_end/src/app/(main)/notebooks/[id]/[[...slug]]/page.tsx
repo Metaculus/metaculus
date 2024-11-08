@@ -1,14 +1,13 @@
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
-import { defaultDescription } from "@/app/(main)/layout";
 import NotebookContentSections from "@/app/(main)/notebooks/components/notebook_content_sections";
 import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
 import {
@@ -21,6 +20,7 @@ import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import CommentFeed from "@/components/comment_feed";
 import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
 import CircleDivider from "@/components/ui/circle_divider";
+import { defaultDescription } from "@/constants/metadata";
 import {
   POST_CATEGORIES_FILTER,
   POST_TAGS_FILTER,
@@ -34,7 +34,6 @@ import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
 
 type Props = {
   params: { id: number; slug: string[] };
-  isCommunityPath?: boolean;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -53,10 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function IndividualNotebook({
-  params,
-  isCommunityPath,
-}: Props) {
+export default async function IndividualNotebook({ params }: Props) {
   const postData = await PostsApi.getPost(params.id);
   const defaultProject = postData.projects.default_project;
 
@@ -67,9 +63,6 @@ export default async function IndividualNotebook({
   const isCommunityQuestion = defaultProject.type === TournamentType.Community;
   let currentCommunity = null;
   if (isCommunityQuestion) {
-    if (!isCommunityPath) {
-      return redirect(`/c/${defaultProject.slug}/${postData.id}`);
-    }
     currentCommunity = await ProjectsApi.getCommunity(
       defaultProject.slug as string
     );

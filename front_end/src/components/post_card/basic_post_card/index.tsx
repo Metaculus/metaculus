@@ -64,11 +64,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           <PostVoter className="md:min-w-20" post={post} />
           <CommentStatus
             newCommentsCount={newCommentsCount}
-            url={
-              isCommunityPost
-                ? `/c/${defaultProject.slug}/${id}`
-                : `/questions/${id}`
-            }
+            url={getPostLink(post)}
             commentColor={borderColor}
           />
 
