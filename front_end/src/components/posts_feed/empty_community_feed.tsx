@@ -19,8 +19,10 @@ const EmptyCommunityFeed: FC<Props> = ({ statuses }) => {
       message = t("noResolvedCommunityQuestions") + ".";
       break;
     case PostStatus.PENDING:
-      message = "No questions in review yet.";
       message = t("noReviewCommunityQuestions") + ".";
+      break;
+    case PostStatus.UPCOMING:
+      message = t("noUpcomingCommunityQuestions") + ".";
       break;
     case PostStatus.OPEN:
     default:
