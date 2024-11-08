@@ -3,7 +3,6 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 
-import Button from "@/app/(main)/about/components/Button";
 import { PostStatus } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 
@@ -11,6 +10,7 @@ import DetailsQuestionCardErrorBoundary from "./error_boundary";
 import MultipleChoiceChartCard from "./multiple_choice_chart_card";
 import NumericChartCard from "./numeric_chart_card";
 import { useHideCP } from "../cp_provider";
+import RevealCPButton from "../reveal_cp_button";
 
 type Props = {
   postStatus: PostStatus;
@@ -60,28 +60,14 @@ const DetailedQuestionCard: FC<Props> = ({
       return (
         <DetailsQuestionCardErrorBoundary>
           <NumericChartCard question={question} hideCP={hideCP} />
-          {hideCP && (
-            <div className="text-center">
-              <div className="text-l m-4">{t("CPIsHidden")}</div>
-              <Button onClick={() => setCurrentHideCP(false)}>
-                {t("RevealTemporarily")}
-              </Button>
-            </div>
-          )}
+          {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
       );
     case QuestionType.MultipleChoice:
       return (
         <DetailsQuestionCardErrorBoundary>
           <MultipleChoiceChartCard question={question} hideCP={hideCP} />
-          {hideCP && (
-            <div className="text-center">
-              <div className="text-l m-4">{t("CPIsHidden")}</div>
-              <Button onClick={() => setCurrentHideCP(false)}>
-                {t("RevealTemporarily")}
-              </Button>
-            </div>
-          )}
+          {hideCP && <RevealCPButton />}
         </DetailsQuestionCardErrorBoundary>
       );
     default:

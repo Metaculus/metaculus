@@ -4,9 +4,7 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 
-import Button from "@/app/(main)/about/components/Button";
 import NumericGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/numeric_group_chart";
-import { useAuth } from "@/contexts/auth_context";
 import { GroupOfQuestionsGraphType } from "@/types/charts";
 import { PostStatus } from "@/types/post";
 import {
@@ -20,6 +18,7 @@ import { sortGroupPredictionOptions } from "@/utils/questions";
 import BinaryGroupChart from "./binary_group_chart";
 import ContinuousGroupTimeline from "../continuous_group_timeline";
 import { useHideCP } from "../cp_provider";
+import RevealCPButton from "../reveal_cp_button";
 
 type Props = {
   questions: QuestionWithForecasts[];
@@ -110,14 +109,7 @@ const DetailedGroupCard: FC<Props> = ({
                 isClosed={isClosed}
                 hideCP={hideCP}
               />
-              {hideCP && (
-                <div className="text-center">
-                  <div className="text-l m-4">{t("CPIsHidden")}</div>
-                  <Button onClick={() => setCurrentHideCP(false)}>
-                    {t("RevealTemporarily")}
-                  </Button>
-                </div>
-              )}
+              {hideCP && <RevealCPButton />}
             </>
           );
         }
@@ -135,14 +127,7 @@ const DetailedGroupCard: FC<Props> = ({
                 preselectedQuestionId={preselectedQuestionId}
                 hideCP={hideCP}
               />
-              {hideCP && (
-                <div className="text-center">
-                  <div className="text-l m-4">{t("CPIsHidden")}</div>
-                  <Button onClick={() => setCurrentHideCP(false)}>
-                    {t("RevealTemporarily")}
-                  </Button>
-                </div>
-              )}
+              {hideCP && <RevealCPButton />}
             </>
           );
         default:

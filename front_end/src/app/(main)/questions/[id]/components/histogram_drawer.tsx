@@ -7,12 +7,16 @@ import Histogram from "@/components/charts/histogram";
 import SectionToggle from "@/components/ui/section_toggle";
 import { PostWithForecasts } from "@/types/post";
 
+import { useHideCP } from "./cp_provider";
+import RevealCPButton from "./reveal_cp_button";
+
 type Props = {
   post: PostWithForecasts;
 };
 
 const HistogramDrawer: React.FC<Props> = ({ post }) => {
   const t = useTranslations();
+  const { hideCP } = useHideCP();
 
   if (post.question?.type === "binary") {
     const question = post.question;
@@ -32,12 +36,16 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
 
     return (
       <SectionToggle title={t("histogram")} defaultOpen>
-        <Histogram
-          histogramData={histogramData}
-          median={median}
-          mean={mean}
-          color={"gray"}
-        />
+        {hideCP ? (
+          <RevealCPButton />
+        ) : (
+          <Histogram
+            histogramData={histogramData}
+            median={median}
+            mean={mean}
+            color={"gray"}
+          />
+        )}
       </SectionToggle>
     );
   } else if (
@@ -74,30 +82,36 @@ const HistogramDrawer: React.FC<Props> = ({ post }) => {
 
     return (
       <SectionToggle title={t("histogram")}>
-        {histogramData_yes && (
+        {hideCP ? (
+          <RevealCPButton />
+        ) : (
           <>
-            <div className="mb-2 text-center text-xs">
-              {t("parentResolvesAsYes")}
-            </div>
-            <Histogram
-              histogramData={histogramData_yes}
-              median={median_yes}
-              mean={mean_yes}
-              color="gray"
-            />
-          </>
-        )}
-        {histogramData_no && (
-          <>
-            <div className="mb-2 text-center text-xs">
-              {t("parentResolvesAsNo")}
-            </div>
-            <Histogram
-              histogramData={histogramData_no}
-              median={median_no}
-              mean={mean_no}
-              color="blue"
-            />
+            {histogramData_yes && (
+              <>
+                <div className="mb-2 text-center text-xs">
+                  {t("parentResolvesAsYes")}
+                </div>
+                <Histogram
+                  histogramData={histogramData_yes}
+                  median={median_yes}
+                  mean={mean_yes}
+                  color="gray"
+                />
+              </>
+            )}
+            {histogramData_no && (
+              <>
+                <div className="mb-2 text-center text-xs">
+                  {t("parentResolvesAsNo")}
+                </div>
+                <Histogram
+                  histogramData={histogramData_no}
+                  median={median_no}
+                  mean={mean_no}
+                  color="blue"
+                />
+              </>
+            )}
           </>
         )}
       </SectionToggle>
