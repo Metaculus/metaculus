@@ -68,16 +68,24 @@ async function CommunityPost({ params, searchParams }: Props) {
   const defaultProject = postData.projects.default_project;
   const isCommunityPost = defaultProject.type === TournamentType.Community;
   if (!isCommunityPost) {
+    // question page also handle redirect to regular notebooks path
     return redirect(`/questions/${postData.id}`);
   }
 
   if (postData.notebook) {
-    return <NotebookPage params={{ id: params.id, slug: params.postSlug }} />;
+    return (
+      <NotebookPage
+        params={{ id: params.id, slug: params.postSlug }}
+        isCommunityPath
+      />
+    );
   }
+
   return (
     <IndividualQuestion
       params={{ id: params.id, slug: params.postSlug }}
       searchParams={searchParams}
+      isCommunityPath
     />
   );
 }

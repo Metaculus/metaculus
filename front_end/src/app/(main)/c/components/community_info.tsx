@@ -100,7 +100,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
         {community.user_permission === ProjectPermissions.ADMIN ? (
           <Button
             variant="secondary"
-            href={`/community/${community.slug}/settings`}
+            href={`/c/${community.slug}/settings`}
             className="!border-blue-500 !text-blue-700 dark:!border-blue-500-dark dark:!text-blue-700-dark"
           >
             Manage Community

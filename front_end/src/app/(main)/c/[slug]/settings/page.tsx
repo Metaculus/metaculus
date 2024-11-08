@@ -30,7 +30,7 @@ export default async function CommunityManagementSettings({
   const t = await getTranslations();
   const community = await ProjectsApi.getCommunity(slug);
   if (community.user_permission !== ProjectPermissions.ADMIN) {
-    return redirect(`/community/${community.slug}`);
+    return redirect(`/c/${community.slug}`);
   }
 
   const questionFilters = generateFiltersFromSearchParams(searchParams, {

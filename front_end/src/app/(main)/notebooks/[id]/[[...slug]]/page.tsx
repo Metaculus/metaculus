@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { remark } from "remark";
 import strip from "strip-markdown";
@@ -32,7 +32,10 @@ import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
 
-type Props = { params: { id: number; slug: string[] } };
+type Props = {
+  params: { id: number; slug: string[] };
+  isCommunityPath?: boolean;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const postData = await PostsApi.getPost(params.id);
@@ -50,7 +53,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function IndividualNotebook({ params }: Props) {
+export default async function IndividualNotebook({
+  params,
+  isCommunityPath,
+}: Props) {
   const postData = await PostsApi.getPost(params.id);
   const defaultProject = postData.projects.default_project;
 
@@ -58,18 +64,20 @@ export default async function IndividualNotebook({ params }: Props) {
     return notFound();
   }
 
-  const locale = await getLocale();
-  const t = await getTranslations();
-  const questionTitle = getQuestionTitle(postData);
-
   const isCommunityQuestion = defaultProject.type === TournamentType.Community;
   let currentCommunity = null;
   if (isCommunityQuestion) {
+    if (!isCommunityPath) {
+      return redirect(`/c/${defaultProject.slug}/${postData.id}`);
+    }
     currentCommunity = await ProjectsApi.getCommunity(
       defaultProject.slug as string
     );
   }
 
+  const locale = await getLocale();
+  const t = await getTranslations();
+  const questionTitle = getQuestionTitle(postData);
   return (
     <>
       {isCommunityQuestion ? (

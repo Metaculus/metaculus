@@ -95,7 +95,7 @@ const MobileMenu: FC<Props> = ({ community, onClick }) => {
         >
           <MenuItems className="absolute inset-x-0 top-12 max-h-[calc(100dvh-48px)] list-none flex-col items-stretch justify-end space-y-0.5 overflow-y-auto bg-blue-200-dark text-base no-underline lg:hidden">
             <SectionTitle>{t("community")}</SectionTitle>
-            <MenuLink href={`/community/${community?.slug}/`}>
+            <MenuLink href={`/c/${community?.slug}/`}>
               {t("questions")}
             </MenuLink>
             <MenuLink
