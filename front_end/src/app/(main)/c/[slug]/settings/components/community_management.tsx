@@ -30,7 +30,7 @@ const CommunityManagement: FC<Props> = ({ community, mode }) => {
         <Button
           variant="text"
           className="mr-3 !p-0"
-          href={`/community/${community.slug}`}
+          href={`/c/${community.slug}`}
         >
           <FontAwesomeIcon
             className="text-blue-700/40 dark:text-blue-700-dark/40"
@@ -50,7 +50,7 @@ const CommunityManagement: FC<Props> = ({ community, mode }) => {
           value={mode}
           buttons={managementModeButtons}
           onChange={(mode) =>
-            router.push(`/community/${community.slug}/settings?mode=${mode}`)
+            router.push(`/c/${community.slug}/settings?mode=${mode}`)
           }
           variant="tertiary"
           className="capitalize"

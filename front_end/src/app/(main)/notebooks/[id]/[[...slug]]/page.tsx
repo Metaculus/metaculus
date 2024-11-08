@@ -8,7 +8,6 @@ import strip from "strip-markdown";
 
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
-import { defaultDescription } from "@/app/(main)/layout";
 import NotebookContentSections from "@/app/(main)/notebooks/components/notebook_content_sections";
 import NotebookEditor from "@/app/(main)/notebooks/components/notebook_editor";
 import {
@@ -21,6 +20,7 @@ import imagePlaceholder from "@/app/assets/images/tournament.webp";
 import CommentFeed from "@/components/comment_feed";
 import { SharePostMenu, PostDropdownMenu } from "@/components/post_actions";
 import CircleDivider from "@/components/ui/circle_divider";
+import { defaultDescription } from "@/constants/metadata";
 import {
   POST_CATEGORIES_FILTER,
   POST_TAGS_FILTER,
@@ -32,7 +32,9 @@ import { TournamentType } from "@/types/projects";
 import { formatDate } from "@/utils/date_formatters";
 import { estimateReadingTime, getQuestionTitle } from "@/utils/questions";
 
-type Props = { params: { id: number; slug: string[] } };
+type Props = {
+  params: { id: number; slug: string[] };
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const postData = await PostsApi.getPost(params.id);
@@ -58,10 +60,6 @@ export default async function IndividualNotebook({ params }: Props) {
     return notFound();
   }
 
-  const locale = await getLocale();
-  const t = await getTranslations();
-  const questionTitle = getQuestionTitle(postData);
-
   const isCommunityQuestion = defaultProject.type === TournamentType.Community;
   let currentCommunity = null;
   if (isCommunityQuestion) {
@@ -70,6 +68,9 @@ export default async function IndividualNotebook({ params }: Props) {
     );
   }
 
+  const locale = await getLocale();
+  const t = await getTranslations();
+  const questionTitle = getQuestionTitle(postData);
   return (
     <>
       {isCommunityQuestion ? (

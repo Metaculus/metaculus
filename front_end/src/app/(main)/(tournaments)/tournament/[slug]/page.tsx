@@ -11,10 +11,10 @@ import ProjectContributions from "@/app/(main)/(leaderboards)/contributions/comp
 import ProjectLeaderboard from "@/app/(main)/(leaderboards)/leaderboard/components/project_leaderboard";
 import TournamentControls from "@/app/(main)/(tournaments)/tournament/components/tournament_controls";
 import TournamentSubscribeButton from "@/app/(main)/(tournaments)/tournament/components/tournament_subscribe_button";
-import { defaultDescription } from "@/app/(main)/layout";
 import HtmlContent from "@/components/html_content";
 import TournamentFilters from "@/components/tournament_filters";
 import Button from "@/components/ui/button";
+import { defaultDescription } from "@/constants/metadata";
 import ProfileApi from "@/services/profile";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
