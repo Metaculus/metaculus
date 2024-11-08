@@ -70,6 +70,7 @@ const GroupNumericTile: FC<Props> = ({
             height={CHART_HEIGHT}
             pointSize={8}
             hideCP={hideCP}
+            withTooltip={false}
           />
         </div>
       </div>
