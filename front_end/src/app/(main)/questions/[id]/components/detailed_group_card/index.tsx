@@ -41,7 +41,7 @@ const DetailedGroupCard: FC<Props> = ({
 }) => {
   const t = useTranslations();
   const groupType = questions.at(0)?.type;
-  const { hideCP, setCurrentHideCP } = useHideCP();
+  const { hideCP } = useHideCP();
 
   useEffect(() => {
     if (questions.some((q) => !!q.my_forecasts?.history.length)) {

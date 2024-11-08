@@ -25,7 +25,7 @@ const DetailedQuestionCard: FC<Props> = ({
 }) => {
   const isForecastEmpty =
     question.aggregations.recency_weighted.history.length === 0;
-  const { hideCP, setCurrentHideCP } = useHideCP();
+  const { hideCP } = useHideCP();
 
   const t = useTranslations();
   useEffect(() => {
