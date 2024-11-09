@@ -744,7 +744,7 @@ tags:
           zero_point = scaling.get("zero_point")
           if zero_point is not None:
               # logarithmically scaled question
-              deriv_ratio = (range_max - zero_point) / max((range_min - zero_point), 1e-6)
+              deriv_ratio = (range_max - zero_point) / (range_min - zero_point)
               unscaled_location = (
                   np.log(
                       (scaled_location - range_min) * (deriv_ratio - 1)
@@ -803,13 +803,8 @@ tags:
             [scaling["range_min"], scaling["range_max"]]
           and "below_lower_bound"/"above_upper_bound" aren't provided,
           then the prediction can't be interpreted as a cdf properly.
-          Note that scaling for date questions is a unix timestmp.
+          Note that range_min/range_max for date questions are unix timestamps.
           """
-          # Normalize percentile keys
-          normalized_percentiles = {}
-          for key, value in percentiles.items():
-              percentile = float(key.split("_")[-1]) / 100
-              normalized_percentiles[percentile] = value
 
           # This will be the set of (x, y) points that are the set points
           # of the cdf
@@ -822,9 +817,9 @@ tags:
               percentile_locations.append((1.0, 1 - above_upper_bound))
 
           # generate the remaining set of points
-          for label, value in percentiles.items():
-              height = float(label.split("_")[1]) / 100
-              location = nominal_location_to_cdf_location(value, question_data)
+          for percentile, nominal_location in percentiles.items():
+              height = float(str(percentile).split("_")[-1]) / 100
+              location = nominal_location_to_cdf_location(nominal_location, question_data)
               percentile_locations.append((location, height))
 
           # sort to ensure lookup works
@@ -857,8 +852,9 @@ tags:
       that the Metaculus api will accept. But wait! Just because we have a cdf that represents out beliefs, it doesn't 
       mean Metaculus will accept it. We'll have to make sure it obeys a few rules, lest it be rejected as invalid.
       
-      1. The cdf must be strictly increasing by 0.00005 per step. This is because Metaculus evaluates continuous forecasts
-          by their PDF, and 0.00005 is the minimum value allowed to avoid scores getting too arbitrarily negative.
+      1. The cdf must be strictly increasing by at least 0.00005 per step. This is because Metaculus evaluates continuous forecasts
+          by their PDF (technically a PMF) dervied as the set of differences between consecutive CDF points, and 0.00005 is the 
+          minimum value allowed to avoid scores getting too arbitrarily negative.
       
       2. The cdf must not increase by more than 0.59 at any step, as this is the maximum value attainable via the sliders in the UI.
           This threshold may be lowered in the future.
@@ -887,29 +883,30 @@ tags:
           scale_upper_to = 1.0 if upper_open else cdf[-1]
           rescaled_inbound_mass = scale_upper_to - scale_lower_to
 
-          def standardize(F: float, x: float) -> float:
+          def standardize(F: float, location: float) -> float:
+              # `F` is the height of the cdf at `location` (in range [0, 1])
               # rescale
               rescaled_F = (F - scale_lower_to) / rescaled_inbound_mass
               # offset
               if lower_open and upper_open:
-                  return 0.988 * rescaled_F + 0.01 * x + 0.001
+                  return 0.988 * rescaled_F + 0.01 * location + 0.001
               elif lower_open:
-                  return 0.989 * rescaled_F + 0.01 * x + 0.001
+                  return 0.989 * rescaled_F + 0.01 * location + 0.001
               elif upper_open:
-                  return 0.989 * rescaled_F + 0.01 * x
-              return 0.99 * rescaled_F + 0.01 * x
+                  return 0.989 * rescaled_F + 0.01 * location
+              return 0.99 * rescaled_F + 0.01 * location
 
           standardized_cdf = []
           for i, F in enumerate(cdf):
               standardized_F = standardize(F, i / (len(cdf) - 1))
+              # round to avoid floating point errors
               standardized_cdf.append(round(standardized_F, 10))
 
           return standardized_cdf
-
       ```
 
       With this tiny guide, you can be well along your way to submitting continuous forecasts to Metaculus.
-      If you have any questions, feel free to create tickets on the github: https://github.com/Metaculus/metaculus/issues
+      If you have any questions or suggestions, feel free to create tickets on the github: https://github.com/Metaculus/metaculus/issues
       </details>
   - name: Comments
   - name: Utilities & Data
