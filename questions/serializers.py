@@ -449,7 +449,7 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
                 ],
                 10,
             )
-            min_diff = 0.01 / 200
+            min_diff = 0.01 / 200  # 0.00005
             if not all(inbound_pmf >= min_diff):
                 errors += (
                     "continuous_cdf must be increasing by at least "
