@@ -41,6 +41,7 @@ type CommentChildrenTreeProps = {
   expandedChildren?: boolean;
   treeDepth: number;
   sort: SortOption;
+  postData?: PostWithForecasts;
 };
 
 const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
@@ -48,6 +49,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   expandedChildren = false,
   treeDepth,
   sort,
+  postData,
 }) => {
   const t = useTranslations();
   const sortedCommentChildren = sortComments([...commentChildren], sort);
@@ -118,7 +120,12 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
               key={child.id}
               className="my-1 rounded-md bg-blue-500/15 px-2.5 py-1.5 dark:bg-blue-500/10"
             >
-              <Comment comment={child} treeDepth={treeDepth} sort={sort} />
+              <Comment
+                comment={child}
+                treeDepth={treeDepth}
+                sort={sort}
+                postData={postData}
+              />
             </div>
           ))}
       </div>
@@ -162,7 +169,10 @@ const Comment: FC<CommentProps> = ({
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
 
   const isCmmButtonVisible =
-    user?.id !== comment.author.id && !!postData?.question;
+    user?.id !== comment.author.id &&
+    (!!postData?.question ||
+      !!postData?.group_of_questions ||
+      !!postData?.conditional);
   const isCmmButtonDisabled = !user || !userCanPredict;
   // TODO: find a better way to dedect whether on mobile or not. For now we need to know in JS
   // too and can't use tw classes
@@ -488,6 +498,7 @@ const Comment: FC<CommentProps> = ({
           expandedChildren={!onProfile}
           treeDepth={treeDepth + 1}
           sort={sort}
+          postData={postData}
         />
       )}
       <CommentReportModal
