@@ -397,7 +397,7 @@
   "authorWithCount": "{count, plural, =1 {Author} other {Authors} }",
   "actions": "actions",
   "questionWeight": "Question Weight",
-  "questionWeightTooltip": "This question has a weight of <bold>{weight}%</bold>, providing <bold>{count, plural, =1 {{weightDiff}% fewer points} other {{weightDiff}% point boost}}</bold> compared to regular Metaculus questions.",
+  "questionWeightTooltip": "This question has a weight of <bold>{weight}%</bold>, providing {count, plural, =1 {<bold>{weightDiff}% fewer points</bold>} other {a <bold>{weightDiff}% point boost</bold>}} compared to regular Metaculus questions.",
   "includeBots": "Include Bots",
   "includeBotsTooltip": "For this question, bot forecasts contribute to the Community Prediction. <link>Learn more about AI Benchmarking</link>",
   "authored": "Authored",

@@ -1,14 +1,13 @@
 "use client";
 
-import { faCircleQuestion } from "@fortawesome/free-regular-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 
 import LocalDaytime from "@/components/ui/local_daytime";
-import Tooltip from "@/components/ui/tooltip";
 import { PostStatus, PostWithForecasts } from "@/types/post";
+
+import SidebarTooltip from "./sidebar_tooltip";
 
 type Props = {
   postData: PostWithForecasts;
@@ -89,26 +88,16 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
               <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
                 {Math.round(postData.question.question_weight * 100)}%
               </span>
-              <Tooltip
-                showDelayMs={200}
-                placement={"top"}
+              <SidebarTooltip
                 tooltipContent={t.rich("questionWeightTooltip", {
-                  count: postData.question.question_weight - 1 < 1 ? 1 : 2,
+                  count: postData.question.question_weight - 1 < 0 ? 1 : 2,
                   weight: Math.round(postData.question.question_weight * 100),
                   weightDiff: Math.round(
                     Math.abs(1 - postData.question.question_weight) * 100
                   ),
                   bold: (chunks) => <span className="font-bold">{chunks}</span>,
                 })}
-                className="ml-1 h-4"
-                tooltipClassName="text-center !max-w-[331px] !border-blue-400 dark:!border-blue-400-dark bg-gray-0 dark:bg-gray-0-dark !text-base !p-4"
-              >
-                <FontAwesomeIcon
-                  icon={faCircleQuestion}
-                  height={16}
-                  className="text-gray-500 hover:text-blue-800 dark:text-gray-500-dark dark:hover:text-blue-800-dark"
-                />
-              </Tooltip>
+              />
             </span>
           </div>
         )}
@@ -122,9 +111,7 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
               <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
                 {t("Yes")}
               </span>
-              <Tooltip
-                showDelayMs={200}
-                placement={"top"}
+              <SidebarTooltip
                 tooltipContent={t.rich("includeBotsTooltip", {
                   link: (chunks) => (
                     <Link
@@ -135,15 +122,7 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
                     </Link>
                   ),
                 })}
-                className="ml-1 h-4"
-                tooltipClassName="text-center !max-w-[331px] !border-blue-400 dark:!border-blue-400-dark bg-gray-0 dark:bg-gray-0-dark !text-base !p-4"
-              >
-                <FontAwesomeIcon
-                  icon={faCircleQuestion}
-                  height={16}
-                  className="text-gray-500 hover:text-blue-800 dark:text-gray-500-dark dark:hover:text-blue-800-dark"
-                />
-              </Tooltip>
+              />
             </span>
           </div>
         )}
