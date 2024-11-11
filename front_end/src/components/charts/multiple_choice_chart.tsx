@@ -239,6 +239,7 @@ const MultipleChoiceChart: FC<Props> = ({
                   strokeOpacity: !isHighlightActive ? 1 : highlighted ? 1 : 0.2,
                 },
               }}
+              interpolation="stepAfter"
             />
           ))}
           {graphs.map(({ area, color, highlighted }, index) =>
@@ -252,6 +253,7 @@ const MultipleChoiceChart: FC<Props> = ({
                     opacity: 0.3,
                   },
                 }}
+                interpolation="stepAfter"
               />
             ) : null
           )}
