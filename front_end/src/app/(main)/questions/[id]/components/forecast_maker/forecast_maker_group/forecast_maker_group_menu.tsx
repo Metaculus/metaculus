@@ -50,7 +50,7 @@ const ForecastMakerGroupControls: FC<Props> = ({
   return (
     <>
       <DropdownMenu
-        className="w-[274px] border-gray-500 p-6 dark:border-gray-500-dark"
+        className="w-[274px] !overflow-visible border-gray-500 p-6 dark:border-gray-500-dark"
         itemClassName="!p-0 !py-2"
         items={[
           ...[
@@ -172,35 +172,10 @@ const GroupQuestionInfo = ({ question }: { question: Question }) => {
           </span>
         </div>
 
-        {question.question_weight !== 1.0 && (
-          <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
-            <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
-              {t("questionWeight")}:
-            </span>
-            <span className="leading-4">
-              <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-                {Math.round(question.question_weight * 100)}%
-              </span>
-
-              <QuestionWeightInfo questionWeight={question.question_weight} />
-            </span>
-          </div>
-        )}
-
-        {question?.include_bots_in_aggregates && (
-          <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
-            <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
-              {t("includeBots")}:
-            </span>
-            <span className="leading-4">
-              <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-                {t("Yes")}
-              </span>
-
-              <IncludeBotsInfo />
-            </span>
-          </div>
-        )}
+        <QuestionWeightInfo questionWeight={question.question_weight} />
+        <IncludeBotsInfo
+          includeBotsInAggregate={question.include_bots_in_aggregates}
+        />
       </div>
     </div>
   );
