@@ -82,6 +82,11 @@ const NumericForecastTable: FC<Props> = ({
                   </div>
                 )}
                 <div>
+                  {userQuartiles?.lower25 === 0
+                    ? "<"
+                    : userQuartiles?.lower25 === 1
+                      ? ">"
+                      : null}
                   {getDisplayValue(
                     userQuartiles?.lower25,
                     question.type,
@@ -90,6 +95,11 @@ const NumericForecastTable: FC<Props> = ({
                   )}
                 </div>
                 <div>
+                  {userQuartiles?.median === 0
+                    ? "<"
+                    : userQuartiles?.median === 1
+                      ? ">"
+                      : null}
                   {getDisplayValue(
                     userQuartiles?.median,
                     question.type,
@@ -98,6 +108,11 @@ const NumericForecastTable: FC<Props> = ({
                   )}
                 </div>
                 <div>
+                  {userQuartiles?.upper75 === 0
+                    ? "<"
+                    : userQuartiles?.upper75 === 1
+                      ? ">"
+                      : null}
                   {getDisplayValue(
                     userQuartiles?.upper75,
                     question.type,
@@ -131,6 +146,11 @@ const NumericForecastTable: FC<Props> = ({
               </div>
             )}
             <div>
+              {communityQuartiles?.lower25 === 0
+                ? "<"
+                : communityQuartiles?.lower25 === 1
+                  ? ">"
+                  : null}
               {getDisplayValue(
                 communityQuartiles?.lower25,
                 question.type,
@@ -139,6 +159,11 @@ const NumericForecastTable: FC<Props> = ({
               )}
             </div>
             <div>
+              {communityQuartiles?.median === 0
+                ? "<"
+                : communityQuartiles?.median === 1
+                  ? ">"
+                  : null}
               {getDisplayValue(
                 communityQuartiles?.median,
                 question.type,
@@ -147,6 +172,11 @@ const NumericForecastTable: FC<Props> = ({
               )}
             </div>
             <div>
+              {communityQuartiles?.upper75 === 0
+                ? "<"
+                : communityQuartiles?.upper75 === 1
+                  ? ">"
+                  : null}
               {getDisplayValue(
                 communityQuartiles?.upper75,
                 question.type,
