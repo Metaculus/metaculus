@@ -163,17 +163,6 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
               })
             }
           />
-          <TopicItem
-            isActive={false}
-            emoji="🇺🇸"
-            text="2024 US Election Hub"
-            href="/experiments/elections"
-            onClick={() =>
-              sendGAEvent("event", "sidebarClick", {
-                event_category: "2024 US Election Hub",
-              })
-            }
-          />
           {!!hotTopics.length && (
             <>
               <Title title={t("topics")} />

@@ -17,6 +17,7 @@ from projects.serializers.common import (
 from questions.models import Question, AggregateForecast
 from questions.serializers import (
     QuestionWriteSerializer,
+    QuestionUpdateSerializer,
     serialize_question,
     serialize_conditional,
     serialize_group,
@@ -174,6 +175,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
 
 
 class PostUpdateSerializer(PostWriteSerializer):
+    question = QuestionUpdateSerializer(required=False)
     group_of_questions = GroupOfQuestionsUpdateSerializer(required=False)
 
 

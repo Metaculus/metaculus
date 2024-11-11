@@ -7,6 +7,7 @@ import { FC, PropsWithChildren } from "react";
 import PostDefaultProject from "@/components/post_default_project";
 import PostStatus from "@/components/post_status";
 import { Post } from "@/types/post";
+import { TournamentType } from "@/types/projects";
 import { getPostLink } from "@/utils/navigation";
 import { extractPostResolution } from "@/utils/questions";
 
@@ -33,7 +34,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
   const { id, title } = post;
   const resolutionData = extractPostResolution(post);
   const defaultProject = post.projects.default_project;
-
+  const isCommunityPost = defaultProject.type === TournamentType.Community;
   let newCommentsCount = post.comment_count ? post.comment_count : 0;
   if (post.unread_comment_count !== undefined) {
     newCommentsCount = post.unread_comment_count;
@@ -63,7 +64,7 @@ const BasicPostCard: FC<PropsWithChildren<Props>> = ({
           <PostVoter className="md:min-w-20" post={post} />
           <CommentStatus
             newCommentsCount={newCommentsCount}
-            url={`/questions/${id}`}
+            url={getPostLink(post)}
             commentColor={borderColor}
           />
 

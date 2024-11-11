@@ -6,8 +6,8 @@ import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import Button from "@/app/(main)/about/components/Button";
 import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
+import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import PredictionChip from "@/components/prediction_chip";
 import { PostConditional, PostStatus } from "@/types/post";
@@ -42,7 +42,7 @@ const ConditionalTile: FC<Props> = ({
   withCPRevealBtn,
 }) => {
   const t = useTranslations();
-  const { hideCP, setCurrentHideCP } = useHideCP();
+  const { hideCP } = useHideCP();
   const { condition, condition_child, question_yes, question_no } = conditional;
   const isEmbedded = !!chartTheme;
 
@@ -167,14 +167,7 @@ const ConditionalTile: FC<Props> = ({
           </ConditionalCard>
         </div>
       </div>
-      {withCPRevealBtn && hideCP && (
-        <div className="text-center">
-          <div className="text-l m-4">{t("CPIsHidden")}</div>
-          <Button onClick={() => setCurrentHideCP(false)}>
-            {t("RevealTemporarily")}
-          </Button>
-        </div>
-      )}
+      {withCPRevealBtn && hideCP && <RevealCPButton />}
     </>
   );
 };

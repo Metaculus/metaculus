@@ -12,7 +12,7 @@ import NavLink from "@/components/nav_link";
 import ThemeToggle from "@/components/theme_toggle";
 import { Community } from "@/types/projects";
 
-import { useShowActiveCommunityContext } from "../../community/components/community_context";
+import { useShowActiveCommunityContext } from "../../c/components/community_context";
 import CommunitiesDropdown from "../communities_dropdown";
 import MobileMenu from "../mobile_menu";
 
@@ -40,7 +40,7 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
         <span className="text-2xl font-extralight text-gray-600">/</span>
         {community && (showActiveCommunity || localShowName) && (
           <Link
-            href={`/community/${community.slug}`}
+            href={`/c/${community.slug}`}
             className="ml-3 mr-1 max-w-[230px] truncate no-underline hover:underline hover:decoration-gray-600 hover:underline-offset-4"
           >
             {community.name}
@@ -53,7 +53,7 @@ const CommunityHeader: FC<Props> = ({ community, alwaysShowName = true }) => {
       <ul className="relative hidden list-none items-center justify-end text-sm font-medium lg:flex">
         <li className="h-full">
           <NavLink
-            href={`/questions/`}
+            href={`/c/${community?.slug}/`}
             className="mr-2 flex h-full items-center p-3 capitalize no-underline hover:bg-blue-200-dark"
             activeClassName="bg-blue-300-dark"
           >

@@ -11,7 +11,6 @@ import React, { FC, useEffect, useRef, useState } from "react";
 
 import communityPlaceholder from "@/app/assets/images/tournament.webp";
 import Button from "@/components/ui/button";
-import { useAuth } from "@/contexts/auth_context";
 import { useNavigation } from "@/contexts/navigation_context";
 import { ProjectPermissions } from "@/types/post";
 import { Community } from "@/types/projects";
@@ -26,7 +25,6 @@ type Props = {
 const CommunityInfo: FC<Props> = ({ community }) => {
   const t = useTranslations();
   const router = useRouter();
-  const { user } = useAuth();
   const [followersCount, setFollowersCount] = useState(
     community.followers_count
   );
@@ -54,23 +52,28 @@ const CommunityInfo: FC<Props> = ({ community }) => {
     };
   }, [communityNameRef, setShowActiveCommunity]);
 
+  const handleBackClick = () => {
+    if (previousPath) {
+      if (previousPath.startsWith("/c/")) {
+        return router.push(`/questions/?communities=true`);
+      } else {
+        return router.back();
+      }
+    }
+    return router.push(`/questions/?communities=true`);
+  };
   return (
     <div className="relative">
       <div className="flex items-center">
-        {!!previousPath && (
-          <Button
-            variant="text"
-            className="mr-3 !p-0"
-            onClick={() => router.push(previousPath)}
-          >
-            <FontAwesomeIcon
-              className="text-blue-700/40 dark:text-blue-700-dark/40"
-              icon={faArrowLeft}
-              width={20}
-              size="xl"
-            />
-          </Button>
-        )}
+        <Button variant="text" className="mr-3 !p-0" onClick={handleBackClick}>
+          <FontAwesomeIcon
+            className="text-blue-700/40 dark:text-blue-700-dark/40"
+            icon={faArrowLeft}
+            width={20}
+            size="xl"
+          />
+        </Button>
+
         <h1
           ref={communityNameRef}
           className="m-0 max-w-[250px] truncate text-xl font-medium text-blue-900 dark:text-blue-900-dark xs:max-w-full xs:text-2xl"
@@ -93,7 +96,7 @@ const CommunityInfo: FC<Props> = ({ community }) => {
         {community.user_permission === ProjectPermissions.ADMIN ? (
           <Button
             variant="secondary"
-            href={`/community/${community.slug}/settings`}
+            href={`/c/${community.slug}/settings`}
             className="!border-blue-500 !text-blue-700 dark:!border-blue-500-dark dark:!text-blue-700-dark"
           >
             Manage Community

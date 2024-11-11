@@ -386,8 +386,7 @@ components:
       type: object
       oneOf:
         - $ref: '#/components/schemas/BinaryForecast'
-        - $ref: '#/components/schemas/NumericForecast'
-        - $ref: '#/components/schemas/DateForecast'
+        - $ref: '#/components/schemas/ContinuousForecast'
         - $ref: '#/components/schemas/MultipleChoiceForecast'
         - $ref: '#/components/schemas/ConditionalForecast'
         - $ref: '#/components/schemas/GroupForecast'
@@ -405,61 +404,43 @@ components:
           format: float
           description: Probability for a binary outcome
 
-    NumericForecast:
+    ContinuousForecast:
       type: object
       required:
         - question
         - continuous_cdf
-        - slider_values
       properties:
         question:
+          description: ID of the numeric question (not post)
           type: integer
         continuous_cdf:
-          type: array
-          items:
-            type: number
-            format: float
-          description: Cumulative density function (CDF) for the numeric question
-        slider_values:
-          type: object
-          required:
-            - forecast
-            - weights
-          properties:
-            forecast:
-              type: array
-              items:
-                type: object
-                properties:
-                  center:
-                    type: number
-                    format: float
-                  left:
-                    type: number
-                    format: float
-                  right:
-                    type: number
-                    format: float
-            weights:
-              type: array
-              items:
-                type: integer
+          description: |
+            The CDF is 201 values long, representing the height of the CDF at 201 
+            evenly spaced points across the question's range, taking into account 
+            the question's scaling. See notes in this section for suggestions on
+            generating a cdf.<br><br>
 
-    DateForecast:
-      type: object
-      required:
-        - question
-        - continuous_cdf
-        - slider_values
-      properties:
-        question:
-          type: integer
-        continuous_cdf:
+            If a question has a closed lower bound 
+            (`question["open_lower_bound"] == False`), the first value of the CDF 
+            must be 0.0. Otherwise it must be at least 0.001 - meaning at least 
+            0.1% of the probability mass must be assigned below the lower bound.<br><br>
+
+            If a question has a closed upper bound 
+            (`question["open_upper_bound"] == False`), the last value of the CDF 
+            must be 1.0, otherwise no more than 0.999 - meaning at least 
+            0.1% of the probability mass must be assigned above the upper bound.<br><br>
+
+            At least 1% of the probability mass must be assigned uniformly within 
+            bounds, which means that the CDF must be strictly increasing by at 
+            least 0.01/200 = 0.0005 per step. No two adjacent values of the CDF 
+            can differ by more than 0.59, which is the largest number obtainable 
+            via the sliders.
           type: array
           items:
             type: number
             format: float
         slider_values:
+          description: Optional. Slider values used for populating the sliders on the frontend at page load.
           type: object
           required:
             - forecast
@@ -520,8 +501,7 @@ components:
       items:
         oneOf:
           - $ref: '#/components/schemas/BinaryForecast'
-          - $ref: '#/components/schemas/NumericForecast'
-          - $ref: '#/components/schemas/DateForecast'
+          - $ref: '#/components/schemas/ContinuousForecast'
 
     Comment:
       type: object
@@ -720,6 +700,214 @@ tags:
       
       The primary entry point for retrieving feed data and interacting with both Posts and Questions is the `/api/posts` endpoint.
   - name: Questions & Forecasts
+    description: |
+      <details>
+      <summary>Guide to Generating a Continuous CDF</summary>
+
+      ## Generating a Continuous CDF
+
+      Generating a CDF to predict on a continuous question can be a bit tricky. We only accept predictions in the form of a 201 point
+      CDF, represented as a list of floats, so getting scaling right is very important.<br>
+
+      To start off, let's take an example question: "What will be the temperature (in Celcius) in New York City on January 1st, 3000?"<br>
+
+      If you were to open the question on the website, you would see that the prediction input will have an x-axis that goes from `-40` to `110`.
+      You could also find those values in the api by looking at the `"range_min"` and `"range_max"` properties inside `question["scaling"]`.
+      If you want to build a cdf, what does that mean to you? It means that you'll need to generate the heights of the cdf at 201 points
+      representing locations between -40 and 110. In this case, the first value of the CDF array we are going to build will be the probability
+      that the temperature is less than (not equal to) to -40. The last value will represent the probability that the temperature is less 
+      than or equal to 110. We then see that the `"zero_point"` in `question["scaling"]` is None, so we can conclude that the remaining
+      values in the CDF array represent the height of the cdf at equally spaced locations between -40 and 110. This is because the `"zero_point"`
+      being empty means that the question scaling is linear.<br>
+
+      Here's a function that can take in a nominal location and return the corresponding "internal location" x-value. Note that it
+      does account for logarithmic scaling.
+      ```python
+      import datetime
+      import numpy as np
+
+      def nominal_location_to_cdf_location(
+          nominal_location: str | float,
+          question_data: dict,
+      ) -> float:
+          """Takes a location in nominal format (e.g. 123, "123",
+          or datetime in iso format) and scales it to metaculus's
+          "internal representation" range [0,1] incorporating question scaling"""
+          if question_data["type"] == "date":
+              scaled_location = datetime.fromisoformat(nominal_location).timestamp()
+          else:
+              scaled_location = float(nominal_location)
+          # Unscale the value to put it into the range [0,1]
+          scaling = question_data["scaling"]
+          range_min = scaling.get("range_min")
+          range_max = scaling.get("range_max")
+          zero_point = scaling.get("zero_point")
+          if zero_point is not None:
+              # logarithmically scaled question
+              deriv_ratio = (range_max - zero_point) / (range_min - zero_point)
+              unscaled_location = (
+                  np.log(
+                      (scaled_location - range_min) * (deriv_ratio - 1)
+                      + (range_max - range_min)
+                  )
+                  - np.log(range_max - range_min)
+              ) / np.log(deriv_ratio)
+          else:
+              # linearly scaled question
+              unscaled_location = (scaled_location - range_min) / (range_max - range_min)
+          return unscaled_location
+      ```
+
+      But you don't want to have to do this manually for every point in a 201 point CDF, so instead let's do it with percentiles.
+      Let's say that we have a solid idea about what our 5th, 25th, 50th, 75th, and 95th percentiles are in real units. We can use those to
+      generate a CDF. But, note that if our 5th and 95th percentiles don't overlap the range of the question, we'll have to add a few
+      more bits of information to complete our CDF.<br>
+
+      Here's a function that can take in some percentiles and return an inferred linearly interpolated CDF.
+      ```python
+      def generate_continuous_cdf(
+          percentiles: dict,
+          question_data: dict,
+          below_lower_bound: float = None,
+          above_upper_bound: float = None,
+      ) -> list[float]:
+          """
+          Takes a set of percentiles and returns a corresponding cdf with 201 values
+
+          Param: percentiles
+          dict[str, float | str]
+          keys must terminate in a number interpretable as a float in range (0, 100)
+            optionally preceded by an underscore "_"
+          values must be a nominal value in the scale of the question, either
+            interpretable as a float (for "numeric" type questions) or a datetime in
+            ISO format (for "date" type questions)
+          example percentiles:
+          percentiles = {
+            "percentile_01": 25,
+            "precentile_25.123": 500,
+            "50": 650,
+            "percentile_75": "700",
+            "percentile_99": 990,
+          }
+          optionally, include `below_lower_bound` and `above_upper_bound`
+          to indicate the amount of probability mass assigned to those locations
+          percentiles = {
+            "percentile_25": 500,
+            "percentile_50": 650,
+            "percentile_75": 700,
+          }
+          below_lower_bound = 0.0025,
+          above_upper_bound = 0.009,
+
+          If the percentile locations don't encompass
+            [scaling["range_min"], scaling["range_max"]]
+          and "below_lower_bound"/"above_upper_bound" aren't provided,
+          then the prediction can't be interpreted as a cdf properly.
+          Note that range_min/range_max for date questions are unix timestamps.
+          """
+
+          # This will be the set of (x, y) points that are the set points
+          # of the cdf
+          percentile_locations = []
+
+          # take the given boundary values
+          if below_lower_bound is not None:
+              percentile_locations.append((0.0, below_lower_bound))
+          if above_upper_bound is not None:
+              percentile_locations.append((1.0, 1 - above_upper_bound))
+
+          # generate the remaining set of points
+          for percentile, nominal_location in percentiles.items():
+              height = float(str(percentile).split("_")[-1]) / 100
+              location = nominal_location_to_cdf_location(nominal_location, question_data)
+              percentile_locations.append((location, height))
+
+          # sort to ensure lookup works
+          percentile_locations.sort()
+
+          # check validity
+          first_point, last_point = percentile_locations[0], percentile_locations[-1]
+          if (first_point[0] > 0.0) or (last_point[0] < 1.0):
+              raise ValueError("Percentiles must encompass bounds of the question")
+
+          def get_cdf_at(location):
+              # helper function that takes a location and returns
+              # the height of the cdf at that location, linearly
+              # interpolating between values
+              previous = percentile_locations[0]
+              for i in range(1, len(percentile_locations)):
+                  current = percentile_locations[i]
+                  if previous[0] <= location <= current[0]:
+                      return previous[1] + (current[1] - previous[1]) * (
+                          location - previous[0]
+                      ) / (current[0] - previous[0])
+                  previous = current
+
+          # generate that cdf
+          continuous_cdf = [get_cdf_at(i / 200) for i in range(201)]
+          return continuous_cdf
+      ```
+
+      Phew, that was pretty long, but now we can take a set of nominal percentiles and generate a CDF that is in the format
+      that the Metaculus api will accept. But wait! Just because we have a cdf that represents out beliefs, it doesn't 
+      mean Metaculus will accept it. We'll have to make sure it obeys a few rules, lest it be rejected as invalid.
+      
+      1. The cdf must be strictly increasing by at least 0.00005 per step. This is because Metaculus evaluates continuous forecasts
+          by their PDF (technically a PMF) dervied as the set of differences between consecutive CDF points, and 0.00005 is the 
+          minimum value allowed to avoid scores getting too arbitrarily negative.
+      
+      2. The cdf must not increase by more than 0.59 at any step, as this is the maximum value attainable via the sliders in the UI.
+          This threshold may be lowered in the future.
+      
+      3. The cdf must obey bounds. If a boundary is open, at least 0.1% of probability mass must be assigned outside of it; if it
+          is closed, no probability mass may be outside of it.
+
+      Here's a standardization function that ensures your CDF will be accepted. It does add a linear component to the cdf,
+      so those with an abundance of precision in their forecasts way want to skip it. The cdfs (and thus their derived pdfs)
+      you see on the website have been standardized in this way.
+      ```python
+      def standardize_cdf(cdf: list[float], question_data: dict) -> list[float]:
+          """
+          Takes a cdf and returns a standardized version of it
+
+          - assigns no mass outside of closed bounds (scales accordingly)
+          - assigns at least a minimum amount of mass outside of open bounds
+          - increasing by at least the minimum amount (0.01 / 200 = 0.0005)
+
+          TODO: add smoothing over cdfs that spike too heavily (exceed a change of 0.59)
+          """
+          lower_open = question_data["open_lower_bound"]
+          upper_open = question_data["open_upper_bound"]
+
+          scale_lower_to = 0 if lower_open else cdf[0]
+          scale_upper_to = 1.0 if upper_open else cdf[-1]
+          rescaled_inbound_mass = scale_upper_to - scale_lower_to
+
+          def standardize(F: float, location: float) -> float:
+              # `F` is the height of the cdf at `location` (in range [0, 1])
+              # rescale
+              rescaled_F = (F - scale_lower_to) / rescaled_inbound_mass
+              # offset
+              if lower_open and upper_open:
+                  return 0.988 * rescaled_F + 0.01 * location + 0.001
+              elif lower_open:
+                  return 0.989 * rescaled_F + 0.01 * location + 0.001
+              elif upper_open:
+                  return 0.989 * rescaled_F + 0.01 * location
+              return 0.99 * rescaled_F + 0.01 * location
+
+          standardized_cdf = []
+          for i, F in enumerate(cdf):
+              standardized_F = standardize(F, i / (len(cdf) - 1))
+              # round to avoid floating point errors
+              standardized_cdf.append(round(standardized_F, 10))
+
+          return standardized_cdf
+      ```
+
+      With this tiny guide, you can be well along your way to submitting continuous forecasts to Metaculus.
+      If you have any questions or suggestions, feel free to create tickets on the github: https://github.com/Metaculus/metaculus/issues
+      </details>
   - name: Comments
   - name: Utilities & Data
 paths:
@@ -1424,7 +1612,8 @@ paths:
   /api/questions/forecast/:
     post:
       summary: Submit question forecasts
-      description: Pass one forecast object for single questions and multiple forecast objects for group of questions or conditional forecasts.
+      description: This endpoint supports multiple simultaneous predictions, so the base object is a list of foreacsts.
+        Pass one forecast object for single questions and multiple forecast objects for group of questions or conditional forecasts.
       tags:
         - Questions & Forecasts
       requestBody:
@@ -1437,43 +1626,76 @@ paths:
                 $ref: '#/components/schemas/Forecast'
             examples:
               BinaryQuestionExample:
-                summary: Binary question forecast example
+                summary: Binary Question
                 value:
                   - question: 1
                     probability_yes: 0.63
-              NumericQuestionExample:
-                summary: Numeric question forecast with 3 slider components
+              ContinuousQuestionExample1:
+                summary: Continuous Question - closed bounds
                 value:
                   - question: 1
-                    continuous_cdf:
-                      [
-                        0, 9.424125589231841e-05, 0.00019647063437408003, 1
-                      ]
-                    slider_values:
-                      forecast:
-                        [
-                          { "center": 0.51739, "left": 0.48239, "right": 0.55239 },
-                          { "center": 0.28696, "left": 0.18696, "right": 0.34928 },
-                          { "center": 0.71305, "left": 0.64782, "right": 0.78406 }
-                        ]
-                      weights: [ 1, 1, 1 ]
-              DateQuestionExample:
-                summary: Date question forecast with 2 slider components
+                    continuous_cdf: [
+                      0.00000, 0.00005, 0.00010, 0.00015, 0.00020, 0.00025, 0.00030, 0.00035, 
+                      0.00040, 0.00045, 0.00050, 0.00055, 0.00060, 0.00065, 0.00070, 0.00075, 
+                      0.00080, 0.00085, 0.00090, 0.00095, 0.00100, 0.00105, 0.00110, 0.00115, 
+                      0.00120, 0.00125, 0.00130, 0.00135, 0.00140, 0.00145, 0.00150, 0.00155, 
+                      0.00160, 0.00165, 0.00170, 0.00175, 0.00180, 0.00185, 0.00190, 0.00195, 
+                      0.00200, 0.00205, 0.00210, 0.00215, 0.00220, 0.00225, 0.00230, 0.00236, 
+                      0.00241, 0.00246, 0.00251, 0.00256, 0.00261, 0.00266, 0.00272, 0.00277, 
+                      0.00282, 0.00287, 0.00293, 0.00298, 0.00304, 0.00309, 0.00314, 0.00320, 
+                      0.00326, 0.00331, 0.00337, 0.00343, 0.00349, 0.00354, 0.00361, 0.00367, 
+                      0.00373, 0.00379, 0.00386, 0.00393, 0.00400, 0.00407, 0.00414, 0.00422, 
+                      0.00430, 0.00438, 0.00447, 0.00456, 0.00465, 0.00475, 0.00485, 0.00496, 
+                      0.00508, 0.00520, 0.00533, 0.00547, 0.00562, 0.00578, 0.00595, 0.00614, 
+                      0.00633, 0.00655, 0.00678, 0.00703, 0.00730, 0.00760, 0.00792, 0.00827, 
+                      0.00865, 0.00907, 0.00952, 0.01002, 0.01057, 0.01117, 0.01182, 0.01254, 
+                      0.01334, 0.01420, 0.01516, 0.01621, 0.01736, 0.01863, 0.02002, 0.02156, 
+                      0.02324, 0.02510, 0.02714, 0.02938, 0.03185, 0.03455, 0.03753, 0.04080, 
+                      0.04438, 0.04832, 0.05263, 0.05735, 0.06252, 0.06817, 0.07434, 0.08108, 
+                      0.08841, 0.09639, 0.10506, 0.11447, 0.12464, 0.13564, 0.14749, 0.16024, 
+                      0.17392, 0.18855, 0.20416, 0.22076, 0.23835, 0.25693, 0.27649, 0.29698, 
+                      0.31838, 0.34062, 0.36363, 0.38733, 0.41164, 0.43643, 0.46160, 0.48702, 
+                      0.51257, 0.53811, 0.56352, 0.58866, 0.61342, 0.63768, 0.66134, 0.68429, 
+                      0.70646, 0.72779, 0.74821, 0.76769, 0.78619, 0.80370, 0.82022, 0.83575, 
+                      0.85031, 0.86391, 0.87658, 0.88837, 0.89930, 0.90941, 0.91875, 0.92737, 
+                      0.93530, 0.94258, 0.94927, 0.95540, 0.96101, 0.96614, 0.97083, 0.97511, 
+                      0.97901, 0.98257, 0.98582, 0.98877, 0.99146, 0.99390, 0.99613, 0.99815, 
+                      1.00000
+                    ]
+              ContinuousQuestionExample2:
+                summary: Continuous Question - open lower bound, closed upper bound
                 value:
                   - question: 1
-                    continuous_cdf:
-                      [
-                        0.001000000000014897, 0.0010500000000204029, 0.0011000000000279584
-                      ]
-                    slider_values:
-                      forecast:
-                        [
-                          { "center": 0.5, "left": 0.42609, "right": 0.54348 },
-                          { "center": 0.3, "left": 0.265, "right": 0.335 }
-                        ]
-                      weights: [ 1, 1 ]
+                    continuous_cdf: [
+                      0.00655, 0.00690, 0.00727, 0.00766, 0.00807, 0.00849, 0.00894, 0.00941, 
+                      0.00990, 0.01042, 0.01096, 0.01152, 0.01212, 0.01274, 0.01340, 0.01409, 
+                      0.01481, 0.01557, 0.01636, 0.01720, 0.01808, 0.01900, 0.01997, 0.02099, 
+                      0.02206, 0.02318, 0.02436, 0.02560, 0.02690, 0.02827, 0.02970, 0.03121, 
+                      0.03280, 0.03446, 0.03621, 0.03804, 0.03997, 0.04199, 0.04411, 0.04634, 
+                      0.04868, 0.05113, 0.05370, 0.05639, 0.05922, 0.06218, 0.06528, 0.06853, 
+                      0.07193, 0.07550, 0.07923, 0.08313, 0.08721, 0.09147, 0.09593, 0.10058, 
+                      0.10544, 0.11051, 0.11580, 0.12131, 0.12705, 0.13303, 0.13925, 0.14572, 
+                      0.15244, 0.15942, 0.16667, 0.17418, 0.18197, 0.19003, 0.19837, 0.20699, 
+                      0.21589, 0.22508, 0.23454, 0.24429, 0.25432, 0.26463, 0.27521, 0.28606, 
+                      0.29717, 0.30854, 0.32015, 0.33201, 0.34410, 0.35640, 0.36891, 0.38162, 
+                      0.39450, 0.40755, 0.42075, 0.43408, 0.44752, 0.46106, 0.47468, 0.48836, 
+                      0.50207, 0.51581, 0.52954, 0.54325, 0.55692, 0.57052, 0.58404, 0.59745, 
+                      0.61073, 0.62386, 0.63683, 0.64962, 0.66221, 0.67458, 0.68673, 0.69863, 
+                      0.71029, 0.72168, 0.73280, 0.74364, 0.75420, 0.76447, 0.77444, 0.78412, 
+                      0.79350, 0.80258, 0.81136, 0.81984, 0.82802, 0.83592, 0.84352, 0.85084, 
+                      0.85788, 0.86464, 0.87114, 0.87737, 0.88334, 0.88907, 0.89455, 0.89979, 
+                      0.90481, 0.90961, 0.91419, 0.91856, 0.92273, 0.92671, 0.93051, 0.93413, 
+                      0.93758, 0.94086, 0.94399, 0.94697, 0.94980, 0.95249, 0.95505, 0.95749, 
+                      0.95980, 0.96200, 0.96410, 0.96608, 0.96797, 0.96976, 0.97146, 0.97308, 
+                      0.97461, 0.97607, 0.97745, 0.97877, 0.98001, 0.98120, 0.98232, 0.98339, 
+                      0.98440, 0.98536, 0.98627, 0.98713, 0.98796, 0.98874, 0.98948, 0.99018, 
+                      0.99085, 0.99149, 0.99209, 0.99266, 0.99321, 0.99373, 0.99422, 0.99469, 
+                      0.99513, 0.99556, 0.99596, 0.99635, 0.99671, 0.99706, 0.99739, 0.99771, 
+                      0.99801, 0.99830, 0.99858, 0.99884, 0.99909, 0.99933, 0.99956, 0.99978, 
+                      1.00000
+                    ]
               MultipleChoiceQuestionExample:
-                summary: Multiple choices forecast example
+                summary: Multiple Choice
                 value:
                   - question: 1
                     probability_yes_per_category:
@@ -1483,7 +1705,7 @@ paths:
                         "Singularia": 0.2
                       }
               ConditionalQuestionExample:
-                summary: Conditional question forecast example
+                summary: Conditional Question
                 value:
                   [
                     # Forecast for question "if Yes"
@@ -1493,7 +1715,7 @@ paths:
                     },
                     # Forecast for question "if No"
                     {
-                      "question": 1,
+                      "question": 2,
                       "probability_yes": 0.501,
                     }
                   ]

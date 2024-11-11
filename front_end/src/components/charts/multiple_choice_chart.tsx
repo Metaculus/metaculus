@@ -10,6 +10,7 @@ import {
   VictoryArea,
   VictoryAxis,
   VictoryChart,
+  VictoryContainer,
   VictoryCursorContainer,
   VictoryLabel,
   VictoryLabelProps,
@@ -213,7 +214,19 @@ const MultipleChoiceChart: FC<Props> = ({
               },
             },
           ]}
-          containerComponent={onCursorChange ? CursorContainer : undefined}
+          containerComponent={
+            onCursorChange ? (
+              CursorContainer
+            ) : (
+              <VictoryContainer
+                style={{
+                  pointerEvents: "auto",
+                  userSelect: "auto",
+                  touchAction: "auto",
+                }}
+              />
+            )
+          }
           domain={{ x: xDomain }}
         >
           {graphs.map(({ line, color, active, highlighted }, index) => (
@@ -226,6 +239,7 @@ const MultipleChoiceChart: FC<Props> = ({
                   strokeOpacity: !isHighlightActive ? 1 : highlighted ? 1 : 0.2,
                 },
               }}
+              interpolation="stepAfter"
             />
           ))}
           {graphs.map(({ area, color, highlighted }, index) =>
@@ -239,6 +253,7 @@ const MultipleChoiceChart: FC<Props> = ({
                     opacity: 0.3,
                   },
                 }}
+                interpolation="stepAfter"
               />
             ) : null
           )}
