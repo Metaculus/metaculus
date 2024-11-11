@@ -7,7 +7,6 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getDisplayValue, displayValue } from "@/utils/charts";
-import { checkQuartilesOutOfBorders } from "@/utils/questions";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -174,5 +173,9 @@ const NumericForecastTable: FC<Props> = ({
     </>
   );
 };
+
+function checkQuartilesOutOfBorders(quartile: number | undefined) {
+  return quartile === 0 ? "<" : quartile === 1 ? ">" : null;
+}
 
 export default NumericForecastTable;
