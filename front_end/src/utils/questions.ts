@@ -398,3 +398,7 @@ export function parseQuestionId(questionUrlOrId: string): {
 
   return result;
 }
+
+export function checkQuartilesOutOfBorders(quartile: number | undefined) {
+  return quartile === 0 ? "<" : quartile === 1 ? ">" : null;
+}

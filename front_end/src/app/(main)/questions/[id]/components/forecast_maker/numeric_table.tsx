@@ -7,6 +7,7 @@ import {
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getDisplayValue, displayValue } from "@/utils/charts";
+import { checkQuartilesOutOfBorders } from "@/utils/questions";
 
 type Props = {
   question: QuestionWithNumericForecasts;
@@ -82,11 +83,7 @@ const NumericForecastTable: FC<Props> = ({
                   </div>
                 )}
                 <div>
-                  {userQuartiles?.lower25 === 0
-                    ? "<"
-                    : userQuartiles?.lower25 === 1
-                      ? ">"
-                      : null}
+                  {checkQuartilesOutOfBorders(userQuartiles?.lower25)}
                   {getDisplayValue(
                     userQuartiles?.lower25,
                     question.type,
@@ -95,11 +92,7 @@ const NumericForecastTable: FC<Props> = ({
                   )}
                 </div>
                 <div>
-                  {userQuartiles?.median === 0
-                    ? "<"
-                    : userQuartiles?.median === 1
-                      ? ">"
-                      : null}
+                  {checkQuartilesOutOfBorders(userQuartiles?.median)}
                   {getDisplayValue(
                     userQuartiles?.median,
                     question.type,
@@ -108,11 +101,7 @@ const NumericForecastTable: FC<Props> = ({
                   )}
                 </div>
                 <div>
-                  {userQuartiles?.upper75 === 0
-                    ? "<"
-                    : userQuartiles?.upper75 === 1
-                      ? ">"
-                      : null}
+                  {checkQuartilesOutOfBorders(userQuartiles?.upper75)}
                   {getDisplayValue(
                     userQuartiles?.upper75,
                     question.type,
@@ -146,11 +135,7 @@ const NumericForecastTable: FC<Props> = ({
               </div>
             )}
             <div>
-              {communityQuartiles?.lower25 === 0
-                ? "<"
-                : communityQuartiles?.lower25 === 1
-                  ? ">"
-                  : null}
+              {checkQuartilesOutOfBorders(communityQuartiles?.lower25)}
               {getDisplayValue(
                 communityQuartiles?.lower25,
                 question.type,
@@ -159,11 +144,7 @@ const NumericForecastTable: FC<Props> = ({
               )}
             </div>
             <div>
-              {communityQuartiles?.median === 0
-                ? "<"
-                : communityQuartiles?.median === 1
-                  ? ">"
-                  : null}
+              {checkQuartilesOutOfBorders(communityQuartiles?.median)}
               {getDisplayValue(
                 communityQuartiles?.median,
                 question.type,
@@ -172,11 +153,7 @@ const NumericForecastTable: FC<Props> = ({
               )}
             </div>
             <div>
-              {communityQuartiles?.upper75 === 0
-                ? "<"
-                : communityQuartiles?.upper75 === 1
-                  ? ">"
-                  : null}
+              {checkQuartilesOutOfBorders(communityQuartiles?.upper75)}
               {getDisplayValue(
                 communityQuartiles?.upper75,
                 question.type,
