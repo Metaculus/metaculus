@@ -399,7 +399,6 @@ const QuestionForm: FC<Props> = ({
         <div className="flex w-full flex-col gap-4 md:flex-row">
           <InputContainer labelText={t("closingDate")} className="w-full gap-2">
             <Input
-              readOnly={hasForecasts && mode !== "create"}
               type="datetime-local"
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               {...control.register("scheduled_close_time", {
@@ -427,7 +426,6 @@ const QuestionForm: FC<Props> = ({
             className="w-full gap-2"
           >
             <Input
-              readOnly={hasForecasts && mode !== "create"}
               type="datetime-local"
               className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
               {...control.register("scheduled_resolve_time", {
@@ -455,7 +453,6 @@ const QuestionForm: FC<Props> = ({
           <div className="flex w-full flex-col gap-4 md:flex-row">
             <InputContainer labelText={t("openTime")} className="w-full gap-2">
               <Input
-                readOnly={hasForecasts}
                 type="datetime-local"
                 className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                 {...control.register("open_time", {
@@ -483,7 +480,6 @@ const QuestionForm: FC<Props> = ({
               className="w-full gap-2"
             >
               <Input
-                readOnly={hasForecasts}
                 type="datetime-local"
                 className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
                 {...control.register("cp_reveal_time", {
