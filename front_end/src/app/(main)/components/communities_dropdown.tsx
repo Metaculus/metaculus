@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/auth_context";
 import { Community } from "@/types/projects";
 import { logError } from "@/utils/errors";
 
-import { fetchCommunities } from "../community/actions";
+import { fetchCommunities } from "../c/actions";
 
 const SectionTitle: FC<PropsWithChildren> = ({ children }) => (
   <div className="flex h-full items-start justify-start px-2.5 py-2 text-left text-xs font-normal capitalize text-gray-200 opacity-50">
@@ -96,7 +96,7 @@ const CommunitiesDropdown: FC<Props> = ({ community }) => {
                   <MenuItem>
                     <Link
                       className="flex items-center justify-start whitespace-nowrap rounded bg-blue-200-dark p-2.5 text-left font-bold capitalize no-underline"
-                      href={`/community/${community?.slug}`}
+                      href={`/c/${community?.slug}`}
                     >
                       {community?.name}
                       <FontAwesomeIcon
@@ -117,7 +117,7 @@ const CommunitiesDropdown: FC<Props> = ({ community }) => {
                     <MenuItem key={followedCommunity.id}>
                       <Link
                         className="flex items-center justify-start whitespace-nowrap rounded bg-blue-200-dark p-2.5 text-left font-bold capitalize no-underline"
-                        href={`/community/${followedCommunity?.slug}`}
+                        href={`/c/${followedCommunity?.slug}`}
                       >
                         {followedCommunity?.name}
                         <FontAwesomeIcon
@@ -131,7 +131,7 @@ const CommunitiesDropdown: FC<Props> = ({ community }) => {
                     <MenuItem key={followedCommunity.id}>
                       <Link
                         className="flex items-center justify-start whitespace-nowrap rounded p-2.5 text-left capitalize no-underline hover:bg-blue-200-dark"
-                        href={`/community/${followedCommunity.slug}`}
+                        href={`/c/${followedCommunity.slug}`}
                       >
                         {followedCommunity.name}
                       </Link>
@@ -146,7 +146,7 @@ const CommunitiesDropdown: FC<Props> = ({ community }) => {
                   <MenuItem key={topCommunity.id}>
                     <Link
                       className="flex items-center justify-start whitespace-nowrap rounded p-2.5  text-left capitalize no-underline hover:bg-blue-200-dark"
-                      href={`/community/${topCommunity.slug}/`}
+                      href={`/c/${topCommunity.slug}/`}
                     >
                       {topCommunity.name}
                     </Link>

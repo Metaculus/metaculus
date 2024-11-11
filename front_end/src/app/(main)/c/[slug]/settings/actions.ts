@@ -6,6 +6,6 @@ import ProjectsApi, { CommunityUpdateParams } from "@/services/projects";
 
 export async function updateCommunity(id: number, data: CommunityUpdateParams) {
   const response = await ProjectsApi.updateCommunity(id, data);
-  revalidatePath(`/community/${data.slug}/settings`);
+  revalidatePath(`/c/${data.slug}/settings`);
   return response;
 }

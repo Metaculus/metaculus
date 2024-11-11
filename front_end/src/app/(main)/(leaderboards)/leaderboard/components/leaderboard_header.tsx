@@ -133,7 +133,7 @@ const LeaderboardHeader: FC<Props> = ({ filters }) => {
           {t("liveLeaderboardDisclaimer")}
         </div>
       )}
-      {category === "peer" && Number(year) + Number(duration) < 2024 && (
+      {category === "peer" && Number(year) + Number(duration) <= 2024 && (
         <div className="max-w-3xl px-5 py-2 text-center text-xs font-normal text-gray-700 dark:text-gray-700-dark sm:py-0">
           {t.rich("legacyPeerDisclaimer", {
             link: (chunks) => (

@@ -86,7 +86,7 @@ const CommunitySettings: FC<Props> = ({ community }) => {
         // If slug has been changed
         if (community.slug !== data.slug) {
           router.replace(
-            `/community/${data.slug}/settings/?mode=${CommunitySettingsMode.Settings}`
+            `/c/${data.slug}/settings/?mode=${CommunitySettingsMode.Settings}`
           );
         }
         reset(responseData);

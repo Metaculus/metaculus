@@ -7,6 +7,9 @@ import { FC } from "react";
 import LocalDaytime from "@/components/ui/local_daytime";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 
+import IncludeBotsInfo from "./question_info/include_bots_info";
+import QuestionWeightInfo from "./question_info/question_weight_info";
+
 type Props = {
   postData: PostWithForecasts;
 };
@@ -17,7 +20,7 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
   const isUpcoming = new Date(postData.open_time).getTime() > Date.now();
   return (
     <div className="flex flex-col items-start gap-4 self-stretch @container">
-      <div className="flex flex-col justify-between gap-3 self-stretch @lg:grid @lg:grid-cols-4 @lg:gap-1">
+      <div className="flex flex-col justify-between gap-3 self-stretch @lg:grid @lg:grid-cols-4 @lg:gap-1 @lg:gap-y-5">
         <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
           <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
             {t("authorWithCount", { count: postData.coauthors.length > 0 })}:
@@ -77,27 +80,12 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
           </span>
         </div>
 
-        {postData.question && postData.question.question_weight !== 1.0 && (
-          <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
-            <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
-              {t("questionWeight")}:
-            </span>
-            <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-              {postData.question.question_weight}
-            </span>
-          </div>
-        )}
-
-        {postData.question?.include_bots_in_aggregates && (
-          <div className="flex justify-between gap-4 @lg:flex-col @lg:justify-start @lg:gap-1">
-            <span className="text-xs font-medium uppercase text-gray-700 dark:text-gray-700-dark">
-              {t("includeBots")}:
-            </span>
-            <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
-              {t("Yes")}
-            </span>
-          </div>
-        )}
+        <QuestionWeightInfo
+          questionWeight={postData.question?.question_weight}
+        />
+        <IncludeBotsInfo
+          includeBotsInAggregate={postData.question?.include_bots_in_aggregates}
+        />
       </div>
     </div>
   );

@@ -25,6 +25,7 @@ const CommunityFilters: FC<Props> = ({ community }) => {
   const defaultStatus = PostStatus.OPEN;
   const questionStatuses: GroupButton<PostStatus>[] = [
     { label: t("live"), value: PostStatus.OPEN },
+    { label: t("Upcoming"), value: PostStatus.UPCOMING },
     { label: t("closed"), value: PostStatus.CLOSED },
     { label: t("resolved"), value: PostStatus.RESOLVED },
   ];
@@ -42,8 +43,8 @@ const CommunityFilters: FC<Props> = ({ community }) => {
     navigateToSearchParams();
   };
   return (
-    <div className="mx-0 my-3 flex flex-wrap items-center gap-2">
-      <div className="flex flex-1 gap-2">
+    <div className="mx-0 my-3 flex flex-col flex-wrap items-start gap-2 md:flex-row md:items-center">
+      <div className="flex flex-1 flex-col gap-2 md:flex-row">
         <ButtonGroup
           value={status}
           buttons={questionStatuses}
