@@ -7,7 +7,8 @@ import { FC } from "react";
 import LocalDaytime from "@/components/ui/local_daytime";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 
-import SidebarTooltip from "./sidebar_tooltip";
+import IncludeBotsInfo from "./question_info/include_bots_info";
+import QuestionWeightInfo from "./question_info/question_weight_info";
 
 type Props = {
   postData: PostWithForecasts;
@@ -88,15 +89,8 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
               <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
                 {Math.round(postData.question.question_weight * 100)}%
               </span>
-              <SidebarTooltip
-                tooltipContent={t.rich("questionWeightTooltip", {
-                  count: postData.question.question_weight - 1 < 0 ? 1 : 2,
-                  weight: Math.round(postData.question.question_weight * 100),
-                  weightDiff: Math.round(
-                    Math.abs(1 - postData.question.question_weight) * 100
-                  ),
-                  bold: (chunks) => <span className="font-bold">{chunks}</span>,
-                })}
+              <QuestionWeightInfo
+                questionWeight={postData.question.question_weight}
               />
             </span>
           </div>
@@ -111,18 +105,7 @@ const SidebarQuestionInfo: FC<Props> = ({ postData }) => {
               <span className="text-sm font-medium leading-4 text-gray-900 dark:text-gray-900-dark">
                 {t("Yes")}
               </span>
-              <SidebarTooltip
-                tooltipContent={t.rich("includeBotsTooltip", {
-                  link: (chunks) => (
-                    <Link
-                      href={"/aib"}
-                      className="inline-block text-sm font-medium leading-5 text-blue-700 dark:text-blue-700-dark"
-                    >
-                      {chunks}
-                    </Link>
-                  ),
-                })}
-              />
+              <IncludeBotsInfo />
             </span>
           </div>
         )}
