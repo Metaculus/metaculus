@@ -1,8 +1,10 @@
 from django.contrib.auth.models import AnonymousUser
 
+from posts.models import Post
 from projects.models import Project
 from projects.permissions import ObjectPermission
 from tests.unit.fixtures import *  # noqa
+from tests.unit.test_posts.factories import factory_post
 from tests.unit.test_projects.factories import factory_project
 from tests.unit.test_users.factories import factory_user
 
@@ -100,3 +102,35 @@ def test_get_users_for_permission(user1, user2):
             "id", flat=True
         )
     ) == {user2.pk}
+
+
+def test_annotate_posts_count(
+    user1,
+):
+    project = factory_project()
+
+    factory_post(
+        author=user1,
+        default_project=project,
+        curation_status=Post.CurationStatus.APPROVED,
+    )
+    factory_post(
+        author=user1,
+        default_project=factory_project(),
+        projects=[project],
+        curation_status=Post.CurationStatus.APPROVED,
+    )
+    factory_post(
+        author=user1, default_project=project, curation_status=Post.CurationStatus.DRAFT
+    )
+    factory_post(
+        author=user1,
+        default_project=factory_project(),
+        projects=[project],
+        curation_status=Post.CurationStatus.PENDING,
+    )
+
+    assert (
+        Project.objects.filter(pk=project.pk).annotate_posts_count().first().posts_count
+        == 2
+    )
