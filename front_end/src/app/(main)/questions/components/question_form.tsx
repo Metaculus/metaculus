@@ -7,8 +7,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 
@@ -24,12 +23,7 @@ import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
 import { useAuth } from "@/contexts/auth_context";
-import {
-  Category,
-  Post,
-  PostWithForecasts,
-  ProjectPermissions,
-} from "@/types/post";
+import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
@@ -56,7 +50,8 @@ type PostCreationData = {
 };
 
 export const createQuestionSchemas = (
-  t: ReturnType<typeof useTranslations>
+  t: ReturnType<typeof useTranslations>,
+  post: PostWithForecasts | null
 ) => {
   const baseQuestionSchema = z.object({
     type: z.enum(["binary", "multiple_choice", "date", "numeric"]),
@@ -81,6 +76,38 @@ export const createQuestionSchemas = (
     }),
     resolution_criteria: z.string().min(1, { message: t("errorRequired") }),
     fine_print: z.string(),
+    open_time: z.nullable(z.date().optional()).refine(
+      (value) => {
+        if (!post) {
+          return true;
+        }
+
+        if (post.status !== PostStatus.APPROVED) {
+          return true;
+        }
+
+        return !!value;
+      },
+      {
+        message: t("errorRequired"),
+      }
+    ),
+    cp_reveal_time: z.nullable(z.date().optional()).refine(
+      (value) => {
+        if (!post) {
+          return true;
+        }
+
+        if (post.status !== PostStatus.APPROVED) {
+          return true;
+        }
+
+        return !!value;
+      },
+      {
+        message: t("errorRequired"),
+      }
+    ),
     scheduled_close_time: z.date(),
     scheduled_resolve_time: z.date(),
     default_project: z.nullable(z.union([z.number(), z.string()])),
@@ -251,7 +278,7 @@ const QuestionForm: FC<Props> = ({
     post?.projects.category ? post?.projects.category : ([] as Category[])
   );
 
-  const schemas = createQuestionSchemas(t);
+  const schemas = createQuestionSchemas(t, post);
   const getFormSchema = (type: string) => {
     switch (type) {
       case "binary":
@@ -271,10 +298,12 @@ const QuestionForm: FC<Props> = ({
     mode: "all",
     resolver: zodResolver(getFormSchema(questionType)),
   });
-
   if (questionType) {
     control.setValue("type", questionType);
   }
+
+  const isEditingActivePost =
+    mode == "edit" && post?.curation_status == PostStatus.APPROVED;
 
   return (
     <main className="mb-4 mt-2 flex max-w-4xl flex-col justify-center self-center rounded-none bg-gray-0 px-4 pb-5 pt-4 dark:bg-gray-0-dark md:m-8 md:mx-auto md:rounded-md md:px-8 md:pb-8 lg:m-12 lg:mx-auto">
@@ -422,6 +451,63 @@ const QuestionForm: FC<Props> = ({
             />
           </InputContainer>
         </div>
+        {isEditingActivePost && (
+          <div className="flex w-full flex-col gap-4 md:flex-row">
+            <InputContainer labelText={t("openTime")} className="w-full gap-2">
+              <Input
+                readOnly={hasForecasts}
+                type="datetime-local"
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                {...control.register("open_time", {
+                  setValueAs: (value: string) => {
+                    if (value === "" || value == null) {
+                      return null;
+                    }
+
+                    return new Date(value);
+                  },
+                })}
+                errors={control.formState.errors.open_time}
+                defaultValue={
+                  post?.question?.open_time
+                    ? format(
+                        new Date(post.question.open_time),
+                        "yyyy-MM-dd'T'HH:mm"
+                      )
+                    : undefined
+                }
+              />
+            </InputContainer>
+            <InputContainer
+              labelText={t("cpRevealTime")}
+              className="w-full gap-2"
+            >
+              <Input
+                readOnly={hasForecasts}
+                type="datetime-local"
+                className="w-full rounded border border-gray-500 px-3 py-2 text-base dark:border-gray-500-dark dark:bg-blue-50-dark"
+                {...control.register("cp_reveal_time", {
+                  setValueAs: (value: string) => {
+                    if (value === "" || value == null) {
+                      return null;
+                    }
+
+                    return new Date(value);
+                  },
+                })}
+                errors={control.formState.errors.cp_reveal_time}
+                defaultValue={
+                  post?.question?.cp_reveal_time
+                    ? format(
+                        new Date(post.question.cp_reveal_time),
+                        "yyyy-MM-dd'T'HH:mm"
+                      )
+                    : undefined
+                }
+              />
+            </InputContainer>
+          </div>
+        )}
         {(questionType === QuestionType.Date ||
           questionType === QuestionType.Numeric) && (
           <NumericQuestionInput
