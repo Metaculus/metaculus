@@ -43,9 +43,25 @@ class ProjectsQuerySet(models.QuerySet):
         return self.filter(type=Project.ProjectTypes.COMMUNITY)
 
     def annotate_posts_count(self):
+        from posts.models import Post
+
         return self.annotate(
-            posts_count=Coalesce(SubqueryAggregate("posts__id", aggregate=Count), 0)
-            + Coalesce(SubqueryAggregate("default_posts__id", aggregate=Count), 0)
+            posts_count=Coalesce(
+                SubqueryAggregate(
+                    "posts__id",
+                    filter=Q(post__curation_status=Post.CurationStatus.APPROVED),
+                    aggregate=Count,
+                ),
+                0,
+            )
+            + Coalesce(
+                SubqueryAggregate(
+                    "default_posts__id",
+                    filter=Q(curation_status=Post.CurationStatus.APPROVED),
+                    aggregate=Count,
+                ),
+                0,
+            )
         )
 
     def annotate_is_subscribed(self, user: User):
