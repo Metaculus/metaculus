@@ -474,7 +474,10 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         return continuous_cdf
 
     def validate(self, data):
-        question = Question.objects.get(id=data["question"])
+        question_id = data.get("question")
+        if not question_id:
+            raise serializers.ValidationError("question is required")
+        question = Question.objects.get(id=question_id)
 
         probability_yes = data.get("probability_yes")
         probability_yes_per_category = data.get("probability_yes_per_category")
