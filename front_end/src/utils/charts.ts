@@ -254,7 +254,7 @@ export function displayValue(
     // TODO add truncation to abbreviatedNumber
     return abbreviatedNumber(value, precision);
   } else {
-    return `${Math.round(value * 100)}%`;
+    return `${Math.round(value * 1000) / 10}%`;
   }
 }
 
