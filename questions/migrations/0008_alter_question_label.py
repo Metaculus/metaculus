@@ -26,6 +26,7 @@ def migrate(apps, schema_editor):
 
     Question.objects.bulk_update(bulk_update, fields=["label"])
 
+
 class Migration(migrations.Migration):
     dependencies = [
         ("questions", "0007_question_question_weight"),
