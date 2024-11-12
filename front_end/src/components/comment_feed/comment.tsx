@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { sendGAEvent } from "@next/third-parties/google";
 import classNames from "classnames";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { FC, useState, useEffect, useRef } from "react";
 
 import {
@@ -150,7 +150,6 @@ const Comment: FC<CommentProps> = ({
   postData,
   lastViewedAt,
 }) => {
-  const locale = useLocale();
   const t = useTranslations();
   const commentRef = useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -406,6 +405,9 @@ const Comment: FC<CommentProps> = ({
                 if (response && "errors" in response) {
                   console.error(t("errorDeletingComment"), response.errors);
                 } else {
+                  setCommentMarkdown(
+                    parseUserMentions(commentMarkdown, comment.mentioned_users)
+                  );
                   setIsEditing(false);
                 }
               }}
