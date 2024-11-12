@@ -174,7 +174,7 @@ const NumericForecastTable: FC<Props> = ({
   );
 };
 
-function checkQuartilesOutOfBorders(quartile: number | null | undefined) {
+function checkQuartilesOutOfBorders(quartile: number | undefined) {
   return quartile === 0 ? "<" : quartile === 1 ? ">" : null;
 }
 

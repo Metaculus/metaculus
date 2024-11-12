@@ -17,8 +17,8 @@ const CandleBar: FC<Candle> = ({ quartiles, color }) => {
         className="absolute h-0.5 -translate-y-1/2"
         style={{
           top: "50%",
-          width: `${(upper90 ?? 0) - (lower10 ?? 0)}%`,
-          left: `${lower10 ?? 0}%`,
+          width: `${upper90 - lower10}%`,
+          left: `${lower10}%`,
           backgroundColor: color,
         }}
       />
@@ -27,8 +27,8 @@ const CandleBar: FC<Candle> = ({ quartiles, color }) => {
       <div
         className="absolute top-0 h-full "
         style={{
-          width: `${(upper75 ?? 0) - (lower10 ?? 0)}%`,
-          left: `${lower25 ?? 0}%`,
+          width: `${upper75 - lower10}%`,
+          left: `${lower25}%`,
           backgroundColor: color,
         }}
       />
@@ -37,7 +37,7 @@ const CandleBar: FC<Candle> = ({ quartiles, color }) => {
       <div
         className="absolute top-0 h-full w-1"
         style={{
-          left: `${lower10 ?? 0}%`,
+          left: `${lower10}%`,
           backgroundColor: color,
         }}
       />
@@ -46,7 +46,7 @@ const CandleBar: FC<Candle> = ({ quartiles, color }) => {
       <div
         className="absolute top-0 h-full w-1"
         style={{
-          left: `${upper90 ?? 0}%`,
+          left: `${upper90}%`,
           backgroundColor: color,
         }}
       />
@@ -56,7 +56,7 @@ const CandleBar: FC<Candle> = ({ quartiles, color }) => {
         className="absolute size-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
         style={{
           top: "50%",
-          left: `${median ?? 0}%`,
+          left: `${median}%`,
         }}
       />
     </div>
@@ -67,10 +67,7 @@ const normalizeQuartileValues = (
   quartiles: ExtendedQuartiles
 ): ExtendedQuartiles =>
   Object.fromEntries(
-    Object.entries(quartiles).map(([key, value]) => [
-      key,
-      value === null ? null : value * 100,
-    ])
+    Object.entries(quartiles).map(([key, value]) => [key, value * 100])
   ) as ExtendedQuartiles;
 
 export default CandleBar;
