@@ -26,7 +26,6 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
   );
 
   const leaderboard = contributionsDetails.leaderboard;
-  console.log(leaderboard);
 
   return (
     <SectionToggle
