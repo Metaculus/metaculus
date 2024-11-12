@@ -93,8 +93,7 @@ const CommentEditor: FC<CommentEditorProps> = ({
       setMarkdown("");
       updateRerenderKey((prev) => prev + 1); // completely reset mdx editor
       // TODO: revisit after BE changes
-      // onSubmit && onSubmit(parseComment(newComment));
-      onSubmit && onSubmit(newCommentData);
+      onSubmit && onSubmit(parseComment(newCommentData));
     } finally {
       setIsLoading(false);
     }

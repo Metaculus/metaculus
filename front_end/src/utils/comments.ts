@@ -1,6 +1,8 @@
 import { AuthorType, BECommentType, CommentType } from "@/types/comment";
 
-export function parseComment(comment: BECommentType): CommentType {
+export function parseComment(
+  comment: BECommentType | CommentType
+): CommentType {
   return {
     id: comment.id,
     parent_id: comment.parent_id,
