@@ -416,6 +416,63 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             )
         return values
 
+    def continuous_validation(self, continuous_cdf, question: Question):
+        if continuous_cdf is None:
+            raise serializers.ValidationError(
+                "continuous_cdf is required for continuous questions"
+            )
+        continuous_cdf = np.round(continuous_cdf, 10).tolist()
+        errors = ""
+        inbound_pmf = np.round(
+            [
+                continuous_cdf[i + 1] - continuous_cdf[i]
+                for i in range(len(continuous_cdf) - 1)
+            ],
+            10,
+        )
+        if len(continuous_cdf) != 201:
+            errors += "continuous_cdf must have 201 values.\n"
+        min_diff = 0.01 / 200  # 0.00005
+        if not all(inbound_pmf >= min_diff):
+            errors += (
+                "continuous_cdf must be increasing by at least "
+                f"{min_diff} at every step.\n"
+            )
+        max_diff = 0.59  # derived empirically from slider positions
+        if not all(inbound_pmf <= max_diff):
+            errors += (
+                "continuous_cdf must be increasing by no more than "
+                f"{max_diff} at every step.\n"
+            )
+        if question.open_lower_bound:
+            if not continuous_cdf[0] >= 0.001:
+                errors += (
+                    "continuous_cdf at lower bound must be at least 0.001"
+                    " due to lower bound being open.\n"
+                )
+        else:
+            if not continuous_cdf[0] == 0.00:
+                errors += (
+                    "continuous_cdf at lower bound must be 0.00"
+                    " due to lower bound being closed.\n"
+                )
+        if question.open_upper_bound:
+            if not continuous_cdf[-1] <= 0.999:
+                errors += (
+                    "continuous_cdf at upper bound must be at most 0.999"
+                    " due to upper bound being open.\n"
+                )
+        else:
+            if not continuous_cdf[-1] == 1.00:
+                errors += (
+                    "continuous_cdf at upper bound must be 1.00"
+                    " due to upper bound being closed.\n"
+                )
+        if errors:
+            raise serializers.ValidationError("CDF Invalid:\n" + errors)
+
+        return continuous_cdf
+
     def validate(self, data):
         question = Question.objects.get(id=data["question"])
 
@@ -432,69 +489,20 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         elif question.type == Question.QuestionType.MULTIPLE_CHOICE:
             if probability_yes or continuous_cdf:
                 raise serializers.ValidationError(
-                    "Only probability_yes_per_category should be provided for multiple choice questions"
+                    "Only probability_yes_per_category should be "
+                    "provided for multiple choice questions"
                 )
             data["probability_yes_per_category"] = self.multiple_choice_validation(
                 probability_yes_per_category, question.options
             )
-        else:
-            # Continuous question
+        else:  # Continuous question
             if probability_yes or probability_yes_per_category:
                 raise serializers.ValidationError(
-                    "Probability values should not be provided for continuous questions"
+                    "Only continuous_cdf should be provided for continuous questions"
                 )
-            if continuous_cdf is None:
-                raise serializers.ValidationError(
-                    "continuous_cdf is required for continuous questions"
-                )
-            continuous_cdf = np.round(continuous_cdf, 10).tolist()
-            data["continuous_cdf"] = continuous_cdf
-            errors = ""
-            inbound_pmf = np.round(
-                [
-                    continuous_cdf[i + 1] - continuous_cdf[i]
-                    for i in range(len(continuous_cdf) - 1)
-                ],
-                10,
+            data["continuous_cdf"] = self.continuous_validation(
+                continuous_cdf, question
             )
-            min_diff = 0.01 / 200  # 0.00005
-            if not all(inbound_pmf >= min_diff):
-                errors += (
-                    "continuous_cdf must be increasing by at least "
-                    f"{min_diff} at every step.\n"
-                )
-            max_diff = 0.59  # derived empirically from slider positions
-            if not all(inbound_pmf <= max_diff):
-                errors += (
-                    "continuous_cdf must be increasing by no more than "
-                    f"{max_diff} at every step.\n"
-                )
-            if question.open_lower_bound:
-                if not continuous_cdf[0] >= 0.001:
-                    errors += (
-                        "continuous_cdf at lower bound must be at least 0.001"
-                        " due to lower bound being open.\n"
-                    )
-            else:
-                if not continuous_cdf[0] == 0.00:
-                    errors += (
-                        "continuous_cdf at lower bound must be 0.00"
-                        " due to lower bound being closed.\n"
-                    )
-            if question.open_upper_bound:
-                if not continuous_cdf[-1] <= 0.999:
-                    errors += (
-                        "continuous_cdf at upper bound must be at most 0.999"
-                        " due to upper bound being open.\n"
-                    )
-            else:
-                if not continuous_cdf[-1] == 1.00:
-                    errors += (
-                        "continuous_cdf at upper bound must be 1.00"
-                        " due to upper bound being closed.\n"
-                    )
-            if errors:
-                raise serializers.ValidationError("CDF Invalid:\n" + errors)
 
         return data
 
