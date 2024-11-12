@@ -118,7 +118,7 @@ const NumericForecastTable: FC<Props> = ({
                 {[...Array(3)].map((_, i) => {
                   return <div key={i}>...</div>;
                 })}
-                {question.open_lower_bound && <div>...</div>}
+                {question.open_upper_bound && <div>...</div>}
               </>
             )}
           </div>
