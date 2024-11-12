@@ -42,7 +42,7 @@ export function parseUserMentions(
       }
 
       const cleanedUsername = (group2 || group3).replace(/[@()]/g, "");
-      switch (cleanedUsername) {
+      switch (cleanedUsername.toLowerCase()) {
         case "moderators":
           return `[@${cleanedUsername}](/faq/#moderators-tag)`;
         case "predictors":

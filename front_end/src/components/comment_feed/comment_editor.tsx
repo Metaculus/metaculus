@@ -4,7 +4,7 @@ import { sendGAEvent } from "@next/third-parties/google";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 
-import { createComment } from "@/app/(main)/questions/actions";
+import { createComment, getComments } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
@@ -76,13 +76,25 @@ const CommentEditor: FC<CommentEditorProps> = ({
         setErrorMessage(newComment.errors?.message);
         return;
       }
-
-      setIsEditing(true);
+      // TODO: remove when BE data will include mentioned users in comment creation response
+      const newCommentResponse = await getComments({
+        focus_comment_id: String(newComment.id),
+        limit: 1,
+        sort: "-created_at",
+      });
+      if ("errors" in newCommentResponse) {
+        console.error(newCommentResponse.errors?.message);
+        setErrorMessage(newCommentResponse.errors?.message);
+        return;
+      }
+      const newCommentData = newCommentResponse.results[0];
       setIsPrivateComment(isPrivate ?? false);
       setHasIncludedForecast(false);
       setMarkdown("");
       updateRerenderKey((prev) => prev + 1); // completely reset mdx editor
-      onSubmit && onSubmit(parseComment(newComment));
+      // TODO: revisit after BE changes
+      // onSubmit && onSubmit(parseComment(newComment));
+      onSubmit && onSubmit(newCommentData);
     } finally {
       setIsLoading(false);
     }

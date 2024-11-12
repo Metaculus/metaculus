@@ -295,8 +295,10 @@ const CommentFeed: FC<Props> = ({
         <CommentEditor
           shouldIncludeForecast={includeUserForecast}
           postId={postId}
-          onSubmit={() =>
-            handleFilterChange("sort", "-created_at", true, false)
+          onSubmit={
+            //TODO: revisit after BE changes
+            (newComment) =>
+              setComments((prevComments) => [newComment, ...prevComments])
           }
         />
       )}

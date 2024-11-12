@@ -15,6 +15,7 @@ import {
   softDeleteComment,
   editComment,
   createForecasts,
+  getComments,
 } from "@/app/(main)/questions/actions";
 import { CommentDate } from "@/components/comment_feed/comment_date";
 import CommentEditor from "@/components/comment_feed/comment_editor";
@@ -60,7 +61,7 @@ const CommentChildrenTree: FC<CommentChildrenTreeProps> = ({
   function getTreeSize(commentChildren: CommentType[]): number {
     let totalChildren = 0;
     commentChildren.forEach((comment) => {
-      if (comment.children.length === 0) {
+      if (!comment.children || comment.children?.length === 0) {
         // count just this parent comment with no children
         totalChildren += 1;
       } else {
@@ -299,7 +300,7 @@ const Comment: FC<CommentProps> = ({
           {t("commentDeleted")}
         </div>
 
-        {comment.children.length > 0 && (
+        {comment.children?.length > 0 && (
           <CommentChildrenTree
             commentChildren={comment.children}
             treeDepth={treeDepth + 1}
@@ -405,9 +406,30 @@ const Comment: FC<CommentProps> = ({
                 if (response && "errors" in response) {
                   console.error(t("errorDeletingComment"), response.errors);
                 } else {
-                  setCommentMarkdown(
-                    parseUserMentions(commentMarkdown, comment.mentioned_users)
-                  );
+                  // TODO: remove once comment edit BE data include mentioned_users
+                  const newCommentDataResponse = await getComments({
+                    focus_comment_id: String(comment.id),
+                    sort: "-created_at",
+                  });
+                  if (
+                    newCommentDataResponse &&
+                    "errors" in newCommentDataResponse
+                  ) {
+                    console.error(
+                      t("errorDeletingComment"),
+                      newCommentDataResponse.errors
+                    );
+                  } else {
+                    const newCommentData = newCommentDataResponse.results.find(
+                      (q) => q.id === comment.id
+                    );
+                    setCommentMarkdown(
+                      parseUserMentions(
+                        commentMarkdown,
+                        newCommentData?.mentioned_users
+                      )
+                    );
+                  }
                   setIsEditing(false);
                 }
               }}
@@ -494,7 +516,7 @@ const Comment: FC<CommentProps> = ({
         />
       )}
 
-      {comment.children.length > 0 && (
+      {comment.children?.length > 0 && (
         <CommentChildrenTree
           commentChildren={comment.children}
           expandedChildren={!onProfile}
