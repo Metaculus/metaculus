@@ -390,7 +390,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
                 aboveUpper: 1 - communityCdf[communityCdf.length - 1],
               }
             }
-            communityQuartiles={activeGroupOption.communityQuartiles}
+            communityQuartiles={
+              activeGroupOption.communityQuartiles ?? undefined
+            }
             withUserQuartiles={activeGroupOption.resolution === null}
             withCommunityQuartiles={!user || !hideCP}
             isDirty={activeGroupOption.isDirty}
@@ -458,11 +460,11 @@ function generateGroupOptions(
         ),
         userForecast: getSliderValue(prevForecast),
         userWeights: getWeightsValue(prevWeights),
-        communityQuartiles: computeQuartilesFromCDF(
-          q.aggregations.recency_weighted.latest
-            ? q.aggregations.recency_weighted.latest.forecast_values
-            : []
-        ),
+        communityQuartiles: q.aggregations.recency_weighted.latest
+          ? computeQuartilesFromCDF(
+              q.aggregations.recency_weighted.latest.forecast_values
+            )
+          : null,
         resolution: q.resolution,
         isDirty: false,
         menu: (
