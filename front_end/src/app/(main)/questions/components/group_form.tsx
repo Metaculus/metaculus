@@ -26,13 +26,7 @@ import {
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
-import {
-  Category,
-  Post,
-  PostStatus,
-  PostWithForecasts,
-  ProjectPermissions,
-} from "@/types/post";
+import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
@@ -606,8 +600,8 @@ const GroupForm: React.FC<Props> = ({
                         onChange={(
                           range_min,
                           range_max,
-                          openLowerBound,
                           openUpperBound,
+                          openLowerBound,
                           zeroPoint
                         ) => {
                           setSubQuestions(
