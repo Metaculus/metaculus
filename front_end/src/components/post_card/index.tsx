@@ -36,6 +36,7 @@ const PostCard: FC<Props> = ({ post }) => {
               authorUsername={post.author_username}
               curationStatus={post.status}
               hideCP={hideCP}
+              forecasters={post.nr_forecasters}
             />
           )}
           {!!post.group_of_questions && (
@@ -44,6 +45,7 @@ const PostCard: FC<Props> = ({ post }) => {
               curationStatus={post.status}
               post={post}
               hideCP={hideCP}
+              forecasters={post.nr_forecasters}
             />
           )}
           {!!post.conditional && (
@@ -51,6 +53,7 @@ const PostCard: FC<Props> = ({ post }) => {
               postTitle={post.title}
               conditional={post.conditional}
               curationStatus={post.status}
+              forecasters={post.nr_forecasters}
             />
           )}
           {!!post.notebook && <NotebookTile notebook={post.notebook} />}
