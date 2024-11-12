@@ -60,14 +60,14 @@ export type Bounds = {
 };
 
 export type Quartiles = {
-  median: number | null;
-  lower25: number | null;
-  upper75: number | null;
+  median: number;
+  lower25: number;
+  upper75: number;
 };
 
 export type ExtendedQuartiles = Quartiles & {
-  lower10: number | null;
-  upper90: number | null;
+  lower10: number;
+  upper90: number;
 };
 
 export type Forecast = {

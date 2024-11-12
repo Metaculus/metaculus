@@ -134,7 +134,7 @@ export function computeQuartilesFromCDF(
         return (i - 1 + adjustedPercentile) / (cdf.length - 1);
       }
     }
-    return null;
+    return 1;
   }
 
   const median = findPercentile(cdf, 50);
