@@ -360,7 +360,7 @@ export function getDisplayUserValue(
   } else if (qType === QuestionType.Numeric) {
     return abbreviatedNumber(scaledValue);
   } else {
-    return `${Math.round(scaledValue * 100)}%`;
+    return `${Math.round(scaledValue * 1000) / 10}%`;
   }
 }
 
