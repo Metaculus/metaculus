@@ -32,7 +32,7 @@ export default async function AboutPage() {
   ];
   return (
     <div className="prose container mx-auto my-0 max-w-6xl rounded bg-transparent p-3.5 pt-2 dark:bg-blue-900 dark:bg-transparent md:my-10 md:px-6 md:py-4 [&_a:hover]:text-blue-800 [&_a:hover]:underline [&_a:hover]:dark:text-blue-200 [&_a]:text-blue-700 [&_a]:dark:text-blue-400 [&_h1]:mb-4 [&_hr]:border-gray-300 [&_hr]:dark:border-blue-700">
-      <div className="xl:mb-80">
+      <div>
         <h1 className="mt-8 text-center text-4xl md:mt-6 md:text-left md:text-5xl">
           {t.rich("aboutMetaculusTitle", {
             blue: (chunks) => <span className="text-blue-600">{chunks}</span>,
@@ -42,7 +42,7 @@ export default async function AboutPage() {
           {t("aboutMetaculusDescription")}
         </p>
       </div>
-      <AboutHeader className="text-metac-blue-800 dark:text-metac-blue-800-dark absolute top-40 hidden xl:block" />
+      <AboutHeader className="text-metac-blue-800 dark:text-metac-blue-800-dark -mt-40 hidden xl:block" />
       <div className="my-10 md:my-20">
         <div className="grid gap-2 xs:grid-cols-2 lg:grid-cols-4">
           {numbers.map(({ title, number }) => (
