@@ -14,20 +14,28 @@ import {
 
 import MarkdownEditor from "@/components/markdown_editor";
 import { QuestionType } from "@/types/question";
-import { CategoryKey, Contribution, LeaderboardEntry } from "@/types/scoring";
+import {
+  CategoryKey,
+  Contribution,
+  LeaderboardEntry,
+  LeaderboardType,
+} from "@/types/scoring";
 import { abbreviatedNumber } from "@/utils/number_formatters";
+import { isUnsuccessfullyResolved } from "@/utils/questions";
 
-type SortingColumn = "score" | "title" | "type";
+type SortingColumn = "score" | "coverage" | "title" | "type";
 type SortingDirection = "asc" | "desc";
 
 type Props = {
   category: CategoryKey;
+  leaderboardType: LeaderboardType;
   leaderboardEntry: LeaderboardEntry;
   contributions: Contribution[];
 };
 
 const ContributionsTable: FC<Props> = ({
   category,
+  leaderboardType,
   leaderboardEntry,
   contributions,
 }) => {
@@ -41,7 +49,11 @@ const ContributionsTable: FC<Props> = ({
       setSortingDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortingColumn(column);
-      setSortingDirection("asc");
+      if (["score", "coverage"].includes(column)) {
+        setSortingDirection("desc");
+      } else {
+        setSortingDirection("asc");
+      }
     }
   };
 
@@ -61,6 +73,10 @@ const ContributionsTable: FC<Props> = ({
             return sortingDirection === "asc"
               ? a.question_type!.localeCompare(b.question_type!)
               : b.question_type!.localeCompare(a.question_type!);
+          case "coverage":
+            return sortingDirection === "asc"
+              ? (a.coverage ?? 0) - (b.coverage ?? 0)
+              : (b.coverage ?? 0) - (a.coverage ?? 0);
           default:
             return 0;
         }
@@ -113,6 +129,9 @@ const ContributionsTable: FC<Props> = ({
           >
             {abbreviatedNumber(totalScore, 4, false)}
           </InfoHeaderTd>
+          {leaderboardType === "peer_global" && (
+            <InfoHeaderTd className="w-24 font-medium leading-4 max-sm:hidden" />
+          )}
           <InfoHeaderTd className="w-full font-medium">
             {category === "baseline" && t("totalScore")}
             {category === "peer" && t("weightedAverageScore")}
@@ -134,6 +153,17 @@ const ContributionsTable: FC<Props> = ({
               <SortArrow isAsc={sortingDirection === "asc"} />
             )}
           </HeaderTd>
+          {leaderboardType === "peer_global" && (
+            <HeaderTd
+              className="w-20"
+              onClick={() => handleSortChange("coverage")}
+            >
+              {t("coverage")}
+              {sortingColumn === "coverage" && (
+                <SortArrow isAsc={sortingDirection === "asc"} />
+              )}
+            </HeaderTd>
+          )}
           <HeaderTd
             className="w-full"
             onClick={() => handleSortChange("title")}
@@ -177,6 +207,13 @@ const ContributionsTable: FC<Props> = ({
             >
               {getScoreLabel(contribution)}
             </td>
+            {leaderboardType === "peer_global" && (
+              <td className="w-20 py-1.5 text-sm font-medium leading-4">
+                {!!contribution.coverage
+                  ? (contribution.coverage * 100).toFixed(1) + "%"
+                  : "0%"}
+              </td>
+            )}
             <td className="truncate px-4 py-1.5 text-sm font-medium leading-4">
               {["peer", "baseline"].includes(category) && (
                 <Link
@@ -265,8 +302,7 @@ const SortArrow: FC<{ isAsc: boolean }> = ({ isAsc }) => (
 
 const getIsResolved = (contribution: Contribution) =>
   !!contribution.question_resolution &&
-  (contribution.question_resolution !== "ambiguous" ??
-    contribution.question_resolution !== "annulled");
+  !isUnsuccessfullyResolved(contribution.question_resolution);
 
 const getCommentSummary = (markdown: string) => {
   if ([">", "*"].includes(markdown[0])) {

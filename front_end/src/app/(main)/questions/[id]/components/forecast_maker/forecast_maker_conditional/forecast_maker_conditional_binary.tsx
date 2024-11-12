@@ -8,7 +8,6 @@ import { createForecasts } from "@/app/(main)/questions/actions";
 import Button from "@/components/ui/button";
 import { FormErrorMessage } from "@/components/ui/form_field";
 import { useAuth } from "@/contexts/auth_context";
-import { useModal } from "@/contexts/modal_context";
 import { ErrorResponse } from "@/types/fetch";
 import { Post, PostConditional } from "@/types/post";
 import {
@@ -23,6 +22,7 @@ import BinarySlider, { BINARY_FORECAST_PRECISION } from "../binary_slider";
 import ConditionalForecastTable, {
   ConditionalTableOption,
 } from "../conditional_forecast_table";
+import PredictButton from "../predict_button";
 import ScoreDisplay from "../resolution/score_display";
 
 type Props = {
@@ -49,10 +49,10 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
   const t = useTranslations();
   const { user } = useAuth();
   const { hideCP } = useHideCP();
-  const { setCurrentModal } = useModal();
 
   const prevYesForecastValue = extractPrevBinaryForecastValue(prevYesForecast);
   const prevNoForecastValue = extractPrevBinaryForecastValue(prevNoForecast);
+  const hasUserForecast = !!prevYesForecastValue || !!prevNoForecastValue;
 
   const { condition, condition_child, question_yes, question_no } = conditional;
   const questionYesId = question_yes.id;
@@ -96,13 +96,9 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
     [questionOptions]
   );
   const questionsToSubmit = useMemo(
-    () =>
-      questionOptions.filter(
-        (option) => option.isDirty && option.value !== null
-      ),
+    () => questionOptions.filter((option) => option.value !== null),
     [questionOptions]
   );
-  const submitIsAllowed = !isSubmitting && !!questionsToSubmit.length;
 
   const copyForecastButton = useMemo(() => {
     if (!activeTableOption) return null;
@@ -283,54 +279,53 @@ const ForecastMakerConditionalBinary: FC<Props> = ({
             {t(predictionMessage)}
           </div>
         )}
-        {canPredict &&
-          (user ? (
-            <>
-              <Button
-                variant="secondary"
-                type="reset"
-                onClick={
-                  copyForecastButton
-                    ? () =>
-                        copyForecast(
-                          copyForecastButton.fromQuestionId,
-                          copyForecastButton.toQuestionId
-                        )
-                    : undefined
-                }
-                disabled={!copyForecastButton}
-              >
-                {copyForecastButton?.label ?? "Copy from Child"}
-              </Button>
-              <Button
-                variant="secondary"
-                type="reset"
-                onClick={resetForecasts}
-                disabled={!isPickerDirty}
-              >
-                {t("discardChangesButton")}
-              </Button>
-              <Button
-                variant="primary"
-                type="submit"
-                onClick={handlePredictSubmit}
-                disabled={!submitIsAllowed}
-              >
-                {t("saveChange")}
-              </Button>
-            </>
-          ) : (
-            <Button
-              variant="primary"
-              type="button"
-              onClick={() => setCurrentModal({ type: "signup" })}
-            >
-              {t("signUpToPredict")}
-            </Button>
-          ))}
+        {canPredict && (
+          <>
+            {!!user && (
+              <>
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={
+                    copyForecastButton
+                      ? () =>
+                          copyForecast(
+                            copyForecastButton.fromQuestionId,
+                            copyForecastButton.toQuestionId
+                          )
+                      : undefined
+                  }
+                  disabled={!copyForecastButton}
+                >
+                  {copyForecastButton?.label ?? "Copy from Child"}
+                </Button>
+                <Button
+                  variant="secondary"
+                  type="reset"
+                  onClick={resetForecasts}
+                  disabled={!isPickerDirty}
+                >
+                  {t("discardChangesButton")}
+                </Button>
+              </>
+            )}
+
+            <PredictButton
+              onSubmit={handlePredictSubmit}
+              isDirty={isPickerDirty}
+              hasUserForecast={hasUserForecast}
+              isPending={isSubmitting}
+              isDisabled={!questionsToSubmit.length}
+            />
+          </>
+        )}
       </div>
       {submitErrors.map((errResponse, index) => (
-        <FormErrorMessage key={`error-${index}`} errors={errResponse} />
+        <FormErrorMessage
+          className="flex justify-center"
+          key={`error-${index}`}
+          errors={errResponse}
+        />
       ))}
       {activeQuestion && <ScoreDisplay question={activeQuestion} />}
     </>

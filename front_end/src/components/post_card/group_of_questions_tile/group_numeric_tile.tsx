@@ -70,6 +70,7 @@ const GroupNumericTile: FC<Props> = ({
             height={CHART_HEIGHT}
             pointSize={8}
             hideCP={hideCP}
+            withTooltip={false}
           />
         </div>
       </div>
@@ -102,7 +103,8 @@ const GroupNumericTile: FC<Props> = ({
         userForecasts={
           user
             ? generateUserForecasts(
-                sortedQuestions as QuestionWithNumericForecasts[]
+                sortedQuestions as QuestionWithNumericForecasts[],
+                scaling
               )
             : undefined
         }

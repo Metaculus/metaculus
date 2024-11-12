@@ -134,4 +134,4 @@ const Creator: React.FC<{ searchParams: SearchParams }> = async ({
   );
 };
 
-export default WithServerComponentErrorBoundary(Creator);
+export default Creator;

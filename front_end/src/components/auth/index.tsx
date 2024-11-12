@@ -53,6 +53,14 @@ const NavUserButton: FC = () => {
             {t("settings")}
           </Link>
         </MenuItem>
+        <MenuItem>
+          <Link
+            className="flex items-center justify-center whitespace-nowrap px-4 py-1.5 capitalize no-underline hover:bg-blue-400-dark lg:items-end lg:justify-end lg:px-6 lg:text-right lg:hover:bg-blue-200-dark"
+            href={"/?start_onboarding=true"}
+          >
+            {t("tutorial")}
+          </Link>
+        </MenuItem>
         {user.is_superuser && (
           <MenuItem>
             <Link

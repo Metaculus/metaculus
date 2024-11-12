@@ -5,6 +5,7 @@ import {
   VictoryArea,
   VictoryAxis,
   VictoryChart,
+  VictoryContainer,
   VictoryLabel,
   VictoryLine,
   VictoryScatter,
@@ -140,7 +141,15 @@ const FanChart: FC<Props> = ({
                   }
                 }}
               />
-            ) : undefined
+            ) : (
+              <VictoryContainer
+                style={{
+                  pointerEvents: "auto",
+                  userSelect: "auto",
+                  touchAction: "auto",
+                }}
+              />
+            )
           }
           events={[
             {

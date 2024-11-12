@@ -12,7 +12,6 @@ from migrator.services.migrate_forecasts import (
     migrate_metaculus_predictions,
 )
 from migrator.services.migrate_leaderboards import (
-    create_global_leaderboards,
     populate_global_leaderboards,
     populate_project_leaderboards,
 )
@@ -28,12 +27,12 @@ from migrator.services.migrate_users import migrate_users
 from migrator.services.migrate_votes import migrate_votes
 from migrator.services.post_migrate import (
     post_migrate_calculate_divergence,
-    post_migrate_update_post_fields, post_migrate_show_on_homepage,
+    post_migrate_update_post_fields,
+    post_migrate_show_on_homepage,
 )
 from migrator.utils import reset_sequence
 from posts.jobs import job_compute_movement
 from posts.services.common import compute_hotness
-from scoring.models import populate_medal_exclusion_records
 
 
 def print_duration(text, task_start, global_start) -> datetime:
@@ -113,12 +112,6 @@ class Command(BaseCommand):
         task_start = print_duration("Migrated archived scores", task_start, start)
         score_questions(start_id=options["start_score_questions_with_id"])
         task_start = print_duration("Scored questions", task_start, start)
-        populate_medal_exclusion_records()
-        task_start = print_duration(
-            "Populated medal exclusion records", task_start, start
-        )
-        create_global_leaderboards()
-        task_start = print_duration("Created global leaderboards", task_start, start)
         populate_global_leaderboards()
         task_start = print_duration("Populated global leaderboards", task_start, start)
         populate_project_leaderboards()

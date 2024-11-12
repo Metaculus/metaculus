@@ -6,8 +6,8 @@ import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import Button from "@/app/(main)/about/components/Button";
 import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
+import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
 import PredictionChip from "@/components/prediction_chip";
 import { PostConditional, PostStatus } from "@/types/post";
@@ -15,6 +15,7 @@ import { QuestionWithForecasts } from "@/types/question";
 import {
   getConditionalQuestionTitle,
   getConditionTitle,
+  isUnsuccessfullyResolved,
 } from "@/utils/questions";
 
 import ConditionalCard from "./conditional_card";
@@ -41,7 +42,7 @@ const ConditionalTile: FC<Props> = ({
   withCPRevealBtn,
 }) => {
   const t = useTranslations();
-  const { hideCP, setCurrentHideCP } = useHideCP();
+  const { hideCP } = useHideCP();
   const { condition, condition_child, question_yes, question_no } = conditional;
   const isEmbedded = !!chartTheme;
 
@@ -60,13 +61,9 @@ const ConditionalTile: FC<Props> = ({
     ? new Date(condition.actual_close_time).getTime() < Date.now()
     : false;
   const yesHappened = condition.resolution === "yes";
-  const yesDisabled =
-    question_yes.resolution === "annulled" ||
-    question_yes.resolution === "ambiguous";
+  const yesDisabled = isUnsuccessfullyResolved(question_yes.resolution);
   const noHappened = condition.resolution === "no";
-  const noDisabled =
-    question_no.resolution === "annulled" ||
-    question_no.resolution === "ambiguous";
+  const noDisabled = isUnsuccessfullyResolved(question_no.resolution);
 
   useEffect(() => {
     if (
@@ -170,14 +167,7 @@ const ConditionalTile: FC<Props> = ({
           </ConditionalCard>
         </div>
       </div>
-      {withCPRevealBtn && hideCP && (
-        <div className="text-center">
-          <div className="text-l m-4">{t("CPIsHidden")}</div>
-          <Button onClick={() => setCurrentHideCP(false)}>
-            {t("RevealTemporarily")}
-          </Button>
-        </div>
-      )}
+      {withCPRevealBtn && hideCP && <RevealCPButton />}
     </>
   );
 };

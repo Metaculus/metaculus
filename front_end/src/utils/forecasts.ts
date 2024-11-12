@@ -50,24 +50,6 @@ export function extractPrevBinaryForecastValue(
   return typeof prevForecast === "number" ? round(prevForecast * 100, 1) : null;
 }
 
-export function extractPrevMultipleChoicesForecastValue(
-  prevForecast: any
-): Record<string, number> | null {
-  if (typeof prevForecast !== "object" || isNil(prevForecast)) {
-    return null;
-  }
-
-  const result: Record<string, number> = {};
-  for (const key in prevForecast) {
-    if (typeof prevForecast[key] !== "number") {
-      continue;
-    }
-    result[key] = prevForecast[key];
-  }
-
-  return Object.keys(result).length === 0 ? null : result;
-}
-
 export function extractPrevNumericForecastValue(prevForecast: any): {
   forecast?: MultiSliderValue[];
   weights?: number[];
@@ -124,7 +106,10 @@ export function getNumericForecastDataset(
         : upperOpen
           ? (F: number, x: number) => 0.989 * F + 0.01 * x
           : (F: number, x: number) => 0.99 * F + 0.01 * x;
-  cdf = cdf.map((F, index) => cdfOffset(F, index / (cdf.length - 1)));
+  cdf = cdf.map(
+    (F, index) =>
+      Math.round(cdfOffset(F, index / (cdf.length - 1)) * 1e10) / 1e10
+  );
 
   return {
     cdf: cdf,

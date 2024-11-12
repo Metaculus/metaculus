@@ -23,6 +23,7 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   );
   const [step2Prediction, setStep2Prediction] = useState(50);
   const [step3Prediction, setStep3Prediction] = useState(50);
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
   const router = useRouter();
 
   const modalContentRef = useRef<HTMLDivElement>(null);
@@ -39,7 +40,8 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
         selectedTopic !== null &&
         (currentStep === 2 || currentStep === 3 || currentStep === 4)
       ) {
-        const questionIndex = currentStep === 4 ? 1 : currentStep - 2; // 0 for step 2, 1 for steps 3 and 4
+        setIsLoadingQuestion(true);
+        const questionIndex = currentStep === 4 ? 1 : currentStep - 2;
         const questionId =
           onboardingTopics[selectedTopic].questions[questionIndex];
         try {
@@ -47,6 +49,8 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
           setQuestionData(data);
         } catch (error) {
           console.error("Error fetching question data:", error);
+        } finally {
+          setIsLoadingQuestion(false);
         }
       }
     }
@@ -103,6 +107,7 @@ const OnboardingModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
             questionData={questionData}
             prediction={step3Prediction}
             onPredictionChange={setStep3Prediction}
+            isLoading={isLoadingQuestion}
           />
         );
       case 4:

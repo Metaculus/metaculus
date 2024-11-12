@@ -136,7 +136,7 @@ export async function draftPost(postId: number, defaultProject: Tournament) {
 
   if (defaultProject.type === TournamentType.Community) {
     return redirect(
-      `/community/${defaultProject.slug}/settings/?mode=questions&status=pending`
+      `/c/${defaultProject.slug}/settings/?mode=questions&status=pending`
     );
   }
 
