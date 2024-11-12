@@ -271,16 +271,16 @@ function buildChartData(options: FanOption[]) {
     for (const option of options) {
       line.push({
         x: option.name,
-        y: option.quartiles.median,
+        y: option.quartiles.median ?? 0,
       });
       area.push({
         x: option.name,
-        y0: option.quartiles.lower25,
-        y: option.quartiles.upper75,
+        y0: option.quartiles.lower25 ?? 0,
+        y: option.quartiles.upper75 ?? 0,
       });
       points.push({
         x: option.name,
-        y: option.quartiles.median,
+        y: option.quartiles.median ?? 0,
         resolved: false,
       });
       if (option.resolved) {
@@ -296,19 +296,22 @@ function buildChartData(options: FanOption[]) {
       // scale up the values to nominal values
       // then unscale by the derived scaling
       const median = unscaleNominalLocation(
-        scaleInternalLocation(option.quartiles.median, option.question.scaling),
+        scaleInternalLocation(
+          option.quartiles.median ?? 0,
+          option.question.scaling
+        ),
         scaling
       );
       const lower25 = unscaleNominalLocation(
         scaleInternalLocation(
-          option.quartiles.lower25,
+          option.quartiles.lower25 ?? 0,
           option.question.scaling
         ),
         scaling
       );
       const upper75 = unscaleNominalLocation(
         scaleInternalLocation(
-          option.quartiles.upper75,
+          option.quartiles.upper75 ?? 0,
           option.question.scaling
         ),
         scaling

@@ -346,15 +346,15 @@ function generateNumericAreaGraph(data: {
   const quantiles = computeQuartilesFromCDF(cdf);
   verticalLines.push(
     {
-      x: quantiles.lower25,
+      x: quantiles.lower25 ?? 0,
       y: interpolateYValue(quantiles.lower25, graph),
     },
     {
-      x: quantiles.median,
+      x: quantiles.median ?? 0,
       y: interpolateYValue(quantiles.median, graph),
     },
     {
-      x: quantiles.upper75,
+      x: quantiles.upper75 ?? 0,
       y: interpolateYValue(quantiles.upper75, graph),
     }
   );

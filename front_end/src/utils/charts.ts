@@ -265,13 +265,13 @@ export function displayValue(
  * Accepts a Question or the individual parameters of a Question
  */
 export function getDisplayValue(
-  value: number | undefined,
+  value: number | null | undefined,
   questionType: QuestionType,
   scaling: Scaling,
   precision?: number,
   truncation?: number
 ): string {
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     return "...";
   }
   const scaledValue = scaleInternalLocation(value, scaling);
@@ -729,7 +729,8 @@ export const getClosestYValue = (xValue: number, line: Line) => {
   return p2.y;
 };
 
-export const interpolateYValue = (xValue: number, line: Line) => {
+export const interpolateYValue = (xValue: number | null, line: Line) => {
+  if (xValue === null) return 0;
   const i = findLastIndex(line, (point) => point.x <= xValue);
   const p1 = line[i];
   const p2 = line[i + 1];
