@@ -4,11 +4,10 @@ import { FC, useMemo } from "react";
 
 import {
   getFilterSectionParticipation,
+  getFilterSectionPostStatus,
   getFilterSectionPostType,
   getFilterSectionUsername,
-  POST_STATUS_LABEL_MAP,
 } from "@/app/(main)/questions/helpers/filters";
-import { FilterOptionType } from "@/components/popover_filter/types";
 import PostsFilters from "@/components/posts_filters";
 import { GroupButton } from "@/components/ui/button_group";
 import { POST_STATUS_FILTER } from "@/constants/posts_feed";
@@ -25,21 +24,16 @@ const MainFeedFilters: FC = () => {
   const filters = useMemo(() => {
     const filters = [
       getFilterSectionPostType({ t, params }),
-      {
-        id: POST_STATUS_FILTER,
-        title: t("questionStatus"),
-        type: FilterOptionType.MultiChip,
-        options: [
+      getFilterSectionPostStatus({
+        statuses: [
           PostStatus.OPEN,
           PostStatus.CLOSED,
           PostStatus.RESOLVED,
           PostStatus.UPCOMING,
-        ].map((status) => ({
-          label: POST_STATUS_LABEL_MAP[status],
-          value: status,
-          active: params.getAll(POST_STATUS_FILTER).includes(status),
-        })),
-      },
+        ],
+        t,
+        params,
+      }),
       getFilterSectionUsername({ t, params }),
     ];
     if (user) {
