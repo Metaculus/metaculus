@@ -117,7 +117,12 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
   const questionsToSubmit = useMemo(
-    () => groupOptions.filter((option) => option.userForecast !== null),
+    () =>
+      groupOptions.filter(
+        (option) =>
+          option.userForecast !== null &&
+          option.question.status === QuestionStatus.OPEN
+      ),
     [groupOptions]
   );
   const isPickerDirty = useMemo(
@@ -253,6 +258,9 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
         errors.push(response_errors);
       }
     }
+    if (response && "error" in response && !!response.error) {
+      errors.push(response.error);
+    }
     if (errors.length) {
       setSubmitErrors(errors);
     }
@@ -308,7 +316,7 @@ const ForecastMakerGroupContinuous: FC<Props> = ({
                 handleChange(option.id, forecast, weight)
               }
               disabled={
-                !canPredict || option.question.status != QuestionStatus.OPEN
+                !canPredict || option.question.status !== QuestionStatus.OPEN
               }
             />
           </div>
