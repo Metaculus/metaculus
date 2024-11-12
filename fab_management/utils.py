@@ -18,6 +18,7 @@ from users.models import User
 from projects.models import Project
 from questions.models import Question
 from posts.models import Post
+from posts.tasks import run_post_indexing
 
 logger = logging.getLogger(__name__)
 
@@ -142,6 +143,7 @@ def submit_questions(
                 scheduled_resolve_time=question.scheduled_resolve_time,
             )
             post.save()
+            run_post_indexing.send(post.id)
             log_info(f"   - added question [{question.title}] to {tournament.name}")
         if dry_run:
             transaction.set_rollback(True)
