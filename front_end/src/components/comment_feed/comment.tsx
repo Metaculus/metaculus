@@ -198,7 +198,10 @@ const Comment: FC<CommentProps> = ({
     postData?.question?.my_forecasts?.latest?.forecast_values[1] ?? 0.5;
 
   const isCmmButtonVisible =
-    user?.id !== comment.author.id && !!postData?.question;
+    user?.id !== comment.author.id &&
+    (!!postData?.question ||
+      !!postData?.group_of_questions ||
+      !!postData?.conditional);
   const isCmmButtonDisabled = !user || !userCanPredict;
   // TODO: find a better way to dedect whether on mobile or not. For now we need to know in JS
   // too and can't use tw classes

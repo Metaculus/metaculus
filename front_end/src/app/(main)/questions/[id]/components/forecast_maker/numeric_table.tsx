@@ -82,6 +82,7 @@ const NumericForecastTable: FC<Props> = ({
                   </div>
                 )}
                 <div>
+                  {checkQuartilesOutOfBorders(userQuartiles?.lower25)}
                   {getDisplayValue(
                     userQuartiles?.lower25,
                     question.type,
@@ -90,6 +91,7 @@ const NumericForecastTable: FC<Props> = ({
                   )}
                 </div>
                 <div>
+                  {checkQuartilesOutOfBorders(userQuartiles?.median)}
                   {getDisplayValue(
                     userQuartiles?.median,
                     question.type,
@@ -98,6 +100,7 @@ const NumericForecastTable: FC<Props> = ({
                   )}
                 </div>
                 <div>
+                  {checkQuartilesOutOfBorders(userQuartiles?.upper75)}
                   {getDisplayValue(
                     userQuartiles?.upper75,
                     question.type,
@@ -115,7 +118,7 @@ const NumericForecastTable: FC<Props> = ({
                 {[...Array(3)].map((_, i) => {
                   return <div key={i}>...</div>;
                 })}
-                {question.open_lower_bound && <div>...</div>}
+                {question.open_upper_bound && <div>...</div>}
               </>
             )}
           </div>
@@ -131,6 +134,7 @@ const NumericForecastTable: FC<Props> = ({
               </div>
             )}
             <div>
+              {checkQuartilesOutOfBorders(communityQuartiles?.lower25)}
               {getDisplayValue(
                 communityQuartiles?.lower25,
                 question.type,
@@ -139,6 +143,7 @@ const NumericForecastTable: FC<Props> = ({
               )}
             </div>
             <div>
+              {checkQuartilesOutOfBorders(communityQuartiles?.median)}
               {getDisplayValue(
                 communityQuartiles?.median,
                 question.type,
@@ -147,6 +152,7 @@ const NumericForecastTable: FC<Props> = ({
               )}
             </div>
             <div>
+              {checkQuartilesOutOfBorders(communityQuartiles?.upper75)}
               {getDisplayValue(
                 communityQuartiles?.upper75,
                 question.type,
@@ -167,5 +173,9 @@ const NumericForecastTable: FC<Props> = ({
     </>
   );
 };
+
+function checkQuartilesOutOfBorders(quartile: number | undefined) {
+  return quartile === 0 ? "<" : quartile === 1 ? ">" : null;
+}
 
 export default NumericForecastTable;

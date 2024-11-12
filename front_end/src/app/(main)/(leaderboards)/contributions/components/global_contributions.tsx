@@ -27,10 +27,10 @@ const GlobalContributions: FC<Props> = async ({
     startTime,
     endTime,
   });
-
   return (
     <ContributionsTable
       category={category}
+      leaderboardType={leaderboardType}
       leaderboardEntry={contributionsDetails.leaderboard_entry}
       contributions={contributionsDetails.contributions}
     />

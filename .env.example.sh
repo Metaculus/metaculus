@@ -1,6 +1,6 @@
 export SENTRY_DNS=""
 # General
-export SECRET_KEY="your developer secret keu"
+export SECRET_KEY="your developer secret key"
 export FRONTEND_BASE_URL="https://yourdomain.com"
 export NEXT_PUBLIC_APP_URL="https://yourdomain.com"
 export MAILGUN_API_KEY="your mailgun API key"

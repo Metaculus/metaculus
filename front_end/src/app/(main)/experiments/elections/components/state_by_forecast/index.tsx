@@ -13,7 +13,6 @@ import { StateByForecastItem } from "@/types/experiments";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithForecasts } from "@/types/question";
 import { getDisplayValue } from "@/utils/charts";
-import { extractQuestionGroupName } from "@/utils/questions";
 
 import MiddleVotesArrow from "./middle_votes_arrow";
 import StateByForecastCharts from "./state_by_forecast_charts";
@@ -144,7 +143,7 @@ const getStateByItems = (
   >(
     (acc, q) => ({
       ...acc,
-      [extractQuestionGroupName(q.title).toLowerCase()]: q,
+      [q.label.toLowerCase()]: q,
     }),
     {}
   );

@@ -16,13 +16,19 @@ const ContinuousPredictionChart = dynamic(
 );
 
 const NumericQuestionInput: React.FC<{
-  onChange: (
-    min: number,
-    max: number,
-    open_upper_bound: boolean,
-    open_lower_bound: boolean,
-    zero_point: number | null
-  ) => void;
+  onChange: ({
+    min,
+    max,
+    open_upper_bound,
+    open_lower_bound,
+    zero_point,
+  }: {
+    min: number;
+    max: number;
+    open_upper_bound: boolean;
+    open_lower_bound: boolean;
+    zero_point: number | null;
+  }) => void;
   questionType: QuestionType.Numeric | QuestionType.Date;
   defaultMin: number | undefined;
   defaultMax: number | undefined;
@@ -142,13 +148,13 @@ const NumericQuestionInput: React.FC<{
   const isMounted = useRef(false);
   useEffect(() => {
     if (!isMounted.current) {
-      onChange(
-        min as number,
-        max as number,
-        openUpperBound,
-        openLowerBound,
-        zeroPoint
-      );
+      onChange({
+        min: min as number,
+        max: max as number,
+        open_lower_bound: openLowerBound,
+        open_upper_bound: openUpperBound,
+        zero_point: zeroPoint,
+      });
 
       isMounted.current = true;
       return;
@@ -157,13 +163,13 @@ const NumericQuestionInput: React.FC<{
     if (!ok) {
       return;
     }
-    onChange(
-      min as number,
-      max as number,
-      openUpperBound,
-      openLowerBound,
-      zeroPoint
-    );
+    onChange({
+      min: min as number,
+      max: max as number,
+      open_lower_bound: openLowerBound,
+      open_upper_bound: openUpperBound,
+      zero_point: zeroPoint,
+    });
     setQuestion((prevQuestion) => ({
       ...prevQuestion,
       open_upper_bound: openUpperBound,

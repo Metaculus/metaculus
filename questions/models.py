@@ -115,7 +115,7 @@ class Question(TimeStampedModel):
     possibilities = models.JSONField(null=True, blank=True)
 
     # Group
-    label = models.TextField(blank=True, null=True)
+    label = models.TextField(blank=True, null=False)
     group: "GroupOfQuestions" = models.ForeignKey(
         "GroupOfQuestions",
         null=True,

@@ -69,8 +69,8 @@ const QuestionResolutionModal: FC<Props> = ({ isOpen, onClose, question }) => {
     if (question.type === "binary") {
       return [
         ...baseQuestionOptions,
-        { value: "yes", label: "yes" },
-        { value: "no", label: "no" },
+        { value: "yes", label: "Yes" },
+        { value: "no", label: "No" },
       ];
     }
 

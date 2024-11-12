@@ -166,15 +166,19 @@ export function getFilterSectionPostType({
 export function getFilterSectionPostStatus({
   t,
   params,
+  statuses,
 }: {
   t: ReturnType<typeof useTranslations>;
   params: URLSearchParams;
+  statuses?: PostStatus[];
 }): FilterSection {
+  const options = statuses ?? Object.values(PostStatus);
+
   return {
     id: POST_STATUS_FILTER,
     title: t("questionStatus"),
     type: FilterOptionType.MultiChip,
-    options: Object.values(PostStatus).map((status) => ({
+    options: options.map((status) => ({
       label: POST_STATUS_LABEL_MAP[status],
       value: status,
       active: params.getAll(POST_STATUS_FILTER).includes(status),
@@ -261,112 +265,6 @@ const mapForecastTypeOptions = (
     value: type,
     active: params.getAll(POST_TYPE_FILTER).includes(type),
   }));
-
-export function getPostsFilters({
-  tags,
-  user,
-  t,
-  params,
-  categories,
-}: {
-  t: ReturnType<typeof useTranslations>;
-  params: URLSearchParams;
-  categories: Category[];
-  tags: Tag[];
-  user: CurrentUser | null;
-}): FilterSection[] {
-  const filters: FilterSection[] = [
-    getFilterSectionPostType({ t, params }),
-    getFilterSectionPostStatus({ t, params }),
-    {
-      id: POST_CATEGORIES_FILTER,
-      title: t("category"),
-      type: FilterOptionType.Combobox,
-      options: categories.map((category) => ({
-        label: category.name,
-        value: category.slug,
-        active: params.getAll(POST_CATEGORIES_FILTER).includes(category.slug),
-      })),
-      chipColor: getFilterChipColor(POST_CATEGORIES_FILTER),
-    },
-    {
-      id: POST_TAGS_FILTER,
-      title: t("tags"),
-      type: FilterOptionType.Combobox,
-      options: tags.map((tag) => ({
-        label: tag.name,
-        value: tag.slug,
-        active: params.getAll(POST_TAGS_FILTER).includes(tag.slug),
-      })),
-      chipColor: getFilterChipColor(POST_TAGS_FILTER),
-      chipFormat: (value) => t("tagFilter", { tag: value.toLowerCase() }),
-      shouldEnforceSearch: true,
-    },
-    getFilterSectionUsername({ t, params }),
-  ];
-
-  if (user) {
-    filters.push({
-      id: "userFilters",
-      title: t("myParticipation"),
-      type: FilterOptionType.ToggleChip,
-      options: [
-        {
-          id: POST_FORECASTER_ID_FILTER,
-          label: t("predicted"),
-          value: user.id.toString(),
-          active: !!params.get(POST_FORECASTER_ID_FILTER),
-        },
-        {
-          id: POST_NOT_FORECASTER_ID_FILTER,
-          label: t("notPredicted"),
-          value: user.id.toString(),
-          active: !!params.get(POST_NOT_FORECASTER_ID_FILTER),
-        },
-        {
-          id: POST_AUTHOR_FILTER,
-          label: t("authored"),
-          value: user.id.toString(),
-          active: !!params.get(POST_AUTHOR_FILTER),
-        },
-        {
-          id: POST_UPVOTED_BY_FILTER,
-          label: t("upvoted"),
-          value: user.id.toString(),
-          active: !!params.get(POST_UPVOTED_BY_FILTER),
-        },
-        {
-          id: POST_COMMENTED_BY_FILTER,
-          label: t("moderating"),
-          value: user.id.toString(),
-          active: !!params.get(POST_COMMENTED_BY_FILTER),
-        },
-      ],
-    });
-  }
-
-  filters.push({
-    id: POST_ACCESS_FILTER,
-    title: t("visibility"),
-    type: FilterOptionType.ToggleChip,
-    options: [
-      {
-        id: POST_ACCESS_FILTER,
-        label: t("public"),
-        value: "public",
-        active: params.get(POST_ACCESS_FILTER) === "public",
-      },
-      {
-        id: POST_ACCESS_FILTER,
-        label: t("private"),
-        value: "private",
-        active: params.get(POST_ACCESS_FILTER) === "private",
-      },
-    ],
-  });
-
-  return filters;
-}
 
 export function getMainOrderOptions(
   t: ReturnType<typeof useTranslations>

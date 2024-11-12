@@ -35,7 +35,6 @@ import {
 } from "@/types/question";
 import { ThemeColor } from "@/types/theme";
 import { extractPrevBinaryForecastValue } from "@/utils/forecasts";
-import { extractQuestionGroupName } from "@/utils/questions";
 
 import ForecastMakerGroupControls from "./forecast_maker_group_menu";
 import { SLUG_POST_SUB_QUESTION_ID } from "../../../search_params";
@@ -132,7 +131,11 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
   const questionsToSubmit = useMemo(
-    () => questionOptions.filter((option) => option.forecast !== null),
+    () =>
+      questionOptions.filter(
+        (option) =>
+          option.forecast !== null && option.status === QuestionStatus.OPEN
+      ),
     [questionOptions]
   );
 
@@ -196,6 +199,9 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         errors.push(response_errors);
       }
     }
+    if (response && "error" in response && !!response.error) {
+      errors.push(response.error);
+    }
     if (errors.length) {
       setSubmitErrors(errors);
     }
@@ -248,7 +254,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
               disabled={
-                !canPredict || questionOption.status != QuestionStatus.OPEN
+                !canPredict || questionOption.status !== QuestionStatus.OPEN
               }
               optionResolution={{
                 resolution: questionOption.resolution,
@@ -319,7 +325,7 @@ function generateChoiceOptions(
   return questions.map((question, index) => {
     return {
       id: question.id,
-      name: extractQuestionGroupName(question.title),
+      name: question.label,
       communityForecast:
         question.aggregations.recency_weighted.latest?.centers![0] ?? null,
       forecast: prevForecastValuesMap[question.id] ?? null,

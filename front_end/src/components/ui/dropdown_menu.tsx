@@ -20,6 +20,7 @@ interface DropdownMenuProps extends React.PropsWithChildren {
   items: MenuItemProps[];
   textAlign?: "left" | "right";
   itemClassName?: string;
+  className?: string;
 }
 
 const defaultButton = (
@@ -38,13 +39,17 @@ export default function DropdownMenu({
   children = defaultButton,
   textAlign = "right",
   itemClassName,
+  className,
 }: DropdownMenuProps) {
   return (
     <Menu as="div" className="relative text-gray-900 dark:text-gray-900-dark">
       <MenuButton as={Fragment}>{children}</MenuButton>
       <MenuItems
         as="div"
-        className="absolute right-0 z-50 mt-1 flex origin-top-right flex-col overflow-y-auto rounded border border-gray-500 bg-gray-0 text-sm drop-shadow-lg dark:border-gray-500-dark dark:bg-gray-0-dark"
+        className={clsx(
+          "absolute right-0 z-50 mt-1 flex origin-top-right flex-col overflow-y-auto rounded border border-gray-500 bg-gray-0 text-sm drop-shadow-lg dark:border-gray-500-dark dark:bg-gray-0-dark",
+          className
+        )}
       >
         {items
           .filter((x) => x.hidden !== true)

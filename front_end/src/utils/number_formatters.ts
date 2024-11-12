@@ -18,7 +18,24 @@ export function toScientificNotation(
     mantissa = mantissa.replace(/(\.\d*?[1-9])0+$|\.0*$/, "$1");
   }
   if (pow !== 0) {
-    return `${mantissa}e${pow}`;
+    const superscriptDigits: { [key: string]: string } = {
+      "-": "⁻",
+      "0": "⁰",
+      "1": "¹",
+      "2": "²",
+      "3": "³",
+      "4": "⁴",
+      "5": "⁵",
+      "6": "⁶",
+      "7": "⁷",
+      "8": "⁸",
+      "9": "⁹",
+    };
+    const exponentStr = String(pow)
+      .split("")
+      .map((char) => superscriptDigits[char] || char)
+      .join("");
+    return `${mantissa}×10${exponentStr}`;
   }
   return mantissa;
 }
@@ -51,7 +68,7 @@ export function abbreviatedNumber(
     suffix = "k";
     val /= 1e3;
     leadingNumbers = pow - 2;
-  } else if (pow >= 0) {
+  } else if (pow >= -3) {
     leadingNumbers = pow + 1;
   }
   return (

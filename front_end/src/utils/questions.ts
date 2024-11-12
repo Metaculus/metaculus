@@ -31,11 +31,6 @@ import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { formatDate } from "./date_formatters";
 
-export function extractQuestionGroupName(title: string) {
-  const match = title.match(/\(([^()]*(?:\([^()]*\)[^()]*)*)\)[^()]*$/);
-  return (match ? match[1] : title) || title;
-}
-
 export function extractPostResolution(post: Post): Resolution | null {
   if (post.question) {
     return post.question.resolution;
@@ -239,7 +234,7 @@ export function getPredictionQuestion(
     .map((q) => ({
       ...q,
       resolvedAt: new Date(q.scheduled_resolve_time),
-      fanName: extractQuestionGroupName(q.title),
+      fanName: q.label,
     }))
     .sort((a, b) => differenceInMilliseconds(a.resolvedAt, b.resolvedAt));
 
@@ -288,7 +283,7 @@ export const generateUserForecasts = (
     const userForecasts = question.my_forecasts;
 
     return {
-      choice: extractQuestionGroupName(question.title),
+      choice: question.label,
       values: userForecasts?.history.map((forecast) =>
         question.type === "binary"
           ? forecast.forecast_values[1]

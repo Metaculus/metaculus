@@ -17,6 +17,7 @@ from projects.serializers.common import (
 from questions.models import Question, AggregateForecast
 from questions.serializers import (
     QuestionWriteSerializer,
+    QuestionUpdateSerializer,
     serialize_question,
     serialize_conditional,
     serialize_group,
@@ -174,6 +175,7 @@ class PostWriteSerializer(serializers.ModelSerializer):
 
 
 class PostUpdateSerializer(PostWriteSerializer):
+    question = QuestionUpdateSerializer(required=False)
     group_of_questions = GroupOfQuestionsUpdateSerializer(required=False)
 
 
@@ -283,7 +285,6 @@ class PostFilterSerializer(SerializerKeyLookupMixin, serializers.Serializer):
         return validate_tournaments(lookup_values=values)
 
     def validate_forecast_type(self, value):
-        print("in validate", value)
         # If the value is passed as a single string, split it by commas
         if isinstance(value, list) and len(value) == 1:
             return [v.strip() for v in value[0].split(",")]

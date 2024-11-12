@@ -26,13 +26,7 @@ import {
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
-import {
-  Category,
-  Post,
-  PostStatus,
-  PostWithForecasts,
-  ProjectPermissions,
-} from "@/types/post";
+import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
@@ -41,7 +35,6 @@ import {
 import { QuestionType } from "@/types/question";
 import { logErrorWithScope } from "@/utils/errors";
 import { getPostLink } from "@/utils/navigation";
-import { extractQuestionGroupName } from "@/utils/questions";
 
 import BacktoCreate from "./back_to_create";
 import CategoryPicker from "./category_picker";
@@ -134,6 +127,7 @@ const GroupForm: React.FC<Props> = ({
         id: x.id,
         type: subtype,
         title: `${data["title"]} (${x.label})`,
+        label: x.label,
         scheduled_close_time: x.scheduled_close_time,
         scheduled_resolve_time: x.scheduled_resolve_time,
         open_time: x.open_time,
@@ -232,7 +226,7 @@ const GroupForm: React.FC<Props> = ({
             scheduled_resolve_time: x.scheduled_resolve_time,
             open_time: x.open_time,
             cp_reveal_time: x.cp_reveal_time,
-            label: extractQuestionGroupName(x.title),
+            label: x.label,
             scaling: x.scaling,
             open_lower_bound: x.open_lower_bound,
             open_upper_bound: x.open_upper_bound,
@@ -603,13 +597,13 @@ const GroupForm: React.FC<Props> = ({
                         hasForecasts={
                           subquestionHasForecasts && mode !== "create"
                         }
-                        onChange={(
-                          range_min,
-                          range_max,
-                          openLowerBound,
-                          openUpperBound,
-                          zeroPoint
-                        ) => {
+                        onChange={({
+                          min: range_min,
+                          max: range_max,
+                          open_lower_bound: openLowerBound,
+                          open_upper_bound: openUpperBound,
+                          zero_point: zeroPoint,
+                        }) => {
                           setSubQuestions(
                             subQuestions.map((subQuestion, iter_index) => {
                               if (index === iter_index) {
