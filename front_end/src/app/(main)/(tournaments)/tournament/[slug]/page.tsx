@@ -52,11 +52,6 @@ export default async function TournamentSlug({ params }: Props) {
 
   const currentUser = await ProfileApi.getMyProfile();
 
-  const [categories, tags] = await Promise.all([
-    ProjectsApi.getCategories(),
-    ProjectsApi.getTags(),
-  ]);
-
   const t = await getTranslations();
   const locale = await getLocale();
   const isQuestionSeries = tournament.type === TournamentType.QuestionSeries;
@@ -156,7 +151,7 @@ export default async function TournamentSlug({ params }: Props) {
               </Button>
             )}
           </div>
-          <TournamentFilters categories={categories} tags={tags} />
+          <TournamentFilters />
           <TournamentFeed slug={params.slug} />
         </section>
       </div>

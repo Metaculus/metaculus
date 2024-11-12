@@ -26,13 +26,7 @@ import {
 import { InputContainer } from "@/components/ui/input_container";
 import LoadingIndicator from "@/components/ui/loading_indicator";
 import { MarkdownText } from "@/components/ui/markdown_text";
-import {
-  Category,
-  Post,
-  PostStatus,
-  PostWithForecasts,
-  ProjectPermissions,
-} from "@/types/post";
+import { Category, Post, PostStatus, PostWithForecasts } from "@/types/post";
 import {
   Tournament,
   TournamentPreview,
@@ -603,13 +597,13 @@ const GroupForm: React.FC<Props> = ({
                         hasForecasts={
                           subquestionHasForecasts && mode !== "create"
                         }
-                        onChange={(
-                          range_min,
-                          range_max,
-                          openLowerBound,
-                          openUpperBound,
-                          zeroPoint
-                        ) => {
+                        onChange={({
+                          min: range_min,
+                          max: range_max,
+                          open_lower_bound: openLowerBound,
+                          open_upper_bound: openUpperBound,
+                          zero_point: zeroPoint,
+                        }) => {
                           setSubQuestions(
                             subQuestions.map((subQuestion, iter_index) => {
                               if (index === iter_index) {

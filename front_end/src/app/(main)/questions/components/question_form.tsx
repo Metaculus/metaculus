@@ -516,13 +516,13 @@ const QuestionForm: FC<Props> = ({
             defaultOpenUpperBound={post?.question?.open_upper_bound}
             defaultZeroPoint={post?.question?.scaling.zero_point}
             hasForecasts={hasForecasts && mode !== "create"}
-            onChange={(
-              rangeMin,
-              rangeMax,
-              openUpperBound,
-              openLowerBound,
-              zeroPoint
-            ) => {
+            onChange={({
+              min: rangeMin,
+              max: rangeMax,
+              open_upper_bound: openUpperBound,
+              open_lower_bound: openLowerBound,
+              zero_point: zeroPoint,
+            }) => {
               control.setValue("scaling", {
                 range_min: rangeMin,
                 range_max: rangeMax,

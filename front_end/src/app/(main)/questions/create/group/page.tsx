@@ -1,9 +1,8 @@
 import CommunityHeader from "@/app/(main)/components/headers/community_header";
 import Header from "@/app/(main)/components/headers/header";
-import WithServerComponentErrorBoundary from "@/components/server_component_error_boundary";
 import ProjectsApi from "@/services/projects";
 import { SearchParams } from "@/types/navigation";
-import { PostWithForecasts, ProjectPermissions } from "@/types/post";
+import { PostWithForecasts } from "@/types/post";
 
 import { getPost } from "../../actions";
 import GroupForm from "../../components/group_form";

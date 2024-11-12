@@ -131,7 +131,11 @@ const ForecastMakerGroupBinary: FC<Props> = ({
 
   const [submitErrors, setSubmitErrors] = useState<ErrorResponse[]>([]);
   const questionsToSubmit = useMemo(
-    () => questionOptions.filter((option) => option.forecast !== null),
+    () =>
+      questionOptions.filter(
+        (option) =>
+          option.forecast !== null && option.status === QuestionStatus.OPEN
+      ),
     [questionOptions]
   );
 
@@ -195,6 +199,9 @@ const ForecastMakerGroupBinary: FC<Props> = ({
         errors.push(response_errors);
       }
     }
+    if (response && "error" in response && !!response.error) {
+      errors.push(response.error);
+    }
     if (errors.length) {
       setSubmitErrors(errors);
     }
@@ -247,7 +254,7 @@ const ForecastMakerGroupBinary: FC<Props> = ({
               isRowDirty={questionOption.isDirty}
               menu={questionOption.menu}
               disabled={
-                !canPredict || questionOption.status != QuestionStatus.OPEN
+                !canPredict || questionOption.status !== QuestionStatus.OPEN
               }
               optionResolution={{
                 resolution: questionOption.resolution,
