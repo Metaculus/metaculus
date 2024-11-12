@@ -265,13 +265,13 @@ export function displayValue(
  * Accepts a Question or the individual parameters of a Question
  */
 export function getDisplayValue(
-  value: number | undefined,
+  value: number | null | undefined,
   questionType: QuestionType,
   scaling: Scaling,
   precision?: number,
   truncation?: number
 ): string {
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     return "...";
   }
   const scaledValue = scaleInternalLocation(value, scaling);
