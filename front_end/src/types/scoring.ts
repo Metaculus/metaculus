@@ -14,7 +14,8 @@ export type LeaderboardType =
   | "spot_peer_tournament"
   | "baseline_global"
   | "comment_insight"
-  | "question_writing";
+  | "question_writing"
+  | "manual";
 
 export enum MedalsPath {
   Leaderboard = "leaderboard",

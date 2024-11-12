@@ -25,6 +25,8 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
       contribution.question_weight && contribution.question_weight !== 1.0
   );
 
+  const leaderboard = contributionsDetails.leaderboard;
+
   return (
     <SectionToggle
       title={t("myScore")}
@@ -38,7 +40,7 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                 {t("Question")}
               </th>
               <th className="p-2 text-right text-sm font-bold">{t("score")}</th>
-              {project.score_type === "relative_legacy_tournament" && (
+              {leaderboard.score_type === "relative_legacy_tournament" && (
                 <th className="p-2 text-right text-sm font-bold">
                   {t("coverage")}
                 </th>
@@ -67,7 +69,7 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                 <td className="px-2 py-1 text-right text-sm font-bold text-orange-800 dark:text-orange-800-dark">
                   {contribution.score ? contribution.score.toFixed(3) : "-"}
                 </td>
-                {project.score_type === "relative_legacy_tournament" && (
+                {leaderboard.score_type === "relative_legacy_tournament" && (
                   <th className="p-2 text-right text-sm font-bold">
                     {contribution.coverage
                       ? `${(contribution.coverage * 100).toFixed(0)}%`
@@ -105,7 +107,7 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                   ? `${contributionsDetails.leaderboard_entry.score.toFixed(2)}`
                   : "-"}
               </td>
-              {project.score_type === "relative_legacy_tournament" && (
+              {leaderboard.score_type === "relative_legacy_tournament" && (
                 <th className="p-2 text-right text-sm font-bold">
                   {contributionsDetails.leaderboard_entry.coverage
                     ? `${(contributionsDetails.leaderboard_entry.coverage * 100).toFixed(2)}%`
@@ -118,18 +120,28 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
       )}
 
       <InfoToggle title={t("scoringTerminology")}>
-        {project.score_type === "manual" ? (
+        {leaderboard.score_type === "manual" ? (
           <dd>{t("manualScoreInfo")}</dd>
         ) : (
           <div className="mt-2">
             <dl className="m-0">
               <div className="m-2 flex text-sm">
                 <dt className="mr-2 w-20 flex-none font-bold">{t("score")}</dt>
-                {project.score_type === "peer_tournament" ? (
+                {leaderboard.score_type === "peer_tournament" ? (
                   <dd>
                     {t.rich("peerScoreInfo", {
                       link: (chunks) => (
                         <Link href={"/help/scores-faq/#peer-score"}>
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </dd>
+                ) : leaderboard.score_type === "spot_peer_tournament" ? (
+                  <dd>
+                    {t.rich("spotPeerScoreInfo", {
+                      link: (chunks) => (
+                        <Link href={"/help/scores-faq/#spot-score"}>
                           {chunks}
                         </Link>
                       ),
@@ -151,11 +163,21 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                 <dt className="mr-2 w-20 flex-none font-bold">
                   {t("totalScore")}
                 </dt>
-                {project.score_type === "peer_tournament" ? (
+                {leaderboard.score_type === "peer_tournament" ? (
                   <dd>
                     {t.rich("totalPeerScoreInfo", {
                       link: (chunks) => (
                         <Link href={"/help/scores-faq/#peer-score"}>
+                          {chunks}
+                        </Link>
+                      ),
+                    })}
+                  </dd>
+                ) : leaderboard.score_type === "spot_peer_tournament" ? (
+                  <dd>
+                    {t.rich("totalSpotPeerScoreInfo", {
+                      link: (chunks) => (
+                        <Link href={"/help/scores-faq/#spot-score"}>
                           {chunks}
                         </Link>
                       ),
@@ -173,7 +195,7 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                   </dd>
                 )}
               </div>
-              {project.score_type === "relative_legacy_tournament" && (
+              {leaderboard.score_type === "relative_legacy_tournament" && (
                 <div className="m-2 flex text-sm">
                   <dt className="mr-2 w-20 flex-none font-bold">
                     {t("coverage")}
@@ -193,8 +215,10 @@ const ProjectContributions: FC<Props> = async ({ project, userId }) => {
                 <dt className="mr-2 w-20 flex-none font-bold">
                   {t("totalTake")}
                 </dt>
-                {project.score_type === "peer_tournament" ? (
+                {leaderboard.score_type === "peer_tournament" ? (
                   <dd>{t("peerTakeInfo")}</dd>
+                ) : leaderboard.score_type === "spot_peer_tournament" ? (
+                  <dd>{t("spotPeerTakeInfo")}</dd>
                 ) : (
                   <dd>{t("relativeTakeInfo")}</dd>
                 )}
