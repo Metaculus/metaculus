@@ -389,6 +389,8 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         )
 
     def binary_validation(self, probability_yes):
+        if probability_yes is None:
+            raise serializers.ValidationError("probability_yes is required")
         probability_yes = float(probability_yes)
         if probability_yes < 0.001 or probability_yes > 0.999:
             raise serializers.ValidationError(
@@ -397,6 +399,10 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
         return probability_yes
 
     def multiple_choice_validation(self, probability_yes_per_category, options):
+        if probability_yes_per_category is None:
+            raise serializers.ValidationError(
+                "probability_yes_per_category is required"
+            )
         if not isinstance(probability_yes_per_category, dict):
             raise serializers.ValidationError("Forecast must be a dictionary")
         if set(probability_yes_per_category.keys()) != set(options):
@@ -436,6 +442,10 @@ class ForecastWriteSerializer(serializers.ModelSerializer):
             if probability_yes or probability_yes_per_category:
                 raise serializers.ValidationError(
                     "Probability values should not be provided for continuous questions"
+                )
+            if continuous_cdf is None:
+                raise serializers.ValidationError(
+                    "continuous_cdf is required for continuous questions"
                 )
             continuous_cdf = np.round(continuous_cdf, 10).tolist()
             data["continuous_cdf"] = continuous_cdf
