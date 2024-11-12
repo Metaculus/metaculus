@@ -4,7 +4,10 @@ import CommentStatus from "@/components/post_card/basic_post_card/comment_status
 import PostVoter from "@/components/post_card/basic_post_card/post_voter";
 import PostStatus from "@/components/post_status";
 import { PostWithForecasts } from "@/types/post";
+import { QuestionType } from "@/types/question";
 import { extractPostResolution } from "@/utils/questions";
+
+import ForecastersCounter from "../../components/forecaster_counter";
 
 type Props = {
   post: PostWithForecasts;
@@ -27,6 +30,13 @@ const QuestionHeaderInfo: FC<Props> = ({ post }) => {
           newCommentsCount={newCommentsCount}
           url={`/questions/${post.id}`}
         />
+        {(post.group_of_questions ||
+          post.question?.type === QuestionType.MultipleChoice) && (
+          <ForecastersCounter
+            forecasters={post.nr_forecasters}
+            className="text-center !text-sm !text-gray-900 dark:!text-gray-900-dark"
+          />
+        )}
       </div>
     </div>
   );

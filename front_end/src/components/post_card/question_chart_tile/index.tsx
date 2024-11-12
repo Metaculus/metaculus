@@ -18,6 +18,7 @@ type Props = {
   authorUsername: string;
   curationStatus: PostStatus | QuestionStatus;
   hideCP?: boolean;
+  forecasters?: number;
 };
 
 const QuestionChartTile: FC<Props> = ({
@@ -25,6 +26,7 @@ const QuestionChartTile: FC<Props> = ({
   authorUsername,
   curationStatus,
   hideCP,
+  forecasters,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -61,6 +63,7 @@ const QuestionChartTile: FC<Props> = ({
           curationStatus={curationStatus}
           defaultChartZoom={defaultChartZoom}
           hideCP={hideCP}
+          forecasters={forecasters}
         />
       );
     case QuestionType.MultipleChoice: {

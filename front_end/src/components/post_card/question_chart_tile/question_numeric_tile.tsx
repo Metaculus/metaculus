@@ -1,5 +1,6 @@
 import { FC } from "react";
 
+import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import ContinuousAreaChart from "@/components/charts/continuous_area_chart";
 import NumericChart from "@/components/charts/numeric_chart";
 import PredictionChip from "@/components/prediction_chip";
@@ -16,6 +17,7 @@ type Props = {
   curationStatus: PostStatus | QuestionStatus;
   defaultChartZoom?: TimelineChartZoomOption;
   hideCP?: boolean;
+  forecasters?: number;
 };
 
 const QuestionNumericTile: FC<Props> = ({
@@ -23,6 +25,7 @@ const QuestionNumericTile: FC<Props> = ({
   curationStatus,
   defaultChartZoom,
   hideCP,
+  forecasters,
 }) => {
   const latest = question.aggregations.recency_weighted.latest;
   const prediction = latest?.centers![0];
@@ -55,6 +58,8 @@ const QuestionNumericTile: FC<Props> = ({
           showUserForecast
           hideCP={hideCP}
         />
+
+        <ForecastersCounter forecasters={forecasters} className="p-1" />
       </div>
       <div className="my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
         {question.type === QuestionType.Binary ? (
