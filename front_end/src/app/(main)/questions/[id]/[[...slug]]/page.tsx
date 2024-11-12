@@ -207,6 +207,7 @@ export default async function IndividualQuestion({
                   nrForecasters={postData.nr_forecasters}
                   withNavigation
                   withCPRevealBtn
+                  forecasters={postData.nr_forecasters}
                 />
               )}
               <QuestionHeaderInfo post={postData} />

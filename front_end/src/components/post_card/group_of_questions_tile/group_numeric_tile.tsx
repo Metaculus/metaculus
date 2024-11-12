@@ -2,6 +2,7 @@ import { useLocale } from "next-intl";
 import { FC } from "react";
 
 import NumericGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/numeric_group_chart";
+import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import MultipleChoiceTile from "@/components/multiple_choice_tile";
 import PredictionChip from "@/components/prediction_chip";
 import { useAuth } from "@/contexts/auth_context";
@@ -29,6 +30,7 @@ type Props = {
   curationStatus: PostStatus;
   post: PostWithForecasts;
   hideCP?: boolean;
+  forecasters?: number;
 };
 
 const GroupNumericTile: FC<Props> = ({
@@ -36,6 +38,7 @@ const GroupNumericTile: FC<Props> = ({
   curationStatus,
   post,
   hideCP,
+  forecasters,
 }) => {
   const { user } = useAuth();
   const locale = useLocale();
@@ -63,6 +66,8 @@ const GroupNumericTile: FC<Props> = ({
             status={curationStatus}
             hideCP={hideCP}
           />
+
+          <ForecastersCounter forecasters={forecasters} className="p-1" />
         </div>
         <div className="my-1 h-24 w-2/3 min-w-24 max-w-[500px] flex-1 overflow-visible">
           <NumericGroupChart
