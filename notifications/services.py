@@ -51,10 +51,16 @@ class NotificationQuestionParams:
     id: int
     title: str
     type: str
+    label: str = ""
 
     @classmethod
     def from_question(cls, question: Question):
-        return cls(id=question.id, title=question.title, type=question.type)
+        return cls(
+            id=question.id,
+            title=question.title,
+            type=question.type,
+            label=question.label,
+        )
 
 
 @dataclass
@@ -161,7 +167,8 @@ class CPChangeData:
         return self.format_value(self.cp_median)
 
     def format_question_title(self):
-        return get_question_group_title(self.question.title)
+        # TODO: deprecate get_question_group_title after the first release of this change
+        return self.question.label or get_question_group_title(self.question.title)
 
 
 class NotificationTypeBase:

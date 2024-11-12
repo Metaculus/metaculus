@@ -30,7 +30,6 @@ import {
 } from "@/utils/forecasts";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import {
-  extractQuestionGroupName,
   formatResolution,
   getSubquestionPredictionInputMessage,
 } from "@/utils/questions";
@@ -449,7 +448,7 @@ function generateGroupOptions(
 
       return {
         id: q.id,
-        name: extractQuestionGroupName(q.title),
+        name: q.label,
         question: q,
         userQuartiles: getUserQuartiles(
           prevForecast,

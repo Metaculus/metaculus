@@ -193,7 +193,7 @@ export type Question = {
   question_weight: number;
   fine_print: string | null;
   resolution_criteria: string | null;
-  label: string | null;
+  label: string;
   nr_forecasters: number;
   author_username: string;
   post_id: number;

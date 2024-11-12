@@ -31,11 +31,7 @@ import {
 } from "@/types/question";
 import { computeQuartilesFromCDF } from "@/utils/math";
 import { abbreviatedNumber } from "@/utils/number_formatters";
-import {
-  extractQuestionGroupName,
-  formatResolution,
-  isUnsuccessfullyResolved,
-} from "@/utils/questions";
+import { formatResolution, isUnsuccessfullyResolved } from "@/utils/questions";
 
 import {
   getForecastDateDisplayValue,
@@ -607,7 +603,7 @@ export function generateChoiceItemsFromBinaryGroup(
   return choiceOrdering.map((order, index) => {
     const question = questions[order];
     const history = question.aggregations.recency_weighted.history;
-    const label = extractQuestionGroupName(question.title);
+    const label = question.label;
     return {
       choice: label,
       values: history.map((forecast) => forecast.centers![0]),
@@ -651,7 +647,7 @@ export function getFanOptionsFromNumericGroup(
 ): FanOption[] {
   return questions
     .map((q) => ({
-      name: extractQuestionGroupName(q.title),
+      name: q.label,
       cdf: q.aggregations.recency_weighted.latest?.forecast_values ?? [],
       resolvedAt: new Date(q.scheduled_resolve_time),
       resolved: q.resolution !== null,
@@ -674,7 +670,7 @@ export function getFanOptionsFromBinaryGroup(
       const aggregation = q.aggregations.recency_weighted.latest;
       const resolved = q.resolution !== null;
       return {
-        name: extractQuestionGroupName(q.title),
+        name: q.label,
         quartiles: {
           median: aggregation?.centers?.[0] ?? 0,
           lower25: aggregation?.interval_lower_bounds?.[0] ?? 0,

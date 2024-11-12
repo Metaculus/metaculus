@@ -108,6 +108,7 @@ class QuestionWriteSerializer(serializers.ModelSerializer):
             "open_upper_bound",
             "open_lower_bound",
             "options",
+            "label",
             "scheduled_resolve_time",
             "scheduled_close_time",
             "resolution_criteria",
