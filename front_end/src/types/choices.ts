@@ -10,6 +10,7 @@ export type ChoiceItem = {
   values: number[];
   minValues?: number[];
   maxValues?: number[];
+  forecastersCount?: number[];
   color: ThemeColor;
   active: boolean;
   highlighted: boolean;

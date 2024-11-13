@@ -127,6 +127,8 @@
   "scoreIfYes": "Score if Yes",
   "ifNo": "if no",
   "ifYes": "if yes",
+  "ifNO": "if No",
+  "ifYES": "if Yes",
   "absoluteLogScore": "Absolute Log Score",
   "brierScore": "Brier Score",
   "yes": "yes",

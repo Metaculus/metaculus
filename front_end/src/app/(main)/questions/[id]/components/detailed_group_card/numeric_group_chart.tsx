@@ -5,7 +5,7 @@ import FanChart from "@/components/charts/fan_chart";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
   getFanOptionsFromBinaryGroup,
-  getFanOptionsFromNumericGroup,
+  getFanOptionsFromContinuousGroup,
 } from "@/utils/charts";
 
 type Props = {
@@ -32,7 +32,7 @@ const NumericGroupChart: FC<Props> = ({
       options={
         questions[0].type === QuestionType.Binary
           ? getFanOptionsFromBinaryGroup(questions)
-          : getFanOptionsFromNumericGroup(questions)
+          : getFanOptionsFromContinuousGroup(questions)
       }
       height={height}
       pointSize={pointSize}

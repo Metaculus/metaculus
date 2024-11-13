@@ -5,20 +5,21 @@ import { useTranslations } from "next-intl";
 import React, { FC, useEffect } from "react";
 
 import NumericGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/numeric_group_chart";
+import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
+import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { GroupOfQuestionsGraphType } from "@/types/charts";
 import { PostStatus } from "@/types/post";
 import {
-  QuestionType,
   QuestionWithForecasts,
   QuestionWithNumericForecasts,
 } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
-import { sortGroupPredictionOptions } from "@/utils/questions";
+import {
+  getQuestionLinearChartType,
+  sortGroupPredictionOptions,
+} from "@/utils/questions";
 
-import BinaryGroupChart from "./binary_group_chart";
-import ContinuousGroupTimeline from "../continuous_group_timeline";
 import { useHideCP } from "../cp_provider";
-import RevealCPButton from "../reveal_cp_button";
 
 type Props = {
   questions: QuestionWithForecasts[];
@@ -95,44 +96,28 @@ const DetailedGroupCard: FC<Props> = ({
         questions as QuestionWithNumericForecasts[]
       );
       const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
-      switch (groupType) {
-        case QuestionType.Binary: {
-          return (
-            <>
-              <BinaryGroupChart
-                actualCloseTime={
-                  actualCloseTime ? new Date(actualCloseTime).getTime() : null
-                }
-                questions={sortedQuestions}
-                timestamps={timestamps}
-                preselectedQuestionId={preselectedQuestionId}
-                isClosed={isClosed}
-                hideCP={hideCP}
-              />
-              {hideCP && <RevealCPButton />}
-            </>
-          );
-        }
-        case QuestionType.Numeric:
-        case QuestionType.Date:
-          return (
-            <>
-              <ContinuousGroupTimeline
-                actualCloseTime={
-                  actualCloseTime ? new Date(actualCloseTime).getTime() : null
-                }
-                questions={sortedQuestions}
-                timestamps={timestamps}
-                isClosed={isClosed}
-                preselectedQuestionId={preselectedQuestionId}
-                hideCP={hideCP}
-              />
-              {hideCP && <RevealCPButton />}
-            </>
-          );
-        default:
-          return null;
+      const type = getQuestionLinearChartType(groupType);
+
+      if (!type) {
+        return null;
       }
+
+      return (
+        <>
+          <MultipleChoiceGroupChart
+            questions={sortedQuestions}
+            timestamps={timestamps}
+            type={type}
+            actualCloseTime={
+              actualCloseTime ? new Date(actualCloseTime).getTime() : null
+            }
+            isClosed={isClosed}
+            preselectedQuestionId={preselectedQuestionId}
+            hideCP={hideCP}
+          />
+          {hideCP && <RevealCPButton />}
+        </>
+      );
     }
     case GroupOfQuestionsGraphType.FanGraph:
       return (

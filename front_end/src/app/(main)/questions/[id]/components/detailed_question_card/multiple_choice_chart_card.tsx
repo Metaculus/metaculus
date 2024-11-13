@@ -3,14 +3,17 @@ import { useTranslations } from "next-intl";
 import React, { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { VictoryThemeDefinition } from "victory";
 
-import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multi_choices_chart_view";
+import MultiChoicesChartView from "@/app/(main)/questions/[id]/components/multiple_choices_chart_view";
 import { useAuth } from "@/contexts/auth_context";
 import usePrevious from "@/hooks/use_previous";
 import useTimestampCursor from "@/hooks/use_timestamp_cursor";
 import { TimelineChartZoomOption } from "@/types/charts";
 import { ChoiceItem, ChoiceTooltipItem } from "@/types/choices";
 import { QuestionWithMultipleChoiceForecasts } from "@/types/question";
-import { generateChoiceItemsFromMultipleChoiceForecast } from "@/utils/charts";
+import {
+  findPreviousTimestamp,
+  generateChoiceItemsFromMultipleChoiceForecast,
+} from "@/utils/charts";
 import { getForecastPctDisplayValue } from "@/utils/forecasts";
 import { generateUserForecastsForMultipleQuestion } from "@/utils/questions";
 
@@ -122,34 +125,20 @@ const MultipleChoiceChartCard: FC<Props> = ({
     );
   }, [userForecasts, cursorTimestamp]);
 
-  const handleChoiceChange = useCallback((choice: string, checked: boolean) => {
-    setChoiceItems((prev) =>
-      prev.map((item) =>
-        item.choice === choice
-          ? { ...item, active: checked, highlighted: false }
-          : item
-      )
-    );
-  }, []);
-  const handleChoiceHighlight = useCallback(
-    (choice: string, highlighted: boolean) => {
-      setChoiceItems((prev) =>
-        prev.map((item) =>
-          item.choice === choice ? { ...item, highlighted } : item
-        )
-      );
-    },
-    []
-  );
-  const toggleSelectAll = useCallback((isAllSelected: boolean) => {
-    if (isAllSelected) {
-      setChoiceItems((prev) =>
-        prev.map((item) => ({ ...item, active: false, highlighted: false }))
-      );
-    } else {
-      setChoiceItems((prev) => prev.map((item) => ({ ...item, active: true })));
+  const forecastersCount = useMemo(() => {
+    // okay to search for the first item since all items have the same values
+    const totalForecastersCount = choiceItems.at(0)?.forecastersCount;
+    if (!totalForecastersCount) {
+      return null;
     }
-  }, []);
+
+    const closestTimestamp = findPreviousTimestamp(timestamps, cursorTimestamp);
+    const cursorIndex = timestamps.findIndex(
+      (timestamp) => timestamp === closestTimestamp
+    );
+
+    return totalForecastersCount[cursorIndex] ?? null;
+  }, [choiceItems, cursorTimestamp, timestamps]);
 
   return (
     <MultiChoicesChartView
@@ -158,11 +147,10 @@ const MultipleChoiceChartCard: FC<Props> = ({
       choiceItems={hideCP ? [] : choiceItems}
       timestamps={timestamps}
       userForecasts={userForecasts}
+      forecastersCount={forecastersCount}
       tooltipDate={tooltipDate}
       onCursorChange={handleCursorChange}
-      onChoiceItemChange={handleChoiceChange}
-      onChoiceItemHighlight={handleChoiceHighlight}
-      onToggleSelectAll={toggleSelectAll}
+      onChoiceItemsUpdate={setChoiceItems}
       isClosed={isClosed}
       actualCloseTime={actualCloseTime}
       title={t("forecastTimelineHeading")}

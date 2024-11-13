@@ -115,6 +115,8 @@
   "scoreIfYes": "如果是的分數",
   "ifNo": "如果否",
   "ifYes": "如果是",
+  "ifNO": "如果否",
+  "ifYES": "如果是",
   "absoluteLogScore": "絕對對數分數",
   "brierScore": "布萊爾分數",
   "yes": "是",

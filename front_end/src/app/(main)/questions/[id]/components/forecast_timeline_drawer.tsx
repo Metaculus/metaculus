@@ -1,17 +1,19 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FC } from "react";
+import React, { FC } from "react";
 
+import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
 import { GroupOfQuestionsGraphType } from "@/types/charts";
 import { PostWithForecasts } from "@/types/post";
-import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
+import { QuestionWithNumericForecasts } from "@/types/question";
 import { getGroupQuestionsTimestamps } from "@/utils/charts";
-import { sortGroupPredictionOptions } from "@/utils/questions";
+import {
+  getQuestionLinearChartType,
+  sortGroupPredictionOptions,
+} from "@/utils/questions";
 
-import ContinuousGroupTimeline from "./continuous_group_timeline";
 import { useHideCP } from "./cp_provider";
-import BinaryGroupChart from "./detailed_group_card/binary_group_chart";
 import RevealCPButton from "./reveal_cp_button";
 
 type Props = {
@@ -52,37 +54,26 @@ const ForecastTimelineDrawer: FC<Props> = ({ post, preselectedQuestionId }) => {
     ? new Date(post.actual_close_time).getTime() < Date.now()
     : false;
 
-  switch (groupType) {
-    case QuestionType.Binary: {
-      return (
-        <BinaryGroupChart
-          actualCloseTime={
-            post.actual_close_time
-              ? new Date(post.actual_close_time).getTime()
-              : null
-          }
-          questions={sortedQuestions}
-          timestamps={timestamps}
-          preselectedQuestionId={preselectedQuestionId}
-          isClosed={isClosed}
-        />
-      );
-    }
-    case QuestionType.Numeric:
-    case QuestionType.Date:
-      return (
-        <ContinuousGroupTimeline
-          actualCloseTime={
-            post.actual_close_time
-              ? new Date(post.actual_close_time).getTime()
-              : null
-          }
-          questions={sortedQuestions}
-          timestamps={timestamps}
-          isClosed={isClosed}
-        />
-      );
+  const type = getQuestionLinearChartType(groupType);
+
+  if (!type) {
+    return null;
   }
+
+  return (
+    <MultipleChoiceGroupChart
+      questions={sortedQuestions}
+      timestamps={timestamps}
+      type={type}
+      actualCloseTime={
+        post.actual_close_time
+          ? new Date(post.actual_close_time).getTime()
+          : null
+      }
+      isClosed={isClosed}
+      preselectedQuestionId={preselectedQuestionId}
+    />
+  );
 };
 
 export default ForecastTimelineDrawer;
