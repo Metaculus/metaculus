@@ -386,7 +386,7 @@ const Comment: FC<CommentProps> = ({
             : t(commentTypes[comment.submit_type]?.verb ?? "commented")}{" "}
           {commentAge(comment.created_time)}
         </span>
-        */}{" "}
+        */}
           {/* comment indexing is broken, since the comment feed loading happens async for the client*/}
           {comment.included_forecast && (
             <IncludedForecast
