@@ -1,12 +1,13 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { signInSchema, signUpSchema } from "@/app/(main)/accounts/schemas";
 import AuthApi from "@/services/auth";
 import { deleteServerSession, setServerSession } from "@/services/session";
-import { AuthResponse } from "@/types/auth";
+import { AuthResponse, SignUpResponse } from "@/types/auth";
 import { FetchError } from "@/types/fetch";
 import { CurrentUser } from "@/types/users";
 
@@ -51,9 +52,11 @@ export default async function loginAction(
   };
 }
 
-export type SignUpActionState = {
-  errors?: any;
-} | null;
+export type SignUpActionState =
+  | ({
+      errors?: any;
+    } & Partial<SignUpResponse>)
+  | null;
 
 export async function signUpAction(
   prevState: SignUpActionState,
@@ -89,7 +92,12 @@ export async function signUpAction(
       addToProject
     );
 
-    return {};
+    if (response.is_active && response.token) {
+      setServerSession(response.token);
+      revalidatePath("/");
+    }
+
+    return response;
   } catch (err) {
     const error = err as FetchError;
 

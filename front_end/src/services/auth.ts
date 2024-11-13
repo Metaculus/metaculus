@@ -1,5 +1,6 @@
 import {
   AuthResponse,
+  SignUpResponse,
   SocialAuthResponse,
   SocialProvider,
   SocialProviderType,
@@ -59,7 +60,7 @@ class AuthApi {
     add_to_project?: number
   ) {
     return post<
-      null,
+      SignUpResponse,
       {
         email: string;
         username: string;
