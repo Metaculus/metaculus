@@ -32,7 +32,7 @@ from questions.models import (
 )
 from scoring.models import Score, ArchivedScore
 from users.models import User
-from utils.models import TimeStampedModel
+from utils.models import TimeStampedModel, TranslatedModel
 
 
 class PostQuerySet(models.QuerySet):
@@ -338,21 +338,13 @@ class PostManager(models.Manager.from_queryset(PostQuerySet)):
         return super().get_queryset().defer("embedding_vector")
 
 
-class Notebook(TimeStampedModel):
+class Notebook(TimeStampedModel, TranslatedModel):  # type: ignore
     class NotebookType(models.TextChoices):
         DISCUSSION = "discussion"
         NEWS = "news"
         PUBLIC_FIGURE = "public_figure"
 
     markdown = models.TextField()
-
-    # TO BE REMOVED
-    markdown_en = models.TextField(null=True)
-    markdown_es = models.TextField(null=True)
-    markdown_cs = models.TextField(null=True)
-    markdown_zh = models.TextField(null=True)
-    markdown_original = models.TextField(null=True)
-
     type = models.CharField(max_length=100, choices=NotebookType)
     news_type = models.CharField(max_length=100, blank=True, null=True)
     image_url = models.ImageField(null=True, blank=True, upload_to="user_uploaded")
@@ -361,7 +353,7 @@ class Notebook(TimeStampedModel):
         return f"{self.type} Notebook for {self.post} by {self.post.author}"
 
 
-class Post(TimeStampedModel):
+class Post(TimeStampedModel, TranslatedModel):  # type: ignore
     # typing
     id: int
     votes: QuerySet["Vote"]
@@ -405,21 +397,6 @@ class Post(TimeStampedModel):
 
     title = models.CharField(max_length=2000, blank=True)
     url_title = models.CharField(max_length=2000, default="", blank=True)
-
-    # TO BE REMOVED
-    title_en = models.CharField(max_length=2000, blank=True, null=True)
-    title_es = models.CharField(max_length=2000, blank=True, null=True)
-    title_cs = models.CharField(max_length=2000, blank=True, null=True)
-    title_zh = models.CharField(max_length=2000, blank=True, null=True)
-    title_original = models.CharField(max_length=2000, blank=True, null=True)
-    url_title_en = models.CharField(max_length=2000, default="", blank=True, null=True)
-    url_title_es = models.CharField(max_length=2000, default="", blank=True, null=True)
-    url_title_cs = models.CharField(max_length=2000, default="", blank=True, null=True)
-    url_title_zh = models.CharField(max_length=2000, default="", blank=True, null=True)
-    url_title_original = models.CharField(
-        max_length=2000, default="", blank=True, null=True
-    )
-
     author = models.ForeignKey(User, models.CASCADE, related_name="posts")
     coauthors = models.ManyToManyField(
         User, related_name="coauthored_posts", blank=True

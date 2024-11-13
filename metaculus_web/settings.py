@@ -17,6 +17,8 @@ import dj_database_url
 import sentry_sdk
 from sentry_sdk.integrations.dramatiq import DramatiqIntegration
 
+import django.conf.locale
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -41,6 +43,8 @@ DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
 INSTALLED_APPS = [
     # Django
+    "misc",
+    "modeltranslation",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -61,7 +65,6 @@ INSTALLED_APPS = [
     # TODO: disable in prod
     # first-party:
     "migrator",
-    "misc",
     "authentication",
     "users",
     "posts",
@@ -78,6 +81,8 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "utils.middlewares.LocaleOverrideMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -449,3 +454,38 @@ if os.environ.get("SENTRY_DNS", None):
             DramatiqIntegration(),
         ],
     )
+
+
+def gettext(s):
+    return s
+
+
+EXTRA_LANG_INFO = {
+    "original": {
+        "bidi": False,
+        "code": "original",
+        "name": "Original",
+        "name_local": "Original",
+    },
+}
+LANG_INFO = dict(django.conf.locale.LANG_INFO, **EXTRA_LANG_INFO)
+django.conf.locale.LANG_INFO = LANG_INFO
+
+LANGUAGES = (
+    ("original", gettext("Original content")),
+    ("en", gettext("English")),
+    ("cs", gettext("Czech")),
+    ("es", gettext("Spanish")),
+    ("zh", gettext("Simplified Chinese")),
+)
+
+ORIGINAL_LANGUAGE_CODE = "original"
+MODELTRANSLATION_DEFAULT_LANGUAGE = ORIGINAL_LANGUAGE_CODE
+MODELTRANSLATION_FALLBACK_LANGUAGES = ("original", "en", "es")
+USE_I18N = True
+
+LOCALE_PATHS = (os.path.join(os.path.dirname(__file__), "locale"),)
+
+GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY = os.environ.get(
+    "GOOGLE_TRANSLATE_SERVICE_ACCOUNT_KEY", None
+)

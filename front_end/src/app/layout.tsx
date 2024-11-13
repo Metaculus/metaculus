@@ -18,7 +18,7 @@ import ModalProvider from "@/contexts/modal_context";
 import NavigationProvider from "@/contexts/navigation_context";
 import ProfileApi from "@/services/profile";
 
-import { CSPostHogProvider } from "./providers";
+import { CSPostHogProvider, TranslationsBannerProvider } from "./providers";
 
 const PostHogPageView = dynamic(
   () => import("@/components/posthog_page_view"),
@@ -142,13 +142,15 @@ export default async function RootLayout({
               <AuthProvider user={user}>
                 <ModalProvider>
                   <NavigationProvider>
-                    <NextTopLoader
-                      showSpinner={false}
-                      color={METAC_COLORS.blue["500"].DEFAULT}
-                    />
-                    {children}
-                    <GlobalModals />
-                    <Toaster />
+                    <TranslationsBannerProvider>
+                      <NextTopLoader
+                        showSpinner={false}
+                        color={METAC_COLORS.blue["500"].DEFAULT}
+                      />
+                      {children}
+                      <GlobalModals />
+                      <Toaster />
+                    </TranslationsBannerProvider>
                   </NavigationProvider>
                 </ModalProvider>
               </AuthProvider>

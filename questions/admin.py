@@ -2,10 +2,11 @@ from django.contrib import admin
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 
 from questions.models import Conditional, Question, GroupOfQuestions, Forecast
+from utils.models import CustomTranslationAdmin
 
 
 @admin.register(Question)
-class QuestionAdmin(admin.ModelAdmin, DynamicArrayMixin):
+class QuestionAdmin(CustomTranslationAdmin, DynamicArrayMixin):
     search_fields = ["title", "description"]
 
     autocomplete_fields = ["group"]
@@ -19,7 +20,7 @@ class ConditionalAdmin(admin.ModelAdmin):
 
 
 @admin.register(GroupOfQuestions)
-class GroupOfQuestionsAdmin(admin.ModelAdmin):
+class GroupOfQuestionsAdmin(CustomTranslationAdmin):
     search_fields = ["id"]
 
 

@@ -925,5 +925,7 @@
   "communityNameDescription": "This is how your community appears to others.",
   "communitySlug": "Community Slug",
   "communitySlugDescription": "Your community can be accessed via the following URL:",
-  "communityDescription": "Community Description"
+  "communityDescription": "Community Description",
+  "contentTranslatedHeaderText": "Some content on this page is automatically translated, and may be inaccurate.",
+  "showOriginalContent": "Show original"
 }

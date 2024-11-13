@@ -22,6 +22,7 @@ import { logError } from "@/utils/errors";
 
 import Button from "../ui/button";
 import { FormErrorMessage } from "../ui/form_field";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 
 export type SortOption = "created_at" | "-created_at" | "-vote_score";
 type FeedOptions = "public" | "private";
@@ -128,6 +129,14 @@ const CommentFeed: FC<Props> = ({
   const [offset, setOffset] = useState<number>(0);
   const postId = postData?.id;
   const includeUserForecast = shouldIncludeForecast(postData);
+
+  const { setBannerisVisible } = useContentTranslatedBannerProvider();
+
+  useEffect(() => {
+    if (comments.filter((c) => c.is_current_content_translated).length > 0) {
+      setBannerisVisible(true);
+    }
+  }, [comments, setBannerisVisible]);
 
   const handleFilterChange = useCallback(
     (

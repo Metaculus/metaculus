@@ -13,12 +13,14 @@ import { POSTS_PER_PAGE } from "@/constants/posts_feed";
 import { PostsParams } from "@/services/posts";
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { logError } from "@/utils/errors";
+import { Tournament } from "@/types/projects";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 
 type Props = {
-  slug: string;
+  tournament: Tournament;
 };
 
-const TournamentFeed: FC<Props> = ({ slug }) => {
+const TournamentFeed: FC<Props> = ({ tournament }) => {
   const searchParams = useSearchParams();
   const questionFilters = generateFiltersFromSearchParams(
     Object.fromEntries(searchParams)
@@ -26,7 +28,7 @@ const TournamentFeed: FC<Props> = ({ slug }) => {
   const pageFilters: PostsParams = {
     statuses: PostStatus.APPROVED,
     ...questionFilters,
-    tournaments: slug,
+    tournaments: tournament?.slug ?? undefined,
   };
 
   const [questions, setQuestions] = useState<PostWithForecasts[]>([]);
@@ -34,6 +36,16 @@ const TournamentFeed: FC<Props> = ({ slug }) => {
   const [error, setError] = useState<
     (Error & { digest?: string }) | undefined
   >();
+  const { setBannerisVisible } = useContentTranslatedBannerProvider();
+
+  useEffect(() => {
+    if (
+      tournament?.is_current_content_translated ||
+      questions.filter((q) => q.is_current_content_translated).length > 0
+    ) {
+      setBannerisVisible(true);
+    }
+  }, [questions, setBannerisVisible, tournament]);
 
   useEffect(() => {
     const fetchData = async () => {

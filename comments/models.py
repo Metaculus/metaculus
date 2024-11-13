@@ -17,7 +17,7 @@ from posts.models import Post
 from projects.models import Project
 from questions.models import Forecast
 from users.models import User
-from utils.models import TimeStampedModel
+from utils.models import TimeStampedModel, TranslatedModel
 
 
 class CommentQuerySet(models.QuerySet):
@@ -77,7 +77,7 @@ class CommentQuerySet(models.QuerySet):
         )
 
 
-class Comment(TimeStampedModel):
+class Comment(TimeStampedModel, TranslatedModel):  # type: ignore
     comment_votes: QuerySet["CommentVote"]
 
     author = models.ForeignKey(User, models.CASCADE)
@@ -99,14 +99,6 @@ class Comment(TimeStampedModel):
     # auto_now_add=True must be disabled when the migration is run
     is_soft_deleted = models.BooleanField(null=True)
     text = models.TextField()
-
-    # TO BE REMOVED
-    text_en = models.TextField(null=True)
-    text_es = models.TextField(null=True)
-    text_cs = models.TextField(null=True)
-    text_zh = models.TextField(null=True)
-    text_original = models.TextField(null=True)
-
     on_post = models.ForeignKey(
         Post, models.CASCADE, null=True, related_name="comments"
     )

@@ -26,6 +26,7 @@ export type BECommentType = {
     count: number;
   };
   mentioned_users: AuthorType[];
+  is_current_content_translated?: boolean;
 };
 
 export type CommentType = {
@@ -46,6 +47,7 @@ export type CommentType = {
     count: number;
   };
   mentioned_users: AuthorType[];
+  is_current_content_translated?: boolean;
 };
 
 export type ForecastType = {

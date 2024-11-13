@@ -4,9 +4,178 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _, activate, get_language
+from django.conf import settings
+from django.contrib import admin
 
 from utils.types import DjangoModelType
+from django.contrib import messages
+
+from utils.translation import (
+    get_translation_fields_for_model,
+    build_supported_localized_fieldname,
+    is_translation_dirty,
+)
+
+from utils.tasks import update_translations
+
+
+class CustomTranslationAdmin(admin.ModelAdmin):
+    actions = ["update_translations"]
+
+    def get_form(self, request, obj=None, **kwargs):
+        activate(settings.ORIGINAL_LANGUAGE_CODE)
+        return super().get_form(request, obj, **kwargs)
+
+    # def get_all_translated_fields_for_field(self, field):
+
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+        model_class = self.model
+        all_translation_fields = get_translation_fields_for_model(model_class)
+        specified_translation_fields = list(set(fields) & set(all_translation_fields))
+        extra_fields = []
+        for field_name in specified_translation_fields:
+            localized_field_names = [
+                build_supported_localized_fieldname(field_name, lang[0])
+                for lang in settings.LANGUAGES
+            ]
+            extra_fields += localized_field_names
+        return fields + extra_fields
+
+    def get_readonly_fields(self, request, obj=None):
+        # We are showing the language specific fields as read only
+        ro_fields = super().get_readonly_fields(request, obj)
+
+        model_class = self.model
+        translation_fields = get_translation_fields_for_model(model_class)
+        extra_ro_fields = []
+        for field_name in translation_fields:
+            localized_field_names = [
+                build_supported_localized_fieldname(field_name, lang[0])
+                for lang in settings.LANGUAGES
+            ]
+            extra_ro_fields += localized_field_names
+
+        extra_ro_fields.append("content_last_md5")
+
+        return list(ro_fields) + extra_ro_fields
+
+    @admin.action(description="Update translations")
+    def update_translations(self, request, queryset):
+        for obj in queryset:
+            obj.save()
+        messages.success(request, "Translations update triggered")
+
+
+class TranslatedModel(models.Model):
+    """
+    An abstract base class model that provides two fields used for
+    keeping translations updated. Ideally this part would be handled by
+    the django-modeltranslations package too, but it is not.
+    The two fields it adds are used for:
+    - the md5 field stores the hash of the content being translated at
+      the time when it was last translated. It's being used to check
+      which objects have changed the content so we update the translations
+      too.
+    - the original language of the content, as created by the users. It's
+      needed to know when not to call the translation service
+    """
+
+    content_last_md5 = models.CharField(max_length=32, null=True, blank=True)
+    content_original_lang = models.CharField(max_length=16, null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+    def is_current_content_translated(self, current_language=None):
+        if current_language is None:
+            current_language = get_language()
+
+        if (
+            current_language == settings.ORIGINAL_LANGUAGE_CODE
+            or self.content_original_lang is None
+        ):
+            return False
+
+        model = self.__class__
+        translation_fields = get_translation_fields_for_model(model)
+        current_lang_translated_field_vals = [
+            # all values for fields translated to current_labnguage
+            getattr(
+                self, build_supported_localized_fieldname(field_name, current_language)
+            )
+            for field_name in translation_fields
+        ]
+
+        current_lang_translated_field_vals = [
+            v for v in current_lang_translated_field_vals if v
+        ]
+
+        return (
+            current_language != self.content_original_lang
+            and len(current_lang_translated_field_vals) > 0
+        )
+
+    def update_fields_with_original_content(self, initial_update_fields):
+        # Depending on the initial_update_fields, it sets the fields corresponding
+        # to the original content on this object to the value set taken from te field
+        # without the language prefix, which is what the django-modeltranslations
+        # sets.
+        model = self.__class__
+        translation_fields = get_translation_fields_for_model(model)
+        default_language = settings.ORIGINAL_LANGUAGE_CODE
+
+        if initial_update_fields is None:
+            # if update_fields not set (e.g. admin forms, or new objects),
+            # make sure the all translation fields with original content
+            # are updated
+            translation_fields_to_update = translation_fields
+        else:
+            # existing object and only certain fields need to be updated,
+            # then update their correspondent original content ones
+            # (use sets intersection)
+            translation_fields_to_update = list(
+                set(initial_update_fields) & set(translation_fields)
+            )
+
+        extra_update_fields = []
+        for field_name in translation_fields_to_update:
+            val = getattr(self, field_name)
+            if val is not None:
+                default_field_name = build_supported_localized_fieldname(
+                    field_name, default_language
+                )
+                setattr(self, default_field_name, val)
+                extra_update_fields.append(default_field_name)
+        return extra_update_fields
+
+    def trigger_translation_if_dirty(self):
+        model = self.__class__
+        if is_translation_dirty(self):
+            app_label, model_name = model._meta.app_label, model._meta.model_name
+            update_translations.send(app_label, model_name, self.pk)
+
+    def save(self, *args, **kwargs):
+        skip_translations = kwargs.get("skip_translations", False)
+        if skip_translations:
+            kwargs.pop("skip_translations")
+            return super().save(*args, **kwargs)
+
+        initial_update_fields = kwargs.get("update_fields", None)
+
+        extra_update_fields = self.update_fields_with_original_content(
+            initial_update_fields
+        )
+
+        if initial_update_fields:
+            # Extend the update_fields with the ones containing the original content
+            kwargs["update_fields"] = initial_update_fields + extra_update_fields
+
+        super().save(*args, **kwargs)
+
+        # Now post a dramatiq task to detect the language and update outdated translations
+        self.trigger_translation_if_dirty()
 
 
 class TimeStampedModel(models.Model):

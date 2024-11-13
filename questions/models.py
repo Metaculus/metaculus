@@ -10,7 +10,7 @@ from sql_util.aggregates import SubqueryAggregate
 from questions.constants import QuestionStatus
 from questions.types import AggregationMethod
 from users.models import User
-from utils.models import TimeStampedModel
+from utils.models import TimeStampedModel, TranslatedModel
 from utils.the_math.measures import percent_point_function
 
 if TYPE_CHECKING:
@@ -45,7 +45,7 @@ class QuestionManager(models.Manager.from_queryset(QuestionQuerySet)):
         return super().get_queryset()
 
 
-class Question(TimeStampedModel):
+class Question(TimeStampedModel, TranslatedModel):  # type: ignore
     # typing
     user_forecasts: QuerySet["Forecast"]
     aggregate_forecasts: QuerySet["AggregateForecast"]
@@ -81,33 +81,6 @@ class Question(TimeStampedModel):
     description = models.TextField(blank=True)
     resolution_criteria = models.TextField(blank=True)
     fine_print = models.TextField(blank=True)
-
-    # TO BE REMOVED
-    description_en = models.TextField(blank=True, null=True)
-    description_es = models.TextField(blank=True, null=True)
-    description_cs = models.TextField(blank=True, null=True)
-    description_zh = models.TextField(blank=True, null=True)
-    description_original = models.TextField(blank=True, null=True)
-    fine_print_en = models.TextField(blank=True, null=True)
-    fine_print_es = models.TextField(blank=True, null=True)
-    fine_print_cs = models.TextField(blank=True, null=True)
-    fine_print_zh = models.TextField(blank=True, null=True)
-    fine_print_original = models.TextField(blank=True, null=True)
-    label_en = models.TextField(blank=True, null=True)
-    label_es = models.TextField(blank=True, null=True)
-    label_cs = models.TextField(blank=True, null=True)
-    label_zh = models.TextField(blank=True, null=True)
-    label_original = models.TextField(blank=True, null=True)
-    resolution_criteria_en = models.TextField(blank=True, null=True)
-    resolution_criteria_es = models.TextField(blank=True, null=True)
-    resolution_criteria_cs = models.TextField(blank=True, null=True)
-    resolution_criteria_zh = models.TextField(blank=True, null=True)
-    resolution_criteria_original = models.TextField(blank=True, null=True)
-    title_en = models.CharField(max_length=2000, null=True)
-    title_es = models.CharField(max_length=2000, null=True)
-    title_cs = models.CharField(max_length=2000, null=True)
-    title_zh = models.CharField(max_length=2000, null=True)
-    title_original = models.CharField(max_length=2000, null=True)
 
     # time fields
     open_time = models.DateTimeField(db_index=True, null=True, blank=True)
@@ -238,7 +211,7 @@ class Conditional(TimeStampedModel):
         return f"Conditional {self.condition} -> {self.condition_child}"
 
 
-class GroupOfQuestions(TimeStampedModel):
+class GroupOfQuestions(TimeStampedModel, TranslatedModel):  # type: ignore
     class GroupOfQuestionsGraphType(models.TextChoices):
         FAN_GRAPH = "fan_graph"
         MULTIPLE_CHOICE_GRAPH = "multiple_choice_graph"
@@ -246,23 +219,6 @@ class GroupOfQuestions(TimeStampedModel):
     description = models.TextField(blank=True)
     resolution_criteria = models.TextField(blank=True, null=True)
     fine_print = models.TextField(blank=True, null=True)
-
-    # TO BE REMOVED
-    description_en = models.TextField(blank=True, null=True)
-    description_es = models.TextField(blank=True, null=True)
-    description_cs = models.TextField(blank=True, null=True)
-    description_zh = models.TextField(blank=True, null=True)
-    description_original = models.TextField(blank=True, null=True)
-    resolution_criteria_en = models.TextField(blank=True, null=True)
-    resolution_criteria_es = models.TextField(blank=True, null=True)
-    resolution_criteria_cs = models.TextField(blank=True, null=True)
-    resolution_criteria_zh = models.TextField(blank=True, null=True)
-    resolution_criteria_original = models.TextField(blank=True, null=True)
-    fine_print_en = models.TextField(blank=True, null=True)
-    fine_print_es = models.TextField(blank=True, null=True)
-    fine_print_cs = models.TextField(blank=True, null=True)
-    fine_print_zh = models.TextField(blank=True, null=True)
-    fine_print_original = models.TextField(blank=True, null=True)
 
     group_variable = models.TextField(blank=True, null=True)
     graph_type = models.CharField(

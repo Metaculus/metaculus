@@ -9,6 +9,7 @@ import {
 } from "@/types/fetch";
 
 import { extractError, logError } from "./errors";
+import { getLocale } from "next-intl/server";
 
 class ApiError extends Error {
   public digest: string;
@@ -106,6 +107,7 @@ const appFetch = async <T>(
 
   const authToken = passAuthHeader ? getServerSession() : null;
   const alphaToken = getAlphaTokenSession();
+  const locale = await getLocale();
 
   // Default values are configured in the next.config.mjs
   const finalUrl = `${process.env.API_BASE_URL}/api${url}`;
@@ -127,6 +129,7 @@ const appFetch = async <T>(
             "x-alpha-auth-token": alphaToken,
           }
         : {}),
+      "Accept-Language": locale,
     },
   };
   if (

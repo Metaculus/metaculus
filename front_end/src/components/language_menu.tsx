@@ -6,6 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { FC } from "react";
 
 import useSearchParams from "@/hooks/use_search_params";
+import { useLocale } from "next-intl";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 type Props = {
   className?: string;
@@ -15,6 +17,30 @@ const LanguageMenu: FC<Props> = ({ className }) => {
   const router = useRouter();
   const { params } = useSearchParams();
   const pathname = usePathname();
+  const locale = useLocale();
+
+  const languageMenuItems = [
+    {
+      name: "English",
+      locale: "en",
+    },
+    {
+      name: "Čeština",
+      locale: "cs",
+    },
+    {
+      name: "Español",
+      locale: "es",
+    },
+    {
+      name: "中文",
+      locale: "zh",
+    },
+    {
+      name: "Untranslated",
+      locale: "original", // Check the translations documentation why this is the case
+    },
+  ];
 
   return (
     <Menu>
@@ -32,69 +58,48 @@ const LanguageMenu: FC<Props> = ({ className }) => {
         anchor="bottom"
         className="z-50 border border-blue-200-dark bg-blue-900 text-sm text-gray-0"
       >
-        <MenuItem
-          as="button"
-          className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
-          onClick={(e) => {
-            e.preventDefault();
-            params.delete("locale");
-            params.append("locale", "en");
-            router.push(pathname + "?" + params.toString());
-            router.refresh();
-          }}
-          name="language"
-          value="en"
-        >
-          English
-        </MenuItem>
-        <MenuItem
-          as="button"
-          className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
-          onClick={(e) => {
-            e.preventDefault();
-            params.delete("locale");
-            params.append("locale", "cs");
-            router.push(pathname + "?" + params.toString());
-            router.refresh();
-          }}
-          name="language"
-          value="cs"
-        >
-          Čeština
-        </MenuItem>
-        <MenuItem
-          as="button"
-          className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
-          onClick={(e) => {
-            e.preventDefault();
-            params.delete("locale");
-            params.append("locale", "es");
-            router.push(pathname + "?" + params.toString());
-            router.refresh();
-          }}
-          name="language"
-          value="es"
-        >
-          Español
-        </MenuItem>
-        <MenuItem
-          as="button"
-          className="flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark"
-          onClick={(e) => {
-            e.preventDefault();
-            params.delete("locale");
-            params.append("locale", "zh");
-            router.push(pathname + "?" + params.toString());
-            router.refresh();
-          }}
-          name="language"
-          value="zh"
-        >
-          中文
-        </MenuItem>
+        {languageMenuItems.map((item) => {
+          return (
+            <MenuItem
+              key={item.locale}
+              as="button"
+              className={classNames(
+                "flex w-full justify-end whitespace-nowrap px-6 py-1.5 hover:bg-blue-200-dark",
+                locale == item.locale && "bg-blue-400-dark"
+              )}
+              onClick={(e) => {
+                e.preventDefault();
+                params.delete("locale");
+                params.append("locale", item.locale);
+                // Certain pages do not trigger an update after calling router.refresh()
+                // so for now I am using a forced page reload when changing the language.
+                // Even though this is horrible, changing the language is not a common
+                // action, so it's ok as the initial implementation
+                // TODO: remove the reload() call from here, and properly fix those pages
+                // which don't render the new language content when calling router.refresh()
+                window.location.href = pathname + "?" + params.toString();
+              }}
+              name="language"
+              value={item.locale}
+            >
+              {item.name}
+            </MenuItem>
+          );
+        })}
       </MenuItems>
     </Menu>
   );
+};
+
+export const SetOriginalLanguage = (
+  params: URLSearchParams,
+  router: AppRouterInstance,
+  pathname: string
+) => {
+  const originalLangCode = "original";
+  params.delete("locale");
+  // TODO: fix this too. See more details above, at the previous call
+  window.location.href = pathname + "?locale=" + originalLangCode;
 };
 
 export default LanguageMenu;

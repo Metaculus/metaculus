@@ -11,7 +11,7 @@ for var in "${required_vars[@]}"; do
 done
 
 wait_and_fail_if_release_failed() {
-    max_iters=20
+    max_iters=40
     for ((i = 1; i <= max_iters; i++)); do
         json=$(heroku releases --json)
         # Extract the status and current fields from the first element of the array

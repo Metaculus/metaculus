@@ -4,6 +4,7 @@ from django.contrib import admin
 from projects.models import Project, ProjectUserPermission
 
 from scoring.utils import update_project_leaderboard
+from utils.models import CustomTranslationAdmin
 
 
 class ProjectUserPermissionVisibilityFilter(admin.SimpleListFilter):
@@ -64,7 +65,7 @@ class ProjectDefaultPermissionFilter(admin.SimpleListFilter):
 
 
 @admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(CustomTranslationAdmin):
     list_display = ["name", "type", "created_at", "default_permission"]
     list_filter = ["type", "show_on_homepage", ProjectDefaultPermissionFilter]
     search_fields = ["type", "name", "slug"]
@@ -72,7 +73,7 @@ class ProjectAdmin(admin.ModelAdmin):
     exclude = ["add_posts_to_main_feed"]
     ordering = ["-created_at"]
     inlines = [ProjectUserPermissionInline]
-    actions = ["update_leaderboards"]
+    actions = ["update_leaderboards", "update_translations"]
 
     change_form_template = "admin/projects/project_change_form.html"
 

@@ -2,14 +2,15 @@
 
 import { Field, Input, Label } from "@headlessui/react";
 import classNames from "classnames";
-import { useTranslations } from "next-intl";
-import React, { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import React, { useEffect, useState } from "react";
 
 import { updateNotebook } from "@/app/(main)/questions/actions";
 import MarkdownEditor from "@/components/markdown_editor";
 import PostDefaultProject from "@/components/post_default_project";
 import Button from "@/components/ui/button";
 import { PostStatus, PostWithNotebook, ProjectPermissions } from "@/types/post";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 
 interface NotebookEditorProps {
   postData: PostWithNotebook;
@@ -40,6 +41,20 @@ const NotebookEditor: React.FC<NotebookEditorProps> = ({
 
     setIsEditing((prev) => !prev);
   };
+
+  const { setBannerisVisible } = useContentTranslatedBannerProvider();
+  const locale = useLocale();
+
+  useEffect(() => {
+    console.log(
+      "Effect called, should show: ",
+      postData.is_current_content_translated
+    );
+    if (postData.is_current_content_translated) {
+      setBannerisVisible(true);
+    }
+  }, [postData, locale]);
+
   const defaultProject = postData.projects.default_project;
   return (
     <div>

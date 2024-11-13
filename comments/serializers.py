@@ -120,6 +120,10 @@ def serialize_comment(
     serialized_data["vote_score"] = comment.vote_score
     serialized_data["user_vote"] = comment.user_vote
 
+    serialized_data["is_current_content_translated"] = (
+        comment.is_current_content_translated()
+    )
+
     return serialized_data
 
 

@@ -69,6 +69,7 @@ export type Tournament = TournamentPreview & {
   is_subscribed?: boolean;
   add_posts_to_main_feed: boolean;
   default_permission?: ProjectPermissions | null;
+  is_current_content_translated?: boolean;
 };
 
 export type Community = {

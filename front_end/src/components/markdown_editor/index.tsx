@@ -28,7 +28,7 @@ import {
 } from "@mdxeditor/editor";
 import classNames from "classnames";
 import dynamic from "next/dynamic";
-import React, { FC, useMemo, useRef, useState } from "react";
+import React, { FC, useEffect, useMemo, useRef, useState } from "react";
 
 import "@mdxeditor/editor/style.css";
 
@@ -98,6 +98,12 @@ const MarkdownEditor: FC<Props> = ({
     () => escapePlainTextSymbols(transformMathJax(markdown)),
     [markdown]
   );
+
+  useEffect(() => {
+    if (mode == "read") {
+      editorRef.current?.setMarkdown(formattedMarkdown);
+    }
+  }, [formattedMarkdown]);
 
   const baseFormattingPlugins = [
     headingsPlugin(),

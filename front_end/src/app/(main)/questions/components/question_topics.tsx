@@ -12,6 +12,8 @@ import { useTranslations } from "next-intl";
 import { useFeatureFlagEnabled } from "posthog-js/react";
 import { FC, useMemo, useState } from "react";
 
+import clsx from "clsx";
+
 import useFeed from "@/app/(main)/questions/hooks/use_feed";
 import Button from "@/components/ui/button";
 import {
@@ -24,6 +26,7 @@ import useSearchParams from "@/hooks/use_search_params";
 import { Topic } from "@/types/projects";
 
 import TopicItem from "./topic_item";
+import { useContentTranslatedBannerProvider } from "@/app/providers";
 
 const EXPAND_THRESHOLD = 2;
 
@@ -61,6 +64,9 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     "communitiesDiscovery"
   );
 
+  const { bannerIsVissible: isTranslationBannerVisible } =
+    useContentTranslatedBannerProvider();
+
   const selectTopic = (topic: Topic) => {
     clearInReview();
     setParam(POST_TOPIC_FILTER, topic.slug);
@@ -68,8 +74,17 @@ const QuestionTopics: FC<Props> = ({ topics }) => {
     setIsMobileExpanded(false);
   };
 
+  const topPositionClasses = isTranslationBannerVisible
+    ? "top-24 lg:top-20"
+    : "top-12 lg:top-20";
+
   return (
-    <div className="sticky top-12 z-40 mt-0 self-start sm:top-16 sm:mt-4 lg:top-20">
+    <div
+      className={clsx(
+        "sticky z-40 sm:-z-10 mt-0 self-start sm:top-16 sm:mt-4 ",
+        topPositionClasses
+      )}
+    >
       <div className="relative w-full border-y border-blue-400 bg-gray-0/75 p-3 backdrop-blur-md no-scrollbar dark:border-blue-700 dark:bg-blue-800/75 sm:max-h-[calc(100vh-76px)] sm:overflow-y-auto sm:border-none sm:bg-blue-200/0 sm:p-2 sm:pt-0 sm:dark:bg-blue-800/0">
         {isMobileExpandable && (
           <>

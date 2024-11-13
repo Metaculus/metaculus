@@ -3,7 +3,8 @@ import Negotiator from "negotiator";
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 
-const locales = ["cs", "en", "es", "zh"];
+// Read the translations documentation for more info on "original"
+const locales = ["cs", "en", "es", "zh", "original"];
 const defaultLocale = "en";
 
 function getLocale(): string {
