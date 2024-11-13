@@ -477,6 +477,7 @@ LANGUAGES = (
     ("cs", gettext("Czech")),
     ("es", gettext("Spanish")),
     ("zh", gettext("Simplified Chinese")),
+    ("pt", gettext("Portuguese")),
 )
 
 ORIGINAL_LANGUAGE_CODE = "original"
