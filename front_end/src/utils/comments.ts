@@ -5,11 +5,13 @@ export function parseComment(
 ): CommentType {
   return {
     id: comment.id,
+    root_id: comment.root_id,
     parent_id: comment.parent_id,
     author: comment.author,
     children: [],
     text: comment.text,
     on_post: comment.on_post,
+    on_post_data: comment.on_post_data,
     created_at: comment.created_at,
     is_soft_deleted: comment.is_soft_deleted,
     included_forecast: comment.included_forecast,

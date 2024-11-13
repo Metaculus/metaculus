@@ -368,13 +368,13 @@ const CommentFeed: FC<Props> = ({
             }
           )}
         >
-          {profileId && (
+          {profileId && comment.on_post_data && (
             <h3 className="mb-2 text-lg font-semibold">
               <Link
-                href={`/questions/${comment.on_post}#comment-${comment.id}`}
+                href={`/questions/${comment.on_post_data.id}#comment-${comment.id}`}
                 className="text-blue-700 no-underline hover:text-blue-800 dark:text-blue-600-dark hover:dark:text-blue-300"
               >
-                Go to question
+                {comment.on_post_data.title}
               </Link>
             </h3>
           )}
