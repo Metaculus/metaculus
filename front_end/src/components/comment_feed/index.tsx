@@ -80,6 +80,7 @@ type Props = {
   profileId?: number;
   rootCommentStructure?: boolean;
   id?: string;
+  inNotebook?: boolean;
 };
 
 function shouldIncludeForecast(postData: PostWithForecasts | undefined) {
@@ -110,6 +111,7 @@ const CommentFeed: FC<Props> = ({
   profileId,
   rootCommentStructure = true,
   id,
+  inNotebook = false,
 }) => {
   const t = useTranslations();
   const { user } = useAuth();
@@ -283,7 +285,12 @@ const CommentFeed: FC<Props> = ({
   return (
     <section
       id={id}
-      className="w-full border-transparent bg-gray-0 px-3 py-2 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border"
+      className={classNames(
+        "w-[48rem] max-w-full border-transparent bg-gray-0 px-3 py-2 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border",
+        {
+          "mt-6 w-full px-0 xs:px-0 md:px-3": inNotebook,
+        }
+      )}
     >
       <div className="mb-4 mt-2 flex flex-col items-start gap-2">
         <div className="flex w-full flex-row justify-between gap-4 md:gap-3">
