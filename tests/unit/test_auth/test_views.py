@@ -22,13 +22,12 @@ class TestVerifyEmail:
             },
         )
 
+        user = User.objects.get(username="new_user")
+
         assert response.status_code == 201
-        assert (
-            response.data["is_active"]
-            == User.objects.get(username="new_user").is_active
-            == False
-        )
+        assert response.data["is_active"] == user.is_active == False
         assert not response.data["token"]
+        assert not user.last_login
         mock_send_activation_email.assert_called_once()
 
     def test_signup__do_not_verify_email(self, anon_client, mocker):
@@ -47,11 +46,10 @@ class TestVerifyEmail:
             },
         )
 
+        user = User.objects.get(username="new_user")
+
         assert response.status_code == 201
-        assert (
-            response.data["is_active"]
-            == User.objects.get(username="new_user").is_active
-            == True
-        )
+        assert response.data["is_active"] == user.is_active == True
+        assert user.last_login
         assert response.data["token"]
         mock_send_activation_email.assert_not_called()

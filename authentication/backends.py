@@ -1,3 +1,4 @@
+from django.contrib.auth import user_logged_in
 from django.contrib.auth.backends import ModelBackend
 from django.db.models import Q
 
@@ -22,6 +23,8 @@ class AuthLoginBackend(ModelBackend):
         user = self.find_user(login=login)
 
         if user and user.check_password(password) and self.user_can_authenticate(user):
+            user_logged_in.send(sender=user.__class__, request=request, user=user)
+
             return user
 
 

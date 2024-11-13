@@ -91,6 +91,8 @@ def signup_api_view(request):
     token = None
 
     if is_active:
+        # We need to treat this as login action, so we should call `authenticate` service as well
+        user = authenticate(login=email, password=password)
         token_obj, _ = Token.objects.get_or_create(user=user)
         token = token_obj.key
     else:
@@ -100,6 +102,7 @@ def signup_api_view(request):
         {
             "is_active": is_active,
             "token": token,
+            "user": UserPrivateSerializer(user).data,
         },
         status=status.HTTP_201_CREATED,
     )
