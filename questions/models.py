@@ -235,6 +235,7 @@ class Forecast(models.Model):
     # typing
     id: int
     author_id: int
+    objects: QuerySet["Forecast"]
 
     # times
     start_time = models.DateTimeField(
