@@ -15,19 +15,19 @@ export default async function AboutPage() {
   const numbers = [
     {
       title: "Predictions",
-      number: "1,926,071",
+      number: "2,133,159",
     },
     {
       title: "Questions",
-      number: "10,357",
+      number: "17,357",
     },
     {
       title: "Resolved Questions",
-      number: "5,463",
+      number: "6,654",
     },
     {
       title: "Years of Predictions",
-      number: "9",
+      number: "10",
     },
   ];
   return (
