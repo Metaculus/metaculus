@@ -117,6 +117,8 @@
   "scoreIfYes": "Puntaje si Sí",
   "ifNo": "si no",
   "ifYes": "si sí",
+  "ifNO": "si No",
+  "ifYES": "si Sí",
   "absoluteLogScore": "Puntaje Logarítmico Absoluto",
   "brierScore": "Puntaje Brier",
   "yes": "sí",

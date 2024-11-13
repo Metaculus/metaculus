@@ -4,9 +4,6 @@ import { capitalize, isNil } from "lodash";
 import { remark } from "remark";
 import strip from "strip-markdown";
 
-export const ANNULED_RESOLUTION = "annulled";
-export const AMBIGUOUS_RESOLUTION = "ambiguous";
-
 import { ConditionalTableOption } from "@/app/(main)/questions/[id]/components/forecast_maker/group_forecast_table";
 import { METAC_COLORS, MULTIPLE_CHOICE_COLOR_SCALE } from "@/constants/colors";
 import { UserChoiceItem } from "@/types/choices";
@@ -19,7 +16,7 @@ import {
   Resolution,
 } from "@/types/post";
 import {
-  MultipleChoiceForecast,
+  QuestionLinearGraphType,
   Question,
   QuestionType,
   QuestionWithMultipleChoiceForecasts,
@@ -30,6 +27,9 @@ import { scaleInternalLocation, unscaleNominalLocation } from "@/utils/charts";
 import { abbreviatedNumber } from "@/utils/number_formatters";
 
 import { formatDate } from "./date_formatters";
+
+export const ANNULED_RESOLUTION = "annulled";
+export const AMBIGUOUS_RESOLUTION = "ambiguous";
 
 export function extractPostResolution(post: Post): Resolution | null {
   if (post.question) {
@@ -313,6 +313,25 @@ export function sortGroupPredictionOptions(
     const bMean = b.aggregations.recency_weighted.latest?.centers![0] ?? 0;
     return bMean - aMean;
   });
+}
+
+export function getQuestionLinearChartType(
+  questionType: QuestionType
+): QuestionLinearGraphType | null {
+  let type: QuestionLinearGraphType | null;
+  switch (questionType) {
+    case QuestionType.Binary:
+      type = "binary";
+      break;
+    case QuestionType.Date:
+    case QuestionType.Numeric:
+      type = "continuous";
+      break;
+    default:
+      type = null;
+  }
+
+  return type;
 }
 
 export function getQuestionTitle(post: Post) {

@@ -13,7 +13,7 @@ import {
 import { PostStatus, PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
-  generateChoiceItemsFromBinaryGroup,
+  generateChoiceItemsFromGroupQuestions,
   getContinuousGroupScaling,
   getGroupQuestionsTimestamps,
 } from "@/utils/charts";
@@ -87,7 +87,7 @@ const GroupNumericTile: FC<Props> = ({
     const visibleChoicesCount = 3;
     const sortedQuestions = sortGroupPredictionOptions(questions);
     const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
-    const choices = generateChoiceItemsFromBinaryGroup(questions, {
+    const choices = generateChoiceItemsFromGroupQuestions(questions, {
       withMinMax: true,
       activeCount: visibleChoicesCount,
       locale,

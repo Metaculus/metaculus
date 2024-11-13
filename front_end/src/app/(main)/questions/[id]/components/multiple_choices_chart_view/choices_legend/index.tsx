@@ -5,11 +5,10 @@ import classNames from "classnames";
 import { useTranslations } from "next-intl";
 import React, { FC, useMemo } from "react";
 
+import ChoiceCheckbox from "@/components/choice_checkbox";
 import Button from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { ChoiceItem } from "@/types/choices";
-
-import ChoiceCheckbox from "./choice_checkbox";
 
 type Props = {
   choices: ChoiceItem[];

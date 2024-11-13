@@ -7,9 +7,9 @@ import ConditionalTile from "@/components/conditional_tile";
 import { PostWithForecasts } from "@/types/post";
 import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
-  generateChoiceItemsFromBinaryGroup,
+  generateChoiceItemsFromGroupQuestions,
   generateChoiceItemsFromMultipleChoiceForecast,
-  getFanOptionsFromNumericGroup,
+  getFanOptionsFromContinuousGroup,
   getGroupQuestionsTimestamps,
 } from "@/utils/charts";
 import { sortGroupPredictionOptions } from "@/utils/questions";
@@ -51,9 +51,12 @@ const EmbeddedQuestionCard: FC<Props> = ({ postData }) => {
             questions as QuestionWithNumericForecasts[]
           );
           const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
-          const choices = generateChoiceItemsFromBinaryGroup(sortedQuestions, {
-            activeCount: 3,
-          });
+          const choices = generateChoiceItemsFromGroupQuestions(
+            sortedQuestions,
+            {
+              activeCount: 3,
+            }
+          );
 
           return (
             <MultipleChoiceChart
@@ -67,7 +70,7 @@ const EmbeddedQuestionCard: FC<Props> = ({ postData }) => {
         case QuestionType.Date:
           return (
             <FanChart
-              options={getFanOptionsFromNumericGroup(
+              options={getFanOptionsFromContinuousGroup(
                 questions as QuestionWithNumericForecasts[]
               )}
               height={CHART_HEIGHT}

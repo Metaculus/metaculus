@@ -4,9 +4,8 @@ import Link from "next/link";
 import { FC, useEffect, useMemo, useRef, useState } from "react";
 
 import { EmbedTheme } from "@/app/(embed)/questions/constants/embed_theme";
-import ContinuousGroupTimeline from "@/app/(main)/questions/[id]/components/continuous_group_timeline";
-import BinaryGroupChart from "@/app/(main)/questions/[id]/components/detailed_group_card/binary_group_chart";
 import MultipleChoiceChartCard from "@/app/(main)/questions/[id]/components/detailed_question_card/multiple_choice_chart_card";
+import MultipleChoiceGroupChart from "@/app/(main)/questions/[id]/components/multiple_choice_group_chart";
 import FanChart from "@/components/charts/fan_chart";
 import NumericChart from "@/components/charts/numeric_chart";
 import ConditionalTile from "@/components/conditional_tile";
@@ -20,12 +19,15 @@ import { QuestionType, QuestionWithNumericForecasts } from "@/types/question";
 import {
   generateChoiceItemsFromMultipleChoiceForecast,
   getFanOptionsFromBinaryGroup,
-  getFanOptionsFromNumericGroup,
+  getFanOptionsFromContinuousGroup,
   getGroupQuestionsTimestamps,
   getNumericChartTypeFromQuestion,
 } from "@/utils/charts";
 import { getPostLink } from "@/utils/navigation";
-import { sortGroupPredictionOptions } from "@/utils/questions";
+import {
+  getQuestionLinearChartType,
+  sortGroupPredictionOptions,
+} from "@/utils/questions";
 
 type Props = {
   post: PostWithForecasts;
@@ -76,92 +78,54 @@ const ForecastCard: FC<Props> = ({
         return null;
       }
 
-      switch (groupType) {
-        case QuestionType.Numeric:
-        case QuestionType.Date: {
-          if (
-            post.group_of_questions.graph_type ===
-            GroupOfQuestionsGraphType.FanGraph
-          ) {
-            const predictionQuestion = getFanOptionsFromNumericGroup(
-              questions as QuestionWithNumericForecasts[]
-            );
-            return (
-              <FanChart
-                options={predictionQuestion}
-                height={chartHeight}
-                withTooltip={!nonInteractive}
-                extraTheme={embedTheme?.chart}
-              />
-            );
-          } else if (
-            post.group_of_questions.graph_type ===
-            GroupOfQuestionsGraphType.MultipleChoiceGraph
-          ) {
-            const sortedQuestions = sortGroupPredictionOptions(
-              questions as QuestionWithNumericForecasts[]
-            );
-            const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
-            return (
-              <ContinuousGroupTimeline
-                questions={sortedQuestions}
-                timestamps={timestamps}
-                actualCloseTime={
-                  post.actual_close_time
-                    ? new Date(post.actual_close_time).getTime()
-                    : null
-                }
-                chartHeight={chartHeight}
-                chartTheme={embedTheme?.chart}
-                defaultZoom={defaultChartZoom}
-                embedMode
-              />
-            );
-          }
+      const graphType = getQuestionLinearChartType(groupType);
+      if (!graphType) {
+        return null;
+      }
+
+      switch (post.group_of_questions.graph_type) {
+        case GroupOfQuestionsGraphType.FanGraph: {
+          const predictionQuestion =
+            graphType === "continuous"
+              ? getFanOptionsFromContinuousGroup(
+                  questions as QuestionWithNumericForecasts[]
+                )
+              : getFanOptionsFromBinaryGroup(
+                  questions as QuestionWithNumericForecasts[]
+                );
+
+          return (
+            <FanChart
+              options={predictionQuestion}
+              height={chartHeight}
+              withTooltip={!nonInteractive}
+              extraTheme={embedTheme?.chart}
+            />
+          );
         }
-        case QuestionType.Binary:
-          if (
-            post.group_of_questions.graph_type ===
-            GroupOfQuestionsGraphType.FanGraph
-          ) {
-            const predictionQuestion = getFanOptionsFromBinaryGroup(
-              questions as QuestionWithNumericForecasts[]
-            );
-            return (
-              <FanChart
-                options={predictionQuestion}
-                height={chartHeight}
-                withTooltip={!nonInteractive}
-                extraTheme={embedTheme?.chart}
-              />
-            );
-          } else if (
-            post.group_of_questions.graph_type ===
-            GroupOfQuestionsGraphType.MultipleChoiceGraph
-          ) {
-            const sortedQuestions = sortGroupPredictionOptions(
-              questions as QuestionWithNumericForecasts[]
-            );
-            const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
+        case GroupOfQuestionsGraphType.MultipleChoiceGraph: {
+          const sortedQuestions = sortGroupPredictionOptions(
+            questions as QuestionWithNumericForecasts[]
+          );
+          const timestamps = getGroupQuestionsTimestamps(sortedQuestions);
 
-            return (
-              <BinaryGroupChart
-                questions={sortedQuestions}
-                timestamps={timestamps}
-                actualCloseTime={
-                  post.actual_close_time
-                    ? new Date(post.actual_close_time).getTime()
-                    : null
-                }
-                defaultZoom={defaultChartZoom}
-                chartHeight={chartHeight}
-                chartTheme={embedTheme?.chart}
-                embedMode
-              />
-            );
-          }
-
-          return null;
+          return (
+            <MultipleChoiceGroupChart
+              type={graphType}
+              questions={sortedQuestions}
+              timestamps={timestamps}
+              actualCloseTime={
+                post.actual_close_time
+                  ? new Date(post.actual_close_time).getTime()
+                  : null
+              }
+              chartHeight={chartHeight}
+              chartTheme={embedTheme?.chart}
+              defaultZoom={defaultChartZoom}
+              embedMode
+            />
+          );
+        }
         default:
           return null;
       }

@@ -117,6 +117,8 @@
   "scoreIfYes": "Skóre, pokud bude odpověď ano",
   "ifNo": "pokud ne",
   "ifYes": "pokud ano",
+  "ifNO": "pokud Ne",
+  "ifYES": "pokud Ano",
   "absoluteLogScore": "Absolutní log skóre",
   "brierScore": "Brierovo skóre",
   "yes": "ano",

@@ -7,6 +7,8 @@ export enum QuestionType {
   MultipleChoice = "multiple_choice",
 }
 
+export type QuestionLinearGraphType = "binary" | "continuous";
+
 export enum QuestionOrder {
   ActivityDesc = "-activity",
   WeeklyMovementDesc = "-weekly_movement",

@@ -548,6 +548,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
       maxValues: history.map(
         (forecast) => forecast.interval_upper_bounds![order]
       ),
+      forecastersCount: history.map((forecast) => forecast.forecaster_count),
       color: MULTIPLE_CHOICE_COLOR_SCALE[index] ?? METAC_COLORS.gray["400"],
       highlighted: false,
       resolution: question.resolution,
@@ -573,7 +574,7 @@ export function generateChoiceItemsFromMultipleChoiceForecast(
   }));
 }
 
-export function generateChoiceItemsFromBinaryGroup(
+export function generateChoiceItemsFromGroupQuestions(
   questions: QuestionWithNumericForecasts[],
   config?: {
     withMinMax?: boolean;
@@ -617,6 +618,7 @@ export function generateChoiceItemsFromBinaryGroup(
           forecast.interval_upper_bounds![order] ??
           forecast.interval_upper_bounds![0]
       ),
+      forecastersCount: history.map((forecast) => forecast.forecaster_count),
       timestamps: history.map((forecast) => forecast.start_time),
       closeTime: Math.min(
         new Date(question.scheduled_close_time).getTime(),
@@ -642,7 +644,7 @@ export function generateChoiceItemsFromBinaryGroup(
   });
 }
 
-export function getFanOptionsFromNumericGroup(
+export function getFanOptionsFromContinuousGroup(
   questions: QuestionWithNumericForecasts[]
 ): FanOption[] {
   return questions
