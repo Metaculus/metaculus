@@ -184,6 +184,9 @@ AUTHENTICATION_BACKENDS = (
     "social_core.backends.facebook.FacebookOAuth2",
     "social_core.backends.google.GoogleOAuth2",
 )
+# Should we verify email or always set `User.is_active = True`
+AUTH_VERIFY_EMAIL = os.environ.get("AUTH_VERIFY_EMAIL", "True").lower() == "true"
+
 if DEBUG:
     # Allow to authenticate without correst password in development
     AUTHENTICATION_BACKENDS += ("authentication.backends.PermissiveAuthLoginBackend",)
