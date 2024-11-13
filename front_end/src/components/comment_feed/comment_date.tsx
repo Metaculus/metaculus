@@ -1,6 +1,6 @@
 import "@github/relative-time-element";
 import { useLocale } from "next-intl";
-import { FC, useState, useEffect, useRef } from "react";
+import { FC } from "react";
 
 import { CommentType } from "@/types/comment";
 import { formatDate } from "@/utils/date_formatters";

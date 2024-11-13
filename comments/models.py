@@ -129,7 +129,7 @@ class Comment(TimeStampedModel):
 
 
 class CommentDiff(TimeStampedModel):
-    comment = models.ForeignKey(Comment, models.CASCADE)
+    comment = models.ForeignKey(Comment, models.CASCADE, related_name="comment_diffs")
     author = models.ForeignKey(User, models.CASCADE)
     text_diff = models.TextField()
 

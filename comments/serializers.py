@@ -30,6 +30,7 @@ class CommentSerializer(serializers.ModelSerializer):
     author = BaseUserSerializer()
     changed_my_mind = serializers.SerializerMethodField(read_only=True)
     text = serializers.SerializerMethodField()
+    edited_at = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
@@ -39,6 +40,7 @@ class CommentSerializer(serializers.ModelSerializer):
             "parent_id",
             "root_id",
             "created_at",
+            "edited_at",
             "is_soft_deleted",
             "text",
             "on_post",
@@ -65,6 +67,10 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_text(self, value: Comment):
         return _("deleted") if value.is_soft_deleted else value.text
+
+    def get_edited_at(self, comment: Comment):
+        latest_diff = comment.comment_diffs.order_by('-created_at').first()
+        return latest_diff.created_at if latest_diff else None
 
 
 class OldAPICommentWriteSerializer(serializers.Serializer):
@@ -132,6 +138,7 @@ def serialize_comment_many(
     qs = Comment.objects.filter(pk__in=[c.pk for c in comments])
 
     qs = qs.select_related("included_forecast", "author")
+    qs = qs.prefetch_related("comment_diffs")
     qs = qs.annotate_vote_score()
 
     if current_user and not current_user.is_anonymous:
