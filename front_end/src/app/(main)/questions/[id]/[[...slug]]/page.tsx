@@ -186,85 +186,85 @@ export default async function IndividualQuestion({
             )}
           </div>
           <div className="flex gap-4">
-            <div className="flex w-full flex-col gap-4">
-              <section className="w-[48rem] max-w-full border-transparent bg-gray-0 px-3 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
-                <PostHeader post={postData} questionTitle={questionTitle} />
-                {!postData.conditional && (
-                  <div className="mt-2 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2 lg:mt-4">
-                    <h1 className="m-0 text-xl leading-tight sm:text-3xl">
-                      {postData.title}
-                    </h1>
-                    {postData.resolved && !!postData.question && (
-                      <QuestionResolutionStatus post={postData} />
-                    )}
-                  </div>
-                )}
+            <section className="w-[48rem] max-w-full border-transparent bg-gray-0 px-3 text-gray-900 after:mt-6 after:block after:w-full after:content-[''] dark:border-blue-200-dark dark:bg-gray-0-dark dark:text-gray-900-dark xs:px-4 lg:border">
+              <PostHeader post={postData} questionTitle={questionTitle} />
+              {!postData.conditional && (
+                <div className="mt-2 flex justify-between gap-2 xs:gap-4 sm:gap-8 lg:mb-2 lg:mt-4">
+                  <h1 className="m-0 text-xl leading-tight sm:text-3xl">
+                    {postData.title}
+                  </h1>
+                  {postData.resolved && !!postData.question && (
+                    <QuestionResolutionStatus post={postData} />
+                  )}
+                </div>
+              )}
 
-                {!!postData.conditional && (
-                  <ConditionalTile
-                    postTitle={postData.title}
-                    conditional={postData.conditional}
-                    curationStatus={postData.status}
-                    nrForecasters={postData.nr_forecasters}
-                    withNavigation
-                    withCPRevealBtn
-                  />
-                )}
-                <QuestionHeaderInfo post={postData} />
-
-                {!!postData.question && (
-                  <DetailedQuestionCard
-                    postStatus={postData.status}
-                    question={postData.question}
-                    nrForecasters={postData.nr_forecasters}
-                  />
-                )}
-                {!!postData.group_of_questions && (
-                  <DetailedGroupCard
-                    actualCloseTime={
-                      postData.actual_close_time ??
-                      postData.scheduled_close_time
-                    }
-                    questions={postData.group_of_questions.questions}
-                    preselectedQuestionId={preselectedGroupQuestionId}
-                    isClosed={isClosed}
-                    graphType={postData.group_of_questions.graph_type}
-                    nrForecasters={postData.nr_forecasters}
-                    postStatus={postData.status}
-                  />
-                )}
-
-                <ForecastMaker post={postData} />
-                {!!postData.conditional && (
-                  <ConditionalTimeline
-                    conditional={
-                      postData.conditional as PostConditional<QuestionWithNumericForecasts>
-                    }
-                    isClosed={isClosed}
-                  />
-                )}
-
-                {!!postData.group_of_questions && (
-                  <ContinuousGroupTimeline
-                    post={postData}
-                    preselectedQuestionId={preselectedGroupQuestionId}
-                  />
-                )}
-
-                <BackgroundInfo post={postData} />
-                <HistogramDrawer post={postData} />
-                <Sidebar
-                  postData={postData}
-                  allowModifications={allowModifications}
-                  layout="mobile"
-                  questionTitle={questionTitle}
+              {!!postData.conditional && (
+                <ConditionalTile
+                  postTitle={postData.title}
+                  conditional={postData.conditional}
+                  curationStatus={postData.status}
+                  nrForecasters={postData.nr_forecasters}
+                  withNavigation
+                  withCPRevealBtn
+                  forecasters={postData.nr_forecasters}
                 />
-              </section>
+              )}
+              <QuestionHeaderInfo post={postData} />
+
+              {!!postData.question && (
+                <DetailedQuestionCard
+                  postStatus={postData.status}
+                  question={postData.question}
+                  nrForecasters={postData.nr_forecasters}
+                />
+              )}
+              {!!postData.group_of_questions && (
+                <DetailedGroupCard
+                  actualCloseTime={
+                    postData.actual_close_time ?? postData.scheduled_close_time
+                  }
+                  questions={postData.group_of_questions.questions}
+                  preselectedQuestionId={preselectedGroupQuestionId}
+                  isClosed={isClosed}
+                  graphType={postData.group_of_questions.graph_type}
+                  nrForecasters={postData.nr_forecasters}
+                  postStatus={postData.status}
+                />
+              )}
+
+              <ForecastMaker post={postData} />
+              {!!postData.conditional && (
+                <ConditionalTimeline
+                  conditional={
+                    postData.conditional as PostConditional<QuestionWithNumericForecasts>
+                  }
+                  isClosed={isClosed}
+                />
+              )}
+
+              {!!postData.group_of_questions && (
+                <ContinuousGroupTimeline
+                  post={postData}
+                  preselectedQuestionId={preselectedGroupQuestionId}
+                />
+              )}
+
+              <BackgroundInfo post={postData} />
+              <HistogramDrawer post={postData} />
+              <Sidebar
+                postData={postData}
+                allowModifications={allowModifications}
+                layout="mobile"
+                questionTitle={questionTitle}
+              />
+
               <CommentFeed
                 postData={postData}
                 postPermissions={postData.user_permission}
               />
-            </div>
+            </section>
+
             <Sidebar
               postData={postData}
               allowModifications={allowModifications}

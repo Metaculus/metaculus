@@ -54,11 +54,14 @@ const ContinuousPredictionChart: FC<Props> = ({
       xLabel,
       yUserLabel: readOnly
         ? null
+        : !hoverState.yData.user
+          ? null
+          : graphType === "pmf"
+            ? (hoverState.yData.user * 200).toFixed(3)
+            : getForecastPctDisplayValue(hoverState.yData.user),
+      yCommunityLabel: !hoverState.yData.community
+        ? null
         : graphType === "pmf"
-          ? (hoverState.yData.user * 200).toFixed(3)
-          : getForecastPctDisplayValue(hoverState.yData.user),
-      yCommunityLabel:
-        graphType === "pmf"
           ? (hoverState.yData.community * 200).toFixed(3)
           : getForecastPctDisplayValue(hoverState.yData.community),
     };
@@ -133,7 +136,7 @@ const ContinuousPredictionChart: FC<Props> = ({
                 {")"}
               </span>
             )}
-            {showCP && (
+            {showCP && cursorDisplayData.yCommunityLabel && (
               <span>
                 <span className="font-bold text-gray-900 dark:text-gray-900-dark">
                   {cursorDisplayData.yCommunityLabel}

@@ -14,6 +14,7 @@ type Props = {
   curationStatus: PostStatus;
   post: PostWithForecasts;
   hideCP?: boolean;
+  forecasters?: number;
 };
 
 const GroupOfQuestionsTile: FC<Props> = ({
@@ -21,6 +22,7 @@ const GroupOfQuestionsTile: FC<Props> = ({
   curationStatus,
   post,
   hideCP,
+  forecasters,
 }) => {
   const t = useTranslations();
   const groupType = questions.at(0)?.type;
@@ -35,6 +37,7 @@ const GroupOfQuestionsTile: FC<Props> = ({
       curationStatus={curationStatus}
       post={post}
       hideCP={hideCP}
+      forecasters={forecasters}
     />
   );
 };

@@ -9,6 +9,7 @@ import { VictoryThemeDefinition } from "victory";
 import { useHideCP } from "@/app/(main)/questions/[id]/components/cp_provider";
 import RevealCPButton from "@/app/(main)/questions/[id]/components/reveal_cp_button";
 import { SLUG_POST_SUB_QUESTION_ID } from "@/app/(main)/questions/[id]/search_params";
+import ForecastersCounter from "@/app/(main)/questions/components/forecaster_counter";
 import PredictionChip from "@/components/prediction_chip";
 import { PostConditional, PostStatus } from "@/types/post";
 import { QuestionWithForecasts } from "@/types/question";
@@ -31,6 +32,7 @@ type Props = {
   chartTheme?: VictoryThemeDefinition;
   nrForecasters?: number;
   withCPRevealBtn?: boolean;
+  forecasters?: number;
 };
 
 const ConditionalTile: FC<Props> = ({
@@ -40,6 +42,7 @@ const ConditionalTile: FC<Props> = ({
   withNavigation,
   chartTheme,
   withCPRevealBtn,
+  forecasters,
 }) => {
   const t = useTranslations();
   const { hideCP } = useHideCP();
@@ -109,6 +112,7 @@ const ConditionalTile: FC<Props> = ({
                 hideCP={hideCP}
               />
             )}
+            <ForecastersCounter forecasters={forecasters} />
           </ConditionalCard>
         </div>
         <div

@@ -254,7 +254,7 @@ export function displayValue(
     // TODO add truncation to abbreviatedNumber
     return abbreviatedNumber(value, precision);
   } else {
-    return `${Math.round(value * 100)}%`;
+    return `${Math.round(value * 1000) / 10}%`;
   }
 }
 
@@ -265,13 +265,13 @@ export function displayValue(
  * Accepts a Question or the individual parameters of a Question
  */
 export function getDisplayValue(
-  value: number | undefined,
+  value: number | null | undefined,
   questionType: QuestionType,
   scaling: Scaling,
   precision?: number,
   truncation?: number
 ): string {
-  if (value === undefined) {
+  if (value === undefined || value === null) {
     return "...";
   }
   const scaledValue = scaleInternalLocation(value, scaling);
@@ -360,7 +360,7 @@ export function getDisplayUserValue(
   } else if (qType === QuestionType.Numeric) {
     return abbreviatedNumber(scaledValue);
   } else {
-    return `${Math.round(scaledValue * 100)}%`;
+    return `${Math.round(scaledValue * 1000) / 10}%`;
   }
 }
 

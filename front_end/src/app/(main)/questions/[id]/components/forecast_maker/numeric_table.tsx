@@ -128,9 +128,9 @@ const NumericForecastTable: FC<Props> = ({
           <div className="w-full text-center">
             {question.open_lower_bound && (
               <div>
-                {communityBounds &&
-                  (communityBounds.belowLower * 100).toFixed(1)}
-                %
+                {communityBounds
+                  ? (communityBounds!.belowLower * 100).toFixed(1) + "%"
+                  : "..."}
               </div>
             )}
             <div>
@@ -162,9 +162,9 @@ const NumericForecastTable: FC<Props> = ({
             </div>
             {question.open_upper_bound && (
               <div>
-                {communityBounds &&
-                  (communityBounds!.aboveUpper * 100).toFixed(1)}
-                %
+                {communityBounds
+                  ? (communityBounds!.aboveUpper * 100).toFixed(1) + "%"
+                  : "..."}
               </div>
             )}
           </div>

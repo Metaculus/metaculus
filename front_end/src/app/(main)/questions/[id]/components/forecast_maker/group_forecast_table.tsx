@@ -29,7 +29,7 @@ export type ConditionalTableOption = {
   userForecast: MultiSliderValue[] | null;
   userWeights: number[];
   userQuartiles: Quartiles | null;
-  communityQuartiles: Quartiles;
+  communityQuartiles: Quartiles | null;
   isDirty: boolean;
   resolution: Resolution | null;
   menu?: ReactNode;
@@ -180,7 +180,7 @@ const GroupForecastTable: FC<Props> = ({
                 >
                   <PredictionCell
                     communityValue={getDisplayValue(
-                      showCP ? option.communityQuartiles.lower25 : undefined,
+                      showCP ? option.communityQuartiles?.lower25 : undefined,
                       (
                         questions.find(
                           (question) => question.id === option.id
@@ -215,7 +215,7 @@ const GroupForecastTable: FC<Props> = ({
                 >
                   <PredictionCell
                     communityValue={getDisplayValue(
-                      showCP ? option.communityQuartiles.median : undefined,
+                      showCP ? option.communityQuartiles?.median : undefined,
                       (
                         questions.find(
                           (question) => question.id === option.id
@@ -253,7 +253,7 @@ const GroupForecastTable: FC<Props> = ({
                       <PredictionCell
                         communityValue={getDisplayValue(
                           showCP
-                            ? option.communityQuartiles.upper75
+                            ? option.communityQuartiles?.upper75
                             : undefined,
                           (
                             questions.find(

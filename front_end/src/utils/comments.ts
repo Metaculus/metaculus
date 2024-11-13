@@ -1,6 +1,8 @@
 import { AuthorType, BECommentType, CommentType } from "@/types/comment";
 
-export function parseComment(comment: BECommentType): CommentType {
+export function parseComment(
+  comment: BECommentType | CommentType
+): CommentType {
   return {
     id: comment.id,
     parent_id: comment.parent_id,
@@ -42,7 +44,7 @@ export function parseUserMentions(
       }
 
       const cleanedUsername = (group2 || group3).replace(/[@()]/g, "");
-      switch (cleanedUsername) {
+      switch (cleanedUsername.toLowerCase()) {
         case "moderators":
           return `[@${cleanedUsername}](/faq/#moderators-tag)`;
         case "predictors":
